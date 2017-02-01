@@ -19,8 +19,8 @@
 #' @examples sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"),
 #'                        c("ndvi_smooth", "evi_smooth"), 5.0)
 sits_smooth <- function (table_in,
-                         bands_in  = bands.global,
-                         bands_out = bands_smooth.global,
+                         bands_in  = bands.gl,
+                         bands_out = bands_s.global,
                          lambda    = 5.0) {
 
      # function to smooth the bands of a time series

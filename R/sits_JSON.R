@@ -1,29 +1,29 @@
 
-# -----------------------------------------------------------
 #' Store the contents of an in-memory database in a JSON file
 #'
-#' \code{sits_toJSON} gets a SITS table from a JSON file
+#' \code{sits_toJSON} stores a SITS table in a JSON file
 #'
 #' The set of time series from a SITS table can be saved in JSON format
 #' and later retrieved for further use
 #'
-#' @param json_file   name of the JSON file
-#' @param table       a string with the name of a global database (previously created)
-#' @return            an updated in-memory database
+#' @param json_file   string - name of the JSON file to be written
+#' @param table       tibble - an existing SITS table
+#' @return table      the same table (for chaining functions)
 #' @keywords STIS
-#' @family   STIS
-#' @examples sits_toJSON ("myjson_file.json", database = "my.db")
+#' @family   STIS main functions
+#' @examples table <- sits_toJSON (json_file = "myjson_file.json", table = "my.db")
 #' @export
 sits_toJSON <- function (json_file, table) {
 
      # does the database exist?
      sits_assert_table(table)
-     # add the contents of the JSON file to the in-memory database
+     # store the contents of table in a JSON file
      table %>%
           toJSON (pretty = TRUE) %>%
           write_lines (json_file)
+     # return the table for chaining sits functions
+     return (table)
 }
-
 
 # -----------------------------------------------------------
 #' Retrieve a set of time series from a JSON file
@@ -33,17 +33,15 @@ sits_toJSON <- function (json_file, table) {
 #' The set of time series from the SITS database can be saved in JSON format
 #' and later retrieved for further use
 #'
-#' @param json_file   name of the JSON file
-#' @param table      a string with the name of a global sits table (created if not existent)
-#' @return            an updated in-memory database
+#' @param json_file   string - name of the JSON file
+#' @return  table     tibble - a new SITS table
 #' @keywords STIS
-#' @family   STIS
-#' @examples sits_fromJSON ("myjson_file.json", table = "my.tb")
+#' @family   STIS main functions
+#' @export
+#' @examples table <- sits_fromJSON ("myjson_file.json")
 sits_fromJSON <- function (json_file) {
 
-     # does the database exist?
-     #sits_check_table (table)
-     # retrieve the in-memory database specified by the user
+     # create a new table to store the contents of the JSON file
      table <- sits_table()
      # add the contents of the JSON file to the in-memory database
      table <- as_tibble (fromJSON (json_file))

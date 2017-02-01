@@ -2,7 +2,7 @@
 #
 #' Set important global variables for WTSS access
 #'
-#' \code{sits_config} stores the information about the WTSS server
+#' \code{sits_configWTSS} stores the information about the WTSS server
 #' and the coverage name to be retrieved in the global environment
 #' The assumption is that in a SITS session, this information is defined one and
 #' used in many applications
@@ -13,7 +13,7 @@
 #' @param coverage        name of space-time coverage that contains the time series information
 #' @param bands           a character vector with the names of the bands to be retrieved
 #' @export
-sits_config_WTSS <- function (URL       = "http://www.dpi.inpe.br/tws/wtss",
+sits_configWTSS <- function (URL       = "http://www.dpi.inpe.br/tws/wtss",
                               coverage  = "mod13q1_512",
                               bands     = c("ndvi", "evi")) {
      # assigns variables to the global enviroment
@@ -38,25 +38,4 @@ sits_config_WTSS <- function (URL       = "http://www.dpi.inpe.br/tws/wtss",
                                                      return (new_name)
                                                 }
      ))
-}
-
-
-#
-#' Verify if the information concerning WTSS service has been configured
-#'
-#' \code{sits_assert_WTSS} tests if the WTSS service has been correctly configured
-#'
-#'
-#'
-sits_assert_WTSS <- function() {
-     tryCatch (
-          exists(WTSS_URL.global),
-          error = function (cond) {
-               message (paste ("Missing WTSS service information!!","\n",
-                               "Please configure the WTSS service","\n",
-                               "using function sits_config_WTSS(service_URL, coverage_name, bands)", "\n",
-                               sep=""))
-               stop(cond)
-          }
-     )
 }

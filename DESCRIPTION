@@ -28,3 +28,4 @@ Depends:
      wtss.R,
      dtwSat,
      reshape2
+RoxygenNote: 6.0.0

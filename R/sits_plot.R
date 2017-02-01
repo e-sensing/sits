@@ -5,41 +5,54 @@
 #'
 #' Plot one SITS time series for a single place and interval
 #'
-#' @param ts   a tibble the list of time series to be plotted
-#' @param colours   the color pallete to be used (default is "Set1")
-#' @return          none
+#' @param    data.tb    tibble - a SITS table with the list of time series to be plotted
+#' @param    colours    the color pallete to be used (default is "Set1")
+#' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
 #' @keywords STIS
-#' @family   STIS auxiliary functions
-#' @examples sits_plot  (ts, "Set1")
+#' @family   STIS main functions
+#' @export
+#' @examples sits_plot  ts <- (ts, type = "grouped", colors = "Set1")
 #'
-#'
-sits_plot <- function (data.tb, type = "joined", colours = "Dark2") {
+sits_plot <- function (data.tb, type = "joined", colors = "Dark2") {
 
-     if (type != "joined" && type != "separated" && type != "grouped") {
-          message (paste ("sits_plot: valid plot types are joined, separate or grouped", "\n", sep = ""))
+     if (type != "joined" && type != "separated" && type != "grouped" && type = "patterns") {
+          message (paste ("sits_plot: valid plot types are joined, separated, grouped or patterns", "\n", sep = ""))
      }
 
      # plot all points joined in time
      if (type == "joined") {
+          # create the plot title
           plot_title <- sits_make_plot_title (data.tb[1,])
+          # use ggplot to plot the time series together
           data.tb$time_series %>%
-               sits_ggplot_series(plot_title) %>%
+               sits_ggplot_series(plot_title, colors) %>%
                plot()
      }
      # plot one by one
      else if (type == "separated") {
+          # plot series one by one
           for (i in 1:nrow (data.tb)) {
+               # create the plot title
                plot_title <- sits_make_plot_title (data.tb[i,])
+               # use ggplot to plot each time series separately
                data.tb[i,]$time_series %>%
-                    sits_ggplot_series (plot_title) %>%
+                    sits_ggplot_series (plot_title, colors) %>%
                     plot ()
           }
      } else if (type == "grouped"){
-          label <- data.tb[1,]$label
-          number <- nrow (data.tb)
-          bands  <- sits_band_names (data.tb[1,]$time_series)
-          sits_plot_all_samples (data.tb$time_series, bands, label, number)
+          # retrieve the label of the class to be plotted
+          label1 <- data.tb[1,]$label
+          # filter only those rows with the same label
+          data2.tb <- filter (data.tb, label == label1)
+          # how many time series are to be plotted?
+          number <- nrow (data2.tb)
+          # what are the band names?
+          bands  <- sits_band_names (data2.tb[1,]$time_series)
+          # plot all samples for the same label
+          sits_plot_all_samples (data2.tb$time_series, bands, label, number)
      }
+     # return the original SITS table - useful for chaining
+     return (data.tb)
 }
 # Plot a set of time series for a given value and label
 #'
@@ -150,3 +163,57 @@ sits_make_plot_title <- function (row) {
                      sep = "")
      return (title)
 }
+
+
+#' @description Method for plotting the temporal patterns.
+#'
+#' @param x An object of class \code{\link[dtwSat]{twdtwTimeSeries}},
+#' \code{\link[zoo]{zoo}}, or list of \code{\link[zoo]{zoo}}.
+#' @param labels a vector with labels of the time series. If not declared
+#' the function will plot all time series.
+#' @param year An integer. The base year to shift the dates of the time series to.
+#' If NULL then it does not shif the time series. Default is 2005.
+#' @param attr An \link[base]{integer} vector or \link[base]{character} vector
+#' indicating the attribute for plotting. If not declared the function will plot
+#' all attributes.
+#'
+#' @return A \link[ggplot2]{ggplot} object.
+#'
+#' @seealso
+#' \code{\link[dtwSat]{twdtwTimeSeries-class}} and
+#' \code{\link[dtwSat]{plotTimeSeries}}
+#'
+#' @examples
+#' patt = twdtwTimeSeries(MOD13Q1.patterns.list)
+#' plotPatterns(patt)
+#' plotPatterns(patt, attr="evi")
+#'
+#' @export
+# plotPatterns = function(x, labels=NULL, attr, year=2005){
+#
+#      if(is(x, "twdtwMatches")) x = x@patterns
+#      if(is(x, "twdtwTimeSeries")) x = subset(x, labels)
+#      x = twdtwTimeSeries(x, labels)
+#      labels = labels(x)
+#
+#      # Shift dates
+#      if(!is.null(year)) x = shiftDates(x, year=year)
+#
+#      # Build data.frame
+#      if(missing(attr)) attr = names(x[[1]])
+#      df.p = do.call("rbind", lapply(labels, function(p){
+#           ts = x[[p]][,attr,drop=FALSE]
+#           data.frame(Time=index(ts), ts, Pattern=p)
+#      }))
+#      df.p = melt(df.p, id.vars=c("Time","Pattern"))
+#
+#      # Plot temporal patterns
+#      gp = ggplot(df.p, aes_string(x="Time", y="value", colour="variable") ) +
+#           geom_line() +
+#           facet_wrap(~Pattern) +
+#           theme(legend.position = "bottom") +
+#           scale_x_date(labels = date_format("%b"))
+#
+#      gp
+#
+# }
