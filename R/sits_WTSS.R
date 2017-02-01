@@ -23,6 +23,7 @@ sits_info_WTSS <- function (URL    = "http://www.dpi.inpe.br/tws/wtss") {
 
           cov <- desc.obj[[i]]
           # bands <- cov$attributes$name[1:length (cov$attributes$name)]
+          cat ("Coverage information\n")
           cat (paste ("Coverage : ", cov$name, "\n",sep = ""))
           cat (paste ("Description :", cov$description, "\n", sep = ""))
           cat (paste ("Source : ", cov$detail, "\n", sep = ""))
