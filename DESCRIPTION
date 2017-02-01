@@ -1,0 +1,30 @@
+Package: sits
+Type: Package
+Title: Satellite Image Time Series Analysis
+Version: 0.1.0
+Author: Gilberto Camara
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: A set of tools for working with satellite image time series.
+    Supports data retrieval from a WTSS (web time series service).
+    Provides different visualisation methods for image time series.
+    Enables different clustering methods.
+    Provides smoothing methods for noisy time series.
+    Classifies time series using TWDTW packages.
+License: GLP-3
+Encoding: UTF-8
+LazyData: true
+Depends:
+     jsonlite,
+     roxygen2,
+     raster,
+     lubridate,
+     zoo,
+     signal,
+     ptw,
+     dtwclust,
+     magrittr,
+     tidyverse,
+     stringr,
+     wtss.R,
+     dtwSat,
+     reshape2
