@@ -51,7 +51,7 @@ sits_tibble_values_only <- function (data.tb, band) {
 #' \code{sits_band_names} tests if the sits table exists and has data
 #' @param ts     a time series extracted from a sits table
 #' @return names a string vector with the names of the bands
-#'
+#' @export
 #'
 sits_band_names <- function (ts) {
      mynames <- ts %>%
