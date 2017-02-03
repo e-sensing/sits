@@ -20,3 +20,4 @@ Other SITS auxiliary functions: \code{\link{sits_ggplot_series}},
   \code{\link{sits_ggplot_together}}
 }
 \keyword{SITS}
+

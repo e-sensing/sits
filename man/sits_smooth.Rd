@@ -31,7 +31,7 @@ The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 
 Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 }
 \examples{
-sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"),
-                       c("ndvi_smooth", "evi_smooth"), 5.0)
+sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"), c("ndvi_smooth", "evi_smooth"), 5.0)
 }
 \keyword{sits}
+

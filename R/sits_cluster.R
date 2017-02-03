@@ -48,7 +48,7 @@ sits_cluster <- function (data.tb, type = "partitional", n_clusters = 6){
 sits_cluster_hierarchical <- function (data.tb, n_clusters = 6) {
 
      cluster_dendogram <- function (data.tb, band, n_clusters){
-          values.tb <- sits_tibble_values_only (data.tb, band)
+          values.tb <- sits_values (data.tb, band)
           clusters  <- dtwclust (values.tb,
                                  type     = "hierarchical",
                                  k        = n_clusters,
@@ -101,7 +101,7 @@ sits_cluster_hierarchical <- function (data.tb, n_clusters = 6) {
 sits_cluster_partitional <- function (data.tb, n_clusters = 6) {
 
      cluster_partitional <- function (data.tb, band, n_clusters) {
-          values.tb <- sits_tibble_values_only (data.tb, band)
+          values.tb <- sits_values (data.tb, band)
           clusters  <- dtwclust (values.tb,
                                  type     = "partitional",
                                  k        = n_clusters,

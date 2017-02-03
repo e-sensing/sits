@@ -14,3 +14,4 @@ table  a tibble in SITS format
 A sits table has the metadata and data for each time series
 <longitude, latitude, from, to, label, coverage, time_series>
 }
+

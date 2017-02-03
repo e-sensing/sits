@@ -10,3 +10,4 @@ sits_assertWTSS()
 \code{sits_assert_WTSS} tests if the WTSS service has been correctly configured
  The function verifies that the WTSS service is running
 }
+

@@ -39,3 +39,4 @@ sits_plot  (ts, "Set1")
 Other STIS auxiliary functions: \code{\link{sits_cluster_partitional}}
 }
 \keyword{STIS}
+

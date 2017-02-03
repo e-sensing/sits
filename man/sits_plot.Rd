@@ -29,3 +29,4 @@ Other STIS main functions: \code{\link{sits_fromJSON}},
   \code{\link{sits_toJSON}}
 }
 \keyword{STIS}
+

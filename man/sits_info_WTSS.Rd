@@ -13,3 +13,4 @@ sits_info_WTSS(URL = "http://www.dpi.inpe.br/tws/wtss")
 \code{sits_info_WTSS} uses the WTSS services to provide information about the
 coverages that are served
 }
+

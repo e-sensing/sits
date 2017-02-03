@@ -33,9 +33,8 @@ sits_configWTSS <- function (URL       = "http://www.dpi.inpe.br/tws/wtss",
      to.gl        <<- cov_desc.lst[[cov_name.gl]]$geo_extent$temporal$end
      bands.gl     <<- bands
      bands_s.gl   <<- as.character(map (bands.gl,
-                                                function (name) {
-                                                     new_name <- paste(name,"_smooth", sep="")
-                                                     return (new_name)
-                                                }
-     ))
+                    function (name) { new_name <- paste(name,"_smooth", sep="")
+                                      return (new_name)
+                                   })
+                    )
 }

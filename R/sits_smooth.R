@@ -16,8 +16,7 @@
 #' @return           a tibble with smoothed sits time series
 #' @keywords sits
 #' @family   sits auxiliary functions
-#' @examples sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"),
-#'                        c("ndvi_smooth", "evi_smooth"), 5.0)
+#' @examples sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"), c("ndvi_smooth", "evi_smooth"), 5.0)
 #' @export
 sits_smooth <- function (table_in,
                          bands_in  = bands.gl,
@@ -32,7 +31,7 @@ sits_smooth <- function (table_in,
      # does the database exist?
      sits_assert_table(table_in)
      # test if the input database has at least one row of data
-     sits_is_empty (table_in)
+     #sits_is_empty (table_in)
      # extract the time series data from the sits table
      data1.tb <- table_in$time_series
      # smooth the time series
