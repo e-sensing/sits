@@ -4,15 +4,15 @@
 \alias{sits_plot}
 \title{Plot a set of time series for the same spatio-temporal reference}
 \usage{
-sits_plot(data.tb, type = "joined", colours = "Dark2")
+sits_plot(data.tb, type = "allyears", colors = "Dark2")
 }
 \arguments{
-\item{colours}{the color pallete to be used (default is "Set1")}
+\item{data.tb}{tibble - a SITS table with the list of time series to be plotted}
 
-\item{ts}{a tibble the list of time series to be plotted}
+\item{colours}{the color pallete to be used (default is "Set1")}
 }
 \value{
-none
+data.tb    tibble - the input SITS table (useful for chaining functions)
 }
 \description{
 \code{sits_plot_table} plot one time series for a single place and interval
@@ -21,12 +21,11 @@ none
 Plot one SITS time series for a single place and interval
 }
 \examples{
-sits_plot  (ts, "Set1")
-
+sits_plot  ts <- (ts, type = "grouped", colors = "Set1")
 
 }
 \seealso{
-Other STIS auxiliary functions: \code{\link{sits_cluster_hierarchical}},
-  \code{\link{sits_cluster_partitional}}
+Other STIS main functions: \code{\link{sits_fromJSON}},
+  \code{\link{sits_toJSON}}
 }
 \keyword{STIS}

@@ -36,7 +36,6 @@ sits_plot  (ts, "Set1")
 
 }
 \seealso{
-Other STIS auxiliary functions: \code{\link{sits_cluster_partitional}},
-  \code{\link{sits_plot}}
+Other STIS auxiliary functions: \code{\link{sits_cluster_partitional}}
 }
 \keyword{STIS}

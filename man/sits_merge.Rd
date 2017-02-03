@@ -15,21 +15,22 @@ sits_merge(sits1.tb, sits2.tb)
 new.tb    a merged SITS tibble with a nested set of time series
 }
 \description{
-\code{sits_merge} merges two STIS with the same spatio-temporal references
+\code{sits_merge} merges two STIS tables with the same spatio-temporal references
 }
 \details{
-To merge two series, we consider that they contain different
-attributes but refer to the same coverage, and spatio-temporal location
+#' To merge two series, we consider that they contain different
+attributes but refer to the same coverage, and spatio-temporal location.
+
+This function is useful to merge different bands of the same spatio-temporal locations.
+For example, one may want to put the raw and smoothed bands for the same set of locations
+in the same table.
 }
 \examples{
 merged.tb <- merge_WTSS (sits1.tb, sits2.tb)
 
 }
 \seealso{
-Other SITS auxiliary functions: \code{\link{sits_fromCSV}},
-  \code{\link{sits_fromWTSS}},
-  \code{\link{sits_ggplot_series}},
-  \code{\link{sits_ggplot_together}},
-  \code{\link{sits_make_plot_title}}
+Other SITS main functions: \code{\link{sits_fromCSV}},
+  \code{\link{sits_fromWTSS}}
 }
 \keyword{SITS}

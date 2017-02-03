@@ -7,12 +7,10 @@
 sits_fromJSON(json_file)
 }
 \arguments{
-\item{json_file}{name of the JSON file}
-
-\item{table}{a string with the name of a global sits table (created if not existent)}
+\item{json_file}{string - name of the JSON file}
 }
 \value{
-an updated in-memory database
+table     tibble - a new SITS table
 }
 \description{
 \code{sits_from_JSON} gets a SITS database from a JSON file
@@ -22,9 +20,10 @@ The set of time series from the SITS database can be saved in JSON format
 and later retrieved for further use
 }
 \examples{
-sits_fromJSON ("myjson_file.json", table = "my.tb")
+table <- sits_fromJSON ("myjson_file.json")
 }
 \seealso{
-Other STIS: \code{\link{sits_toJSON}}
+Other STIS main functions: \code{\link{sits_plot}},
+  \code{\link{sits_toJSON}}
 }
 \keyword{STIS}

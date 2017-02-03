@@ -36,7 +36,6 @@ sits_plot  (ts, "Set1")
 
 }
 \seealso{
-Other STIS auxiliary functions: \code{\link{sits_cluster_hierarchical}},
-  \code{\link{sits_plot}}
+Other STIS auxiliary functions: \code{\link{sits_cluster_hierarchical}}
 }
 \keyword{STIS}

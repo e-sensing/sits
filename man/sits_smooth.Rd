@@ -4,8 +4,8 @@
 \alias{sits_smooth}
 \title{Smooth the time series using Whittaker smoother}
 \usage{
-sits_smooth(table_in, bands_in = bands.global,
-  bands_out = bands_smooth.global, lambda = 5)
+sits_smooth(table_in, bands_in = bands.gl, bands_out = bands_s.gl,
+  lambda = 5)
 }
 \arguments{
 \item{table_in}{a string - the name of the database with original time series  (must exist)}
