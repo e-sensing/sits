@@ -21,10 +21,17 @@ sits_plot <- function (data.tb, type = "allyears", colors = "Dark2") {
 
      # plot all points joined in time
      if (type == "allyears") {
-          # use ggplot to plot the time series together
-          data.tb %>%
-               sits_ggplot_series(colors) %>%
-               plot()
+          locs <- dplyr::distinct (data.tb, longitude, latitude)
+          for (i in 1:nrow (locs)) {
+               long = as.double (locs [i,"longitude"])
+               lat  = as.double (locs [i, "latitude"])
+               # filter only those rows with the same label
+               data2.tb <- dplyr::filter (data.tb, longitude == long, latitude == lat)
+               # use ggplot to plot the time series together
+               data2.tb %>%
+                    sits_ggplot_series(colors) %>%
+                    plot()
+          }
      }
      # plot one by one
      else if (type == "one_by_one") {
