@@ -24,15 +24,15 @@ sits_configWTSS <- function (URL       = "http://www.dpi.inpe.br/tws/wtss",
      # store the name of the coverage
      cov_name.gl      <<- coverage
      # describe the coverage
-     cov_desc.lst      <- describeCoverage(ts_server.global, cov_name.global)
-     cov_desc.tb      <<- cov_desc.lst[[cov_name.global]]$attributes %>%
-          select (name, scale_factor, missing_value) %>%
+     cov_desc.lst      <- describeCoverage(ts_server.gl, cov_name.gl)
+     cov_desc.tb      <<- cov_desc.lst[[cov_name.gl]]$attributes %>%
+          dplyr::select (name, scale_factor, missing_value) %>%
           as_tibble()
 
-     from.gl      <<- cov_desc.lst[[cov_name.global]]$geo_extent$temporal$start
-     to.gl        <<- cov_desc.lst[[cov_name.global]]$geo_extent$temporal$end
+     from.gl      <<- cov_desc.lst[[cov_name.gl]]$geo_extent$temporal$start
+     to.gl        <<- cov_desc.lst[[cov_name.gl]]$geo_extent$temporal$end
      bands.gl     <<- bands
-     bands_s.gl   <<- as.character(map (bands.global,
+     bands_s.gl   <<- as.character(map (bands.gl,
                                                 function (name) {
                                                      new_name <- paste(name,"_smooth", sep="")
                                                      return (new_name)
