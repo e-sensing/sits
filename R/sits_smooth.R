@@ -20,7 +20,7 @@
 #'                        c("ndvi_smooth", "evi_smooth"), 5.0)
 sits_smooth <- function (table_in,
                          bands_in  = bands.gl,
-                         bands_out = bands_s.global,
+                         bands_out = bands_s.gl,
                          lambda    = 5.0) {
 
      # function to smooth the bands of a time series
