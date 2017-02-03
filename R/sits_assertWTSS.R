@@ -7,7 +7,7 @@
 #'
 sits_assertWTSS <- function() {
      tryCatch (
-          exists(WTSS_URL.global),
+          exists(WTSS_URL.gl),
           error = function (cond) {
                message (paste ("Missing WTSS service information!!","\n",
                                "Please configure the WTSS service","\n",

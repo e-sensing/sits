@@ -24,9 +24,9 @@ sits_fromWTSS <- function  (longitude =      -54.2313,
                             to        =         to.gl,
                             label     =     "NoClass") {
      # is the WTSS service running?
-     sits_assert_WTSS()
+     sits_assertWTSS()
      # get a time series from the WTSS server
-     ts <- timeSeries (ts_server.global,
+     ts <- timeSeries (ts_server.gl,
                        coverages  = cov_name.gl,
                        attributes = bands.gl,
                        longitude  = longitude,

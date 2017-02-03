@@ -18,6 +18,7 @@
 #' @family   sits auxiliary functions
 #' @examples sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"),
 #'                        c("ndvi_smooth", "evi_smooth"), 5.0)
+#' @export
 sits_smooth <- function (table_in,
                          bands_in  = bands.gl,
                          bands_out = bands_s.gl,
