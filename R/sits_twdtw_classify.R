@@ -14,14 +14,20 @@
 sits_twdtw_classify <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 100) {
 
 # unclassified time series
-ts_samples <- samples.tb %>%
-     sits_select (bands) %>%
-     sits_toTWDTW()
+samples.tb <- sits_select (samples.tb, bands)
+ts_samples <- sits_toTWDTW(samples.tb)
 
-#patterns time series
-ts_patterns <- patterns.tb %>%
-     sits_select (bands) %>%
-     sits_toTWDTW()
+patterns.tb <- sits_select (patterns.tb, bands)
+ts_patterns <- sits_toTWDTW(patterns.tb)
+
+# ts_samples <- samples.tb %>%
+#      sits_select (bands) %>%
+#      sits_toTWDTW()
+#
+# #patterns time series
+# ts_patterns <- patterns.tb %>%
+#      sits_select (bands) %>%
+#      sits_toTWDTW()
 
 # Applying TWDTW Analysis
 log_fun = logisticWeight(alpha=-0.05, beta=100)

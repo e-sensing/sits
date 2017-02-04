@@ -16,12 +16,12 @@
 #' @return           a tibble with smoothed sits time series
 #' @keywords sits
 #' @family   sits auxiliary functions
-#' @examples sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"), c("ndvi_smooth", "evi_smooth"), 5.0)
+#' @examples sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"), c("ndvi_smooth", "evi_smooth"), lambda = 0.5)
 #' @export
 sits_smooth <- function (table_in,
                          bands_in  = bands.gl,
                          bands_out = bands_s.gl,
-                         lambda    = 5.0) {
+                         lambda    = 0.5) {
 
      # function to smooth the bands of a time series
      smooth_Whittaker <- function (ts) {

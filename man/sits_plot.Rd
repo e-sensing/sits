@@ -15,7 +15,7 @@ sits_plot(data.tb, type = "allyears", colors = "Dark2")
 data.tb    tibble - the input SITS table (useful for chaining functions)
 }
 \description{
-\code{sits_plot_table} plot one time series for a single place and interval
+\code{sits_plot} plot one time series for a single place and interval
 }
 \details{
 Plot one SITS time series for a single place and interval

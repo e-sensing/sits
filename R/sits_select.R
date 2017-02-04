@@ -12,12 +12,16 @@ sits_select <- function (data.tb, bands) {
      new.tb <- dplyr::select (data.tb, longitude, latitude, from, to, label, coverage)
      time_series.ls <- data.tb$time_series
      ts <- list()
+     # for (i in 1:length (time_series.ls)) {
+     #      ts[[i]] <- time_series.ls[[i]] %>%
+     #           data.frame() %>%
+     #           .[,c("Index", bands)]
+     # }
      for (i in 1:length (time_series.ls)) {
-          ts[[i]] <- time_series.ls[[i]] %>%
-               data.frame() %>%
-               .[,c("Index", bands)]
+          tb <- time_series.ls[[i]]
+          print (tb)
+          ts[[i]] <- tb [,c('Index', bands)]
      }
      new.tb$time_series <- ts
-
      return (new.tb)
 }

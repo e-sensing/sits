@@ -5,7 +5,7 @@
 \title{Smooth the time series using Whittaker smoother}
 \usage{
 sits_smooth(table_in, bands_in = bands.gl, bands_out = bands_s.gl,
-  lambda = 5)
+  lambda = 0.5)
 }
 \arguments{
 \item{table_in}{a string - the name of the database with original time series  (must exist)}
@@ -31,7 +31,7 @@ The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 
 Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 }
 \examples{
-sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"), c("ndvi_smooth", "evi_smooth"), 5.0)
+sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"), c("ndvi_smooth", "evi_smooth"), lambda = 0.5)
 }
 \keyword{sits}
 
