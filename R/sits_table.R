@@ -2,7 +2,7 @@
 #'
 #' \code{sits_table} returns an empty sits table
 #' A sits table has the metadata and data for each time series
-#' <longitude, latitude, from, to, label, coverage, time_series>
+#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
 #' @return table  a tibble in SITS format
 #' @export
@@ -10,8 +10,8 @@
 sits_table <- function () {
      df <- data.frame(longitude   = double(),
                       latitude    = double (),
-                      from        = as.Date(character()),
-                      to          = as.Date(character()),
+                      start_date  = as.Date(character()),
+                      end_date    = as.Date(character()),
                       label       = character(),
                       coverage    = character(),
                       stringsAsFactors = FALSE

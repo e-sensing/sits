@@ -25,8 +25,7 @@ and later retrieved for further use
 table <- sits_toJSON (json_file = "myjson_file.json", table = "my.db")
 }
 \seealso{
-Other STIS main functions: \code{\link{sits_fromJSON}},
-  \code{\link{sits_plot}}
+Other STIS main functions: \code{\link{sits_dendogram}},
+  \code{\link{sits_fromJSON}}, \code{\link{sits_plot}}
 }
 \keyword{STIS}
-

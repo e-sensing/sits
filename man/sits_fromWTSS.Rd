@@ -4,28 +4,28 @@
 \alias{sits_fromWTSS}
 \title{Obtain one timeSeries from WTSS server and load it on a sits table}
 \usage{
-sits_fromWTSS(longitude = -54.2313, latitude = -14.0482, from = from.gl,
-  to = to.gl, label = "NoClass")
+sits_fromWTSS(longitude = -54.2313, latitude = -14.0482,
+  start_date = start_date.gl, end_date = end_date.gl, label = "NoClass")
 }
 \arguments{
 \item{longitude}{double - the longitude of the chosen location}
 
 \item{latitude}{double - the latitude of the chosen location}
 
-\item{from}{date - the start of the period}
+\item{start_date}{date - the start of the period}
 
-\item{to}{date - the end of the period}
+\item{end_date}{date - the end of the period}
 
 \item{label}{string - the label to attach to the time series (optional)}
 }
 \value{
-table    the table with the data
+table          the table with the data
 }
 \description{
 \code{sits_fromWTSS} returns one set of time series provided by a WTSS server
 }
 \details{
-Given a location (lat/long), and from/to period, and the WTSS server information
+Given a location (lat/long), and start/end period, and the WTSS server information
 retrieve a time series and include it on a stis table
 A sits table has the metadata and data for each time series
 <longitude, latitude, from, to, lable, time_series>
@@ -38,4 +38,3 @@ Other SITS main functions: \code{\link{sits_fromCSV}},
   \code{\link{sits_merge}}
 }
 \keyword{SITS}
-

@@ -3,8 +3,8 @@
     "id": 2,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -128,8 +128,8 @@
     "id": 3,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -253,8 +253,8 @@
     "id": 4,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -378,8 +378,8 @@
     "id": 5,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -503,8 +503,8 @@
     "id": 6,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -628,8 +628,8 @@
     "id": 7,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -753,8 +753,8 @@
     "id": 8,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -878,8 +878,8 @@
     "id": 9,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -1003,8 +1003,8 @@
     "id": 10,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -1128,8 +1128,8 @@
     "id": 11,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -1253,8 +1253,8 @@
     "id": 12,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -1378,8 +1378,8 @@
     "id": 13,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -1503,8 +1503,8 @@
     "id": 14,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -1628,8 +1628,8 @@
     "id": 15,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -1753,8 +1753,8 @@
     "id": 16,
     "longitude": -54.231,
     "latitude": -14.0469,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -1878,8 +1878,8 @@
     "id": 17,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -2003,8 +2003,8 @@
     "id": 18,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -2128,8 +2128,8 @@
     "id": 19,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -2253,8 +2253,8 @@
     "id": 20,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -2378,8 +2378,8 @@
     "id": 21,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -2503,8 +2503,8 @@
     "id": 22,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -2628,8 +2628,8 @@
     "id": 23,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -2753,8 +2753,8 @@
     "id": 24,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -2878,8 +2878,8 @@
     "id": 25,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -3003,8 +3003,8 @@
     "id": 26,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -3128,8 +3128,8 @@
     "id": 27,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -3253,8 +3253,8 @@
     "id": 28,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -3378,8 +3378,8 @@
     "id": 29,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -3503,8 +3503,8 @@
     "id": 30,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -3628,8 +3628,8 @@
     "id": 31,
     "longitude": -54.2302,
     "latitude": -14.0615,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -3753,8 +3753,8 @@
     "id": 32,
     "longitude": -54.5432,
     "latitude": -14.3094,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -3878,8 +3878,8 @@
     "id": 33,
     "longitude": -52.6236,
     "latitude": -15.3135,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -4003,8 +4003,8 @@
     "id": 34,
     "longitude": -52.6236,
     "latitude": -15.3135,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -4128,8 +4128,8 @@
     "id": 35,
     "longitude": -52.6236,
     "latitude": -15.3135,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -4253,8 +4253,8 @@
     "id": 36,
     "longitude": -52.6236,
     "latitude": -15.3135,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -4378,8 +4378,8 @@
     "id": 37,
     "longitude": -52.6236,
     "latitude": -15.3135,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -4503,8 +4503,8 @@
     "id": 38,
     "longitude": -52.6236,
     "latitude": -15.3135,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -4628,8 +4628,8 @@
     "id": 39,
     "longitude": -52.6236,
     "latitude": -15.3135,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -4753,8 +4753,8 @@
     "id": 40,
     "longitude": -52.6236,
     "latitude": -15.3135,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -4878,8 +4878,8 @@
     "id": 41,
     "longitude": -52.6236,
     "latitude": -15.3135,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -5003,8 +5003,8 @@
     "id": 42,
     "longitude": -52.5831,
     "latitude": -15.3156,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -5128,8 +5128,8 @@
     "id": 43,
     "longitude": -52.5831,
     "latitude": -15.3156,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -5253,8 +5253,8 @@
     "id": 44,
     "longitude": -52.5831,
     "latitude": -15.3156,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -5378,8 +5378,8 @@
     "id": 45,
     "longitude": -52.5831,
     "latitude": -15.3156,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -5503,8 +5503,8 @@
     "id": 46,
     "longitude": -52.5831,
     "latitude": -15.3156,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -5628,8 +5628,8 @@
     "id": 47,
     "longitude": -52.5831,
     "latitude": -15.3156,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -5753,8 +5753,8 @@
     "id": 48,
     "longitude": -52.5831,
     "latitude": -15.3156,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -5878,8 +5878,8 @@
     "id": 49,
     "longitude": -52.5831,
     "latitude": -15.3156,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -6003,8 +6003,8 @@
     "id": 50,
     "longitude": -52.5831,
     "latitude": -15.3156,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -6128,8 +6128,8 @@
     "id": 51,
     "longitude": -52.6222,
     "latitude": -15.0219,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -6253,8 +6253,8 @@
     "id": 52,
     "longitude": -52.6222,
     "latitude": -15.0219,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -6378,8 +6378,8 @@
     "id": 53,
     "longitude": -52.6222,
     "latitude": -15.0219,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -6503,8 +6503,8 @@
     "id": 54,
     "longitude": -52.6222,
     "latitude": -15.0219,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -6628,8 +6628,8 @@
     "id": 55,
     "longitude": -52.6222,
     "latitude": -15.0219,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -6753,8 +6753,8 @@
     "id": 56,
     "longitude": -52.6222,
     "latitude": -15.0219,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -6878,8 +6878,8 @@
     "id": 57,
     "longitude": -52.6222,
     "latitude": -15.0219,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -7003,8 +7003,8 @@
     "id": 58,
     "longitude": -52.6222,
     "latitude": -15.0219,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -7128,8 +7128,8 @@
     "id": 59,
     "longitude": -52.6222,
     "latitude": -15.0219,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -7253,8 +7253,8 @@
     "id": 60,
     "longitude": -51.7762,
     "latitude": -14.3469,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -7378,8 +7378,8 @@
     "id": 61,
     "longitude": -51.7762,
     "latitude": -14.3469,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -7503,8 +7503,8 @@
     "id": 62,
     "longitude": -51.7762,
     "latitude": -14.3469,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -7628,8 +7628,8 @@
     "id": 63,
     "longitude": -51.7762,
     "latitude": -14.3469,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -7753,8 +7753,8 @@
     "id": 64,
     "longitude": -51.7762,
     "latitude": -14.3469,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -7878,8 +7878,8 @@
     "id": 65,
     "longitude": -51.7762,
     "latitude": -14.3469,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -8003,8 +8003,8 @@
     "id": 66,
     "longitude": -51.7762,
     "latitude": -14.3469,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -8128,8 +8128,8 @@
     "id": 67,
     "longitude": -51.7762,
     "latitude": -14.3469,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -8253,8 +8253,8 @@
     "id": 68,
     "longitude": -51.7834,
     "latitude": -14.3594,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -8378,8 +8378,8 @@
     "id": 69,
     "longitude": -51.7834,
     "latitude": -14.3594,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -8503,8 +8503,8 @@
     "id": 70,
     "longitude": -51.7834,
     "latitude": -14.3594,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -8628,8 +8628,8 @@
     "id": 71,
     "longitude": -51.7834,
     "latitude": -14.3594,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -8753,8 +8753,8 @@
     "id": 72,
     "longitude": -51.7834,
     "latitude": -14.3594,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -8878,8 +8878,8 @@
     "id": 73,
     "longitude": -51.7834,
     "latitude": -14.3594,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -9003,8 +9003,8 @@
     "id": 74,
     "longitude": -51.7834,
     "latitude": -14.3594,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -9128,8 +9128,8 @@
     "id": 75,
     "longitude": -51.7834,
     "latitude": -14.3594,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -9253,8 +9253,8 @@
     "id": 76,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -9378,8 +9378,8 @@
     "id": 77,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -9503,8 +9503,8 @@
     "id": 78,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -9628,8 +9628,8 @@
     "id": 79,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -9753,8 +9753,8 @@
     "id": 80,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -9878,8 +9878,8 @@
     "id": 81,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -10003,8 +10003,8 @@
     "id": 82,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -10128,8 +10128,8 @@
     "id": 83,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -10253,8 +10253,8 @@
     "id": 84,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -10378,8 +10378,8 @@
     "id": 85,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -10503,8 +10503,8 @@
     "id": 86,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -10628,8 +10628,8 @@
     "id": 87,
     "longitude": -53.4085,
     "latitude": -14.2573,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -10753,8 +10753,8 @@
     "id": 88,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -10878,8 +10878,8 @@
     "id": 89,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -11003,8 +11003,8 @@
     "id": 90,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -11128,8 +11128,8 @@
     "id": 91,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -11253,8 +11253,8 @@
     "id": 92,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -11378,8 +11378,8 @@
     "id": 93,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -11503,8 +11503,8 @@
     "id": 94,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -11628,8 +11628,8 @@
     "id": 95,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -11753,8 +11753,8 @@
     "id": 96,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -11878,8 +11878,8 @@
     "id": 97,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -12003,8 +12003,8 @@
     "id": 98,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -12128,8 +12128,8 @@
     "id": 99,
     "longitude": -53.4057,
     "latitude": -14.2635,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -12253,8 +12253,8 @@
     "id": 100,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -12378,8 +12378,8 @@
     "id": 101,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -12503,8 +12503,8 @@
     "id": 102,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -12628,8 +12628,8 @@
     "id": 103,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -12753,8 +12753,8 @@
     "id": 104,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -12878,8 +12878,8 @@
     "id": 105,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -13003,8 +13003,8 @@
     "id": 106,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -13128,8 +13128,8 @@
     "id": 107,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -13253,8 +13253,8 @@
     "id": 108,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -13378,8 +13378,8 @@
     "id": 109,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -13503,8 +13503,8 @@
     "id": 110,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -13628,8 +13628,8 @@
     "id": 111,
     "longitude": -53.3921,
     "latitude": -14.224,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -13753,8 +13753,8 @@
     "id": 112,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -13878,8 +13878,8 @@
     "id": 113,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -14003,8 +14003,8 @@
     "id": 114,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -14128,8 +14128,8 @@
     "id": 115,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -14253,8 +14253,8 @@
     "id": 116,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -14378,8 +14378,8 @@
     "id": 117,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -14503,8 +14503,8 @@
     "id": 118,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -14628,8 +14628,8 @@
     "id": 119,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -14753,8 +14753,8 @@
     "id": 120,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -14878,8 +14878,8 @@
     "id": 121,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -15003,8 +15003,8 @@
     "id": 122,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -15128,8 +15128,8 @@
     "id": 123,
     "longitude": -53.3417,
     "latitude": -14.1927,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -15253,8 +15253,8 @@
     "id": 124,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -15378,8 +15378,8 @@
     "id": 125,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -15503,8 +15503,8 @@
     "id": 126,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -15628,8 +15628,8 @@
     "id": 127,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -15753,8 +15753,8 @@
     "id": 128,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -15878,8 +15878,8 @@
     "id": 129,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -16003,8 +16003,8 @@
     "id": 130,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -16128,8 +16128,8 @@
     "id": 131,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -16253,8 +16253,8 @@
     "id": 132,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -16378,8 +16378,8 @@
     "id": 133,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -16503,8 +16503,8 @@
     "id": 134,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -16628,8 +16628,8 @@
     "id": 135,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -16753,8 +16753,8 @@
     "id": 136,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -16878,8 +16878,8 @@
     "id": 137,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -17003,8 +17003,8 @@
     "id": 138,
     "longitude": -55.2107,
     "latitude": -15.1135,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -17128,8 +17128,8 @@
     "id": 139,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -17253,8 +17253,8 @@
     "id": 140,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -17378,8 +17378,8 @@
     "id": 141,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -17503,8 +17503,8 @@
     "id": 142,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -17628,8 +17628,8 @@
     "id": 143,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -17753,8 +17753,8 @@
     "id": 144,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -17878,8 +17878,8 @@
     "id": 145,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -18003,8 +18003,8 @@
     "id": 146,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -18128,8 +18128,8 @@
     "id": 147,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -18253,8 +18253,8 @@
     "id": 148,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -18378,8 +18378,8 @@
     "id": 149,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -18503,8 +18503,8 @@
     "id": 150,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -18628,8 +18628,8 @@
     "id": 151,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -18753,8 +18753,8 @@
     "id": 152,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -18878,8 +18878,8 @@
     "id": 153,
     "longitude": -55.3531,
     "latitude": -15.0719,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -19003,8 +19003,8 @@
     "id": 154,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -19128,8 +19128,8 @@
     "id": 155,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -19253,8 +19253,8 @@
     "id": 156,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -19378,8 +19378,8 @@
     "id": 157,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -19503,8 +19503,8 @@
     "id": 158,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -19628,8 +19628,8 @@
     "id": 159,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -19753,8 +19753,8 @@
     "id": 160,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -19878,8 +19878,8 @@
     "id": 161,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -20003,8 +20003,8 @@
     "id": 162,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -20128,8 +20128,8 @@
     "id": 163,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -20253,8 +20253,8 @@
     "id": 164,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -20378,8 +20378,8 @@
     "id": 165,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -20503,8 +20503,8 @@
     "id": 166,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -20628,8 +20628,8 @@
     "id": 167,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -20753,8 +20753,8 @@
     "id": 168,
     "longitude": -55.3256,
     "latitude": -15.074,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -20878,8 +20878,8 @@
     "id": 169,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -21003,8 +21003,8 @@
     "id": 170,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -21128,8 +21128,8 @@
     "id": 171,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -21253,8 +21253,8 @@
     "id": 172,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -21378,8 +21378,8 @@
     "id": 173,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -21503,8 +21503,8 @@
     "id": 174,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -21628,8 +21628,8 @@
     "id": 175,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -21753,8 +21753,8 @@
     "id": 176,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -21878,8 +21878,8 @@
     "id": 177,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -22003,8 +22003,8 @@
     "id": 178,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -22128,8 +22128,8 @@
     "id": 179,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -22253,8 +22253,8 @@
     "id": 180,
     "longitude": -55.82,
     "latitude": -15.3198,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -22378,8 +22378,8 @@
     "id": 181,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -22503,8 +22503,8 @@
     "id": 182,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -22628,8 +22628,8 @@
     "id": 183,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -22753,8 +22753,8 @@
     "id": 184,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -22878,8 +22878,8 @@
     "id": 185,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -23003,8 +23003,8 @@
     "id": 186,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -23128,8 +23128,8 @@
     "id": 187,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -23253,8 +23253,8 @@
     "id": 188,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -23378,8 +23378,8 @@
     "id": 189,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -23503,8 +23503,8 @@
     "id": 190,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -23628,8 +23628,8 @@
     "id": 191,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -23753,8 +23753,8 @@
     "id": 192,
     "longitude": -55.8124,
     "latitude": -15.3156,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -23878,8 +23878,8 @@
     "id": 193,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -24003,8 +24003,8 @@
     "id": 194,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -24128,8 +24128,8 @@
     "id": 195,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -24253,8 +24253,8 @@
     "id": 196,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -24378,8 +24378,8 @@
     "id": 197,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -24503,8 +24503,8 @@
     "id": 198,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -24628,8 +24628,8 @@
     "id": 199,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -24753,8 +24753,8 @@
     "id": 200,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -24878,8 +24878,8 @@
     "id": 201,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -25003,8 +25003,8 @@
     "id": 202,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -25128,8 +25128,8 @@
     "id": 203,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -25253,8 +25253,8 @@
     "id": 204,
     "longitude": -55.8016,
     "latitude": -15.324,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -25378,8 +25378,8 @@
     "id": 205,
     "longitude": -55.6597,
     "latitude": -14.4156,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -25503,8 +25503,8 @@
     "id": 206,
     "longitude": -55.6597,
     "latitude": -14.4156,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -25628,8 +25628,8 @@
     "id": 207,
     "longitude": -55.6597,
     "latitude": -14.4156,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -25753,8 +25753,8 @@
     "id": 208,
     "longitude": -55.6597,
     "latitude": -14.4156,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -25878,8 +25878,8 @@
     "id": 209,
     "longitude": -55.6597,
     "latitude": -14.4156,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -26003,8 +26003,8 @@
     "id": 210,
     "longitude": -55.6662,
     "latitude": -14.4156,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -26128,8 +26128,8 @@
     "id": 211,
     "longitude": -55.6662,
     "latitude": -14.4156,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -26253,8 +26253,8 @@
     "id": 212,
     "longitude": -55.6662,
     "latitude": -14.4156,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -26378,8 +26378,8 @@
     "id": 213,
     "longitude": -55.6662,
     "latitude": -14.4156,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -26503,8 +26503,8 @@
     "id": 214,
     "longitude": -55.6662,
     "latitude": -14.4156,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -26628,8 +26628,8 @@
     "id": 215,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -26753,8 +26753,8 @@
     "id": 216,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -26878,8 +26878,8 @@
     "id": 217,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -27003,8 +27003,8 @@
     "id": 218,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -27128,8 +27128,8 @@
     "id": 219,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -27253,8 +27253,8 @@
     "id": 220,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -27378,8 +27378,8 @@
     "id": 221,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -27503,8 +27503,8 @@
     "id": 222,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -27628,8 +27628,8 @@
     "id": 223,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -27753,8 +27753,8 @@
     "id": 224,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -27878,8 +27878,8 @@
     "id": 225,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -28003,8 +28003,8 @@
     "id": 226,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -28128,8 +28128,8 @@
     "id": 227,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -28253,8 +28253,8 @@
     "id": 228,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -28378,8 +28378,8 @@
     "id": 229,
     "longitude": -58.5643,
     "latitude": -13.8844,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -28503,8 +28503,8 @@
     "id": 230,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -28628,8 +28628,8 @@
     "id": 231,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -28753,8 +28753,8 @@
     "id": 232,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -28878,8 +28878,8 @@
     "id": 233,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -29003,8 +29003,8 @@
     "id": 234,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -29128,8 +29128,8 @@
     "id": 235,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -29253,8 +29253,8 @@
     "id": 236,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -29378,8 +29378,8 @@
     "id": 237,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -29503,8 +29503,8 @@
     "id": 238,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -29628,8 +29628,8 @@
     "id": 239,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -29753,8 +29753,8 @@
     "id": 240,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -29878,8 +29878,8 @@
     "id": 241,
     "longitude": -58.1479,
     "latitude": -13.5552,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -30003,8 +30003,8 @@
     "id": 242,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -30128,8 +30128,8 @@
     "id": 243,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -30253,8 +30253,8 @@
     "id": 244,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -30378,8 +30378,8 @@
     "id": 245,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -30503,8 +30503,8 @@
     "id": 246,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -30628,8 +30628,8 @@
     "id": 247,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -30753,8 +30753,8 @@
     "id": 248,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -30878,8 +30878,8 @@
     "id": 249,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -31003,8 +31003,8 @@
     "id": 250,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -31128,8 +31128,8 @@
     "id": 251,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -31253,8 +31253,8 @@
     "id": 252,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -31378,8 +31378,8 @@
     "id": 253,
     "longitude": -58.1132,
     "latitude": -13.5885,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -31503,8 +31503,8 @@
     "id": 254,
     "longitude": -58.2998,
     "latitude": -14.2781,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -31628,8 +31628,8 @@
     "id": 255,
     "longitude": -58.2998,
     "latitude": -14.2781,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -31753,8 +31753,8 @@
     "id": 256,
     "longitude": -58.2998,
     "latitude": -14.2781,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -31878,8 +31878,8 @@
     "id": 257,
     "longitude": -58.2998,
     "latitude": -14.2781,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -32003,8 +32003,8 @@
     "id": 258,
     "longitude": -58.2998,
     "latitude": -14.2781,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -32128,8 +32128,8 @@
     "id": 259,
     "longitude": -58.2998,
     "latitude": -14.2781,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -32253,8 +32253,8 @@
     "id": 260,
     "longitude": -58.2998,
     "latitude": -14.2781,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -32378,8 +32378,8 @@
     "id": 261,
     "longitude": -58.2998,
     "latitude": -14.2781,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -32503,8 +32503,8 @@
     "id": 262,
     "longitude": -58.2998,
     "latitude": -14.2781,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -32628,8 +32628,8 @@
     "id": 263,
     "longitude": -58.2998,
     "latitude": -14.2781,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -32753,8 +32753,8 @@
     "id": 264,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -32878,8 +32878,8 @@
     "id": 265,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -33003,8 +33003,8 @@
     "id": 266,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -33128,8 +33128,8 @@
     "id": 267,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -33253,8 +33253,8 @@
     "id": 268,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -33378,8 +33378,8 @@
     "id": 269,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -33503,8 +33503,8 @@
     "id": 270,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -33628,8 +33628,8 @@
     "id": 271,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -33753,8 +33753,8 @@
     "id": 272,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -33878,8 +33878,8 @@
     "id": 273,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -34003,8 +34003,8 @@
     "id": 274,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -34128,8 +34128,8 @@
     "id": 275,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -34253,8 +34253,8 @@
     "id": 276,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -34378,8 +34378,8 @@
     "id": 277,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -34503,8 +34503,8 @@
     "id": 278,
     "longitude": -58.786,
     "latitude": -12.5552,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -34628,8 +34628,8 @@
     "id": 279,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -34753,8 +34753,8 @@
     "id": 280,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -34878,8 +34878,8 @@
     "id": 281,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -35003,8 +35003,8 @@
     "id": 282,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -35128,8 +35128,8 @@
     "id": 283,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -35253,8 +35253,8 @@
     "id": 284,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -35378,8 +35378,8 @@
     "id": 285,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -35503,8 +35503,8 @@
     "id": 286,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -35628,8 +35628,8 @@
     "id": 287,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -35753,8 +35753,8 @@
     "id": 288,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -35878,8 +35878,8 @@
     "id": 289,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -36003,8 +36003,8 @@
     "id": 290,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -36128,8 +36128,8 @@
     "id": 291,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -36253,8 +36253,8 @@
     "id": 292,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -36378,8 +36378,8 @@
     "id": 293,
     "longitude": -58.8327,
     "latitude": -12.4323,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -36503,8 +36503,8 @@
     "id": 294,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -36628,8 +36628,8 @@
     "id": 295,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -36753,8 +36753,8 @@
     "id": 296,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -36878,8 +36878,8 @@
     "id": 297,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -37003,8 +37003,8 @@
     "id": 298,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -37128,8 +37128,8 @@
     "id": 299,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -37253,8 +37253,8 @@
     "id": 300,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -37378,8 +37378,8 @@
     "id": 301,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -37503,8 +37503,8 @@
     "id": 302,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -37628,8 +37628,8 @@
     "id": 303,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -37753,8 +37753,8 @@
     "id": 304,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -37878,8 +37878,8 @@
     "id": 305,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -38003,8 +38003,8 @@
     "id": 306,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -38128,8 +38128,8 @@
     "id": 307,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -38253,8 +38253,8 @@
     "id": 308,
     "longitude": -59.3457,
     "latitude": -12.474,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -38378,8 +38378,8 @@
     "id": 309,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -38503,8 +38503,8 @@
     "id": 310,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -38628,8 +38628,8 @@
     "id": 311,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -38753,8 +38753,8 @@
     "id": 312,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -38878,8 +38878,8 @@
     "id": 313,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -39003,8 +39003,8 @@
     "id": 314,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -39128,8 +39128,8 @@
     "id": 315,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -39253,8 +39253,8 @@
     "id": 316,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -39378,8 +39378,8 @@
     "id": 317,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -39503,8 +39503,8 @@
     "id": 318,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -39628,8 +39628,8 @@
     "id": 319,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -39753,8 +39753,8 @@
     "id": 320,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -39878,8 +39878,8 @@
     "id": 321,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -40003,8 +40003,8 @@
     "id": 322,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -40128,8 +40128,8 @@
     "id": 323,
     "longitude": -59.3801,
     "latitude": -12.5677,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -40253,8 +40253,8 @@
     "id": 324,
     "longitude": -59.6229,
     "latitude": -12.7302,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -40378,8 +40378,8 @@
     "id": 325,
     "longitude": -59.6229,
     "latitude": -12.7302,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -40503,8 +40503,8 @@
     "id": 326,
     "longitude": -59.6229,
     "latitude": -12.7302,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -40628,8 +40628,8 @@
     "id": 327,
     "longitude": -59.6229,
     "latitude": -12.7302,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -40753,8 +40753,8 @@
     "id": 328,
     "longitude": -59.6229,
     "latitude": -12.7302,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -40878,8 +40878,8 @@
     "id": 329,
     "longitude": -59.6229,
     "latitude": -12.7302,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -41003,8 +41003,8 @@
     "id": 330,
     "longitude": -59.6229,
     "latitude": -12.7302,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -41128,8 +41128,8 @@
     "id": 331,
     "longitude": -59.6229,
     "latitude": -12.7302,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -41253,8 +41253,8 @@
     "id": 332,
     "longitude": -59.6229,
     "latitude": -12.7302,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -41378,8 +41378,8 @@
     "id": 333,
     "longitude": -59.7152,
     "latitude": -12.8406,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -41503,8 +41503,8 @@
     "id": 334,
     "longitude": -59.7152,
     "latitude": -12.8406,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -41628,8 +41628,8 @@
     "id": 335,
     "longitude": -59.7152,
     "latitude": -12.8406,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -41753,8 +41753,8 @@
     "id": 336,
     "longitude": -59.7152,
     "latitude": -12.8406,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -41878,8 +41878,8 @@
     "id": 337,
     "longitude": -59.7152,
     "latitude": -12.8406,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -42003,8 +42003,8 @@
     "id": 338,
     "longitude": -59.7152,
     "latitude": -12.8406,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -42128,8 +42128,8 @@
     "id": 339,
     "longitude": -59.7152,
     "latitude": -12.8406,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -42253,8 +42253,8 @@
     "id": 340,
     "longitude": -59.7152,
     "latitude": -12.8406,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -42378,8 +42378,8 @@
     "id": 341,
     "longitude": -59.7152,
     "latitude": -12.8406,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -42503,8 +42503,8 @@
     "id": 342,
     "longitude": -59.7152,
     "latitude": -12.8406,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -42628,8 +42628,8 @@
     "id": 343,
     "longitude": -59.7152,
     "latitude": -12.8406,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -42753,8 +42753,8 @@
     "id": 344,
     "longitude": -59.7046,
     "latitude": -13.5844,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -42878,8 +42878,8 @@
     "id": 345,
     "longitude": -59.7046,
     "latitude": -13.5844,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -43003,8 +43003,8 @@
     "id": 346,
     "longitude": -59.7046,
     "latitude": -13.5844,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -43128,8 +43128,8 @@
     "id": 347,
     "longitude": -59.7046,
     "latitude": -13.5844,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -43253,8 +43253,8 @@
     "id": 348,
     "longitude": -59.7046,
     "latitude": -13.5844,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -43378,8 +43378,8 @@
     "id": 349,
     "longitude": -59.7046,
     "latitude": -13.5844,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -43503,8 +43503,8 @@
     "id": 350,
     "longitude": -59.7046,
     "latitude": -13.5844,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -43628,8 +43628,8 @@
     "id": 351,
     "longitude": -59.7046,
     "latitude": -13.5844,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -43753,8 +43753,8 @@
     "id": 352,
     "longitude": -59.7046,
     "latitude": -13.5844,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -43878,8 +43878,8 @@
     "id": 353,
     "longitude": -59.7046,
     "latitude": -13.5844,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -44003,8 +44003,8 @@
     "id": 354,
     "longitude": -59.7339,
     "latitude": -13.6156,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -44128,8 +44128,8 @@
     "id": 355,
     "longitude": -59.7339,
     "latitude": -13.6156,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -44253,8 +44253,8 @@
     "id": 356,
     "longitude": -59.7339,
     "latitude": -13.6156,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -44378,8 +44378,8 @@
     "id": 357,
     "longitude": -59.7339,
     "latitude": -13.6156,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -44503,8 +44503,8 @@
     "id": 358,
     "longitude": -59.7339,
     "latitude": -13.6156,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -44628,8 +44628,8 @@
     "id": 359,
     "longitude": -59.7339,
     "latitude": -13.6156,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -44753,8 +44753,8 @@
     "id": 360,
     "longitude": -59.7339,
     "latitude": -13.6156,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -44878,8 +44878,8 @@
     "id": 361,
     "longitude": -59.7339,
     "latitude": -13.6156,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -45003,8 +45003,8 @@
     "id": 362,
     "longitude": -59.7339,
     "latitude": -13.6156,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -45128,8 +45128,8 @@
     "id": 363,
     "longitude": -59.7339,
     "latitude": -13.6156,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -45253,8 +45253,8 @@
     "id": 364,
     "longitude": -59.6904,
     "latitude": -13.6302,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -45378,8 +45378,8 @@
     "id": 365,
     "longitude": -59.6904,
     "latitude": -13.6302,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -45503,8 +45503,8 @@
     "id": 366,
     "longitude": -59.6904,
     "latitude": -13.6302,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -45628,8 +45628,8 @@
     "id": 367,
     "longitude": -59.6904,
     "latitude": -13.6302,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -45753,8 +45753,8 @@
     "id": 368,
     "longitude": -59.6904,
     "latitude": -13.6302,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -45878,8 +45878,8 @@
     "id": 369,
     "longitude": -59.6904,
     "latitude": -13.6302,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -46003,8 +46003,8 @@
     "id": 370,
     "longitude": -59.6904,
     "latitude": -13.6302,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -46128,8 +46128,8 @@
     "id": 371,
     "longitude": -59.6904,
     "latitude": -13.6302,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -46253,8 +46253,8 @@
     "id": 372,
     "longitude": -59.6904,
     "latitude": -13.6302,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -46378,8 +46378,8 @@
     "id": 373,
     "longitude": -59.6904,
     "latitude": -13.6302,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -46503,8 +46503,8 @@
     "id": 374,
     "longitude": -59.6917,
     "latitude": -13.601,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -46628,8 +46628,8 @@
     "id": 375,
     "longitude": -59.6917,
     "latitude": -13.601,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -46753,8 +46753,8 @@
     "id": 376,
     "longitude": -59.6917,
     "latitude": -13.601,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -46878,8 +46878,8 @@
     "id": 377,
     "longitude": -59.6917,
     "latitude": -13.601,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -47003,8 +47003,8 @@
     "id": 378,
     "longitude": -59.6917,
     "latitude": -13.601,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -47128,8 +47128,8 @@
     "id": 379,
     "longitude": -59.6917,
     "latitude": -13.601,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -47253,8 +47253,8 @@
     "id": 380,
     "longitude": -59.6917,
     "latitude": -13.601,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -47378,8 +47378,8 @@
     "id": 381,
     "longitude": -59.6917,
     "latitude": -13.601,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -47503,8 +47503,8 @@
     "id": 382,
     "longitude": -59.6917,
     "latitude": -13.601,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -47628,8 +47628,8 @@
     "id": 383,
     "longitude": -59.6917,
     "latitude": -13.601,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -47753,8 +47753,8 @@
     "id": 384,
     "longitude": -59.6837,
     "latitude": -13.5781,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -47878,8 +47878,8 @@
     "id": 385,
     "longitude": -59.6837,
     "latitude": -13.5781,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -48003,8 +48003,8 @@
     "id": 386,
     "longitude": -59.6837,
     "latitude": -13.5781,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -48128,8 +48128,8 @@
     "id": 387,
     "longitude": -59.6837,
     "latitude": -13.5781,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -48253,8 +48253,8 @@
     "id": 388,
     "longitude": -59.6837,
     "latitude": -13.5781,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -48378,8 +48378,8 @@
     "id": 389,
     "longitude": -59.6837,
     "latitude": -13.5781,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -48503,8 +48503,8 @@
     "id": 390,
     "longitude": -59.6837,
     "latitude": -13.5781,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -48628,8 +48628,8 @@
     "id": 391,
     "longitude": -59.6837,
     "latitude": -13.5781,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Savanna",
     "time_series": [
       {
@@ -48753,8 +48753,8 @@
     "id": 392,
     "longitude": -59.6837,
     "latitude": -13.5781,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -48878,8 +48878,8 @@
     "id": 393,
     "longitude": -59.6837,
     "latitude": -13.5781,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -49003,8 +49003,8 @@
     "id": 394,
     "longitude": -53.8572,
     "latitude": -15.6135,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -49128,8 +49128,8 @@
     "id": 395,
     "longitude": -53.8572,
     "latitude": -15.6135,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -49253,8 +49253,8 @@
     "id": 396,
     "longitude": -53.8247,
     "latitude": -15.5885,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -49378,8 +49378,8 @@
     "id": 397,
     "longitude": -53.8247,
     "latitude": -15.5885,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -49503,8 +49503,8 @@
     "id": 398,
     "longitude": -53.8181,
     "latitude": -15.5635,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -49628,8 +49628,8 @@
     "id": 399,
     "longitude": -53.8181,
     "latitude": -15.5635,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -49753,8 +49753,8 @@
     "id": 400,
     "longitude": -53.8015,
     "latitude": -15.6156,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -49878,8 +49878,8 @@
     "id": 401,
     "longitude": -53.8015,
     "latitude": -15.6156,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Savanna",
     "time_series": [
       {
@@ -50003,8 +50003,8 @@
     "id": 402,
     "longitude": -55.0998,
     "latitude": -14.2115,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -50128,8 +50128,8 @@
     "id": 403,
     "longitude": -55.0998,
     "latitude": -14.2115,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -50253,8 +50253,8 @@
     "id": 404,
     "longitude": -55.0998,
     "latitude": -14.2115,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -50378,8 +50378,8 @@
     "id": 405,
     "longitude": -55.0998,
     "latitude": -14.2115,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -50503,8 +50503,8 @@
     "id": 406,
     "longitude": -55.0998,
     "latitude": -14.2115,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -50628,8 +50628,8 @@
     "id": 407,
     "longitude": -55.0998,
     "latitude": -14.2115,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -50753,8 +50753,8 @@
     "id": 408,
     "longitude": -55.0998,
     "latitude": -14.2115,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -50878,8 +50878,8 @@
     "id": 409,
     "longitude": -55.1009,
     "latitude": -14.2073,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -51003,8 +51003,8 @@
     "id": 410,
     "longitude": -55.1009,
     "latitude": -14.2073,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -51128,8 +51128,8 @@
     "id": 411,
     "longitude": -55.1009,
     "latitude": -14.2073,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -51253,8 +51253,8 @@
     "id": 412,
     "longitude": -55.1009,
     "latitude": -14.2073,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -51378,8 +51378,8 @@
     "id": 413,
     "longitude": -55.1009,
     "latitude": -14.2073,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -51503,8 +51503,8 @@
     "id": 414,
     "longitude": -55.1009,
     "latitude": -14.2073,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -51628,8 +51628,8 @@
     "id": 415,
     "longitude": -55.1009,
     "latitude": -14.2073,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -51753,8 +51753,8 @@
     "id": 416,
     "longitude": -55.0934,
     "latitude": -14.2115,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -51878,8 +51878,8 @@
     "id": 417,
     "longitude": -55.0934,
     "latitude": -14.2115,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -52003,8 +52003,8 @@
     "id": 418,
     "longitude": -55.0934,
     "latitude": -14.2115,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -52128,8 +52128,8 @@
     "id": 419,
     "longitude": -55.0934,
     "latitude": -14.2115,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -52253,8 +52253,8 @@
     "id": 420,
     "longitude": -55.0934,
     "latitude": -14.2115,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -52378,8 +52378,8 @@
     "id": 421,
     "longitude": -55.0934,
     "latitude": -14.2115,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -52503,8 +52503,8 @@
     "id": 422,
     "longitude": -55.0934,
     "latitude": -14.2115,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -52628,8 +52628,8 @@
     "id": 423,
     "longitude": -55.0934,
     "latitude": -14.2115,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -52753,8 +52753,8 @@
     "id": 424,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -52878,8 +52878,8 @@
     "id": 425,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -53003,8 +53003,8 @@
     "id": 426,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -53128,8 +53128,8 @@
     "id": 427,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -53253,8 +53253,8 @@
     "id": 428,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -53378,8 +53378,8 @@
     "id": 429,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -53503,8 +53503,8 @@
     "id": 430,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -53628,8 +53628,8 @@
     "id": 431,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -53753,8 +53753,8 @@
     "id": 432,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -53878,8 +53878,8 @@
     "id": 433,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -54003,8 +54003,8 @@
     "id": 434,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -54128,8 +54128,8 @@
     "id": 435,
     "longitude": -55.0595,
     "latitude": -14.2135,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -54253,8 +54253,8 @@
     "id": 436,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -54378,8 +54378,8 @@
     "id": 437,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -54503,8 +54503,8 @@
     "id": 438,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -54628,8 +54628,8 @@
     "id": 439,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -54753,8 +54753,8 @@
     "id": 440,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -54878,8 +54878,8 @@
     "id": 441,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -55003,8 +55003,8 @@
     "id": 442,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -55128,8 +55128,8 @@
     "id": 443,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -55253,8 +55253,8 @@
     "id": 444,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -55378,8 +55378,8 @@
     "id": 445,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -55503,8 +55503,8 @@
     "id": 446,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -55628,8 +55628,8 @@
     "id": 447,
     "longitude": -55.0329,
     "latitude": -14.2281,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -55753,8 +55753,8 @@
     "id": 448,
     "longitude": -55.5403,
     "latitude": -14.8115,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -55878,8 +55878,8 @@
     "id": 449,
     "longitude": -55.5403,
     "latitude": -14.8115,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -56003,8 +56003,8 @@
     "id": 450,
     "longitude": -55.5403,
     "latitude": -14.8115,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -56128,8 +56128,8 @@
     "id": 451,
     "longitude": -55.5403,
     "latitude": -14.8115,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -56253,8 +56253,8 @@
     "id": 452,
     "longitude": -55.5403,
     "latitude": -14.8115,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -56378,8 +56378,8 @@
     "id": 453,
     "longitude": -55.5381,
     "latitude": -14.8031,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -56503,8 +56503,8 @@
     "id": 454,
     "longitude": -55.5381,
     "latitude": -14.8031,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -56628,8 +56628,8 @@
     "id": 455,
     "longitude": -55.5381,
     "latitude": -14.8031,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -56753,8 +56753,8 @@
     "id": 456,
     "longitude": -55.5381,
     "latitude": -14.8031,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -56878,8 +56878,8 @@
     "id": 457,
     "longitude": -55.5381,
     "latitude": -14.8031,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -57003,8 +57003,8 @@
     "id": 458,
     "longitude": -55.5381,
     "latitude": -14.8031,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -57128,8 +57128,8 @@
     "id": 459,
     "longitude": -55.9192,
     "latitude": -14.6844,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -57253,8 +57253,8 @@
     "id": 460,
     "longitude": -55.9219,
     "latitude": -14.6865,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -57378,8 +57378,8 @@
     "id": 461,
     "longitude": -55.9445,
     "latitude": -14.6906,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -57503,8 +57503,8 @@
     "id": 462,
     "longitude": -55.9434,
     "latitude": -14.6865,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -57628,8 +57628,8 @@
     "id": 463,
     "longitude": -56.2116,
     "latitude": -14.6573,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -57753,8 +57753,8 @@
     "id": 464,
     "longitude": -56.2116,
     "latitude": -14.6573,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -57878,8 +57878,8 @@
     "id": 465,
     "longitude": -56.6525,
     "latitude": -14.6385,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -58003,8 +58003,8 @@
     "id": 466,
     "longitude": -56.6525,
     "latitude": -14.6385,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -58128,8 +58128,8 @@
     "id": 467,
     "longitude": -56.6401,
     "latitude": -14.6406,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -58253,8 +58253,8 @@
     "id": 468,
     "longitude": -56.6401,
     "latitude": -14.6406,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -58378,8 +58378,8 @@
     "id": 469,
     "longitude": -56.6315,
     "latitude": -14.6406,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -58503,8 +58503,8 @@
     "id": 470,
     "longitude": -56.6315,
     "latitude": -14.6406,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -58628,8 +58628,8 @@
     "id": 471,
     "longitude": -56.6525,
     "latitude": -14.6469,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -58753,8 +58753,8 @@
     "id": 472,
     "longitude": -56.6525,
     "latitude": -14.6469,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -58878,8 +58878,8 @@
     "id": 473,
     "longitude": -59.0771,
     "latitude": -9.4094,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -59003,8 +59003,8 @@
     "id": 474,
     "longitude": -59.0771,
     "latitude": -9.4094,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -59128,8 +59128,8 @@
     "id": 475,
     "longitude": -59.4194,
     "latitude": -9.3115,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -59253,8 +59253,8 @@
     "id": 476,
     "longitude": -59.4194,
     "latitude": -9.3115,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -59378,8 +59378,8 @@
     "id": 477,
     "longitude": -59.4029,
     "latitude": -9.3135,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -59503,8 +59503,8 @@
     "id": 478,
     "longitude": -59.4029,
     "latitude": -9.3135,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -59628,8 +59628,8 @@
     "id": 479,
     "longitude": -57.8035,
     "latitude": -9.7552,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -59753,8 +59753,8 @@
     "id": 480,
     "longitude": -57.8035,
     "latitude": -9.7552,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -59878,8 +59878,8 @@
     "id": 481,
     "longitude": -57.8035,
     "latitude": -9.7552,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -60003,8 +60003,8 @@
     "id": 482,
     "longitude": -57.8035,
     "latitude": -9.7552,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -60128,8 +60128,8 @@
     "id": 483,
     "longitude": -57.8035,
     "latitude": -9.7552,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -60253,8 +60253,8 @@
     "id": 484,
     "longitude": -57.8035,
     "latitude": -9.7552,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -60378,8 +60378,8 @@
     "id": 485,
     "longitude": -57.8035,
     "latitude": -9.7552,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -60503,8 +60503,8 @@
     "id": 486,
     "longitude": -57.8035,
     "latitude": -9.7552,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -60628,8 +60628,8 @@
     "id": 487,
     "longitude": -57.8035,
     "latitude": -9.7552,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -60753,8 +60753,8 @@
     "id": 488,
     "longitude": -57.8035,
     "latitude": -9.7552,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -60878,8 +60878,8 @@
     "id": 489,
     "longitude": -57.8035,
     "latitude": -9.7552,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -61003,8 +61003,8 @@
     "id": 490,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -61128,8 +61128,8 @@
     "id": 491,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -61253,8 +61253,8 @@
     "id": 492,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -61378,8 +61378,8 @@
     "id": 493,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -61503,8 +61503,8 @@
     "id": 494,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -61628,8 +61628,8 @@
     "id": 495,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -61753,8 +61753,8 @@
     "id": 496,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -61878,8 +61878,8 @@
     "id": 497,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -62003,8 +62003,8 @@
     "id": 498,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -62128,8 +62128,8 @@
     "id": 499,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -62253,8 +62253,8 @@
     "id": 500,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -62378,8 +62378,8 @@
     "id": 501,
     "longitude": -57.7954,
     "latitude": -9.7573,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -62503,8 +62503,8 @@
     "id": 502,
     "longitude": -55.9659,
     "latitude": -10.0615,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -62628,8 +62628,8 @@
     "id": 503,
     "longitude": -55.9659,
     "latitude": -10.0615,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -62753,8 +62753,8 @@
     "id": 504,
     "longitude": -55.9659,
     "latitude": -10.0615,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -62878,8 +62878,8 @@
     "id": 505,
     "longitude": -55.9659,
     "latitude": -10.0615,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -63003,8 +63003,8 @@
     "id": 506,
     "longitude": -55.9659,
     "latitude": -10.0615,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -63128,8 +63128,8 @@
     "id": 507,
     "longitude": -55.9659,
     "latitude": -10.0615,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -63253,8 +63253,8 @@
     "id": 508,
     "longitude": -55.9659,
     "latitude": -10.0615,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -63378,8 +63378,8 @@
     "id": 509,
     "longitude": -55.9659,
     "latitude": -10.0615,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -63503,8 +63503,8 @@
     "id": 510,
     "longitude": -55.9476,
     "latitude": -10.0781,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -63628,8 +63628,8 @@
     "id": 511,
     "longitude": -55.9476,
     "latitude": -10.0781,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -63753,8 +63753,8 @@
     "id": 512,
     "longitude": -55.9476,
     "latitude": -10.0781,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -63878,8 +63878,8 @@
     "id": 513,
     "longitude": -55.9476,
     "latitude": -10.0781,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -64003,8 +64003,8 @@
     "id": 514,
     "longitude": -55.9476,
     "latitude": -10.0781,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -64128,8 +64128,8 @@
     "id": 515,
     "longitude": -55.9476,
     "latitude": -10.0781,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -64253,8 +64253,8 @@
     "id": 516,
     "longitude": -55.9476,
     "latitude": -10.0781,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -64378,8 +64378,8 @@
     "id": 517,
     "longitude": -55.9476,
     "latitude": -10.0781,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -64503,8 +64503,8 @@
     "id": 518,
     "longitude": -55.9473,
     "latitude": -10.0885,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -64628,8 +64628,8 @@
     "id": 519,
     "longitude": -55.9473,
     "latitude": -10.0885,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -64753,8 +64753,8 @@
     "id": 520,
     "longitude": -55.9473,
     "latitude": -10.0885,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -64878,8 +64878,8 @@
     "id": 521,
     "longitude": -55.9473,
     "latitude": -10.0885,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -65003,8 +65003,8 @@
     "id": 522,
     "longitude": -55.9473,
     "latitude": -10.0885,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -65128,8 +65128,8 @@
     "id": 523,
     "longitude": -55.9473,
     "latitude": -10.0885,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -65253,8 +65253,8 @@
     "id": 524,
     "longitude": -55.9473,
     "latitude": -10.0885,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -65378,8 +65378,8 @@
     "id": 525,
     "longitude": -55.9473,
     "latitude": -10.0885,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -65503,8 +65503,8 @@
     "id": 526,
     "longitude": -55.8972,
     "latitude": -10.0802,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -65628,8 +65628,8 @@
     "id": 527,
     "longitude": -55.8972,
     "latitude": -10.0802,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -65753,8 +65753,8 @@
     "id": 528,
     "longitude": -55.8972,
     "latitude": -10.0802,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -65878,8 +65878,8 @@
     "id": 529,
     "longitude": -55.8972,
     "latitude": -10.0802,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -66003,8 +66003,8 @@
     "id": 530,
     "longitude": -55.8972,
     "latitude": -10.0802,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -66128,8 +66128,8 @@
     "id": 531,
     "longitude": -55.8972,
     "latitude": -10.0802,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -66253,8 +66253,8 @@
     "id": 532,
     "longitude": -55.8972,
     "latitude": -10.0802,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -66378,8 +66378,8 @@
     "id": 533,
     "longitude": -55.8972,
     "latitude": -10.0802,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -66503,8 +66503,8 @@
     "id": 534,
     "longitude": -55.8972,
     "latitude": -10.0802,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -66628,8 +66628,8 @@
     "id": 535,
     "longitude": -55.8972,
     "latitude": -10.0802,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -66753,8 +66753,8 @@
     "id": 536,
     "longitude": -51.987,
     "latitude": -10.6052,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -66878,8 +66878,8 @@
     "id": 537,
     "longitude": -51.987,
     "latitude": -10.6052,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -67003,8 +67003,8 @@
     "id": 538,
     "longitude": -51.9305,
     "latitude": -10.6344,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -67128,8 +67128,8 @@
     "id": 539,
     "longitude": -51.9305,
     "latitude": -10.6344,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -67253,8 +67253,8 @@
     "id": 540,
     "longitude": -51.9305,
     "latitude": -10.6344,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -67378,8 +67378,8 @@
     "id": 541,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -67503,8 +67503,8 @@
     "id": 542,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -67628,8 +67628,8 @@
     "id": 543,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -67753,8 +67753,8 @@
     "id": 544,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -67878,8 +67878,8 @@
     "id": 545,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -68003,8 +68003,8 @@
     "id": 546,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -68128,8 +68128,8 @@
     "id": 547,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -68253,8 +68253,8 @@
     "id": 548,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -68378,8 +68378,8 @@
     "id": 549,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -68503,8 +68503,8 @@
     "id": 550,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -68628,8 +68628,8 @@
     "id": 551,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -68753,8 +68753,8 @@
     "id": 552,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -68878,8 +68878,8 @@
     "id": 553,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -69003,8 +69003,8 @@
     "id": 554,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -69128,8 +69128,8 @@
     "id": 555,
     "longitude": -51.5657,
     "latitude": -12.5677,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -69253,8 +69253,8 @@
     "id": 556,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -69378,8 +69378,8 @@
     "id": 557,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -69503,8 +69503,8 @@
     "id": 558,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -69628,8 +69628,8 @@
     "id": 559,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -69753,8 +69753,8 @@
     "id": 560,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -69878,8 +69878,8 @@
     "id": 561,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -70003,8 +70003,8 @@
     "id": 562,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -70128,8 +70128,8 @@
     "id": 563,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -70253,8 +70253,8 @@
     "id": 564,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -70378,8 +70378,8 @@
     "id": 565,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -70503,8 +70503,8 @@
     "id": 566,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -70628,8 +70628,8 @@
     "id": 567,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -70753,8 +70753,8 @@
     "id": 568,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -70878,8 +70878,8 @@
     "id": 569,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -71003,8 +71003,8 @@
     "id": 570,
     "longitude": -51.5724,
     "latitude": -12.601,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -71128,8 +71128,8 @@
     "id": 571,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -71253,8 +71253,8 @@
     "id": 572,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -71378,8 +71378,8 @@
     "id": 573,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -71503,8 +71503,8 @@
     "id": 574,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -71628,8 +71628,8 @@
     "id": 575,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -71753,8 +71753,8 @@
     "id": 576,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -71878,8 +71878,8 @@
     "id": 577,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -72003,8 +72003,8 @@
     "id": 578,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -72128,8 +72128,8 @@
     "id": 579,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -72253,8 +72253,8 @@
     "id": 580,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -72378,8 +72378,8 @@
     "id": 581,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -72503,8 +72503,8 @@
     "id": 582,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -72628,8 +72628,8 @@
     "id": 583,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -72753,8 +72753,8 @@
     "id": 584,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -72878,8 +72878,8 @@
     "id": 585,
     "longitude": -53.0666,
     "latitude": -14.6885,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -73003,8 +73003,8 @@
     "id": 586,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -73128,8 +73128,8 @@
     "id": 587,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -73253,8 +73253,8 @@
     "id": 588,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -73378,8 +73378,8 @@
     "id": 589,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -73503,8 +73503,8 @@
     "id": 590,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -73628,8 +73628,8 @@
     "id": 591,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -73753,8 +73753,8 @@
     "id": 592,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -73878,8 +73878,8 @@
     "id": 593,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -74003,8 +74003,8 @@
     "id": 594,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -74128,8 +74128,8 @@
     "id": 595,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -74253,8 +74253,8 @@
     "id": 596,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -74378,8 +74378,8 @@
     "id": 597,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -74503,8 +74503,8 @@
     "id": 598,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -74628,8 +74628,8 @@
     "id": 599,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -74753,8 +74753,8 @@
     "id": 600,
     "longitude": -53.052,
     "latitude": -14.7615,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -74878,8 +74878,8 @@
     "id": 601,
     "longitude": -60.4834,
     "latitude": -12.9865,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -75003,8 +75003,8 @@
     "id": 602,
     "longitude": -60.4834,
     "latitude": -12.9865,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -75128,8 +75128,8 @@
     "id": 603,
     "longitude": -60.4834,
     "latitude": -12.9865,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -75253,8 +75253,8 @@
     "id": 604,
     "longitude": -60.4834,
     "latitude": -12.9865,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -75378,8 +75378,8 @@
     "id": 605,
     "longitude": -60.4834,
     "latitude": -12.9865,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -75503,8 +75503,8 @@
     "id": 606,
     "longitude": -60.4834,
     "latitude": -12.9865,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -75628,8 +75628,8 @@
     "id": 607,
     "longitude": -60.4834,
     "latitude": -12.9865,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -75753,8 +75753,8 @@
     "id": 608,
     "longitude": -60.4834,
     "latitude": -12.9865,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -75878,8 +75878,8 @@
     "id": 609,
     "longitude": -60.4834,
     "latitude": -12.9865,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -76003,8 +76003,8 @@
     "id": 610,
     "longitude": -60.4834,
     "latitude": -12.9865,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -76128,8 +76128,8 @@
     "id": 611,
     "longitude": -60.4834,
     "latitude": -12.9865,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -76253,8 +76253,8 @@
     "id": 612,
     "longitude": -60.4769,
     "latitude": -12.9948,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -76378,8 +76378,8 @@
     "id": 613,
     "longitude": -60.4769,
     "latitude": -12.9948,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -76503,8 +76503,8 @@
     "id": 614,
     "longitude": -60.4769,
     "latitude": -12.9948,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -76628,8 +76628,8 @@
     "id": 615,
     "longitude": -60.4769,
     "latitude": -12.9948,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -76753,8 +76753,8 @@
     "id": 616,
     "longitude": -60.4769,
     "latitude": -12.9948,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -76878,8 +76878,8 @@
     "id": 617,
     "longitude": -60.4769,
     "latitude": -12.9948,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -77003,8 +77003,8 @@
     "id": 618,
     "longitude": -60.4769,
     "latitude": -12.9948,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -77128,8 +77128,8 @@
     "id": 619,
     "longitude": -60.4769,
     "latitude": -12.9948,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -77253,8 +77253,8 @@
     "id": 620,
     "longitude": -60.4769,
     "latitude": -12.9948,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -77378,8 +77378,8 @@
     "id": 621,
     "longitude": -60.4769,
     "latitude": -12.9948,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -77503,8 +77503,8 @@
     "id": 622,
     "longitude": -60.4769,
     "latitude": -12.9948,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -77628,8 +77628,8 @@
     "id": 623,
     "longitude": -60.488,
     "latitude": -13.0052,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -77753,8 +77753,8 @@
     "id": 624,
     "longitude": -60.488,
     "latitude": -13.0052,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -77878,8 +77878,8 @@
     "id": 625,
     "longitude": -60.488,
     "latitude": -13.0052,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -78003,8 +78003,8 @@
     "id": 626,
     "longitude": -60.488,
     "latitude": -13.0052,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -78128,8 +78128,8 @@
     "id": 627,
     "longitude": -60.488,
     "latitude": -13.0052,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -78253,8 +78253,8 @@
     "id": 628,
     "longitude": -60.488,
     "latitude": -13.0052,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -78378,8 +78378,8 @@
     "id": 629,
     "longitude": -60.488,
     "latitude": -13.0052,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -78503,8 +78503,8 @@
     "id": 630,
     "longitude": -60.488,
     "latitude": -13.0052,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -78628,8 +78628,8 @@
     "id": 631,
     "longitude": -60.488,
     "latitude": -13.0052,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -78753,8 +78753,8 @@
     "id": 632,
     "longitude": -60.488,
     "latitude": -13.0052,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -78878,8 +78878,8 @@
     "id": 633,
     "longitude": -60.488,
     "latitude": -13.0052,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -79003,8 +79003,8 @@
     "id": 634,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -79128,8 +79128,8 @@
     "id": 635,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -79253,8 +79253,8 @@
     "id": 636,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -79378,8 +79378,8 @@
     "id": 637,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -79503,8 +79503,8 @@
     "id": 638,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -79628,8 +79628,8 @@
     "id": 639,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -79753,8 +79753,8 @@
     "id": 640,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -79878,8 +79878,8 @@
     "id": 641,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -80003,8 +80003,8 @@
     "id": 642,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -80128,8 +80128,8 @@
     "id": 643,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -80253,8 +80253,8 @@
     "id": 644,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -80378,8 +80378,8 @@
     "id": 645,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -80503,8 +80503,8 @@
     "id": 646,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -80628,8 +80628,8 @@
     "id": 647,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -80753,8 +80753,8 @@
     "id": 648,
     "longitude": -59.8269,
     "latitude": -14.3615,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -80878,8 +80878,8 @@
     "id": 649,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -81003,8 +81003,8 @@
     "id": 650,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -81128,8 +81128,8 @@
     "id": 651,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -81253,8 +81253,8 @@
     "id": 652,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -81378,8 +81378,8 @@
     "id": 653,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -81503,8 +81503,8 @@
     "id": 654,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -81628,8 +81628,8 @@
     "id": 655,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -81753,8 +81753,8 @@
     "id": 656,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -81878,8 +81878,8 @@
     "id": 657,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -82003,8 +82003,8 @@
     "id": 658,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -82128,8 +82128,8 @@
     "id": 659,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -82253,8 +82253,8 @@
     "id": 660,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -82378,8 +82378,8 @@
     "id": 661,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -82503,8 +82503,8 @@
     "id": 662,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -82628,8 +82628,8 @@
     "id": 663,
     "longitude": -59.8096,
     "latitude": -14.3531,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -82753,8 +82753,8 @@
     "id": 664,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -82878,8 +82878,8 @@
     "id": 665,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -83003,8 +83003,8 @@
     "id": 666,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -83128,8 +83128,8 @@
     "id": 667,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -83253,8 +83253,8 @@
     "id": 668,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -83378,8 +83378,8 @@
     "id": 669,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -83503,8 +83503,8 @@
     "id": 670,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -83628,8 +83628,8 @@
     "id": 671,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -83753,8 +83753,8 @@
     "id": 672,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -83878,8 +83878,8 @@
     "id": 673,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -84003,8 +84003,8 @@
     "id": 674,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -84128,8 +84128,8 @@
     "id": 675,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -84253,8 +84253,8 @@
     "id": 676,
     "longitude": -59.0892,
     "latitude": -15.2469,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -84378,8 +84378,8 @@
     "id": 677,
     "longitude": -58.7287,
     "latitude": -15.4927,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -84503,8 +84503,8 @@
     "id": 678,
     "longitude": -58.7287,
     "latitude": -15.4927,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -84628,8 +84628,8 @@
     "id": 679,
     "longitude": -58.7203,
     "latitude": -15.501,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -84753,8 +84753,8 @@
     "id": 680,
     "longitude": -58.7203,
     "latitude": -15.501,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -84878,8 +84878,8 @@
     "id": 681,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -85003,8 +85003,8 @@
     "id": 682,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -85128,8 +85128,8 @@
     "id": 683,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -85253,8 +85253,8 @@
     "id": 684,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -85378,8 +85378,8 @@
     "id": 685,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -85503,8 +85503,8 @@
     "id": 686,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -85628,8 +85628,8 @@
     "id": 687,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -85753,8 +85753,8 @@
     "id": 688,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -85878,8 +85878,8 @@
     "id": 689,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -86003,8 +86003,8 @@
     "id": 690,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -86128,8 +86128,8 @@
     "id": 691,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -86253,8 +86253,8 @@
     "id": 692,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -86378,8 +86378,8 @@
     "id": 693,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -86503,8 +86503,8 @@
     "id": 694,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -86628,8 +86628,8 @@
     "id": 695,
     "longitude": -56.7899,
     "latitude": -11.4198,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -86753,8 +86753,8 @@
     "id": 696,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -86878,8 +86878,8 @@
     "id": 697,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -87003,8 +87003,8 @@
     "id": 698,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -87128,8 +87128,8 @@
     "id": 699,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -87253,8 +87253,8 @@
     "id": 700,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -87378,8 +87378,8 @@
     "id": 701,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -87503,8 +87503,8 @@
     "id": 702,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -87628,8 +87628,8 @@
     "id": 703,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -87753,8 +87753,8 @@
     "id": 704,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -87878,8 +87878,8 @@
     "id": 705,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -88003,8 +88003,8 @@
     "id": 706,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -88128,8 +88128,8 @@
     "id": 707,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -88253,8 +88253,8 @@
     "id": 708,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -88378,8 +88378,8 @@
     "id": 709,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -88503,8 +88503,8 @@
     "id": 710,
     "longitude": -58.7673,
     "latitude": -11.3719,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -88628,8 +88628,8 @@
     "id": 711,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -88753,8 +88753,8 @@
     "id": 712,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -88878,8 +88878,8 @@
     "id": 713,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -89003,8 +89003,8 @@
     "id": 714,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -89128,8 +89128,8 @@
     "id": 715,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -89253,8 +89253,8 @@
     "id": 716,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -89378,8 +89378,8 @@
     "id": 717,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -89503,8 +89503,8 @@
     "id": 718,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -89628,8 +89628,8 @@
     "id": 719,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -89753,8 +89753,8 @@
     "id": 720,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -89878,8 +89878,8 @@
     "id": 721,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -90003,8 +90003,8 @@
     "id": 722,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2011-09-14",
-    "to": "2012-08-28",
+    "start_date": "2011-09-14",
+    "end_date": "2012-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -90128,8 +90128,8 @@
     "id": 723,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2012-09-13",
-    "to": "2013-08-29",
+    "start_date": "2012-09-13",
+    "end_date": "2013-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -90253,8 +90253,8 @@
     "id": 724,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2013-09-14",
-    "to": "2014-08-29",
+    "start_date": "2013-09-14",
+    "end_date": "2014-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -90378,8 +90378,8 @@
     "id": 725,
     "longitude": -58.763,
     "latitude": -11.3719,
-    "from": "2014-09-14",
-    "to": "2015-08-29",
+    "start_date": "2014-09-14",
+    "end_date": "2015-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -90503,8 +90503,8 @@
     "id": 726,
     "longitude": -56.0239,
     "latitude": -14.1594,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -90628,8 +90628,8 @@
     "id": 727,
     "longitude": -56.0239,
     "latitude": -14.1594,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -90753,8 +90753,8 @@
     "id": 728,
     "longitude": -56.0239,
     "latitude": -14.1594,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -90878,8 +90878,8 @@
     "id": 729,
     "longitude": -56.0239,
     "latitude": -14.1594,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -91003,8 +91003,8 @@
     "id": 730,
     "longitude": -56.0239,
     "latitude": -14.1594,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -91128,8 +91128,8 @@
     "id": 731,
     "longitude": -56.0239,
     "latitude": -14.1594,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -91253,8 +91253,8 @@
     "id": 732,
     "longitude": -56.0239,
     "latitude": -14.1594,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -91378,8 +91378,8 @@
     "id": 733,
     "longitude": -56.0239,
     "latitude": -14.1594,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -91503,8 +91503,8 @@
     "id": 734,
     "longitude": -56.0239,
     "latitude": -14.1594,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -91628,8 +91628,8 @@
     "id": 735,
     "longitude": -56.0239,
     "latitude": -14.1594,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -91753,8 +91753,8 @@
     "id": 736,
     "longitude": -56.0239,
     "latitude": -14.1594,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -91878,8 +91878,8 @@
     "id": 737,
     "longitude": -56.0238,
     "latitude": -14.1677,
-    "from": "2000-09-13",
-    "to": "2001-08-29",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -92003,8 +92003,8 @@
     "id": 738,
     "longitude": -56.0238,
     "latitude": -14.1677,
-    "from": "2001-09-14",
-    "to": "2002-08-29",
+    "start_date": "2001-09-14",
+    "end_date": "2002-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -92128,8 +92128,8 @@
     "id": 739,
     "longitude": -56.0238,
     "latitude": -14.1677,
-    "from": "2002-09-14",
-    "to": "2003-08-29",
+    "start_date": "2002-09-14",
+    "end_date": "2003-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -92253,8 +92253,8 @@
     "id": 740,
     "longitude": -56.0238,
     "latitude": -14.1677,
-    "from": "2003-09-14",
-    "to": "2004-08-28",
+    "start_date": "2003-09-14",
+    "end_date": "2004-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -92378,8 +92378,8 @@
     "id": 741,
     "longitude": -56.0238,
     "latitude": -14.1677,
-    "from": "2004-09-13",
-    "to": "2005-08-29",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -92503,8 +92503,8 @@
     "id": 742,
     "longitude": -56.0238,
     "latitude": -14.1677,
-    "from": "2005-09-14",
-    "to": "2006-08-29",
+    "start_date": "2005-09-14",
+    "end_date": "2006-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -92628,8 +92628,8 @@
     "id": 743,
     "longitude": -56.0238,
     "latitude": -14.1677,
-    "from": "2006-09-14",
-    "to": "2007-08-29",
+    "start_date": "2006-09-14",
+    "end_date": "2007-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -92753,8 +92753,8 @@
     "id": 744,
     "longitude": -56.0238,
     "latitude": -14.1677,
-    "from": "2007-09-14",
-    "to": "2008-08-28",
+    "start_date": "2007-09-14",
+    "end_date": "2008-08-28",
     "label": "Pasture",
     "time_series": [
       {
@@ -92878,8 +92878,8 @@
     "id": 745,
     "longitude": -56.0238,
     "latitude": -14.1677,
-    "from": "2008-09-13",
-    "to": "2009-08-29",
+    "start_date": "2008-09-13",
+    "end_date": "2009-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -93003,8 +93003,8 @@
     "id": 746,
     "longitude": -56.0238,
     "latitude": -14.1677,
-    "from": "2009-09-14",
-    "to": "2010-08-29",
+    "start_date": "2009-09-14",
+    "end_date": "2010-08-29",
     "label": "Pasture",
     "time_series": [
       {
@@ -93128,8 +93128,8 @@
     "id": 747,
     "longitude": -56.0238,
     "latitude": -14.1677,
-    "from": "2010-09-14",
-    "to": "2011-08-29",
+    "start_date": "2010-09-14",
+    "end_date": "2011-08-29",
     "label": "Pasture",
     "time_series": [
       {

@@ -5,7 +5,7 @@
 \title{Set important global variables for WTSS access}
 \usage{
 sits_configWTSS(URL = "http://www.dpi.inpe.br/tws/wtss",
-  coverage = "mod13q1_512", bands = c("ndvi", "evi"))
+  coverage = "mod13q1_512", bands = c("ndvi", "evi", "nir"))
 }
 \arguments{
 \item{URL}{the URL for the WTSS time series service}
@@ -21,6 +21,30 @@ The assumption is that in a SITS session, this information is defined one and
 used in many applications
 }
 \details{
-This function should be run at the start of each SITS session
-}
+This function should be run at the start of each SITS session.
 
+The Web Time Seris Service is a lightweight web service the allow remote access to satellite
+ image time series and provides three operations:
+
+1. list coverages: this operation allows clients to retrieve the capabilities provided
+    by any server that implements WTSS. It returns a list of coverage
+    names available in a server instance.
+
+2. describe coverage: this operation returns the metadata for a given coverage
+    identified by its name. It includes its range in the spatial and temporal dimensions.
+
+3. time series: this operation requests the time series of values of a coverage attribute
+   at a given location.
+
+To allow for further processing of time series from a WTSS service, this operation
+ creates the following global variables:
+
+WTSS_URL.gl    - the the URL for the WTSS time series service
+ ts_server.gl   - an object that handles the WTSS connection
+ cov_name.gl    - the name of the coverage that contains the time series for the analysis
+ cov_desc.gl    - the table with the parameters of the coverage
+ start_date.gl  - the start date for the time series data in the coverage
+ end_date.gl    - the end date for the time series data in the coverage
+ bands.gl       - the bands of the data to be retrieved from the WTSS
+ bands_s.gl     - the names of the smoothed bands corresponding to the desired bands
+}

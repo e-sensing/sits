@@ -16,10 +16,10 @@
 sits_toJSON <- function (json_file, table) {
 
      # does the database exist?
-     sits_assert_table(table)
+     sits_assert(table)
      # store the contents of table in a JSON file
      table %>%
-          toJSON (pretty = TRUE) %>%
+          jsonlite::toJSON (pretty = TRUE) %>%
           write_lines (json_file)
      # return the table for chaining sits functions
      return (table)
@@ -44,15 +44,15 @@ sits_fromJSON <- function (json_file) {
      # create a new table to store the contents of the JSON file
      table <- sits_table()
      # add the contents of the JSON file to the in-memory database
-     table <- as_tibble (fromJSON (json_file))
+     table <- as_tibble (jsonlite::fromJSON (json_file))
+     # convert Indexes in time series to dates
      for (i in 1:nrow(table)) {
           tb <- as_tibble(table[i,]$time_series[[1]])
           tb$Index <- as_date(tb$Index)
           table[i,]$time_series[[1]] <- tb
      }
-     table <- mutate (table, from = as.Date(from))
-     table <- mutate (table, to = as.Date(to))
-     # assign the in-memory database to the global enviroment
-     # assign(table, global.db, envir=globalenv())
+     # convert start and end date to Date format
+     table <- dplyr::mutate (table, start_date = as.Date(start_date))
+     table <- dplyr::mutate (table, end_date   = as.Date(end_date))
      return (table)
 }

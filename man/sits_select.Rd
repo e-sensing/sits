@@ -17,4 +17,3 @@ table  a tibble in SITS format
 \description{
 \code{sits_select} returns a sits table with the selected bands
 }
-

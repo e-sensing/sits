@@ -22,17 +22,17 @@ sits_merge <-  function(sits1.tb, sits2.tb) {
 
      # merge the time series
      merge_one <-  function (ts1, ts2) {
-          ts3 <- left_join (ts1, ts2, by = "Index")
+          ts3 <- dplyr::left_join (ts1, ts2, by = "Index")
      }
      # first, select the metadata columns
      merged.tb <- sits1.tb %>%
-          select (latitude, longitude, from, to, label, coverage)
+          dplyr::select (latitude, longitude, start_date, end_date, label, coverage)
 
      # then merge the data sets
      sits1.data <- sits1.tb$time_series
      sits2.data <- sits2.tb$time_series
      # join the attributes and values using zoo merge
-     merged.tb$time_series <- map2 (sits1.data, sits2.data, merge_one)
+     merged.tb$time_series <- purrr::map2 (sits1.data, sits2.data, merge_one)
 
      return (merged.tb)
 }

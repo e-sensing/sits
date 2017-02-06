@@ -2,6 +2,7 @@
 #' Verify if the sits table has been created
 #'
 #' \code{sits_assert} tests if the sits table exists
+#' This is an utility function used to test if a table exists
 #' @param table_name  a string - name of table (must exist)
 #'
 #' @export

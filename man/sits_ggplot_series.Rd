@@ -19,4 +19,3 @@ Other SITS auxiliary functions: \code{\link{sits_ggplot_together}},
   \code{\link{sits_plot_title}}
 }
 \keyword{SITS}
-

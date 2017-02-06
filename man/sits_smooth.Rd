@@ -34,4 +34,3 @@ Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"), c("ndvi_smooth", "evi_smooth"), lambda = 0.5)
 }
 \keyword{sits}
-

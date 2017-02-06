@@ -4,12 +4,12 @@
 #'
 #' @param data.tb - a sits table with the time series of the selected bands
 #' @param bands   - a vector of bands
-#' @return table  a tibble in SITS format
+#' @return table  a tibble in SITS format with the selected bands
 #' @export
 
 sits_select <- function (data.tb, bands) {
      new.tb <- sits_table()
-     new.tb <- dplyr::select (data.tb, longitude, latitude, from, to, label, coverage)
+     new.tb <- dplyr::select (data.tb, longitude, latitude, start_date, end_date, label, coverage)
      time_series.ls <- data.tb$time_series
      ts <- list()
      # for (i in 1:length (time_series.ls)) {

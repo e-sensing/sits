@@ -12,6 +12,5 @@ table  a tibble in SITS format
 \description{
 \code{sits_table} returns an empty sits table
 A sits table has the metadata and data for each time series
-<longitude, latitude, from, to, label, coverage, time_series>
+<longitude, latitude, start_date, end_date, label, coverage, time_series>
 }
-

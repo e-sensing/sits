@@ -6,10 +6,10 @@
 #' to retrieve the time series, and stores the time series on a SITS table for later use.
 #'
 #' #' The CSV file should have the following column names:
-#' "longitude", "latitude", "from", "to", "label"
+#' "longitude", "latitude", "start_date", "end_date", "label"
 #'
 #' A sits table has the metadata and data for each time series
-#' <longitude, latitude, from, to, label, coverage, time_series>
+#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
 #'
 #' @param csv_file   string  - name of a CSV file with information <id, latitude, longitude, from, end, label>
@@ -21,24 +21,26 @@
 #' @export
 
 sits_fromCSV <-  function (csv_file, n_max = Inf){
+
+     # configure the format of the CSV file to be read
+     cols_csv <- readr::cols(id          = col_integer(),
+                             longitude   = col_double(),
+                             latitude    = col_double(),
+                             start_date  = col_date(),
+                             end_date    = col_date(),
+                             label       = col_character())
      # read sample information from CSV file
-     cols_csv <- cols(id        = col_integer(),
-                      longitude = col_double(),
-                      latitude  = col_double(),
-                      from      = col_date(),
-                      to        = col_date(),
-                      label     = col_character())
-     samples.df <- read_csv (csv_file, n_max = n_max, col_types = cols_csv)
-     # does the table exist? if not, it is created
+     samples.df <- readr::read_csv (csv_file, n_max = n_max, col_types = cols_csv)
+     # create the table
      samples.tb <- sits_table()
      # retrieve the time series for WTSS and add it to the table
      for (i in 1:nrow (samples.df)) {
           row <- sits_fromWTSS (samples.df[i,]$longitude,
                                 samples.df[i,]$latitude,
-                                samples.df[i,]$from,
-                                samples.df[i,]$to,
+                                samples.df[i,]$start_date,
+                                samples.df[i,]$end_date,
                                 samples.df[i,]$label)
-          samples.tb <- bind_rows (samples.tb, row)
+          samples.tb <- dplyr::bind_rows (samples.tb, row)
      }
      return (samples.tb)
 }

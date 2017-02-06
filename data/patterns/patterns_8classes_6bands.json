@@ -2,8 +2,8 @@
   {
     "longitude": 0,
     "latitude": 0,
-    "from": "2000-09-13",
-    "to": "2001-08-23",
+    "start_date": "2000-09-13",
+    "end_date": "2001-08-23",
     "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
@@ -408,9 +408,9 @@
   {
     "longitude": 0,
     "latitude": 0,
-    "from": "2011-09-05",
-    "to": "2012-08-22",
-    "label": "Fallow_Cotton",
+    "start_date": "2011-09-05",
+    "end_date": "2012-08-22",
+    "label": "Fallow_Cotend_daten",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -823,8 +823,8 @@
   {
     "longitude": 0,
     "latitude": 0,
-    "from": "2008-09-03",
-    "to": "2009-08-13",
+    "start_date": "2008-09-03",
+    "end_date": "2009-08-13",
     "label": "Forest",
     "coverage": "mod13q1_512",
     "time_series": [
@@ -1229,8 +1229,8 @@
   {
     "longitude": 0,
     "latitude": 0,
-    "from": "2004-09-13",
-    "to": "2005-08-23",
+    "start_date": "2004-09-13",
+    "end_date": "2005-08-23",
     "label": "Pasture",
     "coverage": "mod13q1_512",
     "time_series": [
@@ -1635,9 +1635,9 @@
   {
     "longitude": 0,
     "latitude": 0,
-    "from": "2011-09-07",
-    "to": "2012-08-24",
-    "label": "Soybean_Cotton",
+    "start_date": "2011-09-07",
+    "end_date": "2012-08-24",
+    "label": "Soybean_Cotend_daten",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -2050,8 +2050,8 @@
   {
     "longitude": 0,
     "latitude": 0,
-    "from": "2000-09-05",
-    "to": "2001-08-31",
+    "start_date": "2000-09-05",
+    "end_date": "2001-08-31",
     "label": "Soybean_Fallow",
     "coverage": "mod13q1_512",
     "time_series": [
@@ -2474,8 +2474,8 @@
   {
     "longitude": 0,
     "latitude": 0,
-    "from": "2010-09-07",
-    "to": "2011-08-09",
+    "start_date": "2010-09-07",
+    "end_date": "2011-08-09",
     "label": "Soybean_Maize",
     "coverage": "mod13q1_512",
     "time_series": [
@@ -2871,8 +2871,8 @@
   {
     "longitude": 0,
     "latitude": 0,
-    "from": "2010-09-07",
-    "to": "2011-08-17",
+    "start_date": "2010-09-07",
+    "end_date": "2011-08-17",
     "label": "Soybean_Millet",
     "coverage": "mod13q1_512",
     "time_series": [

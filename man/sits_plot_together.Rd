@@ -15,4 +15,3 @@ none
 \description{
 \code{sits_plot_together} plots all samples of a SITS table having the same label
 }
-

@@ -9,34 +9,29 @@
 #' Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 #'
 #' @param table_in   a string - the name of the database with original time series  (must exist)
-#' @param table_out  a string - the name of the database with original time series  (is created)
-#' @param bands_in   a vector - the names of the raw bands to be smoothed
-#' @param bands_out  a vector - the names of the output bands
 #' @param lambda     double   - the smoothing factor to be applied
 #' @return           a tibble with smoothed sits time series
 #' @keywords sits
 #' @family   sits auxiliary functions
-#' @examples sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"), c("ndvi_smooth", "evi_smooth"), lambda = 0.5)
+#' @examples sits_smooth ("raw.tb", lambda = 0.5)
 #' @export
-sits_smooth <- function (table_in,
-                         bands_in  = bands.gl,
-                         bands_out = bands_s.gl,
-                         lambda    = 0.5) {
+sits_smooth <- function (table_in, lambda    = 0.5) {
 
-     # function to smooth the bands of a time series
-     smooth_Whittaker <- function (ts) {
-          for (b in bands_in) ts[[b]]  <- whit1(ts[[b]], lambda = lambda)
-          return (ts)
-     }
      # does the database exist?
-     sits_assert_table(table_in)
-     # test if the input database has at least one row of data
-     #sits_is_empty (table_in)
+     sits_assert(table_in)
      # extract the time series data from the sits table
      data1.tb <- table_in$time_series
-     # smooth the time series
+     # what are the input bands?
+     bands_in  <- sits_bands (table_in)
+     # make the names of the output bands
+     bands_out <- as.character(map (bands_in, function (name)
+                                   {new_name <- paste(name,"_smooth", sep="")
+                                    return (new_name) }))
+     # smooth the time series using Whittaker smoother
      smoothed.tb <- data1.tb %>%
-          map(smooth_Whittaker)
+          map(function (ts) {
+               for (b in bands_in) ts[[b]]  <- whit1(ts[[b]], lambda = lambda)
+               return (ts) })
      # rename the time series
      data2.tb <- smoothed.tb %>%
           map (function (ts) {
@@ -46,7 +41,7 @@ sits_smooth <- function (table_in,
           })
 
      # create a new database by copying metadata information from the input sits database
-     out.tb <- select (table_in, latitude, longitude, from, to, label, coverage, time_series)
+     out.tb <- select (table_in, latitude, longitude, start_date, end_date, label, coverage, time_series)
      # insert the new time series
      out.tb$time_series <-  data2.tb
      # return the result

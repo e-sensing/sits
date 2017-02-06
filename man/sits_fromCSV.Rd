@@ -21,10 +21,10 @@ to retrieve the time series, and stores the time series on a SITS table for late
 }
 \details{
 #' The CSV file should have the following column names:
-"longitude", "latitude", "from", "to", "label"
+"longitude", "latitude", "start_date", "end_date", "label"
 
 A sits table has the metadata and data for each time series
-<longitude, latitude, from, to, label, coverage, time_series>
+<longitude, latitude, start_date, end_date, label, coverage, time_series>
 }
 \examples{
 sits_fromCSV ("mysamples.csv", n_max = 5)
@@ -34,4 +34,3 @@ Other SITS main functions: \code{\link{sits_fromWTSS}},
   \code{\link{sits_merge}}
 }
 \keyword{SITS}
-

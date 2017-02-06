@@ -7,7 +7,7 @@
 #' @param URL     the URL for the WTSS time series service
 #' @export
 #'
-sits_infoWTSS <- function (URL    = "http://www.dpi.inpe.br/tws/wtss") {
+sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
 
      # obtains information about the WTSS service
      wtss.obj         <- WTSS(URL)

@@ -1,4 +1,4 @@
-﻿id,longitude,latitude,startDate,endDate,className
+id,longitude,latitude,start_date,end_date,className
 8,-47.2275,-11.6315,2000-02-18,2000-02-18,Cerrado
 9,-47.2660,-11.5252,2000-02-18,2000-02-18,Cerrado
 10,-47.3264,-11.5965,2000-02-18,2000-02-18,Cerrado
