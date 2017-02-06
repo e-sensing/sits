@@ -410,7 +410,7 @@
     "latitude": 0,
     "start_date": "2011-09-05",
     "end_date": "2012-08-22",
-    "label": "Fallow_Cotend_daten",
+    "label": "Fallow_Cotton",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -1637,7 +1637,7 @@
     "latitude": 0,
     "start_date": "2011-09-07",
     "end_date": "2012-08-24",
-    "label": "Soybean_Cotend_daten",
+    "label": "Soybean_Cotton",
     "coverage": "mod13q1_512",
     "time_series": [
       {

@@ -18,8 +18,9 @@
 #' @family   SITS main functions
 #' @examples sits_fromWTSS (-53.30, -14.24, "2000-02-18", "2016-09-24")
 #' @export
-sits_fromWTSS <- function  (longitude  =          -54.2313,
-                            latitude   =          -14.0482,
+#'
+sits_fromWTSS <- function  (longitude  =          -55.51810,
+                            latitude   =          -11.63884,
                             start_date =     start_date.gl,
                             end_date   =       end_date.gl,
                             label      =         "NoClass") {
@@ -63,7 +64,7 @@ sits_fromWTSS <- function  (longitude  =          -54.2313,
      # convert the series to a tibble
      row.tb <- as_tibble (fortify.zoo (time_series))
      # clean the time series
-     row.tb <- clean_ts (row.tb)
+     #row.tb <- clean_ts (row.tb)
      # create a list to store the zoo time series coming from the WTSS service
      ts.lst <- list()
      # transform the zoo list into a tibble to store in memory

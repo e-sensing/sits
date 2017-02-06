@@ -2,21 +2,14 @@
 % Please edit documentation in R/sits_smooth.R
 \name{sits_smooth}
 \alias{sits_smooth}
-\title{Smooth the time series using Whittaker smoother}
+\title{Smooth the time series using Whittaker smoother (based on PTW package)}
 \usage{
-sits_smooth(table_in, bands_in = bands.gl, bands_out = bands_s.gl,
-  lambda = 0.5)
+sits_smooth(table_in, lambda = 0.5)
 }
 \arguments{
 \item{table_in}{a string - the name of the database with original time series  (must exist)}
 
-\item{bands_in}{a vector - the names of the raw bands to be smoothed}
-
-\item{bands_out}{a vector - the names of the output bands}
-
 \item{lambda}{double   - the smoothing factor to be applied}
-
-\item{table_out}{a string - the name of the database with original time series  (is created)}
 }
 \value{
 a tibble with smoothed sits time series
@@ -27,10 +20,15 @@ a tibble with smoothed sits time series
 \details{
 The input and the output are two databases. The input database must exist.
 
+The algorithm searches for an optimal polynomial describing the warping.
+It is possible to align one sample to a reference,
+several samples to the same reference, or several samples to several references.
+
 The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 10.0)
 Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 }
 \examples{
-sits_smooth ("raw.tb", "smoothed.tb", c("ndvi", "evi"), c("ndvi_smooth", "evi_smooth"), lambda = 0.5)
+sits_smooth ("raw.tb", lambda = 0.5)
 }
 \keyword{sits}
+

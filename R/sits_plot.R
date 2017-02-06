@@ -68,6 +68,7 @@ sits_plot <- function (data.tb, type = "allyears", colors = "Dark2") {
 #' @keywords STIS
 #' @family   STIS main functions
 #' @examples sits_plot  ts <- (ts, type = "grouped", colors = "Set1")
+#' @export
 #'
 sits_plot_together <- function (data.tb, colors = "Dark2") {
 

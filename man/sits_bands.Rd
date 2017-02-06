@@ -15,3 +15,4 @@ names      a string vector with the names of the bands
 \description{
 \code{sits_bands} finds the names of the bands of time series in a sits table
 }
+

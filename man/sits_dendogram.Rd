@@ -36,7 +36,10 @@ sits_dendogram  (data.tb, n_clusters = 6)
 
 }
 \seealso{
-Other STIS main functions: \code{\link{sits_fromJSON}},
+Other STIS main functions: \code{\link{sits_centroids}},
+  \code{\link{sits_fromJSON}},
+  \code{\link{sits_plot_together}},
   \code{\link{sits_plot}}, \code{\link{sits_toJSON}}
 }
 \keyword{STIS}
+

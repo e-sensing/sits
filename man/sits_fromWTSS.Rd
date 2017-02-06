@@ -4,7 +4,7 @@
 \alias{sits_fromWTSS}
 \title{Obtain one timeSeries from WTSS server and load it on a sits table}
 \usage{
-sits_fromWTSS(longitude = -54.2313, latitude = -14.0482,
+sits_fromWTSS(longitude = -55.5181, latitude = -11.63884,
   start_date = start_date.gl, end_date = end_date.gl, label = "NoClass")
 }
 \arguments{
@@ -38,3 +38,4 @@ Other SITS main functions: \code{\link{sits_fromCSV}},
   \code{\link{sits_merge}}
 }
 \keyword{SITS}
+

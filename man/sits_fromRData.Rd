@@ -19,3 +19,4 @@ Transform patterns saved in .RData to a SITS table
 \code{sits_fromRData} reads a set of TWDTW patterns saved as RData and
 transforms them into a SITS table
 }
+

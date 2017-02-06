@@ -10,7 +10,7 @@
 #' @param colors      string - the set of Brewer colors to be used for plotting
 #' @keywords SITS
 #' @family   SITS auxiliary functions
-#'
+#' @export
 sits_ggplot_series <- function (tb, colors = "Dark2") {
      # create the plot title
      plot_title <- sits_plot_title (tb[1,])
@@ -23,7 +23,7 @@ sits_ggplot_series <- function (tb, colors = "Dark2") {
      g <- ggplot(melted.ts, aes(x=Index, y=value, group = variable)) +
           geom_line(aes(color = variable)) +
           labs (title = plot_title) +
-          ylim(0.0, 1.0) +
+          # ylim(0.0, 1.0) +
           scale_color_brewer (palette = colors)
      # scale_colour_hue(h=c(90, 270)) - alternative to brewer
      return (g)
@@ -38,6 +38,7 @@ sits_ggplot_series <- function (tb, colors = "Dark2") {
 #' @param plot_title  the title for the plot
 #' @keywords SITS
 #' @family   SITS plotting functions
+#' @export
 sits_ggplot_together <- function (melted.tb, means.tb, plot_title) {
      g <- ggplot(melted.tb, aes(x=Index, y=value, group = variable)) +
           geom_line(colour = "#819BB1", alpha = 0.5) +
@@ -58,7 +59,7 @@ sits_ggplot_together <- function (melted.tb, means.tb, plot_title) {
 #' @return title   string - the title to be used in the plot
 #' @keywords SITS
 #' @family   SITS plotting functions
-#'
+#' @export
 sits_plot_title <- function (row) {
      title <- paste ("location (",
                      row$latitude,  ", ",

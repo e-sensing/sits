@@ -30,50 +30,36 @@
 #' @export
 #'
 #'
-sits_TWTDW <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 100) {
-
-     # internal function that converts a SITS table to a TWDTW time series
-     toTWDTW <- function (data.tb){
-          zoo.ls <- data.tb$time_series %>%
-               map (function (ts) {
-                    df <- data.frame (ts)
-                    return (zoo (df[,2:ncol(df)], df[,1]))
-               })
-          labels.fc <-  as.factor (data.frame (select (data.tb, label))[,1])
-
-          ptt = new("twdtwTimeSeries", timeseries = zoo.ls,
-                    labels = labels.fc)
-          return (ptt)
-     }
+sits_classTWDTW <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 100) {
 
      # select the bands for the samples time series and convert to TWDTW format
      ts_samples <- samples.tb %>%
           sits_select (bands) %>%
-          toTWDTW()
+          sits_toTWDTW()
 
      # select the bands for patterns time series and convert to TWDTW format
      ts_patterns <- patterns.tb %>%
-     sits_select (bands) %>%
-     sits_toTWDTW()
+          sits_select (bands) %>%
+          sits_toTWDTW()
 
      # Define the logistic function
-     log_fun = logisticWeight(alpha=-0.05, beta=100)
+     log_fun = logisticWeight(alpha = alpha, beta = beta)
 
-august_july = seq(from = as.Date("2000-09-01"),
-                  to   = as.Date("2016-08-31"),
-                  by   = "12 month")
+     august_july = seq(from = as.Date("2000-09-01"),
+                       to   = as.Date("2016-08-31"),
+                       by   = "12 month")
 
-matches = twdtwApply(x = ts_samples,
-                     y = ts_patterns,
-                     weight.fun = log_fun,
-                     breaks = august_july,
-                     keep=TRUE)
+     matches = twdtwApply(x = ts_samples,
+                          y = ts_patterns,
+                          weight.fun = log_fun,
+                          breaks = august_july,
+                          keep=TRUE)
 
 # # plot the classification
 # plot(x = matches, type = "classification", overlap = 0.5)
 # # plot the alignments
 # plot(x = matches, type = "alignments")
 
-return (matches)
+     return (matches)
 
 }

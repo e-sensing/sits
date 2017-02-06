@@ -11,6 +11,12 @@ table  a tibble in SITS format
 }
 \description{
 \code{sits_table} returns an empty sits table
-A sits table has the metadata and data for each time series
+A sits table is a tibble with pre-defined columns that
+has the metadata and data for each time series. The columns are
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
 }
+\details{
+Most functions on the sits package use a sits table as input (with additional parameters)
+and a sits table as output. This allows for chaining of operation on time series
+}
+

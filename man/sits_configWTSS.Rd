@@ -5,7 +5,8 @@
 \title{Set important global variables for WTSS access}
 \usage{
 sits_configWTSS(URL = "http://www.dpi.inpe.br/tws/wtss",
-  coverage = "mod13q1_512", bands = c("ndvi", "evi", "nir"))
+  coverage = "mod13q1_512", bands = c("ndvi", "evi", "red", "nir", "blue",
+  "mir"))
 }
 \arguments{
 \item{URL}{the URL for the WTSS time series service}
@@ -46,5 +47,5 @@ WTSS_URL.gl    - the the URL for the WTSS time series service
  start_date.gl  - the start date for the time series data in the coverage
  end_date.gl    - the end date for the time series data in the coverage
  bands.gl       - the bands of the data to be retrieved from the WTSS
- bands_s.gl     - the names of the smoothed bands corresponding to the desired bands
 }
+

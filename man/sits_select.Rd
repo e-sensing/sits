@@ -12,8 +12,9 @@ sits_select(data.tb, bands)
 \item{bands}{- a vector of bands}
 }
 \value{
-table  a tibble in SITS format
+table  a tibble in SITS format with the selected bands
 }
 \description{
 \code{sits_select} returns a sits table with the selected bands
 }
+

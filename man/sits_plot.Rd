@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{sits_plot}
 \alias{sits_plot}
-\title{Plot a set of time series for the same spatio-temporal reference}
+\title{Plot a set of time series}
 \usage{
 sits_plot(data.tb, type = "allyears", colors = "Dark2")
 }
@@ -15,7 +15,7 @@ sits_plot(data.tb, type = "allyears", colors = "Dark2")
 data.tb    tibble - the input SITS table (useful for chaining functions)
 }
 \description{
-\code{sits_plot} plot one time series for a single place and interval
+\code{sits_plot} plot one or more time series
 }
 \details{
 Plot one SITS time series for a single place and interval
@@ -25,7 +25,11 @@ sits_plot  ts <- (ts, type = "grouped", colors = "Set1")
 
 }
 \seealso{
-Other STIS main functions: \code{\link{sits_dendogram}},
-  \code{\link{sits_fromJSON}}, \code{\link{sits_toJSON}}
+Other STIS main functions: \code{\link{sits_centroids}},
+  \code{\link{sits_dendogram}},
+  \code{\link{sits_fromJSON}},
+  \code{\link{sits_plot_together}},
+  \code{\link{sits_toJSON}}
 }
 \keyword{STIS}
+
