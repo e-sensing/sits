@@ -17,3 +17,4 @@ out.tb  a SITS table with a list of renamed bands for the time series
 \description{
 \code{sits_renames} renames the bands of a sits table
 }
+

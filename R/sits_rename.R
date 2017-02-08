@@ -8,6 +8,8 @@
 #'
 sits_rename <-  function (in.tb, bands_new) {
 
+     if (is.null(bands_new)) message (paste, "New band names should be provided")
+
      # rename the time series
      out.ts <- in.tb$time_series %>%
           purrr::map (function (ts) {

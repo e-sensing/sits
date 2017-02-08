@@ -24,3 +24,4 @@ The Web Time Seris Service (WTSS) is a lightweight web service the allow remote 
 3. time series: this operation requests the time series of values of a coverage attribute
    at a given location.
 }
+

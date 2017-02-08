@@ -1,43 +1,3 @@
-# this is an example of how to use SITS
-
-# these are the sits dependencies
-# --------------------------------
-# Required libraries
-# --------------------------------
-# devtools
-library (devtools)
-# input/output - JSON
-library(jsonlite)
-# Documentation
-library (roxygen2)
-# raster data
-library (raster)
-# lubridate for date-time
-library(lubridate)
-# Zoo time series
-library(zoo)
-# Signal processing
-library(signal)
-# Parametric Time Warping
-library(ptw)
-# Time Series Clustering with DTW
-library(dtwclust)
-# Magrittr library for pipes
-library(magrittr)
-# Tidyverse
-library (tidyverse)
-# stringr
-library (stringr)
-# Web Series Time Service
-library(wtss.R)
-# Data mining with TWDTW
-# load from github
-# dtwSat package needs gfortran
-# please install gfortran before installing dtwSat
-# install_github("vwmaus/dtwSat")
-library(dtwSat)
-# reshape
-library(reshape2)
 # satellite image time series
 # install_github("gilbertocamara/sits")
 library(sits)
@@ -52,16 +12,16 @@ sits_configWTSS (URL = "http://www.dpi.inpe.br/tws/wtss",
                  bands = c("ndvi", "evi", "nir"))
 
 # pick one point as an example
-point.tb <- sits_fromWTSS()
+point.tb <- sits_fromWTSS(longitude = -56.5484812696997, latitude = -14.184843128981377)
 
 point.tb %>%
-     sits_select ("ndvi") %>%
+     sits_select ("evi") %>%
      sits_plot()
 
 point2.tb <- sits_smooth (point.tb, lambda = 1.0)
 
 point2.tb %>%
-     sits_select ("ndvi") %>%
+     sits_select ("ndvi", "evi") %>%
      sits_plot()
 
 point3.tb <- sits_rename (point2.tb, c("ndvi_smooth", "evi_smooth", "nir_smooth"))

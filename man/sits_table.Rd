@@ -19,3 +19,4 @@ has the metadata and data for each time series. The columns are
 Most functions on the sits package use a sits table as input (with additional parameters)
 and a sits table as output. This allows for chaining of operation on time series
 }
+
