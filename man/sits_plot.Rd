@@ -9,6 +9,8 @@ sits_plot(data.tb, type = "allyears", colors = "Dark2")
 \arguments{
 \item{data.tb}{tibble - a SITS table with the list of time series to be plotted}
 
+\item{type}{string - the type of plot to be generated}
+
 \item{colours}{the color pallete to be used (default is "Set1")}
 }
 \value{
@@ -32,4 +34,3 @@ Other STIS main functions: \code{\link{sits_centroids}},
   \code{\link{sits_toJSON}}
 }
 \keyword{STIS}
-

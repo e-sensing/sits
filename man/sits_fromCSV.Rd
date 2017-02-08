@@ -34,4 +34,3 @@ Other SITS main functions: \code{\link{sits_fromWTSS}},
   \code{\link{sits_merge}}
 }
 \keyword{SITS}
-

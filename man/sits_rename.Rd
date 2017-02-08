@@ -4,17 +4,16 @@
 \alias{sits_rename}
 \title{Finds the names of the bands of a time series}
 \usage{
-sits_rename(in.ts, bands_new)
+sits_rename(in.tb, bands_new)
 }
 \arguments{
-\item{in.ts}{a list of SITS time series}
+\item{in.tb}{a SITS table with a list of SITS time series}
 
 \item{bands}{a list of new band names}
 }
 \value{
-out.ts  a list of renamed SITS time series
+out.tb  a SITS table with a list of renamed bands for the time series
 }
 \description{
-\code{sits_bands} finds the names of the bands of time series in a sits table
+\code{sits_renames} renames the bands of a sits table
 }
-

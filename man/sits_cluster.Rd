@@ -18,4 +18,3 @@ none
 uses the dtwclust package to cluster time series. s
 See "dtwclust" documentation for more details
 }
-

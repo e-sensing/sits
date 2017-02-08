@@ -21,7 +21,7 @@ sits_classTWDTW(samples.tb, patterns.tb, bands, alpha = -0.1, beta = 100)
 matches       a SITS table with the information on matches for the data
 }
 \description{
-\code{sits_TWDTW} returns a sits table with values only
+\code{sits_classTWDTW} returns a sits table with values only
 }
 \details{
 A sits table has the metadata and data for each time series
@@ -43,4 +43,3 @@ Reference: Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016
  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 }
-

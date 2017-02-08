@@ -11,14 +11,15 @@
 #' @keywords SITS
 #' @family   SITS auxiliary functions
 #' @export
-sits_ggplot_series <- function (tb, colors = "Dark2") {
+sits_ggplot_series <- function (row, colors = "Dark2") {
      # create the plot title
-     plot_title <- sits_plot_title (tb[1,])
+     plot_title <- sits_plot_title (row)
      #extract the time series
-     data.ts <- tb$time_series
+     data.ts <- row$time_series
      # melt the data into long format
      melted.ts <- data.ts %>%
-          reshape2::melt (id.vars = "Index")
+          reshape2::melt (id.vars = "Index") %>%
+          as.data.frame()
      # plot the data with ggplot
      g <- ggplot(melted.ts, aes(x=Index, y=value, group = variable)) +
           geom_line(aes(color = variable)) +

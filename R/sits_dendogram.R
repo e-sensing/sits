@@ -26,7 +26,7 @@
 #'
 sits_dendogram <- function (data.tb, n_clusters = 6) {
 
-     cluster_dendogram <- function (data.tb, band, n_clusters){
+     cluster_dendogram <- function (band, data.tb, n_clusters){
           values.tb <- sits_values (data.tb, band)
           clusters  <- dtwclust (values.tb,
                                  type     = "hierarchical",
@@ -47,7 +47,7 @@ sits_dendogram <- function (data.tb, n_clusters = 6) {
           cl <- lapply (unique (clusters@cluster), function (clu) data.tb[clusters@cluster == clu,] )
      }
 
-     bands  <- sits_bands (data.tb)
-
-     for (band in bands) cluster_dendogram (data.tb, band, n_clusters)
+     data.tb %>%
+          sits_bands() %>%
+          map (function (b) cluster_dendogram (data.tb, n_clusters))
 }

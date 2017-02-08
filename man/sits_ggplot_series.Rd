@@ -4,12 +4,12 @@
 \alias{sits_ggplot_series}
 \title{Plot one or more timeSeries using ggplot}
 \usage{
-sits_ggplot_series(tb, colors = "Dark2")
+sits_ggplot_series(row, colors = "Dark2")
 }
 \arguments{
-\item{tb}{a SITS table with the time series to be plotted}
-
 \item{colors}{string - the set of Brewer colors to be used for plotting}
+
+\item{tb}{a SITS table with the time series to be plotted}
 }
 \description{
 \code{sits_ggplot_series} plots a set of time series using ggplot
@@ -19,4 +19,3 @@ This function is used for showing the same lat/long location in
 a series of time steps.
 }
 \keyword{SITS}
-

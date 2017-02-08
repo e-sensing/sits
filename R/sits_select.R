@@ -8,20 +8,13 @@
 #' @export
 
 sits_select <- function (data.tb, bands) {
+     # create a new table to store the result
      new.tb <- sits_table()
+     # select the metadata attributes from the input table
      new.tb <- dplyr::select (data.tb, longitude, latitude, start_date, end_date, label, coverage)
-     time_series.ls <- data.tb$time_series
-     ts <- list()
-     # for (i in 1:length (time_series.ls)) {
-     #      ts[[i]] <- time_series.ls[[i]] %>%
-     #           data.frame() %>%
-     #           .[,c("Index", bands)]
-     # }
-     for (i in 1:length (time_series.ls)) {
-          tb <- time_series.ls[[i]]
-          print (tb)
-          ts[[i]] <- tb [,c('Index', bands)]
-     }
-     new.tb$time_series <- ts
+     # select the chosen bands for the time series
+     new.tb$time_series <- data.tb$time_series %>%
+          map (function (ts) ts <- ts [,c("Index", bands)])
+     # return the result
      return (new.tb)
 }

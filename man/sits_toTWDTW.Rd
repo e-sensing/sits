@@ -23,4 +23,3 @@ Reference: Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016
  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 }
-

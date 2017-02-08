@@ -1,6 +1,6 @@
 #' Classify a sits tibble using TWDTW (using the dtwSat package)
 #'
-#' \code{sits_TWDTW} returns a sits table with values only
+#' \code{sits_classTWDTW} returns a sits table with values only
 #'
 #' A sits table has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>

@@ -25,7 +25,7 @@
 #'
 sits_centroids <- function (data.tb, n_clusters = 6) {
 
-     cluster_partitional <- function (data.tb, band, n_clusters) {
+     cluster_partitional <- function (band, data.tb, n_clusters) {
           values.tb <- sits_values (data.tb, band)
           clusters  <- dtwclust (values.tb,
                                  type     = "partitional",
@@ -46,8 +46,7 @@ sits_centroids <- function (data.tb, n_clusters = 6) {
           #create a list of each cluster
           cl <- lapply (unique (clusters@cluster), function (clu) data.tb[clusters@cluster == clu,] )
      }
-
-     bands  <- sits_bands (data.tb)
-
-     for (band in bands) cluster_partitional (data.tb, band, n_clusters)
+     data.tb %>%
+          sits_bands() %>%
+          map (function (b) cluster_partitional (b, data.tb, n_clusters))
 }

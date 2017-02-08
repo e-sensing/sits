@@ -24,23 +24,18 @@ sits_fromCSV <-  function (csv_file, n_max = Inf){
 
      # configure the format of the CSV file to be read
      cols_csv <- readr::cols(id          = col_integer(),
-                             longitude   = col_double(),
-                             latitude    = col_double(),
-                             start_date  = col_date(),
-                             end_date    = col_date(),
+                             longitude   = col_double(), latitude    = col_double(),
+                             start_date  = col_date(),   end_date    = col_date(),
                              label       = col_character())
-     # read sample information from CSV file
-     samples.df <- readr::read_csv (csv_file, n_max = n_max, col_types = cols_csv)
+     # read sample information from CSV file and put it in a tibble
+     csv.tb <- readr::read_csv (csv_file, n_max = n_max, col_types = cols_csv)
      # create the table
      samples.tb <- sits_table()
-     # retrieve the time series for WTSS and add it to the table
-     for (i in 1:nrow (samples.df)) {
-          row <- sits_fromWTSS (samples.df[i,]$longitude,
-                                samples.df[i,]$latitude,
-                                samples.df[i,]$start_date,
-                                samples.df[i,]$end_date,
-                                samples.df[i,]$label)
-          samples.tb <- dplyr::bind_rows (samples.tb, row)
-     }
+     # for each row of the input, retrieve the time series
+     samples.tb <- csv.tb %>%
+          dplyr::rowwise() %>%
+          dplyr::do (sits_fromWTSS (.$longitude, .$latitude, .$start_date, .$end_date, .$label)) %>%
+          dplyr::bind_rows (samples.tb, .)
+
      return (samples.tb)
 }

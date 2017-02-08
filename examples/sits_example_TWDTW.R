@@ -54,14 +54,43 @@ sits_configWTSS (URL = "http://www.dpi.inpe.br/tws/wtss",
 # pick one point as an example
 point.tb <- sits_fromWTSS()
 
-point_s.tb <- point.tb %>%
-     sits_plot() %>%
-     sits_smooth (lambda = 2.0)
+point.tb %>%
+     sits_select ("ndvi") %>%
+     sits_plot()
 
-point_s.tb %>%
+point2.tb <- sits_smooth (point.tb, lambda = 1.0)
+
+point2.tb %>%
+     sits_select ("ndvi") %>%
+     sits_plot()
+
+point3.tb <- sits_rename (point2.tb, c("ndvi_smooth", "evi_smooth", "nir_smooth"))
+
+point3.tb %>%
      sits_merge (point.tb) %>%
      sits_select (c("ndvi", "ndvi_smooth")) %>%
      sits_plot()
+
+# read a pattern table from a JSON file
+patterns.tb <- sits_fromJSON ("./data/patterns/patterns_8classes_6bands.json")
+# plot patterns
+sits_plot (patterns.tb, type = "patterns")
+
+# classify samples using TWDTW
+bands <- c("ndvi", "evi", "nir")
+matches <- sits_classTWDTW(point2.tb, patterns.tb, bands)
+
+# # plot the classification
+plot(x = matches, type = "classification", overlap = 0.5)
+# # plot the alignments
+plot(x = matches, type = "alignments")
+
+
+damien4.tb <- sits_fromCSV("./data/samples/damien.csv", n_max = 4)
+
+damien4.tb %>%
+     rowwise() %>%
+     print(.$start_date)
 
 # classify point using TWDTW
 
@@ -72,7 +101,7 @@ sits_plot (patterns.tb, type = "patterns")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-matches <- sits_classTWDTW(point_s.tb, patterns.tb, bands)
+matches <- sits_classTWDTW(point.tb, patterns.tb, bands)
 
 # # plot the classification
 plot(x = matches, type = "classification", overlap = 0.5)
