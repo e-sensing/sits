@@ -53,5 +53,7 @@ sits_dendogram <- function (data.tb, n_clusters = 6) {
           sits_bands() %>%
           map (function (b) cluster_dendogram (data.tb, b, n_clusters))
 
+     cluster.tb.gl <<- sits_fromClusters (data.tb, cluster.lst)
+
      return (cluster.lst)
 }
