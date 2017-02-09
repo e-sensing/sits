@@ -4,12 +4,12 @@
 \alias{sits_toJSON}
 \title{Store the contents of an in-memory database in a JSON file}
 \usage{
-sits_toJSON(json_file, table)
+sits_toJSON(table, json_file)
 }
 \arguments{
-\item{json_file}{string - name of the JSON file to be written}
-
 \item{table}{tibble - an existing SITS table}
+
+\item{json_file}{string - name of the JSON file to be written}
 }
 \value{
 table      the same table (for chaining functions)
@@ -22,7 +22,7 @@ The set of time series from a SITS table can be saved in JSON format
 and later retrieved for further use
 }
 \examples{
-table <- sits_toJSON (json_file = "myjson_file.json", table = "my.db")
+table <- sits_toJSON (table = "my.db", json_file = "myjson_file.json")
 }
 \seealso{
 Other STIS main functions: \code{\link{sits_centroids}},
@@ -31,4 +31,3 @@ Other STIS main functions: \code{\link{sits_centroids}},
   \code{\link{sits_plot_together}}, \code{\link{sits_plot}}
 }
 \keyword{STIS}
-

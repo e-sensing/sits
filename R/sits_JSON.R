@@ -6,14 +6,14 @@
 #' The set of time series from a SITS table can be saved in JSON format
 #' and later retrieved for further use
 #'
-#' @param json_file   string - name of the JSON file to be written
 #' @param table       tibble - an existing SITS table
+#' @param json_file   string - name of the JSON file to be written
 #' @return table      the same table (for chaining functions)
 #' @keywords STIS
 #' @family   STIS main functions
-#' @examples table <- sits_toJSON (json_file = "myjson_file.json", table = "my.db")
+#' @examples table <- sits_toJSON (table = "my.db", json_file = "myjson_file.json")
 #' @export
-sits_toJSON <- function (json_file, table) {
+sits_toJSON <- function (table, json_file) {
 
      # does the database exist?
      sits_assert(table)
@@ -41,9 +41,7 @@ sits_toJSON <- function (json_file, table) {
 #' @examples table <- sits_fromJSON ("myjson_file.json")
 sits_fromJSON <- function (json_file) {
 
-     # create a new table to store the contents of the JSON file
-     table <- sits_table()
-     # add the contents of the JSON file to the in-memory database
+     # add the contents of the JSON file to a SITS table
      table <- as_tibble (jsonlite::fromJSON (json_file))
      # convert Indexes in time series to dates
      for (i in 1:nrow(table)) {

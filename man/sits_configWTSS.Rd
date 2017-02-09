@@ -48,4 +48,3 @@ WTSS_URL.gl    - the the URL for the WTSS time series service
  end_date.gl    - the end date for the time series data in the coverage
  bands.gl       - the bands of the data to be retrieved from the WTSS
 }
-

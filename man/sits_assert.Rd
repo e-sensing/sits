@@ -13,4 +13,3 @@ sits_assert(table_obj)
 \code{sits_assert} tests if the sits table exists
 This is an utility function used to test if a table exists
 }
-

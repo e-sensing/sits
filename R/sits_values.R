@@ -10,11 +10,11 @@
 #' @return table   a tibble in SITS format with values
 #' @export
 
-sits_values <- function (data.tb, band) {
-     values.tb <- data.tb$time_series %>%
+sits_values <- function (data, band) {
+     values <- data$time_series %>%
           data.frame() %>%
           as_tibble() %>%
           select (starts_with (band)) %>%
           t()
-     return (values.tb)
+     return (values)
 }

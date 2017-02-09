@@ -20,4 +20,3 @@ sits_ggplot_together(melted.tb, means.tb, plot_title)
 Other SITS plotting functions: \code{\link{sits_plot_title}}
 }
 \keyword{SITS}
-

@@ -8,14 +8,10 @@
 #' @export
 #'
 sits_fromTWDTW <- function (patterns){
-     # create a sits table to store the result
-     #patterns.tb <- sits_table()
      # get the time series from the patterns
      tb.lst <- map2 (patterns@timeseries, patterns@labels, function (ts, lab) {
           # tranform the time series into a row of a sits table
-          ts.tb <- ts %>%
-               unname(ts[[1]]) %>%
-               fortify.zoo(series)
+          ts.tb <- fortify.zoo(ts)
           # store the sits table in a list
           mylist        <- list()
           mylist [[1]]  <- as_tibble (ts.tb)
@@ -29,9 +25,13 @@ sits_fromTWDTW <- function (patterns){
                                             time_series  = mylist)
           return (row)
           })
-     # patterns.tb <- as_tibble(tb.lst)
-     # return (patterns.tb)
-     return (tb.lst)
+     # create a sits table to store the result
+     patterns.tb <- sits_table()
+     patterns.tb <- tb.lst %>%
+          map_df (function (row) {
+               bind_rows (patterns.tb, row)
+          })
+     return (patterns.tb)
 }
 
 

@@ -19,4 +19,3 @@ Transform patterns from TWDTW format
 \code{sits_fromTWDTW} reads a set of TWDTW patterns
 transforms them into a SITS table
 }
-

@@ -19,4 +19,3 @@ This function is used for showing the same lat/long location in
 a series of time steps.
 }
 \keyword{SITS}
-

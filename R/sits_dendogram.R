@@ -26,8 +26,9 @@
 #'
 sits_dendogram <- function (data.tb, n_clusters = 6) {
 
-     cluster_dendogram <- function (band, data.tb, n_clusters){
-          values.tb <- sits_values (data.tb, band)
+     cluster_dendogram <- function (data.tb, band, n_clusters){
+          # get the values of the various time series for this band
+          values.tb <- sits_values (data = data.tb, band = band)
           clusters  <- dtwclust (values.tb,
                                  type     = "hierarchical",
                                  k        = n_clusters,
@@ -35,19 +36,22 @@ sits_dendogram <- function (data.tb, n_clusters = 6) {
                                  seed     = 899)
 
           # By default, the dendrogram is plotted in hierarchical clustering
-          plot(clusters)
+          # plot(clusters)
           # The series and the obtained prototypes can be plotted too
           plot (clusters, type = "sc")
 
           # Focusing on the first cluster
-          plot(clusters, type = "series", clus = 1L)
-          plot(clusters, type = "centroids", clus = 1L)
+          # plot(clusters, type = "series", clus = 1L)
+          plot(clusters, type = "centroids")
 
           #create a list of each cluster
-          cl <- lapply (unique (clusters@cluster), function (clu) data.tb[clusters@cluster == clu,] )
+          #cl <- lapply (unique (clusters@cluster), function (clu) data.tb[clusters@cluster == clu,] )
+          return (clusters)
      }
 
-     data.tb %>%
+     cluster.lst <- data.tb %>%
           sits_bands() %>%
-          map (function (b) cluster_dendogram (data.tb, n_clusters))
+          map (function (b) cluster_dendogram (data.tb, b, n_clusters))
+
+     return (cluster.lst)
 }
