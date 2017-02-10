@@ -36,6 +36,7 @@ sits_plot  (data.tb, n_clusters = 6)
 \seealso{
 Other STIS main functions: \code{\link{sits_dendogram}},
   \code{\link{sits_fromJSON}},
+  \code{\link{sits_personal_clust}},
   \code{\link{sits_plot_together}},
   \code{\link{sits_plot}}, \code{\link{sits_toJSON}}
 }

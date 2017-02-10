@@ -31,6 +31,7 @@ merged.tb <- merge_WTSS (sits1.tb, sits2.tb)
 }
 \seealso{
 Other SITS main functions: \code{\link{sits_fromCSV}},
+  \code{\link{sits_fromClusters}},
   \code{\link{sits_fromWTSS}}
 }
 \keyword{SITS}

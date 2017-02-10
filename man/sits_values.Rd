@@ -4,12 +4,12 @@
 \alias{sits_values}
 \title{Return the values of one band of a SITS table}
 \usage{
-sits_values(data.tb, band)
+sits_values(data, band)
 }
 \arguments{
-\item{data.tb}{a tibble in SITS format with time series for different bands}
-
 \item{band}{string - a band whose values are to be extracted}
+
+\item{data.tb}{a tibble in SITS format with time series for different bands}
 }
 \value{
 table   a tibble in SITS format with values
