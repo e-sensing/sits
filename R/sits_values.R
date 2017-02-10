@@ -14,7 +14,7 @@ sits_values <- function (data, band) {
      values <- data$time_series %>%
           data.frame() %>%
           as_tibble() %>%
-          select (starts_with (band)) %>%
+          dplyr::select (dplyr::starts_with (band)) %>%
           t()
      return (values)
 }

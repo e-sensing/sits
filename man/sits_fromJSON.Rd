@@ -25,7 +25,6 @@ table <- sits_fromJSON ("myjson_file.json")
 \seealso{
 Other STIS main functions: \code{\link{sits_centroids}},
   \code{\link{sits_dendogram}},
-  \code{\link{sits_personal_clust}},
   \code{\link{sits_plot_together}},
   \code{\link{sits_plot}}, \code{\link{sits_toJSON}}
 }

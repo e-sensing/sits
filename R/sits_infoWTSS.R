@@ -19,19 +19,20 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
      cat (paste ("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
      cat (paste ("----", "\n",sep = ""))
 
-     for (i in 1:length (desc.obj)){
+     desc.obj %>%
+          purrr::map (function (cov) {
+               cat (paste ("Coverage : ", cov$name, "\n",sep = ""))
+               cat (paste ("Description :", cov$description, "\n", sep = ""))
+               cat (paste ("Source : ", cov$detail, "\n", sep = ""))
+               cat (paste ("Bands : ", "\n", sep = "", collapse=""))
+               cat (paste (cov$attributes$name[1:length (cov$attributes$name)], sep = ""))
+               cat (paste ("\nTime range : ", cov$geo_extent$temporal$start, " to ", cov$geo_extent$temporal$end, "\n", sep = ""))
+               cat (paste ("Temporal resolution : ", cov$geo_extent$temporal$resolution, " days ", "\n", sep = ""))
+               cat (paste ("Spatial resolution : ", as.integer (cov$geo_extent$spatial$resolution$x), " metres ", "\n", sep = ""))
 
-          cov <- desc.obj[[i]]
-          # bands <- cov$attributes$name[1:length (cov$attributes$name)]
-          cat (paste ("Coverage : ", cov$name, "\n",sep = ""))
-          cat (paste ("Description :", cov$description, "\n", sep = ""))
-          cat (paste ("Source : ", cov$detail, "\n", sep = ""))
-          cat (paste ("Bands : ", "\n", sep = "", collapse=""))
-          cat (paste (cov$attributes$name[1:length (cov$attributes$name)], sep = ""))
-          cat (paste ("\nTime range : ", cov$geo_extent$temporal$start, " to ", cov$geo_extent$temporal$end, "\n", sep = ""))
-          cat (paste ("Temporal resolution : ", cov$geo_extent$temporal$resolution, " days ", "\n", sep = ""))
-          cat (paste ("Spatial resolution : ", as.integer (cov$geo_extent$spatial$resolution$x), " metres ", "\n", sep = ""))
+               cat (paste ("----", "\n",sep = ""))
 
-          cat (paste ("----", "\n",sep = ""))
-     }
+          })
+     end <- cat (paste ("----", "\n",sep = ""))
+     return (end)
 }

@@ -17,36 +17,37 @@
 #' @export
 
 sits_fromClusters <-  function (data.tb, clusters.lst) {
-     # create an empty table
-     clusters.tb <-  sits_table()
-     # get the band names
-     #bands <- sits_bands(data.tb)
 
-     for (i in 1:length(clusters.lst)) {
+     centroids.lst <- clusters.lst %>%
+          purrr::map (function (clu) {
+               # what is the name of the band?
+               band <- tools::file_path_sans_ext(names(clu@centroids)[1])
 
-          # get band name
-          band <- tools::file_path_sans_ext(names(clusters.lst[[i]]@centroids)[1])
+               # get only the statistically significant clusters' id
+               total <- length(clu@cluster)
 
-          # get only the statistically significant clusters' id
-          total <- length(clusters.lst[[i]]@cluster)
-          uniq_clust <- cbind(unique(clusters.lst[[i]]@cluster))
-          partition <- apply(uniq_clust, 1, FUN=function (clu){ sum(clusters.lst[[i]]@cluster==clu) / total })
-          relevants <- tibble(clust_id=uniq_clust[,1], partition) %>% filter(partition >= 0.1)
+               # get the unique id of the clusters
+               uniq_clust <- unique(clu@cluster)
 
-          # get respective clusters' centroids ids
-          series_id <- as.integer(tools::file_ext(names(clusters.lst[[i]]@centroids))[relevants$clust_id]) + 1
+               # get the proportions for each cluster (0 to 100% of samples)
+               partitions <- purrr::map (uniq_clust, function (c) { sum (clu@cluster == c)/total})
 
-          # copy centroids values
-          new_centroids.tb <- data.tb[series_id,]
+               # select only clusters with more than 10% of the samples
+               relevants <- tibble(clust_id=uniq_clust, partitions) %>%
+                    dplyr::filter(partitions >= 0.1)
 
-          # select only cluster band (drops all other bands)
-          for (j in 1:nrow(new_centroids.tb)) {
-               new_centroids.tb$time_series[[j]] <- select(new_centroids.tb$time_series[[j]], one_of(c("Index", band)))
-          }
+               # get respective clusters centroids ids
+               series_id <- as.integer(tools::file_ext(names(clu@centroids))[relevants$clust_id]) + 1
 
-          # binds the rows of copied centroids to clusters.tb table
-          clusters.tb <- bind_rows(clusters.tb, new_centroids.tb)
-     }
+               # copy centroids values
+               new_centroids.tb <- data.tb[series_id,]
 
-     return(clusters.tb)
+               # select only cluster band (drops all other bands)
+               for (j in 1:nrow(new_centroids.tb)) {
+                    new_centroids.tb$time_series[[j]] <- dplyr::select(new_centroids.tb$time_series[[j]], one_of(c("Index", band)))
+               }
+               return (new_centroids.tb)
+       })
+
+     return(centroids.lst)
 }
