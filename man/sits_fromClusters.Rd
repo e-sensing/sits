@@ -23,11 +23,18 @@ A sits table has the metadata and data for each time series centroids
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
 }
 \examples{
+<<<<<<< HEAD
 sits_fromCSV ("mysamples.csv", n_max = 5)
+=======
+sits_fromClusters (savanna_s.tb, clusters.lst)
+>>>>>>> 6757650016ef287ce43c289e7fd6e80464a4bc3b
 }
 \seealso{
 Other SITS main functions: \code{\link{sits_fromCSV}},
   \code{\link{sits_fromWTSS}}, \code{\link{sits_merge}}
 }
 \keyword{SITS}
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6757650016ef287ce43c289e7fd6e80464a4bc3b
