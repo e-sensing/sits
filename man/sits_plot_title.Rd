@@ -19,3 +19,4 @@ title   string - the title to be used in the plot
 Other SITS plotting functions: \code{\link{sits_ggplot_together}}
 }
 \keyword{SITS}
+

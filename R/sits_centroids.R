@@ -48,5 +48,5 @@ sits_centroids <- function (data.tb, n_clusters = 6) {
      }
      data.tb %>%
           sits_bands() %>%
-          map (function (b) cluster_partitional (b, data.tb, n_clusters))
+          purrr::map (function (b) cluster_partitional (b, data.tb, n_clusters))
 }

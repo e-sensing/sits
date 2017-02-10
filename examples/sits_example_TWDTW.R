@@ -14,22 +14,37 @@ sits_configWTSS (URL = "http://www.dpi.inpe.br/tws/wtss",
 # pick one point as an example
 point.tb <- sits_fromWTSS(longitude = -56.5484812696997, latitude = -14.184843128981377)
 
+# select the evi and plot it
 point.tb %>%
-     sits_select ("evi") %>%
+     sits_select (c("ndvi", "evi")) %>%
      sits_plot()
 
+#smooth the data and put into a new table
 point2.tb <- sits_smooth (point.tb, lambda = 1.0)
 
+# plot the smoothed time series
 point2.tb %>%
-     sits_select ("ndvi", "evi") %>%
+     sits_select ("ndvi") %>%
      sits_plot()
 
+# rename the smoothed time series
 point3.tb <- sits_rename (point2.tb, c("ndvi_smooth", "evi_smooth", "nir_smooth"))
 
+# merge the raw and smoothed time series and plot the ndvi
 point3.tb %>%
      sits_merge (point.tb) %>%
      sits_select (c("ndvi", "ndvi_smooth")) %>%
      sits_plot()
+
+# load patterns from savanna and pasture (expert = Rodrigo)
+cerrado.tb <- sits_fromJSON("./data/Samples/cerrado.json")
+
+#plot the first 50 points, same lat/long points are plotted in the same graph
+cerrado.tb[1:50,] %>%
+     sits_plot()
+
+# plot all time series, divided into classes
+sits_plot (cerrado.tb, type = "together")
 
 # read a pattern table from a JSON file
 patterns.tb <- sits_fromJSON ("./data/patterns/patterns_8classes_6bands.json")
@@ -38,12 +53,22 @@ sits_plot (patterns.tb, type = "patterns")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-matches <- sits_classTWDTW(point2.tb, patterns.tb, bands)
+matches <- sits_classTWDTW(point.tb, patterns.tb, bands)
 
 # # plot the classification
 plot(x = matches, type = "classification", overlap = 0.5)
 # # plot the alignments
 plot(x = matches, type = "alignments")
+
+# select samples for pasture and savanna
+cerrado.tb <- sits_fromJSON ("./data/Samples/cerrado.json")
+
+#select only savanna samples
+savanna.tb <- filter (cerrado.tb, label == "Savanna")
+
+# cluster the savanna samples
+sits_centroids(savanna.tb)
+
 
 
 damien4.tb <- sits_fromCSV("./data/samples/damien.csv", n_max = 4)

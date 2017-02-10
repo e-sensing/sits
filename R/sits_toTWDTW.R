@@ -16,7 +16,7 @@
 #'
 sits_toTWDTW <- function (data.tb){
      zoo.ls <- data.tb$time_series %>%
-          map (function (ts) {
+          purrr::map (function (ts) {
                df <- data.frame (ts)
                return (zoo (df[,2:ncol(df)], df[,1]))
           })

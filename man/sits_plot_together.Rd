@@ -30,3 +30,4 @@ Other STIS main functions: \code{\link{sits_centroids}},
   \code{\link{sits_toJSON}}
 }
 \keyword{STIS}
+

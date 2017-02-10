@@ -9,7 +9,7 @@
 #'
 sits_fromTWDTW <- function (patterns){
      # get the time series from the patterns
-     tb.lst <- map2 (patterns@timeseries, patterns@labels, function (ts, lab) {
+     tb.lst <- purrr::map2 (patterns@timeseries, patterns@labels, function (ts, lab) {
           # tranform the time series into a row of a sits table
           ts.tb <- fortify.zoo(ts)
           # store the sits table in a list
@@ -28,7 +28,7 @@ sits_fromTWDTW <- function (patterns){
      # create a sits table to store the result
      patterns.tb <- sits_table()
      patterns.tb <- tb.lst %>%
-          map_df (function (row) {
+          purrr::map_df (function (row) {
                bind_rows (patterns.tb, row)
           })
      return (patterns.tb)

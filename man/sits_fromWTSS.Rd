@@ -35,6 +35,7 @@ sits_fromWTSS (-53.30, -14.24, "2000-02-18", "2016-09-24")
 }
 \seealso{
 Other SITS main functions: \code{\link{sits_fromCSV}},
-  \code{\link{sits_merge}}
+  \code{\link{sits_fromClusters}}, \code{\link{sits_merge}}
 }
 \keyword{SITS}
+

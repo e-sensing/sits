@@ -14,7 +14,7 @@ sits_select <- function (data.tb, bands) {
      new.tb <- dplyr::select (data.tb, longitude, latitude, start_date, end_date, label, coverage)
      # select the chosen bands for the time series
      new.tb$time_series <- data.tb$time_series %>%
-          map (function (ts) ts <- ts [,c("Index", bands)])
+          purrr::map (function (ts) ts <- ts [,c("Index", bands)])
      # return the result
      return (new.tb)
 }

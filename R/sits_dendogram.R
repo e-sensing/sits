@@ -51,7 +51,7 @@ sits_dendogram <- function (data.tb, n_clusters = 6) {
 
      cluster.lst <- data.tb %>%
           sits_bands() %>%
-          map (function (b) cluster_dendogram (data.tb, b, n_clusters))
+          purrr::map (function (b) cluster_dendogram (data.tb, b, n_clusters))
 
      cluster.tb.gl <<- sits_fromClusters (data.tb, cluster.lst)
 
