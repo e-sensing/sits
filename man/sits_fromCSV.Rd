@@ -31,7 +31,8 @@ sits_fromCSV ("mysamples.csv", n_max = 5)
 }
 \seealso{
 Other SITS main functions: \code{\link{sits_fromClusters}},
-  \code{\link{sits_fromWTSS}}, \code{\link{sits_merge}}
+  \code{\link{sits_fromSHP}}, \code{\link{sits_fromWTSS}},
+  \code{\link{sits_merge}}
 }
 \keyword{SITS}
 

@@ -36,6 +36,29 @@ point3.tb %>%
      sits_select (c("ndvi", "ndvi_smooth")) %>%
      sits_plot()
 
+#load patterns from examples file
+examples.tb <- sits_fromCSV("./data/Samples/MatoGrosso-examples.csv")
+
+examples.tb %>%
+     sits_select(c("ndvi", "evi")) %>%
+     sits_plot()
+
+# read a pattern table from a JSON file
+patterns.tb <- sits_fromJSON ("./data/patterns/patterns_Rodrigo_8classes_6bands.json")
+
+# plot patterns
+sits_plot (patterns.tb, type = "patterns")
+
+# classify samples using TWDTW
+bands <- c("ndvi", "evi", "nir")
+matches <- sits_classTWDTW(examples.tb[4,], patterns.tb, bands)
+
+# # plot the classification
+plot(x = matches, type = "classification", overlap = 0.5)
+# # plot the alignments
+plot(x = matches, type = "alignments")
+
+
 # load patterns from savanna and pasture (expert = Rodrigo)
 cerrado.tb <- sits_fromJSON("./data/Samples/cerrado.json")
 

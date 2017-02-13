@@ -54,6 +54,8 @@ sits_configWTSS <- function (URL       = "http://www.dpi.inpe.br/tws/wtss",
           as_tibble() %>%
           dplyr::rename (band = name)
 
+     resolution_x.gl    <<- cov_desc.lst[[cov_name.gl]]$geo_extent$spatial$resolution$x
+     resolution_y.gl    <<- cov_desc.lst[[cov_name.gl]]$geo_extent$spatial$resolution$y
      start_date.gl      <<- cov_desc.lst[[cov_name.gl]]$geo_extent$temporal$start
      end_date.gl        <<- cov_desc.lst[[cov_name.gl]]$geo_extent$temporal$end
      bands.gl           <<- bands
