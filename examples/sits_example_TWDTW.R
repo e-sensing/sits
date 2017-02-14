@@ -12,7 +12,7 @@ sits_configWTSS (URL = "http://www.dpi.inpe.br/tws/wtss",
                  bands = c("ndvi", "evi", "nir"))
 
 # pick one point as an example
-point.tb <- sits_fromWTSS(longitude = -56.5484812696997, latitude = -14.184843128981377)
+point.tb <- sits_fromWTSS(longitude = -56.5484, latitude = -14.1848)
 
 # select the evi and plot it
 point.tb %>%
@@ -40,7 +40,7 @@ point3.tb %>%
 examples.tb <- sits_fromCSV("./data/Samples/MatoGrosso-examples.csv")
 
 examples.tb %>%
-     sits_select(c("ndvi", "evi")) %>%
+     sits_select(c("evi")) %>%
      sits_plot()
 
 # read a pattern table from a JSON file
@@ -51,7 +51,7 @@ sits_plot (patterns.tb, type = "patterns")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-matches <- sits_classTWDTW(examples.tb[4,], patterns.tb, bands)
+matches <- sits_classTWDTW(examples.tb[9,], patterns.tb, bands)
 
 # # plot the classification
 plot(x = matches, type = "classification", overlap = 0.5)
@@ -69,11 +69,6 @@ cerrado.tb[1:50,] %>%
 # plot all time series, divided into classes
 sits_plot (cerrado.tb, type = "together")
 
-# read a pattern table from a JSON file
-patterns.tb <- sits_fromJSON ("./data/patterns/patterns_8classes_6bands.json")
-# plot patterns
-sits_plot (patterns.tb, type = "patterns")
-
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
 matches <- sits_classTWDTW(point.tb, patterns.tb, bands)
@@ -90,11 +85,9 @@ cerrado.tb <- sits_fromJSON ("./data/Samples/cerrado.json")
 savanna.tb <- filter (cerrado.tb, label == "Savanna")
 
 # cluster the savanna samples
-sits_centroids(savanna.tb)
+sits_dendogram(savanna.tb, n_clusters = 4)
 
-
-
-damien4.tb <- sits_fromCSV("./data/samples/damien.csv", n_max = 4)
+damien4.tb <- sits_fromCSV("./data/samples/damien.csv", n_max = 20)
 
 damien4.tb %>%
      rowwise() %>%
