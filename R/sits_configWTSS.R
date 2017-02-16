@@ -49,14 +49,21 @@ sits_configWTSS <- function (URL       = "http://www.dpi.inpe.br/tws/wtss",
      cov_name.gl      <<- coverage
      # describe the coverage
      cov_desc.lst      <- wtss.R::describeCoverage(ts_server.gl, cov_name.gl)
-     cov_desc.gl      <<- cov_desc.lst[[cov_name.gl]]$attributes %>%
+     # retrieve the coverage
+     cov <- cov_desc.lst[[cov_name.gl]]
+     cov_desc.gl      <<- cov$attributes %>%
           dplyr::select (name, scale_factor, missing_value) %>%
           as_tibble() %>%
           dplyr::rename (band = name)
 
-     resolution_x.gl    <<- cov_desc.lst[[cov_name.gl]]$geo_extent$spatial$resolution$x
-     resolution_y.gl    <<- cov_desc.lst[[cov_name.gl]]$geo_extent$spatial$resolution$y
-     start_date.gl      <<- cov_desc.lst[[cov_name.gl]]$geo_extent$temporal$start
-     end_date.gl        <<- cov_desc.lst[[cov_name.gl]]$geo_extent$temporal$end
+
+     resolution_x.gl    <<- cov$geo_extent$spatial$resolution$x
+     resolution_y.gl    <<- cov$geo_extent$spatial$resolution$y
+     start_date.gl      <<- cov$geo_extent$temporal$start
+     end_date.gl        <<- cov$geo_extent$temporal$end
+     x_min.gl           <<- cov$geo_extent$spatial$extent$xmin
+     y_min.gl           <<- cov$geo_extent$spatial$extent$ymin
+     x_max.gl           <<- cov$geo_extent$spatial$extent$xmax
+     y_max.gl           <<- cov$geo_extent$spatial$extent$ymax
      bands.gl           <<- bands
 }

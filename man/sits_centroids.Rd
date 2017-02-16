@@ -34,10 +34,10 @@ or no object changes clusters anymore (extracted from dtwclust package)
 sits_plot  (data.tb, n_clusters = 6)
 }
 \seealso{
-Other STIS main functions: \code{\link{sits_dendogram}},
+Other STIS main functions: \code{\link{sits_align}},
+  \code{\link{sits_dendogram}},
   \code{\link{sits_fromJSON}},
   \code{\link{sits_plot_together}},
   \code{\link{sits_plot}}, \code{\link{sits_toJSON}}
 }
 \keyword{STIS}
-

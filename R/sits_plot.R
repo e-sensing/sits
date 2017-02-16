@@ -56,7 +56,7 @@ sits_plot <- function (data.tb, type = "allyears", colors = "Dark2") {
      )
 
      # return the original SITS table - useful for chaining
-     return (data.tb)
+     return (invisible (data.tb))
 }
 # -----------------------------------------------------------
 #' Plot a set of time series for the same spatio-temporal reference
@@ -75,17 +75,9 @@ sits_plot <- function (data.tb, type = "allyears", colors = "Dark2") {
 #'
 sits_plot_together <- function (data.tb, colors = "Dark2") {
 
-     # this function converts the index of a time series to the julian day of a reference year
-     sits_julian_conv <- function (ts) {
-          # convert the time index to a reference year
-          start_date <- ts[[1,"Index"]]
-          ts <- dplyr::mutate (ts, Index = Index - ymd(start_date) + ymd (start_date.gl))
-          return (ts)
-     }
      # this function plots all the values of all time series together (for one band)
      plot_samples <- function (ts, band, label, number) {
           series.tb <- ts %>%
-               purrr::map (sits_julian_conv)             %>%  # convert all series to same julian day
                data.frame ()                      %>%  # convert list to data frame
                as_tibble()                        %>%  # convert data fram to tibble
                dplyr::select (Index, starts_with(band))       # select only the index and the chosen band
@@ -111,16 +103,19 @@ sits_plot_together <- function (data.tb, colors = "Dark2") {
      # how many different labels are there?
      labels <- distinct (data.tb, label)
 
+     ref_date <- data.tb[1,]$start_date
+
      for (i in 1:nrow (labels)) {
           lb = as.character (labels [i,"label"])
           # filter only those rows with the same label
           data2.tb <- dplyr::filter (data.tb, label == lb)
-          # extract the time series from the tibble
-          ts <- data2.tb$time_series
           # how many time series are to be plotted?
           number <- nrow (data2.tb)
           # what are the band names?
           bands  <- sits_bands (data2.tb)
+          # align all time series to the same date
+          data2.tb <- sits_align(data2.tb, ref_date)
+          ts <- data2.tb$time_series
           # plot all samples for the same label
           for (band in bands) plot_samples(ts, band, lb, number)
      }

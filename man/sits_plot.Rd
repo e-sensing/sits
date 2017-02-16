@@ -27,11 +27,11 @@ sits_plot  ts <- (ts, type = "grouped", colors = "Set1")
 
 }
 \seealso{
-Other STIS main functions: \code{\link{sits_centroids}},
+Other STIS main functions: \code{\link{sits_align}},
+  \code{\link{sits_centroids}},
   \code{\link{sits_dendogram}},
   \code{\link{sits_fromJSON}},
   \code{\link{sits_plot_together}},
   \code{\link{sits_toJSON}}
 }
 \keyword{STIS}
-

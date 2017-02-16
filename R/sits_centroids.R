@@ -26,7 +26,7 @@
 sits_centroids <- function (data.tb, n_clusters = 6) {
 
      cluster_partitional <- function (band, data.tb, n_clusters) {
-          values.tb <- sits_values (data.tb, band)
+          values.tb <- sits_values_rows (data.tb, band)
           clusters  <- dtwclust (values.tb,
                                  type     = "partitional",
                                  k        = n_clusters,

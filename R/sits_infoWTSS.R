@@ -15,9 +15,9 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
      coverages.obj    <- listCoverages(wtss.obj)
      # describe each coverage
      desc.obj         <- describeCoverage(wtss.obj, coverages.obj)
-     cat (paste ("----", "\n",sep = ""))
+     cat (paste ("-----------------------------------------------------------", "\n",sep = ""))
      cat (paste ("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
-     cat (paste ("----", "\n",sep = ""))
+     cat (paste ("------------------------------------------------------------", "\n",sep = ""))
 
      desc.obj %>%
           purrr::map (function (cov) {
@@ -25,14 +25,19 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
                cat (paste ("Description :", cov$description, "\n", sep = ""))
                cat (paste ("Source : ", cov$detail, "\n", sep = ""))
                cat (paste ("Bands : ", "\n", sep = "", collapse=""))
-               cat (paste (cov$attributes$name[1:length (cov$attributes$name)], sep = ""))
+               attr <- as.data.frame(cov$attributes)
+               print (attr[1:2])
+               cat (paste ("\nSpatial extent: ", "(",
+                           cov$geo_extent$spatial$extent$xmin, ", ",
+                           cov$geo_extent$spatial$extent$ymin, ") - (",
+                           cov$geo_extent$spatial$extent$xmax, ", ",
+                           cov$geo_extent$spatial$extent$ymax, ")", sep =""))
                cat (paste ("\nTime range : ", cov$geo_extent$temporal$start, " to ", cov$geo_extent$temporal$end, "\n", sep = ""))
                cat (paste ("Temporal resolution : ", cov$geo_extent$temporal$resolution, " days ", "\n", sep = ""))
                cat (paste ("Spatial resolution : ", as.integer (cov$geo_extent$spatial$resolution$x), " metres ", "\n", sep = ""))
 
-               cat (paste ("----", "\n",sep = ""))
-
+               cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
+               return (invisible (cov))
           })
-     end <- cat (paste ("----", "\n",sep = ""))
-     return (end)
+     return (invisible (desc.obj))
 }

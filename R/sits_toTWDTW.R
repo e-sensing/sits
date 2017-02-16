@@ -20,7 +20,7 @@ sits_toTWDTW <- function (data.tb){
                df <- data.frame (ts)
                return (zoo (df[,2:ncol(df)], df[,1]))
           })
-     labels.fc <-  as.factor (data.frame (select (data.tb, label))[,1])
+     labels.fc <-  as.factor (data.frame (dplyr::select (data.tb, label))[,1])
 
      ts.tw <-  new("twdtwTimeSeries", timeseries = zoo.ls,
                labels = labels.fc)

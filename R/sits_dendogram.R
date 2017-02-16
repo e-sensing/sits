@@ -28,7 +28,7 @@ sits_dendogram <- function (data.tb, n_clusters = 6) {
 
      cluster_dendogram <- function (data.tb, band, n_clusters){
           # get the values of the various time series for this band
-          values.tb <- sits_values (data = data.tb, band = band)
+          values.tb <- sits_values_rows (data = data.tb, band = band)
           clusters  <- dtwclust (values.tb,
                                  type     = "hierarchical",
                                  k        = n_clusters,

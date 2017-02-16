@@ -35,4 +35,3 @@ Other SITS main functions: \code{\link{sits_fromClusters}},
   \code{\link{sits_merge}}
 }
 \keyword{SITS}
-

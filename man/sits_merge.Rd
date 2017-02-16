@@ -35,4 +35,3 @@ Other SITS main functions: \code{\link{sits_fromCSV}},
   \code{\link{sits_fromSHP}}, \code{\link{sits_fromWTSS}}
 }
 \keyword{SITS}
-

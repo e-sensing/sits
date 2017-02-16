@@ -4,7 +4,7 @@ data.tb <- sits_smooth (savanna.tb, lambda = 1.0)
 band <- "evi"
 n_clusters <- 4
 
-values.tb <- sits_values (data.tb, band)
+values.tb <- sits_values_rows (data.tb, band)
 clusters  <- dtwclust (values.tb,
                        type     = "hierarchical",
                        k        = n_clusters,

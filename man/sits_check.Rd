@@ -17,4 +17,3 @@ TRUE/FALSE
 verifiy if they include the mandatory columns
 <longitude>, <latitude>, <start_date>, <end_date>, <label>, <coverage>
 }
-
