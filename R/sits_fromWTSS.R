@@ -26,22 +26,22 @@ sits_fromWTSS <- function  (longitude  =          -55.51810,
                             label      =         "NoClass") {
 
      # internal function to remove the missing values
-     clean_ts <- function (tb){
-
-          for (b in bands.gl) {
-               # what is the missing value for this band?
-               mv <- select ((filter (cov_desc.gl, band == b)), missing_value)*0.0001
-               # is the first value a missing_value?
-               if (tb[1,b] == mv) tb[1,b] <- tb[2,b]
-               # is the last value a missing_value?
-               if (tb[nrow(tb),b] == mv) tb[nrow(tb)] <-  tb[nrow(tb) - 1,b]
-               # all other missing values are replaced by an average of their neighbors
-               for (i in 2:(nrow(tb) -1) ) {
-                    if (tb[i,b] == mv) tb[i,b] <- 0.5*tb[i-1,b] + 0.5*tb[i+1,b]
-               }
-          }
-          return (tb)
-     }
+     # clean_ts <- function (tb){
+     #
+     #      for (b in bands.gl) {
+     #           # what is the missing value for this band?
+     #           mv <- select ((filter (cov_desc.gl, band == b)), missing_value)*0.0001
+     #           # is the first value a missing_value?
+     #           if (tb[1,b] == mv) tb[1,b] <- tb[2,b]
+     #           # is the last value a missing_value?
+     #           if (tb[nrow(tb),b] == mv) tb[nrow(tb)] <-  tb[nrow(tb) - 1,b]
+     #           # all other missing values are replaced by an average of their neighbors
+     #           for (i in 2:(nrow(tb) -1) ) {
+     #                if (tb[i,b] == mv) tb[i,b] <- 0.5*tb[i-1,b] + 0.5*tb[i+1,b]
+     #           }
+     #      }
+     #      return (tb)
+     # }
 
      # is the WTSS service running?
      sits_testWTSS()

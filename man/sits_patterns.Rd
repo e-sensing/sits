@@ -4,12 +4,10 @@
 \alias{sits_patterns}
 \title{Find time series patterns to use using TWDTW (using the dtwSat package)}
 \usage{
-sits_patterns(samples.tb, bands, method = "gam")
+sits_patterns(samples.tb, method = "gam")
 }
 \arguments{
 \item{samples.tb}{a table in SITS format with time series to be classified using TWTDW}
-
-\item{bands}{string - the bands to be used for classification}
 
 \item{method}{the method to be used for classification}
 }

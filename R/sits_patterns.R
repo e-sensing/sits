@@ -16,36 +16,44 @@
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  samples.tb    a table in SITS format with time series to be classified using TWTDW
-#' @param  bands         string - the bands to be used for classification
 #' @param  method        the method to be used for classification
 #' @return patterns.tb   a SITS table with the patterns
 #' @export
 #'
 #'
-sits_patterns <- function (samples.tb, bands, method = "gam"){
+sits_patterns <- function (samples.tb, method = "gam",){
 
-     # dtwSat -Create temporal patterns
-     # patt = createPatterns(x=ts, from="2005-09-01", to="2006-09-01", freq=8, formula = y~s(x))
-     #
+     start_date <- samples.tb[1,]$start_date
+     end_date   <- samples.tb[1,]$end_date
+     freq <- 8
+     formula <- y ~ s(x)
      # Get formula variables
-     # vars = all.vars(formula)
+     vars <-  all.vars(formula)
 
-     # Shift dates to match the same period
+     bands <- sits_bands(samples.tb)
 
-     #dates = as.Date(df[[vars[2]]])
-     #pred_time = seq(from, to, freq)
+     bands %>%
+          map (function (b) {
+               ts <- samples.tb %>%
+                    sits_select (b) %>%
+                    sits_align (start_date) %>%
+                    .$time_series
 
-     # fun = function(y, ...){
-     #      df = data.frame(y, as.numeric(dates))
-     #      names(df) = vars
-     #      fit = gam(data = df, formula = formula, ...)
-     #      time = data.frame(as.numeric(pred_time))
-     #      names(time) = vars[2]
-     #      predict.gam(fit, newdata = time)
-     # }
-     #
-     # if(is.null(attr)) attr = names(df)[-which(names(df) %in% vars[2])]
-     #
-     # res = sapply(as.list(df[attr]), FUN=fun, ...)
-     # zoo(data.frame(res), as.Date(pred_time))
+               ts2 <- ts %>%
+                    reshape2::melt (id.vars = "Index") %>%
+                    dplyr::select (Index, value) %>%
+                    dplyr::transmute (x = Index, y = value) %>%
+                    dplyr::transmute (x = as.numeric(x), y)
+
+               fit <-  gam(data = ts2, formula = formula)
+
+               pred_time = seq(from = as.Date(start_date), to = as.Date(end_date), by = freq)
+
+               time <- data.frame(as.numeric(pred_time))
+               names(time) = vars[2]
+
+               pat <- predict.gam(fit, newdata = time)
+
+          })
+
 }

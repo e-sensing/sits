@@ -101,24 +101,29 @@ sits_plot_together <- function (data.tb, colors = "Dark2") {
      }
 
      # how many different labels are there?
-     labels <- distinct (data.tb, label)
+     labels <- dplyr::distinct (data.tb, label)
 
-     ref_date <- data.tb[1,]$start_date
-
-     for (i in 1:nrow (labels)) {
-          lb = as.character (labels [i,"label"])
-          # filter only those rows with the same label
-          data2.tb <- dplyr::filter (data.tb, label == lb)
-          # how many time series are to be plotted?
-          number <- nrow (data2.tb)
-          # what are the band names?
-          bands  <- sits_bands (data2.tb)
-          # align all time series to the same date
-          data2.tb <- sits_align(data2.tb, ref_date)
-          ts <- data2.tb$time_series
-          # plot all samples for the same label
-          for (band in bands) plot_samples(ts, band, lb, number)
-     }
+     labels %>%
+          dplyr::rowwise() %>%
+          dplyr::do({
+               lb = as.character (.$label)
+               # filter only those rows with the same label
+               data2.tb <- dplyr::filter (data.tb, label == lb)
+               # how many time series are to be plotted?
+               number <- nrow (data2.tb)
+               # what are the band names?
+               bands  <- sits_bands (data2.tb)
+               # what is the reference date?
+               ref_date <- data2.tb[1,]$start_date
+               # align all time series to the same date
+               data2.tb <- sits_align(data2.tb, ref_date)
+               # extract the time series
+               ts <- data2.tb$time_series
+               # plot all samples for the same label
+               bands %>%
+                    map (function (band) {plot_samples(ts, band, lb, number)})
+               return (data2.tb)
+          })
 }
 
 

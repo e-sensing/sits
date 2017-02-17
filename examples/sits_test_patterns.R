@@ -39,6 +39,8 @@ sits_configWTSS (URL = "http://www.dpi.inpe.br/tws/wtss",
 # select samples for pasture and savanna
 cerrado.tb <- sits_fromJSON ("./data/Samples/cerrado.json")
 
+sits_plot(cerrado.tb, type="together")
+
 #select only savanna samples
 savanna.tb <- dplyr::filter (cerrado.tb, label == "Savanna")
 
