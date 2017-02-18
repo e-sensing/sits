@@ -26,8 +26,7 @@ A sits table has the metadata and data for each time series centroids
 sits_fromClusters (savanna_s.tb, clusters.lst)
 }
 \seealso{
-Other SITS main functions: \code{\link{sits_fromCSV}},
-  \code{\link{sits_fromSHP}}, \code{\link{sits_fromWTSS}},
-  \code{\link{sits_merge}}
+Other SITS main functions: \code{\link{sits_fromSHP}},
+  \code{\link{sits_getdata}}, \code{\link{sits_merge}}
 }
 \keyword{SITS}

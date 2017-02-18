@@ -1,6 +1,6 @@
 #' Classify a sits tibble using TWDTW (using the dtwSat package)
 #'
-#' \code{sits_classTWDTW} returns a sits table with values only
+#' \code{sits_classify} returns a sits table with values only
 #'
 #' A sits table has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
@@ -10,14 +10,12 @@
 #' of multi-band satellite images. Methods based on dynamic time warping are flexible to
 #' handle irregular sampling and out-of-phase time series, and they have achieved significant
 #' results in time series analysis.
-#' The standard DTW compares a temporal signature of a known event (e.g., a person’s speech) with an unknown time series. It finds all
-#' possible alignments between two time series and provides a dissimilarity measure.
 #' In contrast to standard DTW, the TWDTW method is sensitive to seasonal
 #' changes of natural and cultivated vegetation types. It also considers inter-annual climatic and
 #' seasonal variability.
 #'
 #' Reference: Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
-#' “A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.” IEEE
+#' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
 #'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
@@ -30,7 +28,7 @@
 #' @export
 #'
 #'
-sits_classTWDTW <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 100) {
+sits_classify <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 100) {
 
      # select the bands for the samples time series and convert to TWDTW format
      ts_samples <- samples.tb %>%

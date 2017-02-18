@@ -44,7 +44,7 @@ sits_plot (patterns.tb, type = "patterns")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-matches <- sits_classTWDTW(point.tb, patterns.tb, bands)
+matches <- sits_classify(point.tb, patterns.tb, bands)
 
 # # plot the classification
 plot(x = matches, type = "classification", overlap = 0.5)
@@ -66,7 +66,7 @@ sits_plot (patterns.tb, type = "patterns")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-matches <- sits_classTWDTW(examples.tb[5,], patterns.tb, bands)
+matches <- sits_classify(examples.tb[5,], patterns.tb, bands)
 
 # # plot the classification
 plot(x = matches, type = "classification", overlap = 0.5)
@@ -86,7 +86,7 @@ sits_plot (cerrado.tb, type = "together")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-matches <- sits_classTWDTW(point.tb, patterns.tb, bands)
+matches <- sits_classify(point.tb, patterns.tb, bands)
 
 # # plot the classification
 plot(x = matches, type = "classification", overlap = 0.5)
@@ -119,7 +119,7 @@ sits_plot (patterns.tb, type = "patterns")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-matches <- sits_classTWDTW(point.tb, patterns.tb, bands)
+matches <- sits_classify(point.tb, patterns.tb, bands)
 
 # # plot the classification
 plot(x = matches, type = "classification", overlap = 0.5)
@@ -131,28 +131,4 @@ plot(x = matches, type = "alignments")
 # put data and metadata on a SITS table
 embrapa.tb <- sits_fromCSV ("./data/Samples/damien.csv", n_max = 5)
 
-
-
-
-
-# plot some of the time series (only the evi and ndvi bands)
-embrapa.tb %>%
-     sits_plot()
-
-     sits_smooth (lambda = 0.5) %>%
-     sits_merge(embrapa.tb[1:10,], .) %>%
-     sits_select (c("evi", "evi_smooth")) %>%
-     sits_plot ()
-
-
-
-# classify samples using TWDTW
-bands <- c("ndvi", "evi", "nir")
-matches <- sits_twdtw_classify(embrapa.tb[1,], patterns.tb, bands)
-
-dtwSat::plot(x = matches, type = "classification", overlap = 0.5)
-
-dtwSat::plot(x = matches, type = "alignments")
-
-matches.tb <- matches[]
 

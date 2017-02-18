@@ -1,19 +1,25 @@
 #' Find time series patterns to use using TWDTW (using the dtwSat package)
 #'
-#' \code{sits_patterns} returns a sits table with a list of patterns based on samples
+#' \code{sits_patterns} returns a sits table with a list of patterns based on samples using a gam model
 #'
 #' A sits table has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
 #' The patterns are calculated based on a statistical model that tries to find a suitable
-#' for a set of samples
+#' for a set of samples. The idea is to use a formula of type y ~ s(x), where x is a temporal
+#' reference and y if the value of the signal. For each time, there will be as many predictions
+#' as there are sample values. Then, a statistical model such as "gam" is used to predict a suitable
+#' approximation that fits the assumptions of the statistical model.
 #'
-#' This method is based on the "createPatterns" method of the dtwSat package
+#' In the current version, the only statistical model used in the "gam" (generalised additive model)
+#' which has the advantage of producing an approximation based on a smooth function.
 #'
-#' Reference: Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
-#' “A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.” IEEE
-#'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
-#'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
+#' This method is based on the "createPatterns" method of the dtwSat package, which is also
+#' described in the reference paper below:
+#' Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
+#' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.
+#' IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
+#' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  samples.tb    a table in SITS format with time series to be classified using TWTDW
 #' @param  method        the method to be used for classification
@@ -21,39 +27,88 @@
 #' @export
 #'
 #'
-sits_patterns <- function (samples.tb, method = "gam",){
+sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
 
-     start_date <- samples.tb[1,]$start_date
-     end_date   <- samples.tb[1,]$end_date
-     freq <- 8
-     formula <- y ~ s(x)
-     # Get formula variables
+     # create a tibble to store the results
+     patterns.tb <- sits_table()
+
+     # what are the variables in the formula?
      vars <-  all.vars(formula)
 
+     # what are the bands of the data set?
      bands <- sits_bands(samples.tb)
 
-     bands %>%
-          map (function (b) {
-               ts <- samples.tb %>%
-                    sits_select (b) %>%
-                    sits_align (start_date) %>%
-                    .$time_series
+     # how many different labels are there?
+     labels <- dplyr::distinct (samples.tb, label)
 
-               ts2 <- ts %>%
-                    reshape2::melt (id.vars = "Index") %>%
-                    dplyr::select (Index, value) %>%
-                    dplyr::transmute (x = Index, y = value) %>%
-                    dplyr::transmute (x = as.numeric(x), y)
-
-               fit <-  gam(data = ts2, formula = formula)
-
-               pred_time = seq(from = as.Date(start_date), to = as.Date(end_date), by = freq)
-
+     # for each label in the sample data, find the appropriate pattern
+     for (i in 1:nrow(labels)) {
+               lb <-  as.character (labels[i,1])
+               # filter only those rows with the same label
+               label.tb <- dplyr::filter (samples.tb, label == lb)
+               # if dates are not given, get them from the sample data set
+               if (purrr::is_null (from))
+                    from <- label.tb[1,]$start_date
+               else
+                    from <- from
+               if (purrr::is_null (to))
+                    to   <- label.tb[1,]$end_date
+               else
+                    to <- to
+               # determine the sequence of prediction times
+               pred_time = seq(from = lubridate::as_date(from),
+                               to   = lubridate::as_date(to),
+                               by = freq)
+               # create a data frame to store the time instances
                time <- data.frame(as.numeric(pred_time))
+
+               # name the time as the second variable of the formula (usually, this is x)
                names(time) = vars[2]
 
-               pat <- predict.gam(fit, newdata = time)
+               # create a tibble to store the time series associated to the pattern
+               res.tb <- tibble (Index = lubridate::as_date(pred_time))
 
-          })
+               # calculate the fit for each band
+               for (i in 1:length(bands)) {
+                         band <-  bands[i]
+                         # retrieve the time series for each band
+                         ts <- label.tb %>%
+                              sits_select (band) %>%
+                              sits_align (from) %>%
+                              .$time_series
+                         # melt the time series for each band into a long table
+                         # with all values together
+                         ts2 <- ts %>%
+                              reshape2::melt   (id.vars = "Index") %>%
+                              dplyr::select    (Index, value)      %>%
+                              dplyr::transmute (x = as.numeric(Index), y = value)
 
+                         #calculate the best fit for the data set
+                         fit <-  mgcv::gam(data = ts2, formula = formula)
+
+                         # Takes a fitted gam object and produces predictions
+                         # for the desired dates in the sequence of prediction times
+                         pred_values <- mgcv::predict.gam(fit, newdata = time)
+
+                         #include the predicted values for the band in the results table
+                         res.tb <- tibble::add_column(res.tb, b = pred_values)
+                         # rename the columns to match the band names
+                         # this is workaround because of a bug in standard dplyr::rename
+                         res.tb <- dplyr::rename_(res.tb, .dots = setNames (names(res.tb), c("Index", bands[1:i])))
+               } # for each band
+               # put the pattern in a list to store in a sits table
+               ts <- lst()
+               ts[[1]] <- res.tb
+
+               # add the pattern to the results table
+               patterns.tb <- add_row (patterns.tb,
+                                 longitude    = 0.0,
+                                 latitude     = 0.0,
+                                 start_date   = as.Date(from),
+                                 end_date     = as.Date(to),
+                                 label        = lb,
+                                 coverage     = label.tb[1,]$coverage,
+                                 time_series  = ts)
+          } # for each label
+     return (patterns.tb)
 }

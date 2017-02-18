@@ -4,7 +4,8 @@
 \alias{sits_patterns}
 \title{Find time series patterns to use using TWDTW (using the dtwSat package)}
 \usage{
-sits_patterns(samples.tb, method = "gam")
+sits_patterns(samples.tb, method = "gam", freq = 8, from = NULL,
+  to = NULL, formula = y ~ s(x))
 }
 \arguments{
 \item{samples.tb}{a table in SITS format with time series to be classified using TWTDW}
@@ -15,19 +16,25 @@ sits_patterns(samples.tb, method = "gam")
 patterns.tb   a SITS table with the patterns
 }
 \description{
-\code{sits_patterns} returns a sits table with a list of patterns based on samples
+\code{sits_patterns} returns a sits table with a list of patterns based on samples using a gam model
 }
 \details{
 A sits table has the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
 
 The patterns are calculated based on a statistical model that tries to find a suitable
-for a set of samples
+for a set of samples. The idea is to use a formula of type y ~ s(x), where x is a temporal
+reference and y if the value of the signal. For each time, there will be as many predictions
+as there are sample values. Then, a statistical model such as "gam" is used to predict a suitable
+approximation that fits the assumptions of the statistical model.
 
-This method is based on the "createPatterns" method of the dtwSat package
+In the current version, the only statistical model used in the "gam" (generalised additive model)
+which has the advantage of producing an approximation based on a smooth function.
 
-Reference: Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
-“A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.” IEEE
- Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
- August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
+This method is based on the "createPatterns" method of the dtwSat package, which is also
+described in the reference paper below:
+Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
+A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.
+IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
+August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 }

@@ -21,8 +21,6 @@
 #' @export
 sits_smooth <- function (table_in, lambda    = 0.5) {
 
-     # does the database exist?
-     sits_assert(table_in)
      # extract the time series data from the sits table
      data1.ts <- table_in$time_series
      # what are the input bands?

@@ -1,28 +1,3 @@
-# dtwSat -Create temporal patterns
-# patt = createPatterns(x=ts, from="2005-09-01", to="2006-09-01", freq=8, formula = y~s(x))
-#
-# Get formula variables
-# vars = all.vars(formula)
-
-# Shift dates to match the same period
-
-#dates = as.Date(df[[vars[2]]])
-#pred_time = seq(from, to, freq)
-
-# fun = function(y, ...){
-#      df = data.frame(y, as.numeric(dates))
-#      names(df) = vars
-#      fit = gam(data = df, formula = formula, ...)
-#      time = data.frame(as.numeric(pred_time))
-#      names(time) = vars[2]
-#      predict.gam(fit, newdata = time)
-# }
-#
-# if(is.null(attr)) attr = names(df)[-which(names(df) %in% vars[2])]
-#
-# res = sapply(as.list(df[attr]), FUN=fun, ...)
-# zoo(data.frame(res), as.Date(pred_time))
-
 # satellite image time series
 # install_github("gilbertocamara/sits")
 library(sits)
@@ -39,7 +14,9 @@ sits_configWTSS (URL = "http://www.dpi.inpe.br/tws/wtss",
 # select samples for pasture and savanna
 cerrado.tb <- sits_fromJSON ("./data/Samples/cerrado.json")
 
-sits_plot(cerrado.tb, type="together")
+patterns.tb <- sits_patterns(cerrado.tb)
+
+
 
 #select only savanna samples
 savanna.tb <- dplyr::filter (cerrado.tb, label == "Savanna")
