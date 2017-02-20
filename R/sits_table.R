@@ -152,7 +152,7 @@ sits_merge <-  function(sits1.tb, sits2.tb) {
      }
      # first, select the metadata columns
      merged.tb <- sits1.tb %>%
-          dplyr::select (latitude, longitude, start_date, end_date, label, coverage)
+          dplyr::select (-time_series)
 
      # then merge the data sets
      sits1.data <- sits1.tb$time_series
@@ -211,4 +211,67 @@ sits_align <- function (data, ref_date) {
           })
      data$time_series <- ts1
      return (data)
+}
+
+#'
+#' Groups different time series for the same lat/long coordinate
+#'
+#' \code{sits_group_bylatlong} takes a sits table in which different time references
+#' for the same lat/long coordinate has been separated, and groups them together.
+#' This function is useful por plotting together all time series associated to
+#' the same location and is also useful to regroup series that have been split
+#' to produce yearly samples that are used to define patterns
+#'
+#' @param    data       tibble - input SITS table
+#' @return   data1.tb   tibble - the converted SITS table with time series grouped by latlong
+#' @keywords STIS
+#' @family   STIS table functions
+#' @examples data1.tb <- sits_group_bylatlong (data = "mydata.tb")
+#' @export
+#'
+sits_group_bylatlong <- function (data) {
+
+     #create a sits table to store the output
+     out.tb <- sits_table()
+     #find out how many distinct lat/long locations exist in the data
+     locs <- dplyr::distinct(data, latitude, longitude)
+
+     # process each lat/long location
+     for (i in 1:nrow(locs)) {
+          loc <- locs[i,]
+               long = as.double (loc$longitude) # select longitude
+               lat  = as.double (loc$latitude)  # select latitude
+               # filter only those rows with the same label
+               rows <- dplyr::filter (data, longitude == long, latitude == lat)
+
+               # make an initial guess for the start and end dates
+               start_date <- rows[1,]$start_date
+               end_date   <- rows[1,]$end_date
+               # get the first time series
+               time_series <- rows[1,]$time_series[[1]]
+
+               # are there more time series for the same location?
+               if (nrow(rows) > 1) {
+                    for (i in 2:nrow(rows))  {
+                         row <- rows[i,]
+                         # adjust the start and end dates
+                         if (row$start_date < start_date) start_date <- row$start_date
+                         if (row$end_date   > end_date)   end_date   <- row$end_date
+                         # get the time series and join it with the previous ones
+                         t <- row$time_series[[1]]
+                         time_series <- dplyr::bind_rows(time_series, t)
+                    }
+               }
+               ts.lst <- list()
+               ts.lst[[1]] <- time_series
+               out.tb <- add_row (out.tb,
+                                  longitude    = long,
+                                  latitude     = lat,
+                                  start_date   = as.Date(start_date),
+                                  end_date     = as.Date(end_date),
+                                  label        = "NoClass",
+                                  coverage     = rows[1,]$coverage,
+                                  time_series  = ts.lst)
+     }
+     return (out.tb)
 }

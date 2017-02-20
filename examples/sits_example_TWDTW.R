@@ -12,7 +12,7 @@ sits_configWTSS (URL = "http://www.dpi.inpe.br/tws/wtss",
                  bands = c("ndvi", "evi", "nir"))
 
 # pick one point as an example
-point.tb <- sits_fromWTSS(longitude = -55.23354, latitude = -11.51652)
+point.tb <- sits_getdata(longitude = -55.23354, latitude = -11.51652)
 
 # select the evi and plot it
 point.tb %>%
@@ -37,7 +37,7 @@ point3.tb %>%
      sits_plot()
 
 # read a pattern table from a JSON file
-patterns.tb <- sits_fromJSON ("./data/patterns/patterns_Rodrigo_8classes_6bands.json")
+patterns.tb <- sits_getdata("./data/patterns/patterns_Rodrigo_8classes_6bands.json")
 
 # plot patterns
 sits_plot (patterns.tb, type = "patterns")

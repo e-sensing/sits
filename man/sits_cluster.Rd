@@ -4,7 +4,7 @@
 \alias{sits_cluster}
 \title{Cluster a set of time series}
 \usage{
-sits_cluster(data.tb, type = "dendogram", n_clusters = 6)
+sits_cluster(data.tb, type = "dendogram", n_clusters = 4)
 }
 \arguments{
 \item{data.tb}{a tibble the list of time series to be clustered}

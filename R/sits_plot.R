@@ -140,7 +140,7 @@ sits_plot_together <- function (data.tb, colors = "Dark2") {
 #' @family   SITS auxiliary functions
 .sits_ggplot_series <- function (row, colors = "Dark2") {
      # create the plot title
-     plot_title <- sits_plot_title (row)
+     plot_title <- .sits_plot_title (row)
      #extract the time series
      data.ts <- row$time_series
      # melt the data into long format

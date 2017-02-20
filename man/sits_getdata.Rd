@@ -6,7 +6,8 @@
 \usage{
 sits_getdata(source = NULL, longitude = -55.5181, latitude = -11.63884,
   start_date = start_date.gl, end_date = end_date.gl, label = "NoClass",
-  coverage = cov_name.gl, bands = bands.gl, n_max = Inf)
+  coverage = cov_name.gl, bands = bands.gl,
+  crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", n_max = Inf)
 }
 \arguments{
 \item{source}{string  - name of a source CSV file with information <id, latitude, longitude, from, end, label>}
@@ -48,7 +49,7 @@ A sits table has the metadata and data for each time series
       sits_getdata (longitude = -53.27, latitude = -12.23)
 }
 \seealso{
-Other SITS main functions: \code{\link{sits_fromClusters}},
-  \code{\link{sits_fromSHP}}, \code{\link{sits_merge}}
+Other SITS main functions: \code{\link{.sits_fromClusters}},
+  \code{\link{sits_merge}}
 }
 \keyword{SITS}

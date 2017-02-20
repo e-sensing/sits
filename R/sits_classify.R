@@ -61,3 +61,13 @@ sits_classify <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 
      return (matches)
 
 }
+
+.sits_table_from_matches
+# ..@ alignments:List of 1
+# .. ..$ :List of 8
+# .. .. ..$ Cerrado       :List of 7
+# .. .. .. ..$ label    : Named chr "Cerrado"
+# .. .. .. .. ..- attr(*, "names")= chr "Cerrado"
+# .. .. .. ..$ from     : Date[1:16], format: "2001-11-17" "2011-09-30" ...
+# .. .. .. ..$ to       : Date[1:16], format: "2002-05-25" "2012-06-09" ...
+# .. .. .. ..$ distance : num [1:16] 2.81 3.35 3.51 3.56 3.72 ...

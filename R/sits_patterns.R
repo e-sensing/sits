@@ -43,65 +43,74 @@ sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to
 
      # for each label in the sample data, find the appropriate pattern
      for (i in 1:nrow(labels)) {
-               lb <-  as.character (labels[i,1])
-               # filter only those rows with the same label
-               label.tb <- dplyr::filter (samples.tb, label == lb)
-               # if dates are not given, get them from the sample data set
-               if (purrr::is_null (from))
-                    from <- label.tb[1,]$start_date
-               else
-                    from <- from
-               if (purrr::is_null (to))
-                    to   <- label.tb[1,]$end_date
-               else
-                    to <- to
-               # determine the sequence of prediction times
-               pred_time = seq(from = lubridate::as_date(from),
+          # get the label name as a character
+          lb <-  as.character (labels[i,1])
+
+          # filter only those rows with the same label
+          label.tb <- dplyr::filter (samples.tb, label == lb)
+
+          # if dates are not given, get them from the sample data set
+          if (purrr::is_null (from))
+               from <- label.tb[1,]$start_date
+          else
+               from <- from
+          if (purrr::is_null (to))
+               to   <- label.tb[1,]$end_date
+          else
+               to <- to
+
+          # determine the sequence of prediction times
+          pred_time = seq(from = lubridate::as_date(from),
                                to   = lubridate::as_date(to),
                                by = freq)
-               # create a data frame to store the time instances
-               time <- data.frame(as.numeric(pred_time))
 
-               # name the time as the second variable of the formula (usually, this is x)
-               names(time) = vars[2]
+          # create a data frame to store the time instances
+          time <- data.frame(as.numeric(pred_time))
 
-               # create a tibble to store the time series associated to the pattern
-               res.tb <- tibble (Index = lubridate::as_date(pred_time))
+          # name the time as the second variable of the formula (usually, this is x)
+          names(time) = vars[2]
 
-               # calculate the fit for each band
-               for (i in 1:length(bands)) {
-                         band <-  bands[i]
-                         # retrieve the time series for each band
-                         ts <- label.tb %>%
-                              sits_select (band) %>%
-                              sits_align (from) %>%
-                              .$time_series
-                         # melt the time series for each band into a long table
-                         # with all values together
-                         ts2 <- ts %>%
-                              reshape2::melt   (id.vars = "Index") %>%
-                              dplyr::select    (Index, value)      %>%
-                              dplyr::transmute (x = as.numeric(Index), y = value)
+          # create a tibble to store the time series associated to the pattern
+          res.tb <- tibble (Index = lubridate::as_date(pred_time))
 
-                         #calculate the best fit for the data set
-                         fit <-  mgcv::gam(data = ts2, formula = formula)
+          # calculate the fit for each band
+          for (i in 1:length(bands)) {
+               band <-  bands[i]
 
-                         # Takes a fitted gam object and produces predictions
-                         # for the desired dates in the sequence of prediction times
-                         pred_values <- mgcv::predict.gam(fit, newdata = time)
+               # retrieve the time series for each band
+               ts <- label.tb %>%
+                    sits_select (band) %>%
+                    sits_align (from) %>%
+                    .$time_series
 
-                         #include the predicted values for the band in the results table
-                         res.tb <- tibble::add_column(res.tb, b = pred_values)
-                         # rename the columns to match the band names
-                         # this is workaround because of a bug in standard dplyr::rename
-                         res.tb <- dplyr::rename_(res.tb, .dots = setNames (names(res.tb), c("Index", bands[1:i])))
-               } # for each band
-               # put the pattern in a list to store in a sits table
-               ts <- lst()
-               ts[[1]] <- res.tb
+               # melt the time series for each band into a long table
+               # with all values together
+               ts2 <- ts %>%
+                    reshape2::melt   (id.vars = "Index") %>%
+                    dplyr::select    (Index, value)      %>%
+                    dplyr::transmute (x = as.numeric(Index), y = value)
 
-               # add the pattern to the results table
-               patterns.tb <- add_row (patterns.tb,
+               #calculate the best fit for the data set
+               fit <-  mgcv::gam(data = ts2, formula = formula)
+
+               # Takes a fitted gam object and produces predictions
+               # for the desired dates in the sequence of prediction times
+               pred_values <- mgcv::predict.gam(fit, newdata = time)
+
+               #include the predicted values for the band in the results table
+               res.tb <- tibble::add_column(res.tb, b = pred_values)
+
+               # rename the columns to match the band names
+               # this is workaround because of a bug in standard dplyr::rename
+               res.tb <- dplyr::rename_(res.tb, .dots = setNames (names(res.tb), c("Index", bands[1:i])))
+          } # for each band
+
+          # put the pattern in a list to store in a sits table
+          ts <- lst()
+          ts[[1]] <- res.tb
+
+          # add the pattern to the results table
+          patterns.tb <- add_row (patterns.tb,
                                  longitude    = 0.0,
                                  latitude     = 0.0,
                                  start_date   = as.Date(from),
@@ -109,6 +118,7 @@ sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to
                                  label        = lb,
                                  coverage     = label.tb[1,]$coverage,
                                  time_series  = ts)
-          } # for each label
+     } # for each label
+
      return (patterns.tb)
 }

@@ -30,7 +30,7 @@ merged.tb <- merge_WTSS (sits1.tb, sits2.tb)
 
 }
 \seealso{
-Other SITS main functions: \code{\link{sits_fromClusters}},
-  \code{\link{sits_fromSHP}}, \code{\link{sits_getdata}}
+Other SITS main functions: \code{\link{.sits_fromClusters}},
+  \code{\link{sits_getdata}}
 }
 \keyword{SITS}
