@@ -20,7 +20,6 @@
 #' @examples sits_smooth ("raw.tb", lambda = 0.5)
 #' @export
 sits_smooth <- function (table_in, lambda    = 0.5) {
-
      # extract the time series data from the sits table
      data1.ts <- table_in$time_series
      # what are the input bands?

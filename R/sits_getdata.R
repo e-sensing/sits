@@ -31,7 +31,7 @@
 #'       sits_getdata (longitude = -53.27, latitude = -12.23)
 #' @export
 
-sits_getdata <- function (source = NULL,
+sits_getdata <- function (source     = NULL,
                           longitude  =          -55.51810,
                           latitude   =          -11.63884,
                           start_date =     start_date.gl,
@@ -40,7 +40,7 @@ sits_getdata <- function (source = NULL,
                           coverage   =       cov_name.gl,
                           bands      =          bands.gl,
                           crs        = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
-                          n_max = Inf) {
+                          n_max      = Inf) {
 
      if (is.null (source)) {
           data.tb <- .sits_fromWTSS(longitude, latitude, start_date, end_date,
@@ -68,9 +68,7 @@ sits_getdata <- function (source = NULL,
      stop(cond)
 }
 
-
 .sits_getdata_from_table <-  function (input.tb, bands) {
-
      # create the table
      data.tb <- sits_table()
      # for each row of the input, retrieve the time series
@@ -82,7 +80,6 @@ sits_getdata <- function (source = NULL,
 }
 
 .sits_getdata_fromJSON <- function (json_file) {
-
      # add the contents of the JSON file to a SITS table
      table <- as_tibble (jsonlite::fromJSON (json_file))
      # convert Indexes in time series to dates
@@ -96,8 +93,6 @@ sits_getdata <- function (source = NULL,
      table <- dplyr::mutate (table, end_date   = as.Date(end_date))
      return (table)
 }
-
-
 
 #------------------------------------------------------------------
 #' Obtain timeSeries from WTSS server, based on a CSV file.
@@ -115,7 +110,6 @@ sits_getdata <- function (source = NULL,
 #' @param bands      vector  - the names of the bands to be read
 
 .sits_getdata_fromCSV <-  function (csv_file, coverage, bands, n_max = Inf){
-
      # configure the format of the CSV file to be read
      cols_csv <- readr::cols(id          = col_integer(),
                              longitude   = col_double(),
@@ -141,13 +135,13 @@ sits_getdata <- function (source = NULL,
 #' Given a location (lat/long), and start/end period, and the WTSS server information
 #' retrieve a time series and include it on a stis table
 
-.sits_fromWTSS <- function  (longitude  =         -55.51810,
-                             latitude   =          -11.63884,
-                             start_date =     start_date.gl,
-                             end_date   =       end_date.gl,
-                             label      =         "NoClass",
-                             coverage   =       cov_name.gl,
-                             bands      =          bands.gl) {
+.sits_fromWTSS <- function (longitude  =         -55.51810,
+                            latitude   =          -11.63884,
+                            start_date =     start_date.gl,
+                            end_date   =       end_date.gl,
+                            label      =         "NoClass",
+                            coverage   =       cov_name.gl,
+                            bands      =          bands.gl) {
 
      # is the WTSS service running?
      sits_testWTSS()
@@ -179,13 +173,13 @@ sits_getdata <- function (source = NULL,
      data.tb <- sits_table()
      # add one row to the table
      data.tb <- add_row (data.tb,
-                       longitude    = longitude,
-                       latitude     = latitude,
-                       start_date   = as.Date(start_date),
-                       end_date     = as.Date(end_date),
-                       label        = label,
-                       coverage     = coverage,
-                       time_series  = ts.lst
+                         longitude    = longitude,
+                         latitude     = latitude,
+                         start_date   = as.Date(start_date),
+                         end_date     = as.Date(end_date),
+                         label        = label,
+                         coverage     = coverage,
+                         time_series  = ts.lst
      )
 
      # return the table with the time series
@@ -209,12 +203,10 @@ sits_getdata <- function (source = NULL,
 #' @examples sits_fromSHP ("municipality.shp")
 #'
 .sits_fromSHP <- function (shp_file, crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") {
-
      # is the WTSS service working?
      sits_testWTSS()
 
      create_polygon <- function (file, crs) {
-
           # read shapefile from a full path
           area_shp <- shapefile::read.shapefile(file)
 
@@ -228,7 +220,6 @@ sits_getdata <- function (source = NULL,
 
           # return spatial.polygons
           return (spatial.polygons)
-
      }
      # What points are inside a given polygon?
      inside_polygon <- function(coord.df, plg, crs) {
@@ -261,7 +252,5 @@ sits_getdata <- function (source = NULL,
           df.coordinates <- data.frame(longitude = rep(list.long, each=length(list.lat)), latitude = rep(list.lat, length(list.long)))
 
           df.coordinates
-
      }
-
 }

@@ -15,7 +15,6 @@
 #' @examples sits_plot  ts <- (ts, type = "grouped", colors = "Set1")
 #'
 sits_plot <- function (data.tb, type = "allyears", colors = "Dark2") {
-
      switch(type,
            "allyears" = {
                 locs <- dplyr::distinct (data.tb, longitude, latitude)
@@ -74,7 +73,6 @@ sits_plot <- function (data.tb, type = "allyears", colors = "Dark2") {
 #' @export
 #'
 sits_plot_together <- function (data.tb, colors = "Dark2") {
-
      # this function plots all the values of all time series together (for one band)
      plot_samples <- function (ts, band, label, number) {
           series.tb <- ts %>%
@@ -194,5 +192,4 @@ sits_plot_together <- function (data.tb, colors = "Dark2") {
                      sep = "")
      return (title)
 }
-
 

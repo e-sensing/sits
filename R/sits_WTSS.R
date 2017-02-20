@@ -37,9 +37,9 @@
 #' @param coverage        name of space-time coverage that contains the time series information
 #' @param bands           a character vector with the names of the bands to be retrieved
 #' @export
-sits_configWTSS <- function (URL       = "http://www.dpi.inpe.br/tws/wtss",
-                              coverage  = "mod13q1_512",
-                              bands     = c("ndvi", "evi", "red", "nir", "blue", "mir")) {
+sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
+                             coverage = "mod13q1_512",
+                             bands    = c("ndvi", "evi", "red", "nir", "blue", "mir")) {
      # assigns variables to the global enviroment
      # create a WTSS connection
      WTSS_URL.gl      <<- URL
@@ -55,7 +55,6 @@ sits_configWTSS <- function (URL       = "http://www.dpi.inpe.br/tws/wtss",
           dplyr::select (name, scale_factor, missing_value) %>%
           as_tibble() %>%
           dplyr::rename (band = name)
-
 
      resolution_x.gl    <<- cov$geo_extent$spatial$resolution$x
      resolution_y.gl    <<- cov$geo_extent$spatial$resolution$y
@@ -78,7 +77,6 @@ sits_configWTSS <- function (URL       = "http://www.dpi.inpe.br/tws/wtss",
 #' @export
 #'
 sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
-
      # obtains information about the WTSS service
      wtss.obj         <- WTSS(URL)
      # obtains information about the coverages
@@ -91,10 +89,10 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
 
      desc.obj %>%
           purrr::map (function (cov) {
-               cat (paste ("Coverage : ", cov$name, "\n",sep = ""))
-               cat (paste ("Description :", cov$description, "\n", sep = ""))
-               cat (paste ("Source : ", cov$detail, "\n", sep = ""))
-               cat (paste ("Bands : ", "\n", sep = "", collapse=""))
+               cat (paste ("Coverage: ", cov$name, "\n",sep = ""))
+               cat (paste ("Description: ", cov$description, "\n", sep = ""))
+               cat (paste ("Source: ", cov$detail, "\n", sep = ""))
+               cat (paste ("Bands: ", "\n", sep = "", collapse=""))
                attr <- as.data.frame(cov$attributes)
                print (attr[1:2])
                cat (paste ("\nSpatial extent: ", "(",
@@ -102,9 +100,9 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
                            cov$geo_extent$spatial$extent$ymin, ") - (",
                            cov$geo_extent$spatial$extent$xmax, ", ",
                            cov$geo_extent$spatial$extent$ymax, ")", sep =""))
-               cat (paste ("\nTime range : ", cov$geo_extent$temporal$start, " to ", cov$geo_extent$temporal$end, "\n", sep = ""))
-               cat (paste ("Temporal resolution : ", cov$geo_extent$temporal$resolution, " days ", "\n", sep = ""))
-               cat (paste ("Spatial resolution : ", as.integer (cov$geo_extent$spatial$resolution$x), " metres ", "\n", sep = ""))
+               cat (paste ("\nTime range: ", cov$geo_extent$temporal$start, " to ", cov$geo_extent$temporal$end, "\n", sep = ""))
+               cat (paste ("Temporal resolution: ", cov$geo_extent$temporal$resolution, " days ", "\n", sep = ""))
+               cat (paste ("Spatial resolution: ", as.integer (cov$geo_extent$spatial$resolution$x), " metres ", "\n", sep = ""))
 
                cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
                return (invisible (cov))

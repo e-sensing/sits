@@ -45,7 +45,6 @@ sits_cluster <- function (data.tb, type = "dendogram", n_clusters = 4){
 #'
 #'
 sits_dendogram <- function (data.tb, n_clusters = 4) {
-
      cluster_dendogram <- function (data.tb, band, n_clusters){
           # get the values of the various time series for this band
           values.tb <- sits_values_rows (data = data.tb, band = band)
@@ -101,7 +100,6 @@ sits_dendogram <- function (data.tb, n_clusters = 4) {
 #' @export
 #'
 sits_centroids <- function (data.tb, n_clusters = 4) {
-
      cluster_partitional <- function (band, data.tb, n_clusters) {
           values.tb <- sits_values_rows (data.tb, band)
           clusters  <- dtwclust (values.tb,
@@ -149,7 +147,6 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
 #' @examples sits_fromClusters (savanna_s.tb, clusters.lst)
 
 .sits_fromClusters <-  function (data.tb, clusters.lst) {
-
      centroids.lst <- clusters.lst %>%
           purrr::map (function (clu) {
                # what is the name of the band?
@@ -207,19 +204,17 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
 #' @family   SITS auxiliary functions
 #' @examples .sits_cluster_info (clusters.)
 
-
 .sits_cluster_info <- function (clusters) {
-
      cat ("-------------------------------\n")
      # what is the name of the band?
      band <- tools::file_path_sans_ext(names(clusters@centroids)[1])
-     cat (paste ("Band :", band, "\n", sep = ""))
+     cat (paste ("Band: ", band, "\n", sep = ""))
 
      # print the size of each cluster
      df <- clusters@clusinfo
      cat ("Cluster sizes\n")
      for (i in 1:nrow(df)) {
-               cat (paste ("Cluster ", i,": ",df[i,"size"], "\n", sep = ""))
+               cat (paste ("Cluster ", i,": ", df[i,"size"], "\n", sep = ""))
      }
      return (clusters)
 }
