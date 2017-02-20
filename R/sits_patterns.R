@@ -28,7 +28,6 @@
 #'
 #'
 sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
-
      # create a tibble to store the results
      patterns.tb <- sits_table()
 
@@ -61,8 +60,8 @@ sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to
 
           # determine the sequence of prediction times
           pred_time = seq(from = lubridate::as_date(from),
-                               to   = lubridate::as_date(to),
-                               by = freq)
+                          to   = lubridate::as_date(to),
+                          by   = freq)
 
           # create a data frame to store the time instances
           time <- data.frame(as.numeric(pred_time))

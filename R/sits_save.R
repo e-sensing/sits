@@ -27,12 +27,9 @@ sits_save <- function (source, json_file = NULL) {
      }
      message (paste ("No valid input to save time series data!!","\n",sep=""))
      stop(cond)
-
 }
 
-
 .sits_toJSON <- function (table, json_file) {
-
      # store the contents of table in a JSON file
      table %>%
           jsonlite::toJSON (pretty = TRUE) %>%

@@ -94,7 +94,6 @@ sits_select <- function (data.tb, bands) {
 #' @export
 #'
 sits_rename <-  function (in.tb, bands_new) {
-
      if (is.null(bands_new)) message (paste, "New band names should be provided")
 
      # rename the time series
@@ -145,7 +144,6 @@ sits_bands <- function (sits.tb) {
 #' @examples merged.tb <- merge_WTSS (sits1.tb, sits2.tb)
 #'
 sits_merge <-  function(sits1.tb, sits2.tb) {
-
      # merge the time series
      merge_one <-  function (ts1, ts2) {
           ts3 <- dplyr::left_join (ts1, ts2, by = "Index")
@@ -230,7 +228,6 @@ sits_align <- function (data, ref_date) {
 #' @export
 #'
 sits_group_bylatlong <- function (data) {
-
      #create a sits table to store the output
      out.tb <- sits_table()
      #find out how many distinct lat/long locations exist in the data

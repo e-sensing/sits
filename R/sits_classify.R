@@ -29,7 +29,6 @@
 #'
 #'
 sits_classify <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 100) {
-
      # select the bands for the samples time series and convert to TWDTW format
      ts_samples <- samples.tb %>%
           sits_select (bands) %>%
@@ -47,11 +46,11 @@ sits_classify <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 
                        to   = as.Date("2016-08-31"),
                        by   = "12 month")
 
-     matches = twdtwApply(x = ts_samples,
-                          y = ts_patterns,
+     matches = twdtwApply(x          = ts_samples,
+                          y          = ts_patterns,
                           weight.fun = log_fun,
-                          breaks = august_july,
-                          keep=TRUE)
+                          breaks     = august_july,
+                          keep       = TRUE)
 
 # # plot the classification
 # plot(x = matches, type = "classification", overlap = 0.5)
@@ -59,7 +58,6 @@ sits_classify <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 
 # plot(x = matches, type = "alignments")
 
      return (matches)
-
 }
 
 .sits_table_from_matches
