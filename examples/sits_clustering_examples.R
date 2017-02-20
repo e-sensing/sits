@@ -14,4 +14,6 @@ cerrado.tb <- sits_getdata ("./data/Samples/cerrado.json")
 
 savanna.tb <- filter (cerrado.tb, label == "Savanna")
 
+sits_plot (savanna.tb, type = "together")
+
 clusters_sav.tb <- sits_cluster (savanna.tb, type = "dendogram", n_clusters = 4)

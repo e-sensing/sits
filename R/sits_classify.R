@@ -60,7 +60,7 @@ sits_classify <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 
      return (matches)
 }
 
-.sits_table_from_matches
+#.sits_table_from_matches
 # ..@ alignments:List of 1
 # .. ..$ :List of 8
 # .. .. ..$ Cerrado       :List of 7

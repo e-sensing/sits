@@ -36,7 +36,7 @@ sits_toTWDTW <- function (data.tb){
 #' @return sits.tb  - a SITS table containing the patterns
 #' @export
 #'
-sits_fromTWDTW <- function (patterns){
+sits_fromTWDTW <- function (patterns, coverage){
      # get the time series from the patterns
      tb.lst <- purrr::map2 (patterns@timeseries, patterns@labels, function (ts, lab) {
           # tranform the time series into a row of a sits table
@@ -50,7 +50,7 @@ sits_fromTWDTW <- function (patterns){
                           start_date   = ts.tb[1,"Index"],
                           end_date     = ts.tb[nrow(ts.tb),"Index"],
                           label        = as.character (lab),
-                          coverage     = cov_name.gl,
+                          coverage     = coverage,
                           time_series  = mylist)
           return (row)
      })

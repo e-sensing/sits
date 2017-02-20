@@ -31,16 +31,17 @@
 #'       sits_getdata (longitude = -53.27, latitude = -12.23)
 #' @export
 
-sits_getdata <- function (source     = NULL,
-                          longitude  =          -55.51810,
-                          latitude   =          -11.63884,
-                          start_date =     start_date.gl,
-                          end_date   =       end_date.gl,
-                          label      =         "NoClass",
-                          coverage   =       cov_name.gl,
-                          bands      =          bands.gl,
-                          crs        = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
-                          n_max      = Inf) {
+sits_getdata <- function (source      = NULL,
+                          longitude   =          -55.51810,
+                          latitude    =          -11.63884,
+                          start_date  =     start_date.gl,
+                          end_date    =       end_date.gl,
+                          label       =         "NoClass",
+                          wtts_server =      ts_server.gl,
+                          coverage    =       cov_name.gl,
+                          bands       =          bands.gl,
+                          crs         = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
+                          n_max       = Inf) {
 
      if (is.null (source)) {
           data.tb <- .sits_fromWTSS(longitude, latitude, start_date, end_date,
@@ -135,18 +136,17 @@ sits_getdata <- function (source     = NULL,
 #' Given a location (lat/long), and start/end period, and the WTSS server information
 #' retrieve a time series and include it on a stis table
 
-.sits_fromWTSS <- function (longitude  =         -55.51810,
-                            latitude   =          -11.63884,
-                            start_date =     start_date.gl,
-                            end_date   =       end_date.gl,
-                            label      =         "NoClass",
-                            coverage   =       cov_name.gl,
-                            bands      =          bands.gl) {
+.sits_fromWTSS <- function (longitude,
+                            latitude,
+                            start_date,
+                            end_date,
+                            label,
+                            wtss_server,
+                            coverage,
+                            bands) {
 
-     # is the WTSS service running?
-     sits_testWTSS()
      # get a time series from the WTSS server
-     ts <- timeSeries (ts_server.gl,
+     ts <- timeSeries (wtss_server,
                        coverages  = coverage,
                        attributes = bands,
                        longitude  = longitude,
@@ -202,55 +202,17 @@ sits_getdata <- function (source     = NULL,
 #' @family   SITS data input functions
 #' @examples sits_fromSHP ("municipality.shp")
 #'
-.sits_fromSHP <- function (shp_file, crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") {
+.sits_fromSHP <- function (shp_file, wtss_server, coverage, bands, crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") {
      # is the WTSS service working?
-     sits_testWTSS()
+     area_shp <- raster::shapefile(shp_file)
 
-     create_polygon <- function (file, crs) {
-          # read shapefile from a full path
-          area_shp <- shapefile::read.shapefile(file)
-
-          # create spatial polygons from polygon
-          polygon <- sp::Polygon(area_shp$shp$shp[[1]]$points)
-          polygons <- sp::Polygons(list(polygon), paste(1))
-          spatial.polygons <- sp::SpatialPolygons(list(polygons))
-
-          # define CRS of the spatial polygon
-          proj4string(spatial.polygons) <- sp::CRS(crs)
-
-          # return spatial.polygons
-          return (spatial.polygons)
-     }
-     # What points are inside a given polygon?
-     inside_polygon <- function(coord.df, plg, crs) {
-
-          # create a spatial points data frame with the same CRS as the SHP polygon
-          pts.df <- sp::SpatialPoints(coord.df, CRS(crs))
-
-          # find the coordinates of the data frame that are inside the polygon
-          coord.df <- subset(coord.df, !is.na(sp::over(pts.df, plg) == 1))
-          # return the coordinates that are inside the polygon
-          return (coord.df)
-
-     }
-     # create a point grid of coverage pixels that are inside the polygon
-     create_grid <- function(plg) {
-
-          # Para MOD13Q1 use pixelsize = 231.6564
-          # center coordinates resolution
-          resolution = 0.0019
-
-          # get first point from the polygon bounding box boundaries
-          minimum.bb = bbox(plg)
-          first.point <- getTimeSeries(minimum.bb, dates, class)
-
-          # define list of latitudes and longitudes by resolution based on the bounding box
-          list.long <- seq(from=first.point$longitude, to=minimum.bb[3], by=resolution)
-          list.lat <- seq(from=first.point$latitude, to=minimum.bb[4], by=resolution)
-
-          # build the latitude and longitude
-          df.coordinates <- data.frame(longitude = rep(list.long, each=length(list.lat)), latitude = rep(list.lat, length(list.long)))
-
-          df.coordinates
-     }
+     # get the box
+     box <- area_shp@bbox
+     # get a time series from the WTSS server
+     ts.lst <- timeSeries (wtss_server,
+                            coverages  = coverage,
+                            attributes = bands,
+                            box        = box,
+                            start      = start_date,
+                            end        = end_date)
 }
