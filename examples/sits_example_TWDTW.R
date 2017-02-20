@@ -14,8 +14,11 @@ sits_configWTSS (URL,
                  coverage = "mod13q1_512",
                  bands = c("ndvi", "evi", "nir"))
 
+long <- -55.51810
+lat <-  -11.63884
 # pick one point as an example
-point.tb <- sits_getdata(longitude = -55.23354, latitude = -11.51652)
+#point.tb <- sits_getdata(longitude = -55.23354, latitude = -11.51652)
+point.tb <- sits_getdata(longitude = long, latitude = lat)
 
 # select the evi and plot it
 point.tb %>%

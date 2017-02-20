@@ -37,7 +37,7 @@ sits_getdata <- function (source      = NULL,
                           start_date  =     start_date.gl,
                           end_date    =       end_date.gl,
                           label       =         "NoClass",
-                          wtts_server =      ts_server.gl,
+                          wtss_server =      ts_server.gl,
                           coverage    =       cov_name.gl,
                           bands       =          bands.gl,
                           crs         = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
@@ -45,7 +45,7 @@ sits_getdata <- function (source      = NULL,
 
      if (is.null (source)) {
           data.tb <- .sits_fromWTSS(longitude, latitude, start_date, end_date,
-                                    label, coverage, bands)
+                                    label, wtss_server, coverage, bands)
           return (data.tb)
      }
      if ("sits_table" %in% class (source) || "tbl" %in% class (source) ){
