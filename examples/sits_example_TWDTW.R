@@ -14,12 +14,9 @@ sits_configWTSS (URL,
                  coverage = "mod13q1_512",
                  bands = c("ndvi", "evi", "nir"))
 
-long <- -55.51810
-lat <-  -11.63884
-# pick one point as an example
-#point.tb <- sits_getdata(longitude = -55.23354, latitude = -11.51652)
-point.tb <- sits_getdata(longitude = long, latitude = lat)
 
+# pick one point as an example
+point.tb <- sits_getdata(longitude = -55.23354, latitude = -11.51652)
 # select the evi and plot it
 point.tb %>%
      sits_select (c("evi")) %>%
@@ -53,17 +50,30 @@ patterns.tb <- sits_getdata("./data/patterns/patterns_Rodrigo_8classes_6bands.js
 # plot patterns
 sits_plot (patterns.tb, type = "patterns")
 
-cerrado.tb <- sits_getdata("./data/samples/cerrado.json")
-
-savanna.tb <- dplyr::filter (cerrado.tb, label == "Savanna")
-
-clusters.tb <- sits_cluster (savanna.tb, type = "dendogram", n_clusters = 4)
-
-patterns_cerrado.tb <- sits_patterns (cerrado.tb)
-
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
 matches <- sits_classify(point.tb, patterns.tb, bands)
+
+# # plot the classification
+plot(x = matches, type = "classification", overlap = 0.5)
+# # plot the alignments
+plot(x = matches, type = "alignments")
+
+# a complicated point
+long <- -55.51810
+lat <-  -11.63884
+
+point.tb <- sits_getdata(longitude = long, latitude = lat)
+
+# read a pattern table from a JSON file
+patterns.tb <- sits_getdata("./data/patterns/damien.json")
+
+# plot patterns
+sits_plot (patterns.tb, type = "patterns")
+
+# classify samples using TWDTW
+bands <- c("ndvi", "evi", "nir")
+matches <- sits_classify(point.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
 # # plot the classification
 plot(x = matches, type = "classification", overlap = 0.5)
@@ -76,9 +86,6 @@ examples.tb <- sits_fromCSV("./data/Samples/MatoGrosso-examples.csv")
 examples.tb %>%
      sits_select(c("evi")) %>%
      sits_plot()
-
-# read a pattern table from a JSON file
-patterns.tb <- sits_fromJSON ("./data/patterns/patterns_Rodrigo_8classes_6bands.json")
 
 # plot patterns
 sits_plot (patterns.tb, type = "patterns")
