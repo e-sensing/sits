@@ -9,7 +9,7 @@ sits_rename(in.tb, bands_new)
 \arguments{
 \item{in.tb}{a SITS table with a list of SITS time series}
 
-\item{bands}{a list of new band names}
+\item{bands_new}{a list of new band names}
 }
 \value{
 out.tb  a SITS table with a list of renamed bands for the time series

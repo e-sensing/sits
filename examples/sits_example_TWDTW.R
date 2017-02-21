@@ -42,11 +42,24 @@ point3.tb %>%
      sits_select (c("ndvi", "ndvi_smooth")) %>%
      sits_plot()
 
+samples1.tb <- sits_getdata("./data/samples/MatoGrosso-examples.csv")
+
+samples1.tb %>%
+     sits_plot(type = "one_by_one")
+
 # read a pattern table from a JSON file
 patterns.tb <- sits_getdata("./data/patterns/patterns_Rodrigo_8classes_6bands.json")
 
 # plot patterns
 sits_plot (patterns.tb, type = "patterns")
+
+cerrado.tb <- sits_getdata("./data/samples/cerrado.json")
+
+savanna.tb <- dplyr::filter (cerrado.tb, label == "Savanna")
+
+clusters.tb <- sits_cluster (savanna.tb, type = "dendogram", n_clusters = 4)
+
+patterns_cerrado.tb <- sits_patterns (cerrado.tb)
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")

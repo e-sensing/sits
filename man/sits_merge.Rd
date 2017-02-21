@@ -7,9 +7,9 @@
 sits_merge(sits1.tb, sits2.tb)
 }
 \arguments{
-\item{ts1}{the first SITS table to be merged}
+\item{sits1.tb}{the first SITS table to be merged}
 
-\item{ts2}{the second SITS table to be merged}
+\item{sits2.tb}{the second SITS table to be merged}
 }
 \value{
 new.tb    a merged SITS tibble with a nested set of time series
@@ -26,11 +26,11 @@ For example, one may want to put the raw and smoothed bands for the same set of 
 in the same table.
 }
 \examples{
-merged.tb <- merge_WTSS (sits1.tb, sits2.tb)
+merged.tb <- sits_merge (sits1.tb, sits2.tb)
 
 }
 \seealso{
 Other SITS main functions: \code{\link{.sits_fromClusters}},
-  \code{\link{sits_getdata}}
+  \code{\link{sits_cross}}, \code{\link{sits_getdata}}
 }
 \keyword{SITS}

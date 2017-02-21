@@ -49,20 +49,20 @@ sits_getdata <- function (source      = NULL,
           return (data.tb)
      }
      if ("sits_table" %in% class (source) || "tbl" %in% class (source) ){
-          data.tb <- .sits_getdata_from_table (input.tb = source, bands = bands)
+          data.tb <- .sits_getdata_from_table (source, bands)
           return (data.tb)
      }
      if (tools::file_ext(source) == "csv" || tools::file_ext(source) == "CSV"){
-          data.tb <- .sits_getdata_fromCSV (csv_file = source, coverage = coverage,
-                                            bands = bands, n_max = n_max)
+          data.tb <- .sits_getdata_fromCSV (source, wtss_server, coverage,
+                                            bands, n_max)
           return (data.tb)
      }
      if (tools::file_ext(source) == "json" || tools::file_ext(source) == "JSON"){
-          data.tb <- .sits_getdata_fromJSON (json_file = source)
+          data.tb <- .sits_getdata_fromJSON (source)
           return (data.tb)
      }
      if (tools::file_ext(source) == "shp" || tools::file_ext(source) == "SHP"){
-          data.tb <- .sits_getdata_fromSHP (shp_file = source, crs = crs)
+          data.tb <- .sits_getdata_fromSHP (source, crs)
           return (data.tb)
      }
      message (paste ("No valid input to retrieve time series data!!","\n",sep=""))
@@ -75,7 +75,7 @@ sits_getdata <- function (source      = NULL,
      # for each row of the input, retrieve the time series
      data.tb <- input.tb %>%
           dplyr::rowwise() %>%
-          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, .$start_date, .$end_date, .$label, .$coverage, bands)) %>%
+          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, .$start_date, .$end_date, .$label, wtss_server,.$coverage, bands)) %>%
           dplyr::bind_rows (data.tb, .)
      return (data.tb)
 }
@@ -110,7 +110,7 @@ sits_getdata <- function (source      = NULL,
 #' @param n_max      integer - the maximum number of samples to be read
 #' @param bands      vector  - the names of the bands to be read
 
-.sits_getdata_fromCSV <-  function (csv_file, coverage, bands, n_max = Inf){
+.sits_getdata_fromCSV <-  function (csv_file, wtss_server, coverage, bands, n_max = Inf){
      # configure the format of the CSV file to be read
      cols_csv <- readr::cols(id          = col_integer(),
                              longitude   = col_double(),
@@ -124,7 +124,7 @@ sits_getdata <- function (source      = NULL,
      # for each row of the input, retrieve the time series
      data.tb <- csv.tb %>%
           dplyr::rowwise() %>%
-          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, .$start_date, .$end_date, .$label, coverage, bands)) %>%
+          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, .$start_date, .$end_date, .$label, wtss_server, coverage, bands)) %>%
           dplyr::bind_rows (data.tb, .)
      return (data.tb)
 }

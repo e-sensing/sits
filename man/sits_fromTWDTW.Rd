@@ -6,7 +6,7 @@
 \code{sits_fromTWDTW} reads a set of TWDTW patterns
 transforms them into a SITS table}
 \usage{
-sits_fromTWDTW(patterns)
+sits_fromTWDTW(patterns, coverage)
 }
 \arguments{
 \item{patterns}{- a TWDTW object containing a set of patterns to be used for classification}

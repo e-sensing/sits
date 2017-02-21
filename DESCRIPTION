@@ -22,7 +22,6 @@ Depends:
      mgcv,
      raster,
      rgeos,
-     shapefiles,
      sp,
      signal,
      ptw,

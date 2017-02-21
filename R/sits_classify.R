@@ -28,7 +28,10 @@
 #' @export
 #'
 #'
-sits_classify <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 100) {
+sits_classify <- function (samples.tb, patterns.tb, bands,
+                           alpha = -0.1, beta = 100, theta = 0.5,
+                           start_date = as.Date("2000-09-01"), end_date = as.Date("2016-08-31"),
+                           by = "12 month") {
      # select the bands for the samples time series and convert to TWDTW format
      ts_samples <- samples.tb %>%
           sits_select (bands) %>%
@@ -42,14 +45,15 @@ sits_classify <- function (samples.tb, patterns.tb, bands, alpha = -0.1, beta = 
      # Define the logistic function
      log_fun = logisticWeight(alpha = alpha, beta = beta)
 
-     august_july = seq(from = as.Date("2000-09-01"),
-                       to   = as.Date("2016-08-31"),
-                       by   = "12 month")
+     # define the temporal intervals of each classification
+     breaks = seq(from = start_date, to = end_date, by = by)
 
+     #classify the data using TWDTW
      matches = twdtwApply(x          = ts_samples,
                           y          = ts_patterns,
                           weight.fun = log_fun,
-                          breaks     = august_july,
+                          theta      = theta,
+                          breaks     = breaks,
                           keep       = TRUE)
 
 # # plot the classification

@@ -6,7 +6,7 @@
 \usage{
 sits_getdata(source = NULL, longitude = -55.5181, latitude = -11.63884,
   start_date = start_date.gl, end_date = end_date.gl, label = "NoClass",
-  coverage = cov_name.gl, bands = bands.gl,
+  wtss_server = ts_server.gl, coverage = cov_name.gl, bands = bands.gl,
   crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", n_max = Inf)
 }
 \arguments{
@@ -50,6 +50,6 @@ A sits table has the metadata and data for each time series
 }
 \seealso{
 Other SITS main functions: \code{\link{.sits_fromClusters}},
-  \code{\link{sits_merge}}
+  \code{\link{sits_cross}}, \code{\link{sits_merge}}
 }
 \keyword{SITS}
