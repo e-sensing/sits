@@ -183,14 +183,19 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
           t <- centroids.lst [[i]]
           if (nrow(t) < nmin) nmin <- nrow(t)
      }
+
+
      centroids.tb  <- centroids.lst[[1]][1:nmin,]
      centroids.lst <- centroids.lst[-1]
-     centroids.tb  <- centroids.lst %>%
-          map (function (t) {
-               centroids.tb <- sits_merge (centroids.tb, t[1:nmin,])
-               return (centroids.tb)
+
+     centroids.lst %>%
+          map (function (clust_band.tb) {
+               # we need store the cross join result into `centroids.tb` from outer scope (so the <<- operator)
+               # outer scope `centroids.tb` variable is updated on next map iteration (this transform our code in a recursive one)
+               # (note that this does NOT create a global variable!)
+               centroids.tb <<- sits_cross (centroids.tb, clust_band.tb[1:nmin,])
           })
-     return(centroids.tb[[1]])
+     return(centroids.tb)
 }
 
 #------------------------------------------------------------------

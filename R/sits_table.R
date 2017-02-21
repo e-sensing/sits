@@ -89,7 +89,7 @@ sits_select <- function (data.tb, bands) {
 #'
 #' \code{sits_renames} renames the bands of a sits table
 #' @param in.tb    a SITS table with a list of SITS time series
-#' @param bands    a list of new band names
+#' @param bands_new    a list of new band names
 #' @return out.tb  a SITS table with a list of renamed bands for the time series
 #' @export
 #'
@@ -135,13 +135,13 @@ sits_bands <- function (sits.tb) {
 #' For example, one may want to put the raw and smoothed bands for the same set of locations
 #' in the same table.
 #'
-#' @param ts1  the first SITS table to be merged
-#' @param ts2  the second SITS table to be merged
+#' @param sits1.tb  the first SITS table to be merged
+#' @param sits2.tb  the second SITS table to be merged
 #' @return new.tb    a merged SITS tibble with a nested set of time series
 #' @keywords SITS
 #' @family   SITS main functions
 #' @export
-#' @examples merged.tb <- merge_WTSS (sits1.tb, sits2.tb)
+#' @examples merged.tb <- sits_merge (sits1.tb, sits2.tb)
 #'
 sits_merge <-  function(sits1.tb, sits2.tb) {
      # merge the time series
@@ -159,6 +159,63 @@ sits_merge <-  function(sits1.tb, sits2.tb) {
      merged.tb$time_series <- purrr::map2 (sits1.data, sits2.data, merge_one)
 
      return (merged.tb)
+}
+# -----------------------------------------------------------
+#' Cross join bands of two satellite image time series
+#'
+#' \code{sits_cross} Cross-join two SITS tables with the same spatio-temporal references
+#'
+#' #' To cross two series' bands, we consider that they contain DIFFERENT
+#' attributes (bands) but refer to the same coverage. We DON'T make any assumptions about their spatio-temporal location.
+#' So be careful with this function as it will cross join every time series' bands between two SITS tables entries.
+#'
+#' This function is useful to create different bands of clusters centroids time series.
+#' For example, one may want to put evi and ndvi bands centroids together in an cross joined fashion in order to
+#' generate patterns combinations.0
+#'
+#' @param sits1.tb  the first SITS table in wich entries will be crossed with ts2 entries
+#' @param sits2.tb  the second SITS table entries
+#' @return new.tb    a cross-joined SITS tibble with a nested set of time series
+#' @keywords SITS
+#' @family   SITS main functions
+#' @export
+#' @examples cerrado.tb <- sits_getdata("./data/Samples/cerrado.json")
+#' @examples savanna.tb <- filter(cerrado.tb, label=="Savanna")
+#' @examples savanna_s.tb <- sits_smooth(savanna.tb, lambda = 1.0)
+#' @examples savanna_clust.tb <- savanna_s.tb %>% sits_cluster(type = "dendogram", n_clust=4)
+#' @examples sits_plot(savanna_clust.tb, type = "patterns")
+#'
+sits_cross <-  function(sits1.tb, sits2.tb) {
+     #first, add `cross_join` field in order to proceed with dplyr::inner_join (see bellow)
+     sits1.data <- sits1.tb %>%
+          dplyr::mutate (cross_join = 0)
+
+     # second, select only time_series data and add `cross_join` field
+     sits2.data <- sits2.tb %>%
+          dplyr::select(time_series) %>%
+          dplyr::mutate(cross_join = 0)
+
+     # third, from time_series' fields of second SITS table removes the Index (dates) (because we already have one Index in sits1.data)
+     sits2.data$time_series <- sits2.data$time_series %>%
+          purrr::map(function(ts) {
+               ts %>% dplyr::select(-Index)
+          })
+
+     # fourth, do a cross join, removes `cross_join` field, and adds a `cluster_id` field to distinct each cluster
+     # (this will be use to nest time_series in crossed.tb -- see bellow)
+     crossed.tb <<- sits1.data %>%
+          dplyr::inner_join(sits2.data, by='cross_join') %>%
+          dplyr::select(-cross_join) %>%
+          dplyr::mutate(cluster_id = 1:nrow(.))
+
+     # finally, proceeds with unnesting, nesting, removing `cluster_id` field, erasing latitude and longitude metadata, and update labels' values (subclass)
+     crossed.tb <- tidyr::unnest(crossed.tb) %>%
+          tidyr::nest(-latitude, -longitude, -start_date, -end_date, -label, -coverage, -cluster_id, .key = "time_series") %>%
+          dplyr::select(-cluster_id) %>%
+          dplyr::mutate(latitude = 0.0, longitude = 0.0, label = paste(.$label, "_", as.character(1:nrow(.)), sep = ""))
+
+     # we have a sits tibble with all cross-joined bands centroids with subclass labels
+     return(crossed.tb)
 }
 #' Return the dates of a sits table
 #'
