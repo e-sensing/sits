@@ -4,7 +4,9 @@
 \alias{sits_classify}
 \title{Classify a sits tibble using TWDTW (using the dtwSat package)}
 \usage{
-sits_classify(samples.tb, patterns.tb, bands, alpha = -0.1, beta = 100)
+sits_classify(samples.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
+  theta = 0.5, start_date = as.Date("2000-09-01"),
+  end_date = as.Date("2016-08-31"), interval = "12 month")
 }
 \arguments{
 \item{samples.tb}{a table in SITS format with time series to be classified using TWTDW}
