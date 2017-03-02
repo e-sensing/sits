@@ -28,15 +28,15 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 
 #' @import     magrittr
 #' @import     dtwclust
-#' @importFrom dplyr bind_rows contains distinct do filter cross_join inner_join left_join matches num_range mutate one_of rename rename_ rowwise select starts_with transmute
-#' @importFrom readr cols read_csv write_lines col_integer() col_double() col_date() col_character()
+#' @importFrom dplyr bind_rows contains distinct do filter cross_join inner_join left_join matches mutate num_range one_of rename rename_ rowwise select starts_with transmute
+#' @importFrom readr cols  col_integer() col_double() col_date() col_character() read_csv write_lines
 #' @importFrom tibble tibble as_tibble add_column add_row lst
 #' @importFrom tidyr nest unnest
 #' @importFrom purrr map map2 map_df is_null
 #' @importFrom ggplot2 ggplot aes geom_line labs scale_color_brewer scale_colour_hue
 #' @importFrom graphics plot
 #' @importFrom jsonlite fromJSON toJSON
-#' @importFrom lubridate ymd yday as_date
+#' @importFrom lubridate as_date dyears days period yday year ymd
 #' @importFrom methods new
 #' @importFrom mgcv gam predict.gam
 #' @importFrom ptw whit2

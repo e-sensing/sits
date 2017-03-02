@@ -19,7 +19,7 @@
 #'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  samples.tb    a table in SITS format with time series to be classified using TWTDW
+#' @param  point.tb      a table in SITS format with a time series to be classified using TWTDW
 #' @param  patterns.tb   a set of known temporal signatures for the chosen classes
 #' @param  bands         string - the bands to be used for classification
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
@@ -28,6 +28,7 @@
 #' @param  start_date    date - the starting date of the classification
 #' @param  end_date      date - the end date of the classification
 #' @param  interval      the period between two classifications
+#' @param  span          the minimum period for a match between a pattern and a signal
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
 #'
@@ -36,7 +37,8 @@ sits_classify <- function (point.tb, patterns.tb, bands,
                            alpha = -0.1, beta = 100, theta = 0.5,
                            start_date = as.Date("2000-09-01"),
                            end_date   = as.Date("2016-08-31"),
-                           interval   = "12 month") {
+                           interval   = "12 month",
+                           span       = 250){
      # select the bands for the samples time series and convert to TWDTW format
      ts_samples <- point.tb %>%
           sits_select (bands) %>%
@@ -48,10 +50,13 @@ sits_classify <- function (point.tb, patterns.tb, bands,
           sits_toTWDTW()
 
      # Define the logistic function
-     log_fun = dtwSat::logisticWeight(alpha = alpha, beta = beta)
+     log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
      # define the temporal intervals of each classification
-     breaks = seq(from = start_date, to = end_date, by = interval)
+     breaks <- seq(from = start_date, to = end_date, by = interval)
+
+     # number of years for classification to be done
+     n_years = as.integer ((end_date - start_date)/ lubridate::dyears(1))
 
      #classify the data using TWDTW
      matches = dtwSat::twdtwApply(x          = ts_samples,
@@ -59,6 +64,8 @@ sits_classify <- function (point.tb, patterns.tb, bands,
                                   weight.fun = log_fun,
                                   theta      = theta,
                                   breaks     = breaks,
+                                  n          = n_years,
+                                  span       = span,
                                   keep       = TRUE)
 
      # # plot the classification
@@ -97,30 +104,27 @@ sits_classify <- function (point.tb, patterns.tb, bands,
      labels <- as.character(matches@patterns@labels, stringsAsFactors = FALSE)
      aligns <- matches@alignments[[1]]
 
-     distances.tb <- tibble::tibble (start_date = breaks,
-                                     end_date   = breaks + lubridate::period(interval) - lubridate::days(1))
+     distances.tb <- tibble::tibble ( year = lubridate::year (breaks),
+                                      start_date = breaks,
+                                      end_date   = breaks +
+                                          lubridate::period(interval) - lubridate::days(1))
 
-     distances.lst <- labels %>%
+     aligns.lst <- labels %>%
           purrr::map (function (lab){
-               dist <- tibble::tibble(from = aligns[[lab]]$from, to = aligns[[lab]]$to,
+               dist <- tibble::tibble(year = lubridate::year (aligns[[lab]]$from),
+#                                      from = aligns[[lab]]$from, to = aligns[[lab]]$to,
                                       val = aligns[[lab]]$distance)
-               colnames (dist) <- c("start_date", "end_date", lab)
-               dist <- dplyr::arrange(dist, start_date)
+               colnames (dist) <- c("year", lab)
+               dist <- dplyr::arrange(dist, year)
           })
-     distances.lst <- distances.lst %>%
-          purrr::map (function (tb) dplyr::filter (tb, lubridate::days(end_date - start_date) > lubridate::days(250)))
 
+     for (i in length(aligns.lst)){
+          tb <-  aligns.lst[[i]]
+          dplyr::left_join(distances.tb, tb, by = "year" )
      }
-
-     #               dist <- dplyr::mutate (dist, start_date = breaks)
-
-     distances.tb <- distances.lst %>%
-          purrr::map (function (tb){
-               tb <- dplyr::select (tb, -dplyr::contains ("end_date"))
-          })
-     print (distances.lst)
+     print (distances.tb)
      #
-
+     return (distances.tb)
 }
 
 
