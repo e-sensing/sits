@@ -4,12 +4,12 @@
 \alias{sits_align}
 \title{Aligns dates of time series to a reference date}
 \usage{
-sits_align(data, ref_date)
+sits_align(data.tb, ref_date)
 }
 \arguments{
-\item{ref_date}{date   - a reference date where all series will start}
-
 \item{data.tb}{tibble - input SITS table (useful for chaining functions)}
+
+\item{ref_date}{date   - a reference date where all series will start}
 }
 \value{
 data1.tb   tibble - the converted SITS table (useful for chaining functions)
@@ -19,13 +19,11 @@ data1.tb   tibble - the converted SITS table (useful for chaining functions)
 The reference year is taken from the date of the start of the time series
 available in the coverage.
 }
-\examples{
-data1.tb <- sits_align (data = "mydata.tb", ref_date = "2000-09-02")
-}
 \seealso{
-Other STIS main functions: \code{\link{sits_centroids}},
-  \code{\link{sits_dendogram}},
-  \code{\link{sits_plot_together}},
-  \code{\link{sits_plot}}, \code{\link{sits_save}}
+Other STIS table functions: \code{\link{sits_bands}},
+  \code{\link{sits_dates}},
+  \code{\link{sits_group_bylatlong}},
+  \code{\link{sits_rename}}, \code{\link{sits_select}},
+  \code{\link{sits_table}}, \code{\link{sits_values_cols}},
+  \code{\link{sits_values_rows}}
 }
-\keyword{STIS}

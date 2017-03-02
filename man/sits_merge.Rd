@@ -25,12 +25,7 @@ This function is useful to merge different bands of the same spatio-temporal loc
 For example, one may want to put the raw and smoothed bands for the same set of locations
 in the same table.
 }
-\examples{
-merged.tb <- sits_merge (sits1.tb, sits2.tb)
-
-}
 \seealso{
-Other SITS main functions: \code{\link{.sits_fromClusters}},
-  \code{\link{sits_cross}}, \code{\link{sits_getdata}}
+Other SITS table functions: \code{\link{sits_cross}}
 }
 \keyword{SITS}

@@ -10,6 +10,8 @@ sits_fromTWDTW(patterns, coverage)
 }
 \arguments{
 \item{patterns}{- a TWDTW object containing a set of patterns to be used for classification}
+
+\item{coverage}{- the name of the coverage from where the time series have been obtained}
 }
 \value{
 sits.tb  - a SITS table containing the patterns

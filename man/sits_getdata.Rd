@@ -4,28 +4,24 @@
 \alias{sits_getdata}
 \title{Obtain timeSeries}
 \usage{
-sits_getdata(source = NULL, longitude = -55.5181, latitude = -11.63884,
-  start_date = start_date.gl, end_date = end_date.gl, label = "NoClass",
-  wtss_server = ts_server.gl, coverage = cov_name.gl, bands = bands.gl,
-  crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", n_max = Inf)
+sits_getdata(file = NULL, table = NULL, longitude = -55.5181,
+  latitude = -11.63884, wtss = NULL, n_max = Inf)
 }
 \arguments{
-\item{source}{string  - name of a source CSV file with information <id, latitude, longitude, from, end, label>}
+\item{file}{the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)}
+
+\item{table}{an R object ("sits_table")}
 
 \item{longitude}{double - the longitude of the chosen location}
 
-\item{latitude}{double - the latitude of the chosen location}
+\item{latitude}{double - the latitude of the chosen location)}
 
-\item{start_date}{date - the start of the period}
-
-\item{end_date}{date - the end of the period}
-
-\item{label}{string - the label to attach to the time series (optional)}
+\item{wtss}{WTSS configuration - information that describes the WTSS service (given by sits_configWTSS)}
 
 \item{n_max}{integer - the maximum number of samples to be read (optional)}
 }
 \value{
-table     tibble  - a SITS table
+data.tb        tibble  - a SITS table
 }
 \description{
 \code{sits_getdata} reads descriptive information about a data source to retrive a set of
@@ -37,19 +33,8 @@ from the WTSS service
 (b) The source is a CSV file - retrieves the metadata from the CSV file and the data
 from the WTSS service
 (c) The source is a JSON file - retrieves the metadata and data from the JSON file.
-(d) No source is given - it retrives the data based on <long, lat, start_date, end_date,
-
+(d) No source is given - it retrives the data based on <long, lat, wtss>
 A sits table has the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
-}
-\examples{
-      sits_getdata (source = "mysamples.csv", n_max = 5)
-      sits_getdata (source = "mydata.json")
-      sits_getdata (source = mytable.tb)
-      sits_getdata (longitude = -53.27, latitude = -12.23)
-}
-\seealso{
-Other SITS main functions: \code{\link{.sits_fromClusters}},
-  \code{\link{sits_cross}}, \code{\link{sits_merge}}
 }
 \keyword{SITS}

@@ -23,48 +23,63 @@
 #'    at a given location.
 #'
 #'  To allow for further processing of time series from a WTSS service, this operation
-#'  creates the following global variables:
+#'  creates a list with the following variables
 #'
-#'  WTSS_URL.gl    - the the URL for the WTSS time series service
-#'  ts_server.gl   - an object that handles the WTSS connection
-#'  cov_name.gl    - the name of the coverage that contains the time series for the analysis
-#'  cov_desc.gl    - the table with the parameters of the coverage
-#'  start_date.gl  - the start date for the time series data in the coverage
-#'  end_date.gl    - the end date for the time series data in the coverage
-#'  bands.gl       - the bands of the data to be retrieved from the WTSS
+#'  URL            - the URL for the WTSS time series service
+#'  ts_server      - an object that handles the WTSS connection
+#'  coverage       - the name of the coverage that contains the time series for the analysis
+#'  cov_desc       - a table with the parameters of the coverage
+#'  start_date     - the start date for the time series data in the coverage
+#'  end_date       - the end date for the time series data in the coverage
+#'  res_x          - spatial resolution (x dimension)
+#'  res_y          - spatial resolution (y dimension)
+#'  start_date     - initial date of the coverage time series
+#'  end_date       - final date of the coverage time series
+#'  x_min          - spatial extent (xmin)
+#'  y_min          - spatial extent (ymin)
+#'  x_max          - spatial extent (xmax)
+#'  y_max          - spatial extent (ymin)
+#'  bands          - the bands of the data to be retrieved from the WTSS
 #'
 #' @param URL             the URL for the WTSS time series service
 #' @param coverage        name of space-time coverage that contains the time series information
 #' @param bands           a character vector with the names of the bands to be retrieved
+#' @return wtss_info       a list containing the information about the WTSS server and coverage
 #' @export
 sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
                              coverage = "mod13q1_512",
-                             bands    = c("ndvi", "evi", "red", "nir", "blue", "mir")) {
-     # assigns variables to the global enviroment
-     # create a WTSS connection
-     WTSS_URL.gl      <<- URL
-     # store the TWSS object
-     ts_server.gl     <<- wtss.R::WTSS(URL)
-     # store the name of the coverage
-     cov_name.gl      <<- coverage
-     # describe the coverage
-     cov_desc.lst      <- wtss.R::describeCoverage(ts_server.gl, cov_name.gl)
-     # retrieve the coverage
-     cov <- cov_desc.lst[[cov_name.gl]]
-     cov_desc.gl      <<- cov$attributes %>%
-          dplyr::select (name, scale_factor, missing_value) %>%
-          as_tibble() %>%
-          dplyr::rename (band = name)
+                             bands    = c("ndvi", "evi", "nir")) {
 
-     resolution_x.gl    <<- cov$geo_extent$spatial$resolution$x
-     resolution_y.gl    <<- cov$geo_extent$spatial$resolution$y
-     start_date.gl      <<- cov$geo_extent$temporal$start
-     end_date.gl        <<- cov$geo_extent$temporal$end
-     x_min.gl           <<- cov$geo_extent$spatial$extent$xmin
-     y_min.gl           <<- cov$geo_extent$spatial$extent$ymin
-     x_max.gl           <<- cov$geo_extent$spatial$extent$xmax
-     y_max.gl           <<- cov$geo_extent$spatial$extent$ymax
-     bands.gl           <<- bands
+     wtss_info                <- tibble::lst()
+     class (wtss_info)        <- append (class(wtss_info), "wtss_info")
+     # create a WTSS connection
+     wtss_info$URL            <- URL
+     # store the TWSS object
+     wtss_info$wtss_obj       <- wtss.R::WTSS(URL)
+     # store the name of the coverage
+     wtss_info$coverage       <- coverage
+
+     # describe the coverage
+     cov_desc.lst      <- wtss.R::describeCoverage(wtss_info$wtss_obj, coverage)
+     # retrieve the coverage
+     cov <- cov_desc.lst[[coverage]]
+     # store the attributes
+     wtss_info$cov_desc      <- cov$attributes %>%
+                              dplyr::select (name, scale_factor, missing_value) %>%
+                              tibble::as_tibble() %>%
+                              dplyr::rename (band = name)
+
+     wtss_info$res_x     <- cov$geo_extent$spatial$resolution$x
+     wtss_info$res_y     <- cov$geo_extent$spatial$resolution$y
+     wtss_info$start_date <- cov$geo_extent$temporal$start
+     wtss_info$end_date  <- cov$geo_extent$temporal$end
+     wtss_info$x_min     <- cov$geo_extent$spatial$extent$xmin
+     wtss_info$y_min     <- cov$geo_extent$spatial$extent$ymin
+     wtss_info$x_max     <- cov$geo_extent$spatial$extent$xmax
+     wtss_info$y_max     <- cov$geo_extent$spatial$extent$ymax
+     wtss_info$bands     <- bands
+
+     return (wtss_info)
 }
 
 #
@@ -78,11 +93,11 @@ sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
 #'
 sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
      # obtains information about the WTSS service
-     wtss.obj         <- WTSS(URL)
+     wtss.obj         <- wtss.R::WTSS(URL)
      # obtains information about the coverages
-     coverages.obj    <- listCoverages(wtss.obj)
+     coverages.obj    <- wtss.R::listCoverages(wtss.obj)
      # describe each coverage
-     desc.obj         <- describeCoverage(wtss.obj, coverages.obj)
+     desc.obj         <- wtss.R::describeCoverage(wtss.obj, coverages.obj)
      cat (paste ("-----------------------------------------------------------", "\n",sep = ""))
      cat (paste ("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
      cat (paste ("------------------------------------------------------------", "\n",sep = ""))
@@ -108,38 +123,4 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
                return (invisible (cov))
           })
      return (invisible (desc.obj))
-}
-
-#
-#' Verify if the information concerning WTSS service has been configured
-#'
-#' \code{sits_testWTSS} tests if the WTSS service has been correctly configured
-#'  The function verifies that the WTSS service is running.
-#'
-#'  The Web Time Seris Service (WTSS) is a lightweight web service the allow remote access to satellite
-#'  image time series and provides three operations:
-#'
-#'  1. list coverages: this operation allows clients to retrieve the capabilities provided
-#'     by any server that implements WTSS. It returns a list of coverage
-#'     names available in a server instance.
-#'
-#'  2. describe coverage: this operation returns the metadata for a given coverage
-#'     identified by its name. It includes its range in the spatial and temporal dimensions.
-#'
-#'  3. time series: this operation requests the time series of values of a coverage attribute
-#'    at a given location.
-#'
-#'
-#' @export
-sits_testWTSS <- function() {
-     tryCatch (
-          exists(WTSS_URL.gl),
-          error = function (cond) {
-               message (paste ("Missing WTSS service information!!","\n",
-                               "Please configure the WTSS service","\n",
-                               "using function sits_configWTSS(service_URL, coverage_name, bands)", "\n",
-                               sep=""))
-               stop(cond)
-          }
-     )
 }

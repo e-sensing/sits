@@ -1,21 +1,27 @@
 # -----------------------------------------------------------
 #' Cluster a set of time series
 #'
-#' uses the dtwclust package to cluster time series. s
+#' \code{sits_cluster} cluster time series with dtw distance
+#'
+#' This function uses package "dtwclust" to do time series clustering.
 #' See "dtwclust" documentation for more details
 #'
-#' @param data.tb      a tibble the list of time series to be clustered
+#' @param data.tb      a SITS tibble the list of time series to be clustered
+#' @param type         string - either "dendogram" or "centroids"
 #' @param n_clusters   the number of clusters to be identified
-#' @return             none
+#' @return clusters.tb a SITS tibble with the clusters
+#' @family  STIS cluster functions
 #' @export
 sits_cluster <- function (data.tb, type = "dendogram", n_clusters = 4){
      # select cluster option
      switch (type,
-             "dendogram" = { sits_dendogram (data.tb, n_clusters) },
-             "centroids" = { sits_centroids (data.tb, n_clusters) },
-             message (paste ("sits_cluster: valid cluster methods are dendogram or centroids",
+             "dendogram" = { cluster.tb <- sits_dendogram (data.tb, n_clusters) },
+             "centroids" = { cluster.tb <- sits_centroids (data.tb, n_clusters) },
+             { message (paste ("sits_cluster: valid cluster methods are dendogram or centroids",
                              "\n", sep = ""))
+               stop(cond)}
      )
+     return (cluster.tb)
 }
 
 # -----------------------------------------------------------
@@ -37,28 +43,26 @@ sits_cluster <- function (data.tb, type = "dendogram", n_clusters = 4){
 #'
 #' @param data.tb      a tibble the list of time series to be clustered
 #' @param n_clusters   the number of clusters to be identified
-#' @return             none
+#' @return clusters.tb a SITS tibble with the clusters
 #' @keywords STIS
-#' @family   STIS main functions
+#' @family   STIS cluster functions
 #' @export
-#' @examples sits_dendogram  (data.tb, n_clusters = 6)
-#'
 #'
 sits_dendogram <- function (data.tb, n_clusters = 4) {
      cluster_dendogram <- function (data.tb, band, n_clusters){
           # get the values of the various time series for this band
-          values.tb <- sits_values_rows (data = data.tb, band = band)
-          clusters  <- dtwclust (values.tb,
+          values.tb <- sits_values_rows (data.tb, band)
+          clusters  <- dtwclust::dtwclust (values.tb,
                                  type     = "hierarchical",
                                  k        = n_clusters,
                                  distance = "dtw_basic",
                                  seed     = 899)
 
           # Plot the series and the obtained prototypes
-          plot (clusters, type = "sc")
+          graphics::plot (clusters, type = "sc")
 
           # Plot the centroids
-          plot(clusters, type = "centroids")
+          graphics::plot (clusters, type = "centroids")
 
           # print information about the clusters
           .sits_cluster_info (clusters)
@@ -93,16 +97,15 @@ sits_dendogram <- function (data.tb, n_clusters = 4) {
 #'
 #' @param data.tb      a tibble the list of time series to be clustered
 #' @param n_clusters   the number of clusters to be identified
-#' @return          none
+#' @return clusters.tb a SITS tibble with the clusters
 #' @keywords STIS
-#' @family   STIS main functions
-#' @examples sits_plot  (data.tb, n_clusters = 6)
+#' @family   STIS cluster functions
 #' @export
 #'
 sits_centroids <- function (data.tb, n_clusters = 4) {
      cluster_partitional <- function (band, data.tb, n_clusters) {
           values.tb <- sits_values_rows (data.tb, band)
-          clusters  <- dtwclust (values.tb,
+          clusters  <- dtwclust::dtwclust (values.tb,
                                  type     = "partitional",
                                  k        = n_clusters,
                                  distance = "dtw_basic",
@@ -110,9 +113,9 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
                                  seed     = 899)
 
           # Plot the series and the obtained prototypes
-          plot (clusters, type = "sc")
+          graphics::plot (clusters, type = "sc")
           # Plot the centroids
-          plot(clusters, type = "centroids")
+          graphics::plot (clusters, type = "centroids")
           # print information about the clusters
           .sits_cluster_info (clusters)
 
@@ -139,12 +142,11 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
 #'
-#' @param data.tb   a tibble with input data of dtwclust.
-#' @param clusters.lst   a list of cluster structure returned from dtwclust. Each element correspond to a band attribute.
-#' @return table     tibble  - a SITS table
+#' @param data.tb          a tibble with input data of dtwclust.
+#' @param clusters.lst     a list of cluster structure returned from dtwclust. Each element correspond to a band attribute.
+#' @return centroids.tb    a SITS table with the clusters
 #' @keywords SITS
-#' @family   SITS main functions
-#' @examples sits_fromClusters (savanna_s.tb, clusters.lst)
+#' @examples .sits_fromClusters (savanna_s.tb, clusters.lst)
 
 .sits_fromClusters <-  function (data.tb, clusters.lst) {
      centroids.lst <- clusters.lst %>%
@@ -152,28 +154,27 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
                # what is the name of the band?
                band <- tools::file_path_sans_ext(names(clu@centroids)[1])
 
-               # get only the statistically significant clusters' id
-               total <- length(clu@cluster)
+               # how many clusters have more than 10% of the total samples?
+               num <- clu@clusinfo$size %>%
+                    .[. > as.integer (0.1 * length(clu@cluster))] %>%
+                    length()
 
-               # get the unique id of the clusters
-               uniq_clust <- unique(clu@cluster)
+               # get centroids ids
+               # extract the cluster names (e.g, "ndvi.21", "ndiv.35")
+               # get only the numbers as integers (e.g., 21 35)
+               ids <- as.integer(tools::file_ext(names (clu@centroids)))
 
-               # get the proportions for each cluster (0 to 100% of samples)
-               partitions <- purrr::map (uniq_clust, function (c) { sum (clu@cluster == c)/total})
+               ids [is.na(ids)] <- 0  # filter NAs
+               ids <- ids + 1         # add 1 (dtwclust numbers begin at 0)
+               ids <- ids[1:num]      # get only those numbers who are centroids of big clusters
 
-               # select only clusters with more than 10% of the samples
-               relevants <- tibble(clust_id=uniq_clust, partitions) %>%
-                    dplyr::filter(partitions >= 0.1)
-
-               # get respective clusters centroids ids
-               series_id <- as.integer(tools::file_ext(names(clu@centroids))[relevants$clust_id]) + 1
-
-               # copy centroids values
-               centroids <- data.tb[series_id,]
+               # select centroids values
+               centroids <- data.tb[ids,]
+               print (centroids[1,]$time_series)
 
                # select only cluster band (drops all other bands)
                for (j in 1:nrow(centroids)) {
-                    centroids$time_series[[j]] <- dplyr::select(centroids$time_series[[j]], one_of(c("Index", band)))
+                    centroids$time_series[[j]] <- dplyr::select(centroids$time_series[[j]], dplyr::one_of(c("Index", band)))
                }
 
                return (centroids)
@@ -189,7 +190,7 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
      centroids.lst <- centroids.lst[-1]
 
      centroids.lst %>%
-          map (function (clust_band.tb) {
+          purrr::map (function (clust_band.tb) {
                # we need store the cross join result into `centroids.tb` from outer scope (so the <<- operator)
                # outer scope `centroids.tb` variable is updated on next map iteration (this transform our code in a recursive one)
                # (note that this does NOT create a global variable!)
@@ -204,7 +205,7 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
 #' \code{.sits_cluster_info} prints information about the cluster
 #'
 #' @param clusters   a cluster structure returned from dtwclust.
-#' @return
+#' @return clusters  a cluster structure from dtwclust
 #' @keywords SITS
 #' @family   SITS auxiliary functions
 #' @examples .sits_cluster_info (clusters.)

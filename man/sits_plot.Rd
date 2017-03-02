@@ -11,7 +11,7 @@ sits_plot(data.tb, type = "allyears", colors = "Dark2")
 
 \item{type}{string - the type of plot to be generated}
 
-\item{colours}{the color pallete to be used (default is "Set1")}
+\item{colors}{the color pallete to be used (default is "Set1")}
 }
 \value{
 data.tb    tibble - the input SITS table (useful for chaining functions)
@@ -21,15 +21,5 @@ data.tb    tibble - the input SITS table (useful for chaining functions)
 }
 \details{
 Plot one SITS time series for a single place and interval
-}
-\examples{
-sits_plot  ts <- (ts, type = "grouped", colors = "Set1")
-
-}
-\seealso{
-Other STIS main functions: \code{\link{sits_align}},
-  \code{\link{sits_centroids}},
-  \code{\link{sits_dendogram}},
-  \code{\link{sits_plot_together}}, \code{\link{sits_save}}
 }
 \keyword{STIS}

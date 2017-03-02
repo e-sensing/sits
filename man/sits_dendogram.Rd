@@ -12,7 +12,7 @@ sits_dendogram(data.tb, n_clusters = 4)
 \item{n_clusters}{the number of clusters to be identified}
 }
 \value{
-none
+clusters.tb a SITS tibble with the clusters
 }
 \description{
 \code{sits_dendogram} cluster time series in hierarchical mode
@@ -30,15 +30,8 @@ result for a chosen set of similarity measures (taken from the DTWCLUST package 
 Ref: Comparing Time-Series Clustering Algorithms in R Using the dtwclust Package
 (dtwclust vignette)
 }
-\examples{
-sits_dendogram  (data.tb, n_clusters = 6)
-
-
-}
 \seealso{
-Other STIS main functions: \code{\link{sits_align}},
-  \code{\link{sits_centroids}},
-  \code{\link{sits_plot_together}},
-  \code{\link{sits_plot}}, \code{\link{sits_save}}
+Other STIS cluster functions: \code{\link{sits_centroids}},
+  \code{\link{sits_cluster}}
 }
 \keyword{STIS}

@@ -19,3 +19,11 @@ has the metadata and data for each time series. The columns are
 Most functions on the sits package use a sits table as input (with additional parameters)
 and a sits table as output. This allows for chaining of operation on time series
 }
+\seealso{
+Other STIS table functions: \code{\link{sits_align}},
+  \code{\link{sits_bands}}, \code{\link{sits_dates}},
+  \code{\link{sits_group_bylatlong}},
+  \code{\link{sits_rename}}, \code{\link{sits_select}},
+  \code{\link{sits_values_cols}},
+  \code{\link{sits_values_rows}}
+}

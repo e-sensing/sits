@@ -26,16 +26,7 @@ This function is useful to create different bands of clusters centroids time ser
 For example, one may want to put evi and ndvi bands centroids together in an cross joined fashion in order to
 generate patterns combinations.0
 }
-\examples{
-cerrado.tb <- sits_getdata("./data/Samples/cerrado.json")
-savanna.tb <- filter(cerrado.tb, label=="Savanna")
-savanna_s.tb <- sits_smooth(savanna.tb, lambda = 1.0)
-savanna_clust.tb <- savanna_s.tb \%>\% sits_cluster(type = "dendogram", n_clust=4)
-sits_plot(savanna_clust.tb, type = "patterns")
-
-}
 \seealso{
-Other SITS main functions: \code{\link{.sits_fromClusters}},
-  \code{\link{sits_getdata}}, \code{\link{sits_merge}}
+Other SITS table functions: \code{\link{sits_merge}}
 }
 \keyword{SITS}

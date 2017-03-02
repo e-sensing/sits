@@ -4,7 +4,7 @@
 \alias{sits_dates}
 \title{Return the dates of a sits table}
 \usage{
-sits_dates(data)
+sits_dates(data.tb)
 }
 \arguments{
 \item{data.tb}{a tibble in SITS format with time series for different bands}
@@ -18,4 +18,12 @@ table   a tibble in SITS format with values of time indexes
 \details{
 A sits table has the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
+}
+\seealso{
+Other STIS table functions: \code{\link{sits_align}},
+  \code{\link{sits_bands}},
+  \code{\link{sits_group_bylatlong}},
+  \code{\link{sits_rename}}, \code{\link{sits_select}},
+  \code{\link{sits_table}}, \code{\link{sits_values_cols}},
+  \code{\link{sits_values_rows}}
 }

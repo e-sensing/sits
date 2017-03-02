@@ -4,10 +4,10 @@
 \alias{sits_rename}
 \title{Finds the names of the bands of a time series}
 \usage{
-sits_rename(in.tb, bands_new)
+sits_rename(data.tb, bands_new)
 }
 \arguments{
-\item{in.tb}{a SITS table with a list of SITS time series}
+\item{data.tb}{a SITS table with a list of SITS time series}
 
 \item{bands_new}{a list of new band names}
 }
@@ -15,5 +15,15 @@ sits_rename(in.tb, bands_new)
 out.tb  a SITS table with a list of renamed bands for the time series
 }
 \description{
-\code{sits_renames} renames the bands of a sits table
+\code{sits_rename} renames the bands of a sits table
+This function should be used when we have processed a time series
+and want to give a new name to the results (e.g., "ndvi_smoothed")
+}
+\seealso{
+Other STIS table functions: \code{\link{sits_align}},
+  \code{\link{sits_bands}}, \code{\link{sits_dates}},
+  \code{\link{sits_group_bylatlong}},
+  \code{\link{sits_select}}, \code{\link{sits_table}},
+  \code{\link{sits_values_cols}},
+  \code{\link{sits_values_rows}}
 }

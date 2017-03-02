@@ -4,10 +4,10 @@
 \alias{sits_group_bylatlong}
 \title{Groups different time series for the same lat/long coordinate}
 \usage{
-sits_group_bylatlong(data)
+sits_group_bylatlong(data.tb)
 }
 \arguments{
-\item{data}{tibble - input SITS table}
+\item{data.tb}{tibble - input SITS table}
 }
 \value{
 data1.tb   tibble - the converted SITS table with time series grouped by latlong
@@ -19,7 +19,11 @@ This function is useful por plotting together all time series associated to
 the same location and is also useful to regroup series that have been split
 to produce yearly samples that are used to define patterns
 }
-\examples{
-data1.tb <- sits_group_bylatlong (data = "mydata.tb")
+\seealso{
+Other STIS table functions: \code{\link{sits_align}},
+  \code{\link{sits_bands}}, \code{\link{sits_dates}},
+  \code{\link{sits_rename}}, \code{\link{sits_select}},
+  \code{\link{sits_table}}, \code{\link{sits_values_cols}},
+  \code{\link{sits_values_rows}}
 }
 \keyword{STIS}

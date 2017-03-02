@@ -7,14 +7,23 @@
 sits_cluster(data.tb, type = "dendogram", n_clusters = 4)
 }
 \arguments{
-\item{data.tb}{a tibble the list of time series to be clustered}
+\item{data.tb}{a SITS tibble the list of time series to be clustered}
+
+\item{type}{string - either "dendogram" or "centroids"}
 
 \item{n_clusters}{the number of clusters to be identified}
 }
 \value{
-none
+clusters.tb a SITS tibble with the clusters
 }
 \description{
-uses the dtwclust package to cluster time series. s
+\code{sits_cluster} cluster time series with dtw distance
+}
+\details{
+This function uses package "dtwclust" to do time series clustering.
 See "dtwclust" documentation for more details
+}
+\seealso{
+Other STIS cluster functions: \code{\link{sits_centroids}},
+  \code{\link{sits_dendogram}}
 }

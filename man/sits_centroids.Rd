@@ -12,7 +12,7 @@ sits_centroids(data.tb, n_clusters = 4)
 \item{n_clusters}{the number of clusters to be identified}
 }
 \value{
-none
+clusters.tb a SITS tibble with the clusters
 }
 \description{
 \code{sits_centroids} find the k centroids of a set of time series clusters
@@ -30,13 +30,8 @@ A prototyping function is applied to each cluster to update the corresponding ce
 Then, distances and centroids are updated iteratively until a certain number of iterations have elapsed,
 or no object changes clusters anymore (extracted from dtwclust package)
 }
-\examples{
-sits_plot  (data.tb, n_clusters = 6)
-}
 \seealso{
-Other STIS main functions: \code{\link{sits_align}},
-  \code{\link{sits_dendogram}},
-  \code{\link{sits_plot_together}},
-  \code{\link{sits_plot}}, \code{\link{sits_save}}
+Other STIS cluster functions: \code{\link{sits_cluster}},
+  \code{\link{sits_dendogram}}
 }
 \keyword{STIS}

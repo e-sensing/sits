@@ -23,6 +23,10 @@
 #'
 #' @param  samples.tb    a table in SITS format with time series to be classified using TWTDW
 #' @param  method        the method to be used for classification
+#' @param  freq          int - the interval in days for the estimates to be generated
+#' @param  from          starting date of the estimate (month-day)
+#' @param  to            end data of the estimated (month-day)
+#' @param  formula       the formula to be applied in the estimate
 #' @return patterns.tb   a SITS table with the patterns
 #' @export
 #'
@@ -70,7 +74,7 @@ sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to
           names(time) = vars[2]
 
           # create a tibble to store the time series associated to the pattern
-          res.tb <- tibble (Index = lubridate::as_date(pred_time))
+          res.tb <- tibble::tibble (Index = lubridate::as_date(pred_time))
 
           # calculate the fit for each band
           for (i in 1:length(bands)) {
@@ -101,15 +105,15 @@ sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to
 
                # rename the columns to match the band names
                # this is workaround because of a bug in standard dplyr::rename
-               res.tb <- dplyr::rename_(res.tb, .dots = setNames (names(res.tb), c("Index", bands[1:i])))
+               res.tb <- dplyr::rename_(res.tb, .dots = stats::setNames (names(res.tb), c("Index", bands[1:i])))
           } # for each band
 
           # put the pattern in a list to store in a sits table
-          ts <- lst()
+          ts <- tibble::lst()
           ts[[1]] <- res.tb
 
           # add the pattern to the results table
-          patterns.tb <- add_row (patterns.tb,
+          patterns.tb <- tibble::add_row (patterns.tb,
                                  longitude    = 0.0,
                                  latitude     = 0.0,
                                  start_date   = as.Date(from),

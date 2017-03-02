@@ -5,8 +5,7 @@
 \title{Set important global variables for WTSS access}
 \usage{
 sits_configWTSS(URL = "http://www.dpi.inpe.br/tws/wtss",
-  coverage = "mod13q1_512", bands = c("ndvi", "evi", "red", "nir", "blue",
-  "mir"))
+  coverage = "mod13q1_512", bands = c("ndvi", "evi", "nir"))
 }
 \arguments{
 \item{URL}{the URL for the WTSS time series service}
@@ -14,6 +13,9 @@ sits_configWTSS(URL = "http://www.dpi.inpe.br/tws/wtss",
 \item{coverage}{name of space-time coverage that contains the time series information}
 
 \item{bands}{a character vector with the names of the bands to be retrieved}
+}
+\value{
+wtss_info       a list containing the information about the WTSS server and coverage
 }
 \description{
 \code{sits_configWTSS} stores the information about the WTSS server
@@ -38,13 +40,21 @@ The Web Time Seris Service is a lightweight web service the allow remote access 
    at a given location.
 
 To allow for further processing of time series from a WTSS service, this operation
- creates the following global variables:
+ creates a list with the following variables
 
-WTSS_URL.gl    - the the URL for the WTSS time series service
- ts_server.gl   - an object that handles the WTSS connection
- cov_name.gl    - the name of the coverage that contains the time series for the analysis
- cov_desc.gl    - the table with the parameters of the coverage
- start_date.gl  - the start date for the time series data in the coverage
- end_date.gl    - the end date for the time series data in the coverage
- bands.gl       - the bands of the data to be retrieved from the WTSS
+URL            - the URL for the WTSS time series service
+ ts_server      - an object that handles the WTSS connection
+ coverage       - the name of the coverage that contains the time series for the analysis
+ cov_desc       - a table with the parameters of the coverage
+ start_date     - the start date for the time series data in the coverage
+ end_date       - the end date for the time series data in the coverage
+ res_x          - spatial resolution (x dimension)
+ res_y          - spatial resolution (y dimension)
+ start_date     - initial date of the coverage time series
+ end_date       - final date of the coverage time series
+ x_min          - spatial extent (xmin)
+ y_min          - spatial extent (ymin)
+ x_max          - spatial extent (xmax)
+ y_max          - spatial extent (ymin)
+ bands          - the bands of the data to be retrieved from the WTSS
 }

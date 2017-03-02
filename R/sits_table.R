@@ -9,6 +9,7 @@
 #' and a sits table as output. This allows for chaining of operation on time series
 #'
 #' @return table  a tibble in SITS format
+#' @family   STIS table functions
 #' @export
 
 sits_table <- function () {
@@ -20,8 +21,8 @@ sits_table <- function () {
                       coverage    = character(),
                       stringsAsFactors = FALSE
      )
-     tb <- as_tibble (df)
-     tb <- add_column (tb, time_series = list())
+     tb <- tibble::as_tibble (df)
+     tb <- tibble::add_column (tb, time_series = list())
      class (tb) <- append (class(tb), "sits_table")
      return (tb)
 }
@@ -32,15 +33,16 @@ sits_table <- function () {
 #' A sits table has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
-#' @param  data.tb a tibble in SITS format with time series for different bands
-#' @param  band    string - a band whose values are to be extracted
+#' @param  data.tb    a tibble in SITS format with time series for different bands
+#' @param  band       string - a band whose values are to be extracted
 #' @return table   a tibble in SITS format with values
+#' @family   STIS table functions
 #' @export
 
-sits_values_rows <- function (data, band) {
-     values <- data$time_series %>%
+sits_values_rows <- function (data.tb, band) {
+     values <- data.tb$time_series %>%
           data.frame() %>%
-          as_tibble() %>%
+          tibble::as_tibble() %>%
           dplyr::select (dplyr::starts_with (band)) %>%
           t()
      return (values)
@@ -53,15 +55,16 @@ sits_values_rows <- function (data, band) {
 #' A sits table has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
-#' @param  data.tb a tibble in SITS format with time series for different bands
-#' @param  band    string - a band whose values are to be extracted
-#' @return table   a tibble in SITS format with values
+#' @param  data.tb    a tibble in SITS format with time series for different bands
+#' @param  band       string - a band whose values are to be extracted
+#' @return table   a tibble  with values
+#' @family STIS table functions
 #' @export
 
-sits_values_cols <- function (data, band) {
-     values <- data$time_series %>%
+sits_values_cols <- function (data.tb, band) {
+     values <- data.tb$time_series %>%
           data.frame() %>%
-          as_tibble() %>%
+          tibble::as_tibble() %>%
           dplyr::select (dplyr::starts_with (band))
      return (values)
 }
@@ -69,9 +72,10 @@ sits_values_cols <- function (data, band) {
 #'
 #' \code{sits_select} returns a sits table with the selected bands
 #'
-#' @param data.tb - a sits table with the time series of the selected bands
-#' @param bands   - a vector of bands
+#' @param data.tb    a sits table with the time series of the selected bands
+#' @param bands      a vector of bands
 #' @return table  a tibble in SITS format with the selected bands
+#' @family   STIS table functions
 #' @export
 
 sits_select <- function (data.tb, bands) {
@@ -87,23 +91,25 @@ sits_select <- function (data.tb, bands) {
 }
 #' Finds the names of the bands of a time series
 #'
-#' \code{sits_renames} renames the bands of a sits table
-#' @param in.tb    a SITS table with a list of SITS time series
+#' \code{sits_rename} renames the bands of a sits table
+#' This function should be used when we have processed a time series
+#' and want to give a new name to the results (e.g., "ndvi_smoothed")
+#' @param data.tb      a SITS table with a list of SITS time series
 #' @param bands_new    a list of new band names
 #' @return out.tb  a SITS table with a list of renamed bands for the time series
+#' @family   STIS table functions
 #' @export
-#'
-sits_rename <-  function (in.tb, bands_new) {
+sits_rename <-  function (data.tb, bands_new) {
      if (is.null(bands_new)) message (paste, "New band names should be provided")
 
      # rename the time series
-     out.ts <- in.tb$time_series %>%
+     out.ts <- data.tb$time_series %>%
           purrr::map (function (ts) {
                ts_out <- ts
                colnames (ts_out) <- c("Index", bands_new)
                return (ts_out)
           })
-     out.tb <- dplyr::select (in.tb, latitude, longitude, start_date, end_date, label, coverage)
+     out.tb <- dplyr::select (data.tb, latitude, longitude, start_date, end_date, label, coverage)
      out.tb$time_series <- out.ts
 
      return (out.tb)
@@ -111,12 +117,13 @@ sits_rename <-  function (in.tb, bands_new) {
 #' Finds the names of the bands of a time series
 #'
 #' \code{sits_bands} finds the names of the bands of time series in a sits table
-#' @param sits.tb     a valid sits table
+#' @param data.tb     a valid sits table
 #' @return names      a string vector with the names of the bands
+#' @family   STIS table functions
 #' @export
 #'
-sits_bands <- function (sits.tb) {
-     names <- sits.tb[1,]$time_series %>%
+sits_bands <- function (data.tb) {
+     names <- data.tb[1,]$time_series %>%
           data.frame() %>%
           colnames() %>%
           . [2:length(.)]
@@ -139,9 +146,8 @@ sits_bands <- function (sits.tb) {
 #' @param sits2.tb  the second SITS table to be merged
 #' @return new.tb    a merged SITS tibble with a nested set of time series
 #' @keywords SITS
-#' @family   SITS main functions
+#' @family   SITS table functions
 #' @export
-#' @examples merged.tb <- sits_merge (sits1.tb, sits2.tb)
 #'
 sits_merge <-  function(sits1.tb, sits2.tb) {
      # merge the time series
@@ -177,13 +183,8 @@ sits_merge <-  function(sits1.tb, sits2.tb) {
 #' @param sits2.tb  the second SITS table entries
 #' @return new.tb    a cross-joined SITS tibble with a nested set of time series
 #' @keywords SITS
-#' @family   SITS main functions
+#' @family   SITS table functions
 #' @export
-#' @examples cerrado.tb <- sits_getdata("./data/Samples/cerrado.json")
-#' @examples savanna.tb <- filter(cerrado.tb, label=="Savanna")
-#' @examples savanna_s.tb <- sits_smooth(savanna.tb, lambda = 1.0)
-#' @examples savanna_clust.tb <- savanna_s.tb %>% sits_cluster(type = "dendogram", n_clust=4)
-#' @examples sits_plot(savanna_clust.tb, type = "patterns")
 #'
 sits_cross <-  function(sits1.tb, sits2.tb) {
      #first, add `cross_join` field in order to proceed with dplyr::inner_join (see bellow)
@@ -226,12 +227,13 @@ sits_cross <-  function(sits1.tb, sits2.tb) {
 #'
 #' @param  data.tb a tibble in SITS format with time series for different bands
 #' @return table   a tibble in SITS format with values of time indexes
+#' @family   STIS table functions
 #' @export
 
-sits_dates <- function (data) {
-     values <- data$time_series %>%
+sits_dates <- function (data.tb) {
+     values <- data.tb$time_series %>%
           data.frame() %>%
-          as_tibble() %>%
+          tibble::as_tibble() %>%
           dplyr::select (dplyr::starts_with ("Index"))
      return (values)
 }
@@ -246,26 +248,24 @@ sits_dates <- function (data) {
 #' @param    data.tb    tibble - input SITS table (useful for chaining functions)
 #' @param    ref_date   date   - a reference date where all series will start
 #' @return   data1.tb   tibble - the converted SITS table (useful for chaining functions)
-#' @keywords STIS
-#' @family   STIS main functions
-#' @examples data1.tb <- sits_align (data = "mydata.tb", ref_date = "2000-09-02")
+#' @family   STIS table functions
 #' @export
 #'
-sits_align <- function (data, ref_date) {
-     ts <- data$time_series
+sits_align <- function (data.tb, ref_date) {
+     ts <- data.tb$time_series
      # convert the time index to a reference year
      ts1 <- ts %>%
-          map (function (t) {
+          purrr::map (function (t) {
                df <- as.data.frame(t)
                start_date <- as.Date(df[1,"Index"])
-               if (abs (yday(start_date) - yday(ref_date)) > 2) {
+               if (abs (lubridate::yday(start_date) - lubridate::yday(ref_date)) > 2) {
                     print (start_date, ref_date)
                     message (paste ("sits_align: time series do not start at the same date"))
                }
-               dplyr::mutate (t, Index = Index - ymd(start_date) + ymd (ref_date))
+               dplyr::mutate (t, Index = Index - lubridate::ymd(start_date) + lubridate::ymd (ref_date))
           })
-     data$time_series <- ts1
-     return (data)
+     data.tb$time_series <- ts1
+     return (data.tb)
 }
 
 #'
@@ -277,18 +277,17 @@ sits_align <- function (data, ref_date) {
 #' the same location and is also useful to regroup series that have been split
 #' to produce yearly samples that are used to define patterns
 #'
-#' @param    data       tibble - input SITS table
+#' @param    data.tb    tibble - input SITS table
 #' @return   data1.tb   tibble - the converted SITS table with time series grouped by latlong
 #' @keywords STIS
 #' @family   STIS table functions
-#' @examples data1.tb <- sits_group_bylatlong (data = "mydata.tb")
 #' @export
 #'
-sits_group_bylatlong <- function (data) {
+sits_group_bylatlong <- function (data.tb) {
      #create a sits table to store the output
      out.tb <- sits_table()
      #find out how many distinct lat/long locations exist in the data
-     locs <- dplyr::distinct(data, latitude, longitude)
+     locs <- dplyr::distinct(data.tb, latitude, longitude)
 
      # process each lat/long location
      for (i in 1:nrow(locs)) {
@@ -296,7 +295,7 @@ sits_group_bylatlong <- function (data) {
                long = as.double (loc$longitude) # select longitude
                lat  = as.double (loc$latitude)  # select latitude
                # filter only those rows with the same label
-               rows <- dplyr::filter (data, longitude == long, latitude == lat)
+               rows <- dplyr::filter (data.tb, longitude == long, latitude == lat)
 
                # make an initial guess for the start and end dates
                start_date <- rows[1,]$start_date
@@ -316,9 +315,9 @@ sits_group_bylatlong <- function (data) {
                          time_series <- dplyr::bind_rows(time_series, t)
                     }
                }
-               ts.lst <- list()
+               ts.lst <- tibble::lst()
                ts.lst[[1]] <- time_series
-               out.tb <- add_row (out.tb,
+               out.tb <- tibble::add_row (out.tb,
                                   longitude    = long,
                                   latitude     = lat,
                                   start_date   = as.Date(start_date),

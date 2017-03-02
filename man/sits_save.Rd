@@ -7,12 +7,12 @@
 sits_save(source, json_file = NULL)
 }
 \arguments{
-\item{json_file}{string - name of the JSON file to be written}
+\item{source}{tibble - an existing SITS table}
 
-\item{table}{tibble - an existing SITS table}
+\item{json_file}{string - name of the JSON file to be written}
 }
 \value{
-table      the same table (for chaining functions)
+table       the same table (for chaining functions)
 }
 \description{
 \code{sits_toJSON} stores a SITS table in a JSON file
@@ -20,14 +20,5 @@ table      the same table (for chaining functions)
 \details{
 The set of time series from a SITS table can be saved in JSON format
 and later retrieved for further use
-}
-\examples{
-table <- sits_toJSON (table = "my.db", json_file = "myjson_file.json")
-}
-\seealso{
-Other STIS main functions: \code{\link{sits_align}},
-  \code{\link{sits_centroids}},
-  \code{\link{sits_dendogram}},
-  \code{\link{sits_plot_together}}, \code{\link{sits_plot}}
 }
 \keyword{STIS}

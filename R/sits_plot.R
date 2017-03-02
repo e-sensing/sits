@@ -7,52 +7,50 @@
 #'
 #' @param    data.tb    tibble - a SITS table with the list of time series to be plotted
 #' @param    type       string - the type of plot to be generated
-#' @param    colours    the color pallete to be used (default is "Set1")
+#' @param    colors     the color pallete to be used (default is "Set1")
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
 #' @keywords STIS
-#' @family   STIS main functions
 #' @export
-#' @examples sits_plot  ts <- (ts, type = "grouped", colors = "Set1")
 #'
 sits_plot <- function (data.tb, type = "allyears", colors = "Dark2") {
      switch(type,
-           "allyears" = {
-                locs <- dplyr::distinct (data.tb, longitude, latitude)
-                locs %>%
-                     dplyr::rowwise() %>%
-                     dplyr::do({
-                          long = as.double (.$longitude)
-                          lat  = as.double (.$latitude)
-                          # filter only those rows with the same label
-                          data2.tb <- dplyr::filter (data.tb, longitude == long, latitude == lat)
-                          # use ggplot to plot the time series together
-                          data2.tb %>%
-                               .sits_ggplot_series(colors) %>%
-                               plot()
-                          return (data2.tb)
-                          })
-                },
-          "one_by_one" =  {
-               data.tb %>%
-                    dplyr::rowwise() %>%
-                    dplyr::do({
-                         .sits_ggplot_series (.,colors) %>%
-                              plot()
-                         return (data.tb)
-                         })
-               },
-          "together" = {
-               sits_plot_together (data.tb, colors = colors)
-               },
-          "patterns" = {
-               data.tb %>%
-                    sits_toTWDTW() %>%
-                    dtwSat::plot (type = "patterns") %>%
-                    plot()
-               },
-          message (paste ("sits_plot: valid plot types are allyears,
-                          one_by_one, together or patterns", "\n", sep = ""))
-     )
+            "allyears" = {
+                 locs <- dplyr::distinct (data.tb, longitude, latitude)
+                 locs %>%
+                      dplyr::rowwise() %>%
+                      dplyr::do({
+                           long = as.double (.$longitude)
+                           lat  = as.double (.$latitude)
+                           # filter only those rows with the same label
+                           data2.tb <- dplyr::filter (data.tb, longitude == long, latitude == lat)
+                           # use ggplot to plot the time series together
+                           data2.tb %>%
+                                .sits_ggplot_series(colors) %>%
+                                graphics::plot()
+                           return (data2.tb)
+                      })
+            },
+            "one_by_one" =  {
+                 data.tb %>%
+                      dplyr::rowwise() %>%
+                      dplyr::do({
+                              .sits_ggplot_series (.,colors) %>%
+                              graphics::plot()
+                           return (data.tb)
+                      })
+            },
+            "together" = {
+                 .sits_plot_together (data.tb, colors = colors)
+            },
+            "patterns" = {
+                 data.tb %>%
+                      sits_toTWDTW() %>%
+                      dtwSat::plot (type = "patterns") %>%
+                      graphics::plot()
+            },
+            message (paste ("sits_plot: valid plot types are allyears,
+                            one_by_one, together or patterns", "\n", sep = ""))
+            )
 
      # return the original SITS table - useful for chaining
      return (invisible (data.tb))
@@ -60,33 +58,30 @@ sits_plot <- function (data.tb, type = "allyears", colors = "Dark2") {
 # -----------------------------------------------------------
 #' Plot a set of time series for the same spatio-temporal reference
 #'
-#' \code{sits_plot} plot one time series for a single place and interval
-#'
-#' Plot one SITS time series for a single place and interval
+#' \code{.sits_plot_together} plots all time series for the same label together
+#' This function is useful to find out the spread of the values of the time serie
+#' for a given label
 #'
 #' @param    data.tb    tibble - a SITS table with the list of time series to be plotted
 #' @param    colours    the color pallete to be used (default is "Set1")
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
 #' @keywords STIS
-#' @family   STIS main functions
-#' @examples sits_plot  ts <- (ts, type = "grouped", colors = "Set1")
-#' @export
 #'
-sits_plot_together <- function (data.tb, colors = "Dark2") {
+.sits_plot_together <- function (data.tb, colors = "Dark2") {
      # this function plots all the values of all time series together (for one band)
      plot_samples <- function (ts, band, label, number) {
           series.tb <- ts %>%
                data.frame ()                      %>%  # convert list to data frame
-               as_tibble()                        %>%  # convert data fram to tibble
-               dplyr::select (Index, starts_with(band))       # select only the index and the chosen band
+               tibble::as_tibble()                        %>%  # convert data fram to tibble
+               dplyr::select (Index, dplyr::starts_with(band))       # select only the index and the chosen band
 
           # create a data frame with the mean and plus and minus 1 standard deviation
           # convert to tibble and create now coluns with mean +- std
           means.tb <- data.frame  (Index = series.tb$Index,
-                                   mean = rowMeans(series.tb[,2:ncol(series.tb)]),
-                                   std  = apply   (series.tb[,2:ncol(series.tb)],1,sd)) %>%
-               as_tibble() %>%
-               dplyr::mutate (stdplus = mean + std, stdminus = mean - std)
+                                   rmean = rowMeans(series.tb[,2:ncol(series.tb)]),
+                                   std  = apply   (series.tb[,2:ncol(series.tb)],1,stats::sd)) %>%
+               tibble::as_tibble() %>%
+               dplyr::mutate (stdplus = rmean + std, stdminus = rmean - std)
 
           # melt the data into long format (required for ggplot to work)
           melted.tb <- series.tb %>%
@@ -95,7 +90,7 @@ sits_plot_together <- function (data.tb, colors = "Dark2") {
           title <- paste ("Samples (", number, ") for class ", label, " in band = ", band, sep="")
           # plot all data together
           g <- .sits_ggplot_together (melted.tb, means.tb, title)
-          plot (g)
+          graphics::plot (g)
      }
 
      # how many different labels are there?
@@ -119,23 +114,23 @@ sits_plot_together <- function (data.tb, colors = "Dark2") {
                ts <- data2.tb$time_series
                # plot all samples for the same label
                bands %>%
-                    map (function (band) {plot_samples(ts, band, lb, number)})
+                    purrr::map (function (band) {plot_samples(ts, band, lb, number)})
                return (data2.tb)
           })
 }
 
 #'
-#' Plot one or more timeSeries using ggplot
+#' Plot one timeSeries using ggplot
 #'
-#' \code{sits_ggplot_series} plots a set of time series using ggplot
+#' \code{.sits_ggplot_series} plots a set of time series using ggplot
 #'
 #' This function is used for showing the same lat/long location in
 #' a series of time steps.
 #'
-#' @param tb          a SITS table with the time series to be plotted
+#' @param row         a row of a SITS table with the time series to be plotted
 #' @param colors      string - the set of Brewer colors to be used for plotting
 #' @keywords SITS
-#' @family   SITS auxiliary functions
+#' @family   SITS plot functions
 .sits_ggplot_series <- function (row, colors = "Dark2") {
      # create the plot title
      plot_title <- .sits_plot_title (row)
@@ -146,31 +141,31 @@ sits_plot_together <- function (data.tb, colors = "Dark2") {
           reshape2::melt (id.vars = "Index") %>%
           as.data.frame()
      # plot the data with ggplot
-     g <- ggplot(melted.ts, aes(x=Index, y=value, group = variable)) +
-          geom_line(aes(color = variable)) +
-          labs (title = plot_title) +
+     g <- ggplot2::ggplot(melted.ts, ggplot2::aes(x = Index, y = value, group = variable)) +
+          ggplot2::geom_line(ggplot2::aes(color = variable)) +
+          ggplot2::labs (title = plot_title) +
           # ylim(0.0, 1.0) +
-          scale_color_brewer (palette = colors)
+          ggplot2::scale_color_brewer (palette = colors)
      # scale_colour_hue(h=c(90, 270)) - alternative to brewer
      return (g)
 }
 #'
 #' Plot many timeSeries together using ggplot
 #'
-#' \code{sits_ggplot_together} plots a set of  time series together
+#' \code{.sits_ggplot_together} plots a set of  time series together
 #'
 #' @param melted.tb   a tibble with the time series (a lot of data already melted)
 #' @param means.tb    a tibble with the means and std deviations of the time series
 #' @param plot_title  the title for the plot
 #' @keywords SITS
-#' @family   SITS plotting functions
+#' @family   SITS plot functions
 .sits_ggplot_together <- function (melted.tb, means.tb, plot_title) {
-     g <- ggplot(melted.tb, aes(x=Index, y=value, group = variable)) +
-          geom_line(colour = "#819BB1", alpha = 0.5) +
-          labs (title = plot_title) +
-          geom_line (data = means.tb, aes (x = Index, y = mean), colour = "#B16240", size = 2, inherit.aes=FALSE) +
-          geom_line (data = means.tb, aes (x = Index, y = stdplus), colour = "#B19540", size = 1, inherit.aes=FALSE) +
-          geom_line (data = means.tb, aes (x = Index, y = stdminus), colour = "#B19540", size = 1, inherit.aes=FALSE)
+     g <- ggplot2::ggplot(data = melted.tb, ggplot2::aes(x = Index, y = value, group = variable)) +
+          ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
+          ggplot2::labs (title = plot_title) +
+          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = rmean), colour = "#B16240", size = 2, inherit.aes=FALSE) +
+          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = stdplus), colour = "#B19540", size = 1, inherit.aes=FALSE) +
+          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = stdminus), colour = "#B19540", size = 1, inherit.aes=FALSE)
      return (g)
 
 }
@@ -192,4 +187,5 @@ sits_plot_together <- function (data.tb, colors = "Dark2") {
                      sep = "")
      return (title)
 }
+
 

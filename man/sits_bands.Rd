@@ -4,14 +4,22 @@
 \alias{sits_bands}
 \title{Finds the names of the bands of a time series}
 \usage{
-sits_bands(sits.tb)
+sits_bands(data.tb)
 }
 \arguments{
-\item{sits.tb}{a valid sits table}
+\item{data.tb}{a valid sits table}
 }
 \value{
 names      a string vector with the names of the bands
 }
 \description{
 \code{sits_bands} finds the names of the bands of time series in a sits table
+}
+\seealso{
+Other STIS table functions: \code{\link{sits_align}},
+  \code{\link{sits_dates}},
+  \code{\link{sits_group_bylatlong}},
+  \code{\link{sits_rename}}, \code{\link{sits_select}},
+  \code{\link{sits_table}}, \code{\link{sits_values_cols}},
+  \code{\link{sits_values_rows}}
 }

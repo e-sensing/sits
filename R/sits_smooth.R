@@ -17,7 +17,6 @@
 #' @return           a tibble with smoothed sits time series
 #' @keywords sits
 #' @family   sits auxiliary functions
-#' @examples sits_smooth ("raw.tb", lambda = 0.5)
 #' @export
 sits_smooth <- function (table_in, lambda    = 0.5) {
      # extract the time series data from the sits table
