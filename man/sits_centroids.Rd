@@ -35,3 +35,4 @@ Other STIS cluster functions: \code{\link{sits_cluster}},
   \code{\link{sits_dendogram}}
 }
 \keyword{STIS}
+

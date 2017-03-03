@@ -47,7 +47,7 @@
 #' @return wtss_info       a list containing the information about the WTSS server and coverage
 #' @export
 sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
-                             coverage = "mod13q1_512",
+                             coverage = "chronos:modis:mod13q1_512",
                              bands    = c("ndvi", "evi", "nir")) {
 
      wtss_info                <- tibble::lst()
@@ -69,16 +69,23 @@ sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
                               tibble::as_tibble() %>%
                               dplyr::rename (band = name)
 
-     wtss_info$res_x     <- cov$geo_extent$spatial$resolution$x
-     wtss_info$res_y     <- cov$geo_extent$spatial$resolution$y
-     wtss_info$start_date <- cov$geo_extent$temporal$start
-     wtss_info$end_date  <- cov$geo_extent$temporal$end
-     wtss_info$x_min     <- cov$geo_extent$spatial$extent$xmin
-     wtss_info$y_min     <- cov$geo_extent$spatial$extent$ymin
-     wtss_info$x_max     <- cov$geo_extent$spatial$extent$xmax
-     wtss_info$y_max     <- cov$geo_extent$spatial$extent$ymax
-     wtss_info$bands     <- bands
 
+
+     wtss_info$res_x      <- cov$spatial_resolution$x
+     wtss_info$res_y      <- cov$spatial_resolution$y
+     wtss_info$x_min      <- cov$spatial_extent$xmin
+     wtss_info$y_min      <- cov$spatial_extent$ymin
+     wtss_info$x_max      <- cov$spatial_extent$xmax
+     wtss_info$y_max      <- cov$spatial_extent$ymax
+
+     wtss_info$bands      <- bands
+
+
+     timeline             <- cov$time_line
+     wtss_info$start_date <- timeline[1]
+     wtss_info$end_date   <- timeline[length(timeline)]
+     wtss_info$res_t      <- as.integer ((lubridate::as_date(timeline[2])
+                                         - lubridate::as_date(timeline[1]))/lubridate::ddays(1))
      return (wtss_info)
 }
 
@@ -94,13 +101,20 @@ sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
 sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
      # obtains information about the WTSS service
      wtss.obj         <- wtss.R::WTSS(URL)
-     # obtains information about the coverages
-     coverages.obj    <- wtss.R::listCoverages(wtss.obj)
-     # describe each coverage
-     desc.obj         <- wtss.R::describeCoverage(wtss.obj, coverages.obj)
      cat (paste ("-----------------------------------------------------------", "\n",sep = ""))
      cat (paste ("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
      cat (paste ("------------------------------------------------------------", "\n",sep = ""))
+
+     # obtains information about the coverages
+     coverages.obj    <- wtss.R::listCoverages(wtss.obj)
+     cat (paste ("Available coverages: \n"))
+     coverages.obj %>%
+          purrr::map (function (c) cat (paste (c, "\n", sep = "")))
+     cat (paste ("------------------------------------------------------------", "\n",sep = ""))
+
+     # describe each coverage
+     desc.obj         <- wtss.R::describeCoverage(wtss.obj, coverages.obj)
+
 
      desc.obj %>%
           purrr::map (function (cov) {
@@ -111,13 +125,22 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
                attr <- as.data.frame(cov$attributes)
                print (attr[1:2])
                cat (paste ("\nSpatial extent: ", "(",
-                           cov$geo_extent$spatial$extent$xmin, ", ",
-                           cov$geo_extent$spatial$extent$ymin, ") - (",
-                           cov$geo_extent$spatial$extent$xmax, ", ",
-                           cov$geo_extent$spatial$extent$ymax, ")", sep =""))
-               cat (paste ("\nTime range: ", cov$geo_extent$temporal$start, " to ", cov$geo_extent$temporal$end, "\n", sep = ""))
-               cat (paste ("Temporal resolution: ", cov$geo_extent$temporal$resolution, " days ", "\n", sep = ""))
-               cat (paste ("Spatial resolution: ", as.integer (cov$geo_extent$spatial$resolution$x), " metres ", "\n", sep = ""))
+                           cov$spatial_extent$xmin, ", ",
+                           cov$spatial_extent$ymin, ") - (",
+                           cov$spatial_extent$xmax, ", ",
+                           cov$spatial_extent$ymax, ")", sep =""))
+               cat (paste ("\nSpatial resolution: ", "(",
+                           cov$spatial_resolution$x, ", ",
+                           cov$spatial_resolution$y, ")", sep = ""))
+               cat (paste ("\nProjection CRS: ", cov$crs$proj4, sep = ""))
+               timeline <- cov$time_line
+               start <- timeline[1]
+               end <- timeline[length(timeline)]
+               temporal_resolution <- as.integer ((lubridate::as_date(timeline[2])
+                                                  - lubridate::as_date(timeline[1]))/lubridate::ddays(1))
+               cat (paste ("\nTime range: ", start, " to ", end, "\n", sep = ""))
+
+               cat (paste ("Temporal resolution: ", temporal_resolution, " days ", "\n", sep = ""))
 
                cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
                return (invisible (cov))

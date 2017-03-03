@@ -28,8 +28,7 @@
 #' @param  start_date    date - the starting date of the classification
 #' @param  end_date      date - the end date of the classification
 #' @param  interval      the period between two classifications
-#' @param  span          the minimum period for a match between a pattern and a signal
-#' @param  show          show the results? (boolean)
+#' @param  span          the minimum period for a match between a pattern and a signal)
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
 #'
@@ -39,8 +38,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                            start_date = as.Date("2000-09-01"),
                            end_date   = as.Date("2016-08-31"),
                            interval   = "12 month",
-                           span       = 250,
-                           show       = TRUE){
+                           span       = 250){
      # select the bands for the samples time series and convert to TWDTW format
      twdtw_series <- series.tb %>%
           sits_select (bands) %>%
@@ -68,24 +66,17 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                                   breaks     = breaks,
                                   n          = n_years,
                                   span       = span,
-                                  keep       = TRUE)
+                                  keep       = FALSE)
 
-     # # plot the classification
-     if (show) {
-          print ("SHOW")
-          dtwSat::plot (x = matches, type = "classification", overlap = 0.5)
-          dtwSat::plot (x = matches, type = "alignments")
-     }
+     results.tb <- .sits_from_TWDTW_matches (series.tb, matches, breaks, interval)
 
-     results.tb <- .sits_from_matches (series.tb, matches, breaks, interval)
-
-     return (matches)
+     return (results.tb)
 }
 
 
 #' Convert information on matches obtained from TWDTW to a SITS table
 #'
-#' \code{.sits_from_matches} returns a sits table with additional information on matches
+#' \code{.sits_from_TWDTW_matches} returns a sits table with additional information on matches
 #'
 #' The output of a TWDTW classification is an object of class "twdtwMatches" (see package dtwSat).
 #' This function reads the matches object and obtains the information about the distances of each
@@ -98,7 +89,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #' @return  result.tb     a table in SITS format with the results of the TWTDW classification
 #'
 #'
-.sits_from_matches <- function (series.tb, matches, breaks, interval){
+.sits_from_TWDTW_matches <- function (series.tb, matches, breaks, interval){
 
      # convert labels to a vector of strings
      labels <- as.character(matches@patterns@labels, stringsAsFactors = FALSE)
@@ -130,10 +121,62 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
      dist.lst[[1]] <- dist.tb
 
      results.tb <- dplyr::mutate (series.tb, distances = dist.lst)
+     results.tb <- dplyr::mutate (series.tb, alignments = matches@alignments)
      #
      return (results.tb)
 }
 
+#' Convert sits information to a twdtwMaches S4 object
+#'
+#' \code{.sits_to_TWDTW_matches} returns a twdtwMatches object
+#'
+#' The output of a TWDTW classification is an object of class "twdtwMatches" (see package dtwSat).
+#' This function reads the matches object and obtains the information about the distances of each
+#' pattern class to the time series based on a fixed interval (usually one year).
+#'
+#' @param   results.tb    a table in SITS format with the results of a TWDTW classification
+#' @param   patterns.tb   a SITS table with the patterns used in the TWDTW classification
+#' @return  matches       an object of twdtwMatches class
+#'
+#'
+.sits_to_TWDTW_matches <- function (results.tb, patterns.tb){
+
+     # convert the input time series to an object of class twdtwTimeSeries
+     timeseries <- .sits_toTWDTW_time_series (results.tb)
+
+     labels <- as.character(matches@patterns@labels, stringsAsFactors = FALSE)
+     # retrieve the alignments from the TWDTW classification
+     aligns <- matches@alignments[[1]]
+
+     # create a new table with the distances for each pattern for each interval (usually 12 months)
+     dist.tb <- tibble::tibble ( year = lubridate::year (breaks),
+                                 start_date = breaks,
+                                 end_date   = breaks +
+                                      lubridate::period(interval) - lubridate::days(1))
+
+
+     # create a list of yearly-ordered alignments for each pattern
+     aligns.lst <- labels %>%
+          purrr::map (function (lab){
+               d <- tibble::tibble(year = lubridate::year (aligns[[lab]]$from),
+                                   val = aligns[[lab]]$distance)
+               colnames (d) <- c("year", lab)
+               d <- dplyr::arrange(d, year)
+          })
+
+     for (i in 1:length(aligns.lst)){
+          tb <-  aligns.lst[[i]]
+          dist.tb <- dplyr::left_join(dist.tb, tb, by = "year" )
+     }
+
+     dist.lst <- tibble::lst()
+     dist.lst[[1]] <- dist.tb
+
+     results.tb <- dplyr::mutate (series.tb, distances = dist.lst)
+     results.tb <- dplyr::mutate (series.tb, alignments = matches@alignments)
+     #
+     return (results.tb)
+}
 
 #' Export data to be used by the dtwSat package
 #'

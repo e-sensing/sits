@@ -29,3 +29,4 @@ in the same table.
 Other SITS table functions: \code{\link{sits_cross}}
 }
 \keyword{SITS}
+

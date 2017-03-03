@@ -27,3 +27,4 @@ See "dtwclust" documentation for more details
 Other STIS cluster functions: \code{\link{sits_centroids}},
   \code{\link{sits_dendogram}}
 }
+

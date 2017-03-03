@@ -1,5 +1,5 @@
 # satellite image time series
-# install_github("gilbertocamara/sits")
+# devtools::install_github("gilbertocamara/sits")
 library(sits)
 
 # first, get information about the WTSS (web time series service)
@@ -11,7 +11,7 @@ sits_infoWTSS(URL)
 
 # then, configure the WTSS service
 inpe <- sits_configWTSS (URL,
-                 coverage = "mod13q1_512",
+                 coverage = "chronos:modis:mod13q1_512",
                  bands = c("ndvi", "evi", "nir"))
 
 # a complicated point
@@ -36,9 +36,9 @@ sits_plot (patterns.tb, type = "patterns")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-matches <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, show = TRUE)
+results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
-plot (x = matches, type = "classification", overlap = 0.5)
-plot (x = matches, type = "alignments")
+sits_plot (results.tb, type = "classification", overlap = 0.5)
+sits_plot (results.tb, type = "alignments")
 
 

@@ -38,3 +38,4 @@ A sits table has the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
 }
 \keyword{SITS}
+

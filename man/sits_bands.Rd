@@ -23,3 +23,4 @@ Other STIS table functions: \code{\link{sits_align}},
   \code{\link{sits_table}}, \code{\link{sits_values_cols}},
   \code{\link{sits_values_rows}}
 }
+

@@ -6,8 +6,7 @@
 \usage{
 sits_TWDTW(series.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
   theta = 0.5, start_date = as.Date("2000-09-01"),
-  end_date = as.Date("2016-08-31"), interval = "12 month", span = 250,
-  show = TRUE)
+  end_date = as.Date("2016-08-31"), interval = "12 month", span = 250)
 }
 \arguments{
 \item{series.tb}{a table in SITS format with a time series to be classified using TWTDW}
@@ -28,9 +27,7 @@ sits_TWDTW(series.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
 
 \item{interval}{the period between two classifications}
 
-\item{span}{the minimum period for a match between a pattern and a signal}
-
-\item{show}{show the results? (boolean)}
+\item{span}{the minimum period for a match between a pattern and a signal)}
 }
 \value{
 matches       a SITS table with the information on matches for the data
@@ -56,3 +53,4 @@ A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.
  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 }
+

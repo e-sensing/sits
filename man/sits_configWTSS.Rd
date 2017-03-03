@@ -58,3 +58,4 @@ URL            - the URL for the WTSS time series service
  y_max          - spatial extent (ymin)
  bands          - the bands of the data to be retrieved from the WTSS
 }
+

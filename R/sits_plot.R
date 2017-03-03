@@ -8,11 +8,12 @@
 #' @param    data.tb    tibble - a SITS table with the list of time series to be plotted
 #' @param    type       string - the type of plot to be generated
 #' @param    colors     the color pallete to be used (default is "Set1")
+#' @param
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
 #' @keywords STIS
 #' @export
 #'
-sits_plot <- function (data.tb, type = "allyears", colors = "Dark2") {
+sits_plot <- function (data.tb, type = "allyears", colors = "Dark2", patterns = NULL) {
      switch(type,
             "allyears" = {
                  locs <- dplyr::distinct (data.tb, longitude, latitude)
@@ -48,8 +49,11 @@ sits_plot <- function (data.tb, type = "allyears", colors = "Dark2") {
                       dtwSat::plot (type = "patterns") %>%
                       graphics::plot()
             },
+            "classification" = {
+                    ensurer::ensures_that(!purrr::is_null(patterns))
+            },
             message (paste ("sits_plot: valid plot types are allyears,
-                            one_by_one, together or patterns", "\n", sep = ""))
+                            one_by_one, together, patterns, classification, alignments", "\n", sep = ""))
             )
 
      # return the original SITS table - useful for chaining
