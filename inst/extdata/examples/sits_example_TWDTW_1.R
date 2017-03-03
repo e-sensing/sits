@@ -18,8 +18,16 @@ inpe <- sits_configWTSS (URL,
 long <- -55.51810
 lat <-  -11.63884
 
-point.tb <- sits_getdata(longitude = long, latitude = lat, wtss = inpe)
+series.tb <- sits_getdata(longitude = long, latitude = lat, wtss = inpe)
 
+series.tb %>%
+     sits_select (bands = "evi") %>%
+     sits_plot ()
+
+series.tb %>%
+     sits_select (bands = "evi") %>%
+     sits_smooth() %>%
+     sits_plot()
 # read a pattern table from a JSON file
 patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Rodrigo_7classes_6bands.json")
 
@@ -28,13 +36,9 @@ sits_plot (patterns.tb, type = "patterns")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-matches <- sits_classify(point.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
+matches <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, show = TRUE)
 
-# # plot the classification
-plot(x = matches, type = "classification", overlap = 0.5)
-# # plot the alignments
-plot(x = matches, type = "alignments")
-
-
+plot (x = matches, type = "classification", overlap = 0.5)
+plot (x = matches, type = "alignments")
 
 

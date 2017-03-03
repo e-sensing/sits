@@ -44,7 +44,7 @@ sits_plot <- function (data.tb, type = "allyears", colors = "Dark2") {
             },
             "patterns" = {
                  data.tb %>%
-                      sits_toTWDTW() %>%
+                      .sits_toTWDTW_time_series() %>%
                       dtwSat::plot (type = "patterns") %>%
                       graphics::plot()
             },

@@ -1,0 +1,33 @@
+\section{Big EO Data Analytics for Land Cover Change}
+\label{sec:requirements} 
+
+When designing an architecture for big EO data, one needs to consider the needs of data analytics. A common view of big EO data processing assumes that algorithms work on a pixel-by-pixel basis. In this view, massively parallel solutions based on the MapReduce model would fit this job. However, behind the simple raster geometry of remote sensing images, lies a huge diversity of processing algorithms. Many EO tasks require sophisticated methods for spatial, temporal and spatiotemporal analysis. For such applications, scientists need to balance between parallel execution and design flexibility, so that complex algorithms can be executed with acceptable performance.
+% why focus on LUCC classification?
+
+To consider the needs of big EO data analytics, we focus in a demanding application: land cover change analysis. Land cover change is one of the most immediate consequences of humanity's transformation the Earth's ecosystems and landscapes. To understand the impact and extent of global land cover change, we need data from EO satellites, the only source that provides a continuous and consistent set of information about the Earth. 
+
+%why big data can improve LUCC products
+
+Current global and large-scale land cover products need to be improved. Global land cover data sets such as MODIS Land Cover, GLC2000 and GlobCover have large mismatches on the spatial distribution of their land classes \cite{McCallum2006} \cite{Kaptue-Tchuente2011}. Land use practices are becoming subtler than a transition from one cover (e.g, forest) to another (e.g., pasture). We need to capture changes associated with forest degradation and temporary or mixed agricultural regimes \cite{Broich2011}. Therefore, developing new analytics for land cover change analysis using big EO data is as important as having efficient data management methods.
+
+
+% satellite imagery and 3d arrays
+To better understand the requirements of big EO data analytics, consider a conceptual view of the problem. Earth observation satellites revisit the same place at regular intervals. Thus measures need to be calibrated so that observations of the same place in different times are comparable. After adjustment, the  observations are organised in regular intervals; each measure from an imaging sensor maps to a point in a three-dimensional array in space-time (Figure \ref{fig:3Darrays}). Let $S = \{s_{1}, s_{2},\dotsc, s_{n}\}$ be a set of remote sensing images which shows the same region at \emph{n} consecutive times $T = \{t_{1}, t_{2}, \dotsc, t_{n}\}$. Each location \emph{<x, y, t>} of a pixel in an image (latitude, longitude, time) maps to a \emph{<i, j, k>} position in a 3D array. Each array position \emph{<i, j, k>} has to a set of attributes values $A = \{a_{1}, a_{2}, \dotsc, a_{m}\}$ which are the sensor measurements at each location in space-time (see Figure \ref{fig:3Darrays}). For optical sensors, these observations are proportional to Earth's reflexion of the incoming solar radiation at different wavelengths of the electromagnetic spectrum. Therefore, a 3D array is an appropriate conceptual model for big EO data. 
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{images/3D-Arrays.png}
+    \caption{A Normalized Difference Vegetation Index (NDVI) time series.}
+    \label{fig:3Darrays}
+\end{figure*}
+
+
+%different algorithm
+
+An example of big EO data analysis is the work by Hansen et al. \cite{Hansen2013}. Using more than 650,000 LANDSAT images and processing more than 140 billion pixels, the authors compared data from 2000 to 2010 to produce maps of global forest loss. A pixel-based classification algorithm was used to process each image to detect forest cover. The results for 2000 and 2010 were compared to account for forest loss during the 2000-2010 decade. The method classifies each 2D image one by one. The authors compare the results for different time instances, using a \textit{space-first, time-later} approach. 
+
+By contrast, methods such as the time-weighted dynamic time warping (TWDTW) \cite{Maus2016}, TIMESTAT \cite{Jonsson2004} and BFAST \cite{Verbesselt2010} work on remote sensing time series to extract long-term information for each pixel. These algorithms work on individual time series and combine the results for selected periods to generate classified maps. We call this the \textit{time-first, space-later} approach. 
+
+The benefits of remote sensing time series analysis arise when the temporal resolution of the big data set is able to capture the most important changes. Here, the temporal autocorrelation of the data can be stronger than the spatial autocorrelation. Given data with adequate repeatability, a pixel will be more related to its temporal neighbours than to its spatial ones. In this case, \textit{time-first, space-later} methods lead to better results than the \textit{space-first, time-later} approach. 
+
+Using the 3D array metaphor, scientists can approach the classification problem  using both the \textit{space-first, time-later}  and the \textit{time-first, space-later} approaches. To enable researchers to develop innovative analytical methods for big EO data, the system architecture needs to support both approaches.

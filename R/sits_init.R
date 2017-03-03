@@ -23,7 +23,7 @@
 utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "rmean", "std", "stdplus", "stdminus", "cluster_id", "cross_join",
                          "longitude", "latitude", "label", "coverage",
-                         "start_date", "end_date", "time_series",
+                         "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value"))
 
 #' @import     magrittr
