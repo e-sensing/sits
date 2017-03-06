@@ -28,11 +28,11 @@ sits_plot (patterns2.tb, type = "patterns")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-results.tb <- sits_TWDTW(point.tb, patterns2.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
+results.tb <- sits_TWDTW(point.tb, patterns2.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 
 # # plot the classification
 sits_plot(results.tb, type = "classification")
 # # plot the alignments
 sits_plot(results.tb, type = "alignments")
 # # plot the matches for the class
-sits_plot(results.tb, type = "matches", label = "Forest")
+sits_plot(results.tb, type = "matches", label = "Soja_Milho")
