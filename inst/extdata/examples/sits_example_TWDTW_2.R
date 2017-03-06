@@ -11,7 +11,7 @@ sits_infoWTSS(URL)
 
 # then, configure the WTSS service
 inpe <- sits_configWTSS (URL,
-                         coverage = "mod13q1_512",
+                         coverage = "chronos:modis:mod13q1_512",
                          bands = c("ndvi", "evi", "nir"))
 
 # a complicated point
@@ -28,9 +28,11 @@ sits_plot (patterns2.tb, type = "patterns")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-matches <- sits_classify(point.tb, patterns2.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
+results.tb <- sits_TWDTW(point.tb, patterns2.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
 # # plot the classification
-plot(x = matches, type = "classification", overlap = 0.5)
+sits_plot(results.tb, type = "classification")
 # # plot the alignments
-plot(x = matches, type = "alignments")
+sits_plot(results.tb, type = "alignments")
+# # plot the matches for the class
+sits_plot(results.tb, type = "matches", label = "Forest")

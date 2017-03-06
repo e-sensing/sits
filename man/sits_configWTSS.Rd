@@ -5,7 +5,7 @@
 \title{Set important global variables for WTSS access}
 \usage{
 sits_configWTSS(URL = "http://www.dpi.inpe.br/tws/wtss",
-  coverage = "mod13q1_512", bands = c("ndvi", "evi", "nir"))
+  coverage = "chronos:modis:mod13q1_512", bands = c("ndvi", "evi", "nir"))
 }
 \arguments{
 \item{URL}{the URL for the WTSS time series service}
@@ -19,14 +19,14 @@ wtss_info       a list containing the information about the WTSS server and cove
 }
 \description{
 \code{sits_configWTSS} stores the information about the WTSS server
-and the coverage name to be retrieved in the global environment
-The assumption is that in a SITS session, this information is defined one and
+and the coverage name to be retrieved during access to the WTSS server
+In a SITS session, this information is defined one and
 used in many applications
 }
 \details{
 This function should be run at the start of each SITS session.
 
-The Web Time Seris Service is a lightweight web service the allow remote access to satellite
+The Web Time Series Service is a lightweight web service the allow remote access to satellite
  image time series and provides three operations:
 
 1. list coverages: this operation allows clients to retrieve the capabilities provided
@@ -58,4 +58,3 @@ URL            - the URL for the WTSS time series service
  y_max          - spatial extent (ymin)
  bands          - the bands of the data to be retrieved from the WTSS
 }
-

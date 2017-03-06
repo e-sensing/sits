@@ -22,4 +22,3 @@ The set of time series from a SITS table can be saved in JSON format
 and later retrieved for further use
 }
 \keyword{STIS}
-

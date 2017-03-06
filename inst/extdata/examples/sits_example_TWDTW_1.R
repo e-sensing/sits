@@ -9,6 +9,9 @@ URL <- "http://www.dpi.inpe.br/tws/wtss"
 
 sits_infoWTSS(URL)
 
+# get information about a specific coverage
+sits_coverageWTSS(URL,"chronos:modis:mod13q1_512")
+
 # then, configure the WTSS service
 inpe <- sits_configWTSS (URL,
                  coverage = "chronos:modis:mod13q1_512",
@@ -38,7 +41,7 @@ sits_plot (patterns.tb, type = "patterns")
 bands <- c("ndvi", "evi", "nir")
 results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
-sits_plot (results.tb, type = "classification", overlap = 0.5)
+sits_plot (results.tb, type = "classification")
 sits_plot (results.tb, type = "alignments")
 
 

@@ -125,3 +125,4 @@ sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to
 
      return (patterns.tb)
 }
+

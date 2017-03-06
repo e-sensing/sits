@@ -28,4 +28,3 @@ The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 
 Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 }
 \keyword{sits}
-

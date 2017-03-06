@@ -24,7 +24,7 @@ Other STIS table functions: \code{\link{sits_bands}},
   \code{\link{sits_dates}},
   \code{\link{sits_group_bylatlong}},
   \code{\link{sits_rename}}, \code{\link{sits_select}},
+  \code{\link{sits_table_result}},
   \code{\link{sits_table}}, \code{\link{sits_values_cols}},
   \code{\link{sits_values_rows}}
 }
-

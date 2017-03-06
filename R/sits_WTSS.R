@@ -3,13 +3,13 @@
 #' Set important global variables for WTSS access
 #'
 #' \code{sits_configWTSS} stores the information about the WTSS server
-#' and the coverage name to be retrieved in the global environment
-#' The assumption is that in a SITS session, this information is defined one and
+#' and the coverage name to be retrieved during access to the WTSS server
+#' In a SITS session, this information is defined one and
 #' used in many applications
 #'
 #' This function should be run at the start of each SITS session.
 #'
-#' The Web Time Seris Service is a lightweight web service the allow remote access to satellite
+#' The Web Time Series Service is a lightweight web service the allow remote access to satellite
 #'  image time series and provides three operations:
 #'
 #'  1. list coverages: this operation allows clients to retrieve the capabilities provided
@@ -54,11 +54,14 @@ sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
      class (wtss_info)        <- append (class(wtss_info), "wtss_info")
      # create a WTSS connection
      wtss_info$URL            <- URL
-     # store the TWSS object
+     # store the WTSS object
      wtss_info$wtss_obj       <- wtss.R::WTSS(URL)
+     # obtains information about the coverages
+     coverages.vec    <- wtss.R::listCoverages(wtss_info$wtss_obj)
+     # is the coverage in the list of coverages?
+     ensurer::ensures_that (coverage %in%coverages.vec, err_desc = "coverage is not available in the WTSS server")
      # store the name of the coverage
      wtss_info$coverage       <- coverage
-
      # describe the coverage
      cov_desc.lst      <- wtss.R::describeCoverage(wtss_info$wtss_obj, coverage)
      # retrieve the coverage
@@ -68,9 +71,7 @@ sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
                               dplyr::select (name, scale_factor, missing_value) %>%
                               tibble::as_tibble() %>%
                               dplyr::rename (band = name)
-
-
-
+     # spatial resolution and extent
      wtss_info$res_x      <- cov$spatial_resolution$x
      wtss_info$res_y      <- cov$spatial_resolution$y
      wtss_info$x_min      <- cov$spatial_extent$xmin
@@ -78,9 +79,10 @@ sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
      wtss_info$x_max      <- cov$spatial_extent$xmax
      wtss_info$y_max      <- cov$spatial_extent$ymax
 
+     #bands
      wtss_info$bands      <- bands
 
-
+     # temporal resolution and extent
      timeline             <- cov$time_line
      wtss_info$start_date <- timeline[1]
      wtss_info$end_date   <- timeline[length(timeline)]
@@ -103,7 +105,6 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
      wtss.obj         <- wtss.R::WTSS(URL)
      cat (paste ("-----------------------------------------------------------", "\n",sep = ""))
      cat (paste ("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
-     cat (paste ("------------------------------------------------------------", "\n",sep = ""))
 
      # obtains information about the coverages
      coverages.obj    <- wtss.R::listCoverages(wtss.obj)
@@ -112,38 +113,61 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
           purrr::map (function (c) cat (paste (c, "\n", sep = "")))
      cat (paste ("------------------------------------------------------------", "\n",sep = ""))
 
-     # describe each coverage
-     desc.obj         <- wtss.R::describeCoverage(wtss.obj, coverages.obj)
+     return (invisible(wtss.obj))
+}
+#
+#' Provides information about one coverage of the WTSS service
+#'
+#' \code{sits_coverageWTSS} uses the WTSS services to provide information about a
+#' chosen coverage
+#'
+#' @param URL        the URL for the WTSS time series service
+#' @param coverage   the name of the coverage
+#' @export
+#'
+sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL) {
+     # obtains information about the WTSS service
+     wtss.obj         <- wtss.R::WTSS(URL)
+     # obtains information about the coverages
+     coverages.vec    <- wtss.R::listCoverages(wtss.obj)
+     # is the coverage in the list of coverages?
+     ensurer::ensures_that (coverage %in%coverages.vec, err_desc = "coverage is not available in the WTSS server")
+     # describe the coverage
+     cov.lst    <- wtss.R::describeCoverage(wtss.obj, coverage)
+     cov <- cov.lst[[coverage]]
 
+     # name, description and source of coverage
+     cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
+     cat (paste ("Coverage: ", cov$name, "\n",sep = ""))
+     cat (paste ("Description: ", cov$description, "\n", sep = ""))
+     cat (paste ("Source: ", cov$detail, "\n", sep = ""))
 
-     desc.obj %>%
-          purrr::map (function (cov) {
-               cat (paste ("Coverage: ", cov$name, "\n",sep = ""))
-               cat (paste ("Description: ", cov$description, "\n", sep = ""))
-               cat (paste ("Source: ", cov$detail, "\n", sep = ""))
-               cat (paste ("Bands: ", "\n", sep = "", collapse=""))
-               attr <- as.data.frame(cov$attributes)
-               print (attr[1:2])
-               cat (paste ("\nSpatial extent: ", "(",
-                           cov$spatial_extent$xmin, ", ",
-                           cov$spatial_extent$ymin, ") - (",
-                           cov$spatial_extent$xmax, ", ",
-                           cov$spatial_extent$ymax, ")", sep =""))
-               cat (paste ("\nSpatial resolution: ", "(",
-                           cov$spatial_resolution$x, ", ",
-                           cov$spatial_resolution$y, ")", sep = ""))
-               cat (paste ("\nProjection CRS: ", cov$crs$proj4, sep = ""))
-               timeline <- cov$time_line
-               start <- timeline[1]
-               end <- timeline[length(timeline)]
-               temporal_resolution <- as.integer ((lubridate::as_date(timeline[2])
-                                                  - lubridate::as_date(timeline[1]))/lubridate::ddays(1))
-               cat (paste ("\nTime range: ", start, " to ", end, "\n", sep = ""))
+     # information about the bands
+     cat (paste ("Bands: ", "\n", sep = "", collapse=""))
+     attr <- as.data.frame(cov$attributes)
+     print (attr[1:2])
 
-               cat (paste ("Temporal resolution: ", temporal_resolution, " days ", "\n", sep = ""))
+     # spatial extent and resolution, projection CRS
+     cat (paste ("\nSpatial extent: ", "(",
+                 cov$spatial_extent$xmin, ", ",
+                 cov$spatial_extent$ymin, ") - (",
+                 cov$spatial_extent$xmax, ", ",
+                 cov$spatial_extent$ymax, ")", sep =""))
+     cat (paste ("\nSpatial resolution: ", "(",
+                 cov$spatial_resolution$x, ", ",
+                 cov$spatial_resolution$y, ")", sep = ""))
+     cat (paste ("\nProjection CRS: ", cov$crs$proj4, sep = ""))
 
-               cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
-               return (invisible (cov))
-          })
-     return (invisible (desc.obj))
+     # temporal extent
+     timeline <- cov$time_line
+     start <- timeline[1]
+     end <- timeline[length(timeline)]
+     cat (paste ("\nTime range: ", start, " to ", end, "\n", sep = ""))
+
+     # temporal resolution is approximate, taken as the difference between first and second date
+     temporal_resolution <- as.integer ((lubridate::as_date(timeline[2])
+          - lubridate::as_date(timeline[1]))/lubridate::ddays(1))
+     cat (paste ("Temporal resolution: ", temporal_resolution, " days ", "\n", sep = ""))
+     cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
+     return (invisible (cov))
 }

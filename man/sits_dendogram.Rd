@@ -35,4 +35,3 @@ Other STIS cluster functions: \code{\link{sits_centroids}},
   \code{\link{sits_cluster}}
 }
 \keyword{STIS}
-

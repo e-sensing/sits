@@ -4,7 +4,7 @@
 \alias{sits_plot}
 \title{Plot a set of time series}
 \usage{
-sits_plot(data.tb, type = "allyears", colors = "Dark2", patterns = NULL)
+sits_plot(data.tb = NULL, type = "allyears", colors = "Dark2")
 }
 \arguments{
 \item{data.tb}{tibble - a SITS table with the list of time series to be plotted}
@@ -23,4 +23,3 @@ data.tb    tibble - the input SITS table (useful for chaining functions)
 Plot one SITS time series for a single place and interval
 }
 \keyword{STIS}
-

@@ -6,8 +6,8 @@
 %\usepackage{fontspec} % include OTF fonts, requires XeTeX
 %\defaultfontfeatures{Ligatures=TeX}
 \usepackage{filecontents}
-%\usepackage{natbib} % bibliography style
-\usepackage[backend=bibtex]{biblatex}
+\usepackage[natbib=true, style=numeric, backend=biber]{biblatex}
+\addbibresource{references-esensing.bib}
 %\setcitestyle{open={(},close={)}}
 \usepackage{subfigure} % multiple figures in LaTeX
 \usepackage{wrapfig}
@@ -48,9 +48,12 @@
 	Email: \{gilberto.camara\}@inpe.br}
 \affil[2]{\small International Institute for Applied System Analyis, Schlossplatz 2, 2631 Laxenburg, Austria}
 
+\usepackage{Sweave}
 \begin{document}
-\SweaveOpts{concordance=TRUE}
+\input{sits_intro-concordance}
+
 \fontfamily{put}\selectfont % Utopia
+\renewcommand*{\bibfont}{\small}
 \maketitle
 
 %1. Introduction:
@@ -61,30 +64,9 @@
 
 A satellite image time series is...
 
-first, get information about the WTSS (web time series service)
-see WTSS paper for more information ("Web Services for Big Data")
-\begin{figure}
-<< fig = TRUE, fig.width = 15, fig.align = 'center'>>=
-library(sits)
-URL <- "http://www.dpi.inpe.br/tws/wtss"
 
-inpe <- sits_configWTSS (URL,
-                 coverage = "mod13q1_512",
-                 bands = c("ndvi", "evi", "nir"))
-
-long <- -55.51810
-lat <-  -11.63884
-
-series.tb <- sits_getdata(longitude = long, latitude = lat, wtss = inpe)
-series.tb %>%
-     sits_select (bands = "evi") %>%
-     sits_plot ()
-@
-\caption{Time series for EVI band}
-\end{figure}
 which shows the time series for the "evi" band
 %\input{introduction.Rnw}
-
 \section{Introduction}
 \label{sec:introduction}
 
@@ -96,7 +78,6 @@ When scientists use big EO data they face the burden of organising thousands of 
 Given the diversity of options, researchers would gain from documented experience that helps them to assess how proposed big data architectures fit the needs of geospatial data analysis. Recent papers describe algorithms required for EO analysis \cite{Vatsavai2012} \cite{Nativi2015} and report case studies using specific architectures \cite{Planthaber2012}\cite{Krcal2015}. However, to make progress on big geospatial data analysis, we need to engage the large community of remote sensing researchers. In this paper, we consider how big EO data architectures can support the needs of data analytics. Our paper examines ways to cut the effort required for researchers to develop and validate algorithms for extracting information for big EO data.
 
 We take the viewpoint that architectures should serve applications, and not the other way around. To clarify the researcher's problem, we consider the needs for an important EO application: land use and land cover change (LUCC) analysis. We propose an architecture based on open-source tools that combines array databases with statistical analysis.  We evaluate this design to assess how it meets the needs of EO scientists and compared with other approaches that aim to meet these needs. This paper also puts forward a set of criteria to build researcher-friendly architectures for big EO data analysis.
-
-%\bibliographystyle{abbv}
-\bibliography{references-esensing.bib}
+%\bibliographyfile{/Users/gilberto/sits/vignettes/bib/references-esensing.bib}
+\printbibliography
 \end{document}

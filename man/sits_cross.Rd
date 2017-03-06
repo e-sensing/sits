@@ -30,4 +30,3 @@ generate patterns combinations.0
 Other SITS table functions: \code{\link{sits_merge}}
 }
 \keyword{SITS}
-

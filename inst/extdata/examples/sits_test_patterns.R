@@ -7,12 +7,12 @@ library(sits)
 sits_infoWTSS(URL = "http://www.dpi.inpe.br/tws/wtss")
 
 # then, configure the WTSS service
-sits_configWTSS (URL = "http://www.dpi.inpe.br/tws/wtss",
-                 coverage = "mod13q1_512",
-                 bands = c("ndvi", "evi", "nir", "mir", "red", "blue"))
+inpe <- sits_configWTSS (URL = "http://www.dpi.inpe.br/tws/wtss",
+                 coverage = "chronos:modis:mod13q1_512",
+                 bands = c("ndvi", "evi", "nir"))
 
 # select samples for pasture and savanna
-cerrado.tb <- sits_getdata ("./data/Samples/cerrado.json")
+cerrado.tb <- sits_getdata ("./inst/extdata/Samples/cerrado.json")
 
 patterns.tb <- sits_patterns(cerrado.tb)
 

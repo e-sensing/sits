@@ -45,4 +45,4 @@ Imports:
     tidyr,
     wtss.R,
     zoo
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
