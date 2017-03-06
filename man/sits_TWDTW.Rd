@@ -6,7 +6,8 @@
 \usage{
 sits_TWDTW(series.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
   theta = 0.5, start_date = as.Date("2000-09-01"),
-  end_date = as.Date("2016-08-31"), interval = "12 month", span = 250)
+  end_date = as.Date("2016-08-31"), interval = "12 month", span = 250,
+  keep = FALSE)
 }
 \arguments{
 \item{series.tb}{a table in SITS format with a time series to be classified using TWTDW}
@@ -28,6 +29,8 @@ sits_TWDTW(series.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
 \item{interval}{the period between two classifications}
 
 \item{span}{the minimum period for a match between a pattern and a signal)}
+
+\item{keep}{keep internal values for plotting matches}
 }
 \value{
 matches       a SITS table with the information on matches for the data

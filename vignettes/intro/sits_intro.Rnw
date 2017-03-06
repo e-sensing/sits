@@ -68,7 +68,24 @@ Sys.setenv(TEXINPUTS="~/sits/vignettes/intro",
 
 A satellite image time series is...
 
+<<>>=
+library(sits)
+URL <- "http://www.dpi.inpe.br/tws/wtss"
+sits_infoWTSS(URL)
+# then, configure the WTSS service
+inpe <- sits_configWTSS (URL,
+                 coverage = "chronos:modis:mod13q1_512",
+                 bands = c("ndvi", "evi", "nir"))
+# a complicated point
+long <- -55.51810
+lat <-  -11.63884
 
+series.tb <- sits_getdata(longitude = long, latitude = lat, wtss = inpe)
+
+series.tb %>%
+     sits_select (bands = "evi") %>%
+     sits_plot ()
+@
 
 
 which shows the time series for the "evi" band
