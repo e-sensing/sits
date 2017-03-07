@@ -83,7 +83,7 @@ sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
      wtss_info$bands      <- bands
 
      # temporal resolution and extent
-     timeline             <- cov$time_line
+     timeline             <- cov$timeline
      wtss_info$start_date <- timeline[1]
      wtss_info$end_date   <- timeline[length(timeline)]
      wtss_info$res_t      <- as.integer ((lubridate::as_date(timeline[2])
@@ -159,7 +159,7 @@ sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage
      cat (paste ("\nProjection CRS: ", cov$crs$proj4, sep = ""))
 
      # temporal extent
-     timeline <- cov$time_line
+     timeline <- cov$timeline
      start <- timeline[1]
      end <- timeline[length(timeline)]
      cat (paste ("\nTime range: ", start, " to ", end, "\n", sep = ""))

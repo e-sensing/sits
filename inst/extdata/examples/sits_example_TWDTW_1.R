@@ -10,11 +10,11 @@ URL <- "http://www.dpi.inpe.br/tws/wtss"
 sits_infoWTSS(URL)
 
 # get information about a specific coverage
-sits_coverageWTSS(URL,"chronos:modis:mod13q1_512")
+mod13_info <- sits_coverageWTSS(URL,"mod13q1_512")
 
 # then, configure the WTSS service
 inpe <- sits_configWTSS (URL,
-                 coverage = "chronos:modis:mod13q1_512",
+                 coverage = "mod13q1_512",
                  bands = c("ndvi", "evi", "nir"))
 
 # a complicated point
