@@ -12,83 +12,89 @@
 #' @keywords STIS
 #' @export
 #'
-sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = NULL) {
+sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = "NoClass") {
      # check the input exists
      ensurer::ensures_that(!purrr::is_null(data.tb), err_desc = "sits_plot: input data not provided")
 
      switch(type,
-            "allyears" = {
-                 locs <- dplyr::distinct (data.tb, longitude, latitude)
-                 locs %>%
-                      dplyr::rowwise() %>%
-                      dplyr::do({
-                           long = as.double (.$longitude)
-                           lat  = as.double (.$latitude)
-                           # filter only those rows with the same label
-                           data2.tb <- dplyr::filter (data.tb, longitude == long, latitude == lat)
-                           # use ggplot to plot the time series together
-                           data2.tb %>%
-                                .sits_ggplot_series(colors) %>%
-                                graphics::plot()
-                           return (data2.tb)
-                      })
-            },
-            "one_by_one" =  {
-                 data.tb %>%
-                      dplyr::rowwise() %>%
-                      dplyr::do({
-                              .sits_ggplot_series (.,colors) %>%
-                              graphics::plot()
-                           return (data.tb)
-                      })
-            },
-            "together" = {
-                 .sits_plot_together (data.tb, colors = colors)
-            },
-            "patterns" = {
-                 data.tb %>%
-                      .sits_toTWDTW_time_series() %>%
-                      dtwSat::plot (type = "patterns") %>%
-                      graphics::plot()
-            },
-            "classification" = {
-                 # retrieve a dtwSat S4 twdtwMatches object
-                 #ensurer::ensures_that(data.tb)
-                 data.tb %>%
-                      dplyr::rowwise() %>%
-                      dplyr::do({
-                           dtwSat::plot (.$matches, type = "classification", overlap = 0.5) %>%
-                                graphics::plot()
-                           return(data.tb)
-                      })
-            },
-            "alignments" = {
-                 data.tb %>%
-                      dplyr::rowwise() %>%
-                      dplyr::do({
-                           dtwSat::plot (.$matches, type = "alignments") %>%
-                                graphics::plot()
-                           return(data.tb)
-                      })
-
-            },
-            "matches" = {
-                 ensurer::ensures_that(!purrr::is_null(label), err_desc = "sits_plot matches: label must be provided")
-                 data.tb %>%
-                      dplyr::rowwise() %>%
-                      dplyr::do({
-                           dtwSat::plot (.$matches, type = "matches", patterns.labels = label, k = 4) %>%
-                                graphics::plot()
-                           return(data.tb)
-                      })
-
-            },
+            "allyears"       = .sits_plot_allyears (data.tb, colors),
+            "one_by_one"     = .sits_plot_one_by_one (data.tb, colors),
+            "together"       = .sits_plot_together (data.tb, colors),
+            "patterns"       = .sits_plot_patterns (data.tb),
+            "classification" = .sits_plot_classification (data.tb),
+            "alignments"     = .sits_plot_alignments (data.tb),
+            "matches"        = .sits_plot_matches (data.tb),
             message (paste ("sits_plot: valid plot types are allyears,
-                            one_by_one, together, patterns, classification, alignments", "\n", sep = ""))
+                            one_by_one, together, patterns, classification, alignments, matches", "\n", sep = ""))
             )
 
      # return the original SITS table - useful for chaining
      return (invisible (data.tb))
+}
+
+.sits_plot_allyears <- function (data.tb, colors) {
+     locs <- dplyr::distinct (data.tb, longitude, latitude)
+     locs %>%
+          dplyr::rowwise() %>%
+          dplyr::do({
+               long = as.double (.$longitude)
+               lat  = as.double (.$latitude)
+               # filter only those rows with the same label
+               data2.tb <- dplyr::filter (data.tb, longitude == long, latitude == lat)
+               # use ggplot to plot the time series together
+               data2.tb %>%
+                    .sits_ggplot_series(colors) %>%
+                    graphics::plot()
+               return (data2.tb)
+          })
+}
+
+.sits_plot_one_by_one <- function (data.tb, colors){
+     data.tb %>%
+          dplyr::rowwise() %>%
+          dplyr::do({
+               .sits_ggplot_series (.,colors) %>%
+                    graphics::plot()
+               return (data.tb)
+          })
+
+}
+.sits_plot_patterns <- function (data.tb) {
+     data.tb %>%
+          .sits_toTWDTW_time_series() %>%
+          dtwSat::plot (type = "patterns") %>%
+          graphics::plot()
+}
+
+.sits_plot_classification <- function (data.tb){
+     # retrieve a dtwSat S4 twdtwMatches object
+     data.tb %>%
+          dplyr::rowwise() %>%
+          dplyr::do({
+               dtwSat::plot (.$matches, type = "classification", overlap = 0.5) %>%
+                    graphics::plot()
+               return(data.tb)
+          })
+}
+.sits_plot_alignments <- function (data.tb){
+     data.tb %>%
+          dplyr::rowwise() %>%
+          dplyr::do({
+               dtwSat::plot (.$matches, type = "alignments") %>%
+                    graphics::plot()
+               return(data.tb)
+          })
+}
+
+.sits_plot_matches <- function (data.tb) {
+     ensurer::ensures_that(!purrr::is_null(label), err_desc = "sits_plot matches: label must be provided")
+     data.tb %>%
+          dplyr::rowwise() %>%
+          dplyr::do({
+               dtwSat::plot (.$matches, type = "matches", patterns.labels = label, k = 4) %>%
+               graphics::plot()
+          return(data.tb)
+     })
 }
 # -----------------------------------------------------------
 #' Plot a set of time series for the same spatio-temporal reference
@@ -102,7 +108,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
 #' @keywords STIS
 #'
-.sits_plot_together <- function (data.tb, colors = "Dark2") {
+.sits_plot_together <- function (data.tb, colors) {
      # this function plots all the values of all time series together (for one band)
      plot_samples <- function (ts, band, label, number) {
           series.tb <- ts %>%

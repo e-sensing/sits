@@ -5,7 +5,7 @@
 \title{Plot a set of time series}
 \usage{
 sits_plot(data.tb = NULL, type = "allyears", colors = "Dark2",
-  label = NULL)
+  label = "NoClass")
 }
 \arguments{
 \item{data.tb}{tibble - a SITS table with the list of time series to be plotted}
