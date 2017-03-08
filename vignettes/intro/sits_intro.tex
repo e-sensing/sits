@@ -61,7 +61,6 @@
 %3. Land
 %4. A framework for data modelling on land use semantics
 
-
 A satellite image time series is...
 
 \begin{Schunk}
@@ -73,65 +72,41 @@ A satellite image time series is...
 \begin{Soutput}
 -----------------------------------------------------------
 The WTSS server URL is http://www.dpi.inpe.br/tws/wtss
+Available coverages: 
+itobi
+merge
+mod13q1_512
 ------------------------------------------------------------
-Coverage: mod13q1_512
-Description: Vegetation Indices 16-Day L3 Global 250m
-Source: https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1
-Bands: 
-  name                            description
-1 ndvi                      250m 16 days NDVI
-2  evi                       250m 16 days EVI
-3  red  250m 16 days red reflectance (Band 1)
-4  nir  250m 16 days NIR reflectance (Band 2)
-5 blue 250m 16 days blue reflectance (Band 3)
-6  mir  250m 16 days MIR reflectance (Band 7)
-
-Spatial extent: (, ) - (, )
-Time range:  to 
-Temporal resolution:  days 
-Spatial resolution:  metres 
-----------------------------------------------------------------------------------
-Coverage: itobi
-Description: UNKNOWN
-Source: UNKNOWN
-Bands: 
-   name description
-1    b1     UNKNOWN
-2    b2     UNKNOWN
-3    b3     UNKNOWN
-4    b4     UNKNOWN
-5    b5     UNKNOWN
-6    b6     UNKNOWN
-7    b7     UNKNOWN
-8  ndvi     UNKNOWN
-9  savi     UNKNOWN
-10  evi     UNKNOWN
-
-Spatial extent: (, ) - (, )
-Time range:  to 
-Temporal resolution:  days 
-Spatial resolution:  metres 
-----------------------------------------------------------------------------------
-Coverage: merge
-Description: UNKNOWN
-Source: UNKNOWN
-Bands: 
-  name description
-1 prec     UNKNOWN
-2 nest     UNKNOWN
-
-Spatial extent: (, ) - (, )
-Time range:  to 
-Temporal resolution:  days 
-Spatial resolution:  metres 
-----------------------------------------------------------------------------------
 \end{Soutput}
 \begin{Sinput}
 > # then, configure the WTSS service
 > inpe <- sits_configWTSS (URL,
-+                  coverage = "chronos:modis:mod13q1_512",
++                  coverage = "mod13q1_512",
 +                  bands = c("ndvi", "evi", "nir"))
 > # a complicated point
 > long <- -55.51810
 > lat <-  -11.63884
 > series.tb <- sits_getdata(longitude = long, latitude = lat, wtss = inpe)
+> series.tb %>%
++      sits_select (bands = "evi") %>%
++      sits_plot ()
+\end{Sinput}
+\end{Schunk}
+
+
+which shows the time series for the "evi" band
+%\input{introduction.Rnw}
+\section{Introduction}
+\label{sec:introduction}
+
+%Stating the problem
+Earth observation (EO) satellites produce vast amounts of geospatial data. The Landsat archive holds over five million images of the Earth's surface, with about 1 PB of data. New satellites from Europe, USA, China, Brazil, and India generate yearly as much data as one Landsat satellite in a decade. Most space agencies have adopted an open data policy, making unprecedented amounts of satellite data available for research and operational use. This data deluge has brought about a major challenge for Geoinformatics research: \textit{How to design and build technologies that allow the EO community to analyse big data sets?}
+
+When scientists use big EO data they face the burden of organising thousands of files, downloaded from the space agencies archives. To manage such large data sets, researchers need stable and efficient solutions that support their analytical tasks. To choose a solution is hard because the technology for large data handling and analytics is evolving. Alternatives include MapReduce-based solutions such as Google Earth Engine \cite{Gorelick2012}, object-relational DBMS extensions such as Rasdaman \cite{Baumann1998} and  distributed multidimensional array databases such as SciDB \cite{Stonebraker2013}. Since each of these architectures takes on a different approach, understanding the benefits and drawbacks of each one helps researchers choose what best fits their needs.
+
+Given the diversity of options, researchers would gain from documented experience that helps them to assess how proposed big data architectures fit the needs of geospatial data analysis. Recent papers describe algorithms required for EO analysis \cite{Vatsavai2012} \cite{Nativi2015} and report case studies using specific architectures \cite{Planthaber2012}\cite{Krcal2015}. However, to make progress on big geospatial data analysis, we need to engage the large community of remote sensing researchers. In this paper, we consider how big EO data architectures can support the needs of data analytics. Our paper examines ways to cut the effort required for researchers to develop and validate algorithms for extracting information for big EO data.
+
+We take the viewpoint that architectures should serve applications, and not the other way around. To clarify the researcher's problem, we consider the needs for an important EO application: land use and land cover change (LUCC) analysis. We propose an architecture based on open-source tools that combines array databases with statistical analysis.  We evaluate this design to assess how it meets the needs of EO scientists and compared with other approaches that aim to meet these needs. This paper also puts forward a set of criteria to build researcher-friendly architectures for big EO data analysis.
+%\bibliographyfile{/Users/gilberto/sits/vignettes/bib/references-esensing.bib}
+\printbibliography
+\end{document}

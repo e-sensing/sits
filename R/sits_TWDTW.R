@@ -36,8 +36,6 @@
 #'
 sits_TWDTW <- function (series.tb, patterns.tb, bands,
                            alpha = -0.1, beta = 100, theta = 0.5,
-                           start_date = as.Date("2000-09-01"),
-                           end_date   = as.Date("2016-08-31"),
                            interval   = "12 month",
                            span       = 250,
                            keep       = FALSE){
@@ -53,13 +51,6 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
      # Define the logistic function
      log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
-     # define the temporal intervals of each classification
-     breaks <- seq(from = start_date, to = end_date, by = interval)
-
-     # number of years for classification to be done
-     n_years = as.integer ((end_date - start_date)/ lubridate::dyears(1))
-
-
      for (i in 1:nrow(series.tb)) {
           # process time series one by one
           ts.tb <- series.tb[i,]
@@ -69,20 +60,31 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                sits_select (bands) %>%
                .sits_toTWDTW_time_series()
 
+          start_date <- lubridate::as_date(series.tb[i,]$start_date)
+          end_date   <- lubridate::as_date(series.tb[i,]$end_date)
+
+          # define the temporal intervals of each classification
+          breaks <- seq(from = start_date, to = end_date, by = interval)
+
           #classify the data using TWDTW
           matches = dtwSat::twdtwApply(x          = twdtw_series,
                                        y          = twdtw_patterns,
                                        weight.fun = log_fun,
                                        theta      = theta,
-                                       breaks     = breaks,
-                                       n          = n_years,
                                        span       = span,
                                        keep       = keep)
 
-          row.tb <- .sits_fromTWDTW_matches (ts.tb, matches, breaks, interval)
+
+          # number of years for classification to be done
+          n_years = as.integer ((end_date - start_date)/ lubridate::dyears(1))
+
+          classif <- dtwSat::twdtwClassify(x = matches, breaks = breaks)
+
+          row.tb <- .sits_fromTWDTW_matches (ts.tb, matches, classif, breaks, interval)
 
           # add the row to the results.tb tibble
           results.tb <- dplyr::bind_rows(results.tb, row.tb)
+
      }
 
      return (results.tb)
@@ -99,12 +101,15 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #'
 #' @param   series        a table in SITS format with a time series that has been classified using TWTDW
 #' @param   matches       an object of class "twdtwMatches"
+#' @param   classif       an object of class "twdtwMatches" resulting for a TWDTW Classification operation
 #' @param   breaks        the temporal intervals of each classification
 #' @param   interval      the period between two classifications
 #' @return  result.tb     a table in SITS format with the results of the TWTDW classification
 #'
 #'
-.sits_fromTWDTW_matches <- function (series.tb, matches, breaks, interval){
+.sits_fromTWDTW_matches <- function (series.tb, matches, classif, breaks, interval){
+
+     print (breaks)
 
      ensurer::ensures_that(nrow(series.tb) == 1, err_desc = "sits_fromTWDTW_matches: works with one time series at a time!")
 
@@ -143,9 +148,15 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
      match.lst <- tibble::lst()
      match.lst[[1]] <- matches
 
+     # matches
+     classif.lst <- tibble::lst()
+     classif.lst[[1]] <- classif
+
      # add the distances and matches to the input row
      row.tb <- dplyr::mutate (series.tb, distances  = dist.lst)
      row.tb <- dplyr::mutate (row.tb, matches    = match.lst)
+     row.tb <- dplyr::mutate (row.tb, classification    = classif.lst)
+
 
      return (row.tb)
 }
@@ -164,7 +175,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #'
 #' @param  data.tb       a table in SITS format with time series to be converted to TWTDW time series
 #' @return ts.tw         a time series in TWDTW format (an object of the twdtwTimeSeries class)
-#'
+#' @export
 #'
 .sits_toTWDTW_time_series <- function (data.tb){
      zoo.ls <- data.tb$time_series %>%

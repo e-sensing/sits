@@ -31,6 +31,16 @@ series.tb %>%
      sits_select (bands = "evi") %>%
      sits_smooth() %>%
      sits_plot()
+
+series_s.tb <- series.tb %>%
+     sits_smooth() %>%
+     sits_rename (c("ndvi_smooth", "evi_smooth"))
+
+series.tb %>%
+     sits_merge(., series_s.tb) %>%
+     sits_select (bands = c("evi", "evi_smooth")) %>%
+     sits_plot()
+
 # read a pattern table from a JSON file
 patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Rodrigo_7classes_6bands.json")
 
