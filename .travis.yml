@@ -1,4 +1,4 @@
-nguage: C++
+language: C++
 os: 
   - osx
   - linux
