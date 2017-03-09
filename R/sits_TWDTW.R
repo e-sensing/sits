@@ -14,11 +14,6 @@
 #' changes of natural and cultivated vegetation types. It also considers inter-annual climatic and
 #' seasonal variability.
 #'
-#' Reference: Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
-#' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
-#'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
-#'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
-#'
 #' @param  series.tb     a table in SITS format with a time series to be classified using TWTDW
 #' @param  patterns.tb   a set of known temporal signatures for the chosen classes
 #' @param  bands         string - the bands to be used for classification
@@ -32,12 +27,16 @@
 #' @param  keep          keep internal values for plotting matches
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
+#' @references
+#' Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
+#' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
+#'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
+#'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
+#'
 #'
 #'
 sits_TWDTW <- function (series.tb, patterns.tb, bands,
                            alpha = -0.1, beta = 100, theta = 0.5,
-                           start_date = as.Date("2000-09-01"),
-                           end_date   = as.Date("2016-08-31"),
                            interval   = "12 month",
                            span       = 250,
                            keep       = FALSE){
@@ -53,13 +52,6 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
      # Define the logistic function
      log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
-     # define the temporal intervals of each classification
-     breaks <- seq(from = start_date, to = end_date, by = interval)
-
-     # number of years for classification to be done
-     n_years = as.integer ((end_date - start_date)/ lubridate::dyears(1))
-
-
      for (i in 1:nrow(series.tb)) {
           # process time series one by one
           ts.tb <- series.tb[i,]
@@ -69,13 +61,17 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                sits_select (bands) %>%
                .sits_toTWDTW_time_series()
 
+          start_date <- lubridate::as_date(series.tb[i,]$start_date)
+          end_date   <- lubridate::as_date(series.tb[i,]$end_date)
+
+          # define the temporal intervals of each classification
+          breaks <- seq(from = start_date, to = end_date, by = interval)
+
           #classify the data using TWDTW
           matches = dtwSat::twdtwApply(x          = twdtw_series,
                                        y          = twdtw_patterns,
                                        weight.fun = log_fun,
                                        theta      = theta,
-                                       breaks     = breaks,
-                                       n          = n_years,
                                        span       = span,
                                        keep       = keep)
 
@@ -83,6 +79,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 
           # add the row to the results.tb tibble
           results.tb <- dplyr::bind_rows(results.tb, row.tb)
+
      }
 
      return (results.tb)
@@ -99,6 +96,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #'
 #' @param   series        a table in SITS format with a time series that has been classified using TWTDW
 #' @param   matches       an object of class "twdtwMatches"
+#' @param   classif       an object of class "twdtwMatches" resulting for a TWDTW Classification operation
 #' @param   breaks        the temporal intervals of each classification
 #' @param   interval      the period between two classifications
 #' @return  result.tb     a table in SITS format with the results of the TWTDW classification
@@ -133,6 +131,15 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
           tb <-  aligns.lst[[i]]
           dist.tb <- dplyr::left_join(dist.tb, tb, by = "year" )
      }
+     # clean the distance tibble
+     dist.tb <- tidyr::drop_na(dist.tb)
+
+     # include a new column with the names of the class with the minimum TWDTW distance
+     classif <- character()
+     for (i in 1:nrow (dist.tb)){
+          classif[length(classif) + 1 ] <- names ((which.min(dist.tb[i,4:10])))
+     }
+     dist.tb <- dplyr::mutate(dist.tb, classification = classif)
 
      # store the distances and matches in two lists
      # distances
@@ -146,6 +153,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
      # add the distances and matches to the input row
      row.tb <- dplyr::mutate (series.tb, distances  = dist.lst)
      row.tb <- dplyr::mutate (row.tb, matches    = match.lst)
+
 
      return (row.tb)
 }
@@ -164,7 +172,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #'
 #' @param  data.tb       a table in SITS format with time series to be converted to TWTDW time series
 #' @return ts.tw         a time series in TWDTW format (an object of the twdtwTimeSeries class)
-#'
+#' @export
 #'
 .sits_toTWDTW_time_series <- function (data.tb){
      zoo.ls <- data.tb$time_series %>%

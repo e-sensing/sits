@@ -4,7 +4,7 @@
     "latitude": -14.0482,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -129,7 +129,7 @@
     "latitude": -14.0482,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -254,7 +254,7 @@
     "latitude": -14.0482,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -379,7 +379,7 @@
     "latitude": -14.0482,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -504,7 +504,7 @@
     "latitude": -14.0482,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -629,7 +629,7 @@
     "latitude": -14.0482,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -754,7 +754,7 @@
     "latitude": -14.0482,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -879,7 +879,7 @@
     "latitude": -14.0482,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -1004,7 +1004,7 @@
     "latitude": -14.0482,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -1129,7 +1129,7 @@
     "latitude": -14.0482,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -1254,7 +1254,7 @@
     "latitude": -14.0482,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -1379,7 +1379,7 @@
     "latitude": -14.0482,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -1504,7 +1504,7 @@
     "latitude": -14.0482,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -1629,7 +1629,7 @@
     "latitude": -14.0482,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -1754,7 +1754,7 @@
     "latitude": -14.0482,
     "start_date": "2014-09-14",
     "end_date": "2015-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -1879,7 +1879,7 @@
     "latitude": -14.0632,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -2004,7 +2004,7 @@
     "latitude": -14.0632,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -2129,7 +2129,7 @@
     "latitude": -14.0632,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -2254,7 +2254,7 @@
     "latitude": -14.0632,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -2379,7 +2379,7 @@
     "latitude": -14.0632,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -2504,7 +2504,7 @@
     "latitude": -14.0632,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -2629,7 +2629,7 @@
     "latitude": -14.0632,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -2754,7 +2754,7 @@
     "latitude": -14.0632,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -2879,7 +2879,7 @@
     "latitude": -14.0632,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -3004,7 +3004,7 @@
     "latitude": -14.0632,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -3129,7 +3129,7 @@
     "latitude": -14.0632,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -3254,7 +3254,7 @@
     "latitude": -14.0632,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -3379,7 +3379,7 @@
     "latitude": -14.0632,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -3504,7 +3504,7 @@
     "latitude": -14.0632,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -3629,7 +3629,7 @@
     "latitude": -14.0632,
     "start_date": "2014-09-14",
     "end_date": "2015-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -3754,7 +3754,7 @@
     "latitude": -14.3098,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -3879,7 +3879,7 @@
     "latitude": -15.3137,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -4004,7 +4004,7 @@
     "latitude": -15.3137,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -4129,7 +4129,7 @@
     "latitude": -15.3137,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -4254,7 +4254,7 @@
     "latitude": -15.3137,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -4379,7 +4379,7 @@
     "latitude": -15.3137,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -4504,7 +4504,7 @@
     "latitude": -15.3137,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -4629,7 +4629,7 @@
     "latitude": -15.3137,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -4754,7 +4754,7 @@
     "latitude": -15.3137,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -4879,7 +4879,7 @@
     "latitude": -15.3137,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -5004,7 +5004,7 @@
     "latitude": -15.3168,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -5129,7 +5129,7 @@
     "latitude": -15.3168,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -5254,7 +5254,7 @@
     "latitude": -15.3168,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -5379,7 +5379,7 @@
     "latitude": -15.3168,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -5504,7 +5504,7 @@
     "latitude": -15.3168,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -5629,7 +5629,7 @@
     "latitude": -15.3168,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -5754,7 +5754,7 @@
     "latitude": -15.3168,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -5879,7 +5879,7 @@
     "latitude": -15.3168,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -6004,7 +6004,7 @@
     "latitude": -15.3168,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -6129,7 +6129,7 @@
     "latitude": -15.0231,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -6254,7 +6254,7 @@
     "latitude": -15.0231,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -6379,7 +6379,7 @@
     "latitude": -15.0231,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -6504,7 +6504,7 @@
     "latitude": -15.0231,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -6629,7 +6629,7 @@
     "latitude": -15.0231,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -6754,7 +6754,7 @@
     "latitude": -15.0231,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -6879,7 +6879,7 @@
     "latitude": -15.0231,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -7004,7 +7004,7 @@
     "latitude": -15.0231,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -7129,7 +7129,7 @@
     "latitude": -15.0231,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -7254,7 +7254,7 @@
     "latitude": -14.347,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -7379,7 +7379,7 @@
     "latitude": -14.347,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -7504,7 +7504,7 @@
     "latitude": -14.347,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -7629,7 +7629,7 @@
     "latitude": -14.347,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -7754,7 +7754,7 @@
     "latitude": -14.347,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -7879,7 +7879,7 @@
     "latitude": -14.347,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -8004,7 +8004,7 @@
     "latitude": -14.347,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -8129,7 +8129,7 @@
     "latitude": -14.347,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -8254,7 +8254,7 @@
     "latitude": -14.3609,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -8379,7 +8379,7 @@
     "latitude": -14.3609,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -8504,7 +8504,7 @@
     "latitude": -14.3609,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -8629,7 +8629,7 @@
     "latitude": -14.3609,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -8754,7 +8754,7 @@
     "latitude": -14.3609,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -8879,7 +8879,7 @@
     "latitude": -14.3609,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -9004,7 +9004,7 @@
     "latitude": -14.3609,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -9129,7 +9129,7 @@
     "latitude": -14.3609,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -9254,7 +9254,7 @@
     "latitude": -14.2578,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -9379,7 +9379,7 @@
     "latitude": -14.2578,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -9504,7 +9504,7 @@
     "latitude": -14.2578,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -9629,7 +9629,7 @@
     "latitude": -14.2578,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -9754,7 +9754,7 @@
     "latitude": -14.2578,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -9879,7 +9879,7 @@
     "latitude": -14.2578,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -10004,7 +10004,7 @@
     "latitude": -14.2578,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -10129,7 +10129,7 @@
     "latitude": -14.2578,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -10254,7 +10254,7 @@
     "latitude": -14.2578,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -10379,7 +10379,7 @@
     "latitude": -14.2578,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -10504,7 +10504,7 @@
     "latitude": -14.2578,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -10629,7 +10629,7 @@
     "latitude": -14.2578,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -10754,7 +10754,7 @@
     "latitude": -14.2639,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -10879,7 +10879,7 @@
     "latitude": -14.2639,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -11004,7 +11004,7 @@
     "latitude": -14.2639,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -11129,7 +11129,7 @@
     "latitude": -14.2639,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -11254,7 +11254,7 @@
     "latitude": -14.2639,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -11379,7 +11379,7 @@
     "latitude": -14.2639,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -11504,7 +11504,7 @@
     "latitude": -14.2639,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -11629,7 +11629,7 @@
     "latitude": -14.2639,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -11754,7 +11754,7 @@
     "latitude": -14.2639,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -11879,7 +11879,7 @@
     "latitude": -14.2639,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -12004,7 +12004,7 @@
     "latitude": -14.2639,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -12129,7 +12129,7 @@
     "latitude": -14.2639,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -12254,7 +12254,7 @@
     "latitude": -14.2255,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -12379,7 +12379,7 @@
     "latitude": -14.2255,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -12504,7 +12504,7 @@
     "latitude": -14.2255,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -12629,7 +12629,7 @@
     "latitude": -14.2255,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -12754,7 +12754,7 @@
     "latitude": -14.2255,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -12879,7 +12879,7 @@
     "latitude": -14.2255,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -13004,7 +13004,7 @@
     "latitude": -14.2255,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -13129,7 +13129,7 @@
     "latitude": -14.2255,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -13254,7 +13254,7 @@
     "latitude": -14.2255,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -13379,7 +13379,7 @@
     "latitude": -14.2255,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -13504,7 +13504,7 @@
     "latitude": -14.2255,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -13629,7 +13629,7 @@
     "latitude": -14.2255,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -13754,7 +13754,7 @@
     "latitude": -14.194,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -13879,7 +13879,7 @@
     "latitude": -14.194,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -14004,7 +14004,7 @@
     "latitude": -14.194,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -14129,7 +14129,7 @@
     "latitude": -14.194,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -14254,7 +14254,7 @@
     "latitude": -14.194,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -14379,7 +14379,7 @@
     "latitude": -14.194,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -14504,7 +14504,7 @@
     "latitude": -14.194,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -14629,7 +14629,7 @@
     "latitude": -14.194,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -14754,7 +14754,7 @@
     "latitude": -14.194,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -14879,7 +14879,7 @@
     "latitude": -14.194,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -15004,7 +15004,7 @@
     "latitude": -14.194,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -15129,7 +15129,7 @@
     "latitude": -14.194,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -15254,7 +15254,7 @@
     "latitude": -15.1146,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -15379,7 +15379,7 @@
     "latitude": -15.1146,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -15504,7 +15504,7 @@
     "latitude": -15.1146,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -15629,7 +15629,7 @@
     "latitude": -15.1146,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -15754,7 +15754,7 @@
     "latitude": -15.1146,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -15879,7 +15879,7 @@
     "latitude": -15.1146,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -16004,7 +16004,7 @@
     "latitude": -15.1146,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -16129,7 +16129,7 @@
     "latitude": -15.1146,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -16254,7 +16254,7 @@
     "latitude": -15.1146,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -16379,7 +16379,7 @@
     "latitude": -15.1146,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -16504,7 +16504,7 @@
     "latitude": -15.1146,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -16629,7 +16629,7 @@
     "latitude": -15.1146,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -16754,7 +16754,7 @@
     "latitude": -15.1146,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -16879,7 +16879,7 @@
     "latitude": -15.1146,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -17004,7 +17004,7 @@
     "latitude": -15.1146,
     "start_date": "2014-09-14",
     "end_date": "2015-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -17129,7 +17129,7 @@
     "latitude": -15.0739,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -17254,7 +17254,7 @@
     "latitude": -15.0739,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -17379,7 +17379,7 @@
     "latitude": -15.0739,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -17504,7 +17504,7 @@
     "latitude": -15.0739,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -17629,7 +17629,7 @@
     "latitude": -15.0739,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -17754,7 +17754,7 @@
     "latitude": -15.0739,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -17879,7 +17879,7 @@
     "latitude": -15.0739,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -18004,7 +18004,7 @@
     "latitude": -15.0739,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -18129,7 +18129,7 @@
     "latitude": -15.0739,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -18254,7 +18254,7 @@
     "latitude": -15.0739,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -18379,7 +18379,7 @@
     "latitude": -15.0739,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -18504,7 +18504,7 @@
     "latitude": -15.0739,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -18629,7 +18629,7 @@
     "latitude": -15.0739,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -18754,7 +18754,7 @@
     "latitude": -15.0739,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -18879,7 +18879,7 @@
     "latitude": -15.0739,
     "start_date": "2014-09-14",
     "end_date": "2015-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -19004,7 +19004,7 @@
     "latitude": -15.076,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -19129,7 +19129,7 @@
     "latitude": -15.076,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -19254,7 +19254,7 @@
     "latitude": -15.076,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -19379,7 +19379,7 @@
     "latitude": -15.076,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -19504,7 +19504,7 @@
     "latitude": -15.076,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -19629,7 +19629,7 @@
     "latitude": -15.076,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -19754,7 +19754,7 @@
     "latitude": -15.076,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -19879,7 +19879,7 @@
     "latitude": -15.076,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -20004,7 +20004,7 @@
     "latitude": -15.076,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -20129,7 +20129,7 @@
     "latitude": -15.076,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -20254,7 +20254,7 @@
     "latitude": -15.076,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -20379,7 +20379,7 @@
     "latitude": -15.076,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -20504,7 +20504,7 @@
     "latitude": -15.076,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -20629,7 +20629,7 @@
     "latitude": -15.076,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -20754,7 +20754,7 @@
     "latitude": -15.076,
     "start_date": "2014-09-14",
     "end_date": "2015-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -20879,7 +20879,7 @@
     "latitude": -15.32,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -21004,7 +21004,7 @@
     "latitude": -15.32,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -21129,7 +21129,7 @@
     "latitude": -15.32,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -21254,7 +21254,7 @@
     "latitude": -15.32,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -21379,7 +21379,7 @@
     "latitude": -15.32,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -21504,7 +21504,7 @@
     "latitude": -15.32,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -21629,7 +21629,7 @@
     "latitude": -15.32,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -21754,7 +21754,7 @@
     "latitude": -15.32,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -21879,7 +21879,7 @@
     "latitude": -15.32,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -22004,7 +22004,7 @@
     "latitude": -15.32,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -22129,7 +22129,7 @@
     "latitude": -15.32,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -22254,7 +22254,7 @@
     "latitude": -15.32,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -22379,7 +22379,7 @@
     "latitude": -15.316,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -22504,7 +22504,7 @@
     "latitude": -15.316,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -22629,7 +22629,7 @@
     "latitude": -15.316,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -22754,7 +22754,7 @@
     "latitude": -15.316,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -22879,7 +22879,7 @@
     "latitude": -15.316,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -23004,7 +23004,7 @@
     "latitude": -15.316,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -23129,7 +23129,7 @@
     "latitude": -15.316,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -23254,7 +23254,7 @@
     "latitude": -15.316,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -23379,7 +23379,7 @@
     "latitude": -15.316,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -23504,7 +23504,7 @@
     "latitude": -15.316,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -23629,7 +23629,7 @@
     "latitude": -15.316,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -23754,7 +23754,7 @@
     "latitude": -15.316,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -23879,7 +23879,7 @@
     "latitude": -15.3254,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -24004,7 +24004,7 @@
     "latitude": -15.3254,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -24129,7 +24129,7 @@
     "latitude": -15.3254,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -24254,7 +24254,7 @@
     "latitude": -15.3254,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -24379,7 +24379,7 @@
     "latitude": -15.3254,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -24504,7 +24504,7 @@
     "latitude": -15.3254,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -24629,7 +24629,7 @@
     "latitude": -15.3254,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -24754,7 +24754,7 @@
     "latitude": -15.3254,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -24879,7 +24879,7 @@
     "latitude": -15.3254,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -25004,7 +25004,7 @@
     "latitude": -15.3254,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -25129,7 +25129,7 @@
     "latitude": -15.3254,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -25254,7 +25254,7 @@
     "latitude": -15.3254,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -25379,7 +25379,7 @@
     "latitude": -14.4172,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -25504,7 +25504,7 @@
     "latitude": -14.4172,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -25629,7 +25629,7 @@
     "latitude": -14.4172,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -25754,7 +25754,7 @@
     "latitude": -14.4172,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -25879,7 +25879,7 @@
     "latitude": -14.4172,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -26004,7 +26004,7 @@
     "latitude": -14.4166,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -26129,7 +26129,7 @@
     "latitude": -14.4166,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -26254,7 +26254,7 @@
     "latitude": -14.4166,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -26379,7 +26379,7 @@
     "latitude": -14.4166,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -26504,7 +26504,7 @@
     "latitude": -14.4166,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -26629,7 +26629,7 @@
     "latitude": -13.8844,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -26754,7 +26754,7 @@
     "latitude": -13.8844,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -26879,7 +26879,7 @@
     "latitude": -13.8844,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -27004,7 +27004,7 @@
     "latitude": -13.8844,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -27129,7 +27129,7 @@
     "latitude": -13.8844,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -27254,7 +27254,7 @@
     "latitude": -13.8844,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -27379,7 +27379,7 @@
     "latitude": -13.8844,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -27504,7 +27504,7 @@
     "latitude": -13.8844,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -27629,7 +27629,7 @@
     "latitude": -13.8844,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -27754,7 +27754,7 @@
     "latitude": -13.8844,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -27879,7 +27879,7 @@
     "latitude": -13.8844,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -28004,7 +28004,7 @@
     "latitude": -13.8844,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -28129,7 +28129,7 @@
     "latitude": -13.8844,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -28254,7 +28254,7 @@
     "latitude": -13.8844,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -28379,7 +28379,7 @@
     "latitude": -13.8844,
     "start_date": "2014-09-14",
     "end_date": "2015-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -28504,7 +28504,7 @@
     "latitude": -13.5567,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -28629,7 +28629,7 @@
     "latitude": -13.5567,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -28754,7 +28754,7 @@
     "latitude": -13.5567,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -28879,7 +28879,7 @@
     "latitude": -13.5567,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -29004,7 +29004,7 @@
     "latitude": -13.5567,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -29129,7 +29129,7 @@
     "latitude": -13.5567,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -29254,7 +29254,7 @@
     "latitude": -13.5567,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -29379,7 +29379,7 @@
     "latitude": -13.5567,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -29504,7 +29504,7 @@
     "latitude": -13.5567,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -29629,7 +29629,7 @@
     "latitude": -13.5567,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -29754,7 +29754,7 @@
     "latitude": -13.5567,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -29879,7 +29879,7 @@
     "latitude": -13.5567,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -30004,7 +30004,7 @@
     "latitude": -13.5899,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -30129,7 +30129,7 @@
     "latitude": -13.5899,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -30254,7 +30254,7 @@
     "latitude": -13.5899,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -30379,7 +30379,7 @@
     "latitude": -13.5899,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -30504,7 +30504,7 @@
     "latitude": -13.5899,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -30629,7 +30629,7 @@
     "latitude": -13.5899,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -30754,7 +30754,7 @@
     "latitude": -13.5899,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -30879,7 +30879,7 @@
     "latitude": -13.5899,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -31004,7 +31004,7 @@
     "latitude": -13.5899,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -31129,7 +31129,7 @@
     "latitude": -13.5899,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -31254,7 +31254,7 @@
     "latitude": -13.5899,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -31379,7 +31379,7 @@
     "latitude": -13.5899,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -31504,7 +31504,7 @@
     "latitude": -14.2801,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -31629,7 +31629,7 @@
     "latitude": -14.2801,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -31754,7 +31754,7 @@
     "latitude": -14.2801,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -31879,7 +31879,7 @@
     "latitude": -14.2801,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -32004,7 +32004,7 @@
     "latitude": -14.2801,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -32129,7 +32129,7 @@
     "latitude": -14.2801,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -32254,7 +32254,7 @@
     "latitude": -14.2801,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -32379,7 +32379,7 @@
     "latitude": -14.2801,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -32504,7 +32504,7 @@
     "latitude": -14.2801,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -32629,7 +32629,7 @@
     "latitude": -14.2801,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -32754,7 +32754,7 @@
     "latitude": -12.5569,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -32879,7 +32879,7 @@
     "latitude": -12.5569,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -33004,7 +33004,7 @@
     "latitude": -12.5569,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -33129,7 +33129,7 @@
     "latitude": -12.5569,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -33254,7 +33254,7 @@
     "latitude": -12.5569,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -33379,7 +33379,7 @@
     "latitude": -12.5569,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -33504,7 +33504,7 @@
     "latitude": -12.5569,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -33629,7 +33629,7 @@
     "latitude": -12.5569,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -33754,7 +33754,7 @@
     "latitude": -12.5569,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -33879,7 +33879,7 @@
     "latitude": -12.5569,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -34004,7 +34004,7 @@
     "latitude": -12.5569,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -34129,7 +34129,7 @@
     "latitude": -12.5569,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -34254,7 +34254,7 @@
     "latitude": -12.5569,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -34379,7 +34379,7 @@
     "latitude": -12.5569,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -34504,7 +34504,7 @@
     "latitude": -12.5569,
     "start_date": "2014-09-14",
     "end_date": "2015-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -34629,7 +34629,7 @@
     "latitude": -12.4325,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -34754,7 +34754,7 @@
     "latitude": -12.4325,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -34879,7 +34879,7 @@
     "latitude": -12.4325,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -35004,7 +35004,7 @@
     "latitude": -12.4325,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -35129,7 +35129,7 @@
     "latitude": -12.4325,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -35254,7 +35254,7 @@
     "latitude": -12.4325,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -35379,7 +35379,7 @@
     "latitude": -12.4325,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -35504,7 +35504,7 @@
     "latitude": -12.4325,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -35629,7 +35629,7 @@
     "latitude": -12.4325,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -35754,7 +35754,7 @@
     "latitude": -12.4325,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -35879,7 +35879,7 @@
     "latitude": -12.4325,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -36004,7 +36004,7 @@
     "latitude": -12.4325,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -36129,7 +36129,7 @@
     "latitude": -12.4325,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -36254,7 +36254,7 @@
     "latitude": -12.4325,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -36379,7 +36379,7 @@
     "latitude": -12.4325,
     "start_date": "2014-09-14",
     "end_date": "2015-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -36504,7 +36504,7 @@
     "latitude": -12.4746,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -36629,7 +36629,7 @@
     "latitude": -12.4746,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -36754,7 +36754,7 @@
     "latitude": -12.4746,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -36879,7 +36879,7 @@
     "latitude": -12.4746,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -37004,7 +37004,7 @@
     "latitude": -12.4746,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -37129,7 +37129,7 @@
     "latitude": -12.4746,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -37254,7 +37254,7 @@
     "latitude": -12.4746,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -37379,7 +37379,7 @@
     "latitude": -12.4746,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -37504,7 +37504,7 @@
     "latitude": -12.4746,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -37629,7 +37629,7 @@
     "latitude": -12.4746,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -37754,7 +37754,7 @@
     "latitude": -12.4746,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -37879,7 +37879,7 @@
     "latitude": -12.4746,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -38004,7 +38004,7 @@
     "latitude": -12.4746,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -38129,7 +38129,7 @@
     "latitude": -12.4746,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -38254,7 +38254,7 @@
     "latitude": -12.4746,
     "start_date": "2014-09-14",
     "end_date": "2015-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -38379,7 +38379,7 @@
     "latitude": -12.5684,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -38504,7 +38504,7 @@
     "latitude": -12.5684,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -38629,7 +38629,7 @@
     "latitude": -12.5684,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -38754,7 +38754,7 @@
     "latitude": -12.5684,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -38879,7 +38879,7 @@
     "latitude": -12.5684,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -39004,7 +39004,7 @@
     "latitude": -12.5684,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -39129,7 +39129,7 @@
     "latitude": -12.5684,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -39254,7 +39254,7 @@
     "latitude": -12.5684,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -39379,7 +39379,7 @@
     "latitude": -12.5684,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -39504,7 +39504,7 @@
     "latitude": -12.5684,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -39629,7 +39629,7 @@
     "latitude": -12.5684,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -39754,7 +39754,7 @@
     "latitude": -12.5684,
     "start_date": "2011-09-14",
     "end_date": "2012-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -39879,7 +39879,7 @@
     "latitude": -12.5684,
     "start_date": "2012-09-13",
     "end_date": "2013-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -40004,7 +40004,7 @@
     "latitude": -12.5684,
     "start_date": "2013-09-14",
     "end_date": "2014-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -40129,7 +40129,7 @@
     "latitude": -12.5684,
     "start_date": "2014-09-14",
     "end_date": "2015-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -40254,7 +40254,7 @@
     "latitude": -12.7317,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -40379,7 +40379,7 @@
     "latitude": -12.7317,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -40504,7 +40504,7 @@
     "latitude": -12.7317,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -40629,7 +40629,7 @@
     "latitude": -12.7317,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -40754,7 +40754,7 @@
     "latitude": -12.7317,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -40879,7 +40879,7 @@
     "latitude": -12.7317,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -41004,7 +41004,7 @@
     "latitude": -12.7317,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -41129,7 +41129,7 @@
     "latitude": -12.7317,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -41254,7 +41254,7 @@
     "latitude": -12.7317,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -41379,7 +41379,7 @@
     "latitude": -12.8424,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -41504,7 +41504,7 @@
     "latitude": -12.8424,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -41629,7 +41629,7 @@
     "latitude": -12.8424,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -41754,7 +41754,7 @@
     "latitude": -12.8424,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -41879,7 +41879,7 @@
     "latitude": -12.8424,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -42004,7 +42004,7 @@
     "latitude": -12.8424,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -42129,7 +42129,7 @@
     "latitude": -12.8424,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -42254,7 +42254,7 @@
     "latitude": -12.8424,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -42379,7 +42379,7 @@
     "latitude": -12.8424,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -42504,7 +42504,7 @@
     "latitude": -12.8424,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -42629,7 +42629,7 @@
     "latitude": -12.8424,
     "start_date": "2010-09-14",
     "end_date": "2011-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -42754,7 +42754,7 @@
     "latitude": -13.5856,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -42879,7 +42879,7 @@
     "latitude": -13.5856,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -43004,7 +43004,7 @@
     "latitude": -13.5856,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -43129,7 +43129,7 @@
     "latitude": -13.5856,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -43254,7 +43254,7 @@
     "latitude": -13.5856,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -43379,7 +43379,7 @@
     "latitude": -13.5856,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -43504,7 +43504,7 @@
     "latitude": -13.5856,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -43629,7 +43629,7 @@
     "latitude": -13.5856,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -43754,7 +43754,7 @@
     "latitude": -13.5856,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -43879,7 +43879,7 @@
     "latitude": -13.5856,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -44004,7 +44004,7 @@
     "latitude": -13.617,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -44129,7 +44129,7 @@
     "latitude": -13.617,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -44254,7 +44254,7 @@
     "latitude": -13.617,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -44379,7 +44379,7 @@
     "latitude": -13.617,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -44504,7 +44504,7 @@
     "latitude": -13.617,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -44629,7 +44629,7 @@
     "latitude": -13.617,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -44754,7 +44754,7 @@
     "latitude": -13.617,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -44879,7 +44879,7 @@
     "latitude": -13.617,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -45004,7 +45004,7 @@
     "latitude": -13.617,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -45129,7 +45129,7 @@
     "latitude": -13.617,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -45254,7 +45254,7 @@
     "latitude": -13.6314,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -45379,7 +45379,7 @@
     "latitude": -13.6314,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -45504,7 +45504,7 @@
     "latitude": -13.6314,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -45629,7 +45629,7 @@
     "latitude": -13.6314,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -45754,7 +45754,7 @@
     "latitude": -13.6314,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -45879,7 +45879,7 @@
     "latitude": -13.6314,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -46004,7 +46004,7 @@
     "latitude": -13.6314,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -46129,7 +46129,7 @@
     "latitude": -13.6314,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -46254,7 +46254,7 @@
     "latitude": -13.6314,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -46379,7 +46379,7 @@
     "latitude": -13.6314,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -46504,7 +46504,7 @@
     "latitude": -13.6031,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -46629,7 +46629,7 @@
     "latitude": -13.6031,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -46754,7 +46754,7 @@
     "latitude": -13.6031,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -46879,7 +46879,7 @@
     "latitude": -13.6031,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -47004,7 +47004,7 @@
     "latitude": -13.6031,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -47129,7 +47129,7 @@
     "latitude": -13.6031,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -47254,7 +47254,7 @@
     "latitude": -13.6031,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -47379,7 +47379,7 @@
     "latitude": -13.6031,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -47504,7 +47504,7 @@
     "latitude": -13.6031,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -47629,7 +47629,7 @@
     "latitude": -13.6031,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -47754,7 +47754,7 @@
     "latitude": -13.5795,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -47879,7 +47879,7 @@
     "latitude": -13.5795,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -48004,7 +48004,7 @@
     "latitude": -13.5795,
     "start_date": "2002-09-14",
     "end_date": "2003-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -48129,7 +48129,7 @@
     "latitude": -13.5795,
     "start_date": "2003-09-14",
     "end_date": "2004-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -48254,7 +48254,7 @@
     "latitude": -13.5795,
     "start_date": "2004-09-13",
     "end_date": "2005-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -48379,7 +48379,7 @@
     "latitude": -13.5795,
     "start_date": "2005-09-14",
     "end_date": "2006-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -48504,7 +48504,7 @@
     "latitude": -13.5795,
     "start_date": "2006-09-14",
     "end_date": "2007-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -48629,7 +48629,7 @@
     "latitude": -13.5795,
     "start_date": "2007-09-14",
     "end_date": "2008-08-28",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -48754,7 +48754,7 @@
     "latitude": -13.5795,
     "start_date": "2008-09-13",
     "end_date": "2009-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -48879,7 +48879,7 @@
     "latitude": -13.5795,
     "start_date": "2009-09-14",
     "end_date": "2010-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -49004,7 +49004,7 @@
     "latitude": -15.6142,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -49129,7 +49129,7 @@
     "latitude": -15.6142,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -49254,7 +49254,7 @@
     "latitude": -15.5888,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -49379,7 +49379,7 @@
     "latitude": -15.5888,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -49504,7 +49504,7 @@
     "latitude": -15.565,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -49629,7 +49629,7 @@
     "latitude": -15.565,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -49754,7 +49754,7 @@
     "latitude": -15.6162,
     "start_date": "2000-09-13",
     "end_date": "2001-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {
@@ -49879,7 +49879,7 @@
     "latitude": -15.6162,
     "start_date": "2001-09-14",
     "end_date": "2002-08-29",
-    "label": "Savanna",
+    "label": "Cerrado",
     "coverage": "mod13q1_512",
     "time_series": [
       {

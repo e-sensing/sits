@@ -27,7 +27,7 @@ patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Rodrigo_7cl
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
-results.tb  <- sits_TWDTW (examples.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
+results.tb  <- sits_TWDTW (examples.tb[9:12,], patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
 sits_plot(results.tb, type = "classification")
 
