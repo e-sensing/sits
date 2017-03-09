@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.2.0
-Date: 2017-02-26
+Version: 0.3.0
+Date: 2017-03-01
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', "Maus", role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Rolf', 'Simoes', role = c('ctb')),
@@ -16,7 +16,7 @@ Description: A set of tools for working with satellite image time series.
     Provides different visualisation methods for image time series.
     Enables different clustering methods.
     Provides smoothing methods for noisy time series.
-    Classifies time series using TWDTW packages.
+    Classifies time series using TWDTW method contained in the dtwSat package.
 URL: https://github.com/gilbertocamara/sits/
 BugReports: https://github.com/gilbertocamara/sits/issues
 License: GPL-2 | file LICENSE

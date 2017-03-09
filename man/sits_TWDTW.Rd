@@ -5,9 +5,7 @@
 \title{Classify a sits tibble using TWDTW (using the dtwSat package)}
 \usage{
 sits_TWDTW(series.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
-  theta = 0.5, start_date = as.Date("2000-09-01"),
-  end_date = as.Date("2016-08-31"), interval = "12 month", span = 250,
-  keep = FALSE)
+  theta = 0.5, interval = "12 month", span = 250, keep = FALSE)
 }
 \arguments{
 \item{series.tb}{a table in SITS format with a time series to be classified using TWTDW}
@@ -22,15 +20,15 @@ sits_TWDTW(series.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
 
 \item{theta}{(double)  - the relative weight of the time distance compared to the dtw distance}
 
-\item{start_date}{date - the starting date of the classification}
-
-\item{end_date}{date - the end date of the classification}
-
 \item{interval}{the period between two classifications}
 
 \item{span}{the minimum period for a match between a pattern and a signal)}
 
 \item{keep}{keep internal values for plotting matches}
+
+\item{start_date}{date - the starting date of the classification}
+
+\item{end_date}{date - the end date of the classification}
 }
 \value{
 matches       a SITS table with the information on matches for the data
@@ -50,8 +48,9 @@ results in time series analysis.
 In contrast to standard DTW, the TWDTW method is sensitive to seasonal
 changes of natural and cultivated vegetation types. It also considers inter-annual climatic and
 seasonal variability.
-
-Reference: Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
+}
+\references{
+Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
 A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.

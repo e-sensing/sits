@@ -14,11 +14,6 @@
 #' changes of natural and cultivated vegetation types. It also considers inter-annual climatic and
 #' seasonal variability.
 #'
-#' Reference: Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
-#' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
-#'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
-#'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
-#'
 #' @param  series.tb     a table in SITS format with a time series to be classified using TWTDW
 #' @param  patterns.tb   a set of known temporal signatures for the chosen classes
 #' @param  bands         string - the bands to be used for classification
@@ -32,6 +27,12 @@
 #' @param  keep          keep internal values for plotting matches
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
+#' @references
+#' Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
+#' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
+#'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
+#'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
+#'
 #'
 #'
 sits_TWDTW <- function (series.tb, patterns.tb, bands,
@@ -74,13 +75,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                                        span       = span,
                                        keep       = keep)
 
-
-          # number of years for classification to be done
-          n_years = as.integer ((end_date - start_date)/ lubridate::dyears(1))
-
-          classif <- dtwSat::twdtwClassify(x = matches, breaks = breaks)
-
-          row.tb <- .sits_fromTWDTW_matches (ts.tb, matches, classif, breaks, interval)
+          row.tb <- .sits_fromTWDTW_matches (ts.tb, matches, breaks, interval)
 
           # add the row to the results.tb tibble
           results.tb <- dplyr::bind_rows(results.tb, row.tb)
@@ -107,9 +102,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #' @return  result.tb     a table in SITS format with the results of the TWTDW classification
 #'
 #'
-.sits_fromTWDTW_matches <- function (series.tb, matches, classif, breaks, interval){
-
-     print (breaks)
+.sits_fromTWDTW_matches <- function (series.tb, matches, breaks, interval){
 
      ensurer::ensures_that(nrow(series.tb) == 1, err_desc = "sits_fromTWDTW_matches: works with one time series at a time!")
 
@@ -138,6 +131,15 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
           tb <-  aligns.lst[[i]]
           dist.tb <- dplyr::left_join(dist.tb, tb, by = "year" )
      }
+     # clean the distance tibble
+     dist.tb <- tidyr::drop_na(dist.tb)
+
+     # include a new column with the names of the class with the minimum TWDTW distance
+     classif <- character()
+     for (i in 1:nrow (dist.tb)){
+          classif[length(classif) + 1 ] <- names ((which.min(dist.tb[i,4:10])))
+     }
+     dist.tb <- dplyr::mutate(dist.tb, classification = classif)
 
      # store the distances and matches in two lists
      # distances
@@ -148,14 +150,9 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
      match.lst <- tibble::lst()
      match.lst[[1]] <- matches
 
-     # matches
-     classif.lst <- tibble::lst()
-     classif.lst[[1]] <- classif
-
      # add the distances and matches to the input row
      row.tb <- dplyr::mutate (series.tb, distances  = dist.lst)
      row.tb <- dplyr::mutate (row.tb, matches    = match.lst)
-     row.tb <- dplyr::mutate (row.tb, classification    = classif.lst)
 
 
      return (row.tb)
