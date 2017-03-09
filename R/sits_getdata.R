@@ -98,11 +98,16 @@ sits_getdata <- function (file        = NULL,
 .sits_getdata_from_table <-  function (source, wtss) {
      # create the table
      data.tb <- sits_table()
-     # for each row of the input, retrieve the time series
-     data.tb <- source %>%
-          dplyr::rowwise() %>%
-          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, .$start_date, .$end_date, .$label, wtss$wtss_obj, wtss$coverage, wtss$bands)) %>%
-          dplyr::bind_rows (data.tb, .)
+
+     for (i in 1:nrow(source)){
+          row <- source[i,]
+          if (is.na(row$start_date)) {row$start_date <- lubridate::as_date(wtss$start_date)}
+          if (is.na(row$end_date)) { row$end_date <- lubridate::as_date(wtss$end_date)}
+          if (is.na(row$label)) {row$label <- "NoClass"}
+          t <- .sits_fromWTSS (row$longitude, row$latitude, row$start_date, row$end_date,
+                                  row$label, wtss$wtss_obj, wtss$coverage, wtss$bands)
+          data.tb <- dplyr::bind_rows (data.tb, t)
+     }
      return (data.tb)
 }
 #------------------------------------------------------------------

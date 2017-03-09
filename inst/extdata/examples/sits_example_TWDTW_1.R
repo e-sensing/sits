@@ -42,7 +42,7 @@ series.tb %>%
      sits_plot()
 
 # read a pattern table from a JSON file
-patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Rodrigo_7classes_6bands.json")
+patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Damien_Ieda_Rodrigo_14classes_3bands.json")
 
 # plot patterns
 sits_plot (patterns.tb, type = "patterns")
