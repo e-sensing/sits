@@ -36,12 +36,13 @@ sits_assess <-  function (results.tb, area, conf.int = 0.95, rm.nosample = TRUE)
           colnames()
      confusion.mx <- matrix (0, nrow = length(labels), ncol = length(labels), dimnames = list(labels, labels))
 
-     for (i in 1:nrows(results.tb)) {
+     for (i in 1:nrow(results.tb)) {
           curr <-results.tb[i,]
           lab <- curr$label
           if (!(lab %in% labels)) next()
-          class <- curr$distances[[1]][1,"classification"]
-          confusion.mx [label, class] <- confusion.mx [label, class] + 1
+          class <- as.character(curr$distances[[1]][1,"classification"])
+          print (class)
+          confusion.mx [class, lab] <- confusion.mx [class, lab] + 1
      }
      return (confusion.mx)
 }

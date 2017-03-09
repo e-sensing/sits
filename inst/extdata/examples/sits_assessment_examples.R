@@ -3,17 +3,16 @@ library (sits)
 # select samples for pasture and savanna
 cerrado.tb <- sits_getdata (file = "./inst/extdata/Samples/cerrado.json")
 
-new_label <- function (label) {
-     if (label == "Savanna") {label = "Cerrado"}
-     return (label)
-}
-
-cerrado.tb <- dplyr::mutate(cerrado.tb, label = new_label(label))
 
 # read a pattern table from a JSON file
 patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Rodrigo_7classes_6bands.json")
 
+bands = c("ndvi", "evi")
+results.tb <- sits_TWDTW(cerrado.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
+area <- 0.216 * 0.216
+
+confusion.mx <- sits_assess (results.tb, area)
 
 savanna.tb <- dplyr::filter (cerrado.tb, label == "Savanna")
 
