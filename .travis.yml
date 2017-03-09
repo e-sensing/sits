@@ -20,6 +20,6 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo Rscript -e "install.packages('devtools',repos='http://cran.us.r-project.org')"; fi
   
 script: 
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo Rscript -e "devtools::install_github('gilbertocamara/sits')"; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then Rscript -e "devtools::install_github('gilbertocamara/sits')"; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo Rscript -e "devtools::install_github('vwmaus/sits')"; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then Rscript -e "devtools::install_github('vwmaus/sits')"; fi
 
