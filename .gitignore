@@ -3,5 +3,4 @@
 .RData
 .Ruserdata
 .DS_Store
-.Rbuildignore
-.aux.xml
+*.xml
