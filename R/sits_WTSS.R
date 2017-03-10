@@ -169,5 +169,5 @@ sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage
           - lubridate::as_date(timeline[1]))/lubridate::ddays(1))
      cat (paste ("Temporal resolution: ", temporal_resolution, " days ", "\n", sep = ""))
      cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
-     return (invisible (cov))
+     return (cov)
 }
