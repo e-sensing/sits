@@ -17,6 +17,7 @@
 #' @param rm.nosample if sum of columns and sum of rows of the error matrix are zero
 #' then remove class. Default is TRUE.
 #'
+#' @export
 #' @references
 #' [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).
 #' Making better use of accuracy data in land change studies: Estimating

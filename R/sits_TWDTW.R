@@ -136,8 +136,9 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 
      # include a new column with the names of the class with the minimum TWDTW distance
      classif <- character()
+     end_col <- 3 + length(labels)
      for (i in 1:nrow (dist.tb)){
-          classif[length(classif) + 1 ] <- names ((which.min(dist.tb[i,4:10])))
+          classif[length(classif) + 1 ] <- names ((which.min(dist.tb[i,4:end_col])))
      }
      dist.tb <- dplyr::mutate(dist.tb, classification = classif)
 
