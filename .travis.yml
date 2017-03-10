@@ -1,19 +1,12 @@
-language: r
+language: c++
 cache: packages
 os: 
-  - osx
   - linux
   
 dist: trusty
 sudo: required
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gdal; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew tap homebrew/science; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install Caskroom/cask/xquartz; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install r; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then Rscript -e "install.packages('devtools',repos='http://cran.us.r-project.org')"; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then echo 'deb http://cran.rstudio.com/bin/linux/ubuntu trusty/' | sudo tee --append /etc/apt/sources.list; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update; fi
@@ -22,5 +15,4 @@ before_install:
   
 script: 
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo Rscript -e "devtools::install_github('vwmaus/sits')"; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then Rscript -e "devtools::install_github('vwmaus/sits')"; fi
 
