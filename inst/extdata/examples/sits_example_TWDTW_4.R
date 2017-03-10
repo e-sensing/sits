@@ -4,10 +4,10 @@ library(sits)
 
 
 #load patterns from examples file
-cerrado.tb <- sits_getdata(file = "./inst/extdata/Samples/cerrado.json")
+cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado.json", package="sits"))
 
 # read a pattern table from a JSON file
-patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Rodrigo_7classes_6bands.json")
+patterns.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_Rodrigo_7classes_6bands.json", package="sits"))
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi")

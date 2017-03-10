@@ -41,7 +41,7 @@ point3.tb %>%
      sits_select (c("ndvi", "ndvi_smooth")) %>%
      sits_plot()
 
-samples1.tb <- sits_getdata(file = "./inst/extdata/samples/MatoGrosso-examples.csv", wtss = inpe )
+samples1.tb <- sits_getdata(file = system.file("extdata/samples/MatoGrosso-examples.csv", package="sits"), wtss = inpe )
 
 samples1.tb %>%
      sits_plot(type = "one_by_one")

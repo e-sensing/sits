@@ -2,7 +2,8 @@ library (sits)
 library (kohonen)
 
 # load patterns from savanna and pasture (expert = Rodrigo)
-cerrado.tb <- sits_fromJSON("./data/Samples/cerrado.json")
+cerrado.tb <- sits_fromJSON(system.file("extdata/samples/cerrado.json", package="sits"))
+
 time_series <- cerrado.tb$time_series
 
 time.df <- data.frame()

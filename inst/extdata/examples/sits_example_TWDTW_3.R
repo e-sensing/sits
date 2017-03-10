@@ -16,14 +16,14 @@ inpe <- sits_configWTSS (URL,
 
 
 #load patterns from examples file
-examples.tb <- sits_getdata(file = "./inst/extdata/Samples/MatoGrosso-examples.csv", wtss = inpe)
+examples.tb <- sits_getdata(file = system.file("extdata/samples/MatoGrosso-examples.csv", package="sits"), wtss = inpe)
 
 examples.tb %>%
      sits_select(c("evi")) %>%
      sits_plot()
 
 # read a pattern table from a JSON file
-patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Rodrigo_7classes_6bands.json")
+patterns.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_Rodrigo_7classes_6bands.json", package="sits"))
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
