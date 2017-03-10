@@ -36,7 +36,7 @@ sits_assess <- function (results.tb, area, conf.int = 0.95, rm.nosample = FALSE)
 
      # Get mapped classes
      Mapped    <- dplyr::bind_rows(results.tb$distances) %>%
-                              dplyr::select(classification) %>% unlist
+                              dplyr::select(dplyr::matches("classification")) %>% unlist
      # Get all labels
      classes   <- unique(c(Reference, Mapped))
 
