@@ -20,8 +20,8 @@
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
-#' @param  start_date    date - the starting date of the classification
-#' @param  end_date      date - the end date of the classification
+# @param  start_date    date - the starting date of the classification
+# @param  end_date      date - the end date of the classification
 #' @param  interval      the period between two classifications
 #' @param  span          the minimum period for a match between a pattern and a signal)
 #' @param  keep          keep internal values for plotting matches

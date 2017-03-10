@@ -13,6 +13,8 @@ sits_plot(data.tb = NULL, type = "allyears", colors = "Dark2",
 \item{type}{string - the type of plot to be generated}
 
 \item{colors}{the color pallete to be used (default is "Set1")}
+
+\item{label}{the class label}
 }
 \value{
 data.tb    tibble - the input SITS table (useful for chaining functions)

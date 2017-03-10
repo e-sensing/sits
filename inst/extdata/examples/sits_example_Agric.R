@@ -15,19 +15,19 @@ sits_configWTSS (URL,
                  bands = c("ndvi", "evi", "nir"))
 
 # read a pattern table from a JSON file
-patterns.tb <- sits_getdata("./data/patterns/patterns_Rodrigo_8classes_6bands.json")
+patterns.tb <- sits_getdata(system.file("extdata/patterns/patterns_Rodrigo_8classes_6bands.json", package="sits"))
 
 # plot patterns
 sits_plot (patterns.tb, type = "patterns")
 
 #load patterns from examples file
-examples.tb <- sits_getdata("./data/Samples/MatoGrosso-examples.csv")
+examples.tb <- sits_getdata(system.file("extdata/samples/MatoGrosso-examples.csv", package="sits"))
 
 examples.tb %>%
      sits_select(c("evi")) %>%
      sits_plot()
 
-cerrado.tb <- sits_getdata("./data/Samples/cerrado.json")
+cerrado.tb <- sits_getdata(system.file("extdata/samples/cerrado.json", package="sits"))
 
 long <- -55.51810
 lat <-  -11.63884

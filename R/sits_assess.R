@@ -1,17 +1,16 @@
 #' @title Assess time series classification
 #' @name sits_assess
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Performs an accuracy assessment
-#' of the classified maps. The function returns Overall Accuracy,
-#' User's Accuracy, Produce's Accuracy, error matrix (confusion matrix),
-#' and estimated area according to [1-2]. The function returns the metrics
-#' for each time interval and a summary considering all classified intervals.
+#' @description This function calls \code{\link[dtwSat]{twdtwAssess}} from \pkg{dtwSat}.
+#' \code{\link[dtwSat]{twdtwAssess}} performs an accuracy assessment of the classified, including
+#' Overall Accuracy, User's Accuracy, Produce's Accuracy, error matrix (confusion matrix),
+#' and estimated area according to [1-2].
 #'
 #' @param results.tb an object of "sits_table" with the results of a time series classification
 #'
-#' @param area a numeric vector with the area for each class
+#' @param area a numeric vector with the area for each class.
 #'
 #' @param conf.int specifies the confidence level (0-1).
 #'
@@ -30,20 +29,35 @@
 #' Good practices for estimating area and assessing accuracy of land change. Remote Sensing of
 #' Environment, 148, pp. 42-57.
 #'
-sits_assess <-  function (results.tb, area, conf.int = 0.95, rm.nosample = TRUE){
-     #get the names of the labels
-     labels <- results.tb$distances[[1]] %>%
-          dplyr::select(-dplyr::ends_with("year"), -dplyr::ends_with("date"), -dplyr::starts_with("classif")) %>%
-          colnames()
-     confusion.mx <- matrix (0, nrow = length(labels), ncol = length(labels), dimnames = list(labels, labels))
+#'@export
+sits_assess <- function (results.tb, area, conf.int = 0.95, rm.nosample = FALSE){
 
-     for (i in 1:nrow(results.tb)) {
-          curr <-results.tb[i,]
-          lab <- curr$label
-          if (!(lab %in% labels)) next()
-          class <- as.character(curr$distances[[1]][1,"classification"])
-          print (class)
-          confusion.mx [class, lab] <- confusion.mx [class, lab] + 1
-     }
-     return (confusion.mx)
+     # Get reference classes
+     Reference <- results.tb$label
+
+     # Get mapped classes
+     Mapped    <- dplyr::bind_rows(results.tb$distances) %>%
+                              dplyr::select(dplyr::matches("classification")) %>% unlist
+     # Get all labels
+     classes   <- unique(c(Reference, Mapped))
+
+     # Create error matrix
+     error_matrix <- table(factor(Mapped,    levels = classes, labels = classes),
+                           factor(Reference, levels = classes, labels = classes))
+
+     # Get area - TO IMPROVE USING THE METADATA FROM SATELLITE PRODUCTS
+     if(missing(area))
+          area <- rowSums(error_matrix)
+
+     # Compute accuracy metrics using dtwSat::twdtwAssess
+     assessment <- dtwSat::twdtwAssess (error_matrix,
+                                        area = area,
+                                        conf.int = conf.int,
+                                        rm.nosample = rm.nosample )
+
+     return (assessment)
+
 }
+
+
+

@@ -8,6 +8,7 @@
 #' @param    data.tb    tibble - a SITS table with the list of time series to be plotted
 #' @param    type       string - the type of plot to be generated
 #' @param    colors     the color pallete to be used (default is "Set1")
+#' @param    label      the class label
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
 #' @keywords STIS
 #' @export

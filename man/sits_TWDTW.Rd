@@ -25,10 +25,6 @@ sits_TWDTW(series.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
 \item{span}{the minimum period for a match between a pattern and a signal)}
 
 \item{keep}{keep internal values for plotting matches}
-
-\item{start_date}{date - the starting date of the classification}
-
-\item{end_date}{date - the end date of the classification}
 }
 \value{
 matches       a SITS table with the information on matches for the data

@@ -4,12 +4,12 @@
 \alias{sits_assess}
 \title{Assess time series classification}
 \usage{
-sits_assess(results.tb, area, conf.int = 0.95, rm.nosample = TRUE)
+sits_assess(results.tb, area, conf.int = 0.95, rm.nosample = FALSE)
 }
 \arguments{
 \item{results.tb}{an object of "sits_table" with the results of a time series classification}
 
-\item{area}{a numeric vector with the area for each class}
+\item{area}{a numeric vector with the area for each class.}
 
 \item{conf.int}{specifies the confidence level (0-1).}
 
@@ -17,11 +17,10 @@ sits_assess(results.tb, area, conf.int = 0.95, rm.nosample = TRUE)
 then remove class. Default is TRUE.}
 }
 \description{
-Performs an accuracy assessment
-of the classified maps. The function returns Overall Accuracy,
-User's Accuracy, Produce's Accuracy, error matrix (confusion matrix),
-and estimated area according to [1-2]. The function returns the metrics
-for each time interval and a summary considering all classified intervals.
+This function calls \code{\link[dtwSat]{twdtwAssess}} from \pkg{dtwSat}.
+\code{\link[dtwSat]{twdtwAssess}} performs an accuracy assessment of the classified, including
+Overall Accuracy, User's Accuracy, Produce's Accuracy, error matrix (confusion matrix),
+and estimated area according to [1-2].
 }
 \references{
 [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).
