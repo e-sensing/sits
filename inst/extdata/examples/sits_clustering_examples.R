@@ -1,7 +1,7 @@
 library (sits)
 
 # select samples for pasture and savanna
-cerrado.tb <- sits_getdata (file = "./inst/extdata/Samples/cerrado.json")
+cerrado.tb <- sits_getdata (file = system.file("extdata/samples/cerrado.json", package="sits"))
 
 savanna.tb <- dplyr::filter (cerrado.tb, label == "Savanna")
 

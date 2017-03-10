@@ -21,7 +21,7 @@ lat <-  -11.63884
 point.tb <- sits_getdata(longitude = long, latitude = lat, wtss = inpe)
 
 # read a pattern table from a JSON file
-patterns2.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Damien_Rodrigo_11classes_6bands_centroid_Sep.json")
+patterns2.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_Damien_Rodrigo_11classes_6bands_centroid_Sep.json", package="sits"))
 
 # plot patterns
 sits_plot (patterns2.tb, type = "patterns")

@@ -12,7 +12,7 @@ inpe <- sits_configWTSS (URL,
 # read sample information from a CSV archive,
 # recover the time series from the WTSS service
 # put data and metadata on a SITS table
-embrapa.tb  <- sits_getdata(file = "./inst/extdata/samples/damien.csv", wtss = inpe, n_max = 20)
+embrapa.tb  <- sits_getdata(file = system.file("extdata/samples/damien.csv", package="sits"), wtss = inpe, n_max = 20)
 
 embrapa.tb %>%
      sits_select (bands = "evi") %>%
@@ -21,7 +21,8 @@ embrapa.tb %>%
 # classify point using TWDTW
 
 # read a pattern table from a JSON file
-patterns.tb <- sits_getdata ("./inst/extdata/patterns/patterns_8classes_6bands.json")
+patterns.tb <- sits_getdata (system.file("extdata/patterns/patterns_8classes_6bands.json", package="sits"))
+
 # plot patterns
 sits_plot (patterns.tb, type = "patterns")
 
