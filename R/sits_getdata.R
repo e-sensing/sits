@@ -35,13 +35,7 @@ sits_getdata <- function (file        = NULL,
                           bands       = NULL,
                           n_max       = Inf) {
 
-     ensurer::ensures_that (( (tolower(tools::file_ext(file)) == "json") ||
-                             ((tolower(tools::file_ext(file) == "csv") || tolower(tools::file_ext(file) == "shp")) && !purrr::is_null (coverage) && !purrr::is_null(bands)) ||
-                             (!purrr::is_null(table) && !purrr::is_null (coverage) && !purrr::is_null(bands)) ||
-                             (!purrr::is_null(latitude) && !purrr::is_null(longitude) && !purrr::is_null (coverage) && !purrr::is_null(bands)) ),
-                             err_desc = "invalid inputs - please see documentation for sits_get_data")
-
-     if (purrr::is_null (file) && purrr::is_null (table) && !purrr::is_null (coverage) && !purrr::is_null(bands)) {
+     if (purrr::is_null (file) && purrr::is_null (table) && !purrr::is_null (coverage) && !purrr::is_null(bands) && !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
           label <- "NoClass"
           data.tb <- .sits_fromWTSS (longitude,
                                      latitude,
@@ -55,15 +49,15 @@ sits_getdata <- function (file        = NULL,
           data.tb <- .sits_getdata_from_table (table, URL, coverage, bands)
           return (data.tb)
      }
-     if ((tolower(tools::file_ext(file) == "csv")) && !purrr::is_null (coverage) && !purrr::is_null(bands)) {
+     if (tolower(tools::file_ext(file)) == "csv" && !purrr::is_null (coverage) && !purrr::is_null(bands)) {
           data.tb <- .sits_getdata_fromCSV (file, URL, coverage, bands, n_max)
           return (data.tb)
      }
-     if (tolower(tools::file_ext(file) == "json")){
+     if  (tolower(tools::file_ext(file)) == "json"){
           data.tb <- .sits_getdata_fromJSON (file)
           return (data.tb)
      }
-     if ((tolower(tools::file_ext(file) == "shp")) && !purrr::is_null (coverage) && !purrr::is_null(bands)){
+     if (tolower(tools::file_ext(file)) == "shp" && !purrr::is_null (coverage) && !purrr::is_null(bands)) {
           data.tb <- .sits_getdata_fromSHP (file, URL, coverage, bands)
           return (data.tb)
      }
@@ -88,15 +82,19 @@ sits_getdata <- function (file        = NULL,
      # create the table
      data.tb <- sits_table()
 
+     # obtains an R object that represents the WTSS service
+     wtss.obj         <- wtss.R::WTSS(URL)
 
+     #retrieve coverage information
+     cov <- sits_getcovWTSS(URL, coverage)
 
      for (i in 1:nrow(source)){
           row <- source[i,]
-          if (is.na(row$start_date)) {row$start_date <- lubridate::as_date(wtss$start_date)}
-          if (is.na(row$end_date)) { row$end_date <- lubridate::as_date(wtss$end_date)}
+          if (is.na(row$start_date)) {row$start_date <- lubridate::as_date(cov$timeline[1])}
+          if (is.na(row$end_date)) { row$end_date <- lubridate::as_date(cov$timeline[length(timeline)])}
           if (is.na(row$label)) {row$label <- "NoClass"}
           t <- .sits_fromWTSS (row$longitude, row$latitude, row$start_date, row$end_date,
-                                  row$label, wtss$wtss_obj, wtss$coverage, wtss$bands)
+                                  row$label, wtss_obj, coverage, bands)
           data.tb <- dplyr::bind_rows (data.tb, t)
      }
      return (data.tb)
