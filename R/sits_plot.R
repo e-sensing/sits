@@ -10,7 +10,7 @@
 #' @param    colors     the color pallete to be used (default is "Set1")
 #' @param    label      the class label
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
-#' @keywords STIS
+#' @keywords SITS
 #' @export
 #'
 sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = "NoClass") {
@@ -107,7 +107,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 #' @param    data.tb    tibble - a SITS table with the list of time series to be plotted
 #' @param    colours    the color pallete to be used (default is "Set1")
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
-#' @keywords STIS
+#' @keywords SITS
 #'
 .sits_plot_together <- function (data.tb, colors) {
      # this function plots all the values of all time series together (for one band)
@@ -120,8 +120,8 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
           # create a data frame with the mean and plus and minus 1 standard deviation
           # convert to tibble and create now coluns with mean +- std
           means.tb <- data.frame  (Index = series.tb$Index,
-                                   rmean = rowMeans(series.tb[,2:ncol(series.tb)]),
-                                   std  = apply   (series.tb[,2:ncol(series.tb)],1,stats::sd)) %>%
+                                   rmean = rowMeans(series.tb[,2:ncol(series.tb)], na.rm = TRUE),
+                                   std  = apply   (series.tb[,2:ncol(series.tb)],1,stats::sd, na.rm=TRUE)) %>%
                tibble::as_tibble() %>%
                dplyr::mutate (stdplus = rmean + std, stdminus = rmean - std)
 

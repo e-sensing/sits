@@ -234,7 +234,7 @@ sits_cross <-  function(sits1.tb, sits2.tb) {
 
      # fourth, do a cross join, removes `cross_join` field, and adds a `cluster_id` field to distinct each cluster
      # (this will be use to nest time_series in crossed.tb -- see bellow)
-     crossed.tb <<- sits1.data %>%
+     crossed.tb <- sits1.data %>%
           dplyr::inner_join(sits2.data, by='cross_join') %>%
           dplyr::select(-cross_join) %>%
           dplyr::mutate(cluster_id = 1:nrow(.))

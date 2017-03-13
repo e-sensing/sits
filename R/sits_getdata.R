@@ -238,11 +238,40 @@ sits_getdata <- function (file        = NULL,
      # retrieve the time series information
      time_series <- ts[[coverage]]$attributes
 
-     # scale the time series
-     time_series[,bands] <-  time_series[,bands]*0.0001
-
      # convert the series to a tibble
      row.tb <- tibble::as_tibble (zoo::fortify.zoo (time_series))
+
+     # retrieve coverage information about bands' scale factor and missing values
+     cov_attr <- wtss.R::describeCoverage(wtss$wtss_obj, coverage)[[coverage]]$attributes
+
+     # get bands' missing value
+     missing_values <- cov_attr %>%
+          dplyr::select (name, missing_value) %>%
+          tibble::as_tibble() %>%
+          dplyr::rename(band=name) %>%
+          dplyr::filter(band %in% bands) %>%
+          tidyr::spread(key=band, value=missing_value)
+
+     # get bands' scale factor
+     scale_factors <- cov_attr %>%
+          dplyr::select (name, scale_factor) %>%
+          tibble::as_tibble() %>%
+          dplyr::rename(band=name) %>%
+          dplyr::filter(band %in% bands) %>%
+          tidyr::spread(key=band, value=scale_factor)
+
+     # update missing values to NA
+     row.tb[, bands] <- purrr::map2(row.tb[, bands], missing_values[, bands], function(raw_band, miss_value){
+          ifelse(raw_band == miss_value, NA, raw_band)
+     })
+
+     # scale the time series
+     #time_series[,bands] <-  time_series[,bands]*0.0001
+     row.tb[, bands] <- purrr::map2(row.tb[, bands], scale_factors[, bands], function(raw_band, scale_factor){
+          raw_band * scale_factor
+     })
+
+
      # clean the time series
      # create a list to store the zoo time series coming from the WTSS service
      ts.lst <- list()

@@ -94,7 +94,7 @@ sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
 #
 #' Provides information about WTSS service
 #'
-#' \code{sits_info_WTSS} uses the WTSS services to provide information about the
+#' \code{sits_infoWTSS} uses the WTSS services to provide information about the
 #' coverages that are served
 #'
 #' @param URL     the URL for the WTSS time series service
