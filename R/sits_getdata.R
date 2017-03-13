@@ -62,7 +62,7 @@ sits_getdata <- function (file        = NULL,
           return (data.tb)
      }
      message (paste ("No valid input to retrieve time series data!!","\n",sep=""))
-     stop(cond)
+     stop()
 }
 #------------------------------------------------------------------
 #' Obtain timeSeries from WTSS server, based on a SITS table.
