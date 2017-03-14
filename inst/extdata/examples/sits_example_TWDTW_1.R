@@ -6,10 +6,12 @@ library(sits)
 # see WTSS paper for more information ("Web Services for Big Data")
 
 URL <- "http://www.dpi.inpe.br/tws/wtss"
-wtss_inpe <- sits_infoWTSS(URL)
+sits_infoWTSS(URL)
 
 # get information about a specific coverage
 sits_coverageWTSS(URL,"mod13q1_512")
+
+coverage <- "mod13q1_512"
 
 # bands used in this example
 bands <- c("ndvi", "evi")
@@ -17,6 +19,10 @@ bands <- c("ndvi", "evi")
 # a complicated point
 long <- -55.51810
 lat <-  -11.63884
+
+# another complicated point
+long <- -55.01768
+lat <-  -15.35588
 
 series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = "mod13q1_512", bands = bands)
 
