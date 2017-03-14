@@ -24,8 +24,6 @@
 #' @return wtss_info       a list containing the information about the WTSS server and coverage
 #' @export
 sits_infoWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss") {
-
-<<<<<<< HEAD
      wtss_info                <- tibble::lst()
      class (wtss_info)        <- append (class(wtss_info), "wtss_info")
      # create a WTSS connection
@@ -77,8 +75,6 @@ sits_infoWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss") {
 #' @export
 #'
 sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
-=======
->>>>>>> 56fdb281cc2b00fc2e48e417f74ddee14c4b896f
      # obtains information about the WTSS service
      wtss.obj         <- wtss.R::WTSS(URL)
      cat (paste ("-----------------------------------------------------------", "\n",sep = ""))
