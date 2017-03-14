@@ -15,7 +15,7 @@
 #'
 sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = "NoClass") {
      # check the input exists
-     ensurer::ensures_that(!purrr::is_null(data.tb), err_desc = "sits_plot: input data not provided")
+     ensurer::ensure_that(data.tb, !purrr::is_null(.), err_desc = "sits_plot: input data not provided")
 
      switch(type,
             "allyears"       = .sits_plot_allyears (data.tb, colors),
@@ -88,7 +88,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 }
 
 .sits_plot_matches <- function (data.tb) {
-     ensurer::ensures_that(!purrr::is_null(label), err_desc = "sits_plot matches: label must be provided")
+     ensurer::ensure_that(label, !purrr::is_null(.), err_desc = "sits_plot matches: label must be provided")
      data.tb %>%
           dplyr::rowwise() %>%
           dplyr::do({

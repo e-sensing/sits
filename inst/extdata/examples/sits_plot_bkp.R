@@ -14,7 +14,7 @@
 #'
 sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = NULL) {
      # check the input exists
-     ensurer::ensures_that(!purrr::is_null(data.tb), err_desc = "sits_plot: input data not provided")
+     ensurer::ensure_that(data.tb, !purrr::is_null(.), err_desc = "sits_plot: input data not provided")
 
      switch(type,
             "allyears" = {
@@ -53,7 +53,6 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
             },
             "classification" = {
                  # retrieve a dtwSat S4 twdtwMatches object
-                 #ensurer::ensures_that(data.tb)
                  data.tb %>%
                       dplyr::rowwise() %>%
                       dplyr::do({
@@ -73,7 +72,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 
             },
             "matches" = {
-                 ensurer::ensures_that(!purrr::is_null(label), err_desc = "sits_plot matches: label must be provided")
+                 ensurer::ensures_that(label, !purrr::is_null(.), err_desc = "sits_plot matches: label must be provided")
                  data.tb %>%
                       dplyr::rowwise() %>%
                       dplyr::do({

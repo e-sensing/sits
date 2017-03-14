@@ -14,7 +14,7 @@ sits_coverageWTSS(URL,"mod13q1_512")
 coverage <- "mod13q1_512"
 
 # bands used in this example
-bands <- c("ndvi", "evi")
+bands <- c("ndvi", "evi", "blue", "red", "nir", "mir")
 
 # a complicated point
 long <- -55.51810
@@ -37,11 +37,12 @@ series.tb %>%
 
 series_s.tb <- series.tb %>%
      sits_smooth() %>%
-     sits_rename (c("ndvi_smooth", "evi_smooth"))
+     sits_rename (c("ndvi_smooth", "evi_smooth", "blue_smooth", "red_smooth", "nir_smooth", "mir_smooth")) %>%
+     sits_plot()
 
 series.tb %>%
      sits_merge(., series_s.tb) %>%
-     sits_select (bands = c("evi", "evi_smooth")) %>%
+     sits_select (bands = c("red", "red_smooth")) %>%
      sits_plot()
 
 # read a pattern table from a JSON file
@@ -51,7 +52,7 @@ patterns.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_Damien
 sits_plot (patterns.tb, type = "patterns")
 
 # classify samples using TWDTW
-bands <- c("ndvi", "evi", "nir")
+bands <- c("ndvi", "evi", "nir", "mir")
 results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
 sits_plot (results.tb, type = "classification")
