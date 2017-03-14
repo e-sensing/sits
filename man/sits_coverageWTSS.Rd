@@ -12,6 +12,19 @@ sits_coverageWTSS(URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL)
 \item{coverage}{the name of the coverage}
 }
 \description{
-\code{sits_coverageWTSS} uses the WTSS services to provide information about a
-chosen coverage
+\code{sits_coverageWTSS} uses the WTSS services to print information about a
+chosen coverage:
+}
+\details{
+start_date     - the start date for the time series data in the coverage
+ end_date       - the end date for the time series data in the coverage
+ res_x          - spatial resolution (x dimension)
+ res_y          - spatial resolution (y dimension)
+ start_date     - initial date of the coverage time series
+ end_date       - final date of the coverage time series
+ x_min          - spatial extent (xmin)
+ y_min          - spatial extent (ymin)
+ x_max          - spatial extent (xmax)
+ y_max          - spatial extent (ymin)
+ bands          - the bands of the data to be retrieved from the WTSS
 }

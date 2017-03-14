@@ -17,7 +17,9 @@
 #' @param table           an R object ("sits_table")
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location)
-#' @param wtss            WTSS configuration - information that describes the WTSS service (given by sits_configWTSS)
+#' @param URL             string - the URL of WTSS (Web Time Series Service)
+#' @param coverage        string - the name of the coverage to be retrieved
+#' @param bands           string vector - the names of the bands to be retrieved
 #' @param n_max           integer - the maximum number of samples to be read (optional)
 #' @return data.tb        tibble  - a SITS table
 #' @keywords SITS
@@ -26,62 +28,41 @@
 
 sits_getdata <- function (file        = NULL,
                           table       = NULL,
-                          longitude   = -55.51810,
-                          latitude    = -11.63884,
-                          wtss        = NULL,
+                          longitude   = NULL,
+                          latitude    = NULL,
+                          URL         = "http://www.dpi.inpe.br/tws/wtss",
+                          coverage    = NULL,
+                          bands       = NULL,
                           n_max       = Inf) {
 
-     if (purrr::is_null (file) && purrr::is_null (table) && !purrr::is_null (wtss)) {
+     if (purrr::is_null (file) && purrr::is_null (table) && !purrr::is_null (coverage) && !purrr::is_null(bands) && !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
           label <- "NoClass"
           data.tb <- .sits_fromWTSS (longitude,
                                      latitude,
-                                     wtss$start_date,
-                                     wtss$end_date,
                                      label,
-                                     wtss$wtss_obj,
-                                     wtss$coverage,
-                                     wtss$bands)
+                                     URL,
+                                     coverage,
+                                     bands)
           return (data.tb)
      }
-     if (!purrr::is_null (table) && !purrr::is_null (wtss)){
-          data.tb <- .sits_getdata_from_table (table, wtss)
+     if (!purrr::is_null (table) && !purrr::is_null (coverage) && !purrr::is_null(bands)){
+          data.tb <- .sits_getdata_from_table (table, URL, coverage, bands)
           return (data.tb)
      }
-     if ((tools::file_ext(file) == "csv" || tools::file_ext(file) == "CSV") && !purrr::is_null (wtss)) {
-          data.tb <- .sits_getdata_fromCSV (file, wtss, n_max)
+     if (tolower(tools::file_ext(file)) == "csv" && !purrr::is_null (coverage) && !purrr::is_null(bands)) {
+          data.tb <- .sits_getdata_fromCSV (file, URL, coverage, bands, n_max)
           return (data.tb)
      }
-     if (tools::file_ext(file) == "json" || tools::file_ext(source) == "JSON"){
+     if  (tolower(tools::file_ext(file)) == "json"){
           data.tb <- .sits_getdata_fromJSON (file)
           return (data.tb)
      }
-     if ((tools::file_ext(file) == "shp" || tools::file_ext(file) == "SHP") && !purrr::is_null (wtss)){
-          data.tb <- .sits_getdata_fromSHP (file, wtss)
+     if (tolower(tools::file_ext(file)) == "shp" && !purrr::is_null (coverage) && !purrr::is_null(bands)) {
+          data.tb <- .sits_getdata_fromSHP (file, URL, coverage, bands)
           return (data.tb)
      }
      message (paste ("No valid input to retrieve time series data!!","\n",sep=""))
-     stop(cond)
-}
-#------------------------------------------------------------------
-#' Obtain timeSeries from WTSS server, based on a WTSS configuration.
-#'
-#' \code{.sitsgetdata_fromWTSS_config} reads configuration information about
-#' the WTSS services from a wtss object passed as parameters. Then it uses the WTSS configuration
-#' to call the atomic function .sits_getdata_fromWTSS to
-#' obtain the required data.
-#'
-#' @param longitude      the longitude of the location of the time series
-#' @param latitude       the latitude of the location of the time series
-#' @param wtss           WTSS object - the WTSS object that describes the WTSS server
-#' @return data.tb       tibble  - a SITS table
-.sits_getdata_fromWTSS_config <-  function (latitude, longitude, wtss) {
-     # create the table
-     data.tb <- sits_table()
-     label <- "NoClass"
-     # for each row of the input, retrieve the time series
-     data.tb <- .sits_fromWTSS (longitude, latitude, wtss$start_date, wtss$end_date, label,
-                                wtss$wtss_obj, wtss$coverage, wtss$bands)
-     return (data.tb)
+     stop()
 }
 #------------------------------------------------------------------
 #' Obtain timeSeries from WTSS server, based on a SITS table.
@@ -93,19 +74,27 @@ sits_getdata <- function (file        = NULL,
 #'
 #'
 #' @param table          an R object (type "sits_table")
-#' @param wtss           WTSS object - the WTSS object that describes the WTSS server
+#' @param URL             string - the URL of WTSS (Web Time Series Service)
+#' @param coverage        string - the name of the coverage to be retrieved
+#' @param bands           string vector - the names of the bands to be retrieved
 #' @return data.tb       tibble  - a SITS table
-.sits_getdata_from_table <-  function (source, wtss) {
+.sits_getdata_from_table <-  function (source, URL, coverage, bands) {
      # create the table
      data.tb <- sits_table()
 
+     # obtains an R object that represents the WTSS service
+     wtss.obj         <- wtss.R::WTSS(URL)
+
+     #retrieve coverage information
+     cov <- sits_getcovWTSS(URL, coverage)
+
      for (i in 1:nrow(source)){
           row <- source[i,]
-          if (is.na(row$start_date)) {row$start_date <- lubridate::as_date(wtss$start_date)}
-          if (is.na(row$end_date)) { row$end_date <- lubridate::as_date(wtss$end_date)}
+          if (is.na(row$start_date)) {row$start_date <- lubridate::as_date(cov$timeline[1])}
+          if (is.na(row$end_date)) { row$end_date <- lubridate::as_date(cov$timeline[length(timeline)])}
           if (is.na(row$label)) {row$label <- "NoClass"}
           t <- .sits_fromWTSS (row$longitude, row$latitude, row$start_date, row$end_date,
-                                  row$label, wtss$wtss_obj, wtss$coverage, wtss$bands)
+                                  row$label, wtss_obj, coverage, bands)
           data.tb <- dplyr::bind_rows (data.tb, t)
      }
      return (data.tb)
@@ -294,4 +283,3 @@ sits_getdata <- function (file        = NULL,
      # return the table with the time series
      return (data.tb)
 }
-

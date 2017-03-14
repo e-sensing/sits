@@ -9,14 +9,13 @@ URL <- "http://www.dpi.inpe.br/tws/wtss"
 
 sits_infoWTSS(URL)
 
-# then, configure the WTSS service
-inpe <- sits_configWTSS (URL,
-                 coverage = "mod13q1_512",
-                 bands = c("ndvi", "evi", "nir"))
+coverage <- "mod13q1_512"
+
+bands <-  c("ndvi", "evi", "nir")
 
 
 #load patterns from examples file
-examples.tb <- sits_getdata(file = system.file("extdata/samples/MatoGrosso-examples.csv", package="sits"), wtss = inpe)
+examples.tb <- sits_getdata(file = "./inst/extdata/samples/MatoGrosso-examples.csv", URL = URL, coverage = coverage, bands = bands)
 
 examples.tb %>%
      sits_select(c("evi")) %>%

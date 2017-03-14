@@ -4,8 +4,9 @@
 \alias{sits_getdata}
 \title{Obtain timeSeries}
 \usage{
-sits_getdata(file = NULL, table = NULL, longitude = -55.5181,
-  latitude = -11.63884, wtss = NULL, n_max = Inf)
+sits_getdata(file = NULL, table = NULL, longitude = NULL,
+  latitude = NULL, URL = "http://www.dpi.inpe.br/tws/wtss",
+  coverage = NULL, bands = NULL, n_max = Inf)
 }
 \arguments{
 \item{file}{the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)}
@@ -16,7 +17,11 @@ sits_getdata(file = NULL, table = NULL, longitude = -55.5181,
 
 \item{latitude}{double - the latitude of the chosen location)}
 
-\item{wtss}{WTSS configuration - information that describes the WTSS service (given by sits_configWTSS)}
+\item{URL}{string - the URL of WTSS (Web Time Series Service)}
+
+\item{coverage}{string - the name of the coverage to be retrieved}
+
+\item{bands}{string vector - the names of the bands to be retrieved}
 
 \item{n_max}{integer - the maximum number of samples to be read (optional)}
 }
