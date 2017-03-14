@@ -186,6 +186,7 @@ sits_getcovWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage =
      # is the coverage in the list of coverages?
      ensurer::ensures_that (coverage %in%coverages.vec, err_desc = "coverage is not available in the WTSS server")
      #retrive the coverage information
+     cov.lst    <- wtss.R::describeCoverage(wtss.obj, coverage)
      cov <- cov.lst[[coverage]]
 
      return (cov)
