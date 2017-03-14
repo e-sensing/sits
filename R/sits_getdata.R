@@ -36,12 +36,14 @@ sits_getdata <- function (file        = NULL,
                           n_max       = Inf) {
 
      # a JSON file has all the data and metadata - no need to access the WTSS server
-     if  (!purrr:is_null (file) && tolower(tools::file_ext(file)) == "json"){
-          data.tb <- .sits_getdata_fromJSON (file)
+     if  (!purrr::is_null (file) && tolower(tools::file_ext(file)) == "json"){
+          data.tb <- .sits_fromJSON (file)
           return (data.tb)
      }
-     ensurer::ensures_that(!purrr::is_null (coverage) && !purrr::is_null(bands) && !purrr::is_null (URL),
-                           err_desc = "Missing information on URL, coverage and/or bands")
+     # Ensure that required inputs exist
+     ensurer::ensure_that(coverage, !purrr::is_null (.), err_desc = "Missing coverage name")
+     ensurer::ensure_that(bands, !purrr::is_null (.), err_desc = "Missing bands vector")
+     ensurer::ensure_that(URL, !purrr::is_null (.), err_desc = "Missing WTSS URL")
 
      # obtains an R object that represents the WTSS service
      wtss.obj <- wtss.R::WTSS(URL)
@@ -75,13 +77,12 @@ sits_getdata <- function (file        = NULL,
 #------------------------------------------------------------------
 #' Obtain timeSeries from a JSON file.
 #'
-#' \code{.sits_getdata_fromJSON} reads a set of data and metadata for satellite
+#' \code{.sits_fromJSON} reads a set of data and metadata for satellite
 #' image time series from a JSON file
-#'
 #'
 #' @param json_file  string  - name of a JSON file with sits data and metadata
 #' @return data.tb    tibble  - a SITS table
-.sits_getdata_fromJSON <- function (json_file) {
+.sits_fromJSON <- function (json_file) {
      # add the contents of the JSON file to a SITS table
      table <- tibble::as_tibble (jsonlite::fromJSON (json_file))
      # convert Indexes in time series to dates
@@ -112,7 +113,7 @@ sits_getdata <- function (file        = NULL,
 
      # set the start and end dates from the coverage
      start_date <- lubridate::as_date(cov$timeline[1])
-     end_date <- lubridate::as_date(cov$timeline[length(timeline)])
+     end_date <- lubridate::as_date(cov$timeline[length(cov$timeline)])
      # set the class of the time series
      label <-  "NoClass"
      # use the WTSS service to retrieve the time series
@@ -153,7 +154,7 @@ sits_getdata <- function (file        = NULL,
 #------------------------------------------------------------------
 #' Obtain timeSeries from WTSS server, based on a CSV file.
 #'
-#' \code{.sits_getdata_fromCSV} reads descriptive information about a set of
+#' \code{.sits_fromCSV} reads descriptive information about a set of
 #' spatio-temporal locations from a CSV file. Then, it uses the WTSS time series service
 #' to retrieve the time series, and stores the time series on a SITS table for later use.
 #'
@@ -167,7 +168,7 @@ sits_getdata <- function (file        = NULL,
 #' @param n_max           integer - the maximum number of samples to be read
 #' @return data.tb        tibble  - a SITS table
 
-.sits_getdata_fromCSV <-  function (csv_file, wtss.obj, cov, bands, n_max = Inf){
+.sits_fromCSV <-  function (csv_file, wtss.obj, cov, bands, n_max = Inf){
      # configure the format of the CSV file to be read
      cols_csv <- readr::cols(id          = readr::col_integer(),
                              longitude   = readr::col_double(),
@@ -182,7 +183,7 @@ sits_getdata <- function (file        = NULL,
      # for each row of the input, retrieve the time series
      data.tb <- csv.tb %>%
           dplyr::rowwise() %>%
-          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, .$start_date, .$end_date, .$label, wtss.obj, cov$name, bands)) %>%
+          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, .$start_date, .$end_date, .$label, wtss.obj, cov, bands)) %>%
           dplyr::bind_rows (data.tb, .)
      return (data.tb)
 }
@@ -235,57 +236,31 @@ sits_getdata <- function (file        = NULL,
 .sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wtss.obj, cov, bands) {
 
      # get a time series from the WTSS server
-     ts <- wtss.R::timeSeries (wtss_obj, coverages  = cov$name, attributes = bands,
-                       longitude  = longitude, latitude   = latitude, start = start_date, end = end_date)
+     ts <- wtss.R::timeSeries (wtss.obj, coverages = cov$name, attributes = bands,
+                               longitude = longitude, latitude = latitude,
+                               start = start_date, end = end_date)
 
      # retrieve the time series information
      time_series <- ts[[coverage]]$attributes
 
-<<<<<<< HEAD
-=======
+     # retrieve information about the bands
      band_info <- cov$attributes
 
+     # calculate the scale factor for each band
+     scale_factor <- function (band){
+          return (band_info[which(band %in% band_info[,"name"]),"scale_factor"])
+     }
+
+     miss_value <- function (band) {
+          return (band_info[which(band %in% band_info[,"name"]),"missing_value"])
+     }
+     # update missing values to NA???
+
      # scale the time series
-     bands %>%
-          map (function (b){
-               bi <- band_info[,"name"]
-               time_series[,b] <-  time_series[,b]*band_info[which(b %in% bl),"scale_factor"]
-          })
+     time_series[,bands] <- time_series[,bands]*scale_factor(bands)
 
-
->>>>>>> 15af2792659c773047be2e665547f556c10d8344
      # convert the series to a tibble
      row.tb <- tibble::as_tibble (zoo::fortify.zoo (time_series))
-
-     # retrieve coverage information about bands' scale factor and missing values
-     cov_attr <- wtss.R::describeCoverage(wtss$wtss_obj, coverage)[[coverage]]$attributes
-
-     # get bands' missing value
-     missing_values <- cov_attr %>%
-          dplyr::select (name, missing_value) %>%
-          tibble::as_tibble() %>%
-          dplyr::rename(band=name) %>%
-          dplyr::filter(band %in% bands) %>%
-          tidyr::spread(key=band, value=missing_value)
-
-     # get bands' scale factor
-     scale_factors <- cov_attr %>%
-          dplyr::select (name, scale_factor) %>%
-          tibble::as_tibble() %>%
-          dplyr::rename(band=name) %>%
-          dplyr::filter(band %in% bands) %>%
-          tidyr::spread(key=band, value=scale_factor)
-
-     # update missing values to NA
-     row.tb[, bands] <- purrr::map2(row.tb[, bands], missing_values[, bands], function(raw_band, miss_value){
-          ifelse(raw_band == miss_value, NA, raw_band)
-     })
-
-     # scale the time series
-     #time_series[,bands] <-  time_series[,bands]*0.0001
-     row.tb[, bands] <- purrr::map2(row.tb[, bands], scale_factors[, bands], function(raw_band, scale_factor){
-          raw_band * scale_factor
-     })
 
 
      # clean the time series

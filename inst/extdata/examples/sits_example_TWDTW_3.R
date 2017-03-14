@@ -13,6 +13,8 @@ coverage <- "mod13q1_512"
 
 bands <-  c("ndvi", "evi", "nir")
 
+sits_coverageWTSS(URL, coverage)
+
 
 #load patterns from examples file
 examples.tb <- sits_getdata(file = "./inst/extdata/samples/MatoGrosso-examples.csv", URL = URL, coverage = coverage, bands = bands)

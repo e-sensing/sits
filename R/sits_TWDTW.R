@@ -104,7 +104,9 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #'
 .sits_fromTWDTW_matches <- function (series.tb, matches, breaks, interval){
 
-     ensurer::ensures_that(nrow(series.tb) == 1, err_desc = "sits_fromTWDTW_matches: works with one time series at a time!")
+     # is the input only one time series?
+     ensurer::ensure_that(series.tb, nrow(.) == 1,
+                          err_desc = "sits_fromTWDTW_matches: works with one time series at a time!")
 
      # convert labels to a vector of strings
      labels <- as.character(matches@patterns@labels, stringsAsFactors = FALSE)
