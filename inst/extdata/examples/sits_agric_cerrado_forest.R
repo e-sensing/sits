@@ -16,8 +16,9 @@ bands <-  c("ndvi", "evi", "blue", "red", "nir", "mir")
 agric.tb <- sits_getdata(file = system.file("extdata/samples/samples_Damien_Ieda_12classes_6bands_Water.json", package="sits") )
 
 # get samples from cerrado and pasture (Rodrigo)
-cerrado6.tb <- sits_getdata(file = system.file("extdata/samples/cerrado_6bands.json", package="sits"))
+cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado_6bands.json", package="sits"))
 
+cerrado6.tb <- sits_getdata(table = cerrado.tb, URL = URL, coverage = coverage, bands = bands)
 # get samples from forest
 forest.tb <- sits_getdata(file = system.file("extdata/samples/forest_6bands.json", package="sits"))
 
