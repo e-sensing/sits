@@ -1,5 +1,5 @@
 # satellite image time series
-# devtools::install_github("gilbertocamara/sits")
+devtools::install_github("gilbertocamara/sits")
 library(sits)
 
 # first, get information about the WTSS (web time series service)
@@ -17,10 +17,6 @@ coverage <- "mod13q1_512"
 bands <- c("ndvi", "evi", "blue", "red", "nir", "mir")
 
 # a complicated point
-long <- -55.51810
-lat <-  -11.63884
-
-# another complicated point
 long <- -55.01768
 lat <-  -15.35588
 
@@ -46,13 +42,14 @@ series.tb %>%
      sits_plot()
 
 # read a pattern table from a JSON file
-patterns.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_Damien_Ieda_Rodrigo_14classes_3bands.json", package="sits"))
+patterns.tb <- sits_getdata(file =
+     system.file("extdata/patterns/patterns_Damien_Ieda_Rodrigo_14classes_3bands_Rename_Labels_Sep.json", package="sits"))
 
 # plot patterns
 sits_plot (patterns.tb, type = "patterns")
 
 # classify samples using TWDTW
-bands <- c("ndvi", "evi", "nir", "mir")
+bands <- c("ndvi", "evi", "nir")
 results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
 sits_plot (results.tb, type = "classification")

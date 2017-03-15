@@ -13,7 +13,7 @@
 #' @keywords STIS
 #' @export
 #'
-sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = "NoClass") {
+sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = NULL, k = 4) {
      # check the input exists
      ensurer::ensure_that(data.tb, !purrr::is_null(.), err_desc = "sits_plot: input data not provided")
 
@@ -24,7 +24,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
             "patterns"       = .sits_plot_patterns (data.tb),
             "classification" = .sits_plot_classification (data.tb),
             "alignments"     = .sits_plot_alignments (data.tb),
-            "matches"        = .sits_plot_matches (data.tb),
+            "matches"        = .sits_plot_matches (data.tb, label, k),
             message (paste ("sits_plot: valid plot types are allyears,
                             one_by_one, together, patterns, classification, alignments, matches", "\n", sep = ""))
             )
@@ -87,12 +87,12 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
           })
 }
 
-.sits_plot_matches <- function (data.tb) {
+.sits_plot_matches <- function (data.tb, label, k) {
      ensurer::ensure_that(label, !purrr::is_null(.), err_desc = "sits_plot matches: label must be provided")
      data.tb %>%
           dplyr::rowwise() %>%
           dplyr::do({
-               dtwSat::plot (.$matches, type = "matches", patterns.labels = label, k = 4) %>%
+               dtwSat::plot (.$matches, type = "matches", patterns.labels = label, k = k) %>%
                graphics::plot()
           return(data.tb)
      })

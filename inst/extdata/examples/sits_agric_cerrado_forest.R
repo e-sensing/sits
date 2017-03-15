@@ -17,6 +17,10 @@ agric.tb <- sits_getdata(file = system.file("extdata/samples/samples_Damien_Ieda
 
 # get samples from cerrado and pasture (Rodrigo)
 cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado.json", package="sits") )
-cerrado6.tb <- sits_getdata (table = cerrado.tb[1:5,], URL = URL, coverage = coverage, bands = bands)
+cerrado6.tb <- sits_getdata (table = cerrado.tb, URL = URL, coverage = coverage, bands = bands)
+
+sits_save(cerrado.tb, "./inst/extdata/samples/cerrado_6bands.json")
 
 # get samples from forest
+forest.tb <- sits_getdata(file = system.file("extdata/samples/samplesForest.csv", package="sits"),
+                          URL = URL, coverage = coverage, bands = bands)
