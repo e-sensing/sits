@@ -11,6 +11,9 @@ sits_getcovWTSS(URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL)
 
 \item{coverage}{the name of the coverage}
 }
+\value{
+cov       a list with descriptive information about the coverage
+}
 \description{
 \code{sits_getcovWTSS} uses the WTSS services to retrieve information about a given coverage:
 }

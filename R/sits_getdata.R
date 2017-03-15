@@ -41,9 +41,9 @@ sits_getdata <- function (file        = NULL,
           return (data.tb)
      }
      # Ensure that required inputs exist
-     ensurer::ensure_that(coverage, !purrr::is_null (.), err_desc = "Missing coverage name")
-     ensurer::ensure_that(bands, !purrr::is_null (.), err_desc = "Missing bands vector")
-     ensurer::ensure_that(URL, !purrr::is_null (.), err_desc = "Missing WTSS URL")
+     ensurer::ensure_that(coverage, !purrr::is_null (.), err_desc = "sits_getdata: Missing coverage name")
+     ensurer::ensure_that(bands, !purrr::is_null (.), err_desc = "sits_getdata: Missing bands vector")
+     ensurer::ensure_that(URL, !purrr::is_null (.), err_desc = "sits_getdata: Missing WTSS URL")
 
      # obtains an R object that represents the WTSS service
      wtss.obj <- wtss.R::WTSS(URL)
@@ -246,19 +246,28 @@ sits_getdata <- function (file        = NULL,
      # retrieve information about the bands
      band_info <- cov$attributes
 
+     # determine the missing value for each band
+     miss_value <- function (band) {
+          return (band_info[which(band == band_info[,"name"]),"missing_value"])
+     }
+     # update missing values to NA
+     for (b in bands){
+          time_series[,b][time_series[,b] == miss_value(b)] <- NA
+     }
+
      # calculate the scale factor for each band
      scale_factor <- function (band){
-          return (band_info[which(band %in% band_info[,"name"]),"scale_factor"])
+          return (band_info[which(band == band_info[,"name"]),"scale_factor"])
      }
-
-     miss_value <- function (band) {
-          return (band_info[which(band %in% band_info[,"name"]),"missing_value"])
-     }
-     # update missing values to NA???
-
      # scale the time series
      time_series[,bands] <- time_series[,bands]*scale_factor(bands)
 
+<<<<<<< HEAD
+=======
+     # interpolate missing values
+     time_series[,bands] <- zoo::na.spline(time_series[,bands])
+
+>>>>>>> 2ac7a2559c1b6bce389d0a2a8fcc3c4aa4f6ae64
      # convert the series to a tibble
      row.tb <- tibble::as_tibble (zoo::fortify.zoo (time_series))
 
