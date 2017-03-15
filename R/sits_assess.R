@@ -9,11 +9,8 @@
 #' and estimated area according to [1-2].
 #'
 #' @param results.tb an object of "sits_table" with the results of a time series classification
-#'
 #' @param area a numeric vector with the area for each class.
-#'
 #' @param conf.int specifies the confidence level (0-1).
-#'
 #' @param rm.nosample if sum of columns and sum of rows of the error matrix are zero
 #' then remove class. Default is TRUE.
 #'
@@ -33,17 +30,17 @@
 sits_assess <- function (results.tb, area, conf.int = 0.95, rm.nosample = FALSE){
 
      # Get reference classes
-     Reference <- results.tb$label
+     references <- results.tb$label
 
      # Get mapped classes
-     Mapped    <- dplyr::bind_rows(results.tb$distances) %>%
+     mapped    <- dplyr::bind_rows(results.tb$distances) %>%
                               dplyr::select(dplyr::matches("classification")) %>% unlist
      # Get all labels
-     classes   <- unique(c(Reference, Mapped))
+     classes   <- unique(c(references, mapped))
 
      # Create error matrix
-     error_matrix <- table(factor(Mapped,    levels = classes, labels = classes),
-                           factor(Reference, levels = classes, labels = classes))
+     error_matrix <- table(factor(mapped,    levels = classes, labels = classes),
+                           factor(reference, levels = classes, labels = classes))
 
      # Get area - TO IMPROVE USING THE METADATA FROM SATELLITE PRODUCTS
      if(missing(area))
