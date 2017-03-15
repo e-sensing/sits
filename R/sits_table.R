@@ -131,10 +131,10 @@ sits_select <- function (data.tb, bands) {
 #' @export
 sits_rename <-  function (data.tb, bands_new) {
 
-     ensurer::ensure_that(bands_new, !purrr::is_null(.), err_desc = "New band names should be provided")
+     ensurer::ensure_that(bands_new, !purrr::is_null(.), err_desc = "sits_rename: New band names should be provided")
      ensurer::ensure_that(data.tb, length(sits_bands(.)) == length (bands_new),
                            fail_with = function (e) stop(e),
-                           err_desc = "Please provide names for all input bands")
+                           err_desc = "sits_rename: Please provide names for all input bands")
 
      # rename the time series
      out.ts <- data.tb$time_series %>%
@@ -187,7 +187,7 @@ sits_merge <-  function(sits1.tb, sits2.tb) {
 
      # are the names of the bands different?
      ensurer::ensure_that(sits1.tb, !(TRUE %in% (sits_bands(.) %in% sits_bands(sits2.tb))),
-                           err_desc = "cannot merge two sits tables with bands with the same names")
+                           err_desc = "sits_merge: cannot merge two sits tables with bands with the same names")
      # merge the time series
      merge_one <-  function (ts1, ts2) {
           ts3 <- dplyr::left_join (ts1, ts2, by = "Index")
