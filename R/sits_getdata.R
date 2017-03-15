@@ -246,21 +246,19 @@ sits_getdata <- function (file        = NULL,
      # retrieve information about the bands
      band_info <- cov$attributes
 
+     # determine the missing value for each band
+     miss_value <- function (band) {
+          return (band_info[which(band == band_info[,"name"]),"missing_value"])
+     }
+     # update missing values to NA
+     for (b in bands){
+          time_series[,b][time_series[,b] == miss_value(b)] <- NA
+     }
+
      # calculate the scale factor for each band
      scale_factor <- function (band){
           return (band_info[which(band == band_info[,"name"]),"scale_factor"])
      }
-
-     miss_value <- function (band) {
-          return (band_info[which(band == band_info[,"name"]),"missing_value"])
-     }
-     # update missing values to NA???
-     for (b in bands){
-          ts <- time_series[,b]
-          ts[ts == miss_value(b)] <- NA
-          time_series[,b] <- ts
-     }
-
      # scale the time series
      time_series[,bands] <- time_series[,bands]*scale_factor(bands)
 

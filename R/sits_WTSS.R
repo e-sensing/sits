@@ -124,7 +124,7 @@ sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage
 #'
 #' @param URL        the URL for the WTSS time series service
 #' @param coverage   the name of the coverage
-#' @return
+#' @return cov       a list with descriptive information about the coverage
 #' @export
 #'
 sits_getcovWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL) {
