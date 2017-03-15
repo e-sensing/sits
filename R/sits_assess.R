@@ -39,8 +39,8 @@ sits_assess <- function (results.tb, area, conf.int = 0.95, rm.nosample = FALSE)
      classes   <- unique(c(references, mapped))
 
      # Create error matrix
-     error_matrix <- table(factor(mapped,    levels = classes, labels = classes),
-                           factor(reference, levels = classes, labels = classes))
+     error_matrix <- table(factor(mapped,     levels = classes, labels = classes),
+                           factor(references, levels = classes, labels = classes))
 
      # Get area - TO IMPROVE USING THE METADATA FROM SATELLITE PRODUCTS
      if(missing(area))

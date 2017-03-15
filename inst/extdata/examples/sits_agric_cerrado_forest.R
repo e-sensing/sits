@@ -15,16 +15,25 @@ bands <-  c("ndvi", "evi", "blue", "red", "nir", "mir")
 # get samples from agriculture (Ieda and Damien)
 agric.tb <- sits_getdata(file = system.file("extdata/samples/samples_Damien_Ieda_12classes_6bands_Water.json", package="sits") )
 
-# get samples from cerrado and pasture (Rodrigo)
-cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado_6bands.json", package="sits"))
+agric2.tb <- sits_select(agric.tb, c("ndvi", "evi"))
 
-cerrado6.tb <- sits_getdata(table = cerrado.tb, URL = URL, coverage = coverage, bands = bands)
+# get samples from cerrado and pasture (Rodrigo)
+cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado.json", package="sits"))
+
+#cerrado6.tb <- sits_getdata(table = cerrado.tb, URL = URL, coverage = coverage, bands = bands)
 # get samples from forest
 forest.tb <- sits_getdata(file = system.file("extdata/samples/forest_6bands.json", package="sits"))
 
-matogrosso.tb <- dplyr::bind_rows(agric.tb, cerrado6.tb)
-matogrosso.tb <- dplyr::bind_rows(matogrosso.tb, forest.tb)
+forest2.tb <- sits_select(forest.tb, c("ndvi", "evi"))
 
-sits_save(matogrosso.tb, "./inst/extdata/samples/matogrosso.json")
+matogrosso.tb <- dplyr::bind_rows(agric2.tb, cerrado.tb)
+matogrosso.tb <- dplyr::bind_rows(matogrosso.tb, forest2.tb)
 
-results.tb <-
+sits_save(matogrosso.tb, "./inst/extdata/samples/matogrosso2.json")
+
+patterns.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_MatoGrosso.json", package="sits"))
+
+bands2 <- c("ndvi", "evi")
+sits_plot(patterns.tb, type = "patterns")
+
+results.tb <- sits_TWDTW (matogrosso.tb[1:10,], patterns.tb, bands2)
