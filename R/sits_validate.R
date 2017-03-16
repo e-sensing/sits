@@ -21,5 +21,5 @@
 sits_validate <- function (data.tb, times = 100, p = 0.1){
      twdtw.ts <- .sits_toTWDTW_time_series (data.tb)
 
-     validation.lst <- dtwSat::twdtwCrossValidate(data.tb, times, p)
+     validation.lst <- dtwSat::twdtwCrossValidate(twdtw.ts, times, p)
 }
