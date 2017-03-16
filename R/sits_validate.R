@@ -18,8 +18,8 @@
 #' @param p the percentage of data that goes to training.
 #' @export
 
-sits_validate <- function (data.tb, times = 100, p = 0.1){
+sits_validate <- function (data.tb, times = 100, p = 0.1, ...){
      twdtw.ts <- .sits_toTWDTW_time_series (data.tb)
 
-     validation.lst <- dtwSat::twdtwCrossValidate(twdtw.ts, times, p)
+     validation.lst <- dtwSat::twdtwCrossValidate(twdtw.ts, times, p, ...)
 }
