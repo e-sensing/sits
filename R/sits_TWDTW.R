@@ -61,8 +61,8 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                sits_select (bands) %>%
                .sits_toTWDTW_time_series()
 
-          start_date <- lubridate::as_date(series.tb[i,]$start_date)
-          end_date   <- lubridate::as_date(series.tb[i,]$end_date)
+          start_date <- lubridate::as_date(head(series.tb[1,]$time_series[[1]],1)$Index)
+          end_date   <- lubridate::as_date(tail(series.tb[1,]$time_series[[1]],1)$Index)
 
           # define the temporal intervals of each classification
           breaks <- seq(from = start_date, to = end_date, by = interval)
@@ -120,7 +120,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                                 start_date = breaks,
                                 end_date   = breaks + lubridate::period(interval) - lubridate::days(1))
 
-     # create a list of yearly-ordered distances for each pattern
+     # create a list of yearly-ordered distances for each pattern (???)
      aligns.lst <- labels %>%
           purrr::map (function (lab){
                d <- tibble::tibble(year = lubridate::year (aligns[[lab]]$from),

@@ -16,14 +16,19 @@ bands <-  c("ndvi", "evi", "blue", "red", "nir", "mir")
 agric.tb <- sits_getdata(file = system.file("extdata/samples/samples_Damien_Ieda_12classes_6bands_Water.json", package="sits") )
 
 # get samples from cerrado and pasture (Rodrigo)
-cerrado6.tb <- sits_getdata(file = system.file("extdata/samples/cerrado_6bands.json", package="sits"))
+cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado6.json", package="sits"))
 
 # get samples from forest
 forest.tb <- sits_getdata(file = system.file("extdata/samples/forest_6bands.json", package="sits"))
 
-matogrosso.tb <- dplyr::bind_rows(agric.tb, cerrado6.tb)
+matogrosso.tb <- dplyr::bind_rows(agric.tb, cerrado.tb)
 matogrosso.tb <- dplyr::bind_rows(matogrosso.tb, forest.tb)
 
 sits_save(matogrosso.tb, "./inst/extdata/samples/matogrosso.json")
 
-results.tb <-
+patterns.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_MatoGrosso.json", package="sits"))
+
+bands2 <- c("ndvi", "evi")
+sits_plot(patterns.tb, type = "patterns")
+
+results.tb <- sits_TWDTW (matogrosso.tb[1:10,], patterns.tb, bands2)
