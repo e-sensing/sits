@@ -68,7 +68,7 @@ sits_getdata <- function (file        = NULL,
      }
      # get data based on SHP file
      if (tolower(tools::file_ext(file)) == "shp") {
-          data.tb <- .sits_fromSHP (file, wtss.obj, cov, bands)
+          data.tb <- .sits_fromSHP (file, wtss.obj)
           return (data.tb)
      }
      message (paste ("No valid input to retrieve time series data!!","\n",sep=""))
@@ -142,7 +142,7 @@ sits_getdata <- function (file        = NULL,
      for (i in 1:nrow(source)){
           row <- source[i,]
           if (is.na(row$start_date)) {row$start_date <- lubridate::as_date(cov$timeline[1])}
-          if (is.na(row$end_date)) { row$end_date <- lubridate::as_date(cov$timeline[length(timeline)])}
+          if (is.na(row$end_date)) { row$end_date <- lubridate::as_date(cov$timeline[length(cov$timeline)])}
           if (is.na(row$label)) {row$label <- "NoClass"}
           t <- .sits_fromWTSS (row$longitude, row$latitude, row$start_date, row$end_date,
                                   row$label, wtss.obj, cov, bands)
