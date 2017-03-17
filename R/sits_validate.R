@@ -3,8 +3,8 @@
 #' @name sits_validate
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
-#' @description This function callis \code{\link[dtwSat]{dtwSat::twdtwCrossValidate}}, 
-#' which splits the set of time series into training and validation and compute accuracy metrics. 
+#' @description This function calls \code{\link[dtwSat]{twdtwCrossValidate}} from \pkg{dtwSat},
+#' which splits the set of time series into training and validation and compute accuracy metrics.
 #' The function uses stratified sampling and a simple
 #' random sampling for each stratum. For each data partition this function
 #' performs a TWDTW analysis and returns the Overall Accuracy, User's Accuracy,
@@ -17,13 +17,16 @@
 #' @param times Number of partitions to create.
 #'
 #' @param p the percentage of data that goes to training.
+#'
+#' @param ... other arguments to pass to \code{\link[dtwSat]{twdtwCrossValidate}}.
+#'
 #' @export
-sits_validate <- function (data.tb, times = 100, p = 0.1, formula = y ~ s(x), ...){
+sits_validate <- function (data.tb, times = 100, p = 0.1, ...){
 
      twdtw.ts <- .sits_toTWDTW_time_series (data.tb)
 
-     validation.lst <- dtwSat::twdtwCrossValidate(twdtw.ts, times, p, formula = formula, ...)
-     
+     validation.lst <- dtwSat::twdtwCrossValidate(twdtw.ts, times, p, ...)
+
      return(validation.lst)
 
 }

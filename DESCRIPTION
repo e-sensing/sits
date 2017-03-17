@@ -45,7 +45,8 @@ Imports:
     tibble,
     tidyr,
     wtss.R,
-    zoo
+    zoo,
+    utils
 Remotes:
      luizassis/wtss.R,
      vwmaus/dtwSat

@@ -15,6 +15,8 @@ sits_plot(data.tb = NULL, type = "allyears", colors = "Dark2",
 \item{colors}{the color pallete to be used (default is "Set1")}
 
 \item{label}{the class label}
+
+\item{k}{number of alignments}
 }
 \value{
 data.tb    tibble - the input SITS table (useful for chaining functions)

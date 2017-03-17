@@ -4,7 +4,7 @@
 \alias{sits_validate}
 \title{validate temporal patterns}
 \usage{
-sits_validate(data.tb, times = 100, p = 0.1)
+sits_validate(data.tb, times = 100, p = 0.1, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
@@ -12,10 +12,13 @@ sits_validate(data.tb, times = 100, p = 0.1)
 \item{times}{Number of partitions to create.}
 
 \item{p}{the percentage of data that goes to training.}
+
+\item{...}{other arguments to pass to \code{\link[dtwSat]{twdtwCrossValidate}}.}
 }
 \description{
-Splits the set of time series into training and validation and
-compute accuracy metrics. The function uses stratified sampling and a simple
+This function calls \code{\link[dtwSat]{twdtwCrossValidate}} from \pkg{dtwSat},
+which splits the set of time series into training and validation and compute accuracy metrics.
+The function uses stratified sampling and a simple
 random sampling for each stratum. For each data partition this function
 performs a TWDTW analysis and returns the Overall Accuracy, User's Accuracy,
 Produce's Accuracy, error matrix (confusion matrix), and a \code{\link[base]{data.frame}}
