@@ -366,3 +366,36 @@ sits_group_bylatlong <- function (data.tb) {
      }
      return (out.tb)
 }
+
+#'
+#' Groups different time series for the same lat/long coordinate
+#'
+#' \code{sits_label_perc} takes a sits table with different labels and
+#' returns a new table. For each label, this new table contains a percentage
+#' of the total number of samples per label
+#'
+#' @param    data.tb    tibble - input SITS table
+#' @param    perc       percentagem of samples of each label to be saved
+#' @return   data1.tb   tibble - the new SITS table with a fixed percentage of samples per class
+#' @export
+#'
+#'
+sits_label_perc <- function (data.tb, perc = 0.1){
+
+     data1.tb <- sits_table()
+     # how many different labels are there?
+     labels <- dplyr::distinct (data.tb, label)
+
+     for (i in 1:nrow(labels)) {
+          # get the label name as a character
+          lb <-  as.character (labels[i,1])
+
+          # filter only those rows with the same label
+          frac.tb <- data.tb %>%
+               dplyr::filter (label == lb) %>%
+               dplyr::sample_frac (size = perc)
+
+          data1.tb <- dplyr::bind_rows(data1.tb, frac.tb)
+     }
+     return (data1.tb)
+}

@@ -241,7 +241,7 @@ sits_getdata <- function (file        = NULL,
                                start = start_date, end = end_date)
 
      # retrieve the time series information
-     time_series <- ts[[coverage]]$attributes
+     time_series <- ts[[cov$name]]$attributes
 
      # retrieve information about the bands
      band_info <- cov$attributes
@@ -282,7 +282,7 @@ sits_getdata <- function (file        = NULL,
                          start_date   = as.Date(start_date),
                          end_date     = as.Date(end_date),
                          label        = label,
-                         coverage     = coverage,
+                         coverage     = cov$name,
                          time_series  = ts.lst
      )
 

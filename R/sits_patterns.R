@@ -4,6 +4,12 @@
 #' A sits table has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
+#' This function allows the user to select different alternatives to define a set of
+#' patterns, given his samples. The alternatives are:
+#' "gam" - uses a generalised additive model to approximate a smooth spline for each pattern
+#' "dendogram" - uses a herarchical clustering method to group the patterns
+#' "centroids" - uses a positional clustering method to group the patterns
+#'
 #' @param  samples.tb    a table in SITS format with a set of labelled time series
 #' @param  method        the method to be used for classification
 #' @return patterns.tb   a SITS table with the patterns
@@ -38,7 +44,8 @@ sits_patterns <- function (samples.tb, method = "gam", ...) {
 #'
 #' By default, the gam methods  produces an approximation based on a smooth function.
 #' This method is based on the "createPatterns" method of the dtwSat package, which is also
-#' described in the reference paper below:
+#' described in the reference paper:
+#'
 #' Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
 #' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.
 #' IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
@@ -161,6 +168,9 @@ sits_patterns_gam <- function (samples.tb, freq = 8, from = NULL, to = NULL, for
 #' of groups in which, as the level in the hierarchy increases, clusters are created by merging
 #' the clusters from the next lower level, such that an ordered sequence of groupings is obtained
 #' (Hastie et al. 2009). The similarity method used is the "dtw" distance
+#'
+#' This function uses the dendogram clustering method available in the "dtwclust" pattern
+#'
 #'
 #' @param  samples.tb    a table in SITS format with a set of labelled time series
 #' @param  method        the method to be used for classification
