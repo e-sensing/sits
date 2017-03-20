@@ -7,16 +7,29 @@
 #' See "dtwclust" documentation for more details
 #'
 #' @param data.tb      a SITS tibble the list of time series to be clustered
+#' @param label_groups a list containing all labels (or groups of it in a `vector`) to be splitted up and clusterized apart.
 #' @param type         string - either "dendogram" or "centroids"
-#' @param n_clusters   the number of clusters to be identified
+#' @param n_clusters   the number of clusters to be identified.
 #' @return clusters.tb a SITS tibble with the clusters
 #' @family  STIS cluster functions
 #' @export
-sits_cluster <- function (data.tb, type = "dendogram", n_clusters = 4){
+sits_cluster <- function (data.tb, label_groups, type = "dendogram", n_clusters = 4){
      # select cluster option
      switch (type,
-             "dendogram" = { cluster.tb <- sits_dendogram (data.tb, n_clusters) },
-             "centroids" = { cluster.tb <- sits_centroids (data.tb, n_clusters) },
+             "dendogram" = {
+                  cluster.tb <- sits_table()
+                  label_groups %>%
+                       purrr::map (function (label) {
+                            cluster.tb <<- dplyr::bind_rows(cluster.tb, sits_dendogram (data.tb, label, n_clusters))
+                       })
+                  },
+             "centroids" = {
+                  cluster.tb <- sits_table()
+                  label_groups %>%
+                       purrr::map (function (label) {
+                            cluster.tb <<- dplyr::bind_rows(cluster.tb, sits_centroids (data.tb, label, n_clusters))
+                       })
+                  },
              { message (paste ("sits_cluster: valid cluster methods are dendogram or centroids",
                              "\n", sep = ""))
                stop(cond)}
@@ -42,21 +55,26 @@ sits_cluster <- function (data.tb, type = "dendogram", n_clusters = 4){
 #' (dtwclust vignette)
 #'
 #' @param data.tb      a tibble the list of time series to be clustered
+#' @param labels       the label or a vector of labels to be clusterized together.
 #' @param n_clusters   the number of clusters to be identified
 #' @return clusters.tb a SITS tibble with the clusters
 #' @keywords STIS
 #' @family   STIS cluster functions
 #' @export
 #'
-sits_dendogram <- function (data.tb, n_clusters = 4) {
+sits_dendogram <- function (data.tb, labels, n_clusters = 4) {
      cluster_dendogram <- function (data.tb, band, n_clusters){
           # get the values of the various time series for this band
-          values.tb <- sits_values_rows (data.tb, band)
+          values.tb <- data.tb %>%
+               sits_values_rows (band)
           clusters  <- dtwclust::dtwclust (values.tb,
                                  type     = "hierarchical",
                                  k        = n_clusters,
                                  distance = "dtw_basic",
                                  seed     = 899)
+
+          #plot the dendogram
+          graphics::plot (clusters)
 
           # Plot the series and the obtained prototypes
           graphics::plot (clusters, type = "sc")
@@ -70,11 +88,17 @@ sits_dendogram <- function (data.tb, n_clusters = 4) {
           return (clusters)
      }
 
-     cluster.lst <- data.tb %>%
-          sits_bands() %>%
-          purrr::map (function (b) cluster_dendogram (data.tb, b, n_clusters))
+     data_label.tb <- data.tb %>%
+          dplyr::filter(label %in% labels)
 
-     cluster.tb <- .sits_fromClusters (data.tb, cluster.lst)
+     # print current clusterised label(s)
+     message (paste("\n", "Label(s): ", labels))
+
+     cluster.lst <- data_label.tb %>%
+          sits_bands() %>%
+          purrr::map (function (b) cluster_dendogram (data_label.tb, b, n_clusters))
+
+     cluster.tb <- .sits_fromClusters (data_label.tb, cluster.lst)
      return (cluster.tb)
 }
 
@@ -96,15 +120,18 @@ sits_dendogram <- function (data.tb, n_clusters = 4) {
 #' or no object changes clusters anymore (extracted from dtwclust package)
 #'
 #' @param data.tb      a tibble the list of time series to be clustered
+#' @param label        the label or a vector of labels to be clusterized together.
 #' @param n_clusters   the number of clusters to be identified
 #' @return clusters.tb a SITS tibble with the clusters
 #' @keywords STIS
 #' @family   STIS cluster functions
 #' @export
 #'
-sits_centroids <- function (data.tb, n_clusters = 4) {
-     cluster_partitional <- function (band, data.tb, n_clusters) {
-          values.tb <- sits_values_rows (data.tb, band)
+sits_centroids <- function (data.tb, label, n_clusters = 4) {
+     cluster_partitional <- function (data.tb, label, band, n_clusters) {
+          values.tb <- data.tb %>%
+               dplyr::filter(label %in% label) %>%
+               sits_values_rows (band)
           clusters  <- dtwclust::dtwclust (values.tb,
                                  type     = "partitional",
                                  k        = n_clusters,
@@ -124,7 +151,7 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
      # for each band, find a significant set of clusters
      clusters.lst <- data.tb %>%
           sits_bands() %>%
-          purrr::map (function (b) cluster_partitional (b, data.tb, n_clusters))
+          purrr::map (function (b) cluster_partitional (data.tb, label, n, n_clusters))
 
      # retrieve the significant clusters as a list
      cluster.tb <- .sits_fromClusters (data.tb, clusters.lst)
@@ -170,7 +197,6 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
 
                # select centroids values
                centroids <- data.tb[ids,]
-               print (centroids[1,]$time_series)
 
                # select only cluster band (drops all other bands)
                for (j in 1:nrow(centroids)) {

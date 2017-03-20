@@ -262,12 +262,9 @@ sits_getdata <- function (file        = NULL,
      # scale the time series
      time_series[,bands] <- time_series[,bands]*scale_factor(bands)
 
-<<<<<<< HEAD
-=======
      # interpolate missing values
      time_series[,bands] <- zoo::na.spline(time_series[,bands])
 
->>>>>>> 2ac7a2559c1b6bce389d0a2a8fcc3c4aa4f6ae64
      # convert the series to a tibble
      row.tb <- tibble::as_tibble (zoo::fortify.zoo (time_series))
 
