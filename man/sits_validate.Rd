@@ -4,7 +4,7 @@
 \alias{sits_validate}
 \title{validate temporal patterns}
 \usage{
-sits_validate(data.tb, times = 100, p = 0.1)
+sits_validate(data.tb, times = 100, p = 0.1, formula = y ~ s(x), ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}

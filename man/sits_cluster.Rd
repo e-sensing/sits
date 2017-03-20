@@ -4,7 +4,8 @@
 \alias{sits_cluster}
 \title{Cluster a set of time series}
 \usage{
-sits_cluster(data.tb, type = "dendogram", n_clusters = 4)
+sits_cluster(data.tb, type = "dendogram", n_clusters = 4, perc = 0.1,
+  show = TRUE)
 }
 \arguments{
 \item{data.tb}{a SITS tibble the list of time series to be clustered}
@@ -12,6 +13,10 @@ sits_cluster(data.tb, type = "dendogram", n_clusters = 4)
 \item{type}{string - either "dendogram" or "centroids"}
 
 \item{n_clusters}{the number of clusters to be identified}
+
+\item{perc}{the minimum percentage for a cluster to be valid}
+
+\item{show}{(boolean) should the results be shown?}
 }
 \value{
 clusters.tb a SITS tibble with the clusters

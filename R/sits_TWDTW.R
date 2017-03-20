@@ -20,10 +20,7 @@
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
-# @param  start_date    date - the starting date of the classification
-# @param  end_date      date - the end date of the classification
-#' @param  interval      the period between two classifications
-#' @param  span          the minimum period for a match between a pattern and a signal)
+#' @param  span          the minimum period for a match between a pattern and a signal
 #' @param  keep          keep internal values for plotting matches
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
@@ -36,10 +33,11 @@
 #'
 #'
 sits_TWDTW <- function (series.tb, patterns.tb, bands,
-                           alpha = -0.1, beta = 100, theta = 0.5,
-                           interval   = "12 month",
-                           span       = 250,
-                           keep       = FALSE){
+                           alpha = -0.1,
+                           beta = 100,
+                           theta = 0.5,
+                           span  = 250,
+                           keep  = FALSE){
 
      # create a tibble to store the results
      results.tb <- sits_table_result()
@@ -61,12 +59,6 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                sits_select (bands) %>%
                .sits_toTWDTW_time_series()
 
-          start_date <- lubridate::as_date(head(series.tb[i,]$time_series[[1]],1)$Index)
-          end_date   <- lubridate::as_date(tail(series.tb[i,]$time_series[[1]],1)$Index)
-
-          # define the temporal intervals of each classification
-          breaks <- seq(from = start_date, to = end_date, by = interval)
-
           #classify the data using TWDTW
           matches = dtwSat::twdtwApply(x          = twdtw_series,
                                        y          = twdtw_patterns,
@@ -75,7 +67,18 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                                        span       = span,
                                        keep       = keep)
 
-          row.tb <- .sits_fromTWDTW_matches (ts.tb, matches, breaks, interval)
+          # store the distances and matches in two lists
+          # distances
+          dist.lst <- tibble::lst()
+          dist.lst[[1]] <- matches[][[1]]
+
+          # matches
+          match.lst <- tibble::lst()
+          match.lst[[1]] <- matches
+
+          # add the distances and matches to the input row
+          row.tb <- dplyr::mutate (series.tb, distances  = dist.lst)
+          row.tb <- dplyr::mutate (row.tb, matches    = match.lst)
 
           # add the row to the results.tb tibble
           results.tb <- dplyr::bind_rows(results.tb, row.tb)
@@ -116,9 +119,8 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 
      aligns <- alignments[[1]]
      # create a new table with the distances for each pattern for each interval (usually 12 months)
-     dist.tb <- tibble::tibble (year = lubridate::year (breaks),
-                                start_date = breaks,
-                                end_date   = breaks + lubridate::period(interval) - lubridate::days(1))
+     dist.tb <- tibble::tibble ()
+     dist.tb <- matches[][[1]]
 
      # create a list of yearly-ordered distances for each pattern (???)
      aligns.lst <- labels %>%
@@ -144,18 +146,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
      }
      dist.tb <- dplyr::mutate(dist.tb, classification = classif)
 
-     # store the distances and matches in two lists
-     # distances
-     dist.lst <- tibble::lst()
-     dist.lst[[1]] <- dist.tb
 
-     # matches
-     match.lst <- tibble::lst()
-     match.lst[[1]] <- matches
-
-     # add the distances and matches to the input row
-     row.tb <- dplyr::mutate (series.tb, distances  = dist.lst)
-     row.tb <- dplyr::mutate (row.tb, matches    = match.lst)
 
 
      return (row.tb)

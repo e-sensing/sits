@@ -9,6 +9,12 @@ library(sits)
 
 cerrado.tb <- sits_getdata(file = "./inst/extdata/samples/cerrado.json")
 
+patterns1.tb <- sits_patterns (cerrado.tb)
+sits_plot (patterns1.tb, type = "patterns")
+
+patterns2.tb <- sits_patterns (cerrado.tb, method = "dendogram", n_clusters = 2)
+sits_plot (patterns2.tb, type = "patterns")
+
 val <- sits_validate(cerrado.tb)
 
 cerrado_s.tb <- sits_smooth(cerrado.tb)

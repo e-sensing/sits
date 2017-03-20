@@ -1,6 +1,31 @@
-#' Find time series patterns to use using TWDTW (using the dtwSat package)
+#' Find time series patterns for classification
+#' \code{sits_patterns} returns a sits table with a list of patterns
 #'
-#' \code{sits_patterns} returns a sits table with a list of patterns based on samples using a gam model
+#' A sits table has the metadata and data for each time series
+#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
+#'
+#' @param  samples.tb    a table in SITS format with a set of labelled time series
+#' @param  method        the method to be used for classification
+#' @return patterns.tb   a SITS table with the patterns
+#' @export
+sits_patterns <- function (samples.tb, method = "gam", ...) {
+     # check the input exists
+     ensurer::ensure_that(samples.tb, !purrr::is_null(.), err_desc = "sits_patterns: input data not provided")
+
+     switch(method,
+            "gam"            =  { patterns.tb <- sits_patterns_gam (samples.tb, ...) },
+            "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, method = "dendogram", ...)},
+            "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, method = "centroids", ...)},
+            message (paste ("sits_patterns: valid methods are gam, dendogram, centroids", "\n", sep = ""))
+            )
+
+     # return the patterns found in the analysis
+     return (patterns.tb)
+}
+
+#' Find time series patterns for classification
+#'
+#' \code{sits_patterns_gam} returns a sits table with a list of patterns based on samples using a gam model
 #'
 #' A sits table has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
@@ -8,12 +33,10 @@
 #' The patterns are calculated based on a statistical model that tries to find a suitable
 #' for a set of samples. The idea is to use a formula of type y ~ s(x), where x is a temporal
 #' reference and y if the value of the signal. For each time, there will be as many predictions
-#' as there are sample values. Then, a statistical model such as "gam" is used to predict a suitable
+#' as there are sample values. A generalised additive model ("gam") is used to predict a suitable
 #' approximation that fits the assumptions of the statistical model.
 #'
-#' In the current version, the only statistical model used in the "gam" (generalised additive model)
-#' which has the advantage of producing an approximation based on a smooth function.
-#'
+#' By default, the gam methods  produces an approximation based on a smooth function.
 #' This method is based on the "createPatterns" method of the dtwSat package, which is also
 #' described in the reference paper below:
 #' Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
@@ -31,7 +54,7 @@
 #' @export
 #'
 #'
-sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
+sits_patterns_gam <- function (samples.tb, freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
      # create a tibble to store the results
      patterns.tb <- sits_table()
 
@@ -126,3 +149,43 @@ sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to
      return (patterns.tb)
 }
 
+#' Find time series patterns for classification
+#'
+#' \code{sits_patterns_cluster} returns a sits table with a list of patterns
+#' based on a clustering method (either "dendogram" or "centroids")
+#'
+#' A sits table has the metadata and data for each time series
+#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
+#'
+#' This function uses an algorithm that tries to create a hierarchy
+#' of groups in which, as the level in the hierarchy increases, clusters are created by merging
+#' the clusters from the next lower level, such that an ordered sequence of groupings is obtained
+#' (Hastie et al. 2009). The similarity method used is the "dtw" distance
+#'
+#' @param  samples.tb    a table in SITS format with a set of labelled time series
+#' @param  method        the method to be used for classification
+#' @return patterns.tb   a SITS table with the patterns
+#' @export
+sits_patterns_cluster <- function (samples.tb, method = "dendogram", nclusters = 2, perc = 0.10, show = FALSE){
+     # create an output
+     patterns.tb <- tibble::tibble()
+
+     # how many different labels are there?
+     labels <- dplyr::distinct (samples.tb, label)
+
+     for (i in 1:nrow(labels)) {
+          # get the label name as a character
+          lb <-  as.character (labels[i,1])
+
+          # filter only those rows with the same label
+          label.tb <- dplyr::filter (samples.tb, label == lb)
+          # apply the clustering method
+          if (method == "dendogram")
+               clu.tb <- sits_dendogram (label.tb, n_clusters = nclusters, perc = perc, show = show)
+          else
+               clu.tb <- sits_centroids (label.tb, n_clusters = nclusters, perc = perc, show = show)
+          # get the result
+          dplyr::bind_rows(patterns.tb, clu.tb)
+     }
+     return (patterns.tb)
+}

@@ -4,12 +4,14 @@
 \alias{sits_centroids}
 \title{Cluster a set of time series using partitional clustering (uses dtwclust package)}
 \usage{
-sits_centroids(data.tb, n_clusters = 4)
+sits_centroids(data.tb, n_clusters = 4, perc = 0.1, show = TRUE)
 }
 \arguments{
 \item{data.tb}{a tibble the list of time series to be clustered}
 
 \item{n_clusters}{the number of clusters to be identified}
+
+\item{perc}{the minimum percentage for a cluster to be valid}
 }
 \value{
 clusters.tb a SITS tibble with the clusters
@@ -18,17 +20,15 @@ clusters.tb a SITS tibble with the clusters
 \code{sits_centroids} find the k centroids of a set of time series clusters
 }
 \details{
-Partitional clustering assigns the data
-to one and only one cluster out of k total clusters. The total number of
-desired clusters must be specified beforehand.
-Partitional clustering algorithms commonly work in the following way.
+Partitional clustering assigns the data to one and only one cluster out of k total clusters.
 First, k centroids are randomly initialized, usually by choosing k objects
 from the dataset at random. these are assigned to individual clusters.
 The distance between all objects in the data and all centroids
 is calculated, and each object is assigned to the cluster of its closest centroid.
 A prototyping function is applied to each cluster to update the corresponding centroid.
 Then, distances and centroids are updated iteratively until a certain number of iterations have elapsed,
-or no object changes clusters anymore (extracted from dtwclust package)
+or no object changes clusters anymore
+(description extracted from dtwclust package)
 }
 \seealso{
 Other STIS cluster functions: \code{\link{sits_cluster}},

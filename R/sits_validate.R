@@ -22,4 +22,10 @@ sits_validate <- function (data.tb, times = 100, p = 0.1, formula = y ~ s(x), ..
      twdtw.ts <- .sits_toTWDTW_time_series (data.tb)
 
      validation.lst <- dtwSat::twdtwCrossValidate(twdtw.ts, times, p, formula = formula)
+
+     error.matrix = table(Predicted=data$Predicted, Reference=data$Reference)
+     UA = diag(error.matrix) / rowSums(error.matrix)
+     PA = diag(error.matrix) / colSums(error.matrix)
+     O  = sum(diag(error.matrix)) / sum(rowSums(error.matrix))
+     list(OverallAccuracy=O, UsersAccuracy=UA, ProducersAccuracy=PA, ErrorMatrix=error.matrix, data=data)
 }

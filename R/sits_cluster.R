@@ -7,20 +7,36 @@
 #' See "dtwclust" documentation for more details
 #'
 #' @param data.tb      a SITS tibble the list of time series to be clustered
-#' @param type         string - either "dendogram" or "centroids"
+#' @param method       string - either "dendogram" or "centroids"
 #' @param n_clusters   the number of clusters to be identified
+#' @param perc         the minimum percentage for a cluster to be valid
+#' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
 #' @family  STIS cluster functions
 #' @export
-sits_cluster <- function (data.tb, type = "dendogram", n_clusters = 4){
-     # select cluster option
-     switch (type,
-             "dendogram" = { cluster.tb <- sits_dendogram (data.tb, n_clusters) },
-             "centroids" = { cluster.tb <- sits_centroids (data.tb, n_clusters) },
-             { message (paste ("sits_cluster: valid cluster methods are dendogram or centroids",
-                             "\n", sep = ""))
-               stop(cond)}
-     )
+sits_cluster <- function (data.tb, method = "dendogram", n_clusters = 4, perc = 0.10, show = TRUE){
+
+     ensurer::ensure_that(method, (. == "dendogram" || . == "centroids"), err_desc = "sits_cluster: valid cluster methods are dendogram or centroids")
+
+     cluster.tb <- sits_table()
+     # how many different labels are there?
+     labels <- dplyr::distinct (data.tb, label)
+
+     for (i in 1:nrow(labels)) {
+          # get the label name as a character
+          lb <-  as.character (labels[i,1])
+
+          # filter only those rows with the same label
+          label.tb <- dplyr::filter (data.tb, label == lb)
+
+          # apply the clustering method
+          if (method == "dendogram")
+               clu.tb <- sits_dendogram (label.tb, n_clusters = n_clusters, perc = perc, show = show)
+          else
+               clu.tb <- sits_centroids (label.tb, n_clusters = n_clusters, perc = perc, show = show)
+          # get the result
+          cluster.tb <- dplyr::bind_rows(cluster.tb, clu.tb)
+     }
      return (cluster.tb)
 }
 
@@ -43,12 +59,14 @@ sits_cluster <- function (data.tb, type = "dendogram", n_clusters = 4){
 #'
 #' @param data.tb      a tibble the list of time series to be clustered
 #' @param n_clusters   the number of clusters to be identified
+#' @param perc         the minimum percentage for a cluster to be valid
+#' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
 #' @keywords STIS
 #' @family   STIS cluster functions
 #' @export
 #'
-sits_dendogram <- function (data.tb, n_clusters = 4) {
+sits_dendogram <- function (data.tb, n_clusters = 4, perc = 0.10, show = TRUE) {
      cluster_dendogram <- function (data.tb, band, n_clusters){
           # get the values of the various time series for this band
           values.tb <- sits_values_rows (data.tb, band)
@@ -58,14 +76,16 @@ sits_dendogram <- function (data.tb, n_clusters = 4) {
                                  distance = "dtw_basic",
                                  seed     = 899)
 
-          # Plot the series and the obtained prototypes
-          graphics::plot (clusters, type = "sc")
+          if (show) {
+               # Plot the series and the obtained prototypes
+               graphics::plot (clusters, type = "sc")
 
-          # Plot the centroids
-          graphics::plot (clusters, type = "centroids")
+               # Plot the centroids
+               graphics::plot (clusters, type = "centroids")
 
-          # print information about the clusters
-          .sits_cluster_info (clusters)
+               # print information about the clusters
+               .sits_cluster_info (clusters)
+          }
 
           return (clusters)
      }
@@ -74,7 +94,7 @@ sits_dendogram <- function (data.tb, n_clusters = 4) {
           sits_bands() %>%
           purrr::map (function (b) cluster_dendogram (data.tb, b, n_clusters))
 
-     cluster.tb <- .sits_fromClusters (data.tb, cluster.lst)
+     cluster.tb <- .sits_fromClusters (data.tb, cluster.lst, perc)
      return (cluster.tb)
 }
 
@@ -83,26 +103,25 @@ sits_dendogram <- function (data.tb, n_clusters = 4) {
 #'
 #' \code{sits_centroids} find the k centroids of a set of time series clusters
 #'
-#' Partitional clustering assigns the data
-#' to one and only one cluster out of k total clusters. The total number of
-#' desired clusters must be specified beforehand.
-#' Partitional clustering algorithms commonly work in the following way.
+#' Partitional clustering assigns the data to one and only one cluster out of k total clusters.
 #' First, k centroids are randomly initialized, usually by choosing k objects
 #' from the dataset at random. these are assigned to individual clusters.
 #' The distance between all objects in the data and all centroids
 #' is calculated, and each object is assigned to the cluster of its closest centroid.
 #' A prototyping function is applied to each cluster to update the corresponding centroid.
 #' Then, distances and centroids are updated iteratively until a certain number of iterations have elapsed,
-#' or no object changes clusters anymore (extracted from dtwclust package)
+#' or no object changes clusters anymore
+#' (description extracted from dtwclust package)
 #'
 #' @param data.tb      a tibble the list of time series to be clustered
 #' @param n_clusters   the number of clusters to be identified
+#' @param perc         the minimum percentage for a cluster to be valid
 #' @return clusters.tb a SITS tibble with the clusters
 #' @keywords STIS
 #' @family   STIS cluster functions
 #' @export
 #'
-sits_centroids <- function (data.tb, n_clusters = 4) {
+sits_centroids <- function (data.tb, n_clusters = 4, perc = 0.10, show = TRUE) {
      cluster_partitional <- function (band, data.tb, n_clusters) {
           values.tb <- sits_values_rows (data.tb, band)
           clusters  <- dtwclust::dtwclust (values.tb,
@@ -111,13 +130,16 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
                                  distance = "dtw_basic",
                                  centroid = "pam",
                                  seed     = 899)
+          if (show) {
+               # Plot the series and the obtained prototypes
+               graphics::plot (clusters, type = "sc")
 
-          # Plot the series and the obtained prototypes
-          graphics::plot (clusters, type = "sc")
-          # Plot the centroids
-          graphics::plot (clusters, type = "centroids")
-          # print information about the clusters
-          .sits_cluster_info (clusters)
+               # Plot the centroids
+               graphics::plot (clusters, type = "centroids")
+
+               # print information about the clusters
+               .sits_cluster_info (clusters)
+          }
 
           return (clusters)
      }
@@ -127,7 +149,7 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
           purrr::map (function (b) cluster_partitional (b, data.tb, n_clusters))
 
      # retrieve the significant clusters as a list
-     cluster.tb <- .sits_fromClusters (data.tb, clusters.lst)
+     cluster.tb <- .sits_fromClusters (data.tb, clusters.lst, perc)
 
      return (cluster.tb)
 }
@@ -148,7 +170,7 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
 #' @keywords SITS
 #' @examples .sits_fromClusters (savanna_s.tb, clusters.lst)
 
-.sits_fromClusters <-  function (data.tb, clusters.lst) {
+.sits_fromClusters <-  function (data.tb, clusters.lst, perc) {
      centroids.lst <- clusters.lst %>%
           purrr::map (function (clu) {
                # what is the name of the band?
@@ -156,7 +178,7 @@ sits_centroids <- function (data.tb, n_clusters = 4) {
 
                # how many clusters have more than 10% of the total samples?
                num <- clu@clusinfo$size %>%
-                    .[. > as.integer (0.1 * length(clu@cluster))] %>%
+                    .[. > as.integer (perc * length(clu@cluster))] %>%
                     length()
 
                # get centroids ids
