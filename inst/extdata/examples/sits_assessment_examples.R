@@ -8,7 +8,7 @@ cerrado2.tb <- cerrado.tb[700:746,]
 
 cerrado_s.tb <- dplyr::bind_rows(cerrado1.tb, cerrado2.tb)
 
-sits_save (cerrado_s.tb, "./inst/extdata/samples/cerrado_small.tb")
+sits_save (cerrado_s.tb, "./inst/extdata/samples/cerrado_small.json")
 
 val <- sits_validate(cerrado_s.tb, times = 10, p = 0.2)
 

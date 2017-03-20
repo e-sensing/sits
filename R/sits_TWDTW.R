@@ -61,8 +61,8 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                sits_select (bands) %>%
                .sits_toTWDTW_time_series()
 
-          start_date <- lubridate::as_date(head(series.tb[1,]$time_series[[1]],1)$Index)
-          end_date   <- lubridate::as_date(tail(series.tb[1,]$time_series[[1]],1)$Index)
+          start_date <- lubridate::as_date(head(series.tb[i,]$time_series[[1]],1)$Index)
+          end_date   <- lubridate::as_date(tail(series.tb[i,]$time_series[[1]],1)$Index)
 
           # define the temporal intervals of each classification
           breaks <- seq(from = start_date, to = end_date, by = interval)
