@@ -74,7 +74,7 @@ sits_getdata <- function (file        = NULL,
      }
      # get data based on SHP file
      if (tolower(tools::file_ext(file)) == "shp") {
-          data.tb <- .sits_fromSHP (file, wtss.obj, cov, bands)
+          data.tb <- .sits_fromSHP (file, wtss.obj)
           return (data.tb)
      }
      message (paste ("No valid input to retrieve time series data!!","\n",sep=""))
@@ -207,7 +207,7 @@ sits_getdata <- function (file        = NULL,
 #' temporal resolution from the WTSS configuration.
 #'
 #' @param shp_file   string  - name of a SHP file which provides the boundaries of a region of interest
-#' @param crs        string  - the coordinate reference system used by the shapefile
+#' @param wtss       an R object that represents the WTSS server
 #' @return table     tibble  - a SITS table
 .sits_fromSHP <- function (shp_file, wtss) {
      # read the shapefile
@@ -237,7 +237,7 @@ sits_getdata <- function (file        = NULL,
                                                                          each=length(lat.num)),
                                                          latitude = rep(lat.num,
                                                                         length(long.num))),
-                                              proj4string=CRS(proj4string(points_Sinu.sp)))
+                                              proj4string=sp::CRS(sp::proj4string(points_Sinu.sp)))
 
           coordinates.sp
 
@@ -263,7 +263,7 @@ sits_getdata <- function (file        = NULL,
 
           points.sp <-  sp::SpatialPoints(data.frame(points.tb$longitude,
                                                      points.tb$latitude),
-                                          proj4string=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+                                          proj4string=sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 
           points.sp
 
@@ -273,7 +273,7 @@ sits_getdata <- function (file        = NULL,
      extractFromPolygon <- function(points.sp, roi.shp) {
 
           # subset of points.sp
-          points.sp <- points.sp[!is.na(sp::over(points.sp, as(roi.shp, "SpatialPolygons")) == 1)]
+          points.sp <- points.sp[!is.na(sp::over(points.sp, methods::as(roi.shp, "SpatialPolygons")) == 1)]
 
           points.sp
 
@@ -281,10 +281,10 @@ sits_getdata <- function (file        = NULL,
 
      # read shapefile and get first point time series
      roi.shp <- raster::shapefile(shp_file)
-     roi.shp <- sp::spTransform(roi.shp, CRS("+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"))
-     pt.df <- data.frame(longitude = bbox(roi.shp)[1,], latitude = bbox(roi.shp)[2,])
-     pt.sp <- sp::SpatialPoints(pt.df, CRS(proj4string(roi.shp)))
-     pt.sp <- sp::spTransform(pt.sp, CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+     roi.shp <- sp::spTransform(roi.shp, sp::CRS("+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"))
+     pt.df <- data.frame(longitude = sp::bbox(roi.shp)[1,], latitude = sp::bbox(roi.shp)[2,])
+     pt.sp <- sp::SpatialPoints(pt.df, sp::CRS(sp::proj4string(roi.shp)))
+     pt.sp <- sp::spTransform(pt.sp, sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
      pt.tb <- sp2SitsTable(pt.sp)
      pt_wtss.tb <- pt.tb %>%
           dplyr::rowwise() %>%
@@ -292,19 +292,19 @@ sits_getdata <- function (file        = NULL,
 
      # transform grid points in Sinusoidal into WGS
      pt_wtss.sp <- sitsTable2sp(pt_wtss.tb)
-     pt_wtss.sp <- sp::spTransform(pt_wtss.sp, CRS("+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"))
+     pt_wtss.sp <- sp::spTransform(pt_wtss.sp, sp::CRS("+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"))
      grid_pts.sp <- buildGridPoints(pt_wtss.sp)
 
      # transform WGS sp into sits table to get data from server
      plg_pts.sp <- extractFromPolygon(grid_pts.sp, roi.shp)
-     plg_pts.sp <- sp::spTransform(plg_pts.sp, CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+     plg_pts.sp <- sp::spTransform(plg_pts.sp, sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
      plg_pts.tb <- sp2SitsTable(plg_pts.sp)
 
      wtss_points.tb <- plg_pts.tb %>%
           dplyr::rowwise() %>%
           dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, wtss$start_date, wtss$end_date, "NoClass", wtss$wtss_obj, wtss$coverage, wtss$bands))
 
-     wtss_points.tb
+     return (wtss_points.tb)
 }
 
 #' @title Obtain one timeSeries from WTSS server and load it on a sits table

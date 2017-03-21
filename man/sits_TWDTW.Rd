@@ -28,9 +28,7 @@ sits_TWDTW(series.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
 matches       a SITS table with the information on matches for the data
 }
 \description{
-\code{sits_TWDTW} returns a sits table with the results of the TWDTW classifier.
-}
-\details{
+Returns a sits table with the results of the TWDTW classifier.
 The TWDTW classifier compares the values of a satellite image time series with
 the values of known patters and tries to match each pattern to a part of the time series
 
@@ -38,8 +36,7 @@ The TWDTW (time-weighted dynamical time warping) is a version of the
 Dynamic Time Warping method for land use and land cover mapping using a sequence
 of multi-band satellite images. Methods based on dynamic time warping are flexible to
 handle irregular sampling and out-of-phase time series, and they have achieved significant
-results in time series analysis.
-In contrast to standard DTW, the TWDTW method is sensitive to seasonal
+results in time series analysis. In contrast to standard DTW, the TWDTW method is sensitive to seasonal
 changes of natural and cultivated vegetation types. It also considers inter-annual climatic and
 seasonal variability.
 }
@@ -48,4 +45,9 @@ Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
 A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
+}
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

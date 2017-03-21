@@ -397,3 +397,22 @@ sits_label_perc <- function (data.tb, perc = 0.1){
      }
      return (data1.tb)
 }
+
+
+#' @title Sample a percentage of a time series
+#' @name sits_time_interval
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description finds out the temporal interval of the time series of the data
+#'
+#' @param data.tb  a sits tibble
+#' @return ndays   number of days covered by the time series
+#' @export
+sits_time_interval <-  function (data.tb){
+     ensurer::ensures_that(data.tb, nrow(data.tb) == 1,
+                           err_dec = "sits_time_interval - works with one row at a time")
+     ndays <-  (lubridate::as_date(data.tb[1,]$end_date) -
+                     lubridate::as_date(data.tb[1,]$start_date))/lubridate::ddays(1)
+     return (ndays)
+}
+

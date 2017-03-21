@@ -30,13 +30,15 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom graphics plot
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom lubridate as_date dyears days period yday year ymd
-#' @importFrom methods new
+#' @importFrom methods new as
 #' @importFrom mgcv gam predict.gam
 #' @importFrom ptw whit2
 #' @importFrom raster shapefile
 #' @importFrom reshape2 melt
 #' @importFrom signal sgolayfilt
+#' @importFrom sp bbox SpatialPoints CRS proj4string
 #' @importFrom stats sd setNames
 #' @importFrom tools file_ext file_path_sans_ext
+#' @importFrom utils head tail
 #' @importFrom wtss.R WTSS timeSeries listCoverages describeCoverage
 #' @importFrom zoo zoo fortify.zoo

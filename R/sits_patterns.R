@@ -83,11 +83,11 @@ sits_patterns_gam <- function (samples.tb, freq = 8, from = NULL, to = NULL, for
 
           # if dates are not given, get them from the sample data set
           if (purrr::is_null (from))
-               from <- head(label.tb[1,]$time_series[[1]],1)$Index
+               from <- utils::head(label.tb[1,]$time_series[[1]],1)$Index
           else
                from <- from
           if (purrr::is_null (to))
-               to   <- tail(label.tb[1,]$time_series[[1]],1)$Index
+               to   <- utils::tail(label.tb[1,]$time_series[[1]],1)$Index
           else
                to <- to
 

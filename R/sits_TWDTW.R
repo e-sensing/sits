@@ -31,11 +31,8 @@
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
 sits_TWDTW <- function (series.tb, patterns.tb, bands,
-                           alpha = -0.1,
-                           beta = 100,
-                           theta = 0.5,
-                           span  = 250,
-                           keep  = FALSE){
+                        alpha = -0.1, beta = 100,
+                        theta = 0.5, span  = 250, keep  = FALSE){
 
      # create a tibble to store the results
      results.tb <- sits_table_result()
@@ -65,18 +62,20 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                                        span       = span,
                                        keep       = keep)
 
-          # store the distances and matches in two lists
-          # distances
-          dist.lst <- tibble::lst()
-          dist.lst[[1]] <- matches[][[1]]
+          # store the alignments and matches in two lists
+          # alignements
+          align.lst <- tibble::lst()
+          align.lst[[1]] <- matches[][[1]]
 
           # matches
           match.lst <- tibble::lst()
           match.lst[[1]] <- matches
 
-          # add the distances and matches to the input row
-          row.tb <- dplyr::mutate (ts.tb, distances  = dist.lst)
+          # add the aligments and matches to the input row
+          row.tb <- dplyr::mutate (ts.tb, alignments  = align.lst)
           row.tb <- dplyr::mutate (row.tb, matches    = match.lst)
+
+          #dist.tb <- .sits_fromTWDTW_matches (series.tb, matches, breaks, interval)
 
           # add the row to the results.tb tibble
           results.tb <- dplyr::bind_rows(results.tb, row.tb)
@@ -84,7 +83,6 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
      }
      return (results.tb)
 }
-
 #' @title Export data to be used by the dtwSat package
 #' @name .sits_toTWDTW_time_series
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
@@ -113,7 +111,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #' @title Transform patterns from TWDTW format to SITS format
 #' @name .sits_fromTWDTW_time_series
 #'
-#' @desciption reads a set of TWDTW patterns and transforms them into a SITS table
+#' @description reads a set of TWDTW patterns and transforms them into a SITS table
 #'
 #' @param patterns  - a TWDTW object containing a set of patterns to be used for classification
 #' @param coverage  - the name of the coverage from where the time series have been obtained
