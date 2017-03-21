@@ -1,22 +1,51 @@
-#' Find time series patterns to use using TWDTW (using the dtwSat package)
+#' @title Create time series patterns for classification
+#' @name sits_patterns
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' \code{sits_patterns} returns a sits table with a list of patterns based on samples using a gam model
+#' @description This function allows the user to select different alternatives to define a set of
+#' patterns, given his samples. The alternatives are:
+#' "gam" - uses a generalised additive model to approximate a smooth spline for each pattern
+#' "dendogram" - uses a herarchical clustering method to group the patterns
+#' "centroids" - uses a positional clustering method to group the patterns
 #'
-#' A sits table has the metadata and data for each time series
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
+#' @param  samples.tb    a table in SITS format with a set of labelled time series
+#' @param  method        the method to be used for classification
+#' @return patterns.tb   a SITS table with the patterns
+#' @export
+sits_patterns <- function (samples.tb, method = "gam", ...) {
+     # check the input exists
+     ensurer::ensure_that(samples.tb, !purrr::is_null(.), err_desc = "sits_patterns: input data not provided")
+
+     switch(method,
+            "gam"            =  { patterns.tb <- sits_patterns_gam (samples.tb, ...) },
+            "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, method = "dendogram", ...)},
+            "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, method = "centroids", ...)},
+            message (paste ("sits_patterns: valid methods are gam, dendogram, centroids", "\n", sep = ""))
+            )
+
+     # return the patterns found in the analysis
+     return (patterns.tb)
+}
+
+#' @title Create temporal patterns using a generalised additive model (gam)
+#' @name sits_patterns_gam
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' The patterns are calculated based on a statistical model that tries to find a suitable
-#' for a set of samples. The idea is to use a formula of type y ~ s(x), where x is a temporal
+#' @description This function takes a set of time series samples as input
+#' estimates a set of patterns. The patterns are calculated based in a GAM model.
+#' The idea is to use a formula of type y ~ s(x), where x is a temporal
 #' reference and y if the value of the signal. For each time, there will be as many predictions
-#' as there are sample values. Then, a statistical model such as "gam" is used to predict a suitable
+#' as there are sample values. The GAM model predicts a suitable
 #' approximation that fits the assumptions of the statistical model.
-#'
-#' In the current version, the only statistical model used in the "gam" (generalised additive model)
-#' which has the advantage of producing an approximation based on a smooth function.
+#' By default, the gam methods  produces an approximation based on a smooth function.
 #'
 #' This method is based on the "createPatterns" method of the dtwSat package, which is also
-#' described in the reference paper below:
-#' Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
+#' described in the reference paper.
+#'
+#' @references Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
 #' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.
 #' IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
@@ -54,11 +83,11 @@ sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to
 
           # if dates are not given, get them from the sample data set
           if (purrr::is_null (from))
-               from <- head(label.tb[1,]$time_series[[1]],1)$Index
+               from <- utils::head(label.tb[1,]$time_series[[1]],1)$Index
           else
                from <- from
           if (purrr::is_null (to))
-               to   <- tail(label.tb[1,]$time_series[[1]],1)$Index
+               to   <- utils::tail(label.tb[1,]$time_series[[1]],1)$Index
           else
                to <- to
 
@@ -126,3 +155,44 @@ sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to
      return (patterns.tb)
 }
 
+#' @title Estimate a set of patterns based on a clustering
+#' @name sits_patterns_cluster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description This function uses an algorithm that tries to create a hierarchy
+#' of groups in which, as the level in the hierarchy increases, clusters are created by merging
+#' the clusters from the next lower level, such that an ordered sequence of groupings is obtained
+#' (Hastie et al. 2009). The similarity method used is the "dtw" distance.
+#' This function uses the dendogram clustering method available in the "dtwclust" pattern
+#'
+#' @param  samples.tb    a table in SITS format with a set of labelled time series
+#' @param  method        the method to be used for classification
+#' @param  n_clusters    the maximum number of clusters to be identified
+#' @param  perc          the minimum percentagem of valid cluster members, with reference to the total number of samples
+#' @param  show          show the results of the clustering algorithm?
+#' @return patterns.tb   a SITS table with the patterns
+#' @export
+sits_patterns_cluster <- function (samples.tb, method = "dendogram", nclusters = 2, perc = 0.10, show = FALSE){
+     # create an output
+     patterns.tb <- tibble::tibble()
+
+     # how many different labels are there?
+     labels <- dplyr::distinct (samples.tb, label)
+
+     for (i in 1:nrow(labels)) {
+          # get the label name as a character
+          lb <-  as.character (labels[i,1])
+
+          # filter only those rows with the same label
+          label.tb <- dplyr::filter (samples.tb, label == lb)
+          # apply the clustering method
+          if (method == "dendogram")
+               clu.tb <- sits_dendogram (label.tb, n_clusters = nclusters, perc = perc, show = show)
+          else
+               clu.tb <- sits_centroids (label.tb, n_clusters = nclusters, perc = perc, show = show)
+          # get the result
+          dplyr::bind_rows(patterns.tb, clu.tb)
+     }
+     return (patterns.tb)
+}

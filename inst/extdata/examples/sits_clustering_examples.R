@@ -12,7 +12,7 @@ sits_plot (savanna.tb[1:50,], type = "allyears")
 sits_plot (cerrado.tb[1:200,], type = "together")
 
 clusters_sav.tb <- sits_cluster (cerrado.tb, label_groups = list("Cerrado", "Pasture"),
-                                 band_groups = c("ndvi", "evi"), method = "dendogram", n_clusters = 4,
+                                 band_groups = list(c("ndvi", "evi")), method = "dendogram", n_clusters = 4,
                                  show = TRUE)
 
 cerrado_pat.tb <- sits_patterns(clusters_sav.tb)

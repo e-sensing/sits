@@ -4,14 +4,23 @@
 \alias{sits_validate}
 \title{validate temporal patterns}
 \usage{
-sits_validate(data.tb, times = 100, p = 0.1)
+sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
+  p = 0.1, reference.lst = NULL, predicted.lst = NULL, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
 
+\item{bands}{the bands used for classification}
+
+\item{method}{method to create patterns ("gam", "dendogram" or "centroids")}
+
 \item{times}{Number of partitions to create.}
 
 \item{p}{the percentage of data that goes to training.}
+
+\item{reference.lst}{a conversion of label names for the reference classes (optional)}
+
+\item{predicted.lst}{a conversion of label names for the predicted classes (optional)}
 }
 \description{
 Splits the set of time series into training and validation and
@@ -24,4 +33,8 @@ and the results of the TWDTW analysis.
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

@@ -11,16 +11,8 @@ wtss_inpe <- sits_infoWTSS(URL)
 
 # get information about a specific coverage
 sits_coverageWTSS(URL,"mod13q1_512")
-<<<<<<< HEAD
 
-# bands used in this example
-bands <- c("ndvi", "evi", "blue", "red", "nir", "mir")
 
-# a complicated point
-long <- -55.51810
-lat <-  -11.63884
-
-=======
 # choose a coverage
 coverage <- "mod13q1_512"
 # recover all bands
@@ -31,7 +23,6 @@ long <- -55.01768
 lat <-  -15.35588
 
 # obtain a time series from the WTSS server for this point
->>>>>>> 2ac7a2559c1b6bce389d0a2a8fcc3c4aa4f6ae64
 series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = "mod13q1_512", bands = bands)
 
 # plot the “evi” band
@@ -65,6 +56,7 @@ sits_plot (patterns.tb, type = "patterns")
 
 # classify samples using TWDTW
 bands <- c("ndvi", "evi", "nir")
+breaks <- seq(from = "2000-")
 results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
 # plot the results of the classification

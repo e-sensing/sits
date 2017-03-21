@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_table.R
 \name{sits_bands}
 \alias{sits_bands}
-\title{Finds the names of the bands of a time series}
+\title{returns the names of the bands of a time series}
 \usage{
 sits_bands(data.tb)
 }
@@ -13,14 +13,8 @@ sits_bands(data.tb)
 names      a string vector with the names of the bands
 }
 \description{
-\code{sits_bands} finds the names of the bands of time series in a sits table
+finds the names of the bands of time series in a sits table
 }
-\seealso{
-Other STIS table functions: \code{\link{sits_align}},
-  \code{\link{sits_dates}},
-  \code{\link{sits_group_bylatlong}},
-  \code{\link{sits_rename}}, \code{\link{sits_select}},
-  \code{\link{sits_table_result}},
-  \code{\link{sits_table}}, \code{\link{sits_values_cols}},
-  \code{\link{sits_values_rows}}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
