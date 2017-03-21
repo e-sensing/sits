@@ -1,13 +1,10 @@
 
 #
-#' Set important global variables for WTSS access
+#' Set variables for WTSS access
 #'
-#' \code{sits_configWTSS} stores the information about the WTSS server
-#' and the coverage name to be retrieved during access to the WTSS server
-#' In a SITS session, this information is defined one and
-#' used in many applications
-#'
-#' This function should be run at the start of each SITS session.
+#' \code{sits_infoWTSS} obtains information about the WTSS server
+#' and about the coverages. This information is used in many applications
+#' which obtain data from the WTSS
 #'
 #' The Web Time Series Service is a lightweight web service the allow remote access to satellite
 #'  image time series and provides three operations:
@@ -22,13 +19,32 @@
 #'  3. time series: this operation requests the time series of values of a coverage attribute
 #'    at a given location.
 #'
-#'  To allow for further processing of time series from a WTSS service, this operation
-#'  creates a list with the following variables
 #'
-#'  URL            - the URL for the WTSS time series service
-#'  ts_server      - an object that handles the WTSS connection
-#'  coverage       - the name of the coverage that contains the time series for the analysis
-#'  cov_desc       - a table with the parameters of the coverage
+#' @param URL             the URL for the WTSS time series service
+#' @return wtss_info       a list containing the information about the WTSS server and coverage
+#' @export
+sits_infoWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss") {
+
+     # obtains information about the WTSS service
+     wtss.obj         <- wtss.R::WTSS(URL)
+     cat (paste ("-----------------------------------------------------------", "\n",sep = ""))
+     cat (paste ("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
+
+     # obtains information about the coverages
+     coverages.obj    <- wtss.R::listCoverages(wtss.obj)
+          cat (paste ("Available coverages: \n"))
+          coverages.obj %>%
+               purrr::map (function (c) cat (paste (c, "\n", sep = "")))
+          cat (paste ("------------------------------------------------------------", "\n",sep = ""))
+
+     return (invisible(wtss.obj))
+}
+#
+#' Provides information about one coverage of the WTSS service
+#'
+#' \code{sits_coverageWTSS} uses the WTSS services to print information about a
+#' chosen coverage:
+#'
 #'  start_date     - the start date for the time series data in the coverage
 #'  end_date       - the end date for the time series data in the coverage
 #'  res_x          - spatial resolution (x dimension)
@@ -41,86 +57,6 @@
 #'  y_max          - spatial extent (ymin)
 #'  bands          - the bands of the data to be retrieved from the WTSS
 #'
-#' @param URL             the URL for the WTSS time series service
-#' @param coverage        name of space-time coverage that contains the time series information
-#' @param bands           a character vector with the names of the bands to be retrieved
-#' @return wtss_info       a list containing the information about the WTSS server and coverage
-#' @export
-sits_configWTSS <- function (URL      = "http://www.dpi.inpe.br/tws/wtss",
-                             coverage = "chronos:modis:mod13q1_512",
-                             bands    = c("ndvi", "evi", "nir")) {
-
-     wtss_info                <- tibble::lst()
-     class (wtss_info)        <- append (class(wtss_info), "wtss_info")
-     # create a WTSS connection
-     wtss_info$URL            <- URL
-     # store the WTSS object
-     wtss_info$wtss_obj       <- wtss.R::WTSS(URL)
-     # obtains information about the coverages
-     coverages.vec    <- wtss.R::listCoverages(wtss_info$wtss_obj)
-     # is the coverage in the list of coverages?
-     ensurer::ensures_that (coverage %in%coverages.vec, err_desc = "coverage is not available in the WTSS server")
-     # store the name of the coverage
-     wtss_info$coverage       <- coverage
-     # describe the coverage
-     cov_desc.lst      <- wtss.R::describeCoverage(wtss_info$wtss_obj, coverage)
-     # retrieve the coverage
-     cov <- cov_desc.lst[[coverage]]
-     # store the attributes
-     wtss_info$cov_desc      <- cov$attributes %>%
-                              dplyr::select (name, scale_factor, missing_value) %>%
-                              tibble::as_tibble() %>%
-                              dplyr::rename (band = name)
-     # spatial resolution and extent
-     wtss_info$res_x      <- cov$spatial_resolution$x
-     wtss_info$res_y      <- cov$spatial_resolution$y
-     wtss_info$x_min      <- cov$spatial_extent$xmin
-     wtss_info$y_min      <- cov$spatial_extent$ymin
-     wtss_info$x_max      <- cov$spatial_extent$xmax
-     wtss_info$y_max      <- cov$spatial_extent$ymax
-
-     #bands
-     wtss_info$bands      <- bands
-
-     # temporal resolution and extent
-     timeline             <- cov$timeline
-     wtss_info$start_date <- timeline[1]
-     wtss_info$end_date   <- timeline[length(timeline)]
-     wtss_info$res_t      <- as.integer ((lubridate::as_date(timeline[2])
-                                         - lubridate::as_date(timeline[1]))/lubridate::ddays(1))
-     return (wtss_info)
-}
-
-#
-#' Provides information about WTSS service
-#'
-#' \code{sits_info_WTSS} uses the WTSS services to provide information about the
-#' coverages that are served
-#'
-#' @param URL     the URL for the WTSS time series service
-#' @export
-#'
-sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
-     # obtains information about the WTSS service
-     wtss.obj         <- wtss.R::WTSS(URL)
-     cat (paste ("-----------------------------------------------------------", "\n",sep = ""))
-     cat (paste ("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
-
-     # obtains information about the coverages
-     coverages.obj    <- wtss.R::listCoverages(wtss.obj)
-     cat (paste ("Available coverages: \n"))
-     coverages.obj %>%
-          purrr::map (function (c) cat (paste (c, "\n", sep = "")))
-     cat (paste ("------------------------------------------------------------", "\n",sep = ""))
-
-     return (invisible(wtss.obj))
-}
-#
-#' Provides information about one coverage of the WTSS service
-#'
-#' \code{sits_coverageWTSS} uses the WTSS services to provide information about a
-#' chosen coverage
-#'
 #' @param URL        the URL for the WTSS time series service
 #' @param coverage   the name of the coverage
 #' @export
@@ -131,7 +67,8 @@ sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage
      # obtains information about the coverages
      coverages.vec    <- wtss.R::listCoverages(wtss.obj)
      # is the coverage in the list of coverages?
-     ensurer::ensures_that (coverage %in%coverages.vec, err_desc = "coverage is not available in the WTSS server")
+     ensurer::ensure_that (coverage, . %in%coverages.vec,
+                           err_desc = "sits_coverageWTSS: coverage is not available in the WTSS server")
      # describe the coverage
      cov.lst    <- wtss.R::describeCoverage(wtss.obj, coverage)
      cov <- cov.lst[[coverage]]
@@ -169,5 +106,41 @@ sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage
           - lubridate::as_date(timeline[1]))/lubridate::ddays(1))
      cat (paste ("Temporal resolution: ", temporal_resolution, " days ", "\n", sep = ""))
      cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
-     return (invisible (cov))
+
+     return (invisible(cov))
+}
+#
+#' Provides information about one coverage of the WTSS service
+#'
+#' \code{sits_getcovWTSS} uses the WTSS services to retrieve information about a given coverage:
+#'
+#'  name            - the name of thee coverage
+#'  description     - description
+#'  detail          - more information (source)
+#'  attributes      - spectral bands (name, description, datatype, valid_range.min, valid_range.max, scale_factor, missing_value)
+#'  spatial_extent  - bounding box in space (xmin, ymin, xmax, ymax)
+#'  crs             - Projection CRS
+#'  timeline        - dates of images contained in the coverage
+#'
+#' @param URL        the URL for the WTSS time series service
+#' @param coverage   the name of the coverage
+#' @return cov       a list with descriptive information about the coverage
+#' @export
+#'
+sits_getcovWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL) {
+     # is the coverage name provided?
+     ensurer::ensure_that(coverage, !purrr::is_null (.), err_desc = "sits_getcovWTSS: Coverage name must be provided")
+
+     # obtains information about the WTSS service
+     wtss.obj         <- wtss.R::WTSS(URL)
+     # obtains information about the coverages
+     coverages.vec    <- wtss.R::listCoverages(wtss.obj)
+     # is the coverage in the list of coverages?
+     ensurer::ensure_that (coverage, . %in%coverages.vec,
+                           err_desc = "sits_getcovWTSS: coverage is not available in the WTSS server")
+     #retrive the coverage information
+     cov.lst    <- wtss.R::describeCoverage(wtss.obj, coverage)
+     cov <- cov.lst[[coverage]]
+
+     return (cov)
 }

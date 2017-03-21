@@ -13,12 +13,11 @@ lat  <- -11.51652
 sits_infoWTSS(URL)
 
 # then, configure the WTSS service
-inpe <- sits_configWTSS (URL,
-                         coverage = "mod13q1_512",
-                         bands = c("ndvi", "evi", "nir"))
+coverage <-  "mod13q1_512"
+bands    <-  c("ndvi", "evi", "blue", "red", "nir", "mir")
 
 # pick one point as an example
-point.tb <- sits_getdata(longitude = long, latitude = lat, wtss = inpe)
+point.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = coverage, bands = bands)
 # select the evi and plot it
 point.tb %>%
      sits_select (c("evi")) %>%
@@ -41,7 +40,7 @@ point3.tb %>%
      sits_select (c("ndvi", "ndvi_smooth")) %>%
      sits_plot()
 
-samples1.tb <- sits_getdata(file = "./inst/extdata/samples/MatoGrosso-examples.csv", wtss = inpe )
+samples1.tb <- sits_getdata(file = system.file("extdata/samples/MatoGrosso-examples.csv", package="sits"), wtss = inpe )
 
 samples1.tb %>%
      sits_plot(type = "one_by_one")

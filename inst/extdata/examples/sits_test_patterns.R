@@ -12,7 +12,7 @@ inpe <- sits_configWTSS (URL = "http://www.dpi.inpe.br/tws/wtss",
                  bands = c("ndvi", "evi", "nir"))
 
 # select samples for pasture and savanna
-cerrado.tb <- sits_getdata ("./inst/extdata/Samples/cerrado.json")
+cerrado.tb <- sits_getdata (system.file("extdata/samples/cerrado.json", package="sits"))
 
 patterns.tb <- sits_patterns(cerrado.tb)
 

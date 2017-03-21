@@ -5,7 +5,7 @@
 \title{Plot a set of time series}
 \usage{
 sits_plot(data.tb = NULL, type = "allyears", colors = "Dark2",
-  label = "NoClass")
+  label = NULL, k = 4)
 }
 \arguments{
 \item{data.tb}{tibble - a SITS table with the list of time series to be plotted}
@@ -13,6 +13,8 @@ sits_plot(data.tb = NULL, type = "allyears", colors = "Dark2",
 \item{type}{string - the type of plot to be generated}
 
 \item{colors}{the color pallete to be used (default is "Set1")}
+
+\item{label}{the class label}
 }
 \value{
 data.tb    tibble - the input SITS table (useful for chaining functions)

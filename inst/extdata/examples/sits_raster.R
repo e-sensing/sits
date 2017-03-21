@@ -21,8 +21,9 @@ AguaBoa_evi_sub1 <- AguaBoa_evi_sub1/10000
 AguaBoa_ndvi_sub1 <- crop(AguaBoa_ndvi, e)
 AguaBoa_ndvi_sub1 <- AguaBoa_ndvi_sub1/10000
 
-writeRaster(AguaBoa_evi_sub1, "./inst/extdata/raster/agua_boa_evi_sub2.tiff")
-writeRaster(AguaBoa_ndvi_sub1, "./inst/extdata/raster/agua_boa_ndvi_sub2.tiff")
+writeRaster(AguaBoa_evi_sub1, system.file("extdata/raster/agua_boa_evi_sub2.tif", package="sits"))
+
+writeRaster(AguaBoa_ndvi_sub1, system.file("extdata/raster/agua_boa_ndvi_sub2.tif", package="sits"))
 
 json_file <- paste (data_folder, "mod13q1_512.json", sep ="")
 

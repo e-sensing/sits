@@ -13,18 +13,8 @@ sits_dates(data.tb)
 table   a tibble in SITS format with values of time indexes
 }
 \description{
-\code{sits_dates} returns a sits table with dates only (colwise organised)
+returns a table containing the dates of a sits table (colwise organised)
 }
-\details{
-A sits table has the metadata and data for each time series
-<longitude, latitude, start_date, end_date, label, coverage, time_series>
-}
-\seealso{
-Other STIS table functions: \code{\link{sits_align}},
-  \code{\link{sits_bands}},
-  \code{\link{sits_group_bylatlong}},
-  \code{\link{sits_rename}}, \code{\link{sits_select}},
-  \code{\link{sits_table_result}},
-  \code{\link{sits_table}}, \code{\link{sits_values_cols}},
-  \code{\link{sits_values_rows}}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

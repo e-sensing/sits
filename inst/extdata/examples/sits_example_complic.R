@@ -15,7 +15,7 @@ sits_configWTSS (URL,
                  bands = c("ndvi", "evi", "nir"))
 
 # read a pattern table from a JSON file
-patterns.tb <- sits_getdata("./data/patterns/patterns_Damien_Rodrigo_11classes_6bands_centroid_Sep.json")
+patterns.tb <- sits_getdata(system.file("extdata/patterns/patterns_Damien_Rodrigo_11classes_6bands_centroid_Sep.json", package="sits"))
 
 # plot patterns
 sits_plot (patterns.tb, type = "patterns")
