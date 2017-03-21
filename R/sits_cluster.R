@@ -7,20 +7,49 @@
 #' See "dtwclust" documentation for more details
 #'
 #' @param data.tb      a SITS tibble the list of time series to be clustered
-#' @param label_groups a list containing all labels (or groups of it in a `vector`) to be splitted up and clusterized apart.
+#' @param label_groups a list containing groups of labels to be clusterized apart. A group of labels may be an label alone (str) or a vector of labels.
 #' @param type         string - either "dendogram" or "centroids"
 #' @param n_clusters   the number of clusters to be identified.
 #' @return clusters.tb a SITS tibble with the clusters
 #' @family  STIS cluster functions
 #' @export
-sits_cluster <- function (data.tb, label_groups, type = "dendogram", n_clusters = 4){
+sits_cluster <- function (data.tb, label_groups, band_groups, type = "dendogram", n_clusters = 4, ignore_clusters_prop = 0.1, do_plot = TRUE){
      # select cluster option
      switch (type,
              "dendogram" = {
+                  # creates the resulting table
                   cluster.tb <- sits_table()
+
+                  # for each group of labels computes clusters for all bands
                   label_groups %>%
-                       purrr::map (function (label) {
-                            cluster.tb <<- dplyr::bind_rows(cluster.tb, sits_dendogram (data.tb, label, n_clusters))
+                       purrr::map (function (labels) {
+
+                            # if no band group is provided create a group for each band
+                            if (is.null(band_groups)) {
+                                 band_groups <- sits_bands(data.tb)
+                            }
+
+                            # computes clusters for all bands (This variable stores a list of tibles that stores clusters for each band)
+                            centroids_band.lst <- band_groups %>%
+                                 # computes clusters for a given band
+                                 purrr::map (function (bands) {
+                                      sits_dendogram (data.tb, labels, bands, n_clusters, ignore_clusters_prop, do_plot)
+                                 })
+
+                            # creates an empty sits_table to stores all clusters of a label group
+                            cluster_label.tb <- sits_table()
+
+                            # proceed with cross join operation between bands of a given cluster
+                            centroids_band.lst %>%
+                                 purrr::map (function (clust_band.tb) {
+                                      # we need store the cross join result into `centroids.tb` from outer scope (so the <<- operator)
+                                      # outer scope `centroids.tb` variable is updated on next map iteration (this transform our code in a recursive one)
+                                      # (note that this does NOT create a global variable!)
+                                      cluster_label.tb <<- sits_cross (cluster_label.tb, clust_band.tb)
+                                 })
+
+                            # appends the resulting sits_table with crossed-band clusters of the current label group
+                            cluster.tb <<- dplyr::bind_rows(cluster.tb, cluster_label.tb)
                        })
                   },
              "centroids" = {
@@ -54,25 +83,37 @@ sits_cluster <- function (data.tb, label_groups, type = "dendogram", n_clusters 
 #' Ref: Comparing Time-Series Clustering Algorithms in R Using the dtwclust Package
 #' (dtwclust vignette)
 #'
-#' @param data.tb      a tibble the list of time series to be clustered
-#' @param labels       the label or a vector of labels to be clusterized together.
-#' @param n_clusters   the number of clusters to be identified
+#' @param data.tb              a tibble the list of time series to be clustered
+#' @param labels               the label or a vector of labels to be clusterized together.
+#' @param band                 the band to be clusterized
+#' @param n_clusters           the number of clusters to be identified
+#' @param ignore_clusters_prop ignores those clusters that have proportionally less samples than `ignore_clusters_prop`.
 #' @return clusters.tb a SITS tibble with the clusters
 #' @keywords STIS
 #' @family   STIS cluster functions
 #' @export
 #'
-sits_dendogram <- function (data.tb, labels, n_clusters = 4) {
-     cluster_dendogram <- function (data.tb, band, n_clusters){
-          # get the values of the various time series for this band
-          values.tb <- data.tb %>%
-               sits_values_rows (band)
-          clusters  <- dtwclust::dtwclust (values.tb,
-                                 type     = "hierarchical",
-                                 k        = n_clusters,
-                                 distance = "dtw_basic",
-                                 seed     = 899)
+sits_dendogram <- function (data.tb, labels, bands, n_clusters = 4, ignore_clusters_prop = 0.1, do_plot = TRUE) {
 
+     # get the values of the various time series for this band group (bands)
+     # data_label.tb is used later to get the centroids
+     data_label.tb <- data.tb %>%
+          dplyr::filter(label %in% labels)
+
+     # put data_label.tb in a format that dtwclust works
+     values.lst <- data_label.tb %>%
+          sits_values_rows (bands)
+
+     # computes dendogram clustering
+     clusters  <- dtwclust::dtwclust (values.lst,
+                                      type     = "hierarchical",
+                                      k        = n_clusters,
+                                      distance = "dtw_basic")
+
+     # print current clusterised label(s)
+     message (paste("\n", "Label(s): ", labels))
+
+     if (do_plot) {
           #plot the dendogram
           graphics::plot (clusters)
 
@@ -81,25 +122,33 @@ sits_dendogram <- function (data.tb, labels, n_clusters = 4) {
 
           # Plot the centroids
           graphics::plot (clusters, type = "centroids")
-
-          # print information about the clusters
-          .sits_cluster_info (clusters)
-
-          return (clusters)
      }
 
-     data_label.tb <- data.tb %>%
-          dplyr::filter(label %in% labels)
+     # print information about the clusters
+     .sits_cluster_info (clusters)
 
-     # print current clusterised label(s)
-     message (paste("\n", "Label(s): ", labels))
+     # how many clusters have more than 10% of the total samples?
+     num <- clusters@clusinfo$size %>%
+          .[. > as.integer (ignore_clusters_prop * length(clusters@cluster))] %>%
+          length()
 
-     cluster.lst <- data_label.tb %>%
-          sits_bands() %>%
-          purrr::map (function (b) cluster_dendogram (data_label.tb, b, n_clusters))
+     # get centroids ids
+     # extract the cluster names (e.g, "ndvi.21", "ndvi.35")
+     # get only the numbers as integers (e.g., 21 35)
+     ids <- as.integer(tools::file_ext(names (clusters@centroids)))
+     ids [is.na(ids)] <- 0  # the firs name has no number, so fill NA with 0
+     ids <- ids + 1         # add 1 (because dtwclust numbers begins at 0 and R begins at 1)
+     ids <- ids[order(clusters@clusinfo$size, decreasing = TRUE)][1:num]      # get only those numbers who are centroids of big clusters
 
-     cluster.tb <- .sits_fromClusters (data_label.tb, cluster.lst)
-     return (cluster.tb)
+     # select only significant centroids
+     clusters.tb <- data_label.tb[ids,]
+
+     # select only cluster band (drops all other bands)
+     clusters.tb$time_series <- clusters.tb$time_series %>%
+          purrr::map (function (ts) dplyr::select(ts, dplyr::one_of(c("Index", bands))))
+
+     return (clusters.tb)
+
 }
 
 # -----------------------------------------------------------
@@ -175,7 +224,7 @@ sits_centroids <- function (data.tb, label, n_clusters = 4) {
 #' @keywords SITS
 #' @examples .sits_fromClusters (savanna_s.tb, clusters.lst)
 
-.sits_fromClusters <-  function (data.tb, clusters.lst) {
+.sits_fromClusters <-  function (data.tb, clusters.lst, ignore_clusters_bellow_prop = 0.1) {
      centroids.lst <- clusters.lst %>%
           purrr::map (function (clu) {
                # what is the name of the band?
@@ -183,17 +232,16 @@ sits_centroids <- function (data.tb, label, n_clusters = 4) {
 
                # how many clusters have more than 10% of the total samples?
                num <- clu@clusinfo$size %>%
-                    .[. > as.integer (0.1 * length(clu@cluster))] %>%
+                    .[. > as.integer (ignore_clusters_bellow_prop * length(clu@cluster))] %>%
                     length()
 
                # get centroids ids
-               # extract the cluster names (e.g, "ndvi.21", "ndiv.35")
+               # extract the cluster names (e.g, "ndvi.21", "ndvi.35")
                # get only the numbers as integers (e.g., 21 35)
                ids <- as.integer(tools::file_ext(names (clu@centroids)))
-
-               ids [is.na(ids)] <- 0  # filter NAs
-               ids <- ids + 1         # add 1 (dtwclust numbers begin at 0)
-               ids <- ids[1:num]      # get only those numbers who are centroids of big clusters
+               ids [is.na(ids)] <- 0  # the firs name has no number, so fill NA with 0
+               ids <- ids + 1         # add 1 (because dtwclust numbers begins at 0 and R begins at 1)
+               ids <- ids[order(clu@clusinfo$size, decreasing = TRUE)][1:num]      # get only those numbers who are centroids of big clusters
 
                # select centroids values
                centroids <- data.tb[ids,]

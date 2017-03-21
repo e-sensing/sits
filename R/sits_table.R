@@ -64,18 +64,24 @@ sits_table_result <- function () {
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
 #' @param  data.tb    a tibble in SITS format with time series for different bands
-#' @param  band       string - a band whose values are to be extracted
+#' @param  bands      string - a group of bands whose values are to be extracted
 #' @return table   a tibble in SITS format with values
 #' @family   STIS table functions
 #' @export
 
-sits_values_rows <- function (data.tb, band) {
-     values <- data.tb$time_series %>%
-          data.frame() %>%
-          tibble::as_tibble() %>%
-          dplyr::select (dplyr::starts_with (band)) %>%
-          t()
-     return (values)
+sits_values_rows <- function (data.tb, bands) {
+     values.lst <- data.tb$time_series %>%
+          purrr::map(function (ts) {
+               data.matrix(dplyr::select(ts, dplyr::one_of(bands)))
+          })
+     bands_name <- paste0(bands, collapse = "_")
+     names(values.lst) <- paste0(bands_name, ".", 1:length(values.lst))
+     # values <- data.tb$time_series %>%
+     #      data.frame() %>%
+     #      tibble::as_tibble() %>%
+     #      dplyr::select (dplyr::starts_with (band)) %>%
+     #      t()
+     return (values.lst)
 }
 
 #' Return the values of one band of a SITS table (colwise organised)
@@ -115,7 +121,7 @@ sits_select <- function (data.tb, bands) {
      new.tb <- dplyr::select (data.tb, longitude, latitude, start_date, end_date, label, coverage)
      # select the chosen bands for the time series
      new.tb$time_series <- data.tb$time_series %>%
-          purrr::map (function (ts) ts <- ts [,c("Index", bands)])
+          purrr::map (function (ts) ts <- ts [, c("Index", bands)])
      # return the result
      return (new.tb)
 }
@@ -225,6 +231,17 @@ sits_merge <-  function(sits1.tb, sits2.tb) {
 #' @export
 #'
 sits_cross <-  function(sits1.tb, sits2.tb) {
+
+     # are the names of the bands different?
+     ensurer::ensure_that(sits1.tb, !(TRUE %in% (sits_bands(.) %in% sits_bands(sits2.tb))),
+                          err_desc = "sits_cross: cannot cross join two sits tables with bands with the same names")
+
+     # if some parameter is empty returns the another one
+     if (nrow(sits1.tb) == 0)
+          return (sits2.tb)
+     if (nrow(sits2.tb) == 0)
+          return (sits1.tb)
+
      #first, add `cross_join` field in order to proceed with dplyr::inner_join (see bellow)
      sits1.data <- sits1.tb %>%
           dplyr::mutate (cross_join = 0)
