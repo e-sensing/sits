@@ -15,6 +15,7 @@ clusters_sav.tb <- sits_cluster (cerrado.tb, label_groups = list("Cerrado", "Pas
                                  band_groups = c("ndvi", "evi"), method = "dendogram", n_clusters = 4,
                                  show = TRUE)
 
+
 cerrado_pat.tb <- sits_patterns(clusters_sav.tb)
 
 sits_plot(cerrado_pat.tb, type = "patterns")

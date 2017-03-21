@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_table.R
 \name{sits_group_bylatlong}
 \alias{sits_group_bylatlong}
-\title{Groups different time series for the same lat/long coordinate}
+\title{Group different time series for the same lat/long coordinate}
 \usage{
 sits_group_bylatlong(data.tb)
 }
@@ -13,18 +13,12 @@ sits_group_bylatlong(data.tb)
 data1.tb   tibble - the converted SITS table with time series grouped by latlong
 }
 \description{
-\code{sits_group_bylatlong} takes a sits table in which different time references
+Takes a sits table in which different time references
 for the same lat/long coordinate has been separated, and groups them together.
 This function is useful por plotting together all time series associated to
 the same location and is also useful to regroup series that have been split
 to produce yearly samples that are used to define patterns
 }
-\seealso{
-Other STIS table functions: \code{\link{sits_align}},
-  \code{\link{sits_bands}}, \code{\link{sits_dates}},
-  \code{\link{sits_rename}}, \code{\link{sits_select}},
-  \code{\link{sits_table_result}},
-  \code{\link{sits_table}}, \code{\link{sits_values_cols}},
-  \code{\link{sits_values_rows}}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
-\keyword{STIS}

@@ -2,14 +2,15 @@
 % Please edit documentation in R/sits_cluster.R
 \name{sits_cluster}
 \alias{sits_cluster}
-\title{Cluster a set of time series}
+\title{Cluster a set of satellite image time series}
 \usage{
-sits_cluster(data.tb, type = "dendogram", n_clusters = 4)
+sits_cluster(data.tb, method = "dendogram", n_clusters = 4, perc = 0.1,
+  show = TRUE)
 }
 \arguments{
 \item{data.tb}{a SITS tibble the list of time series to be clustered}
 
-\item{type}{string - either "dendogram" or "centroids"}
+\item{method}{string - either "dendogram" or "centroids"}
 
 \item{n_clusters}{the number of clusters to be identified}
 }
@@ -17,13 +18,15 @@ sits_cluster(data.tb, type = "dendogram", n_clusters = 4)
 clusters.tb a SITS tibble with the clusters
 }
 \description{
-\code{sits_cluster} cluster time series with dtw distance
-}
-\details{
 This function uses package "dtwclust" to do time series clustering.
-See "dtwclust" documentation for more details
+There are two options: "dendogram" (hierarchical clustering) and "controids" (positional
+clustering)
 }
-\seealso{
-Other STIS cluster functions: \code{\link{sits_centroids}},
-  \code{\link{sits_dendogram}}
+\references{
+"dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
+}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

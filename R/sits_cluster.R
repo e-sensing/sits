@@ -1,10 +1,12 @@
-# -----------------------------------------------------------
-#' Cluster a set of time series
+#' @title Cluster a set of satellite image time series
+#' @name sits_cluster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' \code{sits_cluster} cluster time series with dtw distance
-#'
-#' This function uses package "dtwclust" to do time series clustering.
-#' See "dtwclust" documentation for more details
+#' @description This function uses package "dtwclust" to do time series clustering.
+#' There are two options: "dendogram" (hierarchical clustering) and "controids" (positional
+#' clustering)
+#' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb      a SITS tibble the list of time series to be clustered
 #' @param label_groups a list containing groups of labels to be clusterized. A group of labels may be a label alone (str) or a vector of labels.
@@ -14,10 +16,8 @@
 #' @param perc         the minimum percentage for a cluster to be valid
 #' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-#' @family  STIS cluster functions
 #' @export
 sits_cluster <- function (data.tb, label_groups = NULL, band_groups = NULL, method = "dendogram", n_clusters = 4, perc = 0.10, show = TRUE){
-
      ensurer::ensure_that(method, (. == "dendogram" || . == "centroids"),
                           err_desc = "sits_cluster: valid cluster methods are dendogram or centroids")
 
@@ -54,26 +54,23 @@ sits_cluster <- function (data.tb, label_groups = NULL, band_groups = NULL, meth
                # note that operator `<<-` is used to access outer scope variable `cluster.tb` and does not create a global variable.
                cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
           })
-
      return (cluster.tb)
 }
 
-# -----------------------------------------------------------
-#' Cluster a set of time series using hierarchical clustering
+#' @title Cluster a set of time series using hierarchical clustering
+#' @name sits_dendogram
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' \code{sits_dendogram} cluster time series in hierarchical mode
-#'
-#' Hierarchical clustering, as its name suggests, is an algorithm that tries to create a hierarchy
+#' @description Cluster time series in hierarchical mode. Hierarchical clustering, as its name suggests,
+#' is an algorithm that tries to create a hierarchy
 #' of groups in which, as the level in the hierarchy increases, clusters are created by merging
-#' the clusters from the next lower level, such that an ordered sequence of groupings is obtained
-#' (Hastie et al. 2009). In order to decide how the merging is performed, a similarity measure
-#' between groups should be specied, in addition to the one that is used to calculate pairwise
-#' similarities. However, a specific number of clusters does not need to be specified for the
-#' hierarchy to be created, and the procedure is deterministic, so it will always give the same
+#' the clusters from the next lower level, such that an ordered sequence of groupings is obtained.
+#' The similarity measure used to group time series in a cluster is the dtw metric.
+#' The procedure is deterministic, so it will always give the same
 #' result for a chosen set of similarity measures (taken from the DTWCLUST package docs).
 #'
-#' Ref: Comparing Time-Series Clustering Algorithms in R Using the dtwclust Package
-#' (dtwclust vignette)
+#' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb      a tibble the list of time series to be clustered
 #' @param band_groups  a list containing groups of bands to be clusterized. A group of bands may be a band alone (str) or a vector of bands.
@@ -81,8 +78,6 @@ sits_cluster <- function (data.tb, label_groups = NULL, band_groups = NULL, meth
 #' @param perc         the minimum percentage for a cluster to be valid
 #' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-#' @keywords STIS
-#' @family   STIS cluster functions
 #' @export
 #'
 sits_dendogram <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 0.10, show = TRUE) {
@@ -95,21 +90,8 @@ sits_dendogram <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
                                  k        = n_clusters,
                                  distance = "dtw_basic")
 
-          if (show) {
-
-               # Plot the series and the obtained prototypes
-               graphics::plot (clusters, type = "sc")
-
-               # Plot the centroids
-               graphics::plot (clusters, type = "centroids")
-
-               # Plot dendogram/default dtwclust plot
-               graphics::plot (clusters)
-
-               # print information about the clusters
-               .sits_cluster_info (clusters)
-
-          }
+          # Plot the series and the obtained prototypes
+          if (show) .sits_show_clusters (clusters)
 
           return (.sits_fromClusters (data.tb, clusters, perc))
      }
@@ -140,28 +122,28 @@ sits_dendogram <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
 
 }
 
-# -----------------------------------------------------------
-#' Cluster a set of time series using partitional clustering (uses dtwclust package)
+#' @title Cluster a set of time series using partitional clustering
+#' @name sits_centroids
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' \code{sits_centroids} find the k centroids of a set of time series clusters
-#'
-#' Partitional clustering assigns the data to one and only one cluster out of k total clusters.
+#' @description Partitional clustering assigns the data to one and only
+#' one cluster out of k total clusters.
 #' First, k centroids are randomly initialized, usually by choosing k objects
 #' from the dataset at random. these are assigned to individual clusters.
 #' The distance between all objects in the data and all centroids
 #' is calculated, and each object is assigned to the cluster of its closest centroid.
 #' A prototyping function is applied to each cluster to update the corresponding centroid.
 #' Then, distances and centroids are updated iteratively until a certain number of iterations have elapsed,
-#' or no object changes clusters anymore
-#' (description extracted from dtwclust package)
+#' or no object changes clusters anymore (description extracted from dtwclust package)
+#' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb      a tibble the list of time series to be clustered
 #' @param label        the label or a vector of labels to be clusterized together.
 #' @param n_clusters   the number of clusters to be identified
 #' @param perc         the minimum percentage for a cluster to be valid
+#' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-#' @keywords STIS
-#' @family   STIS cluster functions
 #' @export
 #'
 sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 0.10, show = TRUE) {
@@ -175,18 +157,11 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
                                  centroid = "pam",
                                  seed     = 899)
 
-          if (show) {
-               # Plot the series and the obtained prototypes
-               graphics::plot (clusters, type = "sc")
-
-               # Plot the centroids
-               graphics::plot (clusters, type = "centroids")
-
-               # print information about the clusters
-               .sits_cluster_info (clusters)
-          }
+          # Plot the series and the obtained prototypes
+          if (show) .sits_show_clusters (clusters)
 
           return (.sits_fromClusters (data.tb, clusters, perc))
+
      }
 
 
@@ -210,20 +185,18 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
 }
 
 #------------------------------------------------------------------
-#' Returns a tibble of centroids and its metadata.
+#' @title Returns a tibble of centroids and its metadata.
+#' @name .sits_fromClusters
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' \code{.sits_fromClusters} reads a list of clusters provided by the dtwclust
+#' @description reads a list of clusters provided by the dtwclust
 #' package and produces a sits table.
-#'
-#' A sits table has the metadata and data for each time series centroids
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
-#'
+#' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb          a tibble with input data of dtwclust.
 #' @param clusters         a cluster structure returned from dtwclust.
 #' @param perc             ignores those clusters linked with less than some percentage of total samples.
 #' @return centroids.tb    a SITS table with the clusters
-#' @keywords SITS
 .sits_fromClusters <-  function (data.tb, clusters, perc) {
 
      # what is the name(s) of the band(s)?
@@ -255,22 +228,41 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
      return (centroids.tb)
 }
 
-#------------------------------------------------------------------
-#' Returns a list of centroids and its metadata.
+#' @title Plots a cluster produced by the dtwclust package
+#' @name .sits_fromClusters
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' \code{.sits_cluster_info} prints information about the cluster
+#' @description plots a cluster produced by the dtwclust package
+#' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
+#' @param clusters     a list of cluster structure returned from dtwclust.
+.sits_show_clusters <- function (clusters) {
+     # Plot the series and the obtained prototypes
+     graphics::plot (clusters, type = "sc")
+
+     # Plot the centroids
+     graphics::plot (clusters, type = "centroids")
+
+     # Plot dendogram/default dtwclust plot
+     graphics::plot (clusters)
+
+     # print information about the clusters
+     .sits_cluster_info (clusters)
+}
+
+#' @title Prints information about the cluster generated by the dtwclust package
+#' @name .sits_cluster_info
 #'
+#' @description The dtwclust package produces a cluster object. This function
+#' prints information about this object
+#' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #' @param clusters   a cluster structure returned from dtwclust.
 #' @return clusters  a cluster structure from dtwclust
-#' @keywords SITS
-#' @family   SITS auxiliary functions
-#' @examples .sits_cluster_info (clusters.)
 
 .sits_cluster_info <- function (clusters) {
      cat ("-------------------------------\n")
      # what is the name of the band?
      band <- tools::file_path_sans_ext(names(clusters@centroids)[1])
-     cat (paste ("Band: ", band, "\n", sep = ""))
+     cat (paste ("Band(s): ", band, "\n", sep = ""))
 
      # print the size of each cluster
      df <- clusters@clusinfo
@@ -280,3 +272,4 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
      }
      return (clusters)
 }
+
