@@ -7,62 +7,54 @@
 #' See "dtwclust" documentation for more details
 #'
 #' @param data.tb      a SITS tibble the list of time series to be clustered
-#' @param label_groups a list containing groups of labels to be clusterized apart. A group of labels may be an label alone (str) or a vector of labels.
-#' @param type         string - either "dendogram" or "centroids"
-#' @param n_clusters   the number of clusters to be identified.
+#' @param label_groups a list containing groups of labels to be clusterized. A group of labels may be a label alone (str) or a vector of labels.
+#' @param band_groups  a list containing groups of bands to be clusterized. A group of bands may be a band alone (str) or a vector of bands.
+#' @param method       string - either "dendogram" or "centroids"
+#' @param n_clusters   the number of clusters to be identified
+#' @param perc         the minimum percentage for a cluster to be valid
+#' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
 #' @family  STIS cluster functions
 #' @export
-sits_cluster <- function (data.tb, label_groups, band_groups, type = "dendogram", n_clusters = 4, ignore_clusters_prop = 0.1, do_plot = TRUE){
-     # select cluster option
-     switch (type,
-             "dendogram" = {
-                  # creates the resulting table
-                  cluster.tb <- sits_table()
+sits_cluster <- function (data.tb, label_groups = NULL, band_groups = NULL, method = "dendogram", n_clusters = 4, perc = 0.10, show = TRUE){
 
-                  # for each group of labels computes clusters for all bands
-                  label_groups %>%
-                       purrr::map (function (labels) {
+     ensurer::ensure_that(method, (. == "dendogram" || . == "centroids"),
+                          err_desc = "sits_cluster: valid cluster methods are dendogram or centroids")
 
-                            # if no band group is provided create a group for each band
-                            if (is.null(band_groups)) {
-                                 band_groups <- sits_bands(data.tb)
-                            }
+     # if no label group is provided create a group for EACH label
+     if (is.null(label_groups)) {
+          label_groups <- dplyr::distinct (data.tb, label)$label
+     }
 
-                            # computes clusters for all bands (This variable stores a list of tibles that stores clusters for each band)
-                            centroids_band.lst <- band_groups %>%
-                                 # computes clusters for a given band
-                                 purrr::map (function (bands) {
-                                      sits_dendogram (data.tb, labels, bands, n_clusters, ignore_clusters_prop, do_plot)
-                                 })
+     # if no band group is provided create a group for ALL bands
+     if (is.null(band_groups)) {
+          band_groups <- list(sits_bands(data.tb))
+     }
 
-                            # creates an empty sits_table to stores all clusters of a label group
-                            cluster_label.tb <- sits_table()
+     # creates the resulting table
+     cluster.tb <- sits_table()
 
-                            # proceed with cross join operation between bands of a given cluster
-                            centroids_band.lst %>%
-                                 purrr::map (function (clust_band.tb) {
-                                      # we need store the cross join result into `centroids.tb` from outer scope (so the <<- operator)
-                                      # outer scope `centroids.tb` variable is updated on next map iteration (this transform our code in a recursive one)
-                                      # (note that this does NOT create a global variable!)
-                                      cluster_label.tb <<- sits_cross (cluster_label.tb, clust_band.tb)
-                                 })
+     label_groups %>%
+          purrr::map(function (labels) {
+               # filter only those rows with the same labels
+               label.tb <- dplyr::filter (data.tb, label %in% labels)
 
-                            # appends the resulting sits_table with crossed-band clusters of the current label group
-                            cluster.tb <<- dplyr::bind_rows(cluster.tb, cluster_label.tb)
-                       })
-                  },
-             "centroids" = {
-                  cluster.tb <- sits_table()
-                  label_groups %>%
-                       purrr::map (function (label) {
-                            cluster.tb <<- dplyr::bind_rows(cluster.tb, sits_centroids (data.tb, label, n_clusters))
-                       })
-                  },
-             { message (paste ("sits_cluster: valid cluster methods are dendogram or centroids",
-                             "\n", sep = ""))
-               stop(cond)}
-     )
+               if (show) {
+                    # print current clusterised label(s)
+                    message (paste0("\n", "Label(s): ", labels))
+               }
+
+               # apply the clustering method
+               if (method == "dendogram")
+                    clu.tb <- sits_dendogram (label.tb, band_groups = band_groups, n_clusters = n_clusters, perc = perc, show = show)
+               else
+                    clu.tb <- sits_centroids (label.tb, band_groups = band_groups, n_clusters = n_clusters, perc = perc, show = show)
+
+               # append the result
+               # note that operator `<<-` is used to access outer scope variable `cluster.tb` and does not create a global variable.
+               cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
+          })
+
      return (cluster.tb)
 }
 
@@ -83,53 +75,163 @@ sits_cluster <- function (data.tb, label_groups, band_groups, type = "dendogram"
 #' Ref: Comparing Time-Series Clustering Algorithms in R Using the dtwclust Package
 #' (dtwclust vignette)
 #'
-#' @param data.tb              a tibble the list of time series to be clustered
-#' @param labels               the label or a vector of labels to be clusterized together.
-#' @param band                 the band to be clusterized
-#' @param n_clusters           the number of clusters to be identified
-#' @param ignore_clusters_prop ignores those clusters that have proportionally less samples than `ignore_clusters_prop`.
+#' @param data.tb      a tibble the list of time series to be clustered
+#' @param band_groups  a list containing groups of bands to be clusterized. A group of bands may be a band alone (str) or a vector of bands.
+#' @param n_clusters   the number of clusters to be identified
+#' @param perc         the minimum percentage for a cluster to be valid
+#' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
 #' @keywords STIS
 #' @family   STIS cluster functions
 #' @export
 #'
-sits_dendogram <- function (data.tb, labels, bands, n_clusters = 4, ignore_clusters_prop = 0.1, do_plot = TRUE) {
+sits_dendogram <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 0.10, show = TRUE) {
+     # returns a tibble with all clusters centroids of a given band group
+     cluster_dendogram <- function (data.tb, bands, n_clusters, perc){
+          # get the values of the various time series for this band group
+          values.tb <- sits_values_rows (data.tb, bands)
+          clusters  <- dtwclust::dtwclust (values.tb,
+                                 type     = "hierarchical",
+                                 k        = n_clusters,
+                                 distance = "dtw_basic")
 
-     # get the values of the various time series for this band group (bands)
-     # data_label.tb is used later to get the centroids
-     data_label.tb <- data.tb %>%
-          dplyr::filter(label %in% labels)
+          if (show) {
 
-     # put data_label.tb in a format that dtwclust works
-     values.lst <- data_label.tb %>%
-          sits_values_rows (bands)
+               # Plot the series and the obtained prototypes
+               graphics::plot (clusters, type = "sc")
 
-     # computes dendogram clustering
-     clusters  <- dtwclust::dtwclust (values.lst,
-                                      type     = "hierarchical",
-                                      k        = n_clusters,
-                                      distance = "dtw_basic")
+               # Plot the centroids
+               graphics::plot (clusters, type = "centroids")
 
-     # print current clusterised label(s)
-     message (paste("\n", "Label(s): ", labels))
+               # Plot dendogram/default dtwclust plot
+               graphics::plot (clusters)
 
-     if (do_plot) {
-          #plot the dendogram
-          graphics::plot (clusters)
+               # print information about the clusters
+               .sits_cluster_info (clusters)
 
-          # Plot the series and the obtained prototypes
-          graphics::plot (clusters, type = "sc")
+          }
 
-          # Plot the centroids
-          graphics::plot (clusters, type = "centroids")
+          return (.sits_fromClusters (data.tb, clusters, perc))
      }
 
-     # print information about the clusters
-     .sits_cluster_info (clusters)
+
+     # if no band group is provided create a group for ALL bands
+     if (is.null(band_groups)) {
+          band_groups <- list(sits_bands(data.tb))
+     }
+
+     # get all clusters as a list of tibbles
+     centroids.lst <- band_groups %>%
+          purrr::map (function (bands) cluster_dendogram (data.tb, bands, n_clusters, perc))
+
+     # creates an empty sits_table to populate result
+     cluster.tb <- sits_table()
+
+     # proceed with cross join operation between bands of a given cluster
+     centroids.lst %>%
+          purrr::map (function (clu.tb) {
+               # we need store the cross join result into `cluster.tb` from outer scope (so the <<- operator)
+               # outer scope `cluster.tb` variable is updated on next map iteration (this transform our code in a recursive one)
+               # (note that this does NOT create a global variable!)
+               cluster.tb <<- sits_cross (cluster.tb, clu.tb)
+          })
+
+     return (cluster.tb)
+
+}
+
+# -----------------------------------------------------------
+#' Cluster a set of time series using partitional clustering (uses dtwclust package)
+#'
+#' \code{sits_centroids} find the k centroids of a set of time series clusters
+#'
+#' Partitional clustering assigns the data to one and only one cluster out of k total clusters.
+#' First, k centroids are randomly initialized, usually by choosing k objects
+#' from the dataset at random. these are assigned to individual clusters.
+#' The distance between all objects in the data and all centroids
+#' is calculated, and each object is assigned to the cluster of its closest centroid.
+#' A prototyping function is applied to each cluster to update the corresponding centroid.
+#' Then, distances and centroids are updated iteratively until a certain number of iterations have elapsed,
+#' or no object changes clusters anymore
+#' (description extracted from dtwclust package)
+#'
+#' @param data.tb      a tibble the list of time series to be clustered
+#' @param label        the label or a vector of labels to be clusterized together.
+#' @param n_clusters   the number of clusters to be identified
+#' @param perc         the minimum percentage for a cluster to be valid
+#' @return clusters.tb a SITS tibble with the clusters
+#' @keywords STIS
+#' @family   STIS cluster functions
+#' @export
+#'
+sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 0.10, show = TRUE) {
+     cluster_partitional <- function (data.tb, bands, n_clusters, perc) {
+          # get the values of the various time series for this band group
+          values.tb <- sits_values_rows (data.tb, bands)
+          clusters  <- dtwclust::dtwclust (values.tb,
+                                 type     = "partitional",
+                                 k        = n_clusters,
+                                 distance = "dtw_basic",
+                                 centroid = "pam",
+                                 seed     = 899)
+
+          if (show) {
+               # Plot the series and the obtained prototypes
+               graphics::plot (clusters, type = "sc")
+
+               # Plot the centroids
+               graphics::plot (clusters, type = "centroids")
+
+               # print information about the clusters
+               .sits_cluster_info (clusters)
+          }
+
+          return (.sits_fromClusters (data.tb, clusters, perc))
+     }
+
+
+     # for each band, find a significant set of clusters
+     centroids.lst <- band_groups %>%
+          purrr::map (function (bands) cluster_partitional (data.tb, bands, n_clusters))
+
+     # creates an empty sits_table to populate result
+     cluster.tb <- sits_table()
+
+     # proceed with cross join operation between bands of a given cluster
+     centroids.lst %>%
+          purrr::map (function (clu.tb) {
+               # we need store the cross join result into `cluster.tb` from outer scope (so the <<- operator)
+               # outer scope `cluster.tb` variable is updated on next map iteration (this transform our code in a recursive one)
+               # (note that this does NOT create a global variable!)
+               cluster.tb <<- sits_cross (cluster.tb, clu.tb)
+          })
+
+     return (cluster.tb)
+}
+
+#------------------------------------------------------------------
+#' Returns a tibble of centroids and its metadata.
+#'
+#' \code{.sits_fromClusters} reads a list of clusters provided by the dtwclust
+#' package and produces a sits table.
+#'
+#' A sits table has the metadata and data for each time series centroids
+#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
+#'
+#'
+#' @param data.tb          a tibble with input data of dtwclust.
+#' @param clusters         a cluster structure returned from dtwclust.
+#' @param perc             ignores those clusters linked with less than some percentage of total samples.
+#' @return centroids.tb    a SITS table with the clusters
+#' @keywords SITS
+.sits_fromClusters <-  function (data.tb, clusters, perc) {
+
+     # what is the name(s) of the band(s)?
+     bands <- tools::file_path_sans_ext(names(clusters@centroids)[1])
 
      # how many clusters have more than 10% of the total samples?
      num <- clusters@clusinfo$size %>%
-          .[. > as.integer (ignore_clusters_prop * length(clusters@cluster))] %>%
+          .[. > as.integer (perc * length(clusters@cluster))] %>%
           length()
 
      # get centroids ids
@@ -141,136 +243,16 @@ sits_dendogram <- function (data.tb, labels, bands, n_clusters = 4, ignore_clust
      ids <- ids[order(clusters@clusinfo$size, decreasing = TRUE)][1:num]      # get only those numbers who are centroids of big clusters
 
      # select only significant centroids
-     clusters.tb <- data_label.tb[ids,]
+     centroids.tb <<- data.tb[ids,]
 
-     # select only cluster band (drops all other bands)
-     clusters.tb$time_series <- clusters.tb$time_series %>%
-          purrr::map (function (ts) dplyr::select(ts, dplyr::one_of(c("Index", bands))))
+     # select only cluster bands of group (drops all other bands)
+     centroids.tb$time_series <- centroids.tb$time_series %>%
+          purrr::map (function (ts) dplyr::select(ts, dplyr::one_of(c("Index", strsplit(bands, "$", fixed = TRUE)[[1]]))))
 
-     return (clusters.tb)
+     if (nrow(centroids.tb) > 1)
+          centroids.tb <- centroids.tb %>% dplyr::mutate(label = paste(.$label, ".", as.character(1:nrow(.)), sep = ""))
 
-}
-
-# -----------------------------------------------------------
-#' Cluster a set of time series using partitional clustering (uses dtwclust package)
-#'
-#' \code{sits_centroids} find the k centroids of a set of time series clusters
-#'
-#' Partitional clustering assigns the data
-#' to one and only one cluster out of k total clusters. The total number of
-#' desired clusters must be specified beforehand.
-#' Partitional clustering algorithms commonly work in the following way.
-#' First, k centroids are randomly initialized, usually by choosing k objects
-#' from the dataset at random. these are assigned to individual clusters.
-#' The distance between all objects in the data and all centroids
-#' is calculated, and each object is assigned to the cluster of its closest centroid.
-#' A prototyping function is applied to each cluster to update the corresponding centroid.
-#' Then, distances and centroids are updated iteratively until a certain number of iterations have elapsed,
-#' or no object changes clusters anymore (extracted from dtwclust package)
-#'
-#' @param data.tb      a tibble the list of time series to be clustered
-#' @param label        the label or a vector of labels to be clusterized together.
-#' @param n_clusters   the number of clusters to be identified
-#' @return clusters.tb a SITS tibble with the clusters
-#' @keywords STIS
-#' @family   STIS cluster functions
-#' @export
-#'
-sits_centroids <- function (data.tb, label, n_clusters = 4) {
-     cluster_partitional <- function (data.tb, label, band, n_clusters) {
-          values.tb <- data.tb %>%
-               dplyr::filter(label %in% label) %>%
-               sits_values_rows (band)
-          clusters  <- dtwclust::dtwclust (values.tb,
-                                 type     = "partitional",
-                                 k        = n_clusters,
-                                 distance = "dtw_basic",
-                                 centroid = "pam",
-                                 seed     = 899)
-
-          # Plot the series and the obtained prototypes
-          graphics::plot (clusters, type = "sc")
-          # Plot the centroids
-          graphics::plot (clusters, type = "centroids")
-          # print information about the clusters
-          .sits_cluster_info (clusters)
-
-          return (clusters)
-     }
-     # for each band, find a significant set of clusters
-     clusters.lst <- data.tb %>%
-          sits_bands() %>%
-          purrr::map (function (b) cluster_partitional (data.tb, label, n, n_clusters))
-
-     # retrieve the significant clusters as a list
-     cluster.tb <- .sits_fromClusters (data.tb, clusters.lst)
-
-     return (cluster.tb)
-}
-
-#------------------------------------------------------------------
-#' Returns a list of centroids and its metadata.
-#'
-#' \code{.sits_fromClusters} reads a list of clusters provided by the dtwclust
-#' package and produces a sits table.
-#'
-#' A sits table has the metadata and data for each time series centroids
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
-#'
-#'
-#' @param data.tb          a tibble with input data of dtwclust.
-#' @param clusters.lst     a list of cluster structure returned from dtwclust. Each element correspond to a band attribute.
-#' @return centroids.tb    a SITS table with the clusters
-#' @keywords SITS
-#' @examples .sits_fromClusters (savanna_s.tb, clusters.lst)
-
-.sits_fromClusters <-  function (data.tb, clusters.lst, ignore_clusters_bellow_prop = 0.1) {
-     centroids.lst <- clusters.lst %>%
-          purrr::map (function (clu) {
-               # what is the name of the band?
-               band <- tools::file_path_sans_ext(names(clu@centroids)[1])
-
-               # how many clusters have more than 10% of the total samples?
-               num <- clu@clusinfo$size %>%
-                    .[. > as.integer (ignore_clusters_bellow_prop * length(clu@cluster))] %>%
-                    length()
-
-               # get centroids ids
-               # extract the cluster names (e.g, "ndvi.21", "ndvi.35")
-               # get only the numbers as integers (e.g., 21 35)
-               ids <- as.integer(tools::file_ext(names (clu@centroids)))
-               ids [is.na(ids)] <- 0  # the firs name has no number, so fill NA with 0
-               ids <- ids + 1         # add 1 (because dtwclust numbers begins at 0 and R begins at 1)
-               ids <- ids[order(clu@clusinfo$size, decreasing = TRUE)][1:num]      # get only those numbers who are centroids of big clusters
-
-               # select centroids values
-               centroids <- data.tb[ids,]
-
-               # select only cluster band (drops all other bands)
-               for (j in 1:nrow(centroids)) {
-                    centroids$time_series[[j]] <- dplyr::select(centroids$time_series[[j]], dplyr::one_of(c("Index", band)))
-               }
-
-               return (centroids)
-          })
-     nmin <- Inf
-     for (i in (1:length (centroids.lst))) {
-          t <- centroids.lst [[i]]
-          if (nrow(t) < nmin) nmin <- nrow(t)
-     }
-
-
-     centroids.tb  <- centroids.lst[[1]][1:nmin,]
-     centroids.lst <- centroids.lst[-1]
-
-     centroids.lst %>%
-          purrr::map (function (clust_band.tb) {
-               # we need store the cross join result into `centroids.tb` from outer scope (so the <<- operator)
-               # outer scope `centroids.tb` variable is updated on next map iteration (this transform our code in a recursive one)
-               # (note that this does NOT create a global variable!)
-               centroids.tb <<- sits_cross (centroids.tb, clust_band.tb[1:nmin,])
-          })
-     return(centroids.tb)
+     return (centroids.tb)
 }
 
 #------------------------------------------------------------------

@@ -74,13 +74,8 @@ sits_values_rows <- function (data.tb, bands) {
           purrr::map(function (ts) {
                data.matrix(dplyr::select(ts, dplyr::one_of(bands)))
           })
-     bands_name <- paste0(bands, collapse = "_")
-     names(values.lst) <- paste0(bands_name, ".", 1:length(values.lst))
-     # values <- data.tb$time_series %>%
-     #      data.frame() %>%
-     #      tibble::as_tibble() %>%
-     #      dplyr::select (dplyr::starts_with (band)) %>%
-     #      t()
+     bands_name <- paste0(bands, collapse = "$")
+     names(values.lst) <- paste0(bands_name, ".", 0:(length(values.lst)-1))
      return (values.lst)
 }
 
@@ -231,9 +226,8 @@ sits_merge <-  function(sits1.tb, sits2.tb) {
 #' @export
 #'
 sits_cross <-  function(sits1.tb, sits2.tb) {
-
      # are the names of the bands different?
-     ensurer::ensure_that(sits1.tb, !(TRUE %in% (sits_bands(.) %in% sits_bands(sits2.tb))),
+     ensurer::ensure_that(sits1.tb, (length(intersect(sits_bands(.), sits_bands(sits2.tb))) == 0),
                           err_desc = "sits_cross: cannot cross join two sits tables with bands with the same names")
 
      # if some parameter is empty returns the another one
@@ -268,7 +262,7 @@ sits_cross <-  function(sits1.tb, sits2.tb) {
      crossed.tb <- tidyr::unnest(crossed.tb) %>%
           tidyr::nest(-latitude, -longitude, -start_date, -end_date, -label, -coverage, -cluster_id, .key = "time_series") %>%
           dplyr::select(-cluster_id) %>%
-          dplyr::mutate(latitude = 0.0, longitude = 0.0, label = paste(.$label, "_", as.character(1:nrow(.)), sep = ""))
+          dplyr::mutate(latitude = 0.0, longitude = 0.0, label = paste(.$label, ".", as.character(1:nrow(.)), sep = ""))
 
      # we have a sits tibble with all cross-joined bands centroids with subclass labels
      return(crossed.tb)
@@ -382,4 +376,37 @@ sits_group_bylatlong <- function (data.tb) {
                                   time_series  = ts.lst)
      }
      return (out.tb)
+}
+
+#'
+#' Groups different time series for the same lat/long coordinate
+#'
+#' \code{sits_label_perc} takes a sits table with different labels and
+#' returns a new table. For each label, this new table contains a percentage
+#' of the total number of samples per label
+#'
+#' @param    data.tb    tibble - input SITS table
+#' @param    perc       percentagem of samples of each label to be saved
+#' @return   data1.tb   tibble - the new SITS table with a fixed percentage of samples per class
+#' @export
+#'
+#'
+sits_label_perc <- function (data.tb, perc = 0.1){
+
+     data1.tb <- sits_table()
+     # how many different labels are there?
+     labels <- dplyr::distinct (data.tb, label)
+
+     for (i in 1:nrow(labels)) {
+          # get the label name as a character
+          lb <-  as.character (labels[i,1])
+
+          # filter only those rows with the same label
+          frac.tb <- data.tb %>%
+               dplyr::filter (label == lb) %>%
+               dplyr::sample_frac (size = perc)
+
+          data1.tb <- dplyr::bind_rows(data1.tb, frac.tb)
+     }
+     return (data1.tb)
 }
