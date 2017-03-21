@@ -4,7 +4,8 @@
 \alias{sits_validate}
 \title{validate temporal patterns}
 \usage{
-sits_validate(data.tb, times = 100, p = 0.1, formula = y ~ s(x), ...)
+sits_validate(data.tb, method = "gam", times = 100, p = 0.1,
+  reference.lst = NULL, predicted.lst = NULL, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
@@ -24,4 +25,8 @@ and the results of the TWDTW analysis.
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

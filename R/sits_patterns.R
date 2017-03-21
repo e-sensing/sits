@@ -1,10 +1,10 @@
-#' Find time series patterns for classification
-#' \code{sits_patterns} returns a sits table with a list of patterns
+#' @title Create time series patterns for classification
+#' @name sits_patterns
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' A sits table has the metadata and data for each time series
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
-#'
-#' This function allows the user to select different alternatives to define a set of
+#' @description This function allows the user to select different alternatives to define a set of
 #' patterns, given his samples. The alternatives are:
 #' "gam" - uses a generalised additive model to approximate a smooth spline for each pattern
 #' "dendogram" - uses a herarchical clustering method to group the patterns
@@ -29,24 +29,23 @@ sits_patterns <- function (samples.tb, method = "gam", ...) {
      return (patterns.tb)
 }
 
-#' Find time series patterns for classification
+#' @title Create temporal patterns using a generalised additive model (gam)
+#' @name sits_patterns_gam
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' \code{sits_patterns_gam} returns a sits table with a list of patterns based on samples using a gam model
-#'
-#' A sits table has the metadata and data for each time series
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
-#'
-#' The patterns are calculated based on a statistical model that tries to find a suitable
-#' for a set of samples. The idea is to use a formula of type y ~ s(x), where x is a temporal
+#' @description This function takes a set of time series samples as input
+#' estimates a set of patterns. The patterns are calculated based in a GAM model.
+#' The idea is to use a formula of type y ~ s(x), where x is a temporal
 #' reference and y if the value of the signal. For each time, there will be as many predictions
-#' as there are sample values. A generalised additive model ("gam") is used to predict a suitable
+#' as there are sample values. The GAM model predicts a suitable
 #' approximation that fits the assumptions of the statistical model.
-#'
 #' By default, the gam methods  produces an approximation based on a smooth function.
-#' This method is based on the "createPatterns" method of the dtwSat package, which is also
-#' described in the reference paper:
 #'
-#' Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
+#' This method is based on the "createPatterns" method of the dtwSat package, which is also
+#' described in the reference paper.
+#'
+#' @references Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
 #' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.
 #' IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
@@ -156,24 +155,22 @@ sits_patterns_gam <- function (samples.tb, freq = 8, from = NULL, to = NULL, for
      return (patterns.tb)
 }
 
-#' Find time series patterns for classification
+#' @title Estimate a set of patterns based on a clustering
+#' @name sits_patterns_cluster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' \code{sits_patterns_cluster} returns a sits table with a list of patterns
-#' based on a clustering method (either "dendogram" or "centroids")
-#'
-#' A sits table has the metadata and data for each time series
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
-#'
-#' This function uses an algorithm that tries to create a hierarchy
+#' @description This function uses an algorithm that tries to create a hierarchy
 #' of groups in which, as the level in the hierarchy increases, clusters are created by merging
 #' the clusters from the next lower level, such that an ordered sequence of groupings is obtained
-#' (Hastie et al. 2009). The similarity method used is the "dtw" distance
-#'
+#' (Hastie et al. 2009). The similarity method used is the "dtw" distance.
 #' This function uses the dendogram clustering method available in the "dtwclust" pattern
-#'
 #'
 #' @param  samples.tb    a table in SITS format with a set of labelled time series
 #' @param  method        the method to be used for classification
+#' @param  n_clusters    the maximum number of clusters to be identified
+#' @param  perc          the minimum percentagem of valid cluster members, with reference to the total number of samples
+#' @param  show          show the results of the clustering algorithm?
 #' @return patterns.tb   a SITS table with the patterns
 #' @export
 sits_patterns_cluster <- function (samples.tb, method = "dendogram", nclusters = 2, perc = 0.10, show = FALSE){

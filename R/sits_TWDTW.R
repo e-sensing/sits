@@ -1,7 +1,9 @@
-#' Classify a sits tibble using TWDTW (using the dtwSat package)
+#' @title Classify a sits tibble using TWDTW (using the dtwSat package)
+#' @name sits_TWDTW
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' \code{sits_TWDTW} returns a sits table with the results of the TWDTW classifier.
-#'
+#' @description Returns a sits table with the results of the TWDTW classifier.
 #' The TWDTW classifier compares the values of a satellite image time series with
 #' the values of known patters and tries to match each pattern to a part of the time series
 #'
@@ -9,10 +11,14 @@
 #' Dynamic Time Warping method for land use and land cover mapping using a sequence
 #' of multi-band satellite images. Methods based on dynamic time warping are flexible to
 #' handle irregular sampling and out-of-phase time series, and they have achieved significant
-#' results in time series analysis.
-#' In contrast to standard DTW, the TWDTW method is sensitive to seasonal
+#' results in time series analysis. In contrast to standard DTW, the TWDTW method is sensitive to seasonal
 #' changes of natural and cultivated vegetation types. It also considers inter-annual climatic and
 #' seasonal variability.
+#'
+#' @references Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
+#' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
+#'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
+#'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  series.tb     a table in SITS format with a time series to be classified using TWTDW
 #' @param  patterns.tb   a set of known temporal signatures for the chosen classes
@@ -24,12 +30,6 @@
 #' @param  keep          keep internal values for plotting matches
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
-#' @references
-#' Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
-#' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
-#'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
-#'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
-#'
 sits_TWDTW <- function (series.tb, patterns.tb, bands,
                            alpha = -0.1,
                            beta = 100,
@@ -82,26 +82,21 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
           results.tb <- dplyr::bind_rows(results.tb, row.tb)
 
      }
-
      return (results.tb)
 }
 
-
-#' Export data to be used by the dtwSat package
+#' @title Export data to be used by the dtwSat package
+#' @name .sits_toTWDTW_time_series
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' \code{.sits_toTWDTW_time_series} returns a twdtwTimeSeries object (S4)
+#' @description Converts data from a SITS table to an instance of a TWDTW time series class,
+#' Returns a twdtwTimeSeries object (S4)
 #'
-#' Converts data from a SITS table to an instance of a TWDTW time series class
-#'
-#' Reference: Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
-#' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
-#'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
-#'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  data.tb       a table in SITS format with time series to be converted to TWTDW time series
 #' @return ts.tw         a time series in TWDTW format (an object of the twdtwTimeSeries class)
 #' @export
-#'
 .sits_toTWDTW_time_series <- function (data.tb){
      zoo.ls <- data.tb$time_series %>%
           purrr::map (function (ts) {
@@ -115,16 +110,15 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
      return (ts.tw)
 }
 
+#' @title Transform patterns from TWDTW format to SITS format
+#' @name .sits_fromTWDTW_time_series
 #'
-#' Transform patterns from TWDTW format to SITS format
-#' \code{.sits_fromTWDTW_time_series} reads a set of TWDTW patterns
-#' transforms them into a SITS table
+#' @desciption reads a set of TWDTW patterns and transforms them into a SITS table
 #'
 #' @param patterns  - a TWDTW object containing a set of patterns to be used for classification
 #' @param coverage  - the name of the coverage from where the time series have been obtained
 #' @return sits.tb  - a SITS table containing the patterns
 #' @export
-#'
 .sits_fromTWDTW_time_series <- function (patterns, coverage){
      # get the time series from the patterns
      tb.lst <- purrr::map2 (patterns@timeseries, patterns@labels, function (ts, lab) {

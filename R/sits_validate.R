@@ -2,6 +2,8 @@
 #' @title validate temporal patterns
 #' @name sits_validate
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Splits the set of time series into training and validation and
 #' compute accuracy metrics. The function uses stratified sampling and a simple
@@ -12,9 +14,7 @@
 #' and the results of the TWDTW analysis.
 #'
 #' @param data.tb a SITS tibble
-#'
 #' @param times Number of partitions to create.
-#'
 #' @param p the percentage of data that goes to training.
 #' @export
 

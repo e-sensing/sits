@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_patterns.R
 \name{sits_patterns_cluster}
 \alias{sits_patterns_cluster}
-\title{Find time series patterns for classification}
+\title{Estimate a set of patterns based on a clustering}
 \usage{
 sits_patterns_cluster(samples.tb, method = "dendogram", nclusters = 2,
   perc = 0.1, show = FALSE)
@@ -11,20 +11,25 @@ sits_patterns_cluster(samples.tb, method = "dendogram", nclusters = 2,
 \item{samples.tb}{a table in SITS format with a set of labelled time series}
 
 \item{method}{the method to be used for classification}
+
+\item{perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples}
+
+\item{show}{show the results of the clustering algorithm?}
+
+\item{n_clusters}{the maximum number of clusters to be identified}
 }
 \value{
 patterns.tb   a SITS table with the patterns
 }
 \description{
-\code{sits_patterns_cluster} returns a sits table with a list of patterns
-based on a clustering method (either "dendogram" or "centroids")
-}
-\details{
-A sits table has the metadata and data for each time series
-<longitude, latitude, start_date, end_date, label, coverage, time_series>
-
 This function uses an algorithm that tries to create a hierarchy
 of groups in which, as the level in the hierarchy increases, clusters are created by merging
 the clusters from the next lower level, such that an ordered sequence of groupings is obtained
-(Hastie et al. 2009). The similarity method used is the "dtw" distance
+(Hastie et al. 2009). The similarity method used is the "dtw" distance.
+This function uses the dendogram clustering method available in the "dtwclust" pattern
+}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

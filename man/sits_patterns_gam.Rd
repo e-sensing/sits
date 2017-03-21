@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_patterns.R
 \name{sits_patterns_gam}
 \alias{sits_patterns_gam}
-\title{Find time series patterns for classification}
+\title{Create temporal patterns using a generalised additive model (gam)}
 \usage{
 sits_patterns_gam(samples.tb, freq = 8, from = NULL, to = NULL,
   formula = y ~ s(x))
@@ -24,23 +24,25 @@ sits_patterns_gam(samples.tb, freq = 8, from = NULL, to = NULL,
 patterns.tb   a SITS table with the patterns
 }
 \description{
-\code{sits_patterns_gam} returns a sits table with a list of patterns based on samples using a gam model
-}
-\details{
-A sits table has the metadata and data for each time series
-<longitude, latitude, start_date, end_date, label, coverage, time_series>
-
-The patterns are calculated based on a statistical model that tries to find a suitable
-for a set of samples. The idea is to use a formula of type y ~ s(x), where x is a temporal
+This function takes a set of time series samples as input
+estimates a set of patterns. The patterns are calculated based in a GAM model.
+The idea is to use a formula of type y ~ s(x), where x is a temporal
 reference and y if the value of the signal. For each time, there will be as many predictions
-as there are sample values. A generalised additive model ("gam") is used to predict a suitable
+as there are sample values. The GAM model predicts a suitable
 approximation that fits the assumptions of the statistical model.
-
 By default, the gam methods  produces an approximation based on a smooth function.
+
 This method is based on the "createPatterns" method of the dtwSat package, which is also
-described in the reference paper below:
+described in the reference paper.
+}
+\references{
 Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
 A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.
 IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
+}
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

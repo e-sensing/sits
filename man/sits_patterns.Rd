@@ -2,8 +2,7 @@
 % Please edit documentation in R/sits_patterns.R
 \name{sits_patterns}
 \alias{sits_patterns}
-\title{Find time series patterns for classification
-\code{sits_patterns} returns a sits table with a list of patterns}
+\title{Create time series patterns for classification}
 \usage{
 sits_patterns(samples.tb, method = "gam", ...)
 }
@@ -16,6 +15,16 @@ sits_patterns(samples.tb, method = "gam", ...)
 patterns.tb   a SITS table with the patterns
 }
 \description{
-A sits table has the metadata and data for each time series
-<longitude, latitude, start_date, end_date, label, coverage, time_series>
+This function allows the user to select different alternatives to define a set of
+patterns, given his samples. The alternatives are:
+"gam" - uses a generalised additive model to approximate a smooth spline for each pattern
+"dendogram" - uses a herarchical clustering method to group the patterns
+"centroids" - uses a positional clustering method to group the patterns
+}
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

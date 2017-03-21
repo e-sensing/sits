@@ -1,9 +1,9 @@
-#------------------------------------------------------------------
-#' Obtain timeSeries
+#' @title Obtain timeSeries from different sources
+#' @name sits_getdata
+#' @author Gilberto Camara
 #'
-#' \code{sits_getdata} reads descriptive information about a data source to retrive a set of
+#' @description reads descriptive information about a data source to retrive a set of
 #' time series. The following options are available:
-#'
 #' (a) The source is a SITS table - retrieves the metadata from the sits table and the data
 #' from the WTSS service
 #' (b) The source is a CSV file - retrieves the metadata from the CSV file and the data
@@ -12,6 +12,14 @@
 #' (d) No source is given - it retrives the data based on <long, lat, wtss>
 #' A sits table has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
+#'
+#' A Web Time Series Service (WTSS) is a light-weight service that
+#' retrieves one or more time series in JSON format from a data base.
+#' @references
+#' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Câmara,
+#' “Web Services for Big Earth Observation Data.”
+#' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
+#' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166 – 17
 #'
 #' @param file            the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)
 #' @param table           an R object ("sits_table")
@@ -22,10 +30,7 @@
 #' @param bands           string vector - the names of the bands to be retrieved
 #' @param n_max           integer - the maximum number of samples to be read (optional)
 #' @return data.tb        tibble  - a SITS table
-#' @keywords SITS
-#' @family   SITS data functions
 #' @export
-
 sits_getdata <- function (file        = NULL,
                           table       = NULL,
                           longitude   = NULL,
@@ -74,11 +79,12 @@ sits_getdata <- function (file        = NULL,
      message (paste ("No valid input to retrieve time series data!!","\n",sep=""))
      stop()
 }
-#------------------------------------------------------------------
-#' Obtain timeSeries from a JSON file.
+
+#' @title Obtain timeSeries from a JSON file.
 #'
-#' \code{.sits_fromJSON} reads a set of data and metadata for satellite
-#' image time series from a JSON file
+#' @name .sits_fromJSON
+#'
+#' @description reads a set of data and metadata for satellite image time series from a JSON file
 #'
 #' @param json_file  string  - name of a JSON file with sits data and metadata
 #' @return data.tb    tibble  - a SITS table
@@ -97,12 +103,18 @@ sits_getdata <- function (file        = NULL,
      return (table)
 }
 
-#------------------------------------------------------------------
-#' Obtain timeSeries from WTSS server, based on a lat/long information.
+#' @title Obtain timeSeries from WTSS server based on a lat/long information.
+#' @name .sits_fromlatlong
 #'
-#' \code{.sits_fromlatlong} uses the lat/long location to retrive a time seriees
-#' for a WTSS service.
-#'
+#' @description This function uses the lat/long location to retrive a time seriees
+#' for a WTSS service. A Web Time Series Service is a light-weight service that
+#' retrieves one or more time series in JSON format from a data base.
+#' @references
+#' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Câmara,
+#' “Web Services for Big Earth Observation Data.”
+#' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
+#' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166 – 177.
+
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location)
 #' @param wtss.obj       an R object that represents the WTSS server
@@ -121,14 +133,13 @@ sits_getdata <- function (file        = NULL,
      return (data.tb)
 }
 
-#------------------------------------------------------------------
-#' Obtain timeSeries from WTSS server, based on a SITS table.
+#' @title Obtain timeSeries from WTSS server, based on a SITS table.
+#' @name .sits_fromtable
 #'
-#' \code{.sits_fromtable} reads descriptive information about a set of
+#' @description reads descriptive information about a set of
 #' spatio-temporal locations from a SITS table. Then it uses the WTSS service to
 #' obtain the required data. This function is useful when you have a sits table
 #' but you want to get the time series from a different set of bands.
-#'
 #'
 #' @param table          a  sits_table
 #' @param wtss.obj       an R object that represents the WTSS server
@@ -151,14 +162,13 @@ sits_getdata <- function (file        = NULL,
      return (data.tb)
 }
 
-#------------------------------------------------------------------
-#' Obtain timeSeries from WTSS server, based on a CSV file.
+#' @title Obtain timeSeries from WTSS server, based on a CSV file.
+#' @name .sits_fromCSV
 #'
-#' \code{.sits_fromCSV} reads descriptive information about a set of
+#' @description reads descriptive information about a set of
 #' spatio-temporal locations from a CSV file. Then, it uses the WTSS time series service
 #' to retrieve the time series, and stores the time series on a SITS table for later use.
-#'
-#' #' The CSV file should have the following column names:
+#' The CSV file should have the following column names:
 #' "longitude", "latitude", "start_date", "end_date", "label"
 #'
 #' @param csv_file        string  - name of a CSV file with information <id, latitude, longitude, from, end, label>
@@ -187,10 +197,10 @@ sits_getdata <- function (file        = NULL,
           dplyr::bind_rows (data.tb, .)
      return (data.tb)
 }
-#------------------------------------------------------------------
-#' Obtain timeSeries from WTSS server, based on a SHP file.
+#' @title Obtain timeSeries from WTSS server, based on a SHP file.
+#' @name .sits_getdata_fromSHP
 #'
-#' \code{.sits_getdata_fromSHP} reads a shapefile and retrieves a SITS table
+#' @description reads a shapefile and retrieves a SITS table
 #' containing time series from a coverage that are inside the SHP file.
 #' The script uses the WTSS service, taking information about coverage, spatial and
 #' temporal resolution from the WTSS configuration.
@@ -198,10 +208,6 @@ sits_getdata <- function (file        = NULL,
 #' @param shp_file   string  - name of a SHP file which provides the boundaries of a region of interest
 #' @param crs        string  - the coordinate reference system used by the shapefile
 #' @return table     tibble  - a SITS table
-#' @keywords SITS
-#' @family   SITS data input functions
-#' @examples sits_fromSHP (file = "municipality.shp", wtss = "my_wtss.info")
-#'
 .sits_fromSHP <- function (shp_file, wtss) {
      # read the shapefile
      area_shp <- raster::shapefile(shp_file)
@@ -217,12 +223,21 @@ sits_getdata <- function (file        = NULL,
                                    end        = wtss$end_date)
      return (ts.lst)
 }
-#' Obtain one timeSeries from WTSS server and load it on a sits table
+
+#' @title Obtain one timeSeries from WTSS server and load it on a sits table
+#' @name .sits_fromWTSS
 #'
-#' \code{.sits_fromWTSS} returns one set of time series provided by a WTSS server
-#'
+#' @description Returns one set of time series provided by a WTSS server
 #' Given a location (lat/long), and start/end period, and the WTSS server information
-#' retrieve a time series and include it on a stis table
+#' retrieve a time series and include it on a stis table.
+#' A Web Time Series Service (WTSS) is a light-weight service that
+#' retrieves one or more time series in JSON format from a data base.
+#' @references
+#' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Câmara,
+#' “Web Services for Big Earth Observation Data.”
+#' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
+#' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166 – 17
+#'
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location
 #' @param start_date      date - the start of the period
@@ -232,7 +247,6 @@ sits_getdata <- function (file        = NULL,
 #' @param coverage        string - the name of the coverage from which data is to be recovered
 #' @param bands           list of string - a list of the names of the bands of the coverage
 #' @return data.tb        tibble  - a SITS table
-
 .sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wtss.obj, cov, bands) {
 
      # get a time series from the WTSS server

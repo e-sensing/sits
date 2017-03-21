@@ -15,14 +15,8 @@ sits_select(data.tb, bands)
 table  a tibble in SITS format with the selected bands
 }
 \description{
-\code{sits_select} returns a sits table with the selected bands
+returns a sits table with the selected bands
 }
-\seealso{
-Other STIS table functions: \code{\link{sits_align}},
-  \code{\link{sits_bands}}, \code{\link{sits_dates}},
-  \code{\link{sits_group_bylatlong}},
-  \code{\link{sits_rename}},
-  \code{\link{sits_table_result}},
-  \code{\link{sits_table}}, \code{\link{sits_values_cols}},
-  \code{\link{sits_values_rows}}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

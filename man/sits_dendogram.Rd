@@ -19,23 +19,19 @@ sits_dendogram(data.tb, n_clusters = 4, perc = 0.1, show = TRUE)
 clusters.tb a SITS tibble with the clusters
 }
 \description{
-\code{sits_dendogram} cluster time series in hierarchical mode
-}
-\details{
-Hierarchical clustering, as its name suggests, is an algorithm that tries to create a hierarchy
+Cluster time series in hierarchical mode. Hierarchical clustering, as its name suggests,
+is an algorithm that tries to create a hierarchy
 of groups in which, as the level in the hierarchy increases, clusters are created by merging
-the clusters from the next lower level, such that an ordered sequence of groupings is obtained
-(Hastie et al. 2009). In order to decide how the merging is performed, a similarity measure
-between groups should be specied, in addition to the one that is used to calculate pairwise
-similarities. However, a specific number of clusters does not need to be specified for the
-hierarchy to be created, and the procedure is deterministic, so it will always give the same
+the clusters from the next lower level, such that an ordered sequence of groupings is obtained.
+The similarity measure used to group time series in a cluster is the dtw metric.
+The procedure is deterministic, so it will always give the same
 result for a chosen set of similarity measures (taken from the DTWCLUST package docs).
+}
+\references{
+"dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
+}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Ref: Comparing Time-Series Clustering Algorithms in R Using the dtwclust Package
-(dtwclust vignette)
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
-\seealso{
-Other STIS cluster functions: \code{\link{sits_centroids}},
-  \code{\link{sits_cluster}}
-}
-\keyword{STIS}

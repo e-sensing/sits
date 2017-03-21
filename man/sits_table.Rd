@@ -10,21 +10,13 @@ sits_table()
 table  a tibble in SITS format
 }
 \description{
-\code{sits_table} returns an empty sits table
+this function returns an empty sits table.
 A sits table is a tibble with pre-defined columns that
 has the metadata and data for each time series. The columns are
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
-}
-\details{
 Most functions on the sits package use a sits table as input (with additional parameters)
-and a sits table as output. This allows for chaining of operation on time series
+and a sits table as output. This allows for chaining of operation on time series.
 }
-\seealso{
-Other STIS table functions: \code{\link{sits_align}},
-  \code{\link{sits_bands}}, \code{\link{sits_dates}},
-  \code{\link{sits_group_bylatlong}},
-  \code{\link{sits_rename}}, \code{\link{sits_select}},
-  \code{\link{sits_table_result}},
-  \code{\link{sits_values_cols}},
-  \code{\link{sits_values_rows}}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

@@ -15,18 +15,13 @@ sits_cross(sits1.tb, sits2.tb)
 new.tb    a cross-joined SITS tibble with a nested set of time series
 }
 \description{
-\code{sits_cross} Cross-join two SITS tables with the same spatio-temporal references
-}
-\details{
-#' To cross two series' bands, we consider that they contain DIFFERENT
-attributes (bands) but refer to the same coverage. We DON'T make any assumptions about their spatio-temporal location.
-So be careful with this function as it will cross join every time series' bands between two SITS tables entries.
-
+Cross-join two SITS tables with the same spatio-temporal references. To cross two series' bands,
+we consider that they contain different attributes (bands) but refer to the same coverage.
+We make no assumptions about their spatio-temporal location.
 This function is useful to create different bands of clusters centroids time series.
 For example, one may want to put evi and ndvi bands centroids together in an cross joined fashion in order to
-generate patterns combinations.0
+generate patterns combinations.
 }
-\seealso{
-Other SITS table functions: \code{\link{sits_merge}}
+\author{
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
-\keyword{SITS}
