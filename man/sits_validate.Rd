@@ -5,7 +5,7 @@
 \title{validate temporal patterns}
 \usage{
 sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
-  p = 0.1, reference.lst = NULL, predicted.lst = NULL, ...)
+  p = 0.1, conversion.lst = NULL, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}

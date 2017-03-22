@@ -23,7 +23,7 @@
 #' @export
 
 sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p = 0.1,
-                           reference.lst = NULL, predicted.lst = NULL, ...){
+                           conversion.lst = NULL, ...){
 
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
                           err_desc = "sits_validate: input data not provided")
@@ -35,6 +35,13 @@ sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p
      ensurer::ensure_that(data.tb, !(FALSE %in% bands %in% (sits_bands(.))),
                           err_desc = "sits_validate: invalid input bands")
 
+     # what are the labels of the samples?
+     labels <- dplyr::distinct (data.tb, label)
+     # if the conversion list is NULL, create an identity list
+     if (purrr::is_null(conversion.lst)) {
+
+
+     }
 
      # create partitions different splits of the input data
      partitions.lst <- .create_partitions (data.tb, times, perc)
@@ -47,7 +54,7 @@ sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p
                                        "end_date", "label", "coverage"))
                results.tb  <- sits_TWDTW (non_p.tb, patterns.tb, bands)
 
-               i <- which.min(res.tb$alignments[[1]]$distance)
+               i <- which.min(results.tb$alignments[[1]]$distance)
 
 
           })
