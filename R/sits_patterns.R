@@ -60,7 +60,7 @@ sits_patterns <- function (samples.tb, method = "gam", ...) {
 #' @export
 #'
 #'
-sits_patterns_gam <- function (samples.tb, freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
+sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
      # create a tibble to store the results
      patterns.tb <- sits_table()
 

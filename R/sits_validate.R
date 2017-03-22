@@ -60,39 +60,3 @@ sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p
      O  = sum(diag(error.matrix)) / sum(rowSums(error.matrix))
      list(OverallAccuracy=O, UsersAccuracy=UA, ProducersAccuracy=PA, ErrorMatrix=error.matrix, data=data)
 }
-
-.create_partitions <- function (data.tb, times, perc) {
-
-     partitions.lst <- tibble::lst()
-
-     for (i in 1:times){
-          frac.tb <- sits_label_perc (data.tb, perc)
-          partitions.lst [[i]] <- frac.tb
-     }
-     return (partitions.lst)
-}
-
-# twdtwCrossValidate.twdtwTimeSeries = function(object, times, p, ...){
-#
-#      partitions = createDataPartition(y = labels(object), times, p, list = TRUE)
-#
-#      res = lapply(partitions, function(I){
-#           training_ts = subset(object, I)
-#           validation_ts = subset(object, -I)
-#           patt = createPatterns(training_ts, ...)
-#           twdtw_res = twdtwApply(x = validation_ts, y = patt, n=1, ...)
-#           df = do.call("rbind", lapply(twdtw_res[], function(xx) {
-#                i = which.min(xx$distance)
-#                if(length(i)<1)
-#                     return(data.frame(Alig.N=NA, from=NA, to=NA, distance=NA, label = "Unclassified"))
-#                xx[i,]
-#           }))
-#           ref = labels(twdtw_res)$timeseries
-#           pred = df$label
-#           data = data.frame(.adjustFactores(ref, pred, levels=NULL, labels=NULL), df[,!names(df)%in%"labels"])
-#           error.matrix = table(Predicted=data$Predicted, Reference=data$Reference)
-#           UA = diag(error.matrix) / rowSums(error.matrix)
-#           PA = diag(error.matrix) / colSums(error.matrix)
-#           O  = sum(diag(error.matrix)) / sum(rowSums(error.matrix))
-#           list(OverallAccuracy=O, UsersAccuracy=UA, ProducersAccuracy=PA, ErrorMatrix=error.matrix, data=data)
-#      })

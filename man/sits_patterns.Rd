@@ -4,12 +4,21 @@
 \alias{sits_patterns}
 \title{Create time series patterns for classification}
 \usage{
-sits_patterns(samples.tb, method = "gam", ...)
+sits_patterns(samples.tb, method = "gam", freq = 8, from = NULL,
+  to = NULL, formula = y ~ s(x))
 }
 \arguments{
-\item{samples.tb}{a table in SITS format with a set of labelled time series}
+\item{samples.tb}{a table in SITS format with time series to be classified using TWTDW}
 
 \item{method}{the method to be used for classification}
+
+\item{freq}{int - the interval in days for the estimates to be generated}
+
+\item{from}{starting date of the estimate (month-day)}
+
+\item{to}{end data of the estimated (month-day)}
+
+\item{formula}{the formula to be applied in the estimate}
 }
 \value{
 patterns.tb   a SITS table with the patterns
