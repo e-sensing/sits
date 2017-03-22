@@ -7,10 +7,12 @@ library(sits)
 # see WTSS paper for more information ("Web Services for Big Data")
 
 URL <- "http://www.dpi.inpe.br/tws/wtss"
-sits_infoWTSS(URL)
+wtss_inpe <- sits_infoWTSS(URL)
 
 # get information about a specific coverage
 sits_coverageWTSS(URL,"mod13q1_512")
+
+
 # choose a coverage
 coverage <- "mod13q1_512"
 # recover all bands
@@ -38,13 +40,12 @@ series.tb %>%
 series_s.tb <- series.tb %>%
      sits_smooth() %>%
      sits_rename (c("ndvi_smooth", "evi_smooth", "blue_smooth", "red_smooth", "nir_smooth", "mir_smooth")) %>%
-     sits_select (c("ndvi_smooth", "evi_smooth")) %>%
      sits_plot()
 
 # merge the raw and smoothed series and plot the “red” and “red_smooth” bands
 series.tb %>%
      sits_merge(., series_s.tb) %>%
-     sits_select (bands = c("evi", "evi_smooth")) %>%
+     sits_select (bands = c("red", "red_smooth")) %>%
      sits_plot()
 
 # read a pattern table from a JSON file
@@ -57,7 +58,6 @@ sits_plot (patterns.tb, type = "patterns")
 bands <- c("ndvi", "evi", "nir")
 breaks <- seq(from = "2000-")
 results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
-
 
 # plot the results of the classification
 sits_plot (results.tb, type = "classification")

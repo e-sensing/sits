@@ -4,7 +4,7 @@
 \alias{sits_centroids}
 \title{Cluster a set of time series using partitional clustering}
 \usage{
-sits_centroids(data.tb, n_clusters = 4, perc = 0.1, show = TRUE)
+sits_centroids(data.tb, n_clusters = 4)
 }
 \arguments{
 \item{data.tb}{a tibble the list of time series to be clustered}

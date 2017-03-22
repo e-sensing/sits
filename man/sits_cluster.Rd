@@ -13,10 +13,6 @@ sits_cluster(data.tb, method = "dendogram", n_clusters = 4, perc = 0.1,
 \item{method}{string - either "dendogram" or "centroids"}
 
 \item{n_clusters}{the number of clusters to be identified}
-
-\item{perc}{the minimum percentage for a cluster to be valid}
-
-\item{show}{(boolean) should the results be shown?}
 }
 \value{
 clusters.tb a SITS tibble with the clusters

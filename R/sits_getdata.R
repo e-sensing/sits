@@ -338,7 +338,7 @@ sits_getdata <- function (file        = NULL,
                                start = start_date, end = end_date)
 
      # retrieve the time series information
-     time_series <- ts[[cov$name]]$attributes
+     time_series <- ts[[coverage]]$attributes
 
      # retrieve information about the bands
      band_info <- cov$attributes
@@ -364,6 +364,8 @@ sits_getdata <- function (file        = NULL,
 
      # convert the series to a tibble
      row.tb <- tibble::as_tibble (zoo::fortify.zoo (time_series))
+
+
      # clean the time series
      # create a list to store the zoo time series coming from the WTSS service
      ts.lst <- list()
@@ -379,7 +381,7 @@ sits_getdata <- function (file        = NULL,
                          start_date   = as.Date(start_date),
                          end_date     = as.Date(end_date),
                          label        = label,
-                         coverage     = cov$name,
+                         coverage     = coverage,
                          time_series  = ts.lst
      )
 
