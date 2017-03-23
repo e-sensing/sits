@@ -21,7 +21,8 @@ columns: distances (a list of distances to each class for each interval) and mat
 Please see the documentation of the dtwSat package
 }
 \seealso{
-Other STIS table functions: \code{\link{sits_value_cols}}
+Other STIS table functions: \code{\link{sits_value_cols}},
+  \code{\link{sits_value_rows}}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

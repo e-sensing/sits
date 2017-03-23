@@ -422,7 +422,7 @@ sits_label_perc <- function (data.tb, perc = 0.1){
 #' @return ndays   number of days covered by the time series
 #' @export
 sits_time_interval <-  function (data.tb){
-     ensurer::ensures_that(data.tb, nrow(data.tb) == 1,
+     ensurer::ensure_that(data.tb, nrow(.) == 1,
                            err_dec = "sits_time_interval - works with one row at a time")
      ndays <-  (lubridate::as_date(data.tb[1,]$end_date) -
                      lubridate::as_date(data.tb[1,]$start_date))/lubridate::ddays(1)

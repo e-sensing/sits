@@ -9,11 +9,11 @@
 #' @param    type       string - the type of plot to be generated
 #' @param    colors     the color pallete to be used (default is "Set1")
 #' @param    label      the class label
+#' @param    n_matches  number of matches of a given label to be displayed
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
-#' @keywords SITS
 #' @export
 #'
-sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = NULL, k = 4) {
+sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = NULL, n_matches = 4) {
      # check the input exists
      ensurer::ensure_that(data.tb, !purrr::is_null(.), err_desc = "sits_plot: input data not provided")
 
@@ -24,7 +24,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
             "patterns"       = .sits_plot_patterns (data.tb),
             "classification" = .sits_plot_classification (data.tb),
             "alignments"     = .sits_plot_alignments (data.tb),
-            "matches"        = .sits_plot_matches (data.tb, label, k),
+            "matches"        = .sits_plot_matches (data.tb, label, n_matches),
             message (paste ("sits_plot: valid plot types are allyears,
                             one_by_one, together, patterns, classification, alignments, matches", "\n", sep = ""))
             )
@@ -33,6 +33,13 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
      return (invisible (data.tb))
 }
 
+#' @title Plot all time intervals of one time series for the same lat/long together
+#' @name .sits_plot_allyears
+#'
+#' @description finds out the different lat/long places in the data, and joins temporal
+#' instances of the same place together for plotting
+#' @param data.tb one or more time series (stored in a SITS tibble)
+#' @param colors  the color pallete to be used (default is "Dark2")
 .sits_plot_allyears <- function (data.tb, colors) {
      locs <- dplyr::distinct (data.tb, longitude, latitude)
      locs %>%
@@ -50,6 +57,12 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
           })
 }
 
+#' @title Plot  time intervals of one time series separately (one-by-one)
+#' @name .sits_plot_one_by_one
+#'
+#' @description plots each row of a data set separately
+#' @param data.tb one or more time series (stored in a SITS tibble)
+#' @param colors  the color pallete to be used (default is "Dark2")
 .sits_plot_one_by_one <- function (data.tb, colors){
      data.tb %>%
           dplyr::rowwise() %>%
@@ -60,6 +73,11 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
           })
 
 }
+#' @title Plot classification patterns
+#' @name .sits_plot_patterns
+#'
+#' @description plots the patterns to be used for classification (uses dtwSat)
+#' @param data.tb one or more time series containing patterns (stored in a SITS tibble)
 .sits_plot_patterns <- function (data.tb) {
      data.tb %>%
           .sits_toTWDTW_time_series() %>%
@@ -67,6 +85,11 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
           graphics::plot()
 }
 
+#' @title Plot classification results
+#' @name .sits_plot_classification
+#'
+#' @description plots the results of TWDTW classification (uses dtwSat)
+#' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
 .sits_plot_classification <- function (data.tb){
      # retrieve a dtwSat S4 twdtwMatches object
      data.tb %>%
@@ -77,6 +100,11 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
                return(data.tb)
           })
 }
+#' @title Plot classification alignments
+#' @name .sits_plot_alignments
+#'
+#' @description plots the alignments from TWDTW classification (uses dtwSat)
+#' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
 .sits_plot_alignments <- function (data.tb){
      data.tb %>%
           dplyr::rowwise() %>%
@@ -86,21 +114,29 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
                return(data.tb)
           })
 }
-
-.sits_plot_matches <- function (data.tb, label, k) {
+#' @title Plot matches between a label pattern and a time series
+#' @name .sits_plot_matches
+#'
+#' @description plots the matches from TWDTW classification for one label
+#' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
+#' @param label      the class label
+#' @param n_matches  number of matches of a given label to be displayed
+.sits_plot_matches <- function (data.tb, label, n_matches) {
      ensurer::ensure_that(label, !purrr::is_null(.), err_desc = "sits_plot matches: label must be provided")
      data.tb %>%
           dplyr::rowwise() %>%
           dplyr::do({
-               dtwSat::plot (.$matches, type = "matches", patterns.labels = label, k = k) %>%
+               dtwSat::plot (.$matches, type = "matches", patterns.labels = label, k = n_matches) %>%
                graphics::plot()
           return(data.tb)
      })
 }
-# -----------------------------------------------------------
-#' Plot a set of time series for the same spatio-temporal reference
+
+#' @title Plot a set of time series for the same spatio-temporal reference
 #'
-#' \code{.sits_plot_together} plots all time series for the same label together
+#' @name .sits_plot_together
+#'
+#' @description plots all time series for the same label together
 #' This function is useful to find out the spread of the values of the time serie
 #' for a given label
 #'
@@ -161,18 +197,15 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
           })
 }
 
+#' @title Plot one timeSeries using ggplot
 #'
-#' Plot one timeSeries using ggplot
+#' @name .sits_ggplot_series
 #'
-#' \code{.sits_ggplot_series} plots a set of time series using ggplot
-#'
-#' This function is used for showing the same lat/long location in
-#' a series of time steps.
+#' @description plots a set of time series using ggplot. This function is used
+#' for showing the same lat/long location in a series of time steps.
 #'
 #' @param row         a row of a SITS table with the time series to be plotted
 #' @param colors      string - the set of Brewer colors to be used for plotting
-#' @keywords SITS
-#' @family   SITS plot functions
 .sits_ggplot_series <- function (row, colors = "Dark2") {
      # create the plot title
      plot_title <- .sits_plot_title (row)
@@ -191,16 +224,16 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
      # scale_colour_hue(h=c(90, 270)) - alternative to brewer
      return (g)
 }
+
+#' @title Plot many timeSeries together using ggplot
 #'
-#' Plot many timeSeries together using ggplot
+#' @name .sits_ggplot_together
 #'
-#' \code{.sits_ggplot_together} plots a set of  time series together
+#' @description plots a set of  time series together
 #'
 #' @param melted.tb   a tibble with the time series (a lot of data already melted)
 #' @param means.tb    a tibble with the means and std deviations of the time series
 #' @param plot_title  the title for the plot
-#' @keywords SITS
-#' @family   SITS plot functions
 .sits_ggplot_together <- function (melted.tb, means.tb, plot_title) {
      g <- ggplot2::ggplot(data = melted.tb, ggplot2::aes(x = Index, y = value, group = variable)) +
           ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
@@ -212,15 +245,13 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 
 }
 
+#' @title Create a plot title to use with ggplot
+#' @name sits_plot_title
 #'
-#' Create a plot title to use with ggplot
-#'
-#' \code{sits_plot_title} creates a plot title from row information
+#' @description creates a plot title from row information
 #'
 #' @param row      data row with <longitude, latitude, label> information
 #' @return title   string - the title to be used in the plot
-#' @keywords SITS
-#' @family   SITS plotting functions
 .sits_plot_title <- function (row) {
      title <- paste ("location (",
                      row$latitude,  ", ",

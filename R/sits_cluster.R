@@ -139,7 +139,7 @@ sits_dendogram <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb      a tibble the list of time series to be clustered
-#' @param label        the label or a vector of labels to be clusterized together.
+#' @param band_groups  a list containing groups of bands to be clusterized. A group of bands may be a band alone (str) or a vector of bands.
 #' @param n_clusters   the number of clusters to be identified
 #' @param perc         the minimum percentage for a cluster to be valid
 #' @param show         (boolean) should the results be shown?
@@ -163,7 +163,9 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
           return (.sits_fromClusters (data.tb, clusters, perc))
 
      }
-
+     if (is.null(band_groups)) {
+          band_groups <- list(sits_bands(data.tb))
+     }
 
      # for each band, find a significant set of clusters
      centroids.lst <- band_groups %>%

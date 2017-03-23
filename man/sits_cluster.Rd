@@ -4,15 +4,23 @@
 \alias{sits_cluster}
 \title{Cluster a set of satellite image time series}
 \usage{
-sits_cluster(data.tb, method = "dendogram", n_clusters = 4, perc = 0.1,
-  show = TRUE)
+sits_cluster(data.tb, label_groups = NULL, band_groups = NULL,
+  method = "dendogram", n_clusters = 4, perc = 0.1, show = TRUE)
 }
 \arguments{
 \item{data.tb}{a SITS tibble the list of time series to be clustered}
 
+\item{label_groups}{a list containing groups of labels to be clusterized. A group of labels may be a label alone (str) or a vector of labels.}
+
+\item{band_groups}{a list containing groups of bands to be clusterized. A group of bands may be a band alone (str) or a vector of bands.}
+
 \item{method}{string - either "dendogram" or "centroids"}
 
 \item{n_clusters}{the number of clusters to be identified}
+
+\item{perc}{the minimum percentage for a cluster to be valid}
+
+\item{show}{(boolean) should the results be shown?}
 }
 \value{
 clusters.tb a SITS tibble with the clusters

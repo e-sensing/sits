@@ -5,20 +5,24 @@
 \alias{sits_values_rows}
 \title{Return the values of one band of a SITS table}
 \usage{
-sits_values_rows(data.tb, band)
+sits_values_rows(data.tb, bands)
 }
 \arguments{
 \item{data.tb}{a tibble in SITS format with time series for different bands}
 
-\item{band}{string - a band whose values are to be extracted}
+\item{bands}{string - a group of bands whose values are to be extracted}
 }
 \value{
-table      a tibble in SITS format with values
+table   a tibble in SITS format with values
 }
 \description{
 this function returns only the values of a sits table (rowwise organized).
 This function is useful to use packages such as ggplot and dtwclust that
 require values that are rowwise organised
+}
+\seealso{
+Other STIS table functions: \code{\link{sits_table_result}},
+  \code{\link{sits_value_cols}}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

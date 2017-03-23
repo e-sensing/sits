@@ -7,6 +7,11 @@
 \usage{
 .onAttach(lib, pkg)
 }
+\arguments{
+\item{lib}{libname argument}
+
+\item{pkg}{pkgname argument}
+}
 \description{
 provides the information for the dependencies of the sits package
 }
