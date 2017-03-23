@@ -5,7 +5,7 @@
 \title{validate temporal patterns}
 \usage{
 sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
-  p = 0.1, conversion.lst = NULL, ...)
+  perc = 0.1, conversion.lst = NULL, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
@@ -14,13 +14,11 @@ sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
 
 \item{method}{method to create patterns ("gam", "dendogram" or "centroids")}
 
-\item{times}{Number of partitions to create.}
+\item{times}{number of partitions to create.}
 
-\item{p}{the percentage of data that goes to training.}
+\item{perc}{the percentage of data that goes to training.}
 
-\item{reference.lst}{a conversion of label names for the reference classes (optional)}
-
-\item{predicted.lst}{a conversion of label names for the predicted classes (optional)}
+\item{conversion.lst}{a conversion of label names for the classes (optional))}
 }
 \description{
 Splits the set of time series into training and validation and

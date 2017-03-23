@@ -44,10 +44,10 @@ A Web Time Series Service (WTSS) is a light-weight service that
 retrieves one or more time series in JSON format from a data base.
 }
 \references{
-Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Câmara,
-“Web Services for Big Earth Observation Data.”
+Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
+Web Services for Big Earth Observation Data.
 In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
-Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166 – 17
+Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177.
 }
 \author{
 Gilberto Camara

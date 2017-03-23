@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_WTSS.R
 \name{sits_getcovWTSS}
 \alias{sits_getcovWTSS}
-\title{Provides information about one coverage of the WTSS service}
+\title{Obtain information about one coverage of the WTSS service}
 \usage{
 sits_getcovWTSS(URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL)
 }
@@ -15,10 +15,8 @@ sits_getcovWTSS(URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL)
 cov       a list with descriptive information about the coverage
 }
 \description{
-\code{sits_getcovWTSS} uses the WTSS services to retrieve information about a given coverage:
-}
-\details{
-name            - the name of thee coverage
+uses the WTSS services to retrieve information about a given coverage:
+ name            - coverage name
  description     - description
  detail          - more information (source)
  attributes      - spectral bands (name, description, datatype, valid_range.min, valid_range.max, scale_factor, missing_value)

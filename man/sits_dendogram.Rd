@@ -4,12 +4,19 @@
 \alias{sits_dendogram}
 \title{Cluster a set of time series using hierarchical clustering}
 \usage{
-sits_dendogram(data.tb, n_clusters = 4)
+sits_dendogram(data.tb, band_groups = NULL, n_clusters = 4, perc = 0.1,
+  show = TRUE)
 }
 \arguments{
 \item{data.tb}{a tibble the list of time series to be clustered}
 
+\item{band_groups}{a list containing groups of bands to be clusterized. A group of bands may be a band alone (str) or a vector of bands.}
+
 \item{n_clusters}{the number of clusters to be identified}
+
+\item{perc}{the minimum percentage for a cluster to be valid}
+
+\item{show}{(boolean) should the results be shown?}
 }
 \value{
 clusters.tb a SITS tibble with the clusters

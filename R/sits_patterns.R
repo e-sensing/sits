@@ -60,7 +60,7 @@ sits_patterns <- function (samples.tb, method = "gam", ...) {
 #' @export
 #'
 #'
-sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
+sits_patterns_gam <- function (samples.tb, method = "gam", freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
      # create a tibble to store the results
      patterns.tb <- sits_table()
 
@@ -173,7 +173,7 @@ sits_patterns <- function (samples.tb, method = "gam", freq = 8, from = NULL, to
 #' @param  show          show the results of the clustering algorithm?
 #' @return patterns.tb   a SITS table with the patterns
 #' @export
-sits_patterns_cluster <- function (samples.tb, method = "dendogram", nclusters = 2, perc = 0.10, show = FALSE){
+sits_patterns_cluster <- function (samples.tb, method = "dendogram", n_clusters = 2, perc = 0.10, show = FALSE){
      # create an output
      patterns.tb <- tibble::tibble()
 
@@ -188,9 +188,9 @@ sits_patterns_cluster <- function (samples.tb, method = "dendogram", nclusters =
           label.tb <- dplyr::filter (samples.tb, label == lb)
           # apply the clustering method
           if (method == "dendogram")
-               clu.tb <- sits_dendogram (label.tb, n_clusters = nclusters, perc = perc, show = show)
+               clu.tb <- sits_dendogram (label.tb, n_clusters = n_clusters, perc = perc, show = show)
           else
-               clu.tb <- sits_centroids (label.tb, n_clusters = nclusters, perc = perc, show = show)
+               clu.tb <- sits_centroids (label.tb, n_clusters = n_clusters, perc = perc, show = show)
           # get the result
           dplyr::bind_rows(patterns.tb, clu.tb)
      }
