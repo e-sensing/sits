@@ -19,7 +19,8 @@ table   a tibble  with values
 returns a sits table with values only (colwise organised)
 }
 \seealso{
-Other STIS table functions: \code{\link{sits_table_result}}
+Other STIS table functions: \code{\link{sits_table_result}},
+  \code{\link{sits_value_rows}}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

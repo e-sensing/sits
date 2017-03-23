@@ -26,16 +26,14 @@
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
-# @param  start_date    date - the starting date of the classification
-# @param  end_date      date - the end date of the classification
 #' @param  interval      the period between two classifications
 #' @param  span          the minimum period for a match between a pattern and a signal)
 #' @param  keep          keep internal values for plotting matches
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
 sits_TWDTW <- function (series.tb, patterns.tb, bands,
-                        alpha = -0.1, beta = 100,
-                        theta = 0.5, span  = 250, keep  = FALSE){
+                        alpha = -0.1, beta = 100, theta = 0.5,
+                        interval = "12 month", span  = 250, keep  = FALSE){
 
      # create a tibble to store the results
      results.tb <- sits_table_result()
@@ -57,8 +55,8 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                sits_select (bands) %>%
                .sits_toTWDTW_time_series()
 
-          start_date <- lubridate::as_date(head(series.tb[i,]$time_series[[1]],1)$Index)
-          end_date   <- lubridate::as_date(tail(series.tb[i,]$time_series[[1]],1)$Index)
+          start_date <- lubridate::as_date(utils::head(series.tb[i,]$time_series[[1]],1)$Index)
+          end_date   <- lubridate::as_date(utils::tail(series.tb[i,]$time_series[[1]],1)$Index)
 
           # define the temporal intervals of each classification
           breaks <- seq(from = start_date, to = end_date, by = interval)

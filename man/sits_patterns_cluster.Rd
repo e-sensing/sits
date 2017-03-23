@@ -4,7 +4,7 @@
 \alias{sits_patterns_cluster}
 \title{Estimate a set of patterns based on a clustering}
 \usage{
-sits_patterns_cluster(samples.tb, method = "dendogram", nclusters = 2,
+sits_patterns_cluster(samples.tb, method = "dendogram", n_clusters = 2,
   perc = 0.1, show = FALSE)
 }
 \arguments{
@@ -12,11 +12,11 @@ sits_patterns_cluster(samples.tb, method = "dendogram", nclusters = 2,
 
 \item{method}{the method to be used for classification}
 
+\item{n_clusters}{the maximum number of clusters to be identified}
+
 \item{perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples}
 
 \item{show}{show the results of the clustering algorithm?}
-
-\item{n_clusters}{the maximum number of clusters to be identified}
 }
 \value{
 patterns.tb   a SITS table with the patterns

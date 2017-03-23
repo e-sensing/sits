@@ -16,10 +16,10 @@
 #' A Web Time Series Service (WTSS) is a light-weight service that
 #' retrieves one or more time series in JSON format from a data base.
 #' @references
-#' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Câmara,
-#' “Web Services for Big Earth Observation Data.”
+#' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
+#' Web Services for Big Earth Observation Data.
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
-#' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166 – 17
+#' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177.
 #'
 #' @param file            the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)
 #' @param table           an R object ("sits_table")
@@ -111,10 +111,10 @@ sits_getdata <- function (file        = NULL,
 #' for a WTSS service. A Web Time Series Service is a light-weight service that
 #' retrieves one or more time series in JSON format from a data base.
 #' @references
-#' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Câmara,
-#' “Web Services for Big Earth Observation Data.”
+#' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
+#' Web Services for Big Earth Observation Data.
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
-#' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166 – 177.
+#' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177.
 
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location)
@@ -154,7 +154,7 @@ sits_getdata <- function (file        = NULL,
      for (i in 1:nrow(source)){
           row <- source[i,]
           if (is.na(row$start_date)) {row$start_date <- lubridate::as_date(cov$timeline[1])}
-          if (is.na(row$end_date)) { row$end_date <- lubridate::as_date(cov$timeline[length(timeline)])}
+          if (is.na(row$end_date)) { row$end_date <- lubridate::as_date(cov$timeline[length(cov$timeline)])}
           if (is.na(row$label)) {row$label <- "NoClass"}
           t <- .sits_fromWTSS (row$longitude, row$latitude, row$start_date, row$end_date,
                                   row$label, wtss.obj, cov, bands)
@@ -316,10 +316,10 @@ sits_getdata <- function (file        = NULL,
 #' A Web Time Series Service (WTSS) is a light-weight service that
 #' retrieves one or more time series in JSON format from a data base.
 #' @references
-#' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Câmara,
-#' “Web Services for Big Earth Observation Data.”
+#' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
+#' Web Services for Big Earth Observation Data.
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
-#' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166 – 17
+#' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177
 #'
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location
@@ -327,7 +327,7 @@ sits_getdata <- function (file        = NULL,
 #' @param end_date        date - the end of the period
 #' @param label           string - the label to attach to the time series (optional)
 #' @param wtss.obj        an R object that represents the WTSS server
-#' @param coverage        string - the name of the coverage from which data is to be recovered
+#' @param cov             a list containing information about the coverage from which data is to be recovered
 #' @param bands           list of string - a list of the names of the bands of the coverage
 #' @return data.tb        tibble  - a SITS table
 .sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wtss.obj, cov, bands) {
@@ -338,7 +338,7 @@ sits_getdata <- function (file        = NULL,
                                start = start_date, end = end_date)
 
      # retrieve the time series information
-     time_series <- ts[[coverage]]$attributes
+     time_series <- ts[[cov$name]]$attributes
 
      # retrieve information about the bands
      band_info <- cov$attributes

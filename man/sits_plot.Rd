@@ -5,7 +5,7 @@
 \title{Plot a set of time series}
 \usage{
 sits_plot(data.tb = NULL, type = "allyears", colors = "Dark2",
-  label = NULL, k = 4)
+  label = NULL, n_matches = 4)
 }
 \arguments{
 \item{data.tb}{tibble - a SITS table with the list of time series to be plotted}
@@ -15,6 +15,8 @@ sits_plot(data.tb = NULL, type = "allyears", colors = "Dark2",
 \item{colors}{the color pallete to be used (default is "Set1")}
 
 \item{label}{the class label}
+
+\item{n_matches}{number of matches of a given label to be displayed}
 }
 \value{
 data.tb    tibble - the input SITS table (useful for chaining functions)
@@ -25,4 +27,3 @@ data.tb    tibble - the input SITS table (useful for chaining functions)
 \details{
 Plot one SITS time series for a single place and interval
 }
-\keyword{STIS}

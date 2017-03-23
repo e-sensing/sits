@@ -2,7 +2,11 @@
 #' @name sits_init
 #' @description provides the information for the dependencies of the sits package
 #'
-#'
+
+#' @title .onAttach
+#' @param lib libname argument
+#' @param  pkg pkgname argument
+
 .onAttach = function(lib, pkg){
      packageStartupMessage(
           sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.\n",
@@ -35,9 +39,11 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom ptw whit2
 #' @importFrom raster shapefile
 #' @importFrom reshape2 melt
+#' @importFrom rfUtilities accuracy
 #' @importFrom signal sgolayfilt
 #' @importFrom sp bbox SpatialPoints CRS proj4string
 #' @importFrom stats sd setNames
+#' @importFrom stringr str_extract str_detect
 #' @importFrom tools file_ext file_path_sans_ext
 #' @importFrom utils head tail
 #' @importFrom wtss.R WTSS timeSeries listCoverages describeCoverage
