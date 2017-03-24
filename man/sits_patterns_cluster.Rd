@@ -4,17 +4,19 @@
 \alias{sits_patterns_cluster}
 \title{Estimate a set of patterns based on a clustering}
 \usage{
-sits_patterns_cluster(samples.tb, method = "dendogram", n_clusters = 2,
-  perc = 0.1, show = FALSE)
+sits_patterns_cluster(samples.tb, method = "dendogram", bands = NULL,
+  n_clusters = 2, min_clu_perc = 0.1, show = FALSE)
 }
 \arguments{
 \item{samples.tb}{a table in SITS format with a set of labelled time series}
 
 \item{method}{the method to be used for classification}
 
+\item{bands}{the bands used to obtain the pattern}
+
 \item{n_clusters}{the maximum number of clusters to be identified}
 
-\item{perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples}
+\item{min_clu_perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples}
 
 \item{show}{show the results of the clustering algorithm?}
 }

@@ -8,5 +8,11 @@ library(sits)
 # retrieve a set of samples from a JSON file
 cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado6.json", package="sits"))
 
+clu.tb <- sits_cluster(cerrado.tb, bands = c("ndvi", "evi"), n_clusters = 3)
+
+cerrado2.tb <- dplyr::bind_rows(head(cerrado.tb, n = 20), tail(cerrado.tb, n = 20))
+
+cerrado3.tb <- sits_select (cerrado2.tb, bands = c("ndvi","evi", "nir"))
+
 # perform accuracy assessment
-cm <- sits_validate (cerrado.tb, method = "centroids", bands = c("ndvi","evi", "nir"), times = 50, perc = 0.1)
+cm <- sits_validate (cerrado2.tb, method = "dendogram", bands = c("ndvi","evi", "nir"), times = 10, perc = 0.1)
