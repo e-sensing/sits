@@ -22,17 +22,16 @@
 #' @param  show          show the results of the clustering algorithm? (for clustering methods)
 #' @return patterns.tb   a SITS table with the patterns
 #' @export
-sits_patterns <- function (samples.tb, method = "gam", bands = NULL, freq = 8, from = NULL, to = NULL, formula = y ~ s(x),
-                           n_clusters = 2, min_clu_perc = 0.10, show = FALSE) {
+sits_patterns <- function (samples.tb, method = "gam", bands = NULL, freq = 8, from = NULL, to = NULL, formula = y ~ s(x), n_clusters = 2, min_clu_perc = 0.10, show = FALSE) {
      # check the input exists
      ensurer::ensure_that(samples.tb, !purrr::is_null(.), err_desc = "sits_patterns: input data not provided")
 
      if (purrr::is_null (bands)) bands <- sits_bands(samples.tb)
 
      switch(method,
-            "gam"            =  { patterns.tb <- sits_patterns_gam (samples.tb, bands, freq = 8, from = NULL, to = NULL, formula = y ~ s(x)) },
-            "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, method = "dendogram", bands, n_clusters = 2, min_clu_perc = 0.10, show = FALSE)},
-            "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, method = "centroids", bands, n_clusters = 2, min_clu_perc = 0.10, show = FALSE)},
+            "gam"            =  { patterns.tb <- sits_patterns_gam (samples.tb, bands, freq = freq, from = from, to = to, formula = formula) },
+            "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, method = "dendogram", bands, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
+            "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, method = "centroids", bands, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
             message (paste ("sits_patterns: valid methods are gam, dendogram, centroids", "\n", sep = ""))
             )
 
