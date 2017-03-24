@@ -34,7 +34,6 @@ sits_cluster <- function (data.tb, bands = NULL, method = "dendogram", n_cluster
           dplyr::do({
                # filter only those rows with the same labels
                label.tb <- dplyr::filter (data.tb, label == .$label)
-               print (.$label)
                # apply the clustering method
                clu.tb <- sits_dtwclust (label.tb, bands = bands, method, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)
                # append the result
