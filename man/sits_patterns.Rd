@@ -4,12 +4,30 @@
 \alias{sits_patterns}
 \title{Create time series patterns for classification}
 \usage{
-sits_patterns(samples.tb, method = "gam", ...)
+sits_patterns(samples.tb, method = "gam", bands = NULL, freq = 8,
+  from = NULL, to = NULL, formula = y ~ s(x), n_clusters = 2,
+  min_clu_perc = 0.1, show = FALSE)
 }
 \arguments{
 \item{samples.tb}{a table in SITS format with a set of labelled time series}
 
 \item{method}{the method to be used for classification}
+
+\item{bands}{the bands used to obtain the pattern}
+
+\item{freq}{int - the interval in days for the estimates to be generated (for "gam" method)}
+
+\item{from}{starting date of the estimate in month-day (for "gam" method)}
+
+\item{to}{end data of the estimated in month-day (for "gam" method)}
+
+\item{formula}{the formula to be applied in the estimate (for "gam" method)}
+
+\item{n_clusters}{the maximum number of clusters to be identified (for clustering methods)}
+
+\item{min_clu_perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)}
+
+\item{show}{show the results of the clustering algorithm? (for clustering methods)}
 }
 \value{
 patterns.tb   a SITS table with the patterns

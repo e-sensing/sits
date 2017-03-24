@@ -12,16 +12,27 @@
 #'
 #' @param  samples.tb    a table in SITS format with a set of labelled time series
 #' @param  method        the method to be used for classification
+#' @param  bands         the bands used to obtain the pattern
+#' @param  freq          int - the interval in days for the estimates to be generated (for "gam" method)
+#' @param  from          starting date of the estimate in month-day (for "gam" method)
+#' @param  to            end data of the estimated in month-day (for "gam" method)
+#' @param  formula       the formula to be applied in the estimate (for "gam" method)
+#' @param  n_clusters    the maximum number of clusters to be identified (for clustering methods)
+#' @param  min_clu_perc  the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
+#' @param  show          show the results of the clustering algorithm? (for clustering methods)
 #' @return patterns.tb   a SITS table with the patterns
 #' @export
-sits_patterns <- function (samples.tb, method = "gam", ...) {
+sits_patterns <- function (samples.tb, method = "gam", bands = NULL, freq = 8, from = NULL, to = NULL, formula = y ~ s(x),
+                           n_clusters = 2, min_clu_perc = 0.10, show = FALSE) {
      # check the input exists
      ensurer::ensure_that(samples.tb, !purrr::is_null(.), err_desc = "sits_patterns: input data not provided")
 
+     if (purrr::is_null (bands)) bands <- sits_bands(samples.tb)
+
      switch(method,
-            "gam"            =  { patterns.tb <- sits_patterns_gam (samples.tb, ...) },
-            "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, method = "dendogram", ...)},
-            "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, method = "centroids", ...)},
+            "gam"            =  { patterns.tb <- sits_patterns_gam (samples.tb, bands, freq = 8, from = NULL, to = NULL, formula = y ~ s(x)) },
+            "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, method = "dendogram", bands, n_clusters = 2, min_clu_perc = 0.10, show = FALSE)},
+            "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, method = "centroids", bands, n_clusters = 2, min_clu_perc = 0.10, show = FALSE)},
             message (paste ("sits_patterns: valid methods are gam, dendogram, centroids", "\n", sep = ""))
             )
 
@@ -51,7 +62,7 @@ sits_patterns <- function (samples.tb, method = "gam", ...) {
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  samples.tb    a table in SITS format with time series to be classified using TWTDW
-#' @param  method        the method to be used for classification
+#' @param  bands         the bands used to obtain the pattern
 #' @param  freq          int - the interval in days for the estimates to be generated
 #' @param  from          starting date of the estimate (month-day)
 #' @param  to            end data of the estimated (month-day)
@@ -60,15 +71,12 @@ sits_patterns <- function (samples.tb, method = "gam", ...) {
 #' @export
 #'
 #'
-sits_patterns_gam <- function (samples.tb, method = "gam", freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
+sits_patterns_gam <- function (samples.tb, bands, freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
      # create a tibble to store the results
      patterns.tb <- sits_table()
 
      # what are the variables in the formula?
      vars <-  all.vars(formula)
-
-     # what are the bands of the data set?
-     bands <- sits_bands(samples.tb)
 
      # how many different labels are there?
      labels <- dplyr::distinct (samples.tb, label)
@@ -168,14 +176,18 @@ sits_patterns_gam <- function (samples.tb, method = "gam", freq = 8, from = NULL
 #'
 #' @param  samples.tb    a table in SITS format with a set of labelled time series
 #' @param  method        the method to be used for classification
+#' @param  bands         the bands used to obtain the pattern
 #' @param  n_clusters    the maximum number of clusters to be identified
-#' @param  perc          the minimum percentagem of valid cluster members, with reference to the total number of samples
+#' @param  min_clu_perc  the minimum percentagem of valid cluster members, with reference to the total number of samples
 #' @param  show          show the results of the clustering algorithm?
 #' @return patterns.tb   a SITS table with the patterns
 #' @export
-sits_patterns_cluster <- function (samples.tb, method = "dendogram", n_clusters = 2, perc = 0.10, show = FALSE){
+sits_patterns_cluster <- function (samples.tb, method = "dendogram", bands = NULL, n_clusters = 2, min_clu_perc = 0.10, show = FALSE){
      # create an output
      patterns.tb <- tibble::tibble()
+
+     # if no bands are selected, use all bands
+     if (purrr::is_null (bands)) bands <- sits_bands(samples.tb)
 
      # how many different labels are there?
      labels <- dplyr::distinct (samples.tb, label)
@@ -188,9 +200,9 @@ sits_patterns_cluster <- function (samples.tb, method = "dendogram", n_clusters 
           label.tb <- dplyr::filter (samples.tb, label == lb)
           # apply the clustering method
           if (method == "dendogram")
-               clu.tb <- sits_dendogram (label.tb, n_clusters = n_clusters, perc = perc, show = show)
+               clu.tb <- sits_dendogram (label.tb, bands, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)
           else
-               clu.tb <- sits_centroids (label.tb, n_clusters = n_clusters, perc = perc, show = show)
+               clu.tb <- sits_centroids (label.tb, bands, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)
           # get the result
           dplyr::bind_rows(patterns.tb, clu.tb)
      }

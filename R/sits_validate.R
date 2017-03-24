@@ -13,29 +13,40 @@
 #' with the classification (Predicted), the reference classes (Reference),
 #' and the results of the TWDTW analysis.
 #'
-#' @param data.tb a SITS tibble
-#' @param bands   the bands used for classification
-#' @param method  method to create patterns ("gam", "dendogram" or "centroids")
-#' @param times   number of partitions to create.
-#' @param perc    the percentage of data that goes to training.
-#' @param conversion.lst a conversion of label names for the classes (optional))
+#' @param  data.tb       a SITS tibble
+#' @param  bands         the bands used for classification
+#' @param  method        method to create patterns ("gam", "dendogram" or "centroids")
+#' @param  times         number of partitions to create.
+#' @param  perc          the percentage of data that goes to training.
+#' @param  conversion.lst a conversion of label names for the classes (optional))
+#' @param  freq          int - the interval in days for the estimates to be generated (for "gam" method)
+#' @param  from          starting date of the estimate in month-day (for "gam" method)
+#' @param  to            end data of the estimated in month-day (for "gam" method)
+#' @param  formula       the formula to be applied in the estimate (for "gam" method)
+#' @param  n_clusters    the maximum number of clusters to be identified (for clustering methods)
+#' @param  min_clu_perc  the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
+#' @param  show          show the results of the clustering algorithm? (for clustering methods)
+#' @return patterns.tb   a SITS table with the patterns
 #' @export
-
 sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, perc = 0.1,
-                           conversion.lst = NULL, ...){
+                           conversion.lst = NULL, freq = 8, from = NULL, to = NULL, formula = y ~ s(x),
+                           n_clusters = 2, min_clu_perc = 0.10, show = FALSE){
 
      # does the input data exist?
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
                           err_desc = "sits_validate: input data not provided")
-     # is there information on the bands for the classification?
-     ensurer::ensure_that(bands, !purrr::is_null (.),
-                          err_desc = "sits_validate: Missing bands vector")
      # are the bands to be classified part of the input data?
      ensurer::ensure_that(data.tb, !(FALSE %in% bands %in% (sits_bands(.))),
                           err_desc = "sits_validate: invalid input bands")
 
      # what are the labels of the samples?
      labels <- dplyr::distinct (data.tb, label)
+
+     #extract the bands to be included in the patterns
+     if (!purrr::is_null (bands))
+          bands <- sits_bands (data.tb)
+     else
+          data.tb <- sits_select(data.tb, bands)
 
      # if the conversion list is NULL, create an identity list
      if (purrr::is_null(conversion.lst)) {
@@ -61,7 +72,8 @@ sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p
           # retrieve the extracted partition
           p <- partitions.lst[[i]]
           # use the extracted partition to create the patterns
-          patterns.tb <- sits_patterns(p, method)
+          patterns.tb <- sits_patterns(p, method, freq = freq, from = from, to = to, formula = formula,
+                                       n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)
           # use the rest of the data for classification
           non_p.tb <- dplyr::anti_join(data.tb, p,
                                 by = c("longitude", "latitude", "start_date",
