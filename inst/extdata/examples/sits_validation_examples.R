@@ -11,7 +11,7 @@ cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado6.json", p
 cerrado1.tb <- dplyr::bind_rows(head(cerrado.tb, n = 30), tail (cerrado.tb, n = 30))
 
 # perform accuracy assessment
-cm <- sits_validate (cerrado.tb, method = "gam", bands = c("ndvi","evi", "nir"), times = 50, perc = 0.1)
+cm <- sits_validate (cerrado.tb, method = "dendogram", bands = c("ndvi","evi", "nir"), times = 50, perc = 0.1)
 # Accuracy (PCC): 94.1460506706408%
 # Cohen's Kappa: 0.882
 # Users accuracy:

@@ -19,18 +19,21 @@
 #' @param  times         number of partitions to create.
 #' @param  perc          the percentage of data that goes to training.
 #' @param  conversion.lst a conversion of label names for the classes (optional))
-#' @param  freq          int - the interval in days for the estimates to be generated (for "gam" method)
+#' @param  sample_freq   int - the interval in days for the samples
+#' @param  pattern_freq  int - the interval in days for the estimates to be generated
 #' @param  from          starting date of the estimate in month-day (for "gam" method)
 #' @param  to            end data of the estimated in month-day (for "gam" method)
 #' @param  formula       the formula to be applied in the estimate (for "gam" method)
 #' @param  n_clusters    the maximum number of clusters to be identified (for clustering methods)
 #' @param  min_clu_perc  the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
 #' @param  show          show the results of the clustering algorithm? (for clustering methods)
+#' @param  file          file to save the results
 #' @return patterns.tb   a SITS table with the patterns
 #' @export
 sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, perc = 0.1,
-                           conversion.lst = NULL, freq = 8, from = NULL, to = NULL, formula = y ~ s(x),
-                           n_clusters = 2, min_clu_perc = 0.10, show = FALSE){
+                           conversion.lst = NULL, sample_freq = 16, pattern_freq = 8,
+                           from = NULL, to = NULL, formula = y ~ s(x),
+                           n_clusters = 2, min_clu_perc = 0.10, show = FALSE, file = NULL){
 
      # does the input data exist?
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
@@ -72,7 +75,8 @@ sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p
           # retrieve the extracted partition
           p <- partitions.lst[[i]]
           # use the extracted partition to create the patterns
-          patterns.tb <- sits_patterns(p, method, freq = freq, from = from, to = to, formula = formula,
+          patterns.tb <- sits_patterns(p, method, sample_freq = sample_freq, pattern_freq = pattern_freq,
+                                       from = from, to = to, formula = formula,
                                        n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)
           # use the rest of the data for classification
           non_p.tb <- dplyr::anti_join(data.tb, p,
@@ -102,12 +106,6 @@ sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p
      sits_save(confusion.vec, file = system.file("extdata/results/confusion_vec.json", package="sits"))
      #error.matrix = caret::confusionMatrix(data=pred.vec, reference=ref.vec)
      assess <- rfUtilities::accuracy(pred.vec, ref.vec)
-
-     # error.matrix = table(Predicted=data$Predicted, Reference=data$Reference)
-     # UA = diag(error.matrix) / rowSums(error.matrix)
-     # PA = diag(error.matrix) / colSums(error.matrix)
-     # O  = sum(diag(error.matrix)) / sum(rowSums(error.matrix))
-     # list(OverallAccuracy=O, UsersAccuracy=UA, ProducersAccuracy=PA, ErrorMatrix=error.matrix, data=data)
 
      return (assess)
 }

@@ -16,24 +16,9 @@
 #' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
 #' @export
-sits_cluster <- function (data.tb, label_groups = NULL, band_groups = NULL, method = "dendogram", n_clusters = 4, min_clu_perc = 0.10, show = TRUE){
+sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, min_clu_perc = 0.10, show = TRUE){
      ensurer::ensure_that(method, (. == "dendogram" || . == "centroids"),
                           err_desc = "sits_cluster: valid cluster methods are dendogram or centroids")
-
-     # if no label group is provided create a group for EACH label
-     if (is.null(label_groups)) {
-          labels <- dplyr::distinct (data.tb, label)$label
-          label_groups <- as.list(labels)
-          names(label_groups) <- labels
-     }
-
-     # define label groups' name if they are not defined
-     if (is.null(names(label_groups)))
-          names(label_groups) <- purrr::map(label_groups, 1)
-
-     # if no band group is provided create one group for ALL bands
-     if (is.null(band_groups))
-          band_groups <- list(sits_bands(data.tb))
 
      # creates the resulting table
      cluster.tb <- sits_table()
@@ -75,9 +60,9 @@ sits_cluster <- function (data.tb, label_groups = NULL, band_groups = NULL, meth
 
      # obtain the cluster list
      if (method == "dendogram")
-          cluster.tb <- .sits_cluster_dendogram (data.tb, bands, n_clusters, min_clu_perc, label_prefix, show)
+          cluster.tb <- .sits_cluster_dendogram (data.tb, bands, n_clusters, min_clu_perc, show)
      else
-          cluster.tb <- .sits_cluster_partitional (data.tb, bands, n_clusters, min_clu_perc, label_prefix, show)
+          cluster.tb <- .sits_cluster_partitional (data.tb, bands, n_clusters, min_clu_perc, show)
 
      return (cluster.tb)
 
@@ -101,7 +86,6 @@ sits_cluster <- function (data.tb, label_groups = NULL, band_groups = NULL, meth
 #' @param bands        a vector the bands to be clusterized.
 #' @param n_clusters   the number of clusters to be identified
 #' @param min_clu_perc the minimum percentage of members for a cluster to be valid
-#' @param label_prefix a default label name to give to each created cluster. The final name will be `<label_prefix>.<#>`.
 #' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
 .sits_cluster_dendogram <- function (data.tb, bands, n_clusters, min_clu_perc, show){
