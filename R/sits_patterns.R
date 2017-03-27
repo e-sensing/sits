@@ -13,7 +13,8 @@
 #' @param  samples.tb    a table in SITS format with a set of labelled time series
 #' @param  method        the method to be used for classification
 #' @param  bands         the bands used to obtain the pattern
-#' @param  freq          int - the interval in days for the estimates to be generated (for "gam" method)
+#' @param  sample_freq   int - the interval in days for the samples
+#' @param  pattern_freq  int - the interval in days for the estimates to be generated
 #' @param  from          starting date of the estimate in month-day (for "gam" method)
 #' @param  to            end data of the estimated in month-day (for "gam" method)
 #' @param  formula       the formula to be applied in the estimate (for "gam" method)
@@ -22,14 +23,18 @@
 #' @param  show          show the results of the clustering algorithm? (for clustering methods)
 #' @return patterns.tb   a SITS table with the patterns
 #' @export
-sits_patterns <- function (samples.tb, method = "gam", bands = NULL, freq = 8, from = NULL, to = NULL, formula = y ~ s(x), n_clusters = 2, min_clu_perc = 0.10, show = FALSE) {
+sits_patterns <- function (samples.tb, method = "gam", bands = NULL, sample_freq = 16, pattern_freq = 8, from = NULL, to = NULL, formula = y ~ s(x), n_clusters = 2, min_clu_perc = 0.10, show = FALSE) {
      # check the input exists
-     ensurer::ensure_that(samples.tb, !purrr::is_null(.), err_desc = "sits_patterns: input data not provided")
+     ensurer::ensure_that(samples.tb, !purrr::is_null(.),
+                          err_desc = "sits_patterns: input data not provided")
 
      if (purrr::is_null (bands)) bands <- sits_bands(samples.tb)
 
+     # prune the samples to remove all samples greater than 365 days
+     samples.tb <- sits_prune(samples.tb)
+
      switch(method,
-            "gam"            =  { patterns.tb <- sits_patterns_gam (samples.tb, bands, freq = freq, from = from, to = to, formula = formula) },
+            "gam"            =  { patterns.tb <- sits_patterns_gam (samples.tb, bands, sample_freq = sample_freq, pattern_freq = pattern_freq, from = from, to = to, formula = formula) },
             "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, method = "dendogram", bands, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
             "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, method = "centroids", bands, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
             message (paste ("sits_patterns: valid methods are gam, dendogram, centroids", "\n", sep = ""))
@@ -62,7 +67,8 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, freq = 8, f
 #'
 #' @param  samples.tb    a table in SITS format with time series to be classified using TWTDW
 #' @param  bands         the bands used to obtain the pattern
-#' @param  freq          int - the interval in days for the estimates to be generated
+#' @param  sample_freq   int - the interval in days for the samples
+#' @param  pattern_freq  int - the interval in days for the estimates to be generated
 #' @param  from          starting date of the estimate (month-day)
 #' @param  to            end data of the estimated (month-day)
 #' @param  formula       the formula to be applied in the estimate
@@ -70,40 +76,44 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, freq = 8, f
 #' @export
 #'
 #'
-sits_patterns_gam <- function (samples.tb, bands, freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
+sits_patterns_gam <- function (samples.tb, bands, sample_freq = 16, pattern_freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
      # create a tibble to store the results
      patterns.tb <- sits_table()
 
      # what are the variables in the formula?
      vars <-  all.vars(formula)
 
+     # if dates are not given, get them from the sample data set
+     if (purrr::is_null (from) || purrr::is_null (to)) {
+          sample_dates <- sits_dates (samples.tb[1,])
+          from <- lubridate::as_date(utils::head(sample_dates, n = 1))
+          to   <- lubridate::as_date(utils::tail(sample_dates, n = 1))
+     }
+     # otherwise, get them from the from/to parameters
+     else {
+          sample_dates <- seq(from = lubridate::as_date(from),
+                              to   = lubridate::as_date(to),
+                              by   = sample_freq)
+     }
+     # determine the sequence of prediction times
+     pred_time = seq(from = lubridate::as_date(from),
+                     to   = lubridate::as_date(to),
+                     by   = pattern_freq)
+
+     # align all samples
+     samples.tb <- sits_align (samples.tb, sample_dates)
+
      # how many different labels are there?
      labels <- dplyr::distinct (samples.tb, label)
 
      # for each label in the sample data, find the appropriate pattern
      labels %>%
-          purrr::by_row(function (r){
+          purrr::by_row (function (r) {
                # get the label name as a character
                lb <-  as.character (r$label)
 
                # filter only those rows with the same label
                label.tb <- dplyr::filter (samples.tb, label == lb)
-
-               # if dates are not given, get them from the sample data set
-               if (purrr::is_null (from))
-                    from <- utils::head(label.tb[1,]$time_series[[1]],1)$Index
-               else
-                    from <- from
-               if (purrr::is_null (to))
-                    to   <- utils::tail(label.tb[1,]$time_series[[1]],1)$Index
-               else
-                    to <- to
-
-               # determine the sequence of prediction times
-               pred_time = seq(from = lubridate::as_date(from),
-                               to   = lubridate::as_date(to),
-                               by   = freq)
-
 
                # create a data frame to store the time instances
                time <- data.frame(as.numeric(pred_time))
@@ -115,53 +125,51 @@ sits_patterns_gam <- function (samples.tb, bands, freq = 8, from = NULL, to = NU
                res.tb <- tibble::tibble (Index = lubridate::as_date(pred_time))
 
                # calculate the fit for each band
-               for (i in 1:length(bands)) {
-                    band <-  bands[i]
+               bands %>%
+                    purrr::map(function (band) {
 
-                    # retrieve the time series for each band
-                    ts <- label.tb %>%
-                         sits_select (band) %>%
-                         sits_align (from) %>%
-                         .$time_series
+                         # retrieve the time series for each band
+                         ts <- label.tb %>%
+                              sits_select (band) %>%
+                              .$time_series
 
-                    # melt the time series for each band into a long table
-                    # with all values together
-                    ts2 <- ts %>%
-                         reshape2::melt   (id.vars = "Index") %>%
-                         dplyr::select    (Index, value)      %>%
-                         dplyr::transmute (x = as.numeric(Index), y = value)
+                         # melt the time series for each band into a long table
+                         # with all values together
+                         ts2 <- ts %>%
+                              reshape2::melt   (id.vars = "Index") %>%
+                              dplyr::select    (Index, value)      %>%
+                              dplyr::transmute (x = as.numeric(Index), y = value)
 
-                    #calculate the best fit for the data set
-                    fit <-  mgcv::gam(data = ts2, formula = formula)
+                         #calculate the best fit for the data set
+                         fit <-  mgcv::gam(data = ts2, formula = formula)
 
-                    # Takes a fitted gam object and produces predictions
-                    # for the desired dates in the sequence of prediction times
-                    pred_values <- mgcv::predict.gam(fit, newdata = time)
+                         # Takes a fitted gam object and produces predictions
+                         # for the desired dates in the sequence of prediction times
+                         pred_values <- mgcv::predict.gam(fit, newdata = time)
 
-                    #include the predicted values for the band in the results table
-                    res.tb <- tibble::add_column(res.tb, b = pred_values)
+                         #include the predicted values for the band in the results table
+                         res.tb <- tibble::add_column(res.tb, b = pred_values)
 
-                    # rename the columns to match the band names
-                    # this is workaround because of a bug in standard dplyr::rename
-                    res.tb <- dplyr::rename_(res.tb, .dots = stats::setNames (names(res.tb), c("Index", bands[1:i])))
-               } # for each band
+                         # rename the column to match the band names
+                         names(res.tb)[names(res.tb) == "b"] <- band
+                         # return the value out of the function scope
+                         res.tb <<- res.tb
+                    }) # for each band
 
-               # put the pattern in a list to store in a sits table
-               ts <- tibble::lst()
-               ts[[1]] <- res.tb
+          # put the pattern in a list to store in a sits table
+          ts <- tibble::lst()
+          ts[[1]] <- res.tb
 
-               # add the pattern to the results table
-               patterns.tb <- tibble::add_row (patterns.tb,
-                                               longitude    = 0.0,
-                                               latitude     = 0.0,
-                                               start_date   = as.Date(from),
-                                               end_date     = as.Date(to),
-                                               label        = lb,
-                                               coverage     = label.tb[1,]$coverage,
-                                               time_series  = ts)
-
-
-     }) # for each label
+          # add the pattern to the results table
+          patterns.tb <<- tibble::add_row (patterns.tb,
+                                          longitude    = 0.0,
+                                          latitude     = 0.0,
+                                          start_date   = as.Date(from),
+                                          end_date     = as.Date(to),
+                                          label        = lb,
+                                          coverage     = label.tb[1,]$coverage,
+                                          time_series  = ts)
+          }) # for each label
 
      return (patterns.tb)
 }
