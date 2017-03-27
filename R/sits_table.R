@@ -55,7 +55,6 @@ sits_table_result <- function () {
      )
      tb <- tibble::as_tibble (df)
      tb <- tibble::add_column (tb, time_series = list())
-     tb <- tibble::add_column (tb, distances  = list())
      tb <- tibble::add_column (tb, matches    = list())
      class (tb) <- append (class(tb), "sits_table_result")
      return (tb)
@@ -273,8 +272,7 @@ sits_cross <-  function(sits1.tb, sits2.tb) {
 #' @name sits_dates
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description returns a table containing the dates of a sits table (colwise organised)
-#'
+#' @description returns a vector containing the dates of a sits table
 #'
 #' @param  data.tb a tibble in SITS format with time series for different bands
 #' @return table   a tibble in SITS format with values of time indexes
@@ -283,7 +281,10 @@ sits_dates <- function (data.tb) {
      values <- data.tb$time_series %>%
           data.frame() %>%
           tibble::as_tibble() %>%
-          dplyr::select (dplyr::starts_with ("Index"))
+          dplyr::select (dplyr::starts_with ("Index")) %>%
+          t() %>%
+          as.vector() %>%
+          lubridate::as_date()
      return (values)
 }
 
@@ -291,31 +292,89 @@ sits_dates <- function (data.tb) {
 #' @name sits_align
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description converts the time indexes of a sits table to a single reference year.
+#' @description converts the time indexes of a set of sits tables to a single reference year.
 #' This function is useful to join many time series from different years to a single year,
 #' which is required by methods that combine many time series, such as clustering methods.
 #' The reference year is taken from the date of the start of the time series
 #' available in the coverage.
 #'
 #' @param    data.tb    tibble - input SITS table (useful for chaining functions)
-#' @param    ref_date   date   - a reference date where all series will start
+#' @param    ref_dates  a vector of reference dates to align the series
 #' @return   data1.tb   tibble - the converted SITS table (useful for chaining functions)
 #' @export
 #'
-sits_align <- function (data.tb, ref_date) {
-     ts <- data.tb$time_series
-     # convert the time index to a reference year
-     ts1 <- ts %>%
-          purrr::map (function (t) {
-               df <- as.data.frame(t)
-               start_date <- as.Date(df[1,"Index"])
-               if (abs (lubridate::yday(start_date) - lubridate::yday(ref_date)) > 2) {
-                    print (start_date, ref_date)
-                    message (paste ("sits_align: time series do not start at the same date"))
-               }
-               dplyr::mutate (t, Index = Index - lubridate::ymd(start_date) + lubridate::ymd (ref_date))
+sits_align <- function (data.tb, ref_dates = NULL) {
+
+     if (purrr::is_null(ref_dates)) ref_dates <- lubridate::as_date(sits_dates (data.tb[1,]))
+
+     shift_ts <- function(d, k) dplyr::bind_rows( tail(d,k), head(d,-k))
+
+     # get the reference date
+     start_date <- lubridate::as_date(ref_dates[1])
+
+     data1.tb <- sits_table()
+     data.tb %>%
+          purrr::by_row(function (row) {
+               # extract the time series
+               ts <- row$time_series[[1]]
+               ensurer::ensure_that (ref_dates, length(.) == nrow(ts),
+                                    err_desc = "sits_align - number of reference dates is different from the size of time series")
+               # in what direction do we need to shift the time series?
+               sense <- lubridate::yday(lubridate::as_date (ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
+               # find the date of minimum distance to the reference date
+               idx <- which.min(abs((lubridate::as_date (ts$Index) - lubridate::as_date(start_date))/lubridate::ddays(1)))
+               # do we shift time up or down?
+               if (sense == -1) shift <- -(idx - 1) else shift <- (idx - 1)
+               # shift the time series to match dates
+               if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
+               # convert the time index to a reference year
+               first_date <- lubridate::as_date(ts[1,]$Index)
+               ts1 <- dplyr::mutate (ts, Index = ref_dates)
+               row$time_series[[1]] <- ts1
+               row$start_date <- lubridate::as_date(ref_dates[1])
+               row$end_date   <- ref_dates[length(ref_dates)]
+               data1.tb <<- dplyr::bind_rows(data1.tb, row)
           })
-     data.tb$time_series <- ts1
+     return (data1.tb)
+}
+
+#' @title Prunes dates of time series to fit an interval
+#' @name sits_prune
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description prunes the times series contained a set of sits tables
+#' to an interval. This function is useful to constrain the different samples
+#' of land cover to the same interval (usually, one year)
+#'
+#' @param    data.tb    tibble - input SITS table
+#' @param    period     a string describing the interval (in days)
+#' @return   data1.tb   tibble - the converted SITS table
+#' @export
+#'
+sits_prune <- function (data.tb, interval = "365 days") {
+     ensurer::ensure_that (data.tb, !purrr::is_null(.),
+                           err_desc = "sits_prune: input data not provided")
+
+     for (r in 1:nrow(data.tb)) {
+          row <- data.tb[r,]
+          if (lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date) >
+                   lubridate::as.duration(interval)) {
+                    # extract the time series
+                    ts <- row$time_series[[1]]
+                    # find the first date which exceeds the required interval
+                    idx <- which.max (lubridate::as_date(ts$Index) - lubridate::as_date(row$start_date)
+                                      >= lubridate::as.duration(interval))
+                    # prune the time series to fit inside the required interval
+                    ts1 <- ts[1:(idx - 1),]
+                    # save the pruned time series
+                    row$time_series[[1]] <- ts1
+                    # store the new end date
+                    row$end_date <- ts1[nrow(ts1),]$Index
+                    # store the resulting row in the SITS table
+                    data.tb[r,] <- row
+               }
+     }
+
      return (data.tb)
 }
 
@@ -340,8 +399,8 @@ sits_group_bylatlong <- function (data.tb) {
      locs <- dplyr::distinct(data.tb, latitude, longitude)
 
      # process each lat/long location
-     for (i in 1:nrow(locs)) {
-          loc <- locs[i,]
+     locs %>%
+          purrr::by_row ( function (loc) {
                long = as.double (loc$longitude) # select longitude
                lat  = as.double (loc$latitude)  # select latitude
                # filter only those rows with the same label
@@ -355,19 +414,20 @@ sits_group_bylatlong <- function (data.tb) {
 
                # are there more time series for the same location?
                if (nrow(rows) > 1) {
-                    for (i in 2:nrow(rows))  {
-                         row <- rows[i,]
-                         # adjust the start and end dates
-                         if (row$start_date < start_date) start_date <- row$start_date
-                         if (row$end_date   > end_date)   end_date   <- row$end_date
-                         # get the time series and join it with the previous ones
-                         t <- row$time_series[[1]]
-                         time_series <- dplyr::bind_rows(time_series, t)
-                    }
+                    rows %>%
+                         tail (n = -1) %>%
+                         purrr::by_row (function(row) {
+                              # adjust the start and end dates
+                              if (row$start_date < start_date) start_date <- row$start_date
+                              if (row$end_date   > end_date)   end_date   <- row$end_date
+                              # get the time series and join it with the previous ones
+                              t <- row$time_series[[1]]
+                              time_series <<- dplyr::bind_rows(time_series, t)
+                         })
                }
                ts.lst <- tibble::lst()
                ts.lst[[1]] <- time_series
-               out.tb <- tibble::add_row (out.tb,
+               out.tb <<- tibble::add_row (out.tb,
                                   longitude    = long,
                                   latitude     = lat,
                                   start_date   = as.Date(start_date),
@@ -375,7 +435,7 @@ sits_group_bylatlong <- function (data.tb) {
                                   label        = "NoClass",
                                   coverage     = rows[1,]$coverage,
                                   time_series  = ts.lst)
-     }
+     })
      return (out.tb)
 }
 
@@ -397,17 +457,16 @@ sits_label_perc <- function (data.tb, perc = 0.1){
      # how many different labels are there?
      labels <- dplyr::distinct (data.tb, label)
 
-     for (i in 1:nrow(labels)) {
-          # get the label name as a character
-          lb <-  as.character (labels[i,1])
-
-          # filter only those rows with the same label
-          frac.tb <- data.tb %>%
-               dplyr::filter (label == lb) %>%
-               dplyr::sample_frac (size = perc)
-
-          data1.tb <- dplyr::bind_rows(data1.tb, frac.tb)
-     }
+     labels %>%
+          purrr::by_row( function (r){
+               # get the label name as a character
+               lb <-  as.character (r$label)
+               # filter only those rows with the same label
+               frac.tb <- data.tb %>%
+                    dplyr::filter (label == lb) %>%
+                    dplyr::sample_frac (size = perc)
+               data1.tb <<- dplyr::bind_rows(data1.tb, frac.tb)
+          })
      return (data1.tb)
 }
 

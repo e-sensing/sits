@@ -36,7 +36,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                         interval = "12 month", span  = 250, keep  = FALSE){
 
      # create a tibble to store the results
-     results.tb <- sits_table_result()
+     results.tb <- sits_table()
 
      # select the bands for patterns time series and convert to TWDTW format
      twdtw_patterns <- patterns.tb %>%
@@ -46,48 +46,43 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
      # Define the logistic function
      log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
-     for (i in 1:nrow(series.tb)) {
-          # process time series one by one
-          ts.tb <- series.tb[i,]
+     series.tb %>%
+          purrr::by_row (function (row) {
+               # select the bands for the samples time series and convert to TWDTW format
+               twdtw_series <- row %>%
+                    sits_select (bands) %>%
+                    .sits_toTWDTW_time_series()
 
-          # select the bands for the samples time series and convert to TWDTW format
-          twdtw_series <- ts.tb %>%
-               sits_select (bands) %>%
-               .sits_toTWDTW_time_series()
+               # set the start and end dates
+               start_date <- lubridate::as_date(utils::head(row$time_series[[1]],1)$Index)
+               end_date   <- lubridate::as_date(utils::tail(row$time_series[[1]],1)$Index)
 
-          start_date <- lubridate::as_date(utils::head(series.tb[i,]$time_series[[1]],1)$Index)
-          end_date   <- lubridate::as_date(utils::tail(series.tb[i,]$time_series[[1]],1)$Index)
+               # define the temporal intervals of each classification
+               breaks <- seq(from = start_date, to = end_date, by = interval)
 
-          # define the temporal intervals of each classification
-          breaks <- seq(from = start_date, to = end_date, by = interval)
+               #classify the data using TWDTW
+               matches = dtwSat::twdtwApply(x          = twdtw_series,
+                                            y          = twdtw_patterns,
+                                            weight.fun = log_fun,
+                                            theta      = theta,
+                                            span       = span,
+                                            keep       = keep)
+               # store the alignments and matches in two lists
+               # alignments
+               align.lst <- tibble::lst()
+               align.lst[[1]] <- matches[][[1]]
 
-          #classify the data using TWDTW
-          matches = dtwSat::twdtwApply(x          = twdtw_series,
-                                       y          = twdtw_patterns,
-                                       weight.fun = log_fun,
-                                       theta      = theta,
-                                       span       = span,
-                                       keep       = keep)
+               # matches
+               match.lst <- tibble::lst()
+               match.lst[[1]] <- matches
 
-          # store the alignments and matches in two lists
-          # alignements
-          align.lst <- tibble::lst()
-          align.lst[[1]] <- matches[][[1]]
+               # add the aligments and matches to the results
+               res.tb <- dplyr::mutate (row, alignments  = align.lst)
+               res.tb <- dplyr::mutate (res.tb, matches    = match.lst)
 
-          # matches
-          match.lst <- tibble::lst()
-          match.lst[[1]] <- matches
-
-          # add the aligments and matches to the input row
-          row.tb <- dplyr::mutate (ts.tb, alignments  = align.lst)
-          row.tb <- dplyr::mutate (row.tb, matches    = match.lst)
-
-          #dist.tb <- .sits_fromTWDTW_matches (series.tb, matches, breaks, interval)
-
-          # add the row to the results.tb tibble
-          results.tb <- dplyr::bind_rows(results.tb, row.tb)
-
-     }
+               # add the row to the results.tb tibble
+               results.tb <<- dplyr::bind_rows(results.tb, res.tb)
+          })
      return (results.tb)
 }
 #' @title Export data to be used by the dtwSat package

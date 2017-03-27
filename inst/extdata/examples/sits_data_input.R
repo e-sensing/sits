@@ -14,7 +14,7 @@ sits_infoWTSS(URL)
 
 # then, configure the WTSS service
 coverage <-  "mod13q1_512"
-bands    <-  c("ndvi", "evi", "blue", "red", "nir", "mir")
+bands    <-  c("ndvi", "evi", "nir")
 
 # pick one point as an example
 point.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = coverage, bands = bands)
@@ -40,13 +40,17 @@ point3.tb %>%
      sits_select (c("ndvi", "ndvi_smooth")) %>%
      sits_plot()
 
-samples1.tb <- sits_getdata(file = system.file("extdata/samples/MatoGrosso-examples.csv", package="sits"), wtss = inpe )
+samples1.tb <- sits_getdata(file = system.file("extdata/samples/MatoGrosso-examples.csv", package="sits"), URL = URL, coverage = coverage, bands = bands, n_max = 3)
 
 samples1.tb %>%
      sits_plot(type = "one_by_one")
 
+#we have only three bands, now let's get six bands
+bands6    <-  c("ndvi", "evi", "nir", "red", "blue", "mir")
+samples2.tb <- sits_getdata(table = samples1.tb, URL = URL, coverage = coverage, bands = bands6)
+
 # read a pattern table from a JSON file
-patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Rodrigo_8classes_6bands.json")
+patterns.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_MatoGrosso.json", package="sits"))
 
 # plot patterns
 sits_plot (patterns.tb, type = "patterns")

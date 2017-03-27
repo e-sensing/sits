@@ -93,15 +93,17 @@ sits_getdata <- function (file        = NULL,
      # add the contents of the JSON file to a SITS table
      table <- tibble::as_tibble (jsonlite::fromJSON (json_file))
      # convert Indexes in time series to dates
-     for (i in 1:nrow(table)) {
-          tb <- tibble::as_tibble(table[i,]$time_series[[1]])
-          tb$Index <- lubridate::as_date(tb$Index)
-          table[i,]$time_series[[1]] <- tb
-     }
-     # convert start and end date to Date format
-     table <- dplyr::mutate (table, start_date = as.Date(start_date))
-     table <- dplyr::mutate (table, end_date   = as.Date(end_date))
-     return (table)
+     table1 <- sits_table()
+     table %>%
+          purrr::by_row(function (r) {
+               tb <- tibble::as_tibble(r$time_series[[1]])
+               tb$Index <- lubridate::as_date(tb$Index)
+               r$time_series[[1]] <- tb
+               r$start_date <- lubridate::as_date(r$start_date)
+               r$end_date   <- lubridate::as_date(r$end_date)
+               table1 <<- dplyr::bind_rows(table1, r)
+          })
+     return (table1)
 }
 
 #' @title Obtain timeSeries from WTSS server based on a lat/long information.
@@ -147,19 +149,28 @@ sits_getdata <- function (file        = NULL,
 #' @param cov            a list with the coverage parameters (retrived from the WTSS server)
 #' @param bands          string vector - the names of the bands to be retrieved
 #' @return data.tb       tibble  - a SITS table
-.sits_fromtable <-  function (source, wtss.obj, cov, bands) {
-     # create the table
+.sits_fromtable <-  function (table, wtss.obj, cov, bands) {
+     # create the table to store
      data.tb <- sits_table()
 
-     for (i in 1:nrow(source)){
-          row <- source[i,]
-          if (is.na(row$start_date)) {row$start_date <- lubridate::as_date(cov$timeline[1])}
-          if (is.na(row$end_date)) { row$end_date <- lubridate::as_date(cov$timeline[length(cov$timeline)])}
-          if (is.na(row$label)) {row$label <- "NoClass"}
-          t <- .sits_fromWTSS (row$longitude, row$latitude, row$start_date, row$end_date,
-                                  row$label, wtss.obj, cov, bands)
-          data.tb <- dplyr::bind_rows (data.tb, t)
-     }
+     table %>%
+          purrr::by_row( function (r){
+               # does the lat/long information exist
+               ensurer::ensure_that(r$longitude, !purrr::is_null(.) && !is.na(.), err_desc = "sits_getdata - no longitude information")
+               ensurer::ensure_that(r$latitude,  !purrr::is_null(.) && !is.na(.), err_desc = "sits_getdata - no longitude information")
+
+               # ajust the start and end dates and the label
+               if (is.na(r$start_date)) { r$start_date <- lubridate::as_date(cov$timeline[1])}
+               if (is.na(r$end_date))   { r$end_date   <- lubridate::as_date(cov$timeline[length(cov$timeline)])}
+               if (is.na(r$label))      { r$label <- "NoClass"}
+
+               # retrieve the data row
+               t <- .sits_fromWTSS (r$longitude, r$latitude, r$start_date, r$end_date,
+                                    r$label, wtss.obj, cov, bands)
+
+               # add the row to the output
+               data.tb <<- dplyr::bind_rows (data.tb, t)
+          })
      return (data.tb)
 }
 
@@ -192,10 +203,11 @@ sits_getdata <- function (file        = NULL,
      # create the table
      data.tb <- sits_table()
      # for each row of the input, retrieve the time series
-     data.tb <- csv.tb %>%
-          dplyr::rowwise() %>%
-          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, .$start_date, .$end_date, .$label, wtss.obj, cov, bands)) %>%
-          dplyr::bind_rows (data.tb, .)
+     csv.tb %>%
+          purrr::by_row( function (r){
+               row <- .sits_fromWTSS (r$longitude, r$latitude, r$start_date, r$end_date, r$label, wtss.obj, cov, bands)
+               data.tb <<- dplyr::bind_rows (data.tb, row)
+          })
      return (data.tb)
 }
 #' @title Obtain timeSeries from WTSS server, based on a SHP file.
@@ -352,15 +364,18 @@ sits_getdata <- function (file        = NULL,
           time_series[,b][time_series[,b] == miss_value(b)] <- NA
      }
 
+     # interpolate missing values
+     time_series[,bands] <- zoo::na.spline(time_series[,bands])
+
      # calculate the scale factor for each band
      scale_factor <- function (band){
           return (band_info[which(band == band_info[,"name"]),"scale_factor"])
      }
      # scale the time series
-     time_series[,bands] <- time_series[,bands]*scale_factor(bands)
-
-     # interpolate missing values
-     time_series[,bands] <- zoo::na.spline(time_series[,bands])
+     bands %>%
+          purrr::map (function (b) {
+               time_series[,b] <<- time_series[,b]*scale_factor(b)
+          })
 
      # convert the series to a tibble
      row.tb <- tibble::as_tibble (zoo::fortify.zoo (time_series))
@@ -381,7 +396,7 @@ sits_getdata <- function (file        = NULL,
                          start_date   = as.Date(start_date),
                          end_date     = as.Date(end_date),
                          label        = label,
-                         coverage     = coverage,
+                         coverage     = cov$name,
                          time_series  = ts.lst
      )
 

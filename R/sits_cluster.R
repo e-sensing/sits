@@ -38,27 +38,24 @@ sits_cluster <- function (data.tb, label_groups = NULL, band_groups = NULL, meth
      # creates the resulting table
      cluster.tb <- sits_table()
 
-     purrr::map2(names(label_groups), label_groups, function (group, labels) {
-          # filter only those rows with the same labels
-          label.tb <- dplyr::filter (data.tb, label %in% labels)
+     # how many different labels are there?
+     labels <- dplyr::distinct (data.tb, label)
 
-          # print current clusterised label(s)
-          if (show) message (paste0("\n", "Label(s): ", labels))
-
-          # apply the clustering method
-          clu.tb <- sits_dtwclust (label.tb, bands = bands, method, n_clusters = n_clusters, min_clu_perc = min_clu_perc,
-                                   label_prefix = group, show = show)
-
-          # append the result
-          # note that operator `<<-` is used to access outer scope variable `cluster.tb` and does not create a global variable.
-          cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
-     })
-
-          return (cluster.tb)
+     labels %>%
+          dplyr::rowwise() %>%
+          dplyr::do({
+               # filter only those rows with the same labels
+               label.tb <- dplyr::filter (data.tb, label == .$label)
+               # apply the clustering method
+               clu.tb <- .sits_dtwclust (label.tb, bands = bands, method, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)
+               # append the result
+               cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
+          })
+     return (cluster.tb)
 }
 
 #' @title Cluster a set of time series
-#' @name sits_dtwclust
+#' @name .sits_dtwclust
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -73,20 +70,14 @@ sits_cluster <- function (data.tb, label_groups = NULL, band_groups = NULL, meth
 #' @param min_clu_perc the minimum percentage of members for a cluster to be valid
 #' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-#' @export
 #'
-sits_dtwclust <- function (data.tb, bands = NULL, method = "dendogram",  n_clusters = 4, min_clu_perc = 0.10,
-                           label_prefix = NULL, show = TRUE) {
-
-     # if no bands are selected, use all bands
-     if (purrr::is_null (bands)) bands <- sits_bands(data.tb)
+.sits_dtwclust <- function (data.tb, bands, method, n_clusters, min_clu_perc, show) {
 
      # obtain the cluster list
      if (method == "dendogram")
           cluster.tb <- .sits_cluster_dendogram (data.tb, bands, n_clusters, min_clu_perc, label_prefix, show)
      else
           cluster.tb <- .sits_cluster_partitional (data.tb, bands, n_clusters, min_clu_perc, label_prefix, show)
-
 
      return (cluster.tb)
 
@@ -113,35 +104,7 @@ sits_dtwclust <- function (data.tb, bands = NULL, method = "dendogram",  n_clust
 #' @param label_prefix a default label name to give to each created cluster. The final name will be `<label_prefix>.<#>`.
 #' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-#' @export
-#'
-sits_dendogram <- function (data.tb, band_groups = NULL, n_clusters = 4, min_clu_perc = 0.10, label_prefix = NULL, show = TRUE) {
-     # if no band group is provided create a group for ALL bands
-     if (is.null(band_groups)) {
-          band_groups <- list(sits_bands(data.tb))
-     }
-
-     # get all clusters as a list of tibbles
-     centroids.lst <- band_groups %>%
-          purrr::map (function (bands) .sits_cluster_dendogram (data.tb, bands, n_clusters, min_clu_perc, label_prefix))
-
-     # creates an empty sits_table to populate result
-     cluster.tb <- sits_table()
-
-     # proceed with cross join operation between bands of a given cluster
-     centroids.lst %>%
-          purrr::map (function (clu.tb) {
-               # we need store the cross join result into `cluster.tb` from outer scope (so the <<- operator)
-               # outer scope `cluster.tb` variable is updated on next map iteration (this transform our code in a recursive one)
-               # (note that this does NOT create a global variable!)
-               cluster.tb <<- sits_cross (cluster.tb, clu.tb)
-          })
-
-     return (cluster.tb)
-}
-
-# returns a tibble with all clusters centroids of a given band group
-.sits_cluster_dendogram <- function (data.tb, bands, n_clusters, min_clu_perc, label_prefix = NULL, show){
+.sits_cluster_dendogram <- function (data.tb, bands, n_clusters, min_clu_perc, show){
      # get the values of the various time series for this band group
      values.tb <- sits_values_rows (data.tb, bands)
      clusters  <- dtwclust::dtwclust (values.tb,
@@ -216,10 +179,7 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
                                       centroid = "pam",
                                       seed     = 899)
 
-     # Plot the series and the obtained prototypes
-     if (show) .sits_show_clusters (clusters)
-
-     return (.sits_fromClusters (data.tb, clusters, min_clu_perc, label_prefix))
+     return (.sits_fromClusters (data.tb, clusters, min_clu_perc))
 }
 
 #------------------------------------------------------------------
@@ -233,7 +193,7 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
 #'
 #' @param data.tb          a tibble with input data of dtwclust.
 #' @param clusters         a cluster structure returned from dtwclust.
-#' @param min_clu_perc     the minimum percentage of members (relative to the total) for a cluster to be valid
+#' @param min_clu_perc     the minimum percentage of members for a cluster to be valid
 #' @return centroids.tb    a SITS table with the clusters
 .sits_fromClusters <-  function (data.tb, clusters, min_clu_perc, label_prefix = NULL) {
 
@@ -245,27 +205,25 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
           .[. > as.integer (min_clu_perc * length(clusters@cluster))] %>%
           length()
 
-     # if no prefix was provided get the label from data.tb's first record
-     if (is.null(label_prefix))
-          label_prefix <- data.tb[1,]$label[[1]]
+     label_prefix <- data.tb[1,]$label[[1]]
 
      # select only significant centroids
-     oids.tb <- centroids.tb %>% dplyr::mutate(label = paste(.$label, ".", as.character(1:nrow(.)), sep = ""))
-
-     centroids.lst <- clusters@centroids[order(clusters@clusinfo$size, decreasing = TRUE)][1:num]
-
+     centroids.lst <- clusters@centroids[order(clusters@clusinfo$size,
+                                               decreasing = TRUE)][1:num]
+     # create a table to store the results
      centroids.tb <- sits_table()
+
      purrr::map2(centroids.lst, seq_along(centroids.lst), function (ts, i) {
           new_ts <- dplyr::select(data.tb[1,]$time_series[[1]], Index)
           new_ts <- dplyr::bind_cols(new_ts, tibble::as_tibble(ts))
           centroids.tb <<- tibble::add_row (centroids.tb,
-                           longitude    = 0.0,
-                           latitude     = 0.0,
-                           start_date   = data.tb[1,]$start_date[[1]],
-                           end_date     = data.tb[1,]$end_date[[1]],
-                           label        = paste0(label_prefix, ".", i),
-                           coverage     = data.tb[1,]$coverage[[1]],
-                           time_series  = list(new_ts))
+                                            longitude    = 0.0,
+                                            latitude     = 0.0,
+                                            start_date   = data.tb[1,]$start_date[[1]],
+                                            end_date     = data.tb[1,]$end_date[[1]],
+                                            label        = paste0(label_prefix, ".", i),
+                                            coverage     = data.tb[1,]$coverage[[1]],
+                                            time_series  = list(new_ts))
      })
 
      return (centroids.tb)
