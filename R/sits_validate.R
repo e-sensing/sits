@@ -6,19 +6,15 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Splits the set of time series into training and validation and
-#' compute accuracy metrics. The function uses stratified sampling and a simple
-#' random sampling for each stratum. For each data partition this function
-#' performs a TWDTW analysis and returns the Overall Accuracy, User's Accuracy,
-#' Produce's Accuracy, error matrix (confusion matrix), and a \code{\link[base]{data.frame}}
-#' with the classification (Predicted), the reference classes (Reference),
-#' and the results of the TWDTW analysis.
+#' perform cross-validation.  For each data partition this function
+#' performs a classifiction and returns the Overall Accuracy, User's Accuracy,
+#' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
 #'
 #' @param  data.tb       a SITS tibble
 #' @param  bands         the bands used for classification
 #' @param  method        method to create patterns ("gam", "dendogram" or "centroids")
 #' @param  times         number of partitions to create.
 #' @param  perc          the percentage of data that goes to training.
-#' @param  conversion.lst a conversion of label names for the classes (optional))
 #' @param  sample_freq   int - the interval in days for the samples
 #' @param  pattern_freq  int - the interval in days for the estimates to be generated
 #' @param  from          starting date of the estimate in month-day (for "gam" method)
@@ -28,12 +24,12 @@
 #' @param  min_clu_perc  the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
 #' @param  show          show the results of the clustering algorithm? (for clustering methods)
 #' @param  file          file to save the results
-#' @return patterns.tb   a SITS table with the patterns
+#' @return cm            a validation assessment
 #' @export
 sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, perc = 0.1,
                            conversion.lst = NULL, sample_freq = 16, pattern_freq = 8,
                            from = NULL, to = NULL, formula = y ~ s(x),
-                           n_clusters = 2, min_clu_perc = 0.10, show = FALSE, file = NULL){
+                           n_clusters = 2, min_clu_perc = 0.10, show = FALSE, file = "./conf_matrix.json"){
 
      # does the input data exist?
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
@@ -51,18 +47,6 @@ sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p
      else
           data.tb <- sits_select(data.tb, bands)
 
-     # if the conversion list is NULL, create an identity list
-     if (purrr::is_null(conversion.lst)) {
-          conversion.lst <- tibble::lst()
-          for (i in 1:nrow(labels)) {
-               lab <- as.character(labels[i,"label"])
-               conversion.lst [lab] <- lab
-          }
-     }
-     else {
-          ensurer::ensure_that(conversion.lst, !(FALSE %in% names(.) %in% unlist(labels[,1])),
-                               err_desc = "conversion list does not match labels of the data")
-     }
      # create partitions different splits of the input data
      partitions.lst <- .sits_create_partitions (data.tb, times, perc)
      # create a vector to store the result of the predictions
@@ -97,17 +81,18 @@ sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p
                # find the reference label
                ref  <- as.character(results.tb$label)
                # increase the prediction and reference vectors
-               # the names of the labels are converted (optional)
-               pred.vec[length(pred.vec) + 1] <- conversion.lst[[pred]]
-               ref.vec [length(ref.vec)  + 1] <- conversion.lst[[ref]]
+               pred.vec[length(pred.vec) + 1] <- pred
+               ref.vec [length(ref.vec)  + 1] <- ref
           }
      }
+     # create the confusion vector (predicted x reference)
      confusion.vec <- c(pred.vec, ref.vec)
-     sits_save(confusion.vec, file = system.file("extdata/results/confusion_vec.json", package="sits"))
-     #error.matrix = caret::confusionMatrix(data=pred.vec, reference=ref.vec)
-     assess <- rfUtilities::accuracy(pred.vec, ref.vec)
+     # save the confusion vector in  a JSON file
+     sits_toJSON (confusion.vec, file)
+     # Classification accuracy measures
+     measures <- rfUtilities::accuracy(pred.vec, ref.vec)
 
-     return (assess)
+     return (measures)
 }
 #' @title Create partitions of a data set
 #' @name  sits_create_partitions
@@ -131,3 +116,62 @@ sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p
      }
      return (partitions.lst)
 }
+
+#' @title re-label classification results
+#' @name sits_relabel
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a confusion matrix obtained in the validation
+#' procedure, and a conversion list between the original labels and
+#' new labels, returns a new confusion matrix
+#' where classes have been merged.
+#'
+#' @param  data.tb        a SITS table with the samples to be validated
+#' @param  file           a JSON file contaning the result of a validation procedure
+#' @param  conv           a conversion of label names for the classes (optional))
+#' @return assess         an assessment of validation
+#' @export
+sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
+     # do the input file exist?
+     ensurer::ensure_that(data.tb, !purrr::is_null(.),
+                          err_desc = "sits_relabel: SITS table not provided")
+     ensurer::ensure_that(file, !purrr::is_null(.),
+                          err_desc = "sits_relabel: JSON file not provided")
+
+     # what are the labels of the samples?
+     labels <- dplyr::distinct (data.tb, label)
+
+     # if the conversion list is NULL, create an identity list
+     if (purrr::is_null(conv)) {
+          conv <- tibble::lst()
+          for (i in 1:nrow(labels)) {
+               lab <- as.character(labels[i,"label"])
+               conv [lab] <- lab
+          }
+     }
+     # if the conversion list exists, ensure that its labels exist in the data
+     else
+          ensurer::ensure_that(conv, !(FALSE %in% names(.) %in% unlist(labels[,1])),
+                               err_desc = "conversion list does not match labels of the data")
+
+     confusion.vec <- jsonlite::fromJSON (file)
+     mid <- length(confusion.vec)/2
+     pred.vec <- confusion.vec[1:mid]
+     ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
+     pred2.vec <- c()
+
+     pred.vec %>%
+          purrr::map (function (l) pred2.vec[length(pred2.vec) + 1 ] <<- conv[[l]])
+
+     ref2.vec  <- c()
+     ref.vec %>%
+          purrr::map (function (l)
+               ref2.vec[length(ref2.vec) + 1 ] <<- conv[[l]]
+          )
+
+     assess <- rfUtilities::accuracy(pred2.vec, ref2.vec)
+     return (assess)
+}
+
