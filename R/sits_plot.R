@@ -43,17 +43,15 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 .sits_plot_allyears <- function (data.tb, colors) {
      locs <- dplyr::distinct (data.tb, longitude, latitude)
      locs %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               long = as.double (.$longitude)
-               lat  = as.double (.$latitude)
+          purrr::by_row( function (r){
+               long = as.double (r$longitude)
+               lat  = as.double (r$latitude)
                # filter only those rows with the same label
                data2.tb <- dplyr::filter (data.tb, longitude == long, latitude == lat)
                # use ggplot to plot the time series together
                data2.tb %>%
                     .sits_ggplot_series(colors) %>%
                     graphics::plot()
-               return (data2.tb)
           })
 }
 
@@ -65,11 +63,9 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 #' @param colors  the color pallete to be used (default is "Dark2")
 .sits_plot_one_by_one <- function (data.tb, colors){
      data.tb %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               .sits_ggplot_series (.,colors) %>%
+          purrr::by_row( function (r){
+               .sits_ggplot_series (r,colors) %>%
                     graphics::plot()
-               return (data.tb)
           })
 
 }
@@ -93,11 +89,9 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 .sits_plot_classification <- function (data.tb){
      # retrieve a dtwSat S4 twdtwMatches object
      data.tb %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               dtwSat::plot (.$matches, type = "classification", overlap = 0.5) %>%
+          purrr::by_row( function (r) {
+               dtwSat::plot (r$matches[[1]], type = "classification", overlap = 0.5) %>%
                     graphics::plot()
-               return(data.tb)
           })
 }
 #' @title Plot classification alignments
@@ -107,11 +101,9 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 #' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
 .sits_plot_alignments <- function (data.tb){
      data.tb %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               dtwSat::plot (.$matches, type = "alignments") %>%
+          purrr::by_row( function (r) {
+               dtwSat::plot (r$matches[[1]], type = "alignments") %>%
                     graphics::plot()
-               return(data.tb)
           })
 }
 #' @title Plot matches between a label pattern and a time series
@@ -124,11 +116,9 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 .sits_plot_matches <- function (data.tb, label, n_matches) {
      ensurer::ensure_that(label, !purrr::is_null(.), err_desc = "sits_plot matches: label must be provided")
      data.tb %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               dtwSat::plot (.$matches, type = "matches", patterns.labels = label, k = n_matches) %>%
+          purrr::by_row( function (r) {
+               dtwSat::plot (r$matches, type = "matches", patterns.labels = label, k = n_matches) %>%
                graphics::plot()
-          return(data.tb)
      })
 }
 
@@ -175,19 +165,18 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
      labels <- dplyr::distinct (data.tb, label)
 
      labels %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               lb = as.character (.$label)
+          purrr::by_row( function (r) {
+               lb = as.character (r$label)
                # filter only those rows with the same label
                data2.tb <- dplyr::filter (data.tb, label == lb)
                # how many time series are to be plotted?
                number <- nrow (data2.tb)
                # what are the band names?
                bands  <- sits_bands (data2.tb)
-               # what is the reference date?
-               ref_date <- data2.tb[1,]$start_date
-               # align all time series to the same date
-               data2.tb <- sits_align(data2.tb, ref_date)
+               # what are the reference dates?
+               ref_dates <- data2.tb[1,]$time_series[[1]]$Index
+               # align all time series to the same dates
+               data2.tb <- sits_align(data2.tb, ref_dates)
                # extract the time series
                ts <- data2.tb$time_series
                # plot all samples for the same label
