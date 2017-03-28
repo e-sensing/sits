@@ -2,9 +2,9 @@
 % Please edit documentation in R/sits_save.R
 \name{sits_save}
 \alias{sits_save}
-\title{Save the contents of an in-memory database in a JSON file}
+\title{Save the contents of a SITS table in a JSON file}
 \usage{
-sits_save(source, json_file = NULL)
+sits_save(source)
 }
 \arguments{
 \item{source}{tibble - an existing SITS table}
@@ -15,10 +15,10 @@ sits_save(source, json_file = NULL)
 table       the same table (for chaining functions)
 }
 \description{
-\code{sits_toJSON} stores a SITS table in a JSON file
-}
-\details{
+stores a SITS table in a JSON file
 The set of time series from a SITS table can be saved in JSON format
 and later retrieved for further use
 }
-\keyword{STIS}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+}

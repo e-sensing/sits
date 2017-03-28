@@ -38,8 +38,6 @@ sits_toJSON <- function (source, file = NULL) {
           name <- deparse(substitute(source))
           file = paste("./",name,".json", sep = "")
      }
-
-
      # store the contents of table in a JSON file
      source %>%
           jsonlite::toJSON (pretty = TRUE) %>%

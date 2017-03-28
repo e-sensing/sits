@@ -13,6 +13,11 @@ cerrado1.tb <- dplyr::bind_rows(head(cerrado.tb, n = 20), tail (cerrado.tb, n = 
 # perform accuracy assessment
 cm <- sits_validate (cerrado1.tb, method = "gam", bands = c("ndvi","evi", "nir"), times = 20, perc = 0.1)
 
+cm <- sits_relabel (cerrado1.tb, file = "./conf_matrix.json")
+
+conversion1.lst = tibble::lst("Cerrado" = "Savanna", "Pasture" = "Pastagem")
+cm <- sits_relabel (cerrado1.tb, file = "./conf_matrix.json", conv = conversion1.lst)
+
 # perform accuracy assessment
 cm <- sits_validate (cerrado1.tb, method = "dendogram", bands = c("ndvi","evi", "nir"), times = 10, perc = 0.1)
 
@@ -33,8 +38,3 @@ cm2 <- sits2_validate (cerrado1.tb, method = "dendogram", bands = c("ndvi","evi"
 # Cerrado   17322    1286
 # Pasture     678   14264
 
-# retrieve a set of samples from a JSON file
-matogrosso.tb <- sits_getdata(file = system.file("extdata/samples/matogrosso.json", package="sits"))
-
-# perform accuracy assessment
-cm <- sits_validate (matogrosso.tb, method = "gam", bands = c("ndvi","evi", "nir"), times = 100, perc = 0.1)

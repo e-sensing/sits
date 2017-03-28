@@ -5,8 +5,9 @@
 \title{validate temporal patterns}
 \usage{
 sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
-  perc = 0.1, conversion.lst = NULL, freq = 8, from = NULL, to = NULL,
-  formula = y ~ s(x), n_clusters = 2, min_clu_perc = 0.1, show = FALSE)
+  perc = 0.1, conversion.lst = NULL, sample_freq = 16, pattern_freq = 8,
+  from = NULL, to = NULL, formula = y ~ s(x), n_clusters = 2,
+  min_clu_perc = 0.1, show = FALSE, file = "./conf_matrix.json")
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
@@ -19,9 +20,9 @@ sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
 
 \item{perc}{the percentage of data that goes to training.}
 
-\item{conversion.lst}{a conversion of label names for the classes (optional))}
+\item{sample_freq}{int - the interval in days for the samples}
 
-\item{freq}{int - the interval in days for the estimates to be generated (for "gam" method)}
+\item{pattern_freq}{int - the interval in days for the estimates to be generated}
 
 \item{from}{starting date of the estimate in month-day (for "gam" method)}
 
@@ -34,18 +35,17 @@ sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
 \item{min_clu_perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)}
 
 \item{show}{show the results of the clustering algorithm? (for clustering methods)}
+
+\item{file}{file to save the results}
 }
 \value{
-patterns.tb   a SITS table with the patterns
+cm            a validation assessment
 }
 \description{
 Splits the set of time series into training and validation and
-compute accuracy metrics. The function uses stratified sampling and a simple
-random sampling for each stratum. For each data partition this function
-performs a TWDTW analysis and returns the Overall Accuracy, User's Accuracy,
-Produce's Accuracy, error matrix (confusion matrix), and a \code{\link[base]{data.frame}}
-with the classification (Predicted), the reference classes (Reference),
-and the results of the TWDTW analysis.
+perform cross-validation.  For each data partition this function
+performs a classifiction and returns the Overall Accuracy, User's Accuracy,
+Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}
