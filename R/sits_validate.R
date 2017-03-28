@@ -103,7 +103,7 @@ sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p
           }
      }
      confusion.vec <- c(pred.vec, ref.vec)
-     sits_save(confusion.vec, file = system.file("extdata/results/confusion_vec.json", package="sits"))
+     sits_toJSON (confusion.vec)
      #error.matrix = caret::confusionMatrix(data=pred.vec, reference=ref.vec)
      assess <- rfUtilities::accuracy(pred.vec, ref.vec)
 

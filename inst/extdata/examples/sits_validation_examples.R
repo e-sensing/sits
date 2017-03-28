@@ -8,10 +8,16 @@ library(sits)
 # retrieve a set of samples from a JSON file
 cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado6.json", package="sits"))
 
-cerrado1.tb <- dplyr::bind_rows(head(cerrado.tb, n = 30), tail (cerrado.tb, n = 30))
+cerrado1.tb <- dplyr::bind_rows(head(cerrado.tb, n = 20), tail (cerrado.tb, n = 20))
 
 # perform accuracy assessment
-cm <- sits_validate (cerrado.tb, method = "dendogram", bands = c("ndvi","evi", "nir"), times = 50, perc = 0.1)
+cm <- sits_validate (cerrado1.tb, method = "gam", bands = c("ndvi","evi", "nir"), times = 20, perc = 0.1)
+
+# perform accuracy assessment
+cm <- sits_validate (cerrado1.tb, method = "dendogram", bands = c("ndvi","evi", "nir"), times = 10, perc = 0.1)
+
+cm2 <- sits2_validate (cerrado1.tb, method = "dendogram", bands = c("ndvi","evi", "nir"), times = 10, perc = 0.3)
+
 # Accuracy (PCC): 94.1460506706408%
 # Cohen's Kappa: 0.882
 # Users accuracy:

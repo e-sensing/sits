@@ -12,6 +12,6 @@ sits_plot (savanna.tb[1:50,], type = "allyears")
 
 sits_plot (cerrado.tb[1:200,], type = "together")
 
-cerrado_pat.tb <- sits_patterns(cerrado.tb)
+cerrado_pat.tb <- sits_patterns(cerrado.tb, method = "centroids")
 
 sits_plot(cerrado_pat.tb, type = "patterns")
