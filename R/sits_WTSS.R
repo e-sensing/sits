@@ -25,12 +25,12 @@
 
 sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
      # obtains information about the WTSS service
-     wtss.obj         <- wtss.R::WTSS(URL)
+     wtss.obj         <- wtss::WTSS(URL)
      cat (paste ("-----------------------------------------------------------", "\n",sep = ""))
      cat (paste ("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
 
      # obtains information about the coverages
-     coverages.obj    <- wtss.R::listCoverages(wtss.obj)
+     coverages.obj    <- wtss::listCoverages(wtss.obj)
           cat (paste ("Available coverages: \n"))
           coverages.obj %>%
                purrr::map (function (c) cat (paste (c, "\n", sep = "")))
@@ -61,14 +61,14 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
 #'
 sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL) {
      # obtains information about the WTSS service
-     wtss.obj         <- wtss.R::WTSS(URL)
+     wtss.obj         <- wtss::WTSS(URL)
      # obtains information about the coverages
-     coverages.vec    <- wtss.R::listCoverages(wtss.obj)
+     coverages.vec    <- wtss::listCoverages(wtss.obj)
      # is the coverage in the list of coverages?
      ensurer::ensure_that (coverage, . %in%coverages.vec,
                            err_desc = "sits_coverageWTSS: coverage is not available in the WTSS server")
      # describe the coverage
-     cov.lst    <- wtss.R::describeCoverage(wtss.obj, coverage)
+     cov.lst    <- wtss::describeCoverage(wtss.obj, coverage)
      cov <- cov.lst[[coverage]]
 
      # name, description and source of coverage
@@ -129,14 +129,14 @@ sits_getcovWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage =
      ensurer::ensure_that(coverage, !purrr::is_null (.), err_desc = "sits_getcovWTSS: Coverage name must be provided")
 
      # obtains information about the WTSS service
-     wtss.obj         <- wtss.R::WTSS(URL)
+     wtss.obj         <- wtss::WTSS(URL)
      # obtains information about the coverages
-     coverages.vec    <- wtss.R::listCoverages(wtss.obj)
+     coverages.vec    <- wtss::listCoverages(wtss.obj)
      # is the coverage in the list of coverages?
      ensurer::ensure_that (coverage, . %in%coverages.vec,
                            err_desc = "sits_getcovWTSS: coverage is not available in the WTSS server")
      #retrive the coverage information
-     cov.lst    <- wtss.R::describeCoverage(wtss.obj, coverage)
+     cov.lst    <- wtss::describeCoverage(wtss.obj, coverage)
      cov <- cov.lst[[coverage]]
 
      return (cov)
