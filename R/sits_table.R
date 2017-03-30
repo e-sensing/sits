@@ -313,12 +313,10 @@ sits_align <- function (data.tb, ref_dates = NULL) {
      start_date <- lubridate::as_date(ref_dates[1])
 
      data1.tb <- sits_table()
-     data.tb %>%
-          purrr::by_row(function (row) {
+     for (i in 1:nrow(data.tb)) {
                # extract the time series
+               row <- data.tb[i,]
                ts <- row$time_series[[1]]
-               ensurer::ensure_that (ref_dates, length(.) == nrow(ts),
-                                    err_desc = "sits_align - number of reference dates is different from the size of time series")
                # in what direction do we need to shift the time series?
                sense <- lubridate::yday(lubridate::as_date (ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
                # find the date of minimum distance to the reference date
@@ -333,8 +331,8 @@ sits_align <- function (data.tb, ref_dates = NULL) {
                row$time_series[[1]] <- ts1
                row$start_date <- lubridate::as_date(ref_dates[1])
                row$end_date   <- ref_dates[length(ref_dates)]
-               data1.tb <<- dplyr::bind_rows(data1.tb, row)
-          })
+               data1.tb <- dplyr::bind_rows(data1.tb, row)
+          }
      return (data1.tb)
 }
 
@@ -355,9 +353,19 @@ sits_prune <- function (data.tb, interval = "365 days") {
      ensurer::ensure_that (data.tb, !purrr::is_null(.),
                            err_desc = "sits_prune: input data not provided")
 
+     data1.tb <- sits_table()
+     ref_dates <- lubridate::as_date(sits_dates (data.tb[1,]))
+
      for (r in 1:nrow(data.tb)) {
           row <- data.tb[r,]
-          if (lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date) >
+          ts <- row$time_series[[1]]
+          if (length(ref_dates) != nrow(ts)){
+               print("Warning - number of reference dates is different from the size of time series")
+               print("Discarded sample")
+               print (row)
+               next
+          }
+          if (lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date) >=
                    lubridate::as.duration(interval)) {
                     # extract the time series
                     ts <- row$time_series[[1]]
@@ -371,7 +379,7 @@ sits_prune <- function (data.tb, interval = "365 days") {
                     # store the new end date
                     row$end_date <- ts1[nrow(ts1),]$Index
                     # store the resulting row in the SITS table
-                    data.tb[r,] <- row
+                    data1.tb <- dplyr::bind_rows(data1.tb, row)
                }
      }
 

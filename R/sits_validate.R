@@ -27,7 +27,7 @@
 #' @return cm            a validation assessment
 #' @export
 sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, perc = 0.1,
-                           conversion.lst = NULL, sample_freq = 16, pattern_freq = 8,
+                           sample_freq = 16, pattern_freq = 8,
                            from = NULL, to = NULL, formula = y ~ s(x),
                            n_clusters = 2, min_clu_perc = 0.10, show = FALSE, file = "./conf_matrix.json"){
 
@@ -160,18 +160,11 @@ sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
      mid <- length(confusion.vec)/2
      pred.vec <- confusion.vec[1:mid]
      ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
-     pred2.vec <- c()
 
-     pred.vec %>%
-          purrr::map (function (l) pred2.vec[length(pred2.vec) + 1 ] <<- conv[[l]])
+     pred.vec <- as.character(conv[pred.vec])
+     ref.vec  <- as.character(conv[ref.vec])
 
-     ref2.vec  <- c()
-     ref.vec %>%
-          purrr::map (function (l)
-               ref2.vec[length(ref2.vec) + 1 ] <<- conv[[l]]
-          )
-
-     assess <- rfUtilities::accuracy(pred2.vec, ref2.vec)
+     assess <- rfUtilities::accuracy(pred.vec, ref.vec)
      return (assess)
 }
 

@@ -5,9 +5,9 @@
 \title{validate temporal patterns}
 \usage{
 sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
-  perc = 0.1, conversion.lst = NULL, sample_freq = 16, pattern_freq = 8,
-  from = NULL, to = NULL, formula = y ~ s(x), n_clusters = 2,
-  min_clu_perc = 0.1, show = FALSE, file = "./conf_matrix.json")
+  perc = 0.1, sample_freq = 16, pattern_freq = 8, from = NULL,
+  to = NULL, formula = y ~ s(x), n_clusters = 2, min_clu_perc = 0.1,
+  show = FALSE, file = "./conf_matrix.json")
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
