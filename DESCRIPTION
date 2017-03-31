@@ -49,9 +49,9 @@ Imports:
     tidyr,
     tools,
     utils, 
-    wtss.R,
+    wtss,
     zoo
 Remotes:
-     luizassis/wtss.R,
+     luizassis/wtss,
      vwmaus/dtwSat
 RoxygenNote: 6.0.1

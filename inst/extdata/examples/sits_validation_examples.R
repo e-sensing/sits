@@ -10,6 +10,7 @@ cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado6.json", p
 
 cerrado1.tb <- dplyr::bind_rows(head(cerrado.tb, n = 20), tail (cerrado.tb, n = 20))
 
+
 # perform accuracy assessment
 cm <- sits_validate (cerrado1.tb, method = "gam", bands = c("ndvi","evi", "nir"), times = 20, perc = 0.1)
 
