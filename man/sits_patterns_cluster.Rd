@@ -2,9 +2,10 @@
 % Please edit documentation in R/sits_patterns.R
 \name{sits_patterns_cluster}
 \alias{sits_patterns_cluster}
+\alias{.sits_patterns_cluster}
 \title{Estimate a set of patterns based on a clustering}
 \usage{
-sits_patterns_cluster(samples.tb, method = "dendogram", bands = NULL,
+.sits_patterns_cluster(samples.tb, method = "dendogram", bands = NULL,
   n_clusters = 2, min_clu_perc = 0.1, show = FALSE)
 }
 \arguments{

@@ -4,15 +4,19 @@
 \alias{sits_align}
 \title{Aligns dates of time series to a reference date}
 \usage{
-sits_align(data.tb, ref_dates = NULL)
+sits_align(data.tb, from = NULL, to = NULL, sample_freq = 16)
 }
 \arguments{
 \item{data.tb}{tibble - input SITS table (useful for chaining functions)}
 
-\item{ref_dates}{a vector of reference dates to align the series}
+\item{from}{starting date of the estimate in month-day}
+
+\item{to}{end data of the estimated in month-day}
+
+\item{sample_freq}{int - the interval in days for the samples}
 }
 \value{
-data1.tb   tibble - the converted SITS table (useful for chaining functions)
+data1.tb      tibble - the converted SITS table (useful for chaining functions)
 }
 \description{
 converts the time indexes of a set of sits tables to a single reference year.

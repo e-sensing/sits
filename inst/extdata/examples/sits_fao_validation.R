@@ -40,10 +40,9 @@ fao_cm1 <- sits_relabel (fao.tb, file = system.file("extdata/results/fao_cm.json
 matogrosso.tb <- sits_getdata(file = system.file("extdata/samples/matogrosso.json", package="sits"))
 
 matogrosso.tb <- sits_prune(matogrosso.tb)
-
 # perform accuracy assessment - já foi feito
-cm_gam <- sits_validate (matogrosso.tb, method = "gam", bands = c("ndvi","evi", "nir"),
-                     times = 1, perc = 0.5, file = "./mt_cm.json")
+#cm_gam <- sits_validate (matogrosso.tb, method = "gam", bands = c("ndvi","evi", "nir"),
+                    #times = 1, perc = 0.5, file = "./mt_cm.json")
 
 
 mt_cm <- sits_relabel (matogrosso.tb, file = system.file("extdata/results/mt_cm.json", package = "sits"))
@@ -58,7 +57,7 @@ mt_conv.lst <- tibble::lst("Fallow_Cotton"       = "NonComerc_Cotton",
                            "Soybean_Fallow2"     = "Soybean_NonComerc",
                            "Soybean_NonComerc1"  = "Soybean_NonComerc",
                            "Soybean_NonComerc2"  = "Soybean_NonComerc",
-                           "Soybean_Pasture"     = "Pasture",
+                           "Soybean_Pasture"     = "Soybean_NonComerc",
                            "Water"               = "Water",
                            "Cerrado"             = "Cerrado",
                            "Pasture"             = "Pasture",
