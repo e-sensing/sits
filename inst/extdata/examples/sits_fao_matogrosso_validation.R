@@ -13,6 +13,8 @@ fao.tb <- sits_getdata (file = system.file("extdata/samples/fao_all_samples.tb.j
 
 fao_cm <- sits_relabel (fao.tb, file = system.file("extdata/results/fao_cm.json", package = "sits"))
 
+#Accuracy (PCC): 40.68%
+
 conv_fao.lst <- tibble::lst("PermanentlyFloodedForest" = "Forest",
                            "UrbanArea"  = "BarrenLand",
                            "RegularlyFloodedForest" = "Forest",
@@ -32,6 +34,7 @@ conv_fao.lst <- tibble::lst("PermanentlyFloodedForest" = "Forest",
 
 fao_cm1 <- sits_relabel (fao.tb, file = system.file("extdata/results/fao_cm.json", package = "sits"),
                          conv = conv_fao.lst)
+#Accuracy (PCC): 67.50%
 
 # retrieve a set of samples from a JSON file
 matogrosso.tb <- sits_getdata(file = system.file("extdata/samples/matogrosso.json", package="sits"))
@@ -39,8 +42,8 @@ matogrosso.tb <- sits_getdata(file = system.file("extdata/samples/matogrosso.jso
 matogrosso.tb <- sits_prune(matogrosso.tb)
 
 # perform accuracy assessment - já foi feito
-#cm <- sits_validate (matogrosso.tb, method = "gam", bands = c("ndvi","evi", "nir"),
-#                     times = 100, perc = 0.5, file = "./mt_cm.json")
+cm_gam <- sits_validate (matogrosso.tb, method = "gam", bands = c("ndvi","evi", "nir"),
+                     times = 1, perc = 0.5, file = "./mt_cm.json")
 
 
 mt_cm <- sits_relabel (matogrosso.tb, file = system.file("extdata/results/mt_cm.json", package = "sits"))

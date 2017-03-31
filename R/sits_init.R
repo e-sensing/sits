@@ -46,5 +46,5 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom stringr str_extract str_detect
 #' @importFrom tools file_ext file_path_sans_ext
 #' @importFrom utils head tail
-#' @importFrom wtss.R WTSS timeSeries listCoverages describeCoverage
+#' @importFrom wtss WTSS timeSeries listCoverages describeCoverage
 #' @importFrom zoo zoo fortify.zoo

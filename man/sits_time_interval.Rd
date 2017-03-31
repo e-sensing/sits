@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_table.R
 \name{sits_time_interval}
 \alias{sits_time_interval}
-\title{Sample a percentage of a time series}
+\title{Temporal information for a time series}
 \usage{
 sits_time_interval(data.tb)
 }

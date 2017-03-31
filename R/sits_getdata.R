@@ -51,7 +51,7 @@ sits_getdata <- function (file        = NULL,
      ensurer::ensure_that(URL, !purrr::is_null (.), err_desc = "sits_getdata: Missing WTSS URL")
 
      # obtains an R object that represents the WTSS service
-     wtss.obj <- wtss.R::WTSS(URL)
+     wtss.obj <- wtss::WTSS(URL)
 
      #retrieve coverage information
      cov <- sits_getcovWTSS(URL, coverage)
@@ -345,7 +345,7 @@ sits_getdata <- function (file        = NULL,
 .sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wtss.obj, cov, bands) {
 
      # get a time series from the WTSS server
-     ts <- wtss.R::timeSeries (wtss.obj, coverages = cov$name, attributes = bands,
+     ts <- wtss::timeSeries (wtss.obj, coverages = cov$name, attributes = bands,
                                longitude = longitude, latitude = latitude,
                                start = start_date, end = end_date)
 
