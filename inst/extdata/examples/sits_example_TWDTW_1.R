@@ -48,6 +48,15 @@ series.tb %>%
      sits_select (bands = c("evi", "evi_smooth")) %>%
      sits_plot()
 
+damien_ieda.tb <- sits_getdata(file = system.file("extdata/samples/samples_Damien_Ieda_12classes_6bands_Water.json", package="sits"))
+
+# retrieve a set of samples from a JSON file
+matogrosso.tb <- sits_getdata(file = system.file("extdata/samples/matogrosso.json", package="sits"))
+
+matogrosso.tb <- sits_prune (matogrosso.tb)
+
+patt_mt.tb <- sits_patterns(matogrosso.tb)
+
 # read a pattern table from a JSON file
 patterns.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_MatoGrosso.json", package="sits"))
 
