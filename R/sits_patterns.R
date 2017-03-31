@@ -95,6 +95,8 @@ sits_patterns_gam <- function (samples.tb, bands, sample_freq = 16, pattern_freq
                               to   = lubridate::as_date(to),
                               by   = sample_freq)
      }
+     print(from)
+     print (to)
      # determine the sequence of prediction times
      pred_time = seq(from = lubridate::as_date(from),
                      to   = lubridate::as_date(to),

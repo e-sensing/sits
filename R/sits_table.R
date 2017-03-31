@@ -327,6 +327,7 @@ sits_align <- function (data.tb, ref_dates = NULL) {
                if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
                # convert the time index to a reference year
                first_date <- lubridate::as_date(ts[1,]$Index)
+               if (length(ref_dates) != nrow(ts)) print(row)
                ts1 <- dplyr::mutate (ts, Index = ref_dates)
                row$time_series[[1]] <- ts1
                row$start_date <- lubridate::as_date(ref_dates[1])
@@ -354,19 +355,12 @@ sits_prune <- function (data.tb, interval = "365 days") {
                            err_desc = "sits_prune: input data not provided")
 
      data1.tb <- sits_table()
-     ref_dates <- lubridate::as_date(sits_dates (data.tb[1,]))
-
-     for (r in 1:nrow(data.tb)) {
-          row <- data.tb[r,]
-          ts <- row$time_series[[1]]
-          if (length(ref_dates) != nrow(ts)){
-               print("Warning - number of reference dates is different from the size of time series")
-               print("Discarded sample")
-               print (row)
-               next
-          }
-          if (lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date) >=
+     data.tb %>%
+          purrr::by_row (function (row) {
+               ts <- row$time_series[[1]]
+               if (lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date) >=
                    lubridate::as.duration(interval)) {
+                    print (row)
                     # extract the time series
                     ts <- row$time_series[[1]]
                     # find the first date which exceeds the required interval
@@ -378,12 +372,12 @@ sits_prune <- function (data.tb, interval = "365 days") {
                     row$time_series[[1]] <- ts1
                     # store the new end date
                     row$end_date <- ts1[nrow(ts1),]$Index
-                    # store the resulting row in the SITS table
-                    data1.tb <- dplyr::bind_rows(data1.tb, row)
                }
-     }
+               # store the resulting row in the SITS table
+               data1.tb <<- dplyr::bind_rows(data1.tb, row)
+     })
 
-     return (data.tb)
+     return (data1.tb)
 }
 
 #' @title Group different time series for the same lat/long coordinate
@@ -479,7 +473,7 @@ sits_label_perc <- function (data.tb, perc = 0.1){
 }
 
 
-#' @title Sample a percentage of a time series
+#' @title Temporal information for a time series
 #' @name sits_time_interval
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
