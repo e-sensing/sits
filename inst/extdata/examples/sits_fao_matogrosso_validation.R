@@ -64,3 +64,6 @@ mt_conv.lst <- tibble::lst("Fallow_Cotton"       = "NonComerc_Cotton",
 mt_cm <- sits_relabel (matogrosso.tb,
                        file = system.file("extdata/results/mt_cm.json", package = "sits"),
                        conv = mt_conv.lst)
+
+cm_centroids <- sits_validate (matogrosso.tb, method = "centroids", bands = c("ndvi","evi", "nir"),
+                                         times = 100, perc = 0.5, file = "./mt_cm_centroids.json")
