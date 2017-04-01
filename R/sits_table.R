@@ -306,7 +306,7 @@ sits_dates <- function (data.tb) {
 sits_align <- function (data.tb, ref_dates) {
 
      # function to shift a time series in time
-     shift_ts <- function(d, k) dplyr::bind_rows( tail(d,k), head(d,-k))
+     shift_ts <- function(d, k) dplyr::bind_rows(utils::tail(d,k), utils::head(d,-k))
 
      # get the reference date
      start_date <- lubridate::as_date(ref_dates[1])
@@ -319,9 +319,6 @@ sits_align <- function (data.tb, ref_dates) {
                ts <- row$time_series[[1]]
                # rows that do not match the number of reference dates are discarded
                if(length(ref_dates) != nrow(ts)) {
-                    # message (paste0("Warning - number of time steps does not matche number of reference dates", "\n"))
-                    # message (paste0("Discarded sample ", i, "\n"))
-                    # print (row)
                     next
                }
                # in what direction do we need to shift the time series?
@@ -354,7 +351,7 @@ sits_align <- function (data.tb, ref_dates) {
 #' of land cover to the same interval (usually, one year)
 #'
 #' @param    data.tb    tibble - input SITS table
-#' @param    period     a string describing the interval (in days)
+#' @param    interval    a string describing the interval (in days)
 #' @return   data1.tb   tibble - the converted SITS table
 #' @export
 #'
@@ -368,7 +365,6 @@ sits_prune <- function (data.tb, interval = "365 days") {
                ts <- row$time_series[[1]]
                if (lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date) >=
                    lubridate::as.duration(interval)) {
-                    print (row)
                     # extract the time series
                     ts <- row$time_series[[1]]
                     # find the first date which exceeds the required interval
@@ -425,7 +421,7 @@ sits_group_bylatlong <- function (data.tb) {
                # are there more time series for the same location?
                if (nrow(rows) > 1) {
                     rows %>%
-                         tail (n = -1) %>%
+                         utils::tail (n = -1) %>%
                          purrr::by_row (function(row) {
                               # adjust the start and end dates
                               if (row$start_date < start_date) start_date <- row$start_date

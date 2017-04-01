@@ -12,9 +12,9 @@
 #' @export
 #'
 #'
-sits_save <- function (source) {
+sits_save <- function (source, json_file) {
      if ("sits_table" %in% class (source) || "tbl" %in% class (source) ){
-          data.tb <- sits_toJSON (source = source)
+          data.tb <- sits_toJSON (source = source, file = json_file)
           return (invisible (source))
      }
      message (paste ("No valid input to save time series data!!","\n",sep=""))
@@ -28,7 +28,7 @@ sits_save <- function (source) {
 #' @description stores data in a JSON file
 #'
 #' @param source       an R object
-#' @param json_file    string - name of the JSON file to be written
+#' @param file         string - name of the JSON file to be written
 #' @export
 #'
 #'

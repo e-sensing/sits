@@ -4,9 +4,9 @@
 \alias{sits_patterns}
 \title{Create time series patterns for classification}
 \usage{
-sits_patterns(samples.tb, method = "gam", bands = NULL, sample_freq = 16,
-  pattern_freq = 8, from = NULL, to = NULL, formula = y ~ s(x),
-  n_clusters = 2, min_clu_perc = 0.1, show = FALSE)
+sits_patterns(samples.tb, method = "gam", bands = NULL, from = NULL,
+  to = NULL, freq = 8, formula = y ~ s(x), n_clusters = 2,
+  min_clu_perc = 0.1, show = FALSE)
 }
 \arguments{
 \item{samples.tb}{a table in SITS format with a set of labelled time series}
@@ -15,13 +15,11 @@ sits_patterns(samples.tb, method = "gam", bands = NULL, sample_freq = 16,
 
 \item{bands}{the bands used to obtain the pattern}
 
-\item{sample_freq}{int - the interval in days for the samples}
-
-\item{pattern_freq}{int - the interval in days for the estimates to be generated}
-
 \item{from}{starting date of the estimate in month-day}
 
 \item{to}{end data of the estimated in month-day}
+
+\item{freq}{int - the interval in days for the estimates to be generated}
 
 \item{formula}{the formula to be applied in the estimate (for "gam" method)}
 

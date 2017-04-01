@@ -5,18 +5,18 @@
 \alias{.sits_patterns_gam}
 \title{Create temporal patterns using a generalised additive model (gam)}
 \usage{
-.sits_patterns_gam(samples.tb, bands, pattern_freq, from, to, formula)
+.sits_patterns_gam(samples.tb, bands, from, to, freq, formula)
 }
 \arguments{
 \item{samples.tb}{a table in SITS format with time series to be classified using TWTDW}
 
 \item{bands}{the bands used to obtain the pattern}
 
-\item{pattern_freq}{int - the interval in days for the estimates to be generated}
-
 \item{from}{starting date of the estimate (month-day)}
 
 \item{to}{end data of the estimated (month-day)}
+
+\item{freq}{int - the interval in days for the estimates to be generated}
 
 \item{formula}{the formula to be applied in the estimate}
 }

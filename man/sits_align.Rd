@@ -4,16 +4,12 @@
 \alias{sits_align}
 \title{Aligns dates of time series to a reference date}
 \usage{
-sits_align(data.tb, from = NULL, to = NULL, sample_freq = 16)
+sits_align(data.tb, ref_dates)
 }
 \arguments{
 \item{data.tb}{tibble - input SITS table (useful for chaining functions)}
 
-\item{from}{starting date of the estimate in month-day}
-
-\item{to}{end data of the estimated in month-day}
-
-\item{sample_freq}{int - the interval in days for the samples}
+\item{ref_dates}{the dates to align the time series}
 }
 \value{
 data1.tb      tibble - the converted SITS table (useful for chaining functions)

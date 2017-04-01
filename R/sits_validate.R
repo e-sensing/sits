@@ -15,10 +15,9 @@
 #' @param  method        method to create patterns ("gam", "dendogram" or "centroids")
 #' @param  times         number of partitions to create.
 #' @param  perc          the percentage of data that goes to training.
-#' @param  sample_freq   int - the interval in days for the samples
-#' @param  pattern_freq  int - the interval in days for the estimates to be generated
 #' @param  from          starting date of the estimate in month-day (for "gam" method)
 #' @param  to            end data of the estimated in month-day (for "gam" method)
+#' @param  freq          int - the interval in days for the estimates to be generated
 #' @param  formula       the formula to be applied in the estimate (for "gam" method)
 #' @param  n_clusters    the maximum number of clusters to be identified (for clustering methods)
 #' @param  min_clu_perc  the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
@@ -27,8 +26,7 @@
 #' @return cm            a validation assessment
 #' @export
 sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, perc = 0.1,
-                           sample_freq = 16, pattern_freq = 8,
-                           from = NULL, to = NULL, formula = y ~ s(x),
+                           from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
                            n_clusters = 2, min_clu_perc = 0.10, show = FALSE, file = "./conf_matrix.json"){
 
      # does the input data exist?
@@ -59,8 +57,7 @@ sits_validate <- function (data.tb, bands = NULL, method = "gam", times = 100, p
           # retrieve the extracted partition
           p <- partitions.lst[[i]]
           # use the extracted partition to create the patterns
-          patterns.tb <- sits_patterns(p, method, sample_freq = sample_freq, pattern_freq = pattern_freq,
-                                       from = from, to = to, formula = formula,
+          patterns.tb <- sits_patterns(p, method, from = from, to = to, freq = freq, formula = formula,
                                        n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)
           # use the rest of the data for classification
           non_p.tb <- dplyr::anti_join(data.tb, p,
