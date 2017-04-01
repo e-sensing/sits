@@ -298,37 +298,45 @@ sits_dates <- function (data.tb) {
 #' The reference year is taken from the date of the start of the time series
 #' available in the coverage.
 #'
-#' @param    data.tb    tibble - input SITS table (useful for chaining functions)
-#' @param    ref_dates  a vector of reference dates to align the series
-#' @return   data1.tb   tibble - the converted SITS table (useful for chaining functions)
+#' @param  data.tb       tibble - input SITS table (useful for chaining functions)
+#' @param  ref_dates     the dates to align the time series
+#' @return data1.tb      tibble - the converted SITS table (useful for chaining functions)
 #' @export
 #'
-sits_align <- function (data.tb, ref_dates = NULL) {
+sits_align <- function (data.tb, ref_dates) {
 
-     if (purrr::is_null(ref_dates)) ref_dates <- lubridate::as_date(sits_dates (data.tb[1,]))
-
+     # function to shift a time series in time
      shift_ts <- function(d, k) dplyr::bind_rows( tail(d,k), head(d,-k))
 
      # get the reference date
      start_date <- lubridate::as_date(ref_dates[1])
-
+     # create an output table
      data1.tb <- sits_table()
+
      for (i in 1:nrow(data.tb)) {
                # extract the time series
                row <- data.tb[i,]
                ts <- row$time_series[[1]]
+               # rows that do not match the number of reference dates are discarded
+               if(length(ref_dates) != nrow(ts)) {
+                    # message (paste0("Warning - number of time steps does not matche number of reference dates", "\n"))
+                    # message (paste0("Discarded sample ", i, "\n"))
+                    # print (row)
+                    next
+               }
                # in what direction do we need to shift the time series?
                sense <- lubridate::yday(lubridate::as_date (ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
                # find the date of minimum distance to the reference date
                idx <- which.min(abs((lubridate::as_date (ts$Index) - lubridate::as_date(start_date))/lubridate::ddays(1)))
                # do we shift time up or down?
-               if (sense == -1) shift <- -(idx - 1) else shift <- (idx - 1)
+               if (sense < 0) shift <- -(idx - 1) else shift <- (idx - 1)
                # shift the time series to match dates
                if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
                # convert the time index to a reference year
                first_date <- lubridate::as_date(ts[1,]$Index)
-               if (length(ref_dates) != nrow(ts)) print(row)
+               # change the dates to the reference dates
                ts1 <- dplyr::mutate (ts, Index = ref_dates)
+               # save the resulting row in the output table
                row$time_series[[1]] <- ts1
                row$start_date <- lubridate::as_date(ref_dates[1])
                row$end_date   <- ref_dates[length(ref_dates)]

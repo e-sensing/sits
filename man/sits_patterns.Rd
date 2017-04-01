@@ -19,9 +19,9 @@ sits_patterns(samples.tb, method = "gam", bands = NULL, sample_freq = 16,
 
 \item{pattern_freq}{int - the interval in days for the estimates to be generated}
 
-\item{from}{starting date of the estimate in month-day (for "gam" method)}
+\item{from}{starting date of the estimate in month-day}
 
-\item{to}{end data of the estimated in month-day (for "gam" method)}
+\item{to}{end data of the estimated in month-day}
 
 \item{formula}{the formula to be applied in the estimate (for "gam" method)}
 

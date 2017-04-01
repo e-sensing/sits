@@ -40,10 +40,14 @@ fao_cm1 <- sits_relabel (fao.tb, file = system.file("extdata/results/fao_cm.json
 matogrosso.tb <- sits_getdata(file = system.file("extdata/samples/matogrosso.json", package="sits"))
 
 matogrosso.tb <- sits_prune(matogrosso.tb)
-
 # perform accuracy assessment - já foi feito
+<<<<<<< HEAD:inst/extdata/examples/sits_fao_matogrosso_validation.R
 cm_dendog <- sits_validate (matogrosso.tb, method = "dendogram", bands = c("ndvi","evi", "nir"),
                      times = 50, perc = 0.5, file = "./mt_dendog.json")
+=======
+#cm_gam <- sits_validate (matogrosso.tb, method = "gam", bands = c("ndvi","evi", "nir"),
+                    #times = 1, perc = 0.5, file = "./mt_cm.json")
+>>>>>>> 6d0982be92b0a28c43d014a65bfcdcf40ccf603a:inst/extdata/examples/sits_fao_validation.R
 
 
 mt_cm <- sits_relabel (matogrosso.tb, file = system.file("extdata/results/mt_cm.json", package = "sits"))
@@ -67,3 +71,6 @@ mt_conv.lst <- tibble::lst("Fallow_Cotton"       = "NonComerc_Cotton",
 mt_cm <- sits_relabel (matogrosso.tb,
                        file = system.file("extdata/results/mt_cm.json", package = "sits"),
                        conv = mt_conv.lst)
+
+cm_centroids <- sits_validate (matogrosso.tb, method = "centroids", bands = c("ndvi","evi", "nir"),
+                                         times = 100, perc = 0.5, file = "./mt_cm_centroids.json")
