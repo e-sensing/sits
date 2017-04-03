@@ -102,7 +102,6 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
      return (.sits_fromClusters (data.tb, clusters, min_clu_perc, label_prefix))
 }
 
-
 #' @title Cluster a set of time series using partitional clustering
 #' @name .sits_cluster_partitional
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -181,6 +180,9 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
 #' @return centroids.tb    a SITS table with the clusters
 .sits_fromClusters <-  function (data.tb, clusters, min_clu_perc, label_prefix = NULL) {
 
+     # cut time series to fit in one year
+     data.tb <- sits_prune(data.tb)
+
      # what is the name(s) of the band(s)?
      bands <- colnames(clusters@centroids[[1]])
 
@@ -212,7 +214,55 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
 
      return (centroids.tb)
 }
+#------------------------------------------------------------------
+#' @title Returns a tibble of cluster's members and its metadata.
+#' @name .sits_clustersMembers
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description reads a list of clusters provided by the dtwclust
+#' package and produces a sits table.
+#' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
+#'
+#' @param data.tb          a tibble with input data of dtwclust.
+#' @param clusters         a cluster structure returned from dtwclust.
+#' @param min_clu_perc     the minimum percentage of members for a cluster to be valid
+#' @return centroids.tb    a SITS table with the clusters
+.sits_clustersMembers <-  function (data.tb, clusters, min_clu_perc, label_prefix = NULL) {
 
+     # cut time series to fit in one year
+     data.tb <- sits_prune(data.tb)
+
+     # what is the name(s) of the band(s)?
+     bands <- colnames(clusters@centroids[[1]])
+
+     # how many clusters have more than 10% of the total samples?
+     num <- clusters@clusinfo$size %>%
+          .[. > as.integer (min_clu_perc * length(clusters@cluster))] %>%
+          length()
+
+     label_prefix <- data.tb[1,]$label[[1]]
+
+     # select only significant centroids
+     centroids.lst <- clusters@centroids[order(clusters@clusinfo$size,
+                                               decreasing = TRUE)][1:num]
+     # create a table to store the results
+     centroids.tb <- sits_table()
+
+     purrr::map2(centroids.lst, seq_along(centroids.lst), function (ts, i) {
+          new_ts <- dplyr::select(data.tb[1,]$time_series[[1]], Index)
+          new_ts <- dplyr::bind_cols(new_ts, tibble::as_tibble(ts))
+          centroids.tb <<- tibble::add_row (centroids.tb,
+                                            longitude    = 0.0,
+                                            latitude     = 0.0,
+                                            start_date   = data.tb[1,]$start_date[[1]],
+                                            end_date     = data.tb[1,]$end_date[[1]],
+                                            label        = paste0(label_prefix, ".", i),
+                                            coverage     = data.tb[1,]$coverage[[1]],
+                                            time_series  = list(new_ts))
+     })
+
+     return (centroids.tb)
+}
 #' @title Plots a cluster produced by the dtwclust package
 #' @name .sits_showClusters
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
