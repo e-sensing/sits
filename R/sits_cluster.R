@@ -96,7 +96,8 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
      clusters  <- dtwclust::dtwclust (values.tb,
                                       type     = "hierarchical",
                                       k        = n_clusters,
-                                      distance = "dtw_basic")
+                                      distance = "dtw_basic",
+                                      method   = "complete")
 
      # Plot the series and the obtained prototypes
      if (show) .sits_show_clusters (clusters)
