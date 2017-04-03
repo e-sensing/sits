@@ -187,6 +187,7 @@ sits_labels <- function (data.tb) {
      return (data.tb %>%  dplyr::group_by(label) %>% dplyr::summarize(count = n()))
 }
 
+
 #' @title Merge two satellite image time series
 #' @name sits_merge
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
