@@ -173,6 +173,20 @@ sits_bands <- function (data.tb) {
      return (names)
 }
 
+#' @title returns the labels' count of a sits table
+#' @name sits_labels
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  returns the labels and its counting
+#'
+#' @param data.tb     a valid sits table
+#' @return labels.tb  a tibble with the names of the labels and its counting
+#' @export
+#'
+sits_labels <- function (data.tb) {
+     return (data.tb %>%  dplyr::group_by(label) %>% dplyr::summarize(count = n()))
+}
+
 #' @title Merge two satellite image time series
 #' @name sits_merge
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
