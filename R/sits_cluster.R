@@ -177,11 +177,12 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
      label_prefix <- data.tb[1,]$label[[1]]
 
      # select only significant centroids
-     centroids.lst <- clusters@centroids[order(clusters@clusinfo$size, decreasing = TRUE)][1:num]
+     cluster_ordering <- order(clusters@clusinfo$size, decreasing = TRUE)
+     centroids.lst <- clusters@centroids[cluster_ordering][1:num]
      # create a table to store the results
      centroids.tb <- sits_table()
 
-     purrr::map2(centroids.lst, seq_along(centroids.lst), function (ts, i) {
+     purrr::map2(centroids.lst, cluster_ordering, function (ts, i) {
           new_ts <- dplyr::select(data.tb[1,]$time_series[[1]], Index)
           new_ts <- dplyr::bind_cols(new_ts, tibble::as_tibble(ts))
           centroids.tb <<- tibble::add_row (centroids.tb,
@@ -226,10 +227,11 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
      members.tb <- data.tb
 
      # assigns new labels to each clusters' members
-     members.tb$label <- paste0(label_prefix, ".", order(clusters@clusinfo$size, decreasing = TRUE)[which(1:num %in% clusters@cluster)])
+     cluster_ordering <- order(clusters@clusinfo$size, decreasing = TRUE)
+     members.tb$label <- paste0(label_prefix, ".", cluster_ordering[clusters@cluster])
 
      # returns only the members of significant clusters
-     return (members.tb[which(clusters@cluster %in% order(clusters@clusinfo$size, decreasing = TRUE)[1:num]),])
+     return (members.tb[which(clusters@cluster %in% cluster_ordering[1:num]),])
 }
 #' @title Plots a cluster produced by the dtwclust package
 #' @name .sits_showClusters
