@@ -12,17 +12,7 @@ cerrado1.tb <- dplyr::bind_rows(head(cerrado.tb, n = 20), tail (cerrado.tb, n = 
 
 
 # perform accuracy assessment
-cm <- sits_validate (cerrado1.tb, method = "gam", bands = c("ndvi","evi", "nir"), times = 20, perc = 0.1)
-
-cm <- sits_relabel (cerrado1.tb, file = "./conf_matrix.json")
-
-conversion1.lst = tibble::lst("Cerrado" = "Savanna", "Pasture" = "Pastagem")
-cm <- sits_relabel (cerrado1.tb, file = "./conf_matrix.json", conv = conversion1.lst)
-
-# perform accuracy assessment
-cm <- sits_validate (cerrado1.tb, method = "dendogram", bands = c("ndvi","evi", "nir"), times = 10, perc = 0.1)
-
-cm2 <- sits2_validate (cerrado1.tb, method = "dendogram", bands = c("ndvi","evi", "nir"), times = 10, perc = 0.3)
+cm <- sits_validate (cerrado.tb, method = "gam", bands = c("ndvi","evi", "nir"), times = 50, perc = 0.1)
 
 # Accuracy (PCC): 94.1460506706408%
 # Cohen's Kappa: 0.882

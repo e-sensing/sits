@@ -9,7 +9,7 @@ sits_toJSON(source, file = NULL)
 \arguments{
 \item{source}{an R object}
 
-\item{json_file}{string - name of the JSON file to be written}
+\item{file}{string - name of the JSON file to be written}
 }
 \description{
 stores data in a JSON file

@@ -9,7 +9,7 @@ sits_prune(data.tb, interval = "365 days")
 \arguments{
 \item{data.tb}{tibble - input SITS table}
 
-\item{period}{a string describing the interval (in days)}
+\item{interval}{a string describing the interval (in days)}
 }
 \value{
 data1.tb   tibble - the converted SITS table

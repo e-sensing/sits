@@ -4,7 +4,7 @@
 \alias{sits_save}
 \title{Save the contents of a SITS table in a JSON file}
 \usage{
-sits_save(source)
+sits_save(source, json_file)
 }
 \arguments{
 \item{source}{tibble - an existing SITS table}

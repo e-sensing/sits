@@ -48,14 +48,32 @@ series.tb %>%
      sits_select (bands = c("evi", "evi_smooth")) %>%
      sits_plot()
 
-# read a pattern table from a JSON file
-patterns.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_MatoGrosso.json", package="sits"))
+# retrieve a set of samples from a JSON file
+matogrosso.tb <- sits_getdata(file = system.file("extdata/samples/matogrosso.json", package="sits"))
 
-# plot patterns
-sits_plot (patterns.tb, type = "patterns")
+# prune the time series to a one-year time interval
+matogrosso.tb <- sits_prune (matogrosso.tb)
 
-results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
+# create patterns using the gam method (default)
+patt_mt.tb <- sits_patterns(matogrosso.tb)
+sits_plot (patt_mt.tb, type = "patterns")
+
+# create patterns using the dendogram method
+patt_mt_d.tb <- sits_patterns(matogrosso.tb, bands = c("ndvi", "evi", "nir"), method = "dendogram")
+sits_plot (patt_mt_d.tb, type = "patterns")
+
+# create patterns using the centroid method
+patt_mt_c.tb <- sits_patterns(matogrosso.tb, bands = c("ndvi", "evi", "nir"), method = "centroids")
+sits_plot (patt_mt_c.tb, type = "patterns")
+
+results1.tb <- sits_TWDTW(series.tb, patt_mt.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
 # plot the results of the classification
-sits_plot (results.tb, type = "classification")
-sits_plot (results.tb, type = "alignments")
+sits_plot (results1.tb, type = "classification")
+sits_plot (results1.tb, type = "alignments")
+
+results2.tb <- sits_TWDTW(series.tb, patt_mt_d.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
+
+# plot the results of the classification
+sits_plot (results2.tb, type = "classification")
+sits_plot (results2.tb, type = "alignments")

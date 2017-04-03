@@ -4,15 +4,15 @@
 \alias{sits_align}
 \title{Aligns dates of time series to a reference date}
 \usage{
-sits_align(data.tb, ref_dates = NULL)
+sits_align(data.tb, ref_dates)
 }
 \arguments{
 \item{data.tb}{tibble - input SITS table (useful for chaining functions)}
 
-\item{ref_dates}{a vector of reference dates to align the series}
+\item{ref_dates}{the dates to align the time series}
 }
 \value{
-data1.tb   tibble - the converted SITS table (useful for chaining functions)
+data1.tb      tibble - the converted SITS table (useful for chaining functions)
 }
 \description{
 converts the time indexes of a set of sits tables to a single reference year.

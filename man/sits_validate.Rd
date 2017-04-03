@@ -5,9 +5,9 @@
 \title{validate temporal patterns}
 \usage{
 sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
-  perc = 0.1, sample_freq = 16, pattern_freq = 8, from = NULL,
-  to = NULL, formula = y ~ s(x), n_clusters = 2, min_clu_perc = 0.1,
-  show = FALSE, file = "./conf_matrix.json")
+  perc = 0.1, from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
+  n_clusters = 2, min_clu_perc = 0.1, show = FALSE,
+  file = "./conf_matrix.json")
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
@@ -20,13 +20,11 @@ sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
 
 \item{perc}{the percentage of data that goes to training.}
 
-\item{sample_freq}{int - the interval in days for the samples}
-
-\item{pattern_freq}{int - the interval in days for the estimates to be generated}
-
 \item{from}{starting date of the estimate in month-day (for "gam" method)}
 
 \item{to}{end data of the estimated in month-day (for "gam" method)}
+
+\item{freq}{int - the interval in days for the estimates to be generated}
 
 \item{formula}{the formula to be applied in the estimate (for "gam" method)}
 

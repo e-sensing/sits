@@ -13,17 +13,16 @@
 #' @param  samples.tb    a table in SITS format with a set of labelled time series
 #' @param  method        the method to be used for classification
 #' @param  bands         the bands used to obtain the pattern
-#' @param  sample_freq   int - the interval in days for the samples
-#' @param  pattern_freq  int - the interval in days for the estimates to be generated
-#' @param  from          starting date of the estimate in month-day (for "gam" method)
-#' @param  to            end data of the estimated in month-day (for "gam" method)
+#' @param  from          starting date of the estimate in month-day
+#' @param  to            end data of the estimated in month-day
+#' @param  freq          int - the interval in days for the estimates to be generated
 #' @param  formula       the formula to be applied in the estimate (for "gam" method)
 #' @param  n_clusters    the maximum number of clusters to be identified (for clustering methods)
 #' @param  min_clu_perc  the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
 #' @param  show          show the results of the clustering algorithm? (for clustering methods)
 #' @return patterns.tb   a SITS table with the patterns
 #' @export
-sits_patterns <- function (samples.tb, method = "gam", bands = NULL, sample_freq = 16, pattern_freq = 8, from = NULL, to = NULL, formula = y ~ s(x), n_clusters = 2, min_clu_perc = 0.10, show = FALSE) {
+sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL, to = NULL, freq = 8, formula = y ~ s(x), n_clusters = 2, min_clu_perc = 0.10, show = FALSE) {
      # check the input exists
      ensurer::ensure_that(samples.tb, !purrr::is_null(.),
                           err_desc = "sits_patterns: input data not provided")
@@ -31,12 +30,22 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, sample_freq
      if (purrr::is_null (bands)) bands <- sits_bands(samples.tb)
 
      # prune the samples to remove all samples greater than 365 days
-     samples.tb <- sits_prune(samples.tb)
+     samples.tb <- sits_prune(samples.tb, interval = "365 days")
+
+     # align all samples to the same time series intervals
+     sample_dates <- sits_dates (samples.tb[1,])
+     samples.tb   <- sits_align (samples.tb, sample_dates)
+
+     # if "from" and "to" are not given, extract them from the data samples
+     if (purrr::is_null (from) || purrr::is_null (to)) {
+          from <- lubridate::as_date(utils::head(sample_dates, n = 1))
+          to   <- lubridate::as_date(utils::tail(sample_dates, n = 1))
+     }
 
      switch(method,
-            "gam"            =  { patterns.tb <- sits_patterns_gam (samples.tb, bands, sample_freq = sample_freq, pattern_freq = pattern_freq, from = from, to = to, formula = formula) },
-            "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, method = "dendogram", bands, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
-            "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, method = "centroids", bands, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
+            "gam"            =  { patterns.tb <- .sits_patterns_gam (samples.tb, bands = bands, from = from, to = to, freq = freq, formula = formula) },
+            "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram", n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
+            "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "centroids",  n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
             message (paste ("sits_patterns: valid methods are gam, dendogram, centroids", "\n", sep = ""))
             )
 
@@ -67,43 +76,24 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, sample_freq
 #'
 #' @param  samples.tb    a table in SITS format with time series to be classified using TWTDW
 #' @param  bands         the bands used to obtain the pattern
-#' @param  sample_freq   int - the interval in days for the samples
-#' @param  pattern_freq  int - the interval in days for the estimates to be generated
 #' @param  from          starting date of the estimate (month-day)
 #' @param  to            end data of the estimated (month-day)
+#' @param  freq          int - the interval in days for the estimates to be generated
 #' @param  formula       the formula to be applied in the estimate
 #' @return patterns.tb   a SITS table with the patterns
-#' @export
 #'
 #'
-sits_patterns_gam <- function (samples.tb, bands, sample_freq = 16, pattern_freq = 8, from = NULL, to = NULL, formula = y ~ s(x)){
+.sits_patterns_gam <- function (samples.tb, bands, from, to, freq, formula){
      # create a tibble to store the results
      patterns.tb <- sits_table()
 
      # what are the variables in the formula?
      vars <-  all.vars(formula)
 
-     # if dates are not given, get them from the sample data set
-     if (purrr::is_null (from) || purrr::is_null (to)) {
-          sample_dates <- sits_dates (samples.tb[1,])
-          from <- lubridate::as_date(utils::head(sample_dates, n = 1))
-          to   <- lubridate::as_date(utils::tail(sample_dates, n = 1))
-     }
-     # otherwise, get them from the from/to parameters
-     else {
-          sample_dates <- seq(from = lubridate::as_date(from),
-                              to   = lubridate::as_date(to),
-                              by   = sample_freq)
-     }
-     print(from)
-     print (to)
      # determine the sequence of prediction times
      pred_time = seq(from = lubridate::as_date(from),
                      to   = lubridate::as_date(to),
-                     by   = pattern_freq)
-
-     # align all samples
-     samples.tb <- sits_align (samples.tb, sample_dates)
+                     by   = freq)
 
      # how many different labels are there?
      labels <- dplyr::distinct (samples.tb, label)
@@ -173,51 +163,5 @@ sits_patterns_gam <- function (samples.tb, bands, sample_freq = 16, pattern_freq
                                           time_series  = ts)
           }) # for each label
 
-     return (patterns.tb)
-}
-
-#' @title Estimate a set of patterns based on a clustering
-#' @name sits_patterns_cluster
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description This function uses an algorithm that tries to create a hierarchy
-#' of groups in which, as the level in the hierarchy increases, clusters are created by merging
-#' the clusters from the next lower level, such that an ordered sequence of groupings is obtained
-#' (Hastie et al. 2009). The similarity method used is the "dtw" distance.
-#' This function uses the dendogram clustering method available in the "dtwclust" pattern
-#'
-#' @param  samples.tb    a table in SITS format with a set of labelled time series
-#' @param  method        the method to be used for classification
-#' @param  bands         the bands used to obtain the pattern
-#' @param  n_clusters    the maximum number of clusters to be identified
-#' @param  min_clu_perc  the minimum percentagem of valid cluster members, with reference to the total number of samples
-#' @param  show          show the results of the clustering algorithm?
-#' @return patterns.tb   a SITS table with the patterns
-#' @export
-sits_patterns_cluster <- function (samples.tb, method = "dendogram", bands = NULL, n_clusters = 2, min_clu_perc = 0.10, show = FALSE){
-     # create an output
-     patterns.tb <- tibble::tibble()
-
-     # if no bands are selected, use all bands
-     if (purrr::is_null (bands)) bands <- sits_bands(samples.tb)
-
-     # how many different labels are there?
-     labels <- dplyr::distinct (samples.tb, label)
-
-     for (i in 1:nrow(labels)) {
-          # get the label name as a character
-          lb <-  as.character (labels[i,1])
-
-          # filter only those rows with the same label
-          label.tb <- dplyr::filter (samples.tb, label == lb)
-          # apply the clustering method
-          if (method == "dendogram")
-               clu.tb <- sits_dendogram (label.tb, bands, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)
-          else
-               clu.tb <- sits_centroids (label.tb, bands, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)
-          # get the result
-          dplyr::bind_rows(patterns.tb, clu.tb)
-     }
      return (patterns.tb)
 }
