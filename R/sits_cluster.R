@@ -8,15 +8,16 @@
 #' clustering)
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param data.tb      a SITS tibble the list of time series to be clustered
-#' @param bands        the bands to be clusterized.
-#' @param method       string - either "dendogram" or "centroids"
-#' @param n_clusters   the number of clusters to be identified
-#' @param min_clu_perc the minimum percentage for a cluster to be valid
-#' @param show         (boolean) should the results be shown?
+#' @param data.tb        a SITS tibble the list of time series to be clustered
+#' @param bands          the bands to be clusterized.
+#' @param method         string - either "dendogram" or "centroids"
+#' @param n_clusters     the number of clusters to be identified
+#' @param min_clu_perc   the minimum percentage for a cluster to be valid
+#' @param return_members (boolean) should the results be the clusters' members instead of clusters' centroids?
+#' @param show           (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
 #' @export
-sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, min_clu_perc = 0.10, show = TRUE){
+sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, min_clu_perc = 0.10, return_members = FALSE, show = TRUE){
      ensurer::ensure_that(method, (. == "dendogram" || . == "centroids"),
                           err_desc = "sits_cluster: valid cluster methods are dendogram or centroids")
 
@@ -32,7 +33,8 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
                # filter only those rows with the same labels
                label.tb <- dplyr::filter (data.tb, label == .$label)
                # apply the clustering method
-               clu.tb <- .sits_dtwclust (label.tb, bands = bands, method, n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)
+               clu.tb <- .sits_dtwclust (label.tb, bands = bands, method, n_clusters = n_clusters,
+                                         min_clu_perc = min_clu_perc, return_members = return_members, show = show)
                # append the result
                cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
           })
@@ -48,22 +50,22 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #'
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param data.tb      a tibble the list of time series to be clustered
-#' @param bands        a vector the bands to be clusterized..
-#' @param method       string - either "dendogram" or "centroids"
-#' @param n_clusters   the number of clusters to be identified
-#' @param min_clu_perc the minimum percentage of members for a cluster to be valid
-#' @param show         (boolean) should the results be shown?
+#' @param data.tb        a tibble the list of time series to be clustered
+#' @param bands          a vector the bands to be clusterized..
+#' @param method         string - either "dendogram" or "centroids"
+#' @param n_clusters     the number of clusters to be identified
+#' @param min_clu_perc   the minimum percentage of members for a cluster to be valid
+#' @param return_members (boolean) should the results be the clusters' members instead of clusters' centroids?
+#' @param show           (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
 #'
-.sits_dtwclust <- function (data.tb, bands, method, n_clusters, min_clu_perc, show) {
+.sits_dtwclust <- function (data.tb, bands, method, n_clusters, min_clu_perc, return_members, show) {
 
      # obtain the cluster list
      if (method == "dendogram")
-          cluster.tb <- .sits_cluster_dendogram (data.tb, bands, n_clusters, min_clu_perc, show)
+          cluster.tb <- .sits_cluster_dendogram (data.tb, bands, n_clusters, min_clu_perc, return_members, show)
      else
-          cluster.tb <- .sits_cluster_partitional (data.tb, bands, n_clusters, min_clu_perc, show)
-
+          cluster.tb <- .sits_cluster_partitional (data.tb, bands, n_clusters, min_clu_perc, return_members, show)
      return (cluster.tb)
 
 }
@@ -88,7 +90,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #' @param min_clu_perc the minimum percentage of members for a cluster to be valid
 #' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-.sits_cluster_dendogram <- function (data.tb, bands, n_clusters, min_clu_perc, show){
+.sits_cluster_dendogram <- function (data.tb, bands, n_clusters, min_clu_perc, return_members, show){
      # get the values of the various time series for this band group
      values.tb <- sits_values_rows (data.tb, bands)
      clusters  <- dtwclust::dtwclust (values.tb,
@@ -99,9 +101,13 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
      # Plot the series and the obtained prototypes
      if (show) .sits_show_clusters (clusters)
 
-     return (.sits_fromClusters (data.tb, clusters, min_clu_perc, label_prefix))
-}
+     # if return_members parameter is TRUE, returns a sits samples table with updated labels
+     if (return_members)
+          return (.sits_clustersMembers (data.tb, clusters, min_clu_perc))
 
+     # else, returns cluster's centroids
+     return (.sits_fromClusters (data.tb, clusters, min_clu_perc))
+}
 #' @title Cluster a set of time series using partitional clustering
 #' @name .sits_cluster_partitional
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -119,40 +125,12 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb      a tibble the list of time series to be clustered
-#' @param band_groups  a list containing groups of bands to be clusterized. A group of bands may be a band alone (str) or a vector of bands.
+#' @param bands        a vector the bands to be clusterized.
 #' @param n_clusters   the number of clusters to be identified
-#' @param min_clu_perc the minimum percentage of members (relative to the total) for a cluster to be valid
-#' @param label_prefix a default label name to give to each created cluster. The final name will be `<label_prefix>.<#>`.
+#' @param min_clu_perc the minimum percentage of members for a cluster to be valid
 #' @param show         (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-#' @export
-#'
-sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 0.10, label_prefix = NULL, show = TRUE) {
-     if (is.null(band_groups)) {
-          band_groups <- list(sits_bands(data.tb))
-     }
-
-     # for each band, find a significant set of clusters
-     centroids.lst <- band_groups %>%
-          purrr::map (function (bands) .sits_cluster_partitional (data.tb, bands, n_clusters, perc, label_prefix))
-
-     # creates an empty sits_table to populate result
-     cluster.tb <- sits_table()
-
-     # proceed with cross join operation between bands of a given cluster
-     centroids.lst %>%
-          purrr::map (function (clu.tb) {
-               # we need store the cross join result into `cluster.tb` from outer scope (so the <<- operator)
-               # outer scope `cluster.tb` variable is updated on next map iteration (this transform our code in a recursive one)
-               # (note that this does NOT create a global variable!)
-               cluster.tb <<- sits_cross (cluster.tb, clu.tb)
-          })
-
-     return (cluster.tb)
-
-}
-
-.sits_cluster_partitional <- function (data.tb, bands, n_clusters, min_clu_perc, label_prefix = NULL, show) {
+.sits_cluster_partitional <- function (data.tb, bands, n_clusters, min_clu_perc, return_members, show) {
      # get the values of the various time series for this band group
      values.tb <- sits_values_rows (data.tb, bands)
      clusters  <- dtwclust::dtwclust (values.tb,
@@ -162,6 +140,11 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
                                       centroid = "pam",
                                       seed     = 899)
 
+     # if return_members parameter is TRUE, returns a sits samples table with updated labels
+     if (return_members)
+          return (.sits_clustersMembers (data.tb, clusters, min_clu_perc))
+
+     # else, returns cluster's centroids
      return (.sits_fromClusters (data.tb, clusters, min_clu_perc))
 }
 
@@ -178,7 +161,7 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
 #' @param clusters         a cluster structure returned from dtwclust.
 #' @param min_clu_perc     the minimum percentage of members for a cluster to be valid
 #' @return centroids.tb    a SITS table with the clusters
-.sits_fromClusters <-  function (data.tb, clusters, min_clu_perc, label_prefix = NULL) {
+.sits_fromClusters <-  function (data.tb, clusters, min_clu_perc) {
 
      # cut time series to fit in one year
      data.tb <- sits_prune(data.tb)
@@ -194,8 +177,7 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
      label_prefix <- data.tb[1,]$label[[1]]
 
      # select only significant centroids
-     centroids.lst <- clusters@centroids[order(clusters@clusinfo$size,
-                                               decreasing = TRUE)][1:num]
+     centroids.lst <- clusters@centroids[order(clusters@clusinfo$size, decreasing = TRUE)][1:num]
      # create a table to store the results
      centroids.tb <- sits_table()
 
@@ -215,7 +197,7 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
      return (centroids.tb)
 }
 #------------------------------------------------------------------
-#' @title Returns a tibble of cluster's members and its metadata.
+#' @title Returns a tibble of centroids' members and its metadata.
 #' @name .sits_clustersMembers
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -227,10 +209,7 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
 #' @param clusters         a cluster structure returned from dtwclust.
 #' @param min_clu_perc     the minimum percentage of members for a cluster to be valid
 #' @return centroids.tb    a SITS table with the clusters
-.sits_clustersMembers <-  function (data.tb, clusters, min_clu_perc, label_prefix = NULL) {
-
-     # cut time series to fit in one year
-     data.tb <- sits_prune(data.tb)
+.sits_clustersMembers <-  function (data.tb, clusters, min_clu_perc) {
 
      # what is the name(s) of the band(s)?
      bands <- colnames(clusters@centroids[[1]])
@@ -240,28 +219,17 @@ sits_centroids <- function (data.tb, band_groups = NULL, n_clusters = 4, perc = 
           .[. > as.integer (min_clu_perc * length(clusters@cluster))] %>%
           length()
 
+     # get the label from the first data sample
      label_prefix <- data.tb[1,]$label[[1]]
 
-     # select only significant centroids
-     centroids.lst <- clusters@centroids[order(clusters@clusinfo$size,
-                                               decreasing = TRUE)][1:num]
      # create a table to store the results
-     centroids.tb <- sits_table()
+     members.tb <- data.tb
 
-     purrr::map2(centroids.lst, seq_along(centroids.lst), function (ts, i) {
-          new_ts <- dplyr::select(data.tb[1,]$time_series[[1]], Index)
-          new_ts <- dplyr::bind_cols(new_ts, tibble::as_tibble(ts))
-          centroids.tb <<- tibble::add_row (centroids.tb,
-                                            longitude    = 0.0,
-                                            latitude     = 0.0,
-                                            start_date   = data.tb[1,]$start_date[[1]],
-                                            end_date     = data.tb[1,]$end_date[[1]],
-                                            label        = paste0(label_prefix, ".", i),
-                                            coverage     = data.tb[1,]$coverage[[1]],
-                                            time_series  = list(new_ts))
-     })
+     # assigns new labels to each clusters' members
+     members.tb$label <- paste0(label_prefix, ".", order(clusters@clusinfo$size, decreasing = TRUE)[which(1:num %in% clusters@cluster)])
 
-     return (centroids.tb)
+     # returns only the members of significant clusters
+     return (members.tb[which(clusters@cluster %in% order(clusters@clusinfo$size, decreasing = TRUE)[1:num]),])
 }
 #' @title Plots a cluster produced by the dtwclust package
 #' @name .sits_showClusters
