@@ -22,7 +22,7 @@ Please see the documentation of the dtwSat package
 }
 \seealso{
 Other STIS table functions: \code{\link{sits_value_cols}},
-  \code{\link{sits_value_rows}}
+  \code{\link{sits_value_rows}}, \code{\link{sits_values}}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

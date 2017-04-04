@@ -20,7 +20,7 @@ returns a sits table with values only (colwise organised)
 }
 \seealso{
 Other STIS table functions: \code{\link{sits_table_result}},
-  \code{\link{sits_value_rows}}
+  \code{\link{sits_value_rows}}, \code{\link{sits_values}}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

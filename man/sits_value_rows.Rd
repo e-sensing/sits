@@ -22,7 +22,7 @@ require values that are rowwise organised
 }
 \seealso{
 Other STIS table functions: \code{\link{sits_table_result}},
-  \code{\link{sits_value_cols}}
+  \code{\link{sits_value_cols}}, \code{\link{sits_values}}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
