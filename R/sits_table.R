@@ -90,10 +90,13 @@ sits_values <- function(data.tb, bands = NULL, format = "CasesDatesBands"){
           # equivalent to former sits_values_cols()
           # list elements: bands, matrix's rows: dates, matrix's cols: cases
      } else if (format == "BandsDatesCases") {
-          values.lst <- data.tb$time_series %>%
-               data.frame() %>%
-               tibble::as_tibble() %>%
-               dplyr::select (dplyr::starts_with (band))
+          values.lst <- bands %>% purrr::map(function (band) {
+               data.tb$time_series %>%
+                    purrr::map(function (ts) dplyr::select(ts, dplyr::one_of(band))) %>%
+                    data.frame() %>%
+                    tibble::as_tibble() %>%
+                    as.matrix()
+          })
           # another kind of sits_values_rows()
           # used in sits_kohonen input
           # list elements: bands, matrix's rows: cases, matrix's cols: dates
