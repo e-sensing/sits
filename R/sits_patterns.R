@@ -44,8 +44,15 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
 
      switch(method,
             "gam"            =  { patterns.tb <- .sits_patterns_gam (samples.tb, bands = bands, from = from, to = to, freq = freq, formula = formula) },
-            "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram", n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
-            "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "centroids",  n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
+            "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram",
+                                                               n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
+            "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "centroids",
+                                                               n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
+            "dendo&gam"      =  {
+                 new_samples.tb <- patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram",
+                                                                n_clusters = n_clusters, min_clu_perc = min_clu_perc, return_members = TRUE, show = show)
+                 patterns.tb <- .sits_patterns_gam (new_samples.tb, bands = bands, from = from, to = to, freq = freq, formula = formula)
+                 },
             message (paste ("sits_patterns: valid methods are gam, dendogram, centroids", "\n", sep = ""))
             )
 

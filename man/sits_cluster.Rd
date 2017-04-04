@@ -4,8 +4,8 @@
 \alias{sits_cluster}
 \title{Cluster a set of satellite image time series}
 \usage{
-sits_cluster(data.tb, bands = NULL, method = "dendogram", n_clusters = 4,
-  min_clu_perc = 0.1, show = TRUE)
+sits_cluster(data.tb, bands, method = "dendogram", n_clusters = 4,
+  min_clu_perc = 0.1, return_members = FALSE, show = TRUE)
 }
 \arguments{
 \item{data.tb}{a SITS tibble the list of time series to be clustered}
@@ -17,6 +17,8 @@ sits_cluster(data.tb, bands = NULL, method = "dendogram", n_clusters = 4,
 \item{n_clusters}{the number of clusters to be identified}
 
 \item{min_clu_perc}{the minimum percentage for a cluster to be valid}
+
+\item{return_members}{(boolean) should the results be the clusters' members instead of clusters' centroids?}
 
 \item{show}{(boolean) should the results be shown?}
 }
