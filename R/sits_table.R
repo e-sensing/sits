@@ -59,6 +59,55 @@ sits_table_result <- function () {
      class (tb) <- append (class(tb), "sits_table_result")
      return (tb)
 }
+#' @title Return the values of a given SITS table as a list of matrices according to a specified format.
+#' @name sits_values
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description this function returns only the values of a sits table (according a specified format).
+#' This function is useful to use packages such as ggplot, dtwclust, or kohonen that
+#' require values that are rowwise or colwise organised.
+#'
+#' @param  data.tb    a tibble in SITS format with time series for different bands
+#' @param  bands      string - a group of bands whose values are to be extracted. If no bands is informed extract ALL bands.
+#' @param  format     string - either "CasesDatesBands" or "BandsCasesDates" or "BandsDatesCases"
+#' @return table   a tibble in SITS format with values
+#' @family   STIS table functions
+#' @export
+sits_values <- function(data.tb, bands = NULL, format = "CasesDatesBands"){
+     ensurer::ensure_that(format, . == "CasesDatesBands" || . == "BandsCasesDates" || . == "BandsDatesCases",
+                          err_desc = "sits_values: valid format parameter are 'CasesDatesBands', 'BandsCasesDates', or 'BandsDatesCases'")
+
+     if (purrr::is_null(bands))
+          bands <- sits_bands(data.tb)
+
+     # equivalent to former sits_values_rows()
+     # used in sits_cluster input data
+     # list elements: bands, matrix's rows: cases, matrix's cols: dates
+     if (format == "CasesDatesBands") {
+          values.lst <- data.tb$time_series %>%
+               purrr::map(function (ts) data.matrix(dplyr::select(ts, dplyr::one_of(bands))))
+          # equivalent to former sits_values_cols()
+          # list elements: bands, matrix's rows: dates, matrix's cols: cases
+     } else if (format == "BandsDatesCases") {
+          values.lst <- data.tb$time_series %>%
+               data.frame() %>%
+               tibble::as_tibble() %>%
+               dplyr::select (dplyr::starts_with (band))
+          # another kind of sits_values_rows()
+          # used in sits_kohonen input
+          # list elements: bands, matrix's rows: cases, matrix's cols: dates
+     } else {
+          values.lst <- bands %>% purrr::map(function (band) {
+               data.tb$time_series %>%
+                    purrr::map(function (ts) dplyr::select(ts, dplyr::one_of(band))) %>%
+                    data.frame() %>%
+                    tibble::as_tibble() %>%
+                    as.matrix() %>% t()
+          })
+     }
+     return (values.lst)
+}
 #' @title Return the values of one band of a SITS table
 #' @name sits_value_rows
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
