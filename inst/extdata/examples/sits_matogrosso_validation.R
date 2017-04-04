@@ -39,4 +39,4 @@ mt_cm <- sits_relabel (matogrosso.tb,
                        conv = mt_conv.lst)
 
 cm_centroids <- sits_validate (matogrosso.tb, method = "centroids", bands = c("ndvi","evi", "nir"),
-                                         times = 100, perc = 0.5, file = "./mt_cm_centroids.json")
+                                         times = 1, perc = 0.5, file = "./mt_cm_centroids.json")
