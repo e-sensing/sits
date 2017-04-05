@@ -24,6 +24,7 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @import     magrittr
 #' @import     dtwclust
 #' @import     dtwSat
+#' @importFrom kohonen supersom somgrid
 #' @importFrom ensurer ensure_that ensure check check_that
 #' @importFrom dplyr bind_rows contains distinct do filter cross_join inner_join left_join matches mutate num_range one_of rename rename_ rowwise select starts_with transmute
 #' @importFrom readr cols  col_integer col_double col_date col_character read_csv write_lines

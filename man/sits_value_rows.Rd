@@ -26,4 +26,6 @@ Other STIS table functions: \code{\link{sits_table_result}},
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

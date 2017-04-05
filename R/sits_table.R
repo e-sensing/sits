@@ -70,13 +70,13 @@ sits_table_result <- function () {
 #'
 #' @param  data.tb    a tibble in SITS format with time series for different bands
 #' @param  bands      string - a group of bands whose values are to be extracted. If no bands is informed extract ALL bands.
-#' @param  format     string - either "CasesDatesBands" or "BandsCasesDates" or "BandsDatesCases"
+#' @param  format     string - either "cases_dates_bands" or "bands_cases_dates" or "bands_dates_cases"
 #' @return table   a tibble in SITS format with values
 #' @family   STIS table functions
 #' @export
-sits_values <- function(data.tb, bands = NULL, format = "CasesDatesBands"){
-     ensurer::ensure_that(format, . == "CasesDatesBands" || . == "BandsCasesDates" || . == "BandsDatesCases",
-                          err_desc = "sits_values: valid format parameter are 'CasesDatesBands', 'BandsCasesDates', or 'BandsDatesCases'")
+sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
+     ensurer::ensure_that(format, . == "cases_dates_bands" || . == "bands_cases_dates" || . == "bands_dates_cases",
+                          err_desc = "sits_values: valid format parameter are 'cases_dates_bands', 'bands_cases_dates', or 'bands_dates_cases'")
 
      if (purrr::is_null(bands))
           bands <- sits_bands(data.tb)
@@ -84,23 +84,13 @@ sits_values <- function(data.tb, bands = NULL, format = "CasesDatesBands"){
      # equivalent to former sits_values_rows()
      # used in sits_cluster input data
      # list elements: bands, matrix's rows: cases, matrix's cols: dates
-     if (format == "CasesDatesBands") {
+     if (format == "cases_dates_bands") {
           values.lst <- data.tb$time_series %>%
                purrr::map(function (ts) data.matrix(dplyr::select(ts, dplyr::one_of(bands))))
-          # equivalent to former sits_values_cols()
-          # list elements: bands, matrix's rows: dates, matrix's cols: cases
-     } else if (format == "BandsDatesCases") {
-          values.lst <- bands %>% purrr::map(function (band) {
-               data.tb$time_series %>%
-                    purrr::map(function (ts) dplyr::select(ts, dplyr::one_of(band))) %>%
-                    data.frame() %>%
-                    tibble::as_tibble() %>%
-                    as.matrix()
-          })
-          # another kind of sits_values_rows()
-          # used in sits_kohonen input
-          # list elements: bands, matrix's rows: cases, matrix's cols: dates
-     } else {
+     # another kind of sits_values_rows()
+     # used in sits_kohonen input
+     # list elements: bands, matrix's rows: cases, matrix's cols: dates
+     } else if (format == "bands_cases_dates") {
           values.lst <- bands %>% purrr::map(function (band) {
                data.tb$time_series %>%
                     purrr::map(function (ts) dplyr::select(ts, dplyr::one_of(band))) %>%
@@ -108,12 +98,25 @@ sits_values <- function(data.tb, bands = NULL, format = "CasesDatesBands"){
                     tibble::as_tibble() %>%
                     as.matrix() %>% t()
           })
+          names(values.lst) <- bands
+     # equivalent to former sits_values_cols()
+     # list elements: bands, matrix's rows: dates, matrix's cols: cases
+     } else if (format == "bands_dates_cases") {
+          values.lst <- bands %>% purrr::map(function (band) {
+               data.tb$time_series %>%
+                    purrr::map(function (ts) dplyr::select(ts, dplyr::one_of(band))) %>%
+                    data.frame() %>%
+                    tibble::as_tibble() %>%
+                    as.matrix()
+          })
+          names(values.lst) <- bands
      }
      return (values.lst)
 }
 #' @title Return the values of one band of a SITS table
 #' @name sits_value_rows
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description this function returns only the values of a sits table (rowwise organized).
 #' This function is useful to use packages such as ggplot and dtwclust that
@@ -137,6 +140,7 @@ sits_values_rows <- function (data.tb, bands) {
 
 #' @title Return the values of one band of a SITS table colwise organised
 #' @name sits_value_cols
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description returns a sits table with values only (colwise organised)
@@ -260,6 +264,13 @@ sits_merge <-  function(sits1.tb, sits2.tb) {
      # are the names of the bands different?
      ensurer::ensure_that(sits1.tb, !(TRUE %in% (sits_bands(.) %in% sits_bands(sits2.tb))),
                            err_desc = "sits_merge: cannot merge two sits tables with bands with the same names")
+
+     # if some parameter is empty returns the another one
+     if (nrow(sits1.tb) == 0)
+          return (sits2.tb)
+     if (nrow(sits2.tb) == 0)
+          return (sits1.tb)
+
      # merge the time series
      merge_one <-  function (ts1, ts2) {
           ts3 <- dplyr::left_join (ts1, ts2, by = "Index")

@@ -5,7 +5,9 @@
 \title{Cluster a set of satellite image time series}
 \usage{
 sits_cluster(data.tb, bands, method = "dendogram", n_clusters = 4,
-  min_clu_perc = 0.1, return_members = FALSE, show = TRUE)
+  grouping_method = "ward.D2", min_clu_perc = 0.1, grid_xdim = 5,
+  grid_ydim = 5, rlen = 100, alpha = c(0.05, 0.01),
+  return_members = FALSE, show = TRUE)
 }
 \arguments{
 \item{data.tb}{a SITS tibble the list of time series to be clustered}
@@ -16,7 +18,17 @@ sits_cluster(data.tb, bands, method = "dendogram", n_clusters = 4,
 
 \item{n_clusters}{the number of clusters to be identified}
 
+\item{grouping_method}{the agglomeration method to be used. Any `hclust` method (see `hclust`).}
+
 \item{min_clu_perc}{the minimum percentage for a cluster to be valid}
+
+\item{grid_xdim}{x dimension of the SOM grid}
+
+\item{grid_ydim}{y dimension of the SOM grid}
+
+\item{rlen}{the number of times the complete data set will be presented to the SOM grid}
+
+\item{alpha}{learning rate, a vector of two numbers indicating the amount of change. Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
 
 \item{return_members}{(boolean) should the results be the clusters' members instead of clusters' centroids?}
 
