@@ -4,32 +4,45 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description This function uses package "dtwclust" to do time series clustering.
-#' There are two options: "dendogram" (hierarchical clustering) and "controids" (positional
-#' clustering)
-#' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
+#' There are four options: "dendogram" (hierarchical clustering), "controids" (positional
+#' clustering), "kohonen" (self-organized maps), and "koho&dogram" (self-organized maps fallowed by a dendogram).
+#' @references `dtwclust` package (https://CRAN.R-project.org/package=dtwclust), `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 #'
 #' @param data.tb         a SITS tibble the list of time series to be clustered
 #' @param bands           the bands to be clusterized.
-#' @param method          string - either "dendogram" or "centroids"
-#' @param n_clusters      the number of clusters to be identified
-#' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`).
-#' @param min_clu_perc    the minimum percentage for a cluster to be valid
-#' @param grid_xdim       x dimension of the SOM grid
-#' @param grid_ydim       y dimension of the SOM grid
-#' @param rlen            the number of times the complete data set will be presented to the SOM grid
-#' @param alpha           learning rate, a vector of two numbers indicating the amount of change. Default is to decline linearly from 0.05 to 0.01 over rlen updates.
-#' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids?
-#' @param show            (boolean) should the results be shown?
+#' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'koho&dogram'.
+#' @param n_clusters      the number of clusters to be croped from hierarchical clustering (ignored in `kohonen` method). Default is 2.
+#' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
+#' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.
+#' @param koh_ygrid       y dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.
+#' @param koh_rlen        the number of times the complete data set will be presented to the SOM grid
+#' (used only in `kohonen` or `koho&dogram` methods). Defaul is 100.
+#' @param koh_alpha       learning rate, a vector of two numbers indicating the amount of change.
+#' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
+#' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids? Default is FALSE.
+#' @param unsupervised    (boolean) should labels be ignored in clustering algorithms?
+#' If `return_members` parameter is TRUE, resulting sits table will gain an extra column called `original_label` with all original labels.
+#' This column may be useful to measure confusion between clusters' members. Default is FALSE.
+#' @param show            (boolean) should the results be shown? Default is TRUE.
 #' @return clusters.tb a SITS tibble with the clusters
 #' @export
-sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, grouping_method = "ward.D2", min_clu_perc = 0.10,
-                          grid_xdim = 5, grid_ydim = 5, rlen = 100, alpha = c(0.05, 0.01),
-                          return_members = FALSE, show = TRUE){
+sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, grouping_method = "ward.D2",
+                          koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
+                          return_members = FALSE, unsupervised = FALSE, show = TRUE) {
+
      ensurer::ensure_that(method, (. == "dendogram" || . == "centroids" || . == "kohonen" || . == "koho&dogram"),
                           err_desc = "sits_cluster: valid cluster methods are 'dendogram', 'centroids', 'kohonen', or 'koho&dogram'.")
 
      # creates the resulting table
      cluster.tb <- sits_table()
+
+     # if unsupervised cluster is enabled, change all input labels.
+     if (unsupervised) {
+          # if return_members is True, create an new column called `old_label`
+          if (return_members)
+               data.tb$original_label <- data.tb$label
+          data.tb$label <- "Class"
+     }
 
      # how many different labels are there?
      labels <- dplyr::distinct (data.tb, label)
@@ -39,27 +52,23 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
           dplyr::do({
                # filter only those rows with the same labels
                # cut time series to fit in one year
-               label.tb <- dplyr::filter (data.tb, label == .$label) %>% sits_prune()
-
+               label.tb <- dplyr::filter (data.tb, label == .$label) #%>%
+                    #sits_prune()  ## FIX-ME! sits_prune() does not returns all time series dates!
 
                # apply the clustering method
                if (method == "dendogram")
                     clu.tb <- .sits_cluster_dendogram (label.tb, bands=bands, n_clusters=n_clusters, grouping_method=grouping_method,
-                                                       min_clu_perc=min_clu_perc, return_members=return_members, show=show)
+                                                       return_members=return_members, show=show)
                else if (method == "centroids")
                     clu.tb <- .sits_cluster_partitional (label.tb, bands=bands, n_clusters=n_clusters, grouping_method=grouping_method,
-                                                         min_clu_perc=min_clu_perc, min_clu_perc=min_clu_perc, return_members=return_members, show=show)
+                                                         return_members=return_members, show=show)
                else if (method == "kohonen")
-                    clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=grid_xdim, grid_ydim=grid_ydim,
-                                                     rlen=rlen, alpha=alpha, min_clu_perc=min_clu_perc, return_members=return_members, show=show)
+                    clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
+                                                     rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
                else if (method == "koho&dogram")
                     clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, grouping_method=grouping_method,
-                                                        grid_xdim=grid_xdim, grid_ydim=grid_ydim,
-                                                        rlen=rlen, alpha=alpha, min_clu_perc=min_clu_perc,
-                                                        return_members=return_members, show=show)
-                    # clu.tb <- .sits_cluster_kohonen (label.tb, bands, grid_xdim, grid_ydim, rlen, alpha, min_clu_perc, return_members = FALSE, show) %>%
-                    #      .sits_cluster_dendogram (label.tb, bands, n_clusters, grouping_method, min_clu_perc = 0.0,
-                    #                               return_members = return_members, show = FALSE)
+                                                        grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
+                                                        rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
 
                # append the result
                cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
@@ -80,17 +89,16 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #' The procedure is deterministic, so it will always give the same
 #' result for a chosen set of similarity measures (taken from the DTWCLUST package docs).
 #'
-#' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
+#' @references `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb         a tibble the list of time series to be clustered
 #' @param bands           a vector the bands to be clusterized.
 #' @param n_clusters      the number of clusters to be identified
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`).
-#' @param min_clu_perc    the minimum percentage of members for a cluster to be valid
 #' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show            (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-.sits_cluster_dendogram <- function (data.tb, bands, n_clusters, grouping_method, min_clu_perc, return_members, show){
+.sits_cluster_dendogram <- function (data.tb, bands, n_clusters, grouping_method, return_members, show){
      # get the values of the various time series for this band group
      values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
      clusters  <- dtwclust::dtwclust (values.tb,
@@ -104,7 +112,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 
      # if return_members parameter is TRUE, returns a sits samples table with updated labels
      # else, returns cluster's centroids
-     return (.sits_from_dtwclust (data.tb, clusters, min_clu_perc, return_members))
+     return (.sits_from_dtwclust (data.tb, clusters = clusters, return_members = return_members))
 }
 #' @title Cluster a set of time series using partitional clustering
 #' @name .sits_cluster_partitional
@@ -120,17 +128,16 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #' A prototyping function is applied to each cluster to update the corresponding centroid.
 #' Then, distances and centroids are updated iteratively until a certain number of iterations have elapsed,
 #' or no object changes clusters anymore (description extracted from dtwclust package)
-#' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
+#' @references `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb        a tibble the list of time series to be clustered
 #' @param bands          a vector the bands to be clusterized.
 #' @param n_clusters     the number of clusters to be identified
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`).
-#' @param min_clu_perc   the minimum percentage of members for a cluster to be valid
 #' @param return_members (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show           (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-.sits_cluster_partitional <- function (data.tb, bands, n_clusters, grouping_method, min_clu_perc, return_members, show) {
+.sits_cluster_partitional <- function (data.tb, bands, n_clusters, grouping_method, return_members, show) {
      # get the values of the various time series for this band group
      values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
      clusters  <- dtwclust::dtwclust (values.tb,
@@ -146,7 +153,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 
      # if return_members parameter is TRUE, returns a sits samples table with updated labels
      # else, returns cluster's centroids
-     return (.sits_from_dtwclust (data.tb, clusters, min_clu_perc, return_members))
+     return (.sits_from_dtwclust (data.tb, clusters = clusters, return_members = return_members))
 }
 #' @title Cluster a set of time series using kohonen clustering -- self organized maps (SOM)
 #' @name .sits_cluster_kohonen
@@ -161,7 +168,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #' consistent, which makes it a very useful tool in many different circumstances. Nevertheless,
 #' it is always wise to train several maps before jumping to conclusions (taken from `kohonen` package docs).
 #'
-#' @references "kohonen" package (https://CRAN.R-project.org/package=kohonen)
+#' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 #'
 #' @param data.tb        a tibble the list of time series to be clustered
 #' @param bands          a vector the bands to be clusterized.
@@ -169,11 +176,11 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #' @param grid_ydim      y dimension of the SOM grid
 #' @param rlen           the number of times the complete data set will be presented to the SOM grid
 #' @param alpha          learning rate, a vector of two numbers indicating the amount of change.
-#'                       Default is to decline linearly from 0.05 to 0.01 over rlen updates.
+#' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
 #' @param return_members (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show           (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-.sits_cluster_kohonen <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, min_clu_perc, return_members, show){
+.sits_cluster_kohonen <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, return_members, show){
 
      # get the values of the various time series for this band group
      values.tb <- sits_values (data.tb, bands, format = "bands_cases_dates")
@@ -188,7 +195,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
      if (show) .sits_kohonen_show (kohonen_obj)
 
      # if return_members parameter is TRUE, returns a sits samples table with updated labels else, returns cluster's centroids
-     return (.sits_from_kohonen (data.tb, kohonen_obj, min_clu_perc, return_members))
+     return (.sits_from_kohonen (data.tb, kohonen_obj = kohonen_obj, return_members = return_members))
 }
 #' @title Cluster a set of time series using kohonen clustering followed by a hierarchical clustering over resulting neurons
 #' @name .sits_cluster_kohodogram
@@ -199,24 +206,26 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #'
 #' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen), `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param data.tb         a tibble the list of time series to be clustered
+#' @param data.tb         a tibble the list of time series to be clustered.
 #' @param bands           a vector the bands to be clusterized.
-#' @param grid_xdim       x dimension of the SOM grid
-#' @param grid_ydim       y dimension of the SOM grid
-#' @param rlen            the number of times the complete data set will be presented to the SOM grid
+#' @param grid_xdim       x dimension of the SOM grid.
+#' @param grid_ydim       y dimension of the SOM grid.
+#' @param rlen            the number of times the complete data set will be presented to the SOM grid.
 #' @param alpha           learning rate, a vector of two numbers indicating the amount of change.
-#'                        Default is to decline linearly from 0.05 to 0.01 over rlen updates.
-#' @param n_clusters      the number of clusters to be identified
+#' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
+#' @param n_clusters      the number of clusters to be identified.
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`).
 #' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show            (boolean) should the results be shown?
-#' @return clusters.tb a SITS tibble with the clusters
-.sits_cluster_kohodogram <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, n_clusters, grouping_method, min_clu_perc, return_members, show){
+#' @return result.tb a SITS tibble with the clusters
+.sits_cluster_kohodogram <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, n_clusters, grouping_method, return_members, show){
 
      # get the values of the various time series for this band group
      values.tb <- sits_values (data.tb, bands, format = "bands_cases_dates")
 
+     # create a initial random grid
      grid <- kohonen::somgrid(xdim = grid_xdim, ydim = grid_ydim, topo = "rectangular")
+
      kohonen_obj  <- kohonen::supersom (values.tb, grid=grid,
                                         rlen = rlen, alpha = alpha,
                                         keep.data = TRUE,
@@ -226,18 +235,21 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
      if (show) .sits_kohonen_show (kohonen_obj)
 
      # returns kohonen's neurons
-     neurons.tb <- .sits_from_kohonen (data.tb, kohonen_obj, min_clu_perc, return_members = FALSE)
+     neurons.tb <- .sits_from_kohonen (data.tb, kohonen_obj, return_members = FALSE)
+
      # get label prefix to form sub-class label result. This allows dendogram performs a unattended clustering.
      neurons.tb$label <- "Class"
 
      # pass neurons to dendogram clustering
      clusters.tb <- .sits_cluster_dendogram (neurons.tb, bands = bands, n_clusters = n_clusters,
-                                             grouping_method = grouping_method, min_clu_perc = 0, return_members = TRUE, show = show)
+                                             grouping_method = grouping_method, return_members = TRUE, show = show)
 
+     # return a sits table with all input data with new labels
      if (return_members) {
           # set clusters' labels to result data
           result.tb <- data.tb
           result.tb$label <- clusters.tb$label[kohonen_obj$unit.classif]
+     # return a sits table with clusters' centroids
      } else
           result.tb <- clusters.tb
 
@@ -254,45 +266,30 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #'
 #' @param data.tb          a tibble with input data of dtwclust.
 #' @param clusters         a cluster structure returned from dtwclust.
-#' @param min_clu_perc     the minimum percentage of members for a cluster to be valid
 #' @param return_members   (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @return result.tb       a SITS table with the clusters or clusters' members
-.sits_from_dtwclust <-  function (data.tb, clusters, min_clu_perc, return_members) {
+.sits_from_dtwclust <-  function (data.tb, clusters, return_members) {
 
-     # cut time series to fit in one year
-     data.tb <- sits_prune(data.tb)
-
-     # how many clusters have more than 10% of the total samples?
-     num <- clusters@clusinfo$size %>%
-          .[. > as.integer (min_clu_perc * length(clusters@cluster))] %>%
-          length()
-
+     # get prefix label to be used in clusters' labels
      label_prefix <- data.tb[1,]$label[[1]]
 
-     # select only significant centroids
-     cluster_ordering <- order(clusters@clusinfo$size, decreasing = TRUE)
-
-
+     # return a sits table with all input data with new labels
      if (return_members){
           # create a table to store the results
           members.tb <- data.tb
-          members.tb$label <- paste0(label_prefix, ".", cluster_ordering[clusters@cluster])
-          # members.tb$label <- paste0(label_prefix, ".", clusters@cluster)
 
-          # returns only the members of significant clusters
-          result.tb <- members.tb[which(clusters@cluster %in% cluster_ordering[1:num]),]
+          # apply new labels according to clusters' id
+          members.tb$label <- paste0(label_prefix, ".", clusters@cluster)
 
+          result.tb <- members.tb
 
+     # return a sits table with clusters' centroids
      } else {
-          # select only the significant clusters' centroids
-          centroids.lst <- clusters@centroids[cluster_ordering][1:num]
-
           # create a table to store the results
           result.tb <- sits_table()
 
           # populates the result table with centroids
-          purrr::map2(centroids.lst, cluster_ordering, function (ts, i) {
-          # purrr::map2(clusters@centroids, seq(clusters@centroids), function (ts, i) {
+          purrr::map2(clusters@centroids, seq(clusters@centroids), function (ts, i) {
                new_ts <- dplyr::select(data.tb[1,]$time_series[[1]], Index)
                new_ts <- dplyr::bind_cols(new_ts, tibble::as_tibble(ts))
                result.tb <<- tibble::add_row (result.tb,
@@ -322,7 +319,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #' @param kohonen_obj      a kohonen structure returned from `kohonen::supersom`.
 #' @param return_members   (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @return result.tb       a SITS table with the clusters or clusters' members
-.sits_from_kohonen <-  function (data.tb, kohonen_obj, min_clu_perc, return_members) {
+.sits_from_kohonen <-  function (data.tb, kohonen_obj, return_members) {
 
      # get label prefix to form sub-class label result
      label_prefix <- data.tb[1,]$label[[1]]
@@ -333,13 +330,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
           result.tb$label <- paste0(label_prefix, ".", kohonen_obj$unit.classif)
 
      } else {
-          # # select only significant centroids
-          # neurons_size <- rle(sort(kohonen_obj$unit.classif))
-          # neurons_ordering <- neurons_size$values[order(neurons_size$length, decreasing = TRUE)]
-
-          # # select only the significant clusters' centroids
-          # neurons.lst <- purrr::map(kohonen_obj$codes, function (ts) ts[neurons_ordering,] %>% t() %>% as.data.frame())
-
+          # unpack output data provided by kohonen_obj
           neurons.lst <- purrr::map(kohonen_obj$codes, function (ts) ts %>% t() %>% as.data.frame())
 
           # populates the result table with centroids

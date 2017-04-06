@@ -113,51 +113,6 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
      }
      return (values.lst)
 }
-#' @title Return the values of one band of a SITS table
-#' @name sits_value_rows
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description this function returns only the values of a sits table (rowwise organized).
-#' This function is useful to use packages such as ggplot and dtwclust that
-#' require values that are rowwise organised
-#'
-#' @param  data.tb    a tibble in SITS format with time series for different bands
-#' @param  bands      string - a group of bands whose values are to be extracted
-#' @return table   a tibble in SITS format with values
-#' @family   STIS table functions
-#' @export
-
-sits_values_rows <- function (data.tb, bands) {
-     values.lst <- data.tb$time_series %>%
-          purrr::map(function (ts) {
-               data.matrix(dplyr::select(ts, dplyr::one_of(bands)))
-          })
-     bands_name <- paste0(bands, collapse = "$")
-     names(values.lst) <- paste0(bands_name, ".", 0:(length(values.lst)-1))
-     return (values.lst)
-}
-
-#' @title Return the values of one band of a SITS table colwise organised
-#' @name sits_value_cols
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description returns a sits table with values only (colwise organised)
-#'
-#' @param  data.tb    a tibble in SITS format with time series for different bands
-#' @param  band       string - a band whose values are to be extracted
-#' @return table   a tibble  with values
-#' @family STIS table functions
-#' @export
-
-sits_values_cols <- function (data.tb, band) {
-     values <- data.tb$time_series %>%
-          data.frame() %>%
-          tibble::as_tibble() %>%
-          dplyr::select (dplyr::starts_with (band))
-     return (values)
-}
 
 #' @title Filter bands on a SITS table
 #' @name sits_select
@@ -236,14 +191,16 @@ sits_bands <- function (data.tb) {
 #' @description  returns the labels and its counting
 #'
 #' @param data.tb     a valid sits table
-#' @return labels.tb  a tibble with the names of the labels and its counting
+#' @return result.tb  a tibble with the names of the labels and its absolute and relative frequency
 #' @export
 #'
 sits_labels <- function (data.tb) {
-     return (data.tb %>%  dplyr::group_by(label) %>% dplyr::summarize(count = n()))
+     result.tb <- data.tb %>%
+          dplyr::group_by(label) %>%
+          dplyr::summarize(count = n()) %>%
+          dplyr::mutate(frac = count / dplyr::summarise(., total = sum(count)) %>% .$total)
+     return (result.tb)
 }
-
-
 #' @title Merge two satellite image time series
 #' @name sits_merge
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
