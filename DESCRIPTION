@@ -30,6 +30,7 @@ Imports:
     ensurer,
     ggplot2,
     graphics,
+    kohonen,
     jsonlite,
     lubridate,
     methods,

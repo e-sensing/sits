@@ -113,51 +113,6 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
      }
      return (values.lst)
 }
-#' @title Return the values of one band of a SITS table
-#' @name sits_value_rows
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description this function returns only the values of a sits table (rowwise organized).
-#' This function is useful to use packages such as ggplot and dtwclust that
-#' require values that are rowwise organised
-#'
-#' @param  data.tb    a tibble in SITS format with time series for different bands
-#' @param  bands      string - a group of bands whose values are to be extracted
-#' @return table   a tibble in SITS format with values
-#' @family   STIS table functions
-#' @export
-
-sits_values_rows <- function (data.tb, bands) {
-     values.lst <- data.tb$time_series %>%
-          purrr::map(function (ts) {
-               data.matrix(dplyr::select(ts, dplyr::one_of(bands)))
-          })
-     bands_name <- paste0(bands, collapse = "$")
-     names(values.lst) <- paste0(bands_name, ".", 0:(length(values.lst)-1))
-     return (values.lst)
-}
-
-#' @title Return the values of one band of a SITS table colwise organised
-#' @name sits_value_cols
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description returns a sits table with values only (colwise organised)
-#'
-#' @param  data.tb    a tibble in SITS format with time series for different bands
-#' @param  band       string - a band whose values are to be extracted
-#' @return table   a tibble  with values
-#' @family STIS table functions
-#' @export
-
-sits_values_cols <- function (data.tb, band) {
-     values <- data.tb$time_series %>%
-          data.frame() %>%
-          tibble::as_tibble() %>%
-          dplyr::select (dplyr::starts_with (band))
-     return (values)
-}
 
 #' @title Filter bands on a SITS table
 #' @name sits_select
@@ -233,17 +188,19 @@ sits_bands <- function (data.tb) {
 #' @name sits_labels
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description  returns the labels and its counting
+#' @description  returns the labels and its respective counting and frequency.
 #'
 #' @param data.tb     a valid sits table
-#' @return labels.tb  a tibble with the names of the labels and its counting
+#' @return result.tb  a tibble with the names of the labels and its absolute and relative frequency
 #' @export
 #'
 sits_labels <- function (data.tb) {
-     return (data.tb %>%  dplyr::group_by(label) %>% dplyr::summarize(count = n()))
+     result.tb <- data.tb %>%
+          dplyr::group_by(label) %>%
+          dplyr::summarize(count = n()) %>%
+          dplyr::mutate(frac = count / dplyr::summarise(., total = sum(count)) %>% .$total)
+     return (result.tb)
 }
-
-
 #' @title Merge two satellite image time series
 #' @name sits_merge
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -524,7 +481,7 @@ sits_group_bylatlong <- function (data.tb) {
 }
 
 #' @title Sample a percentage of a time series
-#' @name sits_label_perc
+#' @name sits_label_sample
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description takes a sits table with different labels and
@@ -532,10 +489,10 @@ sits_group_bylatlong <- function (data.tb) {
 #' of the total number of samples per label
 #'
 #' @param    data.tb    tibble - input SITS table
-#' @param    perc       percentagem of samples of each label to be saved
+#' @param    frac       fraction (value between 0 and 1) of samples of each label to be saved.
 #' @return   data1.tb   tibble - the new SITS table with a fixed percentage of samples per class
 #' @export
-sits_label_perc <- function (data.tb, perc = 0.1){
+sits_label_sample <- function (data.tb, frac = 0.1){
 
      data1.tb <- sits_table()
      # how many different labels are there?
@@ -553,8 +510,29 @@ sits_label_perc <- function (data.tb, perc = 0.1){
           })
      return (data1.tb)
 }
+#' @title Get the significant labeled time series among all others labels.
+#' @name sits_extract_labels
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a sits table with `original_label` column, computes a confusion matrix
+#' between the original labels (`original_label` column) and new labels
+#'
+#' @param  data.tb        a SITS table with the data to be extracted
+#' @param  min_label_frac a decimal between 0 and 1. The minimum percentagem of valid cluster members,
+#' with reference to the total number of samples.
+sits_extract_labels <- function (data.tb, min_label_frac) {
+     # check valid min_clu_perc
+     ensurer::ensure_that(min_label_frac, . >= 0.0 && . <= 1.0,
+                          err_desc = "sits_extract_labels: invalid min_label_frac value. Value must be between 0 and 1.")
 
+     sig_labels <- sits_labels(data.tb) %>%
+          dplyr::filter(frac >= min_label_frac) %>% .$label
 
+     result.tb <- data.tb %>%
+          dplyr::filter(label %in% sig_labels)
+
+     return (result.tb)
+}
 #' @title Temporal information for a time series
 #' @name sits_time_interval
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}

@@ -22,9 +22,7 @@ This function is useful to use packages such as ggplot, dtwclust, or kohonen tha
 require values that are rowwise or colwise organised.
 }
 \seealso{
-Other STIS table functions: \code{\link{sits_table_result}},
-  \code{\link{sits_value_cols}},
-  \code{\link{sits_value_rows}}
+Other STIS table functions: \code{\link{sits_table_result}}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -36,7 +36,7 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom lubridate as_date dyears days period yday year ymd
 #' @importFrom methods new as
-#' @importFrom mgcv gam predict.gam
+#' @importFrom mgcv gam predict.gam s
 #' @importFrom ptw whit2
 #' @importFrom raster shapefile
 #' @importFrom reshape2 melt

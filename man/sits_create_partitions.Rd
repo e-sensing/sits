@@ -5,14 +5,14 @@
 \alias{.sits_create_partitions}
 \title{Create partitions of a data set}
 \usage{
-.sits_create_partitions(data.tb, times, perc)
+.sits_create_partitions(data.tb, times, frac)
 }
 \arguments{
 \item{data.tb}{a SITS table to be partitioned}
 
 \item{times}{number of iterations}
 
-\item{perc}{percentagem of original data to be extracted}
+\item{frac}{fraction of original data to be extracted. Value must be between 0 and 1.}
 }
 \description{
 Create a list of partitions of a SITS table, based on a percentage and

@@ -4,46 +4,50 @@
 \alias{sits_cluster}
 \title{Cluster a set of satellite image time series}
 \usage{
-sits_cluster(data.tb, bands, method = "dendogram", n_clusters = 4,
-  grouping_method = "ward.D2", min_clu_perc = 0.1, grid_xdim = 5,
-  grid_ydim = 5, rlen = 100, alpha = c(0.05, 0.01),
-  return_members = FALSE, show = TRUE)
+sits_cluster(data.tb, bands, method = "dendogram", n_clusters = 2,
+  grouping_method = "ward.D2", koh_xgrid = 5, koh_ygrid = 5,
+  koh_rlen = 100, koh_alpha = c(0.05, 0.01), return_members = FALSE,
+  unsupervised = FALSE, show = TRUE)
 }
 \arguments{
 \item{data.tb}{a SITS tibble the list of time series to be clustered}
 
 \item{bands}{the bands to be clusterized.}
 
-\item{method}{string - either "dendogram" or "centroids"}
+\item{method}{string - either 'dendogram', 'centroids', 'kohonen', or 'koho&dogram'.}
 
-\item{n_clusters}{the number of clusters to be identified}
+\item{n_clusters}{the number of clusters to be croped from hierarchical clustering (ignored in `kohonen` method). Default is 2.}
 
-\item{grouping_method}{the agglomeration method to be used. Any `hclust` method (see `hclust`).}
+\item{grouping_method}{the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.}
 
-\item{min_clu_perc}{the minimum percentage for a cluster to be valid}
+\item{koh_xgrid}{x dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.}
 
-\item{grid_xdim}{x dimension of the SOM grid}
+\item{koh_ygrid}{y dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.}
 
-\item{grid_ydim}{y dimension of the SOM grid}
+\item{koh_rlen}{the number of times the complete data set will be presented to the SOM grid
+(used only in `kohonen` or `koho&dogram` methods). Defaul is 100.}
 
-\item{rlen}{the number of times the complete data set will be presented to the SOM grid}
+\item{koh_alpha}{learning rate, a vector of two numbers indicating the amount of change.
+Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
 
-\item{alpha}{learning rate, a vector of two numbers indicating the amount of change. Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
+\item{return_members}{(boolean) should the results be the clusters' members instead of clusters' centroids? Default is FALSE.}
 
-\item{return_members}{(boolean) should the results be the clusters' members instead of clusters' centroids?}
+\item{unsupervised}{(boolean) should labels be ignored in clustering algorithms?
+If `return_members` parameter is TRUE, resulting sits table will gain an extra column called `original_label` with all original labels.
+This column may be useful to measure confusion between clusters' members. Default is FALSE.}
 
-\item{show}{(boolean) should the results be shown?}
+\item{show}{(boolean) should the results be shown? Default is TRUE.}
 }
 \value{
 clusters.tb a SITS tibble with the clusters
 }
 \description{
 This function uses package "dtwclust" to do time series clustering.
-There are two options: "dendogram" (hierarchical clustering) and "controids" (positional
-clustering)
+There are four options: "dendogram" (hierarchical clustering), "controids" (positional
+clustering), "kohonen" (self-organized maps), and "koho&dogram" (self-organized maps fallowed by a dendogram).
 }
 \references{
-"dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
+`dtwclust` package (https://CRAN.R-project.org/package=dtwclust), `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
