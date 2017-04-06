@@ -44,16 +44,19 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 
                # apply the clustering method
                if (method == "dendogram")
-                    clu.tb <- .sits_cluster_dendogram (label.tb, bands, n_clusters, grouping_method,
-                                                       min_clu_perc, return_members, show)
+                    clu.tb <- .sits_cluster_dendogram (label.tb, bands=bands, n_clusters=n_clusters, grouping_method=grouping_method,
+                                                       min_clu_perc=min_clu_perc, return_members=return_members, show=show)
                else if (method == "centroids")
-                    clu.tb <- .sits_cluster_partitional (label.tb, bands, n_clusters, grouping_method,
-                                                         min_clu_perc, return_members, show)
+                    clu.tb <- .sits_cluster_partitional (label.tb, bands=bands, n_clusters=n_clusters, grouping_method=grouping_method,
+                                                         min_clu_perc=min_clu_perc, min_clu_perc=min_clu_perc, return_members=return_members, show=show)
                else if (method == "kohonen")
-                    clu.tb <- .sits_cluster_kohonen (label.tb, bands, grid_xdim, grid_ydim, rlen, alpha, return_members, show)
+                    clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=grid_xdim, grid_ydim=grid_ydim,
+                                                     rlen=rlen, alpha=alpha, min_clu_perc=min_clu_perc, return_members=return_members, show=show)
                else if (method == "koho&dogram")
-                    clu.tb <- .sits_cluster_kohodogram (label.tb, bands, grid_xdim, grid_ydim, rlen, alpha,
-                                                        min_clu_perc, return_members, show)
+                    clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, grouping_method=grouping_method,
+                                                        grid_xdim=grid_xdim, grid_ydim=grid_ydim,
+                                                        rlen=rlen, alpha=alpha, min_clu_perc=min_clu_perc,
+                                                        return_members=return_members, show=show)
                     # clu.tb <- .sits_cluster_kohonen (label.tb, bands, grid_xdim, grid_ydim, rlen, alpha, min_clu_perc, return_members = FALSE, show) %>%
                     #      .sits_cluster_dendogram (label.tb, bands, n_clusters, grouping_method, min_clu_perc = 0.0,
                     #                               return_members = return_members, show = FALSE)
@@ -170,7 +173,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #' @param return_members (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show           (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-.sits_cluster_kohonen <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, return_members, show){
+.sits_cluster_kohonen <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, min_clu_perc, return_members, show){
 
      # get the values of the various time series for this band group
      values.tb <- sits_values (data.tb, bands, format = "bands_cases_dates")
@@ -185,14 +188,14 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
      if (show) .sits_kohonen_show (kohonen_obj)
 
      # if return_members parameter is TRUE, returns a sits samples table with updated labels else, returns cluster's centroids
-     return (.sits_from_kohonen (data.tb, kohonen_obj, return_members))
+     return (.sits_from_kohonen (data.tb, kohonen_obj, min_clu_perc, return_members))
 }
 #' @title Cluster a set of time series using kohonen clustering followed by a hierarchical clustering over resulting neurons
 #' @name .sits_cluster_kohodogram
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Lorena Alves, \email{lorena.santos@@inpe.br}
 #'
-#' @description Cluster time series in SOM mode followed by a hierqarchical clustering.
+#' @description Cluster time series in SOM mode followed by a hierqarchical clustering. (see `.sits_cluster_kohonen` description.)
 #'
 #' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen), `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 #'
@@ -208,7 +211,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show            (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-.sits_cluster_kohodogram <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, n_clusters, grouping_method, return_members, show){
+.sits_cluster_kohodogram <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, n_clusters, grouping_method, min_clu_perc, return_members, show){
 
      # get the values of the various time series for this band group
      values.tb <- sits_values (data.tb, bands, format = "bands_cases_dates")
@@ -222,10 +225,23 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
      # Plot the series and the obtained prototypes
      if (show) .sits_kohonen_show (kohonen_obj)
 
-     # if return_members parameter is TRUE, returns a sits samples table with updated labels else, returns cluster's centroids
-     result.tb <- .sits_from_kohonen (data.tb, kohonen_obj, return_members = FALSE)
+     # returns kohonen's neurons
+     neurons.tb <- .sits_from_kohonen (data.tb, kohonen_obj, min_clu_perc, return_members = FALSE)
+     # get label prefix to form sub-class label result. This allows dendogram performs a unattended clustering.
+     neurons.tb$label <- "Class"
 
-     ##########################
+     # pass neurons to dendogram clustering
+     clusters.tb <- .sits_cluster_dendogram (neurons.tb, bands = bands, n_clusters = n_clusters,
+                                             grouping_method = grouping_method, min_clu_perc = 0, return_members = TRUE, show = show)
+
+     if (return_members) {
+          # set clusters' labels to result data
+          result.tb <- data.tb
+          result.tb$label <- clusters.tb$label[kohonen_obj$unit.classif]
+     } else
+          result.tb <- clusters.tb
+
+     return (result.tb)
 }
 #------------------------------------------------------------------
 #' @title Returns a tibble of centroids and its metadata.
@@ -243,8 +259,8 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #' @return result.tb       a SITS table with the clusters or clusters' members
 .sits_from_dtwclust <-  function (data.tb, clusters, min_clu_perc, return_members) {
 
-     # # cut time series to fit in one year
-     # data.tb <- sits_prune(data.tb)
+     # cut time series to fit in one year
+     data.tb <- sits_prune(data.tb)
 
      # how many clusters have more than 10% of the total samples?
      num <- clusters@clusinfo$size %>%
@@ -261,9 +277,11 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
           # create a table to store the results
           members.tb <- data.tb
           members.tb$label <- paste0(label_prefix, ".", cluster_ordering[clusters@cluster])
+          # members.tb$label <- paste0(label_prefix, ".", clusters@cluster)
 
           # returns only the members of significant clusters
           result.tb <- members.tb[which(clusters@cluster %in% cluster_ordering[1:num]),]
+
 
      } else {
           # select only the significant clusters' centroids
@@ -274,6 +292,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 
           # populates the result table with centroids
           purrr::map2(centroids.lst, cluster_ordering, function (ts, i) {
+          # purrr::map2(clusters@centroids, seq(clusters@centroids), function (ts, i) {
                new_ts <- dplyr::select(data.tb[1,]$time_series[[1]], Index)
                new_ts <- dplyr::bind_cols(new_ts, tibble::as_tibble(ts))
                result.tb <<- tibble::add_row (result.tb,
@@ -303,7 +322,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
 #' @param kohonen_obj      a kohonen structure returned from `kohonen::supersom`.
 #' @param return_members   (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @return result.tb       a SITS table with the clusters or clusters' members
-.sits_from_kohonen <-  function (data.tb, kohonen_obj, return_members) {
+.sits_from_kohonen <-  function (data.tb, kohonen_obj, min_clu_perc, return_members) {
 
      # get label prefix to form sub-class label result
      label_prefix <- data.tb[1,]$label[[1]]
@@ -314,19 +333,21 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 4, 
           result.tb$label <- paste0(label_prefix, ".", kohonen_obj$unit.classif)
 
      } else {
-          # select only significant centroids
-          neurons_size <- rle(sort(kohonen_obj$unit.classif))
-          neurons_ordering <- neurons_size$values[order(neurons_size$length, decreasing = TRUE)]
+          # # select only significant centroids
+          # neurons_size <- rle(sort(kohonen_obj$unit.classif))
+          # neurons_ordering <- neurons_size$values[order(neurons_size$length, decreasing = TRUE)]
 
-          # select only the significant clusters' centroids
-          neurons.lst <- purrr::map(kohonen_obj$codes, function (ts) ts[neurons_ordering,] %>% t() %>% as.data.frame())
+          # # select only the significant clusters' centroids
+          # neurons.lst <- purrr::map(kohonen_obj$codes, function (ts) ts[neurons_ordering,] %>% t() %>% as.data.frame())
+
+          neurons.lst <- purrr::map(kohonen_obj$codes, function (ts) ts %>% t() %>% as.data.frame())
 
           # populates the result table with centroids
           result_band.lst <- purrr::map2(neurons.lst, names(neurons.lst), function (neurons.df, band) {
                # create a table to store the results
                result_band.tb <- sits_table()
 
-               purrr::map2(neurons.df, neurons_ordering, function (ts, i) {
+               purrr::map2(neurons.df, seq(neurons.df), function (ts, i) {
                     new_ts <- dplyr::select(data.tb[1,]$time_series[[1]], Index)
                     ts.tb <- tibble::as_tibble(ts)
                     names(ts.tb) <- band
