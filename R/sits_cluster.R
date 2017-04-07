@@ -185,7 +185,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
      # recalculate grid dimension if the number of neurons is greater than the number of data input cases
      #### TO-DO: Document this recalculation!
      if ((grid_xdim * grid_ydim) > nrow(data.tb)){
-          grid_xdim <- trunc(min(sqrt(nrow(data.tb) / (grid_xdim * grid_ydim) / 2) * grid_xdim, 1))
+          grid_xdim <- trunc(min(sqrt(nrow(data.tb) / (grid_xdim * grid_ydim) / 2) * grid_xdim, 2))
           grid_ydim <- trunc(min(sqrt(nrow(data.tb) / (grid_xdim * grid_ydim) / 2) * grid_ydim, 1))
      }
 
@@ -243,9 +243,6 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 
      # returns kohonen's neurons
      neurons.tb <- .sits_from_kohonen (data.tb, kohonen_obj, return_members = FALSE)
-
-     # get label prefix to form sub-class label result. This allows dendogram performs a unattended clustering.
-     neurons.tb$label <- "Class"
 
      # pass neurons to dendogram clustering
      clusters.tb <- .sits_cluster_dendogram (neurons.tb, bands = bands, n_clusters = n_clusters,

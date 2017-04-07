@@ -6,13 +6,22 @@
 library(sits)
 
 # retrieve a set of samples from a JSON file
-cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado6.json", package="sits"))
+cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado.json", package="sits"))
 
 cerrado1.tb <- dplyr::bind_rows(head(cerrado.tb, n = 20), tail (cerrado.tb, n = 20))
 
 
 # perform accuracy assessment
-cm <- sits_validate (cerrado.tb, method = "gam", bands = c("ndvi","evi", "nir"), times = 50, perc = 0.1)
+cm2 <- sits_validate (cerrado.tb, method = "gam", bands = c("ndvi","evi"), times = 25, perc = 0.3)
+
+
+cm <- sits_validate (cerrado.tb, method = "koho&dogram", bands = c("evi", "ndvi"), times = 25, perc = 0.3, n_clusters = 4,
+                     koh_xgrid = 10, koh_ygrid = 10, koh_rlen = 1000, koh_alpha = c(0.07, 0.01),
+                     min_clu_perc = 0.1, apply_gam = TRUE)
+
+pt <- sits_patterns (cerrado.tb, method = "koho&dogram", bands = c("evi", "ndvi"), n_clusters = 4,
+                     koh_xgrid = 10, koh_ygrid = 10, koh_rlen = 1000, koh_alpha = c(0.07, 0.01),
+                     min_clu_perc = 0.1, apply_gam = TRUE)
 
 # Accuracy (PCC): 94.1460506706408%
 # Cohen's Kappa: 0.882

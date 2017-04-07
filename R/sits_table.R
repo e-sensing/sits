@@ -505,7 +505,7 @@ sits_label_sample <- function (data.tb, frac = 0.1){
                # filter only those rows with the same label
                frac.tb <- data.tb %>%
                     dplyr::filter (label == lb) %>%
-                    dplyr::sample_frac (size = perc)
+                    dplyr::sample_frac (size = frac)
                data1.tb <<- dplyr::bind_rows(data1.tb, frac.tb)
           })
      return (data1.tb)

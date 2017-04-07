@@ -64,22 +64,22 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
             "gam"            =  { patterns.tb <- .sits_patterns_gam (samples.tb, bands = bands, from = from, to = to, freq = freq, formula = formula) },
             "dendogram"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram",
-                                              n_clusters = n_clusters, grouping_method = grouping_method, return_members = apply_gam, show = show)
+                                              n_clusters = n_clusters, grouping_method = grouping_method, return_members = apply_gam, unsupervised = FALSE, show = show)
             },
             "centroids"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "centroids",
-                                              n_clusters = n_clusters, grouping_method = grouping_method, return_members = apply_gam, show = show)
+                                              n_clusters = n_clusters, grouping_method = grouping_method, return_members = apply_gam, unsupervised = FALSE, show = show)
                  },
             "kohonen"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "kohonen",
                                               koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
-                                              return_members = apply_gam, show = show)
+                                              return_members = apply_gam, unsupervised = FALSE, show = show)
             },
             "koho&dogram"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "koho&dogram",
                                               n_clusters = n_clusters, grouping_method = grouping_method,
                                               koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
-                                              return_members = apply_gam, show = show)
+                                              return_members = apply_gam, unsupervised = FALSE, show = show)
             })
 
      if (apply_gam)

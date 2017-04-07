@@ -19,6 +19,8 @@
 #' @param to              end data of the estimated in month-day (for "gam" method)
 #' @param freq            int - the interval in days for the estimates to be generated
 #' @param formula         the formula to be applied in the estimate (for "gam" method)
+#' @param tw_alpha        (double) - the steepness of the logistic function used for temporal weighting
+#' @param tw_beta         (integer) - the midpoint (in days) of the logistic function
 #' @param n_clusters      the maximum number of clusters to be identified (for clustering methods)
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
 #' @param min_clu_perc    the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
@@ -38,7 +40,7 @@
 # koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01)
 
 sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, perc = 0.1,
-                           from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
+                           from = NULL, to = NULL, freq = 8, formula = y ~ s(x), tw_alpha = -0.1, tw_beta = 100,
                            n_clusters = 2, grouping_method = "ward.D2", min_clu_perc = 0.10,
                            apply_gam = FALSE, koh_xgrid = NULL, koh_ygrid = NULL, koh_rlen = NULL, koh_alpha = c(0.05, 0.01),
                            file = "./conf_matrix.json"){
@@ -51,9 +53,9 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
                           err_desc = "sits_validate: invalid input bands")
 
      # recalculate kohonen params according to perc value
-     koh_xgrid = koh_xgrid * sqrt(perc)
-     koh_ygrid = koh_ygrid * sqrt(perc)
-     koh_rlen = koh_rlen * sqrt(perc)
+     koh_xgrid = trunc(koh_xgrid * sqrt(perc))
+     koh_ygrid = trunc(koh_ygrid * sqrt(perc))
+     koh_rlen = trunc(koh_rlen * sqrt(perc))
 
      #extract the bands to be included in the patterns
      if (purrr::is_null (bands))
@@ -71,9 +73,7 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
      ref.vec  <- c()
 
      # for each partition, fill the prediction and reference vectors
-     for (i in 1:length(partitions.lst)){
-          # retrieve the extracted partition
-          p <- partitions.lst[[i]]
+     partitions.lst %>% purrr::map(function (p) {
 
           # use the extracted partition to create the patterns
           patterns.tb <- sits_patterns(p, method = method, bands = bands, from = from, to = to, freq = freq,
@@ -89,7 +89,7 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
           # classify each row of the data
           for (i in 1:nrow(non_p.tb)) {
                # do the classification of a single time series
-               results.tb  <- sits_TWDTW (non_p.tb[i,], patterns.tb, bands)
+               results.tb  <- sits_TWDTW (non_p.tb[i,], patterns.tb, bands = bands, alpha = tw_alpha, beta = tw_beta)
                # find out the alignment associated to the minimum distance
                i <- which.min(results.tb$alignments[[1]]$distance)
                # find the predicted label
@@ -101,10 +101,11 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
                # find the reference label
                ref  <- as.character(results.tb$label)
                # increase the prediction and reference vectors
-               pred.vec[length(pred.vec) + 1] <- pred
-               ref.vec [length(ref.vec)  + 1] <- ref
+               pred.vec[length(pred.vec) + 1] <<- pred
+               ref.vec [length(ref.vec)  + 1] <<- ref
           }
-     }
+
+     })
      # create the confusion vector (predicted x reference)
      confusion.vec <- c(pred.vec, ref.vec)
      # save the confusion vector in  a JSON file

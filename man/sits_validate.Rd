@@ -6,9 +6,10 @@
 \usage{
 sits_validate(data.tb, method = "gam", bands = NULL, times = 100,
   perc = 0.1, from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
-  n_clusters = 2, grouping_method = "ward.D2", min_clu_perc = 0.1,
-  apply_gam = FALSE, koh_xgrid = NULL, koh_ygrid = NULL,
-  koh_rlen = NULL, koh_alpha = c(0.05, 0.01), file = "./conf_matrix.json")
+  tw_alpha = -0.1, tw_beta = 100, n_clusters = 2,
+  grouping_method = "ward.D2", min_clu_perc = 0.1, apply_gam = FALSE,
+  koh_xgrid = NULL, koh_ygrid = NULL, koh_rlen = NULL,
+  koh_alpha = c(0.05, 0.01), file = "./conf_matrix.json")
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
@@ -28,6 +29,10 @@ sits_validate(data.tb, method = "gam", bands = NULL, times = 100,
 \item{freq}{int - the interval in days for the estimates to be generated}
 
 \item{formula}{the formula to be applied in the estimate (for "gam" method)}
+
+\item{tw_alpha}{(double) - the steepness of the logistic function used for temporal weighting}
+
+\item{tw_beta}{(integer) - the midpoint (in days) of the logistic function}
 
 \item{n_clusters}{the maximum number of clusters to be identified (for clustering methods)}
 
