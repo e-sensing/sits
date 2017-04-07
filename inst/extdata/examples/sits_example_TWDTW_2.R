@@ -20,13 +20,12 @@ bands <- c("ndvi", "evi", "nir")
 point.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = coverage, bands = bands)
 
 # read a pattern table from a JSON file
-patterns2.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_Damien_Ieda_Rodrigo_14classes_3bands_Original_Labels_Sep.json", package="sits"))
-
+damien_ieda.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_Damien_Ieda_Rodrigo_15classes_3bands_Water.json", package="sits"))
 # plot patterns
-sits_plot (patterns2.tb, type = "patterns")
+sits_plot (damien_ieda.tb, type = "patterns")
 
 # classify samples using TWDTW
-results.tb <- sits_TWDTW(point.tb, patterns2.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
+results.tb <- sits_TWDTW(point.tb, damien_ieda.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 
 # # plot the classification
 sits_plot(results.tb, type = "classification")

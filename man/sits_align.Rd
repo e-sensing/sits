@@ -4,27 +4,23 @@
 \alias{sits_align}
 \title{Aligns dates of time series to a reference date}
 \usage{
-sits_align(data.tb, ref_date)
+sits_align(data.tb, ref_dates)
 }
 \arguments{
 \item{data.tb}{tibble - input SITS table (useful for chaining functions)}
 
-\item{ref_date}{date   - a reference date where all series will start}
+\item{ref_dates}{the dates to align the time series}
 }
 \value{
-data1.tb   tibble - the converted SITS table (useful for chaining functions)
+data1.tb      tibble - the converted SITS table (useful for chaining functions)
 }
 \description{
-\code{sits_align} convert the index of a sits time to a reference year
+converts the time indexes of a set of sits tables to a single reference year.
+This function is useful to join many time series from different years to a single year,
+which is required by methods that combine many time series, such as clustering methods.
 The reference year is taken from the date of the start of the time series
 available in the coverage.
 }
-\seealso{
-Other STIS table functions: \code{\link{sits_bands}},
-  \code{\link{sits_dates}},
-  \code{\link{sits_group_bylatlong}},
-  \code{\link{sits_rename}}, \code{\link{sits_select}},
-  \code{\link{sits_table_result}},
-  \code{\link{sits_table}}, \code{\link{sits_values_cols}},
-  \code{\link{sits_values_rows}}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

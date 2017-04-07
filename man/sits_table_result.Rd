@@ -10,20 +10,22 @@ sits_table_result()
 table  a tibble in SITS format
 }
 \description{
-\code{sits_table_result} returns an empty sits table
 A sits table is a tibble with pre-defined columns that
-has the metadata and data for each time series. The columns are
-<longitude, latitude, start_date, end_date, label, coverage, time_series, distances, matches>
+has the metadata and data for each time series.
+To include the results of the classification, this basic structure is extended with two new
+columns: distances (a list of distances to each class for each interval) and matches
+(the output of the TWDTW classifier). The resulting columns will be
+<longitude, latitude, start_date, end_date, label, coverage, time_series, distances, matches>.
 }
-\details{
-Most functions on the sits package use a sits table as input (with additional parameters)
-and a sits table as output. This allows for chaining of operation on time series
+\references{
+Please see the documentation of the dtwSat package
 }
 \seealso{
-Other STIS table functions: \code{\link{sits_align}},
-  \code{\link{sits_bands}}, \code{\link{sits_dates}},
-  \code{\link{sits_group_bylatlong}},
-  \code{\link{sits_rename}}, \code{\link{sits_select}},
-  \code{\link{sits_table}}, \code{\link{sits_values_cols}},
-  \code{\link{sits_values_rows}}
+Other STIS table functions: \code{\link{sits_value_cols}},
+  \code{\link{sits_value_rows}}
+}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Victor Maus, \email{vwmaus1@gmail.com}
 }

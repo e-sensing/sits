@@ -2,47 +2,47 @@
 % Please edit documentation in R/sits_patterns.R
 \name{sits_patterns}
 \alias{sits_patterns}
-\title{Find time series patterns to use using TWDTW (using the dtwSat package)}
+\title{Create time series patterns for classification}
 \usage{
-sits_patterns(samples.tb, method = "gam", freq = 8, from = NULL,
-  to = NULL, formula = y ~ s(x))
+sits_patterns(samples.tb, method = "gam", bands = NULL, from = NULL,
+  to = NULL, freq = 8, formula = y ~ s(x), n_clusters = 2,
+  min_clu_perc = 0.1, show = FALSE)
 }
 \arguments{
-\item{samples.tb}{a table in SITS format with time series to be classified using TWTDW}
+\item{samples.tb}{a table in SITS format with a set of labelled time series}
 
 \item{method}{the method to be used for classification}
 
+\item{bands}{the bands used to obtain the pattern}
+
+\item{from}{starting date of the estimate in month-day}
+
+\item{to}{end data of the estimated in month-day}
+
 \item{freq}{int - the interval in days for the estimates to be generated}
 
-\item{from}{starting date of the estimate (month-day)}
+\item{formula}{the formula to be applied in the estimate (for "gam" method)}
 
-\item{to}{end data of the estimated (month-day)}
+\item{n_clusters}{the maximum number of clusters to be identified (for clustering methods)}
 
-\item{formula}{the formula to be applied in the estimate}
+\item{min_clu_perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)}
+
+\item{show}{show the results of the clustering algorithm? (for clustering methods)}
 }
 \value{
 patterns.tb   a SITS table with the patterns
 }
 \description{
-\code{sits_patterns} returns a sits table with a list of patterns based on samples using a gam model
+This function allows the user to select different alternatives to define a set of
+patterns, given his samples. The alternatives are:
+"gam" - uses a generalised additive model to approximate a smooth spline for each pattern
+"dendogram" - uses a herarchical clustering method to group the patterns
+"centroids" - uses a positional clustering method to group the patterns
 }
-\details{
-A sits table has the metadata and data for each time series
-<longitude, latitude, start_date, end_date, label, coverage, time_series>
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
 
-The patterns are calculated based on a statistical model that tries to find a suitable
-for a set of samples. The idea is to use a formula of type y ~ s(x), where x is a temporal
-reference and y if the value of the signal. For each time, there will be as many predictions
-as there are sample values. Then, a statistical model such as "gam" is used to predict a suitable
-approximation that fits the assumptions of the statistical model.
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-In the current version, the only statistical model used in the "gam" (generalised additive model)
-which has the advantage of producing an approximation based on a smooth function.
-
-This method is based on the "createPatterns" method of the dtwSat package, which is also
-described in the reference paper below:
-Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
-A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.
-IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
-August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

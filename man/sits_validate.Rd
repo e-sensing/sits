@@ -4,27 +4,51 @@
 \alias{sits_validate}
 \title{validate temporal patterns}
 \usage{
-sits_validate(data.tb, times = 100, p = 0.1, ...)
+sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
+  perc = 0.1, from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
+  n_clusters = 2, min_clu_perc = 0.1, show = FALSE,
+  file = "./conf_matrix.json")
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
 
-\item{times}{Number of partitions to create.}
+\item{bands}{the bands used for classification}
 
-\item{p}{the percentage of data that goes to training.}
+\item{method}{method to create patterns ("gam", "dendogram" or "centroids")}
 
-\item{...}{other arguments to pass to \code{\link[dtwSat]{twdtwCrossValidate}}.}
+\item{times}{number of partitions to create.}
+
+\item{perc}{the percentage of data that goes to training.}
+
+\item{from}{starting date of the estimate in month-day (for "gam" method)}
+
+\item{to}{end data of the estimated in month-day (for "gam" method)}
+
+\item{freq}{int - the interval in days for the estimates to be generated}
+
+\item{formula}{the formula to be applied in the estimate (for "gam" method)}
+
+\item{n_clusters}{the maximum number of clusters to be identified (for clustering methods)}
+
+\item{min_clu_perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)}
+
+\item{show}{show the results of the clustering algorithm? (for clustering methods)}
+
+\item{file}{file to save the results}
+}
+\value{
+cm            a validation assessment
 }
 \description{
-This function calls \code{\link[dtwSat]{twdtwCrossValidate}} from \pkg{dtwSat},
-which splits the set of time series into training and validation and compute accuracy metrics.
-The function uses stratified sampling and a simple
-random sampling for each stratum. For each data partition this function
-performs a TWDTW analysis and returns the Overall Accuracy, User's Accuracy,
-Produce's Accuracy, error matrix (confusion matrix), and a \code{\link[base]{data.frame}}
-with the classification (Predicted), the reference classes (Reference),
-and the results of the TWDTW analysis.
+Splits the set of time series into training and validation and
+perform cross-validation.  For each data partition this function
+performs a classifiction and returns the Overall Accuracy, User's Accuracy,
+Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

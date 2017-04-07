@@ -1,15 +1,15 @@
-#' Create a sits table to store the time series information
+#' @title Create a sits table to store the time series information
+#' @name sits_table
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' \code{sits_table} returns an empty sits table
+#' @description this function returns an empty sits table.
 #' A sits table is a tibble with pre-defined columns that
 #' has the metadata and data for each time series. The columns are
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
-#'
 #' Most functions on the sits package use a sits table as input (with additional parameters)
-#' and a sits table as output. This allows for chaining of operation on time series
+#' and a sits table as output. This allows for chaining of operation on time series.
 #'
 #' @return table  a tibble in SITS format
-#' @family   STIS table functions
 #' @export
 
 sits_table <- function () {
@@ -26,15 +26,19 @@ sits_table <- function () {
      class (tb) <- append (class(tb), "sits_table")
      return (tb)
 }
-#' Create a sits table to store the result of TWDTW classification
+#' @title Create a sits table to store the result of TWDTW classification
+#' @name sits_table_result
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
-#' \code{sits_table_result} returns an empty sits table
-#' A sits table is a tibble with pre-defined columns that
-#' has the metadata and data for each time series. The columns are
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series, distances, matches>
+#' @description A sits table is a tibble with pre-defined columns that
+#' has the metadata and data for each time series.
+#' To include the results of the classification, this basic structure is extended with two new
+#' columns: distances (a list of distances to each class for each interval) and matches
+#' (the output of the TWDTW classifier). The resulting columns will be
+#' <longitude, latitude, start_date, end_date, label, coverage, time_series, distances, matches>.
 #'
-#' Most functions on the sits package use a sits table as input (with additional parameters)
-#' and a sits table as output. This allows for chaining of operation on time series
+#' @references Please see the documentation of the dtwSat package
 #'
 #' @return table  a tibble in SITS format
 #' @family   STIS table functions
@@ -51,39 +55,39 @@ sits_table_result <- function () {
      )
      tb <- tibble::as_tibble (df)
      tb <- tibble::add_column (tb, time_series = list())
-     tb <- tibble::add_column (tb, distances  = list())
      tb <- tibble::add_column (tb, matches    = list())
      class (tb) <- append (class(tb), "sits_table_result")
      return (tb)
 }
-#' Return the values of one band of a SITS table
+#' @title Return the values of one band of a SITS table
+#' @name sits_value_rows
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' \code{sits_value_rows} returns a sits table with values only (rowwise organized)
-#'
-#' A sits table has the metadata and data for each time series
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
+#' @description this function returns only the values of a sits table (rowwise organized).
+#' This function is useful to use packages such as ggplot and dtwclust that
+#' require values that are rowwise organised
 #'
 #' @param  data.tb    a tibble in SITS format with time series for different bands
-#' @param  band       string - a band whose values are to be extracted
+#' @param  bands      string - a group of bands whose values are to be extracted
 #' @return table   a tibble in SITS format with values
 #' @family   STIS table functions
 #' @export
 
-sits_values_rows <- function (data.tb, band) {
-     values <- data.tb$time_series %>%
-          data.frame() %>%
-          tibble::as_tibble() %>%
-          dplyr::select (dplyr::starts_with (band)) %>%
-          t()
-     return (values)
+sits_values_rows <- function (data.tb, bands) {
+     values.lst <- data.tb$time_series %>%
+          purrr::map(function (ts) {
+               data.matrix(dplyr::select(ts, dplyr::one_of(bands)))
+          })
+     bands_name <- paste0(bands, collapse = "$")
+     names(values.lst) <- paste0(bands_name, ".", 0:(length(values.lst)-1))
+     return (values.lst)
 }
 
-#' Return the values of one band of a SITS table (colwise organised)
+#' @title Return the values of one band of a SITS table colwise organised
+#' @name sits_value_cols
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' \code{sits_value_cols} returns a sits table with values only (colwise organised)
-#'
-#' A sits table has the metadata and data for each time series
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
+#' @description returns a sits table with values only (colwise organised)
 #'
 #' @param  data.tb    a tibble in SITS format with time series for different bands
 #' @param  band       string - a band whose values are to be extracted
@@ -98,16 +102,17 @@ sits_values_cols <- function (data.tb, band) {
           dplyr::select (dplyr::starts_with (band))
      return (values)
 }
-#' Filter bands on a SITS table
+
+#' @title Filter bands on a SITS table
+#' @name sits_select
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' \code{sits_select} returns a sits table with the selected bands
+#' @description returns a sits table with the selected bands
 #'
 #' @param data.tb    a sits table with the time series of the selected bands
 #' @param bands      a vector of bands
 #' @return table  a tibble in SITS format with the selected bands
-#' @family   STIS table functions
 #' @export
-
 sits_select <- function (data.tb, bands) {
      # create a new table to store the result
      new.tb <- sits_table()
@@ -115,19 +120,20 @@ sits_select <- function (data.tb, bands) {
      new.tb <- dplyr::select (data.tb, longitude, latitude, start_date, end_date, label, coverage)
      # select the chosen bands for the time series
      new.tb$time_series <- data.tb$time_series %>%
-          purrr::map (function (ts) ts <- ts [,c("Index", bands)])
+          purrr::map (function (ts) ts <- ts [, c("Index", bands)])
      # return the result
      return (new.tb)
 }
-#' Finds the names of the bands of a time series
+
+#' @title Rename bands of a sits table
+#' @name sits_rename
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' \code{sits_rename} renames the bands of a sits table
-#' This function should be used when we have processed a time series
-#' and want to give a new name to the results (e.g., "ndvi_smoothed")
+#' @description replaces the names of the bands of a satellite image time series
+#'
 #' @param data.tb      a SITS table with a list of SITS time series
 #' @param bands_new    a list of new band names
-#' @return out.tb  a SITS table with a list of renamed bands for the time series
-#' @family   STIS table functions
+#' @return out.tb      a SITS table with a list of renamed bands for the time series
 #' @export
 sits_rename <-  function (data.tb, bands_new) {
 
@@ -148,12 +154,15 @@ sits_rename <-  function (data.tb, bands_new) {
 
      return (out.tb)
 }
-#' Finds the names of the bands of a time series
+
+#' @title returns the names of the bands of a time series
+#' @name sits_bands
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' \code{sits_bands} finds the names of the bands of time series in a sits table
+#' @description  finds the names of the bands of time series in a sits table
+#'
 #' @param data.tb     a valid sits table
 #' @return names      a string vector with the names of the bands
-#' @family   STIS table functions
 #' @export
 #'
 sits_bands <- function (data.tb) {
@@ -164,14 +173,28 @@ sits_bands <- function (data.tb) {
      return (names)
 }
 
-# -----------------------------------------------------------
-#' Merge two satellite image time series
+#' @title returns the labels' count of a sits table
+#' @name sits_labels
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' \code{sits_merge} merges two STIS tables with the same spatio-temporal references
+#' @description  returns the labels and its counting
 #'
-#' #' To merge two series, we consider that they contain different
+#' @param data.tb     a valid sits table
+#' @return labels.tb  a tibble with the names of the labels and its counting
+#' @export
+#'
+sits_labels <- function (data.tb) {
+     return (data.tb %>%  dplyr::group_by(label) %>% dplyr::summarize(count = n()))
+}
+
+
+#' @title Merge two satellite image time series
+#' @name sits_merge
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function merges the time series of two STIS tables.
+#' To merge two series, we consider that they contain different
 #' attributes but refer to the same coverage, and spatio-temporal location.
-#'
 #' This function is useful to merge different bands of the same spatio-temporal locations.
 #' For example, one may want to put the raw and smoothed bands for the same set of locations
 #' in the same table.
@@ -179,10 +202,7 @@ sits_bands <- function (data.tb) {
 #' @param sits1.tb  the first SITS table to be merged
 #' @param sits2.tb  the second SITS table to be merged
 #' @return new.tb    a merged SITS tibble with a nested set of time series
-#' @keywords SITS
-#' @family   SITS table functions
 #' @export
-#'
 sits_merge <-  function(sits1.tb, sits2.tb) {
 
      # are the names of the bands different?
@@ -204,27 +224,34 @@ sits_merge <-  function(sits1.tb, sits2.tb) {
 
      return (merged.tb)
 }
-# -----------------------------------------------------------
-#' Cross join bands of two satellite image time series
+
+#' @title Cross join bands of two satellite image time series
+#' @name sits_cross
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' \code{sits_cross} Cross-join two SITS tables with the same spatio-temporal references
-#'
-#' #' To cross two series' bands, we consider that they contain DIFFERENT
-#' attributes (bands) but refer to the same coverage. We DON'T make any assumptions about their spatio-temporal location.
-#' So be careful with this function as it will cross join every time series' bands between two SITS tables entries.
-#'
+#' @description Cross-join two SITS tables with the same spatio-temporal references. To cross two series' bands,
+#' we consider that they contain different attributes (bands) but refer to the same coverage.
+#' We make no assumptions about their spatio-temporal location.
 #' This function is useful to create different bands of clusters centroids time series.
 #' For example, one may want to put evi and ndvi bands centroids together in an cross joined fashion in order to
-#' generate patterns combinations.0
+#' generate patterns combinations.
 #'
 #' @param sits1.tb  the first SITS table in wich entries will be crossed with ts2 entries
 #' @param sits2.tb  the second SITS table entries
 #' @return new.tb    a cross-joined SITS tibble with a nested set of time series
-#' @keywords SITS
-#' @family   SITS table functions
 #' @export
 #'
 sits_cross <-  function(sits1.tb, sits2.tb) {
+     # are the names of the bands different?
+     ensurer::ensure_that(sits1.tb, (length(intersect(sits_bands(.), sits_bands(sits2.tb))) == 0),
+                          err_desc = "sits_cross: cannot cross join two sits tables with bands with the same names")
+
+     # if some parameter is empty returns the another one
+     if (nrow(sits1.tb) == 0)
+          return (sits2.tb)
+     if (nrow(sits2.tb) == 0)
+          return (sits1.tb)
+
      #first, add `cross_join` field in order to proceed with dplyr::inner_join (see bellow)
      sits1.data <- sits1.tb %>%
           dplyr::mutate (cross_join = 0)
@@ -242,7 +269,7 @@ sits_cross <-  function(sits1.tb, sits2.tb) {
 
      # fourth, do a cross join, removes `cross_join` field, and adds a `cluster_id` field to distinct each cluster
      # (this will be use to nest time_series in crossed.tb -- see bellow)
-     crossed.tb <<- sits1.data %>%
+     crossed.tb <- sits1.data %>%
           dplyr::inner_join(sits2.data, by='cross_join') %>%
           dplyr::select(-cross_join) %>%
           dplyr::mutate(cluster_id = 1:nrow(.))
@@ -251,65 +278,132 @@ sits_cross <-  function(sits1.tb, sits2.tb) {
      crossed.tb <- tidyr::unnest(crossed.tb) %>%
           tidyr::nest(-latitude, -longitude, -start_date, -end_date, -label, -coverage, -cluster_id, .key = "time_series") %>%
           dplyr::select(-cluster_id) %>%
-          dplyr::mutate(latitude = 0.0, longitude = 0.0, label = paste(.$label, "_", as.character(1:nrow(.)), sep = ""))
+          dplyr::mutate(latitude = 0.0, longitude = 0.0, label = paste(.$label, ".", as.character(1:nrow(.)), sep = ""))
 
      # we have a sits tibble with all cross-joined bands centroids with subclass labels
      return(crossed.tb)
 }
-#' Return the dates of a sits table
+#' @title Return the dates of a sits table
+#' @name sits_dates
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' \code{sits_dates} returns a sits table with dates only (colwise organised)
-#'
-#' A sits table has the metadata and data for each time series
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
+#' @description returns a vector containing the dates of a sits table
 #'
 #' @param  data.tb a tibble in SITS format with time series for different bands
 #' @return table   a tibble in SITS format with values of time indexes
-#' @family   STIS table functions
 #' @export
-
 sits_dates <- function (data.tb) {
      values <- data.tb$time_series %>%
           data.frame() %>%
           tibble::as_tibble() %>%
-          dplyr::select (dplyr::starts_with ("Index"))
+          dplyr::select (dplyr::starts_with ("Index")) %>%
+          t() %>%
+          as.vector() %>%
+          lubridate::as_date()
      return (values)
 }
+
+#' @title Aligns dates of time series to a reference date
+#' @name sits_align
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' Aligns dates of time series to a reference date
-#'
-#' \code{sits_align} convert the index of a sits time to a reference year
+#' @description converts the time indexes of a set of sits tables to a single reference year.
+#' This function is useful to join many time series from different years to a single year,
+#' which is required by methods that combine many time series, such as clustering methods.
 #' The reference year is taken from the date of the start of the time series
 #' available in the coverage.
 #'
-#'
-#' @param    data.tb    tibble - input SITS table (useful for chaining functions)
-#' @param    ref_date   date   - a reference date where all series will start
-#' @return   data1.tb   tibble - the converted SITS table (useful for chaining functions)
-#' @family   STIS table functions
+#' @param  data.tb       tibble - input SITS table (useful for chaining functions)
+#' @param  ref_dates     the dates to align the time series
+#' @return data1.tb      tibble - the converted SITS table (useful for chaining functions)
 #' @export
 #'
-sits_align <- function (data.tb, ref_date) {
-     ts <- data.tb$time_series
-     # convert the time index to a reference year
-     ts1 <- ts %>%
-          purrr::map (function (t) {
-               df <- as.data.frame(t)
-               start_date <- as.Date(df[1,"Index"])
-               if (abs (lubridate::yday(start_date) - lubridate::yday(ref_date)) > 2) {
-                    print (start_date, ref_date)
-                    message (paste ("sits_align: time series do not start at the same date"))
+sits_align <- function (data.tb, ref_dates) {
+
+     # function to shift a time series in time
+     shift_ts <- function(d, k) dplyr::bind_rows(utils::tail(d,k), utils::head(d,-k))
+
+     # get the reference date
+     start_date <- lubridate::as_date(ref_dates[1])
+     # create an output table
+     data1.tb <- sits_table()
+
+     for (i in 1:nrow(data.tb)) {
+               # extract the time series
+               row <- data.tb[i,]
+               ts <- row$time_series[[1]]
+               # rows that do not match the number of reference dates are discarded
+               if(length(ref_dates) != nrow(ts)) {
+                    next
                }
-               dplyr::mutate (t, Index = Index - lubridate::ymd(start_date) + lubridate::ymd (ref_date))
-          })
-     data.tb$time_series <- ts1
-     return (data.tb)
+               # in what direction do we need to shift the time series?
+               sense <- lubridate::yday(lubridate::as_date (ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
+               # find the date of minimum distance to the reference date
+               idx <- which.min(abs((lubridate::as_date (ts$Index) - lubridate::as_date(start_date))/lubridate::ddays(1)))
+               # do we shift time up or down?
+               if (sense < 0) shift <- -(idx - 1) else shift <- (idx - 1)
+               # shift the time series to match dates
+               if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
+               # convert the time index to a reference year
+               first_date <- lubridate::as_date(ts[1,]$Index)
+               # change the dates to the reference dates
+               ts1 <- dplyr::mutate (ts, Index = ref_dates)
+               # save the resulting row in the output table
+               row$time_series[[1]] <- ts1
+               row$start_date <- lubridate::as_date(ref_dates[1])
+               row$end_date   <- ref_dates[length(ref_dates)]
+               data1.tb <- dplyr::bind_rows(data1.tb, row)
+          }
+     return (data1.tb)
 }
 
+#' @title Prunes dates of time series to fit an interval
+#' @name sits_prune
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' Groups different time series for the same lat/long coordinate
+#' @description prunes the times series contained a set of sits tables
+#' to an interval. This function is useful to constrain the different samples
+#' of land cover to the same interval (usually, one year)
 #'
-#' \code{sits_group_bylatlong} takes a sits table in which different time references
+#' @param    data.tb    tibble - input SITS table
+#' @param    interval    a string describing the interval (in days)
+#' @return   data1.tb   tibble - the converted SITS table
+#' @export
+#'
+sits_prune <- function (data.tb, interval = "365 days") {
+     ensurer::ensure_that (data.tb, !purrr::is_null(.),
+                           err_desc = "sits_prune: input data not provided")
+
+     data1.tb <- sits_table()
+     data.tb %>%
+          purrr::by_row (function (row) {
+               ts <- row$time_series[[1]]
+               if (lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date) >=
+                   lubridate::as.duration(interval)) {
+                    # extract the time series
+                    ts <- row$time_series[[1]]
+                    # find the first date which exceeds the required interval
+                    idx <- which.max (lubridate::as_date(ts$Index) - lubridate::as_date(row$start_date)
+                                      >= lubridate::as.duration(interval))
+                    # prune the time series to fit inside the required interval
+                    ts1 <- ts[1:(idx - 1),]
+                    # save the pruned time series
+                    row$time_series[[1]] <- ts1
+                    # store the new end date
+                    row$end_date <- ts1[nrow(ts1),]$Index
+               }
+               # store the resulting row in the SITS table
+               data1.tb <<- dplyr::bind_rows(data1.tb, row)
+     })
+
+     return (data1.tb)
+}
+
+#' @title Group different time series for the same lat/long coordinate
+#' @name sits_group_bylatlong
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Takes a sits table in which different time references
 #' for the same lat/long coordinate has been separated, and groups them together.
 #' This function is useful por plotting together all time series associated to
 #' the same location and is also useful to regroup series that have been split
@@ -317,8 +411,6 @@ sits_align <- function (data.tb, ref_date) {
 #'
 #' @param    data.tb    tibble - input SITS table
 #' @return   data1.tb   tibble - the converted SITS table with time series grouped by latlong
-#' @keywords STIS
-#' @family   STIS table functions
 #' @export
 #'
 sits_group_bylatlong <- function (data.tb) {
@@ -328,8 +420,8 @@ sits_group_bylatlong <- function (data.tb) {
      locs <- dplyr::distinct(data.tb, latitude, longitude)
 
      # process each lat/long location
-     for (i in 1:nrow(locs)) {
-          loc <- locs[i,]
+     locs %>%
+          purrr::by_row ( function (loc) {
                long = as.double (loc$longitude) # select longitude
                lat  = as.double (loc$latitude)  # select latitude
                # filter only those rows with the same label
@@ -343,19 +435,20 @@ sits_group_bylatlong <- function (data.tb) {
 
                # are there more time series for the same location?
                if (nrow(rows) > 1) {
-                    for (i in 2:nrow(rows))  {
-                         row <- rows[i,]
-                         # adjust the start and end dates
-                         if (row$start_date < start_date) start_date <- row$start_date
-                         if (row$end_date   > end_date)   end_date   <- row$end_date
-                         # get the time series and join it with the previous ones
-                         t <- row$time_series[[1]]
-                         time_series <- dplyr::bind_rows(time_series, t)
-                    }
+                    rows %>%
+                         utils::tail (n = -1) %>%
+                         purrr::by_row (function(row) {
+                              # adjust the start and end dates
+                              if (row$start_date < start_date) start_date <- row$start_date
+                              if (row$end_date   > end_date)   end_date   <- row$end_date
+                              # get the time series and join it with the previous ones
+                              t <- row$time_series[[1]]
+                              time_series <<- dplyr::bind_rows(time_series, t)
+                         })
                }
                ts.lst <- tibble::lst()
                ts.lst[[1]] <- time_series
-               out.tb <- tibble::add_row (out.tb,
+               out.tb <<- tibble::add_row (out.tb,
                                   longitude    = long,
                                   latitude     = lat,
                                   start_date   = as.Date(start_date),
@@ -363,6 +456,56 @@ sits_group_bylatlong <- function (data.tb) {
                                   label        = "NoClass",
                                   coverage     = rows[1,]$coverage,
                                   time_series  = ts.lst)
-     }
+     })
      return (out.tb)
 }
+
+#' @title Sample a percentage of a time series
+#' @name sits_label_perc
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description takes a sits table with different labels and
+#' returns a new table. For each label, this new table contains a percentage
+#' of the total number of samples per label
+#'
+#' @param    data.tb    tibble - input SITS table
+#' @param    perc       percentagem of samples of each label to be saved
+#' @return   data1.tb   tibble - the new SITS table with a fixed percentage of samples per class
+#' @export
+sits_label_perc <- function (data.tb, perc = 0.1){
+
+     data1.tb <- sits_table()
+     # how many different labels are there?
+     labels <- dplyr::distinct (data.tb, label)
+
+     labels %>%
+          purrr::by_row( function (r){
+               # get the label name as a character
+               lb <-  as.character (r$label)
+               # filter only those rows with the same label
+               frac.tb <- data.tb %>%
+                    dplyr::filter (label == lb) %>%
+                    dplyr::sample_frac (size = perc)
+               data1.tb <<- dplyr::bind_rows(data1.tb, frac.tb)
+          })
+     return (data1.tb)
+}
+
+
+#' @title Temporal information for a time series
+#' @name sits_time_interval
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description finds out the temporal interval of the time series of the data
+#'
+#' @param data.tb  a sits tibble
+#' @return ndays   number of days covered by the time series
+#' @export
+sits_time_interval <-  function (data.tb){
+     ensurer::ensure_that(data.tb, nrow(.) == 1,
+                           err_dec = "sits_time_interval - works with one row at a time")
+     ndays <-  (lubridate::as_date(data.tb[1,]$end_date) -
+                     lubridate::as_date(data.tb[1,]$start_date))/lubridate::ddays(1)
+     return (ndays)
+}
+

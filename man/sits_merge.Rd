@@ -15,17 +15,13 @@ sits_merge(sits1.tb, sits2.tb)
 new.tb    a merged SITS tibble with a nested set of time series
 }
 \description{
-\code{sits_merge} merges two STIS tables with the same spatio-temporal references
-}
-\details{
-#' To merge two series, we consider that they contain different
+This function merges the time series of two STIS tables.
+To merge two series, we consider that they contain different
 attributes but refer to the same coverage, and spatio-temporal location.
-
 This function is useful to merge different bands of the same spatio-temporal locations.
 For example, one may want to put the raw and smoothed bands for the same set of locations
 in the same table.
 }
-\seealso{
-Other SITS table functions: \code{\link{sits_cross}}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
-\keyword{SITS}

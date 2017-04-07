@@ -9,12 +9,11 @@
 #' @param    type       string - the type of plot to be generated
 #' @param    colors     the color pallete to be used (default is "Set1")
 #' @param    label      the class label
-#' @param    k          number of alignments
+#' @param    n_matches  number of matches of a given label to be displayed
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
-#' @keywords STIS
 #' @export
 #'
-sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = NULL, k = 4) {
+sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = NULL, n_matches = 4) {
      # check the input exists
      ensurer::ensure_that(data.tb, !purrr::is_null(.), err_desc = "sits_plot: input data not provided")
 
@@ -25,7 +24,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
             "patterns"       = .sits_plot_patterns (data.tb),
             "classification" = .sits_plot_classification (data.tb),
             "alignments"     = .sits_plot_alignments (data.tb),
-            "matches"        = .sits_plot_matches (data.tb, label, k),
+            "matches"        = .sits_plot_matches (data.tb, label, n_matches),
             message (paste ("sits_plot: valid plot types are allyears,
                             one_by_one, together, patterns, classification, alignments, matches", "\n", sep = ""))
             )
@@ -34,33 +33,47 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
      return (invisible (data.tb))
 }
 
+#' @title Plot all time intervals of one time series for the same lat/long together
+#' @name .sits_plot_allyears
+#'
+#' @description finds out the different lat/long places in the data, and joins temporal
+#' instances of the same place together for plotting
+#' @param data.tb one or more time series (stored in a SITS tibble)
+#' @param colors  the color pallete to be used (default is "Dark2")
 .sits_plot_allyears <- function (data.tb, colors) {
      locs <- dplyr::distinct (data.tb, longitude, latitude)
      locs %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               long = as.double (.$longitude)
-               lat  = as.double (.$latitude)
+          purrr::by_row( function (r){
+               long = as.double (r$longitude)
+               lat  = as.double (r$latitude)
                # filter only those rows with the same label
                data2.tb <- dplyr::filter (data.tb, longitude == long, latitude == lat)
                # use ggplot to plot the time series together
                data2.tb %>%
                     .sits_ggplot_series(colors) %>%
                     graphics::plot()
-               return (data2.tb)
           })
 }
 
+#' @title Plot  time intervals of one time series separately (one-by-one)
+#' @name .sits_plot_one_by_one
+#'
+#' @description plots each row of a data set separately
+#' @param data.tb one or more time series (stored in a SITS tibble)
+#' @param colors  the color pallete to be used (default is "Dark2")
 .sits_plot_one_by_one <- function (data.tb, colors){
      data.tb %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               .sits_ggplot_series (.,colors) %>%
+          purrr::by_row( function (r){
+               .sits_ggplot_series (r,colors) %>%
                     graphics::plot()
-               return (data.tb)
           })
 
 }
+#' @title Plot classification patterns
+#' @name .sits_plot_patterns
+#'
+#' @description plots the patterns to be used for classification (uses dtwSat)
+#' @param data.tb one or more time series containing patterns (stored in a SITS tibble)
 .sits_plot_patterns <- function (data.tb) {
      data.tb %>%
           .sits_toTWDTW_time_series() %>%
@@ -68,47 +81,59 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
           graphics::plot()
 }
 
+#' @title Plot classification results
+#' @name .sits_plot_classification
+#'
+#' @description plots the results of TWDTW classification (uses dtwSat)
+#' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
 .sits_plot_classification <- function (data.tb){
      # retrieve a dtwSat S4 twdtwMatches object
      data.tb %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               dtwSat::plot (.$matches, type = "classification", overlap = 0.5) %>%
+          purrr::by_row( function (r) {
+               dtwSat::plot (r$matches[[1]], type = "classification", overlap = 0.5) %>%
                     graphics::plot()
-               return(data.tb)
           })
 }
+#' @title Plot classification alignments
+#' @name .sits_plot_alignments
+#'
+#' @description plots the alignments from TWDTW classification (uses dtwSat)
+#' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
 .sits_plot_alignments <- function (data.tb){
      data.tb %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               dtwSat::plot (.$matches, type = "alignments") %>%
+          purrr::by_row( function (r) {
+               dtwSat::plot (r$matches[[1]], type = "alignments") %>%
                     graphics::plot()
-               return(data.tb)
           })
 }
-
-.sits_plot_matches <- function (data.tb, label, k) {
+#' @title Plot matches between a label pattern and a time series
+#' @name .sits_plot_matches
+#'
+#' @description plots the matches from TWDTW classification for one label
+#' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
+#' @param label      the class label
+#' @param n_matches  number of matches of a given label to be displayed
+.sits_plot_matches <- function (data.tb, label, n_matches) {
      ensurer::ensure_that(label, !purrr::is_null(.), err_desc = "sits_plot matches: label must be provided")
      data.tb %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               dtwSat::plot (.$matches, type = "matches", patterns.labels = label, k = k) %>%
+          purrr::by_row( function (r) {
+               dtwSat::plot (r$matches, type = "matches", patterns.labels = label, k = n_matches) %>%
                graphics::plot()
-          return(data.tb)
      })
 }
-# -----------------------------------------------------------
-#' Plot a set of time series for the same spatio-temporal reference
+
+#' @title Plot a set of time series for the same spatio-temporal reference
 #'
-#' \code{.sits_plot_together} plots all time series for the same label together
+#' @name .sits_plot_together
+#'
+#' @description plots all time series for the same label together
 #' This function is useful to find out the spread of the values of the time serie
 #' for a given label
 #'
 #' @param    data.tb    tibble - a SITS table with the list of time series to be plotted
 #' @param    colours    the color pallete to be used (default is "Set1")
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
-#' @keywords STIS
+#' @keywords SITS
 #'
 .sits_plot_together <- function (data.tb, colors) {
      # this function plots all the values of all time series together (for one band)
@@ -121,8 +146,8 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
           # create a data frame with the mean and plus and minus 1 standard deviation
           # convert to tibble and create now coluns with mean +- std
           means.tb <- data.frame  (Index = series.tb$Index,
-                                   rmean = rowMeans(series.tb[,2:ncol(series.tb)]),
-                                   std  = apply   (series.tb[,2:ncol(series.tb)],1,stats::sd)) %>%
+                                   rmean = rowMeans(series.tb[,2:ncol(series.tb)], na.rm = TRUE),
+                                   std  = apply   (series.tb[,2:ncol(series.tb)],1,stats::sd, na.rm=TRUE)) %>%
                tibble::as_tibble() %>%
                dplyr::mutate (stdplus = rmean + std, stdminus = rmean - std)
 
@@ -140,19 +165,18 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
      labels <- dplyr::distinct (data.tb, label)
 
      labels %>%
-          dplyr::rowwise() %>%
-          dplyr::do({
-               lb = as.character (.$label)
+          purrr::by_row( function (r) {
+               lb = as.character (r$label)
                # filter only those rows with the same label
                data2.tb <- dplyr::filter (data.tb, label == lb)
                # how many time series are to be plotted?
                number <- nrow (data2.tb)
                # what are the band names?
                bands  <- sits_bands (data2.tb)
-               # what is the reference date?
-               ref_date <- data2.tb[1,]$start_date
-               # align all time series to the same date
-               data2.tb <- sits_align(data2.tb, ref_date)
+               # what are the reference dates?
+               ref_dates <- data2.tb[1,]$time_series[[1]]$Index
+               # align all time series to the same dates
+               data2.tb <- sits_align(data2.tb, ref_dates)
                # extract the time series
                ts <- data2.tb$time_series
                # plot all samples for the same label
@@ -162,18 +186,15 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
           })
 }
 
+#' @title Plot one timeSeries using ggplot
 #'
-#' Plot one timeSeries using ggplot
+#' @name .sits_ggplot_series
 #'
-#' \code{.sits_ggplot_series} plots a set of time series using ggplot
-#'
-#' This function is used for showing the same lat/long location in
-#' a series of time steps.
+#' @description plots a set of time series using ggplot. This function is used
+#' for showing the same lat/long location in a series of time steps.
 #'
 #' @param row         a row of a SITS table with the time series to be plotted
 #' @param colors      string - the set of Brewer colors to be used for plotting
-#' @keywords SITS
-#' @family   SITS plot functions
 .sits_ggplot_series <- function (row, colors = "Dark2") {
      # create the plot title
      plot_title <- .sits_plot_title (row)
@@ -192,16 +213,16 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
      # scale_colour_hue(h=c(90, 270)) - alternative to brewer
      return (g)
 }
+
+#' @title Plot many timeSeries together using ggplot
 #'
-#' Plot many timeSeries together using ggplot
+#' @name .sits_ggplot_together
 #'
-#' \code{.sits_ggplot_together} plots a set of  time series together
+#' @description plots a set of  time series together
 #'
 #' @param melted.tb   a tibble with the time series (a lot of data already melted)
 #' @param means.tb    a tibble with the means and std deviations of the time series
 #' @param plot_title  the title for the plot
-#' @keywords SITS
-#' @family   SITS plot functions
 .sits_ggplot_together <- function (melted.tb, means.tb, plot_title) {
      g <- ggplot2::ggplot(data = melted.tb, ggplot2::aes(x = Index, y = value, group = variable)) +
           ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
@@ -213,15 +234,13 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 
 }
 
+#' @title Create a plot title to use with ggplot
+#' @name sits_plot_title
 #'
-#' Create a plot title to use with ggplot
-#'
-#' \code{sits_plot_title} creates a plot title from row information
+#' @description creates a plot title from row information
 #'
 #' @param row      data row with <longitude, latitude, label> information
 #' @return title   string - the title to be used in the plot
-#' @keywords SITS
-#' @family   SITS plotting functions
 .sits_plot_title <- function (row) {
      title <- paste ("location (",
                      row$latitude,  ", ",

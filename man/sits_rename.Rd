@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_table.R
 \name{sits_rename}
 \alias{sits_rename}
-\title{Finds the names of the bands of a time series}
+\title{Rename bands of a sits table}
 \usage{
 sits_rename(data.tb, bands_new)
 }
@@ -12,19 +12,11 @@ sits_rename(data.tb, bands_new)
 \item{bands_new}{a list of new band names}
 }
 \value{
-out.tb  a SITS table with a list of renamed bands for the time series
+out.tb      a SITS table with a list of renamed bands for the time series
 }
 \description{
-\code{sits_rename} renames the bands of a sits table
-This function should be used when we have processed a time series
-and want to give a new name to the results (e.g., "ndvi_smoothed")
+replaces the names of the bands of a satellite image time series
 }
-\seealso{
-Other STIS table functions: \code{\link{sits_align}},
-  \code{\link{sits_bands}}, \code{\link{sits_dates}},
-  \code{\link{sits_group_bylatlong}},
-  \code{\link{sits_select}},
-  \code{\link{sits_table_result}},
-  \code{\link{sits_table}}, \code{\link{sits_values_cols}},
-  \code{\link{sits_values_rows}}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
