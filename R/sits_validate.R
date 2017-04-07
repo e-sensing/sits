@@ -60,7 +60,6 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
      #extract the bands to be included in the patterns
      if (purrr::is_null (bands))
           bands <- sits_bands (data.tb)
-
      data.tb <- sits_select(data.tb, bands)
 
      # create partitions different splits of the input data
