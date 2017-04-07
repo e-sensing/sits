@@ -90,6 +90,25 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
      # return the patterns found in the analysis
      return (patterns.tb)
 }
+#' @title Get only those data that are significant among all others data labels
+#' @name .sits_extractSignificants
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a sits table with `original_label` column, computes a confusion matrix
+#' between the original labels (`original_label` column) and new labels
+#'
+#' @param  data.tb        a SITS table with the data to be extracted
+#' @param  min_clu_perc   a decimal between 0 and 1. The minimum percentagem of valid cluster members, with reference to the total number of samples.
+.sits_extractSignificants <- function (data.tb, min_clu_perc) {
+
+     sig_labels <- sits_labels(data.tb) %>%
+          dplyr::filter(frac >= min_clu_perc) %>% .$label
+
+     result.tb <- data.tb %>%
+          dplyr::filter(label %in% sig_labels)
+
+     return (result.tb)
+}
 
 #' @title Create temporal patterns using a generalised additive model (gam)
 #' @name sits_patterns_gam

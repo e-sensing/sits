@@ -58,6 +58,7 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
      #extract the bands to be included in the patterns
      if (purrr::is_null (bands))
           bands <- sits_bands (data.tb)
+
      data.tb <- sits_select(data.tb, bands)
 
      # create partitions different splits of the input data
@@ -187,7 +188,7 @@ sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
      return (assess)
 }
 #' @title validades clusters against original labels
-#' @name sits_validadeCluster
+#' @name sits_validate_cluster
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Given a sits table with `original_label` column, computes a confusion matrix
@@ -195,7 +196,7 @@ sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
 #'
 #' @param  data.tb        a SITS table with the samples to be validated
 #' @export
-sits_validade_cluster <- function (data.tb){
+sits_validate_cluster <- function (data.tb){
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
                           err_desc = "sits_validadeCluster: SITS table not provided")
      # do the input data have the `original_label` column?
