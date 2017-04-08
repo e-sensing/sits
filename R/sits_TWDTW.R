@@ -96,7 +96,6 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #'
 #' @param  data.tb       a table in SITS format with time series to be converted to TWTDW time series
 #' @return ts.tw         a time series in TWDTW format (an object of the twdtwTimeSeries class)
-#' @export
 .sits_toTWDTW_time_series <- function (data.tb){
      zoo.ls <- data.tb$time_series %>%
           purrr::map (function (ts) {
@@ -118,7 +117,6 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #' @param patterns  - a TWDTW object containing a set of patterns to be used for classification
 #' @param coverage  - the name of the coverage from where the time series have been obtained
 #' @return sits.tb  - a SITS table containing the patterns
-#' @export
 .sits_fromTWDTW_time_series <- function (patterns, coverage){
      # get the time series from the patterns
      tb.lst <- purrr::map2 (patterns@timeseries, patterns@labels, function (ts, lab) {

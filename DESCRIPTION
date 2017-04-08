@@ -28,8 +28,10 @@ Depends:
 Imports:
     dplyr,
     ensurer,
+    entropy,
     ggplot2,
     graphics,
+    kohonen,
     jsonlite,
     lubridate,
     methods,

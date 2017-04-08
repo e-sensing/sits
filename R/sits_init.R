@@ -24,7 +24,9 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @import     magrittr
 #' @import     dtwclust
 #' @import     dtwSat
+#' @importFrom kohonen supersom somgrid
 #' @importFrom ensurer ensure_that ensure check check_that
+#' @importFrom entropy entropy
 #' @importFrom dplyr bind_rows contains distinct do filter cross_join inner_join left_join matches mutate num_range one_of rename rename_ rowwise select starts_with transmute
 #' @importFrom readr cols  col_integer col_double col_date col_character read_csv write_lines
 #' @importFrom tibble tibble as_tibble add_column add_row lst
@@ -35,7 +37,7 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom lubridate as_date dyears days period yday year ymd
 #' @importFrom methods new as
-#' @importFrom mgcv gam predict.gam
+#' @importFrom mgcv gam predict.gam s
 #' @importFrom ptw whit2
 #' @importFrom raster shapefile
 #' @importFrom reshape2 melt

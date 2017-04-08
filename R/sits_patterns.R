@@ -10,22 +10,40 @@
 #' "dendogram" - uses a herarchical clustering method to group the patterns
 #' "centroids" - uses a positional clustering method to group the patterns
 #'
-#' @param  samples.tb    a table in SITS format with a set of labelled time series
-#' @param  method        the method to be used for classification
-#' @param  bands         the bands used to obtain the pattern
-#' @param  from          starting date of the estimate in month-day
-#' @param  to            end data of the estimated in month-day
-#' @param  freq          int - the interval in days for the estimates to be generated
-#' @param  formula       the formula to be applied in the estimate (for "gam" method)
-#' @param  n_clusters    the maximum number of clusters to be identified (for clustering methods)
-#' @param  min_clu_perc  the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
-#' @param  show          show the results of the clustering algorithm? (for clustering methods)
-#' @return patterns.tb   a SITS table with the patterns
+#' @param samples.tb      a table in SITS format with a set of labelled time series.
+#' @param method          the method to be used for classification.
+#' @param bands           the bands used to obtain the pattern.
+#' @param from            starting date of the estimate in month-day.
+#' @param to              end data of the estimated in month-day.
+#' @param freq            int - the interval in days for the estimates to be generated.
+#' @param formula         the formula to be applied in the estimate (for "gam" method).
+#' @param n_clusters      the maximum number of clusters to be identified (for clustering methods).
+#' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `gam` and `kohonen` methods). Default is 'ward.D2'.
+#' @param min_clu_perc    the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods).
+#' @param apply_gam       apply gam method after a clustering algorithm (ignored if method is `gam`).
+#' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.
+#' @param koh_ygrid       y dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.
+#' @param koh_rlen        the number of times the complete data set will be presented to the SOM grid.
+#' (used only in `kohonen` or `koho&dogram` methods). Defaul is 100.
+#' @param koh_alpha       learning rate, a vector of two numbers indicating the amount of change.
+#' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
+#' @param show            show the results of the clustering algorithm? (for clustering methods).
+#' @return patterns.tb    a SITS table with the patterns.
 #' @export
-sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL, to = NULL, freq = 8, formula = y ~ s(x), n_clusters = 2, min_clu_perc = 0.10, show = FALSE) {
+sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL, to = NULL, freq = 8,
+                           formula = y ~ s(x), n_clusters = 2, grouping_method = "ward.D2", min_clu_perc = 0.10, apply_gam = FALSE,
+                           koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01), show = FALSE) {
      # check the input exists
      ensurer::ensure_that(samples.tb, !purrr::is_null(.),
                           err_desc = "sits_patterns: input data not provided")
+
+     # check valid methods
+     ensurer::ensure_that(method, (. == "gam" || . == "dendogram" || . == "centroids" || . == "kohonen" || . == "koho&dogram"),
+                          err_desc = "sits_patterns: valid methods are 'gam', 'dendogram', 'centroids', 'kohonen', or 'koho&dogram'.")
+
+     # check valid min_clu_perc
+     ensurer::ensure_that(min_clu_perc, . >= 0.0 && . <= 1.0,
+                          err_desc = "sits_patterns: invalid min_clust_perc value. Value must be between 0 and 1.")
 
      if (purrr::is_null (bands)) bands <- sits_bands(samples.tb)
 
@@ -44,20 +62,52 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
 
      switch(method,
             "gam"            =  { patterns.tb <- .sits_patterns_gam (samples.tb, bands = bands, from = from, to = to, freq = freq, formula = formula) },
-            "dendogram"      =  { patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram",
-                                                               n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
-            "centroids"      =  { patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "centroids",
-                                                               n_clusters = n_clusters, min_clu_perc = min_clu_perc, show = show)},
-            "dendo&gam"      =  {
-                 new_samples.tb <- patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram",
-                                                                n_clusters = n_clusters, min_clu_perc = min_clu_perc, return_members = TRUE, show = show)
-                 patterns.tb <- .sits_patterns_gam (new_samples.tb, bands = bands, from = from, to = to, freq = freq, formula = formula)
+            "dendogram"      =  {
+                 patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram",
+                                              n_clusters = n_clusters, grouping_method = grouping_method, return_members = apply_gam, unsupervised = FALSE, show = show)
+            },
+            "centroids"      =  {
+                 patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "centroids",
+                                              n_clusters = n_clusters, grouping_method = grouping_method, return_members = apply_gam, unsupervised = FALSE, show = show)
                  },
-            message (paste ("sits_patterns: valid methods are gam, dendogram, centroids", "\n", sep = ""))
-            )
+            "kohonen"      =  {
+                 patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "kohonen",
+                                              koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
+                                              return_members = apply_gam, unsupervised = FALSE, show = show)
+            },
+            "koho&dogram"      =  {
+                 patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "koho&dogram",
+                                              n_clusters = n_clusters, grouping_method = grouping_method,
+                                              koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
+                                              return_members = apply_gam, unsupervised = FALSE, show = show)
+            })
+
+     if (apply_gam)
+          # extract only significant clusters (cut line given by min_clu_perc parameter)
+          patterns.tb <- sits_extract_labels(patterns.tb, min_label_frac = min_clu_perc) %>%
+               .sits_patterns_gam (bands = bands, from = from, to = to, freq = freq, formula = formula)
 
      # return the patterns found in the analysis
      return (patterns.tb)
+}
+#' @title Get only those data that are significant among all others data labels
+#' @name .sits_extractSignificants
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a sits table with `original_label` column, computes a confusion matrix
+#' between the original labels (`original_label` column) and new labels
+#'
+#' @param  data.tb        a SITS table with the data to be extracted
+#' @param  min_clu_perc   a decimal between 0 and 1. The minimum percentagem of valid cluster members, with reference to the total number of samples.
+.sits_extractSignificants <- function (data.tb, min_clu_perc) {
+
+     sig_labels <- sits_labels(data.tb) %>%
+          dplyr::filter(frac >= min_clu_perc) %>% .$label
+
+     result.tb <- data.tb %>%
+          dplyr::filter(label %in% sig_labels)
+
+     return (result.tb)
 }
 
 #' @title Create temporal patterns using a generalised additive model (gam)
