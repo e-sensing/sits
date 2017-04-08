@@ -1,9 +1,9 @@
 ################################################################################
 # Script created during a presentation of the SITS package
-# by Dr. Gilberto Câmara
+# by Dr. Gilberto Camara
 #
 # National Institute for Space Research
-# São José dos Campos, SP,  Brazil
+# Sao Jose dos Campos, SP,  Brazil
 # 2017/03/09
 ################################################################################
 library(sits)
@@ -45,16 +45,16 @@ sits_plot(patterns1.tb, type = "patterns")
 results.tb <- sits_TWDTW(series.tb = val.tb, patterns.tb = patterns1.tb,
                          bands = satbands)
 sits_plot(results.tb[1:5, ], type = "classification")
-#(confusion.mx <- sits_assess(results.tb, 1))
+(confusion.mx <- sits_assess(results.tb, 1))
 
 
 # Split the training data into clusters in order to improve the classification
 # results
-clusters1.tb <- sits_cluster(train1.tb, n_clusters = 2)
-clusters2.tb <- sits_cluster(train2.tb, n_clusters = 2)
+clusters1.tb <- sits_cluster(train1.tb, n_clusters = 2, bands = satbands)
+clusters2.tb <- sits_cluster(train2.tb, n_clusters = 2, bands = satbands)
 clusters.tb <- dplyr::bind_rows(clusters1.tb, clusters2.tb)
 clusters.tb[1,]$label <- "Cerrado"
 clusters.tb[2,]$label <- "Pasture"
 results1.tb <- sits_TWDTW(series.tb = val.tb, patterns.tb = clusters.tb,
                          bands = satbands)
-#(confusion2.mx <- sits_assess(results1.tb, 1))
+(confusion2.mx <- sits_assess(results1.tb, 1))
