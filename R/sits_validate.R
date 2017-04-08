@@ -124,7 +124,6 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
 #' @param data.tb a SITS table to be partitioned
 #' @param times   number of iterations
 #' @param frac    fraction of original data to be extracted. Value must be between 0 and 1.
-#' @export
 .sits_create_partitions <- function (data.tb, times, frac) {
 
      # create a list to store the partitions
@@ -186,28 +185,4 @@ sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
 
      assess <- rfUtilities::accuracy(pred.vec, ref.vec)
      return (assess)
-}
-#' @title validades clusters against original labels
-#' @name sits_validate_cluster
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a sits table with `original_label` column, computes a confusion matrix
-#' between the original labels (`original_label` column) and new labels
-#'
-#' @param  data.tb        a SITS table with the samples to be validated
-#' @export
-sits_validate_cluster <- function (data.tb){
-     ensurer::ensure_that(data.tb, !purrr::is_null(.),
-                          err_desc = "sits_validadeCluster: SITS table not provided")
-     # do the input data have the `original_label` column?
-     ensurer::ensure_that(data.tb, "original_label" %in% colnames(data.tb),
-                          err_desc = "sits_validadeCluster: informed SITS table has not an `original_label` column.")
-
-     result.tb <- data.tb %>%
-          dplyr::group_by(original_label, label) %>%
-          dplyr::summarise(count = n()) %>%
-          tidyr::spread(key = label, value = count) %>%
-          dplyr::ungroup()
-
-     return (result.tb)
 }

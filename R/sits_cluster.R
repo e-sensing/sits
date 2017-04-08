@@ -184,9 +184,10 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 
      # recalculate grid dimension if the number of neurons is greater than the number of data input cases
      #### TO-DO: Document this recalculation!
-     if ((grid_xdim * grid_ydim) > nrow(data.tb)){
-          grid_xdim <- trunc(min(sqrt(nrow(data.tb) / (grid_xdim * grid_ydim) / 2) * grid_xdim, 2))
-          grid_ydim <- trunc(min(sqrt(nrow(data.tb) / (grid_xdim * grid_ydim) / 2) * grid_ydim, 1))
+     if ((grid_xdim * grid_ydim) >= nrow(data.tb)){
+          grid_xdim <- trunc(max(sqrt(nrow(data.tb) / (grid_xdim * grid_ydim) / 2) * grid_xdim, 2))
+          grid_ydim <- trunc(max(sqrt(nrow(data.tb) / (grid_xdim * grid_ydim) / 2) * grid_ydim, 2))
+          message(paste("Kohonen grid dimension reduced to", "grid_xdim =", grid_xdim, "and grid_ydim =", grid_ydim))
      }
 
      # get the values of the various time series for this band group
@@ -227,6 +228,14 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 #' @return result.tb a SITS tibble with the clusters
 .sits_cluster_kohodogram <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, n_clusters, grouping_method, return_members, show){
 
+     # recalculate grid dimension if the number of neurons is greater than the number of data input cases
+     #### TO-DO: Document this recalculation!
+     if ((grid_xdim * grid_ydim) >= nrow(data.tb)){
+          grid_xdim <- trunc(max(sqrt(nrow(data.tb) / (grid_xdim * grid_ydim) / 2) * grid_xdim, 2))
+          grid_ydim <- trunc(max(sqrt(nrow(data.tb) / (grid_xdim * grid_ydim) / 2) * grid_ydim, 2))
+          message(paste("Kohonen grid dimension reduced to", "grid_xdim =", grid_xdim, "and grid_ydim =", grid_ydim))
+     }
+
      # get the values of the various time series for this band group
      values.tb <- sits_values (data.tb, bands, format = "bands_cases_dates")
 
@@ -244,9 +253,12 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
      # returns kohonen's neurons
      neurons.tb <- .sits_from_kohonen (data.tb, kohonen_obj, return_members = FALSE)
 
+     # proceed with unsupervised hierarchical cluster.
+     neurons.tb$label <- tools::file_path_sans_ext(neurons.tb[1,]$label[[1]])
+
      # pass neurons to dendogram clustering
      clusters.tb <- .sits_cluster_dendogram (neurons.tb, bands = bands, n_clusters = n_clusters,
-                                             grouping_method = grouping_method, return_members = TRUE, show = show)
+                                             grouping_method = grouping_method, return_members = TRUE, show = FALSE)
 
      # return a sits table with all input data with new labels
      if (return_members) {
@@ -448,4 +460,69 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
      # cat ("Clusters' sizes\n")
      # for (i in 1:nrow(df))
      #      cat (paste ("Cluster ", i,": ", df[i,"size"], "\n", sep = ""))
+}
+
+#' @title compare clusters against original labels and computes a segregation matrix.
+#' @name sits_cluster_segregation
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a sits table with `original_label` column, computes a segregation matrix
+#' between the original labels (`original_label` column) and new labels. This is useful
+#' to analyse the separability of samples for a given clustering algorithm.
+#'
+#' @param  data.tb        a SITS table with the samples to be validated
+#' @return result.tb      a tibble with segregation matrix.
+#' @export
+sits_cluster_segregation <- function (data.tb){
+     ensurer::ensure_that(data.tb, !purrr::is_null(.),
+                          err_desc = "sits_cluster_segregation: SITS table not provided")
+     # do the input data have the `original_label` column?
+     ensurer::ensure_that(data.tb, "original_label" %in% colnames(data.tb),
+                          err_desc = "sits_cluster_segregation: informed SITS table has not an `original_label` column.")
+
+     result.tb <- data.tb %>%
+          dplyr::group_by(original_label, label) %>%
+          dplyr::summarise(count = n()) %>%
+          tidyr::spread(key = label, value = count) %>%
+          dplyr::ungroup()
+
+     return (result.tb)
+}
+
+#' @title computes a segregation measure from a clusterized SITS table data.
+#' @name sits_segregation_measure
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Computes an measure of seggregation from SITS table based on mean relative Shannon Entropy,
+#' where maximum entropy is 1.0 and minimum entropy is 0.0, from each cluster label against
+#' original_label occorrences in it. To obtain this measure, first we compute Shannon
+#' information entropy from counts of each cluster label. To get the relative entropy, we
+#' divide this value by the maximum entropy. After that, we compute the weighted mean relative
+#' to the frequency of each cluster label. The final values represents an average of
+#' maximum entropy fraction. This is useful to assess the separability of samples for a given clustering algorithm.
+#'
+#' @param  data.tb        a SITS table with the samples to be validated
+#' @return result         a segregation measure.
+#' @export
+sits_segregation_measure <- function (data.tb){
+     ensurer::ensure_that(data.tb, !purrr::is_null(.),
+                          err_desc = "sits_segregation_measure: SITS table not provided")
+     # do the input data have the `original_label` column?
+     ensurer::ensure_that(data.tb, "original_label" %in% colnames(data.tb),
+                          err_desc = "sits_segregation_measure: informed SITS table has not an `original_label` column.")
+
+     # do we have at least two original labels?
+     labels_count <- length(table(data.tb$original_label))
+     if (labels_count == 1)
+          return (0.0)
+
+     result <- data.tb %>%
+          dplyr::group_by(original_label, label) %>%
+          dplyr::summarise(count = n()) %>%
+          dplyr::ungroup() %>%
+          dplyr::group_by(label) %>%
+          dplyr::summarise(segr = entropy::entropy(count) / log(labels_count) * sum(count) / nrow(data.tb)) %>%
+          dplyr::summarise(mean_segr = sum(segr)) %>% .$mean_segr
+     return (result)
+
 }
