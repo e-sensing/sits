@@ -25,6 +25,9 @@
 #' @param table           an R object ("sits_table")
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location)
+#' @param start_date      date - the start of the period
+#' @param end_date        date - the end of the period
+#' @param label           string - the label to attach to the time series
 #' @param URL             string - the URL of WTSS (Web Time Series Service)
 #' @param coverage        string - the name of the coverage to be retrieved
 #' @param bands           string vector - the names of the bands to be retrieved
@@ -35,6 +38,9 @@ sits_getdata <- function (file        = NULL,
                           table       = NULL,
                           longitude   = NULL,
                           latitude    = NULL,
+                          start_date  = NULL,
+                          end_date    = NULL,
+                          label       = NULL,
                           URL         = "http://www.dpi.inpe.br/tws/wtss",
                           coverage    = NULL,
                           bands       = NULL,
@@ -74,7 +80,7 @@ sits_getdata <- function (file        = NULL,
      }
      # get data based on SHP file
      if (tolower(tools::file_ext(file)) == "shp") {
-          data.tb <- .sits_fromSHP (file, wtss.obj)
+          data.tb <- .sits_fromSHP (file, wtss.obj, cov, bands, start_date, end_date, label)
           return (data.tb)
      }
      message (paste ("No valid input to retrieve time series data!!","\n",sep=""))
@@ -218,12 +224,16 @@ sits_getdata <- function (file        = NULL,
 #' The script uses the WTSS service, taking information about coverage, spatial and
 #' temporal resolution from the WTSS configuration.
 #'
+#'
 #' @param shp_file   string  - name of a SHP file which provides the boundaries of a region of interest
-#' @param wtss       an R object that represents the WTSS server
+#' @param wtss.obj        WTSS object - the WTSS object that describes the WTSS server
+#' @param cov             list - a list with coverage information (retrieved from the WTSS)
+#' @param bands           string vector - the names of the bands to be retrieved
+#' @param start_date      date - the start of the period
+#' @param end_date        date - the end of the period
+#' @param label           string - the label to attach to the time series
 #' @return table     tibble  - a SITS table
-.sits_fromSHP <- function (shp_file, wtss) {
-     # read the shapefile
-     area_shp <- raster::shapefile(shp_file)
+.sits_fromSHP <- function (shp_file, wtss.obj, cov, bands, start_date, end_date, label) {
 
      # build grid points in Sinusoidal
      buildGridPoints <- function(points_Sinu.sp) {
@@ -300,7 +310,7 @@ sits_getdata <- function (file        = NULL,
      pt.tb <- sp2SitsTable(pt.sp)
      pt_wtss.tb <- pt.tb %>%
           dplyr::rowwise() %>%
-          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, wtss$start_date, wtss$end_date, "NoClass", wtss$wtss_obj, wtss$coverage, wtss$bands))
+          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, start_date, end_date, label, wtss.obj, cov, bands))
 
      # transform grid points in Sinusoidal into WGS
      pt_wtss.sp <- sitsTable2sp(pt_wtss.tb)
@@ -314,7 +324,7 @@ sits_getdata <- function (file        = NULL,
 
      wtss_points.tb <- plg_pts.tb %>%
           dplyr::rowwise() %>%
-          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, wtss$start_date, wtss$end_date, "NoClass", wtss$wtss_obj, wtss$coverage, wtss$bands))
+          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, start_date, end_date, label, wtss.obj, cov, bands))
 
      return (wtss_points.tb)
 }
