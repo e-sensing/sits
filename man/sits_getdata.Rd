@@ -5,8 +5,9 @@
 \title{Obtain timeSeries from different sources}
 \usage{
 sits_getdata(file = NULL, table = NULL, longitude = NULL,
-  latitude = NULL, URL = "http://www.dpi.inpe.br/tws/wtss",
-  coverage = NULL, bands = NULL, n_max = Inf)
+  latitude = NULL, start_date = NULL, end_date = NULL, label = NULL,
+  URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL, bands = NULL,
+  n_max = Inf)
 }
 \arguments{
 \item{file}{the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)}
@@ -16,6 +17,12 @@ sits_getdata(file = NULL, table = NULL, longitude = NULL,
 \item{longitude}{double - the longitude of the chosen location}
 
 \item{latitude}{double - the latitude of the chosen location)}
+
+\item{start_date}{date - the start of the period}
+
+\item{end_date}{date - the end of the period}
+
+\item{label}{string - the label to attach to the time series}
 
 \item{URL}{string - the URL of WTSS (Web Time Series Service)}
 
