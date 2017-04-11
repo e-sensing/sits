@@ -4,10 +4,12 @@
 \alias{sits_segregation_measure}
 \title{computes a segregation measure from a clusterized SITS table data.}
 \usage{
-sits_segregation_measure(data.tb)
+sits_segregation_measure(data.tb, per_cluster = FALSE)
 }
 \arguments{
 \item{data.tb}{a SITS table with the samples to be validated}
+
+\item{per_cluster}{(boolean) should return a total average segregation measure, or a per cluster measure?}
 }
 \value{
 result         a segregation measure.

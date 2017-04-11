@@ -75,7 +75,6 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
           })
      return (cluster.tb)
 }
-
 #' @title Cluster a set of time series using hierarchical clustering
 #' @name .sits_cluster_dendogram
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -502,9 +501,10 @@ sits_cluster_segregation <- function (data.tb){
 #' maximum entropy fraction. This is useful to assess the separability of samples for a given clustering algorithm.
 #'
 #' @param  data.tb        a SITS table with the samples to be validated
+#' @param  per_cluster    (boolean) should return a total average segregation measure, or a per cluster measure?
 #' @return result         a segregation measure.
 #' @export
-sits_segregation_measure <- function (data.tb){
+sits_segregation_measure <- function (data.tb, per_cluster = FALSE){
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
                           err_desc = "sits_segregation_measure: SITS table not provided")
      # do the input data have the `original_label` column?
@@ -516,13 +516,16 @@ sits_segregation_measure <- function (data.tb){
      if (labels_count == 1)
           return (0.0)
 
-     result <- data.tb %>%
+     result.tb <- data.tb %>%
           dplyr::group_by(original_label, label) %>%
           dplyr::summarise(count = n()) %>%
           dplyr::ungroup() %>%
           dplyr::group_by(label) %>%
-          dplyr::summarise(segr = entropy::entropy(count) / log(labels_count) * sum(count) / nrow(data.tb)) %>%
-          dplyr::summarise(mean_segr = sum(segr)) %>% .$mean_segr
-     return (result)
+          dplyr::summarise(segr = entropy::entropy(count) / log(labels_count) * sum(count) / nrow(data.tb))
+
+     if (per_cluster)
+          return (result.tb)
+
+     return (dplyr::summarise(result.tb, mean_segr = sum(segr)) %>% .$mean_segr)
 
 }

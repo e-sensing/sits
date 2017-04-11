@@ -47,8 +47,8 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
 
      if (purrr::is_null (bands)) bands <- sits_bands(samples.tb)
 
-     # prune the samples to remove all samples greater than 365 days
-     samples.tb <- sits_prune(samples.tb, interval = "365 days")
+     # # prune the samples to remove all samples greater than 365 days
+     # samples.tb <- sits_prune(samples.tb)
 
      # align all samples to the same time series intervals
      sample_dates <- sits_dates (samples.tb[1,])
@@ -84,32 +84,12 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
 
      if (apply_gam)
           # extract only significant clusters (cut line given by min_clu_perc parameter)
-          patterns.tb <- sits_extract_labels(patterns.tb, min_label_frac = min_clu_perc) %>%
+          patterns.tb <- sits_significant_labels(patterns.tb, min_label_frac = min_clu_perc) %>%
                .sits_patterns_gam (bands = bands, from = from, to = to, freq = freq, formula = formula)
 
      # return the patterns found in the analysis
      return (patterns.tb)
 }
-#' @title Get only those data that are significant among all others data labels
-#' @name .sits_extractSignificants
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a sits table with `original_label` column, computes a confusion matrix
-#' between the original labels (`original_label` column) and new labels
-#'
-#' @param  data.tb        a SITS table with the data to be extracted
-#' @param  min_clu_perc   a decimal between 0 and 1. The minimum percentagem of valid cluster members, with reference to the total number of samples.
-.sits_extractSignificants <- function (data.tb, min_clu_perc) {
-
-     sig_labels <- sits_labels(data.tb) %>%
-          dplyr::filter(frac >= min_clu_perc) %>% .$label
-
-     result.tb <- data.tb %>%
-          dplyr::filter(label %in% sig_labels)
-
-     return (result.tb)
-}
-
 #' @title Create temporal patterns using a generalised additive model (gam)
 #' @name sits_patterns_gam
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}

@@ -376,47 +376,65 @@ sits_align <- function (data.tb, ref_dates) {
           }
      return (data1.tb)
 }
-
 #' @title Prunes dates of time series to fit an interval
 #' @name sits_prune
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description prunes the times series contained a set of sits tables
 #' to an interval. This function is useful to constrain the different samples
 #' of land cover to the same interval (usually, one year)
 #'
-#' @param    data.tb    tibble - input SITS table
-#' @param    interval    a string describing the interval (in days)
-#' @return   data1.tb   tibble - the converted SITS table
+#' @param    data.tb      tibble - input SITS table
+#' @param    min_interval a string describing the min interval (in days) bellow which the samples are discarded.
+#' @param    max_interval a string describing the max interval (in days) above which the samples are proned.
+#' @return   proned.tb    tibble - the converted SITS table
 #' @export
 #'
-sits_prune <- function (data.tb, interval = "365 days") {
+sits_prune <- function (data.tb, min_interval = "349 days", max_interval = "365 days") {
      ensurer::ensure_that (data.tb, !purrr::is_null(.),
                            err_desc = "sits_prune: input data not provided")
 
-     data1.tb <- sits_table()
+     proned.tb <- sits_table()
+     discarded.tb <- sits_table()
      data.tb %>%
           purrr::by_row (function (row) {
                ts <- row$time_series[[1]]
-               if (lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date) >=
-                   lubridate::as.duration(interval)) {
+               row_interval <- lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date)
+
+               # data interval is greater than maximum interval. Trying to cut it.
+               if ( row_interval >= lubridate::as.duration(max_interval)) {
+
                     # extract the time series
                     ts <- row$time_series[[1]]
-                    # find the first date which exceeds the required interval
-                    idx <- which.max (lubridate::as_date(ts$Index) - lubridate::as_date(row$start_date)
-                                      >= lubridate::as.duration(interval))
-                    # prune the time series to fit inside the required interval
+
+                    # find the first date which exceeds the required max_interval
+                    idx <- which.max (lubridate::as_date(ts$Index) - lubridate::as_date(row$start_date) >= lubridate::as.duration(max_interval))
+
+                    # prune the time series to fit inside the required max_interval
                     ts1 <- ts[1:(idx - 1),]
+
                     # save the pruned time series
                     row$time_series[[1]] <- ts1
+
                     # store the new end date
                     row$end_date <- ts1[nrow(ts1),]$Index
                }
-               # store the resulting row in the SITS table
-               data1.tb <<- dplyr::bind_rows(data1.tb, row)
+
+               # verifies if resulting time series satisfies min_interval requirement. If don't discard sample.
+               # Else, stores the resulting row in the SITS table
+               row_interval <- lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date)
+               if ( row_interval < lubridate::as.duration(min_interval))
+                    discarded.tb <<- dplyr::bind_rows(discarded.tb, row)
+               else
+                    proned.tb <<- dplyr::bind_rows(proned.tb, row)
      })
 
-     return (data1.tb)
+     if (nrow(discarded.tb) > 0){
+          message("The following sample(s) has(have) been discarded:\n")
+          print(tibble::as_tibble(discarded.tb))
+     }
+     return (proned.tb)
 }
 
 #' @title Group different time series for the same lat/long coordinate
@@ -511,7 +529,7 @@ sits_label_sample <- function (data.tb, frac = 0.1){
      return (data1.tb)
 }
 #' @title Get the significant labeled time series among all others labels.
-#' @name sits_extract_labels
+#' @name sits_significant_labels
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Given a sits table with `original_label` column, computes a confusion matrix
@@ -520,10 +538,12 @@ sits_label_sample <- function (data.tb, frac = 0.1){
 #' @param  data.tb        a SITS table with the data to be extracted
 #' @param  min_label_frac a decimal between 0 and 1. The minimum percentagem of valid cluster members,
 #' with reference to the total number of samples.
-sits_extract_labels <- function (data.tb, min_label_frac) {
+#' @return result.tb      a SITS table with the filtered data.
+#' @export
+sits_significant_labels <- function (data.tb, min_label_frac) {
      # check valid min_clu_perc
      ensurer::ensure_that(min_label_frac, . >= 0.0 && . <= 1.0,
-                          err_desc = "sits_extract_labels: invalid min_label_frac value. Value must be between 0 and 1.")
+                          err_desc = "sits_significant_labels: invalid min_label_frac value. Value must be between 0 and 1.")
 
      sig_labels <- sits_labels(data.tb) %>%
           dplyr::filter(frac >= min_label_frac) %>% .$label
@@ -532,21 +552,5 @@ sits_extract_labels <- function (data.tb, min_label_frac) {
           dplyr::filter(label %in% sig_labels)
 
      return (result.tb)
-}
-#' @title Temporal information for a time series
-#' @name sits_time_interval
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description finds out the temporal interval of the time series of the data
-#'
-#' @param data.tb  a sits tibble
-#' @return ndays   number of days covered by the time series
-#' @export
-sits_time_interval <-  function (data.tb){
-     ensurer::ensure_that(data.tb, nrow(.) == 1,
-                           err_dec = "sits_time_interval - works with one row at a time")
-     ndays <-  (lubridate::as_date(data.tb[1,]$end_date) -
-                     lubridate::as_date(data.tb[1,]$start_date))/lubridate::ddays(1)
-     return (ndays)
 }
 
