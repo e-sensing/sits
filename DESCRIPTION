@@ -36,6 +36,7 @@ Imports:
     lubridate,
     methods,
     mgcv,
+    parallel,
     ptw,
     purrr,
     raster,

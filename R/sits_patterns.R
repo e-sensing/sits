@@ -64,11 +64,13 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
             "gam"            =  { patterns.tb <- .sits_patterns_gam (samples.tb, bands = bands, from = from, to = to, freq = freq, formula = formula) },
             "dendogram"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram",
-                                              n_clusters = n_clusters, grouping_method = grouping_method, return_members = apply_gam, unsupervised = FALSE, show = show)
+                                              n_clusters = n_clusters, grouping_method = grouping_method,
+                                              return_members = apply_gam, unsupervised = FALSE, show = show)
             },
             "centroids"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "centroids",
-                                              n_clusters = n_clusters, grouping_method = grouping_method, return_members = apply_gam, unsupervised = FALSE, show = show)
+                                              n_clusters = n_clusters, grouping_method = grouping_method,
+                                              return_members = apply_gam, unsupervised = FALSE, show = show)
                  },
             "kohonen"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "kohonen",
@@ -82,10 +84,11 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
                                               return_members = apply_gam, unsupervised = FALSE, show = show)
             })
 
+     patterns.tb <- sits_significant_labels(patterns.tb, min_label_frac = min_clu_perc)
+
      if (apply_gam)
           # extract only significant clusters (cut line given by min_clu_perc parameter)
-          patterns.tb <- sits_significant_labels(patterns.tb, min_label_frac = min_clu_perc) %>%
-               .sits_patterns_gam (bands = bands, from = from, to = to, freq = freq, formula = formula)
+          patterns.tb <- .sits_patterns_gam (patterns.tb, bands = bands, from = from, to = to, freq = freq, formula = formula)
 
      # return the patterns found in the analysis
      return (patterns.tb)
