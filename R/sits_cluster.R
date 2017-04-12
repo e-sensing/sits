@@ -257,7 +257,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 
      # pass neurons to dendogram clustering
      clusters.tb <- .sits_cluster_dendogram (neurons.tb, bands = bands, n_clusters = n_clusters,
-                                             grouping_method = grouping_method, return_members = TRUE, show = FALSE)
+                                             grouping_method = grouping_method, return_members = return_members, show = FALSE)
 
      # return a sits table with all input data with new labels
      if (return_members) {
@@ -300,8 +300,16 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 
      # return a sits table with clusters' centroids
      } else {
+
+          # computes num of members for each case. If no previous n_members, initialize with ones.
+          if (!any("n_members" %in% names(data.tb)))
+               data$n_members <- 1
+
           # create a table to store the results
           result.tb <- sits_table()
+
+          # return the number of each cluster members
+          result.tb <- tibble::add_column(result.tb, n_members = integer())
 
           # populates the result table with centroids
           purrr::map2(clusters@centroids, seq(clusters@centroids), function (ts, i) {
@@ -314,7 +322,8 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
                                               end_date     = data.tb[1,]$end_date[[1]],
                                               label        = paste0(label_prefix, ".", i),
                                               coverage     = data.tb[1,]$coverage[[1]],
-                                              time_series  = list(new_ts))
+                                              time_series  = list(new_ts),
+                                              n_members    = sum(data.tb$n_members[which(clusters@cluster == i)]))
           })
      }
 
@@ -345,15 +354,25 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
           result.tb$label <- paste0(label_prefix, ".", kohonen_obj$unit.classif)
 
      } else {
+          # get num of neurons' members
+          neurons_size <- rle(sort(kohonen_obj$unit.classif))$lengths
+
           # unpack output data provided by kohonen_obj
           neurons.lst <- purrr::map(kohonen_obj$codes, function (ts) ts %>% t() %>% as.data.frame())
 
           # populates the result table with centroids
+          # traverse neurons bands
           result_band.lst <- purrr::map2(neurons.lst, names(neurons.lst), function (neurons.df, band) {
                # create a table to store the results
                result_band.tb <- sits_table()
 
-               purrr::map2(neurons.df, seq(neurons.df), function (ts, i) {
+               # return the number of each cluster members
+               result_band.tb <- tibble::add_column(result_band.tb, n_members = integer())
+
+               # traverse neurons time series
+               purrr::map2(neurons.df, seq_along(neurons.df), function (ts, i) {
+
+                    # populates result
                     new_ts <- dplyr::select(data.tb[1,]$time_series[[1]], Index)
                     ts.tb <- tibble::as_tibble(ts)
                     names(ts.tb) <- band
@@ -365,7 +384,8 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
                                                         end_date     = data.tb[1,]$end_date[[1]],
                                                         label        = paste0(label_prefix, ".", i),
                                                         coverage     = data.tb[1,]$coverage[[1]],
-                                                        time_series  = list(new_ts))
+                                                        time_series  = list(new_ts),
+                                                        n_members    = neurons_size[i])
                })
                return (result_band.tb)
           })
