@@ -47,8 +47,8 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
 
      if (purrr::is_null (bands)) bands <- sits_bands(samples.tb)
 
-     # prune the samples to remove all samples greater than 365 days
-     samples.tb <- sits_prune(samples.tb, interval = "365 days")
+     # # prune the samples to remove all samples greater than 365 days
+     # samples.tb <- sits_prune(samples.tb)
 
      # align all samples to the same time series intervals
      sample_dates <- sits_dates (samples.tb[1,])
@@ -64,11 +64,13 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
             "gam"            =  { patterns.tb <- .sits_patterns_gam (samples.tb, bands = bands, from = from, to = to, freq = freq, formula = formula) },
             "dendogram"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram",
-                                              n_clusters = n_clusters, grouping_method = grouping_method, return_members = apply_gam, unsupervised = FALSE, show = show)
+                                              n_clusters = n_clusters, grouping_method = grouping_method,
+                                              return_members = apply_gam, unsupervised = FALSE, show = show)
             },
             "centroids"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "centroids",
-                                              n_clusters = n_clusters, grouping_method = grouping_method, return_members = apply_gam, unsupervised = FALSE, show = show)
+                                              n_clusters = n_clusters, grouping_method = grouping_method,
+                                              return_members = apply_gam, unsupervised = FALSE, show = show)
                  },
             "kohonen"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "kohonen",
@@ -82,34 +84,23 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
                                               return_members = apply_gam, unsupervised = FALSE, show = show)
             })
 
-     if (apply_gam)
+     # get only the significant clusters
+     if (method != "gam")
+          patterns.tb <- sits_significant_labels(patterns.tb, min_label_frac = min_clu_perc)
+
+     if (apply_gam) {
+          # get cluster information before call GAM...
+          pat_labels.tb <- sits_labels(patterns.tb)
           # extract only significant clusters (cut line given by min_clu_perc parameter)
-          patterns.tb <- sits_extract_labels(patterns.tb, min_label_frac = min_clu_perc) %>%
-               .sits_patterns_gam (bands = bands, from = from, to = to, freq = freq, formula = formula)
+          patterns.tb <- .sits_patterns_gam (patterns.tb, bands = bands, from = from, to = to, freq = freq, formula = formula)
+          # append cluster informations to the result
+          patterns.tb <- dplyr::inner_join(pat_labels.tb, patterns.tb, by = "label") %>%
+               dplyr::select(longitude, latitude, start_date, end_date, label, coverage, time_series, original_label, n_members = count)
+     }
 
      # return the patterns found in the analysis
      return (patterns.tb)
 }
-#' @title Get only those data that are significant among all others data labels
-#' @name .sits_extractSignificants
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a sits table with `original_label` column, computes a confusion matrix
-#' between the original labels (`original_label` column) and new labels
-#'
-#' @param  data.tb        a SITS table with the data to be extracted
-#' @param  min_clu_perc   a decimal between 0 and 1. The minimum percentagem of valid cluster members, with reference to the total number of samples.
-.sits_extractSignificants <- function (data.tb, min_clu_perc) {
-
-     sig_labels <- sits_labels(data.tb) %>%
-          dplyr::filter(frac >= min_clu_perc) %>% .$label
-
-     result.tb <- data.tb %>%
-          dplyr::filter(label %in% sig_labels)
-
-     return (result.tb)
-}
-
 #' @title Create temporal patterns using a generalised additive model (gam)
 #' @name sits_patterns_gam
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
@@ -153,13 +144,18 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
                      by   = freq)
 
      # how many different labels are there?
-     labels <- dplyr::distinct (samples.tb, label)
+     labels <- dplyr::distinct (samples.tb, label)$label
 
-     # for each label in the sample data, find the appropriate pattern
+     #
+     message("Applying GAM...")
+
+     # add a progress bar
+     i <- 0
+     progress_bar <- utils::txtProgressBar(min = 0, max = length(labels) * length(bands), style = 3)
+
+     # traverse labels
      labels %>%
-          purrr::by_row (function (r) {
-               # get the label name as a character
-               lb <-  as.character (r$label)
+          purrr::map(function (lb){
 
                # filter only those rows with the same label
                label.tb <- dplyr::filter (samples.tb, label == lb)
@@ -203,22 +199,27 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
                          names(res.tb)[names(res.tb) == "b"] <- band
                          # return the value out of the function scope
                          res.tb <<- res.tb
+
+                         # update progress bar
+                         i <<- i + 1
+                         utils::setTxtProgressBar(progress_bar, i)
                     }) # for each band
 
-          # put the pattern in a list to store in a sits table
-          ts <- tibble::lst()
-          ts[[1]] <- res.tb
+               # put the pattern in a list to store in a sits table
+               ts <- tibble::lst()
+               ts[[1]] <- res.tb
 
-          # add the pattern to the results table
-          patterns.tb <<- tibble::add_row (patterns.tb,
-                                          longitude    = 0.0,
-                                          latitude     = 0.0,
-                                          start_date   = as.Date(from),
-                                          end_date     = as.Date(to),
-                                          label        = lb,
-                                          coverage     = label.tb[1,]$coverage,
-                                          time_series  = ts)
-          }) # for each label
+               # add the pattern to the results table
+               patterns.tb <<- tibble::add_row (patterns.tb,
+                                                longitude      = 0.0,
+                                                latitude       = 0.0,
+                                                start_date     = as.Date(from),
+                                                end_date       = as.Date(to),
+                                                label          = lb,
+                                                coverage       = label.tb[1,]$coverage,
+                                                time_series    = ts)
+          })
 
+     close(progress_bar)
      return (patterns.tb)
 }

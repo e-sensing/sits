@@ -85,30 +85,41 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
      # used in sits_cluster input data
      # list elements: bands, matrix's rows: cases, matrix's cols: dates
      if (format == "cases_dates_bands") {
+
+          # populates result
           values.lst <- data.tb$time_series %>%
-               purrr::map(function (ts) data.matrix(dplyr::select(ts, dplyr::one_of(bands))))
+               purrr::map(function (ts) {
+                    data.matrix(dplyr::select(ts, dplyr::one_of(bands)))
+               })
+
      # another kind of sits_values_rows()
      # used in sits_kohonen input
      # list elements: bands, matrix's rows: cases, matrix's cols: dates
      } else if (format == "bands_cases_dates") {
           values.lst <- bands %>% purrr::map(function (band) {
                data.tb$time_series %>%
-                    purrr::map(function (ts) dplyr::select(ts, dplyr::one_of(band))) %>%
+                    purrr::map(function (ts) {
+                         dplyr::select(ts, dplyr::one_of(band))
+                    }) %>%
                     data.frame() %>%
                     tibble::as_tibble() %>%
                     as.matrix() %>% t()
           })
+
           names(values.lst) <- bands
      # equivalent to former sits_values_cols()
      # list elements: bands, matrix's rows: dates, matrix's cols: cases
      } else if (format == "bands_dates_cases") {
           values.lst <- bands %>% purrr::map(function (band) {
                data.tb$time_series %>%
-                    purrr::map(function (ts) dplyr::select(ts, dplyr::one_of(band))) %>%
+                    purrr::map(function (ts) {
+                         dplyr::select(ts, dplyr::one_of(band))
+                    }) %>%
                     data.frame() %>%
                     tibble::as_tibble() %>%
                     as.matrix()
           })
+
           names(values.lst) <- bands
      }
      return (values.lst)
@@ -195,10 +206,22 @@ sits_bands <- function (data.tb) {
 #' @export
 #'
 sits_labels <- function (data.tb) {
+
+     # verify if there is original_label column. If not exists initialize it with empty string.
+     if (!any("original_label" %in% names(data.tb)))
+          data.tb$original_label <- ""
+
+     # verify if there is n_members column. If not exists initialize it with ones.
+     if (!any("n_members" %in% names(data.tb)))
+          data.tb$n_members <- 1
+
+     # compute frequency (absolute and relative)
      result.tb <- data.tb %>%
-          dplyr::group_by(label) %>%
-          dplyr::summarize(count = n()) %>%
-          dplyr::mutate(frac = count / dplyr::summarise(., total = sum(count)) %>% .$total)
+          dplyr::group_by(original_label, label) %>%
+          dplyr::summarize(count = sum(n_members, na.rm = TRUE)) %>%
+          dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
+          dplyr::ungroup() %>%
+          dplyr::select(label, count, original_label, total, frac)
      return (result.tb)
 }
 #' @title Merge two satellite image time series
@@ -348,75 +371,116 @@ sits_align <- function (data.tb, ref_dates) {
      # create an output table
      data1.tb <- sits_table()
 
+     # add a progress bar
+     message("Aligning samples time series intervals...")
+     progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
+
      for (i in 1:nrow(data.tb)) {
-               # extract the time series
-               row <- data.tb[i,]
-               ts <- row$time_series[[1]]
-               # rows that do not match the number of reference dates are discarded
-               if(length(ref_dates) != nrow(ts)) {
-                    next
-               }
-               # in what direction do we need to shift the time series?
-               sense <- lubridate::yday(lubridate::as_date (ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
-               # find the date of minimum distance to the reference date
-               idx <- which.min(abs((lubridate::as_date (ts$Index) - lubridate::as_date(start_date))/lubridate::ddays(1)))
-               # do we shift time up or down?
-               if (sense < 0) shift <- -(idx - 1) else shift <- (idx - 1)
-               # shift the time series to match dates
-               if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
-               # convert the time index to a reference year
-               first_date <- lubridate::as_date(ts[1,]$Index)
-               # change the dates to the reference dates
-               ts1 <- dplyr::mutate (ts, Index = ref_dates)
-               # save the resulting row in the output table
-               row$time_series[[1]] <- ts1
-               row$start_date <- lubridate::as_date(ref_dates[1])
-               row$end_date   <- ref_dates[length(ref_dates)]
-               data1.tb <- dplyr::bind_rows(data1.tb, row)
+          # extract the time series
+          row <- data.tb[i,]
+          ts <- row$time_series[[1]]
+          # rows that do not match the number of reference dates are discarded
+          if(length(ref_dates) != nrow(ts)) {
+               next
           }
+          # in what direction do we need to shift the time series?
+          sense <- lubridate::yday(lubridate::as_date (ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
+          # find the date of minimum distance to the reference date
+          idx <- which.min(abs((lubridate::as_date (ts$Index) - lubridate::as_date(start_date))/lubridate::ddays(1)))
+          # do we shift time up or down?
+          if (sense < 0) shift <- -(idx - 1) else shift <- (idx - 1)
+          # shift the time series to match dates
+          if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
+          # convert the time index to a reference year
+          first_date <- lubridate::as_date(ts[1,]$Index)
+          # change the dates to the reference dates
+          ts1 <- dplyr::mutate (ts, Index = ref_dates)
+          # save the resulting row in the output table
+          row$time_series[[1]] <- ts1
+          row$start_date <- lubridate::as_date(ref_dates[1])
+          row$end_date   <- ref_dates[length(ref_dates)]
+          data1.tb <- dplyr::bind_rows(data1.tb, row)
+
+          # update progress bar
+          utils::setTxtProgressBar(progress_bar, i)
+     }
+
+     close(progress_bar)
      return (data1.tb)
 }
-
 #' @title Prunes dates of time series to fit an interval
 #' @name sits_prune
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description prunes the times series contained a set of sits tables
 #' to an interval. This function is useful to constrain the different samples
 #' of land cover to the same interval (usually, one year)
 #'
-#' @param    data.tb    tibble - input SITS table
-#' @param    interval    a string describing the interval (in days)
-#' @return   data1.tb   tibble - the converted SITS table
+#' @param    data.tb      tibble - input SITS table
+#' @param    min_interval a string describing the min interval (in days) bellow which the samples are discarded.
+#' @param    max_interval a string describing the max interval (in days) above which the samples are proned.
+#' @return   proned.tb    tibble - the converted SITS table
 #' @export
 #'
-sits_prune <- function (data.tb, interval = "365 days") {
+sits_prune <- function (data.tb, min_interval = "349 days", max_interval = "365 days") {
      ensurer::ensure_that (data.tb, !purrr::is_null(.),
                            err_desc = "sits_prune: input data not provided")
 
-     data1.tb <- sits_table()
+     proned.tb <- sits_table()
+     discarded.tb <- sits_table()
+
+     #
+     message("Processing...")
+
+     # add a progress bar
+     i <- 0
+     progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
+
      data.tb %>%
           purrr::by_row (function (row) {
                ts <- row$time_series[[1]]
-               if (lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date) >=
-                   lubridate::as.duration(interval)) {
+               row_interval <- lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date)
+
+               # data interval is greater than maximum interval. Trying to cut it.
+               if ( row_interval >= lubridate::as.duration(max_interval)) {
+
                     # extract the time series
                     ts <- row$time_series[[1]]
-                    # find the first date which exceeds the required interval
-                    idx <- which.max (lubridate::as_date(ts$Index) - lubridate::as_date(row$start_date)
-                                      >= lubridate::as.duration(interval))
-                    # prune the time series to fit inside the required interval
+
+                    # find the first date which exceeds the required max_interval
+                    idx <- which.max (lubridate::as_date(ts$Index) - lubridate::as_date(row$start_date) >= lubridate::as.duration(max_interval))
+
+                    # prune the time series to fit inside the required max_interval
                     ts1 <- ts[1:(idx - 1),]
+
                     # save the pruned time series
                     row$time_series[[1]] <- ts1
+
                     # store the new end date
                     row$end_date <- ts1[nrow(ts1),]$Index
                }
-               # store the resulting row in the SITS table
-               data1.tb <<- dplyr::bind_rows(data1.tb, row)
+
+               # verifies if resulting time series satisfies min_interval requirement. If don't discard sample.
+               # Else, stores the resulting row in the SITS table
+               row_interval <- lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date)
+               if ( row_interval < lubridate::as.duration(min_interval))
+                    discarded.tb <<- dplyr::bind_rows(discarded.tb, row)
+               else
+                    proned.tb <<- dplyr::bind_rows(proned.tb, row)
+
+               # update progress bar
+               i <<- i + 1
+               utils::setTxtProgressBar(progress_bar, i)
      })
 
-     return (data1.tb)
+     close(progress_bar)
+
+     if (nrow(discarded.tb) > 0){
+          message("The following sample(s) has(have) been discarded:\n")
+          print(tibble::as_tibble(discarded.tb))
+     }
+     return (proned.tb)
 }
 
 #' @title Group different time series for the same lat/long coordinate
@@ -481,7 +545,7 @@ sits_group_bylatlong <- function (data.tb) {
 }
 
 #' @title Sample a percentage of a time series
-#' @name sits_label_sample
+#' @name sits_labels_sample
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description takes a sits table with different labels and
@@ -490,28 +554,27 @@ sits_group_bylatlong <- function (data.tb) {
 #'
 #' @param    data.tb    tibble - input SITS table
 #' @param    frac       fraction (value between 0 and 1) of samples of each label to be saved.
-#' @return   data1.tb   tibble - the new SITS table with a fixed percentage of samples per class
+#' @return   result.tb   tibble - the new SITS table with a fixed percentage of samples per class
 #' @export
-sits_label_sample <- function (data.tb, frac = 0.1){
+sits_labels_sample <- function (data.tb, frac = 0.1){
 
-     data1.tb <- sits_table()
+     result.tb <- sits_table()
      # how many different labels are there?
-     labels <- dplyr::distinct (data.tb, label)
+     labels <- dplyr::distinct (data.tb, label)$label
 
      labels %>%
-          purrr::by_row( function (r){
-               # get the label name as a character
-               lb <-  as.character (r$label)
+          purrr::map(function (lb){
                # filter only those rows with the same label
                frac.tb <- data.tb %>%
                     dplyr::filter (label == lb) %>%
                     dplyr::sample_frac (size = frac)
-               data1.tb <<- dplyr::bind_rows(data1.tb, frac.tb)
+               result.tb <<- dplyr::bind_rows(result.tb, frac.tb)
           })
-     return (data1.tb)
+
+     return (result.tb)
 }
 #' @title Get the significant labeled time series among all others labels.
-#' @name sits_extract_labels
+#' @name sits_significant_labels
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Given a sits table with `original_label` column, computes a confusion matrix
@@ -520,10 +583,12 @@ sits_label_sample <- function (data.tb, frac = 0.1){
 #' @param  data.tb        a SITS table with the data to be extracted
 #' @param  min_label_frac a decimal between 0 and 1. The minimum percentagem of valid cluster members,
 #' with reference to the total number of samples.
-sits_extract_labels <- function (data.tb, min_label_frac) {
+#' @return result.tb      a SITS table with the filtered data.
+#' @export
+sits_significant_labels <- function (data.tb, min_label_frac) {
      # check valid min_clu_perc
      ensurer::ensure_that(min_label_frac, . >= 0.0 && . <= 1.0,
-                          err_desc = "sits_extract_labels: invalid min_label_frac value. Value must be between 0 and 1.")
+                          err_desc = "sits_significant_labels: invalid min_label_frac value. Value must be between 0 and 1.")
 
      sig_labels <- sits_labels(data.tb) %>%
           dplyr::filter(frac >= min_label_frac) %>% .$label
@@ -532,21 +597,5 @@ sits_extract_labels <- function (data.tb, min_label_frac) {
           dplyr::filter(label %in% sig_labels)
 
      return (result.tb)
-}
-#' @title Temporal information for a time series
-#' @name sits_time_interval
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description finds out the temporal interval of the time series of the data
-#'
-#' @param data.tb  a sits tibble
-#' @return ndays   number of days covered by the time series
-#' @export
-sits_time_interval <-  function (data.tb){
-     ensurer::ensure_that(data.tb, nrow(.) == 1,
-                           err_dec = "sits_time_interval - works with one row at a time")
-     ndays <-  (lubridate::as_date(data.tb[1,]$end_date) -
-                     lubridate::as_date(data.tb[1,]$start_date))/lubridate::ddays(1)
-     return (ndays)
 }
 
