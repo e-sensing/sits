@@ -150,7 +150,7 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
 
      # iterate and create the partitions
      for (i in 1:times){
-          partitions.lst [[i]] <- sits_label_sample (data.tb, frac)
+          partitions.lst [[i]] <- sits_labels_sample (data.tb, frac)
      }
      return (partitions.lst)
 }

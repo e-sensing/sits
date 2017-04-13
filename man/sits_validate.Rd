@@ -8,8 +8,8 @@ sits_validate(data.tb, method = "gam", bands = NULL, times = 100,
   perc = 0.1, from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
   tw_alpha = -0.1, tw_beta = 100, n_clusters = 2,
   grouping_method = "ward.D2", min_clu_perc = 0.1, apply_gam = FALSE,
-  koh_xgrid = NULL, koh_ygrid = NULL, koh_rlen = NULL,
-  koh_alpha = c(0.05, 0.01), file = "./conf_matrix.json", .multicores = 1)
+  koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05,
+  0.01), file = "./conf_matrix.json", .multicores = 1)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}

@@ -545,7 +545,7 @@ sits_group_bylatlong <- function (data.tb) {
 }
 
 #' @title Sample a percentage of a time series
-#' @name sits_label_sample
+#' @name sits_labels_sample
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description takes a sits table with different labels and
@@ -556,7 +556,7 @@ sits_group_bylatlong <- function (data.tb) {
 #' @param    frac       fraction (value between 0 and 1) of samples of each label to be saved.
 #' @return   result.tb   tibble - the new SITS table with a fixed percentage of samples per class
 #' @export
-sits_label_sample <- function (data.tb, frac = 0.1){
+sits_labels_sample <- function (data.tb, frac = 0.1){
 
      result.tb <- sits_table()
      # how many different labels are there?
