@@ -9,7 +9,7 @@ sits_validate(data.tb, method = "gam", bands = NULL, times = 100,
   tw_alpha = -0.1, tw_beta = 100, n_clusters = 2,
   grouping_method = "ward.D2", min_clu_perc = 0.1, apply_gam = FALSE,
   koh_xgrid = NULL, koh_ygrid = NULL, koh_rlen = NULL,
-  koh_alpha = c(0.05, 0.01), file = "./conf_matrix.json")
+  koh_alpha = c(0.05, 0.01), file = "./conf_matrix.json", .multicores = 1)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
@@ -53,9 +53,11 @@ sits_validate(data.tb, method = "gam", bands = NULL, times = 100,
 Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
 
 \item{file}{file to save the results}
+
+\item{.multicores}{number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).}
 }
 \value{
-cm              a validation assessment
+cm             a validation assessment
 }
 \description{
 Splits the set of time series into training and validation and
