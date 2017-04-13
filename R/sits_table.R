@@ -220,7 +220,7 @@ sits_labels <- function (data.tb) {
           dplyr::group_by(original_label, label) %>%
           dplyr::summarize(count = sum(n_members, na.rm = TRUE)) %>%
           dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
-          dplyr::ungroup() %>% 
+          dplyr::ungroup() %>%
           dplyr::select(label, count, original_label, total, frac)
      return (result.tb)
 }
