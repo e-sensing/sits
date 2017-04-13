@@ -12,7 +12,7 @@ sits_label_sample(data.tb, frac = 0.1)
 \item{frac}{fraction (value between 0 and 1) of samples of each label to be saved.}
 }
 \value{
-data1.tb   tibble - the new SITS table with a fixed percentage of samples per class
+result.tb   tibble - the new SITS table with a fixed percentage of samples per class
 }
 \description{
 takes a sits table with different labels and

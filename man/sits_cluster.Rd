@@ -39,7 +39,8 @@ This column may be useful to measure confusion between clusters' members. Defaul
 \item{show}{(boolean) should the results be shown? Default is TRUE.}
 }
 \value{
-clusters.tb a SITS tibble with the clusters
+clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
+If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
 }
 \description{
 This function uses package "dtwclust" to do time series clustering.

@@ -15,7 +15,7 @@ mt.tb <- sits_prune(mt.tb)
 
 new_class.tb <- sits_cluster(mt.tb, method = "koho&dogram", grouping_method = "ward.D2",
                              bands = c("evi", "ndvi", "nir", "mir"), n_clusters = 15,
-                             show = TRUE, return_members = FALSE, unsupervised = TRUE,
+                             show = TRUE, return_members = TRUE, unsupervised = TRUE,
                              koh_xgrid = 10, koh_ygrid = 10, koh_rlen = 1200, koh_alpha = c(0.2, 0.04))
 
 sits_labels(new_class.tb)

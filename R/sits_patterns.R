@@ -84,11 +84,19 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
                                               return_members = apply_gam, unsupervised = FALSE, show = show)
             })
 
-     patterns.tb <- sits_significant_labels(patterns.tb, min_label_frac = min_clu_perc)
+     # get only the significant clusters
+     if (method != "gam")
+          patterns.tb <- sits_significant_labels(patterns.tb, min_label_frac = min_clu_perc)
 
-     if (apply_gam)
+     if (apply_gam) {
+          # get cluster information before call GAM...
+          pat_labels.tb <- sits_labels(patterns.tb)
           # extract only significant clusters (cut line given by min_clu_perc parameter)
           patterns.tb <- .sits_patterns_gam (patterns.tb, bands = bands, from = from, to = to, freq = freq, formula = formula)
+          # append cluster informations to the result
+          patterns.tb <- dplyr::inner_join(pat_labels.tb, patterns.tb, by = "label") %>%
+               dplyr::select(longitude, latitude, start_date, end_date, label, coverage, time_series, original_label, n_members = count)
+     }
 
      # return the patterns found in the analysis
      return (patterns.tb)
@@ -136,13 +144,18 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
                      by   = freq)
 
      # how many different labels are there?
-     labels <- dplyr::distinct (samples.tb, label)
+     labels <- dplyr::distinct (samples.tb, label)$label
 
-     # for each label in the sample data, find the appropriate pattern
+     #
+     message("Applying GAM...")
+
+     # add a progress bar
+     i <- 0
+     progress_bar <- utils::txtProgressBar(min = 0, max = length(labels) * length(bands), style = 3)
+
+     # traverse labels
      labels %>%
-          purrr::by_row (function (r) {
-               # get the label name as a character
-               lb <-  as.character (r$label)
+          purrr::map(function (lb){
 
                # filter only those rows with the same label
                label.tb <- dplyr::filter (samples.tb, label == lb)
@@ -186,22 +199,27 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
                          names(res.tb)[names(res.tb) == "b"] <- band
                          # return the value out of the function scope
                          res.tb <<- res.tb
+
+                         # update progress bar
+                         i <<- i + 1
+                         utils::setTxtProgressBar(progress_bar, i)
                     }) # for each band
 
-          # put the pattern in a list to store in a sits table
-          ts <- tibble::lst()
-          ts[[1]] <- res.tb
+               # put the pattern in a list to store in a sits table
+               ts <- tibble::lst()
+               ts[[1]] <- res.tb
 
-          # add the pattern to the results table
-          patterns.tb <<- tibble::add_row (patterns.tb,
-                                          longitude    = 0.0,
-                                          latitude     = 0.0,
-                                          start_date   = as.Date(from),
-                                          end_date     = as.Date(to),
-                                          label        = lb,
-                                          coverage     = label.tb[1,]$coverage,
-                                          time_series  = ts)
-          }) # for each label
+               # add the pattern to the results table
+               patterns.tb <<- tibble::add_row (patterns.tb,
+                                                longitude      = 0.0,
+                                                latitude       = 0.0,
+                                                start_date     = as.Date(from),
+                                                end_date       = as.Date(to),
+                                                label          = lb,
+                                                coverage       = label.tb[1,]$coverage,
+                                                time_series    = ts)
+          })
 
+     close(progress_bar)
      return (patterns.tb)
 }
