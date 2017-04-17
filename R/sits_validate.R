@@ -166,42 +166,74 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
 #' new labels, returns a new confusion matrix
 #' where classes have been merged.
 #'
-#' @param  data.tb        a SITS table with the samples to be validated
 #' @param  file           a JSON file contaning the result of a validation procedure
 #' @param  conv           a conversion of label names for the classes (optional))
 #' @return assess         an assessment of validation
 #' @export
-sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
+sits_relabel <- function (file = NULL, conv = NULL){
      # do the input file exist?
-     ensurer::ensure_that(data.tb, !purrr::is_null(.),
-                          err_desc = "sits_relabel: SITS table not provided")
      ensurer::ensure_that(file, !purrr::is_null(.),
                           err_desc = "sits_relabel: JSON file not provided")
 
+     # get labels from JSON file
+     confusion.vec <- jsonlite::fromJSON (file)
+     mid <- length(confusion.vec) / 2
+     pred.vec <- confusion.vec[1:mid]
+     ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
+
      # what are the labels of the samples?
-     labels <- dplyr::distinct (data.tb, label)
+     #labels <- rle(sort(ref.vec))$values
+     labels <- base::unique(ref.vec)
 
      # if the conversion list is NULL, create an identity list
      if (purrr::is_null(conv)) {
           conv <- tibble::lst()
-          for (i in 1:nrow(labels)) {
-               lab <- as.character(labels[i,"label"])
+          for (i in 1:length(labels)) {
+               lab <- labels[i]
                conv [lab] <- lab
           }
      }
      # if the conversion list exists, ensure that its labels exist in the data
      else
-          ensurer::ensure_that(conv, !(FALSE %in% names(.) %in% unlist(labels[,1])),
+          ensurer::ensure_that(conv, !(FALSE %in% names(.) %in% labels),
                                err_desc = "conversion list does not match labels of the data")
-
-     confusion.vec <- jsonlite::fromJSON (file)
-     mid <- length(confusion.vec)/2
-     pred.vec <- confusion.vec[1:mid]
-     ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
 
      pred.vec <- as.character(conv[pred.vec])
      ref.vec  <- as.character(conv[ref.vec])
 
      assess <- rfUtilities::accuracy(pred.vec, ref.vec)
      return (assess)
+}
+#' @title creates a conversion identity list for sits_relabel
+#' @name sits_relabel_conv
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a confusion matrix obtained in the validation
+#' procedure, returns a identity conversion list of labels.
+#'
+#' @param  file           a JSON file contaning the result of a validation procedure
+#' @return conv.lst       a conversion list
+#' @export
+sits_relabel_conv <- function (file = NULL){
+     # do the input file exist?
+     ensurer::ensure_that(file, !purrr::is_null(.),
+                          err_desc = "sits_relabel: JSON file not provided")
+
+     # get labels from JSON file
+     confusion.vec <- jsonlite::fromJSON (file)
+
+     # what are the labels of the samples?
+     #labels <- rle(sort(ref.vec))$values
+     labels <- base::unique(confusion.vec)
+
+     # if the conversion list is NULL, create an identity list
+     conv.lst <- tibble::lst()
+     for (i in 1:length(labels)) {
+          lab <- labels[i]
+          conv.lst[lab] <- lab
+     }
+
+     return (conv.lst)
 }
