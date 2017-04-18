@@ -4,7 +4,7 @@
 \alias{sits_relabel}
 \title{re-label classification results}
 \usage{
-sits_relabel(file = NULL, conv = NULL)
+sits_relabel(file, conv)
 }
 \arguments{
 \item{file}{a JSON file contaning the result of a validation procedure}
