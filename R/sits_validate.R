@@ -195,9 +195,6 @@ sits_relabel <- function (file, conv){
      pred.vec <- confusion.vec[1:mid]
      ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
 
-     pred.vec <- as.character(conv[pred.vec])
-     ref.vec  <- as.character(conv[ref.vec])
-
      assess <- rfUtilities::accuracy(pred.vec, ref.vec)
      return (assess)
 }
