@@ -27,12 +27,16 @@
 #' @return clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
-sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, grouping_method = "ward.D2",
+sits_cluster <- function (data.tb, bands = NULL, method = "dendogram", n_clusters = 2, grouping_method = "ward.D2",
                           koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
                           return_members = FALSE, unsupervised = FALSE, show = TRUE) {
 
      ensurer::ensure_that(method, (. == "dendogram" || . == "centroids" || . == "kohonen" || . == "koho&dogram"),
                           err_desc = "sits_cluster: valid cluster methods are 'dendogram', 'centroids', 'kohonen', or 'koho&dogram'.")
+
+     # if no bands informed, get all bands available in SITS table
+     if (purrr::is_null(bands))
+          bands <- sits_bands(data.tb)
 
      # creates the resulting table
      cluster.tb <- sits_table()
@@ -42,7 +46,9 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
           # if return_members is True, create an new column called `old_label`
           if (return_members)
                data.tb$original_label <- data.tb$label
-          data.tb$label <- "Class"
+          else
+               data.tb$original_label <- "Unsupervised"
+          data.tb$label <- "Unsupervised"
      }
 
      # how many different labels are there?
@@ -274,8 +280,14 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
      if (return_members) {
           # set clusters' labels to result data
           result.tb <- data.tb
+
+          # if no original_label exists, creates one
+          if (!("original_label" %in% colnames(result.tb)))
+               result.tb$original_label <- tools::file_path_sans_ext(result.tb$label)
+
+          # update labels according to clusters
           result.tb$label <- clusters.tb$label[kohonen_obj$unit.classif]
-          result.tb$original_label <- clusters.tb$original_label[kohonen_obj$unit.classif]
+
      # return a sits table with clusters' centroids
      } else
           result.tb <- dplyr::select(clusters.tb, longitude, latitude, start_date, end_date, label, coverage, time_series, original_label, n_members)
@@ -297,22 +309,25 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 #' @return result.tb       a SITS table with the clusters or clusters' members
 .sits_from_dtwclust <-  function (data.tb, clusters, return_members) {
 
-     # get prefix label to be used in clusters' labels
-     label_prefix <- data.tb[1,]$label[[1]]
+     # if no original_label exists, creates one
+     if (!("original_label" %in% colnames(data.tb)))
+          data.tb$original_label <- data.tb$label
 
      # return a sits table with all input data with new labels
      if (return_members){
+          # get prefix label to be used in clusters' labels
+          label_prefix <- data.tb[1,]$label[[1]]
+
           # create a table to store the results
           result.tb <- data.tb
-
-          # create 'original_cluster' collumn
-          result.tb$original_label <- result.tb$label
 
           # apply new labels according to clusters' id
           result.tb$label <- paste0(label_prefix, ".", clusters@cluster)
 
      # return a sits table with clusters' centroids
      } else {
+          # get prefix label to be used in clusters' labels
+          label_prefix <- data.tb[1,]$original_label[[1]]
 
           # computes num of members for each case. If no previous n_members, initialize with ones.
           if (!any("n_members" %in% names(data.tb)))
@@ -359,20 +374,27 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 #' @return result.tb       a SITS table with the clusters or clusters' members
 .sits_from_kohonen <-  function (data.tb, kohonen_obj, return_members) {
 
-     # get label prefix to form sub-class label result
-     label_prefix <- data.tb[1,]$label[[1]]
+     # if no original_label exists, creates one
+     if (!("original_label" %in% colnames(data.tb)))
+          data.tb$original_label <- data.tb$label
 
      if (return_members){
+          # get label prefix to form sub-class label result
+          label_prefix <- data.tb[1,]$label[[1]]
+
           # create a table to store the results
           result.tb <- data.tb
-
-          # create 'original_cluster' column
-          result.tb$original_label <- result.tb$label
 
           # assign new labels
           result.tb$label <- paste0(label_prefix, ".", kohonen_obj$unit.classif)
 
+          # organizes the resulting SITS table
+          result.tb <- dplyr::select(result.tb, longitude, latitude, start_date, end_date, label, coverage, time_series, original_label)
+
      } else {
+          # get label prefix to form sub-class label result
+          label_prefix <- data.tb[1,]$label[[1]]
+
           # get num of neurons' members
           neurons_size <- rle(sort(kohonen_obj$unit.classif))$lengths
 
@@ -415,6 +437,9 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
           result_band.lst %>% purrr::map(function (result_band.tb){
                result.tb <<- sits_merge(result.tb, result_band.tb)
           })
+
+          # organizes the resulting SITS table
+          result.tb <- dplyr::select(result.tb, longitude, latitude, start_date, end_date, label, coverage, time_series, original_label, n_members)
      }
 
      return (result.tb)
