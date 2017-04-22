@@ -6,7 +6,7 @@
 # cross-validation for FAO Bolivia Study
 
 library(sits)
-fao.tb <- sits_getdata (file = system.file("extdata/samples/fao_all_samples.tb.json", package = "sits"))
+mt.tb <- sits_getdata (file = system.file("extdata/samples/conf_matrix.json", package = "sits"))
 
 # Isto já foi rodado
 #fao_cm <- sits_validate (fao.tb, times = 50, file = "./fao_cm2.json")

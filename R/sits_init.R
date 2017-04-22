@@ -18,7 +18,9 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "rmean", "std", "stdplus", "stdminus", "cluster_id", "cross_join",
                          "longitude", "latitude", "label", "coverage",
                          "year", "start_date", "end_date", "time_series",
-                         "name", "scale_factor", "missing_value"))
+                         "name", "scale_factor", "missing_value",
+                         "original_label", "n_members", "count",
+                         "segr", "frac", "total", "n"))
 
 #  define the dependencies of the SITS package
 #' @import     magrittr
