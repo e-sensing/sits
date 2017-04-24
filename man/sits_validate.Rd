@@ -4,17 +4,19 @@
 \alias{sits_validate}
 \title{validate temporal patterns}
 \usage{
-sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
+sits_validate(data.tb, method = "gam", bands = NULL, times = 100,
   perc = 0.1, from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
-  n_clusters = 2, min_clu_perc = 0.1, show = FALSE,
-  file = "./conf_matrix.json")
+  tw_alpha = -0.1, tw_beta = 100, n_clusters = 2,
+  grouping_method = "ward.D2", min_clu_perc = 0.1, apply_gam = FALSE,
+  koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05,
+  0.01), file = "./conf_matrix.json", .multicores = 1)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
 
-\item{bands}{the bands used for classification}
-
 \item{method}{method to create patterns ("gam", "dendogram" or "centroids")}
+
+\item{bands}{the bands used for classification}
 
 \item{times}{number of partitions to create.}
 
@@ -28,16 +30,34 @@ sits_validate(data.tb, bands = NULL, method = "gam", times = 100,
 
 \item{formula}{the formula to be applied in the estimate (for "gam" method)}
 
+\item{tw_alpha}{(double) - the steepness of the logistic function used for temporal weighting}
+
+\item{tw_beta}{(integer) - the midpoint (in days) of the logistic function}
+
 \item{n_clusters}{the maximum number of clusters to be identified (for clustering methods)}
+
+\item{grouping_method}{the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.}
 
 \item{min_clu_perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)}
 
-\item{show}{show the results of the clustering algorithm? (for clustering methods)}
+\item{apply_gam}{apply gam method after a clustering algorithm (ignored if method is `gam`).}
+
+\item{koh_xgrid}{x dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.}
+
+\item{koh_ygrid}{y dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.}
+
+\item{koh_rlen}{the number of times the complete data set will be presented to the SOM grid.
+(used only in `kohonen` or `koho&dogram` methods). Defaul is 100.}
+
+\item{koh_alpha}{learning rate, a vector of two numbers indicating the amount of change.
+Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
 
 \item{file}{file to save the results}
+
+\item{.multicores}{number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).}
 }
 \value{
-cm            a validation assessment
+cm             a validation assessment
 }
 \description{
 Splits the set of time series into training and validation and

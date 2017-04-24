@@ -4,8 +4,9 @@
 \alias{sits_TWDTW}
 \title{Classify a sits tibble using TWDTW (using the dtwSat package)}
 \usage{
-sits_TWDTW(series.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
-  theta = 0.5, interval = "12 month", span = 250, keep = FALSE)
+sits_TWDTW(series.tb, patterns.tb, bands, dist.method = "euclidean",
+  alpha = -0.1, beta = 100, theta = 0.5, interval = "12 month",
+  span = 250, keep = FALSE)
 }
 \arguments{
 \item{series.tb}{a table in SITS format with a time series to be classified using TWTDW}
@@ -13,6 +14,8 @@ sits_TWDTW(series.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
 \item{patterns.tb}{a set of known temporal signatures for the chosen classes}
 
 \item{bands}{string - the bands to be used for classification}
+
+\item{dist.method}{A character. Method to derive the local cost matrix.}
 
 \item{alpha}{(double) - the steepness of the logistic function used for temporal weighting}
 
