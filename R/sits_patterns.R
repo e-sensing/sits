@@ -21,10 +21,10 @@
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `gam` and `kohonen` methods). Default is 'ward.D2'.
 #' @param min_clu_perc    the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods).
 #' @param apply_gam       apply gam method after a clustering algorithm (ignored if method is `gam`).
-#' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.
-#' @param koh_ygrid       y dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.
+#' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
+#' @param koh_ygrid       y dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
 #' @param koh_rlen        the number of times the complete data set will be presented to the SOM grid.
-#' (used only in `kohonen` or `koho&dogram` methods). Defaul is 100.
+#' (used only in `kohonen` or `kohonen-dendogram` methods). Default is 100.
 #' @param koh_alpha       learning rate, a vector of two numbers indicating the amount of change.
 #' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
 #' @param show            show the results of the clustering algorithm? (for clustering methods).
@@ -38,8 +38,8 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
                           err_desc = "sits_patterns: input data not provided")
 
      # check valid methods
-     ensurer::ensure_that(method, (. == "gam" || . == "dendogram" || . == "centroids" || . == "kohonen" || . == "koho&dogram"),
-                          err_desc = "sits_patterns: valid methods are 'gam', 'dendogram', 'centroids', 'kohonen', or 'koho&dogram'.")
+     ensurer::ensure_that(method, (. == "gam" || . == "dendogram" || . == "centroids" || . == "kohonen" || . == "kohonen-dendogram"),
+                          err_desc = "sits_patterns: valid methods are 'gam', 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.")
 
      # check valid min_clu_perc
      ensurer::ensure_that(min_clu_perc, . >= 0.0 && . <= 1.0,
@@ -77,8 +77,8 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
                                               koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
                                               return_members = apply_gam, unsupervised = FALSE, show = show)
             },
-            "koho&dogram"      =  {
-                 patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "koho&dogram",
+            "kohonen-dendogram"      =  {
+                 patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "kohonen-dendogram",
                                               n_clusters = n_clusters, grouping_method = grouping_method,
                                               koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
                                               return_members = apply_gam, unsupervised = FALSE, show = show)
@@ -89,7 +89,7 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
           patterns.tb <- sits_significant_labels(patterns.tb, min_label_frac = min_clu_perc)
 
      if (apply_gam) {
-          # get cluster information before call GAM...
+          # get cluster information before calling GAM...
           pat_labels.tb <- sits_labels(patterns.tb)
           # extract only significant clusters (cut line given by min_clu_perc parameter)
           patterns.tb <- .sits_patterns_gam (patterns.tb, bands = bands, from = from, to = to, freq = freq, formula = formula)
