@@ -14,18 +14,18 @@ sits_cluster(data.tb, bands, method = "dendogram", n_clusters = 2,
 
 \item{bands}{the bands to be clusterized.}
 
-\item{method}{string - either 'dendogram', 'centroids', 'kohonen', or 'koho&dogram'.}
+\item{method}{string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.}
 
 \item{n_clusters}{the number of clusters to be croped from hierarchical clustering (ignored in `kohonen` method). Default is 2.}
 
 \item{grouping_method}{the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.}
 
-\item{koh_xgrid}{x dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.}
+\item{koh_xgrid}{x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.}
 
-\item{koh_ygrid}{y dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.}
+\item{koh_ygrid}{y dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.}
 
 \item{koh_rlen}{the number of times the complete data set will be presented to the SOM grid
-(used only in `kohonen` or `koho&dogram` methods). Defaul is 100.}
+(used only in `kohonen` or `kohonen-denddogram` methods). Default is 100.}
 
 \item{koh_alpha}{learning rate, a vector of two numbers indicating the amount of change.
 Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
@@ -45,7 +45,7 @@ If return_members are FALSE, the returning SITS table will contain a new collumn
 \description{
 This function uses package "dtwclust" to do time series clustering.
 There are four options: "dendogram" (hierarchical clustering), "controids" (positional
-clustering), "kohonen" (self-organized maps), and "koho&dogram" (self-organized maps fallowed by a dendogram).
+clustering), "kohonen" (self-organized maps), and "kohonen-dendogram" (self-organized maps fallowed by a dendogram).
 }
 \references{
 `dtwclust` package (https://CRAN.R-project.org/package=dtwclust), `kohonen` package (https://CRAN.R-project.org/package=kohonen)

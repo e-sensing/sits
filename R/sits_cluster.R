@@ -5,18 +5,18 @@
 #'
 #' @description This function uses package "dtwclust" to do time series clustering.
 #' There are four options: "dendogram" (hierarchical clustering), "controids" (positional
-#' clustering), "kohonen" (self-organized maps), and "koho&dogram" (self-organized maps fallowed by a dendogram).
+#' clustering), "kohonen" (self-organized maps), and "kohonen-dendogram" (self-organized maps fallowed by a dendogram).
 #' @references `dtwclust` package (https://CRAN.R-project.org/package=dtwclust), `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 #'
 #' @param data.tb         a SITS tibble the list of time series to be clustered
 #' @param bands           the bands to be clusterized.
-#' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'koho&dogram'.
+#' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.
 #' @param n_clusters      the number of clusters to be croped from hierarchical clustering (ignored in `kohonen` method). Default is 2.
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
-#' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.
-#' @param koh_ygrid       y dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.
+#' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
+#' @param koh_ygrid       y dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
 #' @param koh_rlen        the number of times the complete data set will be presented to the SOM grid
-#' (used only in `kohonen` or `koho&dogram` methods). Defaul is 100.
+#' (used only in `kohonen` or `kohonen-denddogram` methods). Default is 100.
 #' @param koh_alpha       learning rate, a vector of two numbers indicating the amount of change.
 #' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
 #' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids? Default is FALSE.
@@ -31,8 +31,8 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
                           koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
                           return_members = FALSE, unsupervised = FALSE, show = TRUE) {
 
-     ensurer::ensure_that(method, (. == "dendogram" || . == "centroids" || . == "kohonen" || . == "koho&dogram"),
-                          err_desc = "sits_cluster: valid cluster methods are 'dendogram', 'centroids', 'kohonen', or 'koho&dogram'.")
+     ensurer::ensure_that(method, (. == "dendogram" || . == "centroids" || . == "kohonen" || . == "kohonen-dendogram"),
+                          err_desc = "sits_cluster: valid cluster methods are 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.")
 
      # creates the resulting table
      cluster.tb <- sits_table()
@@ -71,7 +71,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
           else if (method == "kohonen")
                clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
                                                 rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
-          else if (method == "koho&dogram")
+          else if (method == "kohonen-dendogram")
                clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, grouping_method=grouping_method,
                                                    grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
                                                    rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)

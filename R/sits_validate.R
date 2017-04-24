@@ -25,10 +25,10 @@
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
 #' @param min_clu_perc    the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
 #' @param apply_gam       apply gam method after a clustering algorithm (ignored if method is `gam`).
-#' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.
-#' @param koh_ygrid       y dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.
+#' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
+#' @param koh_ygrid       y dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
 #' @param koh_rlen        the number of times the complete data set will be presented to the SOM grid.
-#' (used only in `kohonen` or `koho&dogram` methods). Defaul is 100.
+#' (used only in `kohonen` or `kohonen-dendogram` methods). Default is 100.
 #' @param koh_alpha       learning rate, a vector of two numbers indicating the amount of change.
 #' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
 #' @param file            file to save the results
@@ -46,29 +46,8 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
                            apply_gam = FALSE, koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
                            file = "./conf_matrix.json", .multicores = 1){
 
-     # does the input data exist?
-     ensurer::ensure_that(data.tb, !purrr::is_null(.),
-                          err_desc = "sits_validate: input data not provided")
-     # are the bands to be classified part of the input data?
-     ensurer::ensure_that(data.tb, !(FALSE %in% bands %in% (sits_bands(.))),
-                          err_desc = "sits_validate: invalid input bands")
-
-     # recalculate kohonen params according to perc value
-     koh_xgrid = trunc(koh_xgrid * sqrt(perc))
-     koh_ygrid = trunc(koh_ygrid * sqrt(perc))
-     koh_rlen = trunc(koh_rlen * sqrt(perc))
-
-     #extract the bands to be included in the patterns
-     if (purrr::is_null (bands))
-          bands <- sits_bands (data.tb)
-     data.tb <- sits_select(data.tb, bands)
-
-     # create partitions different splits of the input data
-     partitions.lst <- .sits_create_partitions (data.tb, times, frac = perc)
-
-     # for each partition, fill the prediction and reference vectors
-     pred_ref.lst <- parallel::mcMap(function (p) {
-
+     # auxiliary function to classify a single partition
+     .sits_classify_partitions <- function (p) {
           #
           message("Creating patterns from a data sample...")
 
@@ -116,7 +95,39 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
 
           return (list(pred.vec, ref.vec))
 
-     }, partitions.lst, mc.cores = .multicores)
+     }
+     # does the input data exist?
+     ensurer::ensure_that(data.tb, !purrr::is_null(.),
+                          err_desc = "sits_validate: input data not provided")
+     # are the bands to be classified part of the input data?
+     ensurer::ensure_that(data.tb, !(FALSE %in% bands %in% (sits_bands(.))),
+                          err_desc = "sits_validate: invalid input bands")
+
+     # check valid methods
+     ensurer::ensure_that(method, (. == "gam" || . == "dendogram" || . == "centroids" || . == "kohonen" || . == "kohonen-dendogram"),
+                          err_desc = "sits_patterns: valid methods are 'gam', 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.")
+
+
+     # recalculate kohonen params according to perc value
+     if (method == "kohonen" || method == "kohonen-dendogram") {
+          koh_xgrid = trunc(koh_xgrid * sqrt(perc))
+          koh_ygrid = trunc(koh_ygrid * sqrt(perc))
+          koh_rlen  = trunc(koh_rlen * sqrt(perc))
+     }
+
+     #extract the bands to be included in the patterns
+     if (purrr::is_null (bands))
+          bands <- sits_bands (data.tb)
+     data.tb <- sits_select(data.tb, bands)
+
+     # create partitions different splits of the input data
+     partitions.lst <- .sits_create_partitions (data.tb, times, frac = perc)
+
+     # for each partition, fill the prediction and reference vectors
+     if (.multicores == 1)
+          pred_ref.lst <- Map(.sits_classify_partitions,partitions.lst)
+     else
+          pred_ref.lst <- parallel::mcMap(.sits_classify_partitions, partitions.lst, mc.cores = .multicores)
 
      # reconstructs the output list
      pred.vec <- unlist(purrr::map(pred_ref.lst, function (e) e[[1]]))
@@ -205,3 +216,6 @@ sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
      assess <- rfUtilities::accuracy(pred.vec, ref.vec)
      return (assess)
 }
+
+
+
