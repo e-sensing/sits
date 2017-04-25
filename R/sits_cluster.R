@@ -12,6 +12,7 @@
 #' @param bands           the bands to be clusterized.
 #' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.
 #' @param n_clusters      the number of clusters to be croped from hierarchical clustering (ignored in `kohonen` method). Default is 2.
+#' @param dist_method     A supported distance from proxy's dist, e.g. \code{TWDTW}.
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
 #' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
 #' @param koh_ygrid       y dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
@@ -24,12 +25,13 @@
 #' If `return_members` parameter is TRUE, resulting sits table will gain an extra column called `original_label` with all original labels.
 #' This column may be useful to measure confusion between clusters' members. Default is FALSE.
 #' @param show            (boolean) should the results be shown? Default is TRUE.
+#' @param ...             Other arguments to pass to the distance method \code{dist_method}, see \code{\link[dtwclust]{dtwclust}} for details.
 #' @return clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
-sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, grouping_method = "ward.D2",
-                          koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
-                          return_members = FALSE, unsupervised = FALSE, show = TRUE) {
+sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, dist_method = "dtw_basic",
+                          grouping_method = "ward.D2",koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100,
+                          koh_alpha = c(0.05, 0.01), return_members = FALSE, unsupervised = FALSE, show = TRUE, ...) {
 
      ensurer::ensure_that(method, (. == "dendogram" || . == "centroids" || . == "kohonen" || . == "kohonen-dendogram"),
                           err_desc = "sits_cluster: valid cluster methods are 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.")
@@ -63,11 +65,11 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 
           # apply the clustering method
           if (method == "dendogram")
-               clu.tb <- .sits_cluster_dendogram (label.tb, bands=bands, n_clusters=n_clusters, grouping_method=grouping_method,
-                                                  return_members=return_members, show=show)
+               clu.tb <- .sits_cluster_dendogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
+                                                  return_members=return_members, show=show, ...)
           else if (method == "centroids")
-               clu.tb <- .sits_cluster_partitional (label.tb, bands=bands, n_clusters=n_clusters, grouping_method=grouping_method,
-                                                    return_members=return_members, show=show)
+               clu.tb <- .sits_cluster_partitional (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
+                                                    return_members=return_members, show=show, ...)
           else if (method == "kohonen")
                clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
                                                 rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
@@ -108,14 +110,14 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 #' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show            (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-.sits_cluster_dendogram <- function (data.tb, bands, n_clusters, grouping_method, return_members, show){
+.sits_cluster_dendogram <- function (data.tb, bands, n_clusters, dist_method, grouping_method, return_members, show, ...){
      # get the values of the various time series for this band group
      values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
      clusters  <- dtwclust::dtwclust (values.tb,
                                       type     = "hierarchical",
                                       k        = n_clusters,
-                                      distance = "dtw_basic",
-                                      method   = grouping_method)
+                                      distance = dist_method,
+                                      method   = grouping_method, ...)
 
      # Plot the series and the obtained prototypes
      if (show) .sits_dtwclust_show (clusters)
@@ -147,16 +149,16 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 #' @param return_members (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show           (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
-.sits_cluster_partitional <- function (data.tb, bands, n_clusters, grouping_method, return_members, show) {
+.sits_cluster_partitional <- function (data.tb, bands, n_clusters, dist_method, grouping_method, return_members, show, ...) {
      # get the values of the various time series for this band group
      values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
      clusters  <- dtwclust::dtwclust (values.tb,
                                       type     = "partitional",
                                       k        = n_clusters,
-                                      distance = "dtw_basic",
+                                      distance = dist_method,
                                       method   = grouping_method,
                                       centroid = "pam",
-                                      seed     = 899)
+                                      seed     = 899, ...)
 
      # Plot the series and the obtained prototypes
      if (show) .sits_dtwclust_show (clusters)
