@@ -6,31 +6,47 @@
 \usage{
 sits_patterns(samples.tb, method = "gam", bands = NULL, from = NULL,
   to = NULL, freq = 8, formula = y ~ s(x), n_clusters = 2,
-  min_clu_perc = 0.1, show = FALSE)
+  grouping_method = "ward.D2", min_clu_perc = 0.1, apply_gam = FALSE,
+  koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05,
+  0.01), show = FALSE)
 }
 \arguments{
-\item{samples.tb}{a table in SITS format with a set of labelled time series}
+\item{samples.tb}{a table in SITS format with a set of labelled time series.}
 
-\item{method}{the method to be used for classification}
+\item{method}{the method to be used for classification.}
 
-\item{bands}{the bands used to obtain the pattern}
+\item{bands}{the bands used to obtain the pattern.}
 
-\item{from}{starting date of the estimate in month-day}
+\item{from}{starting date of the estimate in month-day.}
 
-\item{to}{end data of the estimated in month-day}
+\item{to}{end data of the estimated in month-day.}
 
-\item{freq}{int - the interval in days for the estimates to be generated}
+\item{freq}{int - the interval in days for the estimates to be generated.}
 
-\item{formula}{the formula to be applied in the estimate (for "gam" method)}
+\item{formula}{the formula to be applied in the estimate (for "gam" method).}
 
-\item{n_clusters}{the maximum number of clusters to be identified (for clustering methods)}
+\item{n_clusters}{the maximum number of clusters to be identified (for clustering methods).}
 
-\item{min_clu_perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)}
+\item{grouping_method}{the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `gam` and `kohonen` methods). Default is 'ward.D2'.}
 
-\item{show}{show the results of the clustering algorithm? (for clustering methods)}
+\item{min_clu_perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods).}
+
+\item{apply_gam}{apply gam method after a clustering algorithm (ignored if method is `gam`).}
+
+\item{koh_xgrid}{x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.}
+
+\item{koh_ygrid}{y dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.}
+
+\item{koh_rlen}{the number of times the complete data set will be presented to the SOM grid.
+(used only in `kohonen` or `kohonen-dendogram` methods). Default is 100.}
+
+\item{koh_alpha}{learning rate, a vector of two numbers indicating the amount of change.
+Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
+
+\item{show}{show the results of the clustering algorithm? (for clustering methods).}
 }
 \value{
-patterns.tb   a SITS table with the patterns
+patterns.tb    a SITS table with the patterns.
 }
 \description{
 This function allows the user to select different alternatives to define a set of

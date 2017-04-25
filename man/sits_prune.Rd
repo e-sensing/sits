@@ -4,15 +4,17 @@
 \alias{sits_prune}
 \title{Prunes dates of time series to fit an interval}
 \usage{
-sits_prune(data.tb, interval = "365 days")
+sits_prune(data.tb, min_interval = "349 days", max_interval = "365 days")
 }
 \arguments{
 \item{data.tb}{tibble - input SITS table}
 
-\item{interval}{a string describing the interval (in days)}
+\item{min_interval}{a string describing the min interval (in days) bellow which the samples are discarded.}
+
+\item{max_interval}{a string describing the max interval (in days) above which the samples are proned.}
 }
 \value{
-data1.tb   tibble - the converted SITS table
+proned.tb    tibble - the converted SITS table
 }
 \description{
 prunes the times series contained a set of sits tables
@@ -21,4 +23,6 @@ of land cover to the same interval (usually, one year)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

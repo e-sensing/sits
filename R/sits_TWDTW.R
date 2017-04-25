@@ -23,6 +23,7 @@
 #' @param  series.tb     a table in SITS format with a time series to be classified using TWTDW
 #' @param  patterns.tb   a set of known temporal signatures for the chosen classes
 #' @param  bands         string - the bands to be used for classification
+#' @param  dist.method   A character. Method to derive the local cost matrix.
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
@@ -31,7 +32,7 @@
 #' @param  keep          keep internal values for plotting matches
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
-sits_TWDTW <- function (series.tb, patterns.tb, bands,
+sits_TWDTW <- function (series.tb, patterns.tb, bands, dist.method = "euclidean",
                         alpha = -0.1, beta = 100, theta = 0.5,
                         interval = "12 month", span  = 250, keep  = FALSE){
 
@@ -66,7 +67,8 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
                                             weight.fun = log_fun,
                                             theta      = theta,
                                             span       = span,
-                                            keep       = keep)
+                                            keep       = keep,
+                                            dist.method = dist.method)
                # store the alignments and matches in two lists
                # alignments
                align.lst <- tibble::lst()
@@ -96,7 +98,6 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #'
 #' @param  data.tb       a table in SITS format with time series to be converted to TWTDW time series
 #' @return ts.tw         a time series in TWDTW format (an object of the twdtwTimeSeries class)
-#' @export
 .sits_toTWDTW_time_series <- function (data.tb){
      zoo.ls <- data.tb$time_series %>%
           purrr::map (function (ts) {
@@ -118,7 +119,6 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands,
 #' @param patterns  - a TWDTW object containing a set of patterns to be used for classification
 #' @param coverage  - the name of the coverage from where the time series have been obtained
 #' @return sits.tb  - a SITS table containing the patterns
-#' @export
 .sits_fromTWDTW_time_series <- function (patterns, coverage){
      # get the time series from the patterns
      tb.lst <- purrr::map2 (patterns@timeseries, patterns@labels, function (ts, lab) {

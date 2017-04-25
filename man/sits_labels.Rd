@@ -10,10 +10,10 @@ sits_labels(data.tb)
 \item{data.tb}{a valid sits table}
 }
 \value{
-labels.tb  a tibble with the names of the labels and its counting
+result.tb  a tibble with the names of the labels and its absolute and relative frequency
 }
 \description{
-returns the labels and its counting
+returns the labels and its respective counting and frequency.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
