@@ -12,11 +12,13 @@ sits_labels(mt.tb)
 
 mt.tb <- sits_prune(mt.tb)
 
+mt.tb <- slice(mt.tb, 1:100)
+
 log_fun = logisticWeight(-0.1, 50)
+
 new_class.tb <- sits_cluster(mt.tb, method = "dendogram", grouping_method = "ward.D2",
-                             bands = c("evi", "ndvi", "nir", "mir"), n_clusters = 15,
-                             dist_method = "TWDTW", show = TRUE,
-                             weight.fun = log_fun, span = 300)
+                             bands = c("evi", "ndvi", "nir", "mir"), dist_method = "TWDTW",
+                             show = TRUE, weight.fun = log_fun, span = 300)
 
 sits_labels(new_class.tb)
 
@@ -25,3 +27,4 @@ sits_cluster_segregation(new_class.tb)
 sits_segregation_measure(new_class.tb, per_cluster = TRUE)
 
 sits_segregation_measure(new_class.tb, per_cluster = FALSE)
+
