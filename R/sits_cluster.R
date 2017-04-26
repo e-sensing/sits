@@ -61,7 +61,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
           # filter only those rows with the same labels
           # cut time series to fit in one year
           label.tb <- dplyr::filter (data.tb, label == lb) #%>%
-               #sits_prune()  ## FIX-ME! sits_prune() returns a singular time series dates for specific cases!
+          #sits_prune()  ## FIX-ME! sits_prune() returns a singular time series dates for specific cases!
 
           # apply the clustering method
           if (method == "dendogram")
@@ -74,7 +74,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
                clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
                                                 rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
           else if (method == "kohonen-dendogram")
-               clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, grouping_method=grouping_method,
+               clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
                                                    grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
                                                    rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
 
@@ -111,13 +111,30 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 #' @param show            (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
 .sits_cluster_dendogram <- function (data.tb, bands, n_clusters, dist_method, grouping_method, return_members, show, ...){
+
      # get the values of the various time series for this band group
-     values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
+
+     if( tolower(dist_method) %in% "twdtw" ){
+          values.tb <- data.tb$time_series %>%
+               purrr::map (function (ts) {
+                    df <- data.frame (ts)
+                    return (zoo::zoo (df[,bands,drop=FALSE], df[,1]))
+               })
+     } else {
+          values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
+     }
+
      clusters  <- dtwclust::dtwclust (values.tb,
                                       type     = "hierarchical",
                                       k        = n_clusters,
                                       distance = dist_method,
                                       method   = grouping_method, ...)
+
+     # dtwclust does not handle zoo, therefore we convert zoo to matrix to allow for clusters visualization
+     if( tolower(dist_method) %in% "twdtw" ){
+          clusters@datalist  = lapply(clusters@datalist, as.matrix)
+          clusters@centroids = lapply(clusters@centroids, as.matrix)
+     }
 
      # Plot the series and the obtained prototypes
      if (show) .sits_dtwclust_show (clusters)
@@ -150,8 +167,19 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 #' @param show           (boolean) should the results be shown?
 #' @return clusters.tb a SITS tibble with the clusters
 .sits_cluster_partitional <- function (data.tb, bands, n_clusters, dist_method, grouping_method, return_members, show, ...) {
+
      # get the values of the various time series for this band group
-     values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
+
+     if( tolower(dist_method) %in% "twdtw" ){
+          values.tb <- data.tb$time_series %>%
+               purrr::map (function (ts) {
+                    df <- data.frame (ts)
+                    return (zoo::zoo (df[,bands,drop=FALSE], df[,1]))
+               })
+     } else {
+          values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
+     }
+
      clusters  <- dtwclust::dtwclust (values.tb,
                                       type     = "partitional",
                                       k        = n_clusters,
@@ -159,6 +187,12 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
                                       method   = grouping_method,
                                       centroid = "pam",
                                       seed     = 899, ...)
+
+     # dtwclust does not handle zoo, therefore we convert zoo to matrix to allow for clusters visualization
+     if( tolower(dist_method) %in% "twdtw" ){
+          clusters@datalist  = lapply(clusters@datalist, as.matrix)
+          clusters@centroids = lapply(clusters@centroids, as.matrix)
+     }
 
      # Plot the series and the obtained prototypes
      if (show) .sits_dtwclust_show (clusters)
@@ -238,7 +272,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 #' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show            (boolean) should the results be shown?
 #' @return result.tb a SITS tibble with the clusters
-.sits_cluster_kohodogram <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, n_clusters, grouping_method, return_members, show){
+.sits_cluster_kohodogram <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, n_clusters, dist_method, grouping_method, return_members, show){
 
      # recalculate grid dimension if the number of neurons is greater than the number of data input cases
      #### TO-DO: Document this recalculation!
@@ -269,7 +303,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
      neurons.tb$label <- tools::file_path_sans_ext(neurons.tb[1,]$label[[1]])
 
      # pass neurons to dendogram clustering
-     clusters.tb <- .sits_cluster_dendogram (neurons.tb, bands = bands, n_clusters = n_clusters,
+     clusters.tb <- .sits_cluster_dendogram (neurons.tb, bands = bands, n_clusters = n_clusters, dist_method = dist_method,
                                              grouping_method = grouping_method, return_members = return_members, show = FALSE)
 
      # return a sits table with all input data with new labels

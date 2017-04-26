@@ -13,7 +13,6 @@ sits_labels(mt.tb)
 mt.tb <- sits_prune(mt.tb)
 
 log_fun = logisticWeight(-0.1, 50)
-sits_values (mt.tb, c("evi", "ndvi", "nir", "mir"), format = "bands_cases_dates")
 new_class.tb <- sits_cluster(mt.tb, method = "dendogram", grouping_method = "ward.D2",
                              bands = c("evi", "ndvi", "nir", "mir"), n_clusters = 15,
                              dist_method = "TWDTW", show = TRUE,
