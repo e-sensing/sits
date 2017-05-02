@@ -1,30 +1,29 @@
-# R script 2017-04-25
+# R script 2017-05-02
 # sits package by Victor Maus
 
-# Verifying the separability between labels using unsupervised clustering algorithm and TWDTW distance
+# Verifying the separability between labels using TWDTW clustering and logistic weight
 
 library(sits)
+
+# Load sample time series
 mt.tb <- sits_getdata (file = system.file("extdata/samples/matogrosso.json", package="sits"))
 sits_labels(mt.tb)
 
+# Remove insignificant labels
 mt.tb <- sits_significant_labels(mt.tb, 0.02)
 sits_labels(mt.tb)
 
+# Prunes the times series
 mt.tb <- sits_prune(mt.tb)
 
-mt.tb <- slice(mt.tb, 1:100)
-
+# Set TWDTW weight function
 log_fun = logisticWeight(-0.1, 50)
 
-new_class.tb <- sits_cluster(mt.tb, method = "dendogram", grouping_method = "ward.D2",
-                             bands = c("evi", "ndvi", "nir", "mir"), dist_method = "TWDTW",
-                             show = TRUE, weight.fun = log_fun, span = 300)
+# TWDTW clustering
+proc_time =
+     system.time(new_class.tb <- sits_cluster(mt.tb, method = "dendogram", bands = c("evi", "ndvi", "nir", "mir"),
+                                              dist_method = "TWDTW", show = TRUE, weight.fun = log_fun, span = 300))
+
 
 sits_labels(new_class.tb)
-
-sits_cluster_segregation(new_class.tb)
-
-sits_segregation_measure(new_class.tb, per_cluster = TRUE)
-
-sits_segregation_measure(new_class.tb, per_cluster = FALSE)
 
