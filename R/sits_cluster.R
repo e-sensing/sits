@@ -2,6 +2,7 @@
 #' @name sits_cluster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
 #' @description This function uses package "dtwclust" to do time series clustering.
 #' There are four options: "dendogram" (hierarchical clustering), "controids" (positional
@@ -92,6 +93,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 #' @name .sits_cluster_dendogram
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
 #' @description Cluster time series in hierarchical mode. Hierarchical clustering, as its name suggests,
 #' is an algorithm that tries to create a hierarchy
@@ -147,6 +149,7 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
 #' @name .sits_cluster_partitional
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
 #' @description Partitional clustering assigns the data to one and only
 #' one cluster out of k total clusters.

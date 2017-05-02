@@ -1,7 +1,5 @@
-# R script 2017-05-02
-# sits package by Victor Maus
-
-# Verifying the separability between labels using TWDTW clustering and logistic weight
+# R script 2017-05-02, verifying the separability between labels using TWDTW clustering and logistic weight
+# by Victor Maus
 
 library(sits)
 
