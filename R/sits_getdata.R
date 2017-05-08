@@ -212,6 +212,11 @@ sits_getdata <- function (file        = NULL,
      csv.tb %>%
           purrr::by_row( function (r){
                row <- .sits_fromWTSS (r$longitude, r$latitude, r$start_date, r$end_date, r$label, wtss.obj, cov, bands)
+
+               # ajust the start and end dates
+               row$start_date <- lubridate::as_date(head(row$time_series[[1]]$Index, 1))
+               row$end_date   <- lubridate::as_date(tail(row$time_series[[1]]$Index, 1))
+
                data.tb <<- dplyr::bind_rows (data.tb, row)
           })
      return (data.tb)
