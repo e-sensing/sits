@@ -19,11 +19,24 @@ coverage <- "mod13q1_512"
 bands <- c("ndvi", "evi", "nir")
 
 # a complicated point
-long <- -55.01768
-lat <-  -15.35588
+long <- -58.15781
+lat <-  -10.38867
 
 # obtain a time series from the WTSS server for this point
 series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = "mod13q1_512", bands = bands)
+
+# retrieve a set of samples from a JSON file
+patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Damien_Ieda_Rodrigo_15classes_3bands_Water.json")
+
+sits_plot (patterns.tb, type = "patterns")
+
+results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
+
+# plot the results of the classification
+sits_plot (results.tb, type = "classification")
+sits_plot (results.tb, type = "alignments")
+
+
 
 # plot the “evi” band
 series.tb %>%
