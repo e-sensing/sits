@@ -5,9 +5,9 @@
 \title{Cluster a set of satellite image time series}
 \usage{
 sits_cluster(data.tb, bands, method = "dendogram", n_clusters = 2,
-  grouping_method = "ward.D2", koh_xgrid = 5, koh_ygrid = 5,
-  koh_rlen = 100, koh_alpha = c(0.05, 0.01), return_members = FALSE,
-  unsupervised = FALSE, show = TRUE)
+  dist_method = "dtw_basic", grouping_method = "ward.D2", koh_xgrid = 5,
+  koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
+  return_members = FALSE, unsupervised = FALSE, show = TRUE, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble the list of time series to be clustered}
@@ -17,6 +17,8 @@ sits_cluster(data.tb, bands, method = "dendogram", n_clusters = 2,
 \item{method}{string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.}
 
 \item{n_clusters}{the number of clusters to be croped from hierarchical clustering (ignored in `kohonen` method). Default is 2.}
+
+\item{dist_method}{A supported distance from proxy's dist, e.g. \code{TWDTW}.}
 
 \item{grouping_method}{the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.}
 
@@ -37,6 +39,8 @@ If `return_members` parameter is TRUE, resulting sits table will gain an extra c
 This column may be useful to measure confusion between clusters' members. Default is FALSE.}
 
 \item{show}{(boolean) should the results be shown? Default is TRUE.}
+
+\item{...}{Other arguments to pass to the distance method \code{dist_method}, see \code{\link[dtwclust]{dtwclust}} for details.}
 }
 \value{
 clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
@@ -54,4 +58,6 @@ clustering), "kohonen" (self-organized maps), and "kohonen-dendogram" (self-orga
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Victor Maus, \email{vwmaus1@gmail.com}
 }

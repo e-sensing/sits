@@ -13,10 +13,12 @@ sits_labels(mt.tb)
 
 mt.tb <- sits_prune(mt.tb)
 
-new_class.tb <- sits_cluster(mt.tb, method = "koho&dogram", grouping_method = "ward.D2",
+new_class.tb <- sits_cluster(data.tb = mt.tb, method = "kohonen-dendogram", grouping_method = "ward.D2",
                              bands = c("evi", "ndvi", "nir", "mir"), n_clusters = 15,
                              show = TRUE, return_members = TRUE, unsupervised = TRUE,
                              koh_xgrid = 10, koh_ygrid = 10, koh_rlen = 1200, koh_alpha = c(0.2, 0.04))
+
+new_class.tb
 
 sits_labels(new_class.tb)
 

@@ -212,6 +212,11 @@ sits_getdata <- function (file        = NULL,
      csv.tb %>%
           purrr::by_row( function (r){
                row <- .sits_fromWTSS (r$longitude, r$latitude, r$start_date, r$end_date, r$label, wtss.obj, cov, bands)
+
+               # ajust the start and end dates
+               row$start_date <- lubridate::as_date(head(row$time_series[[1]]$Index, 1))
+               row$end_date   <- lubridate::as_date(tail(row$time_series[[1]]$Index, 1))
+
                data.tb <<- dplyr::bind_rows (data.tb, row)
           })
      return (data.tb)
@@ -316,15 +321,16 @@ sits_getdata <- function (file        = NULL,
      pt_wtss.sp <- sitsTable2sp(pt_wtss.tb)
      pt_wtss.sp <- sp::spTransform(pt_wtss.sp, sp::CRS("+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"))
      grid_pts.sp <- buildGridPoints(pt_wtss.sp)
-
      # transform WGS sp into sits table to get data from server
      plg_pts.sp <- extractFromPolygon(grid_pts.sp, roi.shp)
-     plg_pts.sp <- sp::spTransform(plg_pts.sp, sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
-     plg_pts.tb <- sp2SitsTable(plg_pts.sp)
-
-     wtss_points.tb <- plg_pts.tb %>%
-          dplyr::rowwise() %>%
-          dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, start_date, end_date, label, wtss.obj, cov, bands))
+     if (nrow(plg_pts.sp@coords)) {
+         plg_pts.sp <- sp::spTransform(plg_pts.sp, sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+         plg_pts.tb <- sp2SitsTable(plg_pts.sp)
+         wtss_points.tb <- plg_pts.tb %>%
+               dplyr::rowwise() %>%
+               dplyr::do (.sits_fromWTSS (.$longitude, .$latitude, start_date, end_date, label, wtss.obj, cov, bands))
+     } else
+          wtss_points.tb <- sits_table()
 
      return (wtss_points.tb)
 }
