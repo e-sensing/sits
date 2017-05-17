@@ -48,7 +48,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands, dist.method = "euclidean"
      log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
      series.tb %>%
-          purrr::by_row (function (row) {
+          purrrlyr::by_row (function (row) {
                # select the bands for the samples time series and convert to TWDTW format
                twdtw_series <- row %>%
                     sits_select (bands) %>%

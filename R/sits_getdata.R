@@ -101,7 +101,7 @@ sits_getdata <- function (file        = NULL,
      # convert Indexes in time series to dates
      table1 <- sits_table()
      table %>%
-          purrr::by_row(function (r) {
+          purrrlyr::by_row(function (r) {
                tb <- tibble::as_tibble(r$time_series[[1]])
                tb$Index <- lubridate::as_date(tb$Index)
                r$time_series[[1]] <- tb
@@ -160,7 +160,7 @@ sits_getdata <- function (file        = NULL,
      data.tb <- sits_table()
 
      table %>%
-          purrr::by_row( function (r){
+          purrrlyr::by_row( function (r){
                # does the lat/long information exist
                ensurer::ensure_that(r$longitude, !purrr::is_null(.) && !is.na(.), err_desc = "sits_getdata - no longitude information")
                ensurer::ensure_that(r$latitude,  !purrr::is_null(.) && !is.na(.), err_desc = "sits_getdata - no longitude information")
@@ -210,7 +210,7 @@ sits_getdata <- function (file        = NULL,
      data.tb <- sits_table()
      # for each row of the input, retrieve the time series
      csv.tb %>%
-          purrr::by_row( function (r){
+          purrrlyr::by_row( function (r){
                row <- .sits_fromWTSS (r$longitude, r$latitude, r$start_date, r$end_date, r$label, wtss.obj, cov, bands)
 
                # ajust the start and end dates

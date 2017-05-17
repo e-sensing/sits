@@ -58,4 +58,6 @@ clustering), "kohonen" (self-organized maps), and "kohonen-dendogram" (self-orga
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Victor Maus, \email{vwmaus1@gmail.com}
 }

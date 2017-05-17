@@ -30,7 +30,8 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom readr cols col_integer col_double col_date col_character read_csv write_lines
 #' @importFrom tibble tibble as_tibble add_column add_row lst
 #' @importFrom tidyr nest unnest drop_na
-#' @importFrom purrr map map2 map_df is_null by_row invoke_rows
+#' @importFrom purrr map map2 map_df is_null
+#' @importFrom purrrlyr by_row
 #' @importFrom ggplot2 ggplot aes geom_line labs scale_color_brewer scale_colour_hue
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom lubridate as_date dyears days period yday year ymd

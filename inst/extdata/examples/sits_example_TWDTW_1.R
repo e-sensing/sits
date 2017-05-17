@@ -18,9 +18,11 @@ coverage <- "mod13q1_512"
 # recover all bands
 bands <- c("ndvi", "evi", "nir")
 
-# a complicated point
-long <- -55.01768
-lat <-  -15.35588
+# a point in the transition forest pasture in Northern MT
+long <- -58.60918
+lat <-  -10.55992
+
+# outro ponto interessante: -58.63919,-10.74036
 
 # obtain a time series from the WTSS server for this point
 series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = "mod13q1_512", bands = bands)
@@ -57,6 +59,12 @@ matogrosso.tb <- sits_prune (matogrosso.tb)
 # create patterns using the gam method (default)
 patt_mt.tb <- sits_patterns(matogrosso.tb)
 sits_plot (patt_mt.tb, type = "patterns")
+
+results.tb <- sits_TWDTW(series.tb, patt_mt.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
+
+# plot the results of the classification
+sits_plot (results.tb, type = "classification")
+sits_plot (results.tb, type = "alignments")
 
 # create patterns using the dendogram method
 patt_mt_d.tb <- sits_patterns(matogrosso.tb, bands = c("ndvi", "evi", "nir"), method = "dendogram")

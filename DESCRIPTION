@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.3.31
-Date: 2017-03-31
+Version: 0.5.17
+Date: 2017-05-17
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Rolf', 'Simoes', role = c('ctb')),
@@ -39,6 +39,7 @@ Imports:
     parallel,
     ptw,
     purrr,
+    purrrlyr,
     raster,
     readr,
     reshape2,
