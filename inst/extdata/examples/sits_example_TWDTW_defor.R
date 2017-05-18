@@ -51,3 +51,4 @@ results2.tb <- sits_TWDTW(series.tb, patterns2.tb, bands, alpha= -0.1, beta = 10
 # plot the results of the classification
 sits_plot (results2.tb, type = "classification")
 sits_plot (results2.tb, type = "alignments")
+
