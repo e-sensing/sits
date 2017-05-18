@@ -438,7 +438,7 @@ sits_prune <- function (data.tb, min_interval = "349 days", max_interval = "365 
      progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
 
      data.tb %>%
-          purrr::by_row (function (row) {
+          purrrlyr::by_row (function (row) {
                ts <- row$time_series[[1]]
                row_interval <- lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date)
 
@@ -505,7 +505,7 @@ sits_group_bylatlong <- function (data.tb) {
 
      # process each lat/long location
      locs %>%
-          purrr::by_row ( function (loc) {
+          purrrlyr::by_row ( function (loc) {
                long = as.double (loc$longitude) # select longitude
                lat  = as.double (loc$latitude)  # select latitude
                # filter only those rows with the same label
@@ -521,7 +521,7 @@ sits_group_bylatlong <- function (data.tb) {
                if (nrow(rows) > 1) {
                     rows %>%
                          utils::tail (n = -1) %>%
-                         purrr::by_row (function(row) {
+                         purrrlyr::by_row (function(row) {
                               # adjust the start and end dates
                               if (row$start_date < start_date) start_date <- row$start_date
                               if (row$end_date   > end_date)   end_date   <- row$end_date
