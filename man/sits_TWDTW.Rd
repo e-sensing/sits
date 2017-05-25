@@ -6,7 +6,7 @@
 \usage{
 sits_TWDTW(series.tb, patterns.tb, bands, dist.method = "euclidean",
   alpha = -0.1, beta = 100, theta = 0.5, interval = "12 month",
-  span = 250, keep = FALSE)
+  span = 250, keep = FALSE, overlap = 0.5)
 }
 \arguments{
 \item{series.tb}{a table in SITS format with a time series to be classified using TWTDW}
@@ -28,6 +28,8 @@ sits_TWDTW(series.tb, patterns.tb, bands, dist.method = "euclidean",
 \item{span}{the minimum period for a match between a pattern and a signal)}
 
 \item{keep}{keep internal values for plotting matches}
+
+\item{overlap}{mininum overlapping between one match and the interval of classification}
 }
 \value{
 matches       a SITS table with the information on matches for the data
