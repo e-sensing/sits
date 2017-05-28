@@ -19,8 +19,12 @@ coverage <- "mod13q1_512"
 bands <- c("ndvi", "evi", "nir")
 
 # a point in the transition forest pasture in Northern MT
+<<<<<<< HEAD
 long <- -58.48733
 lat <-  -10.14707
+=======
+long <- -58.93260
+lat <-  -9.91081
 
 # points
 # (-58.60918, -10.55992)
