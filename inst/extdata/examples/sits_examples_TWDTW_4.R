@@ -1,4 +1,4 @@
-# satellite image time series package (SITS)
+
 # example of the classification of a time series
 #devtools::install_github("gilbertocamara/sits")
 library(sits)
@@ -19,44 +19,41 @@ coverage <- "mod13q1_512"
 bands <- c("ndvi", "evi", "nir")
 
 # a point in the transition forest pasture in Northern MT
-long <- -58.93260
-lat <-  -9.91081
+long <- -58.60918
+lat <-  -10.55992
 
-# points
-# (-58.60918, -10.55992)
-# (-58.63919, -10.74036)
-# (-58.79581,  -9.91111)
-# (-58.93260,  -9.91081)
+# outro ponto interessante: -58.63919,-10.74036
 
 # obtain a time series from the WTSS server for this point
 series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = "mod13q1_512", bands = bands)
 
-# plot all the bands, plot them, and save the smoothed bands in a new table
-# plot the “evi” band
+# smooth all the bands, plot them, and save the smoothed bands in a new table
+series_s.tb <- series.tb %>%
+     sits_smooth() %>%
+     sits_rename (c("ndvi_smooth", "evi_smooth", "nir_smooth")) %>%
+     sits_plot()
+
+# merge the raw and smoothed series and plot the “red” and “red_smooth” bands
 series.tb %>%
-     sits_select (bands = "evi") %>%
-     sits_plot ()
-# plot the “ndvi” band
-series.tb %>%
-     sits_select (bands = "ndvi") %>%
-     sits_plot ()
+     sits_merge(., series_s.tb) %>%
+     sits_select (bands = c("evi", "evi_smooth")) %>%
+     sits_plot()
 
-# retrieve a set of samples from a JSON file
-patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Damien_Ieda_Rodrigo_17classes_3bands.json")
+# retrieve patterns from a JSON file
+matogrosso.tb <- sits_getdata(file = system.file("extdata/patterns/patterns_MatoGrosso_18052017.json", package="sits"))
 
-sits_plot (patterns.tb, type = "patterns")
+sits_plot (matogrosso.tb, type = "patterns")
 
-results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
+results.tb <- sits_TWDTW(series.tb, matogrosso.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
 # plot the results of the classification
 sits_plot (results.tb, type = "classification")
 sits_plot (results.tb, type = "alignments")
 
-patterns2.tb <- dplyr::filter (patterns.tb, label != "Sugarcane")
+matogrosso2.tb <- dplyr::filter (matogrosso.tb, label != "Sugarcane")
 
-results2.tb <- sits_TWDTW(series.tb, patterns2.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
+results2.tb <- sits_TWDTW(series.tb, matogrosso2.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
 # plot the results of the classification
 sits_plot (results2.tb, type = "classification")
 sits_plot (results2.tb, type = "alignments")
-
