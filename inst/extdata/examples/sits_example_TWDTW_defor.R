@@ -19,13 +19,12 @@ coverage <- "mod13q1_512"
 bands <- c("ndvi", "evi", "nir")
 
 # a point in the transition forest pasture in Northern MT
-<<<<<<< HEAD
-long <- -58.48733
-lat <-  -10.14707
-=======
-long <- -58.93260
-lat <-  -9.91081
 
+long <- -59.38020
+lat <-  -10.38016
+
+long <- -55.11916
+lat <- -12.97451
 # points
 # (-58.60918, -10.55992)
 # (-58.63919, -10.74036)
@@ -33,19 +32,20 @@ lat <-  -9.91081
 # (-58.93260,  -9.91081)
 # (-58.45774,  -10.19968)
 # (-58.48733,  -10.14707)
+# (-55.233, -11.516)
 
 # obtain a time series from the WTSS server for this point
 series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = "mod13q1_512", bands = bands)
 
 # plot all the bands, plot them, and save the smoothed bands in a new table
-# plot the “evi” band
-series.tb %>%
-     sits_select (bands = "evi") %>%
-     sits_plot ()
-# plot the “ndvi” band
-series.tb %>%
-     sits_select (bands = "ndvi") %>%
-     sits_plot ()
+#smooth the data and put into a new table
+series2.tb <- sits_smooth (series.tb, lambda = 5.0)
+
+series2.tb %>%
+     sits_rename (c("ndvi_smooth", "evi_smooth", "nir_smooth")) %>%
+     sits_merge(series.tb)  %>%
+     sits_select(c("evi_smooth", "evi")) %>%
+     sits_plot()
 
 # retrieve a set of samples from a JSON file
 patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Damien_Ieda_Rodrigo_17classes_3bands.json")
@@ -58,7 +58,7 @@ results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100,
 sits_plot (results.tb, type = "classification")
 sits_plot (results.tb, type = "alignments")
 
-results2.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 150, theta = 0.5)
+results2.tb <- sits_TWDTW(series2.tb, patterns.tb, bands, alpha= -0.1, beta = 150, theta = 0.5)
 
 # plot the results of the classification
 sits_plot (results2.tb, type = "classification")

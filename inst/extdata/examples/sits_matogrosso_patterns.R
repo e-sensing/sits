@@ -7,7 +7,7 @@
 library(sits)
 
 # retrieve a set of samples from a JSON file
-damien_ieda.tb <- sits_getdata(file = system.file("extdata/samples/samples_Damien_Ieda_12classes_6bands_Water.json", package="sits"))
+damien_ieda.tb <- sits_getdata(file = system.file("extdata/samples/cerrado.json", package="sits"))
 
 matogrosso.tb <- sits_prune(matogrosso.tb)
 # perform accuracy assessment - já foi feito
