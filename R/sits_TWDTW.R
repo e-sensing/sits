@@ -30,11 +30,14 @@
 #' @param  interval      the period between two classifications
 #' @param  span          the minimum period for a match between a pattern and a signal)
 #' @param  keep          keep internal values for plotting matches
+#' @param  overlap       mininum overlapping between one match and the interval of classification
+#' @param  start_date    a character or Dates object in the format "yyyy-mm-dd".
+#' @param  end_date      a character or Dates object in the format "yyyy-mm-dd".
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
 sits_TWDTW <- function (series.tb, patterns.tb, bands, dist.method = "euclidean",
                         alpha = -0.1, beta = 100, theta = 0.5,
-                        interval = "12 month", span  = 250, keep  = FALSE){
+                        interval = "12 month", span  = 250, keep  = FALSE, overlap = 0.5, start_date = "2000-09-01", end_date = "2016-08-31"){
 
      # create a tibble to store the results
      results.tb <- sits_table()
@@ -48,18 +51,15 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands, dist.method = "euclidean"
      log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
      series.tb %>%
-          purrr::by_row (function (row) {
+          purrrlyr::by_row (function (row) {
                # select the bands for the samples time series and convert to TWDTW format
                twdtw_series <- row %>%
                     sits_select (bands) %>%
                     .sits_toTWDTW_time_series()
 
                # set the start and end dates
-               start_date <- lubridate::as_date(utils::head(row$time_series[[1]],1)$Index)
-               end_date   <- lubridate::as_date(utils::tail(row$time_series[[1]],1)$Index)
-
-               # define the temporal intervals of each classification
-               breaks <- seq(from = start_date, to = end_date, by = interval)
+               #start_date <- lubridate::as_date(utils::head(row$time_series[[1]],1)$Index)
+               #end_date   <- lubridate::as_date(utils::tail(row$time_series[[1]],1)$Index)
 
                #classify the data using TWDTW
                matches = dtwSat::twdtwApply(x          = twdtw_series,
@@ -69,6 +69,7 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands, dist.method = "euclidean"
                                             span       = span,
                                             keep       = keep,
                                             dist.method = dist.method)
+
                # store the alignments and matches in two lists
                # alignments
                align.lst <- tibble::lst()
@@ -76,11 +77,19 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands, dist.method = "euclidean"
 
                # matches
                match.lst <- tibble::lst()
-               match.lst[[1]] <- matches
+               match.lst[[1]] <-  matches
+
+               # define the temporal intervals of each classification
+               breaks <- seq(from = as.Date(start_date), to = as.Date(end_date), by = interval)
+
+               classify <- dtwSat::twdtwClassify(x = matches, breaks = breaks, overlap = overlap)
+               class.lst <- tibble::lst()
+               class.lst[[1]] <- classify[[1]]
 
                # add the aligments and matches to the results
-               res.tb <- dplyr::mutate (row, alignments  = align.lst)
-               res.tb <- dplyr::mutate (res.tb, matches    = match.lst)
+               res.tb <- dplyr::mutate (row, alignments = align.lst)
+               res.tb <- dplyr::mutate (res.tb, matches = match.lst)
+               res.tb <- dplyr::mutate (res.tb, best.alignments = class.lst)
 
                # add the row to the results.tb tibble
                results.tb <<- dplyr::bind_rows(results.tb, res.tb)

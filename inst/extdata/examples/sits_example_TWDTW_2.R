@@ -10,8 +10,8 @@ URL <- "http://www.dpi.inpe.br/tws/wtss"
 sits_infoWTSS(URL)
 
 # a complicated point
-long <- -55.51810
-lat <-  -11.63884
+long <- -59.60500
+lat <-  -10.23667
 
 coverage <- "mod13q1_512"
 

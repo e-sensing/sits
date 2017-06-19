@@ -33,12 +33,12 @@ sits_patterns(samples.tb, method = "gam", bands = NULL, from = NULL,
 
 \item{apply_gam}{apply gam method after a clustering algorithm (ignored if method is `gam`).}
 
-\item{koh_xgrid}{x dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.}
+\item{koh_xgrid}{x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.}
 
-\item{koh_ygrid}{y dimension of the SOM grid (used only in `kohonen` or `koho&dogram` methods). Defaul is 5.}
+\item{koh_ygrid}{y dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.}
 
 \item{koh_rlen}{the number of times the complete data set will be presented to the SOM grid.
-(used only in `kohonen` or `koho&dogram` methods). Defaul is 100.}
+(used only in `kohonen` or `kohonen-dendogram` methods). Default is 100.}
 
 \item{koh_alpha}{learning rate, a vector of two numbers indicating the amount of change.
 Default is to decline linearly from 0.05 to 0.01 over rlen updates.}

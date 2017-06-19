@@ -43,7 +43,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 .sits_plot_allyears <- function (data.tb, colors) {
      locs <- dplyr::distinct (data.tb, longitude, latitude)
      locs %>%
-          purrr::by_row( function (r){
+          purrrlyr::by_row( function (r){
                long = as.double (r$longitude)
                lat  = as.double (r$latitude)
                # filter only those rows with the same label
@@ -63,7 +63,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 #' @param colors  the color pallete to be used (default is "Dark2")
 .sits_plot_one_by_one <- function (data.tb, colors){
      data.tb %>%
-          purrr::by_row( function (r){
+          purrrlyr::by_row( function (r){
                .sits_ggplot_series (r,colors) %>%
                     graphics::plot()
           })
@@ -89,7 +89,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 .sits_plot_classification <- function (data.tb){
      # retrieve a dtwSat S4 twdtwMatches object
      data.tb %>%
-          purrr::by_row( function (r) {
+          purrrlyr::by_row( function (r) {
                dtwSat::plot (r$matches[[1]], type = "classification", overlap = 0.5) %>%
                     graphics::plot()
           })
@@ -101,7 +101,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 #' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
 .sits_plot_alignments <- function (data.tb){
      data.tb %>%
-          purrr::by_row( function (r) {
+          purrrlyr::by_row( function (r) {
                dtwSat::plot (r$matches[[1]], type = "alignments") %>%
                     graphics::plot()
           })
@@ -116,7 +116,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 .sits_plot_matches <- function (data.tb, label, n_matches) {
      ensurer::ensure_that(label, !purrr::is_null(.), err_desc = "sits_plot matches: label must be provided")
      data.tb %>%
-          purrr::by_row( function (r) {
+          purrrlyr::by_row( function (r) {
                dtwSat::plot (r$matches, type = "matches", patterns.labels = label, k = n_matches) %>%
                graphics::plot()
      })
@@ -165,7 +165,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
      labels <- dplyr::distinct (data.tb, label)
 
      labels %>%
-          purrr::by_row( function (r) {
+          purrrlyr::by_row( function (r) {
                lb = as.character (r$label)
                # filter only those rows with the same label
                data2.tb <- dplyr::filter (data.tb, label == lb)
