@@ -37,6 +37,7 @@ Imports:
     methods,
     mgcv,
     parallel,
+    plyr,
     ptw,
     purrr,
     purrrlyr,

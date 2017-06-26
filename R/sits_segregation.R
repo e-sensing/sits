@@ -91,33 +91,34 @@ sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster 
 #' @description Returns a tibble with all cross combinations of its input parameters informed as lists, vectors, or scalars.
 #' This output is used to set the parameters' domain to be used in `sits_segregation_experiment` function.
 #'
-#' @param method
-#' @param times
-#' @param bands
-#' @param n_clusters
-#' @param grouping_method
-#' @param koh_grid_length
-#' @param koh_rlen
-#' @param koh_alpha_from
-#' @param koh_alpha_to
+#' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.
+#' @param times           how many times to run an parameterized experiment.
+#' @param bands           the bands to be clusterized.
+#' @param n_clusters      the number of clusters to be croped from hierarchical clustering (ignored in `kohonen` method). Default is 2.
+#' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
+#' @param koh_grid_length grid side dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
+#' @param koh_rlen        the number of times the complete data set will be presented to the SOM grid
+#' (used only in `kohonen` or `kohonen-denddogram` methods). Default is 100.
+#' @param koh_alpha_from  starting learning rate. Default is to decline linearly from 0.05 to `koh_alpha_to` over rlen updates.
+#' @param koh_alpha_to    ending learning rate. Default is to decline linearly from `koh_alpha_from` to 1.0 over rlen updates.
 #' @return result.tb      a tibble with all cross combinations of parameters' values.
-.setup_segregation_expr <- function(experiment, times, bands, n_clusters, grouping_method,
+.setup_segregation_expr <- function(method, times, bands, n_clusters, grouping_method,
                                     koh_grid_length, koh_rlen, koh_alpha_from, koh_alpha_to){
 
-     if (experiment == "dendogram" || experiment == "centroids")
+     if (method == "dendogram" || method == "centroids")
           return (tibble::as_tibble(expand.grid(method = "dendogram", bands = bands, n_clusters = n_clusters,
                                                 grouping_method = grouping_method, koh_grid_length = NA,
                                                 koh_rlen = NA, koh_alpha_from = NA, koh_alpha_to = NA,
                                                 times = 1,
                                                 KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)))
-     else if (experiment == "kohonen")
+     else if (method == "kohonen")
           return (tibble::as_tibble(expand.grid(method = "kohonen", bands = bands, n_clusters = NA,
                                                 grouping_method = NA, koh_grid_length = koh_grid_length,
                                                 koh_rlen = koh_rlen, koh_alpha_from = koh_alpha_from, koh_alpha_to = koh_alpha_to,
                                                 times = times,
                                                 KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)))
-     else if (experiment == "koho&dogram")
-          return (tibble::as_tibble(expand.grid(method = "koho&dogram", bands = bands, n_clusters = n_clusters,
+     else if (method == "kohonen-dendogram")
+          return (tibble::as_tibble(expand.grid(method = "kohonen-dendogram", bands = bands, n_clusters = n_clusters,
                                                 grouping_method = grouping_method, koh_grid_length = koh_grid_length,
                                                 koh_rlen = koh_rlen, koh_alpha_from = koh_alpha_from, koh_alpha_to = koh_alpha_to,
                                                 times = times,
@@ -130,17 +131,19 @@ sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster 
 #'
 #' @description Runs an segregation experiment with a single valued parameters and returns a list with experiment's result.
 #'
-#' @param method
-#' @param times
-#' @param bands
-#' @param n_clusters
-#' @param grouping_method
-#' @param koh_grid_length
-#' @param koh_rlen
-#' @param koh_alpha_from
-#' @param koh_alpha_to
-#' @return result.lst     a tibble with all cross combinations of parameters' values.
-.exec_segregation_expr <- function(method, bands, n_clusters, grouping_method, koh_grid_length,
+#' @param data.tb         a SITS table with the samples to be used in experiments.
+#' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.
+#' @param bands           the bands to be clusterized.
+#' @param n_clusters      the number of clusters to be croped from hierarchical clustering (ignored in `kohonen` method). Default is 2.
+#' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
+#' @param koh_grid_length grid side dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
+#' @param koh_rlen        the number of times the complete data set will be presented to the SOM grid
+#' (used only in `kohonen` or `kohonen-denddogram` methods). Default is 100.
+#' @param koh_alpha_from  starting learning rate. Default is to decline linearly from 0.05 to `koh_alpha_to` over rlen updates.
+#' @param koh_alpha_to    ending learning rate. Default is to decline linearly from `koh_alpha_from` to 1.0 over rlen updates.#' @param method
+#' @param times           how many times to run an parameterized experiment.
+#' @return result.lst     a list with all cross combinations of parameters' values.
+.exec_segregation_expr <- function(data.tb, method, bands, n_clusters, grouping_method, koh_grid_length,
                                    koh_rlen, koh_alpha_from, koh_alpha_to, times = 1) {
 
      segregation <- 0.0
@@ -177,20 +180,23 @@ sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster 
 #' @name sits_segregation_experiments
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description
+#' @description Runs a set of segregation experiments according to informed parameters and returns a tibble with experiment's result.
 #'
-#' @param method
-#' @param times
-#' @param bands
-#' @param n_clusters
-#' @param grouping_method
-#' @param koh_grid_length
-#' @param koh_rlen
-#' @param koh_alpha_from
-#' @param koh_alpha_to
+#' @param data.tb         a SITS table with the samples to be used in experiments.
+#' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.
+#' @param times           how many times to run an parameterized experiment.
+#' @param bands           the bands to be clusterized.
+#' @param n_clusters      the number of clusters to be croped from hierarchical clustering (ignored in `kohonen` method). Default is 2.
+#' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
+#' @param koh_grid_length grid side dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
+#' @param koh_rlen        the number of times the complete data set will be presented to the SOM grid
+#' (used only in `kohonen` or `kohonen-denddogram` methods). Default is 100.
+#' @param koh_alpha_from  starting learning rate. Default is to decline linearly from 0.05 to `koh_alpha_to` over rlen updates.
+#' @param koh_alpha_to    ending learning rate. Default is to decline linearly from `koh_alpha_from` to 1.0 over rlen updates.
+#' @param .multiproc      (Linux only) numbers of cores to be used in multiprocessing.
 #' @return result.tb      a tibble with all cross combinations of parameters' values.
 #' @export
-sits_segregation_experiments <- function(experiment = "koho&dogram", times = 1,
+sits_segregation_experiments <- function(data.tb, method = "kohonen-dendogram", times = 1,
                                          bands = list("evi", "ndvi", c("evi", "ndvi")),
                                          n_clusters = 5,
                                          grouping_method = c("average", "ward.D2", "complete", "single"),
@@ -200,21 +206,21 @@ sits_segregation_experiments <- function(experiment = "koho&dogram", times = 1,
                                          koh_alpha_to = 0.04, .multiproc = 1){
 
      # CAUTION: generates all parameters' combinations
-     parameters <- .setup_segregation_expr(experiment = experiment, times = times, bands = bands,
+     parameters <- .setup_segregation_expr(method = method, times = times, bands = bands,
                                            n_clusters = n_clusters, grouping_method = grouping_method,
                                            koh_grid_length = koh_grid_length, koh_rlen = koh_rlen,
                                            koh_alpha_from = koh_alpha_from, koh_alpha_to = koh_alpha_to)
 
      # if .multiproc greater than 1, start parallel threads
      if (.multiproc > 1)
-          result.lst <- parallel::mcMap(.exec_segregation_expr, parameters$method, parameters$bands,
+          result.lst <- parallel::mcMap(.exec_segregation_expr, list(data.tb), parameters$method, parameters$bands,
                                         parameters$n_clusters, parameters$grouping_method,
                                         parameters$koh_grid_length, parameters$koh_rlen,
                                         parameters$koh_alpha_from, parameters$koh_alpha_to,
                                         mc.cores = .multiproc)
 
      else
-          result.lst <- Map(.exec_segregation_expr, parameters$method, parameters$bands,
+          result.lst <- Map(.exec_segregation_expr, list(data.tb), parameters$method, parameters$bands,
                             parameters$n_clusters, parameters$grouping_method,
                             parameters$koh_grid_length, parameters$koh_rlen, parameters$koh_alpha_from, parameters$koh_alpha_to)
 
