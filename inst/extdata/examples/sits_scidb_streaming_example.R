@@ -63,9 +63,9 @@ while(TRUE) {
                rowid = as.double(rep(alignments_tb$latitude, k)),
                timeid  = as.double(seq_len(k)),
                from  = as.integer(alignments_tb$best.alignments[[1]]$from),
-               to    = as.double(as.integer(alignments_tb$best.alignments[[1]]$to)),
-               label = as.double(match(alignments_tb$best.alignments[[1]]$label[], label_names[[1]])),
-               distance  = as.double(alignments_tb$best.alignments[[1]]$distance)
+               to    = as.integer(alignments_tb$best.alignments[[1]]$to),
+               label = match(alignments_tb$best.alignments[[1]]$label[], label_names[[1]]),
+               distance  = alignments_tb$best.alignments[[1]]$distance
           ))
 
   }
