@@ -44,6 +44,7 @@ Imports:
     readr,
     reshape2,
     rfUtilities,
+    RCurl,
     signal,
     sp,
     stats,
