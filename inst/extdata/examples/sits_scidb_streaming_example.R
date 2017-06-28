@@ -19,7 +19,7 @@ while(TRUE) {
   lapply(args, function(x) {l <- unlist(strsplit(x, "=")); assign(l[1], l[2], envir = .GlobalEnv)})
 
   # get unique column and row values
-  sits_tb <- sits::createColRowSequence(i32col_id, i32row_id)
+  sits_tb <- sits::createColRowSequence(colid, rowid)
 
   # read patterns and get label names
   patterns_tb <- sits::sits_getdata(patterns_json)
@@ -27,21 +27,22 @@ while(TRUE) {
 
   split_processing <- function(line_tb, patterns_tb, scale_factor, bands, dist_method, alpha, beta, theta, span, keep, interval, overlap, dates) {
 
-    # get time series idx
-    idx <- which(i32col_id == line_tb$longitude & i32row_id == line_tb$latitude)
+    # get index streaming data
+    index <- which(colid == line_tb$longitude & rowid == line_tb$latitude)
 
-    if(length(dates) < 9)
+    # if timeid has less than 9 indexes
+    if(length(timeid[index]) < 9)
        return(list())
 
     # build time series object using attribute values and the dates
     line_tb$time_series[[1]] <- sits::createZooObject(bands = bands,
-                                                           dates = dates,
-                                                           scale_factor = scale_factor,
-                                                           idx = idx)
+                                                      dates = dates[timeid[index]+1],
+                                                      scale_factor = scale_factor,
+                                                      idx = index)
     # align twdtw
     alignments_tb <- sits::sits_TWDTW(line_tb,
                                       patterns_tb,
-                                      bands = names(line_tb$time_series[[1]])[2:length(line_tb$time_series[[1]])],
+                                      bands = bands,
                                       alpha = alpha,
                                       beta = beta,
                                       dist.method = dist_method,
@@ -49,23 +50,23 @@ while(TRUE) {
                                       span = span,
                                       keep = keep,
                                       interval = interval,
-					             start_date = dates[1],
-					             end_date = dates[length(dates)])
+					             start_date = dates[timeid[index[1]]+1],
+					             end_date = dates[timeid[index][length(index)]+1])
 
      if("try-error" %in% class(alignments_tb))
        return (list())
 
      k = nrow(alignments_tb$best.alignments[[1]])
 
-     data.frame(
-            colid = as.double(rep(alignments_tb$longitude, k)),
-            rowid = as.double(rep(alignments_tb$latitude, k)),
-            time  = as.double(seq_len(k)),
-            from  = as.double(as.integer(alignments_tb$best.alignments[[1]]$from)),
-            to    = as.double(as.integer(alignments_tb$best.alignments[[1]]$to)),
-            label = as.double(match(alignments_tb$best.alignments[[1]]$label[], label_names[[1]])),
-            dist  = as.double(alignments_tb$best.alignments[[1]]$distance)
-      )
+     return(data.frame(
+               colid = as.double(rep(alignments_tb$longitude, k)),
+               rowid = as.double(rep(alignments_tb$latitude, k)),
+               timeid  = as.double(seq_len(k)),
+               from  = as.integer(alignments_tb$best.alignments[[1]]$from),
+               to    = as.double(as.integer(alignments_tb$best.alignments[[1]]$to)),
+               label = as.double(match(alignments_tb$best.alignments[[1]]$label[], label_names[[1]])),
+               distance  = as.double(alignments_tb$best.alignments[[1]]$distance)
+          ))
 
   }
 
@@ -75,7 +76,7 @@ while(TRUE) {
 					                   FUN = split_processing,
 					                   patterns_tb = patterns_tb,
 					                   scale_factor = as.numeric(scale_factor),
-					                   bands = unlist(strsplit(bands, split=",")),
+					                   bands = unlist(strsplit(bands, split = ",")),
 					                   dist_method = dist_method,
 					                   alpha = as.numeric(alpha),
 					                   beta = as.numeric(beta),
@@ -84,7 +85,7 @@ while(TRUE) {
 					                   keep = as.logical(keep),
 					                   interval = gsub(",", " ", interval),
 					                   overlap = as.numeric(overlap),
-					                   dates = as.Date(unlist(strsplit(dates, split=",")))))
+					                   dates = as.Date(unlist(strsplit(dates, split = ",")))))
 
   writeBin(serialize(c(out), NULL, xdr=FALSE), con_out)
   flush(con_out)
