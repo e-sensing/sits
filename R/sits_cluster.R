@@ -25,14 +25,33 @@
 #' @param unsupervised    (boolean) should labels be ignored in clustering algorithms?
 #' If `return_members` parameter is TRUE, resulting sits table will gain an extra column called `original_label` with all original labels.
 #' This column may be useful to measure confusion between clusters' members. Default is FALSE.
-#' @param show            (boolean) should the results be shown? Default is TRUE.
 #' @param ...             Other arguments to pass to the distance method \code{dist_method}, see \code{\link[dtwclust]{dtwclust}} for details.
+#' @param .show           (boolean) should the results be shown? Default is TRUE.
+#' @param .multiproc      (Linux only) numbers of cores to be used in multiprocessing.
 #' @return clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
 sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, dist_method = "dtw_basic",
-                          grouping_method = "ward.D2",koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100,
-                          koh_alpha = c(0.05, 0.01), return_members = FALSE, unsupervised = FALSE, show = TRUE, ...) {
+                          grouping_method = "ward.D2", koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100,
+                          koh_alpha = c(0.05, 0.01), return_members = FALSE, unsupervised = FALSE, ..., .show = TRUE, .multiproc = 1) {
+
+     .sits_cluster_apply_cluster_method <- function(label.tb){
+          # apply the clustering method
+          if (method == "dendogram")
+               clu.tb <- .sits_cluster_dendogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
+                                                  return_members=return_members, show=.show, ...)
+          else if (method == "centroids")
+               clu.tb <- .sits_cluster_partitional (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
+                                                    return_members=return_members, show=.show, ...)
+          else if (method == "kohonen")
+               clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
+                                                rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=.show)
+          else if (method == "kohonen-dendogram")
+               clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
+                                                   grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
+                                                   rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=.show)
+          return(clu.tb)
+     }
 
      ensurer::ensure_that(method, (. == "dendogram" || . == "centroids" || . == "kohonen" || . == "kohonen-dendogram"),
                           err_desc = "sits_cluster: valid cluster methods are 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.")
@@ -60,39 +79,60 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
      #
      message("Clustering...")
 
-     # add a progress bar
-     progress_bar <- utils::txtProgressBar(min = 0, max = length(labels), style = 3)
 
-     # traverse labels
-     purrr::map2(labels, seq_along(labels), function (lb, i){
-          # filter only those rows with the same labels
-          # cut time series to fit in one year
-          label.tb <- dplyr::filter (data.tb, label == lb) #%>%
-          #sits_prune()  ## FIX-ME! sits_prune() returns a singular time series dates for specific cases!
+     # if .multiproc greater than 1, start parallel threads
+     if (.multiproc > 1){
 
-          # apply the clustering method
-          if (method == "dendogram")
-               clu.tb <- .sits_cluster_dendogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
-                                                  return_members=return_members, show=show, ...)
-          else if (method == "centroids")
-               clu.tb <- .sits_cluster_partitional (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
-                                                    return_members=return_members, show=show, ...)
-          else if (method == "kohonen")
-               clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
-                                                rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
-          else if (method == "kohonen-dendogram")
-               clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
-                                                   grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
-                                                   rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
+          # get the list of sits_table to pass to each process
+          label.tb.lst <- purrr::map(labels, function (lb) dplyr::filter(data.tb, label == lb))
 
-          # append the result
-          cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
+          # start parallel processing
+          result.tb.lst <- parallel::mcMap(.sits_cluster_apply_cluster_method, label.tb.lst, mc.cores = .multiproc)
 
-          # update progress bar
-          utils::setTxtProgressBar(progress_bar, i)
-     })
+          # composes the final result
+          result.tb.lst %>% purrr::map(function(clu.tb) {
+               cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
+          })
+     }
+     else {
+          # add a progress bar
+          progress_bar <- utils::txtProgressBar(min = 0, max = length(labels), style = 3)
 
-     close(progress_bar)
+
+          # traverse labels
+          purrr::map2(labels, seq_along(labels), function (lb, i){
+               # filter only those rows with the same labels
+               # cut time series to fit in one year
+               label.tb <- dplyr::filter (data.tb, label == lb) #%>%
+               #sits_prune()  ## FIX-ME! sits_prune() returns a singular time series dates for specific cases!
+
+               # apply the clustering method
+               # if (method == "dendogram")
+               #      clu.tb <- .sits_cluster_dendogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
+               #                                         return_members=return_members, show=show, ...)
+               # else if (method == "centroids")
+               #      clu.tb <- .sits_cluster_partitional (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
+               #                                           return_members=return_members, show=show, ...)
+               # else if (method == "kohonen")
+               #      clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
+               #                                       rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
+               # else if (method == "kohonen-dendogram")
+               #      clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
+               #                                          grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
+               #                                          rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
+               clu.tb <- .sits_cluster_apply_cluster_method(label.tb)
+
+               # append the result
+               cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
+
+               # update progress bar
+               utils::setTxtProgressBar(progress_bar, i)
+
+          })
+
+          close(progress_bar)
+     }
+
      return (cluster.tb)
 }
 #' @title Cluster a set of time series using hierarchical clustering
