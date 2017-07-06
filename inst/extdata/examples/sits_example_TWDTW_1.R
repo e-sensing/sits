@@ -19,8 +19,8 @@ coverage <- "mod13q1_512"
 bands <- c("ndvi", "evi", "nir")
 
 # a point in the transition forest pasture in Northern MT
-long <- -58.60918
-lat <-  -10.55992
+long <- -55.57320
+lat <- -11.50566
 
 # outro ponto interessante: -58.63919,-10.74036
 
@@ -30,15 +30,13 @@ series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage 
 # retrieve a set of samples from a JSON file
 patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Damien_Ieda_Rodrigo_15classes_3bands_Water.json")
 
-sits_plot (patterns.tb, type = "patterns")
+#sits_plot (patterns.tb, type = "patterns")
 
 results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
 
 # plot the results of the classification
 sits_plot (results.tb, type = "classification")
 sits_plot (results.tb, type = "alignments")
-
-
 
 # plot the “evi” band
 series.tb %>%
