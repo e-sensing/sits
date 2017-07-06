@@ -48,7 +48,7 @@ createZooObject <- function(bands, dates, scale_factor, idx) {
   for(i in 2:length(bands)) df <- cbind(df, get(bands[i])[idx])
 
   # change scidb column names
-  names(df) <- gsub("i32", "", bands)
+  names(df) <- bands
 
   # create zoo object
   ts <- zoo::zoo(df*scale_factor, dates)
