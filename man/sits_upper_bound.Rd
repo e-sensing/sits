@@ -2,18 +2,14 @@
 % Please edit documentation in R/sits_filter.R
 \name{sits_upper_bound}
 \alias{sits_upper_bound}
-\title{Filter function of a SITS band.}
+\title{Upper bound filter}
 \usage{
-sits_upper_bound(data.tb, bands = NULL, window_size = 1, .original = TRUE)
+sits_upper_bound(data.tb, window_size = 1)
 }
 \arguments{
 \item{data.tb}{a valid sits table}
 
-\item{bands}{a vector of strings with band's names.}
-
 \item{window_size}{an integer informing the window size for envelop calculation. See compute_envelop details.}
-
-\item{.original}{a boolean informing if the original bands must be returned.}
 }
 \value{
 result.tb    a sits_table with same samples and the new bands

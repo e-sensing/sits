@@ -4,26 +4,26 @@
 \alias{sits_filter}
 \title{Filter a set of satellite image time series}
 \usage{
-sits_filter(data.tb = NULL, type = "whittaker", bands = NULL,
-  lambda = 0.5, window_size = 1)
+sits_filter(data.tb = NULL, type = "whittaker", lambda = 0.5,
+  window_size = 1)
 }
 \arguments{
 \item{data.tb}{tibble - a SITS table with the list of time series to be plotted}
 
-\item{type}{string - the type of plot to be generated}
+\item{type}{string - the type of filter to be used}
 
-\item{bands}{a vector of strings with band's names.}
-
-\item{lambda}{double   - the smoothing factor to be applied}
+\item{lambda}{double   - the smoothing factor to be applied for Whittaker smoothing}
 
 \item{window_size}{an integer informing the window size for envelop calculation. See compute_envelop details.}
 }
 \value{
-data.tb    tibble - the input SITS table (useful for chaining functions)
+output.tb     a SITS table with the filtered time series
 }
 \description{
-\code{sits_filter} filters one or more time series from a SITS table
-}
-\details{
 This function provides access to different types of filters
+}
+\author{
+Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

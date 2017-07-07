@@ -4,29 +4,18 @@
 \alias{sits_whittaker}
 \title{Smooth the time series using Whittaker smoother (based on PTW package)}
 \usage{
-sits_whittaker(table_in, lambda = 0.5)
+sits_whittaker(data.tb, lambda = 0.5)
 }
 \arguments{
-\item{table_in}{a string - the name of the database with original time series  (must exist)}
+\item{data.tb}{The SITS tibble containing the original time series}
 
 \item{lambda}{double   - the smoothing factor to be applied}
 }
 \value{
-a tibble with smoothed sits time series
+output.tb a tibble with smoothed sits time series
 }
 \description{
-\code{sits_whittaker} returns a SITS table with a smoothed sits time series
-}
-\details{
-The input and the output are two SITS tables.
 The algorithm searches for an optimal polynomial describing the warping.
-It is possible to align one sample to a reference,
-several samples to the same reference, or several samples to several references.
-
 The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 10.0)
 Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 }
-\seealso{
-Other sits auxiliary functions: \code{\link{sits_smooth}}
-}
-\keyword{sits}

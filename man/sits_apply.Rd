@@ -4,21 +4,16 @@
 \alias{sits_apply}
 \title{Apply a function over SITS bands.}
 \usage{
-sits_apply(data.tb, bands, fun, fun_index = NULL, bands_suffix = "",
-  original = FALSE)
+sits_apply(data.tb, fun, fun_index = NULL, bands_suffix = "")
 }
 \arguments{
 \item{data.tb}{a valid sits table}
-
-\item{bands}{a vector of strings with band's names.}
 
 \item{fun}{a function with one parameter as input and a vector or list of vectors as output.}
 
 \item{fun_index}{a function with one parameter as input and a Date vector as output.}
 
 \item{bands_suffix}{a string informing the resulting bands name's suffix.}
-
-\item{original}{a boolean informing if the original bands must be returned.}
 }
 \value{
 result.tb    a sits_table with same samples and the new bands
@@ -27,11 +22,6 @@ result.tb    a sits_table with same samples and the new bands
 `sits_apply` returns a sits_table with the same samples points and new bands computed by `fun`,
 `fun_index` functions. These functions must be defined inline and are called by `sits_ts_apply` for each band,
 whose vector values is passed as the function argument.
-
-Only those bands provided in `bands` parameter will be processed by `fun` function. If "Index" band is not
-informed in that list, you must provide a `fun_index` function that has the same behaviour as `fun` but
-receives as input only the "Index" band. If `fun_index` were informed, it will run anyway, even if the "Index"
-band is present in `bands` parameter. The function informed here must output a vector of Dates.
 
 `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
 of the corresponding band. In the second case, the returned list must have names, and each element vector will

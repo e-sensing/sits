@@ -4,12 +4,10 @@
 \alias{sits_linear_interp}
 \title{Inerpolation function of sits_table's time series}
 \usage{
-sits_linear_interp(data.tb, bands = NULL, n = 23)
+sits_linear_interp(data.tb, n = 23)
 }
 \arguments{
 \item{data.tb}{a valid sits table}
-
-\item{bands}{a vector of strings with band's names.}
 
 \item{n}{the number of time series elements to be created between start date and end date}
 }

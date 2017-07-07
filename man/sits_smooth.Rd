@@ -27,7 +27,4 @@ several samples to the same reference, or several samples to several references.
 The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 10.0)
 Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 }
-\seealso{
-Other sits auxiliary functions: \code{\link{sits_whittaker}}
-}
 \keyword{sits}

@@ -1,12 +1,12 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.5.17
-Date: 2017-05-17
+Version: 0.7.6
+Date: 2017-07-06
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
-             person('Rolf', 'Simoes', role = c('ctb')),
-             person('Luiz', 'Assis', role = c('ctb')),
+             person('Rolf', 'Simoes', role = c('aut')),
+             person('Luiz', 'Assis', role = c('aut')),
              person('Adeline', 'Marinho', role = c('ctb')),
              person('Gilberto', 'Queiroz', role = c('ctb'))
              )

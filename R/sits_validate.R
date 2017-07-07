@@ -205,6 +205,8 @@ sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
           ensurer::ensure_that(conv, !(FALSE %in% names(.) %in% unlist(labels[,1])),
                                err_desc = "conversion list does not match labels of the data")
 
+
+     # change this to return the confusion matrix
      confusion.vec <- jsonlite::fromJSON (file)
      mid <- length(confusion.vec)/2
      pred.vec <- confusion.vec[1:mid]
@@ -218,4 +220,15 @@ sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
 }
 
 
+#' @title Post-classification accuracy assessment of classified maps
+#' @name sits_compare
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#
+
+#' @param map_ref a Raster R object with the classified map to be used as a reference
+#' @param labels_ref a vector with the labels of the classified map to be used as a refence
+#' @param map_comp a Raster R object with the classified map to be compared with reference
+#' @param labels_comp a vector with the labels of the classified map to be used as a refence
+#' @return confusion.matrix - a global confusion matrix (area-weighted)
 
