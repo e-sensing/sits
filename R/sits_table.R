@@ -1,3 +1,24 @@
+# ---------------------------------------------------------------
+#
+#  This file contain a list of functions to work with SITS tables
+#  SITS tables are the main structures of the "sits" package
+#  They contain both the satellite image time series and its metadata
+#
+#  A sits table is a tibble with pre-defined columns that
+#  has the metadata and data for each time series. The columns are
+# <longitude, latitude, start_date, end_date, label, coverage, time_series>
+#  Most functions on the sits package use a sits table as input (with additional parameters)
+# and a sits table as output. This allows for chaining of operation on time series.
+#  The package provides the generic method sits_apply to apply a
+#  1D generic function to a time series and specific methods for
+#  common tasks such as missing values removal and smoothing.
+#
+#  The functions on this file work with sits tables, but do not change
+#  the values of time series. For 1D functions that change the values of
+#  the image time series, please see the file "sits_filters".R
+#
+# ---------------------------------------------------------------
+
 #' @title Create a sits table to store the time series information
 #' @name sits_table
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -88,68 +109,6 @@ sits_align <- function (data.tb, ref_dates) {
 
      close(progress_bar)
      return (data1.tb)
-}
-
-#' @title Apply a function over SITS bands.
-#' @name sits_apply
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  `sits_apply` returns a sits_table with the same samples points and new bands computed by `fun`,
-#' `fun_index` functions. These functions must be defined inline and are called by `sits_ts_apply` for each band,
-#' whose vector values is passed as the function argument.
-#'
-#' `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
-#' of the corresponding band. In the second case, the returned list must have names, and each element vector will
-#' generate a new band which name composed by concatenating original band name and the corresponding list element name.
-#'
-#' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
-#'
-#' The boolean parameter `original` controls whether the original bands should be also part of
-#' the out SITS table.
-#'
-#' @param data.tb       a valid sits table
-#' @param fun           a function with one parameter as input and a vector or list of vectors as output.
-#' @param fun_index     a function with one parameter as input and a Date vector as output.
-#' @param bands_suffix a string informing the resulting bands name's suffix.
-#' @return result.tb    a sits_table with same samples and the new bands
-#' @export
-sits_apply <- function(data.tb, fun, fun_index = NULL, bands_suffix = "") {
-     # get the bands in the data
-     bands <- sits_bands(data.tb)
-     ensurer::ensure_that(bands, length(.) > 0, err_desc = "sits_apply: at least one band should be provided.")
-
-     # copy the results
-     result.tb <- data.tb
-
-     result.tb$time_series <- result.tb$time_series %>%
-          purrr::map(function(ts.tb) {
-               ts_computed.lst <- dplyr::select(ts.tb, dplyr::one_of(bands)) %>%
-               purrr::map(function(band) {
-                    result <- fun(band)
-                    return(result)
-                    })
-
-          # append bands names' suffixes
-          if (nchar(bands_suffix) != 0)
-               names(ts_computed.lst) <- ifelse(bands == "Index", "Index", paste0(bands, ".", bands_suffix))
-
-          # unlist if there are more than one result from `fun`
-          if (is.recursive(ts_computed.lst[[1]]))
-               ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
-
-          # convert to tibble
-          ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
-          ensurer::ensure_that(ts_computed.tb, (any(names(.) == "Index") | !is.null(fun_index)),
-                               err_desc = "sits_apply: computed time series does not have `Index` column.
-                               Add `Index` in `bands` argument or provide a function to `fun_index`
-                               in order to compute a `Index` column.")
-
-          if (!is.null(fun_index))
-               ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
-
-          return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
-     })
-
-     return(result.tb)
 }
 
 #' @title returns the names of the bands of a time series
@@ -338,6 +297,7 @@ sits_labels <- function (data.tb) {
           dplyr::select(label, count, original_label, total, frac)
      return (result.tb)
 }
+
 #' @title Sample a percentage of a time series
 #' @name sits_labels_sample
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -368,53 +328,6 @@ sits_labels_sample <- function (data.tb, frac = 0.1){
      return (result.tb)
 }
 
-#' @title Lagged differences of a SITS band.
-#' @name sits_lag_diff
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Computes the lagged differences of a set of time series.
-#' @param data.tb       a valid sits table
-#' @param bands         a vector of strings with band's names.
-#' @param differences   an integer indicating the order of the difference.
-#' @return result.tb    a sits_table with same samples and the new bands
-#' @export
-sits_lag_diff <- function(data.tb, bands = NULL, differences = 1) {
-     if (is.null(bands))
-          bands <- sits_bands(data.tb)
-
-     ensurer::ensure_that(bands, length(.) > 0, err_desc = "sits_ts_diff: at least one band should be provided.")
-
-     result.tb <- data.tb
-
-     # compute differential
-     result.tb <- sits_apply(data.tb,
-                             fun = function(band) diff(band, lag = 1, differences = differences),
-                             fun_index = function(band) band[0:-differences],
-                             bands_suffix = paste0("diff", differences))
-
-     return(result.tb)
-}
-#' @title Inerpolation function of sits_table's time series
-#' @name sits_linear_interp
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Computes the linearly interpolated bands for a given resolution
-#' using the R base function approx
-#' @param data.tb       a valid sits table
-#' @param n             the number of time series elements to be created between start date and end date
-#' @return result.tb    a sits_table with same samples and the new bands
-#' @export
-sits_linear_interp <- function(data.tb, n = 23){
-     # get the bands of the SITS tibble
-     bands <- sits_bands(data.tb)
-     ensurer::ensure_that(bands, length(.) > 0, err_desc = "sits_ts_approx: at least one band should be provided.")
-
-     # compute linear approximation
-     result.tb <- sits_apply(data.tb,
-                                fun = function(band) stats::approx(band, n = n, ties=mean)$y,
-                                fun_index = function(band) as.Date(stats::approx(band, n = n, ties=mean)$y,
-                                                                   origin = "1970-01-01"))
-
-     return(result.tb)
-}
 #' @title Merge two satellite image time series
 #' @name sits_merge
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -609,15 +522,15 @@ sits_select <- function (data.tb, bands) {
 #' @name sits_significant_labels
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Given a sits table with `original_label` column, computes a confusion matrix
-#' between the original labels (`original_label` column) and new labels
+#' @description Given a SITS table, select only those whose time series
+#' exceed a minimum percentage
 #'
 #' @param  data.tb        a SITS table with the data to be extracted
 #' @param  min_label_frac a decimal between 0 and 1. The minimum percentagem of valid cluster members,
 #' with reference to the total number of samples.
 #' @return result.tb      a SITS table with the filtered data.
 #' @export
-sits_significant_labels <- function (data.tb, min_label_frac) {
+sits_significant_labels <- function (data.tb, min_label_frac = 0.05) {
      # check valid min_clu_perc
      ensurer::ensure_that(min_label_frac, . >= 0.0 && . <= 1.0,
                           err_desc = "sits_significant_labels: invalid min_label_frac value. Value must be between 0 and 1.")

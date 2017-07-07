@@ -16,10 +16,10 @@ library (sits)
 cerrado.tb <- sits_getdata("./inst/extdata/samples/cerrado.json")
 
 # pick the first 10 time series
-cerrado_1.tb <- cerrado.tb[1:20,]
+cerrado1.tb <- cerrado.tb[1:20,]
 
 #plots the first 10 time series (default: put the same places in a single plot)
-sits_plot (cerrado_1.tb)
+sits_plot (cerrado1.tb)
 
 #plots all time series of the same label and band together (shows dispersion)
 sits_plot (cerrado.tb, type = "together")
@@ -27,9 +27,10 @@ sits_plot (cerrado.tb, type = "together")
 # smooth the time series using the Whittaker smoother
 # then rename the result, merge with original and plot
 
-cerrado_1.tb %>%
-     sits_filter (type = "whittaker", lambda = 5.0) %>%
-     sits_rename (c("ndvi_smooth", "evi_smooth")) %>%
+cerrado2.tb <- sits_whittaker(cerrado1.tb, lambda = 5.0) %>%
+     sits_rename (c("ndvi_smooth", "evi_smooth"))
+
+cerrado2.tb %>%
      sits_merge(cerrado1.tb)  %>%
      sits_select(c("evi_smooth", "evi")) %>%
      sits_plot()

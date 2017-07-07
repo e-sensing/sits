@@ -4,7 +4,7 @@
 \alias{sits_significant_labels}
 \title{Get the significant labeled time series among all others labels.}
 \usage{
-sits_significant_labels(data.tb, min_label_frac)
+sits_significant_labels(data.tb, min_label_frac = 0.05)
 }
 \arguments{
 \item{data.tb}{a SITS table with the data to be extracted}
@@ -16,8 +16,8 @@ with reference to the total number of samples.}
 result.tb      a SITS table with the filtered data.
 }
 \description{
-Given a sits table with `original_label` column, computes a confusion matrix
-between the original labels (`original_label` column) and new labels
+Given a SITS table, select only those whose time series
+exceed a minimum percentage
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
