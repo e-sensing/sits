@@ -37,10 +37,7 @@ sits_apply <- function(data.tb, fun, fun_index = NULL, bands_suffix = "") {
      bands <- sits_bands(data.tb)
      ensurer::ensure_that(bands, length(.) > 0, err_desc = "sits_apply: at least one band should be provided.")
 
-     # copy the results
-     result.tb <- data.tb
-
-     result.tb$time_series <- result.tb$time_series %>%
+     data.tb$time_series <- data.tb$time_series %>%
           purrr::map(function(ts.tb) {
                ts_computed.lst <- dplyr::select(ts.tb, dplyr::one_of(bands)) %>%
                     purrr::map(function(band) {
@@ -69,7 +66,7 @@ sits_apply <- function(data.tb, fun, fun_index = NULL, bands_suffix = "") {
                return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
           })
 
-     return(result.tb)
+     return(data.tb)
 }
 #' @title Lagged differences of a SITS band.
 #' @name sits_lag_diff
@@ -119,6 +116,30 @@ sits_linear_interp <- function(data.tb, n = 23){
      return(result.tb)
 }
 
+#' @title Inerpolation function of sits_table's time series
+#' @name sits_interp
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Computes the linearly interpolated bands for a given resolution
+#' using the R base function approx
+#' @param data.tb       a valid sits table
+#' @param fun           the interpolation function to be used
+#' @param n             the number of time series elements to be created between start date and end date
+#' @param ...           additional parameters to be used by the fun function
+#' @return result.tb    a sits_table with same samples and the new bands
+#' @export
+sits_interp <- function(data.tb, fun = stats::approx, n = 23, ...){
+     # get the bands of the SITS tibble
+     bands <- sits_bands(data.tb)
+     ensurer::ensure_that(bands, length(.) > 0, err_desc = "sits_interp: at least one band should be provided.")
+
+     # compute linear approximation
+     result.tb <- sits_apply(data.tb,
+                             fun = function(band) fun(band, n = n, ...)$y,
+                             fun_index = function(band) as.Date(fun(band, n = n, ...)$y,
+                                                                origin = "1970-01-01"))
+
+     return(result.tb)
+}
 #' @title Remove missing values
 #' @name sits_missing_values
 #' @author Gilberto Camarara, \email{gilberto.camara@inpe.br}
@@ -150,10 +171,8 @@ sits_missing_values <-  function(data.tb, mv = NULL) {
 }
 
 
-
-
-#' @title Upper bound filter
-#' @name sits_upper_bound
+#' @title Envelope filter
+#' @name sits_envelope
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  This function computes the envelope of a time series using the
 #' streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelop` function.
@@ -161,7 +180,7 @@ sits_missing_values <-  function(data.tb, mv = NULL) {
 #' @param window_size   an integer informing the window size for envelop calculation. See compute_envelop details.
 #' @return result.tb    a sits_table with same samples and the new bands
 #' @export
-sits_upper_bound <- function(data.tb, window_size = 1){
+sits_envelope <- function(data.tb, window_size = 1){
      # compute envelopes
      result.tb <- sits_apply(data.tb,
                                 fun = function(band) dtwclust::compute_envelop(band, window.size = window_size, error.check = FALSE),
@@ -181,21 +200,29 @@ sits_upper_bound <- function(data.tb, window_size = 1){
 #' @param lambda     double   - the smoothing factor to be applied
 #' @return output.tb a tibble with smoothed sits time series
 #' @export
+# sits_whittaker <- function (data.tb, lambda    = 0.5) {
+#      # extract the time series data from the sits table
+#      data.ts <- data.tb$time_series
+#      # what are the input bands?
+#      bands  <- sits_bands (data.tb)
+#      # smooth the time series using Whittaker smoother
+#      smoothed.ts <- data.ts %>%
+#           purrr::map(function (ts) {
+#                for (b in bands) ts[[b]]  <- ptw::whit2(ts[[b]], lambda = lambda)
+#                return (ts) })
+#
+#      # create a new SITS table by copying metadata information from the input sits database
+#      output.tb <- dplyr::select (data.tb, latitude, longitude, start_date, end_date, label, coverage, time_series)
+#      # insert the new time series
+#      output.tb$time_series <-  smoothed.ts
+#      # return the result
+#      return (output.tb)
+# }
 sits_whittaker <- function (data.tb, lambda    = 0.5) {
-     # extract the time series data from the sits table
-     data.ts <- data.tb$time_series
-     # what are the input bands?
-     bands  <- sits_bands (data.tb)
-     # smooth the time series using Whittaker smoother
-     smoothed.ts <- data.ts %>%
-          purrr::map(function (ts) {
-               for (b in bands) ts[[b]]  <- ptw::whit2(ts[[b]], lambda = lambda)
-               return (ts) })
+     result.tb <- sits_apply(data.tb,
+                             fun = function(band) ptw::whit2(band, lambda = lambda),
+                             fun_index = function(band) band,
+                             bands_suffix = "whit")
 
-     # create a new SITS table by copying metadata information from the input sits database
-     output.tb <- dplyr::select (data.tb, latitude, longitude, start_date, end_date, label, coverage, time_series)
-     # insert the new time series
-     output.tb$time_series <-  smoothed.ts
-     # return the result
-     return (output.tb)
+     return(result.tb)
 }

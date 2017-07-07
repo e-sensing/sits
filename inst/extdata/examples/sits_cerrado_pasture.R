@@ -27,23 +27,32 @@ sits_plot (cerrado.tb, type = "together")
 # smooth the time series using the Whittaker smoother
 # then rename the result, merge with original and plot
 
-cerrado2.tb <- sits_whittaker(cerrado1.tb, lambda = 5.0) %>%
-     sits_rename (c("ndvi_smooth", "evi_smooth"))
+cerrado1s.tb <- sits_interp(cerrado1.tb, stats::approx, n = 50)
+
+cerrado2.tb <- sits_interp(cerrado1.tb, stats::approx, n = 50) %>%
+     sits_whittaker(lambda = 5.0)
 
 cerrado2.tb %>%
-     sits_merge(cerrado1.tb)  %>%
-     sits_select(c("evi_smooth", "evi")) %>%
+     sits_merge(cerrado1s.tb)  %>%
+     sits_select(c("evi.whit", "evi")) %>%
      sits_plot()
 
+cerrado3.tb <- cerrado1.tb %>%
+     sits_interp (stats::approx, n = 50) %>%
+     sits_envelope() %>%
+     sits_whittaker(lambda = 0.5)
 
-train.tb <- dplyr::bind_rows(cerrado_t1.tb, cerrado_t2.tb)
-# test samples
-test.tb <- cerrado.tb[21:720,]
-test1.tb <- cerrado.tb[21:22,]
-# get the patterns using gam
-patterns.tb <- sits_patterns(train.tb)
-sits_plot (patterns.tb, type = "patterns")
+cerrado3.tb %>%
+     sits_merge(cerrado1s.tb)  %>%
+     sits_select(c("evi.upper.whit", "evi.lower.whit", "evi")) %>%
+     sits_plot()
 
-bands <- c("ndvi", "evi")
+cerrado3.tb %>%
+     sits_merge(cerrado2.tb)  %>%
+     sits_select(c("evi.upper.whit", "evi.lower.whit", "evi.whit")) %>%
+     sits_plot()
 
-result.tb <- sits_TWDTW (test1.tb, patterns.tb, bands)
+cerrado3.tb %>%
+     sits_merge(cerrado1s.tb)  %>%
+     sits_select(c("evi.upper.whit", "evi")) %>%
+     sits_plot()
