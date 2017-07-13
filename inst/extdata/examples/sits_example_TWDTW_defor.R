@@ -18,13 +18,10 @@ coverage <- "mod13q1_512"
 # recover all bands
 bands <- c("ndvi", "evi", "nir")
 
-# a point in the transition forest pasture in Northern MT
+# a point near the Xingu National Park
 
-long <- -59.38020
-lat <-  -10.38016
-
-long <- -55.11916
-lat <- -12.97451
+long <- -52.30847
+lat <-  -12.46099
 # points
 # (-58.60918, -10.55992)
 # (-58.63919, -10.74036)

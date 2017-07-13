@@ -203,6 +203,7 @@ sits_relabel <- function (file, conv){
 
      # split labels into prediction and reference vectors
      mid <- length(confusion.vec) / 2
+
      pred.vec <- confusion.vec[1:mid]
      ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
 
