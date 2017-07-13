@@ -190,7 +190,7 @@ sits_relabel <- function (file, conv){
      confusion.vec <- jsonlite::fromJSON (file)
 
      # what are the labels of the samples?
-     labels <- base::unique(ref.vec)
+     labels <- base::unique(confusion.vec)
 
      # if the conversion list is NULL, create an identity list
      if (purrr::is_null(conv)) {
@@ -205,6 +205,9 @@ sits_relabel <- function (file, conv){
      mid <- length(confusion.vec) / 2
      pred.vec <- confusion.vec[1:mid]
      ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
+
+     pred.vec <- unlist(conv[pred.vec])
+     ref.vec <- unlist(conv[ref.vec])
 
      assess <- rfUtilities::accuracy(pred.vec, ref.vec)
      return (assess)
