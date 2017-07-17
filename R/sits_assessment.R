@@ -1,13 +1,126 @@
+# ---------------------------------------------------------------
+#
+#  This file contain a list of functions to assess the quality of classified time series
+#  it includes functions for cross_validation and accuracy
+#  It works with SITS tables where the time series have been classified
 
-#' @title validate temporal patterns
-#' @name sits_validate
+#' @title Area-weighted post-classification accuracy assessment of classified maps
+#' @name sits_accuracy_area
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description To use this function, the input table should be a set of results containing
+#' both the label assigned by the user and the classification result.
+#' Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
+#' This function uses an area-weighted technique proposed by Olofsson et al. to
+#' produce accuracy estimates that are more reliable
+#'
+#' We plan to do an improved version of this function that includes a Raster R object
+#' with the classified map and a vector with the labels of the classified map
+#' (Gilberto-Rolf-05-Jun-2017)
+#'
+#' This function calls \code{\link[dtwSat]{twdtwAssess}} from \pkg{dtwSat}.
+#' \code{\link[dtwSat]{twdtwAssess}} performs an accuracy assessment of the classified, including
+#' Overall Accuracy, User's Accuracy, Produce's Accuracy, error matrix (confusion matrix),
+#' and estimated area according to [1-2].
+#'
+#' @references
+#' [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).
+#' Making better use of accuracy data in land change studies: Estimating
+#' accuracy and area and quantifying uncertainty using stratified estimation.
+#' Remote Sensing of Environment, 129, pp.122-131.
+#'
+#' @references
+#' [2] Olofsson, P., Foody G.M., Herold M., Stehman, S.V., Woodcock, C.E., Wulder, M.A. (2014)
+#' Good practices for estimating area and assessing accuracy of land change. Remote Sensing of
+#' Environment, 148, pp. 42-57.
+#'
+#' @param results.tb a sits table with a set of lat/long/time locations  with known and trusted labels and
+#' with the result of classification method
+#' @param area a list with the area of each label
+#' @param conf.int specifies the confidence level (0-1).
+#' @param rm.nosample if sum of columns and sum of rows of the error matrix are zero
+#' then remove class. Default is TRUE.
+#'@export
+sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample = FALSE){
+
+     # Get reference classes
+     references <- results.tb$label
+
+     # Get mapped classes
+     # mapped    <- dplyr::bind_rows(results.tb$distances) %>%
+     #                          dplyr::select(dplyr::matches("classification")) %>% unlist
+
+     # create a vector to store the result of the predictions
+     mapped <- results.tb$class
+     # Get all labels
+     classes   <- unique(c(references, mapped))
+
+     # Create error matrix
+     error_matrix <- table(factor(mapped,     levels = classes, labels = classes),
+                           factor(references, levels = classes, labels = classes))
+
+     # Get area - TO IMPROVE USING THE METADATA FROM SATELLITE PRODUCTS
+     if(missing(area))
+          area <- rowSums(error_matrix)
+
+     # Compute accuracy metrics using dtwSat::twdtwAssess
+     assessment <- dtwSat::twdtwAssess (error_matrix,
+                                        area = area,
+                                        conf.int = conf.int,
+                                        rm.nosample = rm.nosample )
+
+     return (assessment)
+
+}
+
+#' @title Post-classification accuracy assessment of classified maps (non-weigthed)
+#' @name sits_accuracy
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description To use this function, the input table should be a set of results containing
+#' both the label assigned by the user and the classification result.
+#' Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
+#' This function does not use an area-weigthed technique and should be used only as a
+#' first check of accuracy. When the area of each class for the region of interest is available,
+#' please use sits_accuracy_area instead
+#'
+#'@param results.tb a sits table with a set of lat/long/time locations with known and trusted labels and
+#' with the result of a classification method
+#'@export
+sits_accuracy <- function (results.tb){
+
+     # Get reference classes
+     ref.vec <- as.vector(results.tb$label)
+     # create a vector to store the result of the predictions
+     pred.vec <- as.vector(results.tb$class)
+     # Classification accuracy measures
+     assessment <- rfUtilities::accuracy(pred.vec, ref.vec)
+
+     return (assessment)
+}
+
+#' @title Cross-validate temporal patterns
+#' @name sits_cross_validate
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Splits the set of time series into training and validation and
-#' perform cross-validation.  For each data partition this function
-#' performs a classifiction and returns the Overall Accuracy, User's Accuracy,
+#' perform cross-validation.
+#' Cross-validation is a model validation technique for assessing how the results
+#' of a statistical analysis will generalize to an independent data set.
+#' It is mainly used in settings where the goal is prediction,
+#' and one wants to estimate how accurately a predictive model will perform in practice.
+#' One round of cross-validation involves partitioning a sample of data
+#' into complementary subsets, performing the analysis on one subset
+#' (called the training set), and validating the analysis on the other subset
+#' (called the validation set or testing set).
+#' To reduce variability, multiple rounds of cross-validation
+#' are performed using different partitions,
+#' and the validation results are averaged over the rounds.
+#'
+#' This function returns the Overall Accuracy, User's Accuracy,
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
 #'
 #' @param data.tb         a SITS tibble
@@ -41,10 +154,15 @@
 # koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01)
 
 sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, perc = 0.1,
-                           from = NULL, to = NULL, freq = 8, formula = y ~ s(x), tw_alpha = -0.1, tw_beta = 100,
+                           from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
+                           tw_alpha = -0.1, tw_beta = 100, tw_theta = 0.5, tw_span = 180,
+                           interval = "12 month", overlap = 0.5,
                            n_clusters = 2, grouping_method = "ward.D2", min_clu_perc = 0.10,
                            apply_gam = FALSE, koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
                            file = "./conf_matrix.json", .multicores = 1){
+
+          ensurer::ensures_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
+                                 err_desc = "sits_validate: please provide a labelled set of time series")
 
      # auxiliary function to classify a single partition
      .sits_classify_partitions <- function (p) {
@@ -61,40 +179,15 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
           # use the rest of the data for classification
           non_p.tb <- dplyr::anti_join(data.tb, p, by = c("longitude", "latitude", "start_date", "end_date", "label", "coverage"))
 
-          # create a vector to store the result of the predictions
-          pred.vec <- vector(mode = "character", length = nrow(non_p.tb))
-
-          # create a vector to store the references
-          ref.vec  <- vector(mode = "character", length = nrow(non_p.tb))
-
-          #
-          message("Testing created patterns...")
-
-          # add a progress bar
-          progress_bar <- utils::txtProgressBar(min = 0, max = nrow(non_p.tb), style = 3)
-
-          # classify each row of the data
-          for (i in 1:nrow(non_p.tb)) {
-               # do the classification of a single time series
-               results.tb  <- sits_TWDTW (non_p.tb[i,], patterns.tb, bands = bands, alpha = tw_alpha, beta = tw_beta)
-               # find out the alignment associated to the minimum distance
-               j <- which.min(results.tb$alignments[[1]]$distance)
-               # find the predicted label
-               pred <- as.character(results.tb$alignments[[1]][j, "label"])
-               # find the reference label
-               ref  <- as.character(results.tb$label)
-               # increase the prediction and reference vectors
-               pred.vec[i] <- pred
-               ref.vec [i] <- ref
-
-               # update progress bar
-               utils::setTxtProgressBar(progress_bar, i)
-          }
-
-          close(progress_bar)
+          # classify data
+          matches.tb  <- sits_TWDTW_matches (non_p.tb, patterns.tb, bands = bands, alpha = tw_alpha, beta = tw_beta, theta = tw_theta, span = tw.span)
+          class.tb    <- sits_TWDTW_classify (matches.tb, inter)
+          # retrieve the reference labels
+          ref.vec <- as.character(results.tb$label)
+          # retrieve the predicted labels
+          pred.vec  <- as.character(results.tb$best_matches[[1]]$label)
 
           return (list(pred.vec, ref.vec))
-
      }
      # does the input data exist?
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
@@ -140,9 +233,9 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
      sits_toJSON (confusion.vec, file)
 
      # Classification accuracy measures
-     measures <- rfUtilities::accuracy(pred.vec, ref.vec)
+     assessment <- rfUtilities::accuracy(pred.vec, ref.vec)
 
-     return (measures)
+     return (assessment)
 }
 #' @title Create partitions of a data set
 #' @name  sits_create_partitions
@@ -179,10 +272,10 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
 #'
 #' @param  data.tb        a SITS table with the samples to be validated
 #' @param  file           a JSON file contaning the result of a validation procedure
-#' @param  conv           a conversion of label names for the classes (optional))
+#' @param  conv_labels    a conversion of label names for the classes (optional))
 #' @return assess         an assessment of validation
 #' @export
-sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
+sits_relabel <- function (data.tb = NULL, file = NULL, conv_labels = NULL){
      # do the input file exist?
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
                           err_desc = "sits_relabel: SITS table not provided")
@@ -191,6 +284,13 @@ sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
 
      # what are the labels of the samples?
      labels <- dplyr::distinct (data.tb, label)
+     # what are the classes of the samples?
+     # relabel them as labels to join all label and class names
+     classes <- dplyr::distinct (data.tb, class) %>%
+          dplyr::transmute(classes, label = class)
+     # join labels and classes
+     labels <- dplyr::full_join(labels, classes) %>%
+          dplyr::distinct(label)
 
      # if the conversion list is NULL, create an identity list
      if (purrr::is_null(conv)) {
@@ -231,4 +331,6 @@ sits_relabel <- function (data.tb = NULL, file = NULL, conv = NULL){
 #' @param map_comp a Raster R object with the classified map to be compared with reference
 #' @param labels_comp a vector with the labels of the classified map to be used as a refence
 #' @return confusion.matrix - a global confusion matrix (area-weighted)
+
+
 

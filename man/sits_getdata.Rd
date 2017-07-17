@@ -7,7 +7,7 @@
 sits_getdata(file = NULL, table = NULL, longitude = NULL,
   latitude = NULL, start_date = NULL, end_date = NULL, label = NULL,
   URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL, bands = NULL,
-  n_max = Inf)
+  n_max = Inf, ignore_dates = FALSE)
 }
 \arguments{
 \item{file}{the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)}
@@ -31,6 +31,8 @@ sits_getdata(file = NULL, table = NULL, longitude = NULL,
 \item{bands}{string vector - the names of the bands to be retrieved}
 
 \item{n_max}{integer - the maximum number of samples to be read (optional)}
+
+\item{ignore_dates}{use the start and end dates from the coverage instead of the time series}
 }
 \value{
 data.tb        tibble  - a SITS table
