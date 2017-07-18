@@ -153,7 +153,7 @@ sits_accuracy <- function (results.tb){
 # formula = y ~ s(x), n_clusters = 2, grouping_method = "ward.D2", min_clu_perc = 0.10, apply_gam = FALSE,
 # koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01)
 
-sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, perc = 0.1,
+sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, perc = 0.1,
                            from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
                            tw_alpha = -0.1, tw_beta = 100, tw_theta = 0.5, tw_span = 180,
                            interval = "12 month", overlap = 0.5,
@@ -162,7 +162,7 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
                            file = "./conf_matrix.json", .multicores = 1){
 
           ensurer::ensures_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
-                                 err_desc = "sits_validate: please provide a labelled set of time series")
+                                 err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
      # auxiliary function to classify a single partition
      .sits_classify_partitions <- function (p) {
@@ -180,21 +180,21 @@ sits_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, p
           non_p.tb <- dplyr::anti_join(data.tb, p, by = c("longitude", "latitude", "start_date", "end_date", "label", "coverage"))
 
           # classify data
-          matches.tb  <- sits_TWDTW_matches (non_p.tb, patterns.tb, bands = bands, alpha = tw_alpha, beta = tw_beta, theta = tw_theta, span = tw.span)
-          class.tb    <- sits_TWDTW_classify (matches.tb, inter)
+          matches.tb  <- sits_TWDTW_matches (non_p.tb, patterns.tb, bands = bands, alpha = tw_alpha, beta = tw_beta, theta = tw_theta, span = tw_span)
+          class.tb    <- sits_TWDTW_classify (matches.tb, interval = interval, overlap = overlap)
           # retrieve the reference labels
-          ref.vec <- as.character(results.tb$label)
+          ref.vec <- as.character(class.tb$label)
           # retrieve the predicted labels
-          pred.vec  <- as.character(results.tb$best_matches[[1]]$label)
+          pred.vec  <- as.character(class.tb$best_matches[[1]]$label)
 
           return (list(pred.vec, ref.vec))
      }
      # does the input data exist?
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
-                          err_desc = "sits_validate: input data not provided")
+                          err_desc = "sits_cross_validate: input data not provided")
      # are the bands to be classified part of the input data?
      ensurer::ensure_that(data.tb, !(FALSE %in% bands %in% (sits_bands(.))),
-                          err_desc = "sits_validate: invalid input bands")
+                          err_desc = "sits_cross_validate: invalid input bands")
 
      # check valid methods
      ensurer::ensure_that(method, (. == "gam" || . == "dendogram" || . == "centroids" || . == "kohonen" || . == "kohonen-dendogram"),

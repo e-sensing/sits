@@ -10,5 +10,5 @@ library(sits)
 cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado.json", package="sits"))
 
 # perform accuracy assessment - já foi feito
-valid2 <- sits_validate (cerrado.tb, method = "gam", times = 10, perc = 0.5, file = "./valid1.json", .multicores = 3)
+valid2 <- sits_cross_validate (cerrado.tb, method = "gam", times = 10, perc = 0.5, file = "./valid1.json", .multicores = 3)
 

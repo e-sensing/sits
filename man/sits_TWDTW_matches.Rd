@@ -22,7 +22,7 @@ sits_TWDTW_matches(series.tb, patterns.tb, bands, dist.method = "euclidean",
 
 \item{theta}{(double)  - the relative weight of the time distance compared to the dtw distance}
 
-\item{span}{the minimum period for a match between a pattern and a signal)}
+\item{span}{the minimum period in days for the duration of the match between a pattern and a signal}
 
 \item{keep}{keep internal values for plotting matches}
 }

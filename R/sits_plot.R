@@ -9,11 +9,15 @@
 #' @param    type       string - the type of plot to be generated
 #' @param    colors     the color pallete to be used (default is "Set1")
 #' @param    label      the class label
+#' @param    start_date the start date of the plot (used for showing classifications)
+#' @param    end_date   the end date of the plot (used for showing classifications)
+#' @param    interval   the interval between classifications (used for showing classifications)
 #' @param    n_matches  number of matches of a given label to be displayed
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
 #' @export
 #'
-sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = NULL, n_matches = 4) {
+sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = NULL, n_matches = 4,
+                       start_date = NULL, end_date = NULL, interval = "12 month", overlap = 0.5) {
      # check the input exists
      ensurer::ensure_that(data.tb, !purrr::is_null(.), err_desc = "sits_plot: input data not provided")
 
@@ -22,7 +26,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
             "one_by_one"     = .sits_plot_one_by_one (data.tb, colors),
             "together"       = .sits_plot_together (data.tb, colors),
             "patterns"       = .sits_plot_patterns (data.tb),
-            "classification" = .sits_plot_classification (data.tb),
+            "classification" = .sits_plot_classification (data.tb, start_date, end_date, interval, overlap),
             "alignments"     = .sits_plot_alignments (data.tb),
             "matches"        = .sits_plot_matches (data.tb, label, n_matches),
             message (paste ("sits_plot: valid plot types are allyears,
@@ -86,12 +90,17 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 #'
 #' @description plots the results of TWDTW classification (uses dtwSat)
 #' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
-.sits_plot_classification <- function (data.tb){
+.sits_plot_classification <- function (data.tb, start_date, end_date, interval, overlap){
      # retrieve a dtwSat S4 twdtwMatches object
      data.tb %>%
           purrrlyr::by_row( function (r) {
-               dtwSat::plot (r$matches[[1]], type = "classification", overlap = 0.5) %>%
-                    graphics::plot()
+               if (purrr::is_null (start_date) | purrr::is_null (end_date))
+                    dplot <- dtwSat::plot (r$matches[[1]], type = "classification", overlap = 0.5)
+               else
+                    dplot <- dtwSat::plot (r$matches[[1]], type = "classification", from = start_date,
+                                           to = end_date, by = interval, overlap = overlap)
+               graphics::plot(dplot)
+
           })
 }
 #' @title Plot classification alignments

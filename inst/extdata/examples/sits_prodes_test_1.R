@@ -29,9 +29,9 @@ patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Damien_Ieda
 #sits_save(series.tb, "./inst/extdata/samples/deforestation_points_226_64.json")
 #sits_plot (patterns.tb, type = "patterns")
 
-matches.tb <- sits_TWDTW_matches(series1.tb[1,], patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, span = 0)
-sits_plot(matches.tb, type = "classification")
+matches.tb <- sits_TWDTW_matches(series1.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, span = 0)
+sits_plot(matches.tb, type = "classification", start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
 
-class.tb <- sits_TWDTW_classify (matches.tb, interval = "12 month")
+class.tb <- sits_TWDTW_classify (matches.tb, start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
 
 assessment <- sits_accuracy(results.tb)

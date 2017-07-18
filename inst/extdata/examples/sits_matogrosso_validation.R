@@ -11,7 +11,7 @@ matogrosso.tb <- sits_getdata(file = system.file("extdata/samples/matogrosso.jso
 
 matogrosso.tb <- sits_prune(matogrosso.tb)
 # perform accuracy assessment - já foi feito
-#cm_gam <- sits_validate (matogrosso.tb, method = "gam", bands = c("ndvi","evi", "nir"),
+#cm_gam <- sits_cross_validate (matogrosso.tb, method = "gam", bands = c("ndvi","evi", "nir"),
                     #times = 100, perc = 0.5, file = "./mt_cm.json")
 
 
@@ -73,5 +73,5 @@ mt_cm <- sits_relabel (matogrosso.tb,
                        file = system.file("extdata/results/mt_cm.json", package = "sits"),
                        conv = mt_conv.lst)
 
-cm_centroids <- sits_validate (matogrosso.tb, method = "centroids", bands = c("ndvi","evi", "nir"),
+cm_centroids <- sits_cross_validate (matogrosso.tb, method = "centroids", bands = c("ndvi","evi", "nir"),
                                          times = 1, perc = 0.5, file = "./mt_cm_centroids.json")

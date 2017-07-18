@@ -2,10 +2,9 @@
 % Please edit documentation in R/sits_assessment.R
 \name{sits_cross_validate}
 \alias{sits_cross_validate}
-\alias{sits_validate}
 \title{Cross-validate temporal patterns}
 \usage{
-sits_validate(data.tb, method = "gam", bands = NULL, times = 100,
+sits_cross_validate(data.tb, method = "gam", bands = NULL, times = 100,
   perc = 0.1, from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
   tw_alpha = -0.1, tw_beta = 100, tw_theta = 0.5, tw_span = 180,
   interval = "12 month", overlap = 0.5, n_clusters = 2,
