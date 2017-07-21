@@ -27,7 +27,7 @@
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
-#' @param  span          the minimum period in days for the duration of the match between a pattern and a signal
+#' @param  span          minimum number of days between two matches of the same pattern in the time series (approximate)
 #' @param  keep          keep internal values for plotting matches
 #' @return matches       a SITS table with the information on matches for the data
 #' @export

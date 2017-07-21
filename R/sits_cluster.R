@@ -30,7 +30,7 @@
 #' @return clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
-sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, dist_method = "dtw_basic",
+sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_clusters = 2, dist_method = "dtw_basic",
                           grouping_method = "ward.D2",koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100,
                           koh_alpha = c(0.05, 0.01), return_members = FALSE, unsupervised = FALSE, show = TRUE, ...) {
 
@@ -126,11 +126,10 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
           values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
      }
 
-     clusters  <- dtwclust::dtwclust (values.tb,
+     clusters  <- dtwclust::tsclust (values.tb,
                                       type     = "hierarchical",
                                       k        = n_clusters,
-                                      distance = dist_method,
-                                      method   = grouping_method, ...)
+                                      distance = dist_method, ...)
 
      # dtwclust does not handle zoo, therefore we convert zoo to matrix to allow for clusters visualization
      if( tolower(dist_method) %in% "twdtw" ){
@@ -183,11 +182,10 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
           values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
      }
 
-     clusters  <- dtwclust::dtwclust (values.tb,
+     clusters  <- dtwclust::tsclust (values.tb,
                                       type     = "partitional",
                                       k        = n_clusters,
                                       distance = dist_method,
-                                      method   = grouping_method,
                                       centroid = "pam",
                                       seed     = 899, ...)
 

@@ -165,7 +165,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
                                  err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
      # auxiliary function to classify a single partition
-     .sits_classify_partitions <- function (p) {
+     .sits_classify_partitions <- function (p, pred.vec, ref.vec) {
           #
           message("Creating patterns from a data sample...")
 
@@ -183,11 +183,11 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
           matches.tb  <- sits_TWDTW_matches (non_p.tb, patterns.tb, bands = bands, alpha = tw_alpha, beta = tw_beta, theta = tw_theta, span = tw_span)
           class.tb    <- sits_TWDTW_classify (matches.tb, interval = interval, overlap = overlap)
           # retrieve the reference labels
-          ref.vec <- as.character(class.tb$label)
+          ref.vec <- append(ref.vec, as.character(class.tb$label))
           # retrieve the predicted labels
-          pred.vec  <- as.character(class.tb$best_matches[[1]]$label)
+          pred.vec  <- append (pred.vec, as.character(class.tb$best_matches[[1]]$label))
 
-          return (list(pred.vec, ref.vec))
+          return (c(pred.vec, ref.vec))
      }
      # does the input data exist?
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
@@ -216,18 +216,13 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
      # create partitions different splits of the input data
      partitions.lst <- .sits_create_partitions (data.tb, times, frac = perc)
 
+     pred.vec = ""
+     ref.vec  = ""
      # for each partition, fill the prediction and reference vectors
      if (.multicores == 1)
-          pred_ref.lst <- Map(.sits_classify_partitions,partitions.lst)
+          confusion.vec  <- Map(.sits_classify_partitions,partitions.lst, pred.vec, ref.vec)
      else
-          pred_ref.lst <- parallel::mcMap(.sits_classify_partitions, partitions.lst, mc.cores = .multicores)
-
-     # reconstructs the output list
-     pred.vec <- unlist(purrr::map(pred_ref.lst, function (e) e[[1]]))
-     ref.vec <- unlist(purrr::map(pred_ref.lst, function (e) e[[2]]))
-
-     # create the confusion vector (predicted x reference)
-     confusion.vec <- c(pred.vec, ref.vec)
+          confusion.vec  <- parallel::mcMap(.sits_classify_partitions, partitions.lst, pred.vec, ref.vec, mc.cores = .multicores)
 
      # save the confusion vector in  a JSON file
      sits_toJSON (confusion.vec, file)
@@ -276,7 +271,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
 #' @return assess         an assessment of validation
 #' @export
 sits_relabel <- function (data.tb = NULL, file = NULL, conv_labels = NULL){
-     # do the input file exist?
+     # does the input file exist?
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
                           err_desc = "sits_relabel: SITS table not provided")
      ensurer::ensure_that(file, !purrr::is_null(.),

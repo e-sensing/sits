@@ -183,7 +183,7 @@ sits_missing_values <-  function(data.tb, mv = NULL) {
 sits_envelope <- function(data.tb, window_size = 1){
      # compute envelopes
      result.tb <- sits_apply(data.tb,
-                                fun = function(band) dtwclust::compute_envelop(band, window.size = window_size, error.check = FALSE),
+                                fun = function(band) dtwclust::compute_envelope(band, window.size = window_size, error.check = FALSE),
                                 fun_index = function(band) band)
 
      return(result.tb)

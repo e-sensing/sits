@@ -22,77 +22,39 @@ bands <- c("ndvi", "evi", "nir")
 long <- -55.57320
 lat <- -11.50566
 
-# outro ponto interessante: -58.63919,-10.74036
-
 # obtain a time series from the WTSS server for this point
 series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = "mod13q1_512", bands = bands)
+
+# plot the series
+sits_plot (series.tb)
+
+# smooth the time series using the Whittaker smoother
+
+smooth.tb <- series.tb %>%
+     sits_whittaker(lambda = 2.0) %>%
+     sits_plot()
+
+# merge the raw and smoothed series and plot the “ndvi” and “ndvi.whit” bands
+series.tb %>%
+     sits_merge(., smooth.tb) %>%
+     sits_select (bands = c("ndvi", "ndvi.whit")) %>%
+     sits_plot()
 
 # retrieve a set of samples from a JSON file
 patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Damien_Ieda_Rodrigo_15classes_3bands_Water.json")
 
-#sits_plot (patterns.tb, type = "patterns")
+sits_plot (patterns.tb, type = "patterns")
 
-results.tb <- sits_TWDTW(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
+# find the matches between the patterns and the time series using the TWDTW algorithm
+# (uses the dtwSat R package)
+matches.tb <- sits_TWDTW_matches(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 
-# plot the results of the classification
+# plot the alignments of the time series
+sits_plot (matches.tb, type = "alignments")
+
+#classify the time series matches using yearly intervals
+results.tb <- sits_TWDTW_classify(matches.tb, start_date = "2000-08-01", end_date = "2016-07-31",
+                                  interval = "12 month")
+
+# plot the classification of the time series by yearly intervals
 sits_plot (results.tb, type = "classification")
-sits_plot (results.tb, type = "alignments")
-
-# plot the “evi” band
-series.tb %>%
-     sits_select (bands = "evi") %>%
-     sits_plot ()
-
-# smooth the “evi” band and plot it
-series.tb %>%
-     sits_select (bands = "evi") %>%
-     sits_smooth() %>%
-     sits_plot()
-
-# smooth all the bands, plot them, and save the smoothed bands in a new table
-series_s.tb <- series.tb %>%
-     sits_smooth() %>%
-     sits_rename (c("ndvi_smooth", "evi_smooth", "nir_smooth")) %>%
-     sits_plot()
-
-# merge the raw and smoothed series and plot the “red” and “red_smooth” bands
-series.tb %>%
-     sits_merge(., series_s.tb) %>%
-     sits_select (bands = c("evi", "evi_smooth")) %>%
-     sits_plot()
-
-# retrieve a set of samples from a JSON file
-matogrosso.tb <- sits_getdata(file = system.file("extdata/samples/matogrosso.json", package="sits"))
-
-# prune the time series to a one-year time interval
-matogrosso.tb <- sits_prune (matogrosso.tb)
-
-# create patterns using the gam method (default)
-patt_mt.tb <- sits_patterns(matogrosso.tb)
-sits_plot (patt_mt.tb, type = "patterns")
-
-results.tb <- sits_TWDTW(series.tb, patt_mt.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
-
-# plot the results of the classification
-sits_plot (results.tb, type = "classification")
-sits_plot (results.tb, type = "alignments")
-
-# create patterns using the dendogram method
-patt_mt_d.tb <- sits_patterns(matogrosso.tb, bands = c("ndvi", "evi", "nir"), method = "dendogram")
-sits_plot (patt_mt_d.tb, type = "patterns")
-
-# create patterns using the centroid method
-patt_mt_c.tb <- sits_patterns(matogrosso.tb, bands = c("ndvi", "evi", "nir"), method = "centroids")
-sits_plot (patt_mt_c.tb, type = "patterns")
-
-results1.tb <- sits_TWDTW(series.tb, patt_mt.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
-
-# plot the results of the classification
-sits_plot (results1.tb, type = "classification")
-sits_plot (results1.tb, type = "alignments")
-
-results2.tb <- sits_TWDTW(series.tb, patt_mt_d.tb, bands, alpha= -0.1, beta = 100, theta = 0.5)
-
-# plot the results of the classification
-sits_plot (results2.tb, type = "classification")
-sits_plot (results2.tb, type = "alignments")
