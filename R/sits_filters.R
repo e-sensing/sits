@@ -218,11 +218,11 @@ sits_envelope <- function(data.tb, window_size = 1){
 #      # return the result
 #      return (output.tb)
 # }
-sits_whittaker <- function (data.tb, lambda    = 0.5) {
+sits_whittaker <- function (data.tb, lambda    = 0.5, bands_suffix = "whit") {
      result.tb <- sits_apply(data.tb,
                              fun = function(band) ptw::whit2(band, lambda = lambda),
                              fun_index = function(band) band,
-                             bands_suffix = "whit")
+                             bands_suffix = bands_suffix)
 
      return(result.tb)
 }
