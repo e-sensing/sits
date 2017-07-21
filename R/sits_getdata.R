@@ -32,6 +32,7 @@
 #' @param coverage        string - the name of the coverage to be retrieved
 #' @param bands           string vector - the names of the bands to be retrieved
 #' @param n_max           integer - the maximum number of samples to be read (optional)
+#' @param ignore_dates    use the start and end dates from the coverage instead of the time series
 #' @return data.tb        tibble  - a SITS table
 #' @export
 sits_getdata <- function (file        = NULL,
@@ -44,7 +45,8 @@ sits_getdata <- function (file        = NULL,
                           URL         = "http://www.dpi.inpe.br/tws/wtss",
                           coverage    = NULL,
                           bands       = NULL,
-                          n_max       = Inf) {
+                          n_max       = Inf,
+                          ignore_dates = FALSE) {
 
      # a JSON file has all the data and metadata - no need to access the WTSS server
      if  (!purrr::is_null (file) && tolower(tools::file_ext(file)) == "json"){
@@ -64,7 +66,7 @@ sits_getdata <- function (file        = NULL,
 
      # get data based on latitude and longitude
      if (purrr::is_null (file) && purrr::is_null (table) && !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
-          data.tb <- .sits_fromlatlong (longitude, latitude, wtss.obj, cov, bands)
+          data.tb <- .sits_fromlatlong (longitude, latitude, start_date, end_date, wtss.obj, cov, bands)
           return (data.tb)
      }
      # get data based on table
@@ -75,7 +77,7 @@ sits_getdata <- function (file        = NULL,
 
      # get data based on CSV file
      if (tolower(tools::file_ext(file)) == "csv") {
-          data.tb <- .sits_fromCSV (file, wtss.obj, cov, bands, n_max)
+          data.tb <- .sits_fromCSV (file, wtss.obj, cov, bands, n_max, ignore_dates)
           return (data.tb)
      }
      # get data based on SHP file
@@ -126,15 +128,14 @@ sits_getdata <- function (file        = NULL,
 
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location)
+#' @param start_date      date - the start of the period
+#' @param end_date        date - the end of the period
 #' @param wtss.obj       an R object that represents the WTSS server
 #' @param cov            a list with the coverage parameters (retrived from the WTSS server)
 #' @param bands          string vector - the names of the bands to be retrieved
 #' @return data.tb       tibble  - a SITS table
-.sits_fromlatlong <-  function (longitude, latitude, wtss.obj, cov, bands) {
+.sits_fromlatlong <-  function (longitude, latitude, start_date = NULL, end_date = NULL, wtss.obj, cov, bands) {
 
-     # set the start and end dates from the coverage
-     start_date <- lubridate::as_date(cov$timeline[1])
-     end_date <- lubridate::as_date(cov$timeline[length(cov$timeline)])
      # set the class of the time series
      label <-  "NoClass"
      # use the WTSS service to retrieve the time series
@@ -196,7 +197,7 @@ sits_getdata <- function (file        = NULL,
 #' @param n_max           integer - the maximum number of samples to be read
 #' @return data.tb        tibble  - a SITS table
 
-.sits_fromCSV <-  function (csv_file, wtss.obj, cov, bands, n_max = Inf){
+.sits_fromCSV <-  function (csv_file, wtss.obj, cov, bands, n_max = Inf, ignore_dates = FALSE){
      # configure the format of the CSV file to be read
      cols_csv <- readr::cols(id          = readr::col_integer(),
                              longitude   = readr::col_double(),
@@ -211,7 +212,7 @@ sits_getdata <- function (file        = NULL,
      # for each row of the input, retrieve the time series
      csv.tb %>%
           purrrlyr::by_row( function (r){
-               row <- .sits_fromWTSS (r$longitude, r$latitude, r$start_date, r$end_date, r$label, wtss.obj, cov, bands)
+               row <- .sits_fromWTSS (r$longitude, r$latitude, r$start_date, r$end_date, r$label, wtss.obj, cov, bands, ignore_dates)
 
                # ajust the start and end dates
                row$start_date <- lubridate::as_date(head(row$time_series[[1]]$Index, 1))
@@ -358,7 +359,11 @@ sits_getdata <- function (file        = NULL,
 #' @param cov             a list containing information about the coverage from which data is to be recovered
 #' @param bands           list of string - a list of the names of the bands of the coverage
 #' @return data.tb        tibble  - a SITS table
-.sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wtss.obj, cov, bands) {
+.sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wtss.obj, cov, bands, ignore_dates = FALSE) {
+
+     # set the start and end dates from the coverage
+     if (purrr::is_null (start_date) | ignore_dates ) start_date <- lubridate::as_date(cov$timeline[1])
+     if (purrr::is_null (end_date)   | ignore_dates ) end_date <- lubridate::as_date(cov$timeline[length(cov$timeline)])
 
      # get a time series from the WTSS server
      ts <- wtss::timeSeries (wtss.obj, coverages = cov$name, attributes = bands,
@@ -419,3 +424,4 @@ sits_getdata <- function (file        = NULL,
      # return the table with the time series
      return (data.tb)
 }
+

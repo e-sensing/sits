@@ -12,10 +12,10 @@ cerrado1.tb <- dplyr::bind_rows(head(cerrado.tb, n = 20), tail (cerrado.tb, n = 
 
 
 # perform accuracy assessment
-cm_gam <- sits_validate (cerrado.tb, method = "gam", bands = c("ndvi","evi"), times = 25, perc = 0.3)
+cm_gam <- sits_cross_validate (cerrado.tb, method = "gam", bands = c("ndvi","evi"), times = 25, perc = 0.3)
 
 
-cm_som <- sits_validate (cerrado.tb, method = "koho&dogram", bands = c("evi", "ndvi"), times = 1, perc = 0.3, n_clusters = 5,
+cm_som <- sits_cross_validate (cerrado.tb, method = "koho&dogram", bands = c("evi", "ndvi"), times = 1, perc = 0.3, n_clusters = 5,
                      koh_xgrid = 12, koh_ygrid = 12, koh_rlen = 1500, koh_alpha = c(0.07, 0.01),
                      min_clu_perc = 0.1, apply_gam = TRUE, tw_alpha = -0.1, tw_beta = 45)
 

@@ -183,7 +183,7 @@ sits_missing_values <-  function(data.tb, mv = NULL) {
 sits_envelope <- function(data.tb, window_size = 1){
      # compute envelopes
      result.tb <- sits_apply(data.tb,
-                                fun = function(band) dtwclust::compute_envelop(band, window.size = window_size, error.check = FALSE),
+                                fun = function(band) dtwclust::compute_envelope(band, window.size = window_size, error.check = FALSE),
                                 fun_index = function(band) band)
 
      return(result.tb)
@@ -218,11 +218,11 @@ sits_envelope <- function(data.tb, window_size = 1){
 #      # return the result
 #      return (output.tb)
 # }
-sits_whittaker <- function (data.tb, lambda    = 0.5) {
+sits_whittaker <- function (data.tb, lambda    = 0.5, bands_suffix = "whit") {
      result.tb <- sits_apply(data.tb,
                              fun = function(band) ptw::whit2(band, lambda = lambda),
                              fun_index = function(band) band,
-                             bands_suffix = "whit")
+                             bands_suffix = bands_suffix)
 
      return(result.tb)
 }

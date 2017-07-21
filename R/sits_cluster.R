@@ -31,27 +31,9 @@
 #' @return clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
-sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, dist_method = "dtw_basic",
-                          grouping_method = "ward.D2", koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100,
-                          koh_alpha = c(0.05, 0.01), return_members = FALSE, unsupervised = FALSE, ..., .show = TRUE, .multiproc = 1) {
-
-     .sits_cluster_apply_cluster_method <- function(label.tb){
-          # apply the clustering method
-          if (method == "dendogram")
-               clu.tb <- .sits_cluster_dendogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
-                                                  return_members=return_members, show=.show, ...)
-          else if (method == "centroids")
-               clu.tb <- .sits_cluster_partitional (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
-                                                    return_members=return_members, show=.show, ...)
-          else if (method == "kohonen")
-               clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
-                                                rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=.show)
-          else if (method == "kohonen-dendogram")
-               clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
-                                                   grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
-                                                   rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=.show)
-          return(clu.tb)
-     }
+sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_clusters = 2, dist_method = "dtw_basic",
+                          grouping_method = "ward.D2",koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100,
+                          koh_alpha = c(0.05, 0.01), return_members = FALSE, unsupervised = FALSE, show = TRUE, ...) {
 
      ensurer::ensure_that(method, (. == "dendogram" || . == "centroids" || . == "kohonen" || . == "kohonen-dendogram"),
                           err_desc = "sits_cluster: valid cluster methods are 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.")
@@ -172,11 +154,10 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
           values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
      }
 
-     clusters  <- dtwclust::dtwclust (values.tb,
+     clusters  <- dtwclust::tsclust (values.tb,
                                       type     = "hierarchical",
                                       k        = n_clusters,
-                                      distance = dist_method,
-                                      method   = grouping_method, ...)
+                                      distance = dist_method, ...)
 
      # dtwclust does not handle zoo, therefore we convert zoo to matrix to allow for clusters visualization
      if( tolower(dist_method) %in% "twdtw" ){
@@ -229,11 +210,10 @@ sits_cluster <- function (data.tb, bands, method = "dendogram", n_clusters = 2, 
           values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
      }
 
-     clusters  <- dtwclust::dtwclust (values.tb,
+     clusters  <- dtwclust::tsclust (values.tb,
                                       type     = "partitional",
                                       k        = n_clusters,
                                       distance = dist_method,
-                                      method   = grouping_method,
                                       centroid = "pam",
                                       seed     = 899, ...)
 

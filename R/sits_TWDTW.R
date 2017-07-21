@@ -1,5 +1,5 @@
-#' @title Classify a sits tibble using TWDTW (using the dtwSat package)
-#' @name sits_TWDTW
+#' @title Find matches between a set of SITS patterns and segments of sits tibble using TWDTW
+#' @name sits_TWDTW_matches
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -27,20 +27,22 @@
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
-#' @param  interval      the period between two classifications
-#' @param  span          the minimum period for a match between a pattern and a signal)
+#' @param  span          minimum number of days between two matches of the same pattern in the time series (approximate)
 #' @param  keep          keep internal values for plotting matches
-#' @param  overlap       mininum overlapping between one match and the interval of classification
-#' @param  start_date    a character or Dates object in the format "yyyy-mm-dd".
-#' @param  end_date      a character or Dates object in the format "yyyy-mm-dd".
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
-sits_TWDTW <- function (series.tb, patterns.tb, bands, dist.method = "euclidean",
-                        alpha = -0.1, beta = 100, theta = 0.5,
-                        interval = "12 month", span  = 250, keep  = FALSE, overlap = 0.5, start_date = "2000-09-01", end_date = "2016-08-31"){
+sits_TWDTW_matches <- function (series.tb, patterns.tb, bands, dist.method = "euclidean",
+                        alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE){
 
-     # create a tibble to store the results
-     results.tb <- sits_table()
+     # add a progress bar
+     progress_bar <- NULL
+     if (nrow (series.tb) > 10) {
+          progress_bar <- utils::txtProgressBar(min = 0, max = nrow(series.tb), style = 3)
+          i <- 0
+     }
+
+     # create a tibble to store the results of the TWDTW matches
+     matches.tb <- sits_table()
 
      # select the bands for patterns time series and convert to TWDTW format
      twdtw_patterns <- patterns.tb %>%
@@ -57,10 +59,6 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands, dist.method = "euclidean"
                     sits_select (bands) %>%
                     .sits_toTWDTW_time_series()
 
-               # set the start and end dates
-               #start_date <- lubridate::as_date(utils::head(row$time_series[[1]],1)$Index)
-               #end_date   <- lubridate::as_date(utils::tail(row$time_series[[1]],1)$Index)
-
                #classify the data using TWDTW
                matches = dtwSat::twdtwApply(x          = twdtw_series,
                                             y          = twdtw_patterns,
@@ -70,32 +68,73 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands, dist.method = "euclidean"
                                             keep       = keep,
                                             dist.method = dist.method)
 
-               # store the alignments and matches in two lists
-               # alignments
-               align.lst <- tibble::lst()
-               align.lst[[1]] <- matches[][[1]]
-
-               # matches
+               # add the matches to the results
                match.lst <- tibble::lst()
                match.lst[[1]] <-  matches
+               # include the matches in the SITS table
+               res.tb <- dplyr::mutate (row, matches = match.lst)
 
+               # add the row to the results.tb tibble
+               matches.tb <<- dplyr::bind_rows(matches.tb, res.tb)
+               # update progress bar
+               if (!purrr::is_null(progress_bar)) {
+                    i <<- i + 1
+                    utils::setTxtProgressBar(progress_bar, i)
+               }
+          })
+     if (!purrr::is_null(progress_bar)) close(progress_bar)
+     return (matches.tb)
+}
+
+#' @title Classify a sits tibble using the matches found by the TWDTW methods
+#' @name sits_TWDTW_classify
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a sits table with the results of the TWDTW classifier.
+#' The TWDTW classifier uses the result of the sits_TWDTW_matches function to
+#' find the best alignments of these matches in intervals chosen by the user
+#' @references Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
+#' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
+#'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
+#'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
+#'
+#' @param  matches.tb    a table in SITS format with the matches that have been produced by TWTDW
+#' @param  start_date    date - the start of the classification period
+#' @param  end_date      date - the end of the classification period
+#' @param  interval      the period between two classifications
+#' @param  overlap       minimum overlapping between one match and the interval of classification
+#' @return matches       a SITS table with the information on matches for the data
+#' @export
+sits_TWDTW_classify <- function (matches.tb, start_date = NULL, end_date = NULL,
+                        interval = "12 month", overlap = 0.5){
+
+     ensurer::ensures_that(matches.tb, "matches" %in% names(.), err_desc = "sits_TWDTW_classify: input tibble should have a matches collumn  \n Please run sits_TWDTW_matches first")
+
+     # create a tibble to store the results
+     class.tb <- sits_table()
+
+     matches.tb %>%
+          purrrlyr::by_row (function (row) {
+
+               if (purrr::is_null (start_date))  start_date <- row$start_date
+               if (purrr::is_null (end_date))    end_date    <- row$end_date
                # define the temporal intervals of each classification
                breaks <- seq(from = as.Date(start_date), to = as.Date(end_date), by = interval)
 
-               classify <- dtwSat::twdtwClassify(x = matches, breaks = breaks, overlap = overlap)
+               classify <- dtwSat::twdtwClassify(x = row$matches[[1]], breaks = breaks, overlap = overlap)
                class.lst <- tibble::lst()
                class.lst[[1]] <- classify[[1]]
 
-               # add the aligments and matches to the results
-               res.tb <- dplyr::mutate (row, alignments = align.lst)
-               res.tb <- dplyr::mutate (res.tb, matches = match.lst)
-               res.tb <- dplyr::mutate (res.tb, best.alignments = class.lst)
+               # add the classification results to the input row
+               res.tb <- dplyr::mutate (row, best_matches = class.lst)
 
                # add the row to the results.tb tibble
-               results.tb <<- dplyr::bind_rows(results.tb, res.tb)
+               class.tb <<- dplyr::bind_rows(class.tb, res.tb)
           })
-     return (results.tb)
+     return (class.tb)
 }
+
 #' @title Export data to be used by the dtwSat package
 #' @name .sits_toTWDTW_time_series
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
@@ -154,3 +193,4 @@ sits_TWDTW <- function (series.tb, patterns.tb, bands, dist.method = "euclidean"
           })
      return (patterns.tb)
 }
+

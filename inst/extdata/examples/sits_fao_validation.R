@@ -1,4 +1,3 @@
-
 # R script 2017-03-09
 # sits package by Gilberto Câmara
 # https://github.com/gilbertocamara/sits
@@ -9,7 +8,7 @@ library(sits)
 fao.tb <- sits_getdata (file = system.file("extdata/samples/fao_all_samples.tb.json", package = "sits"))
 
 # Isto já foi rodado
-#fao_cm <- sits_validate (fao.tb, times = 50, file = "./fao_cm2.json")
+#fao_cm <- sits_cross_validate (fao.tb, times = 50, file = "./fao_cm2.json")
 
 fao_cm <- sits_relabel (fao.tb, file = system.file("extdata/results/fao_cm.json", package = "sits"))
 

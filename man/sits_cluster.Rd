@@ -4,10 +4,10 @@
 \alias{sits_cluster}
 \title{Cluster a set of satellite image time series}
 \usage{
-sits_cluster(data.tb, bands, method = "dendogram", n_clusters = 2,
-  dist_method = "dtw_basic", grouping_method = "ward.D2", koh_xgrid = 5,
-  koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
-  return_members = FALSE, unsupervised = FALSE, show = TRUE, ...)
+sits_cluster(data.tb = NULL, bands = NULL, method = "dendogram",
+  n_clusters = 2, dist_method = "dtw_basic", grouping_method = "ward.D2",
+  koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05,
+  0.01), return_members = FALSE, unsupervised = FALSE, show = TRUE, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble the list of time series to be clustered}
