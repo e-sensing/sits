@@ -155,7 +155,7 @@ sits_accuracy <- function (results.tb){
 
 sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 100, perc = 0.1,
                            from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
-                           tw_alpha = -0.1, tw_beta = 100, tw_theta = 0.5, tw_span = 180,
+                           tw_alpha = -0.1, tw_beta = 100, tw_theta = 0.5, tw_span = 0,
                            interval = "12 month", overlap = 0.5,
                            n_clusters = 2, grouping_method = "ward.D2", min_clu_perc = 0.10,
                            apply_gam = FALSE, koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
@@ -165,7 +165,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
                                  err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
      # auxiliary function to classify a single partition
-     .sits_classify_partitions <- function (p, pred.vec, ref.vec) {
+     .sits_classify_partitions <- function (p) {
           #
           message("Creating patterns from a data sample...")
 
@@ -183,9 +183,10 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
           matches.tb  <- sits_TWDTW_matches (non_p.tb, patterns.tb, bands = bands, alpha = tw_alpha, beta = tw_beta, theta = tw_theta, span = tw_span)
           class.tb    <- sits_TWDTW_classify (matches.tb, interval = interval, overlap = overlap)
           # retrieve the reference labels
-          ref.vec <- append(ref.vec, as.character(class.tb$label))
+          ref.vec <- as.character(class.tb$label)
           # retrieve the predicted labels
-          pred.vec  <- append (pred.vec, as.character(class.tb$best_matches[[1]]$label))
+          pred.vec  <- as.character(
+               purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
 
           return (c(pred.vec, ref.vec))
      }
@@ -216,14 +217,20 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
      # create partitions different splits of the input data
      partitions.lst <- .sits_create_partitions (data.tb, times, frac = perc)
 
-     pred.vec = ""
-     ref.vec  = ""
      # for each partition, fill the prediction and reference vectors
      if (.multicores == 1)
-          confusion.vec  <- Map(.sits_classify_partitions,partitions.lst, pred.vec, ref.vec)
+          conf.lst  <- Map(.sits_classify_partitions,partitions.lst)
      else
-          confusion.vec  <- parallel::mcMap(.sits_classify_partitions, partitions.lst, pred.vec, ref.vec, mc.cores = .multicores)
+          conf.lst <- parallel::mcMap(.sits_classify_partitions, partitions.lst, mc.cores = .multicores)
 
+     pred.vec = character()
+     ref.vec = character()
+     purrr::map(conf.lst, function (e) {
+               mid <- length (e)/2
+               pred.vec <<- append (pred.vec, e[1:mid])
+               ref.vec <<- append (ref.vec, e[(mid+1):length(e)])
+          })
+     confusion.vec <- c(pred.vec, ref.vec)
      # save the confusion vector in  a JSON file
      sits_toJSON (confusion.vec, file)
 
