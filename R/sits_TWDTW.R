@@ -117,8 +117,12 @@ sits_TWDTW_classify <- function (matches.tb, start_date = NULL, end_date = NULL,
      matches.tb %>%
           purrrlyr::by_row (function (row) {
 
-               if (purrr::is_null (start_date))  start_date <- row$start_date
-               if (purrr::is_null (end_date))    end_date    <- row$end_date
+               if (purrr::is_null (start_date)) {
+                    start_date  <- row$start_date
+                    end_date    <- row$end_date
+                    interval <- lubridate::as_date(end_date) - lubridate::as_date(start_date)
+               }
+
                # define the temporal intervals of each classification
                breaks <- seq(from = as.Date(start_date), to = as.Date(end_date), by = interval)
 

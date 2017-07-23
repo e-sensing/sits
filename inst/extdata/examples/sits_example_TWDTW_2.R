@@ -58,9 +58,10 @@ patt_mt_g.tb <- sits_patterns(series.tb, bands = c("ndvi", "evi"), method = "gam
 patt_mt_dg.tb <- sits_patterns(series_s.tb, bands = c("ndvi.whit", "evi.whit"), method = "dendogram", apply_gam = TRUE) %>%
      sits_plot ( type = "patterns")
 
+series2.tb <- dplyr::bind_rows(series.tb[1:10,], series.tb[691:700,])
 # The results of each patterns can be used for cross validation to determine which
 # methods has the better performance
 # in the example we use 5 rounds for convenience - in real cases 100 times would be better
-cv_gam <- sits_cross_validate (series.tb, method = "gam", bands = c("ndvi", "evi"), times = 5, perc = 0.1)
+cv_gam <- sits_cross_validate (series2.tb, method = "gam", bands = c("ndvi", "evi"), times = 2, perc = 0.5)
 print (cv_gam)
 
