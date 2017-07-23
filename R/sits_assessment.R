@@ -146,6 +146,7 @@ sits_accuracy <- function (results.tb){
 #' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
 #' @param file            file to save the results
 #' @param .multicores     number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).
+#' @param ...             any additional parameters to be passed to `sits_pattern` function.
 #' @return cm             a validation assessment
 #' @export
 
@@ -159,7 +160,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
                            interval = "12 month", overlap = 0.5,
                            n_clusters = 2, grouping_method = "ward.D2", min_clu_perc = 0.10,
                            apply_gam = FALSE, koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
-                           file = "./conf_matrix.json", .multicores = 1){
+                           file = "./conf_matrix.json", .multicores = 1, ...){
 
           ensurer::ensures_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
                                  err_desc = "sits_cross_validate: please provide a labelled set of time series")
@@ -174,7 +175,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
                                        formula = formula, n_clusters = n_clusters, grouping_method = grouping_method,
                                        min_clu_perc = min_clu_perc, apply_gam = apply_gam,
                                        koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
-                                       show = FALSE)
+                                       show = FALSE, ...)
 
           # use the rest of the data for classification
           non_p.tb <- dplyr::anti_join(data.tb, p, by = c("longitude", "latitude", "start_date", "end_date", "label", "coverage"))
