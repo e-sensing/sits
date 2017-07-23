@@ -16,11 +16,16 @@ sits_cluster_segregation <- function (data.tb){
      ensurer::ensure_that(data.tb, "original_label" %in% colnames(data.tb),
                           err_desc = "sits_cluster_segregation: informed SITS table has not an `original_label` column.")
 
-     # TO-DO: generalize for clusters series and clusters' members series
+     # verify if there is n_members column. If not exists initialize it with ones.
+     if (!any("n_members" %in% names(data.tb)))
+          data.tb$n_members <- data.tb$label %>%
+          purrr::map(function(label) return(tibble::tibble(original_label = label, n = 1)))
 
      result.tb <- data.tb %>%
-          dplyr::group_by(original_label, label) %>%
-          dplyr::summarise(count = n()) %>%
+          tidyr::unnest(n_members) %>%
+          dplyr::group_by(original_label1, label) %>%
+          dplyr::summarise(count = sum(n, na.rm = TRUE)) %>%
+          dplyr::select(original_label = original_label1, label, count) %>%
           tidyr::spread(key = label, value = count) %>%
           dplyr::ungroup()
 

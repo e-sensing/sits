@@ -25,15 +25,14 @@
 #' @param unsupervised    (boolean) should labels be ignored in clustering algorithms?
 #' If `return_members` parameter is TRUE, resulting sits table will gain an extra column called `original_label` with all original labels.
 #' This column may be useful to measure confusion between clusters' members. Default is FALSE.
-#' @param ...             Other arguments to pass to the distance method \code{dist_method}, see \code{\link[dtwclust]{dtwclust}} for details.
-#' @param .show           (boolean) should the results be shown? Default is TRUE.
-#' @param .multiproc      (Linux only) numbers of cores to be used in multiprocessing.
+#' @param show           (boolean) should the results be shown? Default is TRUE.
+#' @param ...             Other arguments to pass to the distance method \code{dist_method}, and cluster method. See \code{\link[dtwclust]{dtwclust}} for details.
 #' @return clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
-sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_clusters = 2, dist_method = "dtw_basic",
+sits_cluster <- function (data.tb, bands = NULL, method = "dendogram", n_clusters = 2, dist_method = "dtw_basic",
                           grouping_method = "ward.D2",koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100,
-                          koh_alpha = c(0.05, 0.01), return_members = FALSE, unsupervised = FALSE, show = TRUE, ...) {
+                          koh_alpha = c(0.05, 0.01), return_members = FALSE, unsupervised = FALSE, show = FALSE, ...) {
 
      ensurer::ensure_that(method, (. == "dendogram" || . == "centroids" || . == "kohonen" || . == "kohonen-dendogram"),
                           err_desc = "sits_cluster: valid cluster methods are 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.")
@@ -45,15 +44,13 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
      # creates the resulting table
      cluster.tb <- sits_table()
 
+     # if no original_label exists, creates one
+     if (!("original_label" %in% colnames(data.tb)))
+          data.tb$original_label <- data.tb$label
+
      # if unsupervised cluster is enabled, change all input labels.
-     if (unsupervised) {
-          # if return_members is True, create an new column called `old_label`
-          if (return_members)
-               data.tb$original_label <- data.tb$label
-          else
-               data.tb$original_label <- "Unsupervised"
+     if (unsupervised)
           data.tb$label <- "Unsupervised"
-     }
 
      # how many different labels are there?
      labels <- dplyr::distinct (data.tb, label)$label
@@ -62,58 +59,41 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
      message("Clustering...")
 
 
-     # if .multiproc greater than 1, start parallel threads
-     if (.multiproc > 1){
-
-          # get the list of sits_table to pass to each process
-          label.tb.lst <- purrr::map(labels, function (lb) dplyr::filter(data.tb, label == lb))
-
-          # start parallel processing
-          result.tb.lst <- parallel::mcMap(.sits_cluster_apply_cluster_method, label.tb.lst, mc.cores = .multiproc)
-
-          # composes the final result
-          result.tb.lst %>% purrr::map(function(clu.tb) {
-               cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
-          })
-     }
-     else {
-          # add a progress bar
-          progress_bar <- utils::txtProgressBar(min = 0, max = length(labels), style = 3)
+     # add a progress bar
+     progress_bar <- utils::txtProgressBar(min = 0, max = length(labels), style = 3)
 
 
-          # traverse labels
-          purrr::map2(labels, seq_along(labels), function (lb, i){
-               # filter only those rows with the same labels
-               # cut time series to fit in one year
-               label.tb <- dplyr::filter (data.tb, label == lb) #%>%
-               #sits_prune()  ## FIX-ME! sits_prune() returns a singular time series dates for specific cases!
+     # traverse labels
+     purrr::map2(labels, seq_along(labels), function (lb, i){
+           # filter only those rows with the same labels
+           # cut time series to fit in one year
+           label.tb <- dplyr::filter (data.tb, label == lb) #%>%
+           #sits_prune()  ## FIX-ME! sits_prune() returns a singular time series dates for specific cases!
 
-               # apply the clustering method
-               # if (method == "dendogram")
-               #      clu.tb <- .sits_cluster_dendogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
-               #                                         return_members=return_members, show=show, ...)
-               # else if (method == "centroids")
-               #      clu.tb <- .sits_cluster_partitional (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
-               #                                           return_members=return_members, show=show, ...)
-               # else if (method == "kohonen")
-               #      clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
-               #                                       rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
-               # else if (method == "kohonen-dendogram")
-               #      clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
-               #                                          grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
-               #                                          rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
-               clu.tb <- .sits_cluster_apply_cluster_method(label.tb)
+           # apply the clustering method
+           if (method == "dendogram")
+                clu.tb <- .sits_cluster_dendogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
+                                                   return_members=return_members, show=show, ...)
+           else if (method == "centroids")
+                clu.tb <- .sits_cluster_partitional (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
+                                                     return_members=return_members, show=show, ...)
+           else if (method == "kohonen")
+                clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
+                                                 rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
+           else if (method == "kohonen-dendogram")
+                clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
+                                                    grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
+                                                    rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
 
-               # append the result
-               cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
+           # append the result
+           cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
 
-               # update progress bar
-               utils::setTxtProgressBar(progress_bar, i)
+           # update progress bar
+           utils::setTxtProgressBar(progress_bar, i)
 
-          })
+     })
 
-          close(progress_bar)
-     }
+     close(progress_bar)
 
      return (cluster.tb)
 }
@@ -139,6 +119,7 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`).
 #' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show            (boolean) should the results be shown?
+#' @param  ...            any additional parameters
 #' @return clusters.tb a SITS tibble with the clusters
 .sits_cluster_dendogram <- function (data.tb, bands, n_clusters, dist_method, grouping_method, return_members, show, ...){
 
@@ -155,9 +136,10 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
      }
 
      clusters  <- dtwclust::tsclust (values.tb,
-                                      type     = "hierarchical",
-                                      k        = n_clusters,
-                                      distance = dist_method, ...)
+                                     type     = "hierarchical",
+                                     k        = n_clusters,
+                                     distance = dist_method,
+                                     control = hierarchical_control(method = grouping_method), ...)
 
      # dtwclust does not handle zoo, therefore we convert zoo to matrix to allow for clusters visualization
      if( tolower(dist_method) %in% "twdtw" ){
@@ -167,6 +149,7 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
 
      # Plot the series and the obtained prototypes
      if (show) .sits_dtwclust_show (clusters)
+     .sits_last_cluster <<- clusters
 
      # if return_members parameter is TRUE, returns a sits samples table with updated labels
      # else, returns cluster's centroids
@@ -195,6 +178,7 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`).
 #' @param return_members (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show           (boolean) should the results be shown?
+#' @param  ...           any additional parameters
 #' @return clusters.tb a SITS tibble with the clusters
 .sits_cluster_partitional <- function (data.tb, bands, n_clusters, dist_method, grouping_method, return_members, show, ...) {
 
@@ -211,11 +195,9 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
      }
 
      clusters  <- dtwclust::tsclust (values.tb,
-                                      type     = "partitional",
-                                      k        = n_clusters,
-                                      distance = dist_method,
-                                      centroid = "pam",
-                                      seed     = 899, ...)
+                                     type     = "partitional",
+                                     k        = n_clusters,
+                                     distance = dist_method, ...)
 
      # dtwclust does not handle zoo, therefore we convert zoo to matrix to allow for clusters visualization
      if( tolower(dist_method) %in% "twdtw" ){
@@ -225,6 +207,7 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
 
      # Plot the series and the obtained prototypes
      if (show) .sits_dtwclust_show (clusters)
+     .sits_last_cluster <<- clusters
 
      # if return_members parameter is TRUE, returns a sits samples table with updated labels
      # else, returns cluster's centroids
@@ -254,8 +237,9 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
 #' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
 #' @param return_members (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show           (boolean) should the results be shown?
+#' @param ...            any additional parameters
 #' @return clusters.tb a SITS tibble with the clusters
-.sits_cluster_kohonen <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, return_members, show){
+.sits_cluster_kohonen <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, return_members, show, ...){
 
      # recalculate grid dimension if the number of neurons is greater than the number of data input cases
      #### TO-DO: Document this recalculation!
@@ -272,10 +256,11 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
      kohonen_obj  <- kohonen::supersom (values.tb, grid=grid,
                                         rlen = rlen, alpha = alpha,
                                         keep.data = TRUE,
-                                        dist.fcts = "euclidean")
+                                        ...)
 
      # Plot the series and the obtained prototypes
      if (show) .sits_kohonen_show (kohonen_obj)
+     .sits_last_cluster <<- kohonen_obj
 
      # if return_members parameter is TRUE, returns a sits samples table with updated labels else, returns cluster's centroids
      return (.sits_from_kohonen (data.tb, kohonen_obj = kohonen_obj, return_members = return_members))
@@ -300,8 +285,9 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`).
 #' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show            (boolean) should the results be shown?
+#' @param  ...            any additional parameters
 #' @return result.tb a SITS tibble with the clusters
-.sits_cluster_kohodogram <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, n_clusters, dist_method, grouping_method, return_members, show){
+.sits_cluster_kohodogram <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, n_clusters, dist_method, grouping_method, return_members, show, ...){
 
      # recalculate grid dimension if the number of neurons is greater than the number of data input cases
      #### TO-DO: Document this recalculation!
@@ -319,11 +305,11 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
 
      kohonen_obj  <- kohonen::supersom (values.tb, grid=grid,
                                         rlen = rlen, alpha = alpha,
-                                        keep.data = TRUE,
-                                        dist.fcts = "euclidean")
+                                        keep.data = TRUE, ...)
 
      # Plot the series and the obtained prototypes
      if (show) .sits_kohonen_show (kohonen_obj)
+     .sits_last_cluster <<- kohonen_obj
 
      # returns kohonen's neurons
      neurons.tb <- .sits_from_kohonen (data.tb, kohonen_obj, return_members = FALSE)
@@ -333,7 +319,7 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
 
      # pass neurons to dendogram clustering
      clusters.tb <- .sits_cluster_dendogram (neurons.tb, bands = bands, n_clusters = n_clusters, dist_method = dist_method,
-                                             grouping_method = grouping_method, return_members = return_members, show = FALSE)
+                                             grouping_method = grouping_method, return_members = return_members, show = FALSE, ...)
 
      # return a sits table with all input data with new labels
      if (return_members) {
@@ -368,12 +354,8 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
 #' @return result.tb       a SITS table with the clusters or clusters' members
 .sits_from_dtwclust <-  function (data.tb, clusters, return_members) {
 
-     # if no original_label exists, creates one
-     if (!("original_label" %in% colnames(data.tb)))
-          data.tb$original_label <- data.tb$label
-
      # return a sits table with all input data with new labels
-     if (return_members){
+     if (return_members) {
           # get prefix label to be used in clusters' labels
           label_prefix <- data.tb[1,]$label[[1]]
 
@@ -385,21 +367,26 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
 
      # return a sits table with clusters' centroids
      } else {
-          # get prefix label to be used in clusters' labels
-          label_prefix <- data.tb[1,]$original_label[[1]]
 
-          # computes num of members for each case. If no previous n_members, initialize with ones.
-          if (!any("n_members" %in% names(data.tb)))
-               data.tb$n_members <- 1
+          # # computes num of members for each case. If no previous n_members, initialize with ones.
+          # if (!any("n_members" %in% names(data.tb)))
+          #      data.tb$n_members <- 1
 
           # create a table to store the results
           result.tb <- sits_table()
 
           # return the number of each cluster members
-          result.tb <- tibble::add_column(result.tb, original_label = character(), n_members = integer())
+          result.tb <- tibble::add_column(result.tb, original_label = character(), #n_members = integer(),
+                                          n_members = list())
 
           # populates the result table with centroids
           purrr::map2(clusters@centroids, seq(clusters@centroids), function (ts, i) {
+               # get prefix label to be used in clusters' labels as the most frequent original label
+               n_members.lst <- tibble::lst()
+               n_members.lst[[1]] <- dplyr::count(data.tb[which(clusters@cluster == i), ],
+                                                  original_label, sort = TRUE)
+               label_prefix <- n_members.lst[[1]][1,]$original_label
+
                new_ts <- dplyr::select(data.tb[1,]$time_series[[1]], Index)
                new_ts <- dplyr::bind_cols(new_ts, tibble::as_tibble(ts))
                result.tb <<- tibble::add_row (result.tb,
@@ -411,7 +398,9 @@ sits_cluster <- function (data.tb = NULL, bands = NULL, method = "dendogram", n_
                                               coverage       = data.tb[1,]$coverage[[1]],
                                               time_series    = list(new_ts),
                                               original_label = label_prefix,
-                                              n_members      = sum(data.tb$n_members[which(clusters@cluster == i)], na.rm = TRUE))
+                                              #n_members      = sum(data.tb$n_members[which(clusters@cluster == i)],
+                                              #                     na.rm = TRUE),
+                                              n_members      = n_members.lst)
           })
      }
 

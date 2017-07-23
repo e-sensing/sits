@@ -275,10 +275,11 @@ sits_group_bylatlong <- function (data.tb) {
 #' @description  returns the labels and its respective counting and frequency.
 #'
 #' @param data.tb     a valid sits table
+#' @param from_members (Boolean) if n_members collumn is present, compute label's statistics from it.
 #' @return result.tb  a tibble with the names of the labels and its absolute and relative frequency
 #' @export
 #'
-sits_labels <- function (data.tb) {
+sits_labels <- function (data.tb, from_members = FALSE) {
 
      # verify if there is original_label column. If not exists initialize it with empty string.
      if (!any("original_label" %in% names(data.tb)))
@@ -286,15 +287,26 @@ sits_labels <- function (data.tb) {
 
      # verify if there is n_members column. If not exists initialize it with ones.
      if (!any("n_members" %in% names(data.tb)))
-          data.tb$n_members <- 1
+          data.tb$n_members <- data.tb$label %>%
+               purrr::map(function(label) return(tibble::tibble(original_label = label, n = 1)))
 
      # compute frequency (absolute and relative)
-     result.tb <- data.tb %>%
-          dplyr::group_by(original_label, label) %>%
-          dplyr::summarize(count = sum(n_members, na.rm = TRUE)) %>%
-          dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
-          dplyr::ungroup() %>%
-          dplyr::select(label, count, original_label, total, frac)
+     if (from_members)
+          result.tb <- data.tb %>%
+               tidyr::unnest(n_members, .sep = ".") %>%
+               dplyr::group_by(n_members.original_label, label) %>%
+               dplyr::summarize(count = sum(n_members.n, na.rm = TRUE)) %>%
+               dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
+               dplyr::ungroup() %>%
+               dplyr::select(label, count, original_label=n_members.original_label, total, frac)
+     else
+          result.tb <- data.tb %>%
+               tidyr::unnest(n_members, .sep = ".") %>%
+               dplyr::group_by(original_label, label) %>%
+               dplyr::summarize(count = sum(n_members.n, na.rm = TRUE)) %>%
+               dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
+               dplyr::ungroup() %>%
+               dplyr::select(label, count, original_label, total, frac)
      return (result.tb)
 }
 
