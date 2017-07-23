@@ -89,11 +89,10 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
 
      # get only the significant clusters
      if (method != "gam"){
-          if (unsupervised)
-               
-          patterns.tb <- sits_significant_labels(patterns.tb, min_label_frac = min_clu_perc)
+          if (!unsupervised)
+               patterns.tb <- sits_significant_labels(patterns.tb, min_label_frac = min_clu_perc)
      }
-     
+
      if (apply_gam) {
           # get cluster information before calling GAM...
           pat_labels.tb <- sits_labels(patterns.tb)

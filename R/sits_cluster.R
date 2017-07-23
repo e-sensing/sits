@@ -79,11 +79,11 @@ sits_cluster <- function (data.tb, bands = NULL, method = "dendogram", n_cluster
                                                      return_members=return_members, show=show, ...)
            else if (method == "kohonen")
                 clu.tb <- .sits_cluster_kohonen (label.tb, bands=bands, grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
-                                                 rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
+                                                 rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show, ...)
            else if (method == "kohonen-dendogram")
                 clu.tb <- .sits_cluster_kohodogram (label.tb, bands=bands, n_clusters=n_clusters, dist_method=dist_method, grouping_method=grouping_method,
                                                     grid_xdim=koh_xgrid, grid_ydim=koh_ygrid,
-                                                    rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show)
+                                                    rlen=koh_rlen, alpha=koh_alpha, return_members=return_members, show=show, ...)
 
            # append the result
            cluster.tb <<- dplyr::bind_rows(cluster.tb, clu.tb)
@@ -365,6 +365,11 @@ sits_cluster <- function (data.tb, bands = NULL, method = "dendogram", n_cluster
           # apply new labels according to clusters' id
           result.tb$label <- paste0(label_prefix, ".", clusters@cluster)
 
+          # verify if there is n_members column. If not exists initialize it with ones.
+          if (!any("n_members" %in% names(result.tb)))
+               result.tb$n_members <- result.tb$original_label %>%
+               purrr::map(function(label) return(tibble::tibble(original_label = label, n = 1)))
+
      # return a sits table with clusters' centroids
      } else {
 
@@ -398,8 +403,6 @@ sits_cluster <- function (data.tb, bands = NULL, method = "dendogram", n_cluster
                                               coverage       = data.tb[1,]$coverage[[1]],
                                               time_series    = list(new_ts),
                                               original_label = label_prefix,
-                                              #n_members      = sum(data.tb$n_members[which(clusters@cluster == i)],
-                                              #                     na.rm = TRUE),
                                               n_members      = n_members.lst)
           })
      }
