@@ -136,6 +136,8 @@ sits_accuracy <- function (results.tb){
 #' @param tw_beta         (integer) - the midpoint (in days) of the logistic function
 #' @param n_clusters      the maximum number of clusters to be identified (for clustering methods)
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
+#' @param unsupervised    if TRUE, proceeds an unsupervised cluster followed by a relabel taking original label majority (
+#' this option has not any effect if method == "gam")
 #' @param min_clu_perc    the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
 #' @param apply_gam       apply gam method after a clustering algorithm (ignored if method is `gam`).
 #' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
@@ -158,7 +160,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
                            from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
                            tw_alpha = -0.1, tw_beta = 100, tw_theta = 0.5, tw_span = 0,
                            interval = "12 month", overlap = 0.5,
-                           n_clusters = 2, grouping_method = "ward.D2", min_clu_perc = 0.10,
+                           n_clusters = 2, grouping_method = "ward.D2", unsupervised = FALSE, min_clu_perc = 0.10,
                            apply_gam = FALSE, koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
                            file = "./conf_matrix.json", .multicores = 1, ...){
 
