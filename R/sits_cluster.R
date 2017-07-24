@@ -356,6 +356,7 @@ sits_cluster <- function (data.tb, bands = NULL, method = "dendogram", n_cluster
 
      # return a sits table with all input data with new labels
      if (return_members) {
+
           # get prefix label to be used in clusters' labels
           label_prefix <- data.tb[1,]$label[[1]]
 
@@ -368,7 +369,17 @@ sits_cluster <- function (data.tb, bands = NULL, method = "dendogram", n_cluster
           # verify if there is n_members column. If not exists initialize it with ones.
           if (!any("n_members" %in% names(result.tb)))
                result.tb$n_members <- result.tb$original_label %>%
-               purrr::map(function(label) return(tibble::tibble(original_label = label, n = 1)))
+                    purrr::map(function(label) return(tibble::tibble(original_label = label, n = 1)))
+
+          clusters_labels <- base::unique(result.tb$label) %>%
+               purrr::map(function(lbl)
+                    result.tb %>%
+                         dplyr::filter(label == lbl) %>%
+                         dplyr::count(original_label, sort = TRUE) %>%
+                         .[1,] %>% .$original_label) %>%
+                    as.character()
+
+          result.tb$label <- paste0(clusters_labels[clusters@cluster], ".", clusters@cluster)
 
      # return a sits table with clusters' centroids
      } else {
