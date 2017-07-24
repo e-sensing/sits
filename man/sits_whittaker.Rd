@@ -4,12 +4,14 @@
 \alias{sits_whittaker}
 \title{Smooth the time series using Whittaker smoother (based on PTW package)}
 \usage{
-sits_whittaker(data.tb, lambda = 0.5)
+sits_whittaker(data.tb, lambda = 0.5, bands_suffix = "whit")
 }
 \arguments{
 \item{data.tb}{The SITS tibble containing the original time series}
 
 \item{lambda}{double   - the smoothing factor to be applied}
+
+\item{bands_suffix}{the suffix to be appended to the smoothed filters}
 }
 \value{
 output.tb a tibble with smoothed sits time series

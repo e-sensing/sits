@@ -664,3 +664,31 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
      }
      return (values.lst)
 }
+
+#' @title relabels a sits tibble
+#' @name sits_relabel
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a SITS tibble with a set of labels, and a conversion list
+#' between the original labels and
+#' new labels, returns a new SITS tibble whose labels are changed..
+#'
+#' @param  data.tb        a SITS tibble
+#' @param  conv           a conversion of label names for the classes (optional))
+#' @return assess         an assessment of validation
+#' @export
+sits_relabel <- function (data.tb = NULL, conv = NULL){
+     ensurer::ensure_that(data.tb, !purrr::is_null(.),
+                          err_desc = "sits_relabel: input data")
+
+     ensurer::ensure_that(conv, !purrr::is_null(.),
+                          err_desc = "sits_relabel: conversion list not provided")
+
+     data.tb %>%
+           purrrlyr::by_row (function (row) {row$label <<- as.character(conv[label])})
+     # calculate the accuracy assessment
+     return ()
+}
+

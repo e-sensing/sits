@@ -109,7 +109,7 @@ sits_TWDTW_matches <- function (series.tb, patterns.tb, bands, dist.method = "eu
 sits_TWDTW_classify <- function (matches.tb, start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
 
-     ensurer::ensures_that(matches.tb, "matches" %in% names(.), err_desc = "sits_TWDTW_classify: input tibble should have a matches collumn  \n Please run sits_TWDTW_matches first")
+     ensurer::ensure_that(matches.tb, "matches" %in% names(.), err_desc = "sits_TWDTW_classify: input tibble should have a matches collumn  \n Please run sits_TWDTW_matches first")
 
      # create a tibble to store the results
      class.tb <- sits_table()
