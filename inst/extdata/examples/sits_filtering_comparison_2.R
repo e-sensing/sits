@@ -10,7 +10,7 @@ URL <- "http://www.dpi.inpe.br/tws/wtss"
 wtss_inpe <- sits_infoWTSS(URL)
 
 #select a coverage
-coverage <- "mixl8mod_f"
+coverage <- "mixl8mod"
 
 # get information about a specific coverage
 sits_coverageWTSS(URL,coverage)
