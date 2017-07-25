@@ -679,16 +679,20 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
 #' @param  conv           a conversion of label names for the classes (optional))
 #' @return assess         an assessment of validation
 #' @export
-sits_relabel <- function (data.tb = NULL, conv = NULL){
+sits_relabel <- function (data.tb, conv){
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
-                          err_desc = "sits_relabel: input data")
+                          err_desc = "sits_relabel: input data not provided")
 
      ensurer::ensure_that(conv, !purrr::is_null(.),
                           err_desc = "sits_relabel: conversion list not provided")
 
+     out.tb <- sits_table()
      data.tb %>%
-           purrrlyr::by_row (function (row) {row$label <<- as.character(conv[label])})
-     # calculate the accuracy assessment
-     return ()
+           purrrlyr::by_row (function (row) {
+                row$label <- as.character(conv[row$label])
+                out.tb <<- dplyr::bind_rows(out.tb, row)
+                })
+     # return the output
+     return (out.tb)
 }
 

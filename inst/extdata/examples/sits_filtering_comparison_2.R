@@ -10,58 +10,55 @@ URL <- "http://www.dpi.inpe.br/tws/wtss"
 wtss_inpe <- sits_infoWTSS(URL)
 
 #select a coverage
-coverage <- "mixl8mod"
+coverage <- "mod13q1_512"
 
 # get information about a specific coverage
 sits_coverageWTSS(URL,coverage)
 #select the bands used for classification
-bands <- c("ndvi", "evi")
+bands <- c("ndvi", "evi", "nir")
 
 #get the prodes samples
-samples_prodes_f.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_samples_226_64.csv", URL = URL,
-                          coverage = coverage, bands = bands)
-#get the full series for each point
-series_prodes_f.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_samples_226_64.csv", URL = URL,
-                                  coverage = coverage, bands = bands, ignore_dates = TRUE)
+prodes_mod13.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_samples_226_64.csv",
+                                coverage = coverage, bands = bands)
 
-sits_save (samples_prodes_f.tb, json_file = "./inst/extdata/samples/prodes_samples_226_64_f.json")
-sits_save (series_prodes_f.tb, json_file = "./inst/extdata/samples/prodes_series_226_64_f.json")
+#relabel the series
+# relabel and see assessment
+prodes_relabel.lst <-  tibble::lst("primary_forest" = "Forest",
+                                   "clear_cut2015"  = "ClearCut",
+                                   "clear_cut2016"  = "ClearCut",
+                                   "pasture"        = "Pasture")
+
+prodes_mod13.tb <- sits_relabel(prodes_mod13.tb, prodes_relabel.lst)
+
+sits_plot(prodes_mod13.tb, type = "together")
 
 #plot the first element of the series
 #sits_plot (series_prodes.tb[606,])
 
 #generate patterns with raw data and plot them
-prodes_patterns_f.tb <- sits_patterns(samples_prodes_f.tb, method = "gam", bands = bands)
-sits_plot(prodes_patterns_f.tb, type = "patterns")
+prodes_mod13_patterns.tb <- sits_patterns(prodes_mod13.tb, method = "gam", bands = bands)
+sits_plot(prodes_mod13_patterns.tb, type = "patterns")
 
 #cross_validate raw series
-cv_raw_f <- sits_cross_validate (samples_prodes_f.tb, method = "gam", bands = bands,
-     times = 50, perc = 0.5, file = "./inst/extdata/validation/cv_raw_f.json")
-
-# test savitsky golay filter
-samples_sg_f.tb <- sits_sgolay(samples_prodes_f.tb)
-bands_sg = c("ndvi.sg", "evi.sg")
-sg_patterns_f <- sits_patterns(samples_sg_f.tb, method = "gam", bands = bands_sg)
-cv_sg <- sits_cross_validate (samples_sg_f.tb, method = "gam", bands = bands_sg,
-                               times = 50, perc = 0.5, file = "./inst/extdata/validation/cv_sg_f.json")
-
-
-# test whitakker filter
-samples_whit_f.tb <- sits_sgolay(samples_prodes_f.tb, lambda = 2.0)
-bands_whit = c("ndvi.whit", "evi.whit")
-whit_patterns_f <- sits_patterns(samples_whit_f.tb, method = "gam", bands = bands_whit)
-cv_whit_f <- sits_cross_validate (samples_whit_f.tb, method = "gam", bands = bands_whit,
-                              times = 50, perc = 0.5, file = "./inst/extdata/validation/cv_whit_f.json")
-
-
+cv_mod13 <- sits_cross_validate (prodes_mod13.tb, method = "gam", bands = bands,
+     times = 50, perc = 0.5, file = "./inst/extdata/validation/cv_mod13.json")
 
 # test envelope filter
-bands_env <- c("ndvi.upper.whit", "evi.lower.whit")
-samples_env_f.tb <- sits_envelope(samples_prodes_f.tb) %>%
-     sits_whittaker(lambda = 2.0) %>%
-     sits_select(bands = bands_env)
+prodes_mod13_env.tb <- prodes_mod13.tb %>%
+     sits_envelope(window_size = 3) %>%
+     sits_envelope(window_size = 3) %>%
+     sits_whittaker(lambda = 1.0 ) %>%
+     sits_select (bands = c("ndvi.upper.lower.whit", "ndvi.lower.upper.whit"))
 
-env_patterns_f <- sits_patterns(samples_env_f.tb, method = "gam", bands = bands_env)
-cv_env_f <- sits_cross_validate (samples_env_f.tb, method = "gam", bands = bands_env,
-                                times = 50, perc = 0.5, file = "./inst/extdata/validation/cv_env_f.json")
+cv_mod13_env <- sits_cross_validate (prodes_mod13_env.tb, method = "gam", bands = c("ndvi.upper.lower.whit", "ndvi.lower.upper.whit"),
+                                 times = 50, perc = 0.5, file = "./inst/extdata/validation/cv_mod13_env.json")
+
+# test whitakker filter
+prodes_mod13_whit.tb <- prodes_mod13.tb %>%
+     sits_whittaker(lambda = 2.0 ) %>%
+
+cv_mod13_whit <- sits_cross_validate (prodes_mod13_whit.tb, method = "gam", bands = c("ndvi.whit", "evi.whit", "nir.whit"),
+                                     times = 50, perc = 0.5, file = "./inst/extdata/validation/cv_mod13_whit.json")
+
+
 
