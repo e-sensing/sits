@@ -120,18 +120,12 @@ cv_env <- sits_cross_validate (samples_env.tb, method = "gam", bands = bands_env
                                 times = 50, perc = 0.5, file = "./inst/extdata/validation/cv_env.json")
 
 # relabel and see assessment
-prodes_relabel.lst <-  tibble::lst("primary_forest" = "Forest",
-                                   "clear_cut2015"  = "NonForest",
-                                   "clear_cut2016"  = "NonForest",
-                                   "pasture"        = "NonForest")
+prodes_relabel.lst <-  tibble::lst("Forest" = "Forest",
+                                   "ClearCut2015"  = "NonForest",
+                                   "ClearCut2016"  = "NonForest",
+                                   "Pasture"        = "NonForest")
 
-cv_raw_r <- sits_relabel (file = "./inst/extdata/validation/cv_raw.json",
-                         conv = prodes_relabel.lst )
-
-cv_whit_r <- sits_relabel (file = "./inst/extdata/validation/cv_whit.json",
-                              conv = prodes_relabel.lst )
-
-cv_env_r <- sits_relabel (file = "./inst/extdata/validation/cv_env.json",
+cv_env4_r <- sits_reassess (file = "./inst/extdata/validation/cv_env4.json",
                            conv = prodes_relabel.lst )
 
 # adjust patterns
