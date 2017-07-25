@@ -25,12 +25,21 @@ series_prodes.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_samples_2
 #relabel the series
 # relabel and see assessment
 prodes_relabel.lst <-  tibble::lst("primary_forest" = "Forest",
+<<<<<<< HEAD
                                    "clear_cut2015"  = "ClearCut2015",
                                    "clear_cut2016"  = "ClearCut2016",
                                    "pasture"        = "Pasture")
 
 samples_prodes.tb <- sits_relabel(samples_prodes.tb, prodes_relabel.lst)
 
+=======
+                                   "clear_cut2015"  = "ClearCut",
+                                   "clear_cut2016"  = "ClearCut",
+                                   "pasture"        = "Pasture")
+
+samples_prodes.tb <- sits_relabel(samples_prodes.tb, prodes_relabel.lst)
+
+>>>>>>> 8ef9a730eac6f0706d92483760b6d4f66d7b6b4f
 #plot the all samples for each class together
 sits_plot (samples_prodes.tb, type = "together")
 
