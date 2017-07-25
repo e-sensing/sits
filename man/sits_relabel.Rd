@@ -4,7 +4,7 @@
 \alias{sits_relabel}
 \title{relabels a sits tibble}
 \usage{
-sits_relabel(data.tb = NULL, conv = NULL)
+sits_relabel(data.tb, conv)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
