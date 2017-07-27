@@ -12,6 +12,7 @@
 #' @param    start_date the start date of the plot (used for showing classifications)
 #' @param    end_date   the end date of the plot (used for showing classifications)
 #' @param    interval   the interval between classifications (used for showing classifications)
+#' @param    overlap    minimum overlapping between one match and the interval of classification
 #' @param    n_matches  number of matches of a given label to be displayed
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
 #' @export

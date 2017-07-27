@@ -134,6 +134,10 @@ sits_accuracy <- function (results.tb){
 #' @param formula         the formula to be applied in the estimate (for "gam" method)
 #' @param tw_alpha        (double) - the steepness of the logistic function used for temporal weighting
 #' @param tw_beta         (integer) - the midpoint (in days) of the logistic function
+#' @param tw_theta        (double)  - the relative weight of the time distance compared to the dtw distance
+#' @param tw_span         minimum number of days between two matches of the same pattern in the time series (approximate)
+#' @param  interval      the period between two classifications
+#' @param  overlap       minimum overlapping between one match and the interval of classification
 #' @param n_clusters      the maximum number of clusters to be identified (for clustering methods)
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
 #' @param min_clu_perc    the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
@@ -309,6 +313,7 @@ sits_reassess <- function (file = NULL, conv = NULL){
 #'
 #' @param  data.tb       A sits tibble containing a set of samples with known and trusted labels
 #' @param  patterns.tb   A sits tibble containing a set of patterns
+#' @param  bands         The bands used for classification
 #' @param  alpha         (double)  - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance

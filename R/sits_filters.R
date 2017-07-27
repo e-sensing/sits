@@ -221,7 +221,7 @@ sits_whittaker <- function (data.tb, lambda    = 0.5, bands_suffix = "whit") {
 #' @param data.tb    The SITS tibble containing the original time series
 #' @param order      filter order
 #' @param scale      time scaling
-#' #' @param bands_suffix the suffix to be appended to the smoothed filters
+#' @param bands_suffix the suffix to be appended to the smoothed filters
 #' @return output.tb a tibble with smoothed sits time series
 #' @export
 sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {

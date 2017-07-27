@@ -1,11 +1,63 @@
 Package: sits
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
-Encoding: UTF-8
+Title: Satellite Image Time Series Analysis
+Version: 0.7.30
+Date: 2017-07-30
+Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
+             person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
+             person('Rolf', 'Simoes', role = c('aut')),
+             person('Luiz', 'Assis', role = c('aut')),
+             person('Adeline', 'Marinho', role = c('ctb')),
+             person('Gilberto', 'Queiroz', role = c('ctb'))
+             )
+Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
+Description: A set of tools for working with satellite image time series.
+    Supports data retrieval from a WTSS (web time series service).
+    Provides different visualisation methods for image time series.
+    Enables different clustering methods.
+    Provides smoothing methods for noisy time series.
+    Classifies time series using TWDTW method contained in the dtwSat package.
+URL: https://github.com/gilbertocamara/sits/
+BugReports: https://github.com/gilbertocamara/sits/issues
+License: GPL-2 | file LICENSE
 LazyData: true
+Depends:
+    dtwclust,
+    dtwSat,
+    magrittr,
+Imports:
+    dplyr,
+    ensurer,
+    entropy,
+    ggplot2,
+    graphics,
+    kohonen,
+    jsonlite,
+    lubridate,
+    methods,
+    mgcv,
+    parallel,
+    ptw,
+    purrr,
+    purrrlyr,
+    raster,
+    readr,
+    reshape2,
+    rfUtilities,
+    RCurl,
+    signal,
+    sp,
+    stats,
+    stringr,
+    roxygen2,
+    tibble,
+    tidyr,
+    tools,
+    utils, 
+    wtss,
+    zoo
+Remotes:
+     luizassis/wtss,
+     vwmaus/dtwSat
+RoxygenNote: 6.0.1
+
