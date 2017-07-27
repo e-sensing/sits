@@ -7,6 +7,8 @@
 #  The package provides the generic method sits_apply to apply a
 #  1D generic function to a time series and specific methods for
 #  common tasks such as missing values removal and smoothing
+#  
+#  The following filters are supported: Savitsky-Golay, Whittaker and envelope
 #
 # ---------------------------------------------------------------
 
