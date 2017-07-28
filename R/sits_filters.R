@@ -238,8 +238,9 @@ sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
 #' @name sits_kf
 #' @description  A simple Kalman filter implementation
 #'
-#' @param data.tb    The SITS tibble containing the original time series
-#' @return output.tb a tibble with smoothed sits time series
+#' @param data.tb      The SITS tibble containing the original time series
+#' @param bands_suffix The suffix to be appended to the smoothed filters
+#' @return output.tb   A tibble with smoothed sits time series
 sits_kf <- function(data.tb, bands_suffix = "kf"){
   result.tb <- sits_apply(data.tb,
                           fun = function(band) .kalmanfilter(band, NULL, NULL, NULL),
