@@ -241,6 +241,7 @@ sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
 #' @param data.tb      The SITS tibble containing the original time series
 #' @param bands_suffix The suffix to be appended to the smoothed filters
 #' @return output.tb   A tibble with smoothed sits time series
+#' @export
 sits_kf <- function(data.tb, bands_suffix = "kf"){
   result.tb <- sits_apply(data.tb,
                           fun = function(band) .kalmanfilter(band, NULL, NULL, NULL),
@@ -258,9 +259,9 @@ sits_kf <- function(data.tb, bands_suffix = "kf"){
 # @param initial_estimate               A first estimation of the measurement
 # @return
 .kalmanfilter <- function(measurement, initial_error_in_estimate = NULL, error_in_measurement = NULL, initial_estimate = NULL){
-  kg <- vector(mode = "logical", length = length(measurement + 1))
-  est <- vector(mode = "logical", length = length(measurement + 1))
-  e_est <- vector(mode = "logical", length = length(measurement + 1))
+  kg <- vector(mode = "logical", length = length(measurement))
+  est <- vector(mode = "logical", length = length(measurement))
+  e_est <- vector(mode = "logical", length = length(measurement))
   #
   if(is.null(initial_estimate)){
     initial_estimate <- base::mean(measurement)
@@ -274,7 +275,8 @@ sits_kf <- function(data.tb, bands_suffix = "kf"){
   #
   est[1] <- initial_estimate[1]
   e_est[1] <- initial_error_in_estimate[1]
-  for(i in 2:(length(measurement) + 1)){
+  kg[1] <- NA
+  for(i in 2:(length(measurement))){
     kg[i] <- .KG(e_est[i - 1], error_in_measurement[i - 1])
     est[i] <- .EST_t(kg[i], est[i - 1], measurement[i - 1])
     e_est[i] <- .E_EST_t(kg[i], e_est[i - 1])
