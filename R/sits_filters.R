@@ -198,29 +198,33 @@ sits_envelope <- function(data.tb, window_size = 1){
 #'
 #' @param data.tb    The SITS tibble containing the original time series
 #' @param lambda     double   - the smoothing factor to be applied
+#' @param bands_suffix the suffix to be appended to the smoothed filters
 #' @return output.tb a tibble with smoothed sits time series
 #' @export
-# sits_whittaker <- function (data.tb, lambda    = 0.5) {
-#      # extract the time series data from the sits table
-#      data.ts <- data.tb$time_series
-#      # what are the input bands?
-#      bands  <- sits_bands (data.tb)
-#      # smooth the time series using Whittaker smoother
-#      smoothed.ts <- data.ts %>%
-#           purrr::map(function (ts) {
-#                for (b in bands) ts[[b]]  <- ptw::whit2(ts[[b]], lambda = lambda)
-#                return (ts) })
-#
-#      # create a new SITS table by copying metadata information from the input sits database
-#      output.tb <- dplyr::select (data.tb, latitude, longitude, start_date, end_date, label, coverage, time_series)
-#      # insert the new time series
-#      output.tb$time_series <-  smoothed.ts
-#      # return the result
-#      return (output.tb)
-# }
 sits_whittaker <- function (data.tb, lambda    = 0.5, bands_suffix = "whit") {
      result.tb <- sits_apply(data.tb,
                              fun = function(band) ptw::whit2(band, lambda = lambda),
+                             fun_index = function(band) band,
+                             bands_suffix = bands_suffix)
+
+     return(result.tb)
+}
+
+#' Smooth the time series using Savitsky-Golay filter (based on signal package)
+#' @name sits_sgolay
+#' @description  The algorithm searches for an optimal polynomial describing the warping.
+#' The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 10.0)
+#' Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
+#'
+#' @param data.tb    The SITS tibble containing the original time series
+#' @param order      filter order
+#' @param scale      time scaling
+#' #' @param bands_suffix the suffix to be appended to the smoothed filters
+#' @return output.tb a tibble with smoothed sits time series
+#' @export
+sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
+     result.tb <- sits_apply(data.tb,
+                             fun = function(band) signal::sgolayfilt(band, p = order, ts = scale),
                              fun_index = function(band) band,
                              bands_suffix = bands_suffix)
 
