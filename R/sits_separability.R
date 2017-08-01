@@ -1,20 +1,20 @@
-#' @title compare clusters against original labels and computes a segregation matrix.
-#' @name sits_cluster_segregation
+#' @title compare clusters against original labels and computes a separability matrix.
+#' @name sits_cluster_separability
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Given a sits table with `original_label` column, computes a segregation matrix
+#' @description Given a sits table with `original_label` column, computes a separability matrix
 #' between the original labels (`original_label` column) and new labels. This is useful
 #' to analyse the separability of samples for a given clustering algorithm.
 #'
 #' @param  data.tb        a SITS table with the samples to be validated
-#' @return result.tb      a tibble with segregation matrix.
+#' @return result.tb      a tibble with separability matrix.
 #' @export
-sits_cluster_segregation <- function (data.tb){
+sits_cluster_separability <- function (data.tb){
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
-                          err_desc = "sits_cluster_segregation: SITS table not provided")
+                          err_desc = "sits_cluster_separability: SITS table not provided")
      # do the input data have the `original_label` column?
      ensurer::ensure_that(data.tb, "original_label" %in% colnames(data.tb),
-                          err_desc = "sits_cluster_segregation: informed SITS table has not an `original_label` column.")
+                          err_desc = "sits_cluster_separability: informed SITS table has not an `original_label` column.")
 
      # verify if there is n_members column. If not exists initialize it with ones.
      if (!any("n_members" %in% names(data.tb)))
@@ -32,8 +32,8 @@ sits_cluster_segregation <- function (data.tb){
      return (result.tb)
 }
 
-#' @title computes a segregation measure from a clusterized SITS table data.
-#' @name sits_segregation_measure
+#' @title computes a separability measure from a clusterized SITS table data.
+#' @name sits_separability_measure
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Computes an measure of seggregation from SITS table based on mean relative Shannon Entropy,
@@ -45,21 +45,21 @@ sits_cluster_segregation <- function (data.tb){
 #' maximum entropy fraction. This is useful to assess the separability of samples for a given clustering algorithm.
 #'
 #' @param  data.tb        a SITS table with the samples to be validated.
-#' @param  measure        an segregation measure. For now, only "entropy" is implemented.
-#' @param  per_cluster    (boolean) should return a total average segregation measure, or a per cluster measure?
-#' @return result         a segregation measure.
+#' @param  measure        an separability measure. For now, only "entropy" is implemented.
+#' @param  per_cluster    (boolean) should return a total average separability measure, or a per cluster measure?
+#' @return result         a separability measure.
 #' @export
-sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster = FALSE){
+sits_separability_measure <- function (data.tb, measure = "entropy", per_cluster = FALSE){
      ensurer::ensure_that(data.tb, !purrr::is_null(.),
-                          err_desc = "sits_segregation_measure: SITS table not provided.")
+                          err_desc = "sits_separability_measure: SITS table not provided.")
 
      # ensure that `measure` parameter is a valid option
      ensurer::ensure_that(measure, . == "entropy",
-                          err_desc = "sits_segregation_measure: measure jno supported.")
+                          err_desc = "sits_separability_measure: measure jno supported.")
 
      # do the input data have the `original_label` column?
      ensurer::ensure_that(data.tb, "original_label" %in% colnames(data.tb),
-                          err_desc = "sits_segregation_measure: informed SITS table has not an `original_label` column.")
+                          err_desc = "sits_separability_measure: informed SITS table has not an `original_label` column.")
 
      # do we have at least two original labels?
      labels_count <- length(table(data.tb$original_label))
@@ -71,7 +71,7 @@ sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster 
 
 
      if (measure == "entropy")
-          # sum all n_members values grouping by original_label and label fields. After that computes a segregation measure.
+          # sum all n_members values grouping by original_label and label fields. After that computes a separability measure.
           # further measures implementations must return two mandatory fields: segr and frac. The first is the measure itself,
           # the second represents the fraction of cluster members.
           result.tb <- data.tb %>%
@@ -90,11 +90,11 @@ sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster 
 }
 
 #' @title Do a cross combination of all elements of its input parameters.
-#' @name .setup_segregation_expr
+#' @name .setup_separability_expr
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Returns a tibble with all cross combinations of its input parameters informed as lists, vectors, or scalars.
-#' This output is used to set the parameters' domain to be used in `sits_segregation_experiment` function.
+#' This output is used to set the parameters' domain to be used in `sits_separability_experiment` function.
 #'
 #' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.
 #' @param times           how many times to run an parameterized experiment.
@@ -107,7 +107,7 @@ sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster 
 #' @param koh_alpha_from  starting learning rate. Default is to decline linearly from 0.05 to `koh_alpha_to` over rlen updates.
 #' @param koh_alpha_to    ending learning rate. Default is to decline linearly from `koh_alpha_from` to 1.0 over rlen updates.
 #' @return result.tb      a tibble with all cross combinations of parameters' values.
-.setup_segregation_expr <- function(method, times, bands, n_clusters, grouping_method,
+.setup_separability_expr <- function(method, times, bands, n_clusters, grouping_method,
                                     koh_grid_length, koh_rlen, koh_alpha_from, koh_alpha_to){
 
      if (method == "dendogram" || method == "centroids")
@@ -130,11 +130,11 @@ sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster 
                                                 KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)))
 }
 
-#' @title Runs a single segregation experiment.
-#' @name .exec_segregation_expr
+#' @title Runs a single separability experiment.
+#' @name .exec_separability_expr
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Runs an segregation experiment with a single valued parameters and returns a list with experiment's result.
+#' @description Runs an separability experiment with a single valued parameters and returns a list with experiment's result.
 #'
 #' @param data.tb         a SITS table with the samples to be used in experiments.
 #' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.
@@ -148,10 +148,10 @@ sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster 
 #' @param koh_alpha_to    ending learning rate. Default is to decline linearly from `koh_alpha_from` to 1.0 over rlen updates.#' @param method
 #' @param times           how many times to run an parameterized experiment.
 #' @return result.lst     a list with all cross combinations of parameters' values.
-.exec_segregation_expr <- function(data.tb, method, bands, n_clusters, grouping_method, koh_grid_length,
+.exec_separability_expr <- function(data.tb, method, bands, n_clusters, grouping_method, koh_grid_length,
                                    koh_rlen, koh_alpha_from, koh_alpha_to, times = 1) {
 
-     segregation <- 0.0
+     separability <- 0.0
      etime <- as.difftime(0, units = "secs")
      for (i in 1:times){
           stime <- Sys.time()
@@ -161,11 +161,11 @@ sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster 
                                          koh_xgrid = koh_grid_length, koh_ygrid = koh_grid_length,
                                          koh_rlen = koh_rlen, koh_alpha = c(koh_alpha_from, koh_alpha_to))
           etime <- Sys.time() - stime + etime
-          segregation <- sits_segregation_measure(clusterized.tb) + segregation
+          separability <- sits_separability_measure(clusterized.tb) + separability
 
      }
      etime <- etime / times
-     segregation <- segregation / times
+     separability <- separability / times
 
      result.lst <- list(method          = method,
                         bands           = paste0(bands, collapse = "&"),
@@ -175,17 +175,17 @@ sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster 
                         koh_rlen        = koh_rlen,
                         koh_alpha_from  = koh_alpha_from,
                         koh_alpha_to    = koh_alpha_to,
-                        segregation     = segregation,
+                        separability     = separability,
                         expr_time       = etime)
 
      return (result.lst)
 }
 
-#' @title Do a set of segregation experiments based on a cross combination of all elements of its input parameters.
-#' @name sits_segregation_experiments
+#' @title Do a set of separability experiments based on a cross combination of all elements of its input parameters.
+#' @name sits_separability_experiments
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Runs a set of segregation experiments according to informed parameters and returns a tibble with experiment's result.
+#' @description Runs a set of separability experiments according to informed parameters and returns a tibble with experiment's result.
 #'
 #' @param data.tb         a SITS table with the samples to be used in experiments.
 #' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.
@@ -201,7 +201,7 @@ sits_segregation_measure <- function (data.tb, measure = "entropy", per_cluster 
 #' @param .multiproc      (Linux only) numbers of cores to be used in multiprocessing.
 #' @return result.tb      a tibble with all cross combinations of parameters' values.
 #' @export
-sits_segregation_experiments <- function(data.tb, method = "kohonen-dendogram", times = 1,
+sits_separability_experiments <- function(data.tb, method = "kohonen-dendogram", times = 1,
                                          bands = list("evi", "ndvi", c("evi", "ndvi")),
                                          n_clusters = 5,
                                          grouping_method = c("average", "ward.D2", "complete", "single"),
@@ -211,21 +211,21 @@ sits_segregation_experiments <- function(data.tb, method = "kohonen-dendogram", 
                                          koh_alpha_to = 0.04, .multiproc = 1){
 
      # CAUTION: generates all parameters' combinations
-     parameters <- .setup_segregation_expr(method = method, times = times, bands = bands,
+     parameters <- .setup_separability_expr(method = method, times = times, bands = bands,
                                            n_clusters = n_clusters, grouping_method = grouping_method,
                                            koh_grid_length = koh_grid_length, koh_rlen = koh_rlen,
                                            koh_alpha_from = koh_alpha_from, koh_alpha_to = koh_alpha_to)
 
      # if .multiproc greater than 1, start parallel threads
      if (.multiproc > 1)
-          result.lst <- parallel::mcMap(.exec_segregation_expr, list(data.tb), parameters$method, parameters$bands,
+          result.lst <- parallel::mcMap(.exec_separability_expr, list(data.tb), parameters$method, parameters$bands,
                                         parameters$n_clusters, parameters$grouping_method,
                                         parameters$koh_grid_length, parameters$koh_rlen,
                                         parameters$koh_alpha_from, parameters$koh_alpha_to,
                                         mc.cores = .multiproc)
 
      else
-          result.lst <- Map(.exec_segregation_expr, list(data.tb), parameters$method, parameters$bands,
+          result.lst <- Map(.exec_separability_expr, list(data.tb), parameters$method, parameters$bands,
                             parameters$n_clusters, parameters$grouping_method,
                             parameters$koh_grid_length, parameters$koh_rlen, parameters$koh_alpha_from, parameters$koh_alpha_to)
 
