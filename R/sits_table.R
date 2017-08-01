@@ -677,3 +677,65 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
      return (values.lst)
 }
 
+#' @title relabels a sits tibble
+#' @name sits_relabel
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a SITS tibble with a set of labels, and a conversion list
+#' between the original labels and
+#' new labels, returns a new SITS tibble whose labels are changed..
+#'
+#' @param  data.tb        a SITS tibble
+#' @param  conv           a conversion of label names for the classes (optional))
+#' @return assess         an assessment of validation
+#' @export
+sits_relabel <- function (data.tb, conv){
+     ensurer::ensure_that(data.tb, !purrr::is_null(.),
+                          err_desc = "sits_relabel: input data not provided")
+
+     ensurer::ensure_that(conv, !purrr::is_null(.),
+                          err_desc = "sits_relabel: conversion list not provided")
+
+     out.tb <- sits_table()
+     data.tb %>%
+           purrrlyr::by_row (function (row) {
+                row$label <- as.character(conv[row$label])
+                out.tb <<- dplyr::bind_rows(out.tb, row)
+                })
+     # return the output
+     return (out.tb)
+}
+
+#' @title creates a conversion identity list for sits_relabel
+#' @name sits_relabel_conv
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a confusion matrix obtained in the validation
+#' procedure, returns a identity conversion list of labels.
+#'
+#' @param  file           a JSON file contaning the result of a validation procedure
+#' @return conv.lst       a conversion list
+#' @export
+sits_relabel_conv <- function (file = NULL){
+     # do the input file exist?
+     ensurer::ensure_that(file, !purrr::is_null(.),
+                          err_desc = "sits_relabel: JSON file not provided")
+
+     # get labels from JSON file
+     confusion.vec <- jsonlite::fromJSON (file)
+
+     # what are the labels of the samples?
+     #labels <- rle(sort(ref.vec))$values
+     labels <- base::unique(confusion.vec)
+
+     # if the conversion list is NULL, create an identity list
+     conv.lst <- tibble::lst()
+     for (i in 1:length(labels)) {
+          lab <- labels[i]
+          conv.lst[lab] <- lab
+     }
+
+     return (conv.lst)
+}

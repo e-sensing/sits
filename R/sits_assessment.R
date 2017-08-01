@@ -164,7 +164,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
                            apply_gam = FALSE, koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
                            file = "./conf_matrix.json", .multicores = 1, ...){
 
-          ensurer::ensures_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
+          ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
                                  err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
      # auxiliary function to classify a single partition
@@ -264,8 +264,8 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
      return (partitions.lst)
 }
 
-#' @title re-label classification results
-#' @name sits_relabel
+#' @title reassess classification results
+#' @name sits_reassess
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -276,71 +276,77 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
 #' where classes have been merged.
 #'
 #' @param  file           a JSON file contaning the result of a validation procedure
-#' @param  conv_labels    a conversion of label names for the classes (optional))
+#' @param  conv           a conversion of label names for the classes (optional))
 #' @return assess         an assessment of validation
 #' @export
-sits_relabel <- function (file, conv_labels){
-     # do the input file exist?
+sits_reassess <- function (file = NULL, conv = NULL){
      ensurer::ensure_that(file, !purrr::is_null(.),
                           err_desc = "sits_relabel: JSON file not provided")
 
-     # get labels from JSON file
+     # return the confusion matrix
      confusion.vec <- jsonlite::fromJSON (file)
-
-     # what are the labels of the samples?
-     labels <- base::unique(confusion.vec)
-
-     # if the conversion list is NULL, create an identity list
-     if (purrr::is_null(conv_labels)) {
-          conv_labels <- sits_relabel_conv(file = file)
-     }
-     # if the conversion list exists, ensure that its labels exist in the data
-     else
-          ensurer::ensure_that(conv_labels, !(FALSE %in% names(.) %in% labels),
-                               err_desc = "conversion list does not match labels of the data")
-
-     # split labels into prediction and reference vectors
-     mid <- length(confusion.vec) / 2
-
+     mid <- length(confusion.vec)/2
      pred.vec <- confusion.vec[1:mid]
      ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
 
-     pred.vec <- unlist(conv_labels[pred.vec])
-     ref.vec <- unlist(conv_labels[ref.vec])
-
+     if (!purrr::is_null(conv)) {
+          pred.vec <- as.character(conv[pred.vec])
+          ref.vec  <- as.character(conv[ref.vec])
+     }
+     # calculate the accuracy assessment
      assess <- rfUtilities::accuracy(pred.vec, ref.vec)
      return (assess)
 }
-#' @title creates a conversion identity list for sits_relabel
-#' @name sits_relabel_conv
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+
+#' @title Evaluates the accuracy of a set of patterns
+#' @name sits_test_patterns
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#
+#' @description Tests the accuracy of TWDTW classification
+#' of set of labelled samples using a set of patterns.
+#' This function should be used when the patterns are not directly derived from the samples.
+#' It provides an initial assessment of the validity of using this set of pattern
+#' to classify an area whose samples are given.
+#' This function returns the Overall Accuracy, User's Accuracy,
+#' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
 #'
-#' @description Given a confusion matrix obtained in the validation
-#' procedure, returns a identity conversion list of labels.
-#'
-#' @param  file           a JSON file contaning the result of a validation procedure
-#' @return conv.lst       a conversion list
+#' @param  data.tb       A sits tibble containing a set of samples with known and trusted labels
+#' @param  patterns.tb   A sits tibble containing a set of patterns
+#' @param  alpha         (double)  - the steepness of the logistic function used for temporal weighting
+#' @param  beta          (integer) - the midpoint (in days) of the logistic function
+#' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
+#' @param  span          (integer) - minimum number of days between two matches of the same pattern in the time series (approximate)
+#' @param  start_date    date - the start of the classification period
+#' @param  end_date      date - the end of the classification period
+#' @param  interval      date - the period between two classifications
+#' @param  overlap       (double) minimum overlapping between one match and the interval of classification
+#' @return assess         an assessment of validation
 #' @export
-sits_relabel_conv <- function (file = NULL){
-     # do the input file exist?
-     ensurer::ensure_that(file, !purrr::is_null(.),
-                          err_desc = "sits_relabel: JSON file not provided")
+sits_test_patterns <- function (data.tb, patterns.tb, bands,
+                                alpha = -0.1, beta = 100, theta = 0.5, span  = 0,
+                                start_date = NULL, end_date = NULL, interval = "12 month", overlap = 0.5) {
 
-     # get labels from JSON file
-     confusion.vec <- jsonlite::fromJSON (file)
+     ensurer::ensure_that (data.tb, !purrr::is_null(.),
+                            err_desc = "sits_test_patterns: please provide a set of time series to test")
+     ensurer::ensure_that (patterns.tb, !purrr::is_null(.),
+                      err_desc = "sits_test_patterns: please provide a set of patterns to test")
+     ensurer::ensure_that (bands, !purrr::is_null(.),
+                           err_desc = "sits_test_patterns: please provide the bands to be used")
+     ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
+                            err_desc = "sits_test_patterns: please provide a labelled set of time series")
 
-     # what are the labels of the samples?
-     #labels <- rle(sort(ref.vec))$values
-     labels <- base::unique(confusion.vec)
 
-     # if the conversion list is NULL, create an identity list
-     conv.lst <- tibble::lst()
-     for (i in 1:length(labels)) {
-          lab <- labels[i]
-          conv.lst[lab] <- lab
-     }
+     # classify data
+     matches.tb  <- sits_TWDTW_matches (data.tb, patterns.tb, bands = bands, alpha = alpha, beta = beta, theta = theta, span = span)
+     class.tb    <- sits_TWDTW_classify (matches.tb, start_date = start_date, end_date = end_date, interval = interval, overlap = overlap)
 
-     return (conv.lst)
+     # retrieve the reference labels
+     ref.vec <- as.character(class.tb$label)
+     # retrieve the predicted labels
+     pred.vec  <- as.character(
+          purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
+
+     # calculate the accuracy assessment
+     assess <- rfUtilities::accuracy(pred.vec, ref.vec)
+     return (assess)
 }

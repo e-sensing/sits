@@ -6,7 +6,7 @@
 \usage{
 sits_cross_validate(data.tb, method = "gam", bands = NULL, times = 100,
   perc = 0.1, from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
-  tw_alpha = -0.1, tw_beta = 100, tw_theta = 0.5, tw_span = 180,
+  tw_alpha = -0.1, tw_beta = 100, tw_theta = 0.5, tw_span = 0,
   interval = "12 month", overlap = 0.5, n_clusters = 2,
   grouping_method = "ward.D2", min_clu_perc = 0.1, apply_gam = FALSE,
   koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05,
