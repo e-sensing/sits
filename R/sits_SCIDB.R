@@ -52,9 +52,12 @@ createZooObject <- function(bands, dates, scale_factor, idx) {
 
   # create zoo object
   ts <- zoo::zoo(df*scale_factor, dates)
+  
+  # interpolate zoo object
+  ts_spline <- zoo::na.spline(ts)
 
   # convert to a tibble object
-  ts.tb <- tibble::as_tibble (zoo::fortify.zoo (ts))
+  ts.tb <- tibble::as_tibble (zoo::fortify.zoo (ts_spline))
 
   return(ts.tb)
 
