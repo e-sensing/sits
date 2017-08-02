@@ -2,6 +2,8 @@
 #' @name sits_stack_relabel
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
+#' @include RcppExports.R 
+#' 
 #' @param x raster stack .... tbl raster or wms???
 #' @param old_values an integer vector with raster values (label) to be updated
 #' @param new_values an integer vector with new values (label). It must have the same length as \code{old_label}
@@ -230,7 +232,7 @@ sits_stack_transition_relabel <- function(x,
      A <- args.list[[1]]
 
      cpp_fun <- function(v, A, I) {
-          .Call('sits_apply_first_order_transition_rules', v, A, I, PACKAGE = 'sits')
+          .Call(`_sits_apply_first_order_transition_rules`, v, A, I)
      }
 
      v <- raster::getValues(x, bs$row[k], bs$nrows[k])
@@ -238,7 +240,8 @@ sits_stack_transition_relabel <- function(x,
      # Skip NA
      I <- tibble::as.tibble(v) %>%
           dplyr::rowwise() %>%
-          do(na = !anyNA(.)) %>% unlist()
+          dplyr::do(na = !anyNA(.)) %>% 
+          unlist()
 
      # Update label
      if(any(I)){

@@ -64,4 +64,20 @@ Remotes:
      luizassis/wtss,
      vwmaus/dtwSat
 RoxygenNote: 6.0.1
-
+Collate: 
+    'RcppExports.R'
+    'sits_SCIDB.R'
+    'sits_TWDTW.R'
+    'sits_WTSPS.R'
+    'sits_WTSS.R'
+    'sits_assessment.R'
+    'sits_cluster.R'
+    'sits_filters.R'
+    'sits_getdata.R'
+    'sits_init.R'
+    'sits_patterns.R'
+    'sits_plot.R'
+    'sits_save.R'
+    'sits_smooth.R'
+    'sits_stack_proc.R'
+    'sits_table.R'
