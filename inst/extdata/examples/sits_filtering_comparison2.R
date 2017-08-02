@@ -51,7 +51,6 @@ w1 %>%
      sits_select (bands = c("ndvi", "ndvi.whit")) %>%
      sits_plot(type="one_by_one")
 
-<<<<<<< HEAD
 cv_env <- sits_cross_validate (samples_env.tb, method = "gam", bands = bands_env,
                                times = 50, perc = 0.5, file = "./inst/extdata/validation/cv_env.json")
 
@@ -59,5 +58,3 @@ prodes_relabel.lst <-  tibble::lst("primary_forest" = "Forest",
                                    "clear_cut2015"  = "NonForest",
                                    "clear_cut2016"  = "NonForest",
                                    "pasture"        = "NonForest")
-=======
->>>>>>> a5b13e545ef2d54c34abd832e64dfc64fe3c03ac

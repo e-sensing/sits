@@ -1,4 +1,3 @@
-
 #' @title Example of retrieval, plotting, filtering, and classification of
 #' Cerrado and Pasture temporal patterns
 #' @name sits_cerrado_pasture
@@ -21,38 +20,38 @@ cerrado1.tb <- cerrado.tb[1:20,]
 #plots the first 10 time series (default: put the same places in a single plot)
 sits_plot (cerrado1.tb)
 
+#plots the time series one by one
+sits_plot (savanna.tb[1:10,], type = "one_by_one")
+
+
 #plots all time series of the same label and band together (shows dispersion)
 sits_plot (cerrado.tb, type = "together")
 
+# interpolate the series using spline
+cerrado1s.tb <- sits_interp(cerrado1.tb, stats::spline, n = 50)
+sits_plot(cerrado1s.tb)
+
 # smooth the time series using the Whittaker smoother
-# then rename the result, merge with original and plot
-
-cerrado1s.tb <- sits_interp(cerrado1.tb, stats::approx, n = 50)
-
-cerrado2.tb <- sits_interp(cerrado1.tb, stats::approx, n = 50) %>%
-     sits_whittaker(lambda = 5.0)
-
-cerrado2.tb %>%
+# Merge with original and plot
+cerrado2.tb <- sits_interp(cerrado1.tb, stats::spline, n = 50) %>%
+     sits_whittaker(lambda = 5.0) %>%
      sits_merge(cerrado1s.tb)  %>%
      sits_select(c("evi.whit", "evi")) %>%
      sits_plot()
 
-cerrado3.tb <- cerrado1.tb %>%
-     sits_interp (stats::approx, n = 50) %>%
-     sits_envelope() %>%
-     sits_whittaker(lambda = 0.5)
+# find a set of patterns to find the samples using the GAM
+# Plot the result
+pat_cerrado.tb <- sits_patterns(cerrado.tb, method = "gam")
+sits_plot(pat_cerrado.tb, type = "patterns")
 
-cerrado3.tb %>%
-     sits_merge(cerrado1s.tb)  %>%
-     sits_select(c("evi.upper.whit", "evi.lower.whit", "evi")) %>%
-     sits_plot()
+# assess the quality of the classification using TWDTW 
+# perform a cross-validation
+cm_gam <- sits_cross_validate (cerrado.tb, method = "gam", bands = c("ndvi","evi"), times = 20, perc = 0.5)
 
-cerrado3.tb %>%
-     sits_merge(cerrado2.tb)  %>%
-     sits_select(c("evi.upper.whit", "evi.lower.whit", "evi.whit")) %>%
-     sits_plot()
+# cross validation results:
+# Accuracy (PCC): 92.2654155495978% 
+# Cohen's Kappa: 0.8435 
+# Users accuracy:  Cerrado = 96.7% Pasture = 87.1% 
+# Producers accuracy: Cerrado = 89.7% Pasture = 95.8%
 
-cerrado3.tb %>%
-     sits_merge(cerrado1s.tb)  %>%
-     sits_select(c("evi.upper.whit", "evi")) %>%
-     sits_plot()
+
