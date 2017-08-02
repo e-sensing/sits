@@ -4,7 +4,7 @@
 
 # comparing patterns obtained from Generalized Additive Models and from Clustering
 library(sits)
-
+# mudança
 # retrieve a set of samples from a JSON file
 cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado.json", package="sits"))
 
