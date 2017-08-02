@@ -4,21 +4,12 @@
 \alias{sits_relabel}
 \title{relabels a sits tibble}
 \usage{
-<<<<<<< HEAD
-sits_relabel(file, conv_labels)
-}
-\arguments{
-\item{file}{a JSON file contaning the result of a validation procedure}
-
-\item{conv_labels}{a conversion of label names for the classes (optional))}
-=======
 sits_relabel(data.tb, conv)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
 
 \item{conv}{a conversion of label names for the classes (optional))}
->>>>>>> 1b362d6a3a2d2099572220ed7695bfcf79087697
 }
 \value{
 assess         an assessment of validation

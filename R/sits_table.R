@@ -293,20 +293,20 @@ sits_labels <- function (data.tb, from_members = FALSE) {
      # compute frequency (absolute and relative)
      if (from_members)
           result.tb <- data.tb %>%
-               tidyr::unnest(n_members, .sep = ".") %>%
-               dplyr::group_by(n_members.original_label, label) %>%
+               tidyr::unnest_("n_members", .sep = ".") %>%
+               dplyr::group_by_("n_members.original_label", "label") %>%
                dplyr::summarize(count = sum(n_members.n, na.rm = TRUE)) %>%
                dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
                dplyr::ungroup() %>%
-               dplyr::select(label, count, original_label=n_members.original_label, total, frac)
+               dplyr::select_("label", "count", original_label="n_members.original_label", "total", "frac")
      else
           result.tb <- data.tb %>%
-               tidyr::unnest(n_members, .sep = ".") %>%
-               dplyr::group_by(original_label, label) %>%
+               tidyr::unnest_("n_members", .sep = ".") %>%
+               dplyr::group_by_("original_label", "label") %>%
                dplyr::summarize(count = sum(n_members.n, na.rm = TRUE)) %>%
                dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
                dplyr::ungroup() %>%
-               dplyr::select(label, count, original_label, total, frac)
+               dplyr::select_("label", "count", "original_label", "total", "frac")
      return (result.tb)
 }
 
@@ -730,12 +730,16 @@ sits_relabel_conv <- function (file = NULL){
      #labels <- rle(sort(ref.vec))$values
      labels <- base::unique(confusion.vec)
 
-     # if the conversion list is NULL, create an identity list
-     conv.lst <- tibble::lst()
-     for (i in 1:length(labels)) {
-          lab <- labels[i]
-          conv.lst[lab] <- lab
-     }
+     # Create an identity list
+     conv.lst <- labels %>%
+          purrr::map(function(lbl) lbl)
+     names(conv.lst) <- labels
+
+     # conv.lst <- tibble::lst()
+     # for (i in 1:length(labels)) {
+     #      lab <- labels[i]
+     #      conv.lst[lab] <- lab
+     # }
 
      return (conv.lst)
 }

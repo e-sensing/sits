@@ -11,8 +11,9 @@ sits_sgolay(data.tb, order = 3, scale = 1, bands_suffix = "sg")
 
 \item{order}{filter order}
 
-\item{scale}{time scaling
-#' @param bands_suffix the suffix to be appended to the smoothed filters}
+\item{scale}{time scaling}
+
+\item{bands_suffix}{the suffix to be appended to the smoothed filters}
 }
 \value{
 output.tb a tibble with smoothed sits time series

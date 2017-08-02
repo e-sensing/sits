@@ -10,6 +10,9 @@ sits_accuracy(results.tb)
 \item{results.tb}{a sits table with a set of lat/long/time locations with known and trusted labels and
 with the result of a classification method}
 }
+\value{
+assessment  a list containing overall accuracy, producers and users accuracy, and confusion matrix.
+}
 \description{
 To use this function, the input table should be a set of results containing
 both the label assigned by the user and the classification result.

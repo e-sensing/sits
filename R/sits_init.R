@@ -23,34 +23,35 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "segr", "frac", "total", "n", "count"))
 
 #  define the dependencies of the SITS package
-#' @importFrom kohonen supersom somgrid
-#' @importFrom ensurer ensure_that ensure check check_that
+#' @importFrom ensurer ensure_that ensures_that ensure check check_that
 #' @importFrom entropy entropy
-#' @importFrom dplyr bind_rows contains distinct do filter inner_join left_join matches mutate num_range one_of rename rename_ rowwise select starts_with transmute
-#' @importFrom readr cols col_integer col_double col_date col_character read_csv write_lines
-#' @importFrom tibble tibble as_tibble add_column add_row lst
-#' @importFrom tidyr nest unnest drop_na
-#' @importFrom purrr map map2 map_df is_null
-#' @importFrom purrrlyr by_row
 #' @importFrom ggplot2 ggplot aes geom_line labs scale_color_brewer scale_colour_hue
+#' @importFrom grDevices rgb
 #' @importFrom jsonlite fromJSON toJSON
+#' @importFrom kohonen supersom somgrid
 #' @importFrom lubridate as_date dyears days period yday year ymd
 #' @importFrom methods new as
 #' @importFrom mgcv gam predict.gam s
+#' @importFrom purrr map map2 map_df is_null
+#' @importFrom purrrlyr by_row
 #' @importFrom parallel mcMap
 #' @importFrom ptw whit2
+#' @importFrom readr cols col_integer col_double col_date col_character read_csv write_lines
 #' @importFrom raster shapefile
 #' @importFrom reshape2 melt
-#' @importFrom rfUtilities accuracy
 #' @importFrom signal sgolayfilt
 #' @importFrom sp bbox SpatialPoints CRS proj4string
 #' @importFrom stats sd setNames
 #' @importFrom stringr str_extract str_detect
+#' @importFrom tibble tibble as_tibble add_column add_row lst
+#' @importFrom tidyr nest unnest drop_na
 #' @importFrom tools file_ext file_path_sans_ext
 #' @importFrom utils head tail
 #' @importFrom wtss WTSS timeSeries listCoverages describeCoverage
 #' @importFrom zoo zoo fortify.zoo
-#' @import magrittr
+#' @import dendextend
+#' @import dplyr
 #' @import dtwclust
 #' @import dtwSat
+#' @import magrittr
 NULL

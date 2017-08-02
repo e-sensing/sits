@@ -18,5 +18,5 @@ result.tb    a sits_table with same samples and the new bands
 This function removes the missing values from an image time series
 }
 \author{
-Gilberto Camarara, \email{gilberto.camara@inpe.br}
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

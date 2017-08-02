@@ -13,6 +13,8 @@ sits_test_patterns(data.tb, patterns.tb, bands, alpha = -0.1, beta = 100,
 
 \item{patterns.tb}{A sits tibble containing a set of patterns}
 
+\item{bands}{the bands used for classification}
+
 \item{alpha}{(double)  - the steepness of the logistic function used for temporal weighting}
 
 \item{beta}{(integer) - the midpoint (in days) of the logistic function}

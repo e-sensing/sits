@@ -68,23 +68,23 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
             "dendogram"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram",
                                               n_clusters = n_clusters, grouping_method = grouping_method,
-                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ...)
+                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ... = ...)
             },
             "centroids"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "centroids",
                                               n_clusters = n_clusters, grouping_method = grouping_method,
-                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ...)
+                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ... = ...)
                  },
             "kohonen"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "kohonen",
                                               koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
-                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ...)
+                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ... = ...)
             },
             "kohonen-dendogram"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "kohonen-dendogram",
                                               n_clusters = n_clusters, grouping_method = grouping_method,
                                               koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
-                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ...)
+                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ... = ...)
             })
 
      # get only the significant clusters
@@ -97,7 +97,7 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
           # get cluster information before calling GAM...
           pat_labels.tb <- sits_labels(patterns.tb)
           # extract only significant clusters (cut line given by min_clu_perc parameter)
-          patterns.tb <- .sits_patterns_gam (patterns.tb, bands = bands, from = from, to = to, freq = freq, formula = formula, ...)
+          patterns.tb <- .sits_patterns_gam (patterns.tb, bands = bands, from = from, to = to, freq = freq, formula = formula, ... = ...)
           # append cluster informations to the result
           patterns.tb <- dplyr::inner_join(pat_labels.tb, patterns.tb, by = "label") %>%
                dplyr::select(longitude, latitude, start_date, end_date, label, coverage, time_series, original_label, n_members = count)

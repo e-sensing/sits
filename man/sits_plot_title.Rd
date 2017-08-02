@@ -3,16 +3,26 @@
 \name{sits_plot_title}
 \alias{sits_plot_title}
 \alias{.sits_plot_title}
+\alias{sits_plot_title}
+\alias{.sits_brewerMatchNames}
 \title{Create a plot title to use with ggplot}
 \usage{
 .sits_plot_title(row)
+
+.sits_brewerMatchNames(name)
 }
 \arguments{
 \item{row}{data row with <longitude, latitude, label> information}
+
+\item{name}{name of the brewer color set}
 }
 \value{
 title   string - the title to be used in the plot
+
+name   string - a common color set name
 }
 \description{
 creates a plot title from row information
+
+brewer color schemes names to be used with `.sits_plot_dendrogram`
 }

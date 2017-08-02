@@ -85,17 +85,20 @@ sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample =
 #' first check of accuracy. When the area of each class for the region of interest is available,
 #' please use sits_accuracy_area instead
 #'
-#'@param results.tb a sits table with a set of lat/long/time locations with known and trusted labels and
+#' @param results.tb   a sits table with a set of lat/long/time locations with known and trusted labels and
 #' with the result of a classification method
+#' @return assessment  a list containing overall accuracy, producers and users accuracy, and confusion matrix.
 #'@export
 sits_accuracy <- function (results.tb){
 
-     # Get reference classes
-     ref.vec <- as.vector(results.tb$label)
+     # get reference classes
+     ref.vec <- results.tb$label
+
      # create a vector to store the result of the predictions
-     pred.vec <- as.vector(results.tb$class)
-     # Classification accuracy measures
-     assessment <- rfUtilities::accuracy(pred.vec, ref.vec)
+     pred.vec <- results.tb$class
+
+     # classification accuracy measures
+     assessment <- .sits_accuracy(pred.vec, ref.vec)
 
      return (assessment)
 }
@@ -134,6 +137,10 @@ sits_accuracy <- function (results.tb){
 #' @param formula         the formula to be applied in the estimate (for "gam" method)
 #' @param tw_alpha        (double) - the steepness of the logistic function used for temporal weighting
 #' @param tw_beta         (integer) - the midpoint (in days) of the logistic function
+#' @param tw_theta        numeric between 0 and 1. The weight of the time for the TWDTW computation. Use theta=0 to cancel the time-weight, i.e. to run the original DTW algorithm. Default is 0.5. For details see dtwSat::twdtwApply help.
+#' @param tw_span         A number. Span between two matches, i.e. the minimum interval between two matches, for details see dtwSat::twdtwApply help.
+#' @param interval        A character with the intevals size, e.g. "6 month".
+#' @param overlap         A number between 0 and 1. The minimum overlapping between one match and the interval of classification. Default is 0.5. For details see dtwSat::twdtwApply help.
 #' @param n_clusters      the maximum number of clusters to be identified (for clustering methods)
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
 #' @param unsupervised    if TRUE, proceeds an unsupervised cluster followed by a relabel taking original label majority (
@@ -238,7 +245,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
      sits_toJSON (confusion.vec, file)
 
      # Classification accuracy measures
-     assessment <- rfUtilities::accuracy(pred.vec, ref.vec)
+     assessment <- .sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE)
 
      return (assessment)
 }
@@ -289,12 +296,9 @@ sits_reassess <- function (file = NULL, conv = NULL){
      pred.vec <- confusion.vec[1:mid]
      ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
 
-     if (!purrr::is_null(conv)) {
-          pred.vec <- as.character(conv[pred.vec])
-          ref.vec  <- as.character(conv[ref.vec])
-     }
      # calculate the accuracy assessment
-     assess <- rfUtilities::accuracy(pred.vec, ref.vec)
+     assess <- .sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE, conv.lst = conv)
+
      return (assess)
 }
 
@@ -312,6 +316,7 @@ sits_reassess <- function (file = NULL, conv = NULL){
 #'
 #' @param  data.tb       A sits tibble containing a set of samples with known and trusted labels
 #' @param  patterns.tb   A sits tibble containing a set of patterns
+#' @param  bands         the bands used for classification
 #' @param  alpha         (double)  - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
@@ -343,10 +348,72 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
      # retrieve the reference labels
      ref.vec <- as.character(class.tb$label)
      # retrieve the predicted labels
-     pred.vec  <- as.character(
-          purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
+     pred.vec  <- as.character(purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
 
      # calculate the accuracy assessment
-     assess <- rfUtilities::accuracy(pred.vec, ref.vec)
+     assess <- .sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE)
+
      return (assess)
+}
+
+#' @title Evaluates the accuracy of classification
+#' @name .sits_accuracy
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#
+#' @description Evaluates the accuracy of classification stored in two vectors.
+#' Returns the overall accuracy, producers and users accuracy, and confusion matrix.
+#' This algorith was inspired by `rfUtilities::accuracy` function, and fix the user and
+#' producer accuracy computation inconsistency.
+#'
+#' @param pred.vec       A vector of all predicted labels.
+#' @param ref.vec        A vector of all reference labels.
+#' @param pred_sans_ext  (Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
+#' @param conv.lst       A list conversion list of labels. If NULL no conversion is done.
+#' @return result.lst     a list with accuracy measures and confusion matrix
+.sits_accuracy <- function(pred.vec, ref.vec, pred_sans_ext = FALSE, conv.lst = NULL){
+
+     # remove predicted labels' extensions
+     if (pred_sans_ext)
+          pred.vec <- tools::file_path_sans_ext(pred.vec)
+
+     # count all pairs of labels
+     # rows: predicted labels; cols: reference labels
+     if (is.null(conv.lst))
+          conf.mtx <- table(pred.vec, ref.vec)
+     else{
+          ensurer::ensure_that(c(pred.vec, ref.vec),
+                               all(names(.) %in% names(conv.lst)),
+                               err_desc = ".sits_accuracy: conversion list does not contain all labels provided in `pred.vec` and/or `ref.vec` arguments.")
+          conf.mtx <- table(as.character(conv.lst[[pred.vec]]), as.character(conv.lst[[ref.vec]]))
+     }
+
+     # ensures that the confusion matrix is square
+     ensurer::ensure_that(conf.mtx, NCOL(.) == NROW(.),
+                          err_desc = ".sits_accuracy: predicted and reference vectors does not produce a squared matrix. Try to convert `pred.vec` entries before compute accuracy.")
+
+     # sort rows (predicted labels) according to collumn names (reference labels)
+     conf.mtx <- conf.mtx[colnames(conf.mtx),]
+
+     # get labels' agreement (matrix diagonal)
+     agreement <- diag(conf.mtx)
+
+     # get total of predicted labels (to compute users accuracy)
+     users <- apply(conf.mtx, 1, sum)
+
+     # get total of reference labels (to compute producers accuracy)
+     producers <- apply(conf.mtx, 2, sum)
+
+     # get grand totals
+     agreement_total <- sum(agreement)
+     grand_total <- sum(conf.mtx)
+
+     # compose result list
+     result.lst <- tibble::lst(
+          overall.accuracy = round(agreement_total / grand_total * 100, 4),
+          producer.accuracy = round(agreement / producers * 100, 4),
+          user.accuracy = round(agreement / users * 100, 4),
+          confusion = conf.mtx
+     )
+
+     return(result.lst)
 }

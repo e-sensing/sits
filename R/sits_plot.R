@@ -12,6 +12,7 @@
 #' @param    start_date the start date of the plot (used for showing classifications)
 #' @param    end_date   the end date of the plot (used for showing classifications)
 #' @param    interval   the interval between classifications (used for showing classifications)
+#' @param    overlap    A number between 0 and 1. The minimum overlapping between one match and the interval of classification. Default is 0.5. For details see dtwSat::twdtwApply help.
 #' @param    n_matches  number of matches of a given label to be displayed
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
 #' @export
@@ -259,7 +260,7 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
      return (title)
 }
 #' @title Plot a dendrogram
-#' @name .sits_plot_dendrogram
+#' @name sits_plot_dendrogram
 #'
 #' @description Plot an enhanced dendrogram based on a cluster object usually found in `.sits_last_cluster`
 #'
@@ -267,18 +268,18 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 #' @param cluster_obj   cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`
 #' @param cutree_height A dashed horizontal line to be drawed indicating the height of dendrogram cutting.
 #' @param colors        a color scheme as showed in `.sits_brewerMatchNames` function
-#' @param ...           SITS tibble
-#' @return title   string - the title to be used in the plot
-.sits_plot_dendrogram <- function(data.tb,
-                                  cluster_obj = NULL,
-                                  cutree_height = NULL,
-                                  colors = "RdYlGn", ...){
+#' @param ...           Other parameters to be passed to graphics::plot() function
+#' @export
+sits_plot_dendrogram <- function(data.tb,
+                                 cluster_obj = NULL,
+                                 cutree_height = NULL,
+                                 colors = "RdYlGn", ...){
      # get cluster_obj
      if (is.null(cluster_obj))
           cluster_obj <- sits_last_cluster()
 
      # ensures that a cluster object is informed or exists in .sits_last_cluster global variable.
-     ensurer::ensures_that(cluster_obj, !is.null(.), err_desc = "plot_dendrogram: no valid `cluster_obj` informed or found in `.sits_last_cluster`.")
+     ensurer::ensure_that(cluster_obj, !is.null(.), err_desc = "plot_dendrogram: no valid `cluster_obj` informed or found in `.sits_last_cluster`.")
 
      # get unique labels
      data_labels <- data.tb$label

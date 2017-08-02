@@ -22,11 +22,11 @@ sits_cluster_separability <- function (data.tb){
           purrr::map(function(label) return(tibble::tibble(original_label = label, n = 1)))
 
      result.tb <- data.tb %>%
-          tidyr::unnest(n_members) %>%
-          dplyr::group_by(original_label1, label) %>%
-          dplyr::summarise(count = sum(n, na.rm = TRUE)) %>%
-          dplyr::select(original_label = original_label1, label, count) %>%
-          tidyr::spread(key = label, value = count) %>%
+          tidyr::unnest_("n_members", .sep = ".") %>%
+          dplyr::group_by_("n_members.original_label", "label") %>%
+          dplyr::summarize(count = sum(n_members.n, na.rm = TRUE)) %>%
+          dplyr::select_(original_label="n_members.original_label", "label", "count") %>%
+          tidyr::spread_(key = "label", value = "count") %>%
           dplyr::ungroup()
 
      return (result.tb)
@@ -55,7 +55,7 @@ sits_separability_measure <- function (data.tb, measure = "entropy", per_cluster
 
      # ensure that `measure` parameter is a valid option
      ensurer::ensure_that(measure, . == "entropy",
-                          err_desc = "sits_separability_measure: measure jno supported.")
+                          err_desc = "sits_separability_measure: measure not supported.")
 
      # do the input data have the `original_label` column?
      ensurer::ensure_that(data.tb, "original_label" %in% colnames(data.tb),
@@ -66,8 +66,10 @@ sits_separability_measure <- function (data.tb, measure = "entropy", per_cluster
      if (labels_count == 1)
           return (0.0)
 
-     if (!("n_members" %in% colnames(data.tb)))
-          data.tb$n_members <- 1
+     # verify if there is n_members column. If not exists initialize it with ones.
+     if (!any("n_members" %in% names(data.tb)))
+          data.tb$n_members <- data.tb$label %>%
+               purrr::map(function(label) return(tibble::tibble(original_label = label, n = 1)))
 
 
      if (measure == "entropy")
@@ -75,12 +77,12 @@ sits_separability_measure <- function (data.tb, measure = "entropy", per_cluster
           # further measures implementations must return two mandatory fields: segr and frac. The first is the measure itself,
           # the second represents the fraction of cluster members.
           result.tb <- data.tb %>%
-               dplyr::group_by(original_label, label) %>%
-               dplyr::summarise(count = sum(n_members, na.rm = TRUE)) %>%
+               tidyr::unnest_("n_members", .sep = ".") %>%
+               dplyr::group_by_("original_label", "label") %>%
+               dplyr::summarise(count = sum(n_members.n, na.rm = TRUE)) %>%
                dplyr::ungroup() %>%
                dplyr::group_by(label) %>%
-               dplyr::summarise(segr = entropy::entropy(count) / log(labels_count),
-                                frac = sum(count, na.rm = TRUE) / sum(sum(count, na.rm = TRUE)), na.rm = TRUE)
+               dplyr::summarise(segr = entropy::entropy(count) / log(labels_count), frac = sum(count, na.rm = TRUE) / NROW(data.tb))
 
      if (per_cluster)
           return (result.tb)

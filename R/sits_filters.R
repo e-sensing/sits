@@ -142,7 +142,7 @@ sits_interp <- function(data.tb, fun = stats::approx, n = 23, ...){
 }
 #' @title Remove missing values
 #' @name sits_missing_values
-#' @author Gilberto Camarara, \email{gilberto.camara@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
 #' @description  This function removes the missing values from an image time series
 #' @param data.tb   a valid sits table
 #' @param mv        a number indicating missing values in a time series.
@@ -219,7 +219,7 @@ sits_whittaker <- function (data.tb, lambda    = 0.5, bands_suffix = "whit") {
 #' @param data.tb    The SITS tibble containing the original time series
 #' @param order      filter order
 #' @param scale      time scaling
-#' #' @param bands_suffix the suffix to be appended to the smoothed filters
+#' @param bands_suffix the suffix to be appended to the smoothed filters
 #' @return output.tb a tibble with smoothed sits time series
 #' @export
 sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
