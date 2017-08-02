@@ -23,10 +23,12 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "segr", "frac", "total", "n"))
 
 #  define the dependencies of the SITS package
+#' @importFrom snow sendCall recvOneData clusterExport
+#' @importFrom raster shapefile brick beginCluster endCluster getCluster returnCluster blockSize trim canProcessInMemory rasterTmpFile getValues pbCreate pbStep pbClose writeStart writeValues setValues writeStop
 #' @importFrom kohonen supersom somgrid
 #' @importFrom ensurer ensure_that ensure check check_that
 #' @importFrom entropy entropy
-#' @importFrom dplyr bind_rows contains distinct do filter inner_join left_join matches mutate num_range one_of rename rename_ rowwise select starts_with transmute
+#' @importFrom dplyr bind_rows contains distinct do filter inner_join left_join matches mutate num_range one_of rename rename_ rowwise select starts_with transmute if_else
 #' @importFrom readr cols col_integer col_double col_date col_character read_csv write_lines
 #' @importFrom tibble tibble as_tibble add_column add_row lst
 #' @importFrom tidyr nest unnest drop_na
@@ -39,7 +41,6 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom mgcv gam predict.gam s
 #' @importFrom parallel mcMap
 #' @importFrom ptw whit2
-#' @importFrom raster shapefile
 #' @importFrom reshape2 melt
 #' @importFrom rfUtilities accuracy
 #' @importFrom signal sgolayfilt
@@ -53,4 +54,7 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @import magrittr
 #' @import dtwclust
 #' @import dtwSat
+#' @import Rcpp
+#' @useDynLib sits, .registration = TRUE
+#' 
 NULL

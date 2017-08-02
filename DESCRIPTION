@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.7.30
-Date: 2017-07-30
+Version: 0.8.02
+Date: 2017-08-02
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Rolf', 'Simoes', role = c('aut')),
@@ -25,6 +25,7 @@ Depends:
     dtwclust,
     dtwSat,
     magrittr,
+    Rcpp
 Imports:
     dplyr,
     ensurer,
@@ -40,7 +41,6 @@ Imports:
     ptw,
     purrr,
     purrrlyr,
-    raster,
     readr,
     reshape2,
     rfUtilities,
@@ -55,7 +55,11 @@ Imports:
     tools,
     utils, 
     wtss,
-    zoo
+    zoo,
+    raster,
+    snow
+LinkingTo: 
+    Rcpp
 Remotes:
      luizassis/wtss,
      vwmaus/dtwSat
