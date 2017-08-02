@@ -12,29 +12,37 @@ wtss_inpe <- sits_infoWTSS(URL)
 # get information about a specific coverage
 sits_coverageWTSS(URL,"mixl8mod")
 
-
 # choose a coverage
 coverage <- "mixl8mod"
 # recover all bands
-bands <- c("ndvi", "evi", "nir")
+bands <- c("ndvi", "evi")
 
-
-# obtain a time series from the WTSS server for this point
-series.tb <- sits_getdata(file = "./inst/extdata/samples/deforestation_points_226_64.csv", URL = URL, coverage = coverage, bands = bands, n_max = 5, ignore_dates = TRUE)
-
-sits_plot(series.tb)
 # retrieve a set of samples from a JSON file
-patterns.tb <- sits_getdata(file = "./inst/extdata/patterns/patterns_Damien_Ieda_Rodrigo_15classes_3bands_Water.json")
+series_all.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_series_226_64.json")
 
-filtered.tb <- series.tb %>%
-     sits_envelope()
-#sits_save(series.tb, "./inst/extdata/samples/deforestation_points_226_64.json")
-#sits_plot (patterns.tb, type = "patterns")
+samples_all.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_samples_226_64.json")
 
-matches.tb <- sits_TWDTW_matches(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, span = 0)
+patterns_raw.tb <- sits_patterns (samples_all.tb)
+sits_plot(patterns_raw.tb, type = "patterns")
+
+matches.tb <- sits_TWDTW_matches(series.tb[1,], patterns_raw.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, span = 0)
 sits_plot (matches.tb, type = "alignments")
-sits_plot(matches.tb, type = "classification", start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
 
 class.tb <- sits_TWDTW_classify (matches.tb, start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
+sits_plot(matches.tb, type = "classification", start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
 
+bands = c("ndvi.lower.upper.whit", "evi.lower.upper.whit")
+
+seriesf_all.tb <- series_all.tb %>% 
+     sits_envelope(window_size = 3) %>% 
+     sits_envelope (window_size = 3) %>% 
+     sits_select (bands = c("ndvi.lower.upper", "evi.lower.upper")) %>% 
+     sits_whittaker(lambda = 2.0)
+
+patterns_f.tb <- sits_patterns ()
 #assessment <- sits_accuracy(results.tb)
+matches1.tb <- sits_TWDTW_matches(seriesf.tb, patterns_raw.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, span = 0)
+sits_plot (matches.tb, type = "alignments")
+
+class1.tb <- sits_TWDTW_classify (matches1.tb, start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
+sits_plot(matches.tb, type = "classification", start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
