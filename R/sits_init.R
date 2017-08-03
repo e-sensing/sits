@@ -55,5 +55,6 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @import dtwSat
 #' @import magrittr
 #' @import Rcpp
-#'
+#' @useDynLib sits, .registration = TRUE
+#' 
 NULL
