@@ -1,10 +1,13 @@
 
+#install.packages(c('graphics', 'MASS', 'plyr', 'caret', 'e1071', 'glmnet'))
+
 library(graphics);
 library(MASS);
 library(plyr);
 library(caret);
 library(nnet);
 library(e1071);
+library(glmnet);
 
 rm(list=ls());
 
@@ -13,7 +16,7 @@ rm(list=ls());
 set.seed(2104);
 categorias <- c('Soy-Sorgo', 'Corn', 'Forest', 'Pasture', 'Water')
 
-nsamples <- c(200, 150, 200, 200, 150)
+nsamples <- c(200, 250, 200, 400, 150)
 k <- length(nsamples); k
 
 mu <- matrix(c(0.001, 0.3, 0.6, 0.4, 0.8,
@@ -22,7 +25,7 @@ mu <- matrix(c(0.001, 0.3, 0.6, 0.4, 0.8,
                0.4, 0.3, 0.4, 0.001, 0.8,
                0.5, 0.6, 0.4, 0.4, 0.001), nrow = k, ncol = k, byrow = T)
 mu
-Sigma <- diag(k) + matrix(0.1, nrow = k, ncol = k)
+Sigma <- 0.1*(diag(k) + matrix(0.01, nrow = k, ncol = k))
 Sigma
 
 for (i in 1:k)
@@ -51,34 +54,6 @@ head(trainIndex)
 dadosTrain <- dados[ trainIndex,]
 dadosTest  <- dados[-trainIndex,]
 
-#------ classificando por menor distancia ---------#
-
-categorias.dtw.pred <- rep(categorias[1], nrow(dadosTest))
-for (i in 1:nrow(dadosTest))
-{
-    min_dist <- dadosTest[i,c('dist1')];
-    if (min_dist > dadosTest[i,c('dist2')]) 
-    { 
-        min_dist <- dadosTest[i,c('dist2')];
-        categorias.dtw.pred[i] <- categorias[2]
-    }
-    if (min_dist > dadosTest[i,c('dist3')]) 
-    { 
-        min_dist <- dadosTest[i,c('dist3')];
-        categorias.dtw.pred[i] <- categorias[3]
-    }
-    if (min_dist > dadosTest[i,c('dist4')]) 
-    { 
-        min_dist <- dadosTest[i,c('dist4')];
-        categorias.dtw.pred[i] <- categorias[4]
-    }
-    if (min_dist > dadosTest[i,c('dist5')]) 
-    { 
-        min_dist <- dadosTest[i,c('dist5')];
-        categorias.dtw.pred[i] <- categorias[5]
-    }
-}
-
 #-------- rodando os modelos --------------#
 
 categorias.qda <- qda(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5), 
@@ -96,6 +71,16 @@ categorias.svm3 <- svm(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+l
 categorias.svm4 <- svm(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5), 
                        data=dadosTrain, kernel = "sigmoid", type="C-classification", k = 5)
 
+categorias.lasso <- glmnet(y = data.matrix(dadosTrain[,1]), 
+                           x = data.matrix(dadosTrain[,c(2,3,4,5,6)]), 
+                           family="multinomial", alpha=1)
+categorias.ridge <- glmnet(y = data.matrix(dadosTrain[,1]), 
+                           x = data.matrix(dadosTrain[,c(2,3,4,5,6)]), 
+                           family="multinomial", alpha=0)
+categorias.elnet <- glmnet(y = data.matrix(dadosTrain[,1]), 
+                           x = data.matrix(dadosTrain[,c(2,3,4,5,6)]), 
+                           family="multinomial", alpha=.5)
+
 categorias.lda
 categorias.qda
 categorias.mlr
@@ -103,6 +88,9 @@ categorias.svm1
 categorias.svm2
 categorias.svm3
 categorias.svm4
+summary(categorias.lasso)
+summary(categorias.ridge)
+summary(categorias.elnet)
 
 categorias.lda.pred <- predict(categorias.lda, newdata = dadosTest)$class
 categorias.qda.pred <- predict(categorias.qda, newdata = dadosTest)$class
@@ -111,6 +99,46 @@ categorias.svm1.pred <- predict(categorias.svm1, newdata = dadosTest)
 categorias.svm2.pred <- predict(categorias.svm2, newdata = dadosTest)
 categorias.svm3.pred <- predict(categorias.svm3, newdata = dadosTest)
 categorias.svm4.pred <- predict(categorias.svm4, newdata = dadosTest)
+
+categorias.lasso.pred <- predict(categorias.lasso, s=categorias.lasso$lambda.1se, 
+                                 newx=data.matrix(dadosTest[,c(2,3,4,5,6)]))
+categorias.ridge.pred <- predict(categorias.ridge, s=categorias.ridge$lambda.1se, 
+                                 newx=data.matrix(dadosTest[,c(2,3,4,5,6)]))
+categorias.elnet.pred <- predict(categorias.elnet, s=categorias.elnet$lambda.1se, 
+                                 newx=data.matrix(dadosTest[,c(2,3,4,5,6)]))
+
+#------ classificando por menor distancia ---------#
+
+categorias.dtw.pred <- categorias.lda.pred
+for (i in 1:nrow(dadosTest))
+{
+     categorias.dtw.pred[i] <- categorias[1]
+     min_dist <- dadosTest[i,c('dist1')];
+     if (min_dist > dadosTest[i,c('dist2')]) 
+     { 
+          min_dist <- dadosTest[i,c('dist2')];
+          categorias.dtw.pred[i] <- categorias[2]
+     }
+     if (min_dist > dadosTest[i,c('dist3')]) 
+     { 
+          min_dist <- dadosTest[i,c('dist3')];
+          categorias.dtw.pred[i] <- categorias[3]
+     }
+     if (min_dist > dadosTest[i,c('dist4')]) 
+     { 
+          min_dist <- dadosTest[i,c('dist4')];
+          categorias.dtw.pred[i] <- categorias[4]
+     }
+     if (min_dist > dadosTest[i,c('dist5')]) 
+     { 
+          min_dist <- dadosTest[i,c('dist5')];
+          categorias.dtw.pred[i] <- categorias[5]
+     }
+}
+
+dadosTest$categoriadtw <- categorias.dtw.pred
+
+#---- avaliando performance
 
 table(categorias.dtw.pred, dadosTest$categoria)
 table(categorias.lda.pred, dadosTest$categoria)
