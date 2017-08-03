@@ -49,11 +49,11 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom utils head tail
 #' @importFrom wtss WTSS timeSeries listCoverages describeCoverage
 #' @importFrom zoo zoo fortify.zoo
-#' @import dendextend
+#' @importFrom dendextend set
 #' @import dplyr
 #' @import dtwclust
 #' @import dtwSat
 #' @import magrittr
-#' @import Rcpp
+#' @useDynLib sits, .registration = TRUE
 #'
 NULL

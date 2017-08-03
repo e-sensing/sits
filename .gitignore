@@ -9,3 +9,4 @@ packrat/lib*/
 src/*.o
 src/*.dll
 src/*.so
+*.json
