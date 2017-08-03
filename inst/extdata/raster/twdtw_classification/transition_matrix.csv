@@ -1,0 +1,11 @@
+label,0.No_data,1.Cotton,2.Forest,3.Pasture,4.Savanna,5.Soybean_Commercial,6.Soybean_Cotton,7.Soybean,8.Soybean_Pasture,9.Water,10.Degraded_Forest,11.Secondary_Forest,12.Deforestation_Disturbance_Forest,13.Deforestation_Disturbance_Sec_Forest,14.Degraded_Savana,15.Secondary_Savana,16.Deforestation_Disturbance_Savana,17.Deforestation_Disturbance_Sec_Savana
+0.No_data,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1.Cotton,1,1,12,1,16,1,1,1,1,1,12,13,1,1,16,17,1,1
+2.Forest,2,11,2,11,2,11,11,11,11,2,10,11,10,11,10,11,10,11
+3.Pasture,3,3,12,3,3,3,3,3,3,3,12,13,3,3,16,17,3,3
+4.Savanna,4,15,4,15,15,15,15,15,15,9,10,11,4,4,14,15,14,15
+5.Soybean_Commercial,5,5,12,5,5,5,5,5,5,5,12,13,5,5,16,17,5,5
+6.Soybean_Cotton,6,6,12,6,6,6,6,6,6,6,12,13,6,6,16,17,14,15
+7.Soybean,7,7,12,7,7,7,7,7,7,7,12,13,7,7,16,17,7,7
+8.Soybean_Pasture,8,8,12,8,8,8,8,8,8,8,12,13,8,8,16,17,8,8
+9.Water,9,9,9,9,9,9,9,9,9,9,12,13,9,9,16,17,9,9

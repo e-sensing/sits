@@ -17,4 +17,3 @@ matogrosso.tb <- sits_prune(matogrosso.tb)
 patterns_dend.tb <- sits_patterns(matogrosso.tb, method = "dendogram", bands = c("ndvi","evi", "nir"))
 
 sits_plot (patterns_dend.tb, type = "patterns")
-

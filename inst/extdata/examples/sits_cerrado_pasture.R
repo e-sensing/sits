@@ -1,4 +1,3 @@
-
 #' @title Example of retrieval, plotting, filtering, and classification of
 #' Cerrado and Pasture temporal patterns
 #' @name sits_cerrado_pasture

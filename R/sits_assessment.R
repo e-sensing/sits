@@ -137,10 +137,10 @@ sits_accuracy <- function (results.tb){
 #' @param formula         the formula to be applied in the estimate (for "gam" method)
 #' @param tw_alpha        (double) - the steepness of the logistic function used for temporal weighting
 #' @param tw_beta         (integer) - the midpoint (in days) of the logistic function
-#' @param tw_theta        numeric between 0 and 1. The weight of the time for the TWDTW computation. Use theta=0 to cancel the time-weight, i.e. to run the original DTW algorithm. Default is 0.5. For details see dtwSat::twdtwApply help.
-#' @param tw_span         A number. Span between two matches, i.e. the minimum interval between two matches, for details see dtwSat::twdtwApply help.
-#' @param interval        A character with the intevals size, e.g. "6 month".
-#' @param overlap         A number between 0 and 1. The minimum overlapping between one match and the interval of classification. Default is 0.5. For details see dtwSat::twdtwApply help.
+#' @param tw_theta        (double)  - the relative weight of the time distance compared to the dtw distance
+#' @param tw_span         minimum number of days between two matches of the same pattern in the time series (approximate)
+#' @param  interval      the period between two classifications
+#' @param  overlap       minimum overlapping between one match and the interval of classification
 #' @param n_clusters      the maximum number of clusters to be identified (for clustering methods)
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
 #' @param unsupervised    if TRUE, proceeds an unsupervised cluster followed by a relabel taking original label majority (

@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.7.6
-Date: 2017-07-06
+Version: 0.8.02
+Date: 2017-08-02
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Rolf', 'Simoes', role = c('aut')),
@@ -47,7 +47,6 @@ Imports:
     raster,
     readr,
     reshape2,
-    rfUtilities,
     RCurl,
     signal,
     sp,
@@ -58,9 +57,29 @@ Imports:
     tidyr,
     tools,
     utils, 
-    zoo
+    zoo,
+    snow
 Remotes:
-     luizassis/wtss,
-     vwmaus/dtwSat
+    luizassis/wtss,
+    vwmaus/dtwSat
+LinkingTo: 
+    Rcpp
 RoxygenNote: 6.0.1
-
+Collate: 
+    'RcppExports.R'
+    'sits_SCIDB.R'
+    'sits_TWDTW.R'
+    'sits_WTSPS.R'
+    'sits_WTSS.R'
+    'sits_assessment.R'
+    'sits_cluster.R'
+    'sits_filters.R'
+    'sits_getdata.R'
+    'sits_init.R'
+    'sits_patterns.R'
+    'sits_plot.R'
+    'sits_save.R'
+    'sits_separability.R'
+    'sits_smooth.R'
+    'sits_stack_proc.R'
+    'sits_table.R'

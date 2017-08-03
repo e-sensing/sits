@@ -7,6 +7,8 @@
 #  The package provides the generic method sits_apply to apply a
 #  1D generic function to a time series and specific methods for
 #  common tasks such as missing values removal and smoothing
+#  
+#  The following filters are supported: Savitsky-Golay, Whittaker and envelope
 #
 # ---------------------------------------------------------------
 
@@ -230,3 +232,82 @@ sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
 
      return(result.tb)
 }
+
+
+#' Kalman filter
+#' @name sits_kf
+#' @description  A simple Kalman filter implementation
+#'
+#' @param data.tb      The SITS tibble containing the original time series
+#' @param bands_suffix The suffix to be appended to the smoothed filters
+#' @return output.tb   A tibble with smoothed sits time series
+#' @export
+sits_kf <- function(data.tb, bands_suffix = "kf"){
+  result.tb <- sits_apply(data.tb,
+                          fun = function(band) .kalmanfilter(band, NULL, NULL, NULL),
+                          fun_index = function(band) band,
+                          bands_suffix = bands_suffix)
+  return(result.tb)
+}
+
+
+# Compute the Kalman filter
+#
+# @param measurement                    A vector of measurements
+# @param initial_error_in_estimate      Initial error in the estimation
+# @param error_in_measurement           A vector of errors in the measuments
+# @param initial_estimate               A first estimation of the measurement
+# @return
+.kalmanfilter <- function(measurement, initial_error_in_estimate = NULL, error_in_measurement = NULL, initial_estimate = NULL){
+  kg <- vector(mode = "logical", length = length(measurement))
+  est <- vector(mode = "logical", length = length(measurement))
+  e_est <- vector(mode = "logical", length = length(measurement))
+  #
+  if(is.null(initial_estimate)){
+    initial_estimate <- base::mean(measurement)
+  }
+  if(is.null(initial_error_in_estimate)){
+    initial_error_in_estimate <- abs(measurement[1] - base::mean(measurement))
+  }
+  if(is.null(error_in_measurement)){
+    error_in_measurement <- rep(sd(measurement), length.out = length(measurement))
+  }
+  #
+  est[1] <- initial_estimate[1]
+  e_est[1] <- initial_error_in_estimate[1]
+  kg[1] <- NA
+  for(i in 2:(length(measurement))){
+    kg[i] <- .KG(e_est[i - 1], error_in_measurement[i - 1])
+    est[i] <- .EST_t(kg[i], est[i - 1], measurement[i - 1])
+    e_est[i] <- .E_EST_t(kg[i], e_est[i - 1])
+  }
+  return(list(estimation = est, error_in_estimate = e_est, kalman_gain = kg))
+}
+
+# Compute the Kalman gain
+#
+# @param e_est    error in estimation
+# @param e_mea    error in measurement
+# @return         the Kalman gain
+.KG <- function(e_est, e_mea){
+  return(e_est/(e_est + e_mea))
+}
+
+# Compute the KF current estimate
+#
+# @param kg        Kalman gain
+# @param est_t1    previous estimate
+# @param mea       measurement
+# @return          current estimate
+.EST_t <- function(kg, est_t1, mea){
+  est_t1 + kg * (mea - est_t1)
+}
+
+# Compute the KF error in the estimation
+#
+# @param kg        Kalman gain
+# @param e_est_t1  previous error in estimation
+.E_EST_t <- function(kg, e_est_t1){
+  (1 - kg) * e_est_t1
+}
+
