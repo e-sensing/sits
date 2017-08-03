@@ -64,4 +64,3 @@ series2.tb <- dplyr::bind_rows(series.tb[1:10,], series.tb[691:700,])
 # in the example we use 5 rounds for convenience - in real cases 100 times would be better
 cv_gam <- sits_cross_validate (series2.tb, method = "gam", bands = c("ndvi", "evi"), times = 2, perc = 0.5)
 print (cv_gam)
-

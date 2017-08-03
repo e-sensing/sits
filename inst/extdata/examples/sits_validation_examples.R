@@ -20,18 +20,3 @@ cm_som <- sits_cross_validate (cerrado.tb, method = "koho&dogram", bands = c("ev
                      min_clu_perc = 0.1, apply_gam = TRUE, tw_alpha = -0.1, tw_beta = 45)
 
 
-# Accuracy (PCC): 94.1460506706408%
-# Cohen's Kappa: 0.882
-# Users accuracy:
-# Cerrado Pasture
-# 96.2    91.7
-#
-# Producers accuracy:
-# Cerrado Pasture
-# 93.1    95.5
-# Confusion matrix
-# y
-# x         Cerrado Pasture
-# Cerrado   17322    1286
-# Pasture     678   14264
-

@@ -136,7 +136,6 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
 #' @param  ...           any additional parameters
 #' @return patterns.tb   a SITS table with the patterns
 #'
-#'
 .sits_patterns_gam <- function (samples.tb, bands, from, to, freq, formula, ...){
      # create a tibble to store the results
      patterns.tb <- sits_table()
@@ -192,7 +191,7 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
                               dplyr::transmute (x = as.numeric(Index), y = value)
 
                          #calculate the best fit for the data set
-                         fit <-  mgcv::gam(data = ts2, formula = formula, ...)
+                         fit <-  mgcv::gam(data = ts2, formula = formula)
 
                          # Takes a fitted gam object and produces predictions
                          # for the desired dates in the sequence of prediction times

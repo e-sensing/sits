@@ -20,7 +20,7 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
                          "original_label", "n_members", "count",
-                         "segr", "frac", "total", "n", "count"))
+                         "segr", "frac", "total", "n"))
 
 #  define the dependencies of the SITS package
 #' @importFrom ensurer ensure_that ensures_that ensure check check_that
@@ -54,4 +54,7 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @import dtwclust
 #' @import dtwSat
 #' @import magrittr
+#' @import Rcpp
+#' @useDynLib sits, .registration = TRUE
+#' 
 NULL

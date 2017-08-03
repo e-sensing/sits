@@ -198,4 +198,3 @@ sits_TWDTW_classify <- function (matches.tb, start_date = NULL, end_date = NULL,
           })
      return (patterns.tb)
 }
-

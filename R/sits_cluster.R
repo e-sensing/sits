@@ -58,7 +58,6 @@ sits_cluster <- function (data.tb, bands = NULL, method = "dendogram", n_cluster
      #
      message("Clustering...")
 
-
      # add a progress bar
      progress_bar <- utils::txtProgressBar(min = 0, max = length(labels), style = 3)
 
@@ -141,7 +140,7 @@ sits_last_cluster <- function(){
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`).
 #' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show            (boolean) should the results be shown?
-#' @param  ...            any additional parameters
+#' @param  ...           any additional parameters to be passed to dtwclust::tsclust() function
 #' @return clusters.tb a SITS tibble with the clusters
 .sits_cluster_dendogram <- function (data.tb, bands, n_clusters, dist_method, grouping_method, return_members, show, ...){
 
@@ -202,7 +201,7 @@ sits_last_cluster <- function(){
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`).
 #' @param return_members (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show           (boolean) should the results be shown?
-#' @param  ...           any additional parameters
+#' @param  ...           any additional parameters to be passed to dtwclust::tsclust() function
 #' @return clusters.tb a SITS tibble with the clusters
 .sits_cluster_partitional <- function (data.tb, bands, n_clusters, dist_method, grouping_method, return_members, show, ...) {
 
@@ -263,7 +262,7 @@ sits_last_cluster <- function(){
 #' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
 #' @param return_members (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show           (boolean) should the results be shown?
-#' @param ...            any additional parameters
+#' @param ...            any additional parameters to be passed to kohonen::supersom() function
 #' @return clusters.tb a SITS tibble with the clusters
 .sits_cluster_kohonen <- function (data.tb, bands, grid_xdim, grid_ydim, rlen, alpha, return_members, show, ...){
 
