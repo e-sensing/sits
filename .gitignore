@@ -7,3 +7,6 @@
 packrat/lib*/
 .tmp
 *.json
+src/*.o
+src/*.dll
+src/*.so
