@@ -6,7 +6,4 @@
 *.xml
 packrat/lib*/
 .tmp
-src/*.o
-src/*.dll
-src/*.so
 *.json
