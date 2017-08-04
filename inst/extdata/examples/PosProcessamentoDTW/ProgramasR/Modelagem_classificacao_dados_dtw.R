@@ -180,6 +180,10 @@ categorias.gbm3 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.
 categorias.gbm4 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=500,interaction.depth=15)
 categorias.gbm5 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=500,interaction.depth=20)
 categorias.gbm6 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=500,interaction.depth=30)
+categorias.gbm7 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=5000,interaction.depth=4)
+categorias.gbm8 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=5000,interaction.depth=8)
+categorias.gbm9 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=5000,interaction.depth=15)
+categorias.gbm10 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=5000,interaction.depth=20)
 
 categorias.rfore1
 categorias.rfore2
@@ -223,11 +227,23 @@ categorias.gbm1.pred <- predict(categorias.gbm1, newdata=dadosTest, n.trees=500,
 categorias.gbm2.pred <- predict(categorias.gbm2, newdata=dadosTest, n.trees=500, type="response");
 categorias.gbm3.pred <- predict(categorias.gbm3, newdata=dadosTest, n.trees=500, type="response");
 categorias.gbm4.pred <- predict(categorias.gbm4, newdata=dadosTest, n.trees=500, type="response");
+categorias.gbm5.pred <- predict(categorias.gbm5, newdata=dadosTest, n.trees=500, type="response");
+categorias.gbm6.pred <- predict(categorias.gbm6, newdata=dadosTest, n.trees=500, type="response");
+categorias.gbm7.pred <- predict(categorias.gbm7, newdata=dadosTest, n.trees=5000, type="response");
+categorias.gbm8.pred <- predict(categorias.gbm8, newdata=dadosTest, n.trees=5000, type="response");
+categorias.gbm9.pred <- predict(categorias.gbm9, newdata=dadosTest, n.trees=5000, type="response");
+categorias.gbm10.pred <- predict(categorias.gbm10, newdata=dadosTest, n.trees=5000, type="response");
 
 categorias.gbm1.pred <- revalue(categorias[max.col(data.frame(categorias.gbm1.pred))], conv.lst, warn_missing = FALSE); 
 categorias.gbm2.pred <- revalue(categorias[max.col(data.frame(categorias.gbm2.pred))], conv.lst, warn_missing = FALSE); 
 categorias.gbm3.pred <- revalue(categorias[max.col(data.frame(categorias.gbm3.pred))], conv.lst, warn_missing = FALSE); 
 categorias.gbm4.pred <- revalue(categorias[max.col(data.frame(categorias.gbm4.pred))], conv.lst, warn_missing = FALSE); 
+categorias.gbm5.pred <- revalue(categorias[max.col(data.frame(categorias.gbm5.pred))], conv.lst, warn_missing = FALSE); 
+categorias.gbm6.pred <- revalue(categorias[max.col(data.frame(categorias.gbm6.pred))], conv.lst, warn_missing = FALSE); 
+categorias.gbm7.pred <- revalue(categorias[max.col(data.frame(categorias.gbm7.pred))], conv.lst, warn_missing = FALSE); 
+categorias.gbm8.pred <- revalue(categorias[max.col(data.frame(categorias.gbm8.pred))], conv.lst, warn_missing = FALSE); 
+categorias.gbm9.pred <- revalue(categorias[max.col(data.frame(categorias.gbm9.pred))], conv.lst, warn_missing = FALSE); 
+categorias.gbm10.pred <- revalue(categorias[max.col(data.frame(categorias.gbm10.pred))], conv.lst, warn_missing = FALSE); 
 
 #------ classificando por menor distancia ---------#
 
@@ -280,6 +296,8 @@ table(categorias.gbm1.pred, categorias_ref)
 table(categorias.gbm2.pred, categorias_ref)
 table(categorias.gbm3.pred, categorias_ref)
 table(categorias.gbm4.pred, categorias_ref)
+table(categorias.gbm5.pred, categorias_ref)
+table(categorias.gbm6.pred, categorias_ref)
 
 mean(categorias.dtw.pred == categorias_ref)
 mean(categorias.lda.pred == categorias_ref)
@@ -307,6 +325,8 @@ mean(categorias.gbm1.pred == categorias_ref)
 mean(categorias.gbm2.pred == categorias_ref)
 mean(categorias.gbm3.pred == categorias_ref)
 mean(categorias.gbm4.pred == categorias_ref)
+mean(categorias.gbm5.pred == categorias_ref)
+mean(categorias.gbm6.pred == categorias_ref)
 
 #----------------------------------------------------------------------------#
 #---- the end                                                            ----#
