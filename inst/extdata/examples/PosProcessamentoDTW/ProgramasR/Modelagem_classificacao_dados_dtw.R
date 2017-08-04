@@ -65,6 +65,9 @@ conv.lst <- c("Fallow_Cotton"  = "Cotton",
                  "Pasture2" = "Pasture",
                  "Forest"   = "Forest")
 
+categorias_relabeled <- labels(table(revalue(dados_originais$ref, conv.lst, warn_missing = FALSE)))[[1]];
+categorias_relabeled
+
 dados <- dados[,colnames(dados) %in% c('ref', categorias, colunas_classes)]
 dados <- rename(dados, c('ref'='categoria'))
 
@@ -222,7 +225,7 @@ categorias.rfore3.pred <- revalue(predict(categorias.rfore3, newdata = xTest, ty
 categorias.gbm1.pred <- predict(categorias.gbm1, newdata=dadosTest, n.trees=500, type="response");
 categorias.gbm2.pred <- predict(categorias.gbm2, newdata=dadosTest, n.trees=500, type="response");
 
-categorias.gbm1.pred <- revalue(categorias[factor(max.col(data.frame(categorias.gbm1.pred)))], conv.lst, warn_missing = FALSE); 
+categorias.gbm1.pred <- revalue(categorias[max.col(data.frame(categorias.gbm1.pred))], conv.lst, warn_missing = FALSE); 
 categorias.gbm2.pred <- revalue(categorias[max.col(data.frame(categorias.gbm2.pred))], conv.lst, warn_missing = FALSE); 
 
 #------ classificando por menor distancia ---------#
@@ -248,7 +251,32 @@ categorias.dtw.pred <- revalue(categorias.dtw.pred, conv.lst, warn_missing = F)
 
 #---- avaliando performance
 
-categorias_ref <- revalue(factor(dadosTest$categoria), conv.lst, warn_missing = F)
+categorias_ref <- factor(revalue(factor(dadosTest$categoria), conv.lst, warn_missing = F), 
+                         labels = categorias_relabeled)
+
+# categorias.dtw.pred <- factor(categorias.dtw.pred, labels = categorias_relabeled)
+# categorias.lda.pred <- factor(categorias.lda.pred, labels = categorias_relabeled)
+# #categorias.qda.pred <- factor(categorias.qda.pred, labels = categorias_relabeled)
+# categorias.mlr.pred <- factor(categorias.mlr.pred, labels = categorias_relabeled)
+# categorias.svm1.pred <- factor(categorias.svm1.pred, labels = categorias_relabeled)
+# categorias.svm2.pred <- factor(categorias.svm2.pred, labels = categorias_relabeled)
+# categorias.svm3.pred <- factor(categorias.svm3.pred, labels = categorias_relabeled)
+# categorias.svm4.pred <- factor(categorias.svm4.pred, labels = categorias_relabeled)
+# categorias.svm5.pred <- factor(categorias.svm5.pred, labels = categorias_relabeled)
+# categorias.svm6.pred <- factor(categorias.svm6.pred, labels = categorias_relabeled)
+# categorias.svm7.pred <- factor(categorias.svm7.pred, labels = categorias_relabeled)
+# categorias.svm8.pred <- factor(categorias.svm8.pred, labels = categorias_relabeled)
+# 
+# categorias.lasso.pred <- factor(categorias.lasso.pred, labels = categorias_relabeled)
+# categorias.ridge.pred <- factor(categorias.ridge.pred, labels = categorias_relabeled)
+# categorias.elnet.pred <- factor(categorias.elnet.pred, labels = categorias_relabeled)
+# 
+# categorias.rfore1.pred <- factor(categorias.rfore1.pred, labels = categorias_relabeled)
+# categorias.rfore2.pred <- factor(categorias.rfore2.pred, labels = categorias_relabeled)
+# categorias.rfore3.pred <- factor(categorias.rfore3.pred, labels = categorias_relabeled)
+# 
+# categorias.gbm1.pred <- factor(categorias.gbm1.pred, labels = categorias_relabeled)
+# categorias.gbm2.pred <- factor(categorias.gbm2.pred, labels = categorias_relabeled)
 
 table(categorias.dtw.pred, categorias_ref)
 table(categorias.lda.pred, categorias_ref)
