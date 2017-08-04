@@ -1,5 +1,6 @@
 
-#install.packages(c('graphics', 'MASS', 'plyr', 'caret', 'e1071', 'glmnet', 'randomForest'))
+#install.packages(c('graphics', 'MASS', 'plyr', 'caret', 'e1071', 'glmnet', 
+#                   'randomForest', 'neuralnet '))
 
 library(graphics);
 library(MASS);
@@ -9,12 +10,14 @@ library(nnet);
 library(e1071);
 library(glmnet);
 library(randomForest);
+library(neuralnet);
+library(nnet);
 
 rm(list=ls());
 
 #--------- creating data ----------#
 
-dir_base <- "D:\\Alex\\Pesquisa\\LandUseChange\\IIASA_GLOBIOM\\SITS\\PosProcessamentoDTW"
+dir_base <- "D:\\Alex\\Pesquisa\\LandUseChange\\IIASA_GLOBIOM\\SITS\\inst\\extdata\\examples\\PosProcessamentoDTW"
 dir_dados <- paste0(dir_base, "\\Dados");
 dir_prog <- paste0(dir_base, "\\ProgramasR")
 
@@ -40,6 +43,11 @@ table(dados$ref)
 categorias <- labels(table(dados$ref))[[1]]
 categorias
 
+ynn <- class.ind(as.factor(dados$ref))
+colunas_classes <- paste0('l', 1:length(categorias))
+colnames(ynn) <- colunas_classes
+dados <- cbind(dados, ynn)
+
 conv.lst <- c("Fallow_Cotton"  = "Cotton",
                  "NonComerc_Cotton" = "Cotton",
                  "Pasture2" = "Pasture",
@@ -56,24 +64,14 @@ conv.lst <- c("Fallow_Cotton"  = "Cotton",
                  "Pasture2" = "Pasture",
                  "Forest"   = "Forest")
 
-# categorias_relabel <- categorias
-# categorias_relabel[2] <- 'Cotton'
-# categorias_relabel[4] <- 'Cotton'
-# categorias_relabel[5] <- 'Pasture'
-# categorias_relabel[6] <- 'Pasture'
-# categorias_relabel[7] <- 'Double_Cropping'
-# categorias_relabel[8] <- 'Double_Cropping'
-# categorias_relabel[10] <- 'Single_Cropping'
-# categorias_relabel[11] <- 'Single_Cropping'
-# categorias_relabel[12] <- 'Double_Cropping'
-# categorias_relabel[13] <- 'Double_Cropping'
-# categorias_relabel[14] <- 'Pasture'
-# 
-# dt.relabel <- data.frame(categoria = categorias, cat_agregada = categorias_relabel)
-# dt.relabel
-
 dados <- dados[,colnames(dados) %in% c('ref', categorias)]
 dados <- rename(dados, c('ref'='categoria'))
+
+dados$categorianum <- 0
+for (i in 1:length(categorias)) { dados[dados$categoria == categorias[i],'categorianum'] <-  i}
+
+table(dados$categoria)
+table(dados$categorianum)
 
 #------ splitting samples ---------#
 
@@ -87,11 +85,14 @@ dadosTest  <- dados[-trainIndex,]
 
 #-------- definindo os modelos --------------#
 
-# formula1 <- categoria ~ log(Cerrado) + log(Forest) + log(NonComerc_Cotton) +
-#                         log(Pasture) + log(Soybean_Comerc2) + log(Soybean_Cotton) +
-#                         log(Soybean_Fallow2) + log(Soybean_NonComerc1);
+formula1 <- factor(categoria) ~ log(Cerrado) + log(Fallow_Cotton) + log(Forest) +
+                                log(NonComerc_Cotton) + log(Pasture) + log(Pasture2) +
+                                log(Soybean_Comerc1) + log(Soybean_Comerc2) +
+                                log(Soybean_Cotton) + log(Soybean_Fallow1) +
+                                log(Soybean_Fallow2) + log(Soybean_NonComerc1) +
+                                log(Soybean_NonComerc2) + log(Soybean_Pasture) + log(Water);
 
-formula1 <- categoria ~ log(Cerrado) + log(Fallow_Cotton) + log(Forest) +
+formula2 <- categorianum ~ log(Cerrado) + log(Fallow_Cotton) + log(Forest) +
                         log(NonComerc_Cotton) + log(Pasture) + log(Pasture2) +
                         log(Soybean_Comerc1) + log(Soybean_Comerc2) +
                         log(Soybean_Cotton) + log(Soybean_Fallow1) +
@@ -100,9 +101,6 @@ formula1 <- categoria ~ log(Cerrado) + log(Fallow_Cotton) + log(Forest) +
 
 yTrain <- data.matrix(dadosTrain[,1])
 yTest <-  data.matrix(dadosTest[,1])
-
-# xTrain <- log(data.matrix(dadosTrain[,c(2,3,4,5,6,7,8,9)]))
-# xTest <-   log(data.matrix(dadosTest[,c(2,3,4,5,6,7,8,9)]))
 
 xTrain <- log(data.matrix(dadosTrain[,c(2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)]))
 xTest <-   log(data.matrix(dadosTest[,c(2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)]))
@@ -122,15 +120,39 @@ categorias.svm6 <- svm(formula1, data=dadosTrain, kernel = "linear", type="C-cla
 categorias.svm7 <- svm(formula1, data=dadosTrain, kernel = "polynomial", type="C-classification", epsilon = 0.1, cost = 200)
 categorias.svm8 <- svm(formula1, data=dadosTrain, kernel = "sigmoid", type="C-classification", epsilon = 0.1, cost = 200)
 
-categorias.lasso <- cv.glmnet(y = yTrain, x = xTrain, family="multinomial", alpha=1)
-categorias.ridge <- cv.glmnet(y = yTrain, x = xTrain, family="multinomial", alpha=0)
-categorias.elnet <- cv.glmnet(y = yTrain, x = xTrain, family="multinomial", alpha=.5)
-
-# categorias.rfore <- randomForest(y = yTrain, x = xTrain, data=NULL, ntree=50, norm.votes=FALSE)
+categorias.lasso <- cv.glmnet(y = factor(yTrain), x = xTrain, family="multinomial", alpha=1)
+categorias.ridge <- cv.glmnet(y = factor(yTrain), x = xTrain, family="multinomial", alpha=0)
+categorias.elnet <- cv.glmnet(y = factor(yTrain), x = xTrain, family="multinomial", alpha=.5)
 
 categorias.lasso$lambda.min
 categorias.ridge$lambda.min
 categorias.elnet$lambda.min
+
+categorias.rfore1 <- randomForest(y = factor(yTrain), x = xTrain, data=NULL, ntree=50, norm.votes=FALSE)
+categorias.rfore2 <- randomForest(y = factor(yTrain), x = xTrain, data=NULL, ntree=200, norm.votes=FALSE)
+categorias.rfore3 <- randomForest(y = factor(yTrain), x = xTrain, data=NULL, ntree=1000, norm.votes=FALSE)
+
+
+
+
+
+categorias.nenet1 <- neuralnet(formula2, data = dadosTrain, 
+                               hidden = c(13, 10, 3), act.fct = "logistic", 
+                               linear.output = F)
+
+categorias.nenet1
+
+categorias.nenet1.pred <- compute(categorias.nenet1, covariate = xTest)
+categorias.nenet1.pred <- compute(categorias.nenet1, covariate = xTrain)
+
+original_values <- max.col(categorias.nenet1.pred$net.result)
+original_values1 <- categorias.nenet1.pred$net.result
+
+
+
+categorias.rfore1
+categorias.rfore2
+categorias.rfore3
 
 categorias.lda
 #categorias.qda
@@ -142,6 +164,9 @@ categorias.svm4
 summary(categorias.lasso)
 summary(categorias.ridge)
 summary(categorias.elnet)
+
+#----------- predicting with neural networks 
+
 
 categorias.lda.pred <- revalue(predict(categorias.lda, newdata = dadosTest)$class, conv.lst, warn_missing = FALSE);
 #categorias.qda.pred <- revalue(predict(categorias.qda, newdata = dadosTest)$class, conv.lst, warn_missing = FALSE);
@@ -160,6 +185,9 @@ categorias.lasso.pred <- revalue(factor(predict(categorias.lasso, s=categorias.l
 categorias.ridge.pred <- revalue(factor(predict(categorias.ridge, s=categorias.ridge$lambda.min, newx=xTest, type='class')), conv.lst, warn_missing = FALSE);
 categorias.elnet.pred <- revalue(factor(predict(categorias.elnet, s=categorias.elnet$lambda.min, newx=xTest, type='class')), conv.lst, warn_missing = FALSE);
 
+categorias.rfore1.pred <- revalue(predict(categorias.rfore1, newdata = xTest, type = 'response'), conv.lst, warn_missing = FALSE); 
+categorias.rfore2.pred <- revalue(predict(categorias.rfore2, newdata = xTest, type = 'response'), conv.lst, warn_missing = FALSE); 
+categorias.rfore3.pred <- revalue(predict(categorias.rfore3, newdata = xTest, type = 'response'), conv.lst, warn_missing = FALSE); 
 
 #------ classificando por menor distancia ---------#
 
@@ -203,10 +231,11 @@ table(categorias.svm8.pred, categorias_ref)
 table(categorias.lasso.pred, categorias_ref)
 table(categorias.ridge.pred, categorias_ref)
 table(categorias.elnet.pred, categorias_ref)
+table(categorias.rfore.pred, categorias_ref)
 
 sum(diag(table(categorias.dtw.pred, categorias_ref))) / nrow(dadosTest)
 sum(diag(table(categorias.lda.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.qda.pred, categorias_ref))) / nrow(dadosTest)
+#sum(diag(table(categorias.qda.pred, categorias_ref))) / nrow(dadosTest)
 sum(diag(table(categorias.mlr.pred, categorias_ref))) / nrow(dadosTest)
 
 sum(diag(table(categorias.svm1.pred, categorias_ref))) / nrow(dadosTest)
@@ -221,6 +250,10 @@ sum(diag(table(categorias.svm8.pred, categorias_ref))) / nrow(dadosTest)
 sum(diag(table(categorias.lasso.pred, categorias_ref))) / nrow(dadosTest)
 sum(diag(table(categorias.ridge.pred, categorias_ref))) / nrow(dadosTest)
 sum(diag(table(categorias.elnet.pred, categorias_ref))) / nrow(dadosTest)
+
+sum(diag(table(categorias.rfore1.pred, categorias_ref))) / nrow(dadosTest)
+sum(diag(table(categorias.rfore2.pred, categorias_ref))) / nrow(dadosTest)
+sum(diag(table(categorias.rfore3.pred, categorias_ref))) / nrow(dadosTest)
 
 #----------------------------------------------------------------------------#
 #---- the end                                                            ----#
