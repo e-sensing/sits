@@ -106,13 +106,6 @@ formula1
 formula2 <- as.formula(paste("categorianum ~ ", paste(lognomes, collapse = " + ")));
 formula2
 
-formula2 <- categorianum ~ log(Cerrado) + log(Fallow_Cotton) + log(Forest) +
-                        log(NonComerc_Cotton) + log(Pasture) + log(Pasture2) +
-                        log(Soybean_Comerc1) + log(Soybean_Comerc2) +
-                        log(Soybean_Cotton) + log(Soybean_Fallow1) +
-                        log(Soybean_Fallow2) + log(Soybean_NonComerc1) +
-                        log(Soybean_NonComerc2) + log(Soybean_Pasture) + log(Water);
-
 yTrain <- data.matrix(dadosTrain[,1])
 yTest <-  data.matrix(dadosTest[,1])
 
@@ -229,7 +222,7 @@ categorias.rfore3.pred <- revalue(predict(categorias.rfore3, newdata = xTest, ty
 categorias.gbm1.pred <- predict(categorias.gbm1, newdata=dadosTest, n.trees=500, type="response");
 categorias.gbm2.pred <- predict(categorias.gbm2, newdata=dadosTest, n.trees=500, type="response");
 
-categorias.gbm1.pred <- revalue(categorias[max.col(data.frame(categorias.gbm1.pred))], conv.lst, warn_missing = FALSE); 
+categorias.gbm1.pred <- revalue(categorias[factor(max.col(data.frame(categorias.gbm1.pred)))], conv.lst, warn_missing = FALSE); 
 categorias.gbm2.pred <- revalue(categorias[max.col(data.frame(categorias.gbm2.pred))], conv.lst, warn_missing = FALSE); 
 
 #------ classificando por menor distancia ---------#
@@ -303,6 +296,9 @@ sum(diag(table(categorias.elnet.pred, categorias_ref))) / nrow(dadosTest)
 sum(diag(table(categorias.rfore1.pred, categorias_ref))) / nrow(dadosTest)
 sum(diag(table(categorias.rfore2.pred, categorias_ref))) / nrow(dadosTest)
 sum(diag(table(categorias.rfore3.pred, categorias_ref))) / nrow(dadosTest)
+
+sum(diag(table(categorias.gbm1.pred, categorias_ref))) / nrow(dadosTest)
+sum(diag(table(categorias.gbm2.pred, categorias_ref))) / nrow(dadosTest)
 
 #----------------------------------------------------------------------------#
 #---- the end                                                            ----#
