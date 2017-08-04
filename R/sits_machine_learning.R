@@ -39,23 +39,7 @@ sits_train <- function(data.tb, model_class, ...){
      colunas_classes <- paste0('l', 1:length(categorias))
      colnames(ynn) <- colunas_classes
      dados <- cbind(dados, ynn)
-     
-     conv.lst <- c("Fallow_Cotton"  = "Cotton",
-                   "NonComerc_Cotton" = "Cotton",
-                   "Pasture2" = "Pasture",
-                   "Soybean_Comerc1" = "Double_Cropping",
-                   "Soybean_Comerc2" = "Double_Cropping",
-                   "Soybean_Cotton" = "Soybean_Cotton",
-                   "Soybean_Fallow1" = "Single_Cropping", 
-                   "Soybean_Fallow2" = "Single_Cropping", 
-                   "Soybean_NonComerc1" = "Double_Cropping",
-                   "Soybean_NonComerc2" = "Double_Cropping",
-                   "Soybean_Pasture" = "Pasture",
-                   "Water" = "Water",
-                   "Cerrado" = "Cerrado",
-                   "Pasture2" = "Pasture",
-                   "Forest"   = "Forest")
-     
+
      dados <- dados[,colnames(dados) %in% c('reference', categorias, colunas_classes)]
      dados <- rename(dados, c('reference'='categoria'))
      
