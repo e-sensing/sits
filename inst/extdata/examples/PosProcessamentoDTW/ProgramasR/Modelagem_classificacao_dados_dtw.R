@@ -1,6 +1,6 @@
 
 #install.packages(c('graphics', 'MASS', 'plyr', 'caret', 'e1071', 'glmnet', 
-#                   'randomForest', 'neuralnet '))
+#                   'randomForest', 'neuralnet', 'gbm'))
 
 library(graphics);
 library(MASS);
@@ -12,6 +12,7 @@ library(glmnet);
 library(randomForest);
 library(neuralnet);
 library(nnet);
+library(gbm);
 
 rm(list=ls());
 
@@ -85,23 +86,25 @@ dadosTest  <- dados[-trainIndex,]
 
 #-------- definindo os modelos --------------#
 
-n <- names(dados)
-logn <- paste0('log(', n[!n %in% c('categoria', 'categorianum', colunas_classes)], ')'); logn
-f1 <- as.formula(paste("l1 + l2 + l3 ~", 
-                       paste(logn[!logn %in% c("l1","l2","l3")], collapse = " + ")))
-f1
+nomes <- names(dados)
+lognomes <- paste0('log(', nomes[!nomes %in% c('categoria', 'categorianum', colunas_classes)], ')'); 
+paste(lognomes, collapse = " + ")
 
-f1 <- as.formula(paste(paste(colunas_classes, collapse = " + "), 
-                       "l1 + l2 + l3 ~", 
-                       paste(logn[!logn %in% c("l1","l2","l3")], collapse = " + ")))
-f1
+orinomes <- paste0(nomes[!nomes %in% c('categoria', 'categorianum', colunas_classes)]); 
+paste(orinomes, collapse = " + ")
 
-formula1 <- factor(categoria) ~ log(Cerrado) + log(Fallow_Cotton) + log(Forest) +
-                                log(NonComerc_Cotton) + log(Pasture) + log(Pasture2) +
-                                log(Soybean_Comerc1) + log(Soybean_Comerc2) +
-                                log(Soybean_Cotton) + log(Soybean_Fallow1) +
-                                log(Soybean_Fallow2) + log(Soybean_NonComerc1) +
-                                log(Soybean_NonComerc2) + log(Soybean_Pasture) + log(Water);
+yneunets <- paste0(nomes[!nomes %in% c('categoria', 'categorianum', categorias)]); 
+paste(yneunets, collapse = " + ")
+
+formulann <- as.formula(paste0(paste(yneunets, collapse = " + "), " ~ ",
+                        paste(orinomes, collapse = " + ")));
+formulann
+
+formula1 <- as.formula(paste("factor(categoria) ~ ", paste(lognomes, collapse = " + ")));
+formula1
+
+formula2 <- as.formula(paste("categorianum ~ ", paste(lognomes, collapse = " + ")));
+formula2
 
 formula2 <- categorianum ~ log(Cerrado) + log(Fallow_Cotton) + log(Forest) +
                         log(NonComerc_Cotton) + log(Pasture) + log(Pasture2) +
@@ -113,10 +116,42 @@ formula2 <- categorianum ~ log(Cerrado) + log(Fallow_Cotton) + log(Forest) +
 yTrain <- data.matrix(dadosTrain[,1])
 yTest <-  data.matrix(dadosTest[,1])
 
-xTrain <- log(data.matrix(dadosTrain[,c(2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)]))
-xTest <-   log(data.matrix(dadosTest[,c(2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)]))
+xTrain <- log(data.matrix(dadosTrain[,c(2:(length(categorias)+1))]))
+xTest <-   log(data.matrix(dadosTest[,c(2:(length(categorias)+1))]))
 
 #-------- rodando os modelos --------------#
+
+
+
+
+
+
+
+categorias.nenet1 <- neuralnet(formulann, data = dadosTrain, 
+                               hidden = 1, 
+                               act.fct = "logistic", 
+                               linear.output = F)
+categorias.nenet1
+summary(categorias.nenet1)
+
+categorias.nenet1.pred <- compute(categorias.nenet1, covariate = xTest)
+pr.nn_ <- categorias.nenet1.pred$net.result
+head(pr.nn_)
+pr.nn_2 <- max.col(pr.nn_)
+head(pr.nn_2)
+
+original_values <- max.col(dadosTrain[, 17:31])
+
+categorias.nenet1.pred$net.result
+
+original_values <- max.col(categorias.nenet1.pred$net.result)
+original_values1 <- categorias.nenet1.pred$net.result
+
+
+
+
+
+
 
 categorias.lda <- lda(formula1, data=dadosTrain)
 #categorias.qda <- qda(formula1, data=dadosTrain)
@@ -143,21 +178,12 @@ categorias.rfore1 <- randomForest(y = factor(yTrain), x = xTrain, data=NULL, ntr
 categorias.rfore2 <- randomForest(y = factor(yTrain), x = xTrain, data=NULL, ntree=200, norm.votes=FALSE)
 categorias.rfore3 <- randomForest(y = factor(yTrain), x = xTrain, data=NULL, ntree=1000, norm.votes=FALSE)
 
+categorias.gbm1 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=500,interaction.depth=4)
+categorias.gbm2 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=500,interaction.depth=6)
 
 
 
 
-categorias.nenet1 <- neuralnet(formula2, data = dadosTrain, 
-                               hidden = c(13, 10, 3), act.fct = "logistic", 
-                               linear.output = F)
-
-categorias.nenet1
-
-categorias.nenet1.pred <- compute(categorias.nenet1, covariate = xTest)
-categorias.nenet1.pred <- compute(categorias.nenet1, covariate = xTrain)
-
-original_values <- max.col(categorias.nenet1.pred$net.result)
-original_values1 <- categorias.nenet1.pred$net.result
 
 
 
@@ -199,6 +225,12 @@ categorias.elnet.pred <- revalue(factor(predict(categorias.elnet, s=categorias.e
 categorias.rfore1.pred <- revalue(predict(categorias.rfore1, newdata = xTest, type = 'response'), conv.lst, warn_missing = FALSE); 
 categorias.rfore2.pred <- revalue(predict(categorias.rfore2, newdata = xTest, type = 'response'), conv.lst, warn_missing = FALSE); 
 categorias.rfore3.pred <- revalue(predict(categorias.rfore3, newdata = xTest, type = 'response'), conv.lst, warn_missing = FALSE); 
+
+categorias.gbm1.pred <- predict(categorias.gbm1, newdata=dadosTest, n.trees=500, type="response");
+categorias.gbm2.pred <- predict(categorias.gbm2, newdata=dadosTest, n.trees=500, type="response");
+
+categorias.gbm1.pred <- revalue(categorias[max.col(data.frame(categorias.gbm1.pred))], conv.lst, warn_missing = FALSE); 
+categorias.gbm2.pred <- revalue(categorias[max.col(data.frame(categorias.gbm2.pred))], conv.lst, warn_missing = FALSE); 
 
 #------ classificando por menor distancia ---------#
 
@@ -242,7 +274,13 @@ table(categorias.svm8.pred, categorias_ref)
 table(categorias.lasso.pred, categorias_ref)
 table(categorias.ridge.pred, categorias_ref)
 table(categorias.elnet.pred, categorias_ref)
-table(categorias.rfore.pred, categorias_ref)
+
+table(categorias.rfore1.pred, categorias_ref)
+table(categorias.rfore2.pred, categorias_ref)
+table(categorias.rfore3.pred, categorias_ref)
+
+table(categorias.gbm1.pred, categorias_ref)
+table(categorias.gbm2.pred, categorias_ref)
 
 sum(diag(table(categorias.dtw.pred, categorias_ref))) / nrow(dadosTest)
 sum(diag(table(categorias.lda.pred, categorias_ref))) / nrow(dadosTest)

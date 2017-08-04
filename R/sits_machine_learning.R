@@ -10,7 +10,7 @@
 #' @param data.tb a SITS tibble time series 
 #' 
 #' @export
-sits_train <- function(data.tb, models = "", ...){
+sits_train <- function(data.tb, models = c("svm", "random forests", "lda"), ...){
 
      # Create temporal patterns 
      patterns.tb <- sits_patterns(data.tb, ...)
