@@ -73,6 +73,7 @@ Collate:
     'sits_WTSS.R'
     'sits_assessment.R'
     'sits_cluster.R'
+    'sits_colors.R'
     'sits_filters.R'
     'sits_getdata.R'
     'sits_init.R'

@@ -14,7 +14,7 @@ sits_plot_dendrogram(data.tb, cluster_obj = NULL, cutree_height = NULL,
 
 \item{cutree_height}{A dashed horizontal line to be drawed indicating the height of dendrogram cutting.}
 
-\item{colors}{a color scheme as showed in `.sits_brewerMatchNames` function}
+\item{colors}{a color scheme as showed in `sits_color_name` function}
 
 \item{...}{Other parameters to be passed to graphics::plot() function}
 }
