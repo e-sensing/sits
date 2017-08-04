@@ -64,7 +64,7 @@ conv.lst <- c("Fallow_Cotton"  = "Cotton",
                  "Pasture2" = "Pasture",
                  "Forest"   = "Forest")
 
-dados <- dados[,colnames(dados) %in% c('ref', categorias)]
+dados <- dados[,colnames(dados) %in% c('ref', categorias, colunas_classes)]
 dados <- rename(dados, c('ref'='categoria'))
 
 dados$categorianum <- 0
@@ -84,6 +84,17 @@ dadosTrain <- dados[ trainIndex,]
 dadosTest  <- dados[-trainIndex,]
 
 #-------- definindo os modelos --------------#
+
+n <- names(dados)
+logn <- paste0('log(', n[!n %in% c('categoria', 'categorianum', colunas_classes)], ')'); logn
+f1 <- as.formula(paste("l1 + l2 + l3 ~", 
+                       paste(logn[!logn %in% c("l1","l2","l3")], collapse = " + ")))
+f1
+
+f1 <- as.formula(paste(paste(colunas_classes, collapse = " + "), 
+                       "l1 + l2 + l3 ~", 
+                       paste(logn[!logn %in% c("l1","l2","l3")], collapse = " + ")))
+f1
 
 formula1 <- factor(categoria) ~ log(Cerrado) + log(Fallow_Cotton) + log(Forest) +
                                 log(NonComerc_Cotton) + log(Pasture) + log(Pasture2) +
