@@ -121,27 +121,27 @@ xTest <-   log(data.matrix(dadosTest[,c(2:(length(categorias)+1))]))
 
 
 
+# https://www.r-bloggers.com/multilabel-classification-with-neuralnet-package/
 
-
-categorias.nenet1 <- neuralnet(formulann, data = dadosTrain, 
-                               hidden = 1, 
-                               act.fct = "logistic", 
-                               linear.output = F)
-categorias.nenet1
-summary(categorias.nenet1)
-
-categorias.nenet1.pred <- compute(categorias.nenet1, covariate = xTest)
-pr.nn_ <- categorias.nenet1.pred$net.result
-head(pr.nn_)
-pr.nn_2 <- max.col(pr.nn_)
-head(pr.nn_2)
-
-original_values <- max.col(dadosTrain[, 17:31])
-
-categorias.nenet1.pred$net.result
-
-original_values <- max.col(categorias.nenet1.pred$net.result)
-original_values1 <- categorias.nenet1.pred$net.result
+# categorias.nenet1 <- neuralnet(formulann, data = dadosTrain, 
+#                                hidden = 1, 
+#                                act.fct = "logistic", 
+#                                linear.output = F)
+# categorias.nenet1
+# summary(categorias.nenet1)
+# 
+# categorias.nenet1.pred <- compute(categorias.nenet1, covariate = xTest)
+# pr.nn_ <- categorias.nenet1.pred$net.result
+# head(pr.nn_)
+# pr.nn_2 <- max.col(pr.nn_)
+# head(pr.nn_2)
+# 
+# original_values <- max.col(dadosTrain[, 17:31])
+# 
+# categorias.nenet1.pred$net.result
+# 
+# original_values <- max.col(categorias.nenet1.pred$net.result)
+# original_values1 <- categorias.nenet1.pred$net.result
 
 
 
@@ -176,12 +176,10 @@ categorias.rfore3 <- randomForest(y = factor(yTrain), x = xTrain, data=NULL, ntr
 
 categorias.gbm1 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=500,interaction.depth=4)
 categorias.gbm2 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=500,interaction.depth=6)
-
-
-
-
-
-
+categorias.gbm3 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=500,interaction.depth=10)
+categorias.gbm4 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=500,interaction.depth=15)
+categorias.gbm5 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=500,interaction.depth=20)
+categorias.gbm6 <- gbm(formula1, data=dadosTrain, distribution="multinomial", n.trees=500,interaction.depth=30)
 
 categorias.rfore1
 categorias.rfore2
@@ -198,8 +196,7 @@ summary(categorias.lasso)
 summary(categorias.ridge)
 summary(categorias.elnet)
 
-#----------- predicting with neural networks 
-
+#----------- predicting classes 
 
 categorias.lda.pred <- revalue(predict(categorias.lda, newdata = dadosTest)$class, conv.lst, warn_missing = FALSE);
 #categorias.qda.pred <- revalue(predict(categorias.qda, newdata = dadosTest)$class, conv.lst, warn_missing = FALSE);
@@ -224,9 +221,13 @@ categorias.rfore3.pred <- revalue(predict(categorias.rfore3, newdata = xTest, ty
 
 categorias.gbm1.pred <- predict(categorias.gbm1, newdata=dadosTest, n.trees=500, type="response");
 categorias.gbm2.pred <- predict(categorias.gbm2, newdata=dadosTest, n.trees=500, type="response");
+categorias.gbm3.pred <- predict(categorias.gbm3, newdata=dadosTest, n.trees=500, type="response");
+categorias.gbm4.pred <- predict(categorias.gbm4, newdata=dadosTest, n.trees=500, type="response");
 
 categorias.gbm1.pred <- revalue(categorias[max.col(data.frame(categorias.gbm1.pred))], conv.lst, warn_missing = FALSE); 
 categorias.gbm2.pred <- revalue(categorias[max.col(data.frame(categorias.gbm2.pred))], conv.lst, warn_missing = FALSE); 
+categorias.gbm3.pred <- revalue(categorias[max.col(data.frame(categorias.gbm3.pred))], conv.lst, warn_missing = FALSE); 
+categorias.gbm4.pred <- revalue(categorias[max.col(data.frame(categorias.gbm4.pred))], conv.lst, warn_missing = FALSE); 
 
 #------ classificando por menor distancia ---------#
 
@@ -251,32 +252,7 @@ categorias.dtw.pred <- revalue(categorias.dtw.pred, conv.lst, warn_missing = F)
 
 #---- avaliando performance
 
-categorias_ref <- factor(revalue(factor(dadosTest$categoria), conv.lst, warn_missing = F), 
-                         labels = categorias_relabeled)
-
-# categorias.dtw.pred <- factor(categorias.dtw.pred, labels = categorias_relabeled)
-# categorias.lda.pred <- factor(categorias.lda.pred, labels = categorias_relabeled)
-# #categorias.qda.pred <- factor(categorias.qda.pred, labels = categorias_relabeled)
-# categorias.mlr.pred <- factor(categorias.mlr.pred, labels = categorias_relabeled)
-# categorias.svm1.pred <- factor(categorias.svm1.pred, labels = categorias_relabeled)
-# categorias.svm2.pred <- factor(categorias.svm2.pred, labels = categorias_relabeled)
-# categorias.svm3.pred <- factor(categorias.svm3.pred, labels = categorias_relabeled)
-# categorias.svm4.pred <- factor(categorias.svm4.pred, labels = categorias_relabeled)
-# categorias.svm5.pred <- factor(categorias.svm5.pred, labels = categorias_relabeled)
-# categorias.svm6.pred <- factor(categorias.svm6.pred, labels = categorias_relabeled)
-# categorias.svm7.pred <- factor(categorias.svm7.pred, labels = categorias_relabeled)
-# categorias.svm8.pred <- factor(categorias.svm8.pred, labels = categorias_relabeled)
-# 
-# categorias.lasso.pred <- factor(categorias.lasso.pred, labels = categorias_relabeled)
-# categorias.ridge.pred <- factor(categorias.ridge.pred, labels = categorias_relabeled)
-# categorias.elnet.pred <- factor(categorias.elnet.pred, labels = categorias_relabeled)
-# 
-# categorias.rfore1.pred <- factor(categorias.rfore1.pred, labels = categorias_relabeled)
-# categorias.rfore2.pred <- factor(categorias.rfore2.pred, labels = categorias_relabeled)
-# categorias.rfore3.pred <- factor(categorias.rfore3.pred, labels = categorias_relabeled)
-# 
-# categorias.gbm1.pred <- factor(categorias.gbm1.pred, labels = categorias_relabeled)
-# categorias.gbm2.pred <- factor(categorias.gbm2.pred, labels = categorias_relabeled)
+categorias_ref <- revalue(factor(dadosTest$categoria), conv.lst, warn_missing = F)
 
 table(categorias.dtw.pred, categorias_ref)
 table(categorias.lda.pred, categorias_ref)
@@ -302,31 +278,35 @@ table(categorias.rfore3.pred, categorias_ref)
 
 table(categorias.gbm1.pred, categorias_ref)
 table(categorias.gbm2.pred, categorias_ref)
+table(categorias.gbm3.pred, categorias_ref)
+table(categorias.gbm4.pred, categorias_ref)
 
-sum(diag(table(categorias.dtw.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.lda.pred, categorias_ref))) / nrow(dadosTest)
-#sum(diag(table(categorias.qda.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.mlr.pred, categorias_ref))) / nrow(dadosTest)
+mean(categorias.dtw.pred == categorias_ref)
+mean(categorias.lda.pred == categorias_ref)
+#mean(categorias.qda.pred == categorias_ref)
+mean(categorias.mlr.pred == categorias_ref)
 
-sum(diag(table(categorias.svm1.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.svm2.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.svm3.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.svm4.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.svm5.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.svm6.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.svm7.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.svm8.pred, categorias_ref))) / nrow(dadosTest)
+mean(categorias.svm1.pred == categorias_ref)
+mean(categorias.svm2.pred == categorias_ref)
+mean(categorias.svm3.pred == categorias_ref)
+mean(categorias.svm4.pred == categorias_ref)
+mean(categorias.svm5.pred == categorias_ref)
+mean(categorias.svm6.pred == categorias_ref)
+mean(categorias.svm7.pred == categorias_ref)
+mean(categorias.svm8.pred == categorias_ref)
 
-sum(diag(table(categorias.lasso.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.ridge.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.elnet.pred, categorias_ref))) / nrow(dadosTest)
+mean(categorias.lasso.pred == categorias_ref)
+mean(categorias.ridge.pred == categorias_ref)
+mean(categorias.elnet.pred == categorias_ref)
 
-sum(diag(table(categorias.rfore1.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.rfore2.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.rfore3.pred, categorias_ref))) / nrow(dadosTest)
+mean(categorias.rfore1.pred == categorias_ref)
+mean(categorias.rfore2.pred == categorias_ref)
+mean(categorias.rfore3.pred == categorias_ref)
 
-sum(diag(table(categorias.gbm1.pred, categorias_ref))) / nrow(dadosTest)
-sum(diag(table(categorias.gbm2.pred, categorias_ref))) / nrow(dadosTest)
+mean(categorias.gbm1.pred == categorias_ref)
+mean(categorias.gbm2.pred == categorias_ref)
+mean(categorias.gbm3.pred == categorias_ref)
+mean(categorias.gbm4.pred == categorias_ref)
 
 #----------------------------------------------------------------------------#
 #---- the end                                                            ----#
