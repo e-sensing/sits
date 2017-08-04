@@ -37,8 +37,13 @@ series1.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage
 sits_plot (series1.tb)
 
 series1.tb %>%
+     sits_kf () %>%
+     sits_select (bands = c("ndvi.kf.estimation")) %>%
+     sits_plot()
+
+series1.tb %>%
      sits_envelope (window_size = 3) %>%
      sits_envelope (window_size = 3) %>%
-     sits_whittaker (lambda = 1.0) %>%
-     sits_select (bands = c("ndvi.upper.lower.whit", "ndvi.lower.upper.whit" )) %>%
+     sits_kf () %>%
+     sits_select (bands = c("ndvi.upper.lower.kf.estimation", "ndvi.lower.upper.kf.estimation" )) %>%
      sits_plot()
