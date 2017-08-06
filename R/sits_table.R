@@ -714,7 +714,7 @@ sits_relabel <- function (data.tb, conv){
      # Get best TWDTW aligniments for each class  
      matches_distance <- data.tb %>%
           dplyr::rowwise() %>% 
-          dplyr::do(twdtw_distances = 
+          dplyr::do(twdtw_distances <-  
                          tibble::as_tibble(.$matches[[1]][, c("distance", "label")]) %>% 
                          dplyr::group_by(label) %>% 
                          dplyr::slice(which.min(distance)) %>% 

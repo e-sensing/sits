@@ -27,16 +27,24 @@ Depends:
     magrittr,
     Rcpp
 Imports:
+    raster,
+    caret,
     dplyr,
+    e1071,
     ensurer,
     entropy,
+    gbm,
     ggplot2,
+    glmnet,
     graphics,
     kohonen,
     jsonlite,
     lubridate,
+    MASS,
     methods,
     mgcv,
+    neuralnet,
+    nnet,
     parallel,
     ptw,
     purrr,
@@ -47,17 +55,17 @@ Imports:
     RCurl,
     signal,
     sp,
+    snow,
     stats,
     stringr,
+    randomForest,
     roxygen2,
     tibble,
     tidyr,
     tools,
     utils, 
     wtss,
-    zoo,
-    raster,
-    snow
+    zoo
 LinkingTo: 
     Rcpp
 Remotes:
@@ -75,6 +83,7 @@ Collate:
     'sits_filters.R'
     'sits_getdata.R'
     'sits_init.R'
+    'sits_machine_learning.R'
     'sits_patterns.R'
     'sits_plot.R'
     'sits_save.R'

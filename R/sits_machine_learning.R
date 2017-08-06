@@ -1,11 +1,16 @@
-#' @title Train classifiction models using the TWDTW distances for each class
-#' @name sits_train
+#' Functions for machine learning associated to the SITS package
+#' The attributes for the training functions are the DTW distances 
+#' computed by the TWTDW function (see documentation on sits_TWDTW_matches)
+#'
+
+#' @title Train SITS classifiction models using support vector machines
+#' @name sits_train_svm 
 #' 
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Given a SITS tibble time series, returns trained models using Machine Learning.
+#' @description Given a SITS tibble time series, returns trained models 
+#'              using support vector machines
 #' 
 #' @param data.tb a SITS tibble time series 
 #' @param model a vector of character with the models to be tested. The options are: XXXXXXXX
@@ -35,7 +40,7 @@ sits_train <- function(data.tb, model_class, ...){
                                                          'matches'))]
      categorias <- labels(table(dados$reference))[[1]]
      
-     ynn <- class.ind(as.factor(dados$reference))
+     ynn <- nnet::class.ind(as.factor(dados$reference))
      colunas_classes <- paste0('l', 1:length(categorias))
      colnames(ynn) <- colunas_classes
      dados <- cbind(dados, ynn)
@@ -55,7 +60,7 @@ sits_train <- function(data.tb, model_class, ...){
      if (model_class %in% c('lda', 'svm', 'boosting', 'multinomial logit',
                             'random forest', 'lasso', 'ridge', 'elnet'))
      {
-          trainIndex <- createDataPartition(dados$categoria, p = .8, 
+          trainIndex <- caret::createDataPartition(dados$categoria, p = .8, 
                                             list = FALSE, 
                                             times = 1)
           dadosTrain <- dados[ trainIndex,]
@@ -72,11 +77,11 @@ sits_train <- function(data.tb, model_class, ...){
 
      yneunets <- paste0(nomes[!nomes %in% c('categoria', 'categorianum', categorias)]); 
 
-     formulann <- as.formula(paste0(paste(yneunets, collapse = " + "), " ~ ",
+     formulann <- stats::as.formula(paste0(paste(yneunets, collapse = " + "), " ~ ",
                                     paste(orinomes, collapse = " + ")));
-     formula1 <- as.formula(paste("factor(categoria) ~ ", 
+     formula1 <- stats::as.formula(paste("factor(categoria) ~ ", 
                                   paste(lognomes, collapse = " + ")));
-     formula2 <- as.formula(paste("categorianum ~ ", 
+     formula2 <- stats::as.formula(paste("categorianum ~ ", 
                                   paste(lognomes, collapse = " + ")));
 
      yTrain <- data.matrix(dadosTrain[,1])
@@ -89,42 +94,42 @@ sits_train <- function(data.tb, model_class, ...){
      
      if (model_class == 'svm')
      {
-          model.fit <- svm(formula1, data=dadosTrain, 
+          model.fit <- e1071::svm(formula1, data=dadosTrain, 
                            kernel = "linear", type="C-classification", 
                            epsilon = 0.1, cost = 100)
      }
      if (model_class == 'lda')
      {
-          model.fit <- lda(formula1, data=dadosTrain)
+          model.fit <- MASS::lda(formula1, data=dadosTrain)
      }
      if (model_class == 'lasso')
      {
-          model.fit.cv <- cv.glmnet(y = factor(yTrain), x = xTrain, 
+          model.fit.cv <- glmnet::cv.glmnet(y = factor(yTrain), x = xTrain, 
                                     family="multinomial", alpha=1)
      }
      if (model_class == 'lasso')
      {
-          model.fit.cv <- cv.glmnet(y = factor(yTrain), x = xTrain, 
+          model.fit.cv <- glmnet::cv.glmnet(y = factor(yTrain), x = xTrain, 
                                     family="multinomial", alpha=0)
      }
      if (model_class == 'lasso')
      {
-          model.fit.cv <- cv.glmnet(y = factor(yTrain), x = xTrain, 
+          model.fit.cv <- glmnet:: cv.glmnet(y = factor(yTrain), x = xTrain, 
                                     family="multinomial", alpha=.5)
      }
      if (model_class == 'multinomial logit')
      {
-          model.fit <- multinom(formula1, data=dadosTrain)
+          model.fit <- nnet::multinom(formula1, data=dadosTrain)
      }
      if (model_class == 'boosting')
      {
-          model.fit <- gbm(formula1, data=dadosTrain, 
+          model.fit <- gbm::gbm(formula1, data=dadosTrain, 
                            distribution="multinomial", 
                            n.trees=500,interaction.depth=4)
      }
      if (model_class == 'random forest')
      {
-          model.fit <- randomForest(y = factor(yTrain), 
+          model.fit <- randomForest::randomForest(y = factor(yTrain), 
                                     x = xTrain, data=NULL, ntree=200, 
                                     norm.votes=FALSE)
      }
