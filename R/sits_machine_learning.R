@@ -2,6 +2,9 @@
 #' The attributes for the training functions are the DTW distances 
 #' computed by the TWTDW function (see documentation on sits_TWDTW_matches)
 #'
+#'
+#' models supported: 'svm', 'random forests', 'boosting', 'lda', 
+#'                   'multinomial logit', 'lasso', 'ridge', 'elnet', 'best model'
 
 #' @title Train SITS classifiction models using support vector machines
 #' @name sits_train_svm 
@@ -9,20 +12,155 @@
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Given a SITS tibble time series, returns trained models 
-#'              using support vector machines
+#' @description Given a SITS tibble time series with DTW matches produced by TWDTW, 
+#'              returns trained models using support vector machines. This function will 
+#'              use the TWDTW alignment information for all classes as the attributes
+#'              of the SVM. Please use this function in the following way:
+#'              1. call sits_patterns to produce a set a labelled patters from a reference data set
+#'              2. 
 #' 
-#' @param data.tb a SITS tibble time series 
+#' @param matches.tb a SITS tibble time series 
 #' @param model a vector of character with the models to be tested. The options are: XXXXXXXX
-#' @param ... other parameters to pass to \code{\link[sits]{sits_patterns}} and 
-#' \code{\link[sits]{sits_TWDTW_matches}}
+#' @param 
 #' 
 #' @export
-sits_train <- function(data.tb, model_class, ...){
+#' 
+#' 
+#' 
+#' 
+sits_train.svm <- function(data.tb, model_class, ...){
+     
+     # Create temporal patterns 
+     patterns.tb <- sits_patterns(data.tb, ...)
+     
+     # Apply TWDTW analysis 
+     alignments.tb <- sits_TWDTW_matches(data.tb, patterns.tb, ...)
+     
+     # Spread TWDTW matches  
+     matches.tb <- .sits_spread_matches(alignments.tb)
+     
+     dados <- matches.tb[, !(colnames(matches.tb) %in% c('longitude', 
+                                                         'latitude', 'start_date',
+                                                         'end_date', 'label',
+                                                         'coverage', 'time_series',
+                                                         'matches'))]
+     categorias <- labels(table(dados$reference))[[1]]
+     
+     ynn <- nnet::class.ind(as.factor(dados$reference))
+     colunas_classes <- paste0('l', 1:length(categorias))
+     colnames(ynn) <- colunas_classes
+     dados <- cbind(dados, ynn)
+     
+     dados <- dados[,colnames(dados) %in% c('reference', categorias, colunas_classes)]
+     dados <- rename(dados, c('reference'='categoria'))
+     
+     dados$categorianum <- 0
+     for (i in 1:length(categorias)) { dados[dados$categoria == categorias[i],'categorianum'] <-  i}
+     
+     # Splitting samples 
+     dadosTest <- dados
+     dadosTrain <- dados
+     
+     set.seed(2104);
+     
+     if (model_class %in% c('lda', 'svm', 'boosting', 'multinomial logit',
+                            'random forest', 'lasso', 'ridge', 'elnet'))
+     {
+          trainIndex <- caret::createDataPartition(dados$categoria, p = .8, 
+                                                   list = FALSE, 
+                                                   times = 1)
+          dadosTrain <- dados[ trainIndex,]
+          dadosTest  <- dados[-trainIndex,]
+     }
+     
+     # Defining models
+     
+     nomes <- names(dados)
+     lognomes <- paste0('log(', nomes[!nomes %in% c('categoria', 'categorianum', 
+                                                    colunas_classes)], ')'); 
+     orinomes <- paste0(nomes[!nomes %in% c('categoria', 'categorianum', 
+                                            colunas_classes)]); 
+     
+     yneunets <- paste0(nomes[!nomes %in% c('categoria', 'categorianum', categorias)]); 
+     
+     formulann <- stats::as.formula(paste0(paste(yneunets, collapse = " + "), " ~ ",
+                                           paste(orinomes, collapse = " + ")));
+     formula1 <- stats::as.formula(paste("factor(categoria) ~ ", 
+                                         paste(lognomes, collapse = " + ")));
+     formula2 <- stats::as.formula(paste("categorianum ~ ", 
+                                         paste(lognomes, collapse = " + ")));
+     
+     yTrain <- data.matrix(dadosTrain[,1])
+     yTest <-  data.matrix(dadosTest[,1])
+     
+     xTrain <- log(data.matrix(dadosTrain[,c(2:(length(categorias)+1))]))
+     xTest <-   log(data.matrix(dadosTest[,c(2:(length(categorias)+1))]))
+     
+     # Training the models
+     
+     if (model_class == 'svm')
+     {
+          model.fit <- e1071::svm(formula1, data=dadosTrain, 
+                                  kernel = "linear", type="C-classification", 
+                                  epsilon = 0.1, cost = 100)
+     }
+     if (model_class == 'lda')
+     {
+          model.fit <- MASS::lda(formula1, data=dadosTrain)
+     }
+     if (model_class == 'lasso')
+     {
+          model.fit.cv <- glmnet::cv.glmnet(y = factor(yTrain), x = xTrain, 
+                                            family="multinomial", alpha=1)
+     }
+     if (model_class == 'lasso')
+     {
+          model.fit.cv <- glmnet::cv.glmnet(y = factor(yTrain), x = xTrain, 
+                                            family="multinomial", alpha=0)
+     }
+     if (model_class == 'lasso')
+     {
+          model.fit.cv <- glmnet:: cv.glmnet(y = factor(yTrain), x = xTrain, 
+                                             family="multinomial", alpha=.5)
+     }
+     if (model_class == 'multinomial logit')
+     {
+          model.fit <- nnet::multinom(formula1, data=dadosTrain)
+     }
+     if (model_class == 'boosting')
+     {
+          model.fit <- gbm::gbm(formula1, data=dadosTrain, 
+                                distribution="multinomial", 
+                                n.trees=500,interaction.depth=4)
+     }
+     if (model_class == 'random forest')
+     {
+          model.fit <- randomForest::randomForest(y = factor(yTrain), 
+                                                  x = xTrain, data=NULL, ntree=200, 
+                                                  norm.votes=FALSE)
+     }
+     
+     # TO INCLUDE - Model selection  
+     
+     # TO INCLUDE - RETURN BEST MODEL 
+     
+     # RETURN OBJECT
+     return (model.fit)
+}
 
-     # options for model_class: 'svm', 'random forests', 'boosting', 'lda', 
-     #                          'multinomial logit', 'lasso', 'ridge', 'elnet',
-     #                          'best model'
+
+
+
+
+
+
+
+
+
+
+
+
+sits_train <- function(data.tb, model_class, ...){
      
      # Create temporal patterns 
      patterns.tb <- sits_patterns(data.tb, ...)
