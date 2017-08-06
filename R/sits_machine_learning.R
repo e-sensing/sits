@@ -8,133 +8,113 @@
 #' @description Given a SITS tibble time series, returns trained models using Machine Learning.
 #' 
 #' @param data.tb a SITS tibble time series 
-#' @param model a vector of character with the models to be tested. The options are: XXXXXXXX
 #' @param ... other parameters to pass to \code{\link[sits]{sits_patterns}} and 
 #' \code{\link[sits]{sits_TWDTW_matches}}
 #' 
-#' @export
-sits_train <- function(data.tb, model_class, ...){
+#' @export 
+sits_train <- function(data.tb, ...){
 
-     # options for model_class: 'svm', 'random forests', 'boosting', 'lda', 
-     #                          'multinomial logit', 'lasso', 'ridge', 'elnet',
-     #                          'best model'
-     
      # Create temporal patterns 
-     patterns.tb <- sits_patterns(data.tb, ...)
+     fun_sits_patterns <- .set_fun_args(fun = sits_patterns, ...)
+     patterns.tb <- fun_sits_patterns(samples.tb = data.tb)
      
      # Apply TWDTW analysis 
-     alignments.tb <- sits_TWDTW_matches(data.tb, patterns.tb, ...)
+     fun_sits_TWDTW_matches <- .set_fun_args(fun = sits_TWDTW_matches, ...)
+     alignments.tb <- fun_sits_TWDTW_matches(series.tb = data.tb, patterns.tb = patterns.tb)
      
      # Spread TWDTW matches  
      matches.tb <- .sits_spread_matches(alignments.tb)
      
-     dados <- matches.tb[, !(colnames(matches.tb) %in% c('longitude', 
-                                                         'latitude', 'start_date',
-                                                         'end_date', 'label',
-                                                         'coverage', 'time_series',
-                                                         'matches'))]
-     categorias <- labels(table(dados$reference))[[1]]
+     # Get categories 
+     categories <- patterns.tb$label
      
-     ynn <- class.ind(as.factor(dados$reference))
-     colunas_classes <- paste0('l', 1:length(categorias))
-     colnames(ynn) <- colunas_classes
-     dados <- cbind(dados, ynn)
+     # Get distances 
+     distances.tb <- matches.tb %>% 
+          dplyr::select_(.dots = c("reference", categories))
 
-     dados <- dados[,colnames(dados) %in% c('reference', categorias, colunas_classes)]
-     dados <- rename(dados, c('reference'='categoria'))
+     ynn <- nnet::class.ind(as.factor(distances.tb$reference)) %>% 
+          tibble::as_tibble() 
      
-     dados$categorianum <- 0
-     for (i in 1:length(categorias)) { dados[dados$categoria == categorias[i],'categorianum'] <-  i}
+     colunas_classes <- paste0('l', seq_along(categories))
      
-     # Splitting samples 
-     dadosTest <- dados
-     dadosTrain <- dados
+     names(ynn) <- colunas_classes
      
-     set.seed(2104);
+     distances.tb <- distances.tb %>% 
+          dplyr::bind_cols(ynn)
+
+     distances.tb %>% 
+          dplyr::mutate(categories_num = match(reference, categories) )
      
-     if (model_class %in% c('lda', 'svm', 'boosting', 'multinomial logit',
-                            'random forest', 'lasso', 'ridge', 'elnet'))
-     {
-          trainIndex <- createDataPartition(dados$categoria, p = .8, 
-                                            list = FALSE, 
-                                            times = 1)
-          dadosTrain <- dados[ trainIndex,]
-          dadosTest  <- dados[-trainIndex,]
-     }
+     trainIndex <- caret::createDataPartition(distances.tb$reference, p = .8, 
+                                              list = FALSE, 
+                                              times = 1)
+     
+     distances.tbTrain <- distances.tb %>% 
+          dplyr::slice(trainIndex[,1])
+     
+     distances.tbTest <- distances.tb %>% 
+          dplyr::slice(- trainIndex[,1])
      
      # Defining models
+     nomes <- names(distances.tb)
      
-     nomes <- names(dados)
-     lognomes <- paste0('log(', nomes[!nomes %in% c('categoria', 'categorianum', 
-                                                    colunas_classes)], ')'); 
-     orinomes <- paste0(nomes[!nomes %in% c('categoria', 'categorianum', 
-                                            colunas_classes)]); 
+     lognomes <- paste0('log(', categories, ')')
 
-     yneunets <- paste0(nomes[!nomes %in% c('categoria', 'categorianum', categorias)]); 
-
-     formulann <- as.formula(paste0(paste(yneunets, collapse = " + "), " ~ ",
-                                    paste(orinomes, collapse = " + ")));
-     formula1 <- as.formula(paste("factor(categoria) ~ ", 
-                                  paste(lognomes, collapse = " + ")));
-     formula2 <- as.formula(paste("categorianum ~ ", 
-                                  paste(lognomes, collapse = " + ")));
-
-     yTrain <- data.matrix(dadosTrain[,1])
-     yTest <-  data.matrix(dadosTest[,1])
+     formulann <- as.formula(paste0(paste(colunas_classes, collapse = " + "), " ~ ",
+                                    paste(categories, collapse = " + ")))
      
-     xTrain <- log(data.matrix(dadosTrain[,c(2:(length(categorias)+1))]))
-     xTest <-   log(data.matrix(dadosTest[,c(2:(length(categorias)+1))]))
+     formula1 <- as.formula(paste("factor(reference) ~ ", 
+                                  paste(lognomes, collapse = " + ")))
      
+     formula2 <- as.formula(paste("categories_num ~ ", 
+                                  paste(lognomes, collapse = " + ")))
+     
+     # yTrain <- data.matrix(distances.tbTrain[, 1])
+     yTrain <- distances.tbTrain %>% 
+          dplyr::select(reference) %>% 
+          as.matrix()
+     
+     # yTest <-  data.matrix(distances.tbTest[, 1])
+     yTest <-  distances.tbTest %>% 
+          dplyr::select(reference) %>% 
+          as.matrix()
+     
+     # xTrain <- log(data.matrix(distances.tbTrain[, c(2:(length(categories) + 1))]))
+     xTrain <- distances.tbTrain %>% 
+          dplyr::select(categories) %>% 
+          as.matrix()
+     
+     # xTest <-   log(data.matrix(distances.tbTest[, c(2:(length(categories) + 1))]))
+     xTest <- distances.tbTest %>% 
+          dplyr::select(categories) %>% 
+          as.matrix()
+
      # Training the models
+     out.tb <- tibble::tribble(
+                       ~model, ~fit, 
+                        "svm", try(e1071::svm(formula1, data = distances.tbTrain, kernel = "linear", type = "C-classification", epsilon = 0.1, cost = 100)),
+                        "lda", try(MASS::lda(formula1, data = distances.tbTrain)),
+                    "lasso 0", try(glmnet::cv.glmnet(y = factor(yTrain), x = xTrain, family = "multinomial", alpha = 0)),
+                  "lasso 0.5", try(glmnet::cv.glmnet(y = factor(yTrain), x = xTrain, family = "multinomial", alpha = .5)),
+                  "lasso 1.0", try(glmnet::cv.glmnet(y = factor(yTrain), x = xTrain, family = "multinomial", alpha = 1)),
+          "multinomial logit", try(nnet::multinom(formula1, data = distances.tbTrain)),
+                   "boosting", try(gbm::gbm(formula1, data = distances.tbTrain, distribution = "multinomial", n.trees = 500, interaction.depth = 4)),
+              "random forest", try(randomForest::randomForest(y = factor(yTrain), x = xTrain, data = NULL, ntree = 200, norm.votes = FALSE))
+     ) %>% dplyr::mutate(patterns = list(patterns.tb)) %>% 
+          dplyr::mutate(twdtw_call = list(fun_sits_TWDTW_matches))
      
-     if (model_class == 'svm')
-     {
-          model.fit <- svm(formula1, data=dadosTrain, 
-                           kernel = "linear", type="C-classification", 
-                           epsilon = 0.1, cost = 100)
-     }
-     if (model_class == 'lda')
-     {
-          model.fit <- lda(formula1, data=dadosTrain)
-     }
-     if (model_class == 'lasso')
-     {
-          model.fit.cv <- cv.glmnet(y = factor(yTrain), x = xTrain, 
-                                    family="multinomial", alpha=1)
-     }
-     if (model_class == 'lasso')
-     {
-          model.fit.cv <- cv.glmnet(y = factor(yTrain), x = xTrain, 
-                                    family="multinomial", alpha=0)
-     }
-     if (model_class == 'lasso')
-     {
-          model.fit.cv <- cv.glmnet(y = factor(yTrain), x = xTrain, 
-                                    family="multinomial", alpha=.5)
-     }
-     if (model_class == 'multinomial logit')
-     {
-          model.fit <- multinom(formula1, data=dadosTrain)
-     }
-     if (model_class == 'boosting')
-     {
-          model.fit <- gbm(formula1, data=dadosTrain, 
-                           distribution="multinomial", 
-                           n.trees=500,interaction.depth=4)
-     }
-     if (model_class == 'random forest')
-     {
-          model.fit <- randomForest(y = factor(yTrain), 
-                                    x = xTrain, data=NULL, ntree=200, 
-                                    norm.votes=FALSE)
-     }
+     out.tb <- out.tb %>% 
+          dplyr::rowwise() %>% 
+          dplyr::do(reference = yTest, predicted = try(as.character(predict(.$fit, newdata = xTest)))) %>% 
+          dplyr::bind_cols(out.tb, .)
+
+     out.tb <- out.tb %>% 
+          dplyr::rowwise() %>% 
+          dplyr::do(accuracy = try(rfUtilities::accuracy(.$pred, yTest))) %>% 
+          dplyr::bind_cols(out.tb, .)
      
-     # TO INCLUDE - Model selection  
+     return(out.tb)
      
-     # TO INCLUDE - RETURN BEST MODEL 
-     
-     # RETURN OBJECT
-     return (model.fit)
 }
 
 
@@ -149,26 +129,47 @@ sits_train <- function(data.tb, model_class, ...){
 #' returns a SITS tibble with the classification. 
 #' 
 #' @param data.tb a SITS tibble time series
-#' @param model a model trained by \code{\link[sits]{sits_train}}
-#' @param ... other parameters to pass to \code{\link[sits]{sits_patterns}} and 
-#' \code{\link[sits]{sits_TWDTW_matches}}
+#' @param model.fit a model trained by \code{\link[sits]{sits_train}}
+#' @param ... other parameters to pass to \code{\link[sits]{sits_TWDTW_matches}}
 #' 
 #' @export
-sits_predict <- function(data.tb, model, ...){
+sits_predict <- function(data.tb, model.fit, ...){
 
-     # Create temporal patterns 
-     patterns.tb <- sits_patterns(data.tb, ...)
+     # Get best model based on the f.score 
+     i <- which.max(sapply(model.fit$accuracy, function(xx) try(xx$f.score)))
+     best_model.tb <- model.fit %>% 
+          dplyr::slice(i)
+     
+     # Get TWDTW call used in the training step 
+     fun_sits_TWDTW_matches <- (best_model.tb %>% 
+          dplyr::select(twdtw_call))[[1]][[1]]
+          
+     # Get temporal patterns used in the training step 
+     patterns.tb <- (best_model.tb %>% 
+                          dplyr::select(patterns))[[1]][[1]]
+
+     # Get categories 
+     categories <- patterns.tb$label
      
      # Apply TWDTW analysis 
-     alignments.tb <- sits_TWDTW_matches(data.tb, patterns.tb, ...)
+     alignments.tb <- fun_sits_TWDTW_matches(series.tb = data.tb, patterns.tb = patterns.tb)
      
-     # Spread TWDTW matches 
+     # Spread TWDTW matches  
      matches.tb <- .sits_spread_matches(alignments.tb)
      
-     # TO INCLUDE - Use the model to predict the class for ts 
-     
-     # TO INCLUDE - rturn tibble with reference and predicted 
-     
+     xTest <- matches.tb %>% 
+          dplyr::select(categories) %>% 
+          as.matrix()
+
+     res <- (best_model.tb %>% 
+               dplyr::rowwise() %>% 
+               dplyr::do(classification = try(as.character(predict(.$fit, newdata = xTest)))))[[1]][[1]]
+
+     out.tb <- data.tb %>% 
+          dplyr::mutate(classification = res)
+               
+     return(out.tb)
+
 }
 
 
@@ -184,23 +185,34 @@ sits_predict <- function(data.tb, model, ...){
 #' 
 #' @param x a raster \code{\link[raster]{stack}} object with TWDTW distances for 
 #' each class in the layers
-#' @param model a model trained by \code{\link[sits]{sits_train}}
+#' @param model.fit a model trained by \code{\link[sits]{sits_train}}
 #' \code{\link[sits]{sits_TWDTW_matches}}
+#' @param labels class labels in the order of the raster stack layers 
+#' @param filename a character with the file name. Optional
+#' @param progress a character. See \code{\link[raster]{pbCreate}}. Default is \code{'text'}
+#' @param parallel perform parallel processing. Default is TRUE 
 #' @param ... other arguments to pass to  \code{\link[raster]{beginCluster}} and 
 #' \code{\link[raster]{writeStart}}
 #' 
 #' @export
 sits_predict_stack <- function(x, 
-                               model, 
+                               model.fit, 
+                               labels,
                                filename = "",
                                progress = 'text',
                                parallel = TRUE, ...) {
+     
+     # Get best model based on the f.score 
+     i <- which.max(sapply(model.fit$accuracy, function(xx) try(xx$f.score)))
+     fit <- (model.fit %>% 
+                  dplyr::slice(i) %>% 
+                  dplyr::select(fit))[[1]][[1]]
      
      if(parallel){
           raster::beginCluster(...)
           out <- .apply_stack_parallel(x,
                                        fun = .sits_predict_stack,
-                                       args.list = list(model),
+                                       args.list = list(fit = fit, labels = labels),
                                        filename = "", progress = 'text', ...)
           raster::endCluster()
      } else {
@@ -232,11 +244,17 @@ sits_predict_stack <- function(x,
 #' 
 .sits_predict_stack <- function(k, x, bs, args.list){
      
+     # Get data from raster stack 
      v <- raster::getValues(x, bs$row[k], bs$nrows[k])
      
-     # TO INCLUDE - Prediction algorithm 
+     # Prediction class using trained model  
+     out <- as.character(predict(args.list$fit, newdata = v))
      
-     # TO INCLUDE - Return predicted class 
+     # Convert class label to integer 
+     out <- match(out, args.list$labels)
+     
+     # Return predicted class 
+     return(out)
      
 }
 

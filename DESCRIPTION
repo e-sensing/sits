@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.8.02
-Date: 2017-08-02
+Version: 0.8.07
+Date: 2017-08-07
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Rolf', 'Simoes', role = c('aut')),
@@ -57,7 +57,14 @@ Imports:
     wtss,
     zoo,
     raster,
-    snow
+    snow,
+    nnet,
+    randomForest,
+    gbm,
+    glmnet,
+    MASS,
+    e1071,
+    caret
 LinkingTo: 
     Rcpp
 Remotes:
@@ -75,6 +82,7 @@ Collate:
     'sits_filters.R'
     'sits_getdata.R'
     'sits_init.R'
+    'sits_machine_learning.R'
     'sits_patterns.R'
     'sits_plot.R'
     'sits_save.R'

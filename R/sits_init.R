@@ -45,12 +45,20 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom rfUtilities accuracy
 #' @importFrom signal sgolayfilt
 #' @importFrom sp bbox SpatialPoints CRS proj4string
-#' @importFrom stats sd setNames
+#' @importFrom stats sd setNames predict as.formula 
 #' @importFrom stringr str_extract str_detect
 #' @importFrom tools file_ext file_path_sans_ext
 #' @importFrom utils head tail
 #' @importFrom wtss WTSS timeSeries listCoverages describeCoverage
 #' @importFrom zoo zoo fortify.zoo
+#' @importFrom nnet multinom class.ind 
+#' @importFrom randomForest randomForest
+#' @importFrom gbm gbm
+#' @importFrom nnet multinom
+#' @importFrom glmnet cv.glmnet 
+#' @importFrom MASS lda
+#' @importFrom e1071 svm 
+#' @importFrom caret createDataPartition 
 #' @import magrittr
 #' @import dtwclust
 #' @import dtwSat
