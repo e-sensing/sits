@@ -1,3 +1,4 @@
+
 #install.packages(c('graphics', 'MASS', 'plyr', 'caret', 'e1071', 'glmnet'))
 
 library(graphics);
@@ -32,21 +33,21 @@ for (i in 1:k)
     u <- exp(mvrnorm(n=nsamples[i], mu[i,], Sigma));u
     colmeans <- colSums(u)/nsamples[i]
     print(colmeans)
-    if (i == 1)
+    if (i == 1) 
     {
         dados <- data.frame(categoria = rep(categorias[i], nsamples[i]), u)
-    }
+    } 
     else {
         dados <- rbind(dados, data.frame(categoria = rep(categorias[i], nsamples[i]), u))
     }
 }
-dados <- rename(dados, c('X1'='dist1', 'X2'='dist2', 'X3'='dist3',
+dados <- rename(dados, c('X1'='dist1', 'X2'='dist2', 'X3'='dist3', 
                          'X4'='dist4', 'X5'='dist5'))
 
 #------ splitting samples ---------#
 
-trainIndex <- createDataPartition(dados$categoria, p = .8,
-                                  list = FALSE,
+trainIndex <- createDataPartition(dados$categoria, p = .8, 
+                                  list = FALSE, 
                                   times = 1)
 head(trainIndex)
 
@@ -55,29 +56,29 @@ dadosTest  <- dados[-trainIndex,]
 
 #-------- rodando os modelos --------------#
 
-categorias.qda <- qda(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5),
+categorias.qda <- qda(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5), 
                       data=dadosTrain)
-categorias.lda <- lda(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5),
+categorias.lda <- lda(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5), 
                       data=dadosTrain)
-categorias.mlr <- multinom(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5),
+categorias.mlr <- multinom(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5), 
                            data=dadosTrain)
-categorias.svm1 <- svm(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5),
+categorias.svm1 <- svm(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5), 
                        data=dadosTrain, kernel = "radial", type="C-classification", k = 5)
-categorias.svm2 <- svm(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5),
+categorias.svm2 <- svm(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5), 
                        data=dadosTrain, kernel = "linear", type="C-classification", k = 5)
-categorias.svm3 <- svm(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5),
+categorias.svm3 <- svm(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5), 
                        data=dadosTrain, kernel = "polynomial", type="C-classification", k = 5)
-categorias.svm4 <- svm(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5),
+categorias.svm4 <- svm(categoria ~ log(dist1)+log(dist2)+log(dist3)+log(dist4)+log(dist5), 
                        data=dadosTrain, kernel = "sigmoid", type="C-classification", k = 5)
 
-categorias.lasso <- glmnet(y = data.matrix(dadosTrain[,1]),
-                           x = data.matrix(dadosTrain[,c(2,3,4,5,6)]),
+categorias.lasso <- glmnet(y = data.matrix(dadosTrain[,1]), 
+                           x = data.matrix(dadosTrain[,c(2,3,4,5,6)]), 
                            family="multinomial", alpha=1)
-categorias.ridge <- glmnet(y = data.matrix(dadosTrain[,1]),
-                           x = data.matrix(dadosTrain[,c(2,3,4,5,6)]),
+categorias.ridge <- glmnet(y = data.matrix(dadosTrain[,1]), 
+                           x = data.matrix(dadosTrain[,c(2,3,4,5,6)]), 
                            family="multinomial", alpha=0)
-categorias.elnet <- glmnet(y = data.matrix(dadosTrain[,1]),
-                           x = data.matrix(dadosTrain[,c(2,3,4,5,6)]),
+categorias.elnet <- glmnet(y = data.matrix(dadosTrain[,1]), 
+                           x = data.matrix(dadosTrain[,c(2,3,4,5,6)]), 
                            family="multinomial", alpha=.5)
 
 categorias.lda
@@ -99,11 +100,11 @@ categorias.svm2.pred <- predict(categorias.svm2, newdata = dadosTest)
 categorias.svm3.pred <- predict(categorias.svm3, newdata = dadosTest)
 categorias.svm4.pred <- predict(categorias.svm4, newdata = dadosTest)
 
-categorias.lasso.pred <- predict(categorias.lasso, s=categorias.lasso$lambda.1se,
+categorias.lasso.pred <- predict(categorias.lasso, s=categorias.lasso$lambda.1se, 
                                  newx=data.matrix(dadosTest[,c(2,3,4,5,6)]))
-categorias.ridge.pred <- predict(categorias.ridge, s=categorias.ridge$lambda.1se,
+categorias.ridge.pred <- predict(categorias.ridge, s=categorias.ridge$lambda.1se, 
                                  newx=data.matrix(dadosTest[,c(2,3,4,5,6)]))
-categorias.elnet.pred <- predict(categorias.elnet, s=categorias.elnet$lambda.1se,
+categorias.elnet.pred <- predict(categorias.elnet, s=categorias.elnet$lambda.1se, 
                                  newx=data.matrix(dadosTest[,c(2,3,4,5,6)]))
 
 #------ classificando por menor distancia ---------#
@@ -113,23 +114,23 @@ for (i in 1:nrow(dadosTest))
 {
      categorias.dtw.pred[i] <- categorias[1]
      min_dist <- dadosTest[i,c('dist1')];
-     if (min_dist > dadosTest[i,c('dist2')])
-     {
+     if (min_dist > dadosTest[i,c('dist2')]) 
+     { 
           min_dist <- dadosTest[i,c('dist2')];
           categorias.dtw.pred[i] <- categorias[2]
      }
-     if (min_dist > dadosTest[i,c('dist3')])
-     {
+     if (min_dist > dadosTest[i,c('dist3')]) 
+     { 
           min_dist <- dadosTest[i,c('dist3')];
           categorias.dtw.pred[i] <- categorias[3]
      }
-     if (min_dist > dadosTest[i,c('dist4')])
-     {
+     if (min_dist > dadosTest[i,c('dist4')]) 
+     { 
           min_dist <- dadosTest[i,c('dist4')];
           categorias.dtw.pred[i] <- categorias[4]
      }
-     if (min_dist > dadosTest[i,c('dist5')])
-     {
+     if (min_dist > dadosTest[i,c('dist5')]) 
+     { 
           min_dist <- dadosTest[i,c('dist5')];
           categorias.dtw.pred[i] <- categorias[5]
      }

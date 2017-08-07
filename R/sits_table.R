@@ -743,3 +743,64 @@ sits_relabel_conv <- function (file = NULL){
 
      return (conv.lst)
 }
+
+#' @title Spread matches from a sits matches tibble
+#' @name .sits_spread_matches
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#'
+#' @description Given a SITS tibble with a matches, returns a tibble whose columns have
+#' the reference label and the TWDTW distances for each temporal pattern.
+#'
+#' @param  data.tb a SITS matches tibble
+#'
+#' @noRd
+#'
+.sits_spread_matches <- function(data.tb){
+
+     # Get best TWDTW aligniments for each class
+     matches_distance <- data.tb %>%
+          dplyr::rowwise() %>%
+          dplyr::do(twdtw_distances =
+                         tibble::as_tibble(.$matches[[1]][, c("distance", "label")]) %>%
+                         dplyr::group_by(label) %>%
+                         dplyr::slice(which.min(distance)) %>%
+                         dplyr::ungroup() %>%
+                         dplyr::rename(predicted = label)
+                    )
+
+     # Select best match and spread pred to columns
+     out.tb <- data.tb %>%
+          dplyr::bind_cols(matches_distance) %>%
+          tidyr::unnest(twdtw_distances, .drop = FALSE) %>%
+          dplyr::mutate(reference = label) %>%
+          tidyr::spread(predicted, distance)
+
+     return(out.tb)
+
+}
+
+#' @title Set function arguments
+#' @name .set_fun_args
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#'
+#' @description Given a function and a list of arguments,
+#' returns the function with new default parameters
+#'
+#' @param fun a function
+#' @param args a list of arguments
+#' @param ... arguments
+#'
+#' @noRd
+#'
+.set_fun_args = function(fun, ..., args = list(...)){
+     base_formals = formals(fun)
+     base_formals_names = names(base_formals)
+     given_formals = args[names(args) %in% base_formals_names]
+     missing_formals_names = setdiff(base_formals_names, names(args))
+     new_formals = c(base_formals[missing_formals_names], given_formals)
+     new_formals = new_formals[base_formals_names]
+     formals(fun) = new_formals
+     fun
+}

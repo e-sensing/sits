@@ -41,7 +41,7 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom reshape2 melt
 #' @importFrom signal sgolayfilt
 #' @importFrom sp bbox SpatialPoints CRS proj4string
-#' @importFrom stats sd setNames
+#' @importFrom stats sd setNames predict as.formula
 #' @importFrom stringr str_extract str_detect
 #' @importFrom tibble tibble as_tibble add_column add_row lst
 #' @importFrom tidyr nest unnest drop_na
@@ -50,6 +50,14 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom wtss WTSS timeSeries listCoverages describeCoverage
 #' @importFrom zoo zoo fortify.zoo
 #' @importFrom dendextend set
+#' @importFrom nnet multinom class.ind
+#' @importFrom randomForest randomForest
+#' @importFrom gbm gbm
+#' @importFrom nnet multinom
+#' @importFrom glmnet cv.glmnet
+#' @importFrom MASS lda
+#' @importFrom e1071 svm
+#' @importFrom caret createDataPartition
 #' @import dplyr
 #' @import dtwclust
 #' @import dtwSat

@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.8.02
-Date: 2017-08-02
+Version: 0.8.07
+Date: 2017-08-07
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Rolf', 'Simoes', role = c('aut')),
@@ -27,23 +27,30 @@ Depends:
     magrittr,
     wtss
 Imports:
+    caret,
     dendextend,
     dplyr,
+    e1071,
     ensurer,
     entropy,
+    gbm,
     ggplot2,
+    glmnet,
     graphics,
     grDevices,
     kohonen,
     jsonlite,
     lubridate,
+    MASS,
     methods,
     mgcv,
+    nnet,
     parallel,
     plyr,
     ptw,
     purrr,
     purrrlyr,
+    randomForest,
     raster,
     readr,
     reshape2,
@@ -59,9 +66,6 @@ Imports:
     tools,
     utils, 
     zoo
-Remotes:
-    luizassis/wtss,
-    vwmaus/dtwSat
 LinkingTo: 
     Rcpp
 RoxygenNote: 6.0.1
@@ -77,6 +81,7 @@ Collate:
     'sits_filters.R'
     'sits_getdata.R'
     'sits_init.R'
+    'sits_machine_learning.R'
     'sits_patterns.R'
     'sits_plot.R'
     'sits_save.R'
