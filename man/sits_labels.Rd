@@ -4,10 +4,12 @@
 \alias{sits_labels}
 \title{returns the labels' count of a sits table}
 \usage{
-sits_labels(data.tb)
+sits_labels(data.tb, from_members = FALSE)
 }
 \arguments{
 \item{data.tb}{a valid sits table}
+
+\item{from_members}{(Boolean) if n_members collumn is present, compute label's statistics from it.}
 }
 \value{
 result.tb  a tibble with the names of the labels and its absolute and relative frequency

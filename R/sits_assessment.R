@@ -85,17 +85,20 @@ sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample =
 #' first check of accuracy. When the area of each class for the region of interest is available,
 #' please use sits_accuracy_area instead
 #'
-#'@param results.tb a sits table with a set of lat/long/time locations with known and trusted labels and
+#' @param results.tb   a sits table with a set of lat/long/time locations with known and trusted labels and
 #' with the result of a classification method
+#' @return assessment  a list containing overall accuracy, producers and users accuracy, and confusion matrix.
 #'@export
 sits_accuracy <- function (results.tb){
 
-     # Get reference classes
-     ref.vec <- as.vector(results.tb$label)
+     # get reference classes
+     ref.vec <- results.tb$label
+
      # create a vector to store the result of the predictions
-     pred.vec <- as.vector(results.tb$class)
-     # Classification accuracy measures
-     assessment <- rfUtilities::accuracy(pred.vec, ref.vec)
+     pred.vec <- results.tb$class
+
+     # classification accuracy measures
+     assessment <- .sits_accuracy(pred.vec, ref.vec)
 
      return (assessment)
 }
@@ -140,6 +143,8 @@ sits_accuracy <- function (results.tb){
 #' @param  overlap       minimum overlapping between one match and the interval of classification
 #' @param n_clusters      the maximum number of clusters to be identified (for clustering methods)
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
+#' @param unsupervised    if TRUE, proceeds an unsupervised cluster followed by a relabel taking original label majority (
+#' this option has not any effect if method == "gam")
 #' @param min_clu_perc    the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)
 #' @param apply_gam       apply gam method after a clustering algorithm (ignored if method is `gam`).
 #' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
@@ -150,6 +155,7 @@ sits_accuracy <- function (results.tb){
 #' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
 #' @param file            file to save the results
 #' @param .multicores     number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).
+#' @param ...             any additional parameters to be passed to `sits_pattern` function.
 #' @return cm             a validation assessment
 #' @export
 
@@ -161,9 +167,9 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
                            from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
                            tw_alpha = -0.1, tw_beta = 100, tw_theta = 0.5, tw_span = 0,
                            interval = "12 month", overlap = 0.5,
-                           n_clusters = 2, grouping_method = "ward.D2", min_clu_perc = 0.10,
+                           n_clusters = 2, grouping_method = "ward.D2", unsupervised = FALSE, min_clu_perc = 0.10,
                            apply_gam = FALSE, koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
-                           file = "./conf_matrix.json", .multicores = 1){
+                           file = "./conf_matrix.json", .multicores = 1, ...){
 
           ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
                                  err_desc = "sits_cross_validate: please provide a labelled set of time series")
@@ -178,7 +184,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
                                        formula = formula, n_clusters = n_clusters, grouping_method = grouping_method,
                                        min_clu_perc = min_clu_perc, apply_gam = apply_gam,
                                        koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
-                                       show = FALSE)
+                                       unsupervised = unsupervised, show = FALSE, ...)
 
           # use the rest of the data for classification
           non_p.tb <- dplyr::anti_join(data.tb, p, by = c("longitude", "latitude", "start_date", "end_date", "label", "coverage"))
@@ -239,7 +245,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
      sits_toJSON (confusion.vec, file)
 
      # Classification accuracy measures
-     assessment <- rfUtilities::accuracy(pred.vec, ref.vec)
+     assessment <- .sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE)
 
      return (assessment)
 }
@@ -290,12 +296,9 @@ sits_reassess <- function (file = NULL, conv = NULL){
      pred.vec <- confusion.vec[1:mid]
      ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
 
-     if (!purrr::is_null(conv)) {
-          pred.vec <- as.character(conv[pred.vec])
-          ref.vec  <- as.character(conv[ref.vec])
-     }
      # calculate the accuracy assessment
-     assess <- rfUtilities::accuracy(pred.vec, ref.vec)
+     assess <- .sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE, conv.lst = conv)
+
      return (assess)
 }
 
@@ -313,7 +316,7 @@ sits_reassess <- function (file = NULL, conv = NULL){
 #'
 #' @param  data.tb       A sits tibble containing a set of samples with known and trusted labels
 #' @param  patterns.tb   A sits tibble containing a set of patterns
-#' @param  bands         The bands used for classification
+#' @param  bands         the bands used for classification
 #' @param  alpha         (double)  - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
@@ -345,23 +348,72 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
      # retrieve the reference labels
      ref.vec <- as.character(class.tb$label)
      # retrieve the predicted labels
-     pred.vec  <- as.character(
-          purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
+     pred.vec  <- as.character(purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
 
      # calculate the accuracy assessment
-     assess <- rfUtilities::accuracy(pred.vec, ref.vec)
+     assess <- .sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE)
+
      return (assess)
 }
 
-#' @title Post-classification accuracy assessment of classified maps
-#' @name sits_compare
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param map_ref a Raster R object with the classified map to be used as a reference
-#' @param labels_ref a vector with the labels of the classified map to be used as a refence
-#' @param map_comp a Raster R object with the classified map to be compared with reference
-#' @param labels_comp a vector with the labels of the classified map to be used as a refence
-#' @return confusion.matrix - a global confusion matrix (area-weighted)
+#' @title Evaluates the accuracy of classification
+#' @name .sits_accuracy
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#
+#' @description Evaluates the accuracy of classification stored in two vectors.
+#' Returns the overall accuracy, producers and users accuracy, and confusion matrix.
+#' This algorith was inspired by `rfUtilities::accuracy` function, and fix the user and
+#' producer accuracy computation inconsistency.
+#'
+#' @param pred.vec       A vector of all predicted labels.
+#' @param ref.vec        A vector of all reference labels.
+#' @param pred_sans_ext  (Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
+#' @param conv.lst       A list conversion list of labels. If NULL no conversion is done.
+#' @return result.lst     a list with accuracy measures and confusion matrix
+.sits_accuracy <- function(pred.vec, ref.vec, pred_sans_ext = FALSE, conv.lst = NULL){
 
+     # remove predicted labels' extensions
+     if (pred_sans_ext)
+          pred.vec <- tools::file_path_sans_ext(pred.vec)
 
+     # count all pairs of labels
+     # rows: predicted labels; cols: reference labels
+     if (is.null(conv.lst))
+          conf.mtx <- table(pred.vec, ref.vec)
+     else{
+          ensurer::ensure_that(c(pred.vec, ref.vec),
+                               all(names(.) %in% names(conv.lst)),
+                               err_desc = ".sits_accuracy: conversion list does not contain all labels provided in `pred.vec` and/or `ref.vec` arguments.")
+          conf.mtx <- table(as.character(conv.lst[[pred.vec]]), as.character(conv.lst[[ref.vec]]))
+     }
 
+     # ensures that the confusion matrix is square
+     ensurer::ensure_that(conf.mtx, NCOL(.) == NROW(.),
+                          err_desc = ".sits_accuracy: predicted and reference vectors does not produce a squared matrix. Try to convert `pred.vec` entries before compute accuracy.")
+
+     # sort rows (predicted labels) according to collumn names (reference labels)
+     conf.mtx <- conf.mtx[colnames(conf.mtx),]
+
+     # get labels' agreement (matrix diagonal)
+     agreement <- diag(conf.mtx)
+
+     # get total of predicted labels (to compute users accuracy)
+     users <- apply(conf.mtx, 1, sum)
+
+     # get total of reference labels (to compute producers accuracy)
+     producers <- apply(conf.mtx, 2, sum)
+
+     # get grand totals
+     agreement_total <- sum(agreement)
+     grand_total <- sum(conf.mtx)
+
+     # compose result list
+     result.lst <- tibble::lst(
+          overall.accuracy = round(agreement_total / grand_total * 100, 4),
+          producer.accuracy = round(agreement / producers * 100, 4),
+          user.accuracy = round(agreement / users * 100, 4),
+          confusion = conf.mtx
+     )
+
+     return(result.lst)
+}

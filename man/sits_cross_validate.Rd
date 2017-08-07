@@ -8,9 +8,10 @@ sits_cross_validate(data.tb, method = "gam", bands = NULL, times = 100,
   perc = 0.1, from = NULL, to = NULL, freq = 8, formula = y ~ s(x),
   tw_alpha = -0.1, tw_beta = 100, tw_theta = 0.5, tw_span = 0,
   interval = "12 month", overlap = 0.5, n_clusters = 2,
-  grouping_method = "ward.D2", min_clu_perc = 0.1, apply_gam = FALSE,
-  koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05,
-  0.01), file = "./conf_matrix.json", .multicores = 1)
+  grouping_method = "ward.D2", unsupervised = FALSE, min_clu_perc = 0.1,
+  apply_gam = FALSE, koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100,
+  koh_alpha = c(0.05, 0.01), file = "./conf_matrix.json", .multicores = 1,
+  ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
@@ -47,6 +48,9 @@ sits_cross_validate(data.tb, method = "gam", bands = NULL, times = 100,
 
 \item{grouping_method}{the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.}
 
+\item{unsupervised}{if TRUE, proceeds an unsupervised cluster followed by a relabel taking original label majority (
+this option has not any effect if method == "gam")}
+
 \item{min_clu_perc}{the minimum percentagem of valid cluster members, with reference to the total number of samples (for clustering methods)}
 
 \item{apply_gam}{apply gam method after a clustering algorithm (ignored if method is `gam`).}
@@ -64,6 +68,8 @@ Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
 \item{file}{file to save the results}
 
 \item{.multicores}{number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).}
+
+\item{...}{any additional parameters to be passed to `sits_pattern` function.}
 }
 \value{
 cm             a validation assessment

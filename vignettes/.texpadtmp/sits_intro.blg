@@ -1,0 +1,73 @@
+This is BibTeX, Version 0.99d (TeX Live 2015)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: /Users/gilberto/sits/vignettes/.texpadtmp/sits_intro.aux
+The style file: biblatex.bst
+I couldn't open database file "./references-esensing.bib
+---line 3 of file /Users/gilberto/sits/vignettes/.texpadtmp/sits_intro.aux
+ : \bibdata{sits_intro-blx,"./references-esensing
+ :                                               }
+I'm skipping whatever remains of this command
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: sits_intro-blx.bib
+Warning--I didn't find a database entry for "Gorelick2012"
+Warning--I didn't find a database entry for "Baumann1998"
+Warning--I didn't find a database entry for "Stonebraker2013"
+Warning--I didn't find a database entry for "Vatsavai2012"
+Warning--I didn't find a database entry for "Nativi2015"
+Warning--I didn't find a database entry for "Planthaber2012"
+Warning--I didn't find a database entry for "Krcal2015"
+Biblatex version: 3.0
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 9000 items from 6000.
+You've used 1 entry,
+            6047 wiz_defined-function locations,
+            1143 strings with 8359 characters,
+and the built_in function-call counts, 1306 in all, are:
+= -- 64
+> -- 58
+< -- 1
++ -- 41
+- -- 24
+* -- 23
+:= -- 295
+add.period$ -- 0
+call.type$ -- 1
+change.case$ -- 0
+chr.to.int$ -- 34
+cite$ -- 0
+duplicate$ -- 12
+empty$ -- 92
+format.name$ -- 0
+if$ -- 289
+int.to.chr$ -- 0
+int.to.str$ -- 0
+missing$ -- 0
+newline$ -- 22
+num.names$ -- 0
+pop$ -- 44
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 74
+stack$ -- 0
+substring$ -- 117
+swap$ -- 1
+text.length$ -- 16
+text.prefix$ -- 0
+top$ -- 1
+type$ -- 26
+warning$ -- 0
+while$ -- 50
+width$ -- 0
+write$ -- 20
+(There was 1 error message)

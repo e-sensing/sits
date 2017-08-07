@@ -37,6 +37,7 @@ sits_TWDTW_matches <- function (series.tb, patterns.tb, bands, dist.method = "eu
      # add a progress bar
      progress_bar <- NULL
      if (nrow (series.tb) > 10) {
+          message("Classifying...")
           progress_bar <- utils::txtProgressBar(min = 0, max = nrow(series.tb), style = 3)
           i <- 0
      }

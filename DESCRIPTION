@@ -7,6 +7,7 @@ Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilbe
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Rolf', 'Simoes', role = c('aut')),
              person('Luiz', 'Assis', role = c('aut')),
+             person('Alexandre', 'Carvalho', role = c('aut')),
              person('Adeline', 'Marinho', role = c('ctb')),
              person('Gilberto', 'Queiroz', role = c('ctb'))
              )
@@ -17,54 +18,55 @@ Description: A set of tools for working with satellite image time series.
     Enables different clustering methods.
     Provides smoothing methods for noisy time series.
     Classifies time series using TWDTW method contained in the dtwSat package.
-URL: https://github.com/gilbertocamara/sits/
+    Support machine learning methods for satellite image time series.
+URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/gilbertocamara/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
 Depends:
-    dtwclust,
     dtwSat,
-    magrittr,
-    Rcpp
 Imports:
+    raster,
+    caret,
     dplyr,
+    dtwclust,
+    e1071,
     ensurer,
     entropy,
+    gbm,
     ggplot2,
+    glmnet,
     graphics,
     kohonen,
     jsonlite,
     lubridate,
+    magrittr,
+    MASS,
     methods,
     mgcv,
+    neuralnet,
+    nnet,
     parallel,
     ptw,
     purrr,
     purrrlyr,
     readr,
     reshape2,
-    rfUtilities,
     RCurl,
+    Rcpp,
     signal,
     sp,
+    snow,
     stats,
     stringr,
+    randomForest,
     roxygen2,
     tibble,
     tidyr,
     tools,
     utils, 
     wtss,
-    zoo,
-    raster,
-    snow,
-    nnet,
-    randomForest,
-    gbm,
-    glmnet,
-    MASS,
-    e1071,
-    caret
+    zoo
 LinkingTo: 
     Rcpp
 Remotes:
@@ -89,3 +91,4 @@ Collate:
     'sits_smooth.R'
     'sits_stack_proc.R'
     'sits_table.R'
+

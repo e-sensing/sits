@@ -1,4 +1,3 @@
-
 # example of the classification of a time series
 #devtools::install_github("gilbertocamara/sits")
 library(sits)

@@ -27,12 +27,15 @@
 #' (used only in `kohonen` or `kohonen-dendogram` methods). Default is 100.
 #' @param koh_alpha       learning rate, a vector of two numbers indicating the amount of change.
 #' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
+#' @param unsupervised    if TRUE, proceeds an unsupervised cluster followed by a relabel taking original label majority (
+#' this option has not any effect if method == "gam")
 #' @param show            show the results of the clustering algorithm? (for clustering methods).
+#' @param ...             additional arguments to be passed to the method function.
 #' @return patterns.tb    a SITS table with the patterns.
 #' @export
 sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL, to = NULL, freq = 8,
                            formula = y ~ s(x), n_clusters = 2, grouping_method = "ward.D2", min_clu_perc = 0.10, apply_gam = FALSE,
-                           koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01), show = FALSE) {
+                           koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01), unsupervised = FALSE, show = FALSE, ...) {
      # check the input exists
      ensurer::ensure_that(samples.tb, !purrr::is_null(.),
                           err_desc = "sits_patterns: input data not provided")
@@ -61,38 +64,40 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
      }
 
      switch(method,
-            "gam"            =  { patterns.tb <- .sits_patterns_gam (samples.tb, bands = bands, from = from, to = to, freq = freq, formula = formula) },
+            "gam"            =  { patterns.tb <- .sits_patterns_gam (samples.tb, bands = bands, from = from, to = to, freq = freq, formula = formula, ...) },
             "dendogram"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "dendogram",
                                               n_clusters = n_clusters, grouping_method = grouping_method,
-                                              return_members = apply_gam, unsupervised = FALSE, show = show)
+                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ... = ...)
             },
             "centroids"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "centroids",
                                               n_clusters = n_clusters, grouping_method = grouping_method,
-                                              return_members = apply_gam, unsupervised = FALSE, show = show)
+                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ... = ...)
                  },
             "kohonen"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "kohonen",
                                               koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
-                                              return_members = apply_gam, unsupervised = FALSE, show = show)
+                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ... = ...)
             },
             "kohonen-dendogram"      =  {
                  patterns.tb <- sits_cluster (samples.tb, bands = bands, method = "kohonen-dendogram",
                                               n_clusters = n_clusters, grouping_method = grouping_method,
                                               koh_xgrid = koh_xgrid, koh_ygrid = koh_ygrid, koh_rlen = koh_rlen, koh_alpha = koh_alpha,
-                                              return_members = apply_gam, unsupervised = FALSE, show = show)
+                                              return_members = apply_gam, unsupervised = unsupervised, show = show, ... = ...)
             })
 
      # get only the significant clusters
-     if (method != "gam")
-          patterns.tb <- sits_significant_labels(patterns.tb, min_label_frac = min_clu_perc)
+     if (method != "gam"){
+          if (!unsupervised)
+               patterns.tb <- sits_significant_labels(patterns.tb, min_label_frac = min_clu_perc)
+     }
 
      if (apply_gam) {
           # get cluster information before calling GAM...
           pat_labels.tb <- sits_labels(patterns.tb)
           # extract only significant clusters (cut line given by min_clu_perc parameter)
-          patterns.tb <- .sits_patterns_gam (patterns.tb, bands = bands, from = from, to = to, freq = freq, formula = formula)
+          patterns.tb <- .sits_patterns_gam (patterns.tb, bands = bands, from = from, to = to, freq = freq, formula = formula, ... = ...)
           # append cluster informations to the result
           patterns.tb <- dplyr::inner_join(pat_labels.tb, patterns.tb, by = "label") %>%
                dplyr::select(longitude, latitude, start_date, end_date, label, coverage, time_series, original_label, n_members = count)
@@ -128,10 +133,10 @@ sits_patterns <- function (samples.tb, method = "gam", bands = NULL, from = NULL
 #' @param  to            end data of the estimated (month-day)
 #' @param  freq          int - the interval in days for the estimates to be generated
 #' @param  formula       the formula to be applied in the estimate
+#' @param  ...           any additional parameters
 #' @return patterns.tb   a SITS table with the patterns
 #'
-#'
-.sits_patterns_gam <- function (samples.tb, bands, from, to, freq, formula){
+.sits_patterns_gam <- function (samples.tb, bands, from, to, freq, formula, ...){
      # create a tibble to store the results
      patterns.tb <- sits_table()
 

@@ -4,10 +4,10 @@
 \alias{sits_cluster}
 \title{Cluster a set of satellite image time series}
 \usage{
-sits_cluster(data.tb = NULL, bands = NULL, method = "dendogram",
-  n_clusters = 2, dist_method = "dtw_basic", grouping_method = "ward.D2",
-  koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05,
-  0.01), return_members = FALSE, unsupervised = FALSE, show = TRUE, ...)
+sits_cluster(data.tb, bands = NULL, method = "dendogram", n_clusters = 2,
+  dist_method = "dtw_basic", grouping_method = "ward.D2", koh_xgrid = 5,
+  koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
+  return_members = FALSE, unsupervised = FALSE, show = FALSE, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble the list of time series to be clustered}
@@ -40,7 +40,7 @@ This column may be useful to measure confusion between clusters' members. Defaul
 
 \item{show}{(boolean) should the results be shown? Default is TRUE.}
 
-\item{...}{Other arguments to pass to the distance method \code{dist_method}, see \code{\link[dtwclust]{dtwclust}} for details.}
+\item{...}{Other arguments to pass to the distance method \code{dist_method}, and cluster method. See \code{\link[dtwclust]{dtwclust}} for details.}
 }
 \value{
 clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.

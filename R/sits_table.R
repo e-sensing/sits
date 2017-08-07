@@ -275,10 +275,11 @@ sits_group_bylatlong <- function (data.tb) {
 #' @description  returns the labels and its respective counting and frequency.
 #'
 #' @param data.tb     a valid sits table
+#' @param from_members (Boolean) if n_members collumn is present, compute label's statistics from it.
 #' @return result.tb  a tibble with the names of the labels and its absolute and relative frequency
 #' @export
 #'
-sits_labels <- function (data.tb) {
+sits_labels <- function (data.tb, from_members = FALSE) {
 
      # verify if there is original_label column. If not exists initialize it with empty string.
      if (!any("original_label" %in% names(data.tb)))
@@ -286,15 +287,26 @@ sits_labels <- function (data.tb) {
 
      # verify if there is n_members column. If not exists initialize it with ones.
      if (!any("n_members" %in% names(data.tb)))
-          data.tb$n_members <- 1
+          data.tb$n_members <- data.tb$label %>%
+               purrr::map(function(label) return(tibble::tibble(original_label = label, n = 1)))
 
      # compute frequency (absolute and relative)
-     result.tb <- data.tb %>%
-          dplyr::group_by(original_label, label) %>%
-          dplyr::summarize(count = sum(n_members, na.rm = TRUE)) %>%
-          dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
-          dplyr::ungroup() %>%
-          dplyr::select(label, count, original_label, total, frac)
+     if (from_members)
+          result.tb <- data.tb %>%
+               tidyr::unnest_("n_members", .sep = ".") %>%
+               dplyr::group_by_("n_members.original_label", "label") %>%
+               dplyr::summarize(count = sum(n_members.n, na.rm = TRUE)) %>%
+               dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
+               dplyr::ungroup() %>%
+               dplyr::select_("label", "count", original_label="n_members.original_label", "total", "frac")
+     else
+          result.tb <- data.tb %>%
+               tidyr::unnest_("n_members", .sep = ".") %>%
+               dplyr::group_by_("original_label", "label") %>%
+               dplyr::summarize(count = sum(n_members.n, na.rm = TRUE)) %>%
+               dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
+               dplyr::ungroup() %>%
+               dplyr::select_("label", "count", "original_label", "total", "frac")
      return (result.tb)
 }
 
@@ -696,6 +708,41 @@ sits_relabel <- function (data.tb, conv){
      return (out.tb)
 }
 
+#' @title creates a conversion identity list for sits_relabel
+#' @name sits_relabel_conv
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a confusion matrix obtained in the validation
+#' procedure, returns a identity conversion list of labels.
+#'
+#' @param  file           a JSON file contaning the result of a validation procedure
+#' @return conv.lst       a conversion list
+#' @export
+sits_relabel_conv <- function (file = NULL){
+     # do the input file exist?
+     ensurer::ensure_that(file, !purrr::is_null(.),
+                          err_desc = "sits_relabel: JSON file not provided")
+
+     # get labels from JSON file
+     confusion.vec <- jsonlite::fromJSON (file)
+
+     # what are the labels of the samples?
+     #labels <- rle(sort(ref.vec))$values
+     labels <- base::unique(confusion.vec)
+
+     # Create an identity list
+     conv.lst <- labels %>%
+          purrr::map(function(lbl) lbl)
+     names(conv.lst) <- labels
+
+     # conv.lst <- tibble::lst()
+     # for (i in 1:length(labels)) {
+     #      lab <- labels[i]
+     #      conv.lst[lab] <- lab
+     # }
+
+     return (conv.lst)
+}
 #' @title Spread matches from a sits matches tibble
 #' @name .sits_spread_matches
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}

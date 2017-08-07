@@ -12,7 +12,7 @@
 #' @param    start_date the start date of the plot (used for showing classifications)
 #' @param    end_date   the end date of the plot (used for showing classifications)
 #' @param    interval   the interval between classifications (used for showing classifications)
-#' @param    overlap    minimum overlapping between one match and the interval of classification
+#' @param    overlap    minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.
 #' @param    n_matches  number of matches of a given label to be displayed
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
 #' @export
@@ -258,6 +258,67 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
                      row$label,
                      sep = "")
      return (title)
+}
+#' @title Plot a dendrogram
+#' @name sits_plot_dendrogram
+#'
+#' @description Plot an enhanced dendrogram based on a cluster object usually found in `.sits_last_cluster`
+#'
+#' @param data.tb       SITS tibble to extract labels
+#' @param cluster_obj   cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`
+#' @param cutree_height A dashed horizontal line to be drawed indicating the height of dendrogram cutting.
+#' @param colors        a color scheme as showed in `sits_color_name` function
+#' @param ...           Other parameters to be passed to graphics::plot() function
+#' @export
+sits_plot_dendrogram <- function(data.tb,
+                                 cluster_obj = NULL,
+                                 cutree_height = NULL,
+                                 colors = "RdYlGn", ...){
+     # get cluster_obj
+     if (is.null(cluster_obj))
+          cluster_obj <- sits_last_cluster()
+
+     # ensures that a cluster object is informed or exists in .sits_last_cluster global variable.
+     ensurer::ensure_that(cluster_obj, !is.null(.), err_desc = "plot_dendrogram: no valid `cluster_obj` informed or found in `.sits_last_cluster`.")
+
+     # get unique labels
+     data_labels <- data.tb$label
+     uniq_labels <- base::unique(data_labels)
+
+     # warns if the number of available colors is insufficient to all labels
+     if (length(uniq_labels) > (length(.sits_brewerRGB[[sits_color_name(colors)]]) - 1))
+          message("sits_plot_dendrogram: The number of labels is greater than the number of available colors.")
+
+     # extract the dendrogram object
+     hclust_cl <- methods::S3Part(cluster_obj, strictS3 = TRUE)
+     dendrogram <- hclust_cl %>%
+          stats::as.dendrogram()
+
+     # prepare labels color vector
+     cols <- character(length(data_labels))
+     cols[] <- rgb(0/255,   0/255,   0/255,   0/255)
+     i <- 1
+     seq(uniq_labels) %>%
+          purrr::map(function (i){
+               cols[data_labels[hclust_cl$order] == uniq_labels[i]] <<- .sits_brewerRGB[[sits_color_name(colors)]][[length(uniq_labels)]][[i]]
+               i <<- i + 1
+          })
+
+     # plot the dendrogram
+     dendrogram %>%
+          dendextend::set("labels", character(length = length(data_labels))) %>%
+          dendextend::set("branches_k_color", value = cols, k = length(data_labels)) %>%
+          graphics::plot(xlab = "Clusters", ylab = paste(tools::file_path_sans_ext(cluster_obj@method),
+                                                         "linkage distance"), ...)
+
+
+     # plot cutree line
+     if (!is.null(cutree_height)) graphics::abline(h = cutree_height, lty = 2)
+
+     # plot legend
+     graphics::legend("topright",
+                      fill = as.character(.sits_brewerRGB[[sits_color_name(colors)]][[length(uniq_labels)]]),
+                      legend = uniq_labels)
 }
 
 
