@@ -732,3 +732,27 @@ sits_relabel <- function (data.tb, conv){
      return(out.tb)
      
 }
+
+#' @title Set function arguments
+#' @name .set_fun_args
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#'
+#' @description Given a function and a list of arguments, 
+#' returns the function with new default parameters
+#' 
+#' @param fun a function 
+#' @param args a list of arguments 
+#' @param ... arguments 
+#' 
+#' @noRd
+#'
+.set_fun_args = function(fun, ..., args = list(...)){ 
+     base_formals = formals(fun)
+     base_formals_names = names(base_formals)
+     given_formals = args[names(args) %in% base_formals_names]
+     missing_formals_names = setdiff(base_formals_names, names(args))
+     new_formals = c(base_formals[missing_formals_names], given_formals)
+     new_formals = new_formals[base_formals_names]
+     formals(fun) = new_formals
+     fun
+}

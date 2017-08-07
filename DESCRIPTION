@@ -1,12 +1,13 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.8.02
-Date: 2017-08-02
+Version: 0.8.07
+Date: 2017-08-07
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Rolf', 'Simoes', role = c('aut')),
              person('Luiz', 'Assis', role = c('aut')),
+             person('Alexandre', 'Carvalho', role = c('aut')),
              person('Adeline', 'Marinho', role = c('ctb')),
              person('Gilberto', 'Queiroz', role = c('ctb'))
              )
@@ -17,19 +18,18 @@ Description: A set of tools for working with satellite image time series.
     Enables different clustering methods.
     Provides smoothing methods for noisy time series.
     Classifies time series using TWDTW method contained in the dtwSat package.
-URL: https://github.com/gilbertocamara/sits/
+    Support machine learning methods for satellite image time series.
+URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/gilbertocamara/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
 Depends:
-    dtwclust,
     dtwSat,
-    magrittr,
-    Rcpp
 Imports:
     raster,
     caret,
     dplyr,
+    dtwclust,
     e1071,
     ensurer,
     entropy,
@@ -40,6 +40,7 @@ Imports:
     kohonen,
     jsonlite,
     lubridate,
+    magrittr,
     MASS,
     methods,
     mgcv,
@@ -51,8 +52,8 @@ Imports:
     purrrlyr,
     readr,
     reshape2,
-    rfUtilities,
     RCurl,
+    Rcpp,
     signal,
     sp,
     snow,
