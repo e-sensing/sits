@@ -1,12 +1,13 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.8.02
-Date: 2017-08-02
+Version: 0.8.07
+Date: 2017-08-07
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Rolf', 'Simoes', role = c('aut')),
              person('Luiz', 'Assis', role = c('aut')),
+             person('Alexandre', 'Carvalho', role = c('aut')),
              person('Adeline', 'Marinho', role = c('ctb')),
              person('Gilberto', 'Queiroz', role = c('ctb'))
              )
@@ -17,53 +18,60 @@ Description: A set of tools for working with satellite image time series.
     Enables different clustering methods.
     Provides smoothing methods for noisy time series.
     Classifies time series using TWDTW method contained in the dtwSat package.
-URL: https://github.com/gilbertocamara/sits/
+    Support machine learning methods for satellite image time series.
+URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/gilbertocamara/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
 Depends:
-    dtwclust,
     dtwSat,
-    magrittr,
-    wtss
 Imports:
-    dendextend,
+    raster,
+    caret,
     dplyr,
+    dtwclust,
+    e1071,
     ensurer,
     entropy,
+    gbm,
     ggplot2,
+    glmnet,
     graphics,
-    grDevices,
     kohonen,
     jsonlite,
     lubridate,
+    magrittr,
+    MASS,
     methods,
     mgcv,
+    neuralnet,
+    nnet,
     parallel,
-    plyr,
     ptw,
     purrr,
     purrrlyr,
-    raster,
     readr,
     reshape2,
     RCurl,
+    Rcpp,
     signal,
-    snow,
     sp,
+    snow,
     stats,
     stringr,
+    randomForest,
     roxygen2,
     tibble,
     tidyr,
     tools,
     utils, 
+    wtss,
     zoo
-Remotes:
-    luizassis/wtss,
-    vwmaus/dtwSat
 LinkingTo: 
     Rcpp
+Remotes:
+     luizassis/wtss,
+     vwmaus/dtwSat
 RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'
@@ -73,14 +81,14 @@ Collate:
     'sits_WTSS.R'
     'sits_assessment.R'
     'sits_cluster.R'
-    'sits_colors.R'
     'sits_filters.R'
     'sits_getdata.R'
     'sits_init.R'
+    'sits_machine_learning.R'
     'sits_patterns.R'
     'sits_plot.R'
     'sits_save.R'
-    'sits_separability.R'
     'sits_smooth.R'
     'sits_stack_proc.R'
     'sits_table.R'
+
