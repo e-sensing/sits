@@ -8,7 +8,7 @@ sits_patterns(samples.tb, method = "gam", bands = NULL, from = NULL,
   to = NULL, freq = 8, formula = y ~ s(x), n_clusters = 2,
   grouping_method = "ward.D2", min_clu_perc = 0.1, apply_gam = FALSE,
   koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05,
-  0.01), show = FALSE)
+  0.01), unsupervised = FALSE, show = FALSE, ...)
 }
 \arguments{
 \item{samples.tb}{a table in SITS format with a set of labelled time series.}
@@ -43,7 +43,12 @@ sits_patterns(samples.tb, method = "gam", bands = NULL, from = NULL,
 \item{koh_alpha}{learning rate, a vector of two numbers indicating the amount of change.
 Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
 
+\item{unsupervised}{if TRUE, proceeds an unsupervised cluster followed by a relabel taking original label majority (
+this option has not any effect if method == "gam")}
+
 \item{show}{show the results of the clustering algorithm? (for clustering methods).}
+
+\item{...}{additional arguments to be passed to the method function.}
 }
 \value{
 patterns.tb    a SITS table with the patterns.

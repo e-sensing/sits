@@ -5,7 +5,7 @@
 \alias{.sits_patterns_gam}
 \title{Create temporal patterns using a generalised additive model (gam)}
 \usage{
-.sits_patterns_gam(samples.tb, bands, from, to, freq, formula)
+.sits_patterns_gam(samples.tb, bands, from, to, freq, formula, ...)
 }
 \arguments{
 \item{samples.tb}{a table in SITS format with time series to be classified using TWTDW}
@@ -19,6 +19,8 @@
 \item{freq}{int - the interval in days for the estimates to be generated}
 
 \item{formula}{the formula to be applied in the estimate}
+
+\item{...}{any additional parameters}
 }
 \value{
 patterns.tb   a SITS table with the patterns

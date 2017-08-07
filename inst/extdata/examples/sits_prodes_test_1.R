@@ -3,17 +3,6 @@
 #devtools::install_github("gilbertocamara/sits")
 library(sits)
 
-# Get information about the WTSS (web time series service)
-# see WTSS paper for more information ("Web Services for Big Data")
-
-URL <- "http://www.dpi.inpe.br/tws/wtss"
-wtss_inpe <- sits_infoWTSS(URL)
-
-# get information about a specific coverage
-sits_coverageWTSS(URL,"mixl8mod")
-
-# choose a coverage
-coverage <- "mixl8mod"
 # recover all bands
 bands <- c("ndvi", "evi")
 
@@ -46,3 +35,4 @@ sits_plot (matches.tb, type = "alignments")
 
 class1.tb <- sits_TWDTW_classify (matches1.tb, start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
 sits_plot(matches.tb, type = "classification", start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
+>>>>>>> d864f58c1aba6d813a3413858509369a47000989

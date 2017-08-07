@@ -24,4 +24,3 @@ proc_time =
 
 
 sits_labels(new_class.tb)
-

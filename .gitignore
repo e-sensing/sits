@@ -2,4 +2,11 @@
 .Rhistory
 .RData
 .Ruserdata
+.DS_Store
+*.xml
+packrat/lib*/
 .tmp
+*.json
+src/*.o
+src/*.dll
+src/*.so

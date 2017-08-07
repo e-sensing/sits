@@ -1,4 +1,3 @@
-
 # R script 2017-03-09
 # sits package by Gilberto Câmara
 # https://github.com/gilbertocamara/sits

@@ -25,7 +25,7 @@ sits_plot(data.tb = NULL, type = "allyears", colors = "Dark2",
 
 \item{interval}{the interval between classifications (used for showing classifications)}
 
-\item{overlap}{minimum overlapping between one match and the interval of classification}
+\item{overlap}{minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.}
 }
 \value{
 data.tb    tibble - the input SITS table (useful for chaining functions)
