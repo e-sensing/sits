@@ -18,7 +18,7 @@ sits_train_svm(data.tb, type = "C-classification", kernel = "linear",
 
 \item{coef0}{num      parameter needed for kernels of type polynomial and sigmoid (default: 0)}
 
-\item{cost}{num      cost of constraints violation (default: 1) —it is the ‘C’-constant of the regularization term in the Lagrange formulation.}
+\item{cost}{num      cost of constraints violation (default: 1): it is the Cconstant of the regularization term in the Lagrange formulation.}
 
 \item{tolerance}{num      tolerance of termination criterion (default: 0.001)}
 
@@ -28,24 +28,24 @@ sits_train_svm(data.tb, type = "C-classification", kernel = "linear",
 model.fit    an svm model fit for the input data
 }
 \description{
-Given a SITS tibble time series with DTW matches produced by TWDTW, 
-             returns trained models using support vector machines. This function will 
+Given a SITS tibble time series with DTW matches produced by TWDTW,
+             returns trained models using support vector machines. This function will
              use the TWDTW alignment information for all classes as the attributes
              of the SVM. Please use this function in the following way:
              1. call sits_patterns to produce a set a labelled patterns from a reference data set
              2. call sits_TWDTW_matches to produce a set of alignements
              3. use the alignment response as an input to the training function
-             
+
              This function is a front-end to the "svm" method in the "e1071" package.
-             In the context of time series classification, the only relevant types are "C-classification" and "nu-classification". 
+             In the context of time series classification, the only relevant types are "C-classification" and "nu-classification".
              Please refer to the documentation in that package for more details.
 }
 \details{
 Functions for machine learning associated to the SITS package
-The attributes for the training functions are the DTW distances 
+The attributes for the training functions are the DTW distances
 computed by the TWTDW function (see documentation on sits_TWDTW_matches)
 
-models supported: 'svm', 'random forests', 'boosting', 'lda', 
+models supported: 'svm', 'random forests', 'boosting', 'lda',
                   'multinomial logit', 'lasso', 'ridge', 'elnet', 'best model'
 }
 \author{

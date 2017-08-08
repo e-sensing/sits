@@ -160,7 +160,7 @@ sits_last_cluster <- function(){
                                      type     = "hierarchical",
                                      k        = n_clusters,
                                      distance = dist_method,
-                                     control = hierarchical_control(method = grouping_method), ...)
+                                     control = dtwclust::hierarchical_control(method = grouping_method), ...)
 
      # dtwclust does not handle zoo, therefore we convert zoo to matrix to allow for clusters visualization
      if( tolower(dist_method) %in% "twdtw" ){

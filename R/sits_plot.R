@@ -296,7 +296,7 @@ sits_plot_dendrogram <- function(data.tb,
 
      # prepare labels color vector
      cols <- character(length(data_labels))
-     cols[] <- rgb(0/255,   0/255,   0/255,   0/255)
+     cols[] <- grDevices::rgb(0/255,   0/255,   0/255,   0/255)
      i <- 1
      seq(uniq_labels) %>%
           purrr::map(function (i){

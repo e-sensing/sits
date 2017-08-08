@@ -19,11 +19,11 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "longitude", "latitude", "label", "coverage",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
-                         "original_label", "n_members", "count",
+                         "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n",
                          "distance", "twdtw_distances", "predicted", "new_values"))
 
 #  define the dependencies of the SITS package
 #' @useDynLib sits, .registration = TRUE
-#' 
+#'
 NULL
