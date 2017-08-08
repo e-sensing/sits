@@ -77,7 +77,6 @@ Collate:
     'RcppExports.R'
     'sits_SCIDB.R'
     'sits_TWDTW.R'
-    'sits_WTSPS.R'
     'sits_WTSS.R'
     'sits_assessment.R'
     'sits_cluster.R'
