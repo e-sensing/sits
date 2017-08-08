@@ -81,6 +81,7 @@ Collate:
     'sits_WTSS.R'
     'sits_assessment.R'
     'sits_cluster.R'
+    'sits_colors.R'
     'sits_filters.R'
     'sits_getdata.R'
     'sits_init.R'
@@ -88,7 +89,7 @@ Collate:
     'sits_patterns.R'
     'sits_plot.R'
     'sits_save.R'
+    'sits_separability.R'
     'sits_smooth.R'
     'sits_stack_proc.R'
     'sits_table.R'
-

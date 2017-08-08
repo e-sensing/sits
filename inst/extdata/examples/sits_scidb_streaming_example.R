@@ -39,34 +39,34 @@ while(TRUE) {
                                                       dates = dates[timeid[index]+1],
                                                       scale_factor = scale_factor,
                                                       idx = index)
+
     # align twdtw
-    alignments_tb <- sits::sits_TWDTW(line_tb,
-                                      patterns_tb,
-                                      bands = bands,
-                                      alpha = alpha,
-                                      beta = beta,
-                                      dist.method = dist_method,
-                                      theta = theta,
-                                      span = span,
-                                      keep = keep,
-                                      interval = interval,
-					             start_date = dates[timeid[index[1]]+1],
-					             end_date = dates[timeid[index][length(index)]+1])
+    matches_tb <- sits::sits_TWDTW_matches(line_tb,
+                                           patterns_tb,
+                                           bands = bands,
+                                           alpha = alpha,
+                                           beta = beta,
+                                           dist.method = dist_method,
+                                           theta = theta,
+                                           span = span,
+                                           keep = keep)
 
-     if("try-error" %in% class(alignments_tb))
-       return (list())
+    best_matches_tb <- sits::sits_TWDTW_classify(matches_tb,
+                                                 start_date = start_date,
+                                                 end_date = end_date,
+                                                 interval = interval)
 
-     k = nrow(alignments_tb$best.alignments[[1]])
+    k = nrow(best_matches_tb$best_matches[[1]][])
 
-     return(data.frame(
-               colid = as.double(rep(alignments_tb$longitude, k)),
-               rowid = as.double(rep(alignments_tb$latitude, k)),
-               timeid  = as.double(seq_len(k)),
-               from  = as.integer(alignments_tb$best.alignments[[1]]$from),
-               to    = as.integer(alignments_tb$best.alignments[[1]]$to),
-               label = match(alignments_tb$best.alignments[[1]]$label[], label_names[[1]]),
-               distance  = alignments_tb$best.alignments[[1]]$distance
-          ))
+    return(data.frame(
+         colid = as.double(rep(best_matches_tb$longitude, k)),
+         rowid = as.double(rep(best_matches_tb$latitude, k)),
+         timeid  = as.double(seq_len(k)),
+         from  = as.integer(best_matches_tb$best_matches[[1]][]$from),
+         to    = as.integer(best_matches_tb$best_matches[[1]][]$to),
+         label = match(best_matches_tb$best_matches[[1]][]$label, label_names[[1]]),
+         distance  = best_matches_tb$best_matches[[1]][]$distance
+    ))
 
   }
 
