@@ -54,7 +54,7 @@ setMethod(
 )
 
 # shorcut function name for creating a new WTSPS instance
-WTSPS <- function(serverURL) { new (Class = "WTSPS", serverURL = serverURL)}
+WTSPS <- function(serverURL) { methods::new (Class = "WTSPS", serverURL = serverURL)}
 
 # method for customizing print
 setMethod(

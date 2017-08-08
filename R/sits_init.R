@@ -19,8 +19,9 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "longitude", "latitude", "label", "coverage",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
-                         "original_label", "n_members", "count",
-                         "segr", "frac", "total", "n"))
+                         "original_label", "n_members", "n_members.n", "count",
+                         "segr", "frac", "total", "n",
+                         "distance", "twdtw_distances", "predicted", "new_values"))
 
 #  define the dependencies of the SITS package
 #' @importFrom ensurer ensure_that ensures_that ensure check check_that
@@ -59,7 +60,6 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @importFrom e1071 svm
 #' @importFrom caret createDataPartition
 #' @import dplyr
-#' @import dtwclust
 #' @import dtwSat
 #' @import magrittr
 #' @useDynLib sits, .registration = TRUE

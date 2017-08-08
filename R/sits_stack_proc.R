@@ -2,8 +2,8 @@
 #' @name sits_stack_relabel
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
-#' @include RcppExports.R 
-#' 
+#' @include RcppExports.R
+#'
 #' @param x raster stack .... tbl raster or wms???
 #' @param old_values an integer vector with raster values (label) to be updated
 #' @param new_values an integer vector with new values (label). It must have the same length as \code{old_label}
@@ -133,7 +133,7 @@ sits_stack_transition_relabel <- function(x,
      if (filename != "") {
           out <- raster::writeStart(out, filename = filename, ... )
      } else {
-          vv <- matrix(out, ncol = nlayers(out))
+          vv <- matrix(out, ncol = raster::nlayers(out))
      }
 
      # Process raster tiles
@@ -240,7 +240,7 @@ sits_stack_transition_relabel <- function(x,
      # Skip NA
      I <- tibble::as.tibble(v) %>%
           dplyr::rowwise() %>%
-          dplyr::do(na = !anyNA(.)) %>% 
+          dplyr::do(na = !anyNA(.)) %>%
           unlist()
 
      # Update label

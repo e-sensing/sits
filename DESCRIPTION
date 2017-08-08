@@ -4,10 +4,17 @@ Title: Satellite Image Time Series Analysis
 Version: 0.8.07
 Date: 2017-08-07
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
+             person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
+<<<<<<< HEAD
              person('Rolf', 'Simoes', role = c('aut')),
              person('Luiz', 'Assis', role = c('aut')),
+=======
+             person('Luiz', 'Assis', role = c('ctb')),
+             person('Alexandre', 'Carvalho', role = c('ctb')),
+>>>>>>> 26a1ab5ce63c65970ec7bf110ffffc0d029a76f7
              person('Adeline', 'Marinho', role = c('ctb')),
+             person('Lorena', 'Santos', role = c('ctb')),
              person('Gilberto', 'Queiroz', role = c('ctb'))
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
@@ -22,13 +29,13 @@ BugReports: https://github.com/gilbertocamara/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
 Depends:
-    dtwclust,
+    wtss,
     dtwSat,
-    magrittr,
-    wtss
+    magrittr
 Imports:
     caret,
     dendextend,
+    dtwclust,
     dplyr,
     e1071,
     ensurer,
@@ -68,6 +75,9 @@ Imports:
     zoo
 LinkingTo: 
     Rcpp
+Remotes:
+     e-sensing/wtss.R,
+     vwmaus/dtwSat
 RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'
