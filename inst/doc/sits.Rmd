@@ -21,17 +21,11 @@ output: rticles::jss_article
 bibliography: e-sensing.bib
 ---
 
-\section{Introduction}
-Earth observation satellites provide a continuous and consistent set of information about the Earth’s land and oceans. Most space agencies have adopted an open data policy, making unprecedented amounts of satellite data available for research and operational use. This data deluge has brought about a major challenge for Geoinformatics research: \textit{How to design and build technologies that allow the Earth observation community to analyse big data sets?}
-
-Since remote sensing satellites revisit the same place repeatedly, we can calibrate their images so measures of the same place in different times are comparable. These observation can be organised, so that each measure from sensor is mapped into a three dimensional array in space-time. From a data analysis perspective, researchers then have access to satellite image time series (SITS). Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing.
-
-A time-series of measurements of the same location in the surface of the Earth can be considered as a historical record. When the images arise for a dense record of frequent revisits, the temporal resolution of the big data set is able to capture the most important land use changes. Such dense time series allow researchers to  which changes have taken place in each location. 
-
-The benefits of remote sensing time series analysis arise when the temporal resolution of the big data set is sufficient to capture the most important changes. In this case, the temporal autocorrelation of the data can be stronger than the spatial autocorrelation. In other words, given data with adequate repeatability, a pixel will be more related to its temporal neighbours rather its spatial ones. In this case, \textit{time-first, space-later} methods will give better results than the \textit{space-first, time-later} approach.
+# Introduction 
+```{r, child='sec01_introd.Rmd'}
+```
 
 
-Time series of remote sensing data show that land cover changes do not always occur in a progressive and gradual way, but they may also show periods of rapid and abrupt change followed either by a quick recovery \citep{Lambin2006}. Analyses of multiyear time series of land surface attributes, their fine-scale spatial pattern, and their seasonal evolution leads to a broader view of land-cover change. Satellite image time series have already been applied to applications such as mapping for detecting forest disturbance \citep{Kennedy2010}, ecology dynamics \citep{Pasquarella2016}, agricultural intensification \citep{Galford2008} and its impacts on deforestation \citep{Arvor2012}.
 
 ```{r include = FALSE}
 library(sits)
