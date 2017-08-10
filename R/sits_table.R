@@ -743,6 +743,7 @@ sits_relabel_conv <- function (file = NULL){
 
      return (conv.lst)
 }
+
 #' @title Spread matches from a sits matches tibble
 #' @name .sits_spread_matches
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
@@ -770,51 +771,13 @@ sits_relabel_conv <- function (file = NULL){
                     )
 
      # Select best match and spread pred to columns
+     data.tb$twdtw_distances <- list(matches_distance)
      out.tb <- data.tb %>%
-          dplyr::bind_cols(matches_distance) %>%
           tidyr::unnest(twdtw_distances, .drop = FALSE) %>%
           dplyr::mutate(reference = label) %>%
           tidyr::spread(predicted, distance)
 
      return(out.tb)
-
-}
-
-#' @title Spread matches from a sits matches tibble
-#' @name .sits_spread_matches
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#'
-#' @description Given a SITS tibble with a matches, returns a tibble whose columns have
-#' the reference label and the TWDTW distances for each temporal pattern.
-#'
-#' @param  data.tb a SITS matches tibble
-#'
-#' @noRd
-#'
-.sits_spread_matches <- function(data.tb){
-
-    # Get best TWDTW aligniments for each class
-    matches_distance <- data.tb %>%
-        dplyr::rowwise() %>%
-        dplyr::do(twdtw_distances <-
-                      tibble::as_tibble(.$matches[[1]][, c("distance", "label")]) %>%
-                      dplyr::group_by(label) %>%
-                      dplyr::slice(which.min(distance)) %>%
-                      dplyr::ungroup() %>%
-                      dplyr::rename(predicted = label)
-        )
-
-    # Select best match and spread pred to columns
-    out.tb <- data.tb %>%
-        dplyr::bind_cols(matches_distance) %>%
-        tidyr::unnest(twdtw_distances, .drop = FALSE) %>%
-        dplyr::mutate(reference = label) %>%
-        tidyr::spread(predicted, distance)
-
-    return(out.tb)
-
 }
 
 #' @title Set function arguments

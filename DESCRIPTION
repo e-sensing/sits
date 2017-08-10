@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.8.07
-Date: 2017-08-07
+Version: 0.8.10
+Date: 2017-08-10
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
@@ -19,21 +19,18 @@ Description: A set of tools for working with satellite image time series.
     Enables different clustering methods.
     Provides smoothing methods for noisy time series.
     Classifies time series using TWDTW method contained in the dtwSat package.
-    Support machine learning methods for satellite image time series.
-URL: https://github.com/e-sensing/sits/
+URL: https://github.com/gilbertocamara/sits/
 BugReports: https://github.com/gilbertocamara/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
 Depends:
-    wtss,
-    dtwSat,
-    magrittr
+    lattice,
+    dplyr,
+    dtwclust,
+    dtwSat
 Imports:
-    raster,
     caret,
     dendextend,
-    dtwclust,
-    dplyr,
     e1071,
     ensurer,
     entropy,
@@ -41,29 +38,30 @@ Imports:
     ggplot2,
     glmnet,
     graphics,
+    grDevices,
     kohonen,
     jsonlite,
     lubridate,
+    magrittr,
     MASS,
     methods,
     mgcv,
-    neuralnet,
     nnet,
     parallel,
     plyr,
     ptw,
     purrr,
     purrrlyr,
+    randomForest,
+    raster,
     readr,
     reshape2,
     RCurl,
-    Rcpp,
     signal,
-    sp,
     snow,
+    sp,
     stats,
     stringr,
-    randomForest,
     roxygen2,
     tibble,
     tidyr,
@@ -73,8 +71,8 @@ Imports:
 LinkingTo: 
     Rcpp
 Remotes:
-     e-sensing/wtss.R,
-     vwmaus/dtwSat
+    e-sensing/wtss.R,
+    rolfsimoes/dtwSat
 RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'
