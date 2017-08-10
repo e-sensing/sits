@@ -24,6 +24,10 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "distance", "twdtw_distances", "predicted", "new_values"))
 
 #  define the dependencies of the SITS package
+#' @import lattice
+#' @import dplyr
+#' @import dtwclust
+#' @import dtwSat
+#' @import magrittr
 #' @useDynLib sits, .registration = TRUE
 #'
-NULL

@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 apply_first_order_transition_rules <- function(v, A, I) {
-    .Call(`_sits_apply_first_order_transition_rules`, v, A, I)
+    .Call('_sits_apply_first_order_transition_rules', PACKAGE = 'sits', v, A, I)
 }
 
