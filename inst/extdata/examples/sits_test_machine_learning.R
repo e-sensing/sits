@@ -18,10 +18,10 @@ matches_distance <- matches.tb[1,] %>%
                   dplyr::ungroup() %>%
                   dplyr::rename(predicted = label)
     )
-
+matches_one.tb <- matches.tb[1,]
+matches_one.tb$twdtw_distances <- tibble::lst(matches_distance)
 # Select best match and spread pred to columns
-out.tb <- matches.tb[1,] %>%
-    dplyr::bind_cols(matches_distance) %>%
+out.tb <- matches_one.tb %>%
     tidyr::unnest(twdtw_distances, .drop = FALSE) %>%
     dplyr::mutate(reference = label) %>%
     tidyr::spread(predicted, distance)

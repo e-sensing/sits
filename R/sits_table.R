@@ -771,8 +771,8 @@ sits_relabel_conv <- function (file = NULL){
                     )
 
      # Select best match and spread pred to columns
+     data.tb$twdtw_distances <- list(matches_distance)
      out.tb <- data.tb %>%
-          dplyr::bind_cols(matches_distance) %>%
           tidyr::unnest(twdtw_distances, .drop = FALSE) %>%
           dplyr::mutate(reference = label) %>%
           tidyr::spread(predicted, distance)
