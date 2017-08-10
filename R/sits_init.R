@@ -24,44 +24,10 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "distance", "twdtw_distances", "predicted", "new_values"))
 
 #  define the dependencies of the SITS package
-#' @importFrom ensurer ensure_that ensures_that ensure check check_that
-#' @importFrom entropy entropy
-#' @importFrom ggplot2 ggplot aes geom_line labs scale_color_brewer scale_colour_hue
-#' @importFrom grDevices rgb
-#' @importFrom jsonlite fromJSON toJSON
-#' @importFrom kohonen supersom somgrid
-#' @importFrom lubridate as_date dyears days period yday year ymd
-#' @importFrom methods new as
-#' @importFrom mgcv gam predict.gam s
-#' @importFrom purrr map map2 map_df is_null
-#' @importFrom purrrlyr by_row
-#' @importFrom parallel mcMap
-#' @importFrom ptw whit2
-#' @importFrom readr cols col_integer col_double col_date col_character read_csv write_lines
-#' @importFrom raster shapefile
-#' @importFrom reshape2 melt
-#' @importFrom signal sgolayfilt
-#' @importFrom sp bbox SpatialPoints CRS proj4string
-#' @importFrom stats sd setNames predict as.formula
-#' @importFrom stringr str_extract str_detect
-#' @importFrom tibble tibble as_tibble add_column add_row lst
-#' @importFrom tidyr nest unnest drop_na
-#' @importFrom tools file_ext file_path_sans_ext
-#' @importFrom utils head tail
-#' @importFrom wtss WTSS timeSeries listCoverages describeCoverage
-#' @importFrom zoo zoo fortify.zoo
-#' @importFrom dendextend set
-#' @importFrom nnet multinom class.ind
-#' @importFrom randomForest randomForest
-#' @importFrom gbm gbm
-#' @importFrom nnet multinom
-#' @importFrom glmnet cv.glmnet
-#' @importFrom MASS lda
-#' @importFrom e1071 svm
-#' @importFrom caret createDataPartition
+#' @import lattice
 #' @import dplyr
+#' @import dtwclust
 #' @import dtwSat
 #' @import magrittr
 #' @useDynLib sits, .registration = TRUE
 #'
-NULL
