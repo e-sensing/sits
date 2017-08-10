@@ -36,17 +36,13 @@ filtering, clustering and classification of satellite image time series.
 %% \Acceptdate{2012-06-04}
 
 \Address{
-    Rolf Simoes, Gilberto Camara\\
-  INPE, Brazil\\
-  National Institute for Space Research\newline Av. dos Astronautas,
-  1758\newline 12227-010 São José dos Campos, Brazil\\
-  E-mail: \href{mailto:rolf.simoes@inpe.br}{\nolinkurl{rolf.simoes@inpe.br}}\\
-  
       }
 
 \usepackage{microtype} \usepackage{amsmath}
 
 \begin{document}
+
+\section{Introduction}\label{introduction}
 
 \section{Introduction}
 
@@ -110,8 +106,8 @@ same external interface.
 \begin{CodeChunk}
 
 \begin{CodeInput}
-R> URL <- "http://www.dpi.inpe.br/tws/wtss"
-R> wtss_inpe <- sits_infoWTSS(URL)
+> URL <- "http://www.dpi.inpe.br/tws/wtss"
+> wtss_inpe <- sits_infoWTSS(URL)
 \end{CodeInput}
 
 \begin{CodeOutput}
@@ -130,8 +126,8 @@ mod13q1_512
 \begin{CodeChunk}
 
 \begin{CodeInput}
-R> # get information about a specific coverage
-R> sits_coverageWTSS(URL,"mod13q1_512")
+> # get information about a specific coverage
+> sits_coverageWTSS(URL,"mod13q1_512")
 \end{CodeInput}
 
 \begin{CodeOutput}
@@ -157,21 +153,21 @@ Temporal resolution: 16 days
 \end{CodeOutput}
 
 \begin{CodeInput}
-R> # choose a coverage
-R> coverage <- "mod13q1_512"
-R> # recover all bands
-R> bands <- c("ndvi", "evi", "nir")
-R> # a point in the transition forest pasture in Northern MT
-R> long <- -55.57320
-R> lat <- -11.50566
-R> # obtain a time series from the WTSS server for this point
-R> series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = "mod13q1_512", bands = bands)
-R> # plot the series
-R> sits_plot (series.tb)
+> # choose a coverage
+> coverage <- "mod13q1_512"
+> # recover all bands
+> bands <- c("ndvi", "evi", "nir")
+> # a point in the transition forest pasture in Northern MT
+> long <- -55.57320
+> lat <- -11.50566
+> # obtain a time series from the WTSS server for this point
+> series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = "mod13q1_512", bands = bands)
+> # plot the series
+> sits_plot (series.tb)
 \end{CodeInput}
 
 
-\begin{center}\includegraphics{sits_files/figure-latex/unnamed-chunk-3-1} \end{center}
+\begin{center}\includegraphics{sits_files/figure-latex/unnamed-chunk-4-1} \end{center}
 
 \end{CodeChunk}
 
