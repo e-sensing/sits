@@ -5,6 +5,7 @@
 #   https://github.com/craigcitro/r-travis/wiki
 
 language: c
+sudo: required
 
 before_install:
   - curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
