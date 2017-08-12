@@ -74,35 +74,6 @@ sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample =
 
 }
 
-#' @title Post-classification accuracy assessment of classified maps (non-weigthed)
-#' @name sits_accuracy
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description To use this function, the input table should be a set of results containing
-#' both the label assigned by the user and the classification result.
-#' Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
-#' This function does not use an area-weigthed technique and should be used only as a
-#' first check of accuracy. When the area of each class for the region of interest is available,
-#' please use sits_accuracy_area instead
-#'
-#' @param results.tb   a sits table with a set of lat/long/time locations with known and trusted labels and
-#' with the result of a classification method
-#' @return assessment  a list containing overall accuracy, producers and users accuracy, and confusion matrix.
-#'@export
-sits_accuracy <- function (results.tb){
-
-     # get reference classes
-     ref.vec <- results.tb$label
-
-     # create a vector to store the result of the predictions
-     pred.vec <- results.tb$class
-
-     # classification accuracy measures
-     assessment <- .sits_accuracy(pred.vec, ref.vec)
-
-     return (assessment)
-}
-
 #' @title Cross-validate temporal patterns
 #' @name sits_cross_validate
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -245,7 +216,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
      sits_toJSON (confusion.vec, file)
 
      # Classification accuracy measures
-     assessment <- .sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE)
+     assessment <- sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE)
 
      return (assessment)
 }
@@ -297,7 +268,7 @@ sits_reassess <- function (file = NULL, conv = NULL){
      ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
 
      # calculate the accuracy assessment
-     assess <- .sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE, conv.lst = conv)
+     assess <- sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE, conv.lst = conv)
 
      return (assess)
 }
@@ -351,13 +322,13 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
      pred.vec  <- as.character(purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
 
      # calculate the accuracy assessment
-     assess <- .sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE)
+     assess <- sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE)
 
      return (assess)
 }
 
 #' @title Evaluates the accuracy of classification
-#' @name .sits_accuracy
+#' @name sits_accuracy
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #
 #' @description Evaluates the accuracy of classification stored in two vectors.
@@ -370,7 +341,10 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
 #' @param pred_sans_ext  (Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
 #' @param conv.lst       A list conversion list of labels. If NULL no conversion is done.
 #' @return result.lst     a list with accuracy measures and confusion matrix
-.sits_accuracy <- function(pred.vec, ref.vec, pred_sans_ext = FALSE, conv.lst = NULL){
+#'
+#' @export
+#'
+sits_accuracy <- function(pred.vec, ref.vec, pred_sans_ext = FALSE, conv.lst = NULL){
 
      # remove predicted labels' extensions
      if (pred_sans_ext)
@@ -383,13 +357,13 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
      else{
           ensurer::ensure_that(c(pred.vec, ref.vec),
                                all(names(.) %in% names(conv.lst)),
-                               err_desc = ".sits_accuracy: conversion list does not contain all labels provided in `pred.vec` and/or `ref.vec` arguments.")
+                               err_desc = "sits_accuracy: conversion list does not contain all labels provided in `pred.vec` and/or `ref.vec` arguments.")
           conf.mtx <- table(as.character(conv.lst[[pred.vec]]), as.character(conv.lst[[ref.vec]]))
      }
 
      # ensures that the confusion matrix is square
      ensurer::ensure_that(conf.mtx, NCOL(.) == NROW(.),
-                          err_desc = ".sits_accuracy: predicted and reference vectors does not produce a squared matrix. Try to convert `pred.vec` entries before compute accuracy.")
+                          err_desc = "sits_accuracy: predicted and reference vectors does not produce a squared matrix. Try to convert `pred.vec` entries before compute accuracy.")
 
      # sort rows (predicted labels) according to collumn names (reference labels)
      conf.mtx <- conf.mtx[colnames(conf.mtx),]

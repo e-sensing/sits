@@ -12,6 +12,8 @@
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
 #' @description Given a SITS tibble time series with DTW matches produced by TWDTW,
 #'              returns trained models using support vector machines. This function will
 #'              use the TWDTW alignment information for all classes as the attributes
@@ -24,29 +26,62 @@
 #'              In the context of time series classification, the only relevant types are "C-classification" and "nu-classification".
 #'              Please refer to the documentation in that package for more details.
 #'
-#' @param data.tb       tibble   a SITS tibble time series with an alignment column
-#' @param type          string   whether svm is used for classification or for regression
-#' @param kernel        string   the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
-#' @param degree        int      exponential of polynomial type kernel
-#' @param coef0	    num      parameter needed for kernels of type polynomial and sigmoid (default: 0)
-#' @param cost	         num      cost of constraints violation (default: 1): it is the Cconstant of the regularization term in the Lagrange formulation.
-#' @param tolerance	    num      tolerance of termination criterion (default: 0.001)
-#' @param epsilon	    num      epsilon in the insensitive-loss function (default: 0.1)
-#' @return model.fit    an svm model fit for the input data
+#' @param data.tb     a SITS tibble time series with an alignment column
+#' @param type        whether svm is used for classification or for regression
+#' @param kernel      the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
+#' @param degree      exponential of polynomial type kernel
+#' @param coef0	      parameter needed for kernels of type polynomial and sigmoid (default: 0)
+#' @param cost	      cost of constraints violation (default: 1): it is the Cconstant of the regularization term in the Lagrange formulation.
+#' @param tolerance	  tolerance of termination criterion (default: 0.001)
+#' @param epsilon	  epsilon in the insensitive-loss function (default: 0.1)
+#' @return result.svm an svm model fit for the input data
 #' @export
 #'
 sits_train_svm <- function(data.tb, type = "C-classification", kernel = "linear",
                            degree = 3, coef0 = 0, cost = 100, tolerance = 0.001, epsilon = 0.1){
 
-     # is the input data the result of a TWDTW matching function?
-     ensurer::ensure_that(data.tb, "matches" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
+    # is the input data the result of a TWDTW matching function?
+    ensurer::ensure_that(data.tb, "matches" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
 
-     # Spread TWDTW matches
-     matches.tb <- .sits_spread_matches(data.tb)
+    # Spread TWDTW matches
+    spread.tb <- .sits_spread_matches(data.tb)
 
-     formula1 <- 0
+    categories <- names(spread.tb)[-2:0]
+    lognomes <- paste0('log(', categories, ')')
+    formula1 <- stats::as.formula(paste("factor(reference) ~ ", paste(lognomes, collapse = " + ")))
 
-     model.fit <- e1071::svm(formula1, data = data.tb, kernel = kernel,
+    result.svm <- e1071::svm(formula1, data = spread.tb, kernel = kernel,
                              degree = degree, type = type,
                              epsilon = epsilon, cost = cost)
+}
+
+
+#' @title Predict class based on the trained models
+#' @name sits_predict
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train_svm}},
+#' returns a SITS tibble with the classification.
+#'
+#' @param data.tb a SITS tibble time series
+#' @param model a model trained by \code{\link[sits]{sits_train_svm}}
+#' @param ... other parameters to pass to \code{\link[sits]{sits_patterns}} and
+#' \code{\link[sits]{sits_TWDTW_matches}}
+#'
+#' @export
+sits_predict <- function(data.tb, model){
+
+    # is the input data the result of a TWDTW matching function?
+    ensurer::ensure_that(data.tb, "matches" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
+
+    # Spread TWDTW matches
+    spread.tb <- .sits_spread_matches(data.tb)
+
+    data.tb$predicted <- as.character(stats::predict(model, newdata = spread.tb))
+
+    return(data.tb)
 }

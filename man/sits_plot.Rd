@@ -4,18 +4,18 @@
 \alias{sits_plot}
 \title{Plot a set of time series}
 \usage{
-sits_plot(data.tb = NULL, type = "allyears", colors = "Dark2",
-  label = NULL, n_matches = 4, start_date = NULL, end_date = NULL,
+sits_plot(data.tb, patterns.tb = NULL, type = "allyears",
+  colors = "Dark2", n_matches = 4, start_date = NULL, end_date = NULL,
   interval = "12 month", overlap = 0.5)
 }
 \arguments{
 \item{data.tb}{tibble - a SITS table with the list of time series to be plotted}
 
+\item{patterns.tb}{patterns SITS tibble used to matching}
+
 \item{type}{string - the type of plot to be generated}
 
 \item{colors}{the color pallete to be used (default is "Set1")}
-
-\item{label}{the class label}
 
 \item{n_matches}{number of matches of a given label to be displayed}
 
@@ -28,7 +28,7 @@ sits_plot(data.tb = NULL, type = "allyears", colors = "Dark2",
 \item{overlap}{minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.}
 }
 \value{
-data.tb    tibble - the input SITS table (useful for chaining functions)
+data.tb      tibble - the input SITS table (useful for chaining functions)
 }
 \description{
 \code{sits_plot} plot one or more time series

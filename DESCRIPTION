@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.8.10
-Date: 2017-08-10
+Version: 0.8.12
+Date: 2017-08-12
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
@@ -23,17 +23,15 @@ URL: https://github.com/gilbertocamara/sits/
 BugReports: https://github.com/gilbertocamara/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
-Depends:
-    lattice,
-    dplyr,
-    dtwclust,
-    dtwSat
 Imports:
     caret,
     dendextend,
     e1071,
     ensurer,
     entropy,
+    dplyr,
+    dtwclust,
+    dtwSat,
     gbm,
     ggplot2,
     glmnet,
@@ -41,6 +39,7 @@ Imports:
     grDevices,
     kohonen,
     jsonlite,
+    lattice,
     lubridate,
     magrittr,
     MASS,
@@ -66,12 +65,13 @@ Imports:
     tibble,
     tidyr,
     tools,
-    utils, 
+    utils,
+    wtss,
     zoo
 LinkingTo: 
     Rcpp
 Remotes:
-    e-sensing/wtss.R,
+    e-sensing/wtss,
     rolfsimoes/dtwSat
 RoxygenNote: 6.0.1
 Collate: 

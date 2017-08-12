@@ -2,25 +2,28 @@
 % Please edit documentation in R/sits_assessment.R
 \name{sits_accuracy}
 \alias{sits_accuracy}
-\title{Post-classification accuracy assessment of classified maps (non-weigthed)}
+\title{Evaluates the accuracy of classification}
 \usage{
-sits_accuracy(results.tb)
+sits_accuracy(pred.vec, ref.vec, pred_sans_ext = FALSE, conv.lst = NULL)
 }
 \arguments{
-\item{results.tb}{a sits table with a set of lat/long/time locations with known and trusted labels and
-with the result of a classification method}
+\item{pred.vec}{A vector of all predicted labels.}
+
+\item{ref.vec}{A vector of all reference labels.}
+
+\item{pred_sans_ext}{(Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.}
+
+\item{conv.lst}{A list conversion list of labels. If NULL no conversion is done.}
 }
 \value{
-assessment  a list containing overall accuracy, producers and users accuracy, and confusion matrix.
+result.lst     a list with accuracy measures and confusion matrix
 }
 \description{
-To use this function, the input table should be a set of results containing
-both the label assigned by the user and the classification result.
-Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
-This function does not use an area-weigthed technique and should be used only as a
-first check of accuracy. When the area of each class for the region of interest is available,
-please use sits_accuracy_area instead
+Evaluates the accuracy of classification stored in two vectors.
+Returns the overall accuracy, producers and users accuracy, and confusion matrix.
+This algorith was inspired by `rfUtilities::accuracy` function, and fix the user and
+producer accuracy computation inconsistency.
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
