@@ -29,5 +29,6 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @import dtwclust
 #' @import dtwSat
 #' @import magrittr
+#' @import wtss
 #' @useDynLib sits, .registration = TRUE
 #'

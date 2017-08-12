@@ -8,24 +8,24 @@ sits_train_svm(data.tb, type = "C-classification", kernel = "linear",
   degree = 3, coef0 = 0, cost = 100, tolerance = 0.001, epsilon = 0.1)
 }
 \arguments{
-\item{data.tb}{tibble   a SITS tibble time series with an alignment column}
+\item{data.tb}{a SITS tibble time series with an alignment column}
 
-\item{type}{string   whether svm is used for classification or for regression}
+\item{type}{whether svm is used for classification or for regression}
 
-\item{kernel}{string   the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)}
+\item{kernel}{the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)}
 
-\item{degree}{int      exponential of polynomial type kernel}
+\item{degree}{exponential of polynomial type kernel}
 
-\item{coef0}{num      parameter needed for kernels of type polynomial and sigmoid (default: 0)}
+\item{coef0}{parameter needed for kernels of type polynomial and sigmoid (default: 0)}
 
-\item{cost}{num      cost of constraints violation (default: 1): it is the Cconstant of the regularization term in the Lagrange formulation.}
+\item{cost}{cost of constraints violation (default: 1): it is the Cconstant of the regularization term in the Lagrange formulation.}
 
-\item{tolerance}{num      tolerance of termination criterion (default: 0.001)}
+\item{tolerance}{tolerance of termination criterion (default: 0.001)}
 
-\item{epsilon}{num      epsilon in the insensitive-loss function (default: 0.1)}
+\item{epsilon}{epsilon in the insensitive-loss function (default: 0.1)}
 }
 \value{
-model.fit    an svm model fit for the input data
+result.svm an svm model fit for the input data
 }
 \description{
 Given a SITS tibble time series with DTW matches produced by TWDTW,
@@ -54,4 +54,6 @@ Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 Victor Maus, \email{vwmaus1@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

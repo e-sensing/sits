@@ -1,28 +1,23 @@
 library (sits)
 
-matogrosso.tb <- sits_getdata(file = system.file("extdata/samples/matogrosso.json", package="sits"))
+cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado.json", package="sits"))
 
-patterns.tb <- sits_patterns(matogrosso.tb)
+patterns.tb <- sits_patterns(cerrado.tb)
 
-matches.tb <- sits_TWDTW_matches(matogrosso.tb, patterns.tb, bands = c("ndvi", "evi"))
+matches.tb <- sits_TWDTW_matches(cerrado.tb, patterns.tb, bands = c("ndvi", "evi"), keep = TRUE)
 
-sits_plot(matches.tb[1,], type = "alignments")
+sits_plot(matches.tb[1,], patterns.tb, type = "alignments")
 
-# Get best TWDTW aligniments for each class
-matches_distance <- matches.tb[1,] %>%
-    dplyr::rowwise() %>%
-    dplyr::do(twdtw_distances <-
-                  tibble::as_tibble(.$matches[[1]][, c("distance", "label")]) %>%
-                  dplyr::group_by(label) %>%
-                  dplyr::slice(which.min(distance)) %>%
-                  dplyr::ungroup() %>%
-                  dplyr::rename(predicted = label)
-    )
-matches_one.tb <- matches.tb[1,]
-matches_one.tb$twdtw_distances <- tibble::lst(matches_distance)
-# Select best match and spread pred to columns
-out.tb <- matches_one.tb %>%
-    tidyr::unnest(twdtw_distances, .drop = FALSE) %>%
-    dplyr::mutate(reference = label) %>%
-    tidyr::spread(predicted, distance)
+sits_plot(matches.tb[1,], patterns.tb, type = "matches")
 
+obj.svm <- sits_train_svm(matches.tb)
+
+predict.tb <- sits_predict(matches.tb, obj.svm)
+
+sits_accuracy(ref.vec = predict.tb$label, pred.vec = predict.tb$predicted)
+
+classific.tb <- sits_TWDTW_classify(matches.tb, patterns.tb)
+
+classific.tb
+
+sits_plot(classific.tb[1,], patterns.tb, type = "classification")

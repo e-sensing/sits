@@ -54,9 +54,9 @@ sits_TWDTW_matches <- function (series.tb, patterns.tb, bands, dist.method = "eu
      log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
      series.tb %>%
-          purrrlyr::by_row (function (row) {
+          purrrlyr::by_row (function (row.tb) {
                # select the bands for the samples time series and convert to TWDTW format
-               twdtw_series <- row %>%
+               twdtw_series <- row.tb %>%
                     sits_select (bands) %>%
                     .sits_toTWDTW_time_series()
 
@@ -70,13 +70,15 @@ sits_TWDTW_matches <- function (series.tb, patterns.tb, bands, dist.method = "eu
                                             dist.method = dist.method)
 
                # add the matches to the results
-               match.lst <- tibble::lst()
-               match.lst[[1]] <-  matches
+               matches.lst <- .sits_fromTWDTW_matches(matches)
+
                # include the matches in the SITS table
-               res.tb <- dplyr::mutate (row, matches = match.lst)
+               res.tb <- row.tb %>%
+                   dplyr::mutate(matches = matches.lst)
 
                # add the row to the results.tb tibble
                matches.tb <<- dplyr::bind_rows(matches.tb, res.tb)
+
                # update progress bar
                if (!purrr::is_null(progress_bar)) {
                     i <<- i + 1
@@ -100,22 +102,25 @@ sits_TWDTW_matches <- function (series.tb, patterns.tb, bands, dist.method = "eu
 #'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  matches.tb    a table in SITS format with the matches that have been produced by TWTDW
+#' @param  data.tb       a table in SITS format with the matches that have been produced by TWTDW
+#' @param  patterns.tb   patterns SITS tibble used to matching
 #' @param  start_date    date - the start of the classification period
 #' @param  end_date      date - the end of the classification period
 #' @param  interval      the period between two classifications
 #' @param  overlap       minimum overlapping between one match and the interval of classification
 #' @return matches       a SITS table with the information on matches for the data
+#'
 #' @export
-sits_TWDTW_classify <- function (matches.tb, start_date = NULL, end_date = NULL,
+#'
+sits_TWDTW_classify <- function (data.tb, patterns.tb, start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
 
      ensurer::ensure_that(matches.tb, "matches" %in% names(.), err_desc = "sits_TWDTW_classify: input tibble should have a matches collumn  \n Please run sits_TWDTW_matches first")
 
      # create a tibble to store the results
-     class.tb <- sits_table()
+     # class.tb <- sits_table()
 
-     matches.tb %>%
+    class.tb <- matches.tb %>%
           purrrlyr::by_row (function (row) {
 
                if (purrr::is_null (start_date)) {
@@ -127,16 +132,18 @@ sits_TWDTW_classify <- function (matches.tb, start_date = NULL, end_date = NULL,
                # define the temporal intervals of each classification
                breaks <- seq(from = as.Date(start_date), to = as.Date(end_date), by = interval)
 
-               classify <- dtwSat::twdtwClassify(x = row$matches[[1]], breaks = breaks, overlap = overlap)
-               class.lst <- tibble::lst()
-               class.lst[[1]] <- classify[[1]]
+               match.twdtw <- row %>%
+                   .sits_toTWDTW_matches(patterns.tb)
+
+               classify <- dtwSat::twdtwClassify(x = match.twdtw[[1]], breaks = breaks, overlap = overlap)
+               class.lst <- .sits_fromTWDTW_matches(classify)
 
                # add the classification results to the input row
-               res.tb <- dplyr::mutate (row, best_matches = class.lst)
+               return(class.lst[[1]])
 
                # add the row to the results.tb tibble
-               class.tb <<- dplyr::bind_rows(class.tb, res.tb)
-          })
+               # class.tb <<- dplyr::bind_rows(class.tb, res.tb)
+          }, .to = "best_matches")
      return (class.tb)
 }
 
@@ -150,18 +157,16 @@ sits_TWDTW_classify <- function (matches.tb, start_date = NULL, end_date = NULL,
 #'
 #'
 #' @param  data.tb       a table in SITS format with time series to be converted to TWTDW time series
-#' @return ts.tw         a time series in TWDTW format (an object of the twdtwTimeSeries class)
+#' @return ts.twdtw      a time series in TWDTW format (an object of the twdtwTimeSeries class)
 .sits_toTWDTW_time_series <- function (data.tb){
-     zoo.ls <- data.tb$time_series %>%
-          purrr::map (function (ts) {
-               df <- data.frame (ts)
-               return (zoo::zoo (df[,2:ncol(df),drop=FALSE], df[,1]))
-          })
-     labels.fc <-  as.factor (data.frame (dplyr::select (data.tb, label))[,1])
+    # transform each sits time series into a list of zoo
+    ts <- data.tb$time_series %>%
+        purrr::map(function (ts) zoo::zoo(ts[,2:ncol(ts), drop=FALSE], ts$Index))
 
-     ts.tw <-  methods::new("twdtwTimeSeries", timeseries = zoo.ls,
-               labels = labels.fc)
-     return (ts.tw)
+    # create a new twdtwTimeSeries object from list above
+    ts.twdtw <- methods::new("twdtwTimeSeries", timeseries = ts,
+                             labels = as.character(data.tb$label))
+    return (ts.twdtw)
 }
 
 #' @title Transform patterns from TWDTW format to SITS format
@@ -171,7 +176,9 @@ sits_TWDTW_classify <- function (matches.tb, start_date = NULL, end_date = NULL,
 #'
 #' @param patterns  - a TWDTW object containing a set of patterns to be used for classification
 #' @param coverage  - the name of the coverage from where the time series have been obtained
+#'
 #' @return sits.tb  - a SITS table containing the patterns
+#'
 .sits_fromTWDTW_time_series <- function (patterns, coverage){
      # get the time series from the patterns
      tb.lst <- purrr::map2 (patterns@timeseries, patterns@labels, function (ts, lab) {
@@ -197,4 +204,70 @@ sits_TWDTW_classify <- function (matches.tb, start_date = NULL, end_date = NULL,
                dplyr::bind_rows (patterns.tb, row)
           })
      return (patterns.tb)
+}
+
+#' @title Export data to be used by the dtwSat package
+#' @name .sits_toTWDTW_matches
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Converts data from a SITS table to an instance of a TWDTW matches class,
+#' Returns a dtwSat::twdtwMatches object (S4)
+#'
+#' @param  data.tb       a table in SITS format with time series to be converted to TWTDW time series
+#' @param  patterns.tb   patterns SITS tibble used to matching
+#' @return ts.twdtw      a time series in TWDTW format (an object of the twdtwTimeSeries class)
+#'
+.sits_toTWDTW_matches <- function(data.tb, patterns.tb){
+    # compute patterns dtwSat::twdtwTimeSeries object
+    pat.twdtw <- patterns.tb %>%
+        .sits_toTWDTW_time_series()
+
+    # traverse data.tb and, for each row, create a list of dtwSat::twdtwMatches objects
+    data.tb %>%
+        purrrlyr::by_row(function (row.tb){
+            # get predicted labels (pattern labels in matches)
+            labels <- base::unique(row.tb$matches[[1]]$predicted)
+
+            # traverse predicted labels and, for each entry, generate the alignments' information
+            # required by dtwSat::twdtwMatches@alignments
+            align.lst <- labels %>%
+                purrr::map(function (lbl){
+                    entry.lst <- list(label = c(lbl))
+                    entry.lst <- c(entry.lst, row.tb$matches[[1]] %>%
+                                       dplyr::filter(predicted == lbl) %>%
+                                       dplyr::select(-predicted) %>%
+                                       purrr::map(function (col) col))
+                    entry.lst <- c(entry.lst, list(K = length(entry.lst$from),
+                                                   matching = list(), internals = list()))
+                    entry.lst
+                })
+
+            # names of each entry in list of alignments
+            names(align.lst) <- labels
+
+            # generate a dtwSat::twdtwTimeSeries object for the correspondent time series matched by patterns
+            ts.twdtw <- row.tb %>%
+                .sits_toTWDTW_time_series()
+
+            # with all required information, creates a new dtwSat::twdtwMatches object for this row
+            ts.twdtw <- methods::new("twdtwMatches", timeseries = ts.twdtw,
+                                     patterns = pat.twdtw, alignments = list(align.lst))
+        }, .to = "matches", .labels = FALSE) %>%
+        .$matches
+}
+
+#' @title Transform patterns from TWDTW format to SITS format
+#' @name .sits_fromTWDTW_time_series
+#'
+#' @description reads one TWDTW matches object and transforms it into a tibble ready to be stored into a SITS table column.
+#'
+#' @param  match.twdtw  a TWDTW Matches object of class dtwSat::twdtwMatches (S4)
+#' @return result.tb    a tibble containing the matches information
+#'
+.sits_fromTWDTW_matches <- function(match.twdtw){
+    result.tb <- tibble::as_tibble(match.twdtw[[1]]) %>%
+        dplyr::mutate(predicted = as.character(label)) %>%
+        dplyr::select(-Alig.N, -label) %>%
+        list()
+    return(result.tb)
 }
