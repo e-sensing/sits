@@ -11,6 +11,7 @@ sudo: required
 before_install:
   - curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
   - chmod 755 ./travis-tool.sh
+  - ./travis-tool.sh aptget_install libgdal1i
   - ./travis-tool.sh bootstrap
 install:
   - ./travis-tool.sh install_deps
