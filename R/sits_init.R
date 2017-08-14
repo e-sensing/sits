@@ -21,7 +21,7 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "name", "scale_factor", "missing_value",
                          "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n",
-                         "distance", "twdtw_distances", "predicted", "new_values"))
+                         "distance", "twdtw_distances", "predicted", "new_values", "Alig.N"))
 
 #  define the dependencies of the SITS package
 #' @import lattice
