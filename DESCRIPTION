@@ -23,6 +23,9 @@ URL: https://github.com/gilbertocamara/sits/
 BugReports: https://github.com/gilbertocamara/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
+Remotes:
+    e-sensing/wtss,
+    rolfsimoes/dtwSat
 Imports:
     caret,
     dendextend,
@@ -70,9 +73,6 @@ Imports:
     zoo
 LinkingTo: 
     Rcpp
-Remotes:
-    e-sensing/wtss,
-    rolfsimoes/dtwSat
 RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'
