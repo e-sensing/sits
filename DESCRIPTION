@@ -35,7 +35,6 @@ Imports:
     entropy,
     dplyr,
     dtwclust,
-    dtwSat,
     gbm,
     ggplot2,
     glmnet,
@@ -45,7 +44,6 @@ Imports:
     jsonlite,
     lattice,
     lubridate,
-    magrittr,
     MASS,
     methods,
     mgcv,
@@ -70,13 +68,9 @@ Imports:
     tidyr,
     tools,
     utils,
-    wtss,
     zoo
 LinkingTo: 
     Rcpp
-Remotes:
-    e-sensing/wtss,
-    rolfsimoes/dtwSat
 RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'
