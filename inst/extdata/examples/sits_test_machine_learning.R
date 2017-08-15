@@ -8,8 +8,6 @@ matches.tb <- sits_TWDTW_matches(cerrado.tb, patterns.tb, bands = c("ndvi", "evi
 
 sits_plot(matches.tb[1,], patterns.tb, type = "alignments")
 
-sits_plot(matches.tb[1,], patterns.tb, type = "matches")
-
 obj.svm <- sits_train_svm(matches.tb)
 
 predict.tb <- sits_predict(matches.tb, obj.svm)

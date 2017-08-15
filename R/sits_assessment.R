@@ -220,6 +220,145 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
 
      return (assessment)
 }
+#' @title Cross-validate temporal patterns
+#' @name sits_kfold_validate
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Splits the set of time series into training and validation and
+#' perform k-fold cross-validation.
+#' Cross-validation is a model validation technique for assessing how the results
+#' of a statistical analysis will generalize to an independent data set.
+#' It is mainly used in settings where the goal is prediction,
+#' and one wants to estimate how accurately a predictive model will perform in practice.
+#' One round of cross-validation involves partitioning a sample of data
+#' into complementary subsets, performing the analysis on one subset
+#' (called the training set), and validating the analysis on the other subset
+#' (called the validation set or testing set).
+#'
+#' The k-fold cross validation method involves splitting the dataset
+#' into k-subsets. For each subset is held out while the model is trained
+#' on all other subsets. This process is completed until accuracy
+#' is determine for each instance in the dataset, and an overall
+#' accuracy estimate is provided.
+#'
+#' This function returns the Overall Accuracy, User's Accuracy,
+#' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
+#'
+#' @param data.tb         a SITS tibble
+#' @param method          method to create patterns ("gam", "dendogram")
+#' @param bands           the bands used for classification
+#' @param folds           number of partitions to create.
+#' @param from            starting date of the estimate in month-day (for "gam" method)
+#' @param to              end data of the estimated in month-day (for "gam" method)
+#' @param freq            int - the interval in days for the estimates to be generated
+#' @param tw_alpha        (double) - the steepness of the logistic function used for temporal weighting
+#' @param tw_beta         (integer) - the midpoint (in days) of the logistic function
+#' @param interval        the period between two classifications
+#' @param overlap         minimum overlapping between one match and the interval of classification
+#' @param n_clusters      the maximum number of clusters to be identified (for clustering methods)
+#' @param apply_gam       apply gam method after a clustering algorithm (ignored if method is `gam`).
+#' @param file            file to save the results
+#' @param .multicores     number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).
+#' @param ...             any additional parameters to be passed to `sits_pattern` function.
+#' @return cm             a validation assessment
+#' @export
+
+sits_kfold_validate <- function (data.tb, method = "gam", bands = NULL, folds = 5,
+                                 from = NULL, to = NULL, freq = 8,
+                                 tw_alpha = -0.1, tw_beta = 100,  n_clusters = 2, apply_gam = FALSE,
+                                 file = "./conf_matrix.json", .multicores = 1, ...){
+
+    ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
+                          err_desc = "sits_cross_validate: please provide a labelled set of time series")
+
+    # default parameters used in this implementation
+
+    # the period between two classifications
+    interval <-  "12 month"
+    #  minimum overlapping between one match and the interval of classification
+    overlap <-  0.5
+    #' the formula to be applied in the estimate (for "gam" method)
+    formula_gam <- y ~ s(x)
+    # the relative weight of the time distance compared to the dtw distance
+    tw_theta <- 0.5
+    # minimum number of days between two matches of the same pattern in the time series (approximate)
+    tw_span <- 0
+    # if TRUE, proceeds an unsupervised cluster followed by a relabel taking original label majority (
+    # this option has not any effect if method == "gam")
+    unsupervised <- TRUE
+    # the agglomeration method to be used. Any `hclust` method (see `hclust`).
+    grouping_method = "ward.D2"
+    # the minimum percentagem of valid cluster members,
+    # with reference to the total number of samples (for clustering methods)
+    min_clu_perc <-  0.10
+
+    # auxiliary function to classify a single partition
+    .sits_classify_partitions <- function (p) {
+        #
+        message("Creating patterns from a data sample...")
+
+        # use the extracted partition to create the patterns
+        patterns.tb <- sits_patterns(p, method = method, bands = bands, from = from, to = to, freq = freq,
+                                     formula = formula_gam, n_clusters = n_clusters, grouping_method = grouping_method,
+                                     min_clu_perc = min_clu_perc, apply_gam = apply_gam,
+                                     unsupervised = unsupervised, show = FALSE, ...)
+
+        # use the rest of the data for classification
+        non_p.tb <- dplyr::anti_join(data.tb, p, by = c("longitude", "latitude", "start_date", "end_date", "label", "coverage"))
+
+        # classify data
+        matches.tb  <- sits_TWDTW_matches (non_p.tb, patterns.tb, bands = bands, alpha = tw_alpha, beta = tw_beta, theta = tw_theta, span = tw_span)
+        class.tb    <- sits_TWDTW_classify (matches.tb, interval = interval, overlap = overlap)
+        # retrieve the reference labels
+        ref.vec <- as.character(class.tb$label)
+        # retrieve the predicted labels
+        pred.vec  <- as.character(
+            purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
+
+        return (c(pred.vec, ref.vec))
+    }
+    # does the input data exist?
+    ensurer::ensure_that(data.tb, !purrr::is_null(.),
+                         err_desc = "sits_cross_validate: input data not provided")
+    # are the bands to be classified part of the input data?
+    ensurer::ensure_that(data.tb, !(FALSE %in% bands %in% (sits_bands(.))),
+                         err_desc = "sits_cross_validate: invalid input bands")
+
+    # check valid methods
+    ensurer::ensure_that(method, (. == "gam" || . == "dendogram"),
+                         err_desc = "sits_patterns: valid methods are gam and dendogram")
+
+    #extract the bands to be included in the patterns
+    if (purrr::is_null (bands))
+        bands <- sits_bands (data.tb)
+    data.tb <- sits_select(data.tb, bands)
+
+    # create partitions different splits of the input data
+    partitions.lst <- .sits_create_partitions (data.tb, times, frac = folds)
+
+    # for each partition, fill the prediction and reference vectors
+    if (.multicores == 1)
+        conf.lst  <- Map(.sits_classify_partitions,partitions.lst)
+    else
+        conf.lst <- parallel::mcMap(.sits_classify_partitions, partitions.lst, mc.cores = .multicores)
+
+    pred.vec = character()
+    ref.vec = character()
+    purrr::map(conf.lst, function (e) {
+        mid <- length (e)/2
+        pred.vec <<- append (pred.vec, e[1:mid])
+        ref.vec <<- append (ref.vec, e[(mid+1):length(e)])
+    })
+    confusion.vec <- c(pred.vec, ref.vec)
+    # save the confusion vector in  a JSON file
+    sits_toJSON (confusion.vec, file)
+
+    # Classification accuracy measures
+    assessment <- sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE)
+
+    return (assessment)
+}
 #' @title Create partitions of a data set
 #' @name  sits_create_partitions
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
