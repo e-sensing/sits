@@ -20,7 +20,7 @@
 #'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  series.tb     a table in SITS format with a time series to be classified using TWTDW
+#' @param  data.tb     a table in SITS format with a time series to be classified using TWTDW
 #' @param  patterns.tb   a set of known temporal signatures for the chosen classes
 #' @param  bands         string - the bands to be used for classification
 #' @param  dist.method   A character. Method to derive the local cost matrix.
@@ -31,14 +31,14 @@
 #' @param  keep          keep internal values for plotting matches
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
-sits_TWDTW_matches <- function (series.tb, patterns.tb, bands, dist.method = "euclidean",
+sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb, bands, dist.method = "euclidean",
                         alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE){
 
      # add a progress bar
      progress_bar <- NULL
-     if (nrow (series.tb) > 10) {
-          message("Classifying...")
-          progress_bar <- utils::txtProgressBar(min = 0, max = nrow(series.tb), style = 3)
+     if (nrow (data.tb) > 10) {
+          message("Matching patterns to time series...")
+          progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
           i <- 0
      }
 
@@ -53,7 +53,7 @@ sits_TWDTW_matches <- function (series.tb, patterns.tb, bands, dist.method = "eu
      # Define the logistic function
      log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
-     series.tb %>%
+     data.tb %>%
           purrrlyr::by_row (function (row.tb) {
                # select the bands for the samples time series and convert to TWDTW format
                twdtw_series <- row.tb %>%

@@ -4,11 +4,12 @@
 \alias{sits_TWDTW_matches}
 \title{Find matches between a set of SITS patterns and segments of sits tibble using TWDTW}
 \usage{
-sits_TWDTW_matches(series.tb, patterns.tb, bands, dist.method = "euclidean",
-  alpha = -0.1, beta = 100, theta = 0.5, span = 250, keep = FALSE)
+sits_TWDTW_matches(data.tb = NULL, patterns.tb, bands,
+  dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
+  span = 250, keep = FALSE)
 }
 \arguments{
-\item{series.tb}{a table in SITS format with a time series to be classified using TWTDW}
+\item{data.tb}{a table in SITS format with a time series to be classified using TWTDW}
 
 \item{patterns.tb}{a set of known temporal signatures for the chosen classes}
 

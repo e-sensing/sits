@@ -2,13 +2,13 @@
 % Please edit documentation in R/sits_patterns.R
 \name{sits_patterns_gam}
 \alias{sits_patterns_gam}
-\alias{.sits_patterns_gam}
 \title{Create temporal patterns using a generalised additive model (gam)}
 \usage{
-.sits_patterns_gam(samples.tb, bands, from, to, freq, formula, ...)
+sits_patterns_gam(data.tb = NULL, bands = NULL, from = NULL, to = NULL,
+  freq = 8, formula = y ~ s(x), ...)
 }
 \arguments{
-\item{samples.tb}{a table in SITS format with time series to be classified using TWTDW}
+\item{data.tb}{a table in SITS format with time series to be classified using TWTDW}
 
 \item{bands}{the bands used to obtain the pattern}
 

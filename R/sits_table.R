@@ -759,8 +759,8 @@ sits_relabel_conv <- function (file = NULL){
 
     # Get best TWDTW aligniments for each class
     data.tb$matches <- data.tb$matches %>%
-        purrr::map(function (matches.tb){
-            matches.tb %>%
+        purrr::map(function (data.tb){
+            data.tb %>%
                 dplyr::group_by(predicted) %>%
                 dplyr::summarise(distance=min(distance))
         })

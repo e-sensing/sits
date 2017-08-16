@@ -4,7 +4,7 @@
 \alias{sits_predict}
 \title{Predict class based on the trained models}
 \usage{
-sits_predict(data.tb, model)
+sits_predict(data.tb = NULL, model)
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series}

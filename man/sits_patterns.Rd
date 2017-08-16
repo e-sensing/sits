@@ -4,14 +4,14 @@
 \alias{sits_patterns}
 \title{Create time series patterns for classification}
 \usage{
-sits_patterns(samples.tb, method = "gam", bands = NULL, from = NULL,
+sits_patterns(data.tb = NULL, method = "gam", bands = NULL, from = NULL,
   to = NULL, freq = 8, formula = y ~ s(x), n_clusters = 2,
   grouping_method = "ward.D2", min_clu_perc = 0.1, apply_gam = FALSE,
   koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05,
   0.01), unsupervised = FALSE, show = FALSE, ...)
 }
 \arguments{
-\item{samples.tb}{a table in SITS format with a set of labelled time series.}
+\item{data.tb}{a table in SITS format with a set of labelled time series.}
 
 \item{method}{the method to be used for classification.}
 

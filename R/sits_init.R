@@ -20,7 +20,7 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
                          "original_label", "n_members", "n_members.n", "count",
-                         "segr", "frac", "total", "n",
+                         "segr", "frac", "total", "n", "matches",
                          "distance", "twdtw_distances", "predicted", "new_values", "Alig.N"))
 
 #  define the dependencies of the SITS package
