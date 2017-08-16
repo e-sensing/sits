@@ -4,20 +4,30 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate temporal patterns}
 \usage{
+<<<<<<< HEAD
 sits_kfold_validate(data.tb, method = "gam", bands = NULL, folds = 5,
   from = NULL, to = NULL, freq = 8, tw_alpha = -0.1, tw_beta = 100,
   n_clusters = 2, apply_gam = FALSE, file = "./conf_matrix.json",
   .multicores = 1, ...)
+=======
+sits_kfold_validate(data.tb, bands = NULL, folds = 5,
+  patt_method = sits_patterns_gam, ml_method = sits_train_svm,
+  file = "./conf_matrix.json", .multicores = 1, ...)
+>>>>>>> 86ef8123e53f4bfbfc1a3814db8ec7e299990394
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
 
+<<<<<<< HEAD
 \item{method}{method to create patterns ("gam", "dendogram")}
 
+=======
+>>>>>>> 86ef8123e53f4bfbfc1a3814db8ec7e299990394
 \item{bands}{the bands used for classification}
 
 \item{folds}{number of partitions to create.}
 
+<<<<<<< HEAD
 \item{from}{starting date of the estimate in month-day (for "gam" method)}
 
 \item{to}{end data of the estimated in month-day (for "gam" method)}
@@ -31,16 +41,24 @@ sits_kfold_validate(data.tb, method = "gam", bands = NULL, folds = 5,
 \item{n_clusters}{the maximum number of clusters to be identified (for clustering methods)}
 
 \item{apply_gam}{apply gam method after a clustering algorithm (ignored if method is `gam`).}
+=======
+\item{patt_method}{method to create patterns (sits_patterns_gam, sits_dendogram)            starting date of the estimate in month-day (for "gam" method)}
+
+\item{ml_method}{machine learning training method}
+>>>>>>> 86ef8123e53f4bfbfc1a3814db8ec7e299990394
 
 \item{file}{file to save the results}
 
 \item{.multicores}{number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).}
 
 \item{...}{any additional parameters to be passed to `sits_pattern` function.}
+<<<<<<< HEAD
 
 \item{interval}{the period between two classifications}
 
 \item{overlap}{minimum overlapping between one match and the interval of classification}
+=======
+>>>>>>> 86ef8123e53f4bfbfc1a3814db8ec7e299990394
 }
 \value{
 cm             a validation assessment

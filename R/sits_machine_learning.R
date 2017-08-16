@@ -27,7 +27,6 @@
 #'              Please refer to the documentation in that package for more details.
 #'
 #' @param data.tb     a SITS tibble time series with an alignment column
-#' @param type        whether svm is used for classification or for regression
 #' @param kernel      the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
 #' @param degree      exponential of polynomial type kernel
 #' @param coef0	      parameter needed for kernels of type polynomial and sigmoid (default: 0)
@@ -37,7 +36,7 @@
 #' @return result.svm an svm model fit for the input data
 #' @export
 #'
-sits_train_svm <- function(data.tb, type = "C-classification", kernel = "linear",
+sits_train_svm <- function(data.tb = NULL, kernel = "linear",
                            degree = 3, coef0 = 0, cost = 100, tolerance = 0.001, epsilon = 0.1){
 
     # is the input data the result of a TWDTW matching function?
@@ -50,9 +49,9 @@ sits_train_svm <- function(data.tb, type = "C-classification", kernel = "linear"
     lognomes <- paste0('log(', categories, ')')
     formula1 <- stats::as.formula(paste("factor(reference) ~ ", paste(lognomes, collapse = " + ")))
 
-    result.svm <- e1071::svm(formula1, data = spread.tb, kernel = kernel,
-                             degree = degree, type = type,
-                             epsilon = epsilon, cost = cost)
+    result.svm <- e1071::svm(formula1, data = spread.tb,
+                             type = "C-classification", kernel = kernel,
+                             degree = degree, epsilon = epsilon, cost = cost)
 }
 
 #' @title Train SITS classifiction models
@@ -199,7 +198,7 @@ sits_formula_logref <- function(predictors_index = NULL){
 #' \code{\link[sits]{sits_TWDTW_matches}}
 #'
 #' @export
-sits_predict <- function(data.tb, model){
+sits_predict <- function(data.tb = NULL, model){
 
     # is the input data the result of a TWDTW matching function?
     ensurer::ensure_that(data.tb, "matches" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")

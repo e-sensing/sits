@@ -4,13 +4,11 @@
 \alias{sits_train_svm}
 \title{Train SITS classifiction models using support vector machines}
 \usage{
-sits_train_svm(data.tb, type = "C-classification", kernel = "linear",
-  degree = 3, coef0 = 0, cost = 100, tolerance = 0.001, epsilon = 0.1)
+sits_train_svm(data.tb = NULL, kernel = "linear", degree = 3, coef0 = 0,
+  cost = 100, tolerance = 0.001, epsilon = 0.1)
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series with an alignment column}
-
-\item{type}{whether svm is used for classification or for regression}
 
 \item{kernel}{the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)}
 
