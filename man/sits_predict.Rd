@@ -9,13 +9,13 @@ sits_predict(data.tb = NULL, model)
 \arguments{
 \item{data.tb}{a SITS tibble time series}
 
-\item{model}{a model trained by \code{\link[sits]{sits_train_svm}}}
+\item{model}{a model trained by \code{\link[sits]{sits_train}}}
 
 \item{...}{other parameters to pass to \code{\link[sits]{sits_patterns}} and
 \code{\link[sits]{sits_TWDTW_matches}}}
 }
 \description{
-Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train_svm}},
+Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train}},
 returns a SITS tibble with the classification.
 }
 \author{

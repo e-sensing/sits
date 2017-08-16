@@ -1,12 +1,3 @@
-#' @title Initialization commands for SITS package
-#' @name sits_init
-#' @description provides the information for the dependencies of the sits package
-#'
-
-#' @title .onAttach
-#' @param lib libname argument
-#' @param  pkg pkgname argument
-
 .onAttach = function(lib, pkg){
      packageStartupMessage(
           sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.\n",
@@ -24,9 +15,9 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "distance", "twdtw_distances", "predicted", "new_values",
                          "Alig.N", "matches"))
 
-#  define the dependencies of the SITS package
 #' @import dtwSat
-#' @import magrittr
-#' @import wtss
-#' @useDynLib sits, .registration = TRUE
+#' @importFrom magrittr %>%
+#' @usage lhs \%>\% rhs
 #'
+#' @useDynLib sits, .registration = TRUE
+NULL

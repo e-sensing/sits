@@ -4,11 +4,13 @@ cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado.json", pa
 
 patterns.tb <- sits_patterns(cerrado.tb)
 
+patterns.tb <- sits_gam(cerrado.tb)
+
 matches.tb <- sits_TWDTW_matches(cerrado.tb, patterns.tb, bands = c("ndvi", "evi"), keep = TRUE)
 
 sits_plot(matches.tb[1,], patterns.tb, type = "alignments")
 
-obj.svm <- sits_train_svm(matches.tb)
+obj.svm <- sits_train(matches.tb)
 
 predict.tb <- sits_predict(matches.tb, obj.svm)
 
@@ -18,7 +20,7 @@ sits_kfold_validate(cerrado.tb, folds = 2)
 
 svm_k <- function (kernel, cost) {
     function (...) {
-        sits_train_svm(kernel = kernel, cost ...) }
+        sits_train_svm(kernel = kernel, cost, ...) }
 }
 
 svm_s <- svm_k ("linear")

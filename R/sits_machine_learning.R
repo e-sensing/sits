@@ -6,61 +6,12 @@
 #' models supported: 'svm', 'random forests', 'boosting', 'lda',
 #'                   'multinomial logit', 'lasso', 'ridge', 'elnet', 'best model'
 
-#' @title Train SITS classifiction models using support vector machines
-#' @name sits_train_svm
-#'
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a SITS tibble time series with DTW matches produced by TWDTW,
-#'              returns trained models using support vector machines. This function will
-#'              use the TWDTW alignment information for all classes as the attributes
-#'              of the SVM. Please use this function in the following way:
-#'              1. call sits_patterns to produce a set a labelled patterns from a reference data set
-#'              2. call sits_TWDTW_matches to produce a set of alignements
-#'              3. use the alignment response as an input to the training function
-#'
-#'              This function is a front-end to the "svm" method in the "e1071" package.
-#'              In the context of time series classification, the only relevant types are "C-classification" and "nu-classification".
-#'              Please refer to the documentation in that package for more details.
-#'
-#' @param data.tb     a SITS tibble time series with an alignment column
-#' @param kernel      the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
-#' @param degree      exponential of polynomial type kernel
-#' @param coef0	      parameter needed for kernels of type polynomial and sigmoid (default: 0)
-#' @param cost	      cost of constraints violation (default: 1): it is the Cconstant of the regularization term in the Lagrange formulation.
-#' @param tolerance	  tolerance of termination criterion (default: 0.001)
-#' @param epsilon	  epsilon in the insensitive-loss function (default: 0.1)
-#' @return result.svm an svm model fit for the input data
-#' @export
-#'
-sits_train_svm <- function(data.tb = NULL, kernel = "linear",
-                           degree = 3, coef0 = 0, cost = 100, tolerance = 0.001, epsilon = 0.1){
-
-    # is the input data the result of a TWDTW matching function?
-    ensurer::ensure_that(data.tb, "matches" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
-
-    # Spread TWDTW matches
-    spread.tb <- .sits_spread_matches(data.tb)
-
-    categories <- names(spread.tb)[-2:0]
-    lognomes <- paste0('log(', categories, ')')
-    formula1 <- stats::as.formula(paste("factor(reference) ~ ", paste(lognomes, collapse = " + ")))
-
-    result.svm <- e1071::svm(formula1, data = spread.tb,
-                             type = "C-classification", kernel = kernel,
-                             degree = degree, epsilon = epsilon, cost = cost)
-}
-
-#' @title Train SITS classifiction models
+#' @title Train SITS classification models
 #' @name sits_train
 #'
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a SITS tibble time series with DTW matches produced by TWDTW,
 #' returns trained models using support vector machines. This function will
@@ -70,33 +21,27 @@ sits_train_svm <- function(data.tb = NULL, kernel = "linear",
 #' 2. call sits_TWDTW_matches to produce a set of alignements
 #' 3. use the alignment response as an input to the training function
 #'
-#' This function is a front-end to the "svm" method in the "e1071" package.
-#' In the context of time series classification, the only relevant types are "C-classification" and "nu-classification".
-#' Please refer to the documentation in that package for more details.
 #'
-#' @param data_tb          a SITS tibble time series with an alignment column
-#' @param training_method  a function that returns some fitting model
+#' @param data.tb          a SITS tibble time series with an alignment column
+#' @param tr_method        a traning method that returns a model for prediction
 #' @return result          a model fitted into input data given by train_method parameter
 #' @export
 #'
-sits_train <- function(data_tb, training_method = sits_svm(formula = sits_formula_logref(predictors_index = -2:0), kernel = "linear",
-                                                           degree = 3, coef0 = 0, tolerance = 0.001, epsilon = 0.1, ...)){
+sits_train <- function(data.tb, tr_method = sits_svm(formula = sits_formula_logref(predictors_index = -2:0), kernel = "linear",
+                                                           degree = 3, coef0 = 0, tolerance = 0.001, epsilon = 0.1)){
 
     # is the input data the result of a TWDTW matching function?
-    ensurer::ensure_that(data_tb, "matches" %in% names (.), err_desc = "sits_train: input data does not contain TWDTW matches")
+    ensurer::ensure_that(data.tb, "matches" %in% names (.), err_desc = "sits_train: input data does not contain TWDTW matches")
 
     # is the train method a function?
-    ensurer::ensure_that(training_method, class(.) == "function", err_desc = "sits_train: train_method is not a valid function")
-
-    # Spread TWDTW matches
-    spread_tb <- .sits_spread_matches(data.tb)
+    ensurer::ensure_that(tr_method, class(.) == "function", err_desc = "sits_train: train_method is not a valid function")
 
     # compute the training method by the given data
-    result <- training_method(spread_tb)
+    result <- tr_method(data.tb)
     return(result)
 }
 
-#' @title Train SITS classifiction models
+#' @title Train SITS classifiction models with the SVM method
 #' @name sits_svm
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -107,7 +52,7 @@ sits_train <- function(data_tb, training_method = sits_svm(formula = sits_formul
 #' @description This function is a front-end to the "svm" method in the "e1071" package.
 #'              Please refer to the documentation in that package for more details.
 #'
-#' @param data_tb   a SITS tibble time series with an alignment column. If data_tb is NULL, the function returns
+#' @param data.tb   a SITS tibble time series with an alignment column. If data_tb is NULL, the function returns
 #' a function to be called further to compute svm training model according to given parameters
 #' @param formula   a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)
 #' @param kernel    the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
@@ -119,29 +64,30 @@ sits_train <- function(data_tb, training_method = sits_svm(formula = sits_formul
 #' @return result   either an e1071::svm class or an function prepared that can be called further to compute svm training model
 #' @export
 #'
-sits_svm <- function(data_tb = NULL, formula = sits_formula_logref(), kernel = "linear",
+sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), kernel = "linear",
                      degree = 3, coef0 = 0, tolerance = 0.001, epsilon = 0.1, ...) {
+
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(tb){
 
+        # is the input data the result of a TWDTW matching function?
+        ensurer::ensure_that(tb, "matches" %in% names (.), err_desc = "sits_train: input data does not contain TWDTW matches")
+
+        # Spread TWDTW matches
+        spread.tb <- .sits_spread_matches(tb)
+
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
-            formula <- formula(tb)
+            formula <- formula(spread.tb)
 
         # call e1071::svm method and return the trained svm model
-        result_svm <- e1071::svm(formula = formula, data = tb, kernel = kernel,
+        result_svm <- e1071::svm(formula = formula, data = spread.tb, kernel = kernel,
                                  degree = degree, coef0 = coef0, tolerance = tolerance, epsilon = epsilon, ...)
         return(result_svm)
     }
 
-    # if no data is given, we prepare a function to compute svm as model
-    if (is.null(data_tb))
-        result <- result_fun
-    # ...otherwise compute svm model and return it
-    else
-        result <- result_fun(data_tb)
-    return(result)
+    result <- .sits_factory_function (data.tb, result_fun)
 }
 
 #' @title Train SITS classifiction models
@@ -189,11 +135,11 @@ sits_formula_logref <- function(predictors_index = NULL){
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train_svm}},
+#' @description Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train}},
 #' returns a SITS tibble with the classification.
 #'
 #' @param data.tb a SITS tibble time series
-#' @param model a model trained by \code{\link[sits]{sits_train_svm}}
+#' @param model a model trained by \code{\link[sits]{sits_train}}
 #' @param ... other parameters to pass to \code{\link[sits]{sits_patterns}} and
 #' \code{\link[sits]{sits_TWDTW_matches}}
 #'

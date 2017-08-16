@@ -2,14 +2,14 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_svm}
 \alias{sits_svm}
-\title{Train SITS classifiction models}
+\title{Train SITS classifiction models with the SVM method}
 \usage{
-sits_svm(data_tb = NULL, formula = sits_formula_logref(),
+sits_svm(data.tb = NULL, formula = sits_formula_logref(),
   kernel = "linear", degree = 3, coef0 = 0, tolerance = 0.001,
   epsilon = 0.1, ...)
 }
 \arguments{
-\item{data_tb}{a SITS tibble time series with an alignment column. If data_tb is NULL, the function returns
+\item{data.tb}{a SITS tibble time series with an alignment column. If data_tb is NULL, the function returns
 a function to be called further to compute svm training model according to given parameters}
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)}

@@ -248,8 +248,8 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
 #' @param data.tb         a SITS tibble
 #' @param bands           the bands used for classification
 #' @param folds           number of partitions to create.
-#' @param patt_method     method to create patterns (sits_patterns_gam, sits_dendogram)
-#' @param ml_method       machine learning training method
+#' @param pt_method       method to create patterns (sits_patterns_gam, sits_dendogram)
+#' @param tr_method       machine learning training method
 #' @param file            file to save the results
 #' @param .multicores     number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).
 #' @param ...             any additional parameters to be passed to `sits_pattern` function.
@@ -257,8 +257,9 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
 #' @export
 
 sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
-                                 patt_method = sits_patterns_gam,
-                                 ml_method   = sits_train_svm,
+                                 pt_method = sits_gam(bands = bands, from = NULL, to = NULL, freq = 8, formula = y ~ s(x)),
+                                 tr_method = sits_svm(formula = sits_formula_logref(predictors_index = -2:0), kernel = "linear",
+                                                        degree = 3, coef0 = 0, tolerance = 0.001, epsilon = 0.1),
                                  file = "./conf_matrix.json", .multicores = 1, ...){
 
     # does the input data exist?
@@ -296,19 +297,19 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
         message("Creating patterns from a data sample...")
 
         # use the extracted partition to create the patterns
-        patterns.tb <- patt_method(data.tb = data_train, ...)
+        patterns.tb <- pt_method(data_train)
 
         # find the matches on the training data
         matches_train.tb  <- sits_TWDTW_matches (data.tb = data_train, patterns.tb, bands = bands, ...)
 
         # find a model on the training data set
-        model.ml <- ml_method (data.tb = matches_train.tb, ...)
+        model.ml <- tr_method (matches_train.tb)
 
         # find the matches in the test data
         matches_test.tb  <- sits_TWDTW_matches (data.tb = data_test, patterns.tb, bands = bands, ...)
 
         # classify the test data
-        predict.tb <- sits_predict(data.tb = matches_test.tb, model.ml)
+        predict.tb <- sits_predict(matches_test.tb, model.ml)
 
         ref.vec <- append (ref.vec, predict.tb$label)
         pred.vec <- append (pred.vec, predict.tb$predicted)
