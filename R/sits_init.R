@@ -25,9 +25,6 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "Alig.N", "matches"))
 
 #  define the dependencies of the SITS package
-#' @import lattice
-#' @import dplyr
-#' @import dtwclust
 #' @import dtwSat
 #' @import magrittr
 #' @import wtss
