@@ -16,15 +16,9 @@ sits_accuracy(ref.vec = predict.tb$label, pred.vec = predict.tb$predicted)
 
 sits_kfold_validate(cerrado.tb, folds = 2)
 
-power <- function(exponent) {
-    function(x) {
-        x ^ exponent
-    }
-}
-
-svm_k <- function (kernel) {
+svm_k <- function (kernel, cost) {
     function (...) {
-        sits_train_svm(kernel = kernel, ...) }
+        sits_train_svm(kernel = kernel, cost ...) }
 }
 
 svm_s <- svm_k ("linear")

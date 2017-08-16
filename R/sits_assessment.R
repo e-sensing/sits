@@ -248,7 +248,7 @@ sits_cross_validate <- function (data.tb, method = "gam", bands = NULL, times = 
 #' @param data.tb         a SITS tibble
 #' @param bands           the bands used for classification
 #' @param folds           number of partitions to create.
-#' @param patt_method     method to create patterns (sits_patterns_gam, sits_dendogram)            starting date of the estimate in month-day (for "gam" method)
+#' @param patt_method     method to create patterns (sits_patterns_gam, sits_dendogram)
 #' @param ml_method       machine learning training method
 #' @param file            file to save the results
 #' @param .multicores     number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).
