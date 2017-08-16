@@ -41,7 +41,7 @@
 #' @param conf.int specifies the confidence level (0-1).
 #' @param rm.nosample if sum of columns and sum of rows of the error matrix are zero
 #' then remove class. Default is TRUE.
-#'@export
+#' @export
 sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample = FALSE){
 
      # Get reference classes
