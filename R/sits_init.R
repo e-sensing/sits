@@ -20,13 +20,11 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
                          "original_label", "n_members", "n_members.n", "count",
-                         "segr", "frac", "total", "n", "matches",
-                         "distance", "twdtw_distances", "predicted", "new_values", "Alig.N"))
+                         "segr", "frac", "total", "n",
+                         "distance", "twdtw_distances", "predicted", "new_values",
+                         "Alig.N", "matches"))
 
 #  define the dependencies of the SITS package
-#' @import lattice
-#' @import dplyr
-#' @import dtwclust
 #' @import dtwSat
 #' @import magrittr
 #' @import wtss
