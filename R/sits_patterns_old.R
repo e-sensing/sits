@@ -1,5 +1,5 @@
 #' @title Create time series patterns for classification
-#' @name sits_patterns
+#' @name sits_patterns_old
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -33,7 +33,7 @@
 #' @param ...             additional arguments to be passed to the method function.
 #' @return patterns.tb    a SITS table with the patterns.
 #' @export
-sits_patterns <- function (data.tb = NULL, method = "gam", bands = NULL, from = NULL, to = NULL, freq = 8,
+sits_patterns_old <- function (data.tb = NULL, method = "gam", bands = NULL, from = NULL, to = NULL, freq = 8,
                            formula = y ~ s(x), n_clusters = 2, grouping_method = "ward.D2", min_clu_perc = 0.10, apply_gam = FALSE,
                            koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01), unsupervised = FALSE, show = FALSE, ...) {
      # check the input exists
@@ -106,4 +106,3 @@ sits_patterns <- function (data.tb = NULL, method = "gam", bands = NULL, from = 
      # return the patterns found in the analysis
      return (patterns.tb)
 }
-

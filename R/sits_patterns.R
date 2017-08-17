@@ -11,6 +11,7 @@
 #' "centroids" - uses a positional clustering method to group the patterns
 #'
 #' @param data.tb          a SITS tibble time series with an alignment column
+#' @param bands            the bands to be used for determining patterns
 #' @param pt_method        a pattern fitting method
 #' @return result          a model fitted into input data given by train_method parameter
 #' @export
