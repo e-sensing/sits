@@ -2,16 +2,16 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_train}
 \alias{sits_train}
-\title{Train SITS classifiction models}
+\title{Train SITS classification models}
 \usage{
-sits_train(data_tb, training_method = sits_svm(formula =
+sits_train(data.tb, tr_method = sits_svm(formula =
   sits_formula_logref(predictors_index = -2:0), kernel = "linear", degree = 3,
-  coef0 = 0, tolerance = 0.001, epsilon = 0.1, ...))
+  coef0 = 0, tolerance = 0.001, epsilon = 0.1))
 }
 \arguments{
-\item{data_tb}{a SITS tibble time series with an alignment column}
+\item{data.tb}{a SITS tibble time series with an alignment column}
 
-\item{training_method}{a function that returns some fitting model}
+\item{tr_method}{a traning method that returns a model for prediction}
 }
 \value{
 result          a model fitted into input data given by train_method parameter
@@ -24,17 +24,19 @@ of the SVM. Please use this function in the following way:
 1. call sits_patterns to produce a set a labelled patterns from a reference data set
 2. call sits_TWDTW_matches to produce a set of alignements
 3. use the alignment response as an input to the training function
+}
+\details{
+Functions for machine learning associated to the SITS package
+The attributes for the training functions are the DTW distances
+computed by the TWTDW function (see documentation on sits_TWDTW_matches)
 
-This function is a front-end to the "svm" method in the "e1071" package.
-In the context of time series classification, the only relevant types are "C-classification" and "nu-classification".
-Please refer to the documentation in that package for more details.
+models supported: 'svm', 'random forests', 'boosting', 'lda',
+                  'multinomial logit', 'lasso', 'ridge', 'elnet', 'best model'
 }
 \author{
+Rolf Simoes, \email{rolf.simoes@inpe.br}
+
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
-Victor Maus, \email{vwmaus1@gmail.com}
-
 Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

@@ -12,9 +12,6 @@
 #' @param data.tb         a SITS tibble the list of time series to be clustered
 #' @param bands           the bands to be clusterized.
 #' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.
-#' @param n_clusters      the number of clusters to be croped from hierarchical clustering (ignored in `kohonen` method). Default is 2.
-#' @param dist_method     A supported distance from proxy's dist, e.g. \code{TWDTW}.
-#' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.
 #' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
 #' @param koh_ygrid       y dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
 #' @param koh_rlen        the number of times the complete data set will be presented to the SOM grid
@@ -30,7 +27,7 @@
 #' @return clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
-sits_cluster <- function (data.tb, bands = NULL, method = "dendogram", n_clusters = 2, dist_method = "dtw_basic",
+sits_cluster <- function (data.tb, bands = NULL, clu_method = "dendogram", n_clusters = 2, dist_method = "dtw_basic",
                           grouping_method = "ward.D2",koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100,
                           koh_alpha = c(0.05, 0.01), return_members = FALSE, unsupervised = FALSE, show = FALSE, ...) {
 
@@ -119,14 +116,13 @@ sits_last_cluster <- function(){
 }
 
 #' @title Cluster a set of time series using hierarchical clustering
-#' @name .sits_cluster_dendogram
+#' @name sits_dendogram
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
 #' @description Cluster time series in hierarchical mode. Hierarchical clustering, as its name suggests,
-#' is an algorithm that tries to create a hierarchy
-#' of groups in which, as the level in the hierarchy increases, clusters are created by merging
+#' is an algorithm that tries to create a hierarchy of groups in which, as the level in the hierarchy increases, clusters are created by merging
 #' the clusters from the next lower level, such that an ordered sequence of groupings is obtained.
 #' The similarity measure used to group time series in a cluster is the dtw metric.
 #' The procedure is deterministic, so it will always give the same
@@ -136,13 +132,17 @@ sits_last_cluster <- function(){
 #'
 #' @param data.tb         a tibble the list of time series to be clustered
 #' @param bands           a vector the bands to be clusterized.
-#' @param n_clusters      the number of clusters to be identified
-#' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`).
+#' @param n_clusters      the number of clusters to be identified. Default is 2.
+#' @param dist_method     A supported distance from proxy's dist, e.g. \code{TWDTW}.
+#' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) Default is 'ward.D2'.
 #' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids?
 #' @param show            (boolean) should the results be shown?
 #' @param  ...           any additional parameters to be passed to dtwclust::tsclust() function
 #' @return clusters.tb a SITS tibble with the clusters
-.sits_cluster_dendogram <- function (data.tb, bands, n_clusters, dist_method, grouping_method, return_members, show, ...){
+sits_dendogram <- function (data.tb = NULL, bands = NULL,
+                            n_clusters = 2 , dist_method = "dtw_basic",
+                            grouping_method = "ward.D2",
+                            koh_alpha = c(0.05, 0.01), return_members = FALSE, unsupervised = FALSE, show = FALSE,dist_method, grouping_method, return_members, show, ...){
 
      # get the values of the various time series for this band group
 

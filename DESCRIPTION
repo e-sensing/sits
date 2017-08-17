@@ -23,11 +23,10 @@ URL: https://github.com/gilbertocamara/sits/
 BugReports: https://github.com/gilbertocamara/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
-Depends:
+Imports:
     dtwSat,
     magrittr,
-    wtss
-Imports:
+    wtss,
     caret,
     dendextend,
     e1071,
@@ -83,11 +82,14 @@ Collate:
     'sits_assessment.R'
     'sits_cluster.R'
     'sits_colors.R'
+    'sits_factory.R'
     'sits_filters.R'
+    'sits_gam.R'
     'sits_getdata.R'
     'sits_init.R'
     'sits_machine_learning.R'
     'sits_patterns.R'
+    'sits_patterns_old.R'
     'sits_plot.R'
     'sits_save.R'
     'sits_separability.R'

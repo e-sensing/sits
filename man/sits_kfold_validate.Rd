@@ -5,8 +5,11 @@
 \title{Cross-validate temporal patterns}
 \usage{
 sits_kfold_validate(data.tb, bands = NULL, folds = 5,
-  patt_method = sits_patterns_gam, ml_method = sits_train_svm,
-  file = "./conf_matrix.json", .multicores = 1, ...)
+  pt_method = sits_gam(bands = bands, from = NULL, to = NULL, freq = 8,
+  formula = y ~ s(x)), tr_method = sits_svm(formula =
+  sits_formula_logref(predictors_index = -2:0), kernel = "linear", degree = 3,
+  coef0 = 0, tolerance = 0.001, epsilon = 0.1), file = "./conf_matrix.json",
+  .multicores = 1, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
@@ -15,9 +18,9 @@ sits_kfold_validate(data.tb, bands = NULL, folds = 5,
 
 \item{folds}{number of partitions to create.}
 
-\item{patt_method}{method to create patterns (sits_patterns_gam, sits_dendogram)            starting date of the estimate in month-day (for "gam" method)}
+\item{pt_method}{method to create patterns (sits_patterns_gam, sits_dendogram)}
 
-\item{ml_method}{machine learning training method}
+\item{tr_method}{machine learning training method}
 
 \item{file}{file to save the results}
 

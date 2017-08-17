@@ -232,7 +232,7 @@ sits_stack_transition_relabel <- function(x,
      A <- args.list[[1]]
 
      cpp_fun <- function(v, A, I) {
-          .Call(`_sits_apply_first_order_transition_rules`, v, A, I)
+          .Call('_sits_apply_first_order_transition_rules', v, A, I)
      }
 
      v <- raster::getValues(x, bs$row[k], bs$nrows[k])
