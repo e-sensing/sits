@@ -4,35 +4,36 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
-#' @description This function uses package "dtwclust" to do time series clustering.
+#' @description This function is a front-end to different clustering methods
 #' There are four options: "dendogram" (hierarchical clustering), "controids" (positional
 #' clustering), "kohonen" (self-organized maps), and "kohonen-dendogram" (self-organized maps fallowed by a dendogram).
 #' @references `dtwclust` package (https://CRAN.R-project.org/package=dtwclust), `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 #'
 #' @param data.tb         a SITS tibble the list of time series to be clustered
 #' @param bands           the bands to be clusterized.
-#' @param method          string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.
-#' @param koh_xgrid       x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
-#' @param koh_ygrid       y dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
-#' @param koh_rlen        the number of times the complete data set will be presented to the SOM grid
-#' (used only in `kohonen` or `kohonen-denddogram` methods). Default is 100.
-#' @param koh_alpha       learning rate, a vector of two numbers indicating the amount of change.
-#' Default is to decline linearly from 0.05 to 0.01 over rlen updates.
-#' @param return_members  (boolean) should the results be the clusters' members instead of clusters' centroids? Default is FALSE.
-#' @param unsupervised    (boolean) should labels be ignored in clustering algorithms?
-#' If `return_members` parameter is TRUE, resulting sits table will gain an extra column called `original_label` with all original labels.
-#' This column may be useful to measure confusion between clusters' members. Default is FALSE.
+#' @param clu_method      function that performs clustering (by default, sits_dendogram)
+#' @param new_labels     (boolean) should the original reference labels be replaced by the cluster labels? Default is TRUE
+#' @param medoids        (boolean) should the results be the clusters' members instead of clusters' medoids? Default is FALSE.
 #' @param show           (boolean) should the results be shown? Default is TRUE.
 #' @param ...             Other arguments to pass to the distance method \code{dist_method}, and cluster method. See \code{\link[dtwclust]{dtwclust}} for details.
 #' @return clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
-sits_cluster <- function (data.tb, bands = NULL, clu_method = "dendogram", n_clusters = 2, dist_method = "dtw_basic",
-                          grouping_method = "ward.D2",koh_xgrid = 5, koh_ygrid = 5, koh_rlen = 100,
-                          koh_alpha = c(0.05, 0.01), return_members = FALSE, unsupervised = FALSE, show = FALSE, ...) {
+sits_cluster <- function (data.tb, bands = NULL, new_labels = TRUE, mediods = FALSE, show = TRUE,
+                          clu_method = sits_dendogram (bands = bands, n_clusters = 2, dist_method = "dtw_basic",
+                          grouping_method = "ward.D2", new_labels = new_labels, unsupervised = FALSE, show = show, ...)){
 
-     ensurer::ensure_that(method, (. == "dendogram" || . == "centroids" || . == "kohonen" || . == "kohonen-dendogram"),
-                          err_desc = "sits_cluster: valid cluster methods are 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.")
+    # is the input data the result of a TWDTW matching function?
+    ensurer::ensure_that (data.tb, !purrr::is_null(.),
+                          err_desc = "sits_patterns: input data not provided")
+    # is the train method a function?
+    ensurer::ensure_that(clu_method, class(.) == "function", err_desc = "sits_cluster: clu_method is not a valid function")
+
+    # compute the training method by the given data
+    result <- clu_method(data.tb)
+    return(result)
+
+
 
      # if no bands informed, get all bands available in SITS table
      if (purrr::is_null(bands))
