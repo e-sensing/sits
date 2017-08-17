@@ -89,6 +89,7 @@ Collate:
     'sits_init.R'
     'sits_machine_learning.R'
     'sits_patterns.R'
+    'sits_patterns_old.R'
     'sits_plot.R'
     'sits_save.R'
     'sits_separability.R'
