@@ -749,6 +749,7 @@ sits_relabel_conv <- function (file = NULL){
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Given a SITS tibble with a matches, returns a tibble whose columns have
 #' the reference label and the TWDTW distances for each temporal pattern.

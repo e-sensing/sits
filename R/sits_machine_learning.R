@@ -26,7 +26,7 @@
 #'              In the context of time series classification, the only relevant types are "C-classification" and "nu-classification".
 #'              Please refer to the documentation in that package for more details.
 #'
-#' @param data.tb     a SITS tibble time series with an alignment column
+#' @param data_tb     a SITS tibble time series with an alignment column
 #' @param kernel      the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
 #' @param degree      exponential of polynomial type kernel
 #' @param coef0	      parameter needed for kernels of type polynomial and sigmoid (default: 0)
@@ -36,20 +36,20 @@
 #' @return result.svm an svm model fit for the input data
 #' @export
 #'
-sits_train_svm <- function(data.tb = NULL, kernel = "linear",
+sits_train_svm <- function(data_tb = NULL, kernel = "linear",
                            degree = 3, coef0 = 0, cost = 100, tolerance = 0.001, epsilon = 0.1){
 
     # is the input data the result of a TWDTW matching function?
-    ensurer::ensure_that(data.tb, "matches" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
+    ensurer::ensure_that(data_tb, "matches" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
 
     # Spread TWDTW matches
-    spread.tb <- .sits_spread_matches(data.tb)
+    spread_tb <- .sits_spread_matches(data_tb)
 
-    categories <- names(spread.tb)[-2:0]
+    categories <- names(spread_tb)[-2:0]
     lognomes <- paste0('log(', categories, ')')
     formula1 <- stats::as.formula(paste("factor(reference) ~ ", paste(lognomes, collapse = " + ")))
 
-    result.svm <- e1071::svm(formula1, data = spread.tb,
+    result.svm <- e1071::svm(formula1, data = spread_tb,
                              type = "C-classification", kernel = kernel,
                              degree = degree, epsilon = epsilon, cost = cost)
 }
@@ -80,7 +80,7 @@ sits_train_svm <- function(data.tb = NULL, kernel = "linear",
 #' @export
 #'
 sits_train <- function(data_tb, training_method = sits_svm(formula = sits_formula_logref(predictors_index = -2:0), kernel = "linear",
-                                                           degree = 3, coef0 = 0, tolerance = 0.001, epsilon = 0.1, ...)){
+                                                           degree = 3, coef0 = 0, tolerance = 0.001, epsilon = 0.1)){
 
     # is the input data the result of a TWDTW matching function?
     ensurer::ensure_that(data_tb, "matches" %in% names (.), err_desc = "sits_train: input data does not contain TWDTW matches")
@@ -89,7 +89,7 @@ sits_train <- function(data_tb, training_method = sits_svm(formula = sits_formul
     ensurer::ensure_that(training_method, class(.) == "function", err_desc = "sits_train: train_method is not a valid function")
 
     # Spread TWDTW matches
-    spread_tb <- .sits_spread_matches(data.tb)
+    spread_tb <- .sits_spread_matches(data_tb)
 
     # compute the training method by the given data
     result <- training_method(spread_tb)
@@ -109,7 +109,7 @@ sits_train <- function(data_tb, training_method = sits_svm(formula = sits_formul
 #'
 #' @param data_tb   a SITS tibble time series with an alignment column. If data_tb is NULL, the function returns
 #' a function to be called further to compute svm training model according to given parameters
-#' @param formula   a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)
+#' @param formula   a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param kernel    the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
 #' @param degree    exponential of polynomial type kernel
 #' @param coef0	    parameter needed for kernels of type polynomial and sigmoid (default: 0)
@@ -139,6 +139,132 @@ sits_svm <- function(data_tb = NULL, formula = sits_formula_logref(), kernel = "
     if (is.null(data_tb))
         result <- result_fun
     # ...otherwise compute svm model and return it
+    else
+        result <- result_fun(data_tb)
+    return(result)
+}
+
+#' @title Train SITS classifiction models
+#' @name sits_lda
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Performs a linear discriminant analysis (lda) to classify data.
+#' This function is a front-end to the "lda" method in the "MASS" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param data_tb   a SITS tibble time series with an `matches` column. If `data_tb` is NULL, the function returns
+#' a pre-parameterized function to be called further in order to compute `lda` training model
+#' @param formula   a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
+#' @param ...       other parameters to be passed to MASS::lda function
+#' @return result   either an MASS::lda class or an function prepared that can be called further to compute lda training model
+#' @export
+#'
+sits_lda <- function(data_tb = NULL, formula = sits_formula_logref(), ...) {
+
+    # function that returns MASS::lda model based on a sits sample tibble
+    result_fun <- function(tb){
+
+        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        if (class(formula) == "function")
+            formula <- formula(tb)
+
+        # call MASS::lda method and return the trained lda model
+        result_lda <- MASS::lda(formula = formula, data = tb, ...)
+        return(result_lda)
+    }
+
+    # if no data is given, we prepare a function to compute lda as model
+    if (is.null(data_tb))
+        result <- result_fun
+    # ...otherwise compute lda model and return it
+    else
+        result <- result_fun(data_tb)
+    return(result)
+}
+
+#' @title Train SITS classifiction models
+#' @name sits_mlr
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Use multinomial log-linear (mlr) fitting model via neural networks to classify data.
+#' This function is a front-end to the "multinom" method in the "nnet" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param data_tb   a SITS tibble time series with an `matches` column. If `data_tb` is NULL, the function returns
+#' a pre-parameterized function to be called further in order to compute `multinom` training model
+#' @param formula   a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
+#' @param ...       other parameters to be passed to nnet::multinom function
+#' @return result   either an nnet::multinom class or an function prepared that can be called further to compute multinom training model
+#' @export
+#'
+sits_mlr <- function(data_tb = NULL, formula = sits_formula_logref(), ...) {
+
+    # function that returns nnet::multinom model based on a sits sample tibble
+    result_fun <- function(tb){
+
+        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        if (class(formula) == "function")
+            formula <- formula(tb)
+
+        # call nnet::multinom method and return the trained multinom model
+        result_mlr <- nnet::multinom(formula = formula, data = tb, ...)
+        return(result_mlr)
+    }
+
+    # if no data is given, we prepare a function to compute multinom as model
+    if (is.null(data_tb))
+        result <- result_fun
+    # ...otherwise compute multinom model and return it
+    else
+        result <- result_fun(data_tb)
+    return(result)
+}
+
+#' @title Train SITS classifiction models
+#' @name sits_glm
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Use generalized liner model (glm) via penalized maximim likelihood to classify data.
+#' This function is a front-end to the "glmnet" method in the "glmnet" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param data_tb   a SITS tibble time series with an `matches` column. If `data_tb` is NULL, the function returns
+#' a pre-parameterized function to be called further in order to compute `multinom` training model
+#' @param formula   a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
+#' @param ...       other parameters to be passed to nnet::multinom function
+#' @return result   either an nnet::multinom class or an function prepared that can be called further to compute multinom training model
+#' @export
+#'
+sits_glm <- function(data_tb = NULL, formula = sits_formula_logref(), ...) {
+
+    # function that returns nnet::multinom model based on a sits sample tibble
+    result_fun <- function(tb){
+
+        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        if (class(formula) == "function")
+            formula <- formula(tb)
+
+        # call nnet::multinom method and return the trained multinom model
+        result_mlr <- nnet::multinom(formula = formula, data = tb, ...)
+        return(result_mlr)
+    }
+
+    # if no data is given, we prepare a function to compute multinom as model
+    if (is.null(data_tb))
+        result <- result_fun
+    # ...otherwise compute multinom model and return it
     else
         result <- result_fun(data_tb)
     return(result)
@@ -192,21 +318,21 @@ sits_formula_logref <- function(predictors_index = NULL){
 #' @description Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train_svm}},
 #' returns a SITS tibble with the classification.
 #'
-#' @param data.tb a SITS tibble time series
+#' @param data_tb a SITS tibble time series
 #' @param model a model trained by \code{\link[sits]{sits_train_svm}}
 #' @param ... other parameters to pass to \code{\link[sits]{sits_patterns}} and
 #' \code{\link[sits]{sits_TWDTW_matches}}
 #'
 #' @export
-sits_predict <- function(data.tb = NULL, model){
+sits_predict <- function(data_tb = NULL, model){
 
     # is the input data the result of a TWDTW matching function?
-    ensurer::ensure_that(data.tb, "matches" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
+    ensurer::ensure_that(data_tb, "matches" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
 
     # Spread TWDTW matches
-    spread.tb <- .sits_spread_matches(data.tb)
+    spread_tb <- .sits_spread_matches(data_tb)
 
-    data.tb$predicted <- as.character(stats::predict(model, newdata = spread.tb))
+    data_tb$predicted <- as.character(stats::predict(model, newdata = spread_tb))
 
-    return(data.tb)
+    return(data_tb)
 }
