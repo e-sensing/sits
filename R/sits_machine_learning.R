@@ -180,21 +180,21 @@ sits_mlr <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' @param data.tb   a SITS tibble time series with an `matches` column. If `data.tb` is NULL, the function returns
 #' a pre-parameterized function to be called further in order to compute `multinom` training model
 #' @param formula   a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
-#' @param ...       other parameters to be passed to nnet::multinom function
-#' @return result   either an nnet::multinom class or an function prepared that can be called further to compute multinom training model
+#' @param ...       other parameters to be passed to glmnet::multinom function
+#' @return result   either an glmnet::multinom class or an function prepared that can be called further to compute multinom training model
 #' @export
 #'
 sits_glm <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 
-    # function that returns nnet::multinom model based on a sits sample tibble
+    # function that returns glmnet::multinom model based on a sits sample tibble
     result_fun <- function(tb){
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
             formula <- formula(tb)
 
-        # call nnet::multinom method and return the trained multinom model
-        result_mlr <- nnet::multinom(formula = formula, data = tb, ...)
+        # call glmnet::multinom method and return the trained multinom model
+        result_mlr <- glmnet::glmnet(formula = formula, data = tb, ...)
         return(result_mlr)
     }
 
