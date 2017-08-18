@@ -16,4 +16,4 @@ predict.tb <- sits_predict(matches.tb, obj.svm)
 
 sits_accuracy(ref.vec = predict.tb$label, pred.vec = predict.tb$predicted)
 
-sits_kfold_validate(cerrado.tb, folds = 3)
+sits_kfold_validate(cerrado.tb, folds = 2)
