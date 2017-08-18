@@ -5,8 +5,8 @@
 \title{Train SITS classifiction models with the SVM method}
 \usage{
 sits_svm(data.tb = NULL, formula = sits_formula_logref(),
-  kernel = "linear", degree = 3, coef0 = 0, tolerance = 0.001,
-  epsilon = 0.1, ...)
+  kernel = "linear", degree = 3, coef0 = 0, cost = 1,
+  tolerance = 0.001, epsilon = 0.1, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series with an alignment column. If data_tb is NULL, the function returns
@@ -19,6 +19,8 @@ a function to be called further to compute svm training model according to given
 \item{degree}{exponential of polynomial type kernel}
 
 \item{coef0}{parameter needed for kernels of type polynomial and sigmoid (default: 0)}
+
+\item{cost}{cost of constraints violation}
 
 \item{tolerance}{tolerance of termination criterion (default: 0.001)}
 

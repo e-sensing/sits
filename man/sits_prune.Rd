@@ -14,7 +14,7 @@ sits_prune(data.tb, min_interval = "349 days", max_interval = "365 days")
 \item{max_interval}{a string describing the max interval (in days) above which the samples are proned.}
 }
 \value{
-proned.tb    tibble - the converted SITS table
+pruned.tb    tibble - the converted SITS table
 }
 \description{
 prunes the times series contained a set of sits tables
