@@ -14,21 +14,24 @@
 #'
 #' @param data.tb         a tibble the list of time series to be clustered
 #' @param bands           a vector the bands to be clusterized.
-#' @param n_clusters      the number of clusters to be identified. Default is 2.
 #' @param dist_method     A supported distance from proxy's dist, e.g. \code{TWDTW}.
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) Default is 'ward.D2'..
 #' @param  ...            any additional parameters to be passed to dtwclust::tsclust() function
 #' @return clusters       a clusters obj from dtwclust with the full dendrogram tree for data analysis
-sits_dendrogram <- function (data.tb = NULL, bands = NULL,
+#' @export
+sits_dendrogram <- function (data.tb, bands = NULL,
                             dist_method = "dtw_basic",
                             grouping_method = "ward.D2", ...){
+
+    # does the input data exist?
+    .sits_test_table (data.tb)
 
     # if no bands informed, get all bands available in SITS table
     if (purrr::is_null(bands))
         bands <- sits_bands(data.tb)
 
     # get the values of the time series
-    values.tb <- sits_values (tb, bands, format = "cases_dates_bands")
+    values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
 
     # call dtwclust and get the resulting clusters
     clusters  <- dtwclust::tsclust (values.tb,

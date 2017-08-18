@@ -75,7 +75,7 @@ sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), kernel = "
         ensurer::ensure_that(tb, "matches" %in% names (.), err_desc = "sits_train: input data does not contain TWDTW matches")
 
         # Spread TWDTW matches
-        spread.tb <- .sits_spread_matches(tb)
+        spread.tb <- sits_spread_matches(tb)
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -150,7 +150,7 @@ sits_predict <- function(data.tb = NULL, model){
     ensurer::ensure_that(data.tb, "matches" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
 
     # Spread TWDTW matches
-    spread.tb <- .sits_spread_matches(data.tb)
+    spread.tb <- sits_spread_matches(data.tb)
 
     data.tb$predicted <- as.character(stats::predict(model, newdata = spread.tb))
 

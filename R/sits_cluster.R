@@ -1,5 +1,5 @@
 #------------------------------------------------------------------
-#' @title Returns a tibble of centroids and its metadata.
+#' @title Cuts a cluster tree produced by sits_dendrogram
 #' @name sits_cluster
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -12,8 +12,8 @@
 #' @param k                the desired number of clusters
 #' @param height           the height of dendrogram cutting
 #' @return result.tb       a SITS table with the clusters or clusters' members
+#' @export
 sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
-
 
     # create a table to store the results
     result.tb <- data.tb

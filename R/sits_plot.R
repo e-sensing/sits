@@ -20,7 +20,7 @@
 sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = "Dark2", n_matches = 4,
                        start_date = NULL, end_date = NULL, interval = "12 month", overlap = 0.5) {
      # check the input exists
-     ensurer::ensure_that(data.tb, !purrr::is_null(.), err_desc = "sits_plot: input data not provided")
+    .sits_test_table (data.tb)
 
      switch(type,
             "allyears"       = .sits_plot_allyears (data.tb, colors),
@@ -93,7 +93,9 @@ sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = 
 #' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
 .sits_plot_classification <- function (data.tb, patterns.tb, start_date, end_date, interval, overlap){
 
-    ensurer::ensure_that(patterns.tb, !purrr::is_null(.), err_desc = "sits_plot alignments: patterns.tb must be provided")
+    # does the input data exist?
+    .sits_test_table (data.tb)
+    .sits_test_table (patterns.tb)
     # retrieve a dtwSat S4 twdtwMatches object
     data.tb %>%
         .sits_toTWDTW_matches(patterns.tb) %>%
@@ -115,7 +117,10 @@ sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = 
 #' @param patterns.tb  patterns SITS tibble used to matching
 #'
 .sits_plot_alignments <- function (data.tb, patterns.tb){
-    ensurer::ensure_that(patterns.tb, !purrr::is_null(.), err_desc = "sits_plot alignments: patterns.tb must be provided")
+    #does the input data exist?
+    .sits_test_table (data.tb)
+    .sits_test_table (patterns.tb)
+
     data.tb %>%
         .sits_toTWDTW_matches(patterns.tb) %>%
         purrr::map( function (m.twdtw) {
@@ -132,8 +137,12 @@ sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = 
 #' @param n_matches    number of matches of a given label to be displayed
 #'
 .sits_plot_matches <- function (data.tb, patterns.tb, n_matches) {
-    ensurer::ensure_that(patterns.tb, !purrr::is_null(.), err_desc = "sits_plot matches: patterns.tb must be provided")
-    data.tb %>%
+
+    #does the input data exist?
+    .sits_test_table (data.tb)
+    .sits_test_table (patterns.tb)
+
+        data.tb %>%
         .sits_toTWDTW_matches(patterns.tb) %>%
         purrr::map(function (m.twdtw) {
             dtwSat::plot (m.twdtw, type = "matches", patterns.labels = patterns.tb$label, k = n_matches) %>%
@@ -280,12 +289,9 @@ sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = 
 #' @param ...           Other parameters to be passed to graphics::plot() function
 #' @export
 sits_plot_dendrogram <- function(data.tb,
-                                 cluster_obj = NULL,
+                                 cluster_obj,
                                  cutree_height = NULL,
                                  colors = "RdYlGn", ...){
-     # get cluster_obj
-     if (is.null(cluster_obj))
-          cluster_obj <- sits_last_cluster()
 
      # ensures that a cluster object is informed or exists in .sits_last_cluster global variable.
      ensurer::ensure_that(cluster_obj, !is.null(.), err_desc = "plot_dendrogram: no valid `cluster_obj` informed or found in `.sits_last_cluster`.")
