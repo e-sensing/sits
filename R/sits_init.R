@@ -1,8 +1,10 @@
+# On load
 .onAttach = function(lib, pkg){
      packageStartupMessage(
           sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.\n",
                   utils::packageDescription("sits")$Version) )
 }
+
 # Include the following global variables in the SITS package
 #
 utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
@@ -18,6 +20,6 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @import dtwSat
 #' @importFrom magrittr %>%
 #' @usage lhs \%>\% rhs
-#'
 #' @useDynLib sits, .registration = TRUE
+#'
 NULL

@@ -40,11 +40,14 @@ sits_accuracy <- function(pred.vec, ref.vec, pred_sans_ext = FALSE, conv.lst = N
     }
 
     if (NCOL(conf.mtx) != NROW (conf.mtx)) {
-        missing_names = colnames (conf.mtx) [!(colnames(conf.mtx) %in% row.names(conf.mtx))]
-        for (i in 1:length (missing_names)) {
-            vz <- rep (0, NCOL(conf.mtx))
-            conf.mtx <- rbind (conf.mtx, missing_names[i] = vz)
-        }
+        new.mtx <- matrix(rep(0, NROW(conf.mtx) * NCOL(conf.mtx)), nrow = NROW(conf.mtx), ncol = NCOL(conf.mtx))
+        new.mtx[colnames(conf.mtx) %in% row.names(conf.mtx), ] <- conf.mtx
+        # missing_names = colnames (conf.mtx) [!(colnames(conf.mtx) %in% row.names(conf.mtx))]
+        # for (i in 1:length (missing_names)) {
+        #     vz <- rep (0, NCOL(conf.mtx))
+        #     conf.mtx <- rbind (conf.mtx, missing_names[i] = vz)
+        # }
+        conf.mtx <- new.mtx
     }
     # ensures that the confusion matrix is square
     ensurer::ensure_that(conf.mtx, NCOL(.) == NROW(.),

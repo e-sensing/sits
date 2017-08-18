@@ -263,7 +263,7 @@ sits_predict <- function(data.tb = NULL, model){
     # Spread TWDTW matches
     spread.tb <- sits_spread_matches(data.tb)
 
-    data.tb$predicted <- as.character(stats::predict(model, newdata = spread_tb))
+    data.tb$predicted <- as.character(stats::predict(model, newdata = spread.tb))
 
     return(data.tb)
 }

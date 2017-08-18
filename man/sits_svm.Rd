@@ -9,10 +9,10 @@ sits_svm(data.tb = NULL, formula = sits_formula_logref(),
   tolerance = 0.001, epsilon = 0.1, ...)
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series with an alignment column. If data_tb is NULL, the function returns
+\item{data.tb}{a SITS tibble time series with an alignment column. If data.tb is NULL, the function returns
 a function to be called further to compute svm training model according to given parameters}
 
-\item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)}
+\item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
 \item{kernel}{the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)}
 
