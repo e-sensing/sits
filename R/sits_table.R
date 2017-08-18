@@ -397,14 +397,14 @@ sits_merge <-  function(sits1.tb, sits2.tb) {
 #' @param    data.tb      tibble - input SITS table
 #' @param    min_interval a string describing the min interval (in days) bellow which the samples are discarded.
 #' @param    max_interval a string describing the max interval (in days) above which the samples are proned.
-#' @return   proned.tb    tibble - the converted SITS table
+#' @return   pruned.tb    tibble - the converted SITS table
 #' @export
 #'
 sits_prune <- function (data.tb, min_interval = "349 days", max_interval = "365 days") {
-    ensurer::ensure_that (data.tb, !purrr::is_null(.),
-                          err_desc = "sits_prune: input data not provided")
+    #does the input data exist?
+    .sits_test_table (data.tb)
 
-    proned.tb <- sits_table()
+    pruned.tb <- sits_table()
     discarded.tb <- sits_table()
 
     #
@@ -444,7 +444,7 @@ sits_prune <- function (data.tb, min_interval = "349 days", max_interval = "365 
             if ( row_interval < lubridate::as.duration(min_interval))
                 discarded.tb <<- dplyr::bind_rows(discarded.tb, row)
             else
-                proned.tb <<- dplyr::bind_rows(proned.tb, row)
+                pruned.tb <<- dplyr::bind_rows(pruned.tb, row)
 
             # update progress bar
             i <<- i + 1
@@ -457,7 +457,7 @@ sits_prune <- function (data.tb, min_interval = "349 days", max_interval = "365 
         message("The following sample(s) has(have) been discarded:\n")
         print(tibble::as_tibble(discarded.tb))
     }
-    return (proned.tb)
+    return (pruned.tb)
 }
 
 
@@ -491,6 +491,9 @@ sits_mutate <- function(data.tb, ...){
 #' @return out.tb      a SITS table with a list of renamed bands for the time series
 #' @export
 sits_rename <-  function (data.tb, bands_new) {
+
+    #does the input data exist?
+    .sits_test_table (data.tb)
 
     ensurer::ensure_that(bands_new, !purrr::is_null(.), err_desc = "sits_rename: New band names should be provided")
     ensurer::ensure_that(data.tb, length(sits_bands(.)) == length (bands_new),
@@ -692,8 +695,8 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
 #' @return assess         an assessment of validation
 #' @export
 sits_relabel <- function (data.tb, conv){
-    ensurer::ensure_that(data.tb, !purrr::is_null(.),
-                         err_desc = "sits_relabel: input data not provided")
+    #does the input data exist?
+    .sits_test_table (data.tb)
 
     ensurer::ensure_that(conv, !purrr::is_null(.),
                          err_desc = "sits_relabel: conversion list not provided")
@@ -745,7 +748,7 @@ sits_relabel_conv <- function (file = NULL){
 }
 
 #' @title Spread matches from a sits matches tibble
-#' @name .sits_spread_matches
+#' @name sits_spread_matches
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -754,8 +757,9 @@ sits_relabel_conv <- function (file = NULL){
 #' the reference label and the TWDTW distances for each temporal pattern.
 #'
 #' @param  data.tb a SITS matches tibble
-#'
-.sits_spread_matches <- function(data.tb){
+#' @return a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
+#' @export
+sits_spread_matches <- function(data.tb){
 
     # Get best TWDTW aligniments for each class
     data.tb$matches <- data.tb$matches %>%
@@ -774,26 +778,20 @@ sits_relabel_conv <- function (file = NULL){
     return(out.tb)
 }
 
-#' @title Set function arguments
-#' @name .set_fun_args
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @title Spread matches from a sits matches tibble
+#' @name .sits_test_table
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Given a function and a list of arguments,
-#' returns the function with new default parameters
+#' @description Tests if a SITS table exists or has data inside
 #'
-#' @param fun a function
-#' @param args a list of arguments
-#' @param ... arguments
+#' @param data.tb  a SITS table
+#' @return test_OK boolean (TRUE if data.tb is OK)
 #'
-#' @noRd
-#'
-.set_fun_args = function(fun, ..., args = list(...)){
-    base_formals = formals(fun)
-    base_formals_names = names(base_formals)
-    given_formals = args[names(args) %in% base_formals_names]
-    missing_formals_names = setdiff(base_formals_names, names(args))
-    new_formals = c(base_formals[missing_formals_names], given_formals)
-    new_formals = new_formals[base_formals_names]
-    formals(fun) = new_formals
-    fun
+.sits_test_table <- function (data.tb) {
+    ensurer::ensure_that(data.tb, !purrr::is_null(.),
+                         err_desc = "input data not provided")
+    ensurer::ensure_that(data.tb, NROW(.) > 0,
+                         err_desc = "input data is empty")
+    return (TRUE)
 }

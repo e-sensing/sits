@@ -16,16 +16,15 @@
 #' @return result          a model fitted into input data given by train_method parameter
 #' @export
 #'
-sits_patterns <- function(data.tb, bands = NULL, tr_method = sits_gam(data.tb = NULL, bands = bands, from = NULL, to = NULL, freq = 8, formula = y ~ s(x))) {
+sits_patterns <- function(data.tb, bands = NULL, pt_method = sits_gam(data.tb = NULL, bands = bands, from = NULL, to = NULL, freq = 8, formula = y ~ s(x))) {
 
-    # is the input data the result of a TWDTW matching function?
-    ensurer::ensure_that (data.tb, !purrr::is_null(.),
-                          err_desc = "sits_patterns: input data not provided")
+    # does the input data exist?
+    .sits_test_table (data.tb)
     # is the train method a function?
-    ensurer::ensure_that(tr_method, class(.) == "function", err_desc = "sits_train: train_method is not a valid function")
+    ensurer::ensure_that(pt_method, class(.) == "function", err_desc = "sits_train: train_method is not a valid function")
 
     # compute the training method by the given data
-    result <- tr_method(data.tb)
+    result <- pt_method(data.tb)
     return(result)
 
 }
