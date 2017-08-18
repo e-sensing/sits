@@ -4,9 +4,7 @@
 \alias{sits_train}
 \title{Train SITS classification models}
 \usage{
-sits_train(data.tb, tr_method = sits_svm(formula =
-  sits_formula_logref(predictors_index = -2:0), kernel = "linear", degree = 3,
-  coef0 = 0, tolerance = 0.001, epsilon = 0.1))
+sits_train(data.tb, tr_method = sits_svm())
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series with an alignment column}

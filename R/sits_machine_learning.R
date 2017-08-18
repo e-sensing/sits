@@ -27,8 +27,7 @@
 #' @return result          a model fitted into input data given by train_method parameter
 #' @export
 #'
-sits_train <- function(data.tb, tr_method = sits_svm(formula = sits_formula_logref(predictors_index = -2:0), kernel = "linear",
-                                                           degree = 3, coef0 = 0, tolerance = 0.001, epsilon = 0.1)){
+sits_train <- function(data.tb, tr_method = sits_svm()){
 
     # is the input data the result of a TWDTW matching function?
     ensurer::ensure_that(data.tb, "matches" %in% names (.), err_desc = "sits_train: input data does not contain TWDTW matches")
@@ -58,6 +57,7 @@ sits_train <- function(data.tb, tr_method = sits_svm(formula = sits_formula_logr
 #' @param kernel    the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
 #' @param degree    exponential of polynomial type kernel
 #' @param coef0	    parameter needed for kernels of type polynomial and sigmoid (default: 0)
+#' @param cost      cost of constraints violation
 #' @param tolerance	tolerance of termination criterion (default: 0.001)
 #' @param epsilon	epsilon in the insensitive-loss function (default: 0.1)
 #' @param ...       other parameters to be passed to e1071::svm function
@@ -65,8 +65,7 @@ sits_train <- function(data.tb, tr_method = sits_svm(formula = sits_formula_logr
 #' @export
 #'
 sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), kernel = "linear",
-                     degree = 3, coef0 = 0, tolerance = 0.001, epsilon = 0.1, ...) {
-
+                     degree = 3, coef0 = 0, cost = 1, tolerance = 0.001, epsilon = 0.1, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(tb){
@@ -83,7 +82,7 @@ sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), kernel = "
 
         # call e1071::svm method and return the trained svm model
         result_svm <- e1071::svm(formula = formula, data = spread.tb, kernel = kernel,
-                                 degree = degree, coef0 = coef0, tolerance = tolerance, epsilon = epsilon, ...)
+                                 degree = degree, cost = cost, coef0 = coef0, tolerance = tolerance, epsilon = epsilon, ...)
         return(result_svm)
     }
 
@@ -106,7 +105,7 @@ sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), kernel = "
 #' @return result_fun       a function that computes a valid formula
 #' @export
 #'
-sits_formula_logref <- function(predictors_index = NULL){
+sits_formula_logref <- function(predictors_index = -2:0){
 
     # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
     # respectivelly, the reference and predictors fields of tibble in `tb` parameter.

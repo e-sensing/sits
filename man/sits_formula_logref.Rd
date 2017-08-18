@@ -4,7 +4,7 @@
 \alias{sits_formula_logref}
 \title{Train SITS classifiction models}
 \usage{
-sits_formula_logref(predictors_index = NULL)
+sits_formula_logref(predictors_index = -2:0)
 }
 \arguments{
 \item{predictors_index}{the index of the valid columns whose names are used to compose formula (default: NULL)}

@@ -32,14 +32,15 @@
 #'
 sits_gam <- function (data.tb = NULL, bands = NULL, from = NULL, to = NULL, freq = 8, formula = y ~ s(x), ...){
 
-    # handle the case of null bands
-    if (purrr::is_null (bands)) bands <- sits_bands(data.tb)
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(tb){
 
         # does the input data exist?
         .sits_test_table (tb)
+
+        # handle the case of null bands
+        if (purrr::is_null (bands)) bands <- sits_bands(tb)
 
         # create a tibble to store the results
         patterns.tb <- sits_table()
