@@ -44,8 +44,6 @@ filtering, clustering and classification of satellite image time series.
 
 \section{Introduction}\label{introduction}
 
-\section{Introduction}
-
 Earth observation satellites provide a continuous and consistent set of
 information about the Earth's land and oceans. Most space agencies have
 adopted an open data policy, making unprecedented amounts of satellite
@@ -89,9 +87,40 @@ for detecting forest disturbance \citep{Kennedy2010}, ecology dynamics
 \citep{Pasquarella2016}, agricultural intensification
 \citep{Galford2008} and its impacts on deforestation \citep{Arvor2012}.
 
-\section{Using the WTSS service}
+\section{Data Handling in SITS}\label{data-handling-in-sits}
 
-Get information about the WTSS (web time series service)
+The basic data unit in the sits package is the SITS tibble, which is
+
+\begin{CodeChunk}
+
+\begin{CodeInput}
+> # Get a data set containing samples for two classes ("Cerrado" and "Pasture")
+> cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado.json", package="sits"))
+> cerrado.tb
+\end{CodeInput}
+
+\begin{CodeOutput}
+# A tibble: 746 x 7
+   longitude latitude start_date   end_date   label    coverage
+       <dbl>    <dbl>     <date>     <date>   <chr>       <chr>
+ 1  -54.2313 -14.0482 2000-09-13 2001-08-29 Cerrado mod13q1_512
+ 2  -54.2313 -14.0482 2001-09-14 2002-08-29 Cerrado mod13q1_512
+ 3  -54.2313 -14.0482 2002-09-14 2003-08-29 Cerrado mod13q1_512
+ 4  -54.2313 -14.0482 2003-09-14 2004-08-28 Cerrado mod13q1_512
+ 5  -54.2313 -14.0482 2004-09-13 2005-08-29 Cerrado mod13q1_512
+ 6  -54.2313 -14.0482 2005-09-14 2006-08-29 Cerrado mod13q1_512
+ 7  -54.2313 -14.0482 2006-09-14 2007-08-29 Cerrado mod13q1_512
+ 8  -54.2313 -14.0482 2007-09-14 2008-08-28 Cerrado mod13q1_512
+ 9  -54.2313 -14.0482 2008-09-13 2009-08-29 Cerrado mod13q1_512
+10  -54.2313 -14.0482 2009-09-14 2010-08-29 Cerrado mod13q1_512
+# ... with 736 more rows, and 1 more variables: time_series <list>
+\end{CodeOutput}
+\end{CodeChunk}
+
+this needs to be explained further\ldots{}.
+
+\section{Using the Web Time Series Service
+WTSS}\label{using-the-web-time-series-service-wtss}
 
 To get a remote sensing time series, one first organises a large set of
 EO data as a 3D array. From each pixel location in the array, one can
@@ -167,9 +196,19 @@ Temporal resolution: 16 days
 \end{CodeInput}
 
 
-\begin{center}\includegraphics{sits_files/figure-latex/unnamed-chunk-4-1} \end{center}
+\begin{center}\includegraphics{sits_files/figure-latex/unnamed-chunk-7-1} \end{center}
 
 \end{CodeChunk}
+
+\section*{Acknowledgments}
+
+This work is supported by the São Paulo State Foundation (FAPESP) under
+grant 2014/08398-6 (``e-sensing: Big Earth observation data analytics
+for land use and land cover change information''), and by the Germany
+International Klimate Initiative under the RESTORE+
+grant17\_III\_084\_Global\_A\_RESTORE+ (``RESTORE+: Addressing Landscape
+Restoration on Degraded Land in Indonesia and Brazil''). Gilberto
+Camara's work is also supported by CNPq (grant 312151/2014-4).
 
 \bibliography{e-sensing.bib}
 

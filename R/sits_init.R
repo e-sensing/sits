@@ -6,14 +6,14 @@
 # Include the following global variables in the SITS package
 #
 utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
-                         "rmean", "std", "stdplus", "stdminus", "cluster_id", "cross_join",
+                         "med", "qt25", "qt75", "cluster_id", "cross_join",
                          "longitude", "latitude", "label", "coverage",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
                          "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n",
                          "distance", "twdtw_distances", "predicted", "new_values",
-                         "Alig.N", "matches"))
+                         "Alig.N", "matches", "Reference"))
 
 #' @import dtwSat
 #' @importFrom magrittr %>%

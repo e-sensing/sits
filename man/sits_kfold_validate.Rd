@@ -29,7 +29,7 @@ sits_kfold_validate(data.tb, bands = NULL, folds = 5,
 \item{...}{any additional parameters to be passed to `sits_pattern` function.}
 }
 \value{
-cm             a validation assessment
+conf.tb        a tibble containing pairs of reference and predicted values
 }
 \description{
 Splits the set of time series into training and validation and

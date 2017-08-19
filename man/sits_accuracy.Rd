@@ -4,25 +4,21 @@
 \alias{sits_accuracy}
 \title{Evaluates the accuracy of classification}
 \usage{
-sits_accuracy(pred.vec, ref.vec, pred_sans_ext = FALSE, conv.lst = NULL)
+sits_accuracy(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE)
 }
 \arguments{
-\item{pred.vec}{A vector of all predicted labels.}
-
-\item{ref.vec}{A vector of all reference labels.}
-
-\item{pred_sans_ext}{(Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.}
+\item{conf.tb}{A tibble containing pairs of reference and predicted values}
 
 \item{conv.lst}{A list conversion list of labels. If NULL no conversion is done.}
+
+\item{pred_sans_ext}{(Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.}
 }
 \value{
-result.lst     a list with accuracy measures and confusion matrix
+caret_assess  a confusion matrix assessment produced by the caret package
 }
 \description{
 Evaluates the accuracy of classification stored in two vectors.
-Returns the overall accuracy, producers and users accuracy, and confusion matrix.
-This algorith was inspired by `rfUtilities::accuracy` function, and fix the user and
-producer accuracy computation inconsistency.
+Returns a confusion matrix used by the "caret" package
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

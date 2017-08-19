@@ -171,13 +171,14 @@ sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = 
                tibble::as_tibble()                        %>%  # convert data fram to tibble
                dplyr::select (Index, dplyr::starts_with(band))       # select only the index and the chosen band
 
-          # create a data frame with the mean and plus and minus 1 standard deviation
-          # convert to tibble and create now coluns with mean +- std
+          # compute the quantiles
+          qts   = apply (series.tb[,2:ncol(series.tb)],1,stats::quantile, na.rm = TRUE)
+          # create a data frame with the median, and 25% and 75% quantiles
           means.tb <- data.frame  (Index = series.tb$Index,
-                                   rmean = rowMeans(series.tb[,2:ncol(series.tb)], na.rm = TRUE),
-                                   std  = apply   (series.tb[,2:ncol(series.tb)],1,stats::sd, na.rm=TRUE)) %>%
-               tibble::as_tibble() %>%
-               dplyr::mutate (stdplus = rmean + std, stdminus = rmean - std)
+                                   qt25  = qts[2,],
+                                   med   = qts[3,],
+                                   qt75  = qts[4,]) %>%
+               tibble::as_tibble()
 
           # melt the data into long format (required for ggplot to work)
           melted.tb <- series.tb %>%
@@ -255,9 +256,9 @@ sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = 
      g <- ggplot2::ggplot(data = melted.tb, ggplot2::aes(x = Index, y = value, group = variable)) +
           ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
           ggplot2::labs (title = plot_title) +
-          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = rmean), colour = "#B16240", size = 2, inherit.aes=FALSE) +
-          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = stdplus), colour = "#B19540", size = 1, inherit.aes=FALSE) +
-          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = stdminus), colour = "#B19540", size = 1, inherit.aes=FALSE)
+          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = med),  colour = "#B16240", size = 2, inherit.aes=FALSE) +
+          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = qt25), colour = "#B19540", size = 1, inherit.aes=FALSE) +
+          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = qt75), colour = "#B19540", size = 1, inherit.aes=FALSE)
      return (g)
 
 }
