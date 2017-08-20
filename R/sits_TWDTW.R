@@ -139,12 +139,15 @@ sits_TWDTW_classify <- function (data.tb, patterns.tb, start_date = NULL, end_da
                class.lst <- .sits_fromTWDTW_matches(classify)
 
                # add the classification results to the input row
-               return(class.lst[[1]])
+               return(unlist(class.lst[[1]]$predicted))
 
                # add the row to the results.tb tibble
                # class.tb <<- dplyr::bind_rows(class.tb, res.tb)
-          }, .to = "best_matches")
-     return (class.tb)
+          }, .to = "predicted")
+
+#    class.tb <- dplyr::mutate(class.tb, predicted = as.character(predicted, NA = TRUE  ))
+
+    return (class.tb)
 }
 
 #' @title Export data to be used by the dtwSat package
