@@ -31,7 +31,7 @@ spread.tb <- sits_spread_matches(matches.tb)
 spread.tb
 
 # use the alignments to train a support vector machine (default method for machine learning)
-obj.svm <- sits_train(matches.tb)
+obj.svm <- sits_train(matches.tb, tr_method = sits_svm (cost = 1000, kernel = "radial"))
 # show the resulting training object
 obj.svm
 

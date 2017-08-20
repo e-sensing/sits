@@ -31,30 +31,37 @@
 #' @param  keep          keep internal values for plotting matches
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
-sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb, bands, dist.method = "euclidean",
+sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
                         alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE){
 
-     # add a progress bar
-     progress_bar <- NULL
-     if (nrow (data.tb) > 10) {
-          message("Matching patterns to time series...")
-          progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
-          i <- 0
-     }
+     # # add a progress bar
+     # progress_bar <- NULL
+     # if (nrow (data.tb) > 10) {
+     #      message("Matching patterns to time series...")
+     #      progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
+     #      i <- 0
+     # }
+    result_fun <- function (data.tb, patterns.tb) {
+        # does the input data exist?
+        .sits_test_table (data.tb)
+        .sits_test_table (patterns.tb)
 
-     # create a tibble to store the results of the TWDTW matches
-     matches.tb <- sits_table()
+        # handle the case of null bands
+        if (purrr::is_null (bands)) bands <- sits_bands(tb)
 
-     # select the bands for patterns time series and convert to TWDTW format
-     twdtw_patterns <- patterns.tb %>%
-          sits_select (bands) %>%
-          .sits_toTWDTW_time_series()
+        # create a tibble to store the results of the TWDTW matches
+        matches.tb <- sits_table()
 
-     # Define the logistic function
-     log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
+        # select the bands for patterns time series and convert to TWDTW format
+        twdtw_patterns <- patterns.tb %>%
+            sits_select (bands) %>%
+            .sits_toTWDTW_time_series()
 
-     data.tb %>%
-          purrrlyr::by_row (function (row.tb) {
+        # Define the logistic function
+        log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
+
+        data.tb %>%
+            purrrlyr::by_row (function (row.tb) {
                # select the bands for the samples time series and convert to TWDTW format
                twdtw_series <- row.tb %>%
                     sits_select (bands) %>%
@@ -79,14 +86,16 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb, bands, dist.method 
                # add the row to the results.tb tibble
                matches.tb <<- dplyr::bind_rows(matches.tb, res.tb)
 
-               # update progress bar
-               if (!purrr::is_null(progress_bar)) {
-                    i <<- i + 1
-                    utils::setTxtProgressBar(progress_bar, i)
-               }
+               # # update progress bar
+               # if (!purrr::is_null(progress_bar)) {
+               #      i <<- i + 1
+               #      utils::setTxtProgressBar(progress_bar, i)
+               # }
           })
-     if (!purrr::is_null(progress_bar)) close(progress_bar)
-     return (matches.tb)
+#     if (!purrr::is_null(progress_bar)) close(progress_bar)
+        return (matches.tb)
+    }
+    result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
 }
 
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
@@ -139,12 +148,15 @@ sits_TWDTW_classify <- function (data.tb, patterns.tb, start_date = NULL, end_da
                class.lst <- .sits_fromTWDTW_matches(classify)
 
                # add the classification results to the input row
-               return(class.lst[[1]])
+               return(unlist(class.lst[[1]]$predicted))
 
                # add the row to the results.tb tibble
                # class.tb <<- dplyr::bind_rows(class.tb, res.tb)
-          }, .to = "best_matches")
-     return (class.tb)
+          }, .to = "predicted")
+
+#    class.tb <- dplyr::mutate(class.tb, predicted = as.character(predicted, NA = TRUE  ))
+
+    return (class.tb)
 }
 
 #' @title Export data to be used by the dtwSat package
