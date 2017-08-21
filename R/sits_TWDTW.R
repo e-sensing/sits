@@ -34,69 +34,65 @@
 sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
                         alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE){
 
-
-    result_fun <- function (data.tb, patterns.tb) {
-        # add a progress bar
-        progress_bar <- NULL
-        if (nrow (data.tb) > 10) {
-             message("Matching patterns to time series...")
-             progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
-             i <- 0
-        }
-        # does the input data exist?
-        .sits_test_table (data.tb)
-        .sits_test_table (patterns.tb)
-
-        # handle the case of null bands
-        if (purrr::is_null (bands)) bands <- sits_bands(tb)
-
-        # create a tibble to store the results of the TWDTW matches
-        matches.tb <- sits_table()
-
-        # select the bands for patterns time series and convert to TWDTW format
-        twdtw_patterns <- patterns.tb %>%
-            sits_select (bands) %>%
-            .sits_toTWDTW_time_series()
-
-        # Define the logistic function
-        log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
-
-        data.tb %>%
-            purrrlyr::by_row (function (row.tb) {
-               # select the bands for the samples time series and convert to TWDTW format
-               twdtw_series <- row.tb %>%
-                    sits_select (bands) %>%
-                    .sits_toTWDTW_time_series()
-
-               #classify the data using TWDTW
-               matches = dtwSat::twdtwApply(x          = twdtw_series,
-                                            y          = twdtw_patterns,
-                                            weight.fun = log_fun,
-                                            theta      = theta,
-                                            span       = span,
-                                            keep       = keep,
-                                            dist.method = dist.method)
-
-               # add the matches to the results
-               matches.lst <- .sits_fromTWDTW_matches(matches)
-
-               # include the matches in the SITS table
-               res.tb <- row.tb %>%
-                   dplyr::mutate(matches = matches.lst)
-
-               # add the row to the results.tb tibble
-               matches.tb <<- dplyr::bind_rows(matches.tb, res.tb)
-
-               # update progress bar
-               if (!purrr::is_null(progress_bar)) {
-                    i <<- i + 1
-                    utils::setTxtProgressBar(progress_bar, i)
-               }
-          })
-        if (!purrr::is_null(progress_bar)) close(progress_bar)
-        return (matches.tb)
+    # add a progress bar
+    progress_bar <- NULL
+    if (nrow (data.tb) > 10) {
+        message("Matching patterns to time series...")
+        progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
+        i <- 0
     }
-    result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
+    # does the input data exist?
+    .sits_test_table (data.tb)
+    .sits_test_table (patterns.tb)
+
+    # handle the case of null bands
+    if (purrr::is_null (bands)) bands <- sits_bands(data.tb)
+
+    # create a tibble to store the results of the TWDTW matches
+    matches.tb <- sits_table()
+
+    # select the bands for patterns time series and convert to TWDTW format
+    twdtw_patterns <- patterns.tb %>%
+        sits_select (bands) %>%
+        .sits_toTWDTW_time_series()
+
+    # Define the logistic function
+    log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
+
+    data.tb %>%
+        purrrlyr::by_row (function (row.tb) {
+            # select the bands for the samples time series and convert to TWDTW format
+            twdtw_series <- row.tb %>%
+                sits_select (bands) %>%
+                .sits_toTWDTW_time_series()
+
+            #classify the data using TWDTW
+            matches = dtwSat::twdtwApply(x          = twdtw_series,
+                                         y          = twdtw_patterns,
+                                         weight.fun = log_fun,
+                                         theta      = theta,
+                                         span       = span,
+                                         keep       = keep,
+                                         dist.method = dist.method)
+
+            # add the matches to the results
+            matches.lst <- .sits_fromTWDTW_matches(matches)
+
+            # include the matches in the SITS table
+            res.tb <- row.tb %>%
+                dplyr::mutate(matches = matches.lst)
+
+            # add the row to the results.tb tibble
+            matches.tb <<- dplyr::bind_rows(matches.tb, res.tb)
+
+            # update progress bar
+            if (!purrr::is_null(progress_bar)) {
+                i <<- i + 1
+                utils::setTxtProgressBar(progress_bar, i)
+            }
+        })
+    if (!purrr::is_null(progress_bar)) close(progress_bar)
+    return (matches.tb)
 }
 
 #' @title Find distance between a set of SITS patterns and segments of sits tibble using TWDTW
@@ -124,7 +120,7 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NU
     result_fun <- function (data.tb, patterns.tb) {
 
         # get the matches from the sits_TWDTW_matches
-        matches.tb <- sits_TWDTW_matches (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
+        matches.tb <- sits_TWDTW_matches (data.tb, patterns.tb, bands = NULL, dist.method = "euclidean",
                                                       alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE)
 
         # convert the matches into distances

@@ -77,18 +77,17 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 #' @param bands           the bands used for classification
 #' @param folds           number of partitions to create.
 #' @param pt_method       method to create patterns (sits_patterns_gam, sits_dendogram)
+#' @param dist_method     method to compute distances (e.g., sits_TWDTW_distances)
 #' @param tr_method       machine learning training method
-#' @param file            file to save the results
-#' @param .multicores     number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).
-#' @param ...             any additional parameters to be passed to `sits_pattern` function.
+#' @param multicores      number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).
 #' @return conf.tb        a tibble containing pairs of reference and predicted values
 #' @export
 
 sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
-                                 pt_method = sits_gam(bands = bands, from = NULL, to = NULL, freq = 8, formula = y ~ s(x)),
-                                 tr_method = sits_svm(formula = sits_formula_logref(predictors_index = -2:0), kernel = "linear",
-                                                      degree = 3, coef0 = 0, tolerance = 0.001, epsilon = 0.1),
-                                 file = "./conf_matrix.json", .multicores = 1, ...){
+                                 pt_method   = sits_gam(bands = bands),
+                                 dist_method = sits_TWDTW_distances(bands = bands),
+                                 tr_method   = sits_svm(),
+                                 multicores = 1){
 
     # does the input data exist?
     .sits_test_table (data.tb)
@@ -112,35 +111,44 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
 
     # create prediction and reference vector
     pred.vec = character()
-    ref.vec = character()
+    ref.vec  = character()
 
-    for (k in 1:folds)
+    conf.lst <- parallel::mcMap (function (k)
     {
         # split data into training and test data sets
-        data_train <- data.tb[data.tb$folds != k,]
-        data_test  <- data.tb[data.tb$folds == k,]
+        data_train.tb <- data.tb[data.tb$folds != k,]
+        data_test.tb  <- data.tb[data.tb$folds == k,]
 
         #
         message("Creating patterns from a data sample...")
 
         # use the extracted partition to create the patterns
-        patterns.tb <- pt_method(data_train)
+        patterns.tb <- pt_method(data_train.tb)
 
         # find the matches on the training data
-        matches_train.tb  <- sits_TWDTW_matches (data.tb = data_train, patterns.tb, bands = bands, ...)
+        distances_train.tb <- dist_method (data_train.tb, patterns.tb)
 
         # find a model on the training data set
-        model.ml <- tr_method (matches_train.tb)
+        model.ml <- tr_method (distances_train.tb)
 
-        # find the matches in the test data
-        matches_test.tb  <- sits_TWDTW_matches (data.tb = data_test, patterns.tb, bands = bands, ...)
+        # find the distances in the test data
+        distances_test.tb  <- dist_method (data_test.tb, patterns.tb)
 
         # classify the test data
-        predict.tb <- sits_predict(matches_test.tb, model.ml)
+        predict.tb <- sits_predict(data_test.tb, distances_test.tb, model.ml)
 
-        ref.vec <- append (ref.vec, predict.tb$label)
-        pred.vec <- append (pred.vec, predict.tb$predicted)
-    }
+        ref.vec  <- c(ref.vec,  predict.tb$label)
+        pred.vec <- c(pred.vec, predict.tb$predicted)
+
+        return (c(pred.vec, ref.vec))
+    },1:folds, mc.cores = multicores)
+
+    purrr::map(conf.lst, function (e) {
+        mid <- length (e)/2
+        pred.vec <<- c(pred.vec, e[1:mid])
+        ref.vec <<-  c(ref.vec, e[(mid+1):length(e)])
+    })
+
     conf.tb <- tibble::tibble("Prediction" = pred.vec, "Reference" = ref.vec)
 
     return (conf.tb)

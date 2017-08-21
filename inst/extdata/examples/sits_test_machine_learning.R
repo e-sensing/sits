@@ -14,29 +14,22 @@ sits_plot (cerrado.tb[1,])
 sits_plot (cerrado.tb, type = "together")
 
 # extract the patterns for the cerrado (uses the default gam method)
-patterns.tb <- sits_patterns(cerrado.tb)
+patterns_cerrado.tb <- sits_patterns(cerrado.tb)
 
 # plot the resulting patterns
-sits_plot (patterns.tb, type = "patterns")
+sits_plot (patterns_cerrado.tb, type = "patterns")
 
 #find the alignments of the series with the patterns with the TWDTW algorithm
-matches.tb <- sits_TWDTW_matches(cerrado.tb, patterns.tb, bands = c("ndvi", "evi"), keep = TRUE)
+distances.tb <- sits_TWDTW_distances(cerrado.tb, patterns_cerrado.tb, bands = c("ndvi", "evi"), keep = TRUE)
 
-# plot one aligment
-sits_plot(matches.tb[1,], patterns.tb, type = "alignments")
-
-# Spread TWDTW matches (not required - used to show how training works)
-spread.tb <- sits_spread_matches(matches.tb)
-# show how the attributes for the training are obtained
-spread.tb
 
 # use the alignments to train a support vector machine (default method for machine learning)
-obj.svm <- sits_train(matches.tb, tr_method = sits_svm (cost = 1000, kernel = "radial"))
+obj.svm <- sits_train(distances.tb, tr_method = sits_svm (cost = 1000, kernel = "radial"))
 # show the resulting training object
 obj.svm
 
 # predict the values using the trained SVM
-predict.tb <- sits_predict(matches.tb, obj.svm)
+predict.tb <- sits_predict(cerrado.tb, distances.tb, obj.svm)
 
 # build a confusion matrix of the full predicted
 conf.tb <- tibble::tibble (Prediction = predict.tb$predicted, Reference = predict.tb$label)
@@ -45,7 +38,7 @@ conf.tb <- tibble::tibble (Prediction = predict.tb$predicted, Reference = predic
 sits_accuracy(conf.tb)
 
 # perform a k-fold validation
-conf_k.tb <- sits_kfold_validate(cerrado.tb, folds = 5)
+conf_k.tb <- sits_kfold_validate(cerrado.tb, folds = 5, multicores = 1)
 
 # print the accuracy of the 5-fold validation
 sits_accuracy(conf_k.tb)
