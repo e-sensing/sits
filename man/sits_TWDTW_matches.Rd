@@ -4,7 +4,7 @@
 \alias{sits_TWDTW_matches}
 \title{Find matches between a set of SITS patterns and segments of sits tibble using TWDTW}
 \usage{
-sits_TWDTW_matches(data.tb = NULL, patterns.tb, bands,
+sits_TWDTW_matches(data.tb = NULL, patterns.tb = NULL, bands = NULL,
   dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
   span = 250, keep = FALSE)
 }

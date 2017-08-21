@@ -10,75 +10,45 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #
 #' @description Evaluates the accuracy of classification stored in two vectors.
-#' Returns the overall accuracy, producers and users accuracy, and confusion matrix.
-#' This algorith was inspired by `rfUtilities::accuracy` function, and fix the user and
-#' producer accuracy computation inconsistency.
+#' Returns a confusion matrix used by the "caret" package
 #'
-#' @param pred.vec       A vector of all predicted labels.
-#' @param ref.vec        A vector of all reference labels.
-#' @param pred_sans_ext  (Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
+#' @param conf.tb        A tibble containing pairs of reference and predicted values
 #' @param conv.lst       A list conversion list of labels. If NULL no conversion is done.
-#' @return result.lst     a list with accuracy measures and confusion matrix
+#' @param pred_sans_ext  (Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
+#' @return caret_assess  a confusion matrix assessment produced by the caret package
 #'
 #' @export
-#'
-sits_accuracy <- function(pred.vec, ref.vec, pred_sans_ext = FALSE, conv.lst = NULL){
+sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
+
+
+    # recover predicted and reference vectors from input
+    pred.vec <- conf.tb$Prediction
+    ref.vec  <- conf.tb$Reference
 
     # remove predicted labels' extensions
     if (pred_sans_ext)
         pred.vec <- tools::file_path_sans_ext(pred.vec)
 
-    # count all pairs of labels
-    # rows: predicted labels; cols: reference labels
-    if (is.null(conv.lst))
-        conf.mtx <- table(pred.vec, ref.vec)
-    else{
-        ensurer::ensure_that(c(pred.vec, ref.vec),
-                             all(names(.) %in% names(conv.lst)),
-                             err_desc = "sits_accuracy: conversion list does not contain all labels provided in `pred.vec` and/or `ref.vec` arguments.")
-        conf.mtx <- table(as.character(conv.lst[[pred.vec]]), as.character(conv.lst[[ref.vec]]))
+    # convert class names
+    if (!purrr::is_null(conv.lst)) {
+        names_ref <- dplyr::pull (dplyr::distinct (conf.tb, Reference))
+        ensurer::ensure_that(names_ref,
+                             all(. %in% names(conv.lst)),
+                             err_desc = "sits_accuracy: conversion list does not contain all reference labels")
+        pred.vec <- as.character(conv.lst[pred.vec])
+        ref.vec  <- as.character(conv.lst[ref.vec])
     }
 
-    if (NCOL(conf.mtx) != NROW (conf.mtx)) {
-        new.mtx <- matrix(rep(0, NROW(conf.mtx) * NCOL(conf.mtx)), nrow = NROW(conf.mtx), ncol = NCOL(conf.mtx))
-        new.mtx[colnames(conf.mtx) %in% row.names(conf.mtx), ] <- conf.mtx
-        # missing_names = colnames (conf.mtx) [!(colnames(conf.mtx) %in% row.names(conf.mtx))]
-        # for (i in 1:length (missing_names)) {
-        #     vz <- rep (0, NCOL(conf.mtx))
-        #     conf.mtx <- rbind (conf.mtx, missing_names[i] = vz)
-        # }
-        conf.mtx <- new.mtx
-    }
-    # ensures that the confusion matrix is square
-    ensurer::ensure_that(conf.mtx, NCOL(.) == NROW(.),
-                         err_desc = "sits_accuracy: predicted and reference vectors does not produce a squared matrix. Try to convert `pred.vec` entries before compute accuracy.")
+    # call caret package to the classification statistics
+    caret_assess <- caret::confusionMatrix(pred.vec, ref.vec)
 
-    # sort rows (predicted labels) according to collumn names (reference labels)
-    conf.mtx <- conf.mtx[colnames(conf.mtx),]
+    # print the result
+    .print_confusion_matrix (caret_assess)
 
-    # get labels' agreement (matrix diagonal)
-    agreement <- diag(conf.mtx)
-
-    # get total of predicted labels (to compute users accuracy)
-    users <- apply(conf.mtx, 1, sum)
-
-    # get total of reference labels (to compute producers accuracy)
-    producers <- apply(conf.mtx, 2, sum)
-
-    # get grand totals
-    agreement_total <- sum(agreement)
-    grand_total <- sum(conf.mtx)
-
-    # compose result list
-    result.lst <- tibble::lst(
-        overall.accuracy = round(agreement_total / grand_total * 100, 4),
-        producer.accuracy = round(agreement / producers * 100, 4),
-        user.accuracy = round(agreement / users * 100, 4),
-        confusion = conf.mtx
-    )
-
-    return(result.lst)
+    # return invisible
+    invisible(caret_assess)
 }
+
 #' @title Cross-validate temporal patterns
 #' @name sits_kfold_validate
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -112,7 +82,7 @@ sits_accuracy <- function(pred.vec, ref.vec, pred_sans_ext = FALSE, conv.lst = N
 #' @param file            file to save the results
 #' @param .multicores     number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).
 #' @param ...             any additional parameters to be passed to `sits_pattern` function.
-#' @return cm             a validation assessment
+#' @return conf.tb        a tibble containing pairs of reference and predicted values
 #' @export
 
 sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
@@ -172,15 +142,9 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
         ref.vec <- append (ref.vec, predict.tb$label)
         pred.vec <- append (pred.vec, predict.tb$predicted)
     }
+    conf.tb <- tibble::tibble("Prediction" = pred.vec, "Reference" = ref.vec)
 
-    confusion.vec <- c(pred.vec, ref.vec)
-    # save the confusion vector in  a JSON file
-    sits_toJSON (confusion.vec, file)
-
-    # Classification accuracy measures
-    assessment <- sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE)
-
-    return (assessment)
+    return (conf.tb)
 }
 #' @title Area-weighted post-classification accuracy assessment of classified maps
 #' @name sits_accuracy_area
@@ -252,8 +216,6 @@ sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample =
 
 }
 
-
-
 #' @title Create partitions of a data set
 #' @name  sits_create_folds
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -269,7 +231,6 @@ sits_create_folds <- function (data.tb, folds = 5) {
 
     ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
                           err_desc = "sits_create_folds: please provide a labelled set of time series")
-
 
     set.seed(2104)
     # splits the data into k groups
@@ -299,36 +260,7 @@ sits_create_folds <- function (data.tb, folds = 5) {
      return (partitions.lst)
 }
 
-#' @title reassess classification results
-#' @name sits_reassess
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a confusion matrix obtained in the validation
-#' procedure, and a conversion list between the original labels and
-#' new labels, returns a new confusion matrix
-#' where classes have been merged.
-#'
-#' @param  file           a JSON file contaning the result of a validation procedure
-#' @param  conv           a conversion of label names for the classes (optional))
-#' @return assess         an assessment of validation
-#' @export
-sits_reassess <- function (file = NULL, conv = NULL){
-     ensurer::ensure_that(file, !purrr::is_null(.),
-                          err_desc = "sits_relabel: JSON file not provided")
 
-     # return the confusion matrix
-     confusion.vec <- jsonlite::fromJSON (file)
-     mid <- length(confusion.vec)/2
-     pred.vec <- confusion.vec[1:mid]
-     ref.vec  <- confusion.vec[(mid+1):length(confusion.vec)]
-
-     # calculate the accuracy assessment
-     assess <- sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE, conv.lst = conv)
-
-     return (assess)
-}
 
 #' @title Evaluates the accuracy of a set of patterns
 #' @name sits_test_patterns
@@ -377,9 +309,104 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
      # retrieve the predicted labels
      pred.vec  <- as.character(purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
 
+     conf.lst <- tibble::lst("Prediction" = pred.vec, "Reference" = ref.vec)
+
      # calculate the accuracy assessment
-     assess <- sits_accuracy(pred.vec, ref.vec, pred_sans_ext = TRUE)
+     assess <- sits_accuracy(conf.lst, pred_sans_ext = TRUE)
 
      return (assess)
+}
+
+#' @title Print the values of a confusion matrix
+#' @name .print_confusion_matrix
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#
+#' @description This is an adaptation of the print.confusionMatrix method by the "caret" package
+#' with some of the descriptions adapted for the more common usage in Earth Observation
+#'
+#'
+#' @param x an object of class \code{confusionMatrix}
+#' @param mode a single character string either "sens_spec", "prec_recall", or
+#' "everything"
+#' @param digits number of significant digits when printed
+#' @param \dots optional arguments to pass to \code{print.table}
+#' @return \code{x} is invisibly returned
+#' @seealso \code{\link{confusionMatrix}}
+
+.print_confusion_matrix <- function(x, mode = "sens_spec", digits = max(3, getOption("digits") - 3), ...){
+
+    cat("Confusion Matrix and Statistics\n\n")
+    print(x$table, ...)
+
+    # round the data to the significant digits
+    overall <- round(x$overall, digits = digits)
+
+    # get the values of the p-index
+    # pIndex <- grep("PValue", names(x$overall))
+    # tmp[pIndex] <- format.pval(x$overall[pIndex], digits = digits)
+    # overall <- tmp
+
+    accCI <- paste("(",
+                   paste( overall[ c("AccuracyLower", "AccuracyUpper")], collapse = ", "), ")",
+                   sep = "")
+
+    overallText <- c(paste(overall["Accuracy"]), accCI, "", paste(overall["Kappa"]))
+
+    overallNames <- c("Accuracy", "95% CI", "", "Kappa")
+
+    if(dim(x$table)[1] > 2){
+        cat("\nOverall Statistics\n")
+        overallNames <- ifelse(overallNames == "",
+                               "",
+                               paste(overallNames, ":"))
+        out <- cbind(format(overallNames, justify = "right"), overallText)
+        colnames(out) <- rep("", ncol(out))
+        rownames(out) <- rep("", nrow(out))
+
+        print(out, quote = FALSE)
+
+        cat("\nStatistics by Class:\n\n")
+        x$byClass <- x$byClass[,grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+                                      colnames(x$byClass))]
+        ass.mx <- t(x$byClass)
+        rownames(ass.mx) <- c("Prod Acc (Sensitivity)", "Specificity", "User Acc (Pos Pred Value)", "Neg Pred Value" )
+        print(ass.mx, digits = digits)
+
+    } else {
+        # this is the case of ony two classes
+        # get the values of the User's and Producer's Accuracy for the two classes
+        # the names in caret are different from the usual names in Earth observation
+        x$byClass <- x$byClass[grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+                                      names(x$byClass))]
+        # get the names of the two classes
+        nm <- row.names(x$table)
+        # the first class (which is called the "positive" class by caret)
+        c1 <- x$positive
+        # the second class
+        c2 <- nm[!(nm == x$positive)]
+        # make up the values of UA and PA for the two classes
+        pa1 <- paste("Prod Acc ", c1)
+        pa2 <- paste("Prod Acc ", c2)
+        ua1 <- paste("User Acc ", c1)
+        ua2 <- paste("User Acc ", c2)
+        names (x$byClass) <- c(pa1, pa2, ua1, ua2)
+
+
+        overallText <- c(overallText,
+                         "",
+                         format(x$byClass, digits = digits))
+        overallNames <- c(overallNames, "", names(x$byClass))
+        overallNames <- ifelse(overallNames == "", "", paste(overallNames, ":"))
+
+        out <- cbind(format(overallNames, justify = "right"), overallText)
+        colnames(out) <- rep("", ncol(out))
+        rownames(out) <- rep("", nrow(out))
+
+        out <- rbind(out, rep("", 2))
+
+        print(out, quote = FALSE)
+    }
+
+    invisible(x)
 }
 
