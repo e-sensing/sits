@@ -10,9 +10,6 @@ embrapa.tb <- sits_select(embrapa.tb, bands)
 matogrosso.tb <- sits_getdata(file = system.file("extdata/samples/matogrosso.json", package="sits"))
 matogrosso.tb <- sits_select(matogrosso.tb, bands)
 
-patterns_embrapa.tb <- sits_patterns(embrapa.tb)
-sits_plot (patterns_embrapa.tb, type = "patterns")
-
 patterns_damien.tb <- sits_patterns (matogrosso.tb)
 sits_plot (patterns_damien.tb, type = "patterns")
 
@@ -42,6 +39,11 @@ newlabels1.lst <- tibble::lst (
 
 #relabel the data
 embrapa1.tb <- sits_relabel(embrapa.tb, newlabels1.lst)
+patterns_embrapa.tb <- sits_patterns(embrapa.tb)
+sits_plot (patterns_embrapa.tb, type = "patterns")
+matches.tb <- sits_TWDTW_matches(embrapa1.tb, patterns_embrapa.tb, bands = bands, keep = TRUE)
+obj.svm <- sits_svm(matches.tb, cost = 1000, kernel = "radial")
+predict.tb <- sits_predict(matches.tb, obj.svm)
 
 #remove soy_fallow from embrapa patterns
 embrapa2.tb <- dplyr::filter(embrapa1.tb, label != "Soy_Fallow")
