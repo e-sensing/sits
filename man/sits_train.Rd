@@ -7,15 +7,15 @@
 sits_train(data.tb, tr_method = sits_svm())
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series with an alignment column}
-
 \item{tr_method}{a traning method that returns a model for prediction}
+
+\item{distances.tb}{a SITS tibble time series with an alignment column}
 }
 \value{
 result          a model fitted into input data given by train_method parameter
 }
 \description{
-Given a SITS tibble time series with DTW matches produced by TWDTW,
+Given a tibble with a set of distance measire,
 returns trained models using support vector machines. This function will
 use the TWDTW alignment information for all classes as the attributes
 of the SVM. Please use this function in the following way:

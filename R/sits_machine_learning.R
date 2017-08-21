@@ -13,7 +13,7 @@
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Given a SITS tibble time series with DTW matches produced by TWDTW,
+#' @description Given a tibble with a set of distance measire,
 #' returns trained models using support vector machines. This function will
 #' use the TWDTW alignment information for all classes as the attributes
 #' of the SVM. Please use this function in the following way:
@@ -22,7 +22,7 @@
 #' 3. use the alignment response as an input to the training function
 #'
 #'
-#' @param data.tb          a SITS tibble time series with an alignment column
+#' @param distances.tb     a SITS tibble time series with an alignment column
 #' @param tr_method        a traning method that returns a model for prediction
 #' @return result          a model fitted into input data given by train_method parameter
 #' @export

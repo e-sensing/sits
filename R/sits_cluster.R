@@ -39,7 +39,7 @@ sits_cluster <-  function (data.tb, clusters, k) {
 sits_cluster_validity <-  function (data.tb, type = "valid") {
 
     # is the input data the result of a cluster function?
-    ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
+    ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_validity: input data does not contain cluster column")
 
     # compute CVIs and return
     result.vec <- dtwclust::cvi(a = data.tb$cluster, b = factor(data.tb$label), type = type, log.base = 10)
@@ -61,7 +61,7 @@ sits_cluster_validity <-  function (data.tb, type = "valid") {
 sits_cluster_frequency <-  function (data.tb, relative = FALSE) {
 
     # is the input data the result of a cluster function?
-    ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
+    ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_frequency: input data does not contain cluster column")
 
     # compute frequency table
     result.mtx <- table(data.tb$label, data.tb$cluster)
@@ -125,7 +125,7 @@ sits_cluster_cleaner <-  function (data.tb, min_clu_perc) {
 sits_cluster_relabel <-  function (data.tb, cluster_names) {
 
     # is the input data the result of a cluster function?
-    ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
+    ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_relabel: input data does not contain cluster column")
 
     # compute new clusters names
     # if an unnamed vector is given
