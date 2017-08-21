@@ -99,6 +99,43 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
 }
 
+#' @title Find distance between a set of SITS patterns and segments of sits tibble using TWDTW
+#' @name sits_TWDTW_distances
+#' @author Rolf Simoes, \email{rolf.simores@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a SITS table with distances to be used for training in ML methods
+#' This is a front-end to the sits_TWDTW_matches whose outout is trimmed down to contain just distances
+#'
+#' @param  data.tb     a table in SITS format with a time series to be classified using TWTDW
+#' @param  patterns.tb   a set of known temporal signatures for the chosen classes
+#' @param  bands         string - the bands to be used for classification
+#' @param  dist.method   A character. Method to derive the local cost matrix.
+#' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
+#' @param  beta          (integer) - the midpoint (in days) of the logistic function
+#' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
+#' @param  span          minimum number of days between two matches of the same pattern in the time series (approximate)
+#' @param  keep          keep internal values for plotting matches
+#' @return matches       a SITS table with the information on matches for the data
+#' @export
+sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
+                                alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE) {
+
+    result_fun <- function (data.tb, patterns.tb) {
+
+        # get the matches from the sits_TWDTW_matches
+        matches.tb <- sits_TWDTW_matches (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
+                                                      alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE)
+
+        # convert the matches into distances
+        distances.tb <- sits_spread_matches(matches.tb)
+
+        return (distances.tb)
+
+    }
+    result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
+
+}
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
 #' @name sits_TWDTW_classify
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
