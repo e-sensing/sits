@@ -48,7 +48,7 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
         .sits_test_table (patterns.tb)
 
         # handle the case of null bands
-        if (purrr::is_null (bands)) bands <- sits_bands(tb)
+        if (purrr::is_null (bands)) bands <- sits_bands(data.tb)
 
         # create a tibble to store the results of the TWDTW matches
         matches.tb <- sits_table()
