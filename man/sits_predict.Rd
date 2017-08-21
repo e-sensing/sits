@@ -4,15 +4,17 @@
 \alias{sits_predict}
 \title{Predict class based on the trained models}
 \usage{
-sits_predict(data.tb = NULL, model)
+sits_predict(data.tb = NULL, distances.tb = NULL, model)
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series}
 
-\item{model}{a model trained by \code{\link[sits]{sits_train}}}
+\item{distances.tb}{a tibble with a set of distance metrics to each of the classes}
 
-\item{...}{other parameters to pass to \code{\link[sits]{sits_patterns}} and
-\code{\link[sits]{sits_TWDTW_matches}}}
+\item{model}{a model trained by \code{\link[sits]{sits_train}}}
+}
+\value{
+data.tb - a SITS tibble with the predicted label
 }
 \description{
 Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train}},

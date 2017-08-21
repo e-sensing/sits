@@ -4,13 +4,12 @@
 \alias{sits_svm}
 \title{Train SITS classifiction models with the SVM method}
 \usage{
-sits_svm(data.tb = NULL, formula = sits_formula_logref(),
+sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
   kernel = "linear", degree = 3, coef0 = 0, cost = 1,
   tolerance = 0.001, epsilon = 0.1, ...)
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series with an alignment column. If data_tb is NULL, the function returns
-a function to be called further to compute svm training model according to given parameters}
+\item{distances.tb}{a time series with a set of distance measures for each training sample}
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)}
 
@@ -29,7 +28,7 @@ a function to be called further to compute svm training model according to given
 \item{...}{other parameters to be passed to e1071::svm function}
 }
 \value{
-result   either an e1071::svm class or an function prepared that can be called further to compute svm training model
+result          either an e1071::svm class or an function prepared that can be called further to compute svm training model
 }
 \description{
 This function is a front-end to the "svm" method in the "e1071" package.
