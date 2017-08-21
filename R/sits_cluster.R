@@ -140,6 +140,7 @@ sits_cluster_relabel <-  function (data.tb, cluster_names) {
     names(data_cluster_names.vec) <- NULL
 
     # relabel result and return
+    result.tb <- data.tb
     result.tb$label <- data_cluster_names.vec
     return (result.tb)
 }
