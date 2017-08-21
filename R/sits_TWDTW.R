@@ -34,14 +34,15 @@
 sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
                         alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE){
 
-     # # add a progress bar
-     # progress_bar <- NULL
-     # if (nrow (data.tb) > 10) {
-     #      message("Matching patterns to time series...")
-     #      progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
-     #      i <- 0
-     # }
+
     result_fun <- function (data.tb, patterns.tb) {
+        # add a progress bar
+        progress_bar <- NULL
+        if (nrow (data.tb) > 10) {
+             message("Matching patterns to time series...")
+             progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
+             i <- 0
+        }
         # does the input data exist?
         .sits_test_table (data.tb)
         .sits_test_table (patterns.tb)
@@ -86,13 +87,13 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
                # add the row to the results.tb tibble
                matches.tb <<- dplyr::bind_rows(matches.tb, res.tb)
 
-               # # update progress bar
-               # if (!purrr::is_null(progress_bar)) {
-               #      i <<- i + 1
-               #      utils::setTxtProgressBar(progress_bar, i)
-               # }
+               # update progress bar
+               if (!purrr::is_null(progress_bar)) {
+                    i <<- i + 1
+                    utils::setTxtProgressBar(progress_bar, i)
+               }
           })
-#     if (!purrr::is_null(progress_bar)) close(progress_bar)
+        if (!purrr::is_null(progress_bar)) close(progress_bar)
         return (matches.tb)
     }
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
