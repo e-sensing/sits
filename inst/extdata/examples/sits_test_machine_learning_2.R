@@ -3,7 +3,7 @@ library (sits)
 # get the data from embrapa
 embrapa.tb <- sits_getdata(file = system.file("extdata/samples/embrapa_cerrado_forest.json", package="sits"))
 # select the bands
-bands <-  c("ndvi", "evi")
+bands <-  c("ndvi", "evi", "nir")
 embrapa.tb <- sits_select(embrapa.tb, bands)
 
 #get the patterns from Damien
@@ -53,6 +53,8 @@ newlabels2.lst <- tibble::lst ("Soybean_Fallow2" = "Soy_Fallow")
 soy_fallow.tb <-  sits_relabel (soy_fallow.tb, newlabels2.lst)
 
 embrapa2.tb <- dplyr::bind_rows(embrapa2.tb, soy_fallow.tb)
+
+sits_save(embrapa2.tb, json_file = "/Users/gilbertocamara/sits/inst/extdata/samples/embrapa_damien.json")
 
 # do the baseline assessment
 patterns2.tb <- sits_patterns(embrapa2.tb)
