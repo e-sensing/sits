@@ -795,3 +795,36 @@ sits_spread_matches <- function(data.tb){
                          err_desc = "input data is empty")
     return (TRUE)
 }
+#' @title Create an empty distance table to store the results of distance metrics
+#' @name sits_distance_table
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Create an empty distance table to store the results of distance metrics
+#'
+#' @param patterns.tb     a SITS table with a set of patterns
+#' @return distances.tb   a tibble to store the distances between a time series and a set of patterns
+#' @export
+#'
+sits_distance_table <- function (patterns.tb) {
+
+    distances.tb <- data.frame(
+        original_row = integer(),
+        reference    = character())
+
+    distances.tb <- tibble::as_tibble (distances.tb)
+
+    labels <- dplyr::distinct(patterns.tb, label)
+    bands  <- sits_bands (patterns.tb)
+
+    labels %>%
+        purrr::map (function (l) {
+            bands %>%
+                purrr::map (function (b) {
+                    measure <- paste0 (l, ".", b)
+                    print (measure)
+                    distances.tb <<- tibble::add_column (distances.tb, measure = double())
+                })
+        })
+    return (distances.tb)
+}

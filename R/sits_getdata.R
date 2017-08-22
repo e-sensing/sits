@@ -424,3 +424,19 @@ sits_getdata <- function (file        = NULL,
      # return the table with the time series
      return (data.tb)
 }
+#' @title Export data to be used to the zoo format
+#' @name sits_tozoo
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Converts data from a SITS table to an instance of a zoo series,
+#'
+#'
+#' @param  ts.tb    a tibble with a the indexes and values of a SITS time series
+#' @param  band     the name of the band to
+#' @return ts.zoo        a time series in TWDTW format (an object of the twdtwTimeSeries class)
+#' @export
+sits_tozoo <- function (ts.tb, band){
+    # transform each sits time series into a list of zoo
+    return (zoo::zoo(ts[,band, drop=FALSE], ts$Index))
+}
+
