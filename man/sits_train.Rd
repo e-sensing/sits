@@ -4,24 +4,24 @@
 \alias{sits_train}
 \title{Train SITS classification models}
 \usage{
-sits_train(data.tb, tr_method = sits_svm())
+sits_train(distances.tb, tr_method = sits_svm())
 }
 \arguments{
-\item{tr_method}{a traning method that returns a model for prediction}
+\item{distances.tb}{a time series with a set of distance measures for each training sample}
 
-\item{distances.tb}{a SITS tibble time series with an alignment column}
+\item{tr_method}{a traning method that returns a model for prediction}
 }
 \value{
 result          a model fitted into input data given by train_method parameter
 }
 \description{
-Given a tibble with a set of distance measire,
+Given a tibble with a set of distance measures,
 returns trained models using support vector machines. This function will
 use the TWDTW alignment information for all classes as the attributes
-of the SVM. Please use this function in the following way:
+of the chosen machine learning methods. Please use this function in the following way:
 1. call sits_patterns to produce a set a labelled patterns from a reference data set
-2. call sits_TWDTW_matches to produce a set of alignements
-3. use the alignment response as an input to the training function
+2. call a method to get distances between a time series and patterns to produce a set of alignements
+3. use the distances tibble as an input to the training function
 }
 \details{
 Functions for machine learning associated to the SITS package
