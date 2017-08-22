@@ -25,13 +25,13 @@ rm(list=ls());
 #--- data used for estimations             ---#
 #---------------------------------------------#
 
-dir_base <- "D:\\Alex\\Pesquisa\\LandUseChange\\IIASA_GLOBIOM\\DTWMachineLearning"
+dir_base <- "~/sits/inst/extdata/ML"
 #dir_base <- "//storage3/usuarios/AlexandreYwata/Pesquisa/LandUseChange/IIASA_GLOBIOM/SITS/inst/extdata/examples/PosProcessamentoDTW"
 
-dir_dados <- paste0(dir_base, "\\Dados");
-dir_prog <- paste0(dir_base, "\\ProgramasR")
+dir_dados <- paste0(dir_base, "/Dados");
+dir_prog <- paste0(dir_base, "/ProgramasR")
 
-file_dados <- paste0(dir_dados, "\\mt_twdtw_distances.csv")
+file_dados <- paste0(dir_dados, "/mt_twdtw_distances.csv")
 
 dados_originais <- read.csv(file_dados, stringsAsFactors=FALSE, header=TRUE, sep = ",");
 str(dados_originais)
@@ -57,7 +57,7 @@ for (i in 1:nrow(dados))
     for (j in 1:length(list_refs))
     {
         variavel <- list_refs[j]
-        
+
         if (dados[i,variavel] < min_dist)
         {
             min_dist <- dados[i,variavel]
@@ -76,8 +76,8 @@ for (i in 1:nrow(dados))
 #               "Soybean_Comerc1" = "Double_Cropping",
 #               "Soybean_Comerc2" = "Double_Cropping",
 #               "Soybean_Cotton" = "Soybean_Cotton",
-#               "Soybean_Fallow1" = "Single_Cropping", 
-#               "Soybean_Fallow2" = "Single_Cropping", 
+#               "Soybean_Fallow1" = "Single_Cropping",
+#               "Soybean_Fallow2" = "Single_Cropping",
 #               "Soybean_NonComerc1" = "Double_Cropping",
 #               "Soybean_NonComerc2" = "Double_Cropping",
 #               "Soybean_Pasture" = "Pasture",
@@ -92,8 +92,8 @@ conv.lst <- c("Fallow_Cotton"  = "Cotton",
               "Soybean_Comerc1" = "Double_Cropping",
               "Soybean_Comerc2" = "Double_Cropping",
               "Soybean_Cotton" = "Double_Cropping",
-              "Soybean_Fallow1" = "Single_Cropping", 
-              "Soybean_Fallow2" = "Single_Cropping", 
+              "Soybean_Fallow1" = "Single_Cropping",
+              "Soybean_Fallow2" = "Single_Cropping",
               "Soybean_NonComerc1" = "Double_Cropping",
               "Soybean_NonComerc2" = "Double_Cropping",
               "Soybean_Pasture" = "Pasture",
@@ -146,10 +146,10 @@ table(dados$class, dados$classnum)
 #-----------------------------------------------------------#
 
 nomes <- names(dados); nomes
-lognomes <- paste0('log(', nomes[nomes %in% c(list_refs)], ')'); 
+lognomes <- paste0('log(', nomes[nomes %in% c(list_refs)], ')');
 paste(lognomes, collapse = " + ")
 
-orinomes <- paste0(nomes[nomes %in% c(list_refs)]); 
+orinomes <- paste0(nomes[nomes %in% c(list_refs)]);
 paste(orinomes, collapse = " + ")
 
 formula1 <- as.formula(paste("factor(class) ~ ", paste(lognomes, collapse = " + ")));
@@ -172,10 +172,10 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-        
+
     categorias.lda <- lda(formula1, data=dadosTrain)
     summary(categorias.lda)
-    
+
     categorias.lda.pred <- as.character(predict(categorias.lda, newdata = dadosTest)$class)
     dados[dados$folds == k, 'pred_lda'] <- categorias.lda.pred
 }
@@ -193,10 +193,10 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
+
     categorias.mlr <- multinom(formula1, data=dadosTrain)
     summary(categorias.mlr)
-    
+
     categorias.mlr.pred <- as.character(predict(categorias.mlr, newdata = dadosTest))
     dados[dados$folds == k, 'pred_mlr'] <- categorias.mlr.pred
 }
@@ -222,17 +222,17 @@ for (costsvm in list_costs)
         {
             dadosTrain <- dados[dados$folds != k,]
             dadosTest <- dados[dados$folds == k,]
-            
-            categorias.svm.linear <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")], 
-                                         kernel = "linear", 
-                                         type="C-classification", epsilon = epsilonsvm, cost = costsvm)     
+
+            categorias.svm.linear <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")],
+                                         kernel = "linear",
+                                         type="C-classification", epsilon = epsilonsvm, cost = costsvm)
             summary(categorias.svm.linear)
-            
-            categorias.svm.linear.pred <- as.character(predict(categorias.svm.linear, 
+
+            categorias.svm.linear.pred <- as.character(predict(categorias.svm.linear,
                                                        newdata = dadosTest[,colnames(dadosTest) %in% c(list_refs, "class")]))
             dados[dados$folds == k, 'pred_svm_linear'] <- categorias.svm.linear.pred
         }
-        
+
         cv_svm_linear[counter, 1] <- costsvm
         cv_svm_linear[counter, 2] <- epsilonsvm
         cv_svm_linear[counter, 3] <- mean(dados$class == dados$pred_svm_linear)
@@ -249,13 +249,13 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
-    categorias.svm.linear <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")], 
-                                 kernel = "linear", 
-                                 type="C-classification", epsilon = epsilon_opt, cost = cost_opt)     
+
+    categorias.svm.linear <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")],
+                                 kernel = "linear",
+                                 type="C-classification", epsilon = epsilon_opt, cost = cost_opt)
     summary(categorias.svm.linear)
-    
-    categorias.svm.linear.pred <- as.character(predict(categorias.svm.linear, 
+
+    categorias.svm.linear.pred <- as.character(predict(categorias.svm.linear,
                                                        newdata = dadosTest[,colnames(dadosTest) %in% c(list_refs, "class")]))
     dados[dados$folds == k, 'pred_svm_linear'] <- categorias.svm.linear.pred
 }
@@ -281,17 +281,17 @@ for (costsvm in list_costs)
         {
             dadosTrain <- dados[dados$folds != k,]
             dadosTest <- dados[dados$folds == k,]
-            
-            categorias.svm.radial <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")], 
-                                         kernel = "radial", 
-                                         type="C-classification", epsilon = epsilonsvm, cost = costsvm)     
+
+            categorias.svm.radial <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")],
+                                         kernel = "radial",
+                                         type="C-classification", epsilon = epsilonsvm, cost = costsvm)
             summary(categorias.svm.radial)
-            
-            categorias.svm.radial.pred <- as.character(predict(categorias.svm.radial, 
+
+            categorias.svm.radial.pred <- as.character(predict(categorias.svm.radial,
                                                                newdata = dadosTest[,colnames(dadosTest) %in% c(list_refs, "class")]))
             dados[dados$folds == k, 'pred_svm_radial'] <- categorias.svm.radial.pred
         }
-        
+
         cv_svm_radial[counter, 1] <- costsvm
         cv_svm_radial[counter, 2] <- epsilonsvm
         cv_svm_radial[counter, 3] <- mean(dados$class == dados$pred_svm_radial)
@@ -308,13 +308,13 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
-    categorias.svm.radial <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")], 
-                                 kernel = "radial", 
-                                 type="C-classification", epsilon = epsilon_opt, cost = cost_opt)     
+
+    categorias.svm.radial <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")],
+                                 kernel = "radial",
+                                 type="C-classification", epsilon = epsilon_opt, cost = cost_opt)
     summary(categorias.svm.radial)
-    
-    categorias.svm.radial.pred <- as.character(predict(categorias.svm.radial, 
+
+    categorias.svm.radial.pred <- as.character(predict(categorias.svm.radial,
                                                        newdata = dadosTest[,colnames(dadosTest) %in% c(list_refs, "class")]))
     dados[dados$folds == k, 'pred_svm_radial'] <- categorias.svm.radial.pred
 }
@@ -340,17 +340,17 @@ for (costsvm in list_costs)
         {
             dadosTrain <- dados[dados$folds != k,]
             dadosTest <- dados[dados$folds == k,]
-            
-            categorias.svm.polynomial <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")], 
-                                             kernel = "polynomial", 
-                                             type="C-classification", epsilon = epsilonsvm, cost = costsvm)     
+
+            categorias.svm.polynomial <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")],
+                                             kernel = "polynomial",
+                                             type="C-classification", epsilon = epsilonsvm, cost = costsvm)
             summary(categorias.svm.polynomial)
-            
-            categorias.svm.polynomial.pred <- as.character(predict(categorias.svm.polynomial, 
+
+            categorias.svm.polynomial.pred <- as.character(predict(categorias.svm.polynomial,
                                                                    newdata = dadosTest[,colnames(dadosTest) %in% c(list_refs, "class")]))
             dados[dados$folds == k, 'pred_svm_polynomial'] <- categorias.svm.polynomial.pred
         }
-        
+
         cv_svm_polynomial[counter, 1] <- costsvm
         cv_svm_polynomial[counter, 2] <- epsilonsvm
         cv_svm_polynomial[counter, 3] <- mean(dados$class == dados$pred_svm_polynomial)
@@ -367,13 +367,13 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
-    categorias.svm.polynomial <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")], 
-                                     kernel = "polynomial", 
-                                     type="C-classification", epsilon = epsilon_opt, cost = cost_opt)     
+
+    categorias.svm.polynomial <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")],
+                                     kernel = "polynomial",
+                                     type="C-classification", epsilon = epsilon_opt, cost = cost_opt)
     summary(categorias.svm.polynomial)
-    
-    categorias.svm.polynomial.pred <- as.character(predict(categorias.svm.polynomial, 
+
+    categorias.svm.polynomial.pred <- as.character(predict(categorias.svm.polynomial,
                                                            newdata = dadosTest[,colnames(dadosTest) %in% c(list_refs, "class")]))
     dados[dados$folds == k, 'pred_svm_polynomial'] <- categorias.svm.polynomial.pred
 }
@@ -399,17 +399,17 @@ for (costsvm in list_costs)
         {
             dadosTrain <- dados[dados$folds != k,]
             dadosTest <- dados[dados$folds == k,]
-            
-            categorias.svm.sigmoid <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")], 
-                                          kernel = "sigmoid", 
-                                          type="C-classification", epsilon = epsilonsvm, cost = costsvm)     
+
+            categorias.svm.sigmoid <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")],
+                                          kernel = "sigmoid",
+                                          type="C-classification", epsilon = epsilonsvm, cost = costsvm)
             summary(categorias.svm.sigmoid)
-            
-            categorias.svm.sigmoid.pred <- as.character(predict(categorias.svm.sigmoid, 
+
+            categorias.svm.sigmoid.pred <- as.character(predict(categorias.svm.sigmoid,
                                                                 newdata = dadosTest[,colnames(dadosTest) %in% c(list_refs, "class")]))
             dados[dados$folds == k, 'pred_svm_sigmoid'] <- categorias.svm.sigmoid.pred
         }
-        
+
         cv_svm_sigmoid[counter, 1] <- costsvm
         cv_svm_sigmoid[counter, 2] <- epsilonsvm
         cv_svm_sigmoid[counter, 3] <- mean(dados$class == dados$pred_svm_sigmoid)
@@ -426,13 +426,13 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
-    categorias.svm.sigmoid <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")], 
-                                  kernel = "sigmoid", 
-                                  type="C-classification", epsilon = epsilon_opt, cost = cost_opt)     
+
+    categorias.svm.sigmoid <- svm(formula1, data=dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")],
+                                  kernel = "sigmoid",
+                                  type="C-classification", epsilon = epsilon_opt, cost = cost_opt)
     summary(categorias.svm.sigmoid)
-    
-    categorias.svm.sigmoid.pred <- as.character(predict(categorias.svm.sigmoid, 
+
+    categorias.svm.sigmoid.pred <- as.character(predict(categorias.svm.sigmoid,
                                                         newdata = dadosTest[,colnames(dadosTest) %in% c(list_refs, "class")]))
     dados[dados$folds == k, 'pred_svm_sigmoid'] <- categorias.svm.sigmoid.pred
 }
@@ -444,7 +444,7 @@ mean(dados$class == dados$pred_svm_sigmoid)
 #--- ridge multinomial regression                        ---#
 #-----------------------------------------------------------#
 
-yDados <- data.matrix(dados[,length(list_refs)+4]); head(yDados)
+yDados <- data.matrix(dados[,"class"]); head(yDados)
 xDados <- log(data.matrix(dados[,c(2:(length(list_refs)+1))])); head(xDados)
 
 set.seed(2104)
@@ -457,13 +457,13 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
-    yTrain <- data.matrix(dadosTrain[,length(list_refs)+4])
-    yTest <-  data.matrix(dadosTest[,length(list_refs)+4])
-    
+
+    yTrain <- data.matrix(dadosTrain[,"class"])
+    yTest <-  data.matrix(dadosTest[,"class"])
+
     xTrain <- log(data.matrix(dadosTrain[,c(2:(length(list_refs)+1))]))
     xTest <-   log(data.matrix(dadosTest[,c(2:(length(list_refs)+1))]))
-    
+
     categorias.ridge.pred <- predict(categorias.ridge, s=categorias.ridge$lambda.min, newx=xTest, type='class')
     dados[dados$folds == k, 'pred_ridge'] <- categorias.ridge.pred
 }
@@ -490,13 +490,13 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
+
     yTrain <- data.matrix(dadosTrain[,length(list_refs)+4])
     yTest <-  data.matrix(dadosTest[,length(list_refs)+4])
-    
+
     xTrain <- log(data.matrix(dadosTrain[,c(2:(length(list_refs)+1))]))
     xTest <-   log(data.matrix(dadosTest[,c(2:(length(list_refs)+1))]))
-    
+
     categorias.lasso.pred <- predict(categorias.lasso, s=categorias.lasso$lambda.min, newx=xTest, type='class')
     dados[dados$folds == k, 'pred_lasso'] <- categorias.lasso.pred
 }
@@ -521,11 +521,11 @@ for (alphaelnet in list_alpha)
     categorias.elnet <- cv.glmnet(y = factor(yDados), x = xDados, family="multinomial", alpha=alphaelnet, k = kfolds)
     summary(categorias.elnet)
     elnet_lambda_opt <- categorias.elnet$lambda.min; elnet_lambda_opt
-    
+
     cv_elnet_alpha[contador, 1] <- alphaelnet
     cv_elnet_alpha[contador, 2] <- elnet_lambda_opt
     cv_elnet_alpha[contador, 3] <- min(categorias.elnet$cvm)
-    
+
     contador <- contador + 1
 }
 
@@ -542,13 +542,13 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
+
     yTrain <- data.matrix(dadosTrain[,length(list_refs)+4])
     yTest <-  data.matrix(dadosTest[,length(list_refs)+4])
-    
+
     xTrain <- log(data.matrix(dadosTrain[,c(2:(length(list_refs)+1))]))
     xTest <-   log(data.matrix(dadosTest[,c(2:(length(list_refs)+1))]))
-    
+
     categorias.elnet.pred <- predict(categorias.elnet, s=categorias.elnet$lambda.min, newx=xTest, type='class')
     dados[dados$folds == k, 'pred_elnet'] <- categorias.elnet.pred
 }
@@ -574,21 +574,21 @@ for (ntreesrf in list_ntrees)
         {
             dadosTrain <- dados[dados$folds != k,]
             dadosTest <- dados[dados$folds == k,]
-            
+
             yTrain <- data.matrix(dadosTrain[,length(list_refs)+4])
             yTest <-  data.matrix(dadosTest[,length(list_refs)+4])
-            
+
             xTrain <- log(data.matrix(dadosTrain[,c(2:(length(list_refs)+1))]))
             xTest <-   log(data.matrix(dadosTest[,c(2:(length(list_refs)+1))]))
-            
-            categorias.rfore <- randomForest(y = factor(yTrain), x = xTrain, data=NULL, 
-                                             ntree=ntreesrf, nodesize = nodesizerf, norm.votes=FALSE)    
+
+            categorias.rfore <- randomForest(y = factor(yTrain), x = xTrain, data=NULL,
+                                             ntree=ntreesrf, nodesize = nodesizerf, norm.votes=FALSE)
             summary(categorias.rfore)
-            
+
             categorias.rfore.pred <- as.character(predict(categorias.rfore, newdata = xTest, type = 'response'))
             dados[dados$folds == k, 'pred_rfore'] <- categorias.rfore.pred
         }
-        
+
         cv_rfore[counter, 1] <- ntreesrf
         cv_rfore[counter, 2] <- nodesizerf
         cv_rfore[counter, 3] <- mean(dados$class == dados$pred_rfore)
@@ -605,17 +605,17 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
+
     yTrain <- data.matrix(dadosTrain[,length(list_refs)+4])
     yTest <-  data.matrix(dadosTest[,length(list_refs)+4])
-    
+
     xTrain <- log(data.matrix(dadosTrain[,c(2:(length(list_refs)+1))]))
     xTest <-   log(data.matrix(dadosTest[,c(2:(length(list_refs)+1))]))
-    
-    categorias.rfore <- randomForest(y = factor(yTrain), x = xTrain, data=NULL, 
-                                     ntree=ntrees_opt, nodesize = nodesize_opt, norm.votes=FALSE)      
+
+    categorias.rfore <- randomForest(y = factor(yTrain), x = xTrain, data=NULL,
+                                     ntree=ntrees_opt, nodesize = nodesize_opt, norm.votes=FALSE)
     summary(categorias.rfore)
-    
+
     categorias.rfore.pred <- as.character(predict(categorias.rfore, newdata = xTest, type = 'response'))
     dados[dados$folds == k, 'pred_rfore'] <- categorias.rfore.pred
 }
@@ -644,20 +644,20 @@ for (ntreesgbm in list_ntrees)
         {
             dadosTrain <- dados[dados$folds != k,]
             dadosTest <- dados[dados$folds == k,]
-            
+
             h2o_dadosTrain <- as.h2o(dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")])
             h2o_dadosTrain$class <- as.factor(h2o_dadosTrain$class)
             h2o_dadosTest <- as.h2o(dadosTest[,colnames(dadosTest) %in% list_refs])
-            
-            categorias.h2ogbm <- h2o.gbm(y = "class", x = list_refs, 
+
+            categorias.h2ogbm <- h2o.gbm(y = "class", x = list_refs,
                                          training_frame = h2o_dadosTrain, distribution = "multinomial",
                                          ntrees = ntreesgbm, max_depth = depthgbm);
-            
+
             categorias.h2ogbm.pred <- h2o.predict(categorias.h2ogbm, newdata = h2o_dadosTest)$predict;
-            
+
             dados[dados$folds == k, 'pred_h2ogbm'] <- as.character(as.vector(categorias.h2ogbm.pred));
         }
-        
+
         cv_h2ogbm[counter, 1] <- ntreesgbm
         cv_h2ogbm[counter, 2] <- depthgbm
         cv_h2ogbm[counter, 3] <- mean(dados$class == dados$pred_h2ogbm)
@@ -676,17 +676,17 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
+
     h2o_dadosTrain <- as.h2o(dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")])
     h2o_dadosTrain$class <- as.factor(h2o_dadosTrain$class)
     h2o_dadosTest <- as.h2o(dadosTest[,colnames(dadosTest) %in% list_refs])
-    
-    categorias.h2ogbm <- h2o.gbm(y = "class", x = list_refs, 
+
+    categorias.h2ogbm <- h2o.gbm(y = "class", x = list_refs,
                                  training_frame = h2o_dadosTrain, distribution = "multinomial",
                                  ntrees = ntrees_opt, max_depth = depth_opt);
-    
+
     categorias.h2ogbm.pred <- h2o.predict(categorias.h2ogbm, newdata = h2o_dadosTest)$predict;
-    
+
     dados[dados$folds == k, 'pred_h2ogbm'] <- as.character(as.vector(categorias.h2ogbm.pred));
 }
 
@@ -716,20 +716,20 @@ for (ntreesrfore in list_ntrees)
         {
             dadosTrain <- dados[dados$folds != k,]
             dadosTest <- dados[dados$folds == k,]
-            
+
             h2o_dadosTrain <- as.h2o(dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")])
             h2o_dadosTrain$class <- as.factor(h2o_dadosTrain$class)
             h2o_dadosTest <- as.h2o(dadosTest[,colnames(dadosTest) %in% list_refs])
-            
-            categorias.h20rfore <- h2o.randomForest(y = "class", x = list_refs, 
-                                                    training_frame = h2o_dadosTrain, 
-                                                    ntrees = ntreesrfore, max_depth = depthrfore)      
-            
+
+            categorias.h20rfore <- h2o.randomForest(y = "class", x = list_refs,
+                                                    training_frame = h2o_dadosTrain,
+                                                    ntrees = ntreesrfore, max_depth = depthrfore)
+
             categorias.h20rfore.pred <- h2o.predict(categorias.h20rfore, newdata = h2o_dadosTest)$predict;
-            
+
             dados[dados$folds == k, 'pred_h2orfore'] <- as.character(as.vector(categorias.h20rfore.pred));
         }
-        
+
         cv_h2orfore[counter, 1] <- ntreesrfore
         cv_h2orfore[counter, 2] <- depthrfore
         cv_h2orfore[counter, 3] <- mean(dados$class == dados$pred_h2orfore)
@@ -748,17 +748,17 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
+
     h2o_dadosTrain <- as.h2o(dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")])
     h2o_dadosTrain$class <- as.factor(h2o_dadosTrain$class)
     h2o_dadosTest <- as.h2o(dadosTest[,colnames(dadosTest) %in% list_refs])
-    
-    categorias.h20rfore <- h2o.randomForest(y = "class", x = list_refs, 
-                                            training_frame = h2o_dadosTrain, 
-                                            ntrees = ntrees_opt, max_depth = depth_opt)      
-    
+
+    categorias.h20rfore <- h2o.randomForest(y = "class", x = list_refs,
+                                            training_frame = h2o_dadosTrain,
+                                            ntrees = ntrees_opt, max_depth = depth_opt)
+
     categorias.h20rfore.pred <- h2o.predict(categorias.h20rfore, newdata = h2o_dadosTest)$predict;
-    
+
     dados[dados$folds == k, 'pred_h2orfore'] <- as.character(as.vector(categorias.h20rfore.pred));
 }
 
@@ -778,16 +778,16 @@ for (k in 1:kfolds)
 {
     dadosTrain <- dados[dados$folds != k,]
     dadosTest <- dados[dados$folds == k,]
-    
+
     h2o_dadosTrain <- as.h2o(dadosTrain[,colnames(dadosTrain) %in% c(list_refs, "class")])
     h2o_dadosTrain$class <- as.factor(h2o_dadosTrain$class)
     h2o_dadosTest <- as.h2o(dadosTest[,colnames(dadosTest) %in% list_refs])
-    
-    categorias.h2odpl <- h2o.deeplearning(y = "class", x = list_refs, 
+
+    categorias.h2odpl <- h2o.deeplearning(y = "class", x = list_refs,
                                           training_frame = h2o_dadosTrain, distribution = "multinomial");
-    
+
     categorias.h2odpl.pred <- h2o.predict(categorias.h2odpl, newdata = h2o_dadosTest)$predict;
-    
+
     dados[dados$folds == k, 'pred_h2odpl'] <- as.character(as.vector(categorias.h2odpl.pred));
 }
 

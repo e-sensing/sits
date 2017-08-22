@@ -60,7 +60,7 @@ sits_train <- function(distances.tb, tr_method = sits_svm()){
 #' @param tolerance	       tolerance of termination criterion (default: 0.001)
 #' @param epsilon	       epsilon in the insensitive-loss function (default: 0.1)
 #' @param ...              other parameters to be passed to e1071::svm function
-#' @return result          either an e1071::svm class or an function prepared that can be called further to compute svm training model
+#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @export
 #'
 sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kernel = "linear",
@@ -79,10 +79,194 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
         # call e1071::svm method and return the trained svm model
         result_svm <- e1071::svm(formula = formula, data = tb, kernel = kernel,
                                  degree = degree, cost = cost, coef0 = coef0, tolerance = tolerance, epsilon = epsilon, ...)
-        return(result_svm)
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(test_distances.tb){
+            return(stats::predict(result_lda, newdata = test_distances.tb))
+        }
+        return(model_predict)
     }
 
     result <- .sits_factory_function (distances.tb, result_fun)
+}
+#' @title Train SITS classifiction models
+#' @name sits_lda
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Performs a linear discriminant analysis (lda) to classify data.
+#' This function is a front-end to the "lda" method in the "MASS" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param distances.tb     a time series with a set of distance measures for each training sample
+#' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
+#' @param ...              other parameters to be passed to MASS::lda function
+#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#' @export
+#'
+sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
+
+    # function that returns MASS::lda model based on a sits sample tibble
+    result_fun <- function(train_distances.tb){
+
+        # is the input data the result of a TWDTW matching function?
+        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
+
+        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        if (class(formula) == "function")
+            formula <- formula(train_distances.tb)
+
+        # call MASS::lda method and return the trained lda model
+        result_lda <- MASS::lda(formula = formula, data = train_distances.tb, ...)
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(test_distances.tb){
+            return(stats::predict(result_lda, newdata = test_distances.tb))
+        }
+        return(model_predict)
+    }
+
+    result <- .sits_factory_function (distances.tb, result_fun)
+    return(result)
+}
+
+#' @title Train SITS classifiction models
+#' @name sits_mlr
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Use multinomial log-linear (mlr) fitting model via neural networks to classify data.
+#' This function is a front-end to the "multinom" method in the "nnet" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param distances.tb     a time series with a set of distance measures for each training sample
+#' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
+#' @param ...              other parameters to be passed to nnet::multinom function
+#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#' @export
+#'
+sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
+
+    # function that returns nnet::multinom model based on a sits sample tibble
+    result_fun <- function(train_distances.tb){
+
+        # is the input data the result of a TWDTW matching function?
+        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_mlr: input data does not contain distance")
+
+        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        if (class(formula) == "function")
+            formula <- formula(train_distances.tb)
+
+        # call nnet::multinom method and return the trained multinom model
+        result_mlr <- nnet::multinom(formula = formula, data = train_distances.tb, ...)
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(test_distances.tb){
+            return(stats::predict(result_mlr, newdata = test_distances.tb))
+        }
+        return(model_predict)
+    }
+
+    result <- .sits_factory_function (distances.tb, result_fun)
+    return(result)
+}
+
+#' @title Train SITS classifiction models
+#' @name sits_glm
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Use generalized liner model (glm) via penalized maximim likelihood to classify data.
+#' This function is a front-end to the "cv.glmnet" method in the "glmnet" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param distances.tb     a time series with a set of distance measures for each training sample
+#' @param family           Response type. Can be either "gaussian", "binomial", "poisson", "multinomial", "cox", or "mgaussian". (default: "multinomial")
+#' @param alpha            the elasticnet mixing parameter, with 0<=alpha<=1. Set alpha = 0.0 to obtain ridge model, and alpha = 1.0 to obtain lasso model).
+#'                         (refer to `glmnet::cv.glmnet` function for more details)
+#' @param lambda_kfolds    number of folds to find best lambda parameter (default: 10)
+#' @param ...              other parameters to be passed to `glmnet::cv.glmnet` function
+#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#' @export
+#'
+sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, lambda_kfolds = 10, ...) {
+
+    # function that returns glmnet::multinom model based on a sits sample tibble
+    result_fun <- function(train_distances.tb){
+
+        # is the input data the result of a TWDTW matching function?
+        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_glm: input data does not contain distance")
+
+        # call glmnet::multinom method and return the trained multinom model
+        result_glm <- glmnet::cv.glmnet(y = factor(data.matrix(train_distances.tb$reference)),
+                                        x = log(data.matrix(train_distances.tb[,3:NCOL(train_distances.tb)])),
+                                        family = family, alpha = alpha, k = lambda_kfolds, ...)
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(test_distances.tb){
+            return(stats::predict(result_glm,
+                                  s = result_glm$lambda.min,
+                                  newx = log(data.matrix(test_distances.tb[,3:NCOL(test_distances.tb)])), type = "class"))
+        }
+        return(model_predict)
+    }
+
+    result <- .sits_factory_function (distances.tb, result_fun)
+    return(result)
+}
+
+#' @title Train SITS classifiction models
+#' @name sits_rfor
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Use Random Forest algorithm to classify data.
+#' This function is a front-end to the "randomForest" method in the "randomForest" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param distances.tb     a time series with a set of distance measures for each training sample
+#' @param n_tree           Number of trees to grow. This should not be set to too small a number,
+#'                         to ensure that every input row gets predicted at least a few times. (default: 500)
+#' @param node_size
+#' @param ...              other parameters to be passed to `randomForest::randomForest` function
+#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#' @export
+#'
+sits_rfor <- function(distances.tb = NULL, n_tree = 500, ...) {
+
+    # function that returns `randomForest::randomForest` model based on a sits sample tibble
+    result_fun <- function(train_distances.tb){
+
+        # is the input data the result of a TWDTW matching function?
+        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_mlr: input data does not contain distance")
+
+        # call `randomForest::randomForest` method and return the trained multinom model
+        result_rfor <- randomForest::randomForest(y = data.matrix(train_distances.tb$reference),
+                                                  x = log(data.matrix(train_distances.tb[,2:NCOL(train_distances.tb)])),
+                                                  data = NULL, ntree = n_tree, nodesize = 1,
+                                                  norm.votes = FALSE, train_distances.tb, ...)
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(test_distances.tb){
+            return(stats::predict(result_rfor, newdata = test_distances.tb, type = "response"))
+        }
+        return(model_predict)
+    }
+
+    result <- .sits_factory_function (distances.tb, result_fun)
+    return(result)
 }
 
 #' @title Train SITS classifiction models
@@ -121,7 +305,6 @@ sits_formula_logref <- function(predictors_index = -2:0){
     return(result_fun)
 }
 
-
 #' @title Predict class based on the trained models
 #' @name sits_predict
 #'
@@ -133,18 +316,21 @@ sits_formula_logref <- function(predictors_index = -2:0){
 #' @description Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train}},
 #' returns a SITS tibble with the classification.
 #'
-#' @param data.tb a SITS tibble time series
-#' @param distances.tb a tibble with a set of distance metrics to each of the classes
-#' @param model a model trained by \code{\link[sits]{sits_train}}
-#' @return data.tb - a SITS tibble with the predicted label
+#' @param data.tb       a SITS tibble time series
+#' @param distances.tb  a tibble with a set of distance metrics to each of the classes
+#' @param model         a model trained by \code{\link[sits]{sits_train}}
+#' @return data.tb      a SITS tibble with the predicted label
 #'
 #' @export
-sits_predict <- function(data.tb = NULL, distances.tb = NULL, model){
+sits_predict <- function(data.tb = NULL, distances.tb = NULL, model, ...){
 
     # is the input data the result of a TWDTW matching function?
     ensurer::ensure_that(distances.tb, "reference" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
 
-    data.tb$predicted <- as.character(stats::predict(model, newdata = distances.tb))
+    # is the input model a model function?
+    ensurer::ensure_that(model, class (.) == "function", err_desc = "sits_predict: model parameter is not a function model returned by sits_train.")
+
+    data.tb$predicted <- as.character(model(distances.tb))
 
     return(data.tb)
 }
