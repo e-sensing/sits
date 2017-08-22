@@ -22,4 +22,6 @@ Victor Maus, \email{vwmaus1@gmail.com}
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

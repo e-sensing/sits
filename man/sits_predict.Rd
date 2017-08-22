@@ -4,7 +4,7 @@
 \alias{sits_predict}
 \title{Predict class based on the trained models}
 \usage{
-sits_predict(data.tb = NULL, distances.tb = NULL, model)
+sits_predict(data.tb = NULL, distances.tb = NULL, model, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series}
@@ -14,7 +14,7 @@ sits_predict(data.tb = NULL, distances.tb = NULL, model)
 \item{model}{a model trained by \code{\link[sits]{sits_train}}}
 }
 \value{
-data.tb - a SITS tibble with the predicted label
+data.tb      a SITS tibble with the predicted label
 }
 \description{
 Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train}},

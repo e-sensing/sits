@@ -28,7 +28,7 @@ sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
 \item{...}{other parameters to be passed to e1071::svm function}
 }
 \value{
-result          either an e1071::svm class or an function prepared that can be called further to compute svm training model
+result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 }
 \description{
 This function is a front-end to the "svm" method in the "e1071" package.

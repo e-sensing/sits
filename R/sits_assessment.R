@@ -29,7 +29,6 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
     if (pred_sans_ext)
         pred.vec <- tools::file_path_sans_ext(pred.vec)
 
-
     # convert class names
     if (!purrr::is_null(conv.lst)) {
         names_ref <- dplyr::pull (dplyr::distinct (conf.tb, Reference))
@@ -39,11 +38,13 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
         pred.vec <- as.character(conv.lst[pred.vec])
         ref.vec  <- as.character(conv.lst[ref.vec])
     }
+
     # call caret package to the classification statistics
     caret_assess <- caret::confusionMatrix(pred.vec, ref.vec)
 
     # print the result
     .print_confusion_matrix (caret_assess)
+
     # return invisible
     invisible(caret_assess)
 }
