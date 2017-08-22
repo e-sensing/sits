@@ -73,7 +73,7 @@ sits_distances <- function(data.tb, patterns.tb, bands = NULL,
 #' "spec.llr": General spectral dissimilarity measure using local-linear estimation of the logspectra. Uses the TSclust package (see diss.SPEC.LLR).
 #' "pdc": Permutation Distribution Distance. Uses the pdc package (see pdcDist).
 #' "frechet": Frechet distance. Uses the longitudinalData package (see distFrechet).
-#'cer
+#'
 #' @param data.tb          a SITS tibble time series
 #' @param patterns.tb      a set of patterns obtained from training samples
 #' @param bands            the bands to be used for determining patterns
@@ -82,7 +82,7 @@ sits_distances <- function(data.tb, patterns.tb, bands = NULL,
 #' @return result          a set of distance metrics
 #' @export
 #'
-sits_TSdistances <- function (data.tb, patterns.tb, bands = NULL, distance = "lccs", ...) {
+sits_TSdistances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, distance = "dtw", ...) {
 
     # function that returnsa distance table
     result_fun <- function(data.tb, patterns.tb){
@@ -101,23 +101,27 @@ sits_TSdistances <- function (data.tb, patterns.tb, bands = NULL, distance = "lc
         bands  <- sits_bands (patterns.tb)
 
         data.tb %>%
-            purrrlyr::by_row (function (row) {
+            purrrlyr::by_row(function (row) {
                 ts <- row$time_series[[1]]
-                drow.tb <- sits_distance_table(data.tb)
-                drow.tb$original_row <- original_row
-                drow.tb$reference    <- row$label
-                for (l in 1:length(labels)) {
-                    tsp <- (dplyr::filter(patterns.tb, label = labels[l]))$time_series[[1]]
-                    for (b in 1:length(bands)) {
-                        ts_x <- sits_tozoo (ts, bands[b])
-                        ts_y <- sits_tozoo (tsp, bands[b])
-                        measure <-  paste0(labels[l], ".", bands[b])
-                        drow.tb [measure] <- TSdist::TSDistances(ts_x, ts_y, distance = distance, ...)
-                        original_row <- original_row + 1
-                    }
-                }
-                distances.tb <<- dplyr::bind_rows(distances.tb, drow.tb)
+                drow.tb <- sits_distance_table(patterns.tb)
+                r <- dplyr::add_row(drow.tb)
+                r$original_row <- original_row
+                r$reference    <- row$label
+                patterns.tb %>%
+                    purrrlyr::by_row(function (rowp) {
+                        labelp <- rowp$label
+                        tsp <- rowp$time_series[[1]]
+                        bands %>%
+                            purrr::map (function (b) {
+                                ts_x <- sits_tozoo (ts, b)
+                                ts_y <- sits_tozoo (tsp, b)
+                                measure <-  paste0(labelp, ".", b)
+                                r [measure] <<- TSdist::TSDistances(ts_x, ts_y, distance = distance, ...)
+                            })
+                    })
+                distances.tb <<- dplyr::bind_rows(distances.tb, r)
             })
+    return (distances.tb)
     }
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
 
