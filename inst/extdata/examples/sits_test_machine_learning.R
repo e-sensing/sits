@@ -38,7 +38,7 @@ conf.tb <- tibble::tibble (Prediction = predict.tb$predicted, Reference = predic
 sits_accuracy(conf.tb)
 
 # perform a k-fold validation
-conf_k.tb <- sits_kfold_validate(cerrado.tb, folds = 5, multicores = 1)
+conf_k.tb <- sits_kfold_validate(cerrado.tb, folds = 2, multicores = 1)
 
 # print the accuracy of the 5-fold validation
 sits_accuracy(conf_k.tb)

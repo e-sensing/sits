@@ -82,7 +82,7 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 
         # construct model predict enclosure function and returns
         model_predict <- function(test_distances.tb){
-            return(stats::predict(result_lda, newdata = test_distances.tb))
+            return(stats::predict(result_svm, newdata = test_distances.tb))
         }
         return(model_predict)
     }

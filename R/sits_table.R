@@ -809,7 +809,7 @@ sits_spread_matches <- function(data.tb){
 #'
 sits_distance_table <- function (patterns.tb) {
 
-    distances.tb <- data.frame(
+    distances.tb <- tibble::tibble(
         original_row = integer(),
         reference    = character())
 

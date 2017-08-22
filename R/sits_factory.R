@@ -23,7 +23,6 @@
     # ...otherwise compute the result on the input data
     else
         result <- fun(data.tb)
-
     return(result)
 }
 

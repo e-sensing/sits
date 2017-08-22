@@ -4,22 +4,27 @@
 \alias{sits_glm}
 \title{Train SITS classifiction models}
 \usage{
-sits_glm(data.tb = NULL, formula = sits_formula_logref(), ...)
+sits_glm(distances.tb = NULL, family = "multinomial", alpha = 1,
+  lambda_kfolds = 10, ...)
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series with an `matches` column. If `data.tb` is NULL, the function returns
-a pre-parameterized function to be called further in order to compute `multinom` training model}
+\item{distances.tb}{a time series with a set of distance measures for each training sample}
 
-\item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
+\item{family}{Response type. Can be either "gaussian", "binomial", "poisson", "multinomial", "cox", or "mgaussian". (default: "multinomial")}
 
-\item{...}{other parameters to be passed to glmnet::multinom function}
+\item{alpha}{the elasticnet mixing parameter, with 0<=alpha<=1. Set alpha = 0.0 to obtain ridge model, and alpha = 1.0 to obtain lasso model).
+(refer to `glmnet::cv.glmnet` function for more details)}
+
+\item{lambda_kfolds}{number of folds to find best lambda parameter (default: 10)}
+
+\item{...}{other parameters to be passed to `glmnet::cv.glmnet` function}
 }
 \value{
-result   either an glmnet::multinom class or an function prepared that can be called further to compute multinom training model
+result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 }
 \description{
 Use generalized liner model (glm) via penalized maximim likelihood to classify data.
-This function is a front-end to the "glmnet" method in the "glmnet" package.
+This function is a front-end to the "cv.glmnet" method in the "glmnet" package.
 Please refer to the documentation in that package for more details.
 }
 \author{

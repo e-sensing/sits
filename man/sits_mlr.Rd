@@ -4,18 +4,17 @@
 \alias{sits_mlr}
 \title{Train SITS classifiction models}
 \usage{
-sits_mlr(data.tb = NULL, formula = sits_formula_logref(), ...)
+sits_mlr(distances.tb = NULL, formula = sits_formula_logref(), ...)
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series with an `matches` column. If `data.tb` is NULL, the function returns
-a pre-parameterized function to be called further in order to compute `multinom` training model}
+\item{distances.tb}{a time series with a set of distance measures for each training sample}
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
 \item{...}{other parameters to be passed to nnet::multinom function}
 }
 \value{
-result   either an nnet::multinom class or an function prepared that can be called further to compute multinom training model
+result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 }
 \description{
 Use multinomial log-linear (mlr) fitting model via neural networks to classify data.

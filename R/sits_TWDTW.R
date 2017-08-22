@@ -120,8 +120,8 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NU
     result_fun <- function (data.tb, patterns.tb) {
 
         # get the matches from the sits_TWDTW_matches
-        matches.tb <- sits_TWDTW_matches (data.tb, patterns.tb, bands = NULL, dist.method = "euclidean",
-                                                      alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE)
+        matches.tb <- sits_TWDTW_matches (data.tb, patterns.tb, bands = bands, dist.method = dist.method,
+                                                      alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
 
         # convert the matches into distances
         distances.tb <- sits_spread_matches(matches.tb)
