@@ -57,6 +57,7 @@ Imports:
     readr,
     reshape2,
     RCurl,
+    R.utils,
     signal,
     snow,
     sp,

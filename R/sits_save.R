@@ -2,23 +2,30 @@
 #' @name sits_save
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description stores a SITS table in a JSON file
-#' The set of time series from a SITS table can be saved in JSON format
+#' @description stores a SITS table in a compressed JSON file
+#' The set of time series from a SITS table can be saved in a compressed JSON format
 #' and later retrieved for further use
 #'
 #' @param source       tibble - an existing SITS table
-#' @param json_file    string - name of the JSON file to be written
+#' @param file_name    string - file name where compressed data will be saved
 #' @return table       the same table (for chaining functions)
 #' @export
 #'
 #'
-sits_save <- function (source, json_file) {
-     if ("sits_table" %in% class (source) || "tbl" %in% class (source) ){
-          data.tb <- sits_toJSON (source = source, file = json_file)
-          return (invisible (source))
-     }
-     message (paste ("No valid input to save time series data!!","\n",sep=""))
-     stop(cond)
+sits_save <- function (source, file_name = NULL) {
+    # test the input data set
+    .sits_test_table(source)
+
+    ensurer::ensure_that (file_name, !purrr::is_null(.),
+                          err_desc = "sits_save: please provide the file name")
+
+    # save to JSON
+    file_name <- sits_toJSON (source, file_name)
+
+    # compress the file and remove the uncompresed JSON file
+    R.utils::gzip (file_name, remove = TRUE)
+
+    return (invisible (source))
 }
 
 #' @title Save data in a JSON file
@@ -43,5 +50,21 @@ sits_toJSON <- function (source, file = NULL) {
           jsonlite::toJSON (pretty = TRUE) %>%
           readr::write_lines (file)
      # return the table for chaining sits functions
-     return (invisible (source))
+     return (file)
+}
+
+#' @title Export data to be used to the zoo format
+#' @name sits_tozoo
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Converts data from a SITS table to an instance of a zoo series,
+#'
+#'
+#' @param  ts.tb    a tibble with a the indexes and values of a SITS time series
+#' @param  band     the name of the band to
+#' @return ts.zoo        a time series in TWDTW format (an object of the twdtwTimeSeries class)
+#' @export
+sits_tozoo <- function (ts.tb, band){
+    # transform each sits time series into a list of zoo
+    return (zoo::zoo(ts.tb[,band, drop=FALSE], ts.tb$Index))
 }

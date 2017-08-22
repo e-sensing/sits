@@ -45,7 +45,8 @@ from the WTSS service
 (b) The source is a CSV file - retrieves the metadata from the CSV file and the data
 from the WTSS service
 (c) The source is a JSON file - retrieves the metadata and data from the JSON file.
-(d) No source is given - it retrives the data based on <long, lat, wtss>
+(d) The source is a gz file (compressed JSON file) - retrieves the metadata and data from the compressed JSON file.
+(e) No source is given - it retrives the data based on <long, lat, wtss>
 A sits table has the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
 

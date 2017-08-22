@@ -814,17 +814,13 @@ sits_distance_table <- function (patterns.tb) {
 
     distances.tb <- tibble::as_tibble (distances.tb)
 
-    labels <- dplyr::distinct(patterns.tb, label)
+    labels <- (dplyr::distinct(patterns.tb, label))$label
     bands  <- sits_bands (patterns.tb)
 
-    labels %>%
-        purrr::map (function (l) {
-            bands %>%
-                purrr::map (function (b) {
-                    measure <- paste0 (l, ".", b)
-                    print (measure)
-                    distances.tb <<- tibble::add_column (distances.tb, measure = double())
-                })
-        })
+    for (l in 1:length(labels))
+        for (b in 1:length(bands)) {
+                    measure <- paste0 (labels[l], ".", bands[b])
+                    distances.tb [measure] = double()
+        }
     return (distances.tb)
 }

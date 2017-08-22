@@ -32,7 +32,7 @@ sits_distances <- function(data.tb, patterns.tb, bands = NULL,
 
 }
 #' @title Calculate a set of distance measures for satellite image time series
-#' @name sits_TS_distances
+#' @name sits_TSdistances
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -78,27 +78,45 @@ sits_distances <- function(data.tb, patterns.tb, bands = NULL,
 #' @param patterns.tb      a set of patterns obtained from training samples
 #' @param bands            the bands to be used for determining patterns
 #' @param distance         a method for calculating distances between time series
+#' @param ...              Additional parameters required by the distance method.
 #' @return result          a set of distance metrics
 #' @export
 #'
-sits_TSdist_distances <- function (data.tb, patterns.tb, bands = NULL, distance = "lccs") {
+sits_TSdistances <- function (data.tb, patterns.tb, bands = NULL, distance = "lccs", ...) {
 
-    # function that returns e1071::svm model based on a sits sample tibble
-    result_fun <- function(tb){
+    # function that returnsa distance table
+    result_fun <- function(data.tb, patterns.tb){
 
         # does the input data exist?
         .sits_test_table (data.tb)
         .sits_test_table (patterns.tb)
 
-        class.tb <- data.tb %>%
+        # handle the case of null bands
+        if (purrr::is_null (bands)) bands <- sits_bands(data.tb)
+
+        distances.tb <-  sits_distance_table(patterns.tb)
+        original_row <-  1
+
+        labels <- (dplyr::distinct(patterns.tb, label))$label
+        bands  <- sits_bands (patterns.tb)
+
+        data.tb %>%
             purrrlyr::by_row (function (row) {
                 ts <- row$time_series[[1]]
-                patterns.tb %>%
-                    purrrlyr::by_row (function (pat) {
-
-
-                    })
-
+                drow.tb <- sits_distance_table(data.tb)
+                drow.tb$original_row <- original_row
+                drow.tb$reference    <- row$label
+                for (l in 1:length(labels)) {
+                    tsp <- (dplyr::filter(patterns.tb, label = labels[l]))$time_series[[1]]
+                    for (b in 1:length(bands)) {
+                        ts_x <- sits_tozoo (ts, bands[b])
+                        ts_y <- sits_tozoo (tsp, bands[b])
+                        measure <-  paste0(labels[l], ".", bands[b])
+                        drow.tb [measure] <- TSdist::TSDistances(ts_x, ts_y, distance = distance, ...)
+                        original_row <- original_row + 1
+                    }
+                }
+                distances.tb <<- dplyr::bind_rows(distances.tb, drow.tb)
             })
     }
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
