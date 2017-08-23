@@ -32,7 +32,7 @@ sits_distances <- function(data.tb, patterns.tb, bands = NULL,
 
 }
 #' @title Calculate a set of distance measures for satellite image time series
-#' @name sits_TSdistances
+#' @name sits_TS_distances
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -82,7 +82,7 @@ sits_distances <- function(data.tb, patterns.tb, bands = NULL,
 #' @return result          a set of distance metrics
 #' @export
 #'
-sits_TSdistances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, distance = "dtw", ...) {
+sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, distance = "dtw", ...) {
 
     # function that returnsa distance table
     result_fun <- function(data.tb, patterns.tb){
@@ -99,6 +99,13 @@ sits_TSdistances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, 
 
         labels <- (dplyr::distinct(patterns.tb, label))$label
         bands  <- sits_bands (patterns.tb)
+
+        progress_bar <- NULL
+        if (nrow (data.tb) > 10) {
+            message("Finding distances from data to patterns...")
+            progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
+            i <- 0
+        }
 
         data.tb %>%
             purrrlyr::by_row(function (row) {
@@ -120,7 +127,13 @@ sits_TSdistances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, 
                             })
                     })
                 distances.tb <<- dplyr::bind_rows(distances.tb, r)
+                # update progress bar
+                if (!purrr::is_null(progress_bar)) {
+                    i <<- i + 1
+                    utils::setTxtProgressBar(progress_bar, i)
+                }
             })
+    if (!purrr::is_null(progress_bar)) close(progress_bar)
     return (distances.tb)
     }
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
