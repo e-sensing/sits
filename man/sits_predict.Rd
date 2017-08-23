@@ -12,6 +12,8 @@ sits_predict(data.tb = NULL, distances.tb = NULL, model, ...)
 \item{distances.tb}{a tibble with a set of distance metrics to each of the classes}
 
 \item{model}{a model trained by \code{\link[sits]{sits_train}}}
+
+\item{...}{other parameters to be passed to the model function}
 }
 \value{
 data.tb      a SITS tibble with the predicted label
@@ -22,10 +24,6 @@ returns a SITS tibble with the classification.
 }
 \author{
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
-
-Victor Maus, \email{vwmaus1@gmail.com}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

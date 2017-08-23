@@ -37,9 +37,5 @@ This function is a front-end to the "svm" method in the "e1071" package.
 \author{
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
-Victor Maus, \email{vwmaus1@gmail.com}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

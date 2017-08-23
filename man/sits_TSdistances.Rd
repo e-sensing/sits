@@ -59,7 +59,6 @@ The following alternatives are available in the TSdist package:
 "spec.llr": General spectral dissimilarity measure using local-linear estimation of the logspectra. Uses the TSclust package (see diss.SPEC.LLR).
 "pdc": Permutation Distribution Distance. Uses the pdc package (see pdcDist).
 "frechet": Frechet distance. Uses the longitudinalData package (see distFrechet).
-cer
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

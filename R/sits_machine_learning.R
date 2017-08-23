@@ -11,7 +11,6 @@
 #'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a tibble with a set of distance measures,
 #' returns trained models using support vector machines. This function will
@@ -44,8 +43,6 @@ sits_train <- function(distances.tb, tr_method = sits_svm()){
 #' @name sits_svm
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description This function is a front-end to the "svm" method in the "e1071" package.
@@ -93,8 +90,6 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 #' @name sits_lda
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Performs a linear discriminant analysis (lda) to classify data.
@@ -137,8 +132,6 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' @name sits_mlr
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Use multinomial log-linear (mlr) fitting model via neural networks to classify data.
@@ -181,8 +174,6 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' @name sits_glm
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Use generalized liner model (glm) via penalized maximim likelihood to classify data.
@@ -228,8 +219,6 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
 #' @name sits_rfor
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Use Random Forest algorithm to classify data.
@@ -239,7 +228,6 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
 #' @param distances.tb     a time series with a set of distance measures for each training sample
 #' @param n_tree           Number of trees to grow. This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted at least a few times. (default: 500)
-#' @param node_size
 #' @param ...              other parameters to be passed to `randomForest::randomForest` function
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @export
@@ -273,8 +261,6 @@ sits_rfor <- function(distances.tb = NULL, n_tree = 500, ...) {
 #' @name sits_formula_logref
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description A function to be used as a symbolic description of some fitting models such as svm.
@@ -309,8 +295,6 @@ sits_formula_logref <- function(predictors_index = -2:0){
 #' @name sits_predict
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train}},
@@ -319,6 +303,7 @@ sits_formula_logref <- function(predictors_index = -2:0){
 #' @param data.tb       a SITS tibble time series
 #' @param distances.tb  a tibble with a set of distance metrics to each of the classes
 #' @param model         a model trained by \code{\link[sits]{sits_train}}
+#' @param ...           other parameters to be passed to the model function
 #' @return data.tb      a SITS tibble with the predicted label
 #'
 #' @export

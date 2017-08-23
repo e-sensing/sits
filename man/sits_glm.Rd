@@ -30,9 +30,5 @@ Please refer to the documentation in that package for more details.
 \author{
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
-Victor Maus, \email{vwmaus1@gmail.com}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

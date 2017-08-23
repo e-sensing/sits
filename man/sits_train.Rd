@@ -35,6 +35,4 @@ models supported: 'svm', 'random forests', 'boosting', 'lda',
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
