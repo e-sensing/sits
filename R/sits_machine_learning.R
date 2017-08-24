@@ -169,7 +169,11 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
+<<<<<<< HEAD
             return(stats::predict(result_qda, newdata = values.tb)$class)
+=======
+            return(stats::predict(result_lda, newdata = values.tb)$class)
+>>>>>>> 6f81fdb50e535cf02d20892a1ce9a6198a9b29d5
         }
         return(model_predict)
     }
