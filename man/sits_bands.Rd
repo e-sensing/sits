@@ -10,7 +10,7 @@ sits_bands(data.tb)
 \item{data.tb}{a valid sits table}
 }
 \value{
-names      a string vector with the names of the bands
+result.vec  a string vector with the names of the bands
 }
 \description{
 finds the names of the bands of time series in a sits table

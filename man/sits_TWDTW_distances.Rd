@@ -6,7 +6,7 @@
 \usage{
 sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, bands = NULL,
   dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
-  span = 250, keep = FALSE)
+  span = 250, keep = FALSE, multicores = 1)
 }
 \arguments{
 \item{data.tb}{a table in SITS format with a time series to be classified using TWTDW}
@@ -26,6 +26,9 @@ sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, bands = NULL,
 \item{span}{minimum number of days between two matches of the same pattern in the time series (approximate)}
 
 \item{keep}{keep internal values for plotting matches}
+
+\item{multicores}{number of threads to process the validation (Linux only). Each process will run a
+whole partition validation.}
 }
 \value{
 matches       a SITS table with the information on matches for the data

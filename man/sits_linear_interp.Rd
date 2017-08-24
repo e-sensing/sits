@@ -16,7 +16,7 @@ result.tb    a sits_table with same samples and the new bands
 }
 \description{
 Computes the linearly interpolated bands for a given resolution
-using the R base function approx
+              using the R base function approx
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
