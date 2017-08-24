@@ -76,12 +76,12 @@ sits_accuracy(conf_svm_twdtw.tb, conv = newlabels2.lst)
 #
 # Statistics by Class:
 #
-#     Class: Cerrado Class: Fallow_Cotton Class: Forest Class: Pasture
+#                           Class: Cerrado Class: Fallow_Cotton Class: Forest Class: Pasture
 # Prod Acc (Sensitivity)            0.8825               0.6267        0.8696         0.9311
 # Specificity                       0.9842               0.9903        0.9948         0.9496
 # User Acc (Pos Pred Value)         0.8759               0.5802        0.8696         0.8974
 # Neg Pred Value                    0.9852               0.9920        0.9948         0.9668
-# Class: Soy_Corn Class: Soy_Cotton Class: Soy_Coverage Class: Soy_Fallow
+#                           Class: Soy_Corn Class: Soy_Cotton Class: Soy_Coverage Class: Soy_Fallow
 # Prod Acc (Sensitivity)             0.7350            0.7950              0.7119            0.9091
 # Specificity                        0.9419            0.9684              0.9560            0.9989
 # User Acc (Pos Pred Value)          0.6151            0.7608              0.8465            0.9524
@@ -133,7 +133,7 @@ sits_accuracy(conf_svm_twdtw.tb, conv = newlabels3.lst)
 #
 # Statistics by Class:
 #
-#     Class: Cerrado Class: Fallow_Cotton Class: Forest Class: Pasture
+#                            Class: Cerrado Class: Fallow_Cotton Class: Forest Class: Pasture
 # Prod Acc (Sensitivity)            0.8825               0.6267        0.8696         0.9311
 # Specificity                       0.9842               0.9903        0.9948         0.9496
 # User Acc (Pos Pred Value)         0.8759               0.5802        0.8696         0.8974
@@ -145,8 +145,29 @@ sits_accuracy(conf_svm_twdtw.tb, conv = newlabels3.lst)
 # Neg Pred Value                       0.9740              0.9257            0.9977            1
 
 
+newlabels3.lst <- tibble::lst (
+    "Fallow_Cotton"   = "Fallow_Cotton",
+    "Cerrado"         = "Cerrado",
+    "Forest"          = "Forest",
+    "Pasture"         = "Pasture",
+    "Soy_Cotton"      = "Soy_Cotton",
+    "Soy_Coverage"    = "Soy_Coverage",
+    "Soy_Crotalaria"  = "Soy_Coverage",
+    "Soy_Beans"       = "Soy_Coverage",
+    "Soy_Sunflower"   = "Soy_Coverage",
+    "Soy_Millet"      = "Soy_Coverage",
+    "Soy_Corn"        = "Soy_Coverage",
+    "Soy_Pasture"     = "Soy_Coverage",
+    "Soy_Fallow"      = "Soy_Fallow",
+    "Soy_Sorghum"     = "Soy_Coverage",
+    "Water"  = "Water")
+
+embrapa_mt3.tb <- sits_relabel(embrapa_mt.tb, newlabels3.lst)
+
+embrapa_mt3.tb <- dplyr::filter (embrapa_mt3.tb, label != "Water")
+
 # test accuracy of TWDTW to measure distances
-conf_qda_twdtw.tb <- sits_kfold_validate(embrapa_mt2.tb, folds = 2,
+conf_lda_twdtw.tb <- sits_kfold_validate(embrapa_mt3.tb, folds = 2,
                                          pt_method   = sits_gam(),
                                          dist_method = sits_TWDTW_distances(),
-                                         tr_method   = sits_qda ())
+                                         tr_method   = sits_lda ())

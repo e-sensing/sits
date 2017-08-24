@@ -4,7 +4,7 @@
 \alias{sits_qda}
 \title{Train SITS classifiction models with Quadratic Discriminant Analysis}
 \usage{
-sits_qda(distances.tb = NULL, formula = sits_formula_linear(), ...)
+sits_qda(distances.tb = NULL, formula = sits_formula_numeric(), ...)
 }
 \arguments{
 \item{distances.tb}{a time series with a set of distance measures for each training sample}
