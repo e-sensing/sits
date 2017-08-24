@@ -39,14 +39,16 @@ sits_train <- function(distances.tb, tr_method = sits_svm()){
     return(result)
 }
 
-#' @title Train SITS classifiction models with the SVM method
+#' @title Train SITS classifier with a Support Vector Machine
 #' @name sits_svm
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description This function is a front-end to the "svm" method in the "e1071" package.
-#'              Please refer to the documentation in that package for more details.
+#' @description This function receives a tibble with a set of attributes X for each observation Y
+#' These attributes are usually distance metrics between patterns and observations
+#' This function is a front-end to the "svm" method in the "e1071" package.
+#' Please refer to the documentation in that package for more details.
 #'
 #' @param distances.tb     a time series with a set of distance measures for each training sample
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)
@@ -86,13 +88,16 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 
     result <- .sits_factory_function (distances.tb, result_fun)
 }
-#' @title Train SITS classifiction models
+#' @title Train SITS classifiction models with Linear Discriminant Analysis
 #' @name sits_lda
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Performs a linear discriminant analysis (lda) to classify data.
+#' @description This function receives a tibble with a set of attributes X for each observation Y
+#' These attributes are usually distance metrics between patterns and observations
+#' It performs a linear discriminant analysis (lda) to obtain a predictive model.
 #' This function is a front-end to the "lda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
 #'
@@ -102,24 +107,69 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @export
 #'
-sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
+sits_lda <- function(distances.tb = NULL, formula = sits_formula_linear(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
-    result_fun <- function(train_distances.tb){
+    result_fun <- function(tb){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
+        ensurer::ensure_that(tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
-            formula <- formula(train_distances.tb)
+            formula <- formula(tb)
 
         # call MASS::lda method and return the trained lda model
-        result_lda <- MASS::lda(formula = formula, data = train_distances.tb, ...)
+        result_lda <- MASS::lda(formula = formula, data = tb, ...)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(test_distances.tb){
-            return(stats::predict(result_lda, newdata = test_distances.tb))
+        model_predict <- function(tb){
+            return(stats::predict(result_lda, newdata = tb))
+        }
+        return(model_predict)
+    }
+
+    result <- .sits_factory_function (distances.tb, result_fun)
+    return(result)
+}
+
+#' @title Train SITS classifiction models with Quadratic Discriminant Analysis
+#' @name sits_qda
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function receives a tibble with a set of attributes X for each observation Y
+#' These attributes are usually distance metrics between patterns and observations
+#' The function performs a quadratic discriminant analysis (qda) to obtain a predictive model.
+#' This function is a front-end to the "qda" method in the "MASS" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param distances.tb     a time series with a set of distance measures for each training sample
+#' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
+#' @param ...              other parameters to be passed to MASS::lda function
+#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#' @export
+#'
+sits_qda <- function(distances.tb = NULL, formula = sits_formula_linear(), ...) {
+
+    # function that returns MASS::lda model based on a sits sample tibble
+    result_fun <- function(tb){
+
+        # is the input data the result of a TWDTW matching function?
+        ensurer::ensure_that(tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
+
+        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        if (class(formula) == "function")
+            formula <- formula(tb)
+
+        # call MASS::lda method and return the trained lda model
+        result_lda <- MASS::qda(formula = formula, data = tb, ...)
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(tb){
+            return(stats::predict(result_lda, newdata = tb))
         }
         return(model_predict)
     }
@@ -286,6 +336,40 @@ sits_formula_logref <- function(predictors_index = -2:0){
 
         # compute formula result
         result_for <- stats::as.formula(paste0("factor(reference)~", paste0(paste0('log(`', categories, '`)'), collapse = "+")))
+        return(result_for)
+    }
+    return(result_fun)
+}
+
+#' @title Train SITS classifiction models
+#' @name sits_formula_linear
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description A function to be used as a symbolic description of some fitting models such as svm.
+#' `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
+#' If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
+#'
+#' @param predictors_index  the index of the valid columns whose names are used to compose formula (default: NULL)
+#' @return result_fun       a function that computes a valid formula
+#' @export
+#'
+sits_formula_linear <- function(predictors_index = -2:0){
+
+    # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
+    # respectivelly, the reference and predictors fields of tibble in `tb` parameter.
+    result_fun <- function(tb){
+
+        # if no predictors_index are given, assume that all tb's fields are used
+        if (is.null(predictors_index))
+            predictors_index <- 1:NROW(tb)
+
+        # get predictors names
+        categories <- names(tb)[c(predictors_index)]
+
+        # compute formula result
+        result_for <- stats::as.formula(paste0("factor(reference)~", paste0(paste0(categories, collapse = "+"))))
         return(result_for)
     }
     return(result_fun)

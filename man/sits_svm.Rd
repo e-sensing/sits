@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_svm}
 \alias{sits_svm}
-\title{Train SITS classifiction models with the SVM method}
+\title{Train SITS classifier with a Support Vector Machine}
 \usage{
 sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
   kernel = "linear", degree = 3, coef0 = 0, cost = 1,
@@ -31,8 +31,10 @@ sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
 result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 }
 \description{
+This function receives a tibble with a set of attributes X for each observation Y
+These attributes are usually distance metrics between patterns and observations
 This function is a front-end to the "svm" method in the "e1071" package.
-             Please refer to the documentation in that package for more details.
+Please refer to the documentation in that package for more details.
 }
 \author{
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
