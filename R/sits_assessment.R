@@ -237,38 +237,14 @@ sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample =
 #' @export
 sits_create_folds <- function (data.tb, folds = 5) {
 
-    ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
-                          err_desc = "sits_create_folds: please provide a labelled set of time series")
+    # verify if data.tb exists
+    .sits_test_table(data.tb)
 
-    set.seed(2104)
     # splits the data into k groups
     data.tb$folds <- caret::createFolds(data.tb$label, k = folds, returnTrain = FALSE, list = FALSE)
 
     return (data.tb)
 }
-#' @title Create partitions of a data set
-#' @name  sits_create_partitions
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Create a list of partitions of a SITS table, based on a percentage and
-#' a number of iterations
-#'
-#' @param data.tb a SITS table to be partitioned
-#' @param times   number of iterations
-#' @param frac    fraction of original data to be extracted. Value must be between 0 and 1.
-.sits_create_partitions <- function (data.tb, times, frac) {
-
-     # create a list to store the partitions
-     partitions.lst <- tibble::lst()
-
-     # iterate and create the partitions
-     for (i in 1:times){
-          partitions.lst [[i]] <- sits_labels_sample (data.tb, frac)
-     }
-     return (partitions.lst)
-}
-
-
 
 #' @title Evaluates the accuracy of a set of patterns
 #' @name sits_test_patterns

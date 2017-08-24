@@ -4,7 +4,7 @@
 #load the sits library
 library (sits)
 #load a data set for with samples for EMBRAPA data set
-embrapa.tb <- sits_getdata(file = "/Users/gilbertocamara/sits/inst/extdata/samples/embrapa_damien_gilberto.json")
+embrapa.tb <- sits_getdata(file = "inst/extdata/samples/embrapa_damien_final.json.gz")
 
 # test accuracy of TWDTW to measure distances
 conf_svm.tb <- sits_kfold_validate(embrapa.tb, folds = 2,

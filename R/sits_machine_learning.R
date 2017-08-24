@@ -238,17 +238,17 @@ sits_rfor <- function(distances.tb = NULL, n_tree = 500, ...) {
     result_fun <- function(train_distances.tb){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_mlr: input data does not contain distance")
+        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
 
         # call `randomForest::randomForest` method and return the trained multinom model
         result_rfor <- randomForest::randomForest(y = data.matrix(train_distances.tb$reference),
-                                                  x = log(data.matrix(train_distances.tb[,2:NCOL(train_distances.tb)])),
+                                                  x = log(data.matrix(train_distances.tb[,3:NCOL(train_distances.tb)])),
                                                   data = NULL, ntree = n_tree, nodesize = 1,
                                                   norm.votes = FALSE, train_distances.tb, ...)
 
         # construct model predict enclosure function and returns
         model_predict <- function(test_distances.tb){
-            return(stats::predict(result_rfor, newdata = test_distances.tb, type = "response"))
+            return(stats::predict(result_rfor, newdata = log(data.matrix(test_distances.tb[,3:NCOL(test_distances.tb)])), type = "response"))
         }
         return(model_predict)
     }

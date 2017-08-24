@@ -49,7 +49,7 @@ sits_gam <- function (data.tb = NULL, bands = NULL, from = NULL, to = NULL, freq
         vars <-  all.vars(formula)
 
         # align all samples to the same time series intervals
-        sample_dates <- sits_dates (tb[1,])
+        sample_dates <- lubridate::as_date(tb[1,]$time_series[[1]]$Index)
         tb           <- sits_align (tb, sample_dates)
 
         # if "from" and "to" are not given, extract them from the data samples

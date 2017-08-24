@@ -30,22 +30,20 @@
 #' Most functions on the sits package use a sits table as input (with additional parameters)
 #' and a sits table as output. This allows for chaining of operation on time series.
 #'
-#' @return table  a tibble in SITS format
+#' @return result.tb  a tibble in SITS format
 #' @export
 
 sits_table <- function () {
-    df <- data.frame(longitude   = double(),
-                     latitude    = double (),
-                     start_date  = as.Date(character()),
-                     end_date    = as.Date(character()),
-                     label       = character(),
-                     coverage    = character(),
-                     stringsAsFactors = FALSE
+    result.tb <- tibble::tibble(longitude   = double(),
+                                latitude    = double (),
+                                start_date  = as.Date(character()),
+                                end_date    = as.Date(character()),
+                                label       = character(),
+                                coverage    = character(),
+                                time_series = list()
     )
-    tb <- tibble::as_tibble (df)
-    tb <- tibble::add_column (tb, time_series = list())
-    class (tb) <- append (class(tb), "sits_table")
-    return (tb)
+    class (result.tb) <- append (class(result.tb), "sits_table")
+    return (result.tb)
 }
 
 #' @title Aligns dates of time series to a reference date
@@ -117,76 +115,16 @@ sits_align <- function (data.tb, ref_dates) {
 #'
 #' @description  finds the names of the bands of time series in a sits table
 #'
-#' @param data.tb     a valid sits table
-#' @return names      a string vector with the names of the bands
+#' @param data.tb      a valid sits table
+#' @return result.vec  a string vector with the names of the bands
 #' @export
 #'
 sits_bands <- function (data.tb) {
-    names <- data.tb[1,]$time_series %>%
-        data.frame() %>%
-        colnames() %>%
-        . [2:length(.)]
-    return (names)
+    result.vec <- data.tb[1,]$time_series[[1]] %>%
+        colnames() %>% .[2:length(.)]
+    return (result.vec)
 }
 
-#' @title Cross join bands of two satellite image time series
-#' @name sits_cross
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Cross-join two SITS tables with the same spatio-temporal references. To cross two series' bands,
-#' we consider that they contain different attributes (bands) but refer to the same coverage.
-#' We make no assumptions about their spatio-temporal location.
-#' This function is useful to create different bands of clusters centroids time series.
-#' For example, one may want to put evi and ndvi bands centroids together in an cross joined fashion in order to
-#' generate patterns combinations.
-#'
-#' @param sits1.tb  the first SITS table in wich entries will be crossed with ts2 entries
-#' @param sits2.tb  the second SITS table entries
-#' @return new.tb    a cross-joined SITS tibble with a nested set of time series
-#' @export
-#'
-sits_cross <-  function(sits1.tb, sits2.tb) {
-    # are the names of the bands different?
-    ensurer::ensure_that(sits1.tb, (length(intersect(sits_bands(.), sits_bands(sits2.tb))) == 0),
-                         err_desc = "sits_cross: cannot cross join two sits tables with bands with the same names")
-
-    # if some parameter is empty returns the another one
-    if (nrow(sits1.tb) == 0)
-        return (sits2.tb)
-    if (nrow(sits2.tb) == 0)
-        return (sits1.tb)
-
-    #first, add `cross_join` field in order to proceed with dplyr::inner_join (see bellow)
-    sits1.data <- sits1.tb %>%
-        dplyr::mutate (cross_join = 0)
-
-    # second, select only time_series data and add `cross_join` field
-    sits2.data <- sits2.tb %>%
-        dplyr::select(time_series) %>%
-        dplyr::mutate(cross_join = 0)
-
-    # third, from time_series' fields of second SITS table removes the Index (dates) (because we already have one Index in sits1.data)
-    sits2.data$time_series <- sits2.data$time_series %>%
-        purrr::map(function(ts) {
-            ts %>% dplyr::select(-Index)
-        })
-
-    # fourth, do a cross join, removes `cross_join` field, and adds a `cluster_id` field to distinct each cluster
-    # (this will be use to nest time_series in crossed.tb -- see bellow)
-    crossed.tb <- sits1.data %>%
-        dplyr::inner_join(sits2.data, by='cross_join') %>%
-        dplyr::select(-cross_join) %>%
-        dplyr::mutate(cluster_id = 1:nrow(.))
-
-    # finally, proceeds with unnesting, nesting, removing `cluster_id` field, erasing latitude and longitude metadata, and update labels' values (subclass)
-    crossed.tb <- tidyr::unnest(crossed.tb) %>%
-        tidyr::nest(-latitude, -longitude, -start_date, -end_date, -label, -coverage, -cluster_id, .key = "time_series") %>%
-        dplyr::select(-cluster_id) %>%
-        dplyr::mutate(latitude = 0.0, longitude = 0.0, label = paste(.$label, ".", as.character(1:nrow(.)), sep = ""))
-
-    # we have a sits tibble with all cross-joined bands centroids with subclass labels
-    return(crossed.tb)
-}
 #' @title Return the dates of a sits table
 #' @name sits_dates
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -268,78 +206,6 @@ sits_group_bylatlong <- function (data.tb) {
     return (out.tb)
 }
 
-#' @title returns the labels' count of a sits table
-#' @name sits_labels
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description  returns the labels and its respective counting and frequency.
-#'
-#' @param data.tb     a valid sits table
-#' @param from_members (Boolean) if n_members collumn is present, compute label's statistics from it.
-#' @return result.tb  a tibble with the names of the labels and its absolute and relative frequency
-#' @export
-#'
-sits_labels <- function (data.tb, from_members = FALSE) {
-
-    # verify if there is original_label column. If not exists initialize it with empty string.
-    if (!any("original_label" %in% names(data.tb)))
-        data.tb$original_label <- ""
-
-    # verify if there is n_members column. If not exists initialize it with ones.
-    if (!any("n_members" %in% names(data.tb)))
-        data.tb$n_members <- data.tb$label %>%
-            purrr::map(function(label) return(tibble::tibble(original_label = label, n = 1)))
-
-    # compute frequency (absolute and relative)
-    if (from_members)
-        result.tb <- data.tb %>%
-            tidyr::unnest_("n_members", .sep = ".") %>%
-            dplyr::group_by_("n_members.original_label", "label") %>%
-            dplyr::summarize(count = sum(n_members.n, na.rm = TRUE)) %>%
-            dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
-            dplyr::ungroup() %>%
-            dplyr::select_("label", "count", original_label="n_members.original_label", "total", "frac")
-    else
-        result.tb <- data.tb %>%
-            tidyr::unnest_("n_members", .sep = ".") %>%
-            dplyr::group_by_("original_label", "label") %>%
-            dplyr::summarize(count = sum(n_members.n, na.rm = TRUE)) %>%
-            dplyr::mutate(total = sum(count, na.rm = TRUE), frac = count / sum(count, na.rm = TRUE)) %>%
-            dplyr::ungroup() %>%
-            dplyr::select_("label", "count", "original_label", "total", "frac")
-    return (result.tb)
-}
-
-#' @title Sample a percentage of a time series
-#' @name sits_labels_sample
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description takes a sits table with different labels and
-#' returns a new table. For each label, this new table contains a percentage
-#' of the total number of samples per label
-#'
-#' @param    data.tb    tibble - input SITS table
-#' @param    frac       fraction (value between 0 and 1) of samples of each label to be saved.
-#' @return   result.tb   tibble - the new SITS table with a fixed percentage of samples per class
-#' @export
-sits_labels_sample <- function (data.tb, frac = 0.1){
-
-    result.tb <- sits_table()
-    # how many different labels are there?
-    labels <- dplyr::distinct (data.tb, label)$label
-
-    labels %>%
-        purrr::map(function (lb){
-            # filter only those rows with the same label
-            frac.tb <- data.tb %>%
-                dplyr::filter (label == lb) %>%
-                dplyr::sample_frac (size = frac)
-            result.tb <<- dplyr::bind_rows(result.tb, frac.tb)
-        })
-
-    return (result.tb)
-}
-
 #' @title Merge two satellite image time series
 #' @name sits_merge
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -351,39 +217,37 @@ sits_labels_sample <- function (data.tb, frac = 0.1){
 #' For example, one may want to put the raw and smoothed bands for the same set of locations
 #' in the same table.
 #'
-#' @param sits1.tb  the first SITS table to be merged
-#' @param sits2.tb  the second SITS table to be merged
-#' @return new.tb    a merged SITS tibble with a nested set of time series
+#' @param data1.tb      the first SITS table to be merged
+#' @param data2.tb      the second SITS table to be merged
+#' @return result.tb    a merged SITS tibble with a nested set of time series
 #' @export
-sits_merge <-  function(sits1.tb, sits2.tb) {
+sits_merge <-  function(data1.tb, data2.tb) {
 
     # are the names of the bands different?
-    ensurer::ensure_that(sits1.tb, !(TRUE %in% (sits_bands(.) %in% sits_bands(sits2.tb))),
+    ensurer::ensure_that(data1.tb, !(any(sits_bands(.) %in% sits_bands(data2.tb)) | any(sits_bands(data2.tb) %in% sits_bands(.))),
                          err_desc = "sits_merge: cannot merge two sits tables with bands with the same names")
 
     # if some parameter is empty returns the another one
-    if (nrow(sits1.tb) == 0)
-        return (sits2.tb)
-    if (nrow(sits2.tb) == 0)
-        return (sits1.tb)
+    if (NROW(data1.tb) == 0)
+        return (data2.tb)
+    if (NROW(data2.tb) == 0)
+        return (data1.tb)
 
-    # merge the time series
-    merge_one <-  function (ts1, ts2) {
-        ts3 <- dplyr::left_join (ts1, ts2, by = "Index")
-    }
-    # first, select the metadata columns
-    merged.tb <- sits1.tb %>%
-        dplyr::select (-time_series)
+    # verify if data1.tb and data2.tb has the same number of rows
+    ensurer::ensure_that(data1.tb, NROW(.) == NROW(data2.tb),
+                         err_desc = "sits_merge: cannot merge two sits tables with different numbers of rows")
 
-    # then merge the data sets
-    sits1.data <- sits1.tb$time_series
-    sits2.data <- sits2.tb$time_series
-    # join the attributes and values using zoo merge
-    merged.tb$time_series <- purrr::map2 (sits1.data, sits2.data, merge_one)
+    # prepare result
+    result.tb <- data1.tb
 
-    return (merged.tb)
+    # merge time series
+    result.tb$time_series <- purrr::map2 (data1.tb$time_series, data2.tb$time_series, function (ts1, ts2) {
+        ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -Index))
+        return (ts3)
+    })
+
+    return (result.tb)
 }
-
 
 #' @title Prunes dates of time series to fit an interval
 #' @name sits_prune
@@ -533,31 +397,6 @@ sits_select <- function (data.tb, bands) {
     # return the result
     return (new.tb)
 }
-#' @title Get the significant labeled time series among all others labels.
-#' @name sits_significant_labels
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a SITS table, select only those whose time series
-#' exceed a minimum percentage
-#'
-#' @param  data.tb        a SITS table with the data to be extracted
-#' @param  min_label_frac a decimal between 0 and 1. The minimum percentagem of valid cluster members,
-#' with reference to the total number of samples.
-#' @return result.tb      a SITS table with the filtered data.
-#' @export
-sits_significant_labels <- function (data.tb, min_label_frac = 0.05) {
-    # check valid min_clu_perc
-    ensurer::ensure_that(min_label_frac, . >= 0.0 && . <= 1.0,
-                         err_desc = "sits_significant_labels: invalid min_label_frac value. Value must be between 0 and 1.")
-
-    sig_labels <- sits_labels(data.tb) %>%
-        dplyr::filter(frac >= min_label_frac) %>% .$label
-
-    result.tb <- data.tb %>%
-        dplyr::filter(label %in% sig_labels)
-
-    return (result.tb)
-}
 #' @title Add new SITS bands and drops existing.
 #' @name sits_transmute
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -580,40 +419,6 @@ sits_transmute <- function(data.tb, ...){
     return(result.tb)
 }
 
-
-#' @title Create a sits table to store the result of TWDTW classification
-#' @name sits_table_result
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#'
-#' @description A sits table is a tibble with pre-defined columns that
-#' has the metadata and data for each time series.
-#' To include the results of the classification, this basic structure is extended with two new
-#' columns: distances (a list of distances to each class for each interval) and matches
-#' (the output of the TWDTW classifier). The resulting columns will be
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series, distances, matches>.
-#'
-#' @references Please see the documentation of the dtwSat package
-#'
-#' @return table  a tibble in SITS format
-#' @family   STIS table functions
-#' @export
-
-sits_table_result <- function () {
-    df <- data.frame(longitude   = double(),
-                     latitude    = double (),
-                     start_date  = as.Date(character()),
-                     end_date    = as.Date(character()),
-                     label       = character(),
-                     coverage    = character(),
-                     stringsAsFactors = FALSE
-    )
-    tb <- tibble::as_tibble (df)
-    tb <- tibble::add_column (tb, time_series = list())
-    tb <- tibble::add_column (tb, matches    = list())
-    class (tb) <- append (class(tb), "sits_table_result")
-    return (tb)
-}
 #' @title Return the values of a given SITS table as a list of matrices according to a specified format.
 #' @name sits_values
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -680,73 +485,6 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
     return (values.lst)
 }
 
-#' @title relabels a sits tibble
-#' @name sits_relabel
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a SITS tibble with a set of labels, and a conversion list
-#' between the original labels and
-#' new labels, returns a new SITS tibble whose labels are changed..
-#'
-#' @param  data.tb        a SITS tibble
-#' @param  conv           a conversion of label names for the classes (optional))
-#' @return assess         an assessment of validation
-#' @export
-sits_relabel <- function (data.tb, conv){
-    #does the input data exist?
-    .sits_test_table (data.tb)
-
-    ensurer::ensure_that(conv, !purrr::is_null(.),
-                         err_desc = "sits_relabel: conversion list not provided")
-
-    out.tb <- sits_table()
-    data.tb %>%
-        purrrlyr::by_row (function (row) {
-            row$label <- as.character(conv[row$label])
-            out.tb <<- dplyr::bind_rows(out.tb, row)
-        })
-    # return the output
-    return (out.tb)
-}
-
-#' @title creates a conversion identity list for sits_relabel
-#' @name sits_relabel_conv
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a confusion matrix obtained in the validation
-#' procedure, returns a identity conversion list of labels.
-#'
-#' @param  file           a JSON file contaning the result of a validation procedure
-#' @return conv.lst       a conversion list
-#' @export
-sits_relabel_conv <- function (file = NULL){
-    # do the input file exist?
-    ensurer::ensure_that(file, !purrr::is_null(.),
-                         err_desc = "sits_relabel: JSON file not provided")
-
-    # get labels from JSON file
-    confusion.vec <- jsonlite::fromJSON (file)
-
-    # what are the labels of the samples?
-    #labels <- rle(sort(ref.vec))$values
-    labels <- base::unique(confusion.vec)
-
-    # Create an identity list
-    conv.lst <- labels %>%
-        purrr::map(function(lbl) lbl)
-    names(conv.lst) <- labels
-
-    # conv.lst <- tibble::lst()
-    # for (i in 1:length(labels)) {
-    #      lab <- labels[i]
-    #      conv.lst[lab] <- lab
-    # }
-
-    return (conv.lst)
-}
-
 #' @title Spread matches from a sits matches tibble
 #' @name sits_spread_matches
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
@@ -757,8 +495,8 @@ sits_relabel_conv <- function (file = NULL){
 #' @description Given a SITS tibble with a matches, returns a tibble whose columns have
 #' the reference label and the TWDTW distances for each temporal pattern.
 #'
-#' @param  data.tb a SITS matches tibble
-#' @return a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
+#' @param  data.tb    a SITS matches tibble
+#' @return result.tb  a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
 #' @export
 sits_spread_matches <- function(data.tb){
 
@@ -771,12 +509,12 @@ sits_spread_matches <- function(data.tb){
         })
 
     # Select best match and spread pred to columns
-    out.tb <- data.tb %>%
+    result.tb <- data.tb %>%
         dplyr::transmute(original_row = 1:NROW(.), reference = label, matches = matches) %>%
         tidyr::unnest(matches, .drop = FALSE) %>%
         tidyr::spread(key = predicted, value = distance)
 
-    return(out.tb)
+    return(result.tb)
 }
 
 #' @title Spread matches from a sits matches tibble
@@ -787,7 +525,7 @@ sits_spread_matches <- function(data.tb){
 #' @description Tests if a SITS table exists or has data inside
 #'
 #' @param data.tb  a SITS table
-#' @return test_OK boolean (TRUE if data.tb is OK)
+#' @return returns TRUE if data.tb has data.
 #'
 .sits_test_table <- function (data.tb) {
     ensurer::ensure_that(data.tb, !purrr::is_null(.),

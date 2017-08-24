@@ -277,10 +277,10 @@ sits_TWDTW_classify <- function (data.tb, patterns.tb, start_date = NULL, end_da
             # traverse predicted labels and, for each entry, generate the alignments' information
             # required by dtwSat::twdtwMatches@alignments
             align.lst <- labels %>%
-                purrr::map(function (lbl){
-                    entry.lst <- list(label = c(lbl))
+                purrr::map(function (lb){
+                    entry.lst <- list(label = c(lb))
                     entry.lst <- c(entry.lst, row.tb$matches[[1]] %>%
-                                       dplyr::filter(predicted == lbl) %>%
+                                       dplyr::filter(predicted == lb) %>%
                                        dplyr::select(-predicted) %>%
                                        purrr::map(function (col) col))
                     entry.lst <- c(entry.lst, list(K = length(entry.lst$from),

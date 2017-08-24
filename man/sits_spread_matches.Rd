@@ -10,7 +10,7 @@ sits_spread_matches(data.tb)
 \item{data.tb}{a SITS matches tibble}
 }
 \value{
-a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
+result.tb  a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
 }
 \description{
 Given a SITS tibble with a matches, returns a tibble whose columns have
