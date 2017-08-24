@@ -66,22 +66,22 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
                      degree = 3, coef0 = 0, cost = 1, tolerance = 0.001, epsilon = 0.1, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
-    result_fun <- function(tb){
+    result_fun <- function(train_data.tb){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(tb, "reference" %in% names (.), err_desc = "sits_svm: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_svm: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
-            formula <- formula(tb)
+            formula <- formula(train_data.tb)
 
         # call e1071::svm method and return the trained svm model
-        result_svm <- e1071::svm(formula = formula, data = tb, kernel = kernel,
+        result_svm <- e1071::svm(formula = formula, data = train_data.tb, kernel = kernel,
                                  degree = degree, cost = cost, coef0 = coef0, tolerance = tolerance, epsilon = epsilon, ...)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(test_distances.tb){
-            return(stats::predict(result_svm, newdata = test_distances.tb))
+        model_predict <- function(values.tb){
+            return(stats::predict(result_svm, newdata = values.tb))
         }
         return(model_predict)
     }
@@ -107,24 +107,24 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @export
 #'
-sits_lda <- function(distances.tb = NULL, formula = sits_formula_linear(), ...) {
+sits_lda <- function(distances.tb = NULL, formula = sits_formula_numeric(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
-    result_fun <- function(tb){
+    result_fun <- function(train_data.tb){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
-            formula <- formula(tb)
+            formula <- formula(train_data.tb)
 
         # call MASS::lda method and return the trained lda model
-        result_lda <- MASS::lda(formula = formula, data = tb, ...)
+        result_lda <- MASS::lda(formula = formula, data = train_data.tb, ...)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(tb){
-            return(stats::predict(result_lda, newdata = tb))
+        model_predict <- function(values.tb){
+            return(stats::predict(result_lda, newdata = values.tb))
         }
         return(model_predict)
     }
@@ -152,24 +152,24 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_linear(), ...) 
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @export
 #'
-sits_qda <- function(distances.tb = NULL, formula = sits_formula_linear(), ...) {
+sits_qda <- function(distances.tb = NULL, formula = sits_formula_numeric(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
-    result_fun <- function(tb){
+    result_fun <- function(train_data.tb){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
-            formula <- formula(tb)
+            formula <- formula(train_data.tb)
 
         # call MASS::lda method and return the trained lda model
-        result_lda <- MASS::qda(formula = formula, data = tb, ...)
+        result_lda <- MASS::qda(formula = formula, data = train_data.tb, ...)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(tb){
-            return(stats::predict(result_lda, newdata = tb))
+        model_predict <- function(values.tb){
+            return(stats::predict(result_lda, newdata = values.tb))
         }
         return(model_predict)
     }
@@ -197,21 +197,21 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_linear(), ...) 
 sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
 
     # function that returns nnet::multinom model based on a sits sample tibble
-    result_fun <- function(train_distances.tb){
+    result_fun <- function(train_data.tb){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_mlr: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_mlr: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
-            formula <- formula(train_distances.tb)
+            formula <- formula(train_data.tb)
 
         # call nnet::multinom method and return the trained multinom model
-        result_mlr <- nnet::multinom(formula = formula, data = train_distances.tb, ...)
+        result_mlr <- nnet::multinom(formula = formula, data = train_data.tb, ...)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(test_distances.tb){
-            return(stats::predict(result_mlr, newdata = test_distances.tb))
+        model_predict <- function(values.tb){
+            return(stats::predict(result_mlr, newdata = values.tb))
         }
         return(model_predict)
     }
