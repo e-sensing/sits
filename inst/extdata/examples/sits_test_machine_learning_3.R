@@ -19,7 +19,7 @@ sits_accuracy(conf_erp.tb)
 # test accuracy of TWDTW to measure distances
 conf_twdtw.tb <- sits_kfold_validate(cerrado.tb, folds = 2,
                                      pt_method   = sits_gam(),
-                                     dist_method = sits_TWDTW_distances(),
+                                     dist_method = sits_TWDTW_distances(multicores = 5),
                                      tr_method   = sits_svm (cost = 1000, method = "radial"))
 
 # print the accuracy of the TWDTW - 94%

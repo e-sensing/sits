@@ -12,44 +12,21 @@
 #
 # ---------------------------------------------------------------
 
-#' @title Lagged differences of a SITS band.
-#' @name sits_lag_diff
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Computes the lagged differences of a set of time series.
-#' @param data.tb       a valid sits table
-#' @param bands         a vector of strings with band's names.
-#' @param differences   an integer indicating the order of the difference.
-#' @return result.tb    a sits_table with same samples and the new bands
-#' @export
-sits_lag_diff <- function(data.tb, bands = NULL, differences = 1) {
-     if (is.null(bands))
-          bands <- sits_bands(data.tb)
-
-     ensurer::ensure_that(bands, length(.) > 0, err_desc = "sits_ts_diff: at least one band should be provided.")
-
-     result.tb <- data.tb
-     # compute differential
-     result.tb <- sits_apply(data.tb,
-                             fun = function(band) diff(band, lag = 1, differences = differences),
-                             fun_index = function(band) band[0:-differences],
-                             bands_suffix = paste0("diff", differences))
-     return(result.tb)
-}
 #' @title Inerpolation function of sits_table's time series
 #' @name sits_linear_interp
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Computes the linearly interpolated bands for a given resolution
-#' using the R base function approx
+#'               using the R base function approx
 #' @param data.tb       a valid sits table
 #' @param n             the number of time series elements to be created between start date and end date
 #' @return result.tb    a sits_table with same samples and the new bands
 #' @export
 sits_linear_interp <- function(data.tb, n = 23){
-     # get the bands of the SITS tibble
-     bands <- sits_bands(data.tb)
-     ensurer::ensure_that(bands, length(.) > 0, err_desc = "sits_ts_approx: at least one band should be provided.")
 
-          # compute linear approximation
+    # test if data.tb has data
+    .sits_test_table(data.tb)
+
+     # compute linear approximation
      result.tb <- sits_apply(data.tb,
                              fun = function(band) stats::approx(band, n = n, ties=mean)$y,
                              fun_index = function(band) as.Date(stats::approx(band, n = n, ties=mean)$y,
@@ -61,56 +38,49 @@ sits_linear_interp <- function(data.tb, n = 23){
 #' @name sits_interp
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Computes the linearly interpolated bands for a given resolution
-#' using the R base function approx
+#'               using the R base function approx
 #' @param data.tb       a valid sits table
 #' @param fun           the interpolation function to be used
-#' @param n             the number of time series elements to be created between start date and end date
+#' @param n             the number of time series elements to be created between start date and end date.
+#'                      When a class function is passed to `n`, is is evaluated with each band time series as
+#'                      an argument, e.g. n(band) (default: `length` function)
 #' @param ...           additional parameters to be used by the fun function
 #' @return result.tb    a sits_table with same samples and the new bands
 #' @export
-sits_interp <- function(data.tb, fun = stats::approx, n = 23, ...){
-     # get the bands of the SITS tibble
-     bands <- sits_bands(data.tb)
-     ensurer::ensure_that(bands, length(.) > 0, err_desc = "sits_interp: at least one band should be provided.")
+sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...){
+
+    # test if data.tb has data
+     .sits_test_table(data.tb)
 
      # compute linear approximation
      result.tb <- sits_apply(data.tb,
-                             fun = function(band) fun(band, n = n, ...)$y,
+                             fun = function(band) {
+                                 if (class(n) == "function")
+                                     return(fun(band, n = n(band), ...)$y)
+                                 return(fun(band, n = n, ...)$y)
+                             },
                              fun_index = function(band) as.Date(fun(band, n = n, ...)$y,
                                                                 origin = "1970-01-01"))
-
      return(result.tb)
 }
 #' @title Remove missing values
 #' @name sits_missing_values
 #' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
-#' @description  This function removes the missing values from an image time series
-#' @param data.tb   a valid sits table
-#' @param mv        a number indicating missing values in a time series.
-#' @return result.tb    a sits_table with same samples and the new bands
+#' @description  This function removes the missing values from an image time series by substituting them by NA
+#' @param data.tb     a valid sits table
+#' @param miss_value  a number indicating missing values in a time series.
+#' @return result.tb  a sits_table with same samples and the new bands
 #' @export
 #'
-sits_missing_values <-  function(data.tb, mv = NULL) {
-     # get the bands in the data
-     bands <- sits_bands(data.tb)
-     ensurer::ensure_that(bands, length(.) > 0, err_desc = "sits_missing_values: at least one band should be provided.")
+sits_missing_values <-  function(data.tb, miss_value) {
 
-     # copy the results
-     time_series <- data.tb$time_series
+     # test if data.tb has data
+     .sits_test_table(data.tb)
 
-     # update missing values to NA
-     for (b in bands){
-          time_series[,b][time_series[,b] == mv] <- NA
-     }
-
-     # interpolate missing values
-     time_series[,bands] <- zoo::na.spline(time_series[,bands])
-
-     data.tb$time_series <- time_series
-
-     return (data.tb)
+     # remove missing values by NAs
+     result.tb <- sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
+     return (result.tb)
 }
-
 
 #' @title Envelope filter
 #' @name sits_envelope

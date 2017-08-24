@@ -80,7 +80,7 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 #' @param pt_method       method to create patterns (sits_patterns_gam, sits_dendogram)
 #' @param dist_method     method to compute distances (e.g., sits_TWDTW_distances)
 #' @param tr_method       machine learning training method
-#' @param multicores      number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).
+#' @param multicores      number of threads to process the validation (Linux only). Each process will run a whole partition validation.
 #' @return conf.tb        a tibble containing pairs of reference and predicted values
 #' @export
 

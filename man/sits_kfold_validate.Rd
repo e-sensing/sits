@@ -22,7 +22,7 @@ sits_kfold_validate(data.tb, bands = NULL, folds = 5,
 
 \item{tr_method}{machine learning training method}
 
-\item{multicores}{number of threads to process the validation (Linux only). Each process will run a whole partition validation (see `times` parameter).}
+\item{multicores}{number of threads to process the validation (Linux only). Each process will run a whole partition validation.}
 }
 \value{
 conf.tb        a tibble containing pairs of reference and predicted values
