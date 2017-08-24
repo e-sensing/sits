@@ -4,7 +4,7 @@
 #load the sits library
 library (sits)
 #load a data set for with samples for EMBRAPA data set
-embrapa.tb <- sits_getdata(file = "inst/extdata/samples/embrapa_damien_final.json.gz")
+embrapa.tb <- sits_getdata(file = "inst/extdata/samples/embrapa_damien_gilberto.json.gz")
 
 # test accuracy of TWDTW to measure distances
 conf_svm.tb <- sits_kfold_validate(embrapa.tb, folds = 2,
@@ -60,3 +60,12 @@ conf_rfor.tb <- sits_kfold_validate(embrapa.tb, folds = 2,
 print("===============================================")
 print ("== Confusion Matrix = RFOR  =======================")
 sits_accuracy(conf_rfor.tb)
+
+
+# test accuracy of TWDTW to measure distances
+conf_svm_dtw.tb <- sits_kfold_validate(embrapa.tb, folds = 2,
+                                   pt_method   = sits_gam(),
+                                   dist_method = sits_TS_distances(distance = "dtw"),
+                                   tr_method   = sits_svm (cost = 100, method = "radial"))
+
+sits_accuracy(conf_svm_dtw.tb)

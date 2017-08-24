@@ -1,5 +1,5 @@
 #' @title Example of retrieval, plotting, filtering (Kalman filter), and classification of
-#' Cerrado and Pasture temporal patterns 
+#' Cerrado and Pasture temporal patterns
 #' @name sits_cerrado_pasture
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -13,7 +13,7 @@
 #install library
 library (sits)
 # get a local data set
-cerrado.tb <- sits_getdata("./inst/extdata/samples/cerrado.json")
+cerrado.tb <- sits_getdata("./inst/extdata/samples/cerrado.json.gz")
 
 # pick the first 10 time series
 cerrado1.tb <- cerrado.tb[1:20,]
