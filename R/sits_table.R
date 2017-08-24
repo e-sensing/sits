@@ -382,20 +382,25 @@ sits_rename <-  function (data.tb, bands_new) {
 #'
 #' @description returns a sits table with the selected bands
 #'
-#' @param data.tb    a sits table with the time series of the selected bands
-#' @param bands      a vector of bands
-#' @return table  a tibble in SITS format with the selected bands
+#' @param data.tb      a sits table with the time series of the selected bands
+#' @param bands        a vector of bands
+#' @return result.tb   a tibble in SITS format with the selected bands
 #' @export
 sits_select <- function (data.tb, bands) {
-    # create a new table to store the result
-    new.tb <- sits_table()
-    # select the metadata attributes from the input table
-    new.tb <- dplyr::select (data.tb, longitude, latitude, start_date, end_date, label, coverage)
+
+    # verify if bands exists in data.tb
+    ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
+                         err_desc = "sits_select: some band(s) not found in input data")
+
+    # prepare result SITS table
+    result.tb <- data.tb
+
     # select the chosen bands for the time series
-    new.tb$time_series <- data.tb$time_series %>%
-        purrr::map (function (ts) ts <- ts [, c("Index", bands)])
+    result.tb$time_series <- data.tb$time_series %>%
+        purrr::map (function (ts) ts[, c("Index", bands)])
+
     # return the result
-    return (new.tb)
+    return (result.tb)
 }
 #' @title Add new SITS bands and drops existing.
 #' @name sits_transmute
@@ -418,7 +423,55 @@ sits_transmute <- function(data.tb, ...){
 
     return(result.tb)
 }
+#' @title Apply a function over SITS bands.
+#' @name sits_apply
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  `sits_apply` returns a sits_table with the same samples points and new bands computed by `fun`,
+#' `fun_index` functions. These functions must be defined inline and are called by `sits_ts_apply` for each band,
+#' whose vector values is passed as the function argument.
+#'
+#' `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
+#' of the corresponding band. In the second case, the returned list must have names, and each element vector will
+#' generate a new band which name composed by concatenating original band name and the corresponding list element name.
+#'
+#' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
+#'
+#' @param data.tb       a valid sits table
+#' @param fun           a function with one parameter as input and a vector or list of vectors as output.
+#' @param fun_index     a function with one parameter as input and a Date vector as output.
+#' @param bands_suffix  a string informing the resulting bands name's suffix.
+#' @return data.tb    a sits_table with same samples and the new bands
+#' @export
+sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
 
+    # veify if data.tb has values
+    .sits_test_table(data.tb)
+
+    # computes fun and fun_index for all time series and substitutes the original time series data
+    data.tb$time_series <- data.tb$time_series %>%
+        purrr::map(function(ts.tb) {
+            ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
+                purrr::map(fun)
+
+            # append bands names' suffixes
+            if (nchar(bands_suffix) != 0)
+                names(ts_computed.lst) <- paste0(bands, ".", bands_suffix)
+
+            # unlist if there are more than one result from `fun`
+            if (is.recursive(ts_computed.lst[[1]]))
+                ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
+
+            # convert to tibble
+            ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
+
+            # compute Index column
+            ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
+
+            # reorganizes time series tibble
+            return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
+        })
+    return(data.tb)
+}
 #' @title Return the values of a given SITS table as a list of matrices according to a specified format.
 #' @name sits_values
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
