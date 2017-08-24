@@ -124,7 +124,7 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_numeric(), ...)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
-            return(stats::predict(result_lda, newdata = values.tb))
+            return(stats::predict(result_lda, newdata = values.tb)$class)
         }
         return(model_predict)
     }
@@ -169,7 +169,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_numeric(), ...)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
-            return(stats::predict(result_lda, newdata = values.tb))
+            return(stats::predict(result_lda, newdata = values.tb)$class)
         }
         return(model_predict)
     }
@@ -242,21 +242,21 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, lambda_kfolds = 10, ...) {
 
     # function that returns glmnet::multinom model based on a sits sample tibble
-    result_fun <- function(train_distances.tb){
+    result_fun <- function(train_data.tb){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_glm: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_glm: input data does not contain distance")
 
         # call glmnet::multinom method and return the trained multinom model
-        result_glm <- glmnet::cv.glmnet(y = factor(data.matrix(train_distances.tb$reference)),
-                                        x = log(data.matrix(train_distances.tb[,3:NCOL(train_distances.tb)])),
+        result_glm <- glmnet::cv.glmnet(y = factor(data.matrix(train_data.tb$reference)),
+                                        x = log(data.matrix(train_data.tb[,3:NCOL(train_data.tb)])),
                                         family = family, alpha = alpha, k = lambda_kfolds, ...)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(test_distances.tb){
+        model_predict <- function(values.tb){
             return(stats::predict(result_glm,
                                   s = result_glm$lambda.min,
-                                  newx = log(data.matrix(test_distances.tb[,3:NCOL(test_distances.tb)])), type = "class"))
+                                  newx = log(data.matrix(values.tb[,3:NCOL(values.tb)])), type = "class"))
         }
         return(model_predict)
     }
@@ -285,20 +285,20 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
 sits_rfor <- function(distances.tb = NULL, n_tree = 500, ...) {
 
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
-    result_fun <- function(train_distances.tb){
+    result_fun <- function(train_data.tb){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_mlr: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_mlr: input data does not contain distance")
 
         # call `randomForest::randomForest` method and return the trained multinom model
-        result_rfor <- randomForest::randomForest(y = data.matrix(train_distances.tb$reference),
-                                                  x = log(data.matrix(train_distances.tb[,2:NCOL(train_distances.tb)])),
+        result_rfor <- randomForest::randomForest(y = data.matrix(train_data.tb$reference),
+                                                  x = log(data.matrix(train_data.tb[,2:NCOL(train_data.tb)])),
                                                   data = NULL, ntree = n_tree, nodesize = 1,
-                                                  norm.votes = FALSE, train_distances.tb, ...)
+                                                  norm.votes = FALSE, train_data.tb, ...)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(test_distances.tb){
-            return(stats::predict(result_rfor, newdata = test_distances.tb, type = "response"))
+        model_predict <- function(values.tb){
+            return(stats::predict(result_rfor, newdata = values.tb, type = "response"))
         }
         return(model_predict)
     }
@@ -386,20 +386,20 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #'
 #' @param data.tb       a SITS tibble time series
 #' @param distances.tb  a tibble with a set of distance metrics to each of the classes
-#' @param model         a model trained by \code{\link[sits]{sits_train}}
+#' @param ml_model      a model trained by \code{\link[sits]{sits_train}}
 #' @param ...           other parameters to be passed to the model function
 #' @return data.tb      a SITS tibble with the predicted label
 #'
 #' @export
-sits_predict <- function(data.tb = NULL, distances.tb = NULL, model, ...){
+sits_predict <- function(data.tb = NULL, distances.tb = NULL, ml_model, ...){
 
     # is the input data the result of a TWDTW matching function?
     ensurer::ensure_that(distances.tb, "reference" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
 
     # is the input model a model function?
-    ensurer::ensure_that(model, class (.) == "function", err_desc = "sits_predict: model parameter is not a function model returned by sits_train.")
+    ensurer::ensure_that(ml_model, class (.) == "function", err_desc = "sits_predict: model parameter is not a function model returned by sits_train.")
 
-    data.tb$predicted <- as.character(model(distances.tb))
+    data.tb$predicted <- as.character(ml_model(distances.tb))
 
     return(data.tb)
 }

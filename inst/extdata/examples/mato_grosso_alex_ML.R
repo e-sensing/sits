@@ -133,7 +133,7 @@ sits_accuracy(conf_svm_twdtw.tb, conv = newlabels3.lst)
 #
 # Statistics by Class:
 #
-#     Class: Cerrado Class: Fallow_Cotton Class: Forest Class: Pasture
+#                            Class: Cerrado Class: Fallow_Cotton Class: Forest Class: Pasture
 # Prod Acc (Sensitivity)            0.8825               0.6267        0.8696         0.9311
 # Specificity                       0.9842               0.9903        0.9948         0.9496
 # User Acc (Pos Pred Value)         0.8759               0.5802        0.8696         0.8974

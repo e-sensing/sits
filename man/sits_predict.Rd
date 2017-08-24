@@ -4,14 +4,14 @@
 \alias{sits_predict}
 \title{Predict class based on the trained models}
 \usage{
-sits_predict(data.tb = NULL, distances.tb = NULL, model, ...)
+sits_predict(data.tb = NULL, distances.tb = NULL, ml_model, ...)
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series}
 
 \item{distances.tb}{a tibble with a set of distance metrics to each of the classes}
 
-\item{model}{a model trained by \code{\link[sits]{sits_train}}}
+\item{ml_model}{a model trained by \code{\link[sits]{sits_train}}}
 
 \item{...}{other parameters to be passed to the model function}
 }
