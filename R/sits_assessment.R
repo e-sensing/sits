@@ -114,7 +114,7 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
     pred.vec = character()
     ref.vec  = character()
 
-    conf.lst <- parallel::mcMap (function (k)
+    conf.lst <- parallel::mclapply(X = 1:folds, FUN = function (k)
     {
         # split data into training and test data sets
         data_train.tb <- data.tb[data.tb$folds != k,]
@@ -142,7 +142,7 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
         pred.vec <- c(pred.vec, predict.tb$predicted)
 
         return (c(pred.vec, ref.vec))
-    },1:folds, mc.cores = multicores)
+    }, mc.cores = multicores)
 
     purrr::map(conf.lst, function (e) {
         mid <- length (e)/2
