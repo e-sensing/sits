@@ -112,19 +112,38 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
 #' @param  span          minimum number of days between two matches of the same pattern in the time series (approximate)
 #' @param  keep          keep internal values for plotting matches
+#' @param  multicores    number of threads to process the validation (Linux only). Each process will run a
+#'                       whole partition validation.
 #' @return matches       a SITS table with the information on matches for the data
 #' @export
 sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
-                                alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE) {
+                                alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE, multicores = 1) {
 
     result_fun <- function (data.tb, patterns.tb) {
 
-        # get the matches from the sits_TWDTW_matches
-        matches.tb <- sits_TWDTW_matches (data.tb, patterns.tb, bands = bands, dist.method = dist.method,
-                                                      alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
+        # compute partition vector
+        part.vec <- 1:NROW(data.tb)
+        if(multicores > 1)
+            part.vec <- cut(seq(NROW(data.tb)), multicores, labels = FALSE)
 
-        # convert the matches into distances
-        distances.tb <- sits_spread_matches(matches.tb)
+
+        # compute partition list putting each set of same value of part.vec inside corresponding list element
+        part.lst <- 1:multicores %>%
+            purrr::map(function(i) data.tb[part.vec == i,] )
+
+        # prepare function to be passed to `parallel::mclapply`. this function returns a distance table to each partition
+        multicore_fun <- function(part.tb){
+            matches.tb <- sits_TWDTW_matches(part.tb, patterns.tb, bands = bands, dist.method = dist.method,
+                                             alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
+            result.tb <- sits_spread_matches(matches.tb)
+            return(result.tb)
+        }
+
+        # get the matches from the sits_TWDTW_matches
+        distances.lst <- parallel::mclapply(part.lst, multicore_fun, mc.cores = multicores)
+
+        # compose final result binding each partition by row
+        distances.tb <- dplyr::bind_rows(distances.lst)
 
         return (distances.tb)
 
@@ -277,10 +296,10 @@ sits_TWDTW_classify <- function (data.tb, patterns.tb, start_date = NULL, end_da
             # traverse predicted labels and, for each entry, generate the alignments' information
             # required by dtwSat::twdtwMatches@alignments
             align.lst <- labels %>%
-                purrr::map(function (lbl){
-                    entry.lst <- list(label = c(lbl))
+                purrr::map(function (lb){
+                    entry.lst <- list(label = c(lb))
                     entry.lst <- c(entry.lst, row.tb$matches[[1]] %>%
-                                       dplyr::filter(predicted == lbl) %>%
+                                       dplyr::filter(predicted == lb) %>%
                                        dplyr::select(-predicted) %>%
                                        purrr::map(function (col) col))
                     entry.lst <- c(entry.lst, list(K = length(entry.lst$from),

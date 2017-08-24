@@ -99,7 +99,7 @@ sits_cluster_cleaner <-  function (data.tb, min_clu_perc) {
 
     # return only those samples that satisfies the `min_clu_perc` condition
     filter_condition <- paste0(purrr::map2(rownames(index.mtx), index.mtx[,2],
-                                           function(lbl, clu) paste0("label=='", lbl, "' & cluster==", clu)),
+                                           function(lb, clu) paste0("label=='", lb, "' & cluster==", clu)),
                                collapse = " | ")
 
     # if no index selescted, return none

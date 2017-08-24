@@ -19,7 +19,7 @@ sits_accuracy(conf_erp.tb)
 # test accuracy of TWDTW to measure distances
 conf_twdtw.tb <- sits_kfold_validate(cerrado.tb, folds = 2,
                                      pt_method   = sits_gam(),
-                                     dist_method = sits_TWDTW_distances(),
+                                     dist_method = sits_TWDTW_distances(multicores = 5),
                                      tr_method   = sits_svm (cost = 1000, method = "radial"))
 
 # print the accuracy of the TWDTW - 94%
@@ -34,11 +34,20 @@ conf_lcss.tb <- sits_kfold_validate(cerrado.tb, folds = 2,
 # print the accuracy of the Longest Common Subsequence Matching - 78%
 sits_accuracy(conf_lcss.tb)
 
-# "ccor": Distance based on the cross-correlation.
+# test accuracy of Euclidean to measure distances
 conf_eucl.tb <- sits_kfold_validate(cerrado.tb, folds = 2,
                                     pt_method   = sits_gam(),
                                     dist_method = sits_TSdistances(distance = "euclidean"),
                                     tr_method   = sits_svm (cost = 1000, method = "radial"))
 
-# print the accuracy of the partial (PACF) autocorrelation - 78%
+# print the accuracy of Euclidean distance - 91%
 sits_accuracy(conf_eucl.tb)
+
+# "ccor": Distance based on the cross-correlation.
+conf_cor.tb <- sits_kfold_validate(cerrado.tb, folds = 2,
+                                    pt_method   = sits_gam(),
+                                    dist_method = sits_TSdistances(distance = "ccor"),
+                                    tr_method   = sits_svm (cost = 1000, method = "radial"))
+
+# print the accuracy of the partial (PACF) autocorrelation - 78%
+sits_accuracy(conf_cor.tb)
