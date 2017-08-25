@@ -66,17 +66,20 @@ Imports:
     tools,
     utils, 
     wtss,
+    wtsps.R,
     zoo
 LinkingTo: 
     Rcpp
 Remotes:
-     luizassis/wtss,
+     esensing/wtss,
+     luizassis/wtsps.R,
      vwmaus/dtwSat
 RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'
     'sits_SCIDB.R'
     'sits_TWDTW.R'
+    'sits_WTSPS.R'
     'sits_WTSS.R'
     'sits_assessment.R'
     'sits_cluster.R'
