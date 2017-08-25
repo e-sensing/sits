@@ -76,7 +76,7 @@ LinkingTo:
     Rcpp
 Remotes:
      e-sensing/wtss,
-     luizassis/wtsps.R,
+     e-sensing/wtsps.R,
      rolfsimoes/dtwSat
 RoxygenNote: 6.0.1
 Collate: 
