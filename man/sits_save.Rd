@@ -4,19 +4,19 @@
 \alias{sits_save}
 \title{Save the contents of a SITS table in a JSON file}
 \usage{
-sits_save(source, json_file)
+sits_save(source, file_name = NULL)
 }
 \arguments{
 \item{source}{tibble - an existing SITS table}
 
-\item{json_file}{string - name of the JSON file to be written}
+\item{file_name}{string - file name where compressed data will be saved}
 }
 \value{
 table       the same table (for chaining functions)
 }
 \description{
-stores a SITS table in a JSON file
-The set of time series from a SITS table can be saved in JSON format
+stores a SITS table in a compressed JSON file
+The set of time series from a SITS table can be saved in a compressed JSON format
 and later retrieved for further use
 }
 \author{

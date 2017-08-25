@@ -2,62 +2,27 @@
 % Please edit documentation in R/sits_cluster.R
 \name{sits_cluster}
 \alias{sits_cluster}
-\title{Cluster a set of satellite image time series}
+\title{Cuts a cluster tree produced by sits_dendrogram}
 \usage{
-sits_cluster(data.tb, bands = NULL, method = "dendogram", n_clusters = 2,
-  dist_method = "dtw_basic", grouping_method = "ward.D2", koh_xgrid = 5,
-  koh_ygrid = 5, koh_rlen = 100, koh_alpha = c(0.05, 0.01),
-  return_members = FALSE, unsupervised = FALSE, show = FALSE, ...)
+sits_cluster(data.tb, clusters, k)
 }
 \arguments{
-\item{data.tb}{a SITS tibble the list of time series to be clustered}
+\item{data.tb}{a tibble with input data of dtwclust.}
 
-\item{bands}{the bands to be clusterized.}
+\item{clusters}{a cluster structure returned from dtwclust.}
 
-\item{method}{string - either 'dendogram', 'centroids', 'kohonen', or 'kohonen-dendogram'.}
-
-\item{n_clusters}{the number of clusters to be croped from hierarchical clustering (ignored in `kohonen` method). Default is 2.}
-
-\item{dist_method}{A supported distance from proxy's dist, e.g. \code{TWDTW}.}
-
-\item{grouping_method}{the agglomeration method to be used. Any `hclust` method (see `hclust`) (ignored in `kohonen` method). Default is 'ward.D2'.}
-
-\item{koh_xgrid}{x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.}
-
-\item{koh_ygrid}{y dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.}
-
-\item{koh_rlen}{the number of times the complete data set will be presented to the SOM grid
-(used only in `kohonen` or `kohonen-denddogram` methods). Default is 100.}
-
-\item{koh_alpha}{learning rate, a vector of two numbers indicating the amount of change.
-Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
-
-\item{return_members}{(boolean) should the results be the clusters' members instead of clusters' centroids? Default is FALSE.}
-
-\item{unsupervised}{(boolean) should labels be ignored in clustering algorithms?
-If `return_members` parameter is TRUE, resulting sits table will gain an extra column called `original_label` with all original labels.
-This column may be useful to measure confusion between clusters' members. Default is FALSE.}
-
-\item{show}{(boolean) should the results be shown? Default is TRUE.}
-
-\item{...}{Other arguments to pass to the distance method \code{dist_method}, and cluster method. See \code{\link[dtwclust]{dtwclust}} for details.}
+\item{k}{the desired number of clusters}
 }
 \value{
-clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
-If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
+result.tb       a SITS table with the clusters or clusters' members
 }
 \description{
-This function uses package "dtwclust" to do time series clustering.
-There are four options: "dendogram" (hierarchical clustering), "controids" (positional
-clustering), "kohonen" (self-organized maps), and "kohonen-dendogram" (self-organized maps fallowed by a dendogram).
+reads a list of clusters provided by the dtwclust
+package and produces a sits table.
 }
 \references{
-`dtwclust` package (https://CRAN.R-project.org/package=dtwclust), `kohonen` package (https://CRAN.R-project.org/package=kohonen)
+"dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
 Rolf Simoes, \email{rolf.simoes@inpe.br}
-
-Victor Maus, \email{vwmaus1@gmail.com}
 }

@@ -1,29 +1,22 @@
-#' @title Initialization commands for SITS package
-#' @name sits_init
-#' @description provides the information for the dependencies of the sits package
-#'
-
-#' @title .onAttach
-#' @param lib libname argument
-#' @param  pkg pkgname argument
-
+# On load
 .onAttach = function(lib, pkg){
      packageStartupMessage(
           sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.\n",
                   utils::packageDescription("sits")$Version) )
 }
+
 # Include the following global variables in the SITS package
-#
 utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
-                         "rmean", "std", "stdplus", "stdminus", "cluster_id", "cross_join",
+                         "med", "qt25", "qt75", "cluster_id",
                          "longitude", "latitude", "label", "coverage",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
-                         "original_label", "n_members", "count",
+                         "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n",
-                         "distance", "twdtw_distances", "predicted", "new_values"))
+                         "distance", "predicted", "new_values",
+                         "Alig.N", "matches", "Reference"))
 
-#  define the dependencies of the SITS package
+#' @import dtwSat
+#' @import dtwclust
 #' @useDynLib sits, .registration = TRUE
-#' 
 NULL

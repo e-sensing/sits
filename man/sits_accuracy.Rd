@@ -2,25 +2,24 @@
 % Please edit documentation in R/sits_assessment.R
 \name{sits_accuracy}
 \alias{sits_accuracy}
-\title{Post-classification accuracy assessment of classified maps (non-weigthed)}
+\title{Evaluates the accuracy of classification}
 \usage{
-sits_accuracy(results.tb)
+sits_accuracy(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE)
 }
 \arguments{
-\item{results.tb}{a sits table with a set of lat/long/time locations with known and trusted labels and
-with the result of a classification method}
+\item{conf.tb}{A tibble containing pairs of reference and predicted values}
+
+\item{conv.lst}{A list conversion list of labels. If NULL no conversion is done.}
+
+\item{pred_sans_ext}{(Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.}
 }
 \value{
-assessment  a list containing overall accuracy, producers and users accuracy, and confusion matrix.
+caret_assess  a confusion matrix assessment produced by the caret package
 }
 \description{
-To use this function, the input table should be a set of results containing
-both the label assigned by the user and the classification result.
-Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
-This function does not use an area-weigthed technique and should be used only as a
-first check of accuracy. When the area of each class for the region of interest is available,
-please use sits_accuracy_area instead
+Evaluates the accuracy of classification stored in two vectors.
+Returns a confusion matrix used by the "caret" package
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

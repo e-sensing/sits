@@ -50,11 +50,11 @@ sits_plot (patterns.tb, type = "patterns")
 matches.tb <- sits_TWDTW_matches(series.tb, patterns.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 
 # plot the alignments of the time series
-sits_plot (matches.tb, type = "alignments")
+sits_plot (matches.tb, patterns.tb, type = "alignments")
 
 #classify the time series matches using yearly intervals
-results.tb <- sits_TWDTW_classify(matches.tb, start_date = "2000-08-01", end_date = "2016-07-31",
+results.tb <- sits_TWDTW_classify(matches.tb, patterns.tb, start_date = "2000-08-01", end_date = "2016-07-31",
                                   interval = "12 month")
 
 # plot the classification of the time series by yearly intervals
-sits_plot (results.tb, type = "classification")
+sits_plot (results.tb, patterns.tb, type = "classification")

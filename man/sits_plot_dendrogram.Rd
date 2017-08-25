@@ -4,7 +4,7 @@
 \alias{sits_plot_dendrogram}
 \title{Plot a dendrogram}
 \usage{
-sits_plot_dendrogram(data.tb, cluster_obj = NULL, cutree_height = NULL,
+sits_plot_dendrogram(data.tb, cluster_obj, cutree_height = NULL,
   colors = "RdYlGn", ...)
 }
 \arguments{
