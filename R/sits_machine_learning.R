@@ -107,7 +107,7 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @export
 #'
-sits_lda <- function(distances.tb = NULL, formula = sits_formula_numeric(), ...) {
+sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(train_data.tb){
@@ -152,7 +152,7 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_numeric(), ...)
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @export
 #'
-sits_qda <- function(distances.tb = NULL, formula = sits_formula_numeric(), ...) {
+sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(train_data.tb){
@@ -288,11 +288,11 @@ sits_rfor <- function(distances.tb = NULL, n_tree = 500, ...) {
     result_fun <- function(train_data.tb){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
 
         # call `randomForest::randomForest` method and return the trained multinom model
-        result_rfor <- randomForest::randomForest(y = data.matrix(train_distances.tb$reference),
-                                                  x = log(data.matrix(train_distances.tb[,3:NCOL(train_distances.tb)])),
+        result_rfor <- randomForest::randomForest(y = data.matrix(train_data.tb$reference),
+                                                  x = log(data.matrix(train_data.tb[,3:NCOL(train_data.tb)])),
                                                   data = NULL, ntree = n_tree, nodesize = 1,
                                                   norm.votes = FALSE, train_data.tb, ...)
 

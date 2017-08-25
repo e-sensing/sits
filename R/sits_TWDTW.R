@@ -122,7 +122,7 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NU
     result_fun <- function (data.tb, patterns.tb) {
 
         # compute partition vector
-        part.vec <- 1:NROW(data.tb)
+        part.vec <- rep.int(1, NROW(data.tb))
         if(multicores > 1)
             part.vec <- cut(seq(NROW(data.tb)), multicores, labels = FALSE)
 

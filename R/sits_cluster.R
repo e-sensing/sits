@@ -130,10 +130,10 @@ sits_cluster_relabel <-  function (data.tb, cluster_names) {
     # compute new clusters names
     # if an unnamed vector is given
     if (is.null(names(cluster_names)))
-        data_cluster_names.vec <- cluster_names[data.tb$cluster]
+        data_cluster_names.vec <- cluster_names[data.tb$cluster] %>% unlist()
     # if a named vector is given
     else
-        data_cluster_names.vec <- cluster_names[as.character(data.tb$cluster)]
+        data_cluster_names.vec <- as.character(cluster_names[as.character(data.tb$cluster)] %>% unlist())
 
     # fill not renamed entries with original value
     data_cluster_names.vec <- ifelse(is.na(data_cluster_names.vec), data.tb$cluster, data_cluster_names.vec)
