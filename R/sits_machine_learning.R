@@ -169,11 +169,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
-<<<<<<< HEAD
             return(stats::predict(result_qda, newdata = values.tb)$class)
-=======
-            return(stats::predict(result_lda, newdata = values.tb)$class)
->>>>>>> 6f81fdb50e535cf02d20892a1ce9a6198a9b29d5
         }
         return(model_predict)
     }
@@ -292,17 +288,20 @@ sits_rfor <- function(distances.tb = NULL, n_tree = 500, ...) {
     result_fun <- function(train_data.tb){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_distances.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
 
+
+        # categorias.rfore <- randomForest(y = factor(yTrain), x = xTrain, data=NULL,
+        #                                  ntree=ntreesrf, nodesize = nodesizerf, norm.votes=FALSE)
         # call `randomForest::randomForest` method and return the trained multinom model
-        result_rfor <- randomForest::randomForest(y = data.matrix(train_distances.tb$reference),
-                                                  x = log(data.matrix(train_distances.tb[,3:NCOL(train_distances.tb)])),
+        result_rfor <- randomForest::randomForest(y = data.matrix(train_data.tb$reference),
+                                                  x = log(data.matrix(train_data.tb[,3:NCOL(train_data.tb)])),
                                                   data = NULL, ntree = n_tree, nodesize = 1,
-                                                  norm.votes = FALSE, train_data.tb, ...)
+                                                  norm.votes = FALSE, ...)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(test_distances.tb){
-            return(stats::predict(result_rfor, newdata = log(data.matrix(test_distances.tb[,3:NCOL(test_distances.tb)])), type = "response"))
+        model_predict <- function(values.tb){
+            return(stats::predict(result_rfor, newdata = log(data.matrix(values.tb[,3:NCOL(values.tb)])), type = "response"))
         }
         return(model_predict)
     }
