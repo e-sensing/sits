@@ -158,18 +158,18 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     result_fun <- function(train_data.tb){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_qda: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
             formula <- formula(train_data.tb)
 
-        # call MASS::lda method and return the trained lda model
-        result_lda <- MASS::qda(formula = formula, data = train_data.tb, ...)
+        # call MASS::qda method and return the trained lda model
+        result_qda <- MASS::qda(formula = formula, data = train_data.tb, ...)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
-            return(stats::predict(result_lda, newdata = values.tb)$class)
+            return(stats::predict(result_qda, newdata = values.tb)$class)
         }
         return(model_predict)
     }
@@ -290,15 +290,18 @@ sits_rfor <- function(distances.tb = NULL, n_tree = 500, ...) {
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
 
+
+        # categorias.rfore <- randomForest(y = factor(yTrain), x = xTrain, data=NULL,
+        #                                  ntree=ntreesrf, nodesize = nodesizerf, norm.votes=FALSE)
         # call `randomForest::randomForest` method and return the trained multinom model
         result_rfor <- randomForest::randomForest(y = data.matrix(train_data.tb$reference),
                                                   x = log(data.matrix(train_data.tb[,3:NCOL(train_data.tb)])),
                                                   data = NULL, ntree = n_tree, nodesize = 1,
-                                                  norm.votes = FALSE, train_data.tb, ...)
+                                                  norm.votes = FALSE, ...)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(test_distances.tb){
-            return(stats::predict(result_rfor, newdata = log(data.matrix(test_distances.tb[,3:NCOL(test_distances.tb)])), type = "response"))
+        model_predict <- function(values.tb){
+            return(stats::predict(result_rfor, newdata = log(data.matrix(values.tb[,3:NCOL(values.tb)])), type = "response"))
         }
         return(model_predict)
     }

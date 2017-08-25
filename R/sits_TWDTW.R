@@ -126,7 +126,6 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NU
         if(multicores > 1)
             part.vec <- cut(seq(NROW(data.tb)), multicores, labels = FALSE)
 
-
         # compute partition list putting each set of same value of part.vec inside corresponding list element
         part.lst <- 1:multicores %>%
             purrr::map(function(i) data.tb[part.vec == i,] )
@@ -146,10 +145,10 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NU
         distances.tb <- dplyr::bind_rows(distances.lst)
 
         return (distances.tb)
-
     }
-    result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
 
+    result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
+    return (result)
 }
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
 #' @name sits_TWDTW_classify
