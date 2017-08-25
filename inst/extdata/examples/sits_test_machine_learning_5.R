@@ -6,7 +6,15 @@ library (sits)
 #load a data set for with samples for EMBRAPA data set
 embrapa2.tb <- sits_getdata(file = "inst/extdata/samples/dados_matogrosso_alex.json.gz")
 
-embrapa2.tb <- dplyr::filter (embrapa.tb, label != "Water")
+embrapa2.tb <- dplyr::filter (embrapa2.tb, label != "Water")
+
+bands <- c("ndvi", "evi", "nir", "mir")
+
+embrapa2.tb <- sits_select(embrapa2.tb, bands)
+
+patterns.tb <- sits_patterns(embrapa2.tb)
+
+sits_plot (patterns.tb, type = "patterns")
 
 newlabels3.lst <- tibble::lst (
     "Fallow_Cotton"   = "Fallow_Cotton",
@@ -25,6 +33,10 @@ newlabels3.lst <- tibble::lst (
     "Soy_Sorghum"     = "Soy_Coverage")
 
 embrapa2.tb <- sits_relabel (embrapa2.tb, newlabels3.lst)
+
+patterns2.tb <- sits_patterns(embrapa2.tb)
+
+sits_plot (patterns2.tb, type = "patterns")
 
 # test accuracy of TWDTW to measure distances
 conf_svm.tb <- sits_kfold_validate(embrapa2.tb, folds = 2,

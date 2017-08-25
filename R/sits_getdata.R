@@ -461,3 +461,42 @@ sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wts
      return (data.tb)
 }
 
+#' @title Obtain a confusion matrix from a compressed JSON file.
+#'
+#' @name sits_conf_fromGZ
+#'
+#' @description reads a set of data and metadata for satellite image time series from a compressed JSON file
+#'
+#' @param gz_file  string  - name of a compressed JSON file with sits data and metadata
+#' @return data.tb    tibble  - a SITS table
+#' @export
+sits_conf_fromGZ <- function (file) {
+
+    # uncompress the file
+    json_file <- R.utils::gunzip (file, remove = FALSE)
+    # retrieve the data
+    conf.tb <- sits_conf_fromJSON (json_file)
+    # remove the uncompressed file
+    file.remove (json_file)
+
+    # return the JSON file
+    return (conf.tb)
+}
+
+#' @title Obtain a confusion matrix from a JSON file.
+#'
+#' @name sits_conf_fromJSON
+#'
+#' @description reads a set of data and metadata for satellite image time series from a JSON file
+#'
+#' @param json_file  string  - name of a JSON file with sits data and metadata
+#' @return data.tb    tibble  - a SITS table
+#' @export
+sits_conf_fromJSON <- function (file) {
+    # add the contents of the JSON file to a SITS table
+    table <- tibble::as_tibble (jsonlite::fromJSON (file))
+
+    return (table)
+}
+
+
