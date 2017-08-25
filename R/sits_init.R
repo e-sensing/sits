@@ -14,9 +14,10 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n",
                          "distance", "predicted", "new_values",
-                         "Alig.N", "matches", "Reference"))
+                         "Alig.N", "matches", "Reference", "cluster"))
 
 #' @import dtwSat
 #' @import dtwclust
+#' @importFrom dtw symmetric1 symmetric2
 #' @useDynLib sits, .registration = TRUE
 NULL

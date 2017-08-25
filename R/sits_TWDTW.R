@@ -119,50 +119,36 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
 sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
                                 alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE, multicores = 1) {
 
-    if (multicores > 1 ) {
-        result_fun <- function (data.tb, patterns.tb) {
+    result_fun <- function (data.tb, patterns.tb) {
 
-            # compute partition vector
+        # compute partition vector
+        part.vec <- rep.int(1, NROW(data.tb))
+        if(multicores > 1)
             part.vec <- cut(seq(NROW(data.tb)), multicores, labels = FALSE)
 
-            # compute partition list putting each set of same value of part.vec inside corresponding list element
-            part.lst <- 1:multicores %>%
-                purrr::map(function(i) data.tb[part.vec == i,] )
+        # compute partition list putting each set of same value of part.vec inside corresponding list element
+        part.lst <- 1:multicores %>%
+            purrr::map(function(i) data.tb[part.vec == i,] )
 
-            # prepare function to be passed to `parallel::mclapply`. this function returns a distance table to each partition
-            multicore_fun <- function(part.tb){
-                matches.tb <- sits_TWDTW_matches(part.tb, patterns.tb, bands = bands, dist.method = dist.method,
+        # prepare function to be passed to `parallel::mclapply`. this function returns a distance table to each partition
+        multicore_fun <- function(part.tb){
+            matches.tb <- sits_TWDTW_matches(part.tb, patterns.tb, bands = bands, dist.method = dist.method,
                                              alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
-                result.tb <- sits_spread_matches(matches.tb)
+            result.tb <- sits_spread_matches(matches.tb)
             return(result.tb)
-            }
+        }
 
-            # get the matches from the sits_TWDTW_matches
-            distances.lst <- parallel::mclapply(part.lst, multicore_fun, mc.cores = multicores)
-
+        # get the matches from the sits_TWDTW_matches
+        distances.lst <- parallel::mclapply(part.lst, multicore_fun, mc.cores = multicores)
 
         # compose final result binding each partition by row
         distances.tb <- dplyr::bind_rows(distances.lst)
 
         return (distances.tb)
-
-        }
     }
-    else {
-        result_fun <- function (data.tb, patterns.tb) {
 
-            # get the matches from the sits_TWDTW_matches
-            matches.tb <- sits_TWDTW_matches (data.tb, patterns.tb, bands = bands, dist.method = dist.method,
-                                          alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
-
-            # convert the matches into distances
-            distances.tb <- sits_spread_matches(matches.tb)
-
-            return (distances.tb)
-        }
-    }
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
-
+    return (result)
 }
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
 #' @name sits_TWDTW_classify
