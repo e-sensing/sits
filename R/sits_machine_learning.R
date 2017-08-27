@@ -265,6 +265,7 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
     return(result)
 }
 
+
 #' @title Train SITS classifiction models
 #' @name sits_rfor
 #'
@@ -291,17 +292,17 @@ sits_rfor <- function(distances.tb = NULL, n_tree = 500, ...) {
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
 
 
-        # categorias.rfore <- randomForest(y = factor(yTrain), x = xTrain, data=NULL,
-        #                                  ntree=ntreesrf, nodesize = nodesizerf, norm.votes=FALSE)
         # call `randomForest::randomForest` method and return the trained multinom model
-        result_rfor <- randomForest::randomForest(y = data.matrix(train_data.tb$reference),
-                                                  x = log(data.matrix(train_data.tb[,3:NCOL(train_data.tb)])),
+        df <- data.frame (train_data.tb[-1:0])
+        result_rfor <- randomForest::randomForest(x = df[-1:0],
+                                                  y = as.factor(df$reference),
                                                   data = NULL, ntree = n_tree, nodesize = 1,
                                                   norm.votes = FALSE, ...)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
-            return(stats::predict(result_rfor, newdata = log(data.matrix(values.tb[,3:NCOL(values.tb)])), type = "response"))
+#            return(stats::predict(result_rfor, newdata = log(data.matrix(values.tb[,3:NCOL(values.tb)])), type = "response"))
+            return(stats::predict(result_rfor, newdata = values.tb, type = "response"))
         }
         return(model_predict)
     }
@@ -373,6 +374,38 @@ sits_formula_linear <- function(predictors_index = -2:0){
 
         # compute formula result
         result_for <- stats::as.formula(paste0("factor(reference)~", paste0(paste0(categories, collapse = "+"))))
+        return(result_for)
+    }
+    return(result_fun)
+}
+
+#' @title Train SITS classifiction models
+#' @name sits_formula_smooth
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description A function to be used as a symbolic description of some fitting models such as gam.
+#' `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
+#' If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
+#'
+#' @param predictors_index  the index of the valid columns whose names are used to compose formula (default: NULL)
+#' @return result_fun       a function that computes a valid formula
+#' @export
+#'
+sits_formula_smooth <- function(predictors_index = -2:0){
+
+    # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
+    # respectivelly, the reference and predictors fields of tibble in `tb` parameter.
+    result_fun <- function(tb){
+
+        # if no predictors_index are given, assume that all tb's fields are used
+        if (is.null(predictors_index))
+            predictors_index <- 1:NROW(tb)
+
+        # get predictors names
+        categories <- names(tb)[c(predictors_index)]
+
+        # compute formula result
+        result_for <- stats::as.formula(paste0("factor(reference)~", paste0(paste0('s(`', categories, '`)'), collapse = "+")))
         return(result_for)
     }
     return(result_fun)

@@ -7,10 +7,10 @@
 sits_conf_fromJSON(file)
 }
 \arguments{
-\item{json_file}{string  - name of a JSON file with sits data and metadata}
+\item{file}{string  - name of a JSON file with sits data and metadata}
 }
 \value{
-data.tb    tibble  - a SITS table
+data.tb    tibble  with a confusion matrix
 }
 \description{
 reads a set of data and metadata for satellite image time series from a JSON file

@@ -467,8 +467,8 @@ sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wts
 #'
 #' @description reads a set of data and metadata for satellite image time series from a compressed JSON file
 #'
-#' @param gz_file  string  - name of a compressed JSON file with sits data and metadata
-#' @return data.tb    tibble  - a SITS table
+#' @param file        string  - name of a compressed JSON file with sits data and metadata
+#' @return data.tb    tibble  with a confusion matrix
 #' @export
 sits_conf_fromGZ <- function (file) {
 
@@ -489,8 +489,8 @@ sits_conf_fromGZ <- function (file) {
 #'
 #' @description reads a set of data and metadata for satellite image time series from a JSON file
 #'
-#' @param json_file  string  - name of a JSON file with sits data and metadata
-#' @return data.tb    tibble  - a SITS table
+#' @param  file       string  - name of a JSON file with sits data and metadata
+#' @return data.tb    tibble  with a confusion matrix
 #' @export
 sits_conf_fromJSON <- function (file) {
     # add the contents of the JSON file to a SITS table
