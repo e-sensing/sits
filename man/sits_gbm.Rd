@@ -5,8 +5,8 @@
 \title{Train SITS classifiction models with Gradient Boosting Machine}
 \usage{
 sits_gbm(distances.tb = NULL, formula = sits_formula_logref(),
-  distribution = "multinomial", n.trees = 500, interaction.depth = 4,
-  shrinkage = 0.001, cv.folds = 3, n.cores = 1, ...)
+  distribution = "multinomial", n.trees = 5000, interaction.depth = 4,
+  shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...)
 }
 \arguments{
 \item{distances.tb}{a time series with a set of distance measures for each training sample}

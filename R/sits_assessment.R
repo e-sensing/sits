@@ -22,8 +22,8 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
 
     # recover predicted and reference vectors from input
-    pred.vec <- conf.tb$Prediction
-    ref.vec  <- conf.tb$Reference
+    pred.vec <- conf.tb$predicted
+    ref.vec  <- conf.tb$reference
 
     # remove predicted labels' extensions
     if (pred_sans_ext)
@@ -31,7 +31,7 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
     # convert class names
     if (!purrr::is_null(conv.lst)) {
-        names_ref <- dplyr::pull (dplyr::distinct (conf.tb, Reference))
+        names_ref <- dplyr::pull (dplyr::distinct (conf.tb, reference))
         ensurer::ensure_that(names_ref,
                              all(. %in% names(conv.lst)),
                              err_desc = "sits_accuracy: conversion list does not contain all reference labels")
@@ -188,7 +188,7 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
         ref.vec <<-  c(ref.vec, e[(mid+1):length(e)])
     })
 
-    conf.tb <- tibble::tibble("Prediction" = pred.vec, "Reference" = ref.vec)
+    conf.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
 
     return (conf.tb)
 }
@@ -331,10 +331,10 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
      # retrieve the predicted labels
      pred.vec  <- as.character(purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
 
-     conf.lst <- tibble::lst("Prediction" = pred.vec, "Reference" = ref.vec)
+     conf.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
 
      # calculate the accuracy assessment
-     assess <- sits_accuracy(conf.lst, pred_sans_ext = TRUE)
+     assess <- sits_accuracy(conf.tb, pred_sans_ext = TRUE)
 
      return (assess)
 }

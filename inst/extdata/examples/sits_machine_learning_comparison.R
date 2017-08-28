@@ -12,6 +12,10 @@ bands <- c ("ndvi", "evi", "nir", "mir")
 
 embrapa.tb <- sits_select (embrapa.tb, bands)
 
+patterns.tb <- sits_patterns(embrapa.tb)
+
+sits_plot (patterns.tb, type = "patterns")
+
 # test accuracy of TWDTW to measure distances
 conf_rfor.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 1,
                                    pt_method   = sits_gam(),

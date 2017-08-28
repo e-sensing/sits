@@ -14,7 +14,7 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
                          "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n",
                          "distance", "predicted", "new_values",
-                         "Alig.N", "matches", "Reference", "cluster"))
+                         "Alig.N", "matches", "reference", "cluster"))
 
 #' @import dtwSat
 #' @import dtwclust

@@ -289,7 +289,7 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @export
 #'
-sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distribution = "multinomial", n.trees = 500, interaction.depth = 4, shrinkage = 0.001, cv.folds = 3, n.cores = 1, ...) {
+sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distribution = "multinomial", n.trees = 5000, interaction.depth = 4, shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...) {
 
     # function that returns glmnet::multinom model based on a sits sample tibble
     result_fun <- function(train_data.tb){
@@ -313,7 +313,8 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
         # construct model predict enclosure function and returns
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
-            return(stats::predict(result_gbm, newdata = values.tb, best.iter))
+            result <- stats::predict(result_gbm, newdata = values.tb, best.iter)
+            return(colnames(result)[max.col(result[,,1])])
         }
         return(model_predict)
     }
