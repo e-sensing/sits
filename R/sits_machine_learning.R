@@ -3,7 +3,7 @@
 #' computed by the TWTDW function (see documentation on sits_TWDTW_matches)
 #'
 #'
-#' models supported: 'svm', 'random forests', 'boosting', 'lda',
+#' models supported: 'svm', 'random forests', 'boosting', 'lda', 'qda'
 #'                   'multinomial logit', 'lasso', 'ridge', 'elnet', 'best model'
 
 #' @title Train SITS classification models
@@ -220,7 +220,7 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     return(result)
 }
 
-#' @title Train SITS classifiction models
+#' @title Train SITS classifiction models with Generalised Linear Models
 #' @name sits_glm
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -265,6 +265,63 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
     return(result)
 }
 
+#' @title Train SITS classifiction models with Gradient Boosting Machine
+#' @name sits_gbm
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Use generalized liner model (glm) via penalized maximim likelihood to classify data.
+#' This function is a front-end to the "cv.glmnet" method in the "glmnet" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param distances.tb     a time series with a set of distance measures for each training sample
+#' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
+#' @param distribution     the name of the distribution. Either "multinomial" for classification)
+#' @param n.trees          Number of trees to fit. This should not be set to too small a number,
+#'                         to ensure that every input row gets predicted at least a few times. (default: 500)
+#' @param interaction.depth  The maximum depth of variable interactions. 1 implies an additive model, 2 implies a model with up to 2-way interactions.
+#' @param shrinkage        a shrinkage parameter applied to each tree in the expansion.
+#'                         Also known as the learning rate or step-size reduction.
+#' @param cv.folds         number of cross-validations to run
+#' @param n.cores          number of cores to run
+#' @param ...              other parameters to be passed to `gbm::gbm` function
+#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#' @export
+#'
+sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distribution = "multinomial", n.trees = 500, interaction.depth = 4, shrinkage = 0.001, cv.folds = 3, n.cores = 1, ...) {
+
+    # function that returns glmnet::multinom model based on a sits sample tibble
+    result_fun <- function(train_data.tb){
+
+        # is the input data the result of a TWDTW matching function?
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_glm: input data does not contain distance")
+
+        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        if (class(formula) == "function")
+            formula <- formula(train_data.tb)
+
+        # call gbm::gbm method and return the trained multinom model
+        df <- data.frame (train_data.tb[-1:0])
+        result_gbm <- gbm::gbm(formula = formula, data = df,
+                               distribution = distribution, n.trees = n.trees, interaction.depth = interaction.depth,
+                               shrinkage = shrinkage, cv.folds = cv.folds, n.cores = n.cores,...)
+
+        # check performance using 5-fold cross-validation
+        best.iter <- gbm::gbm.perf(result_gbm, method="cv")
+
+        # construct model predict enclosure function and returns
+        # construct model predict enclosure function and returns
+        model_predict <- function(values.tb){
+            return(stats::predict(result_gbm, newdata = values.tb, best.iter))
+        }
+        return(model_predict)
+    }
+
+    result <- .sits_factory_function (distances.tb, result_fun)
+    return(result)
+}
+
 
 #' @title Train SITS classifiction models
 #' @name sits_rfor
@@ -277,13 +334,13 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param distances.tb     a time series with a set of distance measures for each training sample
-#' @param n_tree           Number of trees to grow. This should not be set to too small a number,
+#' @param ntree            Number of trees to grow. This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted at least a few times. (default: 500)
 #' @param ...              other parameters to be passed to `randomForest::randomForest` function
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @export
 #'
-sits_rfor <- function(distances.tb = NULL, n_tree = 500, ...) {
+sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
 
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
     result_fun <- function(train_data.tb){
@@ -296,12 +353,11 @@ sits_rfor <- function(distances.tb = NULL, n_tree = 500, ...) {
         df <- data.frame (train_data.tb[-1:0])
         result_rfor <- randomForest::randomForest(x = df[-1:0],
                                                   y = as.factor(df$reference),
-                                                  data = NULL, ntree = n_tree, nodesize = 1,
+                                                  data = NULL, ntree = ntree, nodesize = 1,
                                                   norm.votes = FALSE, ...)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
-#            return(stats::predict(result_rfor, newdata = log(data.matrix(values.tb[,3:NCOL(values.tb)])), type = "response"))
             return(stats::predict(result_rfor, newdata = values.tb, type = "response"))
         }
         return(model_predict)

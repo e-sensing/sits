@@ -13,14 +13,15 @@ bands <- c ("ndvi", "evi", "nir", "mir")
 embrapa.tb <- sits_select (embrapa.tb, bands)
 
 # test accuracy of TWDTW to measure distances
-conf_rfor.tb <- sits_kfold_validate(embrapa.tb, folds = 2, multicores = 1,
+conf_rfor.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 1,
                                    pt_method   = sits_gam(),
                                    dist_method = sits_TWDTW_distances(multicores = 1),
                                    tr_method   = sits_rfor ())
 print("==================================================")
 print ("== Confusion Matrix = RFOR =======================")
-sits_accuracy(conf_rfor.tb)
+rfor.mx <- sits_accuracy(conf_rfor.tb)
 
+sits_save(conf_rfor.tb, file = "./inst/extdata/results/rfor_5folds.json")
 
 # test accuracy of TWDTW to measure distances
 conf_svm.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 1,
