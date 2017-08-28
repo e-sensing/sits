@@ -6,6 +6,12 @@ library (sits)
 #load a data set for with samples for classes "Cerrado" and "Pasture"
 cerrado.tb <- sits_getdata(file = system.file("extdata/samples/cerrado.json.gz", package="sits"))
 
+patterns.tb <- sits_gam(cerrado.tb)
+
+distances.tb <- sits_TWDTW_distances(cerrado.tb, patterns.tb)
+
+gbm_model <- sits_gbm (distances.tb)
+
 # test accuracy of TWDTW to measure distances
 conf_twdtw.tb <- sits_kfold_validate(cerrado.tb, folds = 2,
                                      pt_method   = sits_gam(),

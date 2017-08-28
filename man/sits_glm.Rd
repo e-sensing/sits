@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_glm}
 \alias{sits_glm}
-\title{Train SITS classifiction models}
+\title{Train SITS classifiction models with Generalised Linear Models}
 \usage{
 sits_glm(distances.tb = NULL, family = "multinomial", alpha = 1,
   lambda_kfolds = 10, ...)

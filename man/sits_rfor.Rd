@@ -4,12 +4,12 @@
 \alias{sits_rfor}
 \title{Train SITS classifiction models}
 \usage{
-sits_rfor(distances.tb = NULL, n_tree = 500, ...)
+sits_rfor(distances.tb = NULL, ntree = 500, ...)
 }
 \arguments{
 \item{distances.tb}{a time series with a set of distance measures for each training sample}
 
-\item{n_tree}{Number of trees to grow. This should not be set to too small a number,
+\item{ntree}{Number of trees to grow. This should not be set to too small a number,
 to ensure that every input row gets predicted at least a few times. (default: 500)}
 
 \item{...}{other parameters to be passed to `randomForest::randomForest` function}
