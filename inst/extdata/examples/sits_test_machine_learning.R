@@ -25,7 +25,7 @@ distances.tb$predicted <- result
 sits_accuracy(distances.tb)
 
 # test accuracy of TWDTW to measure distances
-conf_dl.tb <- sits_kfold_validate(cerrado.tb, folds = 2,
+conf_dl.tb <- sits_kfold_validate(cerrado.tb, folds = 5,
                                      pt_method   = sits_gam(),
                                      dist_method = sits_TWDTW_distances(),
                                      tr_method   = sits_deep_learning ())
