@@ -368,6 +368,57 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
     return(result)
 }
 
+#' @title Train SITS classifiction models with deep learning
+#' @name sits_deep_learning
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Use deep learning algorithm to classify data.
+#' This function is a front-end to the "deeplearning" method in the "randomForest" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param distances.tb     a time series with a set of distance measures for each training sample
+#' @param ...              other parameters to be passed to `h2o::h2o.deeplearning` function
+#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#' @export
+#'
+sits_deep_learning <- function(distances.tb = NULL, ...) {
+
+
+    # function that returns `randomForest::randomForest` model based on a sits sample tibble
+    result_fun <- function(train_data.tb){
+
+        # is the input data the result of a TWDTW matching function?
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
+
+        # list of attributes
+        attrs.lst <- colnames(train_data.tb[-2:0])
+
+        # convert the training data to h2o format
+        train.df           <- data.frame(train_data.tb[-1:0])
+        train.df$reference <- as.factor(train.df$reference)
+        train.h2o          <- h2o::as.h2o(train.df)
+
+        # implement deep learning
+        result.h2o  <- h2o::h2o.deeplearning(y = "reference", x = attrs.lst,
+                                             training_frame = train.h2o, distribution = "multinomial")
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(values.tb){
+            vls.df           <- data.frame (values.tb[-1:0])
+            vls.df$reference <- as.factor(vls.df$reference)
+            vls.h2o          <- h2o::as.h2o(vls.df)
+            pred.h2o         <- h2o::h2o.predict(result.h2o, newdata = vls.h2o)
+
+            return ( as.character(as.vector(pred.h2o$predict)) )
+        }
+        return(model_predict)
+    }
+
+    result <- .sits_factory_function (distances.tb, result_fun)
+    return(result)
+}
 #' @title Train SITS classifiction models
 #' @name sits_formula_logref
 #'
