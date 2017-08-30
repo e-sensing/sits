@@ -455,7 +455,7 @@ sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) 
 
             # append bands names' suffixes
             if (nchar(bands_suffix) != 0)
-                names(ts_computed.lst) <- paste0(bands, ".", bands_suffix)
+                names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
 
             # unlist if there are more than one result from `fun`
             if (is.recursive(ts_computed.lst[[1]]))
