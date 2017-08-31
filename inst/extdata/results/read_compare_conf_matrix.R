@@ -15,6 +15,14 @@ for (i in 1:length(json_files)) {
     sits_accuracy_save(conf.mx, prefix)
 }
 
+json_file <- "./inst/extdata/results/lasso_new.json.gz"
+
+conf.data <- sits_conf_fromGZ(json_file)
+
+conf.mx <- sits_accuracy(conf.data)
+
+sits_accuracy_save(conf.mx, "./inst/extdata/results/lasso_new")
+
 newlabels1.lst <- tibble::lst (
     "Fallow_Cotton"   = "Fallow_Cotton",
     "Cerrado"         = "Cerrado",

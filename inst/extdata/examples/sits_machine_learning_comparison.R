@@ -4,17 +4,35 @@
 #load the sits library
 library (sits)
 #load a data set for with samples for EMBRAPA data set
-embrapa.tb <- sits_getdata(file = "./inst/extdata/samples/dados_matogrosso_alex.json.gz")
+embrapa.tb <- sits_getdata(file = "./inst/extdata/samples/embrapa_10classes.json.gz")
 
-embrapa.tb <- dplyr::filter (embrapa.tb, label != "Water")
 
-bands <- c ("ndvi", "evi", "nir", "mir")
+# test accuracy of TWDTW to measure distances
+conf_gbm.tb <- sits_kfold_validate(embrapa2.tb, folds = 5, multicores = 1,
+                                   pt_method   = sits_gam(),
+                                   dist_method = sits_TWDTW_distances(multicores = 1),
+                                   tr_method   = sits_gbm (n.cores = 1))
+print("==================================================")
+print ("== Confusion Matrix = GBM =======================")
+gbm.mx <- sits_accuracy(conf_gbm.tb)
 
-embrapa.tb <- sits_select (embrapa.tb, bands)
 
-patterns.tb <- sits_patterns(embrapa.tb)
 
-sits_plot (patterns.tb, type = "patterns")
+# generalized liner model (glm)
+conf_glm.tb <- sits_kfold_validate(embrapa2.tb, folds = 5, multicores = 1,
+                                   pt_method   = sits_gam(),
+                                   dist_method = sits_TWDTW_distances(multicores = 1),
+                                   tr_method   = sits_glm())
+
+# print the accuracy of the generalized liner model (glm)
+print("===============================================")
+print ("== Confusion Matrix = GLM  =======================")
+sits_accuracy(conf_glm.tb)
+
+sits_save (conf_glm.tb, file = ".inst/extdata/results/glm_5folds.json")
+
+
+
 
 # test accuracy of TWDTW to measure distances
 conf_rfor.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 1,

@@ -49,8 +49,3 @@ embrapa_damien_all_agro.tb <- dplyr::bind_rows(embrapa_damien_all_agro.tb, water
 
 # test cross-validation with DTW distances and all bands
 
-# test accuracy of TWDTW to measure distances
-conf_svm_dtw.tb <- sits_kfold_validate(embrapa_damien_all_agro.tb, folds = 2,
-                                       pt_method   = sits_gam(),
-                                       dist_method = sits_TS_distances(distance = "dtw"),
-                                       tr_method   = sits_svm (cost = 100, method = "radial"))
