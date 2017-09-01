@@ -120,7 +120,7 @@ sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suf
                                 # Proceedings of the Edinburgh Mathematical Society, 41, 63-73.
                                 I <- diag(length(band))
                                 D <- diff(I, lag = 1, differences = differences)
-                                return(solve(I + (lambda * D %*% t(D))))
+                                return(solve(I + (lambda * t(D) %*% D)))
                             },
                             fun_index = function(band) band,
                             bands_suffix = bands_suffix)
