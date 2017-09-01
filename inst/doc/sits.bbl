@@ -1,0 +1,55 @@
+\begin{thebibliography}{6}
+\newcommand{\enquote}[1]{``#1''}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\urlprefix}{URL }
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
+  \providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
+  \urlstyle{rm}\Url}\fi
+\providecommand{\eprint}[2][]{\url{#2}}
+
+\bibitem[{Arvor \emph{et~al.}(2012)Arvor, Meirelles, Dubreuil, Begue, and
+  Shimabukuro}]{Arvor2012}
+Arvor D, Meirelles M, Dubreuil V, Begue A, Shimabukuro YE (2012).
+\newblock \enquote{Analyzing the agricultural transition in Mato Grosso,
+  Brazil, using satellite-derived indices.}
+\newblock \emph{Applied Geography}, \textbf{32}(2), 702--713.
+
+\bibitem[{Galford \emph{et~al.}(2008)Galford, Mustard, Melillo, Gendrin, Cerri,
+  and Cerri}]{Galford2008}
+Galford GL, Mustard JF, Melillo J, Gendrin A, Cerri CC, Cerri CE (2008).
+\newblock \enquote{Wavelet analysis of MODIS time series to detect expansion
+  and intensification of row-crop agriculture in Brazil.}
+\newblock \emph{Remote sensing of environment}, \textbf{112}(2), 576--587.
+
+\bibitem[{Kennedy \emph{et~al.}(2010)Kennedy, Yang, and Cohen}]{Kennedy2010}
+Kennedy RE, Yang Z, Cohen WB (2010).
+\newblock \enquote{Detecting trends in forest disturbance and recovery using
+  yearly {L}andsat time series.}
+\newblock \emph{Remote Sensing of Environment}, \textbf{114}(12), 2897--2910.
+
+\bibitem[{Lambin and Linderman(2006)}]{Lambin2006}
+Lambin E, Linderman M (2006).
+\newblock \enquote{Time series of remote sensing data for land change science.}
+\newblock \emph{IEEE Transactions on Geoscience and Remote Sensing},
+  \textbf{44}(7), 1926--1928.
+
+\bibitem[{Pasquarella \emph{et~al.}(2016)Pasquarella, Holden, Kaufman, and
+  Woodcock}]{Pasquarella2016}
+Pasquarella VJ, Holden CE, Kaufman L, Woodcock CE (2016).
+\newblock \enquote{From imagery to ecology: leveraging time series of all
+  available Landsat observations to map and monitor ecosystem state and
+  dynamics.}
+\newblock \emph{Remote Sensing in Ecology and Conservation}, \textbf{2}(3),
+  152--170.
+\newblock ISSN 2056-3485.
+
+\bibitem[{Stonebraker \emph{et~al.}(2013)Stonebraker, Brown, Zhang, and
+  Becla}]{Stonebraker2013}
+Stonebraker M, Brown P, Zhang D, Becla J (2013).
+\newblock \enquote{SciDB: A database management system for applications with
+  complex analytics.}
+\newblock \emph{Computing in Science \& Engineering}, \textbf{15}(3), 54--62.
+
+\end{thebibliography}

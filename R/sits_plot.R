@@ -5,31 +5,31 @@
 #'
 #' Plot one SITS time series for a single place and interval
 #'
-#' @param    data.tb    tibble - a SITS table with the list of time series to be plotted
-#' @param    type       string - the type of plot to be generated
-#' @param    colors     the color pallete to be used (default is "Set1")
-#' @param    label      the class label
-#' @param    start_date the start date of the plot (used for showing classifications)
-#' @param    end_date   the end date of the plot (used for showing classifications)
-#' @param    interval   the interval between classifications (used for showing classifications)
-#' @param    overlap    minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.
-#' @param    n_matches  number of matches of a given label to be displayed
-#' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
+#' @param  data.tb      tibble - a SITS table with the list of time series to be plotted
+#' @param  patterns.tb  patterns SITS tibble used to matching
+#' @param  type         string - the type of plot to be generated
+#' @param  colors       the color pallete to be used (default is "Set1")
+#' @param  start_date   the start date of the plot (used for showing classifications)
+#' @param  end_date     the end date of the plot (used for showing classifications)
+#' @param  interval     the interval between classifications (used for showing classifications)
+#' @param  overlap      minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.
+#' @param  n_matches    number of matches of a given label to be displayed
+#' @return data.tb      tibble - the input SITS table (useful for chaining functions)
 #' @export
 #'
-sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", label = NULL, n_matches = 4,
+sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = "Dark2", n_matches = 4,
                        start_date = NULL, end_date = NULL, interval = "12 month", overlap = 0.5) {
      # check the input exists
-     ensurer::ensure_that(data.tb, !purrr::is_null(.), err_desc = "sits_plot: input data not provided")
+    .sits_test_table (data.tb)
 
      switch(type,
             "allyears"       = .sits_plot_allyears (data.tb, colors),
             "one_by_one"     = .sits_plot_one_by_one (data.tb, colors),
             "together"       = .sits_plot_together (data.tb, colors),
             "patterns"       = .sits_plot_patterns (data.tb),
-            "classification" = .sits_plot_classification (data.tb, start_date, end_date, interval, overlap),
-            "alignments"     = .sits_plot_alignments (data.tb),
-            "matches"        = .sits_plot_matches (data.tb, label, n_matches),
+            "classification" = .sits_plot_classification (data.tb, patterns.tb, start_date, end_date, interval, overlap),
+            "alignments"     = .sits_plot_alignments (data.tb, patterns.tb),
+            "matches"        = .sits_plot_matches (data.tb, patterns.tb, n_matches),
             message (paste ("sits_plot: valid plot types are allyears,
                             one_by_one, together, patterns, classification, alignments, matches", "\n", sep = ""))
             )
@@ -91,45 +91,63 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 #'
 #' @description plots the results of TWDTW classification (uses dtwSat)
 #' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
-.sits_plot_classification <- function (data.tb, start_date, end_date, interval, overlap){
-     # retrieve a dtwSat S4 twdtwMatches object
-     data.tb %>%
-          purrrlyr::by_row( function (r) {
-               if (purrr::is_null (start_date) | purrr::is_null (end_date))
-                    dplot <- dtwSat::plot (r$matches[[1]], type = "classification", overlap = 0.5)
-               else
-                    dplot <- dtwSat::plot (r$matches[[1]], type = "classification", from = start_date,
-                                           to = end_date, by = interval, overlap = overlap)
-               graphics::plot(dplot)
+.sits_plot_classification <- function (data.tb, patterns.tb, start_date, end_date, interval, overlap){
 
-          })
+    # does the input data exist?
+    .sits_test_table (data.tb)
+    .sits_test_table (patterns.tb)
+    # retrieve a dtwSat S4 twdtwMatches object
+    data.tb %>%
+        .sits_toTWDTW_matches(patterns.tb) %>%
+        purrr::map(function (m.twdtw) {
+            if (purrr::is_null (start_date) | purrr::is_null (end_date))
+                dplot <- dtwSat::plot (m.twdtw, type = "classification", overlap = 0.5)
+            else
+                dplot <- dtwSat::plot (m.twdtw, type = "classification", from = start_date,
+                                       to = end_date, by = interval, overlap = overlap)
+            graphics::plot(dplot)
+
+        })
 }
 #' @title Plot classification alignments
 #' @name .sits_plot_alignments
 #'
 #' @description plots the alignments from TWDTW classification (uses dtwSat)
-#' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
-.sits_plot_alignments <- function (data.tb){
-     data.tb %>%
-          purrrlyr::by_row( function (r) {
-               dtwSat::plot (r$matches[[1]], type = "alignments") %>%
-                    graphics::plot()
-          })
+#' @param data.tb      one or more time series containing classification results (stored in a SITS tibble)
+#' @param patterns.tb  patterns SITS tibble used to matching
+#'
+.sits_plot_alignments <- function (data.tb, patterns.tb){
+    #does the input data exist?
+    .sits_test_table (data.tb)
+    .sits_test_table (patterns.tb)
+
+    data.tb %>%
+        .sits_toTWDTW_matches(patterns.tb) %>%
+        purrr::map( function (m.twdtw) {
+            dtwSat::plot (m.twdtw, type = "alignments") %>%
+                graphics::plot()
+        })
 }
 #' @title Plot matches between a label pattern and a time series
 #' @name .sits_plot_matches
 #'
 #' @description plots the matches from TWDTW classification for one label
-#' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
-#' @param label      the class label
-#' @param n_matches  number of matches of a given label to be displayed
-.sits_plot_matches <- function (data.tb, label, n_matches) {
-     ensurer::ensure_that(label, !purrr::is_null(.), err_desc = "sits_plot matches: label must be provided")
-     data.tb %>%
-          purrrlyr::by_row( function (r) {
-               dtwSat::plot (r$matches, type = "matches", patterns.labels = label, k = n_matches) %>%
-               graphics::plot()
-     })
+#' @param data.tb      one or more time series containing classification results (stored in a SITS tibble)
+#' @param patterns.tb  patterns SITS tibble used to matching
+#' @param n_matches    number of matches of a given label to be displayed
+#'
+.sits_plot_matches <- function (data.tb, patterns.tb, n_matches) {
+
+    #does the input data exist?
+    .sits_test_table (data.tb)
+    .sits_test_table (patterns.tb)
+
+        data.tb %>%
+        .sits_toTWDTW_matches(patterns.tb) %>%
+        purrr::map(function (m.twdtw) {
+            dtwSat::plot (m.twdtw, type = "matches", patterns.labels = patterns.tb$label, k = n_matches) %>%
+                graphics::plot()
+        })
 }
 
 #' @title Plot a set of time series for the same spatio-temporal reference
@@ -153,13 +171,14 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
                tibble::as_tibble()                        %>%  # convert data fram to tibble
                dplyr::select (Index, dplyr::starts_with(band))       # select only the index and the chosen band
 
-          # create a data frame with the mean and plus and minus 1 standard deviation
-          # convert to tibble and create now coluns with mean +- std
+          # compute the quantiles
+          qts   = apply (series.tb[,2:ncol(series.tb)],1,stats::quantile, na.rm = TRUE)
+          # create a data frame with the median, and 25% and 75% quantiles
           means.tb <- data.frame  (Index = series.tb$Index,
-                                   rmean = rowMeans(series.tb[,2:ncol(series.tb)], na.rm = TRUE),
-                                   std  = apply   (series.tb[,2:ncol(series.tb)],1,stats::sd, na.rm=TRUE)) %>%
-               tibble::as_tibble() %>%
-               dplyr::mutate (stdplus = rmean + std, stdminus = rmean - std)
+                                   qt25  = qts[2,],
+                                   med   = qts[3,],
+                                   qt75  = qts[4,]) %>%
+               tibble::as_tibble()
 
           # melt the data into long format (required for ggplot to work)
           melted.tb <- series.tb %>%
@@ -237,9 +256,9 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
      g <- ggplot2::ggplot(data = melted.tb, ggplot2::aes(x = Index, y = value, group = variable)) +
           ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
           ggplot2::labs (title = plot_title) +
-          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = rmean), colour = "#B16240", size = 2, inherit.aes=FALSE) +
-          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = stdplus), colour = "#B19540", size = 1, inherit.aes=FALSE) +
-          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = stdminus), colour = "#B19540", size = 1, inherit.aes=FALSE)
+          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = med),  colour = "#B16240", size = 2, inherit.aes=FALSE) +
+          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = qt25), colour = "#B19540", size = 1, inherit.aes=FALSE) +
+          ggplot2::geom_line (data = means.tb, ggplot2::aes (x = Index, y = qt75), colour = "#B19540", size = 1, inherit.aes=FALSE)
      return (g)
 
 }
@@ -271,12 +290,9 @@ sits_plot <- function (data.tb = NULL, type = "allyears", colors = "Dark2", labe
 #' @param ...           Other parameters to be passed to graphics::plot() function
 #' @export
 sits_plot_dendrogram <- function(data.tb,
-                                 cluster_obj = NULL,
+                                 cluster_obj,
                                  cutree_height = NULL,
                                  colors = "RdYlGn", ...){
-     # get cluster_obj
-     if (is.null(cluster_obj))
-          cluster_obj <- sits_last_cluster()
 
      # ensures that a cluster object is informed or exists in .sits_last_cluster global variable.
      ensurer::ensure_that(cluster_obj, !is.null(.), err_desc = "plot_dendrogram: no valid `cluster_obj` informed or found in `.sits_last_cluster`.")
@@ -296,7 +312,7 @@ sits_plot_dendrogram <- function(data.tb,
 
      # prepare labels color vector
      cols <- character(length(data_labels))
-     cols[] <- rgb(0/255,   0/255,   0/255,   0/255)
+     cols[] <- grDevices::rgb(0/255,   0/255,   0/255,   0/255)
      i <- 1
      seq(uniq_labels) %>%
           purrr::map(function (i){
@@ -318,7 +334,7 @@ sits_plot_dendrogram <- function(data.tb,
      # plot legend
      graphics::legend("topright",
                       fill = as.character(.sits_brewerRGB[[sits_color_name(colors)]][[length(uniq_labels)]]),
-                      legend = uniq_labels)
+                      legend = uniq_labels, ...)
 }
 
 

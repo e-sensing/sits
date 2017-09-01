@@ -4,15 +4,15 @@
 \alias{sits_merge}
 \title{Merge two satellite image time series}
 \usage{
-sits_merge(sits1.tb, sits2.tb)
+sits_merge(data1.tb, data2.tb)
 }
 \arguments{
-\item{sits1.tb}{the first SITS table to be merged}
+\item{data1.tb}{the first SITS table to be merged}
 
-\item{sits2.tb}{the second SITS table to be merged}
+\item{data2.tb}{the second SITS table to be merged}
 }
 \value{
-new.tb    a merged SITS tibble with a nested set of time series
+result.tb    a merged SITS tibble with a nested set of time series
 }
 \description{
 This function merges the time series of two STIS tables.

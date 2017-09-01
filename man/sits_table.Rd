@@ -7,7 +7,7 @@
 sits_table()
 }
 \value{
-table  a tibble in SITS format
+result.tb  a tibble in SITS format
 }
 \description{
 this function returns an empty sits table.

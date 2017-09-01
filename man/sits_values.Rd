@@ -21,9 +21,6 @@ this function returns only the values of a sits table (according a specified for
 This function is useful to use packages such as ggplot, dtwclust, or kohonen that
 require values that are rowwise or colwise organised.
 }
-\seealso{
-Other STIS table functions: \code{\link{sits_table_result}}
-}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 
