@@ -4,12 +4,14 @@
 \alias{sits_cluster_cleaner}
 \title{Cluster cleaner}
 \usage{
-sits_cluster_cleaner(data.tb, min_clu_perc)
+sits_cluster_cleaner(data.tb, min_clu_perc = 0, min_lab_perc = 0)
 }
 \arguments{
 \item{data.tb}{a SITS tibble with `cluster` column.}
 
-\item{min_clu_perc}{minimum percentage of representativeness inside a cluster to remain in cluster.}
+\item{min_clu_perc}{minimum percentage of labels inside a cluster to remain in cluster.}
+
+\item{min_lab_perc}{minimum percentage of labels regarding its total to be keeped in cluster.}
 }
 \value{
 result.tb       a SITS tibble with all selected samples

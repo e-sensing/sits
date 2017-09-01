@@ -4,7 +4,7 @@
 \alias{sits_cluster}
 \title{Cuts a cluster tree produced by sits_dendrogram}
 \usage{
-sits_cluster(data.tb, clusters, k)
+sits_cluster(data.tb, clusters, k = NULL, height = NULL)
 }
 \arguments{
 \item{data.tb}{a tibble with input data of dtwclust.}
@@ -12,6 +12,8 @@ sits_cluster(data.tb, clusters, k)
 \item{clusters}{a cluster structure returned from dtwclust.}
 
 \item{k}{the desired number of clusters}
+
+\item{height}{the desired height to cut the dendrogram. At least one of k or height must be specified, k overrides height if both are given.}
 }
 \value{
 result.tb       a SITS table with the clusters or clusters' members

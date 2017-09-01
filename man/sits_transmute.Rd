@@ -9,10 +9,10 @@ sits_transmute(data.tb, ...)
 \arguments{
 \item{data.tb}{a valid sits table}
 
-\item{...}{Name-value pairs of expressions.}
+\item{...}{`name=value` pairs of expressions.}
 }
 \value{
-result.tb    a sits_table with same samples and the new bands
+data.tb      a sits_table with same samples and the new bands
 }
 \description{
 Adds new bands and drops existing in a sits_table's time series,

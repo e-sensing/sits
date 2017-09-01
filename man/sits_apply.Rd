@@ -21,7 +21,7 @@ data.tb    a sits_table with same samples and the new bands
 }
 \description{
 `sits_apply` returns a sits_table with the same samples points and new bands computed by `fun`,
-`fun_index` functions. These functions must be defined inline and are called by `sits_ts_apply` for each band,
+`fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
 whose vector values is passed as the function argument.
 
 `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values

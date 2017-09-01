@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_table.R
 \name{sits_bands}
 \alias{sits_bands}
-\title{returns the names of the bands of a time series}
+\title{names of the bands of a time series}
 \usage{
 sits_bands(data.tb)
 }

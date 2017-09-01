@@ -399,11 +399,13 @@ sits_select <- function (data.tb, bands) {
 #' @param ...           `name=value` pairs of expressions.
 #' @return data.tb      a sits_table with same samples and the new bands
 #' @export
-sits_transmute <- function(data.tb, fun_index = Index, ...){
+sits_transmute <- function(data.tb, ...){
     data.tb$time_series <- data.tb$time_series %>% purrr::map(function(ts.tb) {
         ts_computed.tb <- dplyr::transmute(ts.tb, ...)
         if (!("Index" %in% colnames(ts_computed.tb)))
-            ts_computed.tb <- dplyr::bind_cols(dplyr::select(ts.tb, Index), ts_computed.tb)
+            ts_computed.tb$Index <- ts.tb$Index
+        ts_computed.tb <- ts_computed.tb %>%
+            dplyr::select(Index, dplyr::everything())
         return(ts_computed.tb)
     })
     return(data.tb)

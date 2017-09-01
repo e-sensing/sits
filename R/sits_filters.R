@@ -118,9 +118,14 @@ sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suf
                             fun = function(band){
                                 # According to: Whittaker (1923). On a new method of graduation.
                                 # Proceedings of the Edinburgh Mathematical Society, 41, 63-73.
-                                I <- diag(length(band))
-                                D <- diff(I, lag = 1, differences = differences)
-                                return(solve(I + (lambda * t(D) %*% D)))
+                                id.mtx <- diag(length(band))
+                                diff.mtx <- diff(id.mtx, lag = 1, differences = differences)
+
+                                # system of equations to be solved for band values
+                                smooth.mtx <- id.mtx + (lambda * t(diff.mtx) %*% diff.mtx)
+
+                                # compute solution and return
+                                return(solve(smooth.mtx, band))
                             },
                             fun_index = function(band) band,
                             bands_suffix = bands_suffix)

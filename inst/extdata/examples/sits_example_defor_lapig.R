@@ -36,12 +36,11 @@ series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage 
 
 # plot all the bands, plot them, and save the smoothed bands in a new table
 #smooth the data and put into a new table
-series2.tb <- sits_smooth (series.tb, lambda = 5.0)
+series2.tb <- sits_whittaker (series.tb, lambda = 1.0)
 
 series2.tb %>%
-     sits_rename (c("ndvi_smooth", "evi_smooth", "nir_smooth")) %>%
      sits_merge(series.tb)  %>%
-     sits_select(c("evi_smooth", "evi")) %>%
+     sits_select(c("evi.whit", "evi")) %>%
      sits_plot()
 
 # retrieve a set of samples from a JSON file
