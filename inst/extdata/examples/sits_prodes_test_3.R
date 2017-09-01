@@ -22,10 +22,10 @@ sits_plot(matches.tb, type = "classification", start_date = "2013-08-01", end_da
 
 bands = c("ndvi.lower.upper.whit", "evi.lower.upper.whit")
 
-seriesf_all.tb <- series_all.tb %>% 
-     sits_envelope(window_size = 3) %>% 
-     sits_envelope (window_size = 3) %>% 
-     sits_select (bands = c("ndvi.lower.upper", "evi.lower.upper")) %>% 
+seriesf_all.tb <- series_all.tb %>%
+     sits_envelope(window_size = 3) %>%
+     sits_envelope (window_size = 3) %>%
+     sits_select (bands = c("ndvi.lower.upper", "evi.lower.upper")) %>%
      sits_whittaker(lambda = 2.0)
 
 patterns_f.tb <- sits_patterns ()
@@ -35,4 +35,4 @@ sits_plot (matches.tb, type = "alignments")
 
 class1.tb <- sits_TWDTW_classify (matches1.tb, start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
 sits_plot(matches.tb, type = "classification", start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
->>>>>>> d864f58c1aba6d813a3413858509369a47000989
+

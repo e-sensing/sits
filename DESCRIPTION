@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.8.22
-Date: 2017-08-22
+Version: 0.8.25
+Date: 2017-08-25
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
@@ -33,12 +33,14 @@ Imports:
     ensurer,
     entropy,
     dplyr,
+    dtw,
     dtwclust,
     gbm,
     ggplot2,
     glmnet,
     graphics,
     grDevices,
+    h2o,
     kohonen,
     jsonlite,
     lattice,
@@ -67,26 +69,16 @@ Imports:
     tibble,
     tidyr,
     tools,
-<<<<<<< HEAD
     utils, 
-    wtss,
-    wtsps.R,
-=======
+    wtsps,
     TSdist,
-    utils,
->>>>>>> upstream/master
     zoo
 LinkingTo: 
     Rcpp
 Remotes:
-<<<<<<< HEAD
-     esensing/wtss,
-     luizassis/wtsps.R,
-     vwmaus/dtwSat
-=======
-    e-sensing/wtss,
+     e-sensing/wtss,
+     e-sensing/wtsps,
     rolfsimoes/dtwSat
->>>>>>> upstream/master
 RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'

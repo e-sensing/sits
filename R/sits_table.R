@@ -616,3 +616,23 @@ sits_distance_table <- function (patterns.tb) {
         }
     return (distances.tb)
 }
+
+#' @title Create an empty distance table to store the results of distance metrics
+#' @name sits_distance_table_from_data
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Create an empty distance table to store the results of distance metrics
+#'
+#' @param data.tb     a SITS table with a data set
+#' @return distances.tb   a tibble to store the distances between a time series and a set of patterns
+#' @export
+#'
+sits_distance_table_from_data <- function (data.tb) {
+
+    distances.tb <- tibble::tibble(
+        original_row = 1:NROW(data.tb),
+        reference    = data.tb$label)
+
+    return (distances.tb)
+}

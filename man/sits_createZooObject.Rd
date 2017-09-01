@@ -4,7 +4,7 @@
 \alias{sits_createZooObject}
 \title{Create an indexed ordered obsevartion set within a sits_table.}
 \usage{
-sits_createZooObject(bands, dates, scale_factor, idx)
+sits_createZooObject(bands, dates, scale_factor, idx, missing_values)
 }
 \arguments{
 \item{bands}{a character string vector with the interested bands of the satellite imagery product}
@@ -14,6 +14,8 @@ sits_createZooObject(bands, dates, scale_factor, idx)
 \item{scale_factor}{a real number representing the scale factor of the attribute values}
 
 \item{idx}{a integer vector containing the respective index of the attribute values}
+
+\item{missing_values}{the missing value of the coverage}
 }
 \value{
 ts.tb

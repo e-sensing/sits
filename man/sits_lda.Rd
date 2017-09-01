@@ -4,7 +4,7 @@
 \alias{sits_lda}
 \title{Train SITS classifiction models with Linear Discriminant Analysis}
 \usage{
-sits_lda(distances.tb = NULL, formula = sits_formula_numeric(), ...)
+sits_lda(distances.tb = NULL, formula = sits_formula_logref(), ...)
 }
 \arguments{
 \item{distances.tb}{a time series with a set of distance measures for each training sample}

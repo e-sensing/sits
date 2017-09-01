@@ -7,10 +7,10 @@
 #' @param  dates a string vector contaning time series dates
 #' @param  scale_factor a real number representing the scale factor of the attribute values
 #' @param  idx a integer vector containing the respective index of the attribute values
-#' @param  missing_value the missing value of the coverage
+#' @param  missing_values the missing value of the coverage
 #' @return ts.tb
 #' @export
-sits_createZooObject <- function(bands, dates, scale_factor, idx, missing_value) {
+sits_createZooObject <- function(bands, dates, scale_factor, idx, missing_values) {
 
   # create data.frame dynamically
   df <- data.frame(get(bands[1])[idx])
@@ -23,8 +23,8 @@ sits_createZooObject <- function(bands, dates, scale_factor, idx, missing_value)
   ts <- zoo::zoo(df*scale_factor, dates)
 
   # assign NA values to missing values
-  ts[which(t(t(coredata(ts)) == missing_values))] <- NA
-  
+  ts[which(t(t(zoo::coredata(ts)) == missing_values))] <- NA
+
   # interpolate zoo object
   ts_spline <- zoo::na.spline(ts)
 

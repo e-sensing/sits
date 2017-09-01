@@ -9,7 +9,7 @@
 sits_infoWTSPS <- function (URL = "http://www.dpi.inpe.br/tws/wtsps") {
 
      # obtains information about the WTSS service
-     wtsps.obj         <- wtsps.R::WTSPS(URL)
+     wtsps.obj         <- wtsps::WTSPS(URL)
      show(wtsps.obj) # prints wtsps.obj
 
      return (invisible(wtsps.obj))
@@ -31,7 +31,7 @@ sits_infoWTSPS <- function (URL = "http://www.dpi.inpe.br/tws/wtsps") {
 sits_algorithmWTSPS <- function (URL = "http://www.dpi.inpe.br/tws/wtsps", algorithm = NULL) {
 
      # describe the algorithm
-     algorithm.obj    <- wtsps.R::describeAlgorithm(URL, algorithm)
+     algorithm.obj    <- wtsps::describeAlgorithm(URL, algorithm)
      show(algorithm.obj) # prints algorithm.obj
 
      return (invisible(algorithm.obj))
@@ -48,7 +48,7 @@ sits_algorithmWTSPS <- function (URL = "http://www.dpi.inpe.br/tws/wtsps", algor
 sits_runProcess_WTSPS <- function (URL = "http://www.dpi.inpe.br/tws/wtsps", ...) {
 
      # runs process
-     proc.obj <- wtsps.R::runProcess(URL, ...)
+     proc.obj <- wtsps::runProcess(URL, ...)
      show(proc.obj) # prints process obj
 
      return (invisible(proc.obj))
@@ -65,7 +65,7 @@ sits_runProcess_WTSPS <- function (URL = "http://www.dpi.inpe.br/tws/wtsps", ...
 sits_statusProcess_WTSPS <- function (URL = "http://www.dpi.inpe.br/tws/wtsps", uuid = NULL) {
 
      # get status from a process
-     proc.obj <- wtsps.R::statusProcess(URL, uuid)
+     proc.obj <- wtsps::statusProcess(URL, uuid)
      show(proc.obj)  # prints process obj
 
      return (invisible(proc.obj))
@@ -82,7 +82,7 @@ sits_statusProcess_WTSPS <- function (URL = "http://www.dpi.inpe.br/tws/wtsps", 
 sits_cancelProcess_WTSPS <- function (URL = "http://www.dpi.inpe.br/tws/wtsps", uuid = NULL) {
 
      # cancel a process
-     proc.obj <- wtsps.R::cancelProcess(URL, uuid)
+     proc.obj <- wtsps::cancelProcess(URL, uuid)
      show(proc.obj)  # prints process obj
 
      return (invisible(proc.obj))

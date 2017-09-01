@@ -22,8 +22,8 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
 
     # recover predicted and reference vectors from input
-    pred.vec <- conf.tb$Prediction
-    ref.vec  <- conf.tb$Reference
+    pred.vec <- conf.tb$predicted
+    ref.vec  <- conf.tb$reference
 
     # remove predicted labels' extensions
     if (pred_sans_ext)
@@ -31,7 +31,7 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
     # convert class names
     if (!purrr::is_null(conv.lst)) {
-        names_ref <- dplyr::pull (dplyr::distinct (conf.tb, Reference))
+        names_ref <- dplyr::pull (dplyr::distinct (conf.tb, reference))
         ensurer::ensure_that(names_ref,
                              all(. %in% names(conv.lst)),
                              err_desc = "sits_accuracy: conversion list does not contain all reference labels")
@@ -47,6 +47,44 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
     # return invisible
     invisible(caret_assess)
+}
+
+#' @title Evaluates the accuracy of classification
+#' @name sits_accuracy_save
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#
+#' @description Saves the the accuracy of classification stored in two vectors.
+#' Returns a confusion matrix used by the "caret" package
+#'
+#' @param conf.mx        A caret S4 object with a confusion matrix
+#' @param file_prefix    A prefix for the CSV files to be saved
+#' @return conf.mx       The input confusion matrix
+#'
+#' @export
+sits_accuracy_save <- function(conf.mx, file_prefix = NULL){
+
+    # create three files to store the output
+    file_table   = paste0(file_prefix,"_table.csv")
+    file_overall = paste0(file_prefix,"_overall.csv")
+    file_byclass = paste0(file_prefix,"_byclass.csv")
+
+    # use only the class names (without the "Class: " prefix)
+    new_names <- unlist(strsplit(colnames(conf.mx$table), split =": "))
+    # remove prefix from confusion matrix table
+    colnames (conf.mx$table) <- new_names
+    # write the confusion matrix table
+    utils::write.csv(conf.mx$table, file = file_table)
+    # write the overall assessment (accuracy and kappa)
+    utils::write.csv(conf.mx$overall[c(1:2)], file = file_overall)
+    # get only the four first parameters for the class
+    conf_bc.mx <- t(conf.mx$byClass[,c(1:4)])
+    # remove prefix from confusion matrix table
+    colnames (conf_bc.mx) <- new_names
+    row.names(conf_bc.mx)<- c("Sensitivity (PA)", "Specificity", "PosPredValue (UA)", "NegPredValue")
+    # save the detailed accuracy results for each class
+    utils::write.csv(t(conf_bc.mx), file = file_byclass)
+
+    return (invisible(conf.mx))
 }
 
 #' @title Cross-validate temporal patterns
@@ -150,7 +188,7 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
         ref.vec <<-  c(ref.vec, e[(mid+1):length(e)])
     })
 
-    conf.tb <- tibble::tibble("Prediction" = pred.vec, "Reference" = ref.vec)
+    conf.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
 
     return (conf.tb)
 }
@@ -293,10 +331,10 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
      # retrieve the predicted labels
      pred.vec  <- as.character(purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
 
-     conf.lst <- tibble::lst("Prediction" = pred.vec, "Reference" = ref.vec)
+     conf.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
 
      # calculate the accuracy assessment
-     assess <- sits_accuracy(conf.lst, pred_sans_ext = TRUE)
+     assess <- sits_accuracy(conf.tb, pred_sans_ext = TRUE)
 
      return (assess)
 }
