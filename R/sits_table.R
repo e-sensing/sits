@@ -109,7 +109,7 @@ sits_align <- function (data.tb, ref_dates) {
     return (data1.tb)
 }
 
-#' @title returns the names of the bands of a time series
+#' @title names of the bands of a time series
 #' @name sits_bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -123,6 +123,32 @@ sits_bands <- function (data.tb) {
     result.vec <- data.tb[1,]$time_series[[1]] %>%
         colnames() %>% .[2:length(.)]
     return (result.vec)
+}
+
+#' @title names of the bands of a time series
+#' @name `sits_bands<-`
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  set the names of the bands of time series in a sits table
+#'
+#' @param data.tb      a valid sits table
+#' @param value        string vector with the new bands' names
+#' @return invisible(data.tb) the input data invisible
+#' @export
+#'
+`sits_bands<-` <- function(data.tb, value){
+
+    # verify if the number of bands informed is the same as the actual number of bands in input data
+    ensurer::ensure_that(value, length(.) == length(sits_bands(data.tb)),
+                         err_desc = "sits_bands: bands in data input and informed band names have different lengths.")
+
+    # proceed rename and return invisible
+    data.tb$time_series <- data.tb$time_series %>%
+        purrr::map(function(ts){
+            names(ts) <- c("Index", value)
+            return(ts)
+        })
+    invisible(data.tb)
 }
 
 #' @title Return the dates of a sits table
@@ -335,47 +361,14 @@ sits_prune <- function (data.tb, min_interval = "349 days", max_interval = "365 
 #' @return result.tb    a sits_table with same samples and the new bands
 #' @export
 sits_mutate <- function(data.tb, ...){
-    result.tb <- data.tb
-
-    result.tb$time_series <- result.tb$time_series %>% purrr::map(function(ts.tb) {
-        ts_computed.tb <- dplyr::mutate(ts.tb, ...)
+    data.tb$time_series <- data.tb$time_series %>% purrr::map(function(ts.tb) {
+        ts_computed.tb <- ts.tb %>%
+            dplyr::mutate(...)
         return(ts_computed.tb)
     })
-
-    return(result.tb)
+    return(data.tb)
 }
-#' @title Rename bands of a sits table
-#' @name sits_rename
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description replaces the names of the bands of a satellite image time series
-#'
-#' @param data.tb      a SITS table with a list of SITS time series
-#' @param bands_new    a list of new band names
-#' @return out.tb      a SITS table with a list of renamed bands for the time series
-#' @export
-sits_rename <-  function (data.tb, bands_new) {
 
-    #does the input data exist?
-    .sits_test_table (data.tb)
-
-    ensurer::ensure_that(bands_new, !purrr::is_null(.), err_desc = "sits_rename: New band names should be provided")
-    ensurer::ensure_that(data.tb, length(sits_bands(.)) == length (bands_new),
-                         fail_with = function (e) stop(e),
-                         err_desc = "sits_rename: Please provide names for all input bands")
-
-    # rename the time series
-    out.ts <- data.tb$time_series %>%
-        purrr::map (function (ts) {
-            ts_out <- ts
-            colnames (ts_out) <- c("Index", bands_new)
-            return (ts_out)
-        })
-    out.tb <- dplyr::select (data.tb, latitude, longitude, start_date, end_date, label, coverage)
-    out.tb$time_series <- out.ts
-
-    return (out.tb)
-}
 #' @title Filter bands on a SITS table
 #' @name sits_select
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -392,15 +385,10 @@ sits_select <- function (data.tb, bands) {
     ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
                          err_desc = "sits_select: some band(s) not found in input data")
 
-    # prepare result SITS table
-    result.tb <- data.tb
-
     # select the chosen bands for the time series
-    result.tb$time_series <- data.tb$time_series %>%
+    data.tb$time_series <- data.tb$time_series %>%
         purrr::map (function (ts) ts[, c("Index", bands)])
-
-    # return the result
-    return (result.tb)
+    return (data.tb)
 }
 #' @title Add new SITS bands and drops existing.
 #' @name sits_transmute
@@ -408,26 +396,23 @@ sits_select <- function (data.tb, bands) {
 #' @description  Adds new bands and drops existing in a sits_table's time series,
 #' using dplyr::transmute function
 #' @param data.tb       a valid sits table
-#' @param ...           Name-value pairs of expressions.
-#' @return result.tb    a sits_table with same samples and the new bands
+#' @param ...           `name=value` pairs of expressions.
+#' @return data.tb      a sits_table with same samples and the new bands
 #' @export
-sits_transmute <- function(data.tb, ...){
-    result.tb <- data.tb
-
-    result.tb$time_series <- result.tb$time_series %>% purrr::map(function(ts.tb) {
+sits_transmute <- function(data.tb, fun_index = Index, ...){
+    data.tb$time_series <- data.tb$time_series %>% purrr::map(function(ts.tb) {
         ts_computed.tb <- dplyr::transmute(ts.tb, ...)
         if (!("Index" %in% colnames(ts_computed.tb)))
             ts_computed.tb <- dplyr::bind_cols(dplyr::select(ts.tb, Index), ts_computed.tb)
         return(ts_computed.tb)
     })
-
-    return(result.tb)
+    return(data.tb)
 }
 #' @title Apply a function over SITS bands.
 #' @name sits_apply
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  `sits_apply` returns a sits_table with the same samples points and new bands computed by `fun`,
-#' `fun_index` functions. These functions must be defined inline and are called by `sits_ts_apply` for each band,
+#' `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
 #' whose vector values is passed as the function argument.
 #'
 #' `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values

@@ -24,11 +24,9 @@ BugReports: https://github.com/gilbertocamara/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
 Imports:
-    dtwSat,
-    magrittr,
-    wtss,
     caret,
     dendextend,
+    dtwSat,
     e1071,
     ensurer,
     entropy,
@@ -45,20 +43,19 @@ Imports:
     jsonlite,
     lattice,
     lubridate,
+    magrittr,
     MASS,
     methods,
     mgcv,
     nnet,
     parallel,
     plyr,
-    ptw,
     purrr,
     purrrlyr,
     randomForest,
     raster,
     readr,
     reshape2,
-    RCurl,
     R.utils,
     signal,
     snow,
@@ -71,6 +68,7 @@ Imports:
     tools,
     TSdist,
     utils,
+    wtss,
     zoo
 LinkingTo: 
     Rcpp
@@ -100,6 +98,5 @@ Collate:
     'sits_pipe.R'
     'sits_plot.R'
     'sits_save.R'
-    'sits_smooth.R'
     'sits_stack_proc.R'
     'sits_table.R'
