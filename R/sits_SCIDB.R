@@ -1,35 +1,3 @@
-#' @title Get unique SciDB columns and rows indexes
-#' @name sits_createColRowSequence
-#'
-#' @description This function returns a sits table with unique SciDB columns and rows indexes.
-#'
-#' @param col_id a integer index with SciDB column indexes
-#' @param row_id a integer index with SciDB row indexes
-#' @return sits.tb a sits table
-#' @export
-sits_createColRowSequence <- function(col_id, row_id) {
-
-  # create sits table
-  sits.tb <- sits::sits_table()
-
-  # choose unique col and row values
-  col = unique(col_id)
-  row = unique(row_id)
-
-  # assign col and row values to a sits tibble
-  k = 1
-  for (c in col)
-    for (r in row){
-      sits.tb <- tibble::add_row(sits.tb,
-                                 longitude    = c,
-                                 latitude     = r)
-      k = k + 1
-    }
-
-  return(sits.tb)
-
-}
-
 #' @title Create an indexed ordered obsevartion set within a sits_table.
 #' @name sits_createZooObject
 #'
@@ -39,9 +7,10 @@ sits_createColRowSequence <- function(col_id, row_id) {
 #' @param  dates a string vector contaning time series dates
 #' @param  scale_factor a real number representing the scale factor of the attribute values
 #' @param  idx a integer vector containing the respective index of the attribute values
+#' @param  missing_value the missing value of the coverage
 #' @return ts.tb
 #' @export
-sits_createZooObject <- function(bands, dates, scale_factor, idx) {
+sits_createZooObject <- function(bands, dates, scale_factor, idx, missing_value) {
 
   # create data.frame dynamically
   df <- data.frame(get(bands[1])[idx])
@@ -53,6 +22,9 @@ sits_createZooObject <- function(bands, dates, scale_factor, idx) {
   # create zoo object
   ts <- zoo::zoo(df*scale_factor, dates)
 
+  # assign NA values to missing values
+  ts[which(t(t(coredata(ts)) == missing_values))] <- NA
+  
   # interpolate zoo object
   ts_spline <- zoo::na.spline(ts)
 
