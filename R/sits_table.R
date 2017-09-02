@@ -617,7 +617,7 @@ sits_distance_table <- function (patterns.tb) {
     return (distances.tb)
 }
 
-#' @title Create an empty distance table to store the results of distance metrics
+#' @title Create an empty distance table based on an input data set
 #' @name sits_distance_table_from_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}

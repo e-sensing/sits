@@ -11,6 +11,7 @@
 #'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a tibble with a set of distance measures,
 #' returns trained models using support vector machines. This function will
@@ -44,6 +45,7 @@ sits_train <- function(distances.tb, tr_method = sits_svm()){
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function receives a tibble with a set of attributes X for each observation Y
 #' These attributes are usually distance metrics between patterns and observations
@@ -58,12 +60,13 @@ sits_train <- function(distances.tb, tr_method = sits_svm()){
 #' @param cost             cost of constraints violation
 #' @param tolerance	       tolerance of termination criterion (default: 0.001)
 #' @param epsilon	       epsilon in the insensitive-loss function (default: 0.1)
+#' @param cross            the number of cross validation folds applied on the training data to assess the quality of the model,
 #' @param ...              other parameters to be passed to e1071::svm function
-#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#' @return result          a fitted model function to be passed in sits_predict
 #' @export
 #'
 sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kernel = "linear",
-                     degree = 3, coef0 = 0, cost = 1, tolerance = 0.001, epsilon = 0.1, ...) {
+                     degree = 3, coef0 = 0, cost = 1, tolerance = 0.001, epsilon = 0.1, cross = 4, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(train_data.tb){
@@ -77,7 +80,8 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 
         # call e1071::svm method and return the trained svm model
         result_svm <- e1071::svm(formula = formula, data = train_data.tb, kernel = kernel,
-                                 degree = degree, cost = cost, coef0 = coef0, tolerance = tolerance, epsilon = epsilon, ...)
+                                 degree = degree, cost = cost, coef0 = coef0,
+                                 tolerance = tolerance, epsilon = epsilon, cross = cross, ...)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
@@ -183,6 +187,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Use multinomial log-linear (mlr) fitting model via neural networks to classify data.
 #' This function is a front-end to the "multinom" method in the "nnet" package.
@@ -225,6 +230,7 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Use generalized liner model (glm) via penalized maximim likelihood to classify data.
 #' This function is a front-end to the "cv.glmnet" method in the "glmnet" package.
@@ -270,6 +276,7 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Use generalized liner model (glm) via penalized maximim likelihood to classify data.
 #' This function is a front-end to the "cv.glmnet" method in the "glmnet" package.
@@ -329,6 +336,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Use Random Forest algorithm to classify data.
 #' This function is a front-end to the "randomForest" method in the "randomForest" package.
@@ -373,6 +381,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Use deep learning algorithm to classify data.
 #' This function is a front-end to the "deeplearning" method in the "randomForest" package.
