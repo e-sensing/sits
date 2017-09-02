@@ -4,7 +4,7 @@
 \alias{sits_accuracy_save}
 \title{Evaluates the accuracy of classification}
 \usage{
-sits_accuracy_save(conf.mx, file_prefix = NULL)
+sits_accuracy_save(conf.mx, file = NULL)
 }
 \arguments{
 \item{conf.mx}{A caret S4 object with a confusion matrix}
