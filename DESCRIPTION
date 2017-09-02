@@ -69,19 +69,22 @@ Imports:
     tibble,
     tidyr,
     tools,
+    utils, 
+    wtsps,
     TSdist,
-    utils,
     zoo
 LinkingTo: 
     Rcpp
 Remotes:
-    e-sensing/wtss,
+     e-sensing/wtss,
+     e-sensing/wtsps,
     rolfsimoes/dtwSat
 RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'
     'sits_SCIDB.R'
     'sits_TWDTW.R'
+    'sits_WTSPS.R'
     'sits_WTSS.R'
     'sits_assessment.R'
     'sits_cluster.R'
