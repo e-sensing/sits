@@ -26,4 +26,6 @@ Please refer to the documentation in that package for more details.
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_table.R
 \name{sits_distance_table_from_data}
 \alias{sits_distance_table_from_data}
-\title{Create an empty distance table to store the results of distance metrics}
+\title{Create an empty distance table based on an input data set}
 \usage{
 sits_distance_table_from_data(data.tb)
 }
