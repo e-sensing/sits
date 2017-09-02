@@ -50,6 +50,7 @@ Imports:
     methods,
     mgcv,
     nnet,
+    openxlsx,
     parallel,
     plyr,
     ptw,
@@ -70,7 +71,7 @@ Imports:
     tibble,
     tidyr,
     tools,
-    utils, 
+    utils,
     wtsps,
     TSdist,
     zoo

@@ -49,11 +49,11 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
     invisible(caret_assess)
 }
 
-#' @title Evaluates the accuracy of classification
-#' @name sits_accuracy_save
+#' @title Saves the results of accuracy assessment as CSV files
+#' @name sits_accuracy_csv
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
-#' @description Saves the the accuracy of classification stored in two vectors.
+#' @description Saves the the accuracy of classification in CSV
 #' Returns a confusion matrix used by the "caret" package
 #'
 #' @param conf.mx        A caret S4 object with a confusion matrix
@@ -61,7 +61,7 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 #' @return conf.mx       The input confusion matrix
 #'
 #' @export
-sits_accuracy_save <- function(conf.mx, file = NULL){
+sits_accuracy_csv <- function(conf.mx, file = NULL){
 
     ensurer::ensure_that (file, !purrr::is_null(.),
                           err_desc = "sits_accuracy_save: please provide the file name")
@@ -87,6 +87,64 @@ sits_accuracy_save <- function(conf.mx, file = NULL){
     utils::write.csv(t(conf_bc.mx), file = file)
 
     return (invisible(conf.mx))
+}
+
+#' @title Saves the results of accuracy assessment as Excel files
+#' @name sits_accuracy_xlsx
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#
+#' @description Saves the the accuracy of classifications as Excel spreadsheets
+#' Returns a confusion matrix used by the "caret" package
+#'
+#' @param acc.lst        A list if caret S4 object with an accuracy assesment
+#' @param file           The file where the CSV data is to be saved
+#' @return conf.mx       The input confusion matrix
+#'
+#' @export
+sits_accuracy_xlsx <- function(acc.lst, file = NULL){
+
+    ensurer::ensure_that (file, !purrr::is_null(.),
+                          err_desc = "sits_accuracy_save: please provide the file name")
+
+    # create a workbook to save the results
+    wb <- openxlsx::createWorkbook ("accuracy")
+
+    # save all elements of the list
+    purrr::map (acc.lst, function (acc.mx){
+        # create a sheet name
+        sheet_name <- deparse(substitute(acc.mx))
+
+        # add a worksheet
+        openxlsx::addWorksheet(wb, sheet_name)
+
+        # use only the class names (without the "Class: " prefix)
+        new_names <- unlist(strsplit(colnames(acc.mx$table), split =": "))
+
+        # remove prefix from confusion matrix table
+        colnames (acc.mx$table) <- new_names
+        # write the confusion matrix table in the worksheet
+        openxlsx::writeData (wb, sheet_name, acc.mx$table)
+
+        # overall assessment (accuracy and kappa)
+        acc_kappa.mx <- as.matrix(acc.mx$overall[c(1:2)])
+
+        # save the accuracy data in the worksheet
+        openxlsx::writeData (wb, sheet_name, acc_kappa.mx, rowNames = TRUE, startRow = NROW(acc.mx$table) + 3, startCol = 1)
+
+        # per class accuracy assessment
+        acc_bc.mx <- t(acc.mx$byClass[,c(1:4)])
+        # remove prefix from confusion matrix table
+        colnames (acc_bc.mx) <- new_names
+        row.names(acc_bc.mx)<- c("Sensitivity (PA)", "Specificity", "PosPredValue (UA)", "NegPredValue")
+
+        # save the perclass data in the worksheet
+        openxlsx::writeData (wb, sheet_name, acc_bc.mx, rowNames = TRUE, startRow = NROW(acc.mx$table) + 6, startCol = 1)
+    })
+
+    # write the worksheets to the XLSX file
+    openxlsx::saveWorkbook(wb, file = file, overwrite = TRUE)
+
+    return (NULL)
 }
 
 #' @title Cross-validate temporal patterns
