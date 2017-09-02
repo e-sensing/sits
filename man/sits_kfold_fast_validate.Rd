@@ -4,15 +4,12 @@
 \alias{sits_kfold_fast_validate}
 \title{Cross-validate temporal patterns (faster than sits_kfold_validate)}
 \usage{
-sits_kfold_fast_validate(data.tb, bands = NULL, folds = 5,
-  pt_method = sits_gam(bands = bands),
-  dist_method = sits_TWDTW_distances(bands = bands), tr_method = sits_svm(),
+sits_kfold_fast_validate(data.tb, folds = 5, pt_method = sits_gam(),
+  dist_method = sits_TWDTW_distances(), tr_method = sits_svm(),
   multicores = 1)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
-
-\item{bands}{the bands used for classification}
 
 \item{folds}{number of partitions to create.}
 

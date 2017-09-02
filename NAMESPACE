@@ -3,7 +3,6 @@
 export("%>%")
 export(sits_TS_distances)
 export(sits_TWDTW_classify)
-export(sits_TWDTW_dist_bands)
 export(sits_TWDTW_distances)
 export(sits_TWDTW_matches)
 export(sits_accuracy)

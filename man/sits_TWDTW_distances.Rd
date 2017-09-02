@@ -2,9 +2,9 @@
 % Please edit documentation in R/sits_TWDTW.R
 \name{sits_TWDTW_distances}
 \alias{sits_TWDTW_distances}
-\title{Find distance between a set of SITS patterns and segments of sits tibble using TWDTW}
+\title{Find distances between a set of SITS patterns and segments of sits tibble using TWDTW}
 \usage{
-sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, bands = NULL,
+sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, by_bands = TRUE,
   dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
   span = 250, keep = FALSE, multicores = 1)
 }
@@ -13,7 +13,7 @@ sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, bands = NULL,
 
 \item{patterns.tb}{a set of known temporal signatures for the chosen classes}
 
-\item{bands}{string - the bands to be used for classification}
+\item{by_bands}{boolean - should distances from each band be computed one by one? (default = TRUE)}
 
 \item{dist.method}{A character. Method to derive the local cost matrix.}
 
@@ -31,7 +31,7 @@ sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, bands = NULL,
 whole partition validation.}
 }
 \value{
-matches       a SITS table with the information on matches for the data
+distances.tb       a SITS table with the information on distances for the data
 }
 \description{
 Returns a SITS table with distances to be used for training in ML methods

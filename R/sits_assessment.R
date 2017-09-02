@@ -57,7 +57,7 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 #' Returns a confusion matrix used by the "caret" package
 #'
 #' @param conf.mx        A caret S4 object with a confusion matrix
-#' @param file_prefix    A prefix for the CSV files to be saved
+#' @param file           The file where the CSV data is to be saved
 #' @return conf.mx       The input confusion matrix
 #'
 #' @export
@@ -115,7 +115,6 @@ sits_accuracy_save <- function(conf.mx, file = NULL){
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
 #'
 #' @param data.tb         a SITS tibble
-#' @param bands           the bands used for classification
 #' @param folds           number of partitions to create.
 #' @param pt_method       method to create patterns (sits_patterns_gam, sits_dendogram)
 #' @param dist_method     method to compute distances (e.g., sits_TWDTW_distances)
@@ -124,9 +123,9 @@ sits_accuracy_save <- function(conf.mx, file = NULL){
 #' @return conf.tb        a tibble containing pairs of reference and predicted values
 #' @export
 
-sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
-                                 pt_method   = sits_gam(bands = bands),
-                                 dist_method = sits_TWDTW_distances(bands = bands),
+sits_kfold_validate <- function (data.tb, folds = 5,
+                                 pt_method   = sits_gam(),
+                                 dist_method = sits_TWDTW_distances(),
                                  tr_method   = sits_svm(),
                                  multicores = 1){
 
@@ -137,15 +136,7 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
                           err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
     #is the bands are not provided, deduced them from the data
-    if (purrr::is_null (bands))
-        bands <- sits_bands (data.tb)
-
-    # are the bands to be classified part of the input data?
-    ensurer::ensure_that(data.tb, !(FALSE %in% bands %in% (sits_bands(.))),
-                         err_desc = "sits_kfold_validate: invalid input bands")
-
-    #extract the bands to be included in the patterns
-    data.tb <- sits_select(data.tb, bands)
+    bands <- sits_bands (data.tb)
 
     # create partitions different splits of the input data
     data.tb <- sits_create_folds (data.tb, folds = folds)
@@ -212,7 +203,6 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
 #'
 #' @param data.tb         a SITS tibble
-#' @param bands           the bands used for classification
 #' @param folds           number of partitions to create.
 #' @param pt_method       method to create patterns (sits_patterns_gam, sits_dendogram)
 #' @param dist_method     method to compute distances (e.g., sits_TWDTW_distances)
@@ -221,9 +211,9 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
 #' @return conf.tb        a tibble containing pairs of reference and predicted values
 #' @export
 
-sits_kfold_fast_validate <- function (data.tb, bands = NULL, folds = 5,
-                                 pt_method   = sits_gam(bands = bands),
-                                 dist_method = sits_TWDTW_distances(bands = bands),
+sits_kfold_fast_validate <- function (data.tb, folds = 5,
+                                 pt_method   = sits_gam(),
+                                 dist_method = sits_TWDTW_distances(),
                                  tr_method   = sits_svm(),
                                  multicores = 1){
 
@@ -233,16 +223,8 @@ sits_kfold_fast_validate <- function (data.tb, bands = NULL, folds = 5,
     ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
                           err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
-    #is the bands are not provided, deduced them from the data
-    if (purrr::is_null (bands))
-        bands <- sits_bands (data.tb)
-
-    # are the bands to be classified part of the input data?
-    ensurer::ensure_that(data.tb, !(FALSE %in% bands %in% (sits_bands(.))),
-                         err_desc = "sits_kfold_validate: invalid input bands")
-
-    #extract the bands to be included in the patterns
-    data.tb <- sits_select(data.tb, bands)
+    # what are the bands of the data?
+    bands <- sits_bands (data.tb)
 
     # Use all samples to find the patterns
     message("Creating patterns from all samples of the data..")

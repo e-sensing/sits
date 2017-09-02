@@ -9,7 +9,7 @@ sits_accuracy_save(conf.mx, file = NULL)
 \arguments{
 \item{conf.mx}{A caret S4 object with a confusion matrix}
 
-\item{file_prefix}{A prefix for the CSV files to be saved}
+\item{file}{The file where the CSV data is to be saved}
 }
 \value{
 conf.mx       The input confusion matrix
