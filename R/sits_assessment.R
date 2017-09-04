@@ -109,10 +109,17 @@ sits_accuracy_xlsx <- function(acc.lst, file = NULL){
     # create a workbook to save the results
     wb <- openxlsx::createWorkbook ("accuracy")
 
+    ind <- 0
+
     # save all elements of the list
     purrr::map (acc.lst, function (acc.mx){
         # create a sheet name
-        sheet_name <- deparse(substitute(acc.mx))
+
+        if (purrr::is_null(acc.mx$name)) {
+            ind <<- ind + 1
+            acc.mx$name <- paste0('sheet', ind)
+        }
+        sheet_name <- acc.mx$name
 
         # add a worksheet
         openxlsx::addWorksheet(wb, sheet_name)
@@ -131,14 +138,35 @@ sits_accuracy_xlsx <- function(acc.lst, file = NULL){
         # save the accuracy data in the worksheet
         openxlsx::writeData (wb, sheet_name, acc_kappa.mx, rowNames = TRUE, startRow = NROW(acc.mx$table) + 3, startCol = 1)
 
-        # per class accuracy assessment
-        acc_bc.mx <- t(acc.mx$byClass[,c(1:4)])
-        # remove prefix from confusion matrix table
-        colnames (acc_bc.mx) <- new_names
-        row.names(acc_bc.mx)<- c("Sensitivity (PA)", "Specificity", "PosPredValue (UA)", "NegPredValue")
-
+        if (dim(acc.mx$table)[1] > 2) {
+            # per class accuracy assessment
+            acc_bc.mx <- t(acc.mx$byClass[,c(1:4)])
+            # remove prefix from confusion matrix table
+            colnames (acc_bc.mx) <- new_names
+            row.names(acc_bc.mx)<- c("Sensitivity (PA)", "Specificity", "PosPredValue (UA)", "NegPredValue")
+        }
+        else {
+            # this is the case of ony two classes
+            # get the values of the User's and Producer's Accuracy for the two classes
+            # the names in caret are different from the usual names in Earth observation
+            acc_bc.mx <- acc.mx$byClass[grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+                                         names(acc.mx$byClass))]
+            # get the names of the two classes
+            nm <- row.names(acc.mx$table)
+            # the first class (which is called the "positive" class by caret)
+            c1 <- acc.mx$positive
+            # the second class
+            c2 <- nm[!(nm == acc.mx$positive)]
+            # make up the values of UA and PA for the two classes
+            pa1 <- paste("Prod Acc ", c1)
+            pa2 <- paste("Prod Acc ", c2)
+            ua1 <- paste("User Acc ", c1)
+            ua2 <- paste("User Acc ", c2)
+            names (acc_bc.mx) <- c(pa1, pa2, ua1, ua2)
+            acc_bc.mx <- as.matrix (acc_bc.mx)
+        }
         # save the perclass data in the worksheet
-        openxlsx::writeData (wb, sheet_name, acc_bc.mx, rowNames = TRUE, startRow = NROW(acc.mx$table) + 6, startCol = 1)
+        openxlsx::writeData (wb, sheet_name, acc_bc.mx, rowNames = TRUE, startRow = NROW(acc.mx$table) + 8, startCol = 1)
     })
 
     # write the worksheets to the XLSX file

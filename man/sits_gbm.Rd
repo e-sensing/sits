@@ -13,10 +13,10 @@ sits_gbm(distances.tb = NULL, formula = sits_formula_logref(),
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
-\item{distribution}{the name of the distribution. Either "multinomial" for classification)}
+\item{distribution}{The name of the distribution - use "multinomial" for classification}
 
 \item{n.trees}{Number of trees to fit. This should not be set to too small a number,
-to ensure that every input row gets predicted at least a few times. (default: 500)}
+to ensure that every input row gets predicted at least a few times. (default: 5000)}
 
 \item{interaction.depth}{The maximum depth of variable interactions. 1 implies an additive model, 2 implies a model with up to 2-way interactions.}
 
@@ -30,11 +30,13 @@ Also known as the learning rate or step-size reduction.}
 \item{...}{other parameters to be passed to `gbm::gbm` function}
 }
 \value{
-result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+result          a model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 }
 \description{
-Use generalized liner model (glm) via penalized maximim likelihood to classify data.
-This function is a front-end to the "cv.glmnet" method in the "glmnet" package.
+This function implements the generalized boosted modeling framework.
+Boosting is the process of iteratively adding basis functions in a greedy fashion
+so that each additional basis function further reduces the selected loss function.
+This function is a front-end to the "gbm" method in the "gbm" package.
 Please refer to the documentation in that package for more details.
 }
 \author{

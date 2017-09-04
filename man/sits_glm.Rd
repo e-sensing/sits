@@ -12,7 +12,8 @@ sits_glm(distances.tb = NULL, family = "multinomial", alpha = 1,
 
 \item{family}{Response type. Can be either "gaussian", "binomial", "poisson", "multinomial", "cox", or "mgaussian". (default: "multinomial")}
 
-\item{alpha}{the elasticnet mixing parameter, with 0<=alpha<=1. Set alpha = 0.0 to obtain ridge model, and alpha = 1.0 to obtain lasso model).
+\item{alpha}{the elasticnet mixing parameter, with 0<=alpha<=1.
+Set alpha = 0.0 to obtain ridge model, and alpha = 1.0 to obtain lasso model.
 (refer to `glmnet::cv.glmnet` function for more details)}
 
 \item{lambda_kfolds}{number of folds to find best lambda parameter (default: 10)}
@@ -20,10 +21,12 @@ sits_glm(distances.tb = NULL, family = "multinomial", alpha = 1,
 \item{...}{other parameters to be passed to `glmnet::cv.glmnet` function}
 }
 \value{
-result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+result          a model function to be passed in sits_predict
 }
 \description{
 Use generalized liner model (glm) via penalized maximim likelihood to classify data.
+These attributes are distance metrics between patterns and observations, obtained by a distance
+function in SITS (either sits_distances or sits_TWTDTW_distances).
 This function is a front-end to the "cv.glmnet" method in the "glmnet" package.
 Please refer to the documentation in that package for more details.
 }

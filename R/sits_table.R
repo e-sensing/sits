@@ -447,6 +447,9 @@ sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) 
     # veify if data.tb has values
     .sits_test_table(data.tb)
 
+    #get the bands
+    bands <- sits_bands (data.tb)
+
     # computes fun and fun_index for all time series and substitutes the original time series data
     data.tb$time_series <- data.tb$time_series %>%
         purrr::map(function(ts.tb) {

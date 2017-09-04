@@ -1,38 +1,51 @@
 # satellite image time series package (SITS)
-# example of the classification of a time series
-#devtools::install_github("gilbertocamara/sits")
+# example of the classification of PRODES data
 library(sits)
 
 # recover all bands
-bands <- c("ndvi", "evi")
 
-# retrieve a set of samples from a JSON file
-series_all.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_series_226_64.json")
-
-samples_all.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_samples_226_64.json")
+prodes.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_samples_226_64.json.gz")
 
 patterns_raw.tb <- sits_patterns (samples_all.tb)
 sits_plot(patterns_raw.tb, type = "patterns")
 
-matches.tb <- sits_TWDTW_matches(series.tb[1,], patterns_raw.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, span = 0)
-sits_plot (matches.tb, type = "alignments")
+conf1.tb <- sits_kfold_fast_validate(prodes.tb, folds = 2, multicores = 2,
+                                     pt_method   = sits_gam(),
+                                     dist_method = sits_TWDTW_distances(multicores = 2),
+                                     tr_method   = sits_svm (cost = 10, kernel = "radial",
+                                                             tolerance = 0.001, epsilon = 0.1))
 
-class.tb <- sits_TWDTW_classify (matches.tb, start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
-sits_plot(matches.tb, type = "classification", start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
+conf1_svm.mx <- sits_accuracy(conf1.mx)
 
-bands = c("ndvi.lower.upper.whit", "evi.lower.upper.whit")
+prodes_relabel.lst <-  tibble::lst("primary_forest" = "Forest",
+                                     "clear_cut2015"  = "ClearCut",
+                                     "clear_cut2016"  = "ClearCut",
+                                     "pasture"        = "Pasture")
 
-seriesf_all.tb <- series_all.tb %>%
-     sits_envelope(window_size = 3) %>%
+prodes2.tb <- sits_relabel(prodes.tb, prodes_relabel.lst)
+
+conf2.tb <- sits_kfold_fast_validate(prodes2.tb, folds = 2, multicores = 2,
+                                    pt_method   = sits_gam(),
+                                    dist_method = sits_TWDTW_distances(multicores = 2),
+                                    tr_method   = sits_svm (cost = 10, kernel = "radial",
+                                                            tolerance = 0.001, epsilon = 0.1))
+
+conf2_svm.mx <- sits_accuracy(conf2.tb)
+
+
+prodesf.tb <- prodes2.tb %>%
+     sits_envelope (window_size = 3) %>%
      sits_envelope (window_size = 3) %>%
      sits_select (bands = c("ndvi.lower.upper", "evi.lower.upper")) %>%
      sits_whittaker(lambda = 2.0)
 
-patterns_f.tb <- sits_patterns ()
-#assessment <- sits_accuracy(results.tb)
-matches1.tb <- sits_TWDTW_matches(seriesf.tb, patterns_raw.tb, bands, alpha= -0.1, beta = 100, theta = 0.5, span = 0)
-sits_plot (matches.tb, type = "alignments")
+conf3.tb <- sits_kfold_fast_validate(prodesf.tb, folds = 2, multicores = 2,
+                                     pt_method   = sits_gam(),
+                                     dist_method = sits_TWDTW_distances(multicores = 2),
+                                     tr_method   = sits_svm (cost = 10, kernel = "radial",
+                                                             tolerance = 0.001, epsilon = 0.1))
 
-class1.tb <- sits_TWDTW_classify (matches1.tb, start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
-sits_plot(matches.tb, type = "classification", start_date = "2013-08-01", end_date = "2017-07-31", interval = "12 month")
+conf3_svm.mx <- sits_accuracy(conf3.tb)
 
+# retrieve a set of samples from a JSON file
+series_all.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_series_226_64.json")
