@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.8.25
-Date: 2017-08-25
+Version: 0.9.2
+Date: 2017-09-02
 Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
@@ -16,11 +16,12 @@ Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series.
     Supports data retrieval from a WTSS (web time series service).
     Provides different visualisation methods for image time series.
-    Enables different clustering methods.
     Provides smoothing methods for noisy time series.
-    Classifies time series using TWDTW method contained in the dtwSat package.
-URL: https://github.com/gilbertocamara/sits/
-BugReports: https://github.com/gilbertocamara/sits/issues
+    Enables different clustering methods, including dendrograms and SOM.
+    Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition.
+    Provide machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
+URL: https://github.com/e-sensing/sits/
+BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
 Imports:
@@ -48,6 +49,7 @@ Imports:
     methods,
     mgcv,
     nnet,
+    openxlsx,
     parallel,
     plyr,
     purrr,

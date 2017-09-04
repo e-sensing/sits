@@ -14,12 +14,13 @@ sits_lda(distances.tb = NULL, formula = sits_formula_logref(), ...)
 \item{...}{other parameters to be passed to MASS::lda function}
 }
 \value{
-result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+result          a model function to be passed in sits_predict
 }
 \description{
 This function receives a tibble with a set of attributes X for each observation Y
-These attributes are usually distance metrics between patterns and observations
-It performs a linear discriminant analysis (lda) to obtain a predictive model.
+These attributes are distance metrics between patterns and observations, obtained by a distance
+function in SITS (either sits_distances or sits_TWTDTW_distances).
+The method performs a linear discriminant analysis (lda) to obtain a predictive model.
 This function is a front-end to the "lda" method in the "MASS" package.
 Please refer to the documentation in that package for more details.
 }

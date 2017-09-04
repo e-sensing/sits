@@ -49,42 +49,130 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
     invisible(caret_assess)
 }
 
-#' @title Evaluates the accuracy of classification
-#' @name sits_accuracy_save
+#' @title Saves the results of accuracy assessment as CSV files
+#' @name sits_accuracy_csv
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
-#' @description Saves the the accuracy of classification stored in two vectors.
+#' @description Saves the the accuracy of classification in CSV
 #' Returns a confusion matrix used by the "caret" package
 #'
 #' @param conf.mx        A caret S4 object with a confusion matrix
-#' @param file_prefix    A prefix for the CSV files to be saved
+#' @param file           The file where the CSV data is to be saved
 #' @return conf.mx       The input confusion matrix
 #'
 #' @export
-sits_accuracy_save <- function(conf.mx, file_prefix = NULL){
+sits_accuracy_csv <- function(conf.mx, file = NULL){
 
+    ensurer::ensure_that (file, !purrr::is_null(.),
+                          err_desc = "sits_accuracy_save: please provide the file name")
     # create three files to store the output
-    file_table   = paste0(file_prefix,"_table.csv")
-    file_overall = paste0(file_prefix,"_overall.csv")
-    file_byclass = paste0(file_prefix,"_byclass.csv")
+
 
     # use only the class names (without the "Class: " prefix)
     new_names <- unlist(strsplit(colnames(conf.mx$table), split =": "))
     # remove prefix from confusion matrix table
     colnames (conf.mx$table) <- new_names
     # write the confusion matrix table
-    utils::write.csv(conf.mx$table, file = file_table)
+    utils::write.csv(conf.mx$table, file = file)
+    cat("\n\n", file = file, append = TRUE)
     # write the overall assessment (accuracy and kappa)
-    utils::write.csv(conf.mx$overall[c(1:2)], file = file_overall)
+    utils::write.csv(conf.mx$overall[c(1:2)], file = file)
     # get only the four first parameters for the class
     conf_bc.mx <- t(conf.mx$byClass[,c(1:4)])
     # remove prefix from confusion matrix table
     colnames (conf_bc.mx) <- new_names
     row.names(conf_bc.mx)<- c("Sensitivity (PA)", "Specificity", "PosPredValue (UA)", "NegPredValue")
     # save the detailed accuracy results for each class
-    utils::write.csv(t(conf_bc.mx), file = file_byclass)
+    cat("\n\n", file = file, append = TRUE)
+    utils::write.csv(t(conf_bc.mx), file = file)
 
     return (invisible(conf.mx))
+}
+
+#' @title Saves the results of accuracy assessment as Excel files
+#' @name sits_accuracy_xlsx
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#
+#' @description Saves the the accuracy of classifications as Excel spreadsheets
+#' Returns a confusion matrix used by the "caret" package
+#'
+#' @param acc.lst        A list if caret S4 object with an accuracy assesment
+#' @param file           The file where the CSV data is to be saved
+#' @return conf.mx       The input confusion matrix
+#'
+#' @export
+sits_accuracy_xlsx <- function(acc.lst, file = NULL){
+
+    ensurer::ensure_that (file, !purrr::is_null(.),
+                          err_desc = "sits_accuracy_save: please provide the file name")
+
+    # create a workbook to save the results
+    wb <- openxlsx::createWorkbook ("accuracy")
+
+    ind <- 0
+
+    # save all elements of the list
+    purrr::map (acc.lst, function (acc.mx){
+        # create a sheet name
+
+        if (purrr::is_null(acc.mx$name)) {
+            ind <<- ind + 1
+            acc.mx$name <- paste0('sheet', ind)
+        }
+        sheet_name <- acc.mx$name
+
+        # add a worksheet
+        openxlsx::addWorksheet(wb, sheet_name)
+
+        # use only the class names (without the "Class: " prefix)
+        new_names <- unlist(strsplit(colnames(acc.mx$table), split =": "))
+
+        # remove prefix from confusion matrix table
+        colnames (acc.mx$table) <- new_names
+        # write the confusion matrix table in the worksheet
+        openxlsx::writeData (wb, sheet_name, acc.mx$table)
+
+        # overall assessment (accuracy and kappa)
+        acc_kappa.mx <- as.matrix(acc.mx$overall[c(1:2)])
+
+        # save the accuracy data in the worksheet
+        openxlsx::writeData (wb, sheet_name, acc_kappa.mx, rowNames = TRUE, startRow = NROW(acc.mx$table) + 3, startCol = 1)
+
+        if (dim(acc.mx$table)[1] > 2) {
+            # per class accuracy assessment
+            acc_bc.mx <- t(acc.mx$byClass[,c(1:4)])
+            # remove prefix from confusion matrix table
+            colnames (acc_bc.mx) <- new_names
+            row.names(acc_bc.mx)<- c("Sensitivity (PA)", "Specificity", "PosPredValue (UA)", "NegPredValue")
+        }
+        else {
+            # this is the case of ony two classes
+            # get the values of the User's and Producer's Accuracy for the two classes
+            # the names in caret are different from the usual names in Earth observation
+            acc_bc.mx <- acc.mx$byClass[grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+                                         names(acc.mx$byClass))]
+            # get the names of the two classes
+            nm <- row.names(acc.mx$table)
+            # the first class (which is called the "positive" class by caret)
+            c1 <- acc.mx$positive
+            # the second class
+            c2 <- nm[!(nm == acc.mx$positive)]
+            # make up the values of UA and PA for the two classes
+            pa1 <- paste("Prod Acc ", c1)
+            pa2 <- paste("Prod Acc ", c2)
+            ua1 <- paste("User Acc ", c1)
+            ua2 <- paste("User Acc ", c2)
+            names (acc_bc.mx) <- c(pa1, pa2, ua1, ua2)
+            acc_bc.mx <- as.matrix (acc_bc.mx)
+        }
+        # save the perclass data in the worksheet
+        openxlsx::writeData (wb, sheet_name, acc_bc.mx, rowNames = TRUE, startRow = NROW(acc.mx$table) + 8, startCol = 1)
+    })
+
+    # write the worksheets to the XLSX file
+    openxlsx::saveWorkbook(wb, file = file, overwrite = TRUE)
+
+    return (NULL)
 }
 
 #' @title Cross-validate temporal patterns
@@ -113,7 +201,6 @@ sits_accuracy_save <- function(conf.mx, file_prefix = NULL){
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
 #'
 #' @param data.tb         a SITS tibble
-#' @param bands           the bands used for classification
 #' @param folds           number of partitions to create.
 #' @param pt_method       method to create patterns (sits_patterns_gam, sits_dendogram)
 #' @param dist_method     method to compute distances (e.g., sits_TWDTW_distances)
@@ -122,9 +209,9 @@ sits_accuracy_save <- function(conf.mx, file_prefix = NULL){
 #' @return conf.tb        a tibble containing pairs of reference and predicted values
 #' @export
 
-sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
-                                 pt_method   = sits_gam(bands = bands),
-                                 dist_method = sits_TWDTW_distances(bands = bands),
+sits_kfold_validate <- function (data.tb, folds = 5,
+                                 pt_method   = sits_gam(),
+                                 dist_method = sits_TWDTW_distances(),
                                  tr_method   = sits_svm(),
                                  multicores = 1){
 
@@ -135,15 +222,7 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
                           err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
     #is the bands are not provided, deduced them from the data
-    if (purrr::is_null (bands))
-        bands <- sits_bands (data.tb)
-
-    # are the bands to be classified part of the input data?
-    ensurer::ensure_that(data.tb, !(FALSE %in% bands %in% (sits_bands(.))),
-                         err_desc = "sits_kfold_validate: invalid input bands")
-
-    #extract the bands to be included in the patterns
-    data.tb <- sits_select(data.tb, bands)
+    bands <- sits_bands (data.tb)
 
     # create partitions different splits of the input data
     data.tb <- sits_create_folds (data.tb, folds = folds)
@@ -175,6 +254,94 @@ sits_kfold_validate <- function (data.tb, bands = NULL, folds = 5,
 
         # classify the test data
         predict.tb <- sits_predict(data_test.tb, distances_test.tb, model.ml)
+
+        ref.vec  <- c(ref.vec,  predict.tb$label)
+        pred.vec <- c(pred.vec, predict.tb$predicted)
+
+        return (c(pred.vec, ref.vec))
+    }, mc.cores = multicores)
+
+    purrr::map(conf.lst, function (e) {
+        mid <- length (e)/2
+        pred.vec <<- c(pred.vec, e[1:mid])
+        ref.vec <<-  c(ref.vec, e[(mid+1):length(e)])
+    })
+
+    conf.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
+
+    return (conf.tb)
+}
+#' @title Cross-validate temporal patterns (faster than sits_kfold_validate)
+#' @name sits_kfold_fast_validate
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Splits the set of time series into training and validation and
+#' perform k-fold cross-validation. This function is similar to sits_kfold_validate (see above)
+#' but it is not as accurate. The patterns and the distance matrices are calculated
+#' once for all samples. The distance matrix is then used for kfold validation.
+#' In general, if the number of samples per class is not small,
+#' the results will be faster than the full validate.
+#' This function should be used for a first comparison between different machine learning methods.
+#' For reporting in papers, please use the sits_kfold_validate method.
+#'
+#' This function returns the Overall Accuracy, User's Accuracy,
+#' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
+#'
+#' @param data.tb         a SITS tibble
+#' @param folds           number of partitions to create.
+#' @param pt_method       method to create patterns (sits_patterns_gam, sits_dendogram)
+#' @param dist_method     method to compute distances (e.g., sits_TWDTW_distances)
+#' @param tr_method       machine learning training method
+#' @param multicores      number of threads to process the validation (Linux only). Each process will run a whole partition validation.
+#' @return conf.tb        a tibble containing pairs of reference and predicted values
+#' @export
+
+sits_kfold_fast_validate <- function (data.tb, folds = 5,
+                                 pt_method   = sits_gam(),
+                                 dist_method = sits_TWDTW_distances(),
+                                 tr_method   = sits_svm(),
+                                 multicores = 1){
+
+    # does the input data exist?
+    .sits_test_table (data.tb)
+    # is the data labelled?
+    ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
+                          err_desc = "sits_cross_validate: please provide a labelled set of time series")
+
+    # what are the bands of the data?
+    bands <- sits_bands (data.tb)
+
+    # Use all samples to find the patterns
+    message("Creating patterns from all samples of the data..")
+    patterns.tb <- pt_method(data.tb)
+
+    # find the matches on the training data
+    message("Measuring distances from all samples of the data to the patterns..")
+    distances.tb <- dist_method (data.tb, patterns.tb)
+
+    # create partitions different splits of the input data
+    data.tb <- sits_create_folds (data.tb, folds = folds)
+
+    # create prediction and reference vector
+    pred.vec = character()
+    ref.vec  = character()
+
+    conf.lst <- parallel::mclapply(X = 1:folds, FUN = function (k)
+    {
+
+        # split input data into training and test data sets
+        data_test.tb  <- data.tb[data.tb$folds == k,]
+
+        # split distances into training and test data sets
+        dist_train.tb <- distances.tb[data.tb$folds != k,]
+        dist_test.tb  <- distances.tb[data.tb$folds == k,]
+
+        # find a model on the training data set
+        model.ml <- tr_method (dist_train.tb)
+
+        # classify the test data
+        predict.tb <- sits_predict(data_test.tb, dist_test.tb, model.ml)
 
         ref.vec  <- c(ref.vec,  predict.tb$label)
         pred.vec <- c(pred.vec, predict.tb$predicted)

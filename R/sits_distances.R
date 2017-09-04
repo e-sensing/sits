@@ -12,13 +12,12 @@
 #'
 #' @param data.tb          a SITS tibble time series
 #' @param patterns.tb      a set of patterns obtained from training samples
-#' @param bands            the bands to be used for determining patterns
 #' @param dist_method      a method for calculating distances between time series
 #' @return result          a set of distance metrics
 #' @export
 #'
-sits_distances <- function(data.tb, patterns.tb, bands = NULL,
-                           dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, bands = bands, alpha = -0.1, beta = 100, theta = 0.5, span = 0)) {
+sits_distances <- function(data.tb, patterns.tb,
+                           dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, by_bands = TRUE, alpha = -0.1, beta = 100, theta = 0.5, span = 0)) {
 
     # does the input data exist?
     .sits_test_table (data.tb)

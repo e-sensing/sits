@@ -4,13 +4,11 @@
 \alias{sits_gam}
 \title{Create temporal patterns using a generalised additive model (gam)}
 \usage{
-sits_gam(data.tb = NULL, bands = NULL, from = NULL, to = NULL,
-  freq = 8, formula = y ~ s(x), ...)
+sits_gam(data.tb = NULL, from = NULL, to = NULL, freq = 8, formula = y
+  ~ s(x), ...)
 }
 \arguments{
 \item{data.tb}{a table in SITS format with time series to be classified using TWTDW}
-
-\item{bands}{the bands used to obtain the pattern}
 
 \item{from}{starting date of the estimate (month-day)}
 

@@ -6,7 +6,7 @@
 \usage{
 sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
   kernel = "linear", degree = 3, coef0 = 0, cost = 1,
-  tolerance = 0.001, epsilon = 0.1, ...)
+  tolerance = 0.001, epsilon = 0.1, cross = 4, ...)
 }
 \arguments{
 \item{distances.tb}{a time series with a set of distance measures for each training sample}
@@ -25,14 +25,20 @@ sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
 
 \item{epsilon}{epsilon in the insensitive-loss function (default: 0.1)}
 
+\item{cross}{the number of cross validation folds applied on the training data to assess the quality of the model,}
+
 \item{...}{other parameters to be passed to e1071::svm function}
 }
 \value{
-result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+result          a fitted model function to be passed in sits_predict
 }
 \description{
 This function receives a tibble with a set of attributes X for each observation Y
-These attributes are usually distance metrics between patterns and observations
+These attributes are distance metrics between patterns and observations, obtained by a distance
+function in SITS (either sits_distances or sits_TWTDTW_distances).
+The SVM algorithm is used for multiclass-classification.
+For this purpose, it uses the ‘one-against-one’-approach, in which k(k-1)/2 binary
+classifiers are trained; the appropriate class is found by a voting scheme.
 This function is a front-end to the "svm" method in the "e1071" package.
 Please refer to the documentation in that package for more details.
 }
@@ -40,4 +46,6 @@ Please refer to the documentation in that package for more details.
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

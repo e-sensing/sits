@@ -21,7 +21,6 @@
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  data.tb       a table in SITS format with time series to be classified using TWTDW
-#' @param  bands         the bands used to obtain the pattern
 #' @param  from          starting date of the estimate (month-day)
 #' @param  to            end data of the estimated (month-day)
 #' @param  freq          int - the interval in days for the estimates to be generated
@@ -30,7 +29,7 @@
 #' @return patterns.tb   a SITS table with the patterns
 #' @export
 #'
-sits_gam <- function (data.tb = NULL, bands = NULL, from = NULL, to = NULL, freq = 8, formula = y ~ s(x), ...){
+sits_gam <- function (data.tb = NULL, from = NULL, to = NULL, freq = 8, formula = y ~ s(x), ...){
 
 
     # function that returns e1071::svm model based on a sits sample tibble
@@ -39,8 +38,8 @@ sits_gam <- function (data.tb = NULL, bands = NULL, from = NULL, to = NULL, freq
         # does the input data exist?
         .sits_test_table (tb)
 
-        # handle the case of null bands
-        if (purrr::is_null (bands)) bands <- sits_bands(tb)
+        # find the bands of the data
+        bands <- sits_bands(tb)
 
         # create a tibble to store the results
         patterns.tb <- sits_table()

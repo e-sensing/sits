@@ -95,7 +95,7 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
     return (matches.tb)
 }
 
-#' @title Find distance between a set of SITS patterns and segments of sits tibble using TWDTW
+#' @title Find distances between a set of SITS patterns and segments of sits tibble using TWDTW
 #' @name sits_TWDTW_distances
 #' @author Rolf Simoes, \email{rolf.simores@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -105,7 +105,7 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
 #'
 #' @param  data.tb     a table in SITS format with a time series to be classified using TWTDW
 #' @param  patterns.tb   a set of known temporal signatures for the chosen classes
-#' @param  bands         string - the bands to be used for classification
+#' @param  by_bands      boolean - should distances from each band be computed one by one? (default = TRUE)
 #' @param  dist.method   A character. Method to derive the local cost matrix.
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
@@ -114,12 +114,15 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
 #' @param  keep          keep internal values for plotting matches
 #' @param  multicores    number of threads to process the validation (Linux only). Each process will run a
 #'                       whole partition validation.
-#' @return matches       a SITS table with the information on matches for the data
+#' @return distances.tb       a SITS table with the information on distances for the data
 #' @export
-sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
-                                alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE, multicores = 1) {
+sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, by_bands = TRUE, dist.method = "euclidean",
+                                  alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE, multicores = 1) {
 
     result_fun <- function (data.tb, patterns.tb) {
+
+        # determine the bands of the data
+        bands <- sits_bands (data.tb)
 
         # compute partition vector
         part.vec <- rep.int(1, NROW(data.tb))
@@ -131,15 +134,35 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NU
             purrr::map(function(i) data.tb[part.vec == i,] )
 
         # prepare function to be passed to `parallel::mclapply`. this function returns a distance table to each partition
-        multicore_fun <- function(part.tb){
-            matches.tb <- sits_TWDTW_matches(part.tb, patterns.tb, bands = bands, dist.method = dist.method,
-                                             alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
-            result.tb <- sits_spread_matches(matches.tb)
-            return(result.tb)
+        if (by_bands){
+            dist_fun <- function(part.tb){
+                result.tb <- sits_distance_table_from_data(part.tb)
+                bands %>%
+                    purrr::map (function (b){
+                        part_b.tb  <- sits_select(part.tb, b)
+                        patt_b.tb <- sits_select(patterns.tb, b)
+                        matches_b.tb <- sits_TWDTW_matches(part_b.tb, patt_b.tb, bands = b, dist.method = dist.method,
+                                                           alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
+
+                        result_b.tb <- sits_spread_matches(matches_b.tb)
+                        result_b.tb <- result_b.tb[-2:0]
+                        colnames (result_b.tb) <- paste0(colnames(result_b.tb),".",b)
+                        result.tb <<- dplyr::bind_cols(result.tb, result_b.tb)
+                    })
+                return(result.tb)
+            }
+        }
+        else {
+            dist_fun <- function(part.tb){
+                matches.tb <- sits_TWDTW_matches(part.tb, patterns.tb, bands = bands, dist.method = dist.method,
+                                                 alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
+                result.tb <- sits_spread_matches(matches.tb)
+                return(result.tb)
+            }
         }
 
         # get the matches from the sits_TWDTW_matches
-        distances.lst <- parallel::mclapply(part.lst, multicore_fun, mc.cores = multicores)
+        distances.lst <- parallel::mclapply(part.lst, dist_fun, mc.cores = multicores)
 
         # compose final result binding each partition by row
         distances.tb <- dplyr::bind_rows(distances.lst)
@@ -151,61 +174,7 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NU
     return (result)
 }
 
-#' @title Find distance between a set of SITS patterns and yearly time series using TWDTW
-#' @name sits_TWDTW_dist_bands
-#' @author Rolf Simoes, \email{rolf.simores@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns a SITS table with distances to be used for training in ML methods
-#' This is a front-end to the sits_TWDTW_matches whose outout is trimmed down to contain just distances
-#'
-#' @param  data.tb     a table in SITS format with a time series to be classified using TWTDW
-#' @param  patterns.tb   a set of known temporal signatures for the chosen classes
-#' @param  dist.method   A character. Method to derive the local cost matrix.
-#' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
-#' @param  beta          (integer) - the midpoint (in days) of the logistic function
-#' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
-#' @param  span          minimum number of days between two matches of the same pattern in the time series (approximate)
-#' @param  keep          keep internal values for plotting matches
-#' @param  multicores    number of threads to process the validation (Linux only). Each process will run a
-#'                       whole partition validation.
-#' @return matches       a SITS table with the information on matches for the data
-#' @export
-sits_TWDTW_dist_bands <- function (data.tb = NULL, patterns.tb = NULL, dist.method = "euclidean",
-                                  alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE, multicores = 1) {
 
-    result_fun <- function (data.tb, patterns.tb) {
-
-
-        # prepare function to be passed to `parallel::mclapply`. this function returns a distance table to each partition
-        dist_fun <- function(data.tb, patterns.tb){
-            result.tb <- sits_distance_table_from_data(data.tb)
-            bands <- sits_bands (data.tb)
-            bands %>%
-                purrr::map (function (b){
-                    data_b.tb  <- sits_select(data.tb, b)
-                    patt_b.tb <- sits_select(patterns.tb, b)
-                    matches_b.tb <- sits_TWDTW_matches(data_b.tb, patt_b.tb, bands = b, dist.method = dist.method,
-                                             alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
-
-                    result_b.tb <- sits_spread_matches(matches_b.tb)
-                    result_b.tb <- result_b.tb[-2:0]
-                    colnames (result_b.tb) <- paste0(colnames(result_b.tb),".",b)
-                    result.tb <<- dplyr::bind_cols(result.tb, result_b.tb)
-            })
-            return(result.tb)
-
-        }
-
-        # compose final result binding each partition by row
-        distances.tb <- dist_fun(data.tb, patterns.tb)
-
-        return (distances.tb)
-    }
-
-    result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
-    return (result)
-}
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
 #' @name sits_TWDTW_classify
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}

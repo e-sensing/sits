@@ -14,34 +14,30 @@ coverage <- "mixl8mod"
 
 # get information about a specific coverage
 sits_coverageWTSS(URL,coverage)
-#select the bands used for classification
-bands <- c("ndvi", "evi")
 
 #get the prodes samples
-samples_prodes.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_226_64_apr_set.csv",
-                                  coverage = coverage, bands = bands)
+prodes.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_samples_226_64_May_Aug.csv",
+                                  coverage = coverage, bands = c("nir", "ndvi", "evi"))
 
-prodes_2.tb <- sits_prune (samples_prodes.tb, min_interval = "158 days", max_interval = "165 days" )
+prodes2.tb <- sits_interp (prodes.tb, n = 20)
 
-#save the data
-sits_save(prodes_2.tb, "./inst/extdata/samples/prodes_226_64_apr_set.json")
-
-sits_plot (prodes_2.tb, type = "together")
+sits_plot (prodes2.tb, type = "together")
 
 #generate patterns with raw data and plot them
-prodes_patterns.tb <- sits_patterns(prodes_2.tb, method = "gam", bands = bands)
+prodes_patterns.tb <- sits_patterns(prodes2.tb)
 sits_plot(prodes_patterns.tb, type = "patterns")
 
-#cross_validate raw series
+# test accuracy of TWDTW to measure distances
+conf_svm.tb <- sits_kfold_fast_validate(prodes2.tb, folds = 2, multicores = 2,
+                                        pt_method   = sits_gam(),
+                                        dist_method = sits_TWDTW_distances(multicores = 2),
+                                        tr_method   = sits_svm (cost = 10, kernel = "radial",
+                                                                tolerance = 0.001, epsilon = 0.1))
+print("==================================================")
+print ("== Confusion Matrix = SVM =======================")
+conf_svm.mx <- sits_accuracy(conf_svm.tb)
 
-# relabel and see assessment
-prodes_relabel.lst <-  tibble::lst("Forest" = "Forest",
-                                   "ClearCut"  = "NonForest",
-                                   "ClearCut" = "NonForest",
-                                   "Pasture"  = "NonForest")
 
-cv_apr_set_2 <- sits_reassess(file = "./inst/extdata/validation/cv_apr_set.json",
-                               conv = prodes_relabel2.lst)
 # test savitsky golay filter
 samples_sg.tb <- sits_sgolay(prodes_2.tb, order = 2, scale = 1)
 
@@ -75,10 +71,6 @@ cv_whit_2016 <- sits_reassess(file = "./inst/extdata/validation/cv_whit.json",
 
 #relabel the series
 # relabel and see assessment
-prodes_relabel_2.lst <-  tibble::lst("primary_forest" = "Forest",
-                                   "clear_cut2015"  = "ClearCut2015",
-                                   "clear_cut2016"  = "ClearCut2016",
-                                   "pasture"        = "Pasture")
 
 samples_prodes_2016.tb <- samples_prodes.tb %>%
      sits_relabel (conv = prodes_relabel_2.lst ) %>%

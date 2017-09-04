@@ -14,10 +14,12 @@ sits_mlr(distances.tb = NULL, formula = sits_formula_logref(), ...)
 \item{...}{other parameters to be passed to nnet::multinom function}
 }
 \value{
-result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+result          a model function to be passed in sits_predict
 }
 \description{
 Use multinomial log-linear (mlr) fitting model via neural networks to classify data.
+These attributes are distance metrics between patterns and observations, obtained by a distance
+function in SITS (either sits_distances or sits_TWTDTW_distances).
 This function is a front-end to the "multinom" method in the "nnet" package.
 Please refer to the documentation in that package for more details.
 }
@@ -25,4 +27,6 @@ Please refer to the documentation in that package for more details.
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
