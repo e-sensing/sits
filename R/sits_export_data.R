@@ -17,7 +17,7 @@ sits_toGZ <- function (source, file_name = NULL) {
     .sits_test_table(source)
 
     ensurer::ensure_that (file_name, !purrr::is_null(.),
-                          err_desc = "sits_save: please provide the file name")
+                          err_desc = "sits_toGZ: please provide the file name")
 
     # save to JSON
     file_name <- sits_toJSON (source, file_name)
@@ -60,6 +60,7 @@ sits_toJSON <- function (source, file = NULL) {
 #' @description Converts data from a SITS table to an instance of a zoo series,
 #'
 #' @param  ts.tb    a tibble with the indexes and values of a SITS time series
+#'                  the tibble should not be part of a list
 #' @param  band     the name of the band to be exported (if NULL all bands are exported)
 #' @return ts.zoo   a time series in zoo format
 #' @export

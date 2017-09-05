@@ -24,7 +24,7 @@ samples_prodes.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_226_64_a
 prodes_2.tb <- sits_prune (samples_prodes.tb, min_interval = "158 days", max_interval = "165 days" )
 
 #save the data
-sits_save(prodes_2.tb, "./inst/extdata/samples/prodes_226_64_apr_set.json")
+sits_toGZ(prodes_2.tb, "./inst/extdata/samples/prodes_226_64_apr_set.json")
 
 sits_plot (prodes_2.tb, type = "together")
 

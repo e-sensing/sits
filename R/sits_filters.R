@@ -202,22 +202,35 @@ sits_envelope <- function(data.tb, window_size = 1){
 #' @param cutoff        a numeric value for the maximum acceptable value of a NDVI difference
 #' @return result.tb    a sits_table with same samples and the new bands
 #' @export
-sits_cloud_filter <- function(data.tb, cutoff = -0.4){
+sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3){
 
     # find the bands of the data
     bands <- sits_bands (data.tb)
     ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
 
+    # predictive model for missing values
+    pred_arima <- function (x, order) {
+        for (i in 1:length(x)) {
+           if (is.na(x[i])) {
+               prev3 <- x[i-order:i-1]
+               ensurer::ensure_that(prev3, !anyNA(.),
+                                    err_desc = "Cannot remove clouds, please reduce filter order")
+               ml <- arima(prev3, c(0,0,order))
+               x[i] <- as.vector(predict (ml1, n.ahead = 1)$pred)
+           }
+        }
+    }
     # prepare result SITS table
     result.tb <- data.tb
 
     # select the chosen bands for the time series
     result.tb$time_series <- data.tb$time_series %>%
         purrr::map (function (ts) {
-            cld <- diff(dplyr::pull(ts[, "ndvi"])) <= cutoff
+            ndvi <- dplyr::pull(ts[, "ndvi"])
+            cld <- c(0, diff(ndvi)) <= cutoff
             ts[,bands][cld,] <- NA
             # interpolate missing values
-            ts[,bands] <- zoo::na.spline(ts[,bands])
+            ts[,bands] <- pred_arima (ts[,bands], order = order)
             return (ts)
         })
 
