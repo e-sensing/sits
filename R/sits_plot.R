@@ -1,20 +1,28 @@
-# -----------------------------------------------------------
-#' Plot a set of time series
+#' @title  Plot a set of satellite image time series
+#' @name   sits_plot
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Given a SITS tibble with a set of time series, plot them
 #'
-#' \code{sits_plot} plot one or more time series
-#'
-#' Plot one SITS time series for a single place and interval
-#'
-#' @param  data.tb      tibble - a SITS table with the list of time series to be plotted
-#' @param  patterns.tb  patterns SITS tibble used to matching
-#' @param  type         string - the type of plot to be generated
-#' @param  colors       the color pallete to be used (default is "Set1")
-#' @param  start_date   the start date of the plot (used for showing classifications)
-#' @param  end_date     the end date of the plot (used for showing classifications)
-#' @param  interval     the interval between classifications (used for showing classifications)
-#' @param  overlap      minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.
-#' @param  n_matches    number of matches of a given label to be displayed
-#' @return data.tb      tibble - the input SITS table (useful for chaining functions)
+#' @param  data.tb      A SITS tibble with the list of time series to be plotted
+#' @param  patterns.tb  A SITS tibble with a set of patterns (used to plot "aligments", "matches", and "classification")
+#' @param  type         string - the type of plot to be generated. The options are:
+#' \itemize{
+#'  \item{"allyears":}{ For each lat/long location in the data, join temporal
+#' instances of the same place together for plotting}
+#'  \item{"one_by_one":}{ Plot each row of a data set separately}
+#'  \item{"together":}{ Plot all the values of all time series together for each band and each label}
+#'  \item{"patterns":}{ Plot the patterns (uses dtwSat package)}
+#'  \item{"classification":}{ Plot the classification given by the TWDTW distance (uses the dtwSat package)}
+#'  \item{"alignments":}{ Plot the alignments obtained by TWDTW method (uses the dtwSat package) }
+#'  \item{"matches":}{ Plot the matches obtained by TWDTW method (uses the dtwSat package) }
+#' }
+#' @param  colors       Color pallete to be used (default is "Set1")
+#' @param  start_date   Start date of the plot (used for showing classifications)
+#' @param  end_date     End date of the plot (used for showing classifications)
+#' @param  interval     Interval between classifications (used for showing classifications)
+#' @param  overlap      Minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.
+#' @param  n_matches    Number of matches of a given label to be displayed
+#' @return data.tb      Input SITS table (useful for chaining functions)
 #' @export
 #'
 sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = "Dark2", n_matches = 4,
@@ -41,7 +49,7 @@ sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = 
 #' @title Plot all time intervals of one time series for the same lat/long together
 #' @name .sits_plot_allyears
 #'
-#' @description finds out the different lat/long places in the data, and joins temporal
+#' @description for each lat/long location in the data, join temporal
 #' instances of the same place together for plotting
 #' @param data.tb one or more time series (stored in a SITS tibble)
 #' @param colors  the color pallete to be used (default is "Dark2")

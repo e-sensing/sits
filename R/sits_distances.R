@@ -119,8 +119,8 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL,
                         tsp <- rowp$time_series[[1]]
                         bands %>%
                             purrr::map (function (b) {
-                                ts_x <- sits_tozoo (ts, b)
-                                ts_y <- sits_tozoo (tsp, b)
+                                ts_x <- sits_toZOO (ts, b)
+                                ts_y <- sits_toZOO (tsp, b)
                                 measure <-  paste0(labelp, ".", b)
                                 r [measure] <<- TSdist::TSDistances(ts_x, ts_y, distance = distance, ...)
                             })
@@ -137,4 +137,53 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL,
     }
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
 
+}
+#' @title Create an empty distance table to store the results of distance metrics
+#' @name sits_distance_table
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Create an empty distance table to store the results of distance metrics
+#'
+#' @param patterns.tb     a SITS table with a set of patterns
+#' @return distances.tb   a tibble to store the distances between a time series and a set of patterns
+#' @export
+#'
+sits_distance_table <- function (patterns.tb) {
+
+    distances.tb <- tibble::tibble(
+        original_row = integer(),
+        reference    = character())
+
+    distances.tb <- tibble::as_tibble (distances.tb)
+
+    labels <- (dplyr::distinct(patterns.tb, label))$label
+    bands  <- sits_bands (patterns.tb)
+
+    for (l in 1:length(labels))
+        for (b in 1:length(bands)) {
+            measure <- paste0 (labels[l], ".", bands[b])
+            distances.tb [measure] = double()
+        }
+    return (distances.tb)
+}
+
+#' @title Create an empty distance table based on an input data set
+#' @name sits_distance_table_from_data
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Create an empty distance table to store the results of distance metrics
+#'
+#' @param data.tb     a SITS table with a data set
+#' @return distances.tb   a tibble to store the distances between a time series and a set of patterns
+#' @export
+#'
+sits_distance_table_from_data <- function (data.tb) {
+
+    distances.tb <- tibble::tibble(
+        original_row = 1:NROW(data.tb),
+        reference    = data.tb$label)
+
+    return (distances.tb)
 }

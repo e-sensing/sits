@@ -324,26 +324,6 @@ sits_prune <- function (data.tb, min_interval = "349 days", max_interval = "365 
     return (pruned.tb)
 }
 
-
-#' @title Add new SITS bands.
-#' @name sits_mutate
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Adds new bands and preserves existing in a sits_table's time series,
-#' using dplyr::mutate function
-#' @param data.tb       a valid sits table
-#' @param ...           Name-value pairs of expressions. Use NULL to drop a variable.
-#' @return result.tb    a sits_table with same samples and the new bands
-#' @export
-sits_mutate <- function(data.tb, ...){
-    result.tb <- data.tb
-
-    result.tb$time_series <- result.tb$time_series %>% purrr::map(function(ts.tb) {
-        ts_computed.tb <- dplyr::mutate(ts.tb, ...)
-        return(ts_computed.tb)
-    })
-
-    return(result.tb)
-}
 #' @title Rename bands of a sits table
 #' @name sits_rename
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -401,79 +381,6 @@ sits_select <- function (data.tb, bands) {
 
     # return the result
     return (result.tb)
-}
-#' @title Add new SITS bands and drops existing.
-#' @name sits_transmute
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Adds new bands and drops existing in a sits_table's time series,
-#' using dplyr::transmute function
-#' @param data.tb       a valid sits table
-#' @param ...           Name-value pairs of expressions.
-#' @return result.tb    a sits_table with same samples and the new bands
-#' @export
-sits_transmute <- function(data.tb, ...){
-    result.tb <- data.tb
-
-    result.tb$time_series <- result.tb$time_series %>% purrr::map(function(ts.tb) {
-        ts_computed.tb <- dplyr::transmute(ts.tb, ...)
-        if (!("Index" %in% colnames(ts_computed.tb)))
-            ts_computed.tb <- dplyr::bind_cols(dplyr::select(ts.tb, Index), ts_computed.tb)
-        return(ts_computed.tb)
-    })
-
-    return(result.tb)
-}
-#' @title Apply a function over SITS bands.
-#' @name sits_apply
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  `sits_apply` returns a sits_table with the same samples points and new bands computed by `fun`,
-#' `fun_index` functions. These functions must be defined inline and are called by `sits_ts_apply` for each band,
-#' whose vector values is passed as the function argument.
-#'
-#' `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
-#' of the corresponding band. In the second case, the returned list must have names, and each element vector will
-#' generate a new band which name composed by concatenating original band name and the corresponding list element name.
-#'
-#' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
-#'
-#' @param data.tb       a valid sits table
-#' @param fun           a function with one parameter as input and a vector or list of vectors as output.
-#' @param fun_index     a function with one parameter as input and a Date vector as output.
-#' @param bands_suffix  a string informing the resulting bands name's suffix.
-#' @return data.tb    a sits_table with same samples and the new bands
-#' @export
-sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
-
-    # veify if data.tb has values
-    .sits_test_table(data.tb)
-
-    #get the bands
-    bands <- sits_bands (data.tb)
-
-    # computes fun and fun_index for all time series and substitutes the original time series data
-    data.tb$time_series <- data.tb$time_series %>%
-        purrr::map(function(ts.tb) {
-            ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
-                purrr::map(fun)
-
-            # append bands names' suffixes
-            if (nchar(bands_suffix) != 0)
-                names(ts_computed.lst) <- paste0(bands, ".", bands_suffix)
-
-            # unlist if there are more than one result from `fun`
-            if (is.recursive(ts_computed.lst[[1]]))
-                ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
-
-            # convert to tibble
-            ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
-
-            # compute Index column
-            ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
-
-            # reorganizes time series tibble
-            return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
-        })
-    return(data.tb)
 }
 #' @title Return the values of a given SITS table as a list of matrices according to a specified format.
 #' @name sits_values
@@ -542,38 +449,6 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
 }
 
 #' @title Spread matches from a sits matches tibble
-#' @name sits_spread_matches
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a SITS tibble with a matches, returns a tibble whose columns have
-#' the reference label and the TWDTW distances for each temporal pattern.
-#'
-#' @param  data.tb    a SITS matches tibble
-#' @return result.tb  a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
-#' @export
-sits_spread_matches <- function(data.tb){
-
-    # Get best TWDTW aligniments for each class
-    data.tb$matches <- data.tb$matches %>%
-        purrr::map(function (data.tb){
-            data.tb %>%
-                dplyr::group_by(predicted) %>%
-                dplyr::summarise(distance=min(distance))
-        })
-
-    # Select best match and spread pred to columns
-    result.tb <- data.tb %>%
-        dplyr::transmute(original_row = 1:NROW(.), reference = label, matches = matches) %>%
-        tidyr::unnest(matches, .drop = FALSE) %>%
-        tidyr::spread(key = predicted, value = distance)
-
-    return(result.tb)
-}
-
-#' @title Spread matches from a sits matches tibble
 #' @name .sits_test_table
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -589,53 +464,4 @@ sits_spread_matches <- function(data.tb){
     ensurer::ensure_that(data.tb, NROW(.) > 0,
                          err_desc = "input data is empty")
     return (TRUE)
-}
-#' @title Create an empty distance table to store the results of distance metrics
-#' @name sits_distance_table
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Create an empty distance table to store the results of distance metrics
-#'
-#' @param patterns.tb     a SITS table with a set of patterns
-#' @return distances.tb   a tibble to store the distances between a time series and a set of patterns
-#' @export
-#'
-sits_distance_table <- function (patterns.tb) {
-
-    distances.tb <- tibble::tibble(
-        original_row = integer(),
-        reference    = character())
-
-    distances.tb <- tibble::as_tibble (distances.tb)
-
-    labels <- (dplyr::distinct(patterns.tb, label))$label
-    bands  <- sits_bands (patterns.tb)
-
-    for (l in 1:length(labels))
-        for (b in 1:length(bands)) {
-                    measure <- paste0 (labels[l], ".", bands[b])
-                    distances.tb [measure] = double()
-        }
-    return (distances.tb)
-}
-
-#' @title Create an empty distance table based on an input data set
-#' @name sits_distance_table_from_data
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Create an empty distance table to store the results of distance metrics
-#'
-#' @param data.tb     a SITS table with a data set
-#' @return distances.tb   a tibble to store the distances between a time series and a set of patterns
-#' @export
-#'
-sits_distance_table_from_data <- function (data.tb) {
-
-    distances.tb <- tibble::tibble(
-        original_row = 1:NROW(data.tb),
-        reference    = data.tb$label)
-
-    return (distances.tb)
 }

@@ -4,15 +4,108 @@
 #  As a rule, filters are functions that apply a 1D function to a
 #  time series and produce new values as a result
 #
-#  The package provides the generic method sits_apply (in sits_table.R) to apply a
+#  Most of the filters provides the generic method sits_apply to apply a
 #  1D generic function to a time series and specific methods for
 #  common tasks such as missing values removal and smoothing
 #
-#  The following filters are supported: Savitsky-Golay, Whittaker and envelope
-#
 # ---------------------------------------------------------------
 
-#' @title Inerpolation function of sits_table's time series
+#' @title Apply a function over SITS bands.
+#' @name sits_apply
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  `sits_apply` returns a sits_table with the same samples points and new bands computed by `fun`,
+#' `fun_index` functions. These functions must be defined inline and are called by `sits_ts_apply` for each band,
+#' whose vector values is passed as the function argument.
+#'
+#' `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
+#' of the corresponding band. In the second case, the returned list must have names, and each element vector will
+#' generate a new band which name composed by concatenating original band name and the corresponding list element name.
+#'
+#' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
+#'
+#' @param data.tb       a valid sits table
+#' @param fun           a function with one parameter as input and a vector or list of vectors as output.
+#' @param fun_index     a function with one parameter as input and a Date vector as output.
+#' @param bands_suffix  a string informing the resulting bands name's suffix.
+#' @return data.tb    a sits_table with same samples and the new bands
+#' @export
+sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
+
+    # veify if data.tb has values
+    .sits_test_table(data.tb)
+
+    #get the bands
+    bands <- sits_bands (data.tb)
+
+    # computes fun and fun_index for all time series and substitutes the original time series data
+    data.tb$time_series <- data.tb$time_series %>%
+        purrr::map(function(ts.tb) {
+            ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
+                purrr::map(fun)
+
+            # append bands names' suffixes
+            if (nchar(bands_suffix) != 0)
+                names(ts_computed.lst) <- paste0(bands, ".", bands_suffix)
+
+            # unlist if there are more than one result from `fun`
+            if (is.recursive(ts_computed.lst[[1]]))
+                ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
+
+            # convert to tibble
+            ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
+
+            # compute Index column
+            ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
+
+            # reorganizes time series tibble
+            return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
+        })
+    return(data.tb)
+}
+
+#' @title Add new SITS bands.
+#' @name sits_mutate
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Adds new bands and preserves existing in a sits_table's time series,
+#' using dplyr::mutate function
+#' @param data.tb       a valid sits table
+#' @param ...           Name-value pairs of expressions. Use NULL to drop a variable.
+#' @return result.tb    a sits_table with same samples and the new bands
+#' @export
+sits_mutate <- function(data.tb, ...){
+    result.tb <- data.tb
+
+    result.tb$time_series <- result.tb$time_series %>% purrr::map(function(ts.tb) {
+        ts_computed.tb <- dplyr::mutate(ts.tb, ...)
+        return(ts_computed.tb)
+    })
+
+    return(result.tb)
+}
+
+#' @title Add new SITS bands and drops existing.
+#' @name sits_transmute
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Adds new bands and drops existing in a sits_table's time series,
+#' using dplyr::transmute function
+#' @param data.tb       a valid sits table
+#' @param ...           Name-value pairs of expressions.
+#' @return result.tb    a sits_table with same samples and the new bands
+#' @export
+sits_transmute <- function(data.tb, ...){
+    result.tb <- data.tb
+
+    result.tb$time_series <- result.tb$time_series %>% purrr::map(function(ts.tb) {
+        ts_computed.tb <- dplyr::transmute(ts.tb, ...)
+        if (!("Index" %in% colnames(ts_computed.tb)))
+            ts_computed.tb <- dplyr::bind_cols(dplyr::select(ts.tb, Index), ts_computed.tb)
+        return(ts_computed.tb)
+    })
+
+    return(result.tb)
+}
+
+#' @title Interpolation function of sits_table's time series
 #' @name sits_linear_interp
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Computes the linearly interpolated bands for a given resolution
@@ -98,6 +191,37 @@ sits_envelope <- function(data.tb, window_size = 1){
                              fun_index = function(band) band)
 
      return(result.tb)
+}
+
+
+#' @title Cloud filter
+#' @name sits_cloud_filter
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description  This function tries to remove clouds in the satellite image time series
+#' @param data.tb       a valid sits table containing the "ndvi" band
+#' @param cutoff        a numeric value for the maximum acceptable value of a NDVI difference
+#' @return result.tb    a sits_table with same samples and the new bands
+#' @export
+sits_cloud_filter <- function(data.tb, cutoff = -0.4){
+
+    # find the bands of the data
+    bands <- sits_bands (data.tb)
+    ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
+
+    # prepare result SITS table
+    result.tb <- data.tb
+
+    # select the chosen bands for the time series
+    result.tb$time_series <- data.tb$time_series %>%
+        purrr::map (function (ts) {
+            cld <- diff(dplyr::pull(ts[, "ndvi"])) <= cutoff
+            ts[,bands][cld,] <- NA
+            # interpolate missing values
+            ts[,bands] <- zoo::na.spline(ts[,bands])
+            return (ts)
+        })
+
+    return(result.tb)
 }
 
 #' Smooth the time series using Whittaker smoother (based on PTW package)

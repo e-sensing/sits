@@ -15,10 +15,16 @@ prodes_relabel.lst <-  tibble::lst("primary_forest" = "Forest",
 
 prodes2.tb <- sits_relabel(prodes.tb, prodes_relabel.lst)
 
+prodes_clds.tb <- sits_cloud_filter (prodes2.tb, cutoff = -0.3)
+
+sits_plot(prodes2.tb[1:10,], type = "one_by_one")
+
 conf1.tb <- sits_kfold_fast_validate(prodes2.tb, folds = 2, multicores = 2,
                                      pt_method   = sits_gam(),
                                      dist_method = sits_TWDTW_distances(multicores = 2),
                                      tr_method   = sits_svm (cost = 10, kernel = "radial",
                                                              tolerance = 0.001, epsilon = 0.1))
+
+
 
 
