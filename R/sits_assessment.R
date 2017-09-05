@@ -217,6 +217,7 @@ sits_kfold_validate <- function (data.tb, folds = 5,
 
     # does the input data exist?
     .sits_test_table (data.tb)
+
     # is the data labelled?
     ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
                           err_desc = "sits_cross_validate: please provide a labelled set of time series")

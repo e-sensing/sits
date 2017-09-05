@@ -4,14 +4,14 @@
 #load the sits library
 library (sits)
 #load a data set for with samples for EMBRAPA data set
-embrapa_new.tb <- sits_getdata(file = "./inst/extdata/samples/dados_matogrosso_alex_v2.json.gz")
+embrapa_new.tb <- sits_getdata(file = "./inst/extdata/samples/samples_matogrosso_embrapa_14classes.json.gz")
 
 results <- list()
 
 # test accuracy of TWDTW to measure distances
-conf_svm.tb <- sits_kfold_fast_validate(embrapa_new.tb, folds = 5, multicores = 2,
+conf_svm.tb <- sits_kfold_fast_validate(embrapa_new.tb[300:500,], folds = 2, multicores = 1,
                                    pt_method   = sits_gam(),
-                                   dist_method = sits_TWDTW_distances(multicores = 2),
+                                   dist_method = sits_TWDTW_distances(multicores = 1),
                                    tr_method   = sits_svm (cost = 10, kernel = "radial",
                                                            tolerance = 0.001, epsilon = 0.1))
 print("==================================================")
