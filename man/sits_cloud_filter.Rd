@@ -4,12 +4,14 @@
 \alias{sits_cloud_filter}
 \title{Cloud filter}
 \usage{
-sits_cloud_filter(data.tb, cutoff = -0.4)
+sits_cloud_filter(data.tb, cutoff = -0.25, order = 3)
 }
 \arguments{
 \item{data.tb}{a valid sits table containing the "ndvi" band}
 
 \item{cutoff}{a numeric value for the maximum acceptable value of a NDVI difference}
+
+\item{order}{the order of the ARIMA model to estimate cloud-covered valued}
 }
 \value{
 result.tb    a sits_table with same samples and the new bands

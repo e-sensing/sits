@@ -200,6 +200,7 @@ sits_envelope <- function(data.tb, window_size = 1){
 #' @description  This function tries to remove clouds in the satellite image time series
 #' @param data.tb       a valid sits table containing the "ndvi" band
 #' @param cutoff        a numeric value for the maximum acceptable value of a NDVI difference
+#' @param order         the order of the ARIMA model to estimate cloud-covered valued
 #' @return result.tb    a sits_table with same samples and the new bands
 #' @export
 sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3){
@@ -210,15 +211,15 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3){
 
     # predictive model for missing values
     pred_arima <- function (x, order) {
-        for (i in 1:length(x)) {
-           if (is.na(x[i])) {
-               prev3 <- x[i-order:i-1]
+        idx <- which (is.na(x))
+        for (i in idx) {
+               prev3 <- x[(i - order):(i - 1)]
                ensurer::ensure_that(prev3, !anyNA(.),
                                     err_desc = "Cannot remove clouds, please reduce filter order")
-               ml <- arima(prev3, c(0,0,order))
-               x[i] <- as.vector(predict (ml1, n.ahead = 1)$pred)
-           }
+               arima.ml <- stats::arima(prev3, c(0,0,order))
+               x[i] <- as.vector(stats::predict (arima.ml, n.ahead = 1)$pred)
         }
+        return (x)
     }
     # prepare result SITS table
     result.tb <- data.tb
@@ -230,7 +231,9 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3){
             cld <- c(0, diff(ndvi)) <= cutoff
             ts[,bands][cld,] <- NA
             # interpolate missing values
-            ts[,bands] <- pred_arima (ts[,bands], order = order)
+            bands %>%
+                purrr::map (function (b)
+                    ts[,b] <<- pred_arima (dplyr::pull(ts[,b]), order = order))
             return (ts)
         })
 
