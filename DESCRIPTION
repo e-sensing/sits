@@ -78,8 +78,8 @@ Imports:
 LinkingTo: 
     Rcpp
 Remotes:
-     e-sensing/wtss,
-     e-sensing/wtsps,
+    e-sensing/wtss,
+    e-sensing/wtsps,
     rolfsimoes/dtwSat
 RoxygenNote: 6.0.1
 Collate: 
@@ -100,11 +100,10 @@ Collate:
     'sits_getdata.R'
     'sits_init.R'
     'sits_kohonen.R'
-    'sits_labels.R'
     'sits_machine_learning.R'
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
-    'sits_smooth.R'
     'sits_stack_proc.R'
     'sits_table.R'
+    'sits_time_series.R'

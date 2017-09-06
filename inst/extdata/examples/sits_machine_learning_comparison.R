@@ -4,7 +4,7 @@
 #load the sits library
 library (sits)
 #load a data set for with samples for EMBRAPA data set
-embrapa_new.tb <- sits_getdata(file = "./inst/extdata/samples/dados_matogrosso_alex_v2.json.gz")
+embrapa_new.tb <- sits_getdata(file = "./inst/extdata/samples/samples_matogrosso_embrapa_14classes.json.gz")
 
 results <- list()
 

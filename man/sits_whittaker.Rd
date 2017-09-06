@@ -4,14 +4,17 @@
 \alias{sits_whittaker}
 \title{Smooth the time series using Whittaker smoother (based on PTW package)}
 \usage{
-sits_whittaker(data.tb, lambda = 0.5, bands_suffix = "whit")
+sits_whittaker(data.tb, lambda = 1, differences = 3,
+  bands_suffix = "whit")
 }
 \arguments{
 \item{data.tb}{The SITS tibble containing the original time series}
 
-\item{lambda}{double   - the smoothing factor to be applied}
+\item{lambda}{double   - the smoothing factor to be applied (default 1.0)}
 
-\item{bands_suffix}{the suffix to be appended to the smoothed filters}
+\item{differences}{an integer indicating the order of differences of contiguous elements (default 3)}
+
+\item{bands_suffix}{the suffix to be appended to the smoothed filters (default "whit")}
 }
 \value{
 output.tb a tibble with smoothed sits time series

@@ -46,408 +46,156 @@ sits_table <- function () {
     return (result.tb)
 }
 
-#' @title Aligns dates of time series to a reference date
-#' @name sits_align
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @title returns the labels' count of a sits table
+#' @name sits_summary
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description converts the time indexes of a set of sits tables to a single reference year.
-#' This function is useful to join many time series from different years to a single year,
-#' which is required by methods that combine many time series, such as clustering methods.
-#' The reference year is taken from the date of the start of the time series
-#' available in the coverage.
+#' @description  returns the labels and its respective counting and frequency.
 #'
-#' @param  data.tb       tibble - input SITS table (useful for chaining functions)
-#' @param  ref_dates     the dates to align the time series
-#' @return data1.tb      tibble - the converted SITS table (useful for chaining functions)
+#' @param data.tb     a valid sits table
+#' @return result.tb  a tibble with the names of the labels and its absolute and relative frequency
 #' @export
 #'
-sits_align <- function (data.tb, ref_dates) {
+sits_summary <- function (data.tb) {
 
-    # function to shift a time series in time
-    shift_ts <- function(d, k) dplyr::bind_rows(utils::tail(d,k), utils::head(d,-k))
+    # get frequency table
+    data.vec <- table(data.tb$label)
 
-    # get the reference date
-    start_date <- lubridate::as_date(ref_dates[1])
-    # create an output table
-    data1.tb <- sits_table()
-
-    # add a progress bar
-    message("Aligning samples time series intervals...")
-    progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
-
-    for (i in 1:nrow(data.tb)) {
-        # extract the time series
-        row <- data.tb[i,]
-        ts <- row$time_series[[1]]
-        # rows that do not match the number of reference dates are discarded
-        if(length(ref_dates) != nrow(ts)) {
-            next
-        }
-        # in what direction do we need to shift the time series?
-        sense <- lubridate::yday(lubridate::as_date (ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
-        # find the date of minimum distance to the reference date
-        idx <- which.min(abs((lubridate::as_date (ts$Index) - lubridate::as_date(start_date))/lubridate::ddays(1)))
-        # do we shift time up or down?
-        if (sense < 0) shift <- -(idx - 1) else shift <- (idx - 1)
-        # shift the time series to match dates
-        if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
-        # convert the time index to a reference year
-        first_date <- lubridate::as_date(ts[1,]$Index)
-        # change the dates to the reference dates
-        ts1 <- dplyr::mutate (ts, Index = ref_dates)
-        # save the resulting row in the output table
-        row$time_series[[1]] <- ts1
-        row$start_date <- lubridate::as_date(ref_dates[1])
-        row$end_date   <- ref_dates[length(ref_dates)]
-        data1.tb <- dplyr::bind_rows(data1.tb, row)
-
-        # update progress bar
-        utils::setTxtProgressBar(progress_bar, i)
-    }
-
-    close(progress_bar)
-    return (data1.tb)
+    # compose output tibble containing labels, count and relative frequency columns
+    result.tb <- tibble::as_tibble(list(label = names(data.vec),
+                                        count = as.integer(data.vec),
+                                        freq  = as.numeric(prop.table(data.vec))))
+    return (result.tb)
 }
-
-#' @title returns the names of the bands of a time series
-#' @name sits_bands
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @title returns the labels' count of a sits table
+#' @name sits_labels
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description  finds the names of the bands of time series in a sits table
+#' @description  returns the labels and its respective counting and frequency.
 #'
-#' @param data.tb      a valid sits table
-#' @return result.vec  a string vector with the names of the bands
+#' @param data.tb     a valid sits table
+#' @return result.tb  a tibble with the names of the labels and its absolute and relative frequency
 #' @export
 #'
-sits_bands <- function (data.tb) {
-    result.vec <- data.tb[1,]$time_series[[1]] %>%
-        colnames() %>% .[2:length(.)]
+sits_labels <- function (data.tb) {
+
+    # get unique labels and returns
+    result.vec <- base::unique(data.tb$label)
+
     return (result.vec)
 }
 
-#' @title Return the dates of a sits table
-#' @name sits_dates
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description returns a vector containing the dates of a sits table
-#'
-#' @param  data.tb a tibble in SITS format with time series for different bands
-#' @return table   a tibble in SITS format with values of time indexes
-#' @export
-sits_dates <- function (data.tb) {
-    values <- data.tb$time_series %>%
-        data.frame() %>%
-        tibble::as_tibble() %>%
-        dplyr::select (dplyr::starts_with ("Index")) %>%
-        t() %>%
-        as.vector() %>%
-        lubridate::as_date()
-    return (values)
-}
-
-#' @title Group different time series for the same lat/long coordinate
-#' @name sits_group_bylatlong
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Takes a sits table in which different time references
-#' for the same lat/long coordinate has been separated, and groups them together.
-#' This function is useful por plotting together all time series associated to
-#' the same location and is also useful to regroup series that have been split
-#' to produce yearly samples that are used to define patterns
-#'
-#' @param    data.tb    tibble - input SITS table
-#' @return   data1.tb   tibble - the converted SITS table with time series grouped by latlong
-#' @export
-#'
-sits_group_bylatlong <- function (data.tb) {
-    #create a sits table to store the output
-    out.tb <- sits_table()
-    #find out how many distinct lat/long locations exist in the data
-    locs <- dplyr::distinct(data.tb, latitude, longitude)
-
-    # process each lat/long location
-    locs %>%
-        purrrlyr::by_row ( function (loc) {
-            long = as.double (loc$longitude) # select longitude
-            lat  = as.double (loc$latitude)  # select latitude
-            # filter only those rows with the same label
-            rows <- dplyr::filter (data.tb, longitude == long, latitude == lat)
-
-            # make an initial guess for the start and end dates
-            start_date <- rows[1,]$start_date
-            end_date   <- rows[1,]$end_date
-            # get the first time series
-            time_series <- rows[1,]$time_series[[1]]
-
-            # are there more time series for the same location?
-            if (nrow(rows) > 1) {
-                rows %>%
-                    utils::tail (n = -1) %>%
-                    purrrlyr::by_row (function(row) {
-                        # adjust the start and end dates
-                        if (row$start_date < start_date) start_date <- row$start_date
-                        if (row$end_date   > end_date)   end_date   <- row$end_date
-                        # get the time series and join it with the previous ones
-                        t <- row$time_series[[1]]
-                        time_series <<- dplyr::bind_rows(time_series, t)
-                    })
-            }
-            ts.lst <- tibble::lst()
-            ts.lst[[1]] <- time_series
-            out.tb <<- tibble::add_row (out.tb,
-                                        longitude    = long,
-                                        latitude     = lat,
-                                        start_date   = as.Date(start_date),
-                                        end_date     = as.Date(end_date),
-                                        label        = "NoClass",
-                                        coverage     = rows[1,]$coverage,
-                                        time_series  = ts.lst)
-        })
-    return (out.tb)
-}
-
-#' @title Merge two satellite image time series
-#' @name sits_merge
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function merges the time series of two STIS tables.
-#' To merge two series, we consider that they contain different
-#' attributes but refer to the same coverage, and spatio-temporal location.
-#' This function is useful to merge different bands of the same spatio-temporal locations.
-#' For example, one may want to put the raw and smoothed bands for the same set of locations
-#' in the same table.
-#'
-#' @param data1.tb      the first SITS table to be merged
-#' @param data2.tb      the second SITS table to be merged
-#' @return result.tb    a merged SITS tibble with a nested set of time series
-#' @export
-sits_merge <-  function(data1.tb, data2.tb) {
-
-    # are the names of the bands different?
-    ensurer::ensure_that(data1.tb, !(any(sits_bands(.) %in% sits_bands(data2.tb)) | any(sits_bands(data2.tb) %in% sits_bands(.))),
-                         err_desc = "sits_merge: cannot merge two sits tables with bands with the same names")
-
-    # if some parameter is empty returns the another one
-    if (NROW(data1.tb) == 0)
-        return (data2.tb)
-    if (NROW(data2.tb) == 0)
-        return (data1.tb)
-
-    # verify if data1.tb and data2.tb has the same number of rows
-    ensurer::ensure_that(data1.tb, NROW(.) == NROW(data2.tb),
-                         err_desc = "sits_merge: cannot merge two sits tables with different numbers of rows")
-
-    # prepare result
-    result.tb <- data1.tb
-
-    # merge time series
-    result.tb$time_series <- purrr::map2 (data1.tb$time_series, data2.tb$time_series, function (ts1, ts2) {
-        ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -Index))
-        return (ts3)
-    })
-
-    return (result.tb)
-}
-
-#' @title Prunes dates of time series to fit an interval
-#' @name sits_prune
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @title names of the labels of sits table
+#' @name `sits_labels<-`
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description prunes the times series contained a set of sits tables
-#' to an interval. This function is useful to constrain the different samples
-#' of land cover to the same interval (usually, one year)
+#' @description  set the names of the labels of a given sits table
 #'
-#' @param    data.tb      tibble - input SITS table
-#' @param    min_interval a string describing the min interval (in days) bellow which the samples are discarded.
-#' @param    max_interval a string describing the max interval (in days) above which the samples are proned.
-#' @return   pruned.tb    tibble - the converted SITS table
+#' @param data.tb      a valid sits table
+#' @param value        string vector with the new label names
+#' @return invisible(data.tb) the input data invisible
 #' @export
 #'
-sits_prune <- function (data.tb, min_interval = "349 days", max_interval = "365 days") {
-    #does the input data exist?
-    .sits_test_table (data.tb)
+`sits_labels<-` <- function(data.tb, value){
 
-    pruned.tb <- sits_table()
-    discarded.tb <- sits_table()
+    # get actual labels
+    labels.vec <-  sits_labels(data.tb)
 
-    #
-    message("Processing...")
+    # verify if the number of labels informed is the same as the actual number of labels in input data
+    ensurer::ensure_that(value, length(.) == length(labels.vec),
+                         err_desc = "sits_labels: labels in data input and informed label names have different lengths.")
 
-    # add a progress bar
-    i <- 0
-    progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
+    # substitute old values on labels vector
+    ref_label <- value
+    names(ref_label) <- labels.vec
 
-    data.tb %>%
-        purrrlyr::by_row (function (row) {
-            ts <- row$time_series[[1]]
-            row_interval <- lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date)
-
-            # data interval is greater than maximum interval. Trying to cut it.
-            if ( row_interval >= lubridate::as.duration(max_interval)) {
-
-                # extract the time series
-                ts <- row$time_series[[1]]
-
-                # find the first date which exceeds the required max_interval
-                idx <- which.max (lubridate::as_date(ts$Index) - lubridate::as_date(row$start_date) >= lubridate::as.duration(max_interval))
-
-                # prune the time series to fit inside the required max_interval
-                ts1 <- ts[1:(idx - 1),]
-
-                # save the pruned time series
-                row$time_series[[1]] <- ts1
-
-                # store the new end date
-                row$end_date <- ts1[nrow(ts1),]$Index
-            }
-
-            # verifies if resulting time series satisfies min_interval requirement. If don't discard sample.
-            # Else, stores the resulting row in the SITS table
-            row_interval <- lubridate::as_date(row$end_date) - lubridate::as_date(row$start_date)
-            if ( row_interval < lubridate::as.duration(min_interval))
-                discarded.tb <<- dplyr::bind_rows(discarded.tb, row)
-            else
-                pruned.tb <<- dplyr::bind_rows(pruned.tb, row)
-
-            # update progress bar
-            i <<- i + 1
-            utils::setTxtProgressBar(progress_bar, i)
-        })
-
-    close(progress_bar)
-
-    if (nrow(discarded.tb) > 0){
-        message("The following sample(s) has(have) been discarded:\n")
-        print(tibble::as_tibble(discarded.tb))
-    }
-    return (pruned.tb)
+    # proceed rename and return invisible
+    data.tb$label <- ref_label[data.tb$label]
+    invisible(data.tb)
 }
 
-#' @title Rename bands of a sits table
-#' @name sits_rename
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description replaces the names of the bands of a satellite image time series
-#'
-#' @param data.tb      a SITS table with a list of SITS time series
-#' @param bands_new    a list of new band names
-#' @return out.tb      a SITS table with a list of renamed bands for the time series
-#' @export
-sits_rename <-  function (data.tb, bands_new) {
-
-    #does the input data exist?
-    .sits_test_table (data.tb)
-
-    ensurer::ensure_that(bands_new, !purrr::is_null(.), err_desc = "sits_rename: New band names should be provided")
-    ensurer::ensure_that(data.tb, length(sits_bands(.)) == length (bands_new),
-                         fail_with = function (e) stop(e),
-                         err_desc = "sits_rename: Please provide names for all input bands")
-
-    # rename the time series
-    out.ts <- data.tb$time_series %>%
-        purrr::map (function (ts) {
-            ts_out <- ts
-            colnames (ts_out) <- c("Index", bands_new)
-            return (ts_out)
-        })
-    out.tb <- dplyr::select (data.tb, latitude, longitude, start_date, end_date, label, coverage)
-    out.tb$time_series <- out.ts
-
-    return (out.tb)
-}
 #' @title Filter bands on a SITS table
-#' @name sits_select
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @name sits_filter
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description returns a sits table with the selected bands
+#' @description returns a sits table with the filtered bands
 #'
 #' @param data.tb      a sits table with the time series of the selected bands
-#' @param bands        a vector of bands
+#' @param ...          `name=value` pairs expressions, where `name` is any SITS column name.
+#'                     See `dplyr::filter` help for more details.
 #' @return result.tb   a tibble in SITS format with the selected bands
 #' @export
-sits_select <- function (data.tb, bands) {
+sits_filter <- function (data.tb, ...){
 
-    # verify if bands exists in data.tb
-    ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
-                         err_desc = "sits_select: some band(s) not found in input data")
-
-    # prepare result SITS table
-    result.tb <- data.tb
+    # verify if data.tb has values
+    .sits_test_table(data.tb)
 
     # select the chosen bands for the time series
-    result.tb$time_series <- data.tb$time_series %>%
-        purrr::map (function (ts) ts[, c("Index", bands)])
+    data.tb <- dplyr::filter(data.tb, ...)
+    return (data.tb)
+}
+#' @title apply a function to a grouped SITS table
+#' @name sits_foreach
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description returns a sits table by compound the sits tables apply a function to a grouped SITS table
+#'
+#' @param data.tb      a sits table with the time series of the selected bands
+#' @param ...          one or more sits table field separated by commas that are used to group the data.
+#'                     See `dplyr::group_by` help for more details.
+#' @param fun          a function that receives as input an sits table and outputs an sits table
+#' @return result.tb   a tibble in SITS format with the selected bands
+#' @export
+sits_foreach <- function (data.tb, ..., fun){
 
-    # return the result
+    # execute the foreach applying fun function to each group
+    result.tb <- data.tb %>%
+        dplyr::group_by(...) %>%
+        dplyr::do(. %>% fun())
+
+    # comply result with sits table format and return
+    result.tb <- dplyr::bind_rows(list(sits_table(), result.tb))
     return (result.tb)
 }
-#' @title Return the values of a given SITS table as a list of matrices according to a specified format.
-#' @name sits_values
+#' @title Sample a percentage of a time series
+#' @name sits_sample
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description this function returns only the values of a sits table (according a specified format).
-#' This function is useful to use packages such as ggplot, dtwclust, or kohonen that
-#' require values that are rowwise or colwise organised.
+#' @description takes a sits table with different labels and
+#'              returns a new table. For a given field as a group criterion, this new table contains a given number or percentage
+#'              of the total number of samples per group. Parameter n indicantes the number of random samples with reposition.
+#'              Parameter frac indicates a fraction of random samples without reposition. If frac > 1, the sampling is taken with reposition.
 #'
-#' @param  data.tb    a tibble in SITS format with time series for different bands
-#' @param  bands      string - a group of bands whose values are to be extracted. If no bands is informed extract ALL bands.
-#' @param  format     string - either "cases_dates_bands" or "bands_cases_dates" or "bands_dates_cases"
-#' @return table   a tibble in SITS format with values
-#' @family   STIS table functions
+#'
+#' @param  data.tb    input SITS table
+#' @param  ...        one or more sits table field separated by commas that are used to group the data.
+#'                    See `dplyr::group_by` help for more details.
+#' @param  n          the quantity of samples to pick from a given group of data.
+#' @param  frac       the percentage of samples to pick from a given group of data.
+#' @return result.tb  the new SITS table with a fixed quantity of samples of informed labels and all other
 #' @export
-sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
-    ensurer::ensure_that(format, . == "cases_dates_bands" || . == "bands_cases_dates" || . == "bands_dates_cases",
-                         err_desc = "sits_values: valid format parameter are 'cases_dates_bands', 'bands_cases_dates', or 'bands_dates_cases'")
+sits_sample <- function (data.tb, ..., n = NULL, frac = NULL){
 
-    if (purrr::is_null(bands))
-        bands <- sits_bands(data.tb)
+    # verify if data.tb is empty
+    .sits_test_table(data.tb)
 
-    # equivalent to former sits_values_rows()
-    # used in sits_cluster input data
-    # list elements: bands, matrix's rows: cases, matrix's cols: dates
-    if (format == "cases_dates_bands") {
+    # verify if either n or frac is informed
+    ensurer::ensure_that(n, !(base::is.null(.) & base::is.null(frac)),
+                         err_desc = "sits_sample: neither n or frac parameters informed")
 
-        # populates result
-        values.lst <- data.tb$time_series %>%
-            purrr::map(function (ts) {
-                data.matrix(dplyr::select(ts, dplyr::one_of(bands)))
-            })
+    # prepare sampling function
+    sampling_fun <- if (!base::is.null(n))
+        function(tb) tb %>% dplyr::sample_n(size = n, replace = TRUE)
+    else if (frac <= 1)
+        function(tb) tb %>% dplyr::sample_frac(size = frac, replace = FALSE)
+    else
+        function(tb) tb %>% dplyr::sample_frac(size = frac, replace = TRUE)
 
-        # another kind of sits_values_rows()
-        # used in sits_kohonen input
-        # list elements: bands, matrix's rows: cases, matrix's cols: dates
-    } else if (format == "bands_cases_dates") {
-        values.lst <- bands %>% purrr::map(function (band) {
-            data.tb$time_series %>%
-                purrr::map(function (ts) {
-                    dplyr::select(ts, dplyr::one_of(band))
-                }) %>%
-                data.frame() %>%
-                tibble::as_tibble() %>%
-                as.matrix() %>% t()
-        })
-
-        names(values.lst) <- bands
-        # equivalent to former sits_values_cols()
-        # list elements: bands, matrix's rows: dates, matrix's cols: cases
-    } else if (format == "bands_dates_cases") {
-        values.lst <- bands %>% purrr::map(function (band) {
-            data.tb$time_series %>%
-                purrr::map(function (ts) {
-                    dplyr::select(ts, dplyr::one_of(band))
-                }) %>%
-                data.frame() %>%
-                tibble::as_tibble() %>%
-                as.matrix()
-        })
-
-        names(values.lst) <- bands
-    }
-    return (values.lst)
+    # compute sampling
+    result.tb <- data.tb %>%
+        sits_foreach(label, sampling_fun)
+    return(result.tb)
 }
-
 #' @title Spread matches from a sits matches tibble
 #' @name .sits_test_table
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

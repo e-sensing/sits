@@ -80,26 +80,6 @@ sits_patt_dendgam <- function(data.tb = NULL, first_cluster_cleaner = 0.027,
         cluster_b.tb <- sits_cluster(data_b.tb, data_clus_b.obj, k = k_cluster_b)
         cluster_b.tb <- sits_cluster_cleaner(cluster_b.tb, min_clu_perc = second_cluster_cleaner)
 
-        # computing cluster new labels
-        # cluster_a
-        frequency_a.tb <- sits_cluster_frequency(cluster_a.tb, relative = TRUE)
-        cluster_a_labels.lst <- colnames(frequency_a.tb)[1:(NCOL(frequency_a.tb)-1)] %>% purrr::map(function(cluster){
-            paste0(row.names(frequency_a.tb)[which.max(frequency_a.tb[1:(NROW(frequency_a.tb) - 1), cluster])], ".", cluster)
-        })
-        names(cluster_a_labels.lst) <- colnames(frequency_a.tb)[1:(NCOL(frequency_a.tb)-1)]
-        # cluster_b
-        frequency_b.tb <- sits_cluster_frequency(cluster_b.tb, relative = TRUE)
-        cluster_b_labels.lst <- colnames(frequency_b.tb)[1:(NCOL(frequency_b.tb)-1)] %>% purrr::map(function(cluster){
-            paste0(row.names(frequency_b.tb)[which.max(frequency_b.tb[1:(NROW(frequency_b.tb) - 1), cluster])], ".", cluster)
-        })
-        names(cluster_b_labels.lst) <- colnames(frequency_b.tb)[1:(NCOL(frequency_b.tb)-1)]
-
-        # relabel cluster
-        # cluster_a
-        cluster_a.tb <- sits_cluster_relabel(cluster_a.tb, cluster_a_labels.lst)
-        # cluster_b
-        cluster_b.tb <- sits_cluster_relabel(cluster_b.tb, cluster_b_labels.lst)
-
         # bind cluster_a and cluster_b
         combined.tb <- dplyr::bind_rows(cluster_a.tb, cluster_b.tb)
 

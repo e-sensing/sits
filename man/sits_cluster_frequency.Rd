@@ -4,12 +4,14 @@
 \alias{sits_cluster_frequency}
 \title{Cluster frequency}
 \usage{
-sits_cluster_frequency(data.tb, relative = FALSE)
+sits_cluster_frequency(data.tb, relative = FALSE, margin = 2)
 }
 \arguments{
 \item{data.tb}{a SITS tibble with `cluster` column.}
 
 \item{relative}{(boolean) return relative frequency?}
+
+\item{margin}{number indicating how to compute relative frequency (1 regarding labels, 2 regarding clusters) (default 2)}
 }
 \value{
 result.mtx      matrix containing all frequencies of labels in clusters

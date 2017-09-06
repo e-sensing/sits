@@ -75,8 +75,16 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(train_data.tb){
 
+        # verify if data input is not empty
+        .sits_test_table(train_data.tb)
+
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_svm: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.),
+                             err_desc = "sits_svm: input data does not contain distance")
+
+        # there is something to learn?
+        ensurer::ensure_that(train_data.tb, length(base::unique(.$reference)) > 1,
+                             err_desc = "sits_svm: input data has ")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -120,6 +128,9 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(train_data.tb){
+
+        # verify if data input is not empty
+        .sits_test_table(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
@@ -167,6 +178,9 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(train_data.tb){
 
+        # verify if data input is not empty
+        .sits_test_table(train_data.tb)
+
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_qda: input data does not contain distance")
 
@@ -211,6 +225,9 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 
     # function that returns nnet::multinom model based on a sits sample tibble
     result_fun <- function(train_data.tb){
+
+        # verify if data input is not empty
+        .sits_test_table(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_mlr: input data does not contain distance")
@@ -261,6 +278,9 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
     # function that returns glmnet::multinom model based on a sits sample tibble
     result_fun <- function(train_data.tb){
 
+        # verify if data input is not empty
+        .sits_test_table(train_data.tb)
+
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_glm: input data does not contain distance")
 
@@ -309,14 +329,14 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
 #' @return result          a model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @export
 #'
-sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distribution = "multinomial", n.trees = 5000, interaction.depth = 4, shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...) {
+sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distribution = "multinomial",
+                     n.trees = 5000, interaction.depth = 4, shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...) {
 
     # function that returns glmnet::multinom model based on a sits sample tibble
     result_fun <- function(train_data.tb){
 
-        # Set a random seed to allow reproducability of the results
-        randomSeed = 1337
-        set.seed(randomSeed)
+        # verify if data input is not empty
+        .sits_test_table(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_gbm: input data does not contain distance")
@@ -371,9 +391,11 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
     result_fun <- function(train_data.tb){
 
+        # verify if data input is not empty
+        .sits_test_table(train_data.tb)
+
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
-
 
         # call `randomForest::randomForest` method and return the trained multinom model
         df <- data.frame (train_data.tb[-1:0])
@@ -411,9 +433,11 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
 #'
 sits_deep_learning <- function(distances.tb = NULL, ...) {
 
-
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
     result_fun <- function(train_data.tb){
+
+        # verify if data input is not empty
+        .sits_test_table(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
