@@ -4,15 +4,13 @@
 #  As a rule, filters are functions that apply a 1D function to a
 #  time series and produce new values as a result
 #
-#  The package provides the generic method sits_apply (in sits_table.R) to apply a
+#  Most of the filters provides the generic method sits_apply to apply a
 #  1D generic function to a time series and specific methods for
 #  common tasks such as missing values removal and smoothing
 #
-#  The following filters are supported: Savitsky-Golay, Whittaker and envelope
-#
 # ---------------------------------------------------------------
 
-#' @title Inerpolation function of sits_table's time series
+#' @title Interpolation function of sits_table's time series
 #' @name sits_linear_interp
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Computes the linearly interpolated bands for a given resolution
@@ -96,6 +94,37 @@ sits_envelope <- function(data.tb, window_size = 1){
     result.tb <- sits_apply(data.tb,
                             fun = function(band) dtwclust::compute_envelope(band, window.size = window_size, error.check = FALSE),
                             fun_index = function(band) band)
+
+    return(result.tb)
+}
+
+
+#' @title Cloud filter
+#' @name sits_cloud_filter
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description  This function tries to remove clouds in the satellite image time series
+#' @param data.tb       a valid sits table containing the "ndvi" band
+#' @param cutoff        a numeric value for the maximum acceptable value of a NDVI difference
+#' @return result.tb    a sits_table with same samples and the new bands
+#' @export
+sits_cloud_filter <- function(data.tb, cutoff = -0.4){
+
+    # find the bands of the data
+    bands <- sits_bands (data.tb)
+    ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
+
+    # prepare result SITS table
+    result.tb <- data.tb
+
+    # select the chosen bands for the time series
+    result.tb$time_series <- data.tb$time_series %>%
+        purrr::map (function (ts) {
+            cld <- diff(dplyr::pull(ts[, "ndvi"])) <= cutoff
+            ts[,bands][cld,] <- NA
+            # interpolate missing values
+            ts[,bands] <- zoo::na.spline(ts[,bands])
+            return (ts)
+        })
 
     return(result.tb)
 }

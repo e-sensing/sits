@@ -499,4 +499,20 @@ sits_conf_fromJSON <- function (file) {
     return (table)
 }
 
+#' @title Export data to be used to the zoo format
+#' @name sits_fromZOO
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Converts data from a SITS table to an instance of a zoo series,
+#'
+#' @param  ts       a zoo time series
+#' @return ts       a time series in SITS format
+#' @export
+sits_fromZOO <- function (ts.tb, band){
+    # transform each sits time series into a list of zoo
+    tibble::as_tibble (zoo::fortify.zoo (time_series))
+    return (tibble::as_tibble (zoo::fortify.zoo (time_series)))
+}
+
+
 

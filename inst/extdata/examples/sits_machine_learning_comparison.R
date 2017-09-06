@@ -9,9 +9,9 @@ embrapa_new.tb <- sits_getdata(file = "./inst/extdata/samples/samples_matogrosso
 results <- list()
 
 # test accuracy of TWDTW to measure distances
-conf_svm.tb <- sits_kfold_fast_validate(embrapa_new.tb[300:500,], folds = 2, multicores = 1,
+conf_svm.tb <- sits_kfold_fast_validate(embrapa_new.tb, folds = 5, multicores = 2,
                                    pt_method   = sits_gam(),
-                                   dist_method = sits_TWDTW_distances(multicores = 1),
+                                   dist_method = sits_TWDTW_distances(multicores = 2),
                                    tr_method   = sits_svm (cost = 10, kernel = "radial",
                                                            tolerance = 0.001, epsilon = 0.1))
 print("==================================================")

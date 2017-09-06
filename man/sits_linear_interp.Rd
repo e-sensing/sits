@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_linear_interp}
 \alias{sits_linear_interp}
-\title{Inerpolation function of sits_table's time series}
+\title{Interpolation function of sits_table's time series}
 \usage{
 sits_linear_interp(data.tb, n = 23)
 }

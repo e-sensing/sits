@@ -40,7 +40,6 @@ sits_dendrogram <- function (data.tb, bands = NULL,
                                     distance = dist_method,
                                     control  = dtwclust::hierarchical_control(method = grouping_method), ...)
 
-
     # return the clusters
     return (clusters)
 }

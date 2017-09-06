@@ -51,7 +51,7 @@ sits_train <- function(distances.tb, tr_method = sits_svm()){
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
 #' function in SITS (either sits_distances or sits_TWTDTW_distances).
 #' The SVM algorithm is used for multiclass-classification.
-#' For this purpose, it uses the "one-against-one"-approach, in which k(k-1)/2 binary
+#' For this purpose, it uses the "one-against-one" approach, in which k(k-1)/2 binary
 #' classifiers are trained; the appropriate class is found by a voting scheme.
 #' This function is a front-end to the "svm" method in the "e1071" package.
 #' Please refer to the documentation in that package for more details.
