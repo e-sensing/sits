@@ -200,13 +200,15 @@ sits_envelope <- function(data.tb, window_size = 1){
 #' @description  This function tries to remove clouds in the satellite image time series
 #' @param data.tb       a valid sits table containing the "ndvi" band
 #' @param cutoff        a numeric value for the maximum acceptable value of a NDVI difference
-#' @param order         the order of the ARIMA model to estimate cloud-covered valued
+#' @param p             the order (number of time lags) of the autoregressive model,
+#' @param d             the degree of differencing (the number of times the data have had past values subtracted),
+#' @param q             the order of the moving-average model.
 #' @param bands_suffix  the suffix to rename the filtered bands
 #' @param apply_whit    apply the whittaker smoother after filtering
 #' @param lambda_whit   lambda parameter of the whittaker smoother
 #' @return result.tb    a sits_table with same samples and the new bands
 #' @export
-sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3,
+sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
                               bands_suffix = ".cf", apply_whit = TRUE, lambda_whit = 1.0){
 
     # find the bands of the data
@@ -214,13 +216,13 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3,
     ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
 
     # predictive model for missing values
-    pred_arima <- function (x, order) {
+    pred_arima <- function (x, p, d, q ) {
         idx <- which (is.na(x))
         for (i in idx) {
-               prev3 <- x[(i - order):(i - 1)]
+               prev3 <- x[(i - q):(i - 1)]
                ensurer::ensure_that(prev3, !anyNA(.),
                                     err_desc = "Cannot remove clouds, please reduce filter order")
-               arima.ml <- stats::arima(prev3, c(0,0,order))
+               arima.ml <- stats::arima(prev3, c(p, d , q))
                x[i] <- as.vector(stats::predict (arima.ml, n.ahead = 1)$pred)
         }
         return (x)
@@ -233,12 +235,12 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3,
         purrr::map (function (ts) {
             ndvi <- dplyr::pull(ts[, "ndvi"])
             idx <- which (c(0, diff(ndvi)) < cutoff)
-            idx <- idx[!idx %in% 1:order]
+            idx <- idx[!idx %in% 1:q]
             ts[,bands][idx,] <- NA
             # interpolate missing values
             bands %>%
                 purrr::map (function (b)
-                    ts[,b] <<- pred_arima (dplyr::pull(ts[,b]), order = order))
+                    ts[,b] <<- pred_arima (dplyr::pull(ts[,b]), p = p, d = d, q = q))
             return (ts)
         })
     # rename the output bands

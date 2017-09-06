@@ -4,15 +4,19 @@
 \alias{sits_cloud_filter}
 \title{Cloud filter}
 \usage{
-sits_cloud_filter(data.tb, cutoff = -0.25, order = 3,
-  bands_suffix = ".cf", apply_whit = TRUE, lambda_whit = 2)
+sits_cloud_filter(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
+  bands_suffix = ".cf", apply_whit = TRUE, lambda_whit = 1)
 }
 \arguments{
 \item{data.tb}{a valid sits table containing the "ndvi" band}
 
 \item{cutoff}{a numeric value for the maximum acceptable value of a NDVI difference}
 
-\item{order}{the order of the ARIMA model to estimate cloud-covered valued}
+\item{p}{the order (number of time lags) of the autoregressive model,}
+
+\item{d}{the degree of differencing (the number of times the data have had past values subtracted),}
+
+\item{q}{the order of the moving-average model.}
 
 \item{bands_suffix}{the suffix to rename the filtered bands}
 
