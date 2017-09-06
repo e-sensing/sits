@@ -14,7 +14,7 @@ Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilbe
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series.
-    Supports data retrieval from a WTSS (web time series service).
+    Supports data retrieval from a WTSS (web time series service) and other data sets.
     Provides different visualisation methods for image time series.
     Provides smoothing methods for noisy time series.
     Enables different clustering methods, including dendrograms and SOM.

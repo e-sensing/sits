@@ -4,12 +4,21 @@
 \alias{sits_cloud_filter}
 \title{Cloud filter}
 \usage{
-sits_cloud_filter(data.tb, cutoff = -0.4)
+sits_cloud_filter(data.tb, cutoff = -0.25, order = 3,
+  bands_suffix = ".cf", apply_whit = TRUE, lambda_whit = 1)
 }
 \arguments{
 \item{data.tb}{a valid sits table containing the "ndvi" band}
 
 \item{cutoff}{a numeric value for the maximum acceptable value of a NDVI difference}
+
+\item{order}{the order of the ARIMA model to estimate cloud-covered valued}
+
+\item{bands_suffix}{the suffix to rename the filtered bands}
+
+\item{apply_whit}{apply the whittaker smoother after filtering}
+
+\item{lambda_whit}{lambda parameter of the whittaker smoother}
 }
 \value{
 result.tb    a sits_table with same samples and the new bands

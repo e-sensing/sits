@@ -123,26 +123,53 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 #' @description  This function tries to remove clouds in the satellite image time series
 #' @param data.tb       a valid sits table containing the "ndvi" band
 #' @param cutoff        a numeric value for the maximum acceptable value of a NDVI difference
+#' @param order         the order of the ARIMA model to estimate cloud-covered valued
+#' @param bands_suffix  the suffix to rename the filtered bands
+#' @param apply_whit    apply the whittaker smoother after filtering
+#' @param lambda_whit   lambda parameter of the whittaker smoother
 #' @return result.tb    a sits_table with same samples and the new bands
 #' @export
-sits_cloud_filter <- function(data.tb, cutoff = -0.4){
+sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3,
+                              bands_suffix = ".cf", apply_whit = TRUE, lambda_whit = 1.0){
 
     # find the bands of the data
     bands <- sits_bands (data.tb)
     ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
 
+    # predictive model for missing values
+    pred_arima <- function (x, order) {
+        idx <- which (is.na(x))
+        for (i in idx) {
+               prev3 <- x[(i - order):(i - 1)]
+               ensurer::ensure_that(prev3, !anyNA(.),
+                                    err_desc = "Cannot remove clouds, please reduce filter order")
+               arima.ml <- stats::arima(prev3, c(0,0,order))
+               x[i] <- as.vector(stats::predict (arima.ml, n.ahead = 1)$pred)
+        }
+        return (x)
+    }
     # prepare result SITS table
     result.tb <- data.tb
 
     # select the chosen bands for the time series
     result.tb$time_series <- data.tb$time_series %>%
         purrr::map (function (ts) {
-            cld <- diff(dplyr::pull(ts[, "ndvi"])) <= cutoff
-            ts[,bands][cld,] <- NA
+            ndvi <- dplyr::pull(ts[, "ndvi"])
+            idx <- which (c(0, diff(ndvi)) < cutoff)
+            idx <- idx[!idx %in% 1:order]
+            ts[,bands][idx,] <- NA
             # interpolate missing values
-            ts[,bands] <- zoo::na.spline(ts[,bands])
+            bands %>%
+                purrr::map (function (b)
+                    ts[,b] <<- pred_arima (dplyr::pull(ts[,b]), order = order))
             return (ts)
         })
+    # rename the output bands
+    new_bands <- paste0(bands, ".", bands_suffix)
+    sits_bands(result.tb) <- new_bands
+
+    if (apply_whit)
+        result.tb <- sits_whittaker(result.tb, lambda = lambda_whit)
 
     return(result.tb)
 }

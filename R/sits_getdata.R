@@ -499,19 +499,48 @@ sits_conf_fromJSON <- function (file) {
     return (table)
 }
 
-#' @title Export data to be used to the zoo format
+#' @title Import time series in the zoo format to a SITS tibble
 #' @name sits_fromZOO
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Converts data from a SITS table to an instance of a zoo series,
 #'
-#' @param  ts       a zoo time series
-#' @return ts       a time series in SITS format
+#' @param ts.zoo        A zoo time series
+#' @param longitude     Longitude of the chosen location
+#' @param latitude      Latitude of the chosen location
+#' @param label         Label to attach to the time series (optional)
+#' @param coverage      Name of the coverage where data comes from
+#' @return data.tb        A time series in SITS tibble format
 #' @export
-sits_fromZOO <- function (ts.tb, band){
-    # transform each sits time series into a list of zoo
-    tibble::as_tibble (zoo::fortify.zoo (time_series))
-    return (tibble::as_tibble (zoo::fortify.zoo (time_series)))
+sits_fromZOO <- function (ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoLabel", coverage = "unknown"){
+
+    # convert the data from the zoo format to the SITS format
+    ts.tb <- tibble::as_tibble (zoo::fortify.zoo (time_series))
+
+    # create a list to store the zoo time series coming from the WTSS service
+    ts.lst <- list()
+    # transform the zoo list into a tibble to store in memory
+    ts.lst[[1]] <- ts.tb
+
+    # get the start date
+    start_date <- ts.tb[1,]$Index
+    # get the end date
+    end_date <- ts.tb[NROW(ts.tb),]$Index
+
+    # create a table to store the WTSS data
+    data.tb <- sits_table()
+    # add one row to the table
+    data.tb <- tibble::add_row (data.tb,
+                                longitude    = longitude,
+                                latitude     = latitude,
+                                start_date   = as.Date(start_date),
+                                end_date     = as.Date(end_date),
+                                label        = label,
+                                coverage     = coverage,
+                                time_series  = ts.lst
+    )
+
+    return (data.tb)
 }
 
 
