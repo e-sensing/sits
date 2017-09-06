@@ -85,16 +85,34 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  This function computes the envelope of a time series using the
 #' streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelop` function.
-#' @param data.tb       a valid sits table
-#' @param window_size   an integer informing the window size for envelop calculation. See compute_envelop details.
-#' @return result.tb    a sits_table with same samples and the new bands
+#' @param data.tb      a valid sits table
+#' @param operations   character sequence indicating which operations must be taken. "U" for upper filter, "D" for down filter.
+#' @param bands_suffix the suffix to be appended to the resulting data (default "env")
+#' @return result.tb   a sits_table with same samples and the new bands
 #' @export
-sits_envelope <- function(data.tb, window_size = 1){
+sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
+
+    # definitions of operations and the key returned by `dtwclust::compute_envelope`
+    def_op <- list("U" = "upper", "L" = "lower", "u" = "upper", "l" = "lower")
+
+    # split envelope operations
+    operations <- strsplit(operations, "")[[1]]
+
+    # verify if operations are either "U" or "L"
+    ensurer::ensure_that(operations, all(. %in% names(def_op)),
+                         err_desc = "sits_envelope: invalid operation sequence")
+
     # compute envelopes
     result.tb <- sits_apply(data.tb,
-                            fun = function(band) dtwclust::compute_envelope(band, window.size = window_size, error.check = FALSE),
-                            fun_index = function(band) band)
-
+                            fun = function(band) {
+                                for (op in operations){
+                                    upper_lower.lst <- dtwclust::compute_envelope(band, window.size = 1, error.check = FALSE)
+                                    band <- upper_lower.lst[[def_op[[op]]]]
+                                }
+                                return(band)
+                            },
+                            fun_index = function(band) band,
+                            bands_suffix = bands_suffix)
     return(result.tb)
 }
 

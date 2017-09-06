@@ -219,7 +219,7 @@ sits_kfold_validate <- function (data.tb, folds = 5,
     .sits_test_table (data.tb)
 
     # is the data labelled?
-    ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
+    ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),
                           err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
     #is the bands are not provided, deduced them from the data
@@ -307,7 +307,7 @@ sits_kfold_fast_validate <- function (data.tb, folds = 5,
     # does the input data exist?
     .sits_test_table (data.tb)
     # is the data labelled?
-    ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
+    ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),
                           err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
     # what are the bands of the data?
@@ -486,7 +486,7 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
     .sits_test_table (patterns.tb)
      ensurer::ensure_that (bands, !purrr::is_null(.),
                            err_desc = "sits_test_patterns: please provide the bands to be used")
-     ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)$label),
+     ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),
                             err_desc = "sits_test_patterns: please provide a labelled set of time series")
 
 

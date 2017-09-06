@@ -9,7 +9,8 @@ sits_filter(data.tb, ...)
 \arguments{
 \item{data.tb}{a sits table with the time series of the selected bands}
 
-\item{...}{one or more band names separated by commas. See `dplyr::filter` help for more details.}
+\item{...}{`name=value` pairs expressions, where `name` is any SITS column name.
+See `dplyr::filter` help for more details.}
 }
 \value{
 result.tb   a tibble in SITS format with the selected bands

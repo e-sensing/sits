@@ -100,7 +100,6 @@ Collate:
     'sits_getdata.R'
     'sits_init.R'
     'sits_kohonen.R'
-    'sits_labels.R'
     'sits_machine_learning.R'
     'sits_patterns.R'
     'sits_pipe.R'
