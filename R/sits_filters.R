@@ -201,9 +201,13 @@ sits_envelope <- function(data.tb, window_size = 1){
 #' @param data.tb       a valid sits table containing the "ndvi" band
 #' @param cutoff        a numeric value for the maximum acceptable value of a NDVI difference
 #' @param order         the order of the ARIMA model to estimate cloud-covered valued
+#' @param bands_suffix  the suffix to rename the filtered bands
+#' @param apply_whit    apply the whittaker smoother after filtering
+#' @param lambda_whit   lambda parameter of the whittaker smoother
 #' @return result.tb    a sits_table with same samples and the new bands
 #' @export
-sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3){
+sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3,
+                              bands_suffix = ".cf", apply_whit = TRUE, lambda_whit = 1.0){
 
     # find the bands of the data
     bands <- sits_bands (data.tb)
@@ -237,6 +241,12 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3){
                     ts[,b] <<- pred_arima (dplyr::pull(ts[,b]), order = order))
             return (ts)
         })
+    # rename the output bands
+    new_bands <- paste0(bands, ".", bands_suffix)
+    result.tb <- sits_rename(result.tb, new_bands)
+
+    if (apply_whit)
+        result.tb <- sits_whittaker(result.tb, lambda = lambda_whit)
 
     return(result.tb)
 }
