@@ -15,7 +15,7 @@ prodes_relabel.lst <-  tibble::lst("primary_forest" = "Forest",
 
 prodes2.tb <- sits_relabel(prodes.tb, prodes_relabel.lst)
 
-prodes_clds.tb <- sits_cloud_filter (prodes2.tb, cutoff = -0.3)
+prodes_clds.tb <- sits_cloud_filter (prodes2.tb[1:9,], cutoff = -0.25, order = 3)
 
 sits_plot(prodes2.tb[1:10,], type = "one_by_one")
 

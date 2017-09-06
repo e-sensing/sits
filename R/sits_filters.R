@@ -228,8 +228,9 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, order = 3){
     result.tb$time_series <- data.tb$time_series %>%
         purrr::map (function (ts) {
             ndvi <- dplyr::pull(ts[, "ndvi"])
-            cld <- c(0, diff(ndvi)) <= cutoff
-            ts[,bands][cld,] <- NA
+            idx <- which (c(0, diff(ndvi)) < cutoff)
+            idx <- idx[!idx %in% 1:order]
+            ts[,bands][idx] <- NA
             # interpolate missing values
             bands %>%
                 purrr::map (function (b)
