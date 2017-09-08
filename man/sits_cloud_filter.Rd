@@ -8,7 +8,7 @@ sits_cloud_filter(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
   bands_suffix = ".cf", apply_whit = TRUE, lambda_whit = 1)
 }
 \arguments{
-\item{data.tb}{a valid sits table containing the "ndvi" band}
+\item{data.tb}{a valid sits tibble containing the "ndvi" band}
 
 \item{cutoff}{a numeric value for the maximum acceptable value of a NDVI difference}
 
@@ -25,7 +25,7 @@ sits_cloud_filter(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
 \item{lambda_whit}{lambda parameter of the whittaker smoother}
 }
 \value{
-result.tb    a sits_table with same samples and the new bands
+result.tb    a sits tibble with same samples and the new bands
 }
 \description{
 This function tries to remove clouds in the satellite image time series

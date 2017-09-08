@@ -19,10 +19,10 @@ sits_fromZOO(ts.zoo, longitude = 0, latitude = 0, label = "NoLabel",
 \item{coverage}{Name of the coverage where data comes from}
 }
 \value{
-data.tb        A time series in SITS tibble format
+data.tb      A time series in SITS tibble format
 }
 \description{
-Converts data from a SITS table to an instance of a zoo series,
+Converts data from an instance of a zoo series to a SITS tibble
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

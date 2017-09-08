@@ -4,13 +4,13 @@
 \alias{sits_fromJSON}
 \title{Obtain timeSeries from a JSON file.}
 \usage{
-sits_fromJSON(json_file)
+sits_fromJSON(file)
 }
 \arguments{
-\item{json_file}{string  - name of a JSON file with sits data and metadata}
+\item{file}{string  - name of a JSON file with sits data and metadata}
 }
 \value{
-data.tb    tibble  - a SITS table
+data.tb   a SITS tibble
 }
 \description{
 reads a set of data and metadata for satellite image time series from a JSON file

@@ -22,10 +22,10 @@ sits_fromSHP(shp_file, wtss.obj, cov, bands, start_date, end_date, label)
 \item{label}{string - the label to attach to the time series}
 }
 \value{
-table     tibble  - a SITS table
+table          a SITS tibble
 }
 \description{
-reads a shapefile and retrieves a SITS table
+reads a shapefile and retrieves a SITS tibble
 containing time series from a coverage that are inside the SHP file.
 The script uses the WTSS service, taking information about coverage, spatial and
 temporal resolution from the WTSS configuration.

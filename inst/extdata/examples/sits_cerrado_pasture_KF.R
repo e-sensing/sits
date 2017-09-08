@@ -34,7 +34,7 @@ cerrado2.tb <- sits_interp(cerrado1.tb, stats::approx, n = 50) %>%
 
 cerrado2.tb %>%
      sits_merge(cerrado1s.tb)  %>%
-     sits_select(c("evi.kf.estimation", "evi")) %>%
+     sits_select(bands = c("evi.kf.estimation", "evi")) %>%
      sits_plot()
 
 cerrado3.tb <- cerrado1.tb %>%
@@ -44,16 +44,7 @@ cerrado3.tb <- cerrado1.tb %>%
 
 cerrado3.tb %>%
      sits_merge(cerrado1s.tb)  %>%
-     sits_select(c("evi.upper.kf.estimation", "evi.lower.kf.estimation", "evi")) %>%
+     sits_select(bands = c("evi.env.kf.estimation", "evi")) %>%
      sits_plot()
 
-cerrado3.tb %>%
-     sits_merge(cerrado2.tb)  %>%
-     sits_select(c("evi.upper.kf.estimation", "evi.lower.kf.estimation", "evi.kf.estimation")) %>%
-     sits_plot()
-
-cerrado3.tb %>%
-     sits_merge(cerrado1s.tb)  %>%
-     sits_select(c("evi.upper.kf.estimation", "evi")) %>%
-     sits_plot()
 

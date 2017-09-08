@@ -2,17 +2,17 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_linear_interp}
 \alias{sits_linear_interp}
-\title{Interpolation function of sits_table's time series}
+\title{Interpolation function of the time series in a sits tibble}
 \usage{
 sits_linear_interp(data.tb, n = 23)
 }
 \arguments{
-\item{data.tb}{a valid sits table}
+\item{data.tb}{a valid sits tibble}
 
 \item{n}{the number of time series elements to be created between start date and end date}
 }
 \value{
-result.tb    a sits_table with same samples and the new bands
+result.tb    a sits tibble with same samples and the new bands
 }
 \description{
 Computes the linearly interpolated bands for a given resolution

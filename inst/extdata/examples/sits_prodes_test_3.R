@@ -16,11 +16,9 @@ sits_coverageWTSS(URL,coverage)
 
 bands <- c("nir", "ndvi", "evi")
 
-prodes1.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_samples_226_64.csv", URL = URL, bands = bands, coverage = coverage)
+prodes.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_new_226_64.csv", URL = URL, bands = bands, coverage = coverage)
 
-prodes2.tb <- sits_getdata(file = "./inst/extdata/samples/prodes_new_226_64.csv", URL = URL, bands = bands, coverage = coverage)
-
-sits_plot(prodes.tb, type = "together")
+sits_plot(prodes.tb)
 
 prodes_cf.tb <- sits_cloud_filter(prodes.tb)
 

@@ -62,6 +62,7 @@ Imports:
     reshape2,
     RCurl,
     R.utils,
+    scales,
     signal,
     snow,
     sp,
@@ -75,17 +76,18 @@ Imports:
     wtsps,
     TSdist,
     zoo
-LinkingTo: 
+LinkingTo:
     Rcpp
 Remotes:
     e-sensing/wtss,
     e-sensing/wtsps,
     rolfsimoes/dtwSat
 RoxygenNote: 6.0.1
-Collate: 
+Collate:
     'RcppExports.R'
     'sits_SCIDB.R'
     'sits_TWDTW.R'
+    'sits_TWDTW_plot.R'
     'sits_WTSPS.R'
     'sits_WTSS.R'
     'sits_assessment.R'
@@ -100,10 +102,14 @@ Collate:
     'sits_getdata.R'
     'sits_init.R'
     'sits_kohonen.R'
+    'sits_labels.R'
     'sits_machine_learning.R'
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
     'sits_stack_proc.R'
-    'sits_table.R'
-    'sits_time_series.R'
+    'sits_tibble.R'
+    'sits_tibble_utils.R'
+Suggests: knitr,
+    rmarkdown,
+    testthat

@@ -2,12 +2,12 @@
 % Please edit documentation in R/sits_export_data.R
 \name{sits_toJSON}
 \alias{sits_toJSON}
-\title{Save data in a JSON file}
+\title{Save data in a compressed JSON file}
 \usage{
-sits_toJSON(source, file = NULL)
+sits_toJSON(data.tb, file = NULL)
 }
 \arguments{
-\item{source}{an R object}
+\item{data.tb}{a SITS tibble}
 
 \item{file}{string - name of the JSON file to be written}
 }

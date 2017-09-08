@@ -10,3 +10,4 @@ src/*.o
 src/*.dll
 src/*.so
 R/.Rapp.history
+inst/doc

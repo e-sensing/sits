@@ -76,7 +76,7 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_table(train_data.tb)
+        .sits_test_tibble (train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.),
@@ -130,7 +130,7 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_table(train_data.tb)
+        .sits_test_tibble (train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
@@ -179,7 +179,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_table(train_data.tb)
+        .sits_test_tibble (train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_qda: input data does not contain distance")
@@ -227,7 +227,7 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_table(train_data.tb)
+        .sits_test_tibble (train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_mlr: input data does not contain distance")
@@ -279,7 +279,7 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_table(train_data.tb)
+        .sits_test_tibble (train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_glm: input data does not contain distance")
@@ -336,7 +336,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_table(train_data.tb)
+        .sits_test_tibble (train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_gbm: input data does not contain distance")
@@ -392,7 +392,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_table(train_data.tb)
+        .sits_test_tibble (train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
@@ -437,7 +437,7 @@ sits_deep_learning <- function(distances.tb = NULL, ...) {
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_table(train_data.tb)
+        .sits_test_tibble (train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
