@@ -8,7 +8,7 @@ sits_gam(data.tb = NULL, from = NULL, to = NULL, freq = 8, formula = y
   ~ s(x), ...)
 }
 \arguments{
-\item{data.tb}{a table in SITS format with time series to be classified using TWTDW}
+\item{data.tb}{a tibble in SITS format with time series to be classified using TWTDW}
 
 \item{from}{starting date of the estimate (month-day)}
 
@@ -21,7 +21,7 @@ sits_gam(data.tb = NULL, from = NULL, to = NULL, freq = 8, formula = y
 \item{...}{any additional parameters}
 }
 \value{
-patterns.tb   a SITS table with the patterns
+patterns.tb   a SITS tibble with the patterns
 }
 \description{
 This function takes a set of time series samples as input

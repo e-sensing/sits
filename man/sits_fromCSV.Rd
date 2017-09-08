@@ -21,12 +21,12 @@ sits_fromCSV(csv_file, wtss.obj, cov, bands, n_max = Inf,
 \item{ignore_dates}{whether to use the dates of the coverage and not those specified in the file}
 }
 \value{
-data.tb        tibble  - a SITS table
+data.tb        a SITS tibble
 }
 \description{
 reads descriptive information about a set of
 spatio-temporal locations from a CSV file. Then, it uses the WTSS time series service
-to retrieve the time series, and stores the time series on a SITS table for later use.
+to retrieve the time series, and stores the time series on a SITS tibble for later use.
 The CSV file should have the following column names:
 "longitude", "latitude", "start_date", "end_date", "label"
 }

@@ -1,10 +1,3 @@
-# ---------------------------------------------------------------
-#
-#  This file contain a list of functions to assess the quality of classified time series
-#  it includes functions for cross_validation and accuracy
-#  It works with SITS tables where the time series have been classified
-
-
 #' @title Evaluates the accuracy of classification
 #' @name sits_accuracy
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -216,7 +209,7 @@ sits_kfold_validate <- function (data.tb, folds = 5,
                                  multicores = 1){
 
     # does the input data exist?
-    .sits_test_table (data.tb)
+    .sits_test_tibble (data.tb)
 
     # is the data labelled?
     ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),
@@ -305,7 +298,7 @@ sits_kfold_fast_validate <- function (data.tb, folds = 5,
                                  multicores = 1){
 
     # does the input data exist?
-    .sits_test_table (data.tb)
+    .sits_test_tibble (data.tb)
     # is the data labelled?
     ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),
                           err_desc = "sits_cross_validate: please provide a labelled set of time series")
@@ -444,7 +437,7 @@ sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample =
 sits_create_folds <- function (data.tb, folds = 5) {
 
     # verify if data.tb exists
-    .sits_test_table(data.tb)
+    .sits_test_tibble (data.tb)
 
     # splits the data into k groups
     data.tb$folds <- caret::createFolds(data.tb$label, k = folds, returnTrain = FALSE, list = FALSE)
@@ -482,8 +475,8 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
                                 start_date = NULL, end_date = NULL, interval = "12 month", overlap = 0.5) {
 
     # does the input data exist?
-    .sits_test_table (data.tb)
-    .sits_test_table (patterns.tb)
+    .sits_test_tibble (data.tb)
+    .sits_test_tibble (patterns.tb)
      ensurer::ensure_that (bands, !purrr::is_null(.),
                            err_desc = "sits_test_patterns: please provide the bands to be used")
      ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),

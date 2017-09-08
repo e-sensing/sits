@@ -8,7 +8,7 @@ sits_toZOO(ts.tb, band = NULL)
 }
 \arguments{
 \item{ts.tb}{a tibble with the indexes and values of a SITS time series
-the tibble should not be part of a list}
+the tibble should have only the time series and should not be a full tibble}
 
 \item{band}{the name of the band to be exported (if NULL all bands are exported)}
 }
@@ -16,7 +16,7 @@ the tibble should not be part of a list}
 ts.zoo   a time series in zoo format
 }
 \description{
-Converts data from a SITS table to an instance of a zoo series,
+Converts data from a SITS tibble to an instance of a zoo series,
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
