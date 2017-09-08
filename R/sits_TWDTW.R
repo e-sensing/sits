@@ -166,26 +166,86 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, by_bands =
         part.lst <- 1:multicores %>%
             purrr::map(function(i) data.tb[part.vec == i,] )
 
+        # Define the logistic function
+        log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
+
         # prepare function to be passed to `parallel::mclapply`. this function returns a distance table to each partition
         if (by_bands){
             dist_fun <- function(part.tb){
-                result.tb <- sits_distance_table_from_data(part.tb)
-                bands %>%
-                    purrr::map (function (b){
-                        part_b.tb  <- sits_select(part.tb, b)
-                        patt_b.tb <- sits_select(patterns.tb, b)
-                        matches_b.tb <- sits_TWDTW_matches(part_b.tb, patt_b.tb, bands = b, dist.method = dist.method,
-                                                           alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
 
-                        result_b.tb <- sits_spread_matches(matches_b.tb)
-                        result_b.tb <- result_b.tb[-2:0]
-                        colnames (result_b.tb) <- paste0(colnames(result_b.tb),".",b)
-                        result.tb <<- dplyr::bind_cols(result.tb, result_b.tb)
-                    })
-                return(result.tb)
+                if (nrow (part.tb) > 10) {
+                    message("Matching patterns to time series...")
+                    progress_bar <- utils::txtProgressBar(min = 0, max = nrow(part.tb), style = 3)
+                    i <- 0
+                }
+
+                time_series_to_twdtw <- function(data, label = NULL){
+                    ts <- lapply(data, function(x) zoo::zoo(data.frame(value = x$value)[,,drop=FALSE], as.Date(x$Index)))
+                    list(dtwSat::twdtwTimeSeries(ts, labels = label))
+                }
+
+                get_matches <- function(k){
+                    x = dtwSat::twdtwTimeSeries(zoo::zoo(data.frame(value = bands_ts.tb$time_series[[k]]$value)[,,drop=FALSE],
+                                                         bands_ts.tb$time_series[[k]]$Index))
+                    y = bands_ts.tb$twdtw_patterns[[k]]
+                    matches <- dtwSat::twdtwApply(x           = x,
+                                                  y           = y,
+                                                  weight.fun  = log_fun,
+                                                  theta       = theta,
+                                                  span        = span,
+                                                  keep        = keep,
+                                                  dist.method = dist.method)
+
+                    # # Get best TWDTW aligniments for each class
+                    matches.lst <- .sits_fromTWDTW_matches(matches)[[1]] %>%
+                        dplyr::group_by(predicted) %>%
+                        dplyr::summarise(distance = min(distance))
+
+                    # update progress bar
+                    if (exists("progress_bar") & exists("i")){
+                        if (!purrr::is_null(progress_bar)) {
+                            i <<- i + 1
+                            utils::setTxtProgressBar(progress_bar, i)
+                        }
+                    }
+
+                    return(matches.lst)
+
+                }
+
+                # Get patterns for all combinations of bands and classes
+                patt_band.tb <- patterns.tb %>%
+                    tidyr::unnest() %>%
+                    tidyr::gather(key = "band", value = "value", bands) %>%
+                    tidyr::nest(value, Index, .key = time_series) %>%
+                    dplyr::group_by(.dots = list("band")) %>%
+                    dplyr::summarise(twdtw_patterns = time_series_to_twdtw(time_series, label))
+
+                # Split time series into bands
+                bands_ts.tb <- part.tb %>%
+                    dplyr::transmute(original_row = seq_along(time_series), label = label, time_series = time_series) %>%
+                    tidyr::unnest() %>%
+                    tidyr::gather(key = "band", value = "value", bands) %>%
+                    dplyr::group_by(.dots = list("original_row", "band", "label")) %>%
+                    tidyr::nest(Index, value, .key = time_series) %>%
+                    dplyr::right_join(patt_band.tb, by = c("band" = "band"))
+
+                # Get TWDTW alignments (lapply because this is the way in dtwSat)
+                matches.lst <- lapply(seq_along(bands_ts.tb$time_series), function(k) get_matches(k) )
+
+                # Spread TWDTW distances to columns
+                result_b.tb <- tibble::tibble(reference = bands_ts.tb$label, band = bands_ts.tb$band, matches = matches.lst) %>%
+                    tidyr::unnest(matches, .drop = FALSE) %>%
+                    tidyr::unite(col = "temp", from = c("predicted", "band"), sep = ".") %>%
+                    dplyr::group_by(.dots = list("temp")) %>%
+                    dplyr::mutate(original_row = dplyr::row_number(reference)) %>%
+                    tidyr::spread_(key_col = "temp", value_col = "distance")
+
+                if (!purrr::is_null(progress_bar)) close(progress_bar)
+
+                return(result_b.tb)
             }
-        }
-        else {
+        } else {
             dist_fun <- function(part.tb){
                 matches.tb <- sits_TWDTW_matches(part.tb, patterns.tb, bands = bands, dist.method = dist.method,
                                                  alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
