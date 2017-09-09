@@ -137,12 +137,17 @@ sits_plot_predicted <- function (data.tb, patterns.tb, band = NULL) {
     data.tb %>%
         purrrlyr::by_row(function (r){
             lb = as.character (r$label)
-            # extract the time series and convert
+            # extract the time series
             ts <- r$time_series[[1]]
-            df.x <- data.frame (Time = ts$Index, ts[,band], Series = band )
+            # convert to data frame
+            df.x <- data.frame (Time = ts$Index, ts[,band], Series = as.factor(lb) )
+            # melt the time series data for plotting
             df.x <- reshape2::melt (df.x, id.vars = c("Time", "Series"))
+            # define a nice set of breaks for value plotting
             y.labels = scales::pretty_breaks()(range(df.x$value, na.rm = TRUE))
             y.breaks = y.labels
+
+            # get the predicted values as a tibble
 
             pred <- r$predicted[[1]]
             df.pol <- data.frame()
@@ -154,17 +159,18 @@ sits_plot_predicted <- function (data.tb, patterns.tb, band = NULL) {
                     best_class <- as.character(p$predicted)
 
                     df.p <- data.frame(
-                        Time  = c(p$from, p$to, p$to, p$from),
+                        Time  = c(lubridate::as_date(p$from), lubridate::as_date(p$to),
+                                  lubridate::as_date(p$to), lubridate::as_date(p$from)),
                         Group = rep(i, 4),
                         Class = rep(best_class, 4),
                         value = rep(range(y.breaks, na.rm = TRUE), each = 2)
                     )
-                    i <- i + 1
+                    i <<- i + 1
                     df.pol <<- rbind(df.pol, df.p)
                 })
-            df.pol$Group  = factor(df.pol$Group)
-            df.pol$Class  = factor(df.pol$Class)
-            df.pol$Series = rep(band, length(df.pol$Time))
+            df.pol$Group  <-  factor(df.pol$Group)
+            df.pol$Class  <-  factor(df.pol$Class)
+            df.pol$Series <-  rep(lb, length(df.pol$Time))
 
 
             I = min(df.pol$Time, na.rm = TRUE)-30 <= df.x$Time &
