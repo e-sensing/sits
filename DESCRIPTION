@@ -83,7 +83,7 @@ Remotes:
     e-sensing/wtsps,
     rolfsimoes/dtwSat
 RoxygenNote: 6.0.1
-Collate:
+Collate: 
     'RcppExports.R'
     'sits_SCIDB.R'
     'sits_TWDTW.R'
@@ -91,6 +91,7 @@ Collate:
     'sits_WTSPS.R'
     'sits_WTSS.R'
     'sits_assessment.R'
+    'sits_classification.R'
     'sits_cluster.R'
     'sits_colors.R'
     'sits_dendrogram.R'

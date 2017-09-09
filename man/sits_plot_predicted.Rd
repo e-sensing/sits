@@ -14,8 +14,7 @@ sits_plot_predicted(data.tb, patterns.tb, band = NULL)
 \item{band}{the band to be plotted}
 }
 \description{
-plots the patterns to be used for classification
-               this code is reused from the dtwSat package by Victor Maus
+Plots the classification results (code reused from the dtwSat package by Victor Maus)
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}

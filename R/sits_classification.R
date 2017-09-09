@@ -18,16 +18,58 @@ sits_classify <- function (data.tb, patterns.tb, ml_model, dist_method = sits_TW
                            start_date = NULL, end_date = NULL,
                            interval = "12 month", overlap = 0.5){
 
-    class.tb <- data.tb %>%
+    # create a tibble to store the result
+    result.tb <- tibble::tibble()
+
+    # go over every row of the table
+    data.tb %>%
         purrrlyr::by_row (function (row) {
+
+            predict.tb <- tibble::tibble()
 
             if (purrr::is_null (start_date)) {
                 start_date  <- row$start_date
                 end_date    <- row$end_date
-                interval <- lubridate::as_date(end_date) - lubridate::as_date(start_date)
             }
 
             # define the temporal intervals of each classification
             breaks <- seq(from = as.Date(start_date), to = as.Date(end_date), by = interval)
 
+            for (i in 1:(length(breaks) - 1)) {
+                # extract a temporal subset of the bands
+                subset.tb <- sits_extract (row, breaks[i], breaks[i + 1])
+
+                # find the distances in the subset data
+                distances.tb  <- sits_TWDTW_distances (subset.tb, patterns.tb)
+
+                # classify the test data
+                sub_predict.tb <- sits_predict(subset.tb, distances.tb, model.ml)
+
+                # save the results
+
+                predict.tb   <- tibble::add_row(predict.tb,
+                    from      = lubridate::as_date(sub_predict.tb$start_date),
+                    to        = lubridate::as_date(sub_predict.tb$end_date),
+                    distance  = 0.0,
+                    predicted = sub_predict.tb$predicted
+                )
+            }
+            # create a list to store the zoo time series coming from the WTSS service
+            pred.lst <- list()
+            # transform the zoo list into a tibble to store in memory
+            pred.lst[[1]] <- predict.tb
+
+            result.tb <<- tibble::add_row (result.tb,
+                                        longitude    = row$longitude,
+                                        latitude     = row$latitude,
+                                        start_date   = as.Date(row$start_date),
+                                        end_date     = as.Date(row$end_date),
+                                        label        = row$label,
+                                        coverage     = row$coverage,
+                                        time_series  = row$time_series,
+                                        predicted    = pred.lst
+                                        )
+        })
+
+    return(result.tb)
 }

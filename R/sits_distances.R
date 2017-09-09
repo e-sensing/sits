@@ -234,7 +234,7 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, by_bands =
                     purrr::map (function (b){
                         part_b.tb  <- sits_select_bands(part.tb, bands = b)
                         patt_b.tb  <- sits_select_bands (patterns.tb, bands = b)
-                        matches_b.tb <- sits_TWDTW_matches(part_b.tb, patt_b.tb, bands = b, dist.method = dist.method,
+                        matches_b.tb <- sits_TWDTW_matches_tibble(part_b.tb, patt_b.tb, bands = b, dist.method = dist.method,
                                                            alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
 
                         result_b.tb <- sits_spread_matches(matches_b.tb)
@@ -247,7 +247,7 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, by_bands =
         }
         else {
             dist_fun <- function(part.tb){
-                matches.tb <- sits_TWDTW_matches(part.tb, patterns.tb, bands = bands, dist.method = dist.method,
+                matches.tb <- sits_TWDTW_matches_tibble(part.tb, patterns.tb, bands = bands, dist.method = dist.method,
                                                  alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
                 result.tb <- sits_spread_matches(matches.tb)
                 return(result.tb)

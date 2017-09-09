@@ -138,15 +138,38 @@ sits_bands <- function (data.tb) {
 #' @param  end_date   the end date of the time series segment
 #' @return subset.tb  a tibble in SITS format with the chosen subset
 #' @export
-sits_extracr <- function (data.tb, start_date, end_date) {
-    values <- data.tb$time_series %>%
-        data.frame() %>%
-        tibble::as_tibble() %>%
-        dplyr::select (dplyr::starts_with ("Index")) %>%
-        t() %>%
-        as.vector() %>%
-        lubridate::as_date()
-    return (values)
+sits_extract <- function (data.tb, start_date = NULL, end_date = NULL) {
+
+    .sits_test_tibble(data.tb)
+
+    # ensure that a start and end date are provided
+    ensurer::ensure_that(start_date, !purrr::is_null(.), err_desc = "sits_extract: start_date must be provided")
+    ensurer::ensure_that(end_date, !purrr::is_null(.), err_desc = "sits_extract: end_date must be provided")
+
+    # create a tibble to store the results
+    subset.tb <- sits_tibble()
+
+    # extract the subsets on a row-by-row basis
+    data.tb %>%
+        purrrlyr::by_row(function (r) {
+            # filter the time series by start and end dates
+            sub.ts <- r$time_series[[1]] %>%
+                dplyr::filter (dplyr::between (.$Index, start_date, end_date))
+
+            # store the subset of the time series in a list
+            ts.lst <- tibble::lst()
+            ts.lst[[1]] <- sub.ts
+            # create a new row of the output tibble
+             subset.tb <<- tibble::add_row (subset.tb,
+                                longitude    = r$longitude,
+                                latitude     = r$latitude,
+                                start_date   = as.Date(start_date),
+                                end_date     = as.Date(end_date),
+                                label        = r$label,
+                                coverage     = r$coverage,
+                                time_series  = ts.lst)
+        })
+    return (subset.tb)
 }
 #' @title Return the dates of a sits table
 #' @name sits_dates

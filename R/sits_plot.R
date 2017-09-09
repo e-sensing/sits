@@ -116,8 +116,7 @@ sits_plot_patterns <- function (data.tb) {
 #' @title Plot classification results
 #' @name sits_plot_predicted
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @description  plots the patterns to be used for classification
-#'                this code is reused from the dtwSat package by Victor Maus
+#' @description   Plots the classification results (code reused from the dtwSat package by Victor Maus)
 #' @param data.tb      A SITS tibble with one or more time series that have been classified
 #' @param patterns.tb  Patterns used for classification
 #' @param band         the band to be plotted

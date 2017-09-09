@@ -484,8 +484,8 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
 
 
      # classify data
-     matches.tb  <- sits_TWDTW_matches (data.tb, patterns.tb, bands = bands, alpha = alpha, beta = beta, theta = theta, span = span)
-     class.tb    <- sits_TWDTW_classify (matches.tb, start_date = start_date, end_date = end_date, interval = interval, overlap = overlap)
+     matches.tb  <- sits_TWDTW_matches_tibble (data.tb, patterns.tb, bands = bands, alpha = alpha, beta = beta, theta = theta, span = span)
+     class.tb    <- sits_TWDTW_classify_tibble (matches.tb, start_date = start_date, end_date = end_date, interval = interval, overlap = overlap)
 
      # retrieve the reference labels
      ref.vec <- as.character(class.tb$label)
