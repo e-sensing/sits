@@ -4,10 +4,12 @@
 \alias{sits_plot_TWDTW_matches}
 \title{Plot matches between a label pattern and a time series using the dtwSat package}
 \usage{
-sits_plot_TWDTW_matches(matches, n_matches = 4)
+sits_plot_TWDTW_matches(matches, patterns.tb, n_matches = 4)
 }
 \arguments{
 \item{matches}{a list of dtwSat S4 matches objects produced by sits_TWDTW_matches}
+
+\item{patterns.tb}{a set of known temporal signatures for the chosen classes}
 
 \item{n_matches}{number of matches of a given label to be displayed}
 }
