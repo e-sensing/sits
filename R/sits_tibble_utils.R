@@ -127,6 +127,27 @@ sits_bands <- function (data.tb) {
         colnames() %>% .[2:length(.)]
     return (result.vec)
 }
+#' @title Extract a subset of the data based on dates
+#' @name sits_extract
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description returns a vector containing the dates of a sits table
+#'
+#' @param  data.tb    a tibble in SITS format with time series for different bands
+#' @param  start_date the starting date of the time series segment
+#' @param  end_date   the end date of the time series segment
+#' @return subset.tb  a tibble in SITS format with the chosen subset
+#' @export
+sits_extracr <- function (data.tb, start_date, end_date) {
+    values <- data.tb$time_series %>%
+        data.frame() %>%
+        tibble::as_tibble() %>%
+        dplyr::select (dplyr::starts_with ("Index")) %>%
+        t() %>%
+        as.vector() %>%
+        lubridate::as_date()
+    return (values)
+}
 #' @title Return the dates of a sits table
 #' @name sits_dates
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

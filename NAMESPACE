@@ -2,7 +2,6 @@
 
 export("%>%")
 export("sits_cluster_names<-")
-export(plotClassification)
 export(sits_TS_distances)
 export(sits_TWDTW_classify)
 export(sits_TWDTW_distances)
