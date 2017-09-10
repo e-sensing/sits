@@ -12,7 +12,8 @@
 #'                      input data is plotted together
 #' @return data.tb      Input SITS table (useful for chaining functions)
 #' @export
-#'
+#!diagnostics off
+
 sits_plot <- function (data.tb, patterns.tb = NULL, band = NULL, colors = "Dark2", n_max = 30) {
      # check the input exists
     .sits_test_tibble(data.tb)
@@ -25,7 +26,7 @@ sits_plot <- function (data.tb, patterns.tb = NULL, band = NULL, colors = "Dark2
     if (!purrr::is_null(data.tb[1,]$predicted)) {
         ensurer::ensure_that(patterns.tb, !purrr::is_null(.),
                              err_desc = "sits_plot: please include patterns for plotting classification results")
-        sits_plot_predicted(data.tb, patterns.tb, band)
+        sits_plot_classification(data.tb, patterns.tb, band)
         return (invisible(data.tb))
     }
 
@@ -114,7 +115,7 @@ sits_plot_patterns <- function (data.tb) {
 }
 
 #' @title Plot classification results
-#' @name sits_plot_predicted
+#' @name sits_plot_classification
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @description   Plots the classification results (code reused from the dtwSat package by Victor Maus)
 #' @param data.tb      A SITS tibble with one or more time series that have been classified
@@ -122,7 +123,7 @@ sits_plot_patterns <- function (data.tb) {
 #' @param band         the band to be plotted
 #' @export
 #'
-sits_plot_predicted <- function (data.tb, patterns.tb, band = NULL) {
+sits_plot_classification <- function (data.tb, patterns.tb, band = NULL) {
 
     if (purrr::is_null(band))
         band <- sits_bands(data.tb)[1]

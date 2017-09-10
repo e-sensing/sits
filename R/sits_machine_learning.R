@@ -69,8 +69,8 @@ sits_train <- function(distances.tb, tr_method = sits_svm()){
 #' @return result          a fitted model function to be passed in sits_predict
 #' @export
 #'
-sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kernel = "linear",
-                     degree = 3, coef0 = 0, cost = 1, tolerance = 0.001, epsilon = 0.1, cross = 4, ...) {
+sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kernel = "radial",
+                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(train_data.tb){

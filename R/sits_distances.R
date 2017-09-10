@@ -17,7 +17,7 @@
 #' @export
 #'
 sits_distances <- function(data.tb, patterns.tb,
-                           dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, by_bands = TRUE, alpha = -0.1, beta = 100, theta = 0.5, span = 0)) {
+                           dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, alpha = -0.1, beta = 100, theta = 0.5, span = 0)) {
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
@@ -26,7 +26,7 @@ sits_distances <- function(data.tb, patterns.tb,
     ensurer::ensure_that(dist_method, class(.) == "function", err_desc = "sits_distances: dist_method is not a valid function")
 
     # compute the training method by the given data
-    result <- dist_method(data.tb)
+    result <- dist_method(data.tb, patterns.tb)
     return(result)
 
 }
@@ -93,7 +93,7 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL,
         # handle the case of null bands
         if (purrr::is_null (bands)) bands <- sits_bands(data.tb)
 
-        distances.tb <-  sits_distance_tibble(patterns.tb)
+        distances.tb <-  sits_tibble_distance(patterns.tb)
         original_row <-  1
 
         labels <- (dplyr::distinct(patterns.tb, label))$label
@@ -109,7 +109,7 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL,
         data.tb %>%
             purrrlyr::by_row(function (row) {
                 ts <- row$time_series[[1]]
-                drow.tb <- sits_distance_tibble(patterns.tb)
+                drow.tb <- sits_tibble_distance(patterns.tb)
                 r <- dplyr::add_row(drow.tb)
                 r$original_row <- original_row
                 r$reference    <- row$label
@@ -138,55 +138,6 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL,
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
 
 }
-#' @title Create an empty distance tibble to store the results of distance metrics
-#' @name sits_distance_tibble
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Create an empty distance tibble to store the results of distance metrics
-#'
-#' @param patterns.tb     a SITS tibble with a set of patterns
-#' @return distances.tb   a tibble to store the distances between a time series and a set of patterns
-#' @export
-#'
-sits_distance_tibble <- function (patterns.tb) {
-
-    distances.tb <- tibble::tibble(
-        original_row = integer(),
-        reference    = character())
-
-    distances.tb <- tibble::as_tibble (distances.tb)
-
-    labels <- (dplyr::distinct(patterns.tb, label))$label
-    bands  <- sits_bands (patterns.tb)
-
-    for (l in 1:length(labels))
-        for (b in 1:length(bands)) {
-            measure <- paste0 (labels[l], ".", bands[b])
-            distances.tb [measure] = double()
-        }
-    return (distances.tb)
-}
-
-#' @title Create an empty distance tibble based on an input data set
-#' @name sits_distance_tibble_from_data
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Create an empty distance tibble to store the results of distance metrics
-#'
-#' @param data.tb         a SITS tibble with a data set
-#' @return distances.tb   a tibble to store the distances between a time series and a set of patterns
-#' @export
-#'
-sits_distance_tibble_from_data <- function (data.tb) {
-
-    distances.tb <- tibble::tibble(
-        original_row = 1:NROW(data.tb),
-        reference    = data.tb$label)
-
-    return (distances.tb)
-}
 
 #' @title Find distances between a set of SITS patterns and segments of sits tibble using TWDTW
 #' @name sits_TWDTW_distances
@@ -198,7 +149,6 @@ sits_distance_tibble_from_data <- function (data.tb) {
 #'
 #' @param  data.tb     a table in SITS format with a time series to be classified using TWTDW
 #' @param  patterns.tb   a set of known temporal signatures for the chosen classes
-#' @param  by_bands      boolean - should distances from each band be computed one by one? (default = TRUE)
 #' @param  dist.method   A character. Method to derive the local cost matrix.
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
@@ -209,7 +159,7 @@ sits_distance_tibble_from_data <- function (data.tb) {
 #'                       whole partition validation.
 #' @return distances.tb       a SITS table with the information on distances for the data
 #' @export
-sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, by_bands = TRUE, dist.method = "euclidean",
+sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.method = "euclidean",
                                   alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE, multicores = 1) {
 
     result_fun <- function (data.tb, patterns.tb) {
@@ -227,9 +177,8 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, by_bands =
             purrr::map(function(i) data.tb[part.vec == i,] )
 
         # prepare function to be passed to `parallel::mclapply`. this function returns a distance table to each partition
-        if (by_bands){
-            dist_fun <- function(part.tb){
-                result.tb <- sits_distance_tibble_from_data(part.tb)
+        dist_fun <- function(part.tb){
+                result.tb <- sits_tibble_distance_from_data(part.tb)
                 bands %>%
                     purrr::map (function (b){
                         part_b.tb  <- sits_select_bands(part.tb, bands = b)
@@ -242,17 +191,9 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, by_bands =
                         colnames (result_b.tb) <- paste0(colnames(result_b.tb),".",b)
                         result.tb <<- dplyr::bind_cols(result.tb, result_b.tb)
                     })
-                return(result.tb)
-            }
+            return(result.tb)
         }
-        else {
-            dist_fun <- function(part.tb){
-                matches.tb <- sits_TWDTW_matches_tibble(part.tb, patterns.tb, bands = bands, dist.method = dist.method,
-                                                 alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
-                result.tb <- sits_spread_matches(matches.tb)
-                return(result.tb)
-            }
-        }
+
 
         # get the matches from the sits_TWDTW_matches
         distances.lst <- parallel::mclapply(part.lst, dist_fun, mc.cores = multicores)

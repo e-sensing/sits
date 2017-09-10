@@ -6,26 +6,28 @@
 #'
 #' @param  data.tb         a SITS tibble time series
 #' @param  patterns.tb     a set of known temporal signatures for the chosen classes
-#' @param  dist_method     method to compute distances (e.g., sits_TWDTW_distances)
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
+#' @param  dist_method     method to compute distances (e.g., sits_TWDTW_distances)
 #' @param  start_date      date - the start of the classification period
 #' @param  end_date        date - the end of the classification period
 #' @param  interval        the period between two classifications
-#' @param ...             other parameters to be passed to the model function
+#' @param ...             other parameters to be passed to the distance function
 #' @return data.tb      a SITS tibble with the predicted label
 #' @export
-sits_classify <- function (data.tb, patterns.tb, ml_model, dist_method = sits_TWDTW_distances(),
-                           start_date = NULL, end_date = NULL,
-                           interval = "12 month", overlap = 0.5){
+sits_classify <- function (data.tb = NULL, patterns.tb = NULL, ml_model = NULL, dist_method = sits_TWDTW_distances(),
+                           start_date = NULL, end_date = NULL, interval = "12 month"){
 
+    .sits_test_tibble(data.tb)
+    .sits_test_tibble(patterns.tb)
+    ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
     # create a tibble to store the result
-    result.tb <- tibble::tibble()
+    result.tb <- sits_tibble_classification()
 
     # go over every row of the table
     data.tb %>%
         purrrlyr::by_row (function (row) {
 
-            predict.tb <- tibble::tibble()
+            predict.tb <- sits_tibble_prediction()
 
             if (purrr::is_null (start_date)) {
                 start_date  <- row$start_date
@@ -40,10 +42,10 @@ sits_classify <- function (data.tb, patterns.tb, ml_model, dist_method = sits_TW
                 subset.tb <- sits_extract (row, breaks[i], breaks[i + 1])
 
                 # find the distances in the subset data
-                distances.tb  <- sits_TWDTW_distances (subset.tb, patterns.tb)
+                distances.tb  <- dist_method (subset.tb, patterns.tb)
 
                 # classify the test data
-                sub_predict.tb <- sits_predict(subset.tb, distances.tb, model.ml)
+                sub_predict.tb <- sits_predict(subset.tb, distances.tb, ml_model)
 
                 # save the results
 
@@ -59,16 +61,18 @@ sits_classify <- function (data.tb, patterns.tb, ml_model, dist_method = sits_TW
             # transform the zoo list into a tibble to store in memory
             pred.lst[[1]] <- predict.tb
 
+            # include the matches in the SITS table
+
             result.tb <<- tibble::add_row (result.tb,
-                                        longitude    = row$longitude,
-                                        latitude     = row$latitude,
-                                        start_date   = as.Date(row$start_date),
-                                        end_date     = as.Date(row$end_date),
-                                        label        = row$label,
-                                        coverage     = row$coverage,
-                                        time_series  = row$time_series,
-                                        predicted    = pred.lst
-                                        )
+                                           longitude   = row$longitude,
+                                           latitude    = row$latitude,
+                                           start_date  = as.Date(row$start_date),
+                                           end_date    = as.Date(row$end_date),
+                                           label       = row$label,
+                                           coverage    = row$coverage,
+                                           time_series = row$time_series,
+                                           predicted   = pred.lst)
+
         })
 
     return(result.tb)

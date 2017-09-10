@@ -4,9 +4,9 @@
 \alias{sits_classify}
 \title{Classify a sits tibble using machine learning models}
 \usage{
-sits_classify(data.tb, patterns.tb, ml_model,
+sits_classify(data.tb = NULL, patterns.tb = NULL, ml_model = NULL,
   dist_method = sits_TWDTW_distances(), start_date = NULL,
-  end_date = NULL, interval = "12 month", overlap = 0.5)
+  end_date = NULL, interval = "12 month")
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series}
@@ -23,7 +23,7 @@ sits_classify(data.tb, patterns.tb, ml_model,
 
 \item{interval}{the period between two classifications}
 
-\item{...}{other parameters to be passed to the model function}
+\item{...}{other parameters to be passed to the distance function}
 }
 \value{
 data.tb      a SITS tibble with the predicted label

@@ -4,7 +4,7 @@
 \alias{sits_TWDTW_distances}
 \title{Find distances between a set of SITS patterns and segments of sits tibble using TWDTW}
 \usage{
-sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, by_bands = TRUE,
+sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL,
   dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
   span = 250, keep = FALSE, multicores = 1)
 }
@@ -12,8 +12,6 @@ sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, by_bands = TRUE,
 \item{data.tb}{a table in SITS format with a time series to be classified using TWTDW}
 
 \item{patterns.tb}{a set of known temporal signatures for the chosen classes}
-
-\item{by_bands}{boolean - should distances from each band be computed one by one? (default = TRUE)}
 
 \item{dist.method}{A character. Method to derive the local cost matrix.}
 
