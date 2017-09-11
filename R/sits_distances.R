@@ -26,7 +26,7 @@ sits_distances <- function(data.tb, patterns.tb,
     ensurer::ensure_that(dist_method, class(.) == "function", err_desc = "sits_distances: dist_method is not a valid function")
 
     # compute the training method by the given data
-    result <- dist_method(data.tb)
+    result <- dist_method(data.tb, patterns.tb)
     return(result)
 
 }

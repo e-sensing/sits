@@ -151,7 +151,7 @@ sits_foreach <- function (data.tb, ..., fun){
     # execute the foreach applying fun function to each group
     result.tb <- data.tb %>%
         dplyr::group_by(...) %>%
-        dplyr::do(. %>% fun())
+        dplyr::do(fun(.))
 
     # comply result with sits table format and return
     result.tb <- dplyr::bind_rows(list(sits_table(), result.tb))
