@@ -239,3 +239,33 @@ sits_spread_matches <- function(data.tb){
 
     return(result.tb)
 }
+
+#' @title Spread time series values from a sits tibble as distances in a sits distance tibble
+#' @name sits_spread_ts_as_distance
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a SITS tibble with a set of time series values, returns a tibble whose columns have
+#' the reference label and the time series bands as distances to be used as input in Machine Learning functions.
+#'
+#' @param  data.tb    a SITS tibble
+#' @return result.tb  a tibble where columns have the reference label and the time series bands as distances
+#' @export
+sits_spread_ts_as_distance <- function(data.tb = NULL){
+
+    result_fun <- function(data.tb, ...){
+        data.tb$time_series <- data.tb$time_series %>% purrr::map(function(ts) {
+            ts %>% dplyr::select(-Index) %>% purrr::map(function(band) band) %>%
+                unlist() %>% as.matrix() %>% t() %>% tibble::as_tibble()
+        })
+
+        data.tb <- data.tb %>% dplyr::transmute(original_row = row_number(),
+                                                reference = label,
+                                                time_series) %>%
+            tidyr::unnest(time_series)
+
+        return(data.tb)
+    }
+
+    result <- .sits_factory_function (data.tb, result_fun)
+    return (result)
+}
