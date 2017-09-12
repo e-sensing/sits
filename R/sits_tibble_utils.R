@@ -207,7 +207,7 @@ sits_foreach <- function (data.tb, ..., fun){
     # execute the foreach applying fun function to each group
     result.tb <- data.tb %>%
         dplyr::group_by(...) %>%
-        dplyr::do(. %>% fun())
+        dplyr::do(fun(.))
 
     # comply result with sits table format and return
     result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
@@ -682,4 +682,36 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
         names(values.lst) <- bands
     }
     return (values.lst)
+}
+#' @title Spread time series values from a sits tibble as distances in a sits distance tibble
+#' @name sits_spread_ts_as_distance
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a SITS tibble with a set of time series values, returns a tibble whose columns have
+#' the reference label and the time series bands as distances to be used as input in Machine Learning functions.
+#'
+#' @param  data.tb    a SITS tibble
+#' @return result.tb  a tibble where columns have the reference label and the time series bands as distances
+sits_apply_on <- function(data.tb, field, fun){
+
+    .sits_test_tibble(data.tb)
+
+    # prepare field to be used in dplyr
+    field <- deparse(substitute(field))
+
+    # define what to do after apply fun to field data...
+    post_process_func <- function(value) {
+        if (length(value) == 0)
+            return(value)
+        # ...if atomic, unlist vectors or other atomic values
+        if (is.atomic(value[[1]]))
+            return(unlist(value))
+        # ...by default, does nothing in non atomic values (like tibbles and list)
+        value
+    }
+
+    # apply function to field data and return
+    data.tb[[field]]  <- post_process_func(purrr::map(data.tb[[field]], fun))
+
+    return(data.tb)
 }

@@ -241,7 +241,7 @@ sits_spread_matches <- function(data.tb){
 }
 
 #' @title Spread time series values from a sits tibble as distances in a sits distance tibble
-#' @name sits_spread_ts_as_distance
+#' @name sits_spread_time_series
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Given a SITS tibble with a set of time series values, returns a tibble whose columns have
@@ -250,7 +250,7 @@ sits_spread_matches <- function(data.tb){
 #' @param  data.tb    a SITS tibble
 #' @return result.tb  a tibble where columns have the reference label and the time series bands as distances
 #' @export
-sits_spread_ts_as_distance <- function(data.tb = NULL){
+sits_spread_time_series <- function(data.tb = NULL){
 
     result_fun <- function(data.tb, ...){
         data.tb$time_series <- data.tb$time_series %>% purrr::map(function(ts) {
