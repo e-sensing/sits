@@ -461,44 +461,6 @@ sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wts
      return (data.tb)
 }
 
-#' @title Obtain a confusion matrix from a compressed JSON file.
-#'
-#' @name sits_conf_fromGZ
-#'
-#' @description reads a set of data and metadata for satellite image time series from a compressed JSON file
-#'
-#' @param file        string  - name of a compressed JSON file with sits data and metadata
-#' @return data.tb    tibble  with a confusion matrix
-#' @export
-sits_conf_fromGZ <- function (file) {
-
-    # uncompress the file
-    json_file <- R.utils::gunzip (file, remove = FALSE)
-    # retrieve the data
-    conf.tb <- sits_conf_fromJSON (json_file)
-    # remove the uncompressed file
-    file.remove (json_file)
-
-    # return the JSON file
-    return (conf.tb)
-}
-
-#' @title Obtain a confusion matrix from a JSON file.
-#'
-#' @name sits_conf_fromJSON
-#'
-#' @description reads a set of data and metadata for satellite image time series from a JSON file
-#'
-#' @param  file       string  - name of a JSON file with sits data and metadata
-#' @return data.tb    tibble  with a confusion matrix
-#' @export
-sits_conf_fromJSON <- function (file) {
-    # add the contents of the JSON file to a SITS tibble
-    data.tb <- tibble::as_tibble (jsonlite::fromJSON (file))
-
-    return (data.tb)
-}
-
 #' @title Import time series in the zoo format to a SITS tibble
 #' @name sits_fromZOO
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -542,6 +504,93 @@ sits_fromZOO <- function (ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
 
     return (data.tb)
 }
+#' @title Transform patterns from TWDTW format to SITS format
+#' @name sits_fromTWDTW_matches
+#'
+#' @description reads one TWDTW matches object and transforms it into a tibble ready to be stored into a SITS table column.
+#'
+#' @param  match.twdtw  a TWDTW Matches object of class dtwSat::twdtwMatches (S4)
+#' @return result.tb    a tibble containing the matches information
+#'
+sits_fromTWDTW_matches <- function(match.twdtw){
+    result.tb <- tibble::as_tibble(match.twdtw[[1]]) %>%
+        dplyr::mutate(predicted = as.character(label)) %>%
+        dplyr::select(-Alig.N, -label) %>%
+        list()
+    return(result.tb)
+}
 
+#' @title Transform patterns from TWDTW format to SITS format
+#' @name sits_fromTWDTW_timeseries
+#'
+#' @description reads a set of TWDTW patterns and transforms them into a SITS table
+#'
+#' @param patterns  - a TWDTW object containing a set of patterns to be used for classification
+#' @param coverage  - the name of the coverage from where the time series have been obtained
+#'
+#' @return sits.tb  - a SITS table containing the patterns
+#'
+sits_fromTWDTW_timeseries <- function (patterns, coverage){
+    # get the time series from the patterns
+    tb.lst <- purrr::map2 (patterns@timeseries, patterns@labels, function (ts, lab) {
+        # tranform the time series into a row of a sits table
+        ts.tb <- zoo::fortify.zoo(ts)
+        # store the sits table in a list
+        mylist        <- list()
+        mylist [[1]]  <- tibble::as_tibble (ts.tb)
+        # add the row to the sits table
+        row   <- tibble::tibble(longitude    = 0.00,
+                                latitude     = 0.00,
+                                start_date   = ts.tb[1,"Index"],
+                                end_date     = ts.tb[nrow(ts.tb),"Index"],
+                                label        = as.character (lab),
+                                coverage     = coverage,
+                                time_series  = mylist)
+        return (row)
+    })
+    # create a sits table to store the result
+    patterns.tb <- sits_tibble()
+    patterns.tb <- tb.lst %>%
+        purrr::map_df (function (row) {
+            dplyr::bind_rows (patterns.tb, row)
+        })
+    return (patterns.tb)
+}
 
+#' @title Obtain a confusion matrix from a compressed JSON file.
+#'
+#' @name sits_conf_fromGZ
+#'
+#' @description reads a set of data and metadata for satellite image time series from a compressed JSON file
+#'
+#' @param file        string  - name of a compressed JSON file with sits data and metadata
+#' @return data.tb    tibble  with a confusion matrix
+#' @export
+sits_conf_fromGZ <- function (file) {
 
+    # uncompress the file
+    json_file <- R.utils::gunzip (file, remove = FALSE)
+    # retrieve the data
+    conf.tb <- sits_conf_fromJSON (json_file)
+    # remove the uncompressed file
+    file.remove (json_file)
+
+    # return the JSON file
+    return (conf.tb)
+}
+
+#' @title Obtain a confusion matrix from a JSON file.
+#'
+#' @name sits_conf_fromJSON
+#'
+#' @description reads a set of data and metadata for satellite image time series from a JSON file
+#'
+#' @param  file       string  - name of a JSON file with sits data and metadata
+#' @return data.tb    tibble  with a confusion matrix
+#' @export
+sits_conf_fromJSON <- function (file) {
+    # add the contents of the JSON file to a SITS tibble
+    data.tb <- tibble::as_tibble (jsonlite::fromJSON (file))
+
+    return (data.tb)
+}

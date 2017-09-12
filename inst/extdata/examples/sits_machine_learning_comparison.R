@@ -114,5 +114,5 @@ conf_svm_full.mx$name <- "svm_full"
 
 results[[length(results) + 1]] <- conf_svm_full.mx
 
-sits_accuracy_xlsx(results, file = "./inst/extdata/results/accuracy_embrapa_new.xlsx")
+sits_toXLSX(results, file = "./inst/extdata/results/accuracy_embrapa_new.xlsx")
 

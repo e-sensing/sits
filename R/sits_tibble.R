@@ -64,14 +64,15 @@ sits_tibble_distance <- function (patterns.tb) {
 
     distances.tb <- tibble::as_tibble (distances.tb)
 
-    labels <- (dplyr::distinct(patterns.tb, label))$label
+    labels <- sits_labels(patterns.tb)$label
     bands  <- sits_bands (patterns.tb)
 
-    for (l in 1:length(labels))
+    for (l in 1:length(labels)) {
         for (b in 1:length(bands)) {
             measure <- paste0 (labels[l], ".", bands[b])
             distances.tb [measure] = double()
         }
+    }
     return (distances.tb)
 }
 
