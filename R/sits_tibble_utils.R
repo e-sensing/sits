@@ -683,14 +683,17 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
     }
     return (values.lst)
 }
-#' @title Spread time series values from a sits tibble as distances in a sits distance tibble
-#' @name sits_spread_ts_as_distance
+#' @title Apply a function on each SITS tibble column element
+#' @name sits_apply_on
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Given a SITS tibble with a set of time series values, returns a tibble whose columns have
-#' the reference label and the time series bands as distances to be used as input in Machine Learning functions.
+#' @description Computes new values for a given SITS tibble field and returns a tibble whose field column have
+#' the new values.
 #'
 #' @param  data.tb    a SITS tibble
+#' @param  field      a valid field of data.tb to apply `fun` function
+#' @param  fun        a function to apply in field data. The function must have an input parameter to receive each
+#'                    field data element at a time and output a new value.
 #' @return result.tb  a tibble where columns have the reference label and the time series bands as distances
 sits_apply_on <- function(data.tb, field, fun){
 
