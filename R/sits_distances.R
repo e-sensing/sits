@@ -138,7 +138,6 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL,
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
 
 }
-
 #' @title Find distances between a set of SITS patterns and segments of sits tibble using TWDTW
 #' @name sits_TWDTW_distances
 #' @author Rolf Simoes, \email{rolf.simores@@inpe.br}
@@ -167,6 +166,12 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
         # determine the bands of the data
         bands <- sits_bands (data.tb)
 
+        # determine the labels of the patterns
+        labels <- sits_labels(patterns.tb)$label
+
+        # Define the logistic function
+        log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
+
         # compute partition vector
         part.vec <- rep.int(1, NROW(data.tb))
         if(multicores > 1)
@@ -178,19 +183,69 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
 
         # prepare function to be passed to `parallel::mclapply`. this function returns a distance table to each partition
         dist_fun <- function(part.tb){
-                result.tb <- sits_tibble_distance_from_data(part.tb)
-                bands %>%
-                    purrr::map (function (b){
-                        part_b.tb  <- sits_select_bands(part.tb, bands = b)
-                        patt_b.tb  <- sits_select_bands (patterns.tb, bands = b)
-                        matches_b.tb <- sits_TWDTW_matches_tibble(part_b.tb, patt_b.tb, bands = b, dist.method = dist.method,
-                                                           alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
+            result.tb <- sits_tibble_distance_from_data(part.tb)
 
-                        result_b.tb <- sits_spread_matches(matches_b.tb)
-                        result_b.tb <- result_b.tb[-2:0]
-                        colnames (result_b.tb) <- paste0(colnames(result_b.tb),".",b)
-                        result.tb <<- dplyr::bind_cols(result.tb, result_b.tb)
-                    })
+            bands %>%
+                purrr::map (function (b){
+                    part_b.tb  <- sits_select_bands (part.tb, bands = b)
+                    patt_b.tb  <- sits_select_bands (patterns.tb, bands = b)
+
+                    # add a progress bar
+                    progress_bar <- NULL
+                    if (nrow (data.tb) > 10 && multicores == 1) {
+                        message("Matching patterns to time series...")
+                        progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
+                        i <- 0
+                    }
+                    # convert patterns time series to TWDTW format
+                    twdtw_patterns <- sits_toTWDTW(patt_b.tb)
+
+                    #create a tibble to store the results
+                    matches.tb <- tibble::tibble ()
+
+                    for (l in 1:length(labels)) {
+                            measure <- paste0 (labels[l])
+                            matches.tb [measure] = double()
+                    }
+
+                    part_b.tb %>%
+                        purrrlyr::by_row (function (row.tb) {
+                            # convert to TWDTW format
+                            twdtw_series <- sits_toTWDTW(row.tb)
+
+                            #classify the data using TWDTW
+                            matches.twdtw = dtwSat::twdtwApply(x          = twdtw_series,
+                                                         y          = twdtw_patterns,
+                                                         weight.fun = log_fun,
+                                                         theta      = theta,
+                                                         span       = span,
+                                                         keep       = keep,
+                                                         dist.method = dist.method)
+
+                            # transform the matches to a tibble
+                            matches_b.tb <- tibble::as_tibble(matches.twdtw[[1]]) %>%
+                                dplyr::mutate(predicted = as.character(label))
+
+
+                            # Get best TWDTW alignments for each class
+                            matches_b.tb <- matches_b.tb %>%
+                                dplyr::group_by(predicted) %>%
+                                dplyr::summarise(distance=min(distance)) %>%
+                                tidyr::spread(key = predicted, value = distance)
+
+                            # add the row to the results.tb tibble
+                            matches.tb <<- dplyr::bind_rows(matches.tb, matches_b.tb)
+                            # update progress bar
+                            if (!purrr::is_null(progress_bar)) {
+                                i <<- i + 1
+                                utils::setTxtProgressBar(progress_bar, i)
+                            }
+                        })
+                    if (!purrr::is_null(progress_bar)) close(progress_bar)
+                    # obtain the resulting distances from bands
+                    colnames (matches.tb) <- paste0(colnames(matches.tb),".",b)
+                    result.tb <<- dplyr::bind_cols(result.tb, matches.tb)
+                })
             return(result.tb)
         }
 
@@ -206,36 +261,4 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
 
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
     return (result)
-}
-
-#' @title Spread matches from a sits matches tibble
-#' @name sits_spread_matches
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a SITS tibble with a set of TWDTW matches, returns a tibble whose columns have
-#' the reference label and the TWDTW distances for each temporal pattern.
-#'
-#' @param  data.tb    a SITS matches tibble
-#' @return result.tb  a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
-#' @export
-sits_spread_matches <- function(data.tb){
-
-    # Get best TWDTW aligniments for each class
-    data.tb$matches <- data.tb$matches %>%
-        purrr::map(function (data.tb){
-            data.tb %>%
-                dplyr::group_by(predicted) %>%
-                dplyr::summarise(distance=min(distance))
-        })
-
-    # Select best match and spread pred to columns
-    result.tb <- data.tb %>%
-        dplyr::transmute(original_row = 1:NROW(.), reference = label, matches = matches) %>%
-        tidyr::unnest(matches, .drop = FALSE) %>%
-        tidyr::spread(key = predicted, value = distance)
-
-    return(result.tb)
 }
