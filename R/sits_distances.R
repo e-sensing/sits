@@ -258,7 +258,7 @@ sits_spread_ts_as_distance <- function(data.tb = NULL){
                 unlist() %>% as.matrix() %>% t() %>% tibble::as_tibble()
         })
 
-        data.tb <- data.tb %>% dplyr::transmute(original_row = row_number(),
+        data.tb <- data.tb %>% dplyr::transmute(original_row = dplyr::row_number(),
                                                 reference = label,
                                                 time_series) %>%
             tidyr::unnest(time_series)
