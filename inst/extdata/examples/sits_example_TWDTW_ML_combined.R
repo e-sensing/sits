@@ -60,4 +60,10 @@ class.tb <- sits_classify(series.tb, patterns.tb, model.ml, start_date = "2000-0
 # plot the classification of the time series by yearly intervals
 sits_plot(class.tb, patterns.tb, band = "ndvi")
 
+# test the model with an independent data set
+
+cerrado_test.tb <- sits_getdata(file = "./inst/extdata/samples/cerrado_test.json.gz")
+
+acc <- sits_accuracy_classif(cerrado_test.tb, patterns.tb, model.ml)
+
 
