@@ -93,7 +93,7 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
         # call e1071::svm method and return the trained svm model
         result_svm <- e1071::svm(formula = formula, data = train_data.tb, kernel = kernel,
                                  degree = degree, cost = cost, coef0 = coef0,
-                                 tolerance = tolerance, epsilon = epsilon, cross = cross, ...)
+                                 tolerance = tolerance, epsilon = epsilon, cross = cross, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
@@ -140,7 +140,7 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
             formula <- formula(train_data.tb)
 
         # call MASS::lda method and return the trained lda model
-        result_lda <- MASS::lda(formula = formula, data = train_data.tb, ...)
+        result_lda <- MASS::lda(formula = formula, data = train_data.tb, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
@@ -189,7 +189,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
             formula <- formula(train_data.tb)
 
         # call MASS::qda method and return the trained lda model
-        result_qda <- MASS::qda(formula = formula, data = train_data.tb, ...)
+        result_qda <- MASS::qda(formula = formula, data = train_data.tb, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
@@ -237,7 +237,7 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
             formula <- formula(train_data.tb)
 
         # call nnet::multinom method and return the trained multinom model
-        result_mlr <- nnet::multinom(formula = formula, data = train_data.tb, ...)
+        result_mlr <- nnet::multinom(formula = formula, data = train_data.tb, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
@@ -402,7 +402,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
         result_rfor <- randomForest::randomForest(x = df[-1:0],
                                                   y = as.factor(df$reference),
                                                   data = NULL, ntree = ntree, nodesize = 1,
-                                                  norm.votes = FALSE, ...)
+                                                  norm.votes = FALSE, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
