@@ -1,6 +1,6 @@
 library(sits)
 
-prodes.tb <- sits_getdata(system.file("extdata/samples/prodes_series_226_64.json.gz", package = "sits"))
+prodes.tb <- sits_import(system.file("extdata/samples/prodes_series_226_64.json.gz", package = "sits"))
 
 sits_summary(prodes.tb)
 
