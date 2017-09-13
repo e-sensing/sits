@@ -313,7 +313,7 @@ sits_spread_time_series <- function(data.tb = NULL){
                 unlist() %>% as.matrix() %>% t() %>% tibble::as_tibble()
         })
 
-        data.tb <- data.tb %>% dplyr::transmute(original_row = dplyr::row_number(),
+        data.tb <- data.tb %>% dplyr::transmute(original_row = 1:NROW(.),
                                                 reference = label,
                                                 time_series) %>%
             tidyr::unnest(time_series)
