@@ -32,7 +32,7 @@
 sits_gam <- function (data.tb = NULL, from = NULL, to = NULL, freq = 8, formula = y ~ s(x), ...){
 
 
-    # function that returns e1071::svm model based on a sits sample tibble
+    # function that is used to be called as a value from another function
     result_fun <- function(tb){
 
         # does the input data exist?

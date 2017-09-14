@@ -28,7 +28,7 @@ series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage 
 sits_plot (series.tb)
 
 # retrieve a set of samples from a JSON file
-embrapa_mt.tb <- sits_getdata(file = "./inst/extdata/samples/embrapa_mt.json.gz")
+embrapa_mt.tb <- readRDS(file = "./inst/extdata/time_series/embrapa_mt.rds")
 
 sits_bands(embrapa_mt.tb)
 
@@ -42,6 +42,7 @@ sits_plot (patterns.tb)
 # find the matches between the patterns and the time series using the TWDTW algorithm
 # (uses the dtwSat R package)
 distances_train.tb <- sits_TWDTW_distances (embrapa_mt2.tb, patterns.tb)
+
 # save the distances for reusing the distance file later
 saveRDS (distances_train.tb, file = "./inst/extdata/distances/embrapa_mt_distances_train.rds")
 
@@ -51,13 +52,9 @@ model.ml <- sits_svm (distances_train.tb, cost = 10, kernel = "radial",tolerance
 #save the model for later reuse
 saveRDS(model.ml, file = "./inst/extdata/models/embrapa_mt_model_svm_radial_cost10.rds")
 
-
 # classify the test data
 class.tb <- sits_classify(series.tb, patterns.tb, model.ml, start_date = "2000-09-14", end_date = "2016-08-29")
 
-#classify the time series matches using yearly intervals
-
 # plot the classification of the time series by yearly intervals
 sits_plot(class.tb, patterns.tb, band = "ndvi")
-
 

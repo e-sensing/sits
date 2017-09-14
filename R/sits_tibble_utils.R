@@ -497,7 +497,7 @@ sits_sample <- function (data.tb, n = NULL, frac = NULL){
 
     # compute sampling
     result.tb <- sits_tibble()
-    labels <- sits_labels (data.tb)
+    labels <- sits_labels (data.tb)$label
     labels %>%
         purrr::map (function (l){
             tb_l <- dplyr::filter (data.tb, label == l)
