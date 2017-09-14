@@ -341,14 +341,15 @@ sits_create_folds <- function (data.tb, folds = 5) {
 #' @param  patterns.tb   A sits tibble containing a set of patterns (independent of input data)
 #' @param  ml_model      A model trained by \code{\link[sits]{sits_train}}
 #' @param  dist_method   Method to compute distances (e.g., sits_TWDTW_distances)
-#' @param  start_date    Start date for classification
-#' @param  end_date      End date for classification
 #' @param  interval      Period between two classifications
 #' @param ...            Other parameters to be passed to the distance function
 #' @return assess        Assessment of validation
 #' @export
-sits_accuracy_classif <- function (data.tb, patterns.tb, ml_model, dist_method = sits_TWDTW_distances(),
-                                start_date = NULL, end_date = NULL, interval = "12 month") {
+sits_accuracy_classif <- function (data.tb,
+                                   patterns.tb,
+                                   ml_model,
+                                   dist_method = sits_TWDTW_distances(),
+                                   interval = "12 month") {
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
@@ -356,6 +357,12 @@ sits_accuracy_classif <- function (data.tb, patterns.tb, ml_model, dist_method =
      ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),
                             err_desc = "sits_test_patterns: please provide a labelled set of time series")
 
+     # align all samples to the same time series intervals
+     # sample_dates <- lubridate::as_date(patterns.tb[1,]$time_series[[1]]$Index)
+     # data.tb      <- sits_align (data.tb, sample_dates)
+     #
+     # start_date <- patterns.tb[1,]$start_date
+     # end_date   <- patterns.tb[1,]$end_date
 
      # classify data
      class.tb <- sits_classify (data.tb, patterns.tb, ml_model, dist_method,

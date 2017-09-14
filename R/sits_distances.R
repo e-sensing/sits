@@ -166,6 +166,9 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
         # determine the bands of the data
         bands <- sits_bands (data.tb)
 
+        #select the patterns to match the bands
+        patterns.tb <- sits_select_bands(patterns.tb, bands)
+
         # determine the labels of the patterns
         labels <- sits_labels(patterns.tb)$label
 

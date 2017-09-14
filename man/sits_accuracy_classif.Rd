@@ -5,8 +5,7 @@
 \title{Evaluates the accuracy of a labelled set of data}
 \usage{
 sits_accuracy_classif(data.tb, patterns.tb, ml_model,
-  dist_method = sits_TWDTW_distances(), start_date = NULL,
-  end_date = NULL, interval = "12 month")
+  dist_method = sits_TWDTW_distances(), interval = "12 month")
 }
 \arguments{
 \item{data.tb}{A sits tibble containing a set of samples with known and trusted labels}
@@ -16,10 +15,6 @@ sits_accuracy_classif(data.tb, patterns.tb, ml_model,
 \item{ml_model}{A model trained by \code{\link[sits]{sits_train}}}
 
 \item{dist_method}{Method to compute distances (e.g., sits_TWDTW_distances)}
-
-\item{start_date}{Start date for classification}
-
-\item{end_date}{End date for classification}
 
 \item{interval}{Period between two classifications}
 
