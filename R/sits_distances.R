@@ -265,3 +265,65 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
     return (result)
 }
+
+#' @title Spread matches from a sits matches tibble
+#' @name sits_spread_matches
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a SITS tibble with a set of TWDTW matches, returns a tibble whose columns have
+#' the reference label and the TWDTW distances for each temporal pattern.
+#'
+#' @param  data.tb    a SITS matches tibble
+#' @return result.tb  a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
+#' @export
+sits_spread_matches <- function(data.tb){
+
+    # Get best TWDTW aligniments for each class
+    data.tb$matches <- data.tb$matches %>%
+        purrr::map(function (data.tb){
+            data.tb %>%
+                dplyr::group_by(predicted) %>%
+                dplyr::summarise(distance=min(distance))
+        })
+
+    # Select best match and spread pred to columns
+    result.tb <- data.tb %>%
+        dplyr::transmute(original_row = 1:NROW(.), reference = label, matches = matches) %>%
+        tidyr::unnest(matches, .drop = FALSE) %>%
+        tidyr::spread(key = predicted, value = distance)
+
+    return(result.tb)
+}
+
+#' @title Spread time series values from a sits tibble as distances in a sits distance tibble
+#' @name sits_spread_time_series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a SITS tibble with a set of time series values, returns a tibble whose columns have
+#' the reference label and the time series bands as distances to be used as input in Machine Learning functions.
+#'
+#' @param  data.tb    a SITS tibble
+#' @return result.tb  a tibble where columns have the reference label and the time series bands as distances
+#' @export
+sits_spread_time_series <- function(data.tb = NULL){
+
+    result_fun <- function(data.tb, ...){
+        data.tb$time_series <- data.tb$time_series %>% purrr::map(function(ts) {
+            ts %>% dplyr::select(-Index) %>% purrr::map(function(band) band) %>%
+                unlist() %>% as.matrix() %>% t() %>% tibble::as_tibble()
+        })
+
+        data.tb <- data.tb %>% dplyr::transmute(original_row = 1:NROW(.),
+                                                reference = label,
+                                                time_series) %>%
+            tidyr::unnest(time_series)
+
+        return(data.tb)
+    }
+
+    result <- .sits_factory_function (data.tb, result_fun)
+    return (result)
+}

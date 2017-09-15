@@ -25,9 +25,9 @@ BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
 Imports:
+    wtss,
     dtwSat,
     magrittr,
-    wtss,
     caret,
     dendextend,
     e1071,
