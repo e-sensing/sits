@@ -34,11 +34,11 @@ training_data.tb <- readRDS(file = "./inst/extdata/models/distances_training_dat
 model.ml <- sits_svm (training_data.tb, cost = 1000, kernel = "radial",tolerance = 0.001, epsilon = 0.1)
 
 # classify the test data
-class.tb <- sits_classify(series.tb, patterns_matogrosso.tb, model.ml)
+class.tb <- sits_classify(series.tb[8:13,], patterns_matogrosso.tb, model.ml)
 
 #classify the time series matches using yearly intervals
 
 # plot the classification of the time series by yearly intervals
-sits_plot(class.tb[2:10,], patterns_matogrosso.tb, band = "ndvi")
+sits_plot(class.tb, patterns_matogrosso.tb, band = "ndvi")
 
 
