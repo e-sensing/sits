@@ -5,7 +5,7 @@
 \title{Plot a dendrogram}
 \usage{
 sits_plot_dendrogram(data.tb, cluster_obj, cutree_height = NULL,
-  colors = "RdYlGn", ...)
+  colors = "RdYlGn")
 }
 \arguments{
 \item{data.tb}{SITS tibble to extract labels}
@@ -15,8 +15,6 @@ sits_plot_dendrogram(data.tb, cluster_obj, cutree_height = NULL,
 \item{cutree_height}{A dashed horizontal line to be drawed indicating the height of dendrogram cutting.}
 
 \item{colors}{a color scheme as showed in `sits_color_name` function}
-
-\item{...}{Other parameters to be passed to graphics::plot() function}
 }
 \description{
 Plot an enhanced dendrogram based on a cluster object usually found in `.sits_last_cluster`

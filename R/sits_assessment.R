@@ -1,6 +1,7 @@
 #' @title Evaluates the accuracy of classification
 #' @name sits_accuracy
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Evaluates the accuracy of classification stored in two vectors.
 #' Returns a confusion matrix used by the "caret" package
@@ -361,8 +362,8 @@ sits_accuracy_classif <- function (data.tb,
      # sample_dates <- lubridate::as_date(patterns.tb[1,]$time_series[[1]]$Index)
      # data.tb      <- sits_align (data.tb, sample_dates)
      #
-     # start_date <- patterns.tb[1,]$start_date
-     # end_date   <- patterns.tb[1,]$end_date
+     start_date <- patterns.tb[1,]$start_date
+     end_date   <- patterns.tb[1,]$end_date
 
      # classify data
      class.tb <- sits_classify (data.tb, patterns.tb, ml_model, dist_method,

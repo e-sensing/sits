@@ -11,12 +11,11 @@
 #' "centroids" - uses a positional clustering method to group the patterns
 #'
 #' @param data.tb          a SITS tibble time series with an alignment column
-#' @param bands            the bands to be used for determining patterns
 #' @param pt_method        a pattern fitting method
 #' @return result          a model fitted into input data given by train_method parameter
 #' @export
 #'
-sits_patterns <- function(data.tb, bands = NULL, pt_method = sits_gam(data.tb = NULL, bands = bands, from = NULL, to = NULL, freq = 8, formula = y ~ s(x))) {
+sits_patterns <- function(data.tb, pt_method = sits_gam(data.tb = NULL, from = NULL, to = NULL, freq = 8, formula = y ~ s(x))) {
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
@@ -29,65 +28,4 @@ sits_patterns <- function(data.tb, bands = NULL, pt_method = sits_gam(data.tb = 
 
 }
 
-#' @title Create time series patterns for classification
-#' @name sits_patt_dendgam
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Michelle Picoli, \email{mipicoli@@gmail.com}
-#'
-#'
-#' @description This function ...
-#'
-#' @param data.tb                 a SITS tibble time series with an alignment column
-#' @param first_cluster_cleaner   first_cluster_cleaner
-#' @param cluster_a_labels        cluster_a_labels
-#' @param second_cluster_cleaner  second_cluster_cleaner
-#' @param k_cluster_a             k_cluster_a
-#' @param k_cluster_b             k_cluster_b
-#' @return result                 result
-#' @export
-#'
-sits_patt_dendgam <- function(data.tb = NULL, first_cluster_cleaner = 0.027,
-                              cluster_a_labels = c("Forest", "Cerrado", "Pasture"),
-                              second_cluster_cleaner = 0.035, k_cluster_a = 8, k_cluster_b = 6){
 
-    result_fun <- function(tb){
-
-        # does the input data exist?
-        .sits_test_tibble (tb)
-
-        # first cluster cutree and cleaner
-        data_clus.obj <- sits_dendrogram(tb, window.size = 7, step.pattern = symmetric1)
-        cluster.tb <- sits_cluster(tb, data_clus.obj, k = 2)
-        cluster.tb <- sits_cluster_cleaner(cluster.tb, min_clu_perc = first_cluster_cleaner)
-
-        # cluster partitioning
-        frequency.tb <- sits_cluster_frequency(cluster.tb, relative = TRUE)
-        if (any(row.names(frequency.tb)[which.max(frequency.tb[1:(NROW(frequency.tb) - 1), 1])] %in% cluster_a_labels)){
-            data_a.tb <- dplyr::filter(cluster.tb, cluster == 1)
-            data_b.tb <- dplyr::filter(cluster.tb, cluster == 2)
-        } else {
-            data_a.tb <- dplyr::filter(cluster.tb, cluster == 2)
-            data_b.tb <- dplyr::filter(cluster.tb, cluster == 1)
-        }
-
-        # second cluster cutree and cleaner
-        # cluster_a
-        data_clus_a.obj <- sits_dendrogram(data_a.tb, window.size = 7, step.pattern = symmetric1)
-        cluster_a.tb <- sits_cluster(data_a.tb, data_clus_a.obj, k = k_cluster_a)
-        cluster_a.tb <- sits_cluster_cleaner(cluster_a.tb, min_clu_perc = second_cluster_cleaner)
-        # cluster_b
-        data_clus_b.obj <- sits_dendrogram(data_b.tb, window.size = 7, step.pattern = symmetric1)
-        cluster_b.tb <- sits_cluster(data_b.tb, data_clus_b.obj, k = k_cluster_b)
-        cluster_b.tb <- sits_cluster_cleaner(cluster_b.tb, min_clu_perc = second_cluster_cleaner)
-
-        # bind cluster_a and cluster_b
-        combined.tb <- dplyr::bind_rows(cluster_a.tb, cluster_b.tb)
-
-        # generate pattern with gam
-        result.tb <- sits_gam(combined.tb)
-        return(result.tb)
-    }
-
-    result.tb <- .sits_factory_function (data.tb, result_fun)
-    return(result.tb)
-}
