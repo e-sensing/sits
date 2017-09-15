@@ -13,7 +13,7 @@
 #install library
 library (sits)
 # get a local data set
-cerrado.tb <- readRDS(system.file("./inst/extdata/time_series/cerrado.rds", package = "sits"))
+cerrado.tb <- readRDS(system.file("extdata/time_series/cerrado.rds", package = "sits"))
 
 # pick the first 10 time series
 cerrado1.tb <- cerrado.tb[1:20,]
