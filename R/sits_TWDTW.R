@@ -140,35 +140,3 @@ sits_TWDTW_classify <- function (matches, data.tb, start_date = NULL, end_date =
           }, .to = "predicted")
     return (class.tb)
 }
-
-#' @title Spread matches from a sits matches tibble
-#' @name sits_spread_matches
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a SITS tibble with a set of TWDTW matches, returns a tibble whose columns have
-#' the reference label and the TWDTW distances for each temporal pattern.
-#'
-#' @param  data.tb    a SITS matches tibble
-#' @return result.tb  a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
-#' @export
-sits_spread_matches <- function(data.tb){
-
-    # Get best TWDTW aligniments for each class
-    data.tb$matches <- data.tb$matches %>%
-        purrr::map(function (data.tb){
-            data.tb %>%
-                dplyr::group_by(predicted) %>%
-                dplyr::summarise(distance=min(distance))
-        })
-
-    # Select best match and spread pred to columns
-    result.tb <- data.tb %>%
-        dplyr::transmute(original_row = 1:NROW(.), reference = label, matches = matches) %>%
-        tidyr::unnest(matches, .drop = FALSE) %>%
-        tidyr::spread(key = predicted, value = distance)
-
-    return(result.tb)
-}

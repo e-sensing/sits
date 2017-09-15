@@ -197,16 +197,20 @@ sits_dates <- function (data.tb) {
 #' @description returns a sits table by compound the sits tables apply a function to a grouped SITS table
 #'
 #' @param data.tb      a sits table with the time series of the selected bands
-#' @param ...          one or more sits table field separated by commas that are used to group the data.
+#' @param field        one sits table field that are used to group the data.
 #'                     See `dplyr::group_by` help for more details.
 #' @param fun          a function that receives as input an sits table and outputs an sits table
 #' @return result.tb   a tibble in SITS format with the selected bands
 #' @export
-sits_foreach <- function (data.tb, ..., fun){
+sits_foreach <- function (data.tb, field, fun){
+
+    .sits_test_tibble(data.tb)
+
+    field <- deparse(substitute(field))
 
     # execute the foreach applying fun function to each group
     result.tb <- data.tb %>%
-        dplyr::group_by(...) %>%
+        dplyr::group_by_(field) %>%
         dplyr::do(.data %>% fun())
 
     # comply result with sits table format and return
