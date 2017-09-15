@@ -38,7 +38,7 @@ sits_tibble <- function () {
 #' @param data.tb  a SITS tibble
 #' @return returns TRUE if data.tb has data.
 #'
-.sits_test_tibble<- function (data.tb) {
+.sits_test_tibble <- function (data.tb) {
     ensurer::ensure_that(data.tb, !purrr::is_null(.),
                          err_desc = "input data not provided")
     ensurer::ensure_that(data.tb, NROW(.) > 0,

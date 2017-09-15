@@ -4,16 +4,21 @@
 \alias{sits_raster}
 \title{Relabel raster stack object}
 \usage{
-sits_raster(file = NULL, timeline = NULL, bands = NULL)
+sits_raster(files, timeline, bands)
 }
 \arguments{
-\item{file}{file name of a raster file}
+\item{files}{Vector with the file paths of the raster files}
 
-\item{timeline}{a vector of dates with the timeline of the bands}
+\item{timeline}{Vector of dates with the timeline of the bands}
 
-\item{bands}{the bands contained in the file}
+\item{bands}{The bands contained in the file (in the same order as the files)}
 }
 \description{
+This function creates a tibble containing the metadata for
+              a set of spatio-temporal raster files. These files should be of the same size and
+              projection. Each raster file should contain a data set, one layer
+              per time step. Different bands are archived in different raster files.
+
 This function creates a tibble to store the information
 about a raster time series
 }

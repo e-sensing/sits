@@ -19,16 +19,17 @@ bands <- c("ndvi", "evi", "nir", "mir")
 
 # retrieve a series of samples defined by a CSV file
 # obtain a time series from the WTSS server for these samples
-series.tb <- sits_getdata(file="./inst/extdata/samples/samples_matogrosso.csv", URL = URL, coverage = "mod13q1_512", bands = bands)
+series.tb <- sits_getdata(system.file ("extdata/samples/samples_matogrosso.csv", package = "sits"),
+                          URL = URL, coverage = "mod13q1_512", bands = bands)
 
 # plot the series
 sits_plot (series.tb[1,])
 
 # retrieve a set of pre-defined patterns from an RDS file
-patterns_matogrosso.tb <- readRDS(file = "./inst/extdata/patterns/patterns_matogrosso_9classes.rds")
+patterns_matogrosso.tb <- readRDS(system.file("extdata/patterns/patterns_matogrosso_9classes.rds", package = "sits"))
 
 # retrieve the distances file derived from the Mato Grosso training data set
-training_data.tb <- readRDS(file = "./inst/extdata/models/distances_training_data_matogrosso.rds")
+training_data.tb <- readRDS(system.file ("extdata/models/distances_training_data_matogrosso.rds", package = "sits"))
 
 # estimate an SVM model for this training data
 model.ml <- sits_svm (training_data.tb, cost = 1000, kernel = "radial",tolerance = 0.001, epsilon = 0.1)
