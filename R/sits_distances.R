@@ -217,7 +217,8 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
                             twdtw_series <- sits_toTWDTW(row.tb)
 
                             #classify the data using TWDTW
-                            matches.twdtw = dtwSat::twdtwApply(x          = twdtw_series,
+                            matches.twdtw = dtwSat::twdtwApply(
+                                                         x          = twdtw_series,
                                                          y          = twdtw_patterns,
                                                          weight.fun = log_fun,
                                                          theta      = theta,
