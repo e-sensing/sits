@@ -162,6 +162,37 @@ sits_bands <- function (data.tb) {
         colnames() %>% .[2:length(.)]
     return (result.vec)
 }
+#' @title Break a time series to match the time range of a set of patterns
+#' @name sits_break_ts
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  Given a long time series, divide it into segments to match
+#'               the time range of a set of patterns
+#'
+#' @param data.tb      a valid sits tibble with data
+#' @param patterns.tb  a tibble with time series patterns
+#' @return newdata.tb  a SITS tibble with the original data cut into packages
+#' @export
+#'
+sits_break_ts <-  function (data.tb, patterns.tb){
+
+    patt_start_date <- patterns.tb[1,]$start_date
+    patt_end_date  <- patterns.tb[1,]$end_date
+
+    new_data.tb <- sits_tibble()
+    data.tb %>%
+        purrrlyr::by_row(function (row) {
+            breaks <- sits_match_dates(row$start_date, row$end_date,
+                                       patt_start_date, patt_end_date)
+
+            for (i in 1:(length(breaks) - 1)){
+                new_row <- sits_extract(row, breaks[i], breaks[i+1])
+                new_data.tb <<- dplyr::bind_rows(new_data.tb, new_row)
+            }
+        })
+    return (new_data.tb)
+}
 #' @title Create partitions of a data set
 #' @name  sits_create_folds
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}

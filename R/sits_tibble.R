@@ -67,8 +67,8 @@ sits_tibble_distance <- function (patterns.tb) {
     labels <- sits_labels(patterns.tb)$label
     bands  <- sits_bands (patterns.tb)
 
-    for (l in 1:length(labels)) {
-        for (b in 1:length(bands)) {
+    for (b in 1:length(bands)) {
+        for (l in 1:length(labels)) {
             measure <- paste0 (labels[l], ".", bands[b])
             distances.tb [measure] = double()
         }

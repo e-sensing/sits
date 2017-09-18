@@ -229,7 +229,7 @@ sits_ts_fromRasterCSV <- function (raster.tb, file){
 #' @param  ...             other parameters to be passed to the distance function
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 #' @export
-sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, model.ml = NULL,
+sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model = NULL,
                                   dist_method = sits_TWDTW_distances(),
                                   interval = "12 month"){
 
