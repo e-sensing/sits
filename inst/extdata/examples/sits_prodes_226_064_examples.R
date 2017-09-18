@@ -1248,7 +1248,7 @@ rfor.kfold %>% sits_accuracy(conv2.lst)
 
 # some ML functions computes log to perform classification. Hence, we must work on positive values.
 # We transform the data time series values by the following function:
-positive_prodes_all.tb <- prodes_all.tb %>% sits_apply(function(band) (1 + 9 * band) ** 2)
+positive_prodes_all.tb <- prodes_all.tb %>% sits_apply(function(band) (3 + band))
 
 # distances for train
 tssp_prodes_train.tb <- positive_prodes_all.tb[positive_prodes_all.tb$folds != 1,] %>% sits_spread_time_series()
@@ -1282,8 +1282,10 @@ tssp.svm <- sits_train(tssp_prodes_train.tb, sits_svm(formula = sits_formula_lin
                                                       kernel = "radial"))
 
 sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.svm) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 
+sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.svm) %>%
+    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 
 #    _     ___    _
 #   | |   |   \  /_\
@@ -1293,8 +1295,10 @@ sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.svm) %>%
 tssp.lda <- sits_train(tssp_prodes_train.tb, sits_lda(formula = sits_formula_linear()))
 
 sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.lda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 
+sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.lda) %>%
+    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 
 #     ___   ___    _
 #    / _ \ |   \  /_\
@@ -1304,8 +1308,10 @@ sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.lda) %>%
 tssp.qda <- sits_train(tssp_prodes_train.tb, sits_qda(formula = sits_formula_linear()))
 
 sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.qda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 
+sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.qda) %>%
+    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 
 #    __  __  _     ___
 #   |  \/  || |   | _ \
@@ -1315,8 +1321,10 @@ sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.qda) %>%
 tssp.mlr <- sits_train(tssp_prodes_train.tb, sits_mlr(formula = sits_formula_linear()))
 
 sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.mlr) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 
+sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.mlr) %>%
+    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 
 #    _       _    ___  ___   ___
 #   | |     /_\  / __|/ __| / _ \
@@ -1329,8 +1337,10 @@ get("result_glm", envir = environment(tssp.glm1))$lambda.min
 #
 
 sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.glm1) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 
+sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.glm1) %>%
+    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 
 #    ___  ___  ___    ___  ___
 #   | _ \|_ _||   \  / __|| __|
@@ -1345,7 +1355,6 @@ get("result_glm", envir = environment(tssp.glm2))$lambda.min
 sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.glm2) %>%
     dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 
-
 #    ___  _  _  ___     ___  ___   ___  ___  ___  _____
 #   | _ \| \| ||   \   | __|/ _ \ | _ \| __|/ __||_   _|
 #   |   /| .` || |) |_ | _|| (_) ||   /| _| \__ \  | |
@@ -1353,6 +1362,9 @@ sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.glm2) %>%
 #
 
 tssp.rfor <- sits_train(tssp_prodes_train.tb, sits_rfor())
+
+sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.rfor) %>%
+    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 
 sits_predict(positive_prodes.tb, tssp_prodes.tb, tssp.rfor) %>%
     dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
@@ -1385,29 +1397,25 @@ svm.kfold <-
                                                    tr_method = sits_svm(formula = sits_formula_linear(),
                                                                         kernel = "radial"),
                                                    multicores = 5)
+svm.kfold %>% sits_accuracy(conv.lst)
+
 svm.kfold %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
-#                    Reference
-# Prediction          deforestation2014 deforestation2015 primary_forest
-#   deforestation2014               129                14              2
-#   deforestation2015                13               172              2
-#   primary_forest                    4                 5             70
+#             Reference
+# Prediction   Forest Non_Forest
+#   Forest        117         12
+#   Non_Forest     11        477
 #
-# Overall Statistics
+#              Accuracy : 0.9627
+#                95% CI : (0.9446, 0.9762)
 #
-#  Accuracy : 0.9027
-#    95% CI : (0.8698, 0.9296)
+#                 Kappa : 0.887
 #
-#     Kappa : 0.8452
-#
-# Statistics by Class:
-#
-#                           Class: deforestation2014 Class: deforestation2015 Class: primary_forest
-# Prod Acc (Sensitivity)                      0.8836                   0.9005                0.9459
-# Specificity                                 0.9396                   0.9318                0.9733
-# User Acc (Pos Pred Value)                   0.8897                   0.9198                0.8861
-# Neg Pred Value                              0.9361                   0.9152                0.9880
+#      Prod Acc  Forest : 0.9141
+#  Prod Acc  Non_Forest : 0.9755
+#      User Acc  Forest : 0.9070
+#  User Acc  Non_Forest : 0.9775
 
 
 #    _     ___    _
@@ -1422,30 +1430,25 @@ lda.kfold <-
                                                    dist_method = sits_spread_time_series(),
                                                    tr_method = sits_lda(formula = sits_formula_linear()),
                                                    multicores = 5)
+lda.kfold %>% sits_accuracy(conv.lst)
+
 lda.kfold %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
-#                    Reference
-# Prediction          deforestation2014 deforestation2015 primary_forest
-#   deforestation2014               130                 9              4
-#   deforestation2015                13               172              4
-#   primary_forest                    3                10             66
+#             Reference
+# Prediction   Forest Non_Forest
+#   Forest        117         12
+#   Non_Forest     11        477
 #
-# Overall Statistics
+#              Accuracy : 0.9627
+#                95% CI : (0.9446, 0.9762)
 #
-#  Accuracy : 0.8954
-#    95% CI : (0.8617, 0.9232)
+#                 Kappa : 0.887
 #
-#     Kappa : 0.8334
-#
-# Statistics by Class:
-#
-#                           Class: deforestation2014 Class: deforestation2015 Class: primary_forest
-# Prod Acc (Sensitivity)                      0.8904                   0.9005                0.8919
-# Specificity                                 0.9509                   0.9227                0.9614
-# User Acc (Pos Pred Value)                   0.9091                   0.9101                0.8354
-# Neg Pred Value                              0.9403                   0.9144                0.9759
-
+#      Prod Acc  Forest : 0.9141
+#  Prod Acc  Non_Forest : 0.9755
+#      User Acc  Forest : 0.9070
+#  User Acc  Non_Forest : 0.9775
 
 #     ___   ___    _
 #    / _ \ |   \  /_\
@@ -1460,31 +1463,26 @@ qda.kfold <-
                         dist_method = sits_spread_time_series(),
                         tr_method = sits_qda(formula = sits_formula_linear()),
                         multicores = 5)
+
+qda.kfold %>% sits_accuracy(conv.lst)
+
 qda.kfold %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
-#                    Reference
-# Prediction          deforestation2014 deforestation2015 primary_forest
-#   deforestation2014               131                 8             17
-#   deforestation2015                15               183             47
-#   primary_forest                    0                 0             10
+#             Reference
+# Prediction   Forest Non_Forest
+#   Forest         42          1
+#   Non_Forest     86        488
 #
-# Overall Statistics
+#              Accuracy : 0.859
+#                95% CI : (0.829, 0.8855)
 #
-#  Accuracy : 0.7883
-#    95% CI : (0.7456, 0.8268)
+#                 Kappa : 0.432
 #
-#     Kappa : 0.6374
-#
-# Statistics by Class:
-#
-#                           Class: deforestation2014 Class: deforestation2015 Class: primary_forest
-# Prod Acc (Sensitivity)                      0.8973                   0.9581                0.1351
-# Specificity                                 0.9057                   0.7182                1.0000
-# User Acc (Pos Pred Value)                   0.8397                   0.7469                1.0000
-# Neg Pred Value                              0.9412                   0.9518                0.8404
-
-
+#      Prod Acc  Forest : 0.3281
+#  Prod Acc  Non_Forest : 0.9980
+#      User Acc  Forest : 0.9767
+#  User Acc  Non_Forest : 0.8502
 
 #    __  __  _     ___
 #   |  \/  || |   | _ \
@@ -1498,31 +1496,26 @@ mlr.kfold <-
                         dist_method = sits_spread_time_series(),
                         tr_method = sits_mlr(formula = sits_formula_linear()),
                         multicores = 5)
+
+mlr.kfold %>% sits_accuracy(conv.lst)
+
 mlr.kfold %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
-#                    Reference
-# Prediction          deforestation2014 deforestation2015 primary_forest
-#   deforestation2014               129                13              1
-#   deforestation2015                12               170             12
-#   primary_forest                    5                 8             61
+#             Reference
+# Prediction   Forest Non_Forest
+#   Forest        108         22
+#   Non_Forest     20        467
 #
-# Overall Statistics
+#              Accuracy : 0.9319
+#                95% CI : (0.9091, 0.9505)
 #
-#  Accuracy : 0.8759
-#    95% CI : (0.8401, 0.9062)
+#                 Kappa : 0.7942
 #
-#     Kappa : 0.8013
-#
-# Statistics by Class:
-#
-#                           Class: deforestation2014 Class: deforestation2015 Class: primary_forest
-# Prod Acc (Sensitivity)                      0.8836                   0.8901                0.8243
-# Specificity                                 0.9472                   0.8909                0.9614
-# User Acc (Pos Pred Value)                   0.9021                   0.8763                0.8243
-# Neg Pred Value                              0.9366                   0.9032                0.9614
-
-
+#      Prod Acc  Forest : 0.8438
+#  Prod Acc  Non_Forest : 0.9550
+#      User Acc  Forest : 0.8308
+#  User Acc  Non_Forest : 0.9589
 
 #    _       _    ___  ___   ___
 #   | |     /_\  / __|/ __| / _ \
@@ -1537,30 +1530,26 @@ lasso.kfold <-
                         dist_method = sits_spread_time_series(),
                         tr_method = sits_glm(alpha = 1),
                         multicores = 5)
+
+lasso.kfold %>% sits_accuracy(conv.lst)
+
 lasso.kfold %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
-#                    Reference
-# Prediction          deforestation2014 deforestation2015 primary_forest
-#   deforestation2014               132                17              4
-#   deforestation2015                11               168              2
-#   primary_forest                    3                 6             68
+#             Reference
+# Prediction   Forest Non_Forest
+#   Forest        117         15
+#   Non_Forest     11        474
 #
-# Overall Statistics
+#              Accuracy : 0.9579
+#                95% CI : (0.9389, 0.9723)
 #
-#  Accuracy : 0.8954
-#    95% CI : (0.8617, 0.9232)
+#                 Kappa : 0.8733
 #
-#     Kappa : 0.8338
-#
-# Statistics by Class:
-#
-#                           Class: deforestation2014 Class: deforestation2015 Class: primary_forest
-# Prod Acc (Sensitivity)                      0.9041                   0.8796                0.9189
-# Specificity                                 0.9208                   0.9409                0.9733
-# User Acc (Pos Pred Value)                   0.8627                   0.9282                0.8831
-# Neg Pred Value                              0.9457                   0.9000                0.9820
-
+#      Prod Acc  Forest : 0.9141
+#  Prod Acc  Non_Forest : 0.9693
+#      User Acc  Forest : 0.8864
+#  User Acc  Non_Forest : 0.9773
 
 #    ___  ___  ___    ___  ___
 #   | _ \|_ _||   \  / __|| __|
@@ -1574,32 +1563,26 @@ ridge.kfold <-
                         dist_method = sits_spread_time_series(),
                         tr_method = sits_glm(alpha = 0),
                         multicores = 5)
+
+ridge.kfold %>% sits_accuracy(conv.lst)
+
 ridge.kfold %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
-#                    Reference
-# Prediction          deforestation2014 deforestation2015 primary_forest
-#   deforestation2014               127                19              3
-#   deforestation2015                15               167              6
-#   primary_forest                    4                 5             65
+#             Reference
+# Prediction   Forest Non_Forest
+#   Forest        119         13
+#   Non_Forest      9        476
 #
-# Overall Statistics
+#              Accuracy : 0.9643
+#                95% CI : (0.9465, 0.9775)
 #
-#  Accuracy : 0.8735
-#    95% CI : (0.8374, 0.904)
+#                 Kappa : 0.8928
 #
-#     Kappa : 0.798
-#
-# Statistics by Class:
-#
-#                           Class: deforestation2014 Class: deforestation2015 Class: primary_forest
-# Prod Acc (Sensitivity)                      0.8699                   0.8743                0.8784
-# Specificity                                 0.9170                   0.9045                0.9733
-# User Acc (Pos Pred Value)                   0.8523                   0.8883                0.8784
-# Neg Pred Value                              0.9275                   0.8924                0.9733
-
-
-
+#      Prod Acc  Forest : 0.9297
+#  Prod Acc  Non_Forest : 0.9734
+#      User Acc  Forest : 0.9015
+#  User Acc  Non_Forest : 0.9814
 
 #    ___  _  _  ___     ___  ___   ___  ___  ___  _____
 #   | _ \| \| ||   \   | __|/ _ \ | _ \| __|/ __||_   _|
@@ -1613,36 +1596,38 @@ rfor.kfold <-
                         dist_method = sits_spread_time_series(),
                         tr_method = sits_rfor(),
                         multicores = 5)
+
+rfor.kfold %>% sits_accuracy(conv.lst)
+
 rfor.kfold %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
-#                    Reference
-# Prediction          deforestation2014 deforestation2015 primary_forest
-#   deforestation2014               135                10              1
-#   deforestation2015                 9               180              4
-#   primary_forest                    2                 1             69
+#             Reference
+# Prediction   Forest Non_Forest
+#   Forest        117          8
+#   Non_Forest     11        481
 #
-# Overall Statistics
+#              Accuracy : 0.9692
+#                95% CI : (0.9523, 0.9814)
 #
-#  Accuracy : 0.9343
-#    95% CI : (0.9059, 0.9563)
+#                 Kappa : 0.9055
 #
-#     Kappa : 0.8947
-#
-# Statistics by Class:
-#
-#                           Class: deforestation2014 Class: deforestation2015 Class: primary_forest
-# Prod Acc (Sensitivity)                      0.9247                   0.9424                0.9324
-# Specificity                                 0.9585                   0.9409                0.9911
-# User Acc (Pos Pred Value)                   0.9247                   0.9326                0.9583
-# Neg Pred Value                              0.9585                   0.9495                0.9853
+#      Prod Acc  Forest : 0.9141
+#  Prod Acc  Non_Forest : 0.9836
+#      User Acc  Forest : 0.9360
+#  User Acc  Non_Forest : 0.9776
 
 
+# ===========================================================
 
-
-# Random Forest produced the best accuracy: 0.9343
-
-
+# result              K-FOLD PATT.DIST.            K-FOLD intraCLUST               K-FOLD CLUSTER               K-FOLD TS.SPRD
+#  - SVM:     0.8960 (0.8690, 0.9192)      0.9190 (0.8946, 0.9393)      0.8833 (0.8553, 0.9076)      0.9627 (0.9446, 0.9762)
+#  - LDA:                     -------                      -------                      -------      0.9627 (0.9446, 0.9762)
+#  - QDA:     0.9026 (0.8762, 0.9251) *                    -------                      -------      0.8590 (0.8290, 0.8855)
+#  - MLR:                     -------                      -------                      -------      0.9319 (0.9091, 0.9505)
+#  - LASSO:                   -------      0.9206 (0.8964, 0.9407) *                    -------      0.9579 (0.9389, 0.9723)
+#  - RIDGE:                   -------      0.9092 (0.8838, 0.9307)      0.9076 (0.8820, 0.9293) *    0.9643 (0.9465, 0.9775)
+#  - RFOR:                    -------                      -------      0.8849 (0.8571, 0.9090)      0.9692 (0.9523, 0.9814) *
 
 #
 #
