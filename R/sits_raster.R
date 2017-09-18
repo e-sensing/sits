@@ -230,7 +230,7 @@ sits_ts_fromRasterCSV <- function (raster.tb, file){
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 #' @export
 sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, model.ml = NULL,
-                                  patterns.tb = NULL, ml_model = NULL, dist_method = sits_TWDTW_distances(),
+                                  dist_method = sits_TWDTW_distances(),
                                   interval = "12 month"){
 
     # ensure metadata tibble exists
