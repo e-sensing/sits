@@ -4,14 +4,14 @@
 #'
 #' @description reads descriptive information about a data source to retrive a set of
 #' time series. The following options are available:
-#' (a) The source is a SITS table - retrieves the metadata from the sits table and the data
+#' (a) The source is a SITS tibble - retrieves the metadata from the sits table and the data
 #' from the WTSS service
 #' (b) The source is a CSV file - retrieves the metadata from the CSV file and the data
 #' from the WTSS service
 #' (c) The source is a JSON file - retrieves the metadata and data from the JSON file.
 #' (d) The source is a gz file (compressed JSON file) - retrieves the metadata and data from the compressed JSON file.
 #' (e) No source is given - it retrives the data based on <long, lat, wtss>
-#' A sits table has the metadata and data for each time series
+#' A sits tibble has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
 #' A Web Time Series Service (WTSS) is a light-weight service that
@@ -23,7 +23,7 @@
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177.
 #'
 #' @param file            the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)
-#' @param table           an R object ("sits_table")
+#' @param table           an R object ("sits_tibble")
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location)
 #' @param start_date      date - the start of the period
@@ -34,7 +34,7 @@
 #' @param bands           string vector - the names of the bands to be retrieved
 #' @param n_max           integer - the maximum number of samples to be read (optional)
 #' @param ignore_dates    use the start and end dates from the coverage instead of the time series
-#' @return data.tb        tibble  - a SITS table
+#' @return data.tb        a SITS tibble
 #' @export
 sits_getdata <- function (file        = NULL,
                           table       = NULL,
@@ -101,14 +101,14 @@ sits_getdata <- function (file        = NULL,
 #'
 #' @description reads a set of data and metadata for satellite image time series from a JSON file
 #'
-#' @param json_file  string  - name of a JSON file with sits data and metadata
-#' @return data.tb    tibble  - a SITS table
+#' @param file      string  - name of a JSON file with sits data and metadata
+#' @return data.tb   a SITS tibble
 #' @export
-sits_fromJSON <- function (json_file) {
-     # add the contents of the JSON file to a SITS table
-     table <- tibble::as_tibble (jsonlite::fromJSON (json_file))
+sits_fromJSON <- function (file) {
+     # add the contents of the JSON file to a SITS tibble
+     table <- tibble::as_tibble (jsonlite::fromJSON (file))
      # convert Indexes in time series to dates
-     table1 <- sits_table()
+     table1 <- sits_tibble()
      table %>%
           purrrlyr::by_row(function (r) {
                tb <- tibble::as_tibble(r$time_series[[1]])
@@ -127,13 +127,13 @@ sits_fromJSON <- function (json_file) {
 #'
 #' @description reads a set of data and metadata for satellite image time series from a compressed JSON file
 #'
-#' @param gz_file  string  - name of a compressed JSON file with sits data and metadata
-#' @return data.tb    tibble  - a SITS table
+#' @param  file       string  - name of a compressed JSON file with sits data and metadata
+#' @return data.tb    a SITS tibble
 #' @export
-sits_fromGZ <- function (gz_file) {
+sits_fromGZ <- function (file) {
 
     # uncompress the file
-    json_file <- R.utils::gunzip (gz_file, remove = FALSE)
+    json_file <- R.utils::gunzip (file, remove = FALSE)
     # retrieve the data
     data.tb <- sits_fromJSON (json_file)
     # remove the uncompressed file
@@ -173,15 +173,15 @@ sits_fromlatlong <-  function (longitude, latitude, start_date = NULL, end_date 
      return (data.tb)
 }
 
-#' @title Obtain timeSeries from WTSS server, based on a SITS table.
+#' @title Obtain timeSeries from WTSS server, based on a SITS tibble
 #' @name sits_fromtable
 #'
 #' @description reads descriptive information about a set of
-#' spatio-temporal locations from a SITS table. Then it uses the WTSS service to
-#' obtain the required data. This function is useful when you have a sits table
+#' spatio-temporal locations from a SITS tibble. Then it uses the WTSS service to
+#' obtain the required data. This function is useful when you have a sits tibble
 #' but you want to get the time series from a different set of bands.
 #'
-#' @param table          a  sits_table
+#' @param table          a sits tibble
 #' @param wtss.obj       an R object that represents the WTSS server
 #' @param cov            a list with the coverage parameters (retrived from the WTSS server)
 #' @param bands          string vector - the names of the bands to be retrieved
@@ -189,7 +189,7 @@ sits_fromlatlong <-  function (longitude, latitude, start_date = NULL, end_date 
 #' @export
 sits_fromtable <-  function (table, wtss.obj, cov, bands) {
      # create the table to store
-     data.tb <- sits_table()
+     data.tb <- sits_tibble()
 
      table %>%
           purrrlyr::by_row( function (r){
@@ -217,7 +217,7 @@ sits_fromtable <-  function (table, wtss.obj, cov, bands) {
 #'
 #' @description reads descriptive information about a set of
 #' spatio-temporal locations from a CSV file. Then, it uses the WTSS time series service
-#' to retrieve the time series, and stores the time series on a SITS table for later use.
+#' to retrieve the time series, and stores the time series on a SITS tibble for later use.
 #' The CSV file should have the following column names:
 #' "longitude", "latitude", "start_date", "end_date", "label"
 #'
@@ -227,7 +227,7 @@ sits_fromtable <-  function (table, wtss.obj, cov, bands) {
 #' @param bands           string vector - the names of the bands to be retrieved
 #' @param n_max           integer - the maximum number of samples to be read
 #' @param ignore_dates    whether to use the dates of the coverage and not those specified in the file
-#' @return data.tb        tibble  - a SITS table
+#' @return data.tb        a SITS tibble
 #' @export
 
 sits_fromCSV <-  function (csv_file, wtss.obj, cov, bands, n_max = Inf, ignore_dates = FALSE){
@@ -240,8 +240,8 @@ sits_fromCSV <-  function (csv_file, wtss.obj, cov, bands, n_max = Inf, ignore_d
                              label       = readr::col_character())
      # read sample information from CSV file and put it in a tibble
      csv.tb <- readr::read_csv (csv_file, n_max = n_max, col_types = cols_csv)
-     # create the table
-     data.tb <- sits_table()
+     # create the tibble
+     data.tb <- sits_tibble()
      # for each row of the input, retrieve the time series
      csv.tb %>%
           purrrlyr::by_row( function (r){
@@ -258,7 +258,7 @@ sits_fromCSV <-  function (csv_file, wtss.obj, cov, bands, n_max = Inf, ignore_d
 #' @title Obtain timeSeries from WTSS server, based on a SHP file.
 #' @name sits_fromSHP
 #'
-#' @description reads a shapefile and retrieves a SITS table
+#' @description reads a shapefile and retrieves a SITS tibble
 #' containing time series from a coverage that are inside the SHP file.
 #' The script uses the WTSS service, taking information about coverage, spatial and
 #' temporal resolution from the WTSS configuration.
@@ -271,7 +271,7 @@ sits_fromCSV <-  function (csv_file, wtss.obj, cov, bands, n_max = Inf, ignore_d
 #' @param start_date      date - the start of the period
 #' @param end_date        date - the end of the period
 #' @param label           string - the label to attach to the time series
-#' @return table     tibble  - a SITS table
+#' @return table          a SITS tibble
 #' @export
 sits_fromSHP <- function (shp_file, wtss.obj, cov, bands, start_date, end_date, label) {
 
@@ -305,11 +305,11 @@ sits_fromSHP <- function (shp_file, wtss.obj, cov, bands, start_date, end_date, 
 
      }
 
-     # spatial points to sits table
+     # spatial points to sits tibble
      sp2SitsTable <- function(coordinates.sp){
 
           # using the WTSS
-          sits_points.tb <- sits_table()
+          sits_points.tb <- sits_tibble()
 
           # fill rows with coordinates
           sits_points.tb <- tibble::add_row(sits_points.tb,
@@ -365,17 +365,17 @@ sits_fromSHP <- function (shp_file, wtss.obj, cov, bands, start_date, end_date, 
                dplyr::rowwise() %>%
                dplyr::do (sits_fromWTSS (.$longitude, .$latitude, start_date, end_date, label, wtss.obj, cov, bands))
      } else
-          wtss_points.tb <- sits_table()
+          wtss_points.tb <- sits_tibble()
 
      return (wtss_points.tb)
 }
 
-#' @title Obtain one timeSeries from WTSS server and load it on a sits table
+#' @title Obtain one timeSeries from WTSS server and load it on a sits tibble
 #' @name sits_fromWTSS
 #'
 #' @description Returns one set of time series provided by a WTSS server
 #' Given a location (lat/long), and start/end period, and the WTSS server information
-#' retrieve a time series and include it on a stis table.
+#' retrieve a time series and include it on a stis tibble.
 #' A Web Time Series Service (WTSS) is a light-weight service that
 #' retrieves one or more time series in JSON format from a data base.
 #' @references
@@ -393,7 +393,7 @@ sits_fromSHP <- function (shp_file, wtss.obj, cov, bands, start_date, end_date, 
 #' @param cov             a list containing information about the coverage from which data is to be recovered
 #' @param bands           list of string - a list of the names of the bands of the coverage
 #' @param ignore_dates    whether to use the dates of the coverage and not those specified in the file
-#' @return data.tb        tibble  - a SITS table
+#' @return data.tb        a SITS tibble
 #' @export
 sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wtss.obj, cov, bands, ignore_dates = FALSE) {
 
@@ -444,9 +444,9 @@ sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wts
      # transform the zoo list into a tibble to store in memory
      ts.lst[[1]] <- row.tb
 
-     # create a table to store the WTSS data
-     data.tb <- sits_table()
-     # add one row to the table
+     # create a tibble to store the WTSS data
+     data.tb <- sits_tibble()
+     # add one row to the tibble
      data.tb <- tibble::add_row (data.tb,
                          longitude    = longitude,
                          latitude     = latitude,
@@ -457,7 +457,7 @@ sits_fromWTSS <- function (longitude, latitude, start_date, end_date, label, wts
                          time_series  = ts.lst
      )
 
-     # return the table with the time series
+     # return the tibble with the time series
      return (data.tb)
 }
 
@@ -493,24 +493,24 @@ sits_conf_fromGZ <- function (file) {
 #' @return data.tb    tibble  with a confusion matrix
 #' @export
 sits_conf_fromJSON <- function (file) {
-    # add the contents of the JSON file to a SITS table
-    table <- tibble::as_tibble (jsonlite::fromJSON (file))
+    # add the contents of the JSON file to a SITS tibble
+    data.tb <- tibble::as_tibble (jsonlite::fromJSON (file))
 
-    return (table)
+    return (data.tb)
 }
 
 #' @title Import time series in the zoo format to a SITS tibble
 #' @name sits_fromZOO
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Converts data from a SITS table to an instance of a zoo series,
+#' @description Converts data from an instance of a zoo series to a SITS tibble
 #'
 #' @param ts.zoo        A zoo time series
 #' @param longitude     Longitude of the chosen location
 #' @param latitude      Latitude of the chosen location
 #' @param label         Label to attach to the time series (optional)
 #' @param coverage      Name of the coverage where data comes from
-#' @return data.tb        A time series in SITS tibble format
+#' @return data.tb      A time series in SITS tibble format
 #' @export
 sits_fromZOO <- function (ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoLabel", coverage = "unknown"){
 
@@ -527,9 +527,9 @@ sits_fromZOO <- function (ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
     # get the end date
     end_date <- ts.tb[NROW(ts.tb),]$Index
 
-    # create a table to store the WTSS data
-    data.tb <- sits_table()
-    # add one row to the table
+    # create a tibble to store the WTSS data
+    data.tb <- sits_tibble()
+    # add one row to the tibble
     data.tb <- tibble::add_row (data.tb,
                                 longitude    = longitude,
                                 latitude     = latitude,

@@ -4,14 +4,14 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description reads a list of clusters provided by the dtwclust
-#' package and produces a sits table.
+#' package and produces a sits tibble.
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb          a tibble with input data of dtwclust.
 #' @param clusters         a cluster structure returned from dtwclust.
 #' @param k                the desired number of clusters
 #' @param height           the desired height to cut the dendrogram. At least one of k or height must be specified, k overrides height if both are given.
-#' @return result.tb       a SITS table with the clusters or clusters' members
+#' @return result.tb       a SITS tibble with the clusters or clusters' members
 #' @export
 sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
 
@@ -19,7 +19,7 @@ sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
     ensurer::ensure_that(k, !(is.null(.) & is.null(height)),
                          err_desc = "sits_cluster: you must provide at least k or height")
 
-    # create a table to store the results
+    # create a tibble to store the results
     result.tb <- data.tb
 
     # cut the tree
@@ -96,7 +96,7 @@ sits_cluster_frequency <-  function (data.tb, relative = FALSE, margin = 2) {
 sits_cluster_cleaner <-  function (data.tb, min_clu_perc = 0.0, min_lab_perc = 0.0) {
 
     # verify if data.tb has data
-    .sits_test_table(data.tb)
+    .sits_test_tibble (data.tb)
 
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_cleaner: input data does not contain cluster column")

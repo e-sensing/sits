@@ -5,7 +5,7 @@
 \title{Train SITS classifier with a Support Vector Machine}
 \usage{
 sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
-  kernel = "linear", degree = 3, coef0 = 0, cost = 1,
+  kernel = "radial", degree = 3, coef0 = 0, cost = 10,
   tolerance = 0.001, epsilon = 0.1, cross = 4, ...)
 }
 \arguments{

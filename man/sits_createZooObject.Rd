@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_SCIDB.R
 \name{sits_createZooObject}
 \alias{sits_createZooObject}
-\title{Create an indexed ordered obsevartion set within a sits_table.}
+\title{Create an indexed ordered obsevartion set within a sits tibble.}
 \usage{
 sits_createZooObject(bands, dates, scale_factor, idx, missing_values)
 }

@@ -16,11 +16,11 @@ sits_cluster(data.tb, clusters, k = NULL, height = NULL)
 \item{height}{the desired height to cut the dendrogram. At least one of k or height must be specified, k overrides height if both are given.}
 }
 \value{
-result.tb       a SITS table with the clusters or clusters' members
+result.tb       a SITS tibble with the clusters or clusters' members
 }
 \description{
 reads a list of clusters provided by the dtwclust
-package and produces a sits table.
+package and produces a sits tibble.
 }
 \references{
 "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)

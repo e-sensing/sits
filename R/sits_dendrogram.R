@@ -24,9 +24,9 @@ sits_dendrogram <- function (data.tb, bands = NULL,
                             grouping_method = "ward.D2", ...){
 
     # does the input data exist?
-    .sits_test_table (data.tb)
+    .sits_test_tibble(data.tb)
 
-    # if no bands informed, get all bands available in SITS table
+    # if no bands informed, get all bands available in SITS tibble
     if (purrr::is_null(bands))
         bands <- sits_bands(data.tb)
 

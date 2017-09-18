@@ -2,12 +2,12 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_interp}
 \alias{sits_interp}
-\title{Inerpolation function of sits_table's time series}
+\title{Inerpolation function of the time series of a sits_tibble}
 \usage{
 sits_interp(data.tb, fun = stats::approx, n = base::length, ...)
 }
 \arguments{
-\item{data.tb}{a valid sits table}
+\item{data.tb}{a valid sits tibble}
 
 \item{fun}{the interpolation function to be used}
 
@@ -18,7 +18,7 @@ an argument, e.g. n(band) (default: `length` function)}
 \item{...}{additional parameters to be used by the fun function}
 }
 \value{
-result.tb    a sits_table with same samples and the new bands
+result.tb    a sits tibble with same samples and the new bands
 }
 \description{
 Computes the linearly interpolated bands for a given resolution

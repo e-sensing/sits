@@ -26,7 +26,7 @@ of the chosen machine learning methods. Please use this function in the followin
 \details{
 Functions for machine learning associated to the SITS package
 The attributes for the training functions are the DTW distances
-computed by the TWTDW function (see documentation on sits_TWDTW_matches)
+computed by the TWTDW function (see documentation on sits_TWDTW_matches_tibble)
 
 models supported: 'svm', 'random forests', 'boosting', 'lda', 'qda'
                   'multinomial logit', 'lasso', 'ridge', 'elnet', 'best model'

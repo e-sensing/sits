@@ -7,14 +7,14 @@
 sits_envelope(data.tb, operations = "UULL", bands_suffix = "env")
 }
 \arguments{
-\item{data.tb}{a valid sits table}
+\item{data.tb}{a valid sits tibble}
 
 \item{operations}{character sequence indicating which operations must be taken. "U" for upper filter, "D" for down filter.}
 
 \item{bands_suffix}{the suffix to be appended to the resulting data (default "env")}
 }
 \value{
-result.tb   a sits_table with same samples and the new bands
+result.tb   a sits tibble with same samples and the new bands
 }
 \description{
 This function computes the envelope of a time series using the

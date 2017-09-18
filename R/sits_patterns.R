@@ -19,7 +19,7 @@
 sits_patterns <- function(data.tb, bands = NULL, pt_method = sits_gam(data.tb = NULL, bands = bands, from = NULL, to = NULL, freq = 8, formula = y ~ s(x))) {
 
     # does the input data exist?
-    .sits_test_table (data.tb)
+    .sits_test_tibble (data.tb)
     # is the train method a function?
     ensurer::ensure_that(pt_method, class(.) == "function", err_desc = "sits_train: train_method is not a valid function")
 
@@ -53,7 +53,7 @@ sits_patt_dendgam <- function(data.tb = NULL, first_cluster_cleaner = 0.027,
     result_fun <- function(tb){
 
         # does the input data exist?
-        .sits_test_table (tb)
+        .sits_test_tibble (tb)
 
         # first cluster cutree and cleaner
         data_clus.obj <- sits_dendrogram(tb, window.size = 7, step.pattern = symmetric1)

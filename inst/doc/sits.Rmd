@@ -19,6 +19,11 @@ preamble: >
   \usepackage{amsmath}
 output: rticles::jss_article
 bibliography: e-sensing.bib
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{SITS: Satellite Image Time Series package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r include = FALSE}

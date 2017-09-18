@@ -28,11 +28,11 @@ sits_TWDTW_matches(data.tb = NULL, patterns.tb = NULL, bands = NULL,
 \item{keep}{keep internal values for plotting matches}
 }
 \value{
-matches       a SITS table with the information on matches for the data
+matches       a dtwSat S4 object with the matches
 }
 \description{
-Returns a sits table with the results of the TWDTW classifier.
-The TWDTW classifier compares the values of a satellite image time series with
+Returns  the results of the TWDTW matching function.
+The TWDTW matching function compares the values of a satellite image time series with
 the values of known patters and tries to match each pattern to a part of the time series
 
 The TWDTW (time-weighted dynamical time warping) is a version of the

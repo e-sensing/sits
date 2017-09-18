@@ -4,46 +4,40 @@
 #' @description Given a SITS tibble with a set of time series, plot them
 #'
 #' @param  data.tb      A SITS tibble with the list of time series to be plotted
-#' @param  patterns.tb  A SITS tibble with a set of patterns (used to plot "aligments", "matches", and "classification")
-#' @param  type         string - the type of plot to be generated. The options are:
-#' \itemize{
-#'  \item{"allyears":}{ For each lat/long location in the data, join temporal
-#' instances of the same place together for plotting}
-#'  \item{"one_by_one":}{ Plot each row of a data set separately}
-#'  \item{"together":}{ Plot all the values of all time series together for each band and each label}
-#'  \item{"patterns":}{ Plot the patterns (uses dtwSat package)}
-#'  \item{"classification":}{ Plot the classification given by the TWDTW distance (uses the dtwSat package)}
-#'  \item{"alignments":}{ Plot the alignments obtained by TWDTW method (uses the dtwSat package) }
-#'  \item{"matches":}{ Plot the matches obtained by TWDTW method (uses the dtwSat package) }
-#' }
+#' @param  patterns.tb  Patterns used for classification (required for sits_plot_predicted)
+#' @param  band         Band for displaying the results (useful for sits_plot_predicted)
 #' @param  colors       Color pallete to be used (default is "Set1")
-#' @param  start_date   Start date of the plot (used for showing classifications)
-#' @param  end_date     End date of the plot (used for showing classifications)
-#' @param  interval     Interval between classifications (used for showing classifications)
-#' @param  overlap      Minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.
-#' @param  n_matches    Number of matches of a given label to be displayed
+#' @param  n_max        Maximum number to visualise individual series
+#'                      For inputs with more than this number of rows,
+#'                      input data is plotted together
 #' @return data.tb      Input SITS table (useful for chaining functions)
 #' @export
-#'
-sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = "Dark2", n_matches = 4,
-                       start_date = NULL, end_date = NULL, interval = "12 month", overlap = 0.5) {
+#!diagnostics off
+
+sits_plot <- function (data.tb, patterns.tb = NULL, band = NULL, colors = "Dark2", n_max = 30) {
      # check the input exists
-    .sits_test_table (data.tb)
+    .sits_test_tibble(data.tb)
 
-     switch(type,
-            "allyears"       = .sits_plot_allyears (data.tb, colors),
-            "one_by_one"     = .sits_plot_one_by_one (data.tb, colors),
-            "together"       = .sits_plot_together (data.tb, colors),
-            "patterns"       = .sits_plot_patterns (data.tb),
-            "classification" = .sits_plot_classification (data.tb, patterns.tb, start_date, end_date, interval, overlap),
-            "alignments"     = .sits_plot_alignments (data.tb, patterns.tb),
-            "matches"        = .sits_plot_matches (data.tb, patterns.tb, n_matches),
-            message (paste ("sits_plot: valid plot types are allyears,
-                            one_by_one, together, patterns, classification, alignments, matches", "\n", sep = ""))
-            )
+    #select the appropriate plotting function
+    if (data.tb[1,]$latitude == 0 && data.tb[1,]$latitude == 0 && data.tb[1,]$label != "NoClass"){
+        sits_plot_patterns (data.tb)
+        return (invisible(data.tb))
+    }
+    if (!purrr::is_null(data.tb[1,]$predicted)) {
+        ensurer::ensure_that(patterns.tb, !purrr::is_null(.),
+                             err_desc = "sits_plot: please include patterns for plotting classification results")
+        sits_plot_classification(data.tb, patterns.tb, band)
+        return (invisible(data.tb))
+    }
 
-     # return the original SITS table - useful for chaining
-     return (invisible (data.tb))
+
+    if (NROW(data.tb) < n_max)
+        .sits_plot_allyears (data.tb, colors)
+    else
+        .sits_plot_together (data.tb, colors)
+
+    # return the original SITS table - useful for chaining
+    return (invisible (data.tb))
 }
 
 #' @title Plot all time intervals of one time series for the same lat/long together
@@ -83,80 +77,125 @@ sits_plot <- function (data.tb, patterns.tb = NULL, type = "allyears", colors = 
 
 }
 #' @title Plot classification patterns
-#' @name .sits_plot_patterns
-#'
-#' @description plots the patterns to be used for classification (uses dtwSat)
+#' @name sits_plot_patterns
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @description plots the patterns to be used for classification
+#'              this code is reused from the dtwSat package by Victor Maus
 #' @param data.tb one or more time series containing patterns (stored in a SITS tibble)
-.sits_plot_patterns <- function (data.tb) {
-     data.tb %>%
-          .sits_toTWDTW_time_series() %>%
-          dtwSat::plot (type = "patterns") %>%
-          graphics::plot()
+#' @export
+sits_plot_patterns <- function (data.tb) {
+
+    # prepare a data frame for plotting
+    plot.df <- data.frame()
+
+    # put the time series in the data frame
+    data.tb %>%
+        purrrlyr::by_row(function (r){
+            lb = as.character (r$label)
+            # extract the time series and convert
+            ts <- r$time_series[[1]]
+            df <- data.frame (Time = ts$Index, ts[-1], Pattern = lb)
+            plot.df <<- rbind (plot.df, df)
+        })
+
+    plot.df <- reshape2::melt (plot.df, id.vars = c("Time", "Pattern"))
+
+    # Plot temporal patterns
+    gp <-  ggplot2::ggplot(plot.df, ggplot2::aes_string(x="Time", y="value", colour="variable") ) +
+        ggplot2::geom_line() +
+        ggplot2::facet_wrap(~Pattern) +
+        ggplot2::theme(legend.position = "bottom") +
+        ggplot2::scale_x_date(labels = scales::date_format("%b")) +
+        ggplot2::guides(colour = ggplot2::guide_legend(title = "Bands")) +
+        ggplot2::ylab("Value")
+
+    graphics::plot (gp)
+
+    return (invisible(data.tb))
 }
 
 #' @title Plot classification results
-#' @name .sits_plot_classification
+#' @name sits_plot_classification
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @description   Plots the classification results (code reused from the dtwSat package by Victor Maus)
+#' @param data.tb      A SITS tibble with one or more time series that have been classified
+#' @param patterns.tb  Patterns used for classification
+#' @param band         the band to be plotted
+#' @export
 #'
-#' @description plots the results of TWDTW classification (uses dtwSat)
-#' @param data.tb one or more time series containing classification results (stored in a SITS tibble)
-.sits_plot_classification <- function (data.tb, patterns.tb, start_date, end_date, interval, overlap){
+sits_plot_classification <- function (data.tb, patterns.tb, band = NULL) {
 
-    # does the input data exist?
-    .sits_test_table (data.tb)
-    .sits_test_table (patterns.tb)
-    # retrieve a dtwSat S4 twdtwMatches object
+    if (purrr::is_null(band))
+        band <- sits_bands(data.tb)[1]
+
+    # prepare a data frame for plotting
+
+    #get the labels
+    labels <- sits_labels (patterns.tb)$label
+
+    # put the time series in the data frame
     data.tb %>%
-        .sits_toTWDTW_matches(patterns.tb) %>%
-        purrr::map(function (m.twdtw) {
-            if (purrr::is_null (start_date) | purrr::is_null (end_date))
-                dplot <- dtwSat::plot (m.twdtw, type = "classification", overlap = 0.5)
-            else
-                dplot <- dtwSat::plot (m.twdtw, type = "classification", from = start_date,
-                                       to = end_date, by = interval, overlap = overlap)
-            graphics::plot(dplot)
+        purrrlyr::by_row(function (r){
+            lb = as.character (r$label)
+            # extract the time series
+            ts <- r$time_series[[1]]
+            # convert to data frame
+            df.x <- data.frame (Time = ts$Index, ts[,band], Series = as.factor(lb) )
+            # melt the time series data for plotting
+            df.x <- reshape2::melt (df.x, id.vars = c("Time", "Series"))
+            # define a nice set of breaks for value plotting
+            y.labels = scales::pretty_breaks()(range(df.x$value, na.rm = TRUE))
+            y.breaks = y.labels
 
+            # get the predicted values as a tibble
+
+            pred <- r$predicted[[1]]
+            df.pol <- data.frame()
+
+            # create a data frame with the predicted values and time intervals
+            i <- 1
+            pred %>%
+                purrrlyr::by_row(function (p){
+                    best_class <- as.character(p$predicted)
+
+                    df.p <- data.frame(
+                        Time  = c(lubridate::as_date(p$from), lubridate::as_date(p$to),
+                                  lubridate::as_date(p$to), lubridate::as_date(p$from)),
+                        Group = rep(i, 4),
+                        Class = rep(best_class, 4),
+                        value = rep(range(y.breaks, na.rm = TRUE), each = 2)
+                    )
+                    i <<- i + 1
+                    df.pol <<- rbind(df.pol, df.p)
+                })
+            df.pol$Group  <-  factor(df.pol$Group)
+            df.pol$Class  <-  factor(df.pol$Class)
+            df.pol$Series <-  rep(lb, length(df.pol$Time))
+
+
+            I = min(df.pol$Time, na.rm = TRUE)-30 <= df.x$Time &
+                df.x$Time <= max(df.pol$Time, na.rm = TRUE)+30
+
+            df.x = df.x[I,,drop=FALSE]
+
+            gp <-  ggplot2::ggplot() +
+                ggplot2::facet_wrap(~Series, scales = "free_x", ncol=1) +
+                ggplot2::geom_polygon(data=df.pol, ggplot2::aes_string(x='Time', y='value', group='Group', fill='Class'), alpha=.7) +
+                ggplot2::scale_fill_brewer(palette="Set3") +
+                ggplot2::geom_line(data=df.x, ggplot2::aes_string(x='Time', y='value', colour='variable')) +
+                ggplot2::scale_y_continuous(expand = c(0, 0), breaks=y.breaks, labels=y.labels) +
+                ggplot2::scale_x_date(breaks=ggplot2::waiver(), labels=ggplot2::waiver()) +
+                ggplot2::theme(legend.position = "bottom") +
+                ggplot2::guides(colour = ggplot2::guide_legend(title = "Bands")) +
+                ggplot2::ylab("Value") +
+                ggplot2::xlab("Time")
+
+            graphics::plot (gp)
         })
-}
-#' @title Plot classification alignments
-#' @name .sits_plot_alignments
-#'
-#' @description plots the alignments from TWDTW classification (uses dtwSat)
-#' @param data.tb      one or more time series containing classification results (stored in a SITS tibble)
-#' @param patterns.tb  patterns SITS tibble used to matching
-#'
-.sits_plot_alignments <- function (data.tb, patterns.tb){
-    #does the input data exist?
-    .sits_test_table (data.tb)
-    .sits_test_table (patterns.tb)
 
-    data.tb %>%
-        .sits_toTWDTW_matches(patterns.tb) %>%
-        purrr::map( function (m.twdtw) {
-            dtwSat::plot (m.twdtw, type = "alignments") %>%
-                graphics::plot()
-        })
+    return (invisible(data.tb))
 }
-#' @title Plot matches between a label pattern and a time series
-#' @name .sits_plot_matches
-#'
-#' @description plots the matches from TWDTW classification for one label
-#' @param data.tb      one or more time series containing classification results (stored in a SITS tibble)
-#' @param patterns.tb  patterns SITS tibble used to matching
-#' @param n_matches    number of matches of a given label to be displayed
-#'
-.sits_plot_matches <- function (data.tb, patterns.tb, n_matches) {
 
-    #does the input data exist?
-    .sits_test_table (data.tb)
-    .sits_test_table (patterns.tb)
-
-        data.tb %>%
-        .sits_toTWDTW_matches(patterns.tb) %>%
-        purrr::map(function (m.twdtw) {
-            dtwSat::plot (m.twdtw, type = "matches", patterns.labels = patterns.tb$label, k = n_matches) %>%
-                graphics::plot()
-        })
-}
 
 #' @title Plot a set of time series for the same spatio-temporal reference
 #'

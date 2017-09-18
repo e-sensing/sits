@@ -4,38 +4,21 @@
 \alias{sits_plot}
 \title{Plot a set of satellite image time series}
 \usage{
-sits_plot(data.tb, patterns.tb = NULL, type = "allyears",
-  colors = "Dark2", n_matches = 4, start_date = NULL, end_date = NULL,
-  interval = "12 month", overlap = 0.5)
+sits_plot(data.tb, patterns.tb = NULL, band = NULL, colors = "Dark2",
+  n_max = 30)
 }
 \arguments{
 \item{data.tb}{A SITS tibble with the list of time series to be plotted}
 
-\item{patterns.tb}{A SITS tibble with a set of patterns (used to plot "aligments", "matches", and "classification")}
+\item{patterns.tb}{Patterns used for classification (required for sits_plot_predicted)}
 
-\item{type}{string - the type of plot to be generated. The options are:
-\itemize{
- \item{"allyears":}{ For each lat/long location in the data, join temporal
-instances of the same place together for plotting}
- \item{"one_by_one":}{ Plot each row of a data set separately}
- \item{"together":}{ Plot all the values of all time series together for each band and each label}
- \item{"patterns":}{ Plot the patterns (uses dtwSat package)}
- \item{"classification":}{ Plot the classification given by the TWDTW distance (uses the dtwSat package)}
- \item{"alignments":}{ Plot the alignments obtained by TWDTW method (uses the dtwSat package) }
- \item{"matches":}{ Plot the matches obtained by TWDTW method (uses the dtwSat package) }
-}}
+\item{band}{Band for displaying the results (useful for sits_plot_predicted)}
 
 \item{colors}{Color pallete to be used (default is "Set1")}
 
-\item{n_matches}{Number of matches of a given label to be displayed}
-
-\item{start_date}{Start date of the plot (used for showing classifications)}
-
-\item{end_date}{End date of the plot (used for showing classifications)}
-
-\item{interval}{Interval between classifications (used for showing classifications)}
-
-\item{overlap}{Minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.}
+\item{n_max}{Maximum number to visualise individual series
+For inputs with more than this number of rows,
+input data is plotted together}
 }
 \value{
 data.tb      Input SITS table (useful for chaining functions)

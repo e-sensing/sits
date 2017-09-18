@@ -20,13 +20,13 @@
 #' IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  data.tb       a table in SITS format with time series to be classified using TWTDW
+#' @param  data.tb       a tibble in SITS format with time series to be classified using TWTDW
 #' @param  from          starting date of the estimate (month-day)
 #' @param  to            end data of the estimated (month-day)
 #' @param  freq          int - the interval in days for the estimates to be generated
 #' @param  formula       the formula to be applied in the estimate
 #' @param  ...           any additional parameters
-#' @return patterns.tb   a SITS table with the patterns
+#' @return patterns.tb   a SITS tibble with the patterns
 #' @export
 #'
 sits_gam <- function (data.tb = NULL, from = NULL, to = NULL, freq = 8, formula = y ~ s(x), ...){
@@ -36,13 +36,13 @@ sits_gam <- function (data.tb = NULL, from = NULL, to = NULL, freq = 8, formula 
     result_fun <- function(tb){
 
         # does the input data exist?
-        .sits_test_table (tb)
+        .sits_test_tibble (tb)
 
         # find the bands of the data
-        bands <- sits_bands(tb)
+        bds <- sits_bands(tb)
 
         # create a tibble to store the results
-        patterns.tb <- sits_table()
+        patterns.tb <- sits_tibble()
 
         # what are the variables in the formula?
         vars <-  all.vars(formula)
@@ -89,13 +89,12 @@ sits_gam <- function (data.tb = NULL, from = NULL, to = NULL, freq = 8, formula 
                 res.tb <- tibble::tibble (Index = lubridate::as_date(pred_time))
 
                 # calculate the fit for each band
-                bands %>%
-                    purrr::map(function (band) {
+                bds %>%
+                    purrr::map(function (bd) {
 
                         # retrieve the time series for each band
-                        ts <- label.tb %>%
-                            sits_select (band) %>%
-                            .$time_series
+                        label_b.tb <- sits_select_bands (label.tb, bd)
+                        ts <- label_b.tb$time_series
 
                         # melt the time series for each band into a long table
                         # with all values together
@@ -111,11 +110,11 @@ sits_gam <- function (data.tb = NULL, from = NULL, to = NULL, freq = 8, formula 
                         # for the desired dates in the sequence of prediction times
                         pred_values <- mgcv::predict.gam(fit, newdata = time)
 
-                        #include the predicted values for the band in the results table
+                        #include the predicted values for the band in the results tibble
                         res.tb <- tibble::add_column(res.tb, b = pred_values)
 
                         # rename the column to match the band names
-                        names(res.tb)[names(res.tb) == "b"] <- band
+                        names(res.tb)[names(res.tb) == "b"] <- bd
                         # return the value out of the function scope
                         res.tb <<- res.tb
 
@@ -124,11 +123,11 @@ sits_gam <- function (data.tb = NULL, from = NULL, to = NULL, freq = 8, formula 
                         utils::setTxtProgressBar(progress_bar, i)
                     }) # for each band
 
-                # put the pattern in a list to store in a sits table
+                # put the pattern in a list to store in a sits tibble
                 ts <- tibble::lst()
                 ts[[1]] <- res.tb
 
-                # add the pattern to the results table
+                # add the pattern to the results tibble
                 patterns.tb <<- tibble::add_row (patterns.tb,
                                                  longitude      = 0.0,
                                                  latitude       = 0.0,

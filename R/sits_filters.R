@@ -10,19 +10,19 @@
 #
 # ---------------------------------------------------------------
 
-#' @title Interpolation function of sits_table's time series
+#' @title Interpolation function of the time series in a sits tibble
 #' @name sits_linear_interp
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Computes the linearly interpolated bands for a given resolution
 #'               using the R base function approx
-#' @param data.tb       a valid sits table
+#' @param data.tb       a valid sits tibble
 #' @param n             the number of time series elements to be created between start date and end date
-#' @return result.tb    a sits_table with same samples and the new bands
+#' @return result.tb    a sits tibble with same samples and the new bands
 #' @export
 sits_linear_interp <- function(data.tb, n = 23){
 
     # test if data.tb has data
-    .sits_test_table(data.tb)
+    .sits_test_tibble(data.tb)
 
     # compute linear approximation
     result.tb <- sits_apply(data.tb,
@@ -32,23 +32,23 @@ sits_linear_interp <- function(data.tb, n = 23){
     return(result.tb)
 }
 
-#' @title Inerpolation function of sits_table's time series
+#' @title Inerpolation function of the time series of a sits_tibble
 #' @name sits_interp
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Computes the linearly interpolated bands for a given resolution
 #'               using the R base function approx
-#' @param data.tb       a valid sits table
+#' @param data.tb       a valid sits tibble
 #' @param fun           the interpolation function to be used
 #' @param n             the number of time series elements to be created between start date and end date.
 #'                      When a class function is passed to `n`, is is evaluated with each band time series as
 #'                      an argument, e.g. n(band) (default: `length` function)
 #' @param ...           additional parameters to be used by the fun function
-#' @return result.tb    a sits_table with same samples and the new bands
+#' @return result.tb    a sits tibble with same samples and the new bands
 #' @export
 sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...){
 
     # test if data.tb has data
-    .sits_test_table(data.tb)
+    .sits_test_tibble(data.tb)
 
     # compute linear approximation
     result.tb <- sits_apply(data.tb,
@@ -65,15 +65,15 @@ sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...){
 #' @name sits_missing_values
 #' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
 #' @description  This function removes the missing values from an image time series by substituting them by NA
-#' @param data.tb     a valid sits table
+#' @param data.tb     a valid sits tibble
 #' @param miss_value  a number indicating missing values in a time series.
-#' @return result.tb  a sits_table with same samples and the new bands
+#' @return result.tb  a sits tibble with same samples and the new bands
 #' @export
 #'
 sits_missing_values <-  function(data.tb, miss_value) {
 
     # test if data.tb has data
-    .sits_test_table(data.tb)
+    .sits_test_tibble(data.tb)
 
     # remove missing values by NAs
     result.tb <- sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
@@ -85,10 +85,10 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  This function computes the envelope of a time series using the
 #' streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelop` function.
-#' @param data.tb      a valid sits table
+#' @param data.tb      a valid sits tibble
 #' @param operations   character sequence indicating which operations must be taken. "U" for upper filter, "D" for down filter.
 #' @param bands_suffix the suffix to be appended to the resulting data (default "env")
-#' @return result.tb   a sits_table with same samples and the new bands
+#' @return result.tb   a sits tibble with same samples and the new bands
 #' @export
 sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 
@@ -121,7 +121,7 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 #' @name sits_cloud_filter
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description  This function tries to remove clouds in the satellite image time series
-#' @param data.tb       a valid sits table containing the "ndvi" band
+#' @param data.tb       a valid sits tibble containing the "ndvi" band
 #' @param cutoff        a numeric value for the maximum acceptable value of a NDVI difference
 #' @param p             the order (number of time lags) of the autoregressive model,
 #' @param d             the degree of differencing (the number of times the data have had past values subtracted),
@@ -129,7 +129,7 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 #' @param bands_suffix  the suffix to rename the filtered bands
 #' @param apply_whit    apply the whittaker smoother after filtering
 #' @param lambda_whit   lambda parameter of the whittaker smoother
-#' @return result.tb    a sits_table with same samples and the new bands
+#' @return result.tb    a sits tibble with same samples and the new bands
 #' @export
 sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
                               bands_suffix = ".cf", apply_whit = TRUE, lambda_whit = 1.0){
@@ -150,7 +150,7 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
         }
         return (x)
     }
-    # prepare result SITS table
+    # prepare result SITS tibble
     result.tb <- data.tb
 
     # select the chosen bands for the time series
@@ -168,7 +168,7 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
         })
     # rename the output bands
     new_bands <- paste0(bands, ".", bands_suffix)
-    sits_bands(result.tb) <- new_bands
+    result.tb <- sits_rename(result.tb, new_bands)
 
     if (apply_whit)
         result.tb <- sits_whittaker(result.tb, lambda = lambda_whit)

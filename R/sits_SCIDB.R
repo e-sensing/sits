@@ -1,4 +1,4 @@
-#' @title Create an indexed ordered obsevartion set within a sits_table.
+#' @title Create an indexed ordered obsevartion set within a sits tibble.
 #' @name sits_createZooObject
 #'
 #' @description This function returns a sits table with an indexed ordered observation set as a zoo object

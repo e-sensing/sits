@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_getdata.R
 \name{sits_fromWTSS}
 \alias{sits_fromWTSS}
-\title{Obtain one timeSeries from WTSS server and load it on a sits table}
+\title{Obtain one timeSeries from WTSS server and load it on a sits tibble}
 \usage{
 sits_fromWTSS(longitude, latitude, start_date, end_date, label, wtss.obj, cov,
   bands, ignore_dates = FALSE)
@@ -27,12 +27,12 @@ sits_fromWTSS(longitude, latitude, start_date, end_date, label, wtss.obj, cov,
 \item{ignore_dates}{whether to use the dates of the coverage and not those specified in the file}
 }
 \value{
-data.tb        tibble  - a SITS table
+data.tb        a SITS tibble
 }
 \description{
 Returns one set of time series provided by a WTSS server
 Given a location (lat/long), and start/end period, and the WTSS server information
-retrieve a time series and include it on a stis table.
+retrieve a time series and include it on a stis tibble.
 A Web Time Series Service (WTSS) is a light-weight service that
 retrieves one or more time series in JSON format from a data base.
 }

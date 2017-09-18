@@ -2,12 +2,12 @@
 % Please edit documentation in R/sits_getdata.R
 \name{sits_fromtable}
 \alias{sits_fromtable}
-\title{Obtain timeSeries from WTSS server, based on a SITS table.}
+\title{Obtain timeSeries from WTSS server, based on a SITS tibble}
 \usage{
 sits_fromtable(table, wtss.obj, cov, bands)
 }
 \arguments{
-\item{table}{a  sits_table}
+\item{table}{a sits tibble}
 
 \item{wtss.obj}{an R object that represents the WTSS server}
 
@@ -20,7 +20,7 @@ data.tb       tibble  - a SITS table
 }
 \description{
 reads descriptive information about a set of
-spatio-temporal locations from a SITS table. Then it uses the WTSS service to
-obtain the required data. This function is useful when you have a sits table
+spatio-temporal locations from a SITS tibble. Then it uses the WTSS service to
+obtain the required data. This function is useful when you have a sits tibble
 but you want to get the time series from a different set of bands.
 }

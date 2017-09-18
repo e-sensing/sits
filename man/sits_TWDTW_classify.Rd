@@ -4,13 +4,13 @@
 \alias{sits_TWDTW_classify}
 \title{Classify a sits tibble using the matches found by the TWDTW methods}
 \usage{
-sits_TWDTW_classify(data.tb, patterns.tb, start_date = NULL,
-  end_date = NULL, interval = "12 month", overlap = 0.5)
+sits_TWDTW_classify(matches, data.tb, start_date = NULL, end_date = NULL,
+  interval = "12 month", overlap = 0.5)
 }
 \arguments{
-\item{data.tb}{a table in SITS format with the matches that have been produced by TWTDW}
+\item{matches}{a dtwSat S4 object with the matches that have been produced by the sits_TWTDW_matches function}
 
-\item{patterns.tb}{patterns SITS tibble used to matching}
+\item{data.tb}{the SITS tibble used as input for the TWDTW matching function}
 
 \item{start_date}{date - the start of the classification period}
 

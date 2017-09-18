@@ -12,7 +12,7 @@ sits_getdata(file = NULL, table = NULL, longitude = NULL,
 \arguments{
 \item{file}{the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)}
 
-\item{table}{an R object ("sits_table")}
+\item{table}{an R object ("sits_tibble")}
 
 \item{longitude}{double - the longitude of the chosen location}
 
@@ -35,19 +35,19 @@ sits_getdata(file = NULL, table = NULL, longitude = NULL,
 \item{ignore_dates}{use the start and end dates from the coverage instead of the time series}
 }
 \value{
-data.tb        tibble  - a SITS table
+data.tb        a SITS tibble
 }
 \description{
 reads descriptive information about a data source to retrive a set of
 time series. The following options are available:
-(a) The source is a SITS table - retrieves the metadata from the sits table and the data
+(a) The source is a SITS tibble - retrieves the metadata from the sits table and the data
 from the WTSS service
 (b) The source is a CSV file - retrieves the metadata from the CSV file and the data
 from the WTSS service
 (c) The source is a JSON file - retrieves the metadata and data from the JSON file.
 (d) The source is a gz file (compressed JSON file) - retrieves the metadata and data from the compressed JSON file.
 (e) No source is given - it retrives the data based on <long, lat, wtss>
-A sits table has the metadata and data for each time series
+A sits tibble has the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
 
 A Web Time Series Service (WTSS) is a light-weight service that

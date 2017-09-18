@@ -2,21 +2,21 @@
 % Please edit documentation in R/sits_export_data.R
 \name{sits_toGZ}
 \alias{sits_toGZ}
-\title{Export the contents of a SITS table in a compress JSON file}
+\title{Export the contents of a SITS tibble in a compressed JSON file}
 \usage{
-sits_toGZ(source, file_name = NULL)
+sits_toGZ(data.tb, file = NULL)
 }
 \arguments{
-\item{source}{tibble - an existing SITS table}
+\item{data.tb}{a SITS tibble}
 
-\item{file_name}{string - file name where compressed data will be saved}
+\item{file}{string - file name where compressed data will be saved}
 }
 \value{
-table       the same table (for chaining functions)
+data.tb      the input tibble (for chaining functions)
 }
 \description{
-stores a SITS table in a compressed JSON file
-The set of time series from a SITS table can be saved in a compressed JSON format
+stores a SITS tibble in a compressed JSON file
+The set of time series from a SITS tibble can be saved in a compressed JSON format
 and later retrieved for further use
 }
 \author{

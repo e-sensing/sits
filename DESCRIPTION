@@ -24,10 +24,11 @@ URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2 | file LICENSE
 LazyData: true
+Depends:
+    wtss
 Imports:
     dtwSat,
     magrittr,
-    wtss,
     caret,
     dendextend,
     e1071,
@@ -62,6 +63,7 @@ Imports:
     reshape2,
     RCurl,
     R.utils,
+    scales,
     signal,
     snow,
     sp,
@@ -75,7 +77,7 @@ Imports:
     wtsps,
     TSdist,
     zoo
-LinkingTo: 
+LinkingTo:
     Rcpp
 Remotes:
     e-sensing/wtss,
@@ -86,9 +88,11 @@ Collate:
     'RcppExports.R'
     'sits_SCIDB.R'
     'sits_TWDTW.R'
+    'sits_TWDTW_plot.R'
     'sits_WTSPS.R'
     'sits_WTSS.R'
     'sits_assessment.R'
+    'sits_classification.R'
     'sits_cluster.R'
     'sits_colors.R'
     'sits_dendrogram.R'
@@ -100,10 +104,14 @@ Collate:
     'sits_getdata.R'
     'sits_init.R'
     'sits_kohonen.R'
+    'sits_labels.R'
     'sits_machine_learning.R'
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
     'sits_stack_proc.R'
-    'sits_table.R'
-    'sits_time_series.R'
+    'sits_tibble.R'
+    'sits_tibble_utils.R'
+Suggests: knitr,
+    rmarkdown,
+    testthat

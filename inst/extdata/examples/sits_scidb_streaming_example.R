@@ -41,7 +41,7 @@ while(TRUE) {
                                                       idx = index)
 
     # align twdtw
-    matches_tb <- sits::sits_TWDTW_matches(line_tb,
+    matches_tb <- sits::sits_TWDTW_matches_tibble(line_tb,
                                            patterns_tb,
                                            bands = bands,
                                            alpha = alpha,
@@ -51,7 +51,7 @@ while(TRUE) {
                                            span = span,
                                            keep = keep)
 
-    best_matches_tb <- sits::sits_TWDTW_classify(matches_tb,
+    best_matches_tb <- sits::sits_TWDTW_classify_tibble(matches_tb,
                                                  start_date = start_date,
                                                  end_date = end_date,
                                                  interval = interval)

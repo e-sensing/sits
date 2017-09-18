@@ -25,7 +25,7 @@ Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
 }
 \value{
 clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
-If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
+If return_members are FALSE, the returning SITS tibble will contain a new collumn called `n_members` informing how many members has each cluster.
 }
 \description{
 This function uses package "kohonen" (self-organized maps) to find clusters in

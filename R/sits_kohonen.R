@@ -17,20 +17,20 @@
 #'                       Default is to decline linearly from 0.05 to 0.01 over rlen updates.
 #' @param  ...           Additional parameters to be passed to kohonen::supersom function
 #' @return clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
-#' If return_members are FALSE, the returning SITS table will contain a new collumn called `n_members` informing how many members has each cluster.
+#' If return_members are FALSE, the returning SITS tibble will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
 sits_kohonen <- function (data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5, rlen = 100,
                           alpha = c(0.05, 0.01), ...) {
 
     # does the input data exist?
-    .sits_test_table (data.tb)
+    .sits_test_tibble (data.tb)
 
-    # if no bands informed, get all bands available in SITS table
+    # if no bands informed, get all bands available in SITS tibble
     if (purrr::is_null(bands))
         bands <- sits_bands(data.tb)
 
-    # creates the resulting table
-    cluster.tb <- sits_table()
+    # creates the resulting tibble
+    cluster.tb <- sits_tibble()
 
     # how many different labels are there?
     labels <- dplyr::distinct (data.tb, label)$label
@@ -70,13 +70,13 @@ sits_kohonen <- function (data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5, r
         # get label prefix to form sub-class label result
         label_prefix <- data.tb[1,]$label[[1]]
 
-        # create a table to store the results
+        # create a tibble to store the results
         result.tb <- data.tb
 
         # assign new labels
         result.tb$label <- paste0(label_prefix, ".", kohonen_obj$unit.classif)
 
-        # organizes the resulting SITS table
+        # organizes the resulting SITS tibble
         result.tb <- dplyr::select(result.tb, longitude, latitude, start_date, end_date, label, coverage, time_series, original_label)
 
         # append the result

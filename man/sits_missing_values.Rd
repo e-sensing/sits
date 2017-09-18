@@ -7,12 +7,12 @@
 sits_missing_values(data.tb, miss_value)
 }
 \arguments{
-\item{data.tb}{a valid sits table}
+\item{data.tb}{a valid sits tibble}
 
 \item{miss_value}{a number indicating missing values in a time series.}
 }
 \value{
-result.tb  a sits_table with same samples and the new bands
+result.tb  a sits tibble with same samples and the new bands
 }
 \description{
 This function removes the missing values from an image time series by substituting them by NA
