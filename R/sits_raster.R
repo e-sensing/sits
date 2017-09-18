@@ -212,7 +212,7 @@ sits_ts_fromRasterCSV <- function (raster.tb, file){
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Takes a set of spatio-temporal raster bricks, whose metadata is
-#'              described by tibble (created by \code{\link[sits]{sits_sits_fromRaster}}),
+#'              described by tibble (created by \code{\link[sits]{sits_fromRaster}}),
 #'              a set of patterns (created by \code{\link[sits]{sits_patterns}}),
 #'              a prediction model (created by \code{\link[sits]{sits_train}}), and
 #'              a method to extract shape attributes from time_series (used by  \code{\link[sits]{sits_distances}} ),
@@ -230,7 +230,7 @@ sits_ts_fromRasterCSV <- function (raster.tb, file){
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 #' @export
 sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, model.ml = NULL,
-                                  patterns.tb = NULL, ml_model = NULL, dist_method = sits_TWDTW_distances(),
+                                  dist_method = sits_TWDTW_distances(),
                                   interval = "12 month"){
 
     # ensure metadata tibble exists
@@ -288,7 +288,7 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, model.ml 
         scale_factor <- 1
 
         # create a new RasterLayer for a defined period and generate the associated metadata
-        row.tb <- sits_raster_tibble (r_out, band, timeline, scale_factor)
+        row.tb <- .sits_raster_tibble (r_out, band, timeline, scale_factor)
 
         # add the metadata information to the list
         raster.lst[[length(raster.lst) + 1 ]] <- row.tb
