@@ -4,13 +4,11 @@
 \alias{sits_patterns}
 \title{Create time series patterns for classification}
 \usage{
-sits_patterns(data.tb, bands = NULL, pt_method = sits_gam(data.tb = NULL,
-  bands = bands, from = NULL, to = NULL, freq = 8, formula = y ~ s(x)))
+sits_patterns(data.tb, pt_method = sits_gam(data.tb = NULL, from = NULL, to =
+  NULL, freq = 8, formula = y ~ s(x)))
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series with an alignment column}
-
-\item{bands}{the bands to be used for determining patterns}
 
 \item{pt_method}{a pattern fitting method}
 }

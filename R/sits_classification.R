@@ -23,6 +23,11 @@ sits_classify <- function (data.tb = NULL, patterns.tb = NULL, ml_model = NULL, 
     # create a tibble to store the result
     result.tb <- sits_tibble_classification()
 
+    pat_start_date <- lubridate::as_date(patterns.tb[1,]$start_date)
+    pat_end_date   <- lubridate::as_date(patterns.tb[1,]$end_date)
+    pat_start_day  <- lubridate::yday(pat_start_date)
+    pat_end_day    <- lubridate::yday(pat_end_date)
+
     # go over every row of the table
     data.tb %>%
         purrrlyr::by_row (function (row) {
@@ -30,8 +35,11 @@ sits_classify <- function (data.tb = NULL, patterns.tb = NULL, ml_model = NULL, 
             predict.tb <- sits_tibble_prediction()
 
             if (purrr::is_null (start_date)) {
-                start_date  <- row$start_date
-                end_date    <- row$end_date
+                start_date  <- lubridate::as_date(paste0(lubridate::year(row$start_date), "-01-01")) + pat_start_day
+                end_date    <- lubridate::as_date(paste0(lubridate::year(row$end_date), "-01-01"))   + pat_end_day
+            }
+            if (start_date < row$start_date || end_date > row$end_date){
+                message("Dates of input time series and patterns do not match")
             }
 
             # define the temporal intervals of each classification

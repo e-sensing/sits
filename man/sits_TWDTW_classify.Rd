@@ -21,7 +21,7 @@ sits_TWDTW_classify(matches, data.tb, start_date = NULL, end_date = NULL,
 \item{overlap}{minimum overlapping between one match and the interval of classification}
 }
 \value{
-matches       a SITS table with the information on matches for the data
+class.tb      a SITS table with the information on matches for the data
 }
 \description{
 Returns a sits table with the results of the TWDTW classifier.

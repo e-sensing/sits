@@ -43,3 +43,4 @@ sits_dendrogram <- function (data.tb, bands = NULL,
     # return the clusters
     return (clusters)
 }
+

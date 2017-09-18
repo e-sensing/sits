@@ -38,7 +38,7 @@ sits_tibble <- function () {
 #' @param data.tb  a SITS tibble
 #' @return returns TRUE if data.tb has data.
 #'
-.sits_test_tibble<- function (data.tb) {
+.sits_test_tibble <- function (data.tb) {
     ensurer::ensure_that(data.tb, !purrr::is_null(.),
                          err_desc = "input data not provided")
     ensurer::ensure_that(data.tb, NROW(.) > 0,
@@ -64,14 +64,15 @@ sits_tibble_distance <- function (patterns.tb) {
 
     distances.tb <- tibble::as_tibble (distances.tb)
 
-    labels <- (dplyr::distinct(patterns.tb, label))$label
+    labels <- sits_labels(patterns.tb)$label
     bands  <- sits_bands (patterns.tb)
 
-    for (l in 1:length(labels))
+    for (l in 1:length(labels)) {
         for (b in 1:length(bands)) {
             measure <- paste0 (labels[l], ".", bands[b])
             distances.tb [measure] = double()
         }
+    }
     return (distances.tb)
 }
 

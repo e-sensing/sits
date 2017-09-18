@@ -4,12 +4,12 @@
 \alias{sits_foreach}
 \title{apply a function to a grouped SITS table}
 \usage{
-sits_foreach(data.tb, ..., fun)
+sits_foreach(data.tb, field, fun)
 }
 \arguments{
 \item{data.tb}{a sits table with the time series of the selected bands}
 
-\item{...}{one or more sits table field separated by commas that are used to group the data.
+\item{field}{one sits table field that are used to group the data.
 See `dplyr::group_by` help for more details.}
 
 \item{fun}{a function that receives as input an sits table and outputs an sits table}

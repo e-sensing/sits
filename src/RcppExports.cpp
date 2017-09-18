@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // apply_first_order_transition_rules
 Rcpp::NumericMatrix apply_first_order_transition_rules(Rcpp::NumericMatrix v, Rcpp::NumericMatrix A, Rcpp::NumericVector I);
-RcppExport SEXP sits_apply_first_order_transition_rules(SEXP vSEXP, SEXP ASEXP, SEXP ISEXP) {
+RcppExport SEXP _sits_apply_first_order_transition_rules(SEXP vSEXP, SEXP ASEXP, SEXP ISEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -17,4 +17,14 @@ BEGIN_RCPP
     rcpp_result_gen = Rcpp::wrap(apply_first_order_transition_rules(v, A, I));
     return rcpp_result_gen;
 END_RCPP
+}
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_sits_apply_first_order_transition_rules", (DL_FUNC) &_sits_apply_first_order_transition_rules, 3},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_sits(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }

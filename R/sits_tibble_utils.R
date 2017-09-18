@@ -197,17 +197,21 @@ sits_dates <- function (data.tb) {
 #' @description returns a sits table by compound the sits tables apply a function to a grouped SITS table
 #'
 #' @param data.tb      a sits table with the time series of the selected bands
-#' @param ...          one or more sits table field separated by commas that are used to group the data.
+#' @param field        one sits table field that are used to group the data.
 #'                     See `dplyr::group_by` help for more details.
 #' @param fun          a function that receives as input an sits table and outputs an sits table
 #' @return result.tb   a tibble in SITS format with the selected bands
 #' @export
-sits_foreach <- function (data.tb, ..., fun){
+sits_foreach <- function (data.tb, field, fun){
+
+    .sits_test_tibble(data.tb)
+
+    field <- deparse(substitute(field))
 
     # execute the foreach applying fun function to each group
     result.tb <- data.tb %>%
-        dplyr::group_by(...) %>%
-        dplyr::do(. %>% fun())
+        dplyr::group_by_(field) %>%
+        dplyr::do(.data %>% fun())
 
     # comply result with sits table format and return
     result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
@@ -497,7 +501,7 @@ sits_sample <- function (data.tb, n = NULL, frac = NULL){
 
     # compute sampling
     result.tb <- sits_tibble()
-    labels <- sits_labels (data.tb)
+    labels <- sits_labels (data.tb)$label
     labels %>%
         purrr::map (function (l){
             tb_l <- dplyr::filter (data.tb, label == l)
@@ -682,4 +686,39 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
         names(values.lst) <- bands
     }
     return (values.lst)
+}
+#' @title Apply a function on each SITS tibble column element
+#' @name sits_apply_on
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Computes new values for a given SITS tibble field and returns a tibble whose field column have
+#' the new values.
+#'
+#' @param  data.tb    a SITS tibble
+#' @param  field      a valid field of data.tb to apply `fun` function
+#' @param  fun        a function to apply in field data. The function must have an input parameter to receive each
+#'                    field data element at a time and output a new value.
+#' @return result.tb  a tibble where columns have the reference label and the time series bands as distances
+sits_apply_on <- function(data.tb, field, fun){
+
+    .sits_test_tibble(data.tb)
+
+    # prepare field to be used in dplyr
+    field <- deparse(substitute(field))
+
+    # define what to do after apply fun to field data...
+    post_process_func <- function(value) {
+        if (length(value) == 0)
+            return(value)
+        # ...if atomic, unlist vectors or other atomic values
+        if (is.atomic(value[[1]]))
+            return(unlist(value))
+        # ...by default, does nothing in non atomic values (like tibbles and list)
+        value
+    }
+
+    # apply function to field data and return
+    data.tb[[field]]  <- post_process_func(purrr::map(data.tb[[field]], fun))
+
+    return(data.tb)
 }

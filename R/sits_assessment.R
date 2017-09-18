@@ -1,6 +1,7 @@
 #' @title Evaluates the accuracy of classification
 #' @name sits_accuracy
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Evaluates the accuracy of classification stored in two vectors.
 #' Returns a confusion matrix used by the "caret" package
@@ -39,134 +40,10 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
     .print_confusion_matrix (caret_assess)
 
     # return invisible
-    invisible(caret_assess)
+    return (invisible(caret_assess))
 }
 
-#' @title Saves the results of accuracy assessment as CSV files
-#' @name sits_accuracy_csv
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#
-#' @description Saves the the accuracy of classification in CSV
-#' Returns a confusion matrix used by the "caret" package
-#'
-#' @param conf.mx        A caret S4 object with a confusion matrix
-#' @param file           The file where the CSV data is to be saved
-#' @return conf.mx       The input confusion matrix
-#'
-#' @export
-sits_accuracy_csv <- function(conf.mx, file = NULL){
 
-    ensurer::ensure_that (file, !purrr::is_null(.),
-                          err_desc = "sits_accuracy_save: please provide the file name")
-    # create three files to store the output
-
-
-    # use only the class names (without the "Class: " prefix)
-    new_names <- unlist(strsplit(colnames(conf.mx$table), split =": "))
-    # remove prefix from confusion matrix table
-    colnames (conf.mx$table) <- new_names
-    # write the confusion matrix table
-    utils::write.csv(conf.mx$table, file = file)
-    cat("\n\n", file = file, append = TRUE)
-    # write the overall assessment (accuracy and kappa)
-    utils::write.csv(conf.mx$overall[c(1:2)], file = file)
-    # get only the four first parameters for the class
-    conf_bc.mx <- t(conf.mx$byClass[,c(1:4)])
-    # remove prefix from confusion matrix table
-    colnames (conf_bc.mx) <- new_names
-    row.names(conf_bc.mx)<- c("Sensitivity (PA)", "Specificity", "PosPredValue (UA)", "NegPredValue")
-    # save the detailed accuracy results for each class
-    cat("\n\n", file = file, append = TRUE)
-    utils::write.csv(t(conf_bc.mx), file = file)
-
-    return (invisible(conf.mx))
-}
-
-#' @title Saves the results of accuracy assessment as Excel files
-#' @name sits_accuracy_xlsx
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#
-#' @description Saves the the accuracy of classifications as Excel spreadsheets
-#' Returns a confusion matrix used by the "caret" package
-#'
-#' @param acc.lst        A list if caret S4 object with an accuracy assesment
-#' @param file           The file where the CSV data is to be saved
-#' @return conf.mx       The input confusion matrix
-#'
-#' @export
-sits_accuracy_xlsx <- function(acc.lst, file = NULL){
-
-    ensurer::ensure_that (file, !purrr::is_null(.),
-                          err_desc = "sits_accuracy_save: please provide the file name")
-
-    # create a workbook to save the results
-    wb <- openxlsx::createWorkbook ("accuracy")
-
-    ind <- 0
-
-    # save all elements of the list
-    purrr::map (acc.lst, function (acc.mx){
-        # create a sheet name
-
-        if (purrr::is_null(acc.mx$name)) {
-            ind <<- ind + 1
-            acc.mx$name <- paste0('sheet', ind)
-        }
-        sheet_name <- acc.mx$name
-
-        # add a worksheet
-        openxlsx::addWorksheet(wb, sheet_name)
-
-        # use only the class names (without the "Class: " prefix)
-        new_names <- unlist(strsplit(colnames(acc.mx$table), split =": "))
-
-        # remove prefix from confusion matrix table
-        colnames (acc.mx$table) <- new_names
-        # write the confusion matrix table in the worksheet
-        openxlsx::writeData (wb, sheet_name, acc.mx$table)
-
-        # overall assessment (accuracy and kappa)
-        acc_kappa.mx <- as.matrix(acc.mx$overall[c(1:2)])
-
-        # save the accuracy data in the worksheet
-        openxlsx::writeData (wb, sheet_name, acc_kappa.mx, rowNames = TRUE, startRow = NROW(acc.mx$table) + 3, startCol = 1)
-
-        if (dim(acc.mx$table)[1] > 2) {
-            # per class accuracy assessment
-            acc_bc.mx <- t(acc.mx$byClass[,c(1:4)])
-            # remove prefix from confusion matrix table
-            colnames (acc_bc.mx) <- new_names
-            row.names(acc_bc.mx)<- c("Sensitivity (PA)", "Specificity", "PosPredValue (UA)", "NegPredValue")
-        }
-        else {
-            # this is the case of ony two classes
-            # get the values of the User's and Producer's Accuracy for the two classes
-            # the names in caret are different from the usual names in Earth observation
-            acc_bc.mx <- acc.mx$byClass[grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
-                                         names(acc.mx$byClass))]
-            # get the names of the two classes
-            nm <- row.names(acc.mx$table)
-            # the first class (which is called the "positive" class by caret)
-            c1 <- acc.mx$positive
-            # the second class
-            c2 <- nm[!(nm == acc.mx$positive)]
-            # make up the values of UA and PA for the two classes
-            pa1 <- paste("Prod Acc ", c1)
-            pa2 <- paste("Prod Acc ", c2)
-            ua1 <- paste("User Acc ", c1)
-            ua2 <- paste("User Acc ", c2)
-            names (acc_bc.mx) <- c(pa1, pa2, ua1, ua2)
-            acc_bc.mx <- as.matrix (acc_bc.mx)
-        }
-        # save the perclass data in the worksheet
-        openxlsx::writeData (wb, sheet_name, acc_bc.mx, rowNames = TRUE, startRow = NROW(acc.mx$table) + 8, startCol = 1)
-    })
-
-    # write the worksheets to the XLSX file
-    openxlsx::saveWorkbook(wb, file = file, overwrite = TRUE)
-
-    return (NULL)
-}
 
 #' @title Cross-validate temporal patterns
 #' @name sits_kfold_validate
@@ -445,12 +322,16 @@ sits_create_folds <- function (data.tb, folds = 5) {
     return (data.tb)
 }
 
-#' @title Evaluates the accuracy of a set of patterns
-#' @name sits_test_patterns
+#' @title Evaluates the accuracy of a labelled set of data
+#' @name sits_accuracy_classif
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
-#' @description Tests the accuracy of TWDTW classification
-#' of set of labelled samples using a set of patterns.
+#' @description Tests the accuracy of a classification model by comparing an input data set
+#' that has been obtained independently to a the predicted values of the model.
+#' This function can be used to test the accuracy of a classification model against a
+#' data set that is obtained independently. The quality of the accuracy assessment
+#' depends critically of the quality of the input data set, which should be be part of the
+#' data set used for training the model.
 #' This function should be used when the patterns are not directly derived from the samples.
 #' It provides an initial assessment of the validity of using this set of pattern
 #' to classify an area whose samples are given.
@@ -458,46 +339,42 @@ sits_create_folds <- function (data.tb, folds = 5) {
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
 #'
 #' @param  data.tb       A sits tibble containing a set of samples with known and trusted labels
-#' @param  patterns.tb   A sits tibble containing a set of patterns
-#' @param  bands         the bands used for classification
-#' @param  alpha         (double)  - the steepness of the logistic function used for temporal weighting
-#' @param  beta          (integer) - the midpoint (in days) of the logistic function
-#' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
-#' @param  span          (integer) - minimum number of days between two matches of the same pattern in the time series (approximate)
-#' @param  start_date    date - the start of the classification period
-#' @param  end_date      date - the end of the classification period
-#' @param  interval      date - the period between two classifications
-#' @param  overlap       (double) minimum overlapping between one match and the interval of classification
-#' @return assess         an assessment of validation
+#' @param  patterns.tb   A sits tibble containing a set of patterns (independent of input data)
+#' @param  ml_model      A model trained by \code{\link[sits]{sits_train}}
+#' @param  dist_method   Method to compute distances (e.g., sits_TWDTW_distances)
+#' @param  interval      Period between two classifications
+#' @param ...            Other parameters to be passed to the distance function
+#' @return assess        Assessment of validation
 #' @export
-sits_test_patterns <- function (data.tb, patterns.tb, bands,
-                                alpha = -0.1, beta = 100, theta = 0.5, span  = 0,
-                                start_date = NULL, end_date = NULL, interval = "12 month", overlap = 0.5) {
+sits_accuracy_classif <- function (data.tb,
+                                   patterns.tb,
+                                   ml_model,
+                                   dist_method = sits_TWDTW_distances(),
+                                   interval = "12 month") {
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
     .sits_test_tibble (patterns.tb)
-     ensurer::ensure_that (bands, !purrr::is_null(.),
-                           err_desc = "sits_test_patterns: please provide the bands to be used")
      ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),
                             err_desc = "sits_test_patterns: please provide a labelled set of time series")
 
+     # align all samples to the same time series intervals
+     # sample_dates <- lubridate::as_date(patterns.tb[1,]$time_series[[1]]$Index)
+     # data.tb      <- sits_align (data.tb, sample_dates)
+     #
+     start_date <- patterns.tb[1,]$start_date
+     end_date   <- patterns.tb[1,]$end_date
 
      # classify data
-     matches.tb  <- sits_TWDTW_matches_tibble (data.tb, patterns.tb, bands = bands, alpha = alpha, beta = beta, theta = theta, span = span)
-     class.tb    <- sits_TWDTW_classify_tibble (matches.tb, start_date = start_date, end_date = end_date, interval = interval, overlap = overlap)
-
+     class.tb <- sits_classify (data.tb, patterns.tb, ml_model, dist_method,
+                       start_date = start_date, end_date = end_date, interval = interval)
      # retrieve the reference labels
-     ref.vec <- as.character(class.tb$label)
-     # retrieve the predicted labels
-     pred.vec  <- as.character(purrr::map(class.tb$best_matches, function (e) as.character(e$label)))
-
-     conf.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
+     class.tb <- dplyr::mutate (class.tb, reference = label)
 
      # calculate the accuracy assessment
-     assess <- sits_accuracy(conf.tb, pred_sans_ext = TRUE)
+     assess <- sits_accuracy(class.tb, pred_sans_ext = TRUE)
 
-     return (assess)
+     return (invisible (assess))
 }
 
 #' @title Print the values of a confusion matrix
@@ -592,4 +469,3 @@ sits_test_patterns <- function (data.tb, patterns.tb, bands,
 
     invisible(x)
 }
-

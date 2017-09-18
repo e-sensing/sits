@@ -27,8 +27,8 @@ series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage 
 # plot the series
 sits_plot (sits_select(series.tb, bands = c("ndvi")))
 
-# retrieve a set of samples from a JSON file
-embrapa_mt.tb <- sits_getdata(file = "./inst/extdata/samples/embrapa_mt.json.gz")
+# retrieve a set of samples from an RDS file
+embrapa_mt.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 
 # obtain a set of patterns for these samples
 patterns.tb <- sits_patterns(embrapa_mt.tb)

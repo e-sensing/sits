@@ -13,7 +13,7 @@
 #install library
 library (sits)
 # get a local data set
-cerrado.tb <- sits_getdata("./inst/extdata/samples/cerrado.json.gz")
+cerrado.tb <- readRDS(system.file("extdata/time_series/cerrado.rds", package = "sits"))
 
 # pick the first 10 time series
 cerrado1.tb <- cerrado.tb[1:20,]
@@ -46,5 +46,4 @@ cerrado3.tb %>%
      sits_merge(cerrado1s.tb)  %>%
      sits_select(bands = c("evi.env.kf.estimation", "evi")) %>%
      sits_plot()
-
 
