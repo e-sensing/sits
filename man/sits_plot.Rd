@@ -5,7 +5,7 @@
 \title{Plot a set of satellite image time series}
 \usage{
 sits_plot(data.tb, patterns.tb = NULL, distances.tb = NULL, bands = NULL,
-  type = "allyears", colors = "RdYlGreen", cluster_obj = NULL,
+  type = "allyears", colors = "Set1", cluster_obj = NULL,
   cutree_height = NULL)
 }
 \arguments{

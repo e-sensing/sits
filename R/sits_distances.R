@@ -75,13 +75,12 @@ sits_distances <- function(data.tb, patterns.tb,
 #'
 #' @param data.tb          a SITS tibble time series
 #' @param patterns.tb      a set of patterns obtained from training samples
-#' @param bands            the bands to be used for determining patterns
 #' @param distance         a method for calculating distances between time series
 #' @param ...              Additional parameters required by the distance method.
 #' @return result          a set of distance metrics
 #' @export
 #'
-sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, distance = "dtw", ...) {
+sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "dtw", ...) {
 
     # function that returns a distance tibble
     result_fun <- function(data.tb, patterns.tb){
@@ -89,9 +88,6 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL,
         # does the input data exist?
         .sits_test_tibble (data.tb)
         .sits_test_tibble (patterns.tb)
-
-        # handle the case of null bands
-        if (purrr::is_null (bands)) bands <- sits_bands(data.tb)
 
         distances.tb <-  sits_tibble_distance(patterns.tb)
         original_row <-  1
