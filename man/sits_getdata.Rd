@@ -38,7 +38,7 @@ sits_getdata(file = NULL, table = NULL, longitude = NULL,
 data.tb        a SITS tibble
 }
 \description{
-reads descriptive information about a data source to retrive a set of
+Reads descriptive information about a data source to retrieve a set of
 time series. The following options are available:
 (a) The source is a SITS tibble - retrieves the metadata from the sits table and the data
 from the WTSS service
@@ -46,7 +46,7 @@ from the WTSS service
 from the WTSS service
 (c) The source is a JSON file - retrieves the metadata and data from the JSON file.
 (d) The source is a gz file (compressed JSON file) - retrieves the metadata and data from the compressed JSON file.
-(e) No source is given - it retrives the data based on <long, lat, wtss>
+(e) No source is given - it retrieves the data based on <long, lat, wtss>
 A sits tibble has the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
 

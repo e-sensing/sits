@@ -110,6 +110,41 @@ sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) 
         })
     return(data.tb)
 }
+#' @title Apply a function on each SITS tibble column element
+#' @name sits_apply_on
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Computes new values for a given SITS tibble field and returns a tibble whose field column have
+#' the new values.
+#'
+#' @param  data.tb    a SITS tibble
+#' @param  field      a valid field of data.tb to apply `fun` function
+#' @param  fun        a function to apply in field data. The function must have an input parameter to receive each
+#'                    field data element at a time and output a new value.
+#' @return result.tb  a tibble where columns have the reference label and the time series bands as distances
+sits_apply_on <- function(data.tb, field, fun){
+
+    .sits_test_tibble(data.tb)
+
+    # prepare field to be used in dplyr
+    field <- deparse(substitute(field))
+
+    # define what to do after apply fun to field data...
+    post_process_func <- function(value) {
+        if (length(value) == 0)
+            return(value)
+        # ...if atomic, unlist vectors or other atomic values
+        if (is.atomic(value[[1]]))
+            return(unlist(value))
+        # ...by default, does nothing in non atomic values (like tibbles and list)
+        value
+    }
+
+    # apply function to field data and return
+    data.tb[[field]]  <- post_process_func(purrr::map(data.tb[[field]], fun))
+
+    return(data.tb)
+}
 #' @title names of the bands of a time series
 #' @name sits_bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -126,6 +161,46 @@ sits_bands <- function (data.tb) {
     result.vec <- data.tb[1,]$time_series[[1]] %>%
         colnames() %>% .[2:length(.)]
     return (result.vec)
+}
+#' @title Create partitions of a data set
+#' @name  sits_create_folds
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Alexandre Ywata, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Split a SITS table into k groups, based on the label
+#'
+#' @param data.tb a SITS table to be partitioned
+#' @param folds   number of folds
+#' @export
+sits_create_folds <- function (data.tb, folds = 5) {
+
+    # verify if data.tb exists
+    .sits_test_tibble (data.tb)
+
+    # splits the data into k groups
+    data.tb$folds <- caret::createFolds(data.tb$label, k = folds, returnTrain = FALSE, list = FALSE)
+
+    return (data.tb)
+}
+#' @title Return the dates of a sits table
+#' @name sits_dates
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description returns a vector containing the dates of a sits table
+#'
+#' @param  data.tb a tibble in SITS format with time series for different bands
+#' @return table   a tibble in SITS format with values of time indexes
+#' @export
+sits_dates <- function (data.tb) {
+    values <- data.tb$time_series %>%
+        data.frame() %>%
+        tibble::as_tibble() %>%
+        dplyr::select (dplyr::starts_with ("Index")) %>%
+        t() %>%
+        as.vector() %>%
+        lubridate::as_date()
+    return (values)
 }
 #' @title Extract a subset of the data based on dates
 #' @name sits_extract
@@ -160,7 +235,7 @@ sits_extract <- function (data.tb, start_date = NULL, end_date = NULL) {
             ts.lst <- tibble::lst()
             ts.lst[[1]] <- sub.ts
             # create a new row of the output tibble
-             subset.tb <<- tibble::add_row (subset.tb,
+            subset.tb <<- tibble::add_row (subset.tb,
                                 longitude    = r$longitude,
                                 latitude     = r$latitude,
                                 start_date   = as.Date(start_date),
@@ -171,25 +246,7 @@ sits_extract <- function (data.tb, start_date = NULL, end_date = NULL) {
         })
     return (subset.tb)
 }
-#' @title Return the dates of a sits table
-#' @name sits_dates
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description returns a vector containing the dates of a sits table
-#'
-#' @param  data.tb a tibble in SITS format with time series for different bands
-#' @return table   a tibble in SITS format with values of time indexes
-#' @export
-sits_dates <- function (data.tb) {
-    values <- data.tb$time_series %>%
-        data.frame() %>%
-        tibble::as_tibble() %>%
-        dplyr::select (dplyr::starts_with ("Index")) %>%
-        t() %>%
-        as.vector() %>%
-        lubridate::as_date()
-    return (values)
-}
+
 #' @title apply a function to a grouped SITS table
 #' @name sits_foreach
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -687,38 +744,4 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
     }
     return (values.lst)
 }
-#' @title Apply a function on each SITS tibble column element
-#' @name sits_apply_on
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Computes new values for a given SITS tibble field and returns a tibble whose field column have
-#' the new values.
-#'
-#' @param  data.tb    a SITS tibble
-#' @param  field      a valid field of data.tb to apply `fun` function
-#' @param  fun        a function to apply in field data. The function must have an input parameter to receive each
-#'                    field data element at a time and output a new value.
-#' @return result.tb  a tibble where columns have the reference label and the time series bands as distances
-sits_apply_on <- function(data.tb, field, fun){
 
-    .sits_test_tibble(data.tb)
-
-    # prepare field to be used in dplyr
-    field <- deparse(substitute(field))
-
-    # define what to do after apply fun to field data...
-    post_process_func <- function(value) {
-        if (length(value) == 0)
-            return(value)
-        # ...if atomic, unlist vectors or other atomic values
-        if (is.atomic(value[[1]]))
-            return(unlist(value))
-        # ...by default, does nothing in non atomic values (like tibbles and list)
-        value
-    }
-
-    # apply function to field data and return
-    data.tb[[field]]  <- post_process_func(purrr::map(data.tb[[field]], fun))
-
-    return(data.tb)
-}
