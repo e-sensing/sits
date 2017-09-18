@@ -86,7 +86,179 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
             }
         })
     if (!purrr::is_null(progress_bar)) close(progress_bar)
-    return (matches.lst)
+    return (matches.tb)
+}
+
+#' @title Spread matches from a sits matches tibble
+#' @name sits_spread_matches
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a SITS tibble with a set of TWDTW matches, returns a tibble whose columns have
+#' the reference label and the TWDTW distances for each temporal pattern.
+#'
+#' @param  data.tb    a SITS matches tibble
+#' @return result.tb  a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
+#' @export
+sits_spread_matches <- function(data.tb){
+
+    # Get best TWDTW aligniments for each class
+    data.tb$matches <- data.tb$matches %>%
+        purrr::map(function (data.tb){
+            data.tb %>%
+                dplyr::group_by(predicted) %>%
+                dplyr::summarise(distance=min(distance))
+        })
+
+    # Select best match and spread pred to columns
+    result.tb <- data.tb %>%
+        dplyr::transmute(original_row = 1:NROW(.), reference = label, matches = matches) %>%
+        tidyr::unnest(matches, .drop = FALSE) %>%
+        tidyr::spread(key = predicted, value = distance)
+
+    return(result.tb)
+}
+
+
+#' @title Find distances between a set of SITS patterns and segments of sits tibble using TWDTW
+#' @name sits_TWDTW_distances
+#' @author Rolf Simoes, \email{rolf.simores@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a SITS table with distances to be used for training in ML methods
+#' This is a front-end to the sits_TWDTW_matches whose outout is trimmed down to contain just distances
+#'
+#' @param  data.tb     a table in SITS format with a time series to be classified using TWTDW
+#' @param  patterns.tb   a set of known temporal signatures for the chosen classes
+#' @param  by_bands      boolean - should distances from each band be computed one by one? (default = TRUE)
+#' @param  dist.method   A character. Method to derive the local cost matrix.
+#' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
+#' @param  beta          (integer) - the midpoint (in days) of the logistic function
+#' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
+#' @param  span          minimum number of days between two matches of the same pattern in the time series (approximate)
+#' @param  keep          keep internal values for plotting matches
+#' @param  multicores    number of threads to process the validation (Linux only). Each process will run a
+#'                       whole partition validation.
+#' @return distances.tb       a SITS table with the information on distances for the data
+#' @export
+sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, by_bands = TRUE, dist.method = "euclidean",
+                                  alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE, multicores = 1) {
+
+    result_fun <- function (data.tb, patterns.tb) {
+
+        # determine the bands of the data
+        bands <- sits_bands (data.tb)
+
+        # compute partition vector
+        part.vec <- rep.int(1, NROW(data.tb))
+        if(multicores > 1)
+            part.vec <- cut(seq(NROW(data.tb)), multicores, labels = FALSE)
+
+        # compute partition list putting each set of same value of part.vec inside corresponding list element
+        part.lst <- 1:multicores %>%
+            purrr::map(function(i) data.tb[part.vec == i,] )
+
+        # Define the logistic function
+        log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
+
+        # prepare function to be passed to `parallel::mclapply`. this function returns a distance table to each partition
+        if (by_bands){
+            dist_fun <- function(part.tb){
+
+                if (nrow (part.tb) > 10) {
+                    message("Matching patterns to time series...")
+                    progress_bar <- utils::txtProgressBar(min = 0, max = nrow(part.tb), style = 3)
+                    i <- 0
+                }
+
+                time_series_to_twdtw <- function(data, label = NULL){
+                    ts <- lapply(data, function(x) zoo::zoo(data.frame(value = x$value)[,,drop=FALSE], as.Date(x$Index)))
+                    list(dtwSat::twdtwTimeSeries(ts, labels = label))
+                }
+
+                get_matches <- function(k){
+                    x = dtwSat::twdtwTimeSeries(zoo::zoo(data.frame(value = bands_ts.tb$time_series[[k]]$value)[,,drop=FALSE],
+                                                         bands_ts.tb$time_series[[k]]$Index))
+                    y = bands_ts.tb$twdtw_patterns[[k]]
+                    matches <- dtwSat::twdtwApply(x           = x,
+                                                  y           = y,
+                                                  weight.fun  = log_fun,
+                                                  theta       = theta,
+                                                  span        = span,
+                                                  keep        = keep,
+                                                  dist.method = dist.method)
+
+                    # # Get best TWDTW aligniments for each class
+                    matches.lst <- .sits_fromTWDTW_matches(matches)[[1]] %>%
+                        dplyr::group_by(predicted) %>%
+                        dplyr::summarise(distance = min(distance))
+
+                    # update progress bar
+                    if (exists("progress_bar") & exists("i")){
+                        if (!purrr::is_null(progress_bar)) {
+                            i <<- i + 1
+                            utils::setTxtProgressBar(progress_bar, i)
+                        }
+                    }
+
+                    return(matches.lst)
+
+                }
+
+                # Get patterns for all combinations of bands and classes
+                patt_band.tb <- patterns.tb %>%
+                    tidyr::unnest() %>%
+                    tidyr::gather(key = "band", value = "value", bands) %>%
+                    tidyr::nest(value, Index, .key = time_series) %>%
+                    dplyr::group_by(.dots = list("band")) %>%
+                    dplyr::summarise(twdtw_patterns = time_series_to_twdtw(time_series, label))
+
+                # Split time series into bands
+                bands_ts.tb <- part.tb %>%
+                    dplyr::transmute(original_row = seq_along(time_series), label = label, time_series = time_series) %>%
+                    tidyr::unnest() %>%
+                    tidyr::gather(key = "band", value = "value", bands) %>%
+                    dplyr::group_by(.dots = list("original_row", "band", "label")) %>%
+                    tidyr::nest(Index, value, .key = time_series) %>%
+                    dplyr::right_join(patt_band.tb, by = c("band" = "band"))
+
+                # Get TWDTW alignments (lapply because this is the way in dtwSat)
+                matches.lst <- lapply(seq_along(bands_ts.tb$time_series), function(k) get_matches(k) )
+
+                # Spread TWDTW distances to columns
+                result_b.tb <- tibble::tibble(reference = bands_ts.tb$label, band = bands_ts.tb$band, matches = matches.lst) %>%
+                    tidyr::unnest(matches, .drop = FALSE) %>%
+                    tidyr::unite(col = "temp", from = c("predicted", "band"), sep = ".") %>%
+                    dplyr::group_by(.dots = list("temp")) %>%
+                    dplyr::mutate(original_row = dplyr::row_number(reference)) %>%
+                    tidyr::spread_(key_col = "temp", value_col = "distance")
+
+                if (!purrr::is_null(progress_bar)) close(progress_bar)
+
+                return(result_b.tb)
+            }
+        } else {
+            dist_fun <- function(part.tb){
+                matches.tb <- sits_TWDTW_matches(part.tb, patterns.tb, bands = bands, dist.method = dist.method,
+                                                 alpha = alpha, beta = beta, theta = theta, span  = span, keep  = keep)
+                result.tb <- sits_spread_matches(matches.tb)
+                return(result.tb)
+            }
+        }
+
+        # get the matches from the sits_TWDTW_matches
+        distances.lst <- parallel::mclapply(part.lst, dist_fun, mc.cores = multicores)
+
+        # compose final result binding each partition by row
+        distances.tb <- dplyr::bind_rows(distances.lst)
+
+        return (distances.tb)
+    }
+
+    result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
+    return (result)
 }
 
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
