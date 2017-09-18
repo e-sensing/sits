@@ -78,13 +78,9 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
         # verify if data input is not empty
         .sits_test_tibble (train_data.tb)
 
-        # is the input data the result of a TWDTW matching function?
+        # is the input data the result of a matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.),
-                             err_desc = "sits_svm: input data does not contain distance")
-
-        # there is something to learn?
-        ensurer::ensure_that(train_data.tb, length(base::unique(.$reference)) > 1,
-                             err_desc = "sits_svm: input data has ")
+                             err_desc = "sits_svm: input data does not contain references information")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -181,7 +177,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
         # verify if data input is not empty
         .sits_test_tibble (train_data.tb)
 
-        # is the input data the result of a TWDTW matching function?
+        # is the input data the result of a matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_qda: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
