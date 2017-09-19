@@ -8,25 +8,24 @@
 #' @param  patterns.tb     a set of known temporal signatures for the chosen classes
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  dist_method     method to compute distances (e.g., sits_TWDTW_distances)
-#' @param  start_date      date - the start of the classification period
-#' @param  end_date        date - the end of the classification period
 #' @param  interval        the period between two classifications
 #' @param ...             other parameters to be passed to the distance function
 #' @return data.tb      a SITS tibble with the predicted label
 #' @export
 sits_classify <- function (data.tb = NULL, patterns.tb = NULL, ml_model = NULL, dist_method = sits_TWDTW_distances(),
-                           start_date = NULL, end_date = NULL, interval = "12 month"){
+                           interval = "12 month"){
 
     .sits_test_tibble(data.tb)
     .sits_test_tibble(patterns.tb)
+
     ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
+
     # create a tibble to store the result
     result.tb <- sits_tibble_classification()
 
+    # obtain the start and end dates of the reference data set
     pat_start_date <- lubridate::as_date(patterns.tb[1,]$start_date)
     pat_end_date   <- lubridate::as_date(patterns.tb[1,]$end_date)
-    pat_start_day  <- lubridate::yday(pat_start_date)
-    pat_end_day    <- lubridate::yday(pat_end_date)
 
     # go over every row of the table
     data.tb %>%
@@ -34,16 +33,8 @@ sits_classify <- function (data.tb = NULL, patterns.tb = NULL, ml_model = NULL, 
 
             predict.tb <- sits_tibble_prediction()
 
-            if (purrr::is_null (start_date)) {
-                start_date  <- lubridate::as_date(paste0(lubridate::year(row$start_date), "-01-01")) + pat_start_day
-                end_date    <- lubridate::as_date(paste0(lubridate::year(row$end_date), "-01-01"))   + pat_end_day
-            }
-            if (start_date < row$start_date || end_date > row$end_date){
-                message("Dates of input time series and patterns do not match")
-            }
-
             # define the temporal intervals of each classification
-            breaks <- seq(from = as.Date(start_date), to = as.Date(end_date), by = interval)
+            breaks <- sits_match_dates(row$start_date, row$end_date, pat_start_date, pat_end_date, interval)
 
             for (i in 1:(length(breaks) - 1)) {
                 # extract a temporal subset of the bands

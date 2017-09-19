@@ -15,7 +15,7 @@
 #' @export
 #
 sits_plot <- function (data.tb, patterns.tb = NULL, distances.tb = NULL, bands = NULL,
-                       type = "allyears", colors = "RdYlGreen",
+                       type = "allyears", colors = "Set1",
                        cluster_obj = NULL, cutree_height = NULL) {
 
     # check the input exists

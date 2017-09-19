@@ -2,7 +2,7 @@
 #' @name sits_getdata
 #' @author Gilberto Camara
 #'
-#' @description reads descriptive information about a data source to retrive a set of
+#' @description Reads descriptive information about a data source to retrieve a set of
 #' time series. The following options are available:
 #' (a) The source is a SITS tibble - retrieves the metadata from the sits table and the data
 #' from the WTSS service
@@ -10,7 +10,7 @@
 #' from the WTSS service
 #' (c) The source is a JSON file - retrieves the metadata and data from the JSON file.
 #' (d) The source is a gz file (compressed JSON file) - retrieves the metadata and data from the compressed JSON file.
-#' (e) No source is given - it retrives the data based on <long, lat, wtss>
+#' (e) No source is given - it retrieves the data based on <long, lat, wtss>
 #' A sits tibble has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
@@ -72,12 +72,12 @@ sits_getdata <- function (file        = NULL,
 
      # get data based on latitude and longitude
      if (purrr::is_null (file) && purrr::is_null (table) && !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
-          data.tb <- sits_fromlatlong (longitude, latitude, start_date, end_date, wtss.obj, cov, bands)
+          data.tb <- sits_fromLatLong (longitude, latitude, start_date, end_date, wtss.obj, cov, bands)
           return (data.tb)
      }
      # get data based on table
      if (!purrr::is_null (table)){
-          data.tb <- sits_fromtable (table, wtss.obj, cov, bands)
+          data.tb <- sits_fromTable (table, wtss.obj, cov, bands)
           return (data.tb)
      }
 
@@ -144,7 +144,7 @@ sits_fromGZ <- function (file) {
 }
 
 #' @title Obtain timeSeries from WTSS server based on a lat/long information.
-#' @name sits_fromlatlong
+#' @name sits_fromLatLong
 #'
 #' @description This function uses the lat/long location to retrive a time seriees
 #' for a WTSS service. A Web Time Series Service is a light-weight service that
@@ -164,7 +164,7 @@ sits_fromGZ <- function (file) {
 #' @param bands          string vector - the names of the bands to be retrieved
 #' @return data.tb       tibble  - a SITS table
 #' @export
-sits_fromlatlong <-  function (longitude, latitude, start_date = NULL, end_date = NULL, wtss.obj, cov, bands) {
+sits_fromLatLong <-  function (longitude, latitude, start_date = NULL, end_date = NULL, wtss.obj, cov, bands) {
 
      # set the class of the time series
      label <-  "NoClass"
@@ -174,7 +174,7 @@ sits_fromlatlong <-  function (longitude, latitude, start_date = NULL, end_date 
 }
 
 #' @title Obtain timeSeries from WTSS server, based on a SITS tibble
-#' @name sits_fromtable
+#' @name sits_fromTable
 #'
 #' @description reads descriptive information about a set of
 #' spatio-temporal locations from a SITS tibble. Then it uses the WTSS service to
@@ -187,7 +187,7 @@ sits_fromlatlong <-  function (longitude, latitude, start_date = NULL, end_date 
 #' @param bands          string vector - the names of the bands to be retrieved
 #' @return data.tb       tibble  - a SITS table
 #' @export
-sits_fromtable <-  function (table, wtss.obj, cov, bands) {
+sits_fromTable <-  function (table, wtss.obj, cov, bands) {
      # create the table to store
      data.tb <- sits_tibble()
 
@@ -557,40 +557,4 @@ sits_fromTWDTW_timeseries <- function (patterns, coverage){
     return (patterns.tb)
 }
 
-#' @title Obtain a confusion matrix from a compressed JSON file.
-#'
-#' @name sits_conf_fromGZ
-#'
-#' @description reads a set of data and metadata for satellite image time series from a compressed JSON file
-#'
-#' @param file        string  - name of a compressed JSON file with sits data and metadata
-#' @return data.tb    tibble  with a confusion matrix
-#' @export
-sits_conf_fromGZ <- function (file) {
 
-    # uncompress the file
-    json_file <- R.utils::gunzip (file, remove = FALSE)
-    # retrieve the data
-    conf.tb <- sits_conf_fromJSON (json_file)
-    # remove the uncompressed file
-    file.remove (json_file)
-
-    # return the JSON file
-    return (conf.tb)
-}
-
-#' @title Obtain a confusion matrix from a JSON file.
-#'
-#' @name sits_conf_fromJSON
-#'
-#' @description reads a set of data and metadata for satellite image time series from a JSON file
-#'
-#' @param  file       string  - name of a JSON file with sits data and metadata
-#' @return data.tb    tibble  with a confusion matrix
-#' @export
-sits_conf_fromJSON <- function (file) {
-    # add the contents of the JSON file to a SITS tibble
-    data.tb <- tibble::as_tibble (jsonlite::fromJSON (file))
-
-    return (data.tb)
-}
