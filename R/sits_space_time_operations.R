@@ -6,38 +6,52 @@
 #'              should be aligned to that of the reference data set (usually a set of patterns).
 #'              This function aligns these data sets so that shape matching works correctly
 #'
-#' @param  input_start_date  the starting date of the input data set
-#' @param  input_end_date    the end date of the input data set
-#' @param  ref_start_date    the starting date of the reference data set
-#' @param  ref_end_date      the end date of the reference data set
+#' @param  data.tb           the input data set
+#' @param  patterns.tb       the reference data set
 #' @param  interval          the interval that shape matching will be performed
+#' @param  tolerance         the tolerance of time differences
 #' @return breaks            the breaks that will be applied to the input data set
 #'
 #' @export
 #'
-sits_match_dates <- function (input_start_date, input_end_date, ref_start_date, ref_end_date, interval = "12 month"){
+sits_match_dates <- function (data.tb, patterns.tb, interval = "12 month", tolerance = "1 month"){
+
+    # ensure the input values exist
+    .sits_test_tibble(data.tb)
+    .sits_test_tibble(patterns.tb)
+
+    ensurer::ensure_that(data.tb, nrow(.) == 1, err_desc = "sits_match_dates: works only for a single row of a sits tibble")
+
+    #define the input start and end dates
+    input_start_date <- data.tb[1,]$start_date
+    input_end_date   <- data.tb[1,]$end_date
 
     #define the start and end days of the year based on the patterns
-    ref_start_day  <- lubridate::yday(ref_start_date)
-    ref_end_day    <- lubridate::yday(ref_end_date)
+    ref_start_day  <- lubridate::yday(patterns.tb[1,]$start_date)
+    ref_end_day    <- lubridate::yday(patterns.tb[1,]$end_date)
 
     # first match the start and end dates to the pattern start and end date for all years
     start_date  <- lubridate::as_date(paste0(lubridate::year(input_start_date), "-01-01")) + ref_start_day
     end_date    <- lubridate::as_date(paste0(lubridate::year(input_end_date),   "-01-01")) + ref_end_day
 
-    # set the interval for increments
-    p <-  lubridate::period(interval)
+    # set the interval and tolerance for increments
+    p <- lubridate::period(interval)
+    t <- lubridate::period(tolerance)
 
     # Check if the estimated starting date of the input is earlier than the starting date of the patterns
     # if this is not the case, try to start in the next interval
-    if (start_date < input_start_date)
-        start_date  <- lubridate::as_date(paste0(lubridate::year(input_start_date) + p, "-01-01")) + ref_start_day
+    # Allow for a tolerance between the dates
+    if (start_date < (input_start_date - t)) {
+        next_period <- lubridate::as_date(input_start_date) + p
+        start_date  <- lubridate::as_date(paste0(lubridate::year(next_period), "-01-01")) + ref_start_day
+    }
 
     # Check if the estimated end date of the input is later than the end date of the patterns
     # if this is not the case, try to start in the previous interval
-    if (end_date > input_end_date)
-        end_date <- lubridate::as_date(paste0(lubridate::year(input_end_date) - p, "-01-01")) + ref_end_day
-
+    if (end_date > (input_end_date + t)){
+        previous_period <- lubridate::as_date(input_end_date) - p
+        end_date <- lubridate::as_date(paste0(lubridate::year(previous_period), "-01-01")) + ref_end_day
+    }
     # Now dates should be aligned, unless... the input data cannot fit inside the desired interval
     ensurer::ensures_that(start_date, (.) < end_date, err_desc = "data cannot fit inside pattern interval")
 

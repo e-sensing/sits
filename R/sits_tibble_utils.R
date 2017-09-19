@@ -177,14 +177,19 @@ sits_bands <- function (data.tb) {
 #'
 sits_break_ts <-  function (data.tb, patterns.tb){
 
+    # ensure the input values exist
+    .sits_test_tibble(data.tb)
+    .sits_test_tibble(patterns.tb)
+
+    ensurer::ensure_that(data.tb, nrow(.) == 1, err_desc = "sits_break_ts: works only for a single row of a sits tibble")
+
     patt_start_date <- patterns.tb[1,]$start_date
     patt_end_date  <- patterns.tb[1,]$end_date
 
     new_data.tb <- sits_tibble()
     data.tb %>%
         purrrlyr::by_row(function (row) {
-            breaks <- sits_match_dates(row$start_date, row$end_date,
-                                       patt_start_date, patt_end_date)
+            breaks <- sits_match_dates(data.tb, patterns.tb)
 
             for (i in 1:(length(breaks) - 1)){
                 new_row <- sits_extract(row, breaks[i], breaks[i+1])

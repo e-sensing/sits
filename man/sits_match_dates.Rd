@@ -4,19 +4,17 @@
 \alias{sits_match_dates}
 \title{Adjust the dates of an input data set with a reference data set}
 \usage{
-sits_match_dates(input_start_date, input_end_date, ref_start_date, ref_end_date,
-  interval = "12 month")
+sits_match_dates(data.tb, patterns.tb, interval = "12 month",
+  tolerance = "1 month")
 }
 \arguments{
-\item{input_start_date}{the starting date of the input data set}
+\item{data.tb}{the input data set}
 
-\item{input_end_date}{the end date of the input data set}
-
-\item{ref_start_date}{the starting date of the reference data set}
-
-\item{ref_end_date}{the end date of the reference data set}
+\item{patterns.tb}{the reference data set}
 
 \item{interval}{the interval that shape matching will be performed}
+
+\item{tolerance}{the tolerance of time differences}
 }
 \value{
 breaks            the breaks that will be applied to the input data set

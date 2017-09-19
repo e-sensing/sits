@@ -249,9 +249,7 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
                          err_desc = "output filename should be different than input")
 
     # produce the breaks used to generate the output rasters
-    breaks <- sits_match_dates(raster.tb[1,]$start_date, raster.tb[1,]$end_date,
-                               patterns.tb[1,]$start_date, patterns.tb[1,]$start_date,
-                               interval = interval)
+    breaks <- sits_match_dates(raster.tb, patterns.tb, interval = interval)
 
     # create the raster objects and their respective filenames
     raster_class.tb <- .sits_create_classified_raster(raster.tb, breaks, file)

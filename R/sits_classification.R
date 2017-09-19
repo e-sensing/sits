@@ -32,29 +32,30 @@ sits_classify <- function (data.tb = NULL, patterns.tb = NULL, ml_model = NULL, 
         purrrlyr::by_row (function (row) {
 
             predict.tb <- sits_tibble_prediction()
-
-            # define the temporal intervals of each classification
-            breaks <- sits_match_dates(row$start_date, row$end_date, pat_start_date, pat_end_date, interval)
+            # find the subsets of the input data
+            breaks <- sits_match_dates(row, patterns.tb)
 
             for (i in 1:(length(breaks) - 1)) {
-                # extract a temporal subset of the bands
-                subset.tb <- sits_extract (row, breaks[i], breaks[i + 1])
+                # find the n-th subset of the input data
+                row_part <- sits_extract(row, breaks[i], breaks[i+1])
 
                 # find the distances in the subset data
-                distances.tb  <- dist_method (subset.tb, patterns.tb)
+                distances.tb  <- sits_distances (row_part, patterns.tb, dist_method = dist_method, break_ts = FALSE)
 
-                # classify the test data
-                sub_predict.tb <- sits_predict(subset.tb, distances.tb, ml_model)
+                # classify the subset data
+                sub_predict.tb <- sits_predict(row_part, distances.tb, ml_model)
 
                 # save the results
 
-                predict.tb   <- tibble::add_row(predict.tb,
-                    from      = lubridate::as_date(sub_predict.tb$start_date),
-                    to        = lubridate::as_date(sub_predict.tb$end_date),
-                    distance  = 0.0,
-                    predicted = sub_predict.tb$predicted
+                predict.tb   <<- tibble::add_row(predict.tb,
+                                                from      = lubridate::as_date(sub_predict.tb$start_date),
+                                                to        = lubridate::as_date(sub_predict.tb$end_date),
+                                                distance  = 0.0,
+                                                predicted = sub_predict.tb$predicted
                 )
+
             }
+
             # create a list to store the zoo time series coming from the WTSS service
             pred.lst <- list()
             # transform the zoo list into a tibble to store in memory

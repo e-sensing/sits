@@ -13,17 +13,23 @@
 #' @param data.tb          a SITS tibble time series
 #' @param patterns.tb      a set of patterns obtained from training samples
 #' @param dist_method      a method for calculating distances between time series
+#' @param break_ts         boolean - break the time series into parts (FALSE for sits_classification)
 #' @return result          a set of distance metrics
 #' @export
 #'
 sits_distances <- function(data.tb, patterns.tb,
-                           dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, alpha = -0.1, beta = 100, theta = 0.5, span = 0)) {
+                           dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, alpha = -0.1, beta = 100, theta = 0.5, span = 0),
+                           break_ts = TRUE) {
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
     .sits_test_tibble (patterns.tb)
     # is the train method a function?
     ensurer::ensure_that(dist_method, class(.) == "function", err_desc = "sits_distances: dist_method is not a valid function")
+
+    # break the input data into subsets to match the partition dates
+    if (break_ts)
+        data.tb <- sits_break_ts (data.tb, patterns.tb)
 
     # compute the training method by the given data
     result <- dist_method(data.tb, patterns.tb)
@@ -81,6 +87,8 @@ sits_distances <- function(data.tb, patterns.tb,
 #' @export
 #'
 sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "dtw", ...) {
+
+
 
     # function that returns a distance tibble
     result_fun <- function(data.tb, patterns.tb){
@@ -142,9 +150,10 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
 #' @description Returns a SITS table with distances to be used for training in ML methods
 #' This is a front-end to the sits_TWDTW_matches whose outout is trimmed down to contain just distances
 #'
-#' @param  data.tb     a table in SITS format with a time series to be classified using TWTDW
+#' @param  data.tb       Table in SITS format with a time series to be classified using TWTDW
 #' @param  patterns.tb   a set of known temporal signatures for the chosen classes
 #' @param  dist.method   A character. Method to derive the local cost matrix.
+#' @param  break_ts      Boolean - should the input data be broken (TRUE except when called by sits_classify)
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
@@ -154,16 +163,13 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
 #'                       whole partition validation.
 #' @return distances.tb       a SITS table with the information on distances for the data
 #' @export
-sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.method = "euclidean",
+sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.method = "euclidean", break_ts = TRUE,
                                   alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE, multicores = 1) {
 
     ensurer::ensure_that(data.tb, all(sits_bands(patterns.tb) == sits_bands(.)),
                          err_desc = "sits_TWDTW_distances: bands in the data do not match bands in the patterns")
 
     result_fun <- function (data.tb, patterns.tb) {
-
-        # break the input data into subsets to match the partition dates
-        data.tb <- sits_break_ts (data.tb, patterns.tb)
 
         # determine the bands of the data
         bands <- sits_bands (data.tb)
