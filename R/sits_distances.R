@@ -13,11 +13,13 @@
 #' @param data.tb          a SITS tibble time series
 #' @param patterns.tb      a set of patterns obtained from training samples
 #' @param dist_method      a method for calculating distances between time series
+#' @param break_ts         boolean - break the time series into parts (FALSE for sits_classification)
 #' @return result          a set of distance metrics
 #' @export
 #'
 sits_distances <- function(data.tb, patterns.tb,
-                           dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, alpha = -0.1, beta = 100, theta = 0.5, span = 0)) {
+                           dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, alpha = -0.1, beta = 100, theta = 0.5, span = 0),
+                           break_ts = TRUE) {
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
@@ -104,19 +106,19 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
 
         data.tb %>%
             purrrlyr::by_row(function (row) {
-                ts <- row$time_series[[1]]
+                ts_data <- row$time_series[[1]]
                 drow.tb <- sits_tibble_distance(patterns.tb)
                 r <- dplyr::add_row(drow.tb)
                 r$original_row <- original_row
                 r$reference    <- row$label
-                patterns.tb %>%
-                    purrrlyr::by_row(function (rowp) {
-                        labelp <- rowp$label
-                        tsp <- rowp$time_series[[1]]
-                        bands %>%
-                            purrr::map (function (b) {
-                                ts_x <- sits_toZOO (ts, b)
-                                ts_y <- sits_toZOO (tsp, b)
+                bands %>%
+                    purrr::map (function (b) {
+                        patterns.tb %>%
+                            purrrlyr::by_row(function (row_patt) {
+                                labelp  <- row_patt$label
+                                ts_patt <- row_patt$time_series[[1]]
+                                ts_x    <- sits_toZOO (ts_data, b)
+                                ts_y    <- sits_toZOO (ts_patt, b)
                                 measure <-  paste0(labelp, ".", b)
                                 r [measure] <<- TSdist::TSDistances(ts_x, ts_y, distance = distance, ...)
                             })
@@ -142,9 +144,10 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
 #' @description Returns a SITS table with distances to be used for training in ML methods
 #' This is a front-end to the sits_TWDTW_matches whose outout is trimmed down to contain just distances
 #'
-#' @param  data.tb     a table in SITS format with a time series to be classified using TWTDW
+#' @param  data.tb       Table in SITS format with a time series to be classified using TWTDW
 #' @param  patterns.tb   a set of known temporal signatures for the chosen classes
 #' @param  dist.method   A character. Method to derive the local cost matrix.
+#' @param  break_ts      Boolean - should the input data be broken (TRUE except when called by sits_classify)
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
@@ -154,16 +157,19 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
 #'                       whole partition validation.
 #' @return distances.tb       a SITS table with the information on distances for the data
 #' @export
-sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.method = "euclidean",
+sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.method = "euclidean", break_ts = TRUE,
                                   alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE, multicores = 1) {
+
+    ensurer::ensure_that(data.tb, all(sits_bands(patterns.tb) == sits_bands(.)),
+                         err_desc = "sits_TWDTW_distances: bands in the data do not match bands in the patterns")
 
     result_fun <- function (data.tb, patterns.tb) {
 
+        if (break_ts)
+            data.tb <- sits_break_ts (data.tb, patterns.tb)
+
         # determine the bands of the data
         bands <- sits_bands (data.tb)
-
-        #select the patterns to match the bands
-        patterns.tb <- sits_select_bands(patterns.tb, bands)
 
         # determine the labels of the patterns
         labels <- sits_labels(patterns.tb)$label
@@ -176,51 +182,57 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
         if(multicores > 1)
             part.vec <- cut(seq(NROW(data.tb)), multicores, labels = FALSE)
 
+
         # compute partition list putting each set of same value of part.vec inside corresponding list element
         part.lst <- 1:multicores %>%
             purrr::map(function(i) data.tb[part.vec == i,] )
 
         # prepare function to be passed to `parallel::mclapply`. this function returns a distance table to each partition
         dist_fun <- function(part.tb){
-            result.tb <- sits_tibble_distance_from_data(part.tb)
 
-            bands %>%
-                purrr::map (function (b){
-                    part_b.tb  <- sits_select_bands (part.tb, bands = b)
-                    patt_b.tb  <- sits_select_bands (patterns.tb, bands = b)
+            # create a tibble to store the results
+            distances_part.tb <-  sits_tibble_distance(patterns.tb)
 
-                    # add a progress bar
-                    progress_bar <- NULL
-                    if (nrow (data.tb) > 10 && multicores == 1) {
-                        message("Matching patterns to time series...")
-                        progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
-                        i <- 0
-                    }
-                    # convert patterns time series to TWDTW format
-                    twdtw_patterns <- sits_toTWDTW(patt_b.tb)
+            # add a progress bar
+            progress_bar <- NULL
+            if (nrow (data.tb) > 10 && multicores == 1) {
+                message("Matching patterns to time series...")
+                progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
+                nrow <- 0
+            }
+            # take each row of input subset
+            part.tb %>%
+                purrrlyr::by_row (function (row.tb) {
+                    # break the input data into subsets to match the partition dates
 
-                    #create a tibble to store the results
-                    matches.tb <- tibble::tibble ()
+                    nrow <<- nrow + 1
 
-                    for (l in 1:length(labels)) {
-                            measure <- paste0 (labels[l])
-                            matches.tb [measure] = double()
-                    }
+                    # add original information to results tibble
+                    new_row <- tibble::tibble(
+                        original_row = nrow,
+                        reference    = row.tb$label
+                    )
+                    # process each band of the input
+                    bands %>%
+                        purrr::map (function (b){
+                            # extract band from data and from patterns
+                            data_b.tb  <- sits_select_bands (row.tb, bands = b)
+                            patt_b.tb  <- sits_select_bands (patterns.tb, bands = b)
 
-                    part_b.tb %>%
-                        purrrlyr::by_row (function (row.tb) {
-                            # convert to TWDTW format
-                            twdtw_series <- sits_toTWDTW(row.tb)
+                            # convert data to TWDTW format
+                            twdtw_series   <- sits_toTWDTW(data_b.tb)
+                            # convert patterns to TWDTW format
+                            twdtw_patterns <- sits_toTWDTW(patt_b.tb)
 
                             #classify the data using TWDTW
                             matches.twdtw = dtwSat::twdtwApply(
-                                                         x          = twdtw_series,
-                                                         y          = twdtw_patterns,
-                                                         weight.fun = log_fun,
-                                                         theta      = theta,
-                                                         span       = span,
-                                                         keep       = keep,
-                                                         dist.method = dist.method)
+                                x          = twdtw_series,
+                                y          = twdtw_patterns,
+                                weight.fun = log_fun,
+                                theta      = theta,
+                                span       = span,
+                                keep       = keep,
+                                dist.method = dist.method)
 
                             # transform the matches to a tibble
                             matches_b.tb <- tibble::as_tibble(matches.twdtw[[1]]) %>%
@@ -233,20 +245,21 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
                                 dplyr::summarise(distance=min(distance)) %>%
                                 tidyr::spread(key = predicted, value = distance)
 
-                            # add the row to the results.tb tibble
-                            matches.tb <<- dplyr::bind_rows(matches.tb, matches_b.tb)
-                            # update progress bar
-                            if (!purrr::is_null(progress_bar)) {
-                                i <<- i + 1
-                                utils::setTxtProgressBar(progress_bar, i)
-                            }
+                            # obtain the resulting distances from bands
+                            colnames (matches_b.tb) <- paste0(colnames(matches_b.tb),".",b)
+
+                            # add the results of the matching patterns/bands to new_row
+                            new_row <<- dplyr::bind_cols(new_row, matches_b.tb)
+
                         })
-                    if (!purrr::is_null(progress_bar)) close(progress_bar)
-                    # obtain the resulting distances from bands
-                    colnames (matches.tb) <- paste0(colnames(matches.tb),".",b)
-                    result.tb <<- dplyr::bind_cols(result.tb, matches.tb)
+                    distances_part.tb <<- dplyr::bind_rows(distances_part.tb, new_row)
                 })
-            return(result.tb)
+            # update progress bar
+            if (!purrr::is_null(progress_bar)) {
+                utils::setTxtProgressBar(progress_bar, nrow)
+            }
+            if (!purrr::is_null(progress_bar)) close(progress_bar)
+            return(distances_part.tb)
         }
 
 
@@ -262,6 +275,7 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
     return (result)
 }
+
 
 #' @title Spread matches from a sits matches tibble
 #' @name sits_spread_matches

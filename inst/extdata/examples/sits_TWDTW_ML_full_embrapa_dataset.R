@@ -39,11 +39,11 @@ embrapa_mt2.tb <- sits_select(embrapa_mt.tb, bands = c("ndvi", "evi", "nir", "mi
 # obtain a set of patterns for these samples
 patterns.tb <- sits_patterns(embrapa_mt2.tb)
 
-sits_plot (patterns.tb)
+sits_plot (patterns.tb, type = "patterns")
 
 # find the matches between the patterns and the time series using the TWDTW algorithm
 # (uses the dtwSat R package)
-distances_train.tb <- sits_TWDTW_distances (embrapa_mt2.tb, patterns.tb)
+distances_train.tb <- sits_distances (embrapa_mt2.tb, patterns.tb)
 
 # save the distances for reusing the distance file later
 saveRDS (distances_train.tb, file = paste0(WD,"/embrapa_mt_distances_train.rds"))

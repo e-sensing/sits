@@ -6,7 +6,7 @@
 \usage{
 sits_distances(data.tb, patterns.tb,
   dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, alpha
-  = -0.1, beta = 100, theta = 0.5, span = 0))
+  = -0.1, beta = 100, theta = 0.5, span = 0), break_ts = TRUE)
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series}
@@ -14,6 +14,8 @@ sits_distances(data.tb, patterns.tb,
 \item{patterns.tb}{a set of patterns obtained from training samples}
 
 \item{dist_method}{a method for calculating distances between time series}
+
+\item{break_ts}{boolean - break the time series into parts (FALSE for sits_classification)}
 }
 \value{
 result          a set of distance metrics

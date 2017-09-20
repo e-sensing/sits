@@ -5,15 +5,17 @@
 \title{Find distances between a set of SITS patterns and segments of sits tibble using TWDTW}
 \usage{
 sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL,
-  dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
-  span = 250, keep = FALSE, multicores = 1)
+  dist.method = "euclidean", break_ts = TRUE, alpha = -0.1, beta = 100,
+  theta = 0.5, span = 250, keep = FALSE, multicores = 1)
 }
 \arguments{
-\item{data.tb}{a table in SITS format with a time series to be classified using TWTDW}
+\item{data.tb}{Table in SITS format with a time series to be classified using TWTDW}
 
 \item{patterns.tb}{a set of known temporal signatures for the chosen classes}
 
 \item{dist.method}{A character. Method to derive the local cost matrix.}
+
+\item{break_ts}{Boolean - should the input data be broken (TRUE except when called by sits_classify)}
 
 \item{alpha}{(double) - the steepness of the logistic function used for temporal weighting}
 
