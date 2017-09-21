@@ -13,11 +13,13 @@
 #' @param data.tb          a SITS tibble time series
 #' @param patterns.tb      a set of patterns obtained from training samples
 #' @param dist_method      a method for calculating distances between time series
+#' @param break_ts         boolean - break the time series into parts (FALSE for sits_classification)
 #' @return result          a set of distance metrics
 #' @export
 #'
 sits_distances <- function(data.tb, patterns.tb,
-                           dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, alpha = -0.1, beta = 100, theta = 0.5, span = 0)) {
+                           dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, alpha = -0.1, beta = 100, theta = 0.5, span = 0),
+                           break_ts = TRUE) {
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
@@ -142,9 +144,10 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
 #' @description Returns a SITS table with distances to be used for training in ML methods
 #' This is a front-end to the sits_TWDTW_matches whose outout is trimmed down to contain just distances
 #'
-#' @param  data.tb     a table in SITS format with a time series to be classified using TWTDW
+#' @param  data.tb       Table in SITS format with a time series to be classified using TWTDW
 #' @param  patterns.tb   a set of known temporal signatures for the chosen classes
 #' @param  dist.method   A character. Method to derive the local cost matrix.
+#' @param  break_ts      Boolean - should the input data be broken (TRUE except when called by sits_classify)
 #' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
 #' @param  beta          (integer) - the midpoint (in days) of the logistic function
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
@@ -154,7 +157,7 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
 #'                       whole partition validation.
 #' @return distances.tb       a SITS table with the information on distances for the data
 #' @export
-sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.method = "euclidean",
+sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.method = "euclidean", break_ts = TRUE,
                                   alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE, multicores = 1) {
 
     ensurer::ensure_that(data.tb, all(sits_bands(patterns.tb) == sits_bands(.)),
@@ -162,8 +165,8 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
 
     result_fun <- function (data.tb, patterns.tb) {
 
-        # break the input data into subsets to match the partition dates
-        data.tb <- sits_break_ts (data.tb, patterns.tb)
+        if (break_ts)
+            data.tb <- sits_break_ts (data.tb, patterns.tb)
 
         # determine the bands of the data
         bands <- sits_bands (data.tb)
@@ -200,10 +203,11 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
             # take each row of input subset
             part.tb %>%
                 purrrlyr::by_row (function (row.tb) {
+                    # break the input data into subsets to match the partition dates
 
                     nrow <<- nrow + 1
 
-                    # add original information to results tibble)
+                    # add original information to results tibble
                     new_row <- tibble::tibble(
                         original_row = nrow,
                         reference    = row.tb$label

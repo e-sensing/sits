@@ -12,7 +12,7 @@ sits_break_ts(data.tb, patterns.tb)
 \item{patterns.tb}{a tibble with time series patterns}
 }
 \value{
-newdata.tb  a SITS tibble with the original data cut into packages
+newdata.tb  a SITS tibble with the original data cut into subsets of equal lengths
 }
 \description{
 Given a long time series, divide it into segments to match

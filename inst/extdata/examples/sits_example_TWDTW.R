@@ -25,7 +25,7 @@ lat <- -11.50566
 series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = "mod13q1_512", bands = bands)
 
 # plot the series
-sits_plot (sits_select(series.tb, bands = c("ndvi")))
+sits_plot (sits_select(series.tb, bands = c("ndvi", "evi")))
 
 # retrieve a set of samples from an RDS file
 embrapa_mt.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
@@ -48,5 +48,3 @@ results.tb <- sits_TWDTW_classify(matches, series.tb, start_date = "2000-08-01",
 
 # plot the classification of the time series by yearly intervals
 sits_plot_TWDTW_classification (matches)
-
-sits_plot(results.tb, patterns.tb, bands = "ndvi")

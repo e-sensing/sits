@@ -18,9 +18,6 @@ data.tb         SITS tibble with the time series
 This function extracts a SITS time series from a set of
               Raster Layers whose metadata is stored in a tibble
               created by the sits_STraster function
-
-This function creates a tibble to store the information
-about a raster time series
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

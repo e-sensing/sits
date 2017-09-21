@@ -172,24 +172,29 @@ sits_bands <- function (data.tb) {
 #'
 #' @param data.tb      a valid sits tibble with data
 #' @param patterns.tb  a tibble with time series patterns
-#' @return newdata.tb  a SITS tibble with the original data cut into packages
+#' @return newdata.tb  a SITS tibble with the original data cut into subsets of equal lengths
 #' @export
 #'
 sits_break_ts <-  function (data.tb, patterns.tb){
 
-    patt_start_date <- patterns.tb[1,]$start_date
-    patt_end_date  <- patterns.tb[1,]$end_date
+    # ensure the input values exist
+    .sits_test_tibble(data.tb)
+    .sits_test_tibble(patterns.tb)
 
     new_data.tb <- sits_tibble()
     data.tb %>%
         purrrlyr::by_row(function (row) {
-            breaks <- sits_match_dates(row$start_date, row$end_date,
-                                       patt_start_date, patt_end_date)
 
-            for (i in 1:(length(breaks) - 1)){
-                new_row <- sits_extract(row, breaks[i], breaks[i+1])
-                new_data.tb <<- dplyr::bind_rows(new_data.tb, new_row)
-            }
+            subset_dates.lst <- sits_match_dates(row, patterns.tb)
+
+            subset_dates.lst %>%
+                purrr::map (function (date_pair){
+
+                    # extract the n-th subset of the input data
+                    row_subset.tb <- sits_extract(row, date_pair[1], date_pair[2])
+                    # add the subset to the new data set
+                    new_data.tb <<- dplyr::bind_rows(new_data.tb, row_subset.tb)
+                })
         })
     return (new_data.tb)
 }
@@ -261,6 +266,8 @@ sits_extract <- function (data.tb, start_date = NULL, end_date = NULL) {
             # filter the time series by start and end dates
             sub.ts <- r$time_series[[1]] %>%
                 dplyr::filter (dplyr::between (.$Index, start_date, end_date))
+
+            ensurer::ensure_that(sub.ts, nrow(.) > 0, err_desc = "sits_extract: time series contains no data")
 
             # store the subset of the time series in a list
             ts.lst <- tibble::lst()
@@ -386,6 +393,48 @@ sits_group_bylatlong <- function (data.tb) {
         })
     return (out.tb)
 }
+#' @title Adjust the dates of an input data set with a reference data set
+#' @name sits_match_dates
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description For correct classification, the time series of the input data set
+#'              should be aligned to that of the reference data set (usually a set of patterns).
+#'              This function aligns these data sets so that shape matching works correctly
+#'
+#' @param  data.tb           the input data set
+#' @param  patterns.tb       the reference data set
+#' @return breaks            the breaks that will be applied to the input data set
+#'
+#' @export
+sits_match_dates <- function (data.tb, patterns.tb){
+
+    # ensure the input values exist
+    .sits_test_tibble(data.tb)
+    .sits_test_tibble(patterns.tb)
+
+    ensurer::ensure_that(data.tb, nrow(.) == 1, err_desc = ".sits_match_dates: input data has more than one row")
+
+    #define the input start and end dates
+    input_start_date <- data.tb[1,]$start_date
+    input_end_date   <- data.tb[1,]$end_date
+
+    patt_st_jday  <- lubridate::yday(patterns.tb[1,]$start_date)
+    patt_en_jday  <- lubridate::yday(patterns.tb[1,]$end_date)
+
+    #define the start and end days of the input data based on the patterns
+    date0         <- lubridate::as_date(paste0(as.character(lubridate::year(input_start_date)),"-01-01"))
+    start_date    <- lubridate::as_date(date0 + patt_st_jday)
+    date1         <- lubridate::as_date(paste0(as.character(lubridate::year(input_end_date)),"-01-01"))
+    end_date      <- lubridate::as_date(date1 + patt_en_jday)
+
+    # define the intervals based on the patterns
+    interval      <- lubridate::as.period(patterns.tb[1,]$end_date - patterns.tb[1,]$start_date)
+    data_interval <- interval
+
+    #obtain the subset dates to break the input data set
+    subset_dates.lst <- .sits_subset_dates(start_date, end_date, interval, data_interval)
+}
+
 #' @title Merge two satellite image time series
 #' @name sits_merge
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
