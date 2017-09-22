@@ -27,5 +27,28 @@ sits_patterns <- function(data.tb, pt_method = sits_gam(data.tb = NULL, from = N
     return(result)
 
 }
+#' @title Do not create patterns for classification
+#' @name sits_no_patterns
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#'
+#' @description This function is to be used when oen does not want to create
+#' a set of idealised patterns from the input data, but prefers to use the
+#' input series themselves as training data from estimating a prediction model.
+#' It should be used in connection with sits_spread_time_series.
+#'
+#' @param data.tb          a SITS tibble time series with an alignment column
+#' @return result          a model fitted into input data given by train_method parameter
+#' @export
+sits_no_patterns <- function (data.tb = NULL){
+
+
+    # function that is used to be called as a value from another function
+    result_fun <- function(tb){
+        return (tb)
+    }
+    result <- .sits_factory_function (data.tb, result_fun)
+}
 
 

@@ -4,15 +4,22 @@
 \alias{sits_match_dates}
 \title{Adjust the dates of an input data set with a reference data set}
 \usage{
-sits_match_dates(data.tb, patterns.tb)
+sits_match_dates(data.tb, patterns.tb, start_date = NULL, end_date = NULL,
+  interval = "12 month")
 }
 \arguments{
-\item{data.tb}{the input data set}
+\item{data.tb}{Input data set}
 
-\item{patterns.tb}{the reference data set}
+\item{patterns.tb}{Reference data set}
+
+\item{start_date}{Starting date of the distance matching between time series and patterns}
+
+\item{end_date}{End date of the distance matching between time series and patternss}
+
+\item{interval}{Period to match the data to the patterns}
 }
 \value{
-breaks            the breaks that will be applied to the input data set
+subset_dates.lst            the breaks that will be applied to the input data set
 }
 \description{
 For correct classification, the time series of the input data set

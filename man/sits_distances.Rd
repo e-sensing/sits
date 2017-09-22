@@ -4,21 +4,19 @@
 \alias{sits_distances}
 \title{Calculate a set of distance measures for satellite image time series}
 \usage{
-sits_distances(data.tb, patterns.tb,
-  dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, alpha
-  = -0.1, beta = 100, theta = 0.5, span = 0), break_ts = TRUE)
+sits_distances(data.tb, patterns.tb, dist_method = sits_TWDTW_distances(alpha
+  = -0.1, beta = 100, theta = 0.5, span = 0, start_date = NULL, end_date = NULL,
+  interval = "12 month"))
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series}
+\item{data.tb}{SITS tibble time series}
 
-\item{patterns.tb}{a set of patterns obtained from training samples}
+\item{patterns.tb}{Set of patterns obtained from training samples}
 
-\item{dist_method}{a method for calculating distances between time series}
-
-\item{break_ts}{boolean - break the time series into parts (FALSE for sits_classification)}
+\item{dist_method}{Method for calculating distances between time series}
 }
 \value{
-result          a set of distance metrics
+result          Set of distance metrics
 }
 \description{
 This function allows the user to select different alternatives to define a set of

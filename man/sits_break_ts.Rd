@@ -4,15 +4,22 @@
 \alias{sits_break_ts}
 \title{Break a time series to match the time range of a set of patterns}
 \usage{
-sits_break_ts(data.tb, patterns.tb)
+sits_break_ts(data.tb, patterns.tb, start_date = NULL, end_date = NULL,
+  interval = "12 month")
 }
 \arguments{
-\item{data.tb}{a valid sits tibble with data}
+\item{data.tb}{SITS tibble with time series data}
 
-\item{patterns.tb}{a tibble with time series patterns}
+\item{patterns.tb}{Tibble with time series patterns}
+
+\item{start_date}{Starting date of the distance matching between time series and patterns}
+
+\item{end_date}{End date of the distance matching between time series and patternss}
+
+\item{interval}{Period to match the data to the patterns}
 }
 \value{
-newdata.tb  a SITS tibble with the original data cut into subsets of equal lengths
+newdata.tb   SITS tibble with the original data cut into subsets of equal lengths
 }
 \description{
 Given a long time series, divide it into segments to match

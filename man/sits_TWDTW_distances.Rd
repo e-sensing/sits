@@ -5,29 +5,34 @@
 \title{Find distances between a set of SITS patterns and segments of sits tibble using TWDTW}
 \usage{
 sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL,
-  dist.method = "euclidean", break_ts = TRUE, alpha = -0.1, beta = 100,
-  theta = 0.5, span = 250, keep = FALSE, multicores = 1)
+  start_date = NULL, end_date = NULL, interval = "12 month",
+  dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
+  span = 250, keep = FALSE, multicores = 1)
 }
 \arguments{
 \item{data.tb}{Table in SITS format with a time series to be classified using TWTDW}
 
-\item{patterns.tb}{a set of known temporal signatures for the chosen classes}
+\item{patterns.tb}{Set of known temporal signatures for the chosen classes}
 
-\item{dist.method}{A character. Method to derive the local cost matrix.}
+\item{start_date}{Starting date of the distance matching between time series and patterns}
 
-\item{break_ts}{Boolean - should the input data be broken (TRUE except when called by sits_classify)}
+\item{end_date}{End date of the distance matching between time series and patternss}
 
-\item{alpha}{(double) - the steepness of the logistic function used for temporal weighting}
+\item{interval}{Period to match the data to the patterns}
 
-\item{beta}{(integer) - the midpoint (in days) of the logistic function}
+\item{dist.method}{Method to derive the local cost matrix.}
 
-\item{theta}{(double)  - the relative weight of the time distance compared to the dtw distance}
+\item{alpha}{Steepness of the logistic function used for temporal weighting}
 
-\item{span}{minimum number of days between two matches of the same pattern in the time series (approximate)}
+\item{beta}{Midpoint (in days) of the logistic function}
 
-\item{keep}{keep internal values for plotting matches}
+\item{theta}{Relative weight of the time distance compared to the dtw distance}
 
-\item{multicores}{number of threads to process the validation (Linux only). Each process will run a
+\item{span}{Minimum number of days between two matches of the same pattern in the time series (approximate)}
+
+\item{keep}{Keep internal values for plotting matches}
+
+\item{multicores}{Number of threads to process the validation (Linux only). Each process will run a
 whole partition validation.}
 }
 \value{

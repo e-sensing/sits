@@ -10,16 +10,15 @@
 #' "TWTDTW"    - uses the TWDTW (time-weighted dynamic time warping)
 #' other methods as used by the TSdist package
 #'
-#' @param data.tb          a SITS tibble time series
-#' @param patterns.tb      a set of patterns obtained from training samples
-#' @param dist_method      a method for calculating distances between time series
-#' @param break_ts         boolean - break the time series into parts (FALSE for sits_classification)
-#' @return result          a set of distance metrics
+#' @param data.tb          SITS tibble time series
+#' @param patterns.tb      Set of patterns obtained from training samples
+#' @param dist_method      Method for calculating distances between time series
+#' @return result          Set of distance metrics
 #' @export
 #'
 sits_distances <- function(data.tb, patterns.tb,
-                           dist_method = sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL, alpha = -0.1, beta = 100, theta = 0.5, span = 0),
-                           break_ts = TRUE) {
+                           dist_method = sits_TWDTW_distances(alpha = -0.1, beta = 100, theta = 0.5, span = 0, start_date = NULL, end_date = NULL, interval = "12 month")
+                           ){
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
@@ -75,14 +74,18 @@ sits_distances <- function(data.tb, patterns.tb,
 #' "pdc": Permutation Distribution Distance. Uses the pdc package (see pdcDist).
 #' "frechet": Frechet distance. Uses the longitudinalData package (see distFrechet).
 #'
-#' @param data.tb          a SITS tibble time series
-#' @param patterns.tb      a set of patterns obtained from training samples
-#' @param distance         a method for calculating distances between time series
+#' @param data.tb          SITS tibble time series
+#' @param patterns.tb      Set of patterns obtained from training samples
+#' @param distance         Method for calculating distances between time series and pattern
+#' @param start_date       Starting date of the distance matching between time series and patterns
+#' @param end_date         End date of the distance matching between time series and patternss
+#' @param interval         Period to match the data to the patterns
 #' @param ...              Additional parameters required by the distance method.
 #' @return result          a set of distance metrics
 #' @export
 #'
-sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "dtw", ...) {
+sits_TS_distances <- function (data.tb = NULL,    patterns.tb = NULL, distance = "dtw",
+                               start_date = NULL, end_date = NULL, interval = "12 month",...) {
 
     # function that returns a distance tibble
     result_fun <- function(data.tb, patterns.tb){
@@ -90,6 +93,8 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
         # does the input data exist?
         .sits_test_tibble (data.tb)
         .sits_test_tibble (patterns.tb)
+
+        data.tb <- sits_break_ts (data.tb, patterns.tb, start_date, end_date, interval)
 
         distances.tb <-  sits_tibble_distance(patterns.tb)
         original_row <-  1
@@ -145,28 +150,32 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
 #' This is a front-end to the sits_TWDTW_matches whose outout is trimmed down to contain just distances
 #'
 #' @param  data.tb       Table in SITS format with a time series to be classified using TWTDW
-#' @param  patterns.tb   a set of known temporal signatures for the chosen classes
-#' @param  dist.method   A character. Method to derive the local cost matrix.
-#' @param  break_ts      Boolean - should the input data be broken (TRUE except when called by sits_classify)
-#' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
-#' @param  beta          (integer) - the midpoint (in days) of the logistic function
-#' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
-#' @param  span          minimum number of days between two matches of the same pattern in the time series (approximate)
-#' @param  keep          keep internal values for plotting matches
-#' @param  multicores    number of threads to process the validation (Linux only). Each process will run a
+#' @param  patterns.tb   Set of known temporal signatures for the chosen classes
+#' @param  start_date    Starting date of the distance matching between time series and patterns
+#' @param  end_date      End date of the distance matching between time series and patternss
+#' @param  interval      Period to match the data to the patterns
+#' @param  dist.method   Method to derive the local cost matrix.
+#' @param  alpha         Steepness of the logistic function used for temporal weighting
+#' @param  beta          Midpoint (in days) of the logistic function
+#' @param  theta         Relative weight of the time distance compared to the dtw distance
+#' @param  span          Minimum number of days between two matches of the same pattern in the time series (approximate)
+#' @param  keep          Keep internal values for plotting matches
+#' @param  multicores    Number of threads to process the validation (Linux only). Each process will run a
 #'                       whole partition validation.
 #' @return distances.tb       a SITS table with the information on distances for the data
 #' @export
-sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.method = "euclidean", break_ts = TRUE,
-                                  alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE, multicores = 1) {
+sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
+                                  start_date = NULL, end_date = NULL, interval = "12 month",
+                                  dist.method = "euclidean",
+                                  alpha = -0.1, beta = 100, theta = 0.5, span  = 250,
+                                  keep  = FALSE, multicores = 1) {
 
     ensurer::ensure_that(data.tb, all(sits_bands(patterns.tb) == sits_bands(.)),
                          err_desc = "sits_TWDTW_distances: bands in the data do not match bands in the patterns")
 
     result_fun <- function (data.tb, patterns.tb) {
 
-        if (break_ts)
-            data.tb <- sits_break_ts (data.tb, patterns.tb)
+        data.tb <- sits_break_ts (data.tb, patterns.tb, start_date, end_date, interval)
 
         # determine the bands of the data
         bands <- sits_bands (data.tb)
@@ -194,22 +203,20 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
             distances_part.tb <-  sits_tibble_distance(patterns.tb)
 
             # add a progress bar
+            n <- 0
             progress_bar <- NULL
             if (nrow (data.tb) > 10 && multicores == 1) {
                 message("Matching patterns to time series...")
                 progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
-                nrow <- 0
+
             }
             # take each row of input subset
             part.tb %>%
                 purrrlyr::by_row (function (row.tb) {
-                    # break the input data into subsets to match the partition dates
-
-                    nrow <<- nrow + 1
-
+                    n <<- n + 1
                     # add original information to results tibble
                     new_row <- tibble::tibble(
-                        original_row = nrow,
+                        original_row = n,
                         reference    = row.tb$label
                     )
                     # process each band of the input
@@ -256,7 +263,7 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
                 })
             # update progress bar
             if (!purrr::is_null(progress_bar)) {
-                utils::setTxtProgressBar(progress_bar, nrow)
+                utils::setTxtProgressBar(progress_bar, n)
             }
             if (!purrr::is_null(progress_bar)) close(progress_bar)
             return(distances_part.tb)
@@ -277,64 +284,51 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL, dist.metho
 }
 
 
-#' @title Spread matches from a sits matches tibble
-#' @name sits_spread_matches
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a SITS tibble with a set of TWDTW matches, returns a tibble whose columns have
-#' the reference label and the TWDTW distances for each temporal pattern.
-#'
-#' @param  data.tb    a SITS matches tibble
-#' @return result.tb  a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
-#' @export
-sits_spread_matches <- function(data.tb){
 
-    # Get best TWDTW aligniments for each class
-    data.tb$matches <- data.tb$matches %>%
-        purrr::map(function (data.tb){
-            data.tb %>%
-                dplyr::group_by(predicted) %>%
-                dplyr::summarise(distance=min(distance))
-        })
 
-    # Select best match and spread pred to columns
-    result.tb <- data.tb %>%
-        dplyr::transmute(original_row = 1:NROW(.), reference = label, matches = matches) %>%
-        tidyr::unnest(matches, .drop = FALSE) %>%
-        tidyr::spread(key = predicted, value = distance)
-
-    return(result.tb)
-}
-
-#' @title Spread time series values from a sits tibble as distances in a sits distance tibble
+#' @title Use time series values from a sits tibble as distances for training patterns
 #' @name sits_spread_time_series
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Given a SITS tibble with a set of time series values, returns a tibble whose columns have
-#' the reference label and the time series bands as distances to be used as input in Machine Learning functions.
+#' @description This function allows using a set of labelled time series as
+#' input to the machine learning models. Instead of first estimating a set
+#' of idealised patterns and then computing distances from these patterns,
+#' the attributes used to train the model are the series themselves.
+#' This function then extracts the time series from a SITS tibble and
+#' "spreads" them in time to produce a tibble with distances.
 #'
-#' @param  data.tb    a SITS tibble
-#' @return result.tb  a tibble where columns have the reference label and the time series bands as distances
+#' @param  data.tb       a SITS tibble with original data
+#' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
 #' @export
-sits_spread_time_series <- function(data.tb = NULL){
+sits_spread_time_series <- function(data.tb = NULL, ...){
+
+    print ("sits spread time series")
+
+    .sits_test_tibble(data.tb)
 
     result_fun <- function(data.tb, ...){
-        data.tb$time_series <- data.tb$time_series %>% purrr::map(function(ts) {
-            ts %>% dplyr::select(-Index) %>% purrr::map(function(band) band) %>%
-                unlist() %>% as.matrix() %>% t() %>% tibble::as_tibble()
-        })
+        # apply a correction factor to the time series to avoid negative values
+        tb <- sits_apply(tb, fun = function (band) band + 3.0)
 
-        data.tb <- data.tb %>% dplyr::transmute(original_row = 1:NROW(.),
-                                                reference = label,
-                                                time_series) %>%
+        # extract the band values of the time series
+        data.tb$time_series <- data.tb$time_series %>%
+            purrr::map(function(ts) {
+                ts %>%
+                    dplyr::select(-Index) %>%
+                    purrr::map(function(band) band) %>%
+                    unlist() %>%
+                    as.matrix() %>%
+                    t() %>%
+                    tibble::as_tibble()
+        })
+        # spread these values as distance attributes
+        distances.tb <- data.tb %>%
+            dplyr::transmute(original_row = 1:NROW(.), reference = label, time_series) %>%
             tidyr::unnest(time_series)
 
-        return(data.tb)
+        return(distances.tb)
     }
 
-    result <- .sits_factory_function (data.tb, result_fun)
-    return (result)
+    distances.tb <- .sits_factory_function (data.tb, result_fun)
+    return (distances.tb)
 }
