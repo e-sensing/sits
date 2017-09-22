@@ -11,15 +11,16 @@
 #' @param  end_date        the end date of the classification
 #' @param  interval        the period between two classifications
 #' @param  data_interval   the period of the input data to be extracted for each classification
+#' @param  tolerance       tolerance on matching input data with the patterns
 #' @return subset_dates.lst     a list of start and end points of the input time series to be extracted
 #'                         for classification
 #'
-.sits_subset_dates <- function (start_date, end_date, interval, data_interval){
+.sits_subset_dates <- function (start_date, end_date, interval, data_interval, tolerance = "1 month"){
 
     subset_dates.lst <- list()
 
     subset_start_date <- lubridate::as_date(start_date)
-    while (subset_start_date < end_date){
+    while (lubridate::as_date(subset_start_date + lubridate::period(tolerance)) < end_date){
         subset_end_date <- lubridate::as_date(subset_start_date + lubridate::as.period (data_interval))
         subset_dates.lst [[length(subset_dates.lst) + 1 ]] <- c(subset_start_date, subset_end_date)
         subset_start_date <- lubridate::as_date(subset_start_date + lubridate::as.period (interval))

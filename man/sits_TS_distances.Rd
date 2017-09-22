@@ -5,14 +5,20 @@
 \title{Calculate a set of distance measures for satellite image time series}
 \usage{
 sits_TS_distances(data.tb = NULL, patterns.tb = NULL, distance = "dtw",
-  ...)
+  start_date = NULL, end_date = NULL, interval = "12 month", ...)
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series}
+\item{data.tb}{SITS tibble time series}
 
-\item{patterns.tb}{a set of patterns obtained from training samples}
+\item{patterns.tb}{Set of patterns obtained from training samples}
 
-\item{distance}{a method for calculating distances between time series}
+\item{distance}{Method for calculating distances between time series and pattern}
+
+\item{start_date}{Starting date of the distance matching between time series and patterns}
+
+\item{end_date}{End date of the distance matching between time series and patternss}
+
+\item{interval}{Period to match the data to the patterns}
 
 \item{...}{Additional parameters required by the distance method.}
 }

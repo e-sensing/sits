@@ -170,12 +170,15 @@ sits_bands <- function (data.tb) {
 #' @description  Given a long time series, divide it into segments to match
 #'               the time range of a set of patterns
 #'
-#' @param data.tb      a valid sits tibble with data
-#' @param patterns.tb  a tibble with time series patterns
-#' @return newdata.tb  a SITS tibble with the original data cut into subsets of equal lengths
+#' @param data.tb       SITS tibble with time series data
+#' @param patterns.tb   Tibble with time series patterns
+#' @param start_date    Starting date of the distance matching between time series and patterns
+#' @param end_date      End date of the distance matching between time series and patternss
+#' @param interval      Period to match the data to the patterns
+#' @return newdata.tb   SITS tibble with the original data cut into subsets of equal lengths
 #' @export
 #'
-sits_break_ts <-  function (data.tb, patterns.tb){
+sits_break_ts <-  function (data.tb, patterns.tb, start_date = NULL, end_date = NULL, interval = "12 month"){
 
     # ensure the input values exist
     .sits_test_tibble(data.tb)
@@ -185,7 +188,7 @@ sits_break_ts <-  function (data.tb, patterns.tb){
     data.tb %>%
         purrrlyr::by_row(function (row) {
 
-            subset_dates.lst <- sits_match_dates(row, patterns.tb)
+            subset_dates.lst <- sits_match_dates(row, patterns.tb, start_date, end_date, interval)
 
             subset_dates.lst %>%
                 purrr::map (function (date_pair){
@@ -401,12 +404,15 @@ sits_group_bylatlong <- function (data.tb) {
 #'              should be aligned to that of the reference data set (usually a set of patterns).
 #'              This function aligns these data sets so that shape matching works correctly
 #'
-#' @param  data.tb           the input data set
-#' @param  patterns.tb       the reference data set
-#' @return breaks            the breaks that will be applied to the input data set
+#' @param data.tb               Input data set
+#' @param patterns.tb           Reference data set
+#' @param start_date            Starting date of the distance matching between time series and patterns
+#' @param end_date              End date of the distance matching between time series and patternss
+#' @param interval              Period to match the data to the patterns
+#' @return subset_dates.lst            the breaks that will be applied to the input data set
 #'
 #' @export
-sits_match_dates <- function (data.tb, patterns.tb){
+sits_match_dates <- function (data.tb, patterns.tb, start_date = NULL, end_date = NULL, interval = "12 month"){
 
     # ensure the input values exist
     .sits_test_tibble(data.tb)
@@ -418,21 +424,32 @@ sits_match_dates <- function (data.tb, patterns.tb){
     input_start_date <- data.tb[1,]$start_date
     input_end_date   <- data.tb[1,]$end_date
 
-    patt_st_jday  <- lubridate::yday(patterns.tb[1,]$start_date)
-    patt_en_jday  <- lubridate::yday(patterns.tb[1,]$end_date)
+    # if the start and end dates are not provided
+    # define the start and end days of the input data based on the patterns
+    if (purrr::is_null (start_date)){
+        patt_st_jday  <- lubridate::yday(patterns.tb[1,]$start_date)
+        date0         <- lubridate::as_date(paste0(as.character(lubridate::year(input_start_date)),"-01-01"))
+        start_date    <- lubridate::as_date(date0 + patt_st_jday)
+    }
 
-    #define the start and end days of the input data based on the patterns
-    date0         <- lubridate::as_date(paste0(as.character(lubridate::year(input_start_date)),"-01-01"))
-    start_date    <- lubridate::as_date(date0 + patt_st_jday)
-    date1         <- lubridate::as_date(paste0(as.character(lubridate::year(input_end_date)),"-01-01"))
-    end_date      <- lubridate::as_date(date1 + patt_en_jday)
+    if (purrr::is_null (end_date)){
+        patt_en_jday  <- lubridate::yday(patterns.tb[1,]$end_date)
+        date1         <- lubridate::as_date(paste0(as.character(lubridate::year(input_end_date)),"-01-01"))
+        end_date      <- lubridate::as_date(date1 + patt_en_jday)
+    }
 
-    # define the intervals based on the patterns
-    interval      <- lubridate::as.period(patterns.tb[1,]$end_date - patterns.tb[1,]$start_date)
-    data_interval <- interval
+    breaks <- seq (from = as.Date (start_date), to = as.Date (end_date), by = interval)
+
+    # if the last year of data is not included, include it
+    if (lubridate::year(end_date) != lubridate::year(breaks[length(breaks)]))
+        breaks[length(breaks) + 1 ] <- end_date
 
     #obtain the subset dates to break the input data set
-    subset_dates.lst <- .sits_subset_dates(start_date, end_date, interval, data_interval)
+    subset_dates.lst <- list()
+    for (i in 1:(length(breaks) - 1))
+        subset_dates.lst [[length(subset_dates.lst) + 1 ]] <- c(breaks[i], breaks[i+1])
+
+    return (subset_dates.lst)
 }
 
 #' @title Merge two satellite image time series
@@ -712,6 +729,37 @@ sits_select_bands <- function (data.tb, bands) {
 
     # return the result
     return (result.tb)
+}
+#' @title Spread matches from a sits matches tibble
+#' @name sits_spread_matches
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a SITS tibble with a set of TWDTW matches, returns a tibble whose columns have
+#' the reference label and the TWDTW distances for each temporal pattern.
+#'
+#' @param  data.tb    a SITS matches tibble
+#' @return result.tb  a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
+#' @export
+sits_spread_matches <- function(data.tb){
+
+    # Get best TWDTW aligniments for each class
+    data.tb$matches <- data.tb$matches %>%
+        purrr::map(function (data.tb){
+            data.tb %>%
+                dplyr::group_by(predicted) %>%
+                dplyr::summarise(distance=min(distance))
+        })
+
+    # Select best match and spread pred to columns
+    result.tb <- data.tb %>%
+        dplyr::transmute(original_row = 1:NROW(.), reference = label, matches = matches) %>%
+        tidyr::unnest(matches, .drop = FALSE) %>%
+        tidyr::spread(key = predicted, value = distance)
+
+    return(result.tb)
 }
 #' @title returns the labels' count of a sits tibble
 #' @name sits_summary
