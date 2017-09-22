@@ -298,17 +298,17 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
 #' "spreads" them in time to produce a tibble with distances.
 #'
 #' @param  data.tb       a SITS tibble with original data
+#' @param patterns.tb      Set of patterns obtained from training samples
 #' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
 #' @export
-sits_spread_time_series <- function(data.tb = NULL, ...){
+sits_spread_time_series <- function(data.tb = NULL, patterns.tb = NULL){
 
-    print ("sits spread time series")
-
-    .sits_test_tibble(data.tb)
-
-    result_fun <- function(data.tb, ...){
+    result_fun <- function(data.tb, patterns.tb){
         # apply a correction factor to the time series to avoid negative values
-        tb <- sits_apply(tb, fun = function (band) band + 3.0)
+        data.tb <- sits_apply(data.tb, fun = function (band) band + 3.0)
+
+        # breaks the data according to the patterns
+        data.tb <- sits_break_ts (data.tb, patterns.tb)
 
         # extract the band values of the time series
         data.tb$time_series <- data.tb$time_series %>%
@@ -329,6 +329,6 @@ sits_spread_time_series <- function(data.tb = NULL, ...){
         return(distances.tb)
     }
 
-    distances.tb <- .sits_factory_function (data.tb, result_fun)
-    return (distances.tb)
+    result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
+    return (result)
 }

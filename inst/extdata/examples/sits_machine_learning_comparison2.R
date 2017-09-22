@@ -12,11 +12,7 @@ results <- list()
 
 # test accuracy of TWDTW to measure distances
 conf_svm.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 2,
-<<<<<<< HEAD
                                    pt_method   = sits_no_patterns(),
-=======
-                                   pt_method   = function(...) NULL,
->>>>>>> f1ac817e303aeb277a10a8707f7accddd4c53480
                                    dist_method = sits_spread_time_series(),
                                    tr_method   = sits_svm (cost = 10, kernel = "radial",
                                                            tolerance = 0.001, epsilon = 0.1))
@@ -122,5 +118,5 @@ results[[length(results) + 1]] <- conf_svm_full.mx
 
 WD = getwd()
 
-sits_toXLSX(results, file = paste0(WD, "/accuracy_embrapa.xlsx"))
+sits_toXLSX(results, file = paste0(WD, "/accuracy_embrapa_spread.xlsx"))
 
