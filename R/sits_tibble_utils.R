@@ -429,13 +429,13 @@ sits_match_dates <- function (data.tb, patterns.tb, start_date = NULL, end_date 
     if (purrr::is_null (start_date)){
         patt_st_jday  <- lubridate::yday(patterns.tb[1,]$start_date)
         date0         <- lubridate::as_date(paste0(as.character(lubridate::year(input_start_date)),"-01-01"))
-        start_date    <- lubridate::as_date(date0 + patt_st_jday)
+        start_date    <- lubridate::as_date(date0 + patt_st_jday - 1)
     }
 
     if (purrr::is_null (end_date)){
         patt_en_jday  <- lubridate::yday(patterns.tb[1,]$end_date)
         date1         <- lubridate::as_date(paste0(as.character(lubridate::year(input_end_date)),"-01-01"))
-        end_date      <- lubridate::as_date(date1 + patt_en_jday)
+        end_date      <- lubridate::as_date(date1 + patt_en_jday - 1)
     }
 
     breaks <- seq (from = as.Date (start_date), to = as.Date (end_date), by = interval)
@@ -729,37 +729,6 @@ sits_select_bands <- function (data.tb, bands) {
 
     # return the result
     return (result.tb)
-}
-#' @title Spread matches from a sits matches tibble
-#' @name sits_spread_matches
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Given a SITS tibble with a set of TWDTW matches, returns a tibble whose columns have
-#' the reference label and the TWDTW distances for each temporal pattern.
-#'
-#' @param  data.tb    a SITS matches tibble
-#' @return result.tb  a tibble where whose columns have the reference label and the TWDTW distances for each temporal pattern
-#' @export
-sits_spread_matches <- function(data.tb){
-
-    # Get best TWDTW aligniments for each class
-    data.tb$matches <- data.tb$matches %>%
-        purrr::map(function (data.tb){
-            data.tb %>%
-                dplyr::group_by(predicted) %>%
-                dplyr::summarise(distance=min(distance))
-        })
-
-    # Select best match and spread pred to columns
-    result.tb <- data.tb %>%
-        dplyr::transmute(original_row = 1:NROW(.), reference = label, matches = matches) %>%
-        tidyr::unnest(matches, .drop = FALSE) %>%
-        tidyr::spread(key = predicted, value = distance)
-
-    return(result.tb)
 }
 #' @title returns the labels' count of a sits tibble
 #' @name sits_summary

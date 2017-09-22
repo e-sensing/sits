@@ -2,15 +2,16 @@
 % Please edit documentation in R/sits_patterns.R
 \name{sits_no_patterns}
 \alias{sits_no_patterns}
+\alias{sits_patterns_from_data}
 \title{Do not create patterns for classification}
 \usage{
-sits_no_patterns(data.tb = NULL)
+sits_patterns_from_data(data.tb)
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series with an alignment column}
+\item{data.tb}{a SITS tibble time series}
 }
 \value{
-result          a model fitted into input data given by train_method parameter
+patterns.tb       a SITS tibble time series used as reference for traning the model
 }
 \description{
 This function is to be used when oen does not want to create

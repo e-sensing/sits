@@ -4,10 +4,12 @@
 \alias{sits_spread_time_series}
 \title{Use time series values from a sits tibble as distances for training patterns}
 \usage{
-sits_spread_time_series(data.tb = NULL)
+sits_spread_time_series(data.tb = NULL, patterns.tb = NULL)
 }
 \arguments{
 \item{data.tb}{a SITS tibble with original data}
+
+\item{patterns.tb}{Set of patterns obtained from training samples}
 }
 \value{
 distances.tb  a tibble where columns have the reference label and the time series values as distances

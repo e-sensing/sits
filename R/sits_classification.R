@@ -22,8 +22,6 @@ sits_classify <- function (data.tb = NULL, patterns.tb = NULL, ml_model = NULL, 
     .sits_test_tibble(data.tb)
     .sits_test_tibble(patterns.tb)
     ensurer::ensure_that(ml_model,   !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
-    ensurer::ensure_that(start_date, !purrr::is_null(.), err_desc = "sits-classify: please provide the starting date for the classification")
-    ensurer::ensure_that(end_date,   !purrr::is_null(.), err_desc = "sits-classify: please provide the end date for the classification")
 
     # create a tibble to store the result
     result.tb <- sits_tibble_classification()
