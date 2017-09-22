@@ -2,19 +2,25 @@
 % Please edit documentation in R/sits_distances.R
 \name{sits_spread_time_series}
 \alias{sits_spread_time_series}
-\title{Spread time series values from a sits tibble as distances in a sits distance tibble}
+\title{Use time series values from a sits tibble as distances for training patterns}
 \usage{
-sits_spread_time_series(data.tb = NULL)
+sits_spread_time_series(data.tb = NULL, patterns.tb = NULL)
 }
 \arguments{
-\item{data.tb}{a SITS tibble}
+\item{data.tb}{a SITS tibble with original data}
+
+\item{patterns.tb}{Set of patterns obtained from training samples}
 }
 \value{
-result.tb  a tibble where columns have the reference label and the time series bands as distances
+distances.tb  a tibble where columns have the reference label and the time series values as distances
 }
 \description{
-Given a SITS tibble with a set of time series values, returns a tibble whose columns have
-the reference label and the time series bands as distances to be used as input in Machine Learning functions.
+This function allows using a set of labelled time series as
+input to the machine learning models. Instead of first estimating a set
+of idealised patterns and then computing distances from these patterns,
+the attributes used to train the model are the series themselves.
+This function then extracts the time series from a SITS tibble and
+"spreads" them in time to produce a tibble with distances.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

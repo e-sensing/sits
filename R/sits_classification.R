@@ -22,20 +22,18 @@ sits_classify <- function (data.tb = NULL, patterns.tb = NULL, ml_model = NULL, 
     .sits_test_tibble(data.tb)
     .sits_test_tibble(patterns.tb)
     ensurer::ensure_that(ml_model,   !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
-    ensurer::ensure_that(start_date, !purrr::is_null(.), err_desc = "sits-classify: please provide the starting date for the classification")
-    ensurer::ensure_that(end_date,   !purrr::is_null(.), err_desc = "sits-classify: please provide the end date for the classification")
 
     # create a tibble to store the result
     result.tb <- sits_tibble_classification()
-
-    # find the subsets of the input data
-    subset_dates.lst <- .sits_subset_dates(start_date, end_date, interval, data_interval)
 
     # go over every row of the table
     data.tb %>%
         purrrlyr::by_row (function (row) {
             # create a table to store the result
             predict.tb <- sits_tibble_prediction()
+
+            # find the subsets of the input data
+            subset_dates.lst <- sits_match_dates(row, patterns.tb, start_date = start_date, end_date = end_date, interval = interval)
 
             subset_dates.lst %>%
                 purrr::map (function (date_pair){
@@ -44,7 +42,7 @@ sits_classify <- function (data.tb = NULL, patterns.tb = NULL, ml_model = NULL, 
                     row_subset.tb <- sits_extract(row, date_pair[1], date_pair[2])
 
                     # find the distances in the subset data
-                    distances.tb  <- sits_distances (row_subset.tb, patterns.tb, dist_method = dist_method, break_ts = FALSE)
+                    distances.tb  <- sits_distances (row_subset.tb, patterns.tb, dist_method = dist_method)
 
                     # classify the subset data
                     sub_predict.tb <- sits_predict(row_subset.tb, distances.tb, ml_model)
