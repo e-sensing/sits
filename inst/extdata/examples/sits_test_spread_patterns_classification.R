@@ -40,5 +40,3 @@ point.tb <- sits_getdata (longitude = long, latitude = lat, bands = bands, cover
 
 class.tb <- sits_classify (point.tb, patterns.tb, model.ml, dist_method = sits_spread_time_series(),
                            start_date = "2000-09-13", end_date = "2016-08-31")
-
-
