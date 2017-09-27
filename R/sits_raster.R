@@ -242,7 +242,7 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
         })
 
     # recover the input data by blocks for efficiency
-    bs <- raster::blockSize (raster.tb[1,]$r_obj[[1]])
+    bs <- raster::blockSize (raster_class.tb[1,]$r_obj[[1]])
 
     # read the input raster in blocks
     for (i in 1:bs$n){

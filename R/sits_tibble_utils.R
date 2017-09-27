@@ -227,22 +227,23 @@
 #'
 #' @description returns a vector containing the dates of a sits table
 #'
-#' @param  ts         A time series tibble
-#' @param  start_date the starting date of the time series segment
-#' @param  end_date   the end date of the time series segment
-#' @return ts         A time series tibble in SITS format with the chosen subset
-.sits_extract_ts <- function (ts, start_date = NULL, end_date = NULL) {
+#' @param  data.tb    A SITS tibble
+#' @param  start_date Starting date of the time series segment
+#' @param  end_date   End date of the time series segment
+#' @return ts         List of time series tibbles in the selected interval [start_date, end_date]
+.sits_extract_ts <- function (data.tb, start_date = NULL, end_date = NULL) {
 
     # ensure that a start and end date are provided
     ensurer::ensure_that(start_date, !purrr::is_null(.), err_desc = "sits_extract: start_date must be provided")
     ensurer::ensure_that(end_date, !purrr::is_null(.), err_desc = "sits_extract: end_date must be provided")
 
-    # filter the time series by start and end dates
-    sub.ts <- ts %>%
-        dplyr::filter (dplyr::between (.$Index, start_date, end_date))
-
-
-    return (sub.ts)
+    ts.lst <- data.tb$time_series %>%
+        purrr::map(function (ts.tb){
+            # filter the time series by start and end dates
+            sub.tb <- ts.tb %>%
+                dplyr::filter (dplyr::between (.$Index, start_date, end_date))
+        })
+    return (ts.lst)
 }
 #' @title Find out the cuts in a long time to break it into intervals
 #' @name .sits_find_cuts

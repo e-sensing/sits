@@ -86,7 +86,7 @@
     # join all rows in a single tibble
     raster_layers.tb <- dplyr::bind_rows (raster.lst)
 
-    return (raster.tb)
+    return (raster_layers.tb)
 }
 
 #' @title Retrieve a sits tibble with time series from a block of values obtained from a RasterBrick
