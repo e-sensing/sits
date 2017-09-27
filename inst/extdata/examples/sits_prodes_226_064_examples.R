@@ -21,7 +21,6 @@ conv2.lst <- list("Deforestation_2014" = "Non_Forest",
                   "Forest" = "Forest",
                   "Pasture" = "Non_Forest")
 
-
 # some ML functions computes log to perform classification. Hence, we must work on positive values.
 # We transform the data time series values by shifting the data values:
 positive_prodes.tb <- prodes.tb %>% sits_apply(function(band) (3 + band))

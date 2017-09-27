@@ -11,11 +11,10 @@ embrapa.tb <- sits_select (embrapa.tb, bands = c("ndvi", "evi", "nir", "mir") )
 results <- list()
 
 # test accuracy of TWDTW to measure distances
-conf_svm.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 2,
-                                   pt_method   = sits_no_patterns(),
-                                   dist_method = sits_spread_time_series(),
-                                   tr_method   = sits_svm (cost = 10, kernel = "radial",
-                                                           tolerance = 0.001, epsilon = 0.1))
+conf_svm.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 1,
+                                   pt_method   = sits_patterns_from_data(),
+                                   dist_method = sits_distances_from_data(),
+                                   tr_method   = sits_svm (formula = sits_formula_linear(), kernel = "radial"))
 print("==================================================")
 print ("== Confusion Matrix = SVM =======================")
 conf_svm.mx <- sits_accuracy(conf_svm.tb)
@@ -29,8 +28,8 @@ results[[length(results) + 1]] <- conf_svm.mx
 
 # generalized liner model (glm)
 conf_glm.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 2,
-                                        pt_method   = function(...) NULL,
-                                        dist_method = sits_spread_time_series(),
+                                        pt_method   = sits_patterns_from_data(),
+                                        dist_method = sits_distances_from_data(),
                                         tr_method   = sits_glm())
 
 # print the accuracy of the generalized liner model (glm)
@@ -46,8 +45,8 @@ results[[length(results) + 1]] <- conf_glm.mx
 
 # test accuracy of TWDTW to measure distances
 conf_rfor.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 2,
-                                         pt_method   = function(...) NULL,
-                                         dist_method = sits_spread_time_series(),
+                                         pt_method   = sits_patterns_from_data(),
+                                         dist_method = sits_distances_from_data(),
                                          tr_method   = sits_rfor ())
 print("==================================================")
 print ("== Confusion Matrix = RFOR =======================")
@@ -60,8 +59,8 @@ results[[length(results) + 1]] <- conf_rfor.mx
 
 # test accuracy of TWDTW to measure distances
 conf_lda.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 2,
-                                        pt_method   = function(...) NULL,
-                                        dist_method = sits_spread_time_series(),
+                                        pt_method   = sits_patterns_from_data(),
+                                        dist_method = sits_distances_from_data(),
                                         tr_method   = sits_lda ())
 
 print("==================================================")
@@ -74,8 +73,8 @@ results[[length(results) + 1]] <- conf_lda.mx
 # =============== MLR ==============================
 # "multinomial log-linear (mlr)
 conf_mlr.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 1,
-                                        pt_method   = function(...) NULL,
-                                        dist_method = sits_spread_time_series(),
+                                        pt_method   = sits_patterns_from_data(),
+                                        dist_method = sits_distances_from_data(),
                                         tr_method   = sits_mlr())
 
 # print the accuracy of the Multinomial log-linear
@@ -89,8 +88,8 @@ results[[length(results) + 1]] <- conf_mlr.mx
 # =============== GBM ==============================
 # Gradient Boosting Machine
 conf_gbm.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 1,
-                                        pt_method   = function(...) NULL,
-                                        dist_method = sits_spread_time_series(),
+                                        pt_method   = sits_patterns_from_data(),
+                                        dist_method = sits_distances_from_data(),
                                         tr_method   = sits_gbm())
 
 # print the accuracy of the Gradient Boosting Machine
@@ -105,8 +104,8 @@ results[[length(results) + 1]] <- conf_gbm.mx
 
 # test accuracy of TWDTW to measure distances
 conf_svm_full.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
-                                        pt_method   = function(...) NULL,
-                                        dist_method = sits_spread_time_series(),
+                                        pt_method   = sits_patterns_from_data(),
+                                        dist_method = sits_distances_from_data(),
                                         tr_method   = sits_svm (cost = 10, kernel = "radial",
                                                                 tolerance = 0.001, epsilon = 0.1))
 print("==================================================")

@@ -5,18 +5,13 @@
 \title{Find distances between a set of SITS patterns and segments of sits tibble using TWDTW}
 \usage{
 sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL,
-  start_date = NULL, end_date = NULL, interval = "12 month",
-  dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
-  span = 250, keep = FALSE, multicores = 1)
+  interval = "12 month", dist.method = "euclidean", alpha = -0.1,
+  beta = 100, theta = 0.5, span = 250, keep = FALSE, multicores = 1)
 }
 \arguments{
 \item{data.tb}{Table in SITS format with a time series to be classified using TWTDW}
 
 \item{patterns.tb}{Set of known temporal signatures for the chosen classes}
-
-\item{start_date}{Starting date of the distance matching between time series and patterns}
-
-\item{end_date}{End date of the distance matching between time series and patternss}
 
 \item{interval}{Period to match the data to the patterns}
 

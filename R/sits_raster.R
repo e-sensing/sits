@@ -67,20 +67,9 @@ sits_STRaster <- function (files, timeline, bands, scale_factors){
 #' about a raster time series
 #'
 #' @export
-sits_fromRaster <- function (raster.tb,
-                              file        = NULL,
-                              longitude   = NULL,
-                              latitude    = NULL,
-                              xcoord      = NULL,
-                              ycoord      = NULL,
-                              xmin        = NULL,
-                              xmax        = NULL,
-                              ymin        = NULL,
-                              ymax        = NULL,
-                              start_date  = NULL,
-                              end_date    = NULL,
-                              label       = "NoClass",
-                              coverage    = NULL) {
+sits_fromRaster <- function (raster.tb, file = NULL, longitude = NULL, latitude = NULL,  xcoord = NULL, ycoord = NULL,
+                              xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL,
+                              start_date = NULL, end_date  = NULL, label = "NoClass", coverage    = NULL) {
 
     # ensure metadata tibble exists
     .sits_test_tibble (raster.tb)
@@ -105,8 +94,8 @@ sits_fromRaster <- function (raster.tb,
 #'               Raster Layers whose metadata is stored in a tibble
 #'               created by the sits_STraster function
 #'
-#' @param  raster.tb       A tibble with metadata information about a raster data set
-#' @param  xy              A matrix with X/Y coordinates
+#' @param raster.tb        A tibble with metadata information about a raster data set
+#' @param xy               A matrix with X/Y coordinates
 #' @param longitude        Longitude of the chosen location
 #' @param latitude         Latitude of the chosen location
 #' @param label            Label to attach to the time series
@@ -197,7 +186,7 @@ sits_ts_fromRasterCSV <- function (raster.tb, file){
             ensurer::ensure_that(xy, .sits_XY_inside_raster((.), raster.tb),
                                  err_desc = "lat-long point not inside raster")
             row.tb <- sits_ts_fromRasterXY (raster.tb, xy, r$longitude, r$latitude, r$label)
-            row.tb <- sits_extract (row.tb, r$start_date, r$end_date)
+            row.tb <- .sits_extract (row.tb, r$start_date, r$end_date)
             data.tb <<- dplyr::bind_rows (data.tb, row.tb)
         })
     return (data.tb)
@@ -226,7 +215,7 @@ sits_ts_fromRasterCSV <- function (raster.tb, file){
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 #' @export
 sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model = NULL,
-                                  dist_method = sits_TWDTW_distances(),
+                                  dist_method = sits_distances_from_data(),
                                   interval = "12 month"){
 
     # ensure metadata tibble exists
@@ -235,132 +224,43 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
     .sits_test_tibble (patterns.tb)
 
     # ensure that file name and prediction model are provided
-    ensurer::ensure_that(file, !purrr::is_null(.), err_desc = "output filename should be provided")
+    ensurer::ensure_that(file,     !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
     ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits-classify-raster: please provide a machine learning model already trained")
 
-    # ensure that input and output file names are different
-    input_filename <- tools::file_path_sans_ext(basename (raster.tb[1,]$name))
-    output_filename <- tools::file_path_sans_ext(basename (file))
-    ensurer::ensure_that(input_filename, (.) != output_filename,
-                         err_desc = "output filename should be different than input")
-
-    # produce the breaks used to generate the output rasters
-    breaks <- sits_match_dates(raster.tb, patterns.tb)
-
     # create the raster objects and their respective filenames
-    raster_class.tb <- .sits_create_classified_raster(raster.tb, breaks, file)
+    raster_class.tb <- .sits_create_classified_raster(raster.tb, patterns.tb, file, interval)
+
+    # get the labels of the data
+    labels <- sits_labels(patterns.tb)$label
+
+    #initiate writing
+    layer.lst <- list()
+    raster_class.tb <- raster_class.tb %>%
+        purrrlyr::by_row(function (layer) {
+            r_out <- raster::writeStart(layer$r_obj[[1]], layer$r_obj[[1]]@file@name, overwrite = TRUE)
+            layer.lst[[length(layer.lst) +  1]] <<- r_out
+        })
 
     # recover the input data by blocks for efficiency
-
     bs <- raster::blockSize (raster.tb[1,]$r_obj[[1]])
 
-    bands <- list()
-
+    # read the input raster in blocks
     for (i in 1:bs$n){
-        for (j in 1:NROW(raster.tb)) {
-            values <- raster::getValues(raster.tb[1,]$r_obj[[j]], row = bs$row[i], nrows = bs$nrows[i])
-            bands[[length(bands) + 1 ]] <- values
-        }
 
+        # extract time series from the block of RasterBrick rows
+        data.tb <- .sits_data_from_block (raster.tb, row = bs$row[i], nrows = bs$nrows[i])
 
+        # classify the time series that are part of the block
+        class.tb <- sits_classify(data.tb, patterns.tb, ml_model)
+
+        # write the block back
+        raster_class.tb <- .sits_block_from_data (class.tb, raster_class.tb, labels, row = bs$row[i])
     }
-}
-
-.sits_create_classified_raster <- function (raster.tb, breaks, file){
-    # ensure metadata tibble exists
-    .sits_test_tibble (raster.tb)
-    # ensure that breaks exist
-    ensurer::ensure_that(breaks, length(.) > 1, err_desc = "sits_create_classified_raster:
-                         breaks vector should have at least two values")
-
-    raster.lst <- list()
-
-    for (i in 1:(length(breaks)-1)){
-
-        # create the raster layer
-        r_out <- raster::raster(raster.tb[1,])
-
-        # define the timeline for the classified image
-        timeline <- vector()
-        timeline[1] = breaks[i]
-        timeline[2] = breaks[i+1]
-
-        # define the filename for the classified image
-        filename <- .sits_raster_filename(r_out, timeline[1], timeline[2])
-        r_out@file@name <- filename
-
-        #define the band and the scale factor
-        band <- "class"
-        scale_factor <- 1
-
-        # create a new RasterLayer for a defined period and generate the associated metadata
-        row.tb <- .sits_raster_tibble (r_out, band, timeline, scale_factor)
-
-        # add the metadata information to the list
-        raster.lst[[length(raster.lst) + 1 ]] <- row.tb
-    }
-    # join all rows in a single tibble
-    raster.tb <- dplyr::bind_rows (raster.lst)
-
-    return (raster.tb)
-}
-#' @title Create one line of metadata tibble to store the description of a spatio-temporal raster
-#' @name .sits_raster_tibble
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description  This function creates one line of tibble containing the metadata for
-#'               a set of spatio-temporal raster files.
-#'
-#' @param raster.obj   Valid Raster object (associated to filename)
-#' @param band         Name of band (either raw or classified)
-#' @param timeline     Timeline of data collection
-#' @param scale_factor Scale factor to correct data
-
-.sits_raster_tibble <- function (raster.obj, band, timeline, scale_factor){
-
-    raster.tb <- tibble::tibble (
-        r_obj           = list(raster.obj),
-        ncols           = raster.obj@ncols,
-        nrows           = raster.obj@nrows,
-        band            = band,
-        start_date      = lubridate::as_date(timeline[1]),
-        end_date        = lubridate::as_date(timeline[length(timeline)]),
-        timeline        = list(timeline),
-        xmin            = raster.obj@extent@xmin,
-        xmax            = raster.obj@extent@xmax,
-        ymin            = raster.obj@extent@ymin,
-        ymax            = raster.obj@extent@ymax,
-        xres            = raster::xres (raster.obj),
-        yres            = raster::yres (raster.obj),
-        scale_factor    = scale_factor,
-        crs             = raster.obj@crs@projargs,
-        name            = raster.obj@file@name
-    )
-    return (raster.tb)
-}
-
-#' @title Define a filename associated to one classified raster layer
-#' @name .sits_raster_filename
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Creates a filename for a raster layer with associated temporal information,
-#'                 given a basic filename
-#'
-#' @param file       The original file name (without temporal information)
-#' @param start_date The starting date of the time series classification
-#' @param end_date   The end date of the time series classification
-#'
-.sits_raster_filename <- function (file, start_date, end_date){
-
-
-    file_base <- tools::file_path_sans_ext(basename (file))
-    y1 <- lubridate::year(start_date)
-    m1 <- lubridate::month(start_date)
-    y2 <- lubridate::year(end_date)
-    m2 <- lubridate::month(end_date)
-
-    file_name <- paste0(file_base,"_",y1,"_",m1,"_",y2,"_",m2,".tif")
-
-    return (file_name)
+    # finish writing
+    layer.lst %>%
+        purrr::map(function (layer) {
+            layer <- raster::writeStop(layer)
+        })
+    return (raster_class.tb)
 }
 

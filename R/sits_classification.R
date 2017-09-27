@@ -8,21 +8,17 @@
 #' @param  patterns.tb     a set of known temporal signatures for the chosen classes
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  dist_method     method to compute distances (e.g., sits_TWDTW_distances)
-#' @param  start_date      the starting date of the classification
-#' @param  end_date        the end date of the classification
 #' @param  interval        the period between two classifications
-#' @param  data_interval   the period of the input data to be extracted for each classification
-#' @param ...             other parameters to be passed to the distance function
-#' @return data.tb      a SITS tibble with the predicted label
+#' @param  ...             other parameters to be passed to the distance function
+#' @return data.tb         a SITS tibble with the predicted labels for each input segment
 #' @export
-sits_classify <- function (data.tb = NULL, patterns.tb = NULL, ml_model = NULL, dist_method = sits_TWDTW_distances(),
-                           start_date = NULL, end_date = NULL,
-                           interval = "12 month", data_interval = "12 month"){
+sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
+                           ml_model = NULL, dist_method = sits_distances_from_data(),
+                           interval = "12 month"){
 
     .sits_test_tibble(data.tb)
     .sits_test_tibble(patterns.tb)
-    ensurer::ensure_that(ml_model,   !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
-
+    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
     # create a tibble to store the result
     result.tb <- sits_tibble_classification()
 
@@ -32,27 +28,29 @@ sits_classify <- function (data.tb = NULL, patterns.tb = NULL, ml_model = NULL, 
             # create a table to store the result
             predict.tb <- sits_tibble_prediction()
 
+            timeline <- dplyr::pull(row$time_series[[1]][,"Index"])
+
             # find the subsets of the input data
-            subset_dates.lst <- sits_match_dates(row, patterns.tb, start_date = start_date, end_date = end_date, interval = interval)
+            subset_dates.lst <- sits_match_dates(timeline, patterns.tb[1,]$start_date, patterns.tb[1,]$end_date, interval = interval)
 
             subset_dates.lst %>%
                 purrr::map (function (date_pair){
 
                     # find the n-th subset of the input data
-                    row_subset.tb <- sits_extract(row, date_pair[1], date_pair[2])
+                    row_subset.tb <- .sits_extract(row, date_pair[1], date_pair[2])
 
                     # find the distances in the subset data
                     distances.tb  <- sits_distances (row_subset.tb, patterns.tb, dist_method = dist_method)
 
                     # classify the subset data
-                    sub_predict.tb <- sits_predict(row_subset.tb, distances.tb, ml_model)
+                    predicted <- sits_predict(distances.tb, ml_model)
 
                     # save the results
                     predict.tb   <<- tibble::add_row(predict.tb,
-                                                from      = lubridate::as_date(sub_predict.tb$start_date),
-                                                to        = lubridate::as_date(sub_predict.tb$end_date),
+                                                from      = lubridate::as_date(date_pair[1]),
+                                                to        = lubridate::as_date(date_pair[2]),
                                                 distance  = 0.0,
-                                                predicted = sub_predict.tb$predicted
+                                                predicted = predicted
                     )
 
                 })

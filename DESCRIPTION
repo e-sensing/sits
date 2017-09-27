@@ -105,9 +105,11 @@ Collate:
     'sits_plot.R'
     'sits_projections.R'
     'sits_raster.R'
+    'sits_raster_utils.R'
     'sits_space_time_operations.R'
     'sits_stack_proc.R'
     'sits_tibble.R'
+    'sits_tibble_functions.R'
     'sits_tibble_utils.R'
     'sits_validate.R'
 Suggests: knitr,

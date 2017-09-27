@@ -492,7 +492,7 @@ sits_fromZOO <- function (ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
     # create a tibble to store the WTSS data
     data.tb <- sits_tibble()
     # add one row to the tibble
-    data.tb <- tibble::add_row (data.tb,
+    data.tb <- .sits_add_row (data.tb,
                                 longitude    = longitude,
                                 latitude     = latitude,
                                 start_date   = as.Date(start_date),

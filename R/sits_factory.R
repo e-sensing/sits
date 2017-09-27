@@ -15,7 +15,7 @@
 #'
 #' @param data.tb   a SITS tibble time series with the data input to the function
 #' @param fun       the function that performs some calculation on the input data
-.sits_factory_function <- function (data.tb, fun) {
+.sits_factory_function <- function (data.tb = NULL, fun) {
 
     # if no data is given, we prepare a function to be called as a parameter of other functions
     if (is.null(data.tb))

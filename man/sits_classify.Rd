@@ -5,8 +5,7 @@
 \title{Classify a sits tibble using machine learning models}
 \usage{
 sits_classify(data.tb = NULL, patterns.tb = NULL, ml_model = NULL,
-  dist_method = sits_TWDTW_distances(), start_date = NULL,
-  end_date = NULL, interval = "12 month", data_interval = "12 month")
+  dist_method = sits_distances_from_data(), interval = "12 month")
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series}
@@ -17,18 +16,12 @@ sits_classify(data.tb = NULL, patterns.tb = NULL, ml_model = NULL,
 
 \item{dist_method}{method to compute distances (e.g., sits_TWDTW_distances)}
 
-\item{start_date}{the starting date of the classification}
-
-\item{end_date}{the end date of the classification}
-
 \item{interval}{the period between two classifications}
-
-\item{data_interval}{the period of the input data to be extracted for each classification}
 
 \item{...}{other parameters to be passed to the distance function}
 }
 \value{
-data.tb      a SITS tibble with the predicted label
+data.tb         a SITS tibble with the predicted labels for each input segment
 }
 \description{
 Returns a sits table with the results of the ML classifier.

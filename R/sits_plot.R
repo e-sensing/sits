@@ -309,7 +309,7 @@ sits_plot_together <- function (data.tb, colors) {
                # what are the reference dates?
                ref_dates <- data2.tb[1,]$time_series[[1]]$Index
                # align all time series to the same dates
-               data2.tb <- sits_align(data2.tb, ref_dates)
+               data2.tb <- .sits_align(data2.tb, ref_dates)
                # extract the time series
                ts <- data2.tb$time_series
                # plot all samples for the same label
