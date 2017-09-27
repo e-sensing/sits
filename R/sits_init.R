@@ -8,7 +8,7 @@
 }
 
 # Include the following global variables in the SITS package
-utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
+utils::globalVariables(c(".", "%>%", "Index", "from", "value", "variable", "cond",
                          "med", "qt25", "qt75", "cluster_id",
                          "longitude", "latitude", "label", "coverage",
                          "year", "start_date", "end_date", "time_series",
@@ -20,5 +20,6 @@ utils::globalVariables(c(".", "%>%", "Index", "value", "variable", "cond",
 #' @import dtwSat
 #' @import dtwclust
 #' @importFrom dtw symmetric1 symmetric2
+#' @importFrom lubridate %within% %m+%
 #' @useDynLib sits, .registration = TRUE
 NULL

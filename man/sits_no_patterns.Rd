@@ -5,7 +5,7 @@
 \alias{sits_patterns_from_data}
 \title{Do not create patterns for classification}
 \usage{
-sits_patterns_from_data(data.tb)
+sits_patterns_from_data(data.tb = NULL)
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series}
@@ -17,7 +17,7 @@ patterns.tb       a SITS tibble time series used as reference for traning the mo
 This function is to be used when oen does not want to create
 a set of idealised patterns from the input data, but prefers to use the
 input series themselves as training data from estimating a prediction model.
-It should be used in connection with sits_spread_time_series.
+It should be used in connection with sits_distances_from_data.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

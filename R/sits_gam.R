@@ -49,7 +49,7 @@ sits_gam <- function (data.tb = NULL, from = NULL, to = NULL, freq = 8, formula 
 
         # align all samples to the same time series intervals
         sample_dates <- lubridate::as_date(tb[1,]$time_series[[1]]$Index)
-        tb           <- sits_align (tb, sample_dates)
+        tb           <- .sits_align (tb, sample_dates)
 
         # if "from" and "to" are not given, extract them from the data samples
         if (purrr::is_null (from) || purrr::is_null (to)) {
@@ -128,9 +128,7 @@ sits_gam <- function (data.tb = NULL, from = NULL, to = NULL, freq = 8, formula 
                 ts[[1]] <- res.tb
 
                 # add the pattern to the results tibble
-                patterns.tb <<- tibble::add_row (patterns.tb,
-                                                 longitude      = 0.0,
-                                                 latitude       = 0.0,
+                patterns.tb <<- .sits_add_row (patterns.tb,
                                                  start_date     = as.Date(from),
                                                  end_date       = as.Date(to),
                                                  label          = lb,

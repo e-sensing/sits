@@ -36,12 +36,12 @@ sits_patterns <- function(data.tb, pt_method = sits_gam(data.tb = NULL, from = N
 #' @description This function is to be used when oen does not want to create
 #' a set of idealised patterns from the input data, but prefers to use the
 #' input series themselves as training data from estimating a prediction model.
-#' It should be used in connection with sits_spread_time_series.
+#' It should be used in connection with sits_distances_from_data.
 #'
 #' @param  data.tb           a SITS tibble time series
 #' @return patterns.tb       a SITS tibble time series used as reference for traning the model
 #' @export
-sits_patterns_from_data <- function (data.tb){
+sits_patterns_from_data <- function (data.tb = NULL){
 
 
     # function that is used to be called as a value from another function
@@ -49,7 +49,8 @@ sits_patterns_from_data <- function (data.tb){
 
         # create a reference tibble that will align all training data to the same
         # dates as the first entry in the input data
-        ref.tb           <- tb[1,]
+        # the reference tibble has one sample of each label
+        ref.tb  <-  sits_sample (tb, n = 1)
         return (ref.tb)
     }
     result <- .sits_factory_function (data.tb, result_fun)

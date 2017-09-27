@@ -1,5 +1,5 @@
-files <- c(system.file("extdata/raster/sinop/sinop_crop_ndvi.tif",package = "sits"),
-           system.file("extdata/raster/sinop/sinop_crop_evi.tif", package = "sits"))
+files <- c("./inst/extdata/raster/sinop/sinop-crop-ndvi.tif",
+           "./inst/extdata/raster/sinop/sinop-crop-evi.tif")
 
 bands <- c("ndvi", "evi")
 
@@ -21,5 +21,25 @@ sits_plot(data.tb)
 data2.tb <- sits_fromRaster(raster.tb, file = system.file("extdata/samples/samples_sinop_raster_crop.csv",package = "sits"))
 
 sits_plot(data2.tb)
+
+# retrieve the samples from EMBRAPA
+embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+
+embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi"))
+
+# define the patterns from data
+patterns.tb <- sits_patterns_from_data(embrapa.tb)
+
+# distances from data
+distances.tb <- sits_distances_from_data(embrapa.tb, patterns.tb)
+
+# estimate an SVM model for this training data
+model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0.001, epsilon = 0.1)
+
+# classify a raster image
+sits_classify_raster (raster.tb, file = "./inst/extdata/raster/sinop/sinop-crop-class",
+                      patterns.tb, model.ml, dist_method = sits_distances_from_data())
+
+
 
 

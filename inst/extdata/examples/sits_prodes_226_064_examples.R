@@ -74,8 +74,11 @@ dist_prodes.tb <- prodes.tb %>% sits_distances(patt_prodes.tb)
 #
 model.svm <- sits_train(dist_prodes.tb, sits_svm(formula = sits_formula_linear(),
                                                  kernel = "radial"))
-sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.svm)
+prodes.tb %>%
+    dplyr::mutate(reference = label) %>%
+    sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -99,8 +102,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
 # User Acc (Pos Pred Value)           0.9269        0.9435         0.8857
 # Neg Pred Value                      0.9242        0.9855         0.9549
 
-sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.svm)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -126,8 +129,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
 #   |____||___//_/ \_\
 #
 model.lda <- sits_train(dist_prodes.tb, sits_lda(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.lda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -151,8 +154,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
 # User Acc (Pos Pred Value)           0.8193        0.7379         0.6822
 # Neg Pred Value                      0.7628        0.9631         0.8805
 
-sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.lda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -177,8 +180,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
 #    \__\_\|___//_/ \_\
 #
 model.qda <- sits_train(dist_prodes.tb, sits_qda(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.qda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -202,8 +205,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
 # User Acc (Pos Pred Value)           0.8607        0.7902         0.7143
 # Neg Pred Value                      0.7915        0.9762         0.9034
 
-sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.qda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -228,8 +231,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
 #   |_|  |_||____||_|_\
 #
 model.mlr <- sits_train(dist_prodes.tb, sits_mlr(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.mlr)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -253,8 +256,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
 # User Acc (Pos Pred Value)           0.8134        0.7643         0.6911
 # Neg Pred Value                      0.7795        0.9635         0.8758
 
-sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.mlr)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -281,8 +284,8 @@ model.glm1 <- sits_train(dist_prodes.tb, sits_glm(alpha = 1))
 get("result_glm", envir = environment(model.glm1))$lambda.min
 # [1] 0.004700096
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm1)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -306,8 +309,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
 # User Acc (Pos Pred Value)           0.8166        0.7698         0.6949
 # Neg Pred Value                      0.7977        0.9636         0.8709
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm1)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -335,8 +338,8 @@ model.glm2 <- sits_train(dist_prodes.tb, sits_glm(alpha = 0))
 get("result_glm", envir = environment(model.glm2))$lambda.min
 # [1] 0.01942086
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm2)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -360,8 +363,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
 # User Acc (Pos Pred Value)           0.8057        0.7826         0.6695
 # Neg Pred Value                      0.7852        0.9658         0.8648
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm2)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -392,8 +395,8 @@ model.rfor <- prodes.tb %>% sits_sample(frac = 0.95) %>%
     sits_train(sits_rfor())
 
 # test on all data set
-sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.rfor)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -417,8 +420,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
 # User Acc (Pos Pred Value)           0.8113        0.8034         0.6119
 # Neg Pred Value                      0.8048        0.9387         0.8665
 
-sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.rfor)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -657,8 +660,9 @@ dist_prodes.tb <- prodes.tb %>% sits_distances(patt_prodes.tb, dist_method = sit
 #
 model.svm <- sits_train(dist_prodes.tb, sits_svm(formula = sits_formula_linear(),
                                                  kernel = "radial"))
-sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.svm)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -682,8 +686,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
 # User Acc (Pos Pred Value)           0.9765        0.9919         0.9650
 # Neg Pred Value                      0.9812        0.9959         0.9849
 
-sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.svm)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -708,8 +712,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
 #   |____||___//_/ \_\
 #
 model.lda <- sits_train(dist_prodes.tb, sits_lda(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.lda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -733,8 +737,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
 # User Acc (Pos Pred Value)           0.8765        0.7971         0.7292
 # Neg Pred Value                      0.8121        0.9701         0.9134
 
-sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.lda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -759,8 +763,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
 #    \__\_\|___//_/ \_\
 #
 model.qda <- sits_train(dist_prodes.tb, sits_qda(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.qda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -784,8 +788,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
 # User Acc (Pos Pred Value)           0.9726        0.9308         0.9320
 # Neg Pred Value                      0.9386        0.9937         0.9826
 
-sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.qda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -810,8 +814,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
 #   |_|  |_||____||_|_\
 #
 model.mlr <- sits_train(dist_prodes.tb, sits_mlr(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.mlr)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -835,8 +839,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
 # User Acc (Pos Pred Value)           0.8647        0.8333         0.7537
 # Neg Pred Value                      0.8383        0.9705         0.9068
 
-sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.mlr)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -864,8 +868,8 @@ model.glm1 <- sits_train(dist_prodes.tb, sits_glm(alpha = 1))
 get("result_glm", envir = environment(model.glm1))$lambda.min
 # [1] 0.003934933
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm1)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -889,8 +893,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
 # User Acc (Pos Pred Value)           0.8534        0.8074         0.7154
 # Neg Pred Value                      0.8264        0.9682         0.8908
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm1)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -918,8 +922,8 @@ model.glm2 <- sits_train(dist_prodes.tb, sits_glm(alpha = 0))
 get("result_glm", envir = environment(model.glm2))$lambda.min
 # [1] 0.02149369
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm2)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -943,8 +947,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
 # User Acc (Pos Pred Value)           0.8471        0.7810         0.7209
 # Neg Pred Value                      0.8158        0.9638         0.8910
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm2)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -975,8 +979,8 @@ model.rfor <- prodes.tb %>% sits_sample(frac = 0.95) %>%
     sits_train(sits_rfor())
 
 # test on all data set
-sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.rfor)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1000,8 +1004,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
 # User Acc (Pos Pred Value)           0.8352        0.8333         0.7344
 # Neg Pred Value                      0.8636        0.9411         0.8933
 
-sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.rfor)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -1232,8 +1236,8 @@ dist_prodes.tb <- prodes.tb %>% sits_distances(patt_prodes.tb, dist_method = sit
 #
 model.svm <- sits_train(dist_prodes.tb, sits_svm(formula = sits_formula_linear(),
                                                  kernel = "radial"))
-sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.svm)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1257,8 +1261,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
 # User Acc (Pos Pred Value)           0.9852        0.9919         0.9793
 # Neg Pred Value                      0.9851        0.9959         0.9935
 
-sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.svm)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -1283,8 +1287,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
 #   |____||___//_/ \_\
 #
 model.lda <- sits_train(dist_prodes.tb, sits_lda(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.lda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1308,8 +1312,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
 # User Acc (Pos Pred Value)           0.8558        0.7852         0.6690
 # Neg Pred Value                      0.7929        0.9618         0.8959
 
-sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.lda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -1334,8 +1338,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
 #    \__\_\|___//_/ \_\
 #
 model.qda <- sits_train(dist_prodes.tb, sits_qda(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.qda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1359,8 +1363,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
 # User Acc (Pos Pred Value)           0.9819        0.9375         0.9388
 # Neg Pred Value                      0.9564        0.9916         0.9847
 
-sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.qda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -1385,8 +1389,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
 #   |_|  |_||____||_|_\
 #
 model.mlr <- sits_train(dist_prodes.tb, sits_mlr(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.mlr)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1410,8 +1414,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
 # User Acc (Pos Pred Value)           0.8709        0.8092         0.7254
 # Neg Pred Value                      0.8278        0.9621         0.9095
 
-sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.mlr)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -1439,8 +1443,8 @@ model.glm1 <- sits_train(dist_prodes.tb, sits_glm(alpha = 1))
 get("result_glm", envir = environment(model.glm1))$lambda.min
 # [1] 0.004342837
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm1)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1464,8 +1468,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
 # User Acc (Pos Pred Value)           0.8541        0.7852         0.6690
 # Neg Pred Value                      0.7978        0.9618         0.8922
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm1)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst))
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -1493,8 +1497,8 @@ model.glm2 <- sits_train(dist_prodes.tb, sits_glm(alpha = 0))
 get("result_glm", envir = environment(model.glm2))$lambda.min
 # [1] 0.02372178
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm2)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1518,8 +1522,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
 # User Acc (Pos Pred Value)           0.8650        0.7730         0.6906
 # Neg Pred Value                      0.8036        0.9677         0.8951
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm2)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -1550,8 +1554,8 @@ model.rfor <- prodes.tb %>% sits_sample(frac = 0.95) %>%
     sits_train(sits_rfor())
 
 # test on all data set
-sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.rfor)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1575,8 +1579,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
 # User Acc (Pos Pred Value)           0.8451        0.7953         0.7258
 # Neg Pred Value                      0.8526        0.9520         0.8859
 
-sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.rfor)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -1806,8 +1810,8 @@ dist_prodes.tb <- prodes.tb %>% sits_distances(patt_prodes.tb, dist_method = sit
 #
 model.svm <- sits_train(dist_prodes.tb, sits_svm(formula = sits_formula_linear(),
                                                  kernel = "radial"))
-sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.svm)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1831,8 +1835,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
 # User Acc (Pos Pred Value)           0.9588        0.9231         0.9853
 # Neg Pred Value                      0.9586        0.9916         0.9766
 
-sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.svm)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -1857,8 +1861,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.svm) %>%
 #   |____||___//_/ \_\
 #
 model.lda <- sits_train(dist_prodes.tb, sits_lda(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.lda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1882,8 +1886,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
 # User Acc (Pos Pred Value)           0.8558        0.7852         0.6690
 # Neg Pred Value                      0.7929        0.9618         0.8959
 
-sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.lda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -1908,8 +1912,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.lda) %>%
 #    \__\_\|___//_/ \_\
 #
 model.qda <- sits_train(dist_prodes.tb, sits_qda(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.qda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1933,8 +1937,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
 # User Acc (Pos Pred Value)           0.9819        0.9375         0.9388
 # Neg Pred Value                      0.9564        0.9916         0.9847
 
-sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.qda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -1959,8 +1963,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.qda) %>%
 #   |_|  |_||____||_|_\
 #
 model.mlr <- sits_train(dist_prodes.tb, sits_mlr(formula = sits_formula_linear()))
-sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.mlr)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -1984,8 +1988,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
 # User Acc (Pos Pred Value)           0.8709        0.8092         0.7254
 # Neg Pred Value                      0.8278        0.9621         0.9095
 
-sits_predict(prodes.tb, dist_prodes.tb, model.mlr) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.mlr)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -2013,8 +2017,8 @@ model.glm1 <- sits_train(dist_prodes.tb, sits_glm(alpha = 1))
 get("result_glm", envir = environment(model.glm1))$lambda.min
 # [1] 0.004342837
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm1)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -2038,8 +2042,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
 # User Acc (Pos Pred Value)           0.8541        0.7852         0.6690
 # Neg Pred Value                      0.7978        0.9618         0.8922
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm1) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm1)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -2067,8 +2071,8 @@ model.glm2 <- sits_train(dist_prodes.tb, sits_glm(alpha = 0))
 get("result_glm", envir = environment(model.glm2))$lambda.min
 # [1] 0.02372178
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm2)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -2092,8 +2096,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
 # User Acc (Pos Pred Value)           0.8650        0.7730         0.6906
 # Neg Pred Value                      0.8036        0.9677         0.8951
 
-sits_predict(prodes.tb, dist_prodes.tb, model.glm2) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.glm2)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -2124,8 +2128,8 @@ model.rfor <- prodes.tb %>% sits_sample(frac = 0.95) %>%
     sits_train(sits_rfor())
 
 # test on all data set
-sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.rfor)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv.lst)
 # Confusion Matrix and Statistics
 #
 #            Reference
@@ -2149,8 +2153,8 @@ sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
 # User Acc (Pos Pred Value)           0.8451        0.7953         0.7258
 # Neg Pred Value                      0.8526        0.9520         0.8859
 
-sits_predict(prodes.tb, dist_prodes.tb, model.rfor) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
+prodes.tb$predicted <- sits_predict(dist_prodes.tb, model.rfor)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy(conv2.lst)
 # Confusion Matrix and Statistics
 #
 #             Reference
@@ -2325,11 +2329,11 @@ qda.kfold %>% sits_accuracy(conv2.lst)
 #
 # This method use Machine Learning directly over time series data.
 # The function called to spread time series as atributes in
-# SITS distance format is `sits_spread_time_series()`.
+# SITS distance format is `sits_distances_from_data()`.
 #
 # No pattern needs to be created. The attributes are the time series itself.
 
-tssp_prodes.tb <- prodes.tb %>% sits_spread_time_series()
+tssp_prodes.tb <- prodes.tb %>% sits_distances_from_data()
 
 
 #
@@ -2355,8 +2359,8 @@ tssp_prodes.tb <- prodes.tb %>% sits_spread_time_series()
 #
 tssp.svm <- sits_train(tssp_prodes.tb, sits_svm(formula = sits_formula_linear(),
                                                 kernel = "radial"))
-sits_predict(prodes.tb, tssp_prodes.tb, tssp.svm) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy()
+prodes.tb$predicted <- sits_predict(tssp_prodes.tb, tssp.svm)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy()
 # Confusion Matrix and Statistics
 #
 #                    Reference
@@ -2387,8 +2391,8 @@ sits_predict(prodes.tb, tssp_prodes.tb, tssp.svm) %>%
 #   |____||___//_/ \_\
 #
 tssp.lda <- sits_train(tssp_prodes.tb, sits_lda(formula = sits_formula_linear()))
-sits_predict(prodes.tb, tssp_prodes.tb, tssp.lda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy()
+prodes.tb$predicted <- sits_predict(tssp_prodes.tb, tssp.lda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy()
 # Confusion Matrix and Statistics
 #
 #                    Reference
@@ -2419,8 +2423,8 @@ sits_predict(prodes.tb, tssp_prodes.tb, tssp.lda) %>%
 #    \__\_\|___//_/ \_\
 #
 tssp.qda <- sits_train(tssp_prodes.tb, sits_qda(formula = sits_formula_linear()))
-sits_predict(prodes.tb, tssp_prodes.tb, tssp.qda) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy()
+prodes.tb$predicted <- sits_predict(tssp_prodes.tb, tssp.qda)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy()
 # Confusion Matrix and Statistics
 #
 #                    Reference
@@ -2451,8 +2455,8 @@ sits_predict(prodes.tb, tssp_prodes.tb, tssp.qda) %>%
 #   |_|  |_||____||_|_\
 #
 tssp.mlr <- sits_train(tssp_prodes.tb, sits_mlr(formula = sits_formula_linear()))
-sits_predict(prodes.tb, tssp_prodes.tb, tssp.mlr) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy()
+prodes.tb$predicted <- sits_predict(tssp_prodes.tb, tssp.mlr)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy()
 # Confusion Matrix and Statistics
 #
 #                    Reference
@@ -2485,14 +2489,14 @@ sits_predict(prodes.tb, tssp_prodes.tb, tssp.mlr) %>%
 
 # glm use log function so translate time series values to strictly positive numbers:
 positive_prodes.tb <- prodes.tb %>% sits_apply(function(band) (1 + 9 * band) ** 2)
-positive_tssp_prodes.tb <- positive_prodes.tb %>% sits_spread_time_series()
+positive_tssp_prodes.tb <- positive_prodes.tb %>% sits_distances_from_data()
 
 tssp.glm1 <- sits_train(positive_tssp_prodes.tb, sits_glm(alpha = 1))
 get("result_glm", envir = environment(tssp.glm1))$lambda.min
 # [1] 0.009024855
 
-sits_predict(prodes.tb, positive_tssp_prodes.tb, tssp.glm1) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy()
+prodes.tb$predicted <- sits_predict(positive_tssp_prodes.tb, tssp.glm1)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy()
 # Confusion Matrix and Statistics
 #
 #                    Reference
@@ -2525,14 +2529,14 @@ sits_predict(prodes.tb, positive_tssp_prodes.tb, tssp.glm1) %>%
 
 # glm use log function so translate time series values to strictly positive numbers:
 positive_prodes.tb <- prodes.tb %>% sits_apply(function(band) (1 + 9 * band) ** 2)
-positive_tssp_prodes.tb <- positive_prodes.tb %>% sits_spread_time_series()
+positive_tssp_prodes.tb <- positive_prodes.tb %>% sits_distances_from_data()
 
 tssp.glm2 <- sits_train(positive_tssp_prodes.tb, sits_glm(alpha = 0))
 get("result_glm", envir = environment(tssp.glm2))$lambda.min
 # [1] 0.03095949
 
-sits_predict(prodes.tb, positive_tssp_prodes.tb, tssp.glm2) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy()
+prodes.tb$predicted <- sits_predict(positive_tssp_prodes.tb, tssp.glm2)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy()
 # Confusion Matrix and Statistics
 #
 #                    Reference
@@ -2563,8 +2567,8 @@ sits_predict(prodes.tb, positive_tssp_prodes.tb, tssp.glm2) %>%
 #   |_|_\|_|\_||___/(_)|_|  \___/ |_|_\|___||___/  |_|
 #
 tssp.rfor <- tssp_prodes.tb %>% sits_train(sits_rfor())
-sits_predict(prodes.tb, tssp_prodes.tb, tssp.rfor) %>%
-    dplyr::mutate(reference = label) %>% sits_accuracy()
+prodes.tb$predicted <- sits_predict(positive_tssp_prodes.tb, tssp.rfor)
+prodes.tb %>% dplyr::mutate(reference = label) %>% sits_accuracy()
 # Confusion Matrix and Statistics
 #
 #                    Reference
@@ -2613,7 +2617,7 @@ sits_predict(prodes.tb, tssp_prodes.tb, tssp.rfor) %>%
 
 prodes.tb %>% sits_kfold_validate(folds = 5,
                                   pt_method = function(...) NULL,
-                                  dist_method = sits_spread_time_series(),
+                                  dist_method = sits_distances_from_data(),
                                   tr_method = sits_svm(formula = sits_formula_linear(),
                                                        kernel = "radial"),
                                   multicores = 5) %>% sits_accuracy()
@@ -2649,7 +2653,7 @@ prodes.tb %>% sits_kfold_validate(folds = 5,
 
 prodes.tb %>% sits_kfold_validate(folds = 5,
                                   pt_method = function(...) NULL,
-                                  dist_method = sits_spread_time_series(),
+                                  dist_method = sits_distances_from_data(),
                                   tr_method = sits_lda(formula = sits_formula_linear()),
                                   multicores = 5) %>% sits_accuracy()
 # Confusion Matrix and Statistics
@@ -2686,7 +2690,7 @@ prodes.tb %>% sits_kfold_validate(folds = 5,
 prodes.tb %>% sits_select_bands(c("ndvi", "evi")) %>%
     sits_kfold_validate(folds = 5,
                         pt_method = function(...) NULL,
-                        dist_method = sits_spread_time_series(),
+                        dist_method = sits_distances_from_data(),
                         tr_method = sits_qda(formula = sits_formula_linear()),
                         multicores = 1) %>% sits_accuracy()
 # Confusion Matrix and Statistics
@@ -2721,7 +2725,7 @@ prodes.tb %>% sits_select_bands(c("ndvi", "evi")) %>%
 #
 prodes.tb %>% sits_kfold_validate(folds = 5,
                                   pt_method = function(...) NULL,
-                                  dist_method = sits_spread_time_series(),
+                                  dist_method = sits_distances_from_data(),
                                   tr_method = sits_mlr(formula = sits_formula_linear()),
                                   multicores = 5) %>% sits_accuracy()
 # Confusion Matrix and Statistics
@@ -2758,7 +2762,7 @@ prodes.tb %>% sits_kfold_validate(folds = 5,
 # glm use log function so translate time series values to strictly positive numbers:
 positive_prodes.tb %>% sits_kfold_validate(folds = 5,
                                            pt_method = function(...) NULL,
-                                           dist_method = sits_spread_time_series(),
+                                           dist_method = sits_distances_from_data(),
                                            tr_method = sits_glm(alpha = 1),
                                            multicores = 5) %>% sits_accuracy()
 # Confusion Matrix and Statistics
@@ -2794,7 +2798,7 @@ positive_prodes.tb %>% sits_kfold_validate(folds = 5,
 # glm use log function so translate time series values to strictly positive numbers:
 positive_prodes.tb %>% sits_kfold_validate(folds = 5,
                                            pt_method = function(...) NULL,
-                                           dist_method = sits_spread_time_series(),
+                                           dist_method = sits_distances_from_data(),
                                            tr_method = sits_glm(alpha = 0),
                                            multicores = 5) %>% sits_accuracy()
 # Confusion Matrix and Statistics
@@ -2830,7 +2834,7 @@ positive_prodes.tb %>% sits_kfold_validate(folds = 5,
 #
 prodes.tb %>% sits_kfold_validate(folds = 5,
                                   pt_method = function(...) NULL,
-                                  dist_method = sits_spread_time_series(),
+                                  dist_method = sits_distances_from_data(),
                                   tr_method = sits_rfor(),
                                   multicores = 5) %>% sits_accuracy()
 # Confusion Matrix and Statistics

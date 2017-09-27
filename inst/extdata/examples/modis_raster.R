@@ -18,3 +18,6 @@ longitude <- -55.49035
 latitude  <- -11.65125
 
 data.tb <- sits_fromRaster(raster.tb, longitude = longitude, latitude = latitude)
+
+sits_plot(data.tb)
+

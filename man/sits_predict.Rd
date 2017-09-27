@@ -4,11 +4,9 @@
 \alias{sits_predict}
 \title{Predict class based on the trained models}
 \usage{
-sits_predict(data.tb = NULL, distances.tb = NULL, ml_model, ...)
+sits_predict(distances.tb = NULL, ml_model, ...)
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series}
-
 \item{distances.tb}{a tibble with a set of distance metrics to each of the classes}
 
 \item{ml_model}{a model trained by \code{\link[sits]{sits_train}}}
@@ -16,11 +14,11 @@ sits_predict(data.tb = NULL, distances.tb = NULL, ml_model, ...)
 \item{...}{other parameters to be passed to the model function}
 }
 \value{
-data.tb      a SITS tibble with the predicted label
+predicted    the predicted labels (vector)
 }
 \description{
 Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train}},
-returns a SITS tibble with the classification.
+returns a predicted label
 }
 \author{
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

@@ -1,33 +1,3 @@
-#' @title Obtain the dates of subset of an input data set for classification
-#' @name .sits_subset_dates
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Given a start and end date for classification,
-#'              an interval for classification and an interval for data retrieval,
-#'              produce a list of start and end dates inside a classification period
-#'              that matches the expected start and end dates
-#'
-#' @param  start_date      the starting date of the classification
-#' @param  end_date        the end date of the classification
-#' @param  interval        the period between two classifications
-#' @param  data_interval   the period of the input data to be extracted for each classification
-#' @param  tolerance       tolerance on matching input data with the patterns
-#' @return subset_dates.lst     a list of start and end points of the input time series to be extracted
-#'                         for classification
-#'
-.sits_subset_dates <- function (start_date, end_date, interval, data_interval, tolerance = "1 month"){
-
-    subset_dates.lst <- list()
-
-    subset_start_date <- lubridate::as_date(start_date)
-    while (lubridate::as_date(subset_start_date + lubridate::period(tolerance)) < end_date){
-        subset_end_date <- lubridate::as_date(subset_start_date + lubridate::as.period (data_interval))
-        subset_dates.lst [[length(subset_dates.lst) + 1 ]] <- c(subset_start_date, subset_end_date)
-        subset_start_date <- lubridate::as_date(subset_start_date + lubridate::as.period (interval))
-    }
-    return (subset_dates.lst)
-}
-
 #' @title Tests if an XY position is inside a ST Raster Brick
 #' @name .sits_XY_inside_raster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -46,7 +16,7 @@
     if (xy[1,"X"] < raster.tb[1,]$xmin) return (FALSE)
     if (xy[1,"X"] > raster.tb[1,]$xmax) return (FALSE)
     if (xy[1,"Y"] < raster.tb[1,]$ymin) return (FALSE)
-    if (xy[1,"Y"] > raster.tb[1,]$Ymax) return (FALSE)
+    if (xy[1,"Y"] > raster.tb[1,]$ymax) return (FALSE)
     return (TRUE)
 }
 
@@ -54,33 +24,80 @@
 #' @name .sits_nearest_date
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function takes a vector of dates (typically coming from a time series)
-#'              and a set of reference dates (typically coming from a set of patterns) and
-#'              finds the set of dates in the input that are nearest to the each
-#'              reference date.
+#' @description This function takes a date (typically coming from a set of patterns)
+#'              and a timeline (typically coming from a time series) and
+#'              finds the date in the timeline that is nearest to the reference date.
 #'
-#' @param dates      a vector of dates
-#' @param ref_dates   a vector of reference dates
-#' @return bool      TRUE if XY is inside the raster extent, FALSE otherwise
+#' @param date        a dates
+#' @param timeline    a vector of reference dates
+#' @return n_date     nearest date
 #'
-.sits_nearest_date <- function (dates, ref_dates){
+.sits_nearest_date <- function (date, timeline){
 
     # convert all dates to julian
-    first_date   <- lubridate::as_date(paste0(lubridate::year(dates[1]), "-01-01"))
-    julian_dates <- as.integer (dates - first_date)
-    julian_refs  <- as.integer (lubridate::as_date(ref_dates) - first_date)
+    first_date    <- lubridate::as_date(paste0(lubridate::year(timeline[1]), "-01-01"))
+    timeline_jul  <- as.integer (timeline - first_date)
+    julian_date   <- as.integer (date - first_date)
 
-    nearest_dates <- vector()
+    # find the closest julian day in the interval
+    julian_ref  <- .sits_binary_search (timeline_jul, julian_date)
+    nearest_date <- lubridate::as_date (first_date + julian_ref)
 
-    julian_refs %>%
-        purrr::map (function (jday){
-            julian_ref  <- .sits_binary_search (julian_dates, jday)
-            nearest_date <- lubridate::as_date (first_date + julian_ref)
-            nearest_dates[length (nearest_dates) + 1] <<- nearest_date
-        })
-     return (nearest_dates)
+    return (nearest_date)
 }
+#' @title Test if starting date fits with the timeline
+#' @name .sits_is_valid_start_date
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description A timeline is a list of dates where observations are available. This
+#' functions estimates if a date is valid by comparing it to the timeline. If the date's estimate
+#' is not inside the timeline and the difference between the date and the first date of timeline is
+#' greater than the acquisition interval of the timeline, then we conclude the date is not valid.
+#'
+#' @param date        a dates
+#' @param timeline    a vector of reference dates
+#' @return bool       is this is valid starting date?
+#'
+.sits_is_valid_start_date <- function (date, timeline){
 
+    # is the date inside the timeline?
+    if (date %within% lubridate::interval (timeline[1], timeline[length(timeline)])) return (TRUE)
+    # what is the difference in days between the last two days of the timeline?
+    timeline_diff <- as.integer (timeline[2] - timeline[1])
+    # if the difference in days in the timeline is smaller than the difference
+    # between the reference date and the first date of the timeline, then
+    # we assume the date is valid
+    if (abs(as.integer(date - timeline[1]))  <= timeline_diff ) return (TRUE)
+
+    return (FALSE)
+}
+#' @title Test if end date fits inside the timeline
+#' @name .sits_is_valid_end_date
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description A timeline is a list of dates where observations are available. This
+#' functions estimates if a date is valid by comparing it to the timeline. If the date's estimate
+#' is not inside the timeline and the difference between the date and the last date of timeline is
+#' greater than the acquisition interval of the timeline, then we conclude the date is not valid.
+#'
+#' @param date        a dates
+#' @param timeline    a vector of reference dates
+#' @return n_date     nearest date
+#'
+.sits_is_valid_end_date <- function (date, timeline){
+
+    # is the date inside the timeline?
+
+    if (date %within% lubridate::interval (timeline[1], timeline[length(timeline)])) return (TRUE)
+    # what is the difference in days between the last two days of the timeline?
+    timeline_diff <- as.integer (timeline[length(timeline)] - timeline[length(timeline) - 1])
+    # if the difference in days in the timeline is smaller than the difference
+    # between the reference date and the last date of the timeline, then
+    # we assume the date is valid
+    if (abs(as.integer(date - timeline[length(timeline)]))  <= timeline_diff ) return (TRUE)
+
+    return (FALSE)
+}
 
 #' @title Implement a binary search to find the nearest date
 #' @name .sits_binary_search

@@ -49,7 +49,7 @@ sits_kfold_validate <- function (data.tb, folds = 5,
     bands <- sits_bands (data.tb)
 
     # create partitions different splits of the input data
-    data.tb <- sits_create_folds (data.tb, folds = folds)
+    data.tb <- .sits_create_folds (data.tb, folds = folds)
 
     # create prediction and reference vector
     pred.vec = character()
@@ -77,10 +77,10 @@ sits_kfold_validate <- function (data.tb, folds = 5,
         distances_test.tb  <- dist_method (data_test.tb, patterns.tb)
 
         # classify the test data
-        predict.tb <- sits_predict(data_test.tb, distances_test.tb, model.ml)
+        predicted <- sits_predict(distances_test.tb, model.ml)
 
-        ref.vec  <- c(ref.vec,  predict.tb$label)
-        pred.vec <- c(pred.vec, predict.tb$predicted)
+        ref.vec  <- c(ref.vec,  data_test.tb$label)
+        pred.vec <- c(pred.vec, predicted)
 
         return (c(pred.vec, ref.vec))
     }, mc.cores = multicores)
@@ -145,7 +145,7 @@ sits_kfold_fast_validate <- function (data.tb, folds = 5,
     distances.tb <- dist_method (data.tb, patterns.tb)
 
     # create partitions different splits of the input data
-    data.tb <- sits_create_folds (data.tb, folds = folds)
+    data.tb <- .sits_create_folds (data.tb, folds = folds)
 
     # create prediction and reference vector
     pred.vec = character()
@@ -165,10 +165,10 @@ sits_kfold_fast_validate <- function (data.tb, folds = 5,
         model.ml <- tr_method (dist_train.tb)
 
         # classify the test data
-        predict.tb <- sits_predict(data_test.tb, dist_test.tb, model.ml)
+        predicted <- sits_predict(dist_test.tb, model.ml)
 
-        ref.vec  <- c(ref.vec,  predict.tb$label)
-        pred.vec <- c(pred.vec, predict.tb$predicted)
+        ref.vec  <- c(ref.vec,  data_test.tb$label)
+        pred.vec <- c(pred.vec, predicted)
 
         return (c(pred.vec, ref.vec))
     }, mc.cores = multicores)

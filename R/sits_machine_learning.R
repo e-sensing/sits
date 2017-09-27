@@ -572,16 +572,15 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train}},
-#' returns a SITS tibble with the classification.
+#' returns a predicted label
 #'
-#' @param data.tb       a SITS tibble time series
 #' @param distances.tb  a tibble with a set of distance metrics to each of the classes
 #' @param ml_model      a model trained by \code{\link[sits]{sits_train}}
 #' @param ...           other parameters to be passed to the model function
-#' @return data.tb      a SITS tibble with the predicted label
+#' @return predicted    the predicted labels (vector)
 #'
 #' @export
-sits_predict <- function(data.tb = NULL, distances.tb = NULL, ml_model, ...){
+sits_predict <- function(distances.tb = NULL, ml_model, ...){
 
     # is the input data the result of a TWDTW matching function?
     ensurer::ensure_that(distances.tb, "reference" %in% names (.), err_desc = "sits_train_svm: input data does not contain TWDTW matches")
@@ -589,7 +588,7 @@ sits_predict <- function(data.tb = NULL, distances.tb = NULL, ml_model, ...){
     # is the input model a model function?
     ensurer::ensure_that(ml_model, class (.) == "function", err_desc = "sits_predict: model parameter is not a function model returned by sits_train.")
 
-    data.tb$predicted <- as.character(ml_model(distances.tb))
+    predicted <- as.character(ml_model(distances.tb))
 
-    return(data.tb)
+    return(predicted)
 }
