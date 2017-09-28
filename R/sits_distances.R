@@ -76,14 +76,13 @@ sits_distances <- function(data.tb, patterns.tb,
 #'
 #' @param data.tb          SITS tibble time series
 #' @param patterns.tb      Set of patterns obtained from training samples
+#' @param  interval         Period to match the data to the patterns
 #' @param distance         Method for calculating distances between time series and pattern
-#' @param interval         Period to match the data to the patterns
 #' @param ...              Additional parameters required by the distance method.
 #' @return result          a set of distance metrics
 #'
 #' @export
-sits_TS_distances <- function (data.tb = NULL,    patterns.tb = NULL, distance = "dtw",
-                               interval = "12 month",...) {
+sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "dtw",...) {
 
     # function that returns a distance tibble
     result_fun <- function(data.tb, patterns.tb){
@@ -91,8 +90,7 @@ sits_TS_distances <- function (data.tb = NULL,    patterns.tb = NULL, distance =
         # does the input data exist?
         .sits_test_tibble (data.tb)
         .sits_test_tibble (patterns.tb)
-
-        data.tb <- .sits_break_ts (data.tb, patterns.tb, interval)
+        .sits_test_interval (data.tb, patterns.tb)
 
         distances.tb <-  sits_tibble_distance(patterns.tb)
         original_row <-  1
@@ -170,8 +168,6 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
                          err_desc = "sits_TWDTW_distances: bands in the data do not match bands in the patterns")
 
     result_fun <- function (data.tb, patterns.tb) {
-
-        data.tb <- .sits_break_ts (data.tb, patterns.tb, interval)
 
         # determine the bands of the data
         bands <- sits_bands (data.tb)
@@ -293,14 +289,12 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
 #'
 #' @param  data.tb       a SITS tibble with original data
 #' @param  patterns.tb    Set of patterns obtained from training samples
-#' @param  interval       Period to match the data to the patterns
+#' @param  interval      Period to match the data to the patterns
 #' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
 #' @export
 sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL, interval = "12 month"){
 
     result_fun <- function(data.tb, patterns.tb){
-
-        data.tb <- .sits_break_ts (data.tb, patterns.tb, interval)
 
         # extract the time series
         ts.lst <- data.tb$time_series

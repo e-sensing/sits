@@ -1,5 +1,5 @@
-files <- c("./inst/extdata/raster/sinop/sinop-crop-ndvi.tif",
-           "./inst/extdata/raster/sinop/sinop-crop-evi.tif")
+files <- c("./inst/extdata/raster/sinop/sinop-crop-ndvi-2.tif",
+           "./inst/extdata/raster/sinop/sinop-crop-evi-2.tif")
 
 bands <- c("ndvi", "evi")
 
