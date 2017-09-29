@@ -43,6 +43,8 @@ sits_plot (patterns.tb, type = "patterns")
 
 # find the matches between the patterns and the time series using the TWDTW algorithm
 # (uses the dtwSat R package)
+
+new_data.tb <- sits_getdata(file = "./inst/extdata/samples/samples_matogrosso.csv", URL = )
 distances_train.tb <- sits_distances (embrapa_mt2.tb, patterns.tb)
 
 # save the distances for reusing the distance file later

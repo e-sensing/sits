@@ -4,15 +4,12 @@
 \alias{sits_distances_from_data}
 \title{Use time series values from a sits tibble as distances for training patterns}
 \usage{
-sits_distances_from_data(data.tb = NULL, patterns.tb = NULL,
-  interval = "12 month")
+sits_distances_from_data(data.tb = NULL, patterns.tb = NULL)
 }
 \arguments{
 \item{data.tb}{a SITS tibble with original data}
 
 \item{patterns.tb}{Set of patterns obtained from training samples}
-
-\item{interval}{Period to match the data to the patterns}
 }
 \value{
 distances.tb  a tibble where columns have the reference label and the time series values as distances
