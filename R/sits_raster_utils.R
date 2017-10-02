@@ -5,22 +5,28 @@
 #' @description Takes a SITS tibble with label values and write a block inside a set of RasterLayers
 #'
 #' @param  class.tb          Classified SITS tibble
-#' @param  layer.lst         List of RasterLayers where label values are to be written
+#' @param  raster_class.tb   Metadata of RasterLayers where label values are to be writtenn
 #' @param  labels            Labels of classes to be written to the RasterLayer
 #' @param  row               Starting row of the output RasterLayer
 #' @return raster_class.tb   Metadata with information on a set of RasterLayers
 #' @export
 
-.sits_block_from_data <- function (class.tb, layer.lst, labels, row){
+.sits_block_from_data <- function (class.tb, raster_class.tb, labels, row){
 
-    classified.tb <- tidyr::spread(class.tb$predicted[[1]], key = from, value = predicted)
+    predicted.tb <- class.tb$predicted %>% dplyr::bind_rows()
+
+    # create a named vector with integers match the class labels
+    int_labels <- c(1:length(labels))
+    names (int_labels) <- labels
 
     # for each layer, write the values
-    for (i in 1:length(layer.lst)){
-        values <- dplyr::pull(classified.tb[,i])
-        layer.lst[[i]] <- raster::writeValues(layer.lst[[i]], values, row)
+    for (i in 1:NROW(raster_class.tb)){
+        layer           <- raster_class.tb[i,]$r_obj[[1]]
+        start_date      <- raster_class.tb[i,]$start_date
+        values          <- int_labels [dplyr::filter (predicted.tb, from == start_date)$predicted]
+        raster_class.tb[i,]$r_obj[[1]]  <- raster::writeValues(layer, values, row)
     }
-    return (class.tb)
+    return (raster_class.tb)
 }
 
 
@@ -86,7 +92,7 @@
     # join all rows in a single tibble
     raster_layers.tb <- dplyr::bind_rows (raster.lst)
 
-    return (raster.tb)
+    return (raster_layers.tb)
 }
 
 #' @title Retrieve a sits tibble with time series from a block of values obtained from a RasterBrick

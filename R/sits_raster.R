@@ -234,15 +234,13 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
     labels <- sits_labels(patterns.tb)$label
 
     #initiate writing
-    layer.lst <- list()
-    raster_class.tb <- raster_class.tb %>%
-        purrrlyr::by_row(function (layer) {
-            r_out <- raster::writeStart(layer$r_obj[[1]], layer$r_obj[[1]]@file@name, overwrite = TRUE)
-            layer.lst[[length(layer.lst) +  1]] <<- r_out
+    raster_class.tb$r_obj <- raster_class.tb$r_obj %>%
+        purrr::map(function (layer) {
+            raster::writeStart(layer, layer@file@name, overwrite = TRUE)
         })
 
     # recover the input data by blocks for efficiency
-    bs <- raster::blockSize (raster.tb[1,]$r_obj[[1]])
+    bs <- raster::blockSize (raster_class.tb[1,]$r_obj[[1]])
 
     # read the input raster in blocks
     for (i in 1:bs$n){
@@ -257,9 +255,9 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
         raster_class.tb <- .sits_block_from_data (class.tb, raster_class.tb, labels, row = bs$row[i])
     }
     # finish writing
-    layer.lst %>%
+    raster_class.tb$r_obj <- raster_class.tb$r_obj %>%
         purrr::map(function (layer) {
-            layer <- raster::writeStop(layer)
+            raster::writeStop(layer)
         })
     return (raster_class.tb)
 }
