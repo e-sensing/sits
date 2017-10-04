@@ -33,7 +33,7 @@ embrapa_mt.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", packa
 # obtain a set of patterns for these samples
 patterns.tb <- sits_patterns(embrapa_mt.tb)
 
-sits_plot (patterns.tb,type="patterns")
+sits_plot (patterns.tb, type = "patterns")
 
 # find the matches between the patterns and the time series using the TWDTW algorithm
 # (uses the dtwSat R package)

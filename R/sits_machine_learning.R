@@ -93,6 +93,7 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
+            eval(parse(text ="library(e1071)"))
             return(stats::predict(result_svm, newdata = values.tb))
         }
         return(model_predict)
@@ -140,6 +141,7 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
+            eval(parse(text ="library(MASS)"))
             return(stats::predict(result_lda, newdata = values.tb)$class)
         }
         return(model_predict)
@@ -189,6 +191,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
+            eval(parse(text ="library(MASS)"))
             return(stats::predict(result_qda, newdata = values.tb)$class)
         }
         return(model_predict)
@@ -237,6 +240,7 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
+            eval(parse(text ="library(nnet)"))
             return(stats::predict(result_mlr, newdata = values.tb))
         }
         return(model_predict)
@@ -287,6 +291,7 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
+            eval(parse(text ="library(glmnet)"))
             return(stats::predict(result_glm,
                                   s = result_glm$lambda.min,
                                   newx = log(data.matrix(values.tb[,3:NCOL(values.tb)])), type = "class"))
@@ -353,6 +358,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
         # construct model predict enclosure function and returns
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
+            eval(parse(text ="library(gbm)"))
             result <- stats::predict(result_gbm, newdata = values.tb, best.iter)
             return(colnames(result)[max.col(result[,,1])])
         }
@@ -402,6 +408,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
+            eval(parse(text ="library(randomForest)"))
             return(stats::predict(result_rfor, newdata = values.tb, type = "response"))
         }
         return(model_predict)
@@ -479,7 +486,7 @@ sits_deep_learning <- function(distances.tb = NULL, ...) {
 #' @return result_fun       a function that computes a valid formula
 #' @export
 #'
-sits_formula_logref <- function(predictors_index = -2:0){
+sits_formula_logref <- function(predictors_index = -4:0){
 
     # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
     # respectivelly, the reference and predictors fields of tibble in `tb` parameter.
@@ -513,7 +520,7 @@ sits_formula_logref <- function(predictors_index = -2:0){
 #' @return result_fun       a function that computes a valid formula
 #' @export
 #'
-sits_formula_linear <- function(predictors_index = -2:0){
+sits_formula_linear <- function(predictors_index = -4:0){
 
     # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
     # respectivelly, the reference and predictors fields of tibble in `tb` parameter.
@@ -545,7 +552,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #' @return result_fun       a function that computes a valid formula
 #' @export
 #'
-sits_formula_smooth <- function(predictors_index = -2:0){
+sits_formula_smooth <- function(predictors_index = -4:0){
 
     # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
     # respectivelly, the reference and predictors fields of tibble in `tb` parameter.
