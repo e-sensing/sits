@@ -48,7 +48,7 @@
 .sits_factory_function2 <- function (data.tb, data2.tb, fun) {
 
     # if no data is given, we prepare a function to be called as a parameter of other functions
-    if (is.null(data.tb) && is.null (data2.tb))
+    if (is.null(data.tb) | is.null (data2.tb))
         result <- fun
     # ...otherwise compute the result on the input data sets
     else

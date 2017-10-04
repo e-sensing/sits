@@ -16,7 +16,9 @@ utils::globalVariables(c(".", "%>%", "Index", "from", "value", "variable", "cond
                          "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n",
                          "distance", "predicted", "new_values",
-                         "Alig.N", "matches", "reference", "cluster", ".data"))
+                         "Alig.N", "matches", "reference", "cluster", ".data",
+                         "from", "to", "original_row", "ts_length", "interval",
+                         "distances"))
 #' @import dtwSat
 #' @import dtwclust
 #' @importFrom dtw symmetric1 symmetric2
