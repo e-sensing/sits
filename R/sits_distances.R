@@ -17,7 +17,7 @@
 #' @export
 #'
 sits_distances <- function(data.tb, patterns.tb,
-                           dist_method = sits_distances_from_data()
+                           dist_method = sits_distances_from_data2(start_from = "2000-09-01", interval = "12 month")
                            ){
 
     # does the input data exist?
@@ -166,15 +166,19 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
     ensurer::ensure_that(data.tb, all(sits_bands(patterns.tb) == sits_bands(.)),
                          err_desc = "sits_TWDTW_distances: bands in the data do not match bands in the patterns")
 
-    result_fun <- function (data.tb, patterns.tb) {
+    result_fun <- function (data.tb = data.tb, patt.tb = patterns.tb) {
+
+        # verify if input data are valid
+        .sits_test_tibble(data.tb)
+        .sits_test_tibble(patt.tb)
 
         # determine the bands of the data
         bands <- sits_bands (data.tb)
 
-        data.tb <- .sits_break_ts(data.tb, patterns.tb)
+        data.tb <- .sits_break_ts(data.tb, patt.tb)
 
         # determine the labels of the patterns
-        labels <- sits_labels(patterns.tb)$label
+        labels <- sits_labels(patt.tb)$label
 
         # Define the logistic function
         log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
@@ -193,7 +197,7 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
         dist_fun <- function(part.tb){
 
             # create a tibble to store the results
-            distances_part.tb <-  sits_tibble_distance(patterns.tb)
+            distances_part.tb <-  sits_tibble_distance(patt.tb)
 
             # add a progress bar
             n <- 0
@@ -217,7 +221,7 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
                         purrr::map (function (b){
                             # extract band from data and from patterns
                             data_b.tb  <- sits_select_bands (row.tb, bands = b)
-                            patt_b.tb  <- sits_select_bands (patterns.tb, bands = b)
+                            patt_b.tb  <- sits_select_bands (patt.tb, bands = b)
 
                             # convert data to TWDTW format
                             twdtw_series   <- sits_toTWDTW(data_b.tb)
@@ -322,5 +326,64 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL){
         return(distances.tb)
     }
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
+    return (result)
+}
+#' @title Use time series values from a sits tibble as distances for training patterns
+#' @name sits_distances_from_data2
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function allows using a set of labelled time series as
+#' input to the machine learning models. Instead of first estimating a set
+#' of idealised patterns and then computing distances from these patterns,
+#' the attributes used to train the model are the series themselves.
+#' This function then extracts the time series from a SITS tibble and
+#' "spreads" them in time to produce a tibble with distances.
+#'
+#' @param  data.tb       a SITS tibble with original data
+#' @param  fun           a function to be called over all data input. It must takes one argument as input.
+#' @param  start_from    start date to break segments
+#' @param  interval      an interval to define the lengths of breaked segments
+#' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
+#' @export
+sits_distances_from_data2 <- function(data.tb = NULL, fun = NULL, start_from, interval){
+
+    match_timeline <- function(timeline, start_from, interval){
+        cut(timeline,
+            breaks = seq(as.Date(start_from), max(timeline) + lubridate::period(interval), by = interval),
+            right = FALSE, labels = FALSE)
+    }
+
+    result_fun <- function(data.tb, ...){
+        if (is.null(fun))
+            fun <- function(x) x
+
+        bands <-
+            data.tb %>%
+            sits_bands()
+
+        distances.tb <-
+            data.tb %>%
+            dplyr::mutate(original_row = 1:NROW(.)) %>%
+            tidyr::unnest() %>%
+            dplyr::mutate(interval = match_timeline(.$Index, start_from, interval)) %>%
+            dplyr::filter(!is.na(interval)) %>%
+            dplyr::group_by(original_row, interval, label) %>%
+            dplyr::mutate(ts_length = n()) %>%
+            dplyr::ungroup() %>%
+            dplyr::filter(ts_length == max(ts_length)) %>%
+            dplyr::group_by(original_row, interval, label) %>%
+            dplyr::do(from = min(.data$Index),
+                      to = max(.data$Index),
+                      distances=tibble::as_tibble(fun(t(as.matrix(unlist(.data[bands])))))) %>%
+            dplyr::ungroup() %>%
+            dplyr::select(-interval) %>%
+            tidyr::unnest(from, to, distances, .drop = FALSE) %>%
+            dplyr::rename(reference = label)
+
+        return(distances.tb)
+    }
+
+    result <- .sits_factory_function(data.tb, result_fun)
     return (result)
 }

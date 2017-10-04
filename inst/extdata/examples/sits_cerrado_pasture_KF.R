@@ -47,4 +47,3 @@ cerrado3.tb %>%
      sits_select(bands = c("evi.env.kf.estimation", "evi")) %>%
      sits_plot()
 
-

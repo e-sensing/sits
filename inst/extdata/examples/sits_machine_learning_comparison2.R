@@ -11,11 +11,10 @@ embrapa.tb <- sits_select (embrapa.tb, bands = c("ndvi", "evi", "nir", "mir") )
 results <- list()
 
 # test accuracy of TWDTW to measure distances
-conf_svm.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 2,
+conf_svm.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 1,
                                    pt_method   = sits_patterns_from_data(),
                                    dist_method = sits_distances_from_data(),
-                                   tr_method   = sits_svm (cost = 10, kernel = "radial",
-                                                           tolerance = 0.001, epsilon = 0.1))
+                                   tr_method   = sits_svm (formula = sits_formula_linear(), kernel = "radial"))
 print("==================================================")
 print ("== Confusion Matrix = SVM =======================")
 conf_svm.mx <- sits_accuracy(conf_svm.tb)

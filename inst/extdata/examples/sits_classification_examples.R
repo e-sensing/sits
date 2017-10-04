@@ -49,7 +49,10 @@ sits_plot(patterns_gam.tb, type = "patterns")
 # This function obtains a traning data set of attributes for the MatoGrosso data using the TWTDW algorithm
 # we are not running this function as it takes a lot of time, so we
 # retrieve a set of pre-defined patterns from an RDS file
-if (FALSE) distances_twdtw.tb <- sits_TWDTW_distances(embrapa.tb, patterns_gam.tb)
+if (FALSE) {
+    distances_twdtw.tb <- sits_TWDTW_distances(embrapa.tb, patterns_gam.tb, multicores = 14)
+    saveRDS(distances_twdtw.tb, "./inst/extdata/models/embrapa_mt_distances_twdtw.rds")
+}
 
 if (TRUE) distances_twdtw.tb <- readRDS(system.file("extdata/models/embrapa_mt_distances_twdtw.rds", package = "sits"))
 
@@ -69,13 +72,14 @@ sits_plot_classification(class.tb, patterns_gam.tb, band = "ndvi")
 patterns_data.tb <- sits_patterns_from_data(embrapa.tb)
 
 # estimate distances
-distances_data.tb <- sits_distances_from_data(embrapa.tb, patterns_data.tb)
+distances_data.tb <- sits_distances_from_data2(embrapa.tb, fun = function(band) band + 3, start_from = "2000-09-01", interval = "12 months")
 
 # estimate an SVM model for this training data
 model_svm2.ml <- sits_svm(distances_data.tb, kernel = "radial", cost = 10)
 
 # classify the test data
-class.tb <- sits_classify(series.tb, patterns_data.tb, model_svm2.ml, dist_method = sits_distances_from_data())
+class.tb <- sits_classify2(series.tb, model_svm2.ml,
+                           dist_method = sits_distances_from_data2(fun = function(band) band + 3, start_from = "2000-09-01", interval = "12 months"))
 
 # plot the classification of the time series by yearly intervals
 sits_plot_classification(class.tb, patterns_data.tb, band = "ndvi")

@@ -395,5 +395,3 @@ sits_plot_together <- function (data.tb, colors) {
     return (data.tb)
 
 }
-
-
