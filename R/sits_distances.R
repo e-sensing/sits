@@ -16,13 +16,12 @@
 #' @return result          Set of distance metrics
 #' @export
 #'
-sits_distances <- function(data.tb, patterns.tb,
+sits_distances <- function(data.tb, patterns.tb = NULL,
                            dist_method = sits_distances_from_data2(start_from = "2000-09-01", interval = "12 month")
                            ){
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
-    .sits_test_tibble (patterns.tb)
     # is the train method a function?
     ensurer::ensure_that(dist_method, class(.) == "function", err_desc = "sits_distances: dist_method is not a valid function")
 
@@ -110,6 +109,8 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
                 drow.tb <- sits_tibble_distance(patterns.tb)
                 r <- dplyr::add_row(drow.tb)
                 r$original_row <- original_row
+                r$from         <- row$start_date
+                r$to           <- row$end_date
                 r$reference    <- row$label
                 bands %>%
                     purrr::map (function (b) {
@@ -214,6 +215,8 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
                     # add original information to results tibble
                     new_row <- tibble::tibble(
                         original_row = n,
+                        from         = row.tb$start_date,
+                        to           = row.tb$end_date,
                         reference    = row.tb$label
                     )
                     # process each band of the input
@@ -279,57 +282,57 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
     return (result)
 }
-
+#'
+#' #' @title Use time series values from a sits tibble as distances for training patterns
+#' #' @name sits_distances_from_data
+#' #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' #'
+#' #' @description This function allows using a set of labelled time series as
+#' #' input to the machine learning models. Instead of first estimating a set
+#' #' of idealised patterns and then computing distances from these patterns,
+#' #' the attributes used to train the model are the series themselves.
+#' #' This function then extracts the time series from a SITS tibble and
+#' #' "spreads" them in time to produce a tibble with distances.
+#' #'
+#' #' @param  data.tb       a SITS tibble with original data
+#' #' @param  patterns.tb    Set of patterns obtained from training samples
+#' #' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
+#' #' @export
+#' sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL){
+#'
+#'     result_fun <- function(data.tb, patterns.tb){
+#'
+#'         data.tb <- .sits_break_ts(data.tb, patterns.tb)
+#'
+#'         # extract the time series
+#'         ts.lst <- data.tb$time_series
+#'
+#'         # extract the band values of the time series
+#'         values.lst <- ts.lst %>%
+#'             purrr::map(function(ts) {
+#'                 # add constant to get positive values
+#'                 ts <- sits_apply_ts(ts, fun = function (band) band + 3.0)
+#'                 # flatten the values
+#'                 ts %>%
+#'                     dplyr::select(-Index) %>%
+#'                     purrr::map(function(band) band) %>%
+#'                     unlist() %>%
+#'                     as.matrix() %>%
+#'                     t() %>%
+#'                     tibble::as_tibble()
+#'             })
+#'         # spread these values as distance attributes
+#'         distances.tb <- dplyr::bind_rows(values.lst)
+#'         distances.tb <- dplyr::bind_cols(original_row = 1:NROW(data.tb), reference = data.tb$label, distances.tb)
+#'
+#'         return(distances.tb)
+#'     }
+#'     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
+#'     return (result)
+#' }
 #' @title Use time series values from a sits tibble as distances for training patterns
 #' @name sits_distances_from_data
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function allows using a set of labelled time series as
-#' input to the machine learning models. Instead of first estimating a set
-#' of idealised patterns and then computing distances from these patterns,
-#' the attributes used to train the model are the series themselves.
-#' This function then extracts the time series from a SITS tibble and
-#' "spreads" them in time to produce a tibble with distances.
-#'
-#' @param  data.tb       a SITS tibble with original data
-#' @param  patterns.tb    Set of patterns obtained from training samples
-#' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
-#' @export
-sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL){
-
-    result_fun <- function(data.tb, patterns.tb){
-
-        data.tb <- .sits_break_ts(data.tb, patterns.tb)
-
-        # extract the time series
-        ts.lst <- data.tb$time_series
-
-        # extract the band values of the time series
-        values.lst <- ts.lst %>%
-            purrr::map(function(ts) {
-                # add constant to get positive values
-                ts <- sits_apply_ts(ts, fun = function (band) band + 3.0)
-                # flatten the values
-                ts %>%
-                    dplyr::select(-Index) %>%
-                    purrr::map(function(band) band) %>%
-                    unlist() %>%
-                    as.matrix() %>%
-                    t() %>%
-                    tibble::as_tibble()
-            })
-        # spread these values as distance attributes
-        distances.tb <- dplyr::bind_rows(values.lst)
-        distances.tb <- dplyr::bind_cols(original_row = 1:NROW(data.tb), reference = data.tb$label, distances.tb)
-
-        return(distances.tb)
-    }
-    result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
-    return (result)
-}
-#' @title Use time series values from a sits tibble as distances for training patterns
-#' @name sits_distances_from_data2
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -344,9 +347,10 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL){
 #' @param  fun           a function to be called over all data input. It must takes one argument as input.
 #' @param  start_from    start date to break segments
 #' @param  interval      an interval to define the lengths of breaked segments
+#' @param  offset        value to be added to time series value to avoid negative number
 #' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
 #' @export
-sits_distances_from_data2 <- function(data.tb = NULL, fun = NULL, start_from, interval){
+sits_distances_from_data <- function(data.tb = NULL, fun = NULL, start_from, interval, offset = 3.0){
 
     match_timeline <- function(timeline, start_from, interval){
         cut(timeline,
@@ -356,7 +360,7 @@ sits_distances_from_data2 <- function(data.tb = NULL, fun = NULL, start_from, in
 
     result_fun <- function(data.tb, ...){
         if (is.null(fun))
-            fun <- function(x) x
+            fun <- function(x) x + offset
 
         bands <-
             data.tb %>%
