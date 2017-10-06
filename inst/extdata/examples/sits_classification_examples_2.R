@@ -13,14 +13,14 @@ wtss_inpe <- sits_infoWTSS(URL)
 sits_coverageWTSS(URL,"mod13q1_512")
 
 # choose a coverage
-coverage <- "mixl8mod"
+coverage <- "mod13q1_512"
 # recover the NDVI, EVI, MIR and NIR bands
-bands <- c("ndvi", "evi", "nir")
+bands <- c("ndvi", "evi", "nir", "mir")
 
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 
-embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi", "nir"))
+embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
 # CLASSIFICATION USING THE DISTANCES FROM DATA
 #create patterns
@@ -37,7 +37,7 @@ model_svm.ml <- sits_svm(distances_data.tb, kernel = "radial", cost = 10)
 long <- -53.67105
 lat <- -6.06105
 
-point.tb <- sits_getdata(latitude = lat, longitude = long, URL = URL, coverage = "mixl8mod", bands = bands)
+point.tb <- sits_getdata(latitude = lat, longitude = long, URL = URL, coverage = coverage, bands = bands)
 
 sits_plot (point.tb)
 

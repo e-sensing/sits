@@ -4,7 +4,7 @@
 \alias{sits_formula_linear}
 \title{Train SITS classifiction models}
 \usage{
-sits_formula_linear(predictors_index = -4:0)
+sits_formula_linear(predictors_index = -2:0)
 }
 \arguments{
 \item{predictors_index}{the index of the valid columns whose names are used to compose formula (default: NULL)}

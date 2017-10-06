@@ -27,7 +27,7 @@ series.tb <- sits_getdata(system.file ("extdata/samples/samples_matogrosso.csv",
                           URL = URL, coverage = "mod13q1_512", bands = bands)
 
 # plot the series
-sits_plot (series.tb[1,])
+sits_plot (series.tb[1:3,])
 
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
@@ -50,7 +50,7 @@ sits_plot(patterns_gam.tb, type = "patterns")
 # we are not running this function as it takes a lot of time, so we
 # retrieve a set of pre-defined patterns from an RDS file
 if (FALSE) {
-    distances_twdtw.tb <- sits_TWDTW_distances(embrapa.tb, patterns_gam.tb, multicores = 14)
+    distances_twdtw.tb <- sits_TWDTW_distances(embrapa.tb, patterns_gam.tb, multicores = 2)
     saveRDS(distances_twdtw.tb, "./inst/extdata/models/embrapa_mt_distances_twdtw.rds")
 }
 
@@ -72,14 +72,13 @@ sits_plot_classification(class.tb, patterns_gam.tb, band = "ndvi")
 patterns_data.tb <- sits_patterns_from_data(embrapa.tb)
 
 # estimate distances
-distances_data.tb <- sits_distances_from_data2(embrapa.tb, fun = function(band) band + 3, start_from = "2000-09-01", interval = "12 months")
+distances_data.tb <- sits_distances_from_data(embrapa.tb, patterns_data.tb)
 
 # estimate an SVM model for this training data
 model_svm2.ml <- sits_svm(distances_data.tb, kernel = "radial", cost = 10)
 
 # classify the test data
-class.tb <- sits_classify2(series.tb, model_svm2.ml,
-                           dist_method = sits_distances_from_data2(fun = function(band) band + 3, start_from = "2000-09-01", interval = "12 months"))
+class.tb <- sits_classify(series.tb, patterns_data.tb, model_svm2.ml, dist_method = sits_distances_from_data())
 
 # plot the classification of the time series by yearly intervals
 sits_plot_classification(class.tb, patterns_data.tb, band = "ndvi")

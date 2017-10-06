@@ -4,9 +4,7 @@
 \alias{sits_distances}
 \title{Calculate a set of distance measures for satellite image time series}
 \usage{
-sits_distances(data.tb, patterns.tb,
-  dist_method = sits_distances_from_data2(start_from = "2000-09-01", interval
-  = "12 month"))
+sits_distances(data.tb, patterns.tb, dist_method = sits_distances_from_data())
 }
 \arguments{
 \item{data.tb}{SITS tibble time series}

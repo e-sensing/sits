@@ -5,7 +5,7 @@
 #' @description Returns a sits table with the results of the ML classifier.
 #'
 #' @param  data.tb         a SITS tibble time series
-#' @param  patterns.tb     a set of known temporal signatures for the chosen classes (optional)
+#' @param  patterns.tb     a set of known temporal signatures for the chosen classes
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  dist_method     method to compute distances (e.g., sits_TWDTW_distances)
 #' @param  interval        the period between two classifications
@@ -17,6 +17,7 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
                            interval = "12 month"){
 
     .sits_test_tibble(data.tb)
+    .sits_test_tibble(patterns.tb)
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
     # create a tibble to store the result
     result.tb <- sits_tibble_classification()
@@ -46,10 +47,10 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
 
                     # save the results
                     predict.tb   <<- tibble::add_row(predict.tb,
-                                                     from      = lubridate::as_date(date_pair[1]),
-                                                     to        = lubridate::as_date(date_pair[2]),
-                                                     distance  = 0.0,
-                                                     predicted = predicted
+                                                from      = lubridate::as_date(date_pair[1]),
+                                                to        = lubridate::as_date(date_pair[2]),
+                                                distance  = 0.0,
+                                                predicted = predicted
                     )
 
                 })
@@ -74,39 +75,4 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
         })
 
     return(result.tb)
-}
-
-#' @title Classify a sits tibble using machine learning models
-#' @name sits_classify2
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns a sits table with the results of the ML classifier.
-#'
-#' @param  data.tb      a SITS tibble time series
-#' @param  ml_model     a model trained by \code{\link[sits]{sits_train}}
-#' @param  dist_method  method to compute distances (e.g., sits_TWDTW_distances)
-#' @param  interval     the period between two classifications
-#' @param  ...          other parameters to be passed to the distance function
-#' @return data.tb      a SITS tibble with the predicted labels for each input segment
-#' @export
-sits_classify2 <- function (data.tb = NULL, ml_model = NULL,
-                            dist_method = sits_distances_from_data2(start_from = "2000-09-01", interval = "12 month")){
-
-    .sits_test_tibble(data.tb)
-
-    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits_classify: please provide a machine learning model already trained")
-
-    # create a tibble to store the result
-    distances.tb <- dist_method(data.tb)
-
-    # classify the subset data
-    distances.tb$predicted <- sits_predict(distances.tb, ml_model)
-
-    # nest results and return
-    data.tb$predicted <-
-        distances.tb %>%
-        dplyr::select(original_row, from, to, predicted) %>%
-        tidyr::nest(from, to, predicted, .key = "predicted") %>% .$predicted
-
-    return(data.tb)
 }

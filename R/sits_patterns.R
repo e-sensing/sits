@@ -28,7 +28,7 @@ sits_patterns <- function(data.tb, pt_method = sits_gam(data.tb = NULL, from = N
 
 }
 #' @title Do not create patterns for classification
-#' @name sits_patterns_from_data
+#' @name sits_no_patterns
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -55,3 +55,5 @@ sits_patterns_from_data <- function (data.tb = NULL){
     }
     result <- .sits_factory_function (data.tb, result_fun)
 }
+
+
