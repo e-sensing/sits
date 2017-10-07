@@ -237,7 +237,8 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
-            return(stats::predict(result_mlr, newdata = values.tb))
+            result <- stats::predict(result_mlr, newdata = values.tb, type = "probs")
+            return(result)
         }
         return(model_predict)
     }
@@ -326,7 +327,7 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
 #' @export
 #'
 sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distribution = "multinomial",
-                     n.trees = 5000, interaction.depth = 4, shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...) {
+                     n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...) {
 
     # function that returns glmnet::multinom model based on a sits sample tibble
     result_fun <- function(train_data.tb){
@@ -354,7 +355,8 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
             result <- stats::predict(result_gbm, newdata = values.tb, best.iter)
-            return(colnames(result)[max.col(result[,,1])])
+            #return (result)
+            return(colnames(result)[max.col(data.frame(result))])
         }
         return(model_predict)
     }
@@ -362,7 +364,6 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
     result <- .sits_factory_function (distances.tb, result_fun)
     return(result)
 }
-
 
 #' @title Train SITS classifiction models
 #' @name sits_rfor

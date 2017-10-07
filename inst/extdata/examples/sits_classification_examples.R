@@ -18,16 +18,17 @@ coverage <- "mod13q1_512"
 bands <- c("ndvi", "evi", "nir", "mir")
 
 # a point in the transition forest pasture in Northern MT
-long <- -55.57320
-lat <- -11.50566
+
+longitude <- -55.31657
+latitude  <- -11.66789
 
 # retrieve a series of samples defined by a CSV file
 # obtain a time series from the WTSS server for these samples
-series.tb <- sits_getdata(system.file ("extdata/samples/samples_matogrosso.csv", package = "sits"),
+point.tb <- sits_getdata(latitude = latitude, longitude = longitude,
                           URL = URL, coverage = "mod13q1_512", bands = bands)
 
 # plot the series
-sits_plot (series.tb[1:3,])
+sits_plot (point.tb)
 
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))

@@ -5,7 +5,7 @@
 \title{Train SITS classifiction models with Gradient Boosting Machine}
 \usage{
 sits_gbm(distances.tb = NULL, formula = sits_formula_logref(),
-  distribution = "multinomial", n.trees = 5000, interaction.depth = 4,
+  distribution = "multinomial", n.trees = 500, interaction.depth = 2,
   shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...)
 }
 \arguments{
