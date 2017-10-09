@@ -10,7 +10,8 @@ URL <- "http://www.dpi.inpe.br/tws/wtss"
 wtss_inpe <- sits_infoWTSS(URL)
 
 # get information about a specific coverage
-sits_coverageWTSS(URL,"mod13q1_512")
+coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
+timeline <- sits_timeline(coverage.tb)
 
 # choose a coverage
 coverage <- "mod13q1_512"
@@ -24,7 +25,7 @@ embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
 # CLASSIFICATION USING THE DISTANCES FROM DATA
 #create patterns
-patterns_data.tb <- sits_patterns_from_data(embrapa.tb)
+patterns_data.tb <- sits_patterns_from_data(embrapa.tb, timeline = coverage.tb)
 
 # estimate distances
 distances_data.tb <- sits_distances_from_data(embrapa.tb, patterns_data.tb)

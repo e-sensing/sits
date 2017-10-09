@@ -17,7 +17,7 @@ patterns.tb  <- sits_patterns_from_data(embrapa.tb)
 
 interval <- "12 month"
 # produce the breaks used to generate the output rasters
-subset_dates.lst <- sits_match_dates(timeline, patterns.tb[1,]$start_date, patterns.tb[1,]$end_date, interval)
+subset_dates.lst <- .sits_match_timelines(timeline, patterns.tb[1,]$start_date, patterns.tb[1,]$end_date, interval)
 
 file <- "./inst/extdata/raster/classified.tif"
 

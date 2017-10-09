@@ -13,7 +13,8 @@ wtss_inpe <- sits_infoWTSS(URL)
 coverage <- "mixl8mod"
 
 # get information about a specific coverage
-sits_coverageWTSS(URL,coverage)
+coverage.tb <- sits_coverageWTSS(URL,coverage)
+timeline <- sits_timeline (coverage.tb)
 #select the bands used for classification
 bands <- c("ndvi", "evi")
 
@@ -27,7 +28,7 @@ prodes_patterns.tb <- sits_patterns(prodes.tb)
 sits_plot(prodes_patterns.tb, type = "patterns")
 
 #cross_validate raw series
-conf.tb <- sits_kfold_fast_validate (prodes.tb, folds = 2)
+conf.tb <- sits_kfold_fast_validate (prodes.tb, folds = 2, timeline = timeline)
 
 #evaluate the accuracy of the classification
 sits_accuracy(conf.tb)
@@ -56,7 +57,7 @@ sg1 %>%
      sits_select (bands = c("ndvi", "ndvi.sg")) %>%
      sits_plot()
 
-conf_sg.tb <- sits_kfold_fast_validate (prodes_sg.tb, folds = 2)
+conf_sg.tb <- sits_kfold_fast_validate (prodes_sg.tb, folds = 2, timeline = timeline)
 
 #evaluate the accuracy of the classification
 sits_accuracy(conf_sg.tb)
@@ -76,7 +77,7 @@ w1 %>%
     sits_select (bands = c("ndvi", "ndvi.with")) %>%
     sits_plot()
 
-conf_whit.tb <- sits_kfold_fast_validate (prodes_whit.tb, folds = 2)
+conf_whit.tb <- sits_kfold_fast_validate (prodes_whit.tb, folds = 2, timeline = timeline)
 
 #evaluate the accuracy of the classification
 sits_accuracy(conf_whit.tb)

@@ -296,8 +296,6 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL){
 
     result_fun <- function(data.tb, patterns.tb){
 
-        data.tb <- .sits_break_ts(data.tb, patterns.tb)
-
         # extract the time series
         ts.lst <- data.tb$time_series
 

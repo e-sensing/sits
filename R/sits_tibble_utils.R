@@ -93,47 +93,7 @@
     return (data1.tb)
 }
 
-#' @title Break a time series to match the time range of a set of patterns
-#' @name .sits_break_ts
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description  Given a long time series, divide it into segments to match
-#'               the time range of a set of patterns
-#'
-#' @param data.tb       SITS tibble with time series data
-#' @param patterns.tb   Tibble with time series patterns
-#' @param interval      Period to match the data to the patterns
-#' @return newdata.tb   SITS tibble with the original data cut into subsets of equal lengths
-#' @export
-#'
-.sits_break_ts <-  function (data.tb, patterns.tb, interval = "12 month"){
 
-    # ensure the input values exist
-    .sits_test_tibble(data.tb)
-    .sits_test_tibble(patterns.tb)
-
-    new_data.tb <- sits_tibble()
-    data.tb %>%
-        purrrlyr::by_row(function (row) {
-            # get the timeline
-            timeline <- dplyr::pull(row$time_series[[1]][,"Index"])
-
-            # get the dates to extract the subsets of the time series
-            subset_dates.lst <- sits_match_dates(timeline, patterns.tb[1,]$start_date, patterns.tb[1,]$end_date, interval)
-
-            # extract the subset of the time series
-            subset_dates.lst %>%
-                purrr::map (function (date_pair){
-
-                    # extract the n-th subset of the input data
-                    row_subset.tb <- .sits_extract(row, date_pair[1], date_pair[2])
-                    # add the subset to the new data set
-                    new_data.tb <<- dplyr::bind_rows(new_data.tb, row_subset.tb)
-                })
-        })
-    return (new_data.tb)
-}
 
 #' @title Create partitions of a data set
 #' @name  .sits_create_folds
@@ -155,27 +115,7 @@
 
     return (data.tb)
 }
-#' @title Create a list to store time series by timeline
-#' @name  .sits_create_ts_list
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Create a list of time series that share the same timeline
-#'
-#' @param timeline  the timeline (dates of the time series)
-#' @param n         Number of time series to create
-#'
-.sits_create_ts_list <- function (timeline, n) {
 
-    ts.lst <- list()
-    # create one time series per pixel
-    # all time series share the same timeline
-    for (i in 1:n) {
-        ts.tb <- tibble::tibble (Index = timeline)
-        ts.lst[[length(ts.lst) + 1 ]] <- ts.tb
-        i <- i + 1
-    }
-    return (ts.lst)
-}
 #' @title Extract a subset of the data based on dates
 #' @name .sits_extract
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -220,30 +160,6 @@
                                 time_series  = ts.lst)
         })
     return (subset.tb)
-}
-#' @title Extract a subset of a time series based on dates
-#' @name .sits_extract_ts
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description returns a vector containing the dates of a sits table
-#'
-#' @param  data.tb    A SITS tibble
-#' @param  start_date Starting date of the time series segment
-#' @param  end_date   End date of the time series segment
-#' @return ts         List of time series tibbles in the selected interval [start_date, end_date]
-.sits_extract_ts <- function (data.tb, start_date = NULL, end_date = NULL) {
-
-    # ensure that a start and end date are provided
-    ensurer::ensure_that(start_date, !purrr::is_null(.), err_desc = "sits_extract: start_date must be provided")
-    ensurer::ensure_that(end_date, !purrr::is_null(.), err_desc = "sits_extract: end_date must be provided")
-
-    ts.lst <- data.tb$time_series %>%
-        purrr::map(function (ts.tb){
-            # filter the time series by start and end dates
-            sub.tb <- ts.tb %>%
-                dplyr::filter (dplyr::between (.$Index, start_date, end_date))
-        })
-    return (ts.lst)
 }
 #' @title Find out the cuts in a long time to break it into intervals
 #' @name .sits_find_cuts
