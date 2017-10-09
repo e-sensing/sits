@@ -298,6 +298,7 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL){
 
         ref_dates.lst <- patterns.tb[1,]$ref_dates[[1]]
 
+
         # extract the time series
         ts.lst <- data.tb$time_series
 
