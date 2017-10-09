@@ -290,14 +290,14 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
 #'
 #' @param  data.tb       a SITS tibble with original data
 #' @param  patterns.tb    Set of patterns obtained from training samples
+#' @param  .break         Controls whether the series is to be broken
 #' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
 #' @export
-sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL){
+sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL, .break = TRUE){
 
     result_fun <- function(data.tb, patterns.tb){
 
         ref_dates.lst <- patterns.tb[1,]$ref_dates[[1]]
-
 
         # extract the time series
         ts.lst <- data.tb$time_series
@@ -308,9 +308,10 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL){
                 # add constant to get positive values
                 ts <- sits_apply_ts(ts, fun = function (band) band + 3.0)
 
-                ts_break.lst <- .sits_break_ts (ts, ref_dates.lst)
+                if (.break) ts_break.lst <- .sits_break_ts (ts, ref_dates.lst)
+                else ts_break.lst <- list (ts)
 
-                ts_break.lst %>%
+                tb.lst <- ts_break.lst %>%
                     purrr::map(function (ts_b) {
                         # flatten the values
                         ts_b %>%
@@ -322,11 +323,9 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL){
                             tibble::as_tibble()
 
                     })
-
-
             })
         # spread these values as distance attributes
-        distances.tb <- dplyr::bind_rows(values.lst)
+        distances.tb <- dplyr::bind_rows(unlist(values.lst, recursive = FALSE))
         distances.tb <- dplyr::bind_cols(original_row = 1:NROW(data.tb), reference = data.tb$label, distances.tb)
 
         return(distances.tb)

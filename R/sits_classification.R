@@ -31,16 +31,16 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
             timeline <- dplyr::pull(row$time_series[[1]][,"Index"])
 
             # find the subsets of the input data
-            subset_dates.lst <- .sits_match_timelines(timeline, patterns.tb[1,]$start_date, patterns.tb[1,]$end_date, interval = interval)
+            ref_dates.lst <- patterns.tb[1,]$ref_dates[[1]]
 
-            subset_dates.lst %>%
-                purrr::map (function (date_pair){
+            ref_dates.lst %>%
+                purrr::map (function (date_info){
 
                     # find the n-th subset of the input data
                     row_subset.tb <- .sits_extract(row, date_pair[1], date_pair[2])
 
                     # find the distances in the subset data
-                    distances.tb  <- sits_distances (row_subset.tb, patterns.tb, dist_method = dist_method)
+                    distances.tb  <- sits_distances (row_subset.tb, patterns.tb, dist_method = dist_method, .break = FALSE)
 
                     # classify the subset data
                     predicted <- sits_predict(distances.tb, ml_model)

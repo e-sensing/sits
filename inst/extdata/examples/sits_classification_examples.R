@@ -15,7 +15,7 @@ coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
 # choose a coverage
 coverage <- "mod13q1_512"
 # recover the NDVI, EVI, MIR and NIR bands
-bands <- c("ndvi", "evi", "nir", "mir", "red", "blue")
+bands <- c("ndvi", "evi", "nir", "mir")
 
 # retrieve the timeline
 timeline <- sits_timeline(coverage.tb)

@@ -140,13 +140,15 @@
 #'
 .sits_break_ts <-  function (ts, ref_dates.lst){
 
-
-    new_ts.lst <- ref_dates.lst %>%
-        purrr::map(function (date_pair) {
-
-        # extract the n-th subset of the input data
-        ts <- dplyr::filter (dplyr::between (.$Index, start_date, end_date))
+    new_ts.lst <- list()
+    ref_dates.lst %>%
+        purrr::map(function (dates_info) {
+            if (ts$Index[1] < dates_info[[2]] && ts$Index[length(ts$Index)] > dates_info[[1]]){
+                ts_b <- ts %>% dplyr::filter (dplyr::between (.$Index, dates_info[[1]], dates_info[[2]]))
+                new_ts.lst[[length(new_ts.lst) + 1 ]] <<- ts_b
+            }
         })
+
     return (new_ts.lst)
 }
 #' @title Create a list to store time series by timeline

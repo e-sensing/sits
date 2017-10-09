@@ -31,10 +31,15 @@ sits_timeline <- function (data.tb){
 #'
 .sits_match_timelines <- function (timeline, ref_start_date, ref_end_date, interval = "12 month"){
 
+    ensurer::ensure_that(interval, lubridate::as.period(ref_end_date - ref_start_date) <= lubridate::period(.),
+                         err_desc = "sits_match_timelines - pattern reference dates are greater than specified interval")
+
     timeline <- lubridate::as_date (timeline)
     #define the input start and end dates
     input_start_date <- timeline [1]
     input_end_date   <- timeline [length(timeline)]
+
+    num_samples <- which(timeline == ref_end_date) - which(timeline == ref_start_date) + 1
 
     # define the estimated start date of the input data based on the patterns
     ref_st_mday  <- as.character(lubridate::mday(ref_start_date))
@@ -42,7 +47,6 @@ sits_timeline <- function (data.tb){
     year_st_date  <- as.character(lubridate::year(input_start_date))
     est_start_date    <- lubridate::as_date(paste0(year_st_date,"-",ref_st_month,"-",ref_st_mday))
     # find the actual starting date by searching the timeline
-    #start_date <- .sits_nearest_date(est_start_date, timeline)
     start_date <- timeline[which.min(abs(est_start_date - timeline))]
 
     # is the start date a valid one?
@@ -50,31 +54,27 @@ sits_timeline <- function (data.tb){
                          err_desc = ".sits_match_timelines: expected start date in not inside timeline of observations")
 
     # obtain the subset dates to break the input data set
-    # adjust the dates to match the patterns
-    # usually the patterns are fit to cover the closest period to one year that
-    # has observations.
+    # adjust the dates to match the timeline
 
     subset_dates.lst <- list()
 
-    while (.sits_is_valid_end_date(as.Date (start_date + lubridate::as.duration(interval)), timeline)){
-        # estimate the next end date based on the interval
-        next_end_date <- as.Date (start_date + lubridate::as.duration(interval))
-        # define the estimated end date of the input data based on the patterns
-        ref_end_mday  <- as.character(lubridate::mday(ref_end_date))
-        ref_end_month <- as.character(lubridate::month(ref_end_date))
-        year_end_date  <- as.character(lubridate::year(next_end_date))
-        est_end_date   <- lubridate::as_date(paste0(year_end_date,"-",ref_end_month,"-",ref_end_mday))
+    end_date <- timeline[which(timeline == start_date) + (num_samples - 1)]
 
-        # find the actual end date by searching the timeline
-
-        end_date <- timeline[which.min(abs(est_end_date - timeline))]
+    while (!is.na(end_date)){
         # add the start and end date
-        subset_dates.lst [[length(subset_dates.lst) + 1 ]] <- c(start_date, end_date)
-        # go to the next date
-        start_date     <- next_end_date
+        subset_dates.lst [[length(subset_dates.lst) + 1 ]] <- list(start_date, end_date, num_samples)
+
+        # estimate the next end date based on the interval
+        next_start_date <- as.Date (start_date + lubridate::as.duration(interval))
+        # define the estimated end date of the input data based on the patterns
+
+        # find the actual start date by searching the timeline
+        start_date <- timeline[which.min(abs(next_start_date - timeline))]
+        # estimate
+        end_date <- timeline[which(timeline == start_date) + (num_samples -1)]
     }
     # is the end date a valid one?
-    end_date   <- subset_dates.lst[[length(subset_dates.lst)]][2]
+    end_date   <- subset_dates.lst[[length(subset_dates.lst)]][[2]]
     ensurer::ensure_that(end_date, .sits_is_valid_end_date(., timeline),
                          err_desc = ".sits_match_timelines: expected end date in not inside timeline of observations")
 
