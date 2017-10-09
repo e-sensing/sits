@@ -296,7 +296,7 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL){
 
     result_fun <- function(data.tb, patterns.tb){
 
-        data.tb <- .sits_break_ts(data.tb, patterns.tb)
+        ref_dates.lst <- patterns.tb[1,]$ref_dates[[1]]
 
         # extract the time series
         ts.lst <- data.tb$time_series
@@ -306,14 +306,23 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL){
             purrr::map(function(ts) {
                 # add constant to get positive values
                 ts <- sits_apply_ts(ts, fun = function (band) band + 3.0)
-                # flatten the values
-                ts %>%
-                    dplyr::select(-Index) %>%
-                    purrr::map(function(band) band) %>%
-                    unlist() %>%
-                    as.matrix() %>%
-                    t() %>%
-                    tibble::as_tibble()
+
+                ts_break.lst <- .sits_break_ts (ts, ref_dates.lst)
+
+                ts_break.lst %>%
+                    purrr::map(function (ts_b) {
+                        # flatten the values
+                        ts_b %>%
+                            dplyr::select(-Index) %>%
+                            purrr::map(function(band) band) %>%
+                            unlist() %>%
+                            as.matrix() %>%
+                            t() %>%
+                            tibble::as_tibble()
+
+                    })
+
+
             })
         # spread these values as distance attributes
         distances.tb <- dplyr::bind_rows(values.lst)

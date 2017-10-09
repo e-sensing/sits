@@ -54,7 +54,7 @@
     # get the timeline of observations (required for matching dates)
     timeline <- raster.tb[1,]$timeline[[1]]
     # produce the breaks used to generate the output rasters
-    subset_dates.lst <- sits_match_dates(timeline, patterns.tb[1,]$start_date, patterns.tb[1,]$end_date, interval)
+    subset_dates.lst <- .sits_match_timelines(timeline, patterns.tb[1,]$start_date, patterns.tb[1,]$end_date, interval)
 
     # create a list to store the results
     raster.lst <- list()
@@ -79,7 +79,7 @@
             scale_factor <- 1
 
             # create a new RasterLayer for a defined period and generate the associated metadata
-            row.tb <- .sits_raster_tibble (r_out, band, timeline, scale_factor)
+            row.tb <- sits_tibble_raster (r_out, band, timeline, scale_factor)
 
             # store the labels of the classified image
             labels <- sits_labels(patterns.tb)$label
@@ -220,41 +220,6 @@
             })
         })
     return (ts.lst)
-}
-
-#' @title Create one line of metadata tibble to store the description of a spatio-temporal raster
-#' @name .sits_raster_tibble
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description  This function creates one line of tibble containing the metadata for
-#'               a set of spatio-temporal raster files.
-#'
-#' @param raster.obj     Valid Raster object (associated to filename)
-#' @param band           Name of band (either raw or classified)
-#' @param timeline       Timeline of data collection
-#' @param scale_factor   Scale factor to correct data
-
-.sits_raster_tibble <- function (raster.obj, band, timeline, scale_factor){
-
-    raster.tb <- tibble::tibble (
-        r_obj           = list(raster.obj),
-        ncols           = raster.obj@ncols,
-        nrows           = raster.obj@nrows,
-        band            = band,
-        start_date      = lubridate::as_date(timeline[1]),
-        end_date        = lubridate::as_date(timeline[length(timeline)]),
-        timeline        = list(timeline),
-        xmin            = raster.obj@extent@xmin,
-        xmax            = raster.obj@extent@xmax,
-        ymin            = raster.obj@extent@ymin,
-        ymax            = raster.obj@extent@ymax,
-        xres            = raster::xres (raster.obj),
-        yres            = raster::yres (raster.obj),
-        scale_factor    = scale_factor,
-        crs             = raster.obj@crs@projargs,
-        name            = raster.obj@file@name
-    )
-    return (raster.tb)
 }
 
 #' @title Define a filename associated to one classified raster layer

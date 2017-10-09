@@ -41,19 +41,22 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
 #' @title Provides information about one coverage of the WTSS service
 #' @name sits_coverageWTSS
 #'
-#' @description uses the WTSS services to print information about a
+#' @description uses the WTSS services to print information and save metadata about a
 #' chosen coverage:
+#'  bands          - the bands of the data to be retrieved from the WTSS
 #'  start_date     - the start date for the time series data in the coverage
 #'  end_date       - the end date for the time series data in the coverage
-#'  res_x          - spatial resolution (x dimension)
-#'  res_y          - spatial resolution (y dimension)
+#'  xres           - spatial resolution (x dimension)
+#'  yres           - spatial resolution (y dimension)
 #'  start_date     - initial date of the coverage time series
 #'  end_date       - final date of the coverage time series
-#'  x_min          - spatial extent (xmin)
-#'  y_min          - spatial extent (ymin)
-#'  x_max          - spatial extent (xmax)
-#'  y_max          - spatial extent (ymin)
-#'  bands          - the bands of the data to be retrieved from the WTSS
+#'  xmin           - spatial extent (xmin)
+#'  ymin           - spatial extent (ymin)
+#'  xmax           - spatial extent (xmax)
+#'  ymax           - spatial extent (ymin)
+#'  scale_factor   - scale factor to covert bands to a [0..1] scale
+#'  crs            - Projection crs
+#'
 #'
 #' @param URL        the URL for the WTSS time series service
 #' @param coverage   the name of the coverage
@@ -79,7 +82,11 @@ sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage
 
      # information about the bands
      cat (paste ("Bands: ", "\n", sep = "", collapse=""))
-     attr <- as.data.frame(cov$attributes)
+
+     # retrieve information about the bands
+     band_info <- cov$attributes
+
+     attr <- as.data.frame(band_info)
      print (attr[1:2])
 
      # spatial extent and resolution, projection CRS
@@ -105,7 +112,24 @@ sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage
      cat (paste ("Temporal resolution: ", temporal_resolution, " days ", "\n", sep = ""))
      cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
 
-     return (invisible(cov))
+     b <- tibble::as.tibble(band_info[, -(3:4)])
+     coverage.tb <-  sits_tibble_coverage()
+     coverage.tb <- tibble::add_row(coverage.tb,
+                                 wtss.obj       = list(wtss.obj),
+                                 name           = cov$name,
+                                 bands          = list(b),
+                                 start_date     = as.Date(cov$timeline[1]),
+                                 end_date       = as.Date(cov$timeline[length(timeline)]),
+                                 timeline       = list(cov$timeline),
+                                 xmin           = cov$spatial_extent$xmin,
+                                 xmax           = cov$spatial_extent$xmax,
+                                 ymin           = cov$spatial_extent$ymin,
+                                 ymax           = cov$spatial_extent$ymax,
+                                 xres           = cov$spatial_resolution$x,
+                                 yres           = cov$spatial_resolution$y,
+                                 crs            = cov$crs$proj4
+     )
+     return (coverage.tb)
 }
 
 #' @title Obtain information about one coverage of the WTSS service

@@ -3,8 +3,8 @@ Type: Package
 Title: Satellite Image Time Series Analysis
 Version: 0.9.17
 Date: 2017-09-17
-Authors@R: c(person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
-             person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
+Authors@R: c(person('Rolf', 'Simoes', role = c('aut', 'cre'), email = 'rolf.simoes@inpe.br'),
+             person('Gilberto', 'Camara', role = c('aut'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Luiz', 'Assis', role = c('ctb')),
              person('Alexandre', 'Carvalho', role = c('ctb')),
@@ -111,6 +111,7 @@ Collate:
     'sits_tibble.R'
     'sits_tibble_functions.R'
     'sits_tibble_utils.R'
+    'sits_timeline.R'
     'sits_validate.R'
 Suggests: knitr,
     rmarkdown,

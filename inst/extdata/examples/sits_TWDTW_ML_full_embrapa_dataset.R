@@ -12,7 +12,8 @@ URL <- "http://www.dpi.inpe.br/tws/wtss"
 wtss_inpe <- sits_infoWTSS(URL)
 
 # get information about a specific coverage
-sits_coverageWTSS(URL,"mod13q1_512")
+coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
+timeline    <- sits_timeline (coverage.tb)
 
 # choose a coverage
 coverage <- "mod13q1_512"
@@ -37,7 +38,7 @@ sits_bands(embrapa_mt.tb)
 embrapa_mt2.tb <- sits_select(embrapa_mt.tb, bands = c("ndvi", "evi", "nir", "mir") )
 
 # obtain a set of patterns for these samples
-patterns.tb <- sits_patterns(embrapa_mt2.tb)
+patterns.tb <- sits_patterns(embrapa_mt2.tb, timeline)
 
 sits_plot (patterns.tb, type = "patterns")
 

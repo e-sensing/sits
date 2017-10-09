@@ -125,4 +125,49 @@
 
 }
 
+#' @title Break a time series to match the time range of a set of patterns
+#' @name .sits_break_ts
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  Given a long time series, divide it into segments to match
+#'               the time range of a set of patterns
+#'
+#' @param  ts             time series data
+#' @param  ref_dates.lst  list with dates to break
+#' @return ts.lst         list with the breaks of the time series data
+#' @export
+#'
+.sits_break_ts <-  function (ts, ref_dates.lst){
+
+
+    new_ts.lst <- ref_dates.lst %>%
+        purrr::map(function (date_pair) {
+
+        # extract the n-th subset of the input data
+        ts <- dplyr::filter (dplyr::between (.$Index, start_date, end_date))
+        })
+    return (new_ts.lst)
+}
+#' @title Create a list to store time series by timeline
+#' @name  .sits_create_ts_list
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Create a list of time series that share the same timeline
+#'
+#' @param timeline  the timeline (dates of the time series)
+#' @param n         Number of time series to create
+#'
+.sits_create_ts_list <- function (timeline, n) {
+
+    ts.lst <- list()
+    # create one time series per pixel
+    # all time series share the same timeline
+    for (i in 1:n) {
+        ts.tb <- tibble::tibble (Index = timeline)
+        ts.lst[[length(ts.lst) + 1 ]] <- ts.tb
+        i <- i + 1
+    }
+    return (ts.lst)
+}
 

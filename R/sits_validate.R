@@ -25,6 +25,7 @@
 #'
 #' @param data.tb         a SITS tibble
 #' @param folds           number of partitions to create.
+#' @param timeline        the valid timeline of the data
 #' @param pt_method       method to create patterns (sits_patterns_gam, sits_dendogram)
 #' @param dist_method     method to compute distances (e.g., sits_TWDTW_distances)
 #' @param tr_method       machine learning training method
@@ -33,13 +34,16 @@
 #' @export
 
 sits_kfold_validate <- function (data.tb, folds = 5,
-                                 pt_method   = sits_gam(),
-                                 dist_method = sits_TWDTW_distances(),
+                                 timeline    = NULL,
+                                 pt_method   = sits_patterns_from_data(),
+                                 dist_method = sits_distances_from_data(),
                                  tr_method   = sits_svm(),
                                  multicores = 1){
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
+
+    ensurer::ensure_that(timeline, !purrr::is_null(.), err_desc = "sits_kfold_validate - please provide timeline")
 
     # is the data labelled?
     ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),
@@ -65,7 +69,7 @@ sits_kfold_validate <- function (data.tb, folds = 5,
         message("Creating patterns from a data sample...")
 
         # use the extracted partition to create the patterns
-        patterns.tb <- pt_method(data_train.tb)
+        patterns.tb <- pt_method(data_train.tb, timeline)
 
         # find the matches on the training data
         distances_train.tb <- dist_method (data_train.tb, patterns.tb)
@@ -114,6 +118,7 @@ sits_kfold_validate <- function (data.tb, folds = 5,
 #'
 #' @param data.tb         a SITS tibble
 #' @param folds           number of partitions to create.
+#' @param timeline        the valid timeline of the data
 #' @param pt_method       method to create patterns (sits_patterns_gam, sits_dendogram)
 #' @param dist_method     method to compute distances (e.g., sits_TWDTW_distances)
 #' @param tr_method       machine learning training method
@@ -122,8 +127,9 @@ sits_kfold_validate <- function (data.tb, folds = 5,
 #' @export
 
 sits_kfold_fast_validate <- function (data.tb, folds = 5,
-                                      pt_method   = sits_gam(),
-                                      dist_method = sits_TWDTW_distances(),
+                                      timeline    = NULL,
+                                      pt_method   = sits_patterns_from_data(),
+                                      dist_method = sits_distances_from_data(),
                                       tr_method   = sits_svm(),
                                       multicores = 1){
 
@@ -133,12 +139,14 @@ sits_kfold_fast_validate <- function (data.tb, folds = 5,
     ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),
                           err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
+    ensurer::ensure_that(timeline, !purrr::is_null(.), err_desc = "sits_kfold_fast_validate - please provide timeline")
+
     # what are the bands of the data?
     bands <- sits_bands (data.tb)
 
     # Use all samples to find the patterns
     message("Creating patterns from all samples of the data..")
-    patterns.tb <- pt_method(data.tb)
+    patterns.tb <- pt_method(data.tb, timeline)
 
     # find the matches on the training data
     message("Measuring distances from all samples of the data to the patterns..")

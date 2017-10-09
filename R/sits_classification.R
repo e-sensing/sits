@@ -31,7 +31,7 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
             timeline <- dplyr::pull(row$time_series[[1]][,"Index"])
 
             # find the subsets of the input data
-            subset_dates.lst <- sits_match_dates(timeline, patterns.tb[1,]$start_date, patterns.tb[1,]$end_date, interval = interval)
+            subset_dates.lst <- .sits_match_timelines(timeline, patterns.tb[1,]$start_date, patterns.tb[1,]$end_date, interval = interval)
 
             subset_dates.lst %>%
                 purrr::map (function (date_pair){
