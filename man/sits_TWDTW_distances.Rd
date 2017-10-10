@@ -6,7 +6,8 @@
 \usage{
 sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL,
   interval = "12 month", dist.method = "euclidean", alpha = -0.1,
-  beta = 100, theta = 0.5, span = 250, keep = FALSE, multicores = 1)
+  beta = 100, theta = 0.5, span = 250, keep = FALSE, multicores = 1,
+  .break = TRUE)
 }
 \arguments{
 \item{data.tb}{Table in SITS format with a time series to be classified using TWTDW}
@@ -29,6 +30,8 @@ sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL,
 
 \item{multicores}{Number of threads to process the validation (Linux only). Each process will run a
 whole partition validation.}
+
+\item{.break}{Controls whether the series is to be broken}
 }
 \value{
 distances.tb       a SITS table with the information on distances for the data

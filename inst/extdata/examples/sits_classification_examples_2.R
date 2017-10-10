@@ -15,6 +15,7 @@ timeline <- sits_timeline(coverage.tb)
 
 # choose a coverage
 coverage <- "mod13q1_512"
+
 # recover the NDVI, EVI, MIR and NIR bands
 bands <- c("ndvi", "evi", "nir", "mir")
 
@@ -25,7 +26,7 @@ embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
 # CLASSIFICATION USING THE DISTANCES FROM DATA
 #create patterns
-patterns_data.tb <- sits_patterns_from_data(embrapa.tb, timeline = coverage.tb)
+patterns_data.tb <- sits_patterns_from_data(embrapa.tb, timeline)
 
 # estimate distances
 distances_data.tb <- sits_distances_from_data(embrapa.tb, patterns_data.tb)

@@ -5,7 +5,7 @@
 \title{Calculate a set of distance measures for satellite image time series}
 \usage{
 sits_TS_distances(data.tb = NULL, patterns.tb = NULL, distance = "dtw",
-  ...)
+  .break = TRUE, ...)
 }
 \arguments{
 \item{data.tb}{SITS tibble time series}
@@ -13,6 +13,8 @@ sits_TS_distances(data.tb = NULL, patterns.tb = NULL, distance = "dtw",
 \item{patterns.tb}{Set of patterns obtained from training samples}
 
 \item{distance}{Method for calculating distances between time series and pattern}
+
+\item{.break}{Controls whether the series is to be broken}
 
 \item{...}{Additional parameters required by the distance method.}
 }

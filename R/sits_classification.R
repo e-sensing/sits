@@ -13,7 +13,7 @@
 #' @return data.tb         a SITS tibble with the predicted labels for each input segment
 #' @export
 sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
-                           ml_model = NULL, dist_method = sits_distances_from_data(),
+                           ml_model = NULL, dist_method = sits_distances_from_data(.break = FALSE),
                            interval = "12 month"){
 
     .sits_test_tibble(data.tb)
@@ -22,33 +22,31 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
     # create a tibble to store the result
     result.tb <- sits_tibble_classification()
 
+    # find the subsets of the input data
+    ref_dates.lst <- patterns.tb[1,]$ref_dates[[1]]
+
     # go over every row of the table
     data.tb %>%
         purrrlyr::by_row (function (row) {
             # create a table to store the result
             predict.tb <- sits_tibble_prediction()
 
-            timeline <- dplyr::pull(row$time_series[[1]][,"Index"])
-
-            # find the subsets of the input data
-            ref_dates.lst <- patterns.tb[1,]$ref_dates[[1]]
-
             ref_dates.lst %>%
-                purrr::map (function (date_info){
+                purrr::map (function (dates){
 
                     # find the n-th subset of the input data
-                    row_subset.tb <- .sits_extract(row, date_pair[1], date_pair[2])
+                    row_subset.tb <- .sits_extract(row, dates[1], dates[2])
 
                     # find the distances in the subset data
-                    distances.tb  <- sits_distances (row_subset.tb, patterns.tb, dist_method = dist_method, .break = FALSE)
+                    distances.tb  <- sits_distances (row_subset.tb, patterns.tb, dist_method = dist_method)
 
                     # classify the subset data
                     predicted <- sits_predict(distances.tb, ml_model)
 
                     # save the results
                     predict.tb   <<- tibble::add_row(predict.tb,
-                                                from      = lubridate::as_date(date_pair[1]),
-                                                to        = lubridate::as_date(date_pair[2]),
+                                                from      = lubridate::as_date(dates[1]),
+                                                to        = lubridate::as_date(dates[2]),
                                                 distance  = 0.0,
                                                 predicted = predicted
                     )

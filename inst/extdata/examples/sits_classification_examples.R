@@ -64,7 +64,7 @@ if (TRUE) distances_twdtw.tb <- readRDS(system.file("extdata/models/embrapa_mt_d
 model_svm1.ml <- sits_svm(distances_twdtw.tb, kernel = "radial", cost = 10)
 
 # classify the test data
-class.tb <- sits_classify(series.tb, patterns_gam.tb, model_svm1.ml, dist_method = sits_TWDTW_distances())
+class.tb <- sits_classify(point.tb, patterns_gam.tb, model_svm1.ml, dist_method = sits_TWDTW_distances())
 
 #classify the time series matches using yearly intervals
 
@@ -82,7 +82,7 @@ distances_data.tb <- sits_distances_from_data(embrapa.tb, patterns_data.tb)
 model_svm2.ml <- sits_svm(distances_data.tb, kernel = "radial", cost = 10)
 
 # classify the test data
-class.tb <- sits_classify(series.tb, patterns_data.tb, model_svm2.ml, dist_method = sits_distances_from_data())
+class.tb <- sits_classify(point.tb, patterns_data.tb, model_svm2.ml, dist_method = sits_distances_from_data())
 
 # plot the classification of the time series by yearly intervals
 sits_plot_classification(class.tb, patterns_data.tb, band = "ndvi")

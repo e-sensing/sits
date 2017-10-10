@@ -5,7 +5,8 @@
 \title{Classify a sits tibble using machine learning models}
 \usage{
 sits_classify(data.tb = NULL, patterns.tb = NULL, ml_model = NULL,
-  dist_method = sits_distances_from_data(), interval = "12 month")
+  dist_method = sits_distances_from_data(.break = FALSE),
+  interval = "12 month")
 }
 \arguments{
 \item{data.tb}{a SITS tibble time series}

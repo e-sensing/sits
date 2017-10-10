@@ -62,7 +62,7 @@ sits_timeline <- function (data.tb){
 
     while (!is.na(end_date)){
         # add the start and end date
-        subset_dates.lst [[length(subset_dates.lst) + 1 ]] <- list(start_date, end_date, num_samples)
+        subset_dates.lst [[length(subset_dates.lst) + 1 ]] <- c(start_date, end_date)
 
         # estimate the next end date based on the interval
         next_start_date <- as.Date (start_date + lubridate::as.duration(interval))
@@ -74,7 +74,7 @@ sits_timeline <- function (data.tb){
         end_date <- timeline[which(timeline == start_date) + (num_samples -1)]
     }
     # is the end date a valid one?
-    end_date   <- subset_dates.lst[[length(subset_dates.lst)]][[2]]
+    end_date   <- subset_dates.lst[[length(subset_dates.lst)]][2]
     ensurer::ensure_that(end_date, .sits_is_valid_end_date(., timeline),
                          err_desc = ".sits_match_timelines: expected end date in not inside timeline of observations")
 

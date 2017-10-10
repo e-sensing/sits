@@ -142,10 +142,12 @@
 
     new_ts.lst <- list()
     ref_dates.lst %>%
-        purrr::map(function (dates_info) {
-            if (ts$Index[1] < dates_info[[2]] && ts$Index[length(ts$Index)] > dates_info[[1]]){
-                ts_b <- ts %>% dplyr::filter (dplyr::between (.$Index, dates_info[[1]], dates_info[[2]]))
-                new_ts.lst[[length(new_ts.lst) + 1 ]] <<- ts_b
+        purrr::map(function (dates) {
+            if (ts$Index[1] <= dates[1]) {
+                if (ts$Index[length(ts$Index)] >= dates[2]){
+                    ts_b <- ts %>% dplyr::filter (dplyr::between (.$Index, dates[1], dates[2]))
+                    new_ts.lst[[length(new_ts.lst) + 1 ]] <<- ts_b
+                }
             }
         })
 

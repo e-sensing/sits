@@ -77,11 +77,12 @@ sits_distances <- function(data.tb, patterns.tb,
 #' @param data.tb          SITS tibble time series
 #' @param patterns.tb      Set of patterns obtained from training samples
 #' @param distance         Method for calculating distances between time series and pattern
+#' @param .break           Controls whether the series is to be broken
 #' @param ...              Additional parameters required by the distance method.
 #' @return result          a set of distance metrics
 #'
 #' @export
-sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "dtw",...) {
+sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "dtw", .break = TRUE, ...) {
 
     # function that returns a distance tibble
     result_fun <- function(data.tb, patterns.tb){
@@ -95,7 +96,7 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
         labels <- (dplyr::distinct(patterns.tb, label))$label
         bands  <- sits_bands (patterns.tb)
 
-        data.tb <- .sits_break_ts(data.tb, patterns.tb)
+        if (.break) data.tb <- .sits_break(data.tb, patterns.tb)
 
         progress_bar <- NULL
         if (nrow (data.tb) > 10) {
@@ -155,13 +156,14 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
 #' @param  keep          Keep internal values for plotting matches
 #' @param  multicores    Number of threads to process the validation (Linux only). Each process will run a
 #'                       whole partition validation.
+#' @param  .break         Controls whether the series is to be broken
 #' @return distances.tb       a SITS table with the information on distances for the data
 #' @export
 sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
                                   interval = "12 month",
                                   dist.method = "euclidean",
                                   alpha = -0.1, beta = 100, theta = 0.5, span  = 250,
-                                  keep  = FALSE, multicores = 1) {
+                                  keep  = FALSE, multicores = 1, .break = TRUE) {
 
     ensurer::ensure_that(data.tb, all(sits_bands(patterns.tb) == sits_bands(.)),
                          err_desc = "sits_TWDTW_distances: bands in the data do not match bands in the patterns")
@@ -171,7 +173,7 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
         # determine the bands of the data
         bands <- sits_bands (data.tb)
 
-        data.tb <- .sits_break_ts(data.tb, patterns.tb)
+        if (.break) data.tb <- .sits_break(data.tb, patterns.tb)
 
         # determine the labels of the patterns
         labels <- sits_labels(patterns.tb)$label
@@ -288,12 +290,13 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
 #' This function then extracts the time series from a SITS tibble and
 #' "spreads" them in time to produce a tibble with distances.
 #'
-#' @param  data.tb       a SITS tibble with original data
+#' @param  data.tb        a SITS tibble with original data
 #' @param  patterns.tb    Set of patterns obtained from training samples
+#' @param  shift          Adjustment value to avoid negative pixel vales
 #' @param  .break         Controls whether the series is to be broken
 #' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
 #' @export
-sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL, .break = TRUE){
+sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL, shift = 3.0, .break = TRUE){
 
     result_fun <- function(data.tb, patterns.tb){
 
@@ -306,7 +309,7 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL, .break 
         values.lst <- ts.lst %>%
             purrr::map(function(ts) {
                 # add constant to get positive values
-                ts <- sits_apply_ts(ts, fun = function (band) band + 3.0)
+                ts <- sits_apply_ts(ts, fun = function (band) band + shift)
 
                 if (.break) ts_break.lst <- .sits_break_ts (ts, ref_dates.lst)
                 else ts_break.lst <- list (ts)
