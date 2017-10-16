@@ -14,20 +14,38 @@ timeline    <- sits_timeline (coverage.tb)
 #load a data set for with samples for EMBRAPA data set
 embrapa.tb <- readRDS(system.file ("extdata/time_series/embrapa_mt.rds", package = "sits"))
 
+embrapa1.tb <- sits_select (embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
+
 results <- list()
 
 # test accuracy of TWDTW to measure distances
-conf_svm.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, timeline, multicores = 2,
+conf_svm1.tb <- sits_kfold_fast_validate(embrapa1.tb, folds = 5, timeline, multicores = 2,
                                    pt_method   = sits_patterns_from_data(),
                                    dist_method = sits_distances_from_data(),
-                                   tr_method   = sits_svm (kernel = "radial", cost = 1))
+                                   tr_method   = sits_svm (kernel = "radial", cost = 10))
 print("==================================================")
 print ("== Confusion Matrix = SVM =======================")
-conf_svm.mx <- sits_accuracy(conf_svm.tb)
+conf_svm1.mx <- sits_accuracy(conf_svm1.tb)
 
-conf_svm.mx$name <- "svm_10"
+conf_svm1.mx$name <- "svm_10"
 
-results[[length(results) + 1]] <- conf_svm.mx
+results[[length(results) + 1]] <- conf_svm1.mx
+
+embrapa2.tb <- sits_select (embrapa.tb, bands = c("ndvi", "evi", "nir"))
+
+# test accuracy of TWDTW to measure distances
+conf_svm2.tb <- sits_kfold_fast_validate(embrapa2.tb, folds = 5, timeline, multicores = 2,
+                                         pt_method   = sits_patterns_from_data(),
+                                         dist_method = sits_distances_from_data(),
+                                         tr_method   = sits_svm (kernel = "radial", cost = 10))
+print("==================================================")
+print ("== Confusion Matrix = SVM =======================")
+conf_svm2.mx <- sits_accuracy(conf_svm2.tb)
+
+conf_svm2.mx$name <- "svm_10_3bands"
+
+results[[length(results) + 1]] <- conf_svm2.mx
+
 
 
 # =============== GLM ==============================
@@ -123,5 +141,5 @@ results[[length(results) + 1]] <- conf_svm_full.mx
 
 WD = getwd()
 
-sits_toXLSX(results, file = paste0(WD, "/accuracy_embrapa_spread.xlsx"))
+sits_toXLSX(results, file = paste0(WD, "/accuracy_embrapa_3bands_4bands.xlsx"))
 

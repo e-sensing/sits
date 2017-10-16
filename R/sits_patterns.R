@@ -84,7 +84,7 @@ sits_patterns_from_data <- function (data.tb = NULL, timeline = NULL, interval =
                                              end_date       = row$end_date,
                                              label          = row$label,
                                              coverage       = row$coverage,
-                                             timeline       = list(timeline),
+                                             timeline       = list(times),
                                              ref_dates      = list(ref_dates.lst),
                                              time_series    = row$time_series)
 

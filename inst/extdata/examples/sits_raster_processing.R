@@ -1,12 +1,11 @@
-files <- c("./inst/extdata/raster/sinop/sinop-crop-ndvi-2.tif",
-           "./inst/extdata/raster/sinop/sinop-crop-evi-2.tif")
+files <- c("/Users/gilbertocamara/Dropbox/brickBuilder/sinop_ndvi.tif",
+           "/Users/gilbertocamara/Dropbox/brickBuilder/sinop_evi.tif")
 
 bands <- c("ndvi", "evi")
 
 scale_factors <- c(0.0001, 0.0001)
 
-timeline <- read.csv(system.file("extdata/raster/sinop/mod13Q1-timeline",package = "sits"),
-                      header = FALSE)
+timeline <- read.csv("/Users/gilbertocamara/Dropbox/BrickBuilder/mod13Q1-timeline", header = FALSE)
 timeline <- lubridate::as_date (timeline$V1)
 
 raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)

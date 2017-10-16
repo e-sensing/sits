@@ -237,7 +237,7 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
-            result <- stats::predict(result_mlr, newdata = values.tb, type = "probs")
+            result <- stats::predict(result_mlr, newdata = values.tb)
             return(result)
         }
         return(model_predict)

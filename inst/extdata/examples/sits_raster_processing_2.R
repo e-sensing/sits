@@ -1,5 +1,5 @@
-files <- c(system.file("extdata/raster/sinop/sinop_crop_ndvi.tif",package = "sits"),
-           system.file("extdata/raster/sinop/sinop_crop_evi.tif", package = "sits"))
+files <- c(system.file("extdata/raster/sinop/sinop-crop-ndvi.tif",package = "sits"),
+           system.file("extdata/raster/sinop/sinop-crop-evi.tif", package = "sits"))
 
 bands <- c("ndvi", "evi")
 
@@ -13,11 +13,7 @@ raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 
 embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 
-patterns.tb  <- sits_patterns_from_data(embrapa.tb)
-
-interval <- "12 month"
-# produce the breaks used to generate the output rasters
-subset_dates.lst <- .sits_match_timelines(timeline, patterns.tb[1,]$start_date, patterns.tb[1,]$end_date, interval)
+patterns.tb  <- sits_patterns_from_data(embrapa.tb, timeline)
 
 file <- "./inst/extdata/raster/classified.tif"
 
