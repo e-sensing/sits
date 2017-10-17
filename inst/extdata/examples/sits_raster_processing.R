@@ -27,7 +27,7 @@ embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package 
 embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi"))
 
 # define the patterns from data
-patterns.tb <- sits_patterns_from_data(embrapa.tb, timeline)
+patterns.tb <- sits_gam(embrapa.tb, timeline)
 
 # distances from data
 distances.tb <- sits_distances_from_data(embrapa.tb, patterns.tb)

@@ -39,7 +39,12 @@ sits_timeline <- function (data.tb){
     input_start_date <- timeline [1]
     input_end_date   <- timeline [length(timeline)]
 
-    num_samples <-
+    num_samples <- sits_num_samples(timeline, interval)
+
+    if (num_samples != 23) {
+        print (ref_start_date)
+        print (ref_end_date)
+    }
 
     # define the estimated start date of the input data based on the patterns
     ref_st_mday  <- as.character(lubridate::mday(ref_start_date))
@@ -81,24 +86,24 @@ sits_timeline <- function (data.tb){
     return (subset_dates.lst)
 }
 
-#' @title Find number of samples, given a timeline, a start date and an interval
-#' @name .sits_num_samples
+#' @title Find number of samples, given a timeline and an interval
+#' @name sits_num_samples
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description For correct classification, the time series of the input data set
-#'              should be aligned to that of the reference data set (usually a set of patterns).
-#'              This function aligns these data sets so that shape matching works correctly
+#' @description This function retrieves the number of samples
 #'
 #' @param timeline              Timeline of input observations (vector)
-#' @param ref_start_date        A date that defines a the start of a reference period
-#' @param ref_end_date          A date that defines a the end of a reference period
 #' @param interval              Period to match the data to the patterns
 #' @return num_samples          The number of measures during the chosen interval
 #'
-.sits_num_samples <- function (timeline, ref_start_date, ref_end_date, interval = "12 month"){
+#' @export
+sits_num_samples <- function (timeline, interval = "12 month"){
 
-    if (ref_end_date %in% timeline && ref_start_date %in% timeline)
-        return (which(timeline == ref_end_date) - which(timeline == ref_start_date) + 1)
-    else
-        return (23)
+    start_date <- timeline[1]
+    next_interval_date <- lubridate::as_date (lubridate::as_date(start_date) + lubridate::as.duration(interval))
+
+    times <- timeline [(next_interval_date - timeline) >  0]
+    end_date <- timeline[which.max(times)]
+
+    return (which(timeline == end_date) - which(timeline == start_date) + 1)
 }

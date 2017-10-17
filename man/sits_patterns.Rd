@@ -14,8 +14,6 @@ sits_patterns(data.tb, timeline, pt_method = sits_gam(data.tb = NULL, timeline
 \item{timeline}{the valid timeline for the data}
 
 \item{pt_method}{a pattern fitting method}
-
-\item{timeline}{The timeline for the coverage (all acquisition dates)}
 }
 \value{
 result          a model fitted into input data given by train_method parameter

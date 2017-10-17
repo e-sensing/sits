@@ -12,7 +12,6 @@
 #'
 #' @param data.tb          a SITS tibble time series with an alignment column
 #' @param timeline         the valid timeline for the data
-#' @param timeline         The timeline for the coverage (all acquisition dates)
 #' @param pt_method        a pattern fitting method
 #' @return result          a model fitted into input data given by train_method parameter
 #' @export
