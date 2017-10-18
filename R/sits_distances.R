@@ -314,6 +314,10 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL, shift =
                 if (.break) ts_break.lst <- .sits_break_ts (ts, ref_dates.lst)
                 else ts_break.lst <- list (ts)
 
+                ensurer::ensure_that (ts_break.lst, length(.) > 0,
+                                      err_desc = "sits_distances: pattern dates are outside input data range.
+                                      Please run function sits_prune")
+
                 tb.lst <- ts_break.lst %>%
                     purrr::map(function (ts_b) {
                         # flatten the values
@@ -335,4 +339,38 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL, shift =
     }
     result <- .sits_factory_function2 (data.tb, patterns.tb, result_fun)
     return (result)
+}
+
+#' @title Use time series values as distances for classification
+#' @name sits_distances_from_ts
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function allows using a time series as
+#' input to the machine learning classification.
+#' This function extracts the time series and "spreads" them in time to produce a tibble with distances.
+#'
+#' @param  ts.tb          Tibble with time series
+#' @param  shift          Adjustment value to avoid negative pixel vales
+#' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
+#' @export
+sits_distances_from_ts <- function(ts.tb, shift = 3.0){
+
+    # add constant to get positive values
+    ts.tb <- sits_apply_ts(ts.tb, fun = function (band) band + shift)
+
+    # flatten the values
+    distances.tb <- ts.tb %>%
+        dplyr::select(-Index) %>%
+        purrr::map(function(band) band) %>%
+        unlist() %>%
+        as.matrix() %>%
+        t() %>%
+        tibble::as_tibble()
+
+    # spread these values as distance attributes
+    distances.tb <- dplyr::bind_cols(original_row = 1, reference = "NoClass", distances.tb)
+
+    return(distances.tb)
+
 }

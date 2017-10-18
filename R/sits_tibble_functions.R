@@ -97,7 +97,7 @@ sits_apply_on <- function(data.tb, field, fun){
 #'
 #' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
 #'
-#' @param ts.tb       a valid sits table
+#' @param ts.tb         a valid sits table
 #' @param fun           a function with one parameter as input and a vector or list of vectors as output.
 #' @param fun_index     a function with one parameter as input and a Date vector as output.
 #' @param bands_suffix  a string informing the resulting bands name's suffix.
@@ -281,6 +281,47 @@ sits_mutate <- function(data.tb, ...){
     # compute mutate for each time_series tibble
     data.tb$time_series <- proc_fun(...)
     return(data.tb)
+}
+#' @title  Prunes dates of time series to fit a timeline
+#' @name   sits_prune
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description prunes the times series contained a set of sits tables
+#' to a timeline. This function is useful to constrain the different samples
+#' of land cover to a timeline of available input
+#'
+#' @param    data.tb      tibble - input SITS table
+#' @param    timeline     a timeline of dates for which data is available
+#' @return   pruned.tb    tibble - the converted SITS table
+#' @export
+sits_prune <- function (data.tb, timeline) {
+    #does the input data exist?
+    .sits_test_tibble(data.tb)
+
+    pruned.tb    <- sits_tibble()
+    discarded.tb <- sits_tibble()
+
+    timeline_start_date <- lubridate::as_date(timeline[1])
+    timeline_end_date   <- lubridate::as_date(timeline[length(timeline)])
+
+    data.tb %>%
+        purrrlyr::by_row (function (row) {
+
+            if (row$start_date > timeline_start_date && row$end_date < timeline_end_date)
+                pruned.tb <<- dplyr::bind_rows(pruned.tb, row)
+            else
+                discarded.tb <<- dplyr::bind_rows(discarded.tb, row)
+        })
+
+    if (nrow(discarded.tb) > 0){
+        message("The following sample(s) has(have) been discarded:\n")
+        print(tibble::as_tibble(discarded.tb))
+    }
+    else
+        message("No sample(s) has(have) been discarded:\n")
+
+    return (pruned.tb)
 }
 #' @title names of the bands of a time series
 #' @name sits_rename

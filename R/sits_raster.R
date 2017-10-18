@@ -246,10 +246,10 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
     for (i in 1:bs$n){
 
         # extract time series from the block of RasterBrick rows
-        data.tb <- .sits_data_from_block (raster.tb, row = bs$row[i], nrows = bs$nrows[i])
+        ts.lst <- .sits_ts_from_block (raster.tb, row = bs$row[i], nrows = bs$nrows[i])
 
         # classify the time series that are part of the block
-        class.tb <- sits_classify(data.tb, patterns.tb, ml_model)
+        class.tb <- sits_classify_ts(ts.lst, patterns.tb, ml_model)
 
         # write the block back
         raster_class.tb <- .sits_block_from_data (class.tb, raster_class.tb, labels, row = bs$row[i])

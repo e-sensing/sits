@@ -1,17 +1,20 @@
-files <- c("/Users/gilbertocamara/Dropbox/brickBuilder/sinop_ndvi.tif",
-           "/Users/gilbertocamara/Dropbox/brickBuilder/sinop_evi.tif")
+#files <- c("/Users/gilbertocamara/Dropbox/brickBuilder/Sinop_ndvi.tif",
+#           "/Users/gilbertocamara/Dropbox/brickBuilder/Sinop_evi.tif")
+
+files <- c("/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-ndvi.tif",
+          "/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-evi.tif")
 
 bands <- c("ndvi", "evi")
 
 scale_factors <- c(0.0001, 0.0001)
 
-timeline <- read.csv("/Users/gilbertocamara/Dropbox/BrickBuilder/mod13Q1-timeline", header = FALSE)
+timeline <- read.csv("/Users/gilbertocamara/Dropbox/BrickBuilder/mod13Q1-timeline-2000-2017.csv", header = FALSE)
 timeline <- lubridate::as_date (timeline$V1)
 
 raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 
-longitude <- -55.31578
-latitude  <- -11.66757
+longitude <- -55.55694
+latitude  <- -11.52600
 
 data.tb <- sits_fromRaster(raster.tb, longitude = longitude, latitude = latitude)
 
@@ -27,7 +30,7 @@ embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package 
 embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi"))
 
 # define the patterns from data
-patterns.tb <- sits_gam(embrapa.tb, timeline)
+patterns.tb <- sits_patterns(embrapa.tb, timeline)
 
 # distances from data
 distances.tb <- sits_distances_from_data(embrapa.tb, patterns.tb)
