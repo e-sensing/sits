@@ -74,6 +74,75 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
 
     return(result.tb)
 }
+#' @title Classify a set of spatio-temporal raster bricks using machine learning models
+#' @name sits_classify_raster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Takes a set of spatio-temporal raster bricks, whose metadata is
+#'              described by tibble (created by \code{\link[sits]{sits_fromRaster}}),
+#'              a set of patterns (created by \code{\link[sits]{sits_patterns}}),
+#'              a prediction model (created by \code{\link[sits]{sits_train}}), and
+#'              a method to extract shape attributes from time_series (used by  \code{\link[sits]{sits_distances}} ),
+#'              and produces a classified set of RasterLayers. This function is similar to
+#'               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
+#'
+#'
+#' @param  raster.tb       a tibble with information about a set of space-time raster bricks
+#' @param  file            a general set of file names (one file per classified year)
+#' @param  patterns.tb     a set of known temporal signatures for the chosen classes
+#' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
+#' @param  dist_method     method to compute distances (e.g., sits_TWDTW_distances)
+#' @param  interval        the period between two classifications
+#' @param  ...             other parameters to be passed to the distance function
+#' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
+#' @export
+sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model = NULL,
+                                  dist_method = sits_distances_from_data(),
+                                  interval = "12 month"){
+
+    # ensure metadata tibble exists
+    .sits_test_tibble (raster.tb)
+    # ensure patterns tibble exits
+    .sits_test_tibble (patterns.tb)
+
+    # ensure that file name and prediction model are provided
+    ensurer::ensure_that(file,     !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
+    ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits-classify-raster: please provide a machine learning model already trained")
+
+    # create the raster objects and their respective filenames
+    raster_class.tb <- .sits_create_classified_raster(raster.tb, patterns.tb, file, interval)
+
+    # get the labels of the data
+    labels <- sits_labels(patterns.tb)$label
+
+    #initiate writing
+    raster_class.tb$r_obj <- raster_class.tb$r_obj %>%
+        purrr::map(function (layer) {
+            raster::writeStart(layer, layer@file@name, overwrite = TRUE)
+        })
+
+    # recover the input data by blocks for efficiency
+    bs <- .sits_raster_block_size (raster_class.tb[1,])
+
+    # read the input raster in blocks
+    for (i in 1:bs$n){
+
+        # extract time series from the block of RasterBrick rows
+        ts.lst <- .sits_ts_from_block (raster.tb, row = bs$row[i], nrows = bs$nrows[i])
+
+        # classify the time series that are part of the block
+        class.tb <- sits_classify_ts(ts.lst, patterns.tb, ml_model)
+
+        # write the block back
+        raster_class.tb <- .sits_block_from_data (class.tb, raster_class.tb, labels, row = bs$row[i])
+    }
+    # finish writing
+    raster_class.tb$r_obj <- raster_class.tb$r_obj %>%
+        purrr::map(function (layer) {
+            raster::writeStop(layer)
+        })
+    return (raster_class.tb)
+}
 
 #' @title Classify a sits tibble using machine learning models
 #' @name sits_classify_ts

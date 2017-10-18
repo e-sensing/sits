@@ -1,5 +1,5 @@
 #' @title Coordinate transformation (lat/long to X/Y)
-#' @name sits_latlong_to_proj
+#' @name .sits_latlong_to_proj
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Transform a latitude and longitude coordinate to a XY projection coordinate
@@ -8,8 +8,7 @@
 #' @param latitude        double - the latitude of the chosen location
 #' @param crs             projection definition to be converted to
 #' @return xy             a matrix with X/Y coordinates
-#' @export
-sits_latlong_to_proj <- function (longitude, latitude, crs) {
+.sits_latlong_to_proj <- function (longitude, latitude, crs) {
 
 
     st_point <- sf::st_point (c(longitude, latitude))

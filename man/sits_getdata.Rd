@@ -4,15 +4,15 @@
 \alias{sits_getdata}
 \title{Obtain timeSeries from different sources}
 \usage{
-sits_getdata(file = NULL, table = NULL, longitude = NULL,
+sits_getdata(raster.tb = NULL, file = NULL, longitude = NULL,
   latitude = NULL, start_date = NULL, end_date = NULL, label = NULL,
   URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL, bands = NULL,
   n_max = Inf, ignore_dates = FALSE)
 }
 \arguments{
-\item{file}{the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)}
+\item{raster.tb}{an STRaster  object (tibble with raster information)}
 
-\item{table}{an R object ("sits_tibble")}
+\item{file}{the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)}
 
 \item{longitude}{double - the longitude of the chosen location}
 

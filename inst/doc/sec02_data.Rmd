@@ -1,4 +1,4 @@
-The basic data unit in the sits package is the SITS tibble, which is 
+The basic data unit in the sits package is the SITS tibble, which is a way of organizing a set of time series data with associated spatial information. In R, a "tibble" differs from the traditional data frame, insofar as a tibble can contain lists embedded as column arguments
 
 ```{r}
 # Get a data set containing samples for two classes ("Cerrado" and "Pasture")

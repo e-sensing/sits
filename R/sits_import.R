@@ -22,8 +22,8 @@
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177.
 #'
+#' @param raster.tb       an STRaster  object (tibble with raster information)
 #' @param file            the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)
-#' @param table           an R object ("sits_tibble")
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location)
 #' @param start_date      date - the start of the period
@@ -36,8 +36,8 @@
 #' @param ignore_dates    use the start and end dates from the coverage instead of the time series
 #' @return data.tb        a SITS tibble
 #' @export
-sits_getdata <- function (file        = NULL,
-                          table       = NULL,
+sits_getdata <- function (raster.tb   = NULL,
+                          file        = NULL,
                           longitude   = NULL,
                           latitude    = NULL,
                           start_date  = NULL,
@@ -50,7 +50,7 @@ sits_getdata <- function (file        = NULL,
                           ignore_dates = FALSE) {
 
      # a JSON file has all the data and metadata - no need to access the WTSS server
-     if  (!purrr::is_null (file) && tolower(tools::file_ext(file)) == "json"){
+    if  (!purrr::is_null (file) && tolower(tools::file_ext(file)) == "json"){
           data.tb <- sits_fromJSON (file)
           return (data.tb)
      }
@@ -59,6 +59,16 @@ sits_getdata <- function (file        = NULL,
         data.tb <- sits_fromGZ(file)
         return (data.tb)
     }
+
+    # get data based from ST Raster file
+    if (!purrr::is_null (raster.tb)){
+        if (tolower(tools::file_ext(file)) == "csv")
+            data.tb <- sits_fromRaster(raster.tb, file = file)
+        if (!purrr::is_null (longitude) && !purrr::is_null (latitude))
+            data.tb <- sits_fromRaster(raster.tb, longitude = longitude, latitude = latitude)
+        return (data.tb)
+    }
+
      # Ensure that required inputs exist
      ensurer::ensure_that(coverage, !purrr::is_null (.), err_desc = "sits_getdata: Missing coverage name")
      ensurer::ensure_that(bands, !purrr::is_null (.), err_desc = "sits_getdata: Missing bands vector")
@@ -75,12 +85,6 @@ sits_getdata <- function (file        = NULL,
           data.tb <- sits_fromLatLong (longitude, latitude, start_date, end_date, wtss.obj, cov, bands)
           return (data.tb)
      }
-     # get data based on table
-     if (!purrr::is_null (table)){
-          data.tb <- sits_fromTable (table, wtss.obj, cov, bands)
-          return (data.tb)
-     }
-
      # get data based on CSV file
      if (tolower(tools::file_ext(file)) == "csv") {
           data.tb <- sits_fromCSV (file, wtss.obj, cov, bands, n_max, ignore_dates)
@@ -173,44 +177,6 @@ sits_fromLatLong <-  function (longitude, latitude, start_date = NULL, end_date 
      return (data.tb)
 }
 
-#' @title Obtain timeSeries from WTSS server, based on a SITS tibble
-#' @name sits_fromTable
-#'
-#' @description reads descriptive information about a set of
-#' spatio-temporal locations from a SITS tibble. Then it uses the WTSS service to
-#' obtain the required data. This function is useful when you have a sits tibble
-#' but you want to get the time series from a different set of bands.
-#'
-#' @param table          a sits tibble
-#' @param wtss.obj       an R object that represents the WTSS server
-#' @param cov            a list with the coverage parameters (retrived from the WTSS server)
-#' @param bands          string vector - the names of the bands to be retrieved
-#' @return data.tb       tibble  - a SITS table
-#' @export
-sits_fromTable <-  function (table, wtss.obj, cov, bands) {
-     # create the table to store
-     data.tb <- sits_tibble()
-
-     table %>%
-          purrrlyr::by_row( function (r){
-               # does the lat/long information exist
-               ensurer::ensure_that(r$longitude, !purrr::is_null(.) && !is.na(.), err_desc = "sits_getdata - no longitude information")
-               ensurer::ensure_that(r$latitude,  !purrr::is_null(.) && !is.na(.), err_desc = "sits_getdata - no longitude information")
-
-               # ajust the start and end dates and the label
-               if (is.na(r$start_date)) { r$start_date <- lubridate::as_date(cov$timeline[1])}
-               if (is.na(r$end_date))   { r$end_date   <- lubridate::as_date(cov$timeline[length(cov$timeline)])}
-               if (is.na(r$label))      { r$label <- "NoClass"}
-
-               # retrieve the data row
-               t <- sits_fromWTSS (r$longitude, r$latitude, r$start_date, r$end_date,
-                                    r$label, wtss.obj, cov, bands)
-
-               # add the row to the output
-               data.tb <<- dplyr::bind_rows (data.tb, t)
-          })
-     return (data.tb)
-}
 
 #' @title Obtain timeSeries from WTSS server, based on a CSV file.
 #' @name sits_fromCSV
@@ -254,6 +220,51 @@ sits_fromCSV <-  function (csv_file, wtss.obj, cov, bands, n_max = Inf, ignore_d
                data.tb <<- dplyr::bind_rows (data.tb, row)
           })
      return (data.tb)
+}
+#' @title Extract a time series from a ST raster data set
+#' @name sits_fromRaster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Reads metadata about a raster data set to retrieve a set of
+#' time series.
+#'
+#' @param raster.tb       A tibble with metadata describing a spatio-temporal data set
+#' @param file            A CSV file with lat/long locations to be retrieve
+#' @param longitude       double - the longitude of the chosen location
+#' @param latitude        double - the latitude of the chosen location
+#' @param xcoord          X coordinate of the point where the time series is to be obtained
+#' @param ycoord          Y coordinate of the point where the time series is to be obtained
+#' @param xmin            Minimum X coordinates of bounding box
+#' @param xmax            Maximum X coordinates of bounding box
+#' @param ymin            Minimum Y coordinates of bounding box
+#' @param ymax            Maximum Y coordinates of bounding box
+#' @param start_date      date - the start of the period
+#' @param end_date        date - the end of the period
+#' @param label           string - the label to attach to the time series
+#' @param coverage        string - the name of the coverage to be retrieved
+#' @return data.tb        a SITS tibble with the time series
+#'
+#' @description This function creates a tibble to store the information
+#' about a raster time series
+#'
+#' @export
+sits_fromRaster <- function (raster.tb, file = NULL, longitude = NULL, latitude = NULL,  xcoord = NULL, ycoord = NULL,
+                             xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL,
+                             start_date = NULL, end_date  = NULL, label = "NoClass", coverage    = NULL) {
+
+    # ensure metadata tibble exists
+    .sits_test_tibble (raster.tb)
+
+    # get data based on CSV file
+    if (!purrr::is_null (file) && tolower(tools::file_ext(file)) == "csv") {
+        data.tb <- .sits_ts_fromRasterCSV (raster.tb, file)
+    }
+
+    if (!purrr::is_null (longitude) && !purrr::is_null (latitude)){
+        xy <- .sits_latlong_to_proj(longitude, latitude, raster.tb[1,]$crs)
+        data.tb <- .sits_ts_fromRasterXY (raster.tb, xy, longitude, latitude, label, coverage)
+    }
+    return (data.tb)
 }
 #' @title Obtain timeSeries from WTSS server, based on a SHP file.
 #' @name sits_fromSHP

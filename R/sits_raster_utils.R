@@ -125,7 +125,7 @@
             values.mx      <- raster::getValues(r_brick$r_obj[[1]], row = row, nrows = nrows)
 
             # Convert the matrix to a list of time series (all with values for a single band)
-            ts_band.lst    <- .sits_values_from_block (values.mx, r_brick, nrows)
+            ts_band.lst    <- .sits_values_from_block (values.mx, r_brick)
 
             # Put all time series for this block in a larger list (that has all the bands)
             ts.lst <<- purrr::map2 (ts.lst, ts_band.lst, function (ts, ts_band){
@@ -145,6 +145,64 @@
 
         })
     return (data.tb)
+}
+#' @title Define a reasonable block size to process a RasterBrick
+#' @name .sits_raster_block_size
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Takes a block of RasterBricks and builds a SITS tibble
+#'
+#' @param  brick.tb   Metadata for a RasterBrick
+#' @param  blocksize  Default size of the block (rows * cols)
+#' @return block      list with three attributes: n (number of blocks), rows (list of rows to begin),
+#'                    nrows - number of rows to read at each iteration
+#'
+.sits_raster_block_size <- function (brick.tb, blocksize = 90000){
+    #' n          number of blocks
+    #' row        starting row from the RasterBrick
+    #' nrow       Number of rows in the block extracted from the RasterBrick
+
+
+
+    # number of rows per block
+    block_rows <- min (ceiling(blocksize/brick.tb$ncols), brick.tb$nrows)
+    # number of blocks to be read
+    nblocks <- ceiling(brick.tb$nrows/block_rows)
+
+    row <- seq.int(from = 1, to = brick.tb$nrows, by = block_rows)
+    nrows <- rep.int(block_rows, length(row))
+    if (sum(nrows) != brick.tb$nrows )
+        nrows[length(nrows)] <- brick.tb$nrows - sum (nrows[1:(length(nrows) - 1)])
+
+    block <- list(n = nblocks, row = row, nrows = nrows)
+
+    return (block)
+
+}
+
+#' @title Define a filename associated to one classified raster layer
+#' @name .sits_raster_filename
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description    Creates a filename for a raster layer with associated temporal information,
+#'                 given a basic filename
+#'
+#' @param file       The original file name (without temporal information)
+#' @param start_date The starting date of the time series classification
+#' @param end_date   The end date of the time series classification
+#'
+.sits_raster_filename <- function (file, start_date, end_date){
+
+
+    file_base <- tools::file_path_sans_ext(file)
+    y1 <- lubridate::year(start_date)
+    m1 <- lubridate::month(start_date)
+    y2 <- lubridate::year(end_date)
+    m2 <- lubridate::month(end_date)
+
+    file_name <- paste0(file_base,"_",y1,"_",m1,"_",y2,"_",m2,".tif")
+
+    return (file_name)
 }
 
 #' @title Retrieve a list of time series from a block of values obtained from a RasterBrick
@@ -178,18 +236,122 @@
             values.mx      <- raster::getValues(r_brick$r_obj[[1]], row = row, nrows = nrows)
 
             # Convert the matrix to a list of time series (all with values for a single band)
-            ts_band.lst    <- .sits_values_from_block (values.mx, r_brick, nrows)
+            ts_band.lst    <- .sits_values_from_block (values.mx, r_brick)
 
             # Put all time series for this block in a larger list (that has all the bands)
-            # ts.lst <<- purrr::map2 (ts.lst, ts_band.lst, function (ts, ts_band){
-            #     ts <- dplyr::bind_cols(ts, ts_band)
-            #})
+            ts.lst <<- purrr::map2 (ts.lst, ts_band.lst, function (ts, ts_band){
+                ts <- dplyr::bind_cols(ts, ts_band)
+            })
 
 
         })
     # Retrun the values of the time series for all bands inside the block into tibbles
 
     return (ts.lst)
+}
+
+#' @title Extract a time series for a set of Raster Layers
+#' @name .sits_ts_fromRasterXY
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description  This function extracts a SITS time series from a set of
+#'               Raster Layers whose metadata is stored in a tibble
+#'               created by the sits_STraster function
+#'
+#' @param raster.tb        A tibble with metadata information about a raster data set
+#' @param xy               A matrix with X/Y coordinates
+#' @param longitude        Longitude of the chosen location
+#' @param latitude         Latitude of the chosen location
+#' @param label            Label to attach to the time series
+#' @param coverage         Name of the coverage to be retrieved
+#' @return data.tb         SITS tibble with the time series
+#'
+#' @description This function creates a tibble to store the information
+#' about a raster time series
+#'
+
+.sits_ts_fromRasterXY <- function (raster.tb, xy, longitude, latitude, label = "NoClass", coverage = NULL){
+    # ensure metadata tibble exists
+    .sits_test_tibble (raster.tb)
+
+    timeline <- raster.tb[1,]$timeline[[1]]
+
+    ts.tb <- tibble::tibble (Index = timeline)
+
+    raster.tb %>%
+        purrrlyr::by_row (function (row){
+            # obtain the Raster Layer object
+            r_obj <- row$r_obj[[1]]
+            # get the values of the time series
+            values <- as.vector(raster::extract(r_obj, xy))
+            values.tb <- tibble::tibble(values)
+            names(values.tb) <- row$band
+            # correct the values using the scale factor
+            values.tb <- values.tb[,1]*row$scale_factor
+            # add the column to the SITS tibble
+            ts.tb <<- dplyr::bind_cols(ts.tb, values.tb)
+        })
+
+    # create a list to store the time series coming from the set of Raster Layers
+    ts.lst <- list()
+    # transform the zoo list into a tibble to store in memory
+    ts.lst[[1]] <- ts.tb
+    # set a name for the coverage
+    if (purrr::is_null(coverage))
+        coverage = tools::file_path_sans_ext(basename (raster.tb[1,]$name))
+    # create a tibble to store the WTSS data
+    data.tb <- sits_tibble()
+    # add one row to the tibble
+    data.tb <- tibble::add_row (data.tb,
+                                longitude    = longitude,
+                                latitude     = latitude,
+                                start_date   = as.Date(timeline[1]),
+                                end_date     = as.Date(timeline[length(timeline)]),
+                                label        = label,
+                                coverage     = coverage,
+                                time_series  = ts.lst
+    )
+    return (data.tb)
+}
+
+#' @title Extract a time series for a set of Raster Layers
+#' @name .sits_ts_fromRasterCSV
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description  This function extracts a SITS time series from a set of
+#'               Raster Layers whose metadata is stored in a tibble
+#'               created by the sits_STraster function
+#'
+#' @param raster.tb       A tibble with metadata describing a spatio-temporal data set
+#' @param file            A CSV file with lat/long locations to be retrieved
+#' @return data.tb         SITS tibble with the time series
+
+.sits_ts_fromRasterCSV <- function (raster.tb, file){
+    # ensure metadata tibble exists
+    .sits_test_tibble (raster.tb)
+
+    # configure the format of the CSV file to be read
+    cols_csv <- readr::cols(id          = readr::col_integer(),
+                            longitude   = readr::col_double(),
+                            latitude    = readr::col_double(),
+                            start_date  = readr::col_date(),
+                            end_date    = readr::col_date(),
+                            label       = readr::col_character())
+    # read sample information from CSV file and put it in a tibble
+    csv.tb <- readr::read_csv (file, col_types = cols_csv)
+    # create the tibble
+    data.tb <- sits_tibble()
+    # for each row of the input, retrieve the time series
+    csv.tb %>%
+        purrrlyr::by_row( function (r){
+            xy <- .sits_latlong_to_proj(r$longitude, r$latitude, raster.tb[1,]$crs)
+            ensurer::ensure_that(xy, .sits_XY_inside_raster((.), raster.tb),
+                                 err_desc = "lat-long point not inside raster")
+            row.tb <- .sits_ts_fromRasterXY (raster.tb, xy, r$longitude, r$latitude, r$label)
+            row.tb <- .sits_extract (row.tb, r$start_date, r$end_date)
+            data.tb <<- dplyr::bind_rows (data.tb, row.tb)
+        })
+    return (data.tb)
 }
 #' @title Retrieve a set of time series from a block of values obtained from a RasterBrick
 #' @name .sits_values_from_block
@@ -200,15 +362,14 @@
 #'
 #' @param  values.mx   Matrix of values obtained from a RasterBrick (rows are pixels, cols are layers in time)
 #' @param  tibble_row  Row from raster tibble that includes the metadata about the RasterBrick object
-#' @param  nrow        Number of rows in the matrix
 #' @return ts.lst      List of time series (one per pixel)
 #'
-.sits_values_from_block <- function (values.mx, tibble_row, nrow){
+.sits_values_from_block <- function (values.mx, tibble_row){
 
     # create a time series to store the result
     ts.lst <- list()
     # loop through all rows of the matrix (each row is a pixel)
-    for (i in nrow(values.mx)){
+    for (i in 1:nrow(values.mx)){
         # the values of each row are layers (values in time for a RasterBrick)
         ts <- values.mx[i,]
         # interpolate missing values
@@ -223,29 +384,4 @@
         ts.lst [[length(ts.lst) + 1]] <- ts.tb
     }
     return (ts.lst)
-}
-
-#' @title Define a filename associated to one classified raster layer
-#' @name .sits_raster_filename
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Creates a filename for a raster layer with associated temporal information,
-#'                 given a basic filename
-#'
-#' @param file       The original file name (without temporal information)
-#' @param start_date The starting date of the time series classification
-#' @param end_date   The end date of the time series classification
-#'
-.sits_raster_filename <- function (file, start_date, end_date){
-
-
-    file_base <- tools::file_path_sans_ext(file)
-    y1 <- lubridate::year(start_date)
-    m1 <- lubridate::month(start_date)
-    y2 <- lubridate::year(end_date)
-    m2 <- lubridate::month(end_date)
-
-    file_name <- paste0(file_base,"_",y1,"_",m1,"_",y2,"_",m2,".tif")
-
-    return (file_name)
 }

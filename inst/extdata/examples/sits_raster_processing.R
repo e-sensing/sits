@@ -13,8 +13,8 @@ timeline <- lubridate::as_date (timeline$V1)
 
 raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 
-longitude <- -55.55694
-latitude  <- -11.52600
+longitude <- -55.48177
+latitude  <- -11.67966
 
 data.tb <- sits_fromRaster(raster.tb, longitude = longitude, latitude = latitude)
 
@@ -39,8 +39,8 @@ distances.tb <- sits_distances_from_data(embrapa.tb, patterns.tb)
 model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0.001, epsilon = 0.1)
 
 # classify a raster image
-sits_classify_raster (raster.tb, file = "./inst/extdata/raster/sinop/sinop-crop-class",
-                      patterns.tb, model.ml, dist_method = sits_distances_from_data())
+system.time({sits_classify_raster (raster.tb, file = "./inst/extdata/raster/sinop/sinop-crop-class",
+                      patterns.tb, model.ml, dist_method = sits_distances_from_data())})
 
 
 
