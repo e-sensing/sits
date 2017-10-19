@@ -93,12 +93,13 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  dist_method     method to compute distances (e.g., sits_TWDTW_distances)
 #' @param  interval        the period between two classifications
+#' @param  multicores      Number of threads to process the time series.
 #' @param  ...             other parameters to be passed to the distance function
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 #' @export
 sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model = NULL,
                                   dist_method = sits_distances_from_data(),
-                                  interval = "12 month"){
+                                  interval = "12 month", multicores = 2){
 
     # ensure metadata tibble exists
     .sits_test_tibble (raster.tb)
@@ -131,7 +132,7 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
         ts.lst <- .sits_ts_from_block (raster.tb, row = bs$row[i], nrows = bs$nrows[i])
 
         # classify the time series that are part of the block
-        class.tb <- sits_classify_ts(ts.lst, patterns.tb, ml_model)
+        class.tb <- sits_classify_ts(ts.lst, patterns.tb, ml_model, multicores)
 
         # write the block back
         raster_class.tb <- .sits_block_from_data (class.tb, raster_class.tb, labels, row = bs$row[i])
@@ -154,44 +155,48 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
 #' @param  patterns.tb     a set of known temporal signatures for the chosen classes
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  interval        the period between two classifications
+#' @param  multicores      Number of threads to process the time series.
 #' @return class.tb        a SITS tibble with the predicted labels for each input segment
 #' @export
-sits_classify_ts <- function (ts.lst, patterns.tb =  NULL, ml_model = NULL, interval = "12 month"){
+sits_classify_ts <- function (ts.lst, patterns.tb =  NULL, ml_model = NULL, interval = "12 month", multicores = 2){
 
     .sits_test_tibble(patterns.tb)
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
-    # create a tibble to store the result
-    class.tb <- sits_tibble_prediction()
 
     # find the subsets of the input data
     ref_dates.lst <- patterns.tb[1,]$ref_dates[[1]]
 
-    # go over every row of the table
-    ts.lst %>%
-        purrr::map(function (ts) {
-            ref_dates.lst %>%
-                purrr::map (function (dates){
+    classify_one <- function (ts) {
+        # create a tibble to store the result
+        class_part.tb <- sits_tibble_prediction()
+        ref_dates.lst %>%
+            purrr::map (function (dates){
 
-                    # find the n-th subset of the input data
-                    subset.tb <- .sits_extract_ts(ts, dates[1], dates[2])
+                # find the n-th subset of the input data
+                subset.tb <- .sits_extract_ts(ts, dates[1], dates[2])
 
-                    # find the distances in the subset data
-                    distances.tb  <- sits_distances_from_ts (subset.tb)
+                # find the distances in the subset data
+                distances.tb  <- sits_distances_from_ts (subset.tb)
 
-                    # classify the subset data
-                    pred <- sits_predict(distances.tb, ml_model)
+                # classify the subset data
+                pred <- sits_predict(distances.tb, ml_model)
 
-                    # save the results
-                    class.tb   <<- tibble::add_row(class.tb,
-                                                     from      = lubridate::as_date(dates[1]),
-                                                     to        = lubridate::as_date(dates[2]),
-                                                     distance  = 0.0,
-                                                     predicted = pred
-                    )
+                # save the results
+                class_part.tb   <<- tibble::add_row(class_part.tb,
+                                               from      = lubridate::as_date(dates[1]),
+                                               to        = lubridate::as_date(dates[2]),
+                                               distance  = 0.0,
+                                               predicted = pred
+                )
 
-                })
+            })
+        return(class_part.tb)
+    }
 
-        })
+    # get the matches from the sits_TWDTW_matches
+    classified.lst <- parallel::mclapply(ts.lst, classify_one, mc.cores = multicores)
+    # compose final result binding each partition by row
+    class.tb <- dplyr::bind_rows(classified.lst)
 
     return(class.tb)
 }

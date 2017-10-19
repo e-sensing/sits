@@ -5,7 +5,8 @@
 \title{Classify a set of spatio-temporal raster bricks using machine learning models}
 \usage{
 sits_classify_raster(raster.tb, file = NULL, patterns.tb, ml_model = NULL,
-  dist_method = sits_distances_from_data(), interval = "12 month")
+  dist_method = sits_distances_from_data(), interval = "12 month",
+  multicores = 2)
 }
 \arguments{
 \item{raster.tb}{a tibble with information about a set of space-time raster bricks}
@@ -19,6 +20,8 @@ sits_classify_raster(raster.tb, file = NULL, patterns.tb, ml_model = NULL,
 \item{dist_method}{method to compute distances (e.g., sits_TWDTW_distances)}
 
 \item{interval}{the period between two classifications}
+
+\item{multicores}{Number of threads to process the time series.}
 
 \item{...}{other parameters to be passed to the distance function}
 }

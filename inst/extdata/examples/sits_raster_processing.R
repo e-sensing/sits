@@ -2,7 +2,7 @@
 #           "/Users/gilbertocamara/Dropbox/brickBuilder/Sinop_evi.tif")
 
 files <- c("/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-ndvi.tif",
-          "/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-evi.tif")
+         "/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-evi.tif")
 
 bands <- c("ndvi", "evi")
 
@@ -16,11 +16,11 @@ raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 longitude <- -55.48177
 latitude  <- -11.67966
 
-data.tb <- sits_fromRaster(raster.tb, longitude = longitude, latitude = latitude)
+data.tb <- sits_getdata(raster.tb, longitude = longitude, latitude = latitude)
 
 sits_plot(data.tb)
 
-data2.tb <- sits_fromRaster(raster.tb, file = system.file("extdata/samples/samples_sinop_raster_crop.csv",package = "sits"))
+data2.tb <- sits_getdata(raster.tb, file = system.file("extdata/samples/samples_sinop_raster_crop.csv",package = "sits"))
 
 sits_plot(data2.tb)
 
@@ -39,7 +39,7 @@ distances.tb <- sits_distances_from_data(embrapa.tb, patterns.tb)
 model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0.001, epsilon = 0.1)
 
 # classify a raster image
-system.time({sits_classify_raster (raster.tb, file = "./inst/extdata/raster/sinop/sinop-crop-class",
+system.time({sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
                       patterns.tb, model.ml, dist_method = sits_distances_from_data())})
 
 

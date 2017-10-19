@@ -146,6 +146,27 @@ sits_bands <- function (data.tb) {
         colnames() %>% .[2:length(.)]
     return (result.vec)
 }
+#' @title Bind two SITS tibbles
+#' @name sits_bind
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function merges two STIS tables.
+#' To merge two series, we consider that they contain different spatio-temporal location
+#' but refer to the same coverage, and have the same attributes.
+#'
+#' @param data1.tb      the first SITS table to be bound
+#' @param data2.tb      the second SITS table to be bound
+#' @return result.tb    a merged SITS tibble with a bind set of time series
+#' @export
+sits_bind <-  function(data1.tb, data2.tb) {
+
+
+    # prepare result
+    result.tb <- dplyr::bind_rows(data1.tb, data2.tb)
+
+    # merge time series
+    return (result.tb)
+}
 #' @title Return the dates of a sits table
 #' @name sits_dates
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

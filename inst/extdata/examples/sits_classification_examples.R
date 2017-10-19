@@ -33,32 +33,21 @@ point.tb <- sits_getdata(latitude = latitude, longitude = longitude,
 # plot the series
 sits_plot (point.tb)
 
+data.tb <- sits_getdata (file = system.file ("extdata/samples/cerrado_pasture_10_points.csv", package = "sits"),
+                         URL = URL, bands = bands, coverage = coverage)
+
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 
 embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
-# We now compare two methods of classification, given the
-# (a) Classification using the TWDTW distances
-# (b) Classification using the distances from data method
-
-# (A) CLASSIFICATION USING THE TWDTW DISTANCES
 
 # This function generates the patterns for the MatoGrosso data using the GAM model
-patterns_gam.tb <- sits_gam (embrapa.tb, timeline = coverage.tb[1,]$timeline[[1]])
+patterns_gam.tb <- sits_gam (embrapa.tb, timeline)
 
 # Plot the patterns using GAM
 sits_plot(patterns_gam.tb, type = "patterns")
 
-# This function obtains a traning data set of attributes for the MatoGrosso data using the TWTDW algorithm
-# we are not running this function as it takes a lot of time, so we
-# retrieve a set of pre-defined patterns from an RDS file
-if (FALSE) {
-    distances_twdtw.tb <- sits_TWDTW_distances(embrapa.tb, patterns_gam.tb, multicores = 2)
-    saveRDS(distances_twdtw.tb, "./inst/extdata/models/embrapa_mt_distances_twdtw.rds")
-}
-
-if (TRUE) distances_twdtw.tb <- readRDS(system.file("extdata/models/embrapa_mt_distances_twdtw.rds", package = "sits"))
 
 # estimate an SVM model for this training data
 model_svm1.ml <- sits_svm(distances_twdtw.tb, kernel = "radial", cost = 10)

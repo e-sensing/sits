@@ -62,7 +62,7 @@ sits_getdata <- function (raster.tb   = NULL,
 
     # get data based from ST Raster file
     if (!purrr::is_null (raster.tb)){
-        if (tolower(tools::file_ext(file)) == "csv")
+        if (!purrr::is_null (file) && tolower(tools::file_ext(file)) == "csv")
             data.tb <- sits_fromRaster(raster.tb, file = file)
         if (!purrr::is_null (longitude) && !purrr::is_null (latitude))
             data.tb <- sits_fromRaster(raster.tb, longitude = longitude, latitude = latitude)
@@ -81,17 +81,17 @@ sits_getdata <- function (raster.tb   = NULL,
      cov <- sits_getcovWTSS(URL, coverage)
 
      # get data based on latitude and longitude
-     if (purrr::is_null (file) && purrr::is_null (table) && !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
+     if (purrr::is_null (file) && purrr::is_null (raster.tb) && !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
           data.tb <- sits_fromLatLong (longitude, latitude, start_date, end_date, wtss.obj, cov, bands)
           return (data.tb)
      }
      # get data based on CSV file
-     if (tolower(tools::file_ext(file)) == "csv") {
+     if (!purrr::is_null (file) && tolower(tools::file_ext(file)) == "csv") {
           data.tb <- sits_fromCSV (file, wtss.obj, cov, bands, n_max, ignore_dates)
           return (data.tb)
      }
      # get data based on SHP file
-     if (tolower(tools::file_ext(file)) == "shp") {
+     if (!purrr::is_null (file) && tolower(tools::file_ext(file)) == "shp") {
           data.tb <- sits_fromSHP (file, wtss.obj, cov, bands, start_date, end_date, label)
           return (data.tb)
      }
