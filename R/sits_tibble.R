@@ -182,6 +182,7 @@ sits_tibble_patterns <- function () {
                                 coverage    = character(),
                                 timeline    = list(),
                                 ref_dates   = list(),
+                                dates_index = list(),
                                 time_series = list()
                                 )
     return (result.tb)

@@ -356,9 +356,6 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL, shift =
 #' @export
 sits_distances_from_ts <- function(ts.tb, shift = 3.0){
 
-    # add constant to get positive values
-    ts.tb <- sits_apply_ts(ts.tb, fun = function (band) band + shift)
-
     # flatten the values
     distances.tb <- ts.tb %>%
         dplyr::select(-Index) %>%
@@ -368,9 +365,11 @@ sits_distances_from_ts <- function(ts.tb, shift = 3.0){
         t() %>%
         tibble::as_tibble()
 
+    # add constant to get positive values
+    distances.tb[1,] <-  distances.tb[1,] + shift
+
     # spread these values as distance attributes
     distances.tb <- dplyr::bind_cols(original_row = 1, reference = "NoClass", distances.tb)
 
     return(distances.tb)
-
 }

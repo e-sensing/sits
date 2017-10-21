@@ -5,9 +5,8 @@
 \title{Cross-validate temporal patterns (faster than sits_kfold_validate)}
 \usage{
 sits_kfold_fast_validate(data.tb, folds = 5, timeline = NULL,
-  pt_method = sits_patterns_from_data(),
-  dist_method = sits_distances_from_data(), tr_method = sits_svm(),
-  multicores = 1)
+  pt_method = sits_gam(), dist_method = sits_distances_from_data(),
+  tr_method = sits_svm(), multicores = 1)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}

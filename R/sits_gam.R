@@ -143,8 +143,11 @@ sits_gam <- function (data.tb = NULL, timeline = NULL, from = NULL, to = NULL,
                 ts <- tibble::lst()
                 ts[[1]] <- res.tb
 
+                # obtain the reference dates that match the patterns in the full timeline
                 ref_dates.lst <- .sits_match_timelines(timeline, as.Date(from), as.Date (to), interval = interval)
 
+                # obtain the indexes of the timeline that match the reference dates
+                dates_index.lst <- .sits_match_indexes(timeline, ref_dates.lst)
 
                 # add the pattern to the results tibble
                 patterns.tb <<- tibble::add_row (patterns.tb,
@@ -154,6 +157,7 @@ sits_gam <- function (data.tb = NULL, timeline = NULL, from = NULL, to = NULL,
                                                  coverage       = label.tb[1,]$coverage,
                                                  timeline       = list(times),
                                                  ref_dates      = list(ref_dates.lst),
+                                                 dates_index    = list(dates_index.lst),
                                                  time_series    = ts)
             })
 

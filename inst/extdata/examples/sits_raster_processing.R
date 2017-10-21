@@ -39,9 +39,10 @@ distances.tb <- sits_distances_from_data(embrapa.tb, patterns.tb)
 model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0.001, epsilon = 0.1)
 
 # classify a raster image
-system.time({sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
-                      patterns.tb, model.ml, dist_method = sits_distances_from_data())})
+#system.time({sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
+#                     patterns.tb, model.ml, multicores = 2)})
 
-
+sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
+                    patterns.tb, model.ml, multicores = 1)
 
 

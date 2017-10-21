@@ -86,6 +86,32 @@ sits_timeline <- function (data.tb){
     return (subset_dates.lst)
 }
 
+#' @title Find indexes in a timeline that match the reference dates
+#' @name .sits_match_indexes
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description For correct classification, the time series of the input data set
+#'              should be aligned to that of the reference data set (usually a set of patterns).
+#'              This function aligns these data sets so that shape matching works correctly
+#'
+#' @param timeline              Timeline of input observations (vector)
+#' @param ref_dates.lst         A list of breaks that will be applied to the input data set
+#' @return dates_index.lst     A list of indexes that match the reference dates to the timelines
+#'
+.sits_match_indexes <- function (timeline, ref_dates.lst){
+    dates_index.lst <- list()
+
+    ref_dates.lst %>%
+        purrr::map (function (date_pair){
+            start_index <- which (timeline == date_pair[1])
+            end_index   <- which (timeline == date_pair[2])
+
+            dates_index.lst[[length(dates_index.lst) + 1]] <<- c(start_index, end_index)
+        })
+
+    return (dates_index.lst)
+}
+
 #' @title Find number of samples, given a timeline and an interval
 #' @name sits_num_samples
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

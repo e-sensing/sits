@@ -35,7 +35,7 @@
 
 sits_kfold_validate <- function (data.tb, folds = 5,
                                  timeline    = NULL,
-                                 pt_method   = sits_patterns_from_data(),
+                                 pt_method   = sits_gam(),
                                  dist_method = sits_distances_from_data(),
                                  tr_method   = sits_svm(),
                                  multicores = 1){
@@ -128,7 +128,7 @@ sits_kfold_validate <- function (data.tb, folds = 5,
 
 sits_kfold_fast_validate <- function (data.tb, folds = 5,
                                       timeline    = NULL,
-                                      pt_method   = sits_patterns_from_data(),
+                                      pt_method   = sits_gam(),
                                       dist_method = sits_distances_from_data(),
                                       tr_method   = sits_svm(),
                                       multicores = 1){

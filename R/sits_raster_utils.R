@@ -6,25 +6,20 @@
 #'
 #' @param  class.tb          Classified SITS tibble
 #' @param  raster_class.tb   Metadata of RasterLayers where label values are to be writtenn
-#' @param  labels            Labels of classes to be written to the RasterLayer
+#' @param  int_labels        Named vector with integers match the class labels
 #' @param  row               Starting row of the output RasterLayer
 #' @return raster_class.tb   Metadata with information on a set of RasterLayers
 #' @export
 
-.sits_block_from_data <- function (class.tb, raster_class.tb, labels, row){
-
-
-    # create a named vector with integers match the class labels
-    int_labels <- c(1:length(labels))
-    names (int_labels) <- labels
+.sits_block_from_data <- function (class.tb, raster_class.tb, int_labels, row){
 
     # for each layer, write the values
-    for (i in 1:NROW(raster_class.tb)){
-        layer           <- raster_class.tb[i,]$r_obj[[1]]
-        start_date      <- raster_class.tb[i,]$start_date
-        values          <- int_labels [dplyr::filter (class.tb, from == start_date)$predicted]
-        raster_class.tb[i,]$r_obj[[1]]  <- raster::writeValues(layer, values, row)
-    }
+    raster_class.tb %>%
+        purrrlyr::by_row(function (row){
+            values          <- int_labels [dplyr::filter (class.tb, from == row$start_date)$predicted]
+            row$r_obj[[1]]  <- raster::writeValues(row$r_obj[[1]], values, row)
+        })
+
     return (raster_class.tb)
 }
 
@@ -94,24 +89,21 @@
     return (raster_layers.tb)
 }
 
-#' @title Retrieve a sits tibble with time series from a block of values obtained from a RasterBrick
-#' @name .sits_data_from_block
+
+#' @title Retrieve a list of distances from a block of values obtained from a RasterBrick
+#' @name .sits_distances_from_block
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Takes a block of RasterBricks and builds a SITS tibble
+#' @description Takes a block of RasterBricks and retrieves a set pf distances
 #'
 #' @param  raster.tb  Metadata for a RasterBrick
 #' @param  row        starting row from the RasterBrick
 #' @param  nrow       Number of rows in the block extracted from the RasterBrick
-#' @return data.tb    Sits tibble with data (time series)
+#' @param  size       Size of the block in pixels
+#' @param  timeline   Timeline that contains the valid dates
+#' @return ts.lst     List of time series (one per pixel of the block)
 #'
-.sits_data_from_block <- function (raster.tb, row, nrows) {
-
-    # find out the size of the block in pixels
-    size <- nrows * raster.tb[1,]$ncols
-
-    # use the timeline of the input raster
-    timeline <- raster.tb[1,]$timeline[[1]]
+.sits_distances_from_block <- function (raster.tb, row, nrows, size, timeline) {
 
     # create a list to store the time series extracted from the block
     ts.lst <- .sits_create_ts_list (timeline, size)
@@ -131,21 +123,19 @@
             ts.lst <<- purrr::map2 (ts.lst, ts_band.lst, function (ts, ts_band){
                 ts <- dplyr::bind_cols(ts, ts_band)
             })
-        })
-    # Convert the values of the time series for all bands inside the block into tibbles
-    # create the tibble
-    data.tb <- sits_tibble()
-    # convert the time series from the raster block values to the tibble
-    ts.lst %>%
-        purrr::map (function (ts){
-            data.tb <<- .sits_add_row (data.tb,
-                                       start_date   = as.Date(timeline[1]),
-                                       end_date     = as.Date(timeline[length(timeline)]),
-                                       time_series  = list(ts))
 
         })
-    return (data.tb)
+    # Retrun the values of the time series for all bands inside the block into tibbles
+
+    distances.tb <- tibble::tibble()
+    ts.lst %>%
+        purrr::map (function (ts.tb){
+            dist.tb <- sits_distances_from_ts (ts.tb)
+            distances.tb <<- dplyr::bind_rows(distances.tb, dist.tb)
+        })
+    return (distances.tb)
 }
+
 #' @title Define a reasonable block size to process a RasterBrick
 #' @name .sits_raster_block_size
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -162,8 +152,6 @@
     #' row        starting row from the RasterBrick
     #' nrow       Number of rows in the block extracted from the RasterBrick
 
-
-
     # number of rows per block
     block_rows <- min (ceiling(blocksize/brick.tb$ncols), brick.tb$nrows)
     # number of blocks to be read
@@ -174,7 +162,10 @@
     if (sum(nrows) != brick.tb$nrows )
         nrows[length(nrows)] <- brick.tb$nrows - sum (nrows[1:(length(nrows) - 1)])
 
-    block <- list(n = nblocks, row = row, nrows = nrows)
+    # find out the size of the block in pixels
+    size <- nrows * brick.tb$ncols
+
+    block <- list(n = nblocks, row = row, nrows = nrows, size = size)
 
     return (block)
 
@@ -203,51 +194,6 @@
     file_name <- paste0(file_base,"_",y1,"_",m1,"_",y2,"_",m2,".tif")
 
     return (file_name)
-}
-
-#' @title Retrieve a list of time series from a block of values obtained from a RasterBrick
-#' @name .sits_ts_from_block
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Takes a block of RasterBricks and retrieves a time series
-#'
-#' @param  raster.tb  Metadata for a RasterBrick
-#' @param  row        starting row from the RasterBrick
-#' @param  nrow       Number of rows in the block extracted from the RasterBrick
-#' @return ts.lst     List of time series (one per pixel of the block)
-#'
-.sits_ts_from_block <- function (raster.tb, row, nrows) {
-
-    # find out the size of the block in pixels
-    size <- nrows * raster.tb[1,]$ncols
-
-    # use the timeline of the input raster
-    timeline <- raster.tb[1,]$timeline[[1]]
-
-    # create a list to store the time series extracted from the block
-    ts.lst <- .sits_create_ts_list (timeline, size)
-
-    # go line by line of the raster metadata tibble (each line points to a RasterBrick)
-    raster.tb %>%
-        purrrlyr::by_row(function (r_brick){
-            # the raster::getValues function returns a matrix
-            # the rows of the matrix are the pixels
-            # the cols of the matrix are the layers
-            values.mx      <- raster::getValues(r_brick$r_obj[[1]], row = row, nrows = nrows)
-
-            # Convert the matrix to a list of time series (all with values for a single band)
-            ts_band.lst    <- .sits_values_from_block (values.mx, r_brick)
-
-            # Put all time series for this block in a larger list (that has all the bands)
-            ts.lst <<- purrr::map2 (ts.lst, ts_band.lst, function (ts, ts_band){
-                ts <- dplyr::bind_cols(ts, ts_band)
-            })
-
-
-        })
-    # Retrun the values of the time series for all bands inside the block into tibbles
-
-    return (ts.lst)
 }
 
 #' @title Extract a time series for a set of Raster Layers
