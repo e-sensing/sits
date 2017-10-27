@@ -49,29 +49,14 @@ patterns_gam.tb <- sits_gam (embrapa.tb, timeline)
 sits_plot(patterns_gam.tb, type = "patterns")
 
 
-# estimate an SVM model for this training data
-model_svm1.ml <- sits_svm(distances_twdtw.tb, kernel = "radial", cost = 10)
-
-# classify the test data
-class.tb <- sits_classify(point.tb, patterns_gam.tb, model_svm1.ml, dist_method = sits_TWDTW_distances())
-
-#classify the time series matches using yearly intervals
-
-# plot the classification of the time series by yearly intervals
-sits_plot_classification(class.tb, patterns_gam.tb, band = "ndvi")
-
-# (b) CLASSIFICATION USING THE DISTANCES FROM DATA
-#create patterns
-patterns_data.tb <- sits_patterns_from_data(embrapa.tb, timeline)
-
 # estimate distances
 distances_data.tb <- sits_distances_from_data(embrapa.tb, patterns_data.tb)
 
 # estimate an SVM model for this training data
-model_svm2.ml <- sits_svm(distances_data.tb, kernel = "radial", cost = 10)
+model_svm.ml <- sits_svm(distances_data.tb, kernel = "radial", cost = 10)
 
 # classify the test data
-class.tb <- sits_classify(point.tb, patterns_data.tb, model_svm2.ml, dist_method = sits_distances_from_data())
+class.tb <- sits_classify(point.tb, patterns_data.tb, model_svm.ml, dist_method = sits_distances_from_data())
 
 # plot the classification of the time series by yearly intervals
 sits_plot_classification(class.tb, patterns_data.tb, band = "ndvi")

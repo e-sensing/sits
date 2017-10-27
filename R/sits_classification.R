@@ -122,8 +122,34 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
     # find the subsets of the input data
     dates_index.lst <- patterns.tb[1,]$dates_index[[1]]
 
+    # find the number of the samples
+    nsamples <- dates_index.lst[[1]][2] - dates_index.lst[[1]][1] + 1
+
     #retrieve the timeline of the data
     timeline <- patterns.tb[1,]$timeline[[1]]
+
+    # retrieve the bands
+    bands <- sits_bands (patterns.tb)
+
+    time_index.lst <- list()
+
+    dates_index.lst %>%
+        purrr::map (function (idx){
+            index_ts <- vector()
+            for (i in 1:length(bands)){
+                idx1 <- idx[1] + (i - 1)*length(timeline) + 2
+                index_ts [length(index_ts) + 1 ] <- idx1
+                idx2 <- idx[2] + (i - 1)*length(timeline) + 2
+                index_ts [length(index_ts) + 1 ] <- idx2
+            }
+            time_index.lst[[length(time_index.lst) + 1]] <<- index_ts
+        })
+    # define the column names
+    col_names <- c("original_row", "reference")
+    bands %>%
+        purrr::map (function (b){
+            col_names <<- c(col_names, paste (c(rep(b, nsamples)), as.character(c(1:nsamples)), sep = ""))
+        })
 
     #initiate writing
     raster_class.tb$r_obj <- raster_class.tb$r_obj %>%
@@ -142,10 +168,10 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
                                                     nrows = bs$nrows[i], size = bs$size, timeline = timeline)
 
         # classify the time series that are part of the block
-        class.tb <- sits_classify_distances(distances.tb, timeline, dates_index.lst,  ml_model, multicores = multicores)
+        class.tb <- sits_classify_distances(distances.tb, timeline, time_index.lst, col_names, bands, ml_model, multicores = multicores)
 
         # write the block back
-        raster_class.tb <- .sits_block_from_data (class.tb, raster_class.tb, int_labels, row = bs$row[i])
+        raster_class.tb <- .sits_block_from_data (class.tb, raster_class.tb, int_labels, bs$row[i])
     }
     # finish writing
     raster_class.tb$r_obj <- raster_class.tb$r_obj %>%
@@ -165,39 +191,47 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
 #'
 #' @param  distances.tb    a tibble with distances
 #' @param  timeline        the timeline of the data set
-#' @param  dates_index.lst List with the indexes of the timeline to break the time series for classification
+#' @param  time_index.lst  The subsets of the timeline
+#' @param  col_names       Names of columns of distance tibble
+#' @param  bands           Bands used for classification
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  interval        the period between two classifications
 #' @param  multicores      Number of threads to process the time series.
 #' @return class.tb        a SITS tibble with the predicted labels for each input segment
 #' @export
-sits_classify_distances <- function (distances.tb, timeline, dates_index.lst, ml_model = NULL, interval = "12 month", multicores = 2){
+sits_classify_distances <- function (distances.tb, timeline, time_index.lst,
+                                    col_names, bands, ml_model = NULL, interval = "12 month", multicores = 2){
 
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
     classify_rows <- function (distance_rows) {
         # create a tibble to store the result
         class_part.tb <- sits_tibble_prediction()
+        # read all pixels values (used as distances)
         distance_rows %>%
             purrrlyr::by_row(function (row){
-                dates_index.lst %>%
-                    purrr::map (function (dates){
+                dist_row.tb <- tibble::tibble("original_row" = 1, "reference" = "NoClass")
+                # retrieve the distances for
+                time_index.lst %>%
+                    purrr::map (function (idx){
+                        for (i in 1:length(bands)) {
+                            # find the n-th subset of the input data
+                            dist_row.tb <<- dplyr::bind_cols(dist_row.tb, row[,idx[(2*i - 1)]:idx[2*i]])
+                        }
 
-                        # find the n-th subset of the input data
-                        subset.tb <- row[(dates[1]+2):(dates[2]+2)]
-                        subset.tb <- dplyr::bind_cols(row[,1:2], subset.tb)
+                        # rename the distances
+                        colnames (dist_row.tb) <- col_names
 
                         # classify the subset data
-                        pred <- sits_predict(subset.tb, ml_model)
+                        pred <- sits_predict(dist_row.tb, ml_model)
 
                         # save the results
                         class_part.tb   <<- tibble::add_row(class_part.tb,
-                                                            from      = lubridate::as_date(timeline[dates[1]]),
-                                                            to        = lubridate::as_date(timeline[dates[2]]),
+                                                            from      = lubridate::as_date(timeline[idx[1] - 2]),
+                                                            to        = lubridate::as_date(timeline[idx[2] - 2]),
                                                             distance  = 0.0,
                                                             predicted = pred
                         )
-
                     })
 
             })

@@ -29,8 +29,10 @@ embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package 
 
 embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi"))
 
+
 # define the patterns from data
 patterns.tb <- sits_patterns(embrapa.tb, timeline)
+
 
 # distances from data
 distances.tb <- sits_distances_from_data(embrapa.tb, patterns.tb)
@@ -43,6 +45,6 @@ model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0
 #                     patterns.tb, model.ml, multicores = 2)})
 
 sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
-                    patterns.tb, model.ml, multicores = 1)
+                    patterns.tb, model.ml, multicores = 2)
 
 

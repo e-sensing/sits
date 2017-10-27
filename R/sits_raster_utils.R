@@ -7,17 +7,17 @@
 #' @param  class.tb          Classified SITS tibble
 #' @param  raster_class.tb   Metadata of RasterLayers where label values are to be writtenn
 #' @param  int_labels        Named vector with integers match the class labels
-#' @param  row               Starting row of the output RasterLayer
+#' @param  init_row          Starting row of the output RasterLayer
 #' @return raster_class.tb   Metadata with information on a set of RasterLayers
 #' @export
 
-.sits_block_from_data <- function (class.tb, raster_class.tb, int_labels, row){
+.sits_block_from_data <- function (class.tb, raster_class.tb, int_labels, init_row){
 
     # for each layer, write the values
     raster_class.tb %>%
-        purrrlyr::by_row(function (row){
-            values          <- int_labels [dplyr::filter (class.tb, from == row$start_date)$predicted]
-            row$r_obj[[1]]  <- raster::writeValues(row$r_obj[[1]], values, row)
+        purrrlyr::by_row(function (layer){
+            values          <- as.integer (int_labels [dplyr::filter (class.tb, from == layer$start_date)$predicted])
+            row$r_obj[[1]]  <- raster::writeValues(row$r_obj[[1]], values, init_row)
         })
 
     return (raster_class.tb)
@@ -89,7 +89,6 @@
     return (raster_layers.tb)
 }
 
-
 #' @title Retrieve a list of distances from a block of values obtained from a RasterBrick
 #' @name .sits_distances_from_block
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -101,12 +100,13 @@
 #' @param  nrow       Number of rows in the block extracted from the RasterBrick
 #' @param  size       Size of the block in pixels
 #' @param  timeline   Timeline that contains the valid dates
+#' @param  shift      Adjustment value to avoid negative pixel vales
 #' @return ts.lst     List of time series (one per pixel of the block)
 #'
-.sits_distances_from_block <- function (raster.tb, row, nrows, size, timeline) {
+.sits_distances_from_block <- function (raster.tb, row, nrows, size, timeline, shift = 3.0) {
 
     # create a list to store the time series extracted from the block
-    ts.lst <- .sits_create_ts_list (timeline, size)
+    distances.tb <- tibble::tibble(id = 1:size,)
 
     # go line by line of the raster metadata tibble (each line points to a RasterBrick)
     raster.tb %>%
@@ -114,26 +114,23 @@
             # the raster::getValues function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            values.mx      <- raster::getValues(r_brick$r_obj[[1]], row = row, nrows = nrows)
+            values.mx   <- raster::getValues(r_brick$r_obj[[1]], row = row, nrows = nrows)
+
+            # remove NA values
+            values.mx[is.na(values.mx)] <- 0
+            #values.mx   <- zoo::na.spline(values.mx)
+
+            # correct by the scale factor
+            values.mx   <- values.mx*r_brick$scale_factor
+
+            # adjust values to avoid negative pixel vales
+            values.mx <-  values.mx + shift
 
             # Convert the matrix to a list of time series (all with values for a single band)
-            ts_band.lst    <- .sits_values_from_block (values.mx, r_brick)
-
-            # Put all time series for this block in a larger list (that has all the bands)
-            ts.lst <<- purrr::map2 (ts.lst, ts_band.lst, function (ts, ts_band){
-                ts <- dplyr::bind_cols(ts, ts_band)
+            distances.tb  <<- dplyr::bind_cols(distances.tb, tibble::as_tibble(values.mx))
             })
 
-        })
-    # Retrun the values of the time series for all bands inside the block into tibbles
-
-    distances.tb <- tibble::tibble()
-    ts.lst %>%
-        purrr::map (function (ts.tb){
-            dist.tb <- sits_distances_from_ts (ts.tb)
-            distances.tb <<- dplyr::bind_rows(distances.tb, dist.tb)
-        })
-    return (distances.tb)
+    return (distances.tb[,-1])
 }
 
 #' @title Define a reasonable block size to process a RasterBrick
@@ -306,28 +303,30 @@
 #' @description Takes a block of values obtained form a RasterBrick, whose metadata is
 #' described by a raster tibble, and produce a list of time series for further processing
 #'
-#' @param  values.mx   Matrix of values obtained from a RasterBrick (rows are pixels, cols are layers in time)
-#' @param  tibble_row  Row from raster tibble that includes the metadata about the RasterBrick object
-#' @return ts.lst      List of time series (one per pixel)
+#' @param  values.mx     Matrix of values obtained from a RasterBrick (rows are pixels, cols are layers in time)
+#' @param  scale_factor  Scale factor to convert the values from [0..1]
+#' @return ts.lst        List of time series (one per pixel)
 #'
-.sits_values_from_block <- function (values.mx, tibble_row){
+.sits_values_from_block <- function (values.mx, scale_factor){
 
     # create a time series to store the result
-    ts.lst <- list()
+    #ts.lst <- list()
     # loop through all rows of the matrix (each row is a pixel)
-    for (i in 1:nrow(values.mx)){
-        # the values of each row are layers (values in time for a RasterBrick)
-        ts <- values.mx[i,]
-        # interpolate missing values
-        ts <- zoo::na.spline(ts)
-        # create a tibble to store the values of the time series
-        ts.tb <- tibble::tibble(ts)
-        # give a name to the tibble taken from the metadata associated to each raster object
-        names(ts.tb) <- tibble_row$band
-        # correct the values by the scale factor provided by the metadata information
-        ts.tb <- ts.tb[,1]*tibble_row$scale_factor
-        # include the time series in the output list
-        ts.lst [[length(ts.lst) + 1]] <- ts.tb
-    }
-    return (ts.lst)
+    # for (i in 1:nrow(values.mx)){
+    #     # the values of each row are layers (values in time for a RasterBrick)
+    #     ts <- values.mx[i,]
+    #     # interpolate missing values
+    #     ts <- zoo::na.spline(ts)
+    #     # create a tibble to store the values of the time series
+    #     ts.tb <- tibble::tibble(ts)
+    #     # give a name to the tibble taken from the metadata associated to each raster object
+    #     names(ts.tb) <- tibble_row$band
+    #     # correct the values by the scale factor provided by the metadata information
+    #     ts.tb <- ts.tb[,1]*tibble_row$scale_factor
+    #     # include the time series in the output list
+    #     ts.lst [[length(ts.lst) + 1]] <- ts.tb
+    # }
+    values.mx <- zoo::na.spline(values.mx)
+    values.mx <- values.mx$scale_factor
+    return (tibble::as.tibble(values.mx))
 }

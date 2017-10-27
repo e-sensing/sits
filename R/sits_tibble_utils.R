@@ -195,10 +195,10 @@
 #' @description returns a vector containing the dates of a sits table
 #'
 #' @param  ts.tb      a tibble  with time series for different bands
-#' @param  start_date the starting date of the time series segment
-#' @param  end_date   the end date of the time series segment
+#' @param  start_index the starting date of the time series segment
+#' @param  end_index   the end date of the time series segment
 #' @return subset.tb  a tibble with time series with the chosen subset
-.sits_extract_ts <- function (ts.tb, start_date, end_date) {
+.sits_extract_ts <- function (ts.tb, start_index, end_index) {
 
 
     # filter the time series by start and end dates

@@ -4,15 +4,19 @@
 \alias{sits_classify_distances}
 \title{Classify a sits distances tibble using machine learning models}
 \usage{
-sits_classify_distances(distances.tb, timeline, dates_index.lst,
-  ml_model = NULL, interval = "12 month", multicores = 2)
+sits_classify_distances(distances.tb, timeline, time_index.lst, col_names,
+  bands, ml_model = NULL, interval = "12 month", multicores = 2)
 }
 \arguments{
 \item{distances.tb}{a tibble with distances}
 
 \item{timeline}{the timeline of the data set}
 
-\item{dates_index.lst}{List with the indexes of the timeline to break the time series for classification}
+\item{time_index.lst}{The subsets of the timeline}
+
+\item{col_names}{Names of columns of distance tibble}
+
+\item{bands}{Bands used for classification}
 
 \item{ml_model}{a model trained by \code{\link[sits]{sits_train}}}
 
