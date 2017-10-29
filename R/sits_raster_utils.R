@@ -17,7 +17,7 @@
     raster_class.tb %>%
         purrrlyr::by_row(function (layer){
             values          <- as.integer (int_labels [dplyr::filter (class.tb, from == layer$start_date)$predicted])
-            row$r_obj[[1]]  <- raster::writeValues(row$r_obj[[1]], values, init_row)
+            layer$r_obj[[1]]  <- raster::writeValues(layer$r_obj[[1]], values, init_row)
         })
 
     return (raster_class.tb)

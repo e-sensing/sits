@@ -5,7 +5,7 @@
 \title{Classify a sits distances tibble using machine learning models}
 \usage{
 sits_classify_distances(distances.tb, timeline, time_index.lst, col_names,
-  bands, ml_model = NULL, interval = "12 month", multicores = 2)
+  bands, ml_model = NULL, multicores = 2)
 }
 \arguments{
 \item{distances.tb}{a tibble with distances}
@@ -19,8 +19,6 @@ sits_classify_distances(distances.tb, timeline, time_index.lst, col_names,
 \item{bands}{Bands used for classification}
 
 \item{ml_model}{a model trained by \code{\link[sits]{sits_train}}}
-
-\item{interval}{the period between two classifications}
 
 \item{multicores}{Number of threads to process the time series.}
 }
