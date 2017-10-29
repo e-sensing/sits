@@ -32,7 +32,7 @@ model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0
 #system.time({sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
 #                     patterns.tb, model.ml, multicores = 2)})
 
-system.time({sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
+system.time({sits_classify_raster (raster.tb, file = "/home/gilberto/raster/sinop-class",
                     patterns.tb, model.ml, multicores = 8)})
 
 
