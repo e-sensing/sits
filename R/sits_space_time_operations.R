@@ -161,6 +161,7 @@
 #'
 #' @param timeline  the timeline (dates of the time series)
 #' @param n         Number of time series to create
+#' @return ts.lst   list with the time series that share the same timeline
 #'
 .sits_create_ts_list <- function (timeline, n) {
 
@@ -174,4 +175,32 @@
     }
     return (ts.lst)
 }
+#' @title Create a list of time indexes from the dates index
+#' @name  .sits_time_index
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  dates_index.lst  A list of dates with the subsets of the input data
+#' @param  timeline        The timeline of the data set
+#' @param  bands           Bands used for classification
+#' @return  time_index.lst  The subsets of the timeline
+#'
+.sits_time_index <- function (dates_index.lst, timeline, bands) {
 
+    # create an empty list of time index
+    time_index.lst <- list()
+
+    # transform the dates index (a list of dates) to a list of indexes
+    # this speeds up extracting the distances for classification
+    dates_index.lst %>%
+        purrr::map (function (idx){
+            index_ts <- vector()
+            for (i in 1:length(bands)){
+                idx1 <- idx[1] + (i - 1)*length(timeline) + 2
+                index_ts [length(index_ts) + 1 ] <- idx1
+                idx2 <- idx[2] + (i - 1)*length(timeline) + 2
+                index_ts [length(index_ts) + 1 ] <- idx2
+            }
+            time_index.lst[[length(time_index.lst) + 1]] <<- index_ts
+        })
+    return (time_index.lst)
+}

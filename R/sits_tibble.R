@@ -76,43 +76,58 @@ sits_tibble_distance <- function (patterns.tb) {
     return (distances.tb)
 }
 
-#' @title Create an empty distance tibble based on an input data set
-#' @name sits_tibble_distance_from_data
+#' @title Create an empty distance tibble for classication using machine learning
+#' @name .sits_tibble_distance_for_classification
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Create an empty distance tibble to store the results of distance metrics
 #'
-#' @param data.tb         a SITS tibble with a data set
-#' @return distances.tb   a tibble to store the distances between a time series and a set of patterns
-#' @export
+#' @param  col_names       Names of columns of distance tibble
+#' @return dist.tb         a tibble to store the distances used for clasification by ML methods
 #'
-sits_tibble_distance_from_data <- function (data.tb) {
+.sits_tibble_distance_for_classification <- function (col_names) {
 
-    distances.tb <- tibble::tibble(
-        original_row = 1:NROW(data.tb),
-        reference    = data.tb$label)
+    dist.tb <- tibble::tibble("original_row" = 1, "reference" = "NoClass")
 
-    return (distances.tb)
+    dist.tb [,col_names[3:length(col_names)]] <- 0.0
+
+    return (dist.tb)
 }
 #' @title Create an empty tibble to store the results of predictions
 #' @name sits_tibble_prediction
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Create an empty tibble to store the results of predictions
+#' @description Create atibble to store the results of predictions
+#' @param  distances.tb    a tibble with distances
+#' @param  timeline        the timeline of the data set
+#' @param  time_index.lst  The subsets of the timeline
 #'
 #' @return distances.tb   a tibble to store the predictions
 #' @export
 #'
-sits_tibble_prediction <- function () {
-    predict.tb <- tibble::tibble(from  = as.Date(character()),
-                             to    = as.Date(character()),
-                             distance    = double(),
-                             predicted   = character()
+sits_tibble_prediction <- function (distances.tb, timeline, time_index.lst){
+
+    nrows <- nrow(distances.tb) * length (time_index.lst)
+
+    from_dates <- vector()
+    to_dates   <- vector()
+
+    for (i in 1:nrow(distances.tb)){
+        time_index.lst %>%
+            purrr::map (function (idx){
+               from_dates <<-  c(as.Date(from_dates), as.Date(timeline [idx[1] - 2]))
+               to_dates   <<-  c(as.Date(to_dates),   as.Date(timeline [idx[2] - 2]))
+            })
+    }
+    # save the results
+    predict.tb   <- tibble::tibble(from      = as.Date(from_dates),
+                                   to        = as.Date(to_dates),
+                                   distance  = rep(0.0, nrows),
+                                   predicted = rep("NoClass", nrows)
     )
     return (predict.tb)
-
 }
 #' @title Create an empty tibble to store the results of classifications
 #' @name sits_tibble_classification

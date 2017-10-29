@@ -131,19 +131,9 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
     # retrieve the bands
     bands <- sits_bands (patterns.tb)
 
-    time_index.lst <- list()
+    #retrieve the time index
+    time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
 
-    dates_index.lst %>%
-        purrr::map (function (idx){
-            index_ts <- vector()
-            for (i in 1:length(bands)){
-                idx1 <- idx[1] + (i - 1)*length(timeline) + 2
-                index_ts [length(index_ts) + 1 ] <- idx1
-                idx2 <- idx[2] + (i - 1)*length(timeline) + 2
-                index_ts [length(index_ts) + 1 ] <- idx2
-            }
-            time_index.lst[[length(time_index.lst) + 1]] <<- index_ts
-        })
     # define the column names
     col_names <- c("original_row", "reference")
     bands %>%
@@ -195,55 +185,58 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
 #' @param  col_names       Names of columns of distance tibble
 #' @param  bands           Bands used for classification
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
-#' @param  interval        the period between two classifications
 #' @param  multicores      Number of threads to process the time series.
 #' @return class.tb        a SITS tibble with the predicted labels for each input segment
 #' @export
 sits_classify_distances <- function (distances.tb, timeline, time_index.lst,
-                                    col_names, bands, ml_model = NULL, interval = "12 month", multicores = 2){
+                                    col_names, bands, ml_model = NULL, multicores = 2){
 
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
+    # define a vector for interation in distances
+    bv <- 1:length (bands)
+
     classify_rows <- function (distance_rows) {
+        # start a counter for the classification rows
+        i <- 0
         # create a tibble to store the result
-        class_part.tb <- sits_tibble_prediction()
+        class_part.tb <- sits_tibble_prediction(distance_rows, timeline, time_index.lst)
+        predicted <- vector()
         # read all pixels values (used as distances)
         distance_rows %>%
             purrrlyr::by_row(function (row){
-                dist_row.tb <- tibble::tibble("original_row" = 1, "reference" = "NoClass")
-                # retrieve the distances for
+                # retrieve the indexes of the time series for each interval and each band
                 time_index.lst %>%
                     purrr::map (function (idx){
-                        for (i in 1:length(bands)) {
-                            # find the n-th subset of the input data
-                            dist_row.tb <<- dplyr::bind_cols(dist_row.tb, row[,idx[(2*i - 1)]:idx[2*i]])
-                        }
 
-                        # rename the distances
-                        colnames (dist_row.tb) <- col_names
+                        # find the number of samples
+                        n_samples <- idx[2] - idx[1] + 1
 
+                        # initialize the tibble
+                        dist_row.tb <- .sits_tibble_distance_for_classification (col_names)
+
+                        # find all subsets of the input data
+                        # for each band, idx has the starting and end index to extract the distances for each band
+                        bv %>% purrr::map (function (b){
+                            # find the start and end columns of the distance table
+                            col1 <- 3 + (b - 1)*n_samples
+                            col2 <- col1 + n_samples - 1
+                            # retrieve the values used for classification
+                            dist_row.tb[,col1:col2] <<- row[,idx[(2*b - 1)]:idx[2*b]]
+                        })
                         # classify the subset data
-                        pred <- sits_predict(dist_row.tb, ml_model)
-
-                        # save the results
-                        class_part.tb   <<- tibble::add_row(class_part.tb,
-                                                            from      = lubridate::as_date(timeline[idx[1] - 2]),
-                                                            to        = lubridate::as_date(timeline[idx[2] - 2]),
-                                                            distance  = 0.0,
-                                                            predicted = pred
-                        )
+                        predicted[length(predicted) + 1] <<- sits_predict(dist_row.tb, ml_model)
                     })
-
             })
-
+        class_part.tb$predicted <- predicted
         return(class_part.tb)
     }
     # split the data into chunks
-    # data_split <- split(distances.tb, rep(1:multicores))
+    data_split <- split(distances.tb, rep(1:multicores))
     #
     # # apply parallel processing to the split data
-    # class.tb <- parallel::mclapply(data_split, classify_rows, mc.cores = multicores)
-    class.tb <- classify_rows(distances.tb)
+    class.tb <- do.call(rbind, parallel::mclapply(data_split, classify_rows, mc.cores = multicores))
+    #class.tb <- classify_rows(distances.tb)
 
     return(class.tb)
 }

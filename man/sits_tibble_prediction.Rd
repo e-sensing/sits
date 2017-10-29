@@ -4,13 +4,20 @@
 \alias{sits_tibble_prediction}
 \title{Create an empty tibble to store the results of predictions}
 \usage{
-sits_tibble_prediction()
+sits_tibble_prediction(distances.tb, timeline, time_index.lst)
+}
+\arguments{
+\item{distances.tb}{a tibble with distances}
+
+\item{timeline}{the timeline of the data set}
+
+\item{time_index.lst}{The subsets of the timeline}
 }
 \value{
 distances.tb   a tibble to store the predictions
 }
 \description{
-Create an empty tibble to store the results of predictions
+Create atibble to store the results of predictions
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
