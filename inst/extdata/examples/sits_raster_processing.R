@@ -1,8 +1,8 @@
-files <- c("/Users/gilbertocamara/Dropbox/brickBuilder/Sinop_ndvi.tif",
-           "/Users/gilbertocamara/Dropbox/brickBuilder/Sinop_evi.tif")
+#files <- c("/Users/gilbertocamara/Dropbox/brickBuilder/Sinop_ndvi.tif",
+ #          "/Users/gilbertocamara/Dropbox/brickBuilder/Sinop_evi.tif")
 
-#files <- c("/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-ndvi.tif",
-#         "/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-evi.tif")
+files <- c("/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-ndvi.tif",
+        "/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-evi.tif")
 
 bands <- c("ndvi", "evi")
 
@@ -44,7 +44,7 @@ model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0
 #system.time({sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
 #                     patterns.tb, model.ml, multicores = 2)})
 
-system.time({sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
-                    patterns.tb, model.ml, multicores = 2)})
+sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
+                    patterns.tb, model.ml, multicores = 1)
 
 
