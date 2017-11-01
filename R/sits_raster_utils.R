@@ -11,15 +11,14 @@
 #' @return raster_class.tb   Metadata with information on a set of RasterLayers
 #' @export
 
-.sits_block_from_data <- function (class.tb, raster_class.tb, int_labels, init_row){
+.sits_block_from_data <- function (pred.lst, raster_class.tb, int_labels, init_row){
 
     # for each layer, write the values
-    raster_class.tb %>%
-        purrrlyr::by_row(function (layer){
-            values          <- as.integer (int_labels [dplyr::filter (class.tb, from == layer$start_date)$predicted])
-            layer$r_obj[[1]]  <- raster::writeValues(layer$r_obj[[1]], values, init_row)
-        })
-
+    for (i in 1:nrow(raster_class.tb)){
+        layer <- raster_class.tb[i,]
+        values            <- as.integer (int_labels [pred.lst[[i]]])
+        layer$r_obj[[1]]  <- raster::writeValues(layer$r_obj[[1]], values, init_row)
+    }
     return (raster_class.tb)
 }
 
@@ -89,24 +88,21 @@
     return (raster_layers.tb)
 }
 
-#' @title Retrieve a list of distances from a block of values obtained from a RasterBrick
-#' @name .sits_distances_from_block
+#' @title Retrieve a block of values obtained from a RasterBrick
+#' @name .sits_data_from_block
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Takes a block of RasterBricks and retrieves a set pf distances
+#' @description Takes a block of RasterBricks and retrieves a set of values
 #'
-#' @param  raster.tb  Metadata for a RasterBrick
-#' @param  row        starting row from the RasterBrick
-#' @param  nrow       Number of rows in the block extracted from the RasterBrick
-#' @param  size       Size of the block in pixels
-#' @param  timeline   Timeline that contains the valid dates
-#' @param  shift      Adjustment value to avoid negative pixel vales
-#' @return ts.lst     List of time series (one per pixel of the block)
+#' @param  raster.tb      Metadata for a RasterBrick
+#' @param  row            Starting row from the RasterBrick
+#' @param  nrow           Number of rows in the block extracted from the RasterBrick
+#' @param  shift          Adjustment value to avoid negative pixel vales
+#' @return data.mx        Matrix with data values
 #'
-.sits_distances_from_block <- function (raster.tb, row, nrows, size, timeline, shift = 3.0) {
+.sits_data_from_block <- function (raster.tb, row, nrows, shift = 3.0) {
 
-    # create a list to store the time series extracted from the block
-    distances.tb <- tibble::tibble(id = 1:size,)
+    values.lst <- list()
 
     # go line by line of the raster metadata tibble (each line points to a RasterBrick)
     raster.tb %>%
@@ -127,10 +123,10 @@
             values.mx <-  values.mx + shift
 
             # Convert the matrix to a list of time series (all with values for a single band)
-            distances.tb  <<- dplyr::bind_cols(distances.tb, tibble::as_tibble(values.mx))
+            values.lst[[length(values.lst) + 1]]  <<- values.mx
             })
-
-    return (distances.tb[,-1])
+    data.mx <- do.call(cbind, values.lst)
+    return (data.mx)
 }
 
 #' @title Define a reasonable block size to process a RasterBrick

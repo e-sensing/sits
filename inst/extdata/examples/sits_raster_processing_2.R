@@ -1,14 +1,14 @@
-files <- c("/home/gilberto/raster/Sinop_ndvi.tif",
-           "/home/gilberto/raster/Sinop_evi.tif")
+#files <- c("/home/gilberto/raster/Sinop_ndvi.tif",
+  #         "/home/gilberto/raster/Sinop_evi.tif")
 
-#files <- c("/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-ndvi.tif",
-#         "/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-evi.tif")
+files <- c("/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-ndvi.tif",
+         "/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-evi.tif")
 
 bands <- c("ndvi", "evi")
 
 scale_factors <- c(0.0001, 0.0001)
 
-timeline <- read.csv("/home/gilberto/raster/mod13Q1-timeline-2000-2017.csv", header = FALSE)
+timeline <- read.csv("/Users/gilbertocamara/sits/inst/extdata/raster/sinop/mod13Q1-timeline-2000-2017.csv", header = FALSE)
 timeline <- lubridate::as_date (timeline$V1)
 
 raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
@@ -29,10 +29,13 @@ distances.tb <- sits_distances_from_data(embrapa.tb, patterns.tb)
 model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0.001, epsilon = 0.1)
 
 # classify a raster image
-#system.time({sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
-#                     patterns.tb, model.ml, multicores = 2)})
+# system.time({sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-crop-class",
+#                     patterns.tb, model.ml, multicores = 1)})
 
-system.time({sits_classify_raster (raster.tb, file = "/home/gilberto/raster/sinop-class",
-                    patterns.tb, model.ml, multicores = 8)})
+#system.time({sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-crop-class",
+#                    patterns.tb, model.ml, multicores = 1)})
+
+sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-crop-class",
+                     patterns.tb, model.ml, multicores = 1)
 
 

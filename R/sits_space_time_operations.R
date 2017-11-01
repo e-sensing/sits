@@ -183,7 +183,7 @@
 #' @param  timeline        The timeline of the data set
 #' @param  bands           Bands used for classification
 #' @return  time_index.lst  The subsets of the timeline
-#'
+#' @export
 .sits_time_index <- function (dates_index.lst, timeline, bands) {
 
     # create an empty list of time index
@@ -195,9 +195,9 @@
         purrr::map (function (idx){
             index_ts <- vector()
             for (i in 1:length(bands)){
-                idx1 <- idx[1] + (i - 1)*length(timeline) + 2
+                idx1 <- idx[1] + (i - 1)*length(timeline)
                 index_ts [length(index_ts) + 1 ] <- idx1
-                idx2 <- idx[2] + (i - 1)*length(timeline) + 2
+                idx2 <- idx[2] + (i - 1)*length(timeline)
                 index_ts [length(index_ts) + 1 ] <- idx2
             }
             time_index.lst[[length(time_index.lst) + 1]] <<- index_ts

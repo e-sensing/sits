@@ -4,17 +4,19 @@
 \alias{sits_classify_distances}
 \title{Classify a sits distances tibble using machine learning models}
 \usage{
-sits_classify_distances(distances.tb, timeline, time_index.lst, col_names,
-  bands, ml_model = NULL, multicores = 2)
+sits_classify_distances(data.mx, timeline, time_index.lst, nsamples, attr_names,
+  bands, ml_model = NULL, multicores = 1)
 }
 \arguments{
-\item{distances.tb}{a tibble with distances}
+\item{data.mx}{a matrix with data values}
 
 \item{timeline}{the timeline of the data set}
 
 \item{time_index.lst}{The subsets of the timeline}
 
-\item{col_names}{Names of columns of distance tibble}
+\item{nsamples}{number of samples}
+
+\item{attr_names}{Names of columns of distance tibble}
 
 \item{bands}{Bands used for classification}
 
@@ -23,7 +25,7 @@ sits_classify_distances(distances.tb, timeline, time_index.lst, col_names,
 \item{multicores}{Number of threads to process the time series.}
 }
 \value{
-class.tb        a SITS tibble with the predicted labels for each input segment
+pred.lst        list with the predicted labels for each output time interval
 }
 \description{
 Returns a sits table with the results of the ML classifier.
