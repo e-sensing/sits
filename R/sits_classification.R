@@ -152,7 +152,12 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
     # recover the input data by blocks for efficiency
     bs <- .sits_raster_block_size (raster_class.tb[1,])
 
+    # results <- parallel::mclapply(split(data.mx, rep(1:multicores)), classify_block, mc.cores = multicores)
+    # # #
+    # # # # apply parallel processing to the split data
+    # pred.lst <- unsplit(results, rep(1:multicores) )
     # read the input raster in blocks
+
     for (i in 1:bs$n){
 
         # extract time series from the block of RasterBrick rows
@@ -216,12 +221,31 @@ sits_classify_distances <- function (data.mx, timeline, time_index.lst, nsamples
         }
         return(pred_block.lst)
     }
-    pred.lst <- classify_block (data.mx)
-    # results <- parallel::mclapply(split(data.mx, rep(1:multicores)), classify_block, mc.cores = multicores)
-    # # #
-    # # # # apply parallel processing to the split data
-    # pred.lst <- unsplit(results, rep(1:multicores) )
 
+    join_blocks <- function (blocks.lst) {
+        pred.lst <- list()
+        for (t in 1:length(time_index.lst)){
+            pred.lst[[t]] <- vector()
+        }
+        for (i in 1:length(blocks.lst)){
+            for (t in 1:length(time_index.lst)){
+            pred.lst[[t]] <- c(pred.lst[[t]], blocks.lst[[i]][[t]])
+            }
+        }
+        return (pred.lst)
+    }
+
+    if (multicores > 1) {
+        blocks.lst <- split.data.frame(data.mx, cut(1:nrow(data.mx),multicores, labels = FALSE))
+        # apply parallel processing to the split dat
+        results <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
+
+        pred.lst <- join_blocks(results)
+    }
+    else
+        pred.lst <- classify_block(data.mx)
+
+    return (pred.lst)
 }
 
 

@@ -163,7 +163,6 @@
     return (block)
 
 }
-
 #' @title Define a filename associated to one classified raster layer
 #' @name .sits_raster_filename
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
