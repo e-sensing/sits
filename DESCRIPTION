@@ -27,6 +27,7 @@ LazyData: true
 Imports:
     magrittr,
     caret,
+    data.table,
     dendextend,
     e1071,
     ensurer,
@@ -89,6 +90,7 @@ Collate:
     'sits_cluster.R'
     'sits_colors.R'
     'sits_confusion_matrix.R'
+    'sits_data_table.R'
     'sits_dendrogram.R'
     'sits_distances.R'
     'sits_export.R'

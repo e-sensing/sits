@@ -45,55 +45,7 @@ sits_tibble <- function () {
                          err_desc = "input data is empty")
     return (TRUE)
 }
-#' @title Create an empty distance tibble to store the results of distance metrics
-#' @name sits_tibble_distance
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Create an empty distance tibble to store the results of distance metrics
-#'
-#' @param patterns.tb     a SITS tibble with a set of patterns
-#' @return distances.tb   a tibble to store the distances between a time series and a set of patterns
-#' @export
-#'
-sits_tibble_distance <- function (patterns.tb) {
 
-    distances.tb <- tibble::tibble(
-        original_row = integer(),
-        reference    = character())
-
-    distances.tb <- tibble::as_tibble (distances.tb)
-
-    labels <- sits_labels(patterns.tb)$label
-    bands  <- sits_bands (patterns.tb)
-
-    for (b in 1:length(bands)) {
-        for (l in 1:length(labels)) {
-            measure <- paste0 (labels[l], ".", bands[b])
-            distances.tb [measure] = double()
-        }
-    }
-    return (distances.tb)
-}
-
-#' @title Create an empty distance tibble for classication using machine learning
-#' @name .sits_tibble_distance_for_classification
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Create an empty distance tibble to store the results of distance metrics
-#'
-#' @param  col_names       Names of columns of distance tibble
-#' @return dist.tb         a tibble to store the distances used for clasification by ML methods
-#'
-.sits_tibble_distance_for_classification <- function (col_names) {
-
-    dist.tb <- tibble::tibble("original_row" = 1, "reference" = "NoClass")
-
-    dist.tb [,col_names[3:length(col_names)]] <- 0.0
-
-    return (dist.tb)
-}
 #' @title Create an empty tibble to store the results of predictions
 #' @name sits_tibble_prediction
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

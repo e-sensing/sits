@@ -133,14 +133,25 @@
 #' @name .sits_raster_block_size
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Takes a block of RasterBricks and builds a SITS tibble
+#' @description Defines the size of the block of a Raster Brick to be read into memory.
+#' The total pixels of a RasterBrick is given by combining the size of the timeline
+#' with the number of rows and columns of the Brick. For example, a Raster Brick
+#' with 500 rows and 500 columns and 400 time instances will have a total pixel size
+#' of 250 Mb if pixels are 16-bit (about a GigaByte). If there are 4 bands to be processed together, there will be 4 Raster Bricks.
+#' Thus, a block size of 250000 will use a l GB just to store the image data.
+#'
+#' As a rule of thumb, consider that for a typical MODIS data set such as MOD13Q1 there will be
+#' about 23 time instances per year. In 20 years, this means about 460 instances.
+#' In a small desktop with 8 GBytes, a block size of 250000 will use 1Gb of memory.
+#' This is taken to be the default for small machines.
+#' In a larger server, users should increase the block size for improved processing.
 #'
 #' @param  brick.tb   Metadata for a RasterBrick
 #' @param  blocksize  Default size of the block (rows * cols)
 #' @return block      list with three attributes: n (number of blocks), rows (list of rows to begin),
 #'                    nrows - number of rows to read at each iteration
 #'
-.sits_raster_block_size <- function (brick.tb, blocksize = 90000){
+.sits_raster_block_size <- function (brick.tb, blocksize = 250000){
     #' n          number of blocks
     #' row        starting row from the RasterBrick
     #' nrow       Number of rows in the block extracted from the RasterBrick

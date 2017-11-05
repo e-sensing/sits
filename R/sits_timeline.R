@@ -15,6 +15,12 @@ sits_timeline <- function (data.tb){
 
     return (data.tb[1,]$timeline[[1]])
 }
+.sits_align_data_patterns <- function (data.tb, patterns.tb){
+    # get the reference dates of the patterns
+    ref_dates.lst <- patterns.tb[1,]$ref_list
+
+
+}
 #' @title Find dates in the input coverage that match those of the patterns
 #' @name .sits_match_timelines
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -40,11 +46,6 @@ sits_timeline <- function (data.tb){
     input_end_date   <- timeline [length(timeline)]
 
     num_samples <- sits_num_samples(timeline, interval)
-
-    if (num_samples != 23) {
-        print (ref_start_date)
-        print (ref_end_date)
-    }
 
     # define the estimated start date of the input data based on the patterns
     ref_st_mday  <- as.character(lubridate::mday(ref_start_date))

@@ -131,6 +131,35 @@
 
     return (subset.tb)
 }
+#' @title Break a time series to match the time range of a set of patterns
+#' @name .sits_break_ts
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  Given a long time series, divide it into segments to match
+#'               the time range of a set of patterns
+#'
+#' @param  ts             time series data
+#' @param  ref_dates.lst  list with dates to break
+#' @return ts.lst         list with the breaks of the time series data
+#' @export
+#'
+.sits_break_ts <-  function (ts, ref_dates.lst){
+
+    new_ts.lst <- list()
+    ref_dates.lst %>%
+        purrr::map(function (dates) {
+            if (ts$Index[1] <= dates[1]) {
+                if (ts$Index[length(ts$Index)] >= dates[2]){
+                    ts_b <- ts %>% dplyr::filter (dplyr::between (.$Index, dates[1], dates[2]))
+                    new_ts.lst[[length(new_ts.lst) + 1 ]] <<- ts_b
+                }
+            }
+        })
+
+    return (new_ts.lst)
+}
+
 
 #' @title Create partitions of a data set
 #' @name  .sits_create_folds
@@ -152,7 +181,28 @@
 
     return (data.tb)
 }
+#' @title Create a list to store time series by timeline
+#' @name  .sits_create_ts_list
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Create a list of time series that share the same timeline
+#'
+#' @param timeline  the timeline (dates of the time series)
+#' @param n         Number of time series to create
+#' @return ts.lst   list with the time series that share the same timeline
+#'
+.sits_create_ts_list <- function (timeline, n) {
 
+    ts.lst <- list()
+    # create one time series per pixel
+    # all time series share the same timeline
+    for (i in 1:n) {
+        ts.tb <- tibble::tibble (Index = timeline)
+        ts.lst[[length(ts.lst) + 1 ]] <- ts.tb
+        i <- i + 1
+    }
+    return (ts.lst)
+}
 #' @title Extract a subset of the data based on dates
 #' @name .sits_extract
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

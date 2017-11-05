@@ -13,7 +13,7 @@
 #' @return data.tb         a SITS tibble with the predicted labels for each input segment
 #' @export
 sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
-                           ml_model = NULL, dist_method = sits_distances_from_data(.break = FALSE),
+                           ml_model = NULL, dist_method = sits_distances_from_data(),
                            interval = "12 month"){
 
     .sits_test_tibble(data.tb)
@@ -24,6 +24,7 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
 
     # find the subsets of the input data
     ref_dates.lst <- patterns.tb[1,]$ref_dates[[1]]
+    # get the
 
     # go over every row of the table
     data.tb %>%
@@ -93,13 +94,14 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  dist_method     method to compute distances (e.g., sits_TWDTW_distances)
 #' @param  interval        the period between two classifications
+#' @param  blocksize       Default size of the block (rows * cols) (see function .sits_raster_block_size)
 #' @param  multicores      Number of threads to process the time series.
 #' @param  ...             other parameters to be passed to the distance function
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 #' @export
 sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model = NULL,
                                   dist_method = sits_distances_from_data(),
-                                  interval = "12 month", multicores = 2){
+                                  interval = "12 month", blocksize = 250000, multicores = 2){
 
     # ensure metadata tibble exists
     .sits_test_tibble (raster.tb)
@@ -107,7 +109,7 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
     .sits_test_tibble (patterns.tb)
 
     # ensure that file name and prediction model are provided
-    ensurer::ensure_that(file,     !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
+    ensurer::ensure_that(file,      !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
     ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits-classify-raster: please provide a machine learning model already trained")
 
     # create the raster objects and their respective filenames
@@ -150,12 +152,8 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
         })
 
     # recover the input data by blocks for efficiency
-    bs <- .sits_raster_block_size (raster_class.tb[1,])
+    bs <- .sits_raster_block_size (raster_class.tb[1,], blocksize)
 
-    # results <- parallel::mclapply(split(data.mx, rep(1:multicores)), classify_block, mc.cores = multicores)
-    # # #
-    # # # # apply parallel processing to the split data
-    # pred.lst <- unsplit(results, rep(1:multicores) )
     # read the input raster in blocks
 
     for (i in 1:bs$n){
@@ -179,7 +177,7 @@ sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model 
 
 
 
-#' @title Classify a sits distances tibble using machine learning models
+#' @title Classify a distances matrix using machine learning models
 #' @name sits_classify_distances
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -203,6 +201,7 @@ sits_classify_distances <- function (data.mx, timeline, time_index.lst, nsamples
     classify_block <- function (data.mx) {
         pred_block.lst <- list()
         for (t in 1:length(time_index.lst)){
+            # create an empty matrix to store the subset of the data
             values.mx <- matrix(nrow = nrow (data.mx), ncol = 0)
             idx <- time_index.lst[[t]]
             for (b in 1:length(bands)){

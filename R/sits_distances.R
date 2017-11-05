@@ -90,11 +90,11 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
         # does the input data exist?
         .sits_test_tibble (data.tb)
         .sits_test_tibble (patterns.tb)
-        distances.tb <-  sits_tibble_distance(patterns.tb)
+        distances.tb <-  sits_distance_table(patterns.tb)
         original_row <-  1
 
-        labels <- (dplyr::distinct(patterns.tb, label))$label
-        bands  <- sits_bands (patterns.tb)
+        labels <- sits_labels(patterns.tb)$label
+        bands  <- sits_bands(patterns.tb)
 
         if (.break) data.tb <- .sits_break(data.tb, patterns.tb)
 
@@ -108,7 +108,7 @@ sits_TS_distances <- function (data.tb = NULL, patterns.tb = NULL, distance = "d
         data.tb %>%
             purrrlyr::by_row(function (row) {
                 ts_data <- row$time_series[[1]]
-                drow.tb <- sits_tibble_distance(patterns.tb)
+                drow.tb <- sits_distance_table(patterns.tb)
                 r <- dplyr::add_row(drow.tb)
                 r$original_row <- original_row
                 r$reference    <- row$label
@@ -195,7 +195,7 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
         dist_fun <- function(part.tb){
 
             # create a tibble to store the results
-            distances_part.tb <-  sits_tibble_distance(patterns.tb)
+            distances_part.tb <-  sits_distance_table(patterns.tb)
 
             # add a progress bar
             n <- 0
@@ -291,49 +291,27 @@ sits_TWDTW_distances <- function (data.tb = NULL, patterns.tb = NULL,
 #' "spreads" them in time to produce a tibble with distances.
 #'
 #' @param  data.tb        a SITS tibble with original data
-#' @param  patterns.tb    Set of patterns obtained from training samples
+#' @param  patterns.tb   Set of known temporal signatures for the chosen classes
 #' @param  shift          Adjustment value to avoid negative pixel vales
-#' @param  .break         Controls whether the series is to be broken
 #' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
 #' @export
-sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL, shift = 3.0, .break = TRUE){
+sits_distances_from_data <- function(data.tb = NULL, patterns.tb, shift = 3.0){
 
     result_fun <- function(data.tb, patterns.tb){
 
-        ref_dates.lst <- patterns.tb[1,]$ref_dates[[1]]
-
-        # extract the time series
-        ts.lst <- data.tb$time_series
-
-        # extract the band values of the time series
-        values.lst <- ts.lst %>%
-            purrr::map(function(ts) {
-                # add constant to get positive values
-                ts <- sits_apply_ts(ts, fun = function (band) band + shift)
-
-                if (.break) ts_break.lst <- .sits_break_ts (ts, ref_dates.lst)
-                else ts_break.lst <- list (ts)
-
-                ensurer::ensure_that (ts_break.lst, length(.) > 0,
-                                      err_desc = "sits_distances: pattern dates are outside input data range.
-                                      Please run function sits_prune")
-
-                tb.lst <- ts_break.lst %>%
-                    purrr::map(function (ts_b) {
-                        # flatten the values
-                        ts_b %>%
-                            dplyr::select(-Index) %>%
-                            purrr::map(function(band) band) %>%
-                            unlist() %>%
-                            as.matrix() %>%
-                            t() %>%
-                            tibble::as_tibble()
-
-                    })
+        # create a list with the time series transposed from columns to rows
+        ts.lst <- data.tb$time_series %>%
+            purrr::map (function (ts){
+                as.data.frame(t(unlist(ts[-1])))
             })
-        # spread these values as distance attributes
-        distances.tb <- dplyr::bind_rows(unlist(values.lst, recursive = FALSE))
-        distances.tb <- dplyr::bind_cols(original_row = 1:NROW(data.tb), reference = data.tb$label, distances.tb)
+        # bind the lists of time series together
+        dist.tb <- data.table::rbindlist(ts.lst)
+        # shift the values of the time series to avoid negative numbers
+        dist.tb <- dist.tb + shift
+        # create a data frame with the first two columns for training
+        distances.tb <- data.frame("original_row" = 1:nrow(data.tb), "reference" = data.tb$label)
+        # join the two references columns with the data values
+        distances.tb <- cbind(distances.tb, dist.tb)
 
         return(distances.tb)
     }
@@ -341,35 +319,3 @@ sits_distances_from_data <- function(data.tb = NULL, patterns.tb = NULL, shift =
     return (result)
 }
 
-#' @title Use time series values as distances for classification
-#' @name sits_distances_from_ts
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function allows using a time series as
-#' input to the machine learning classification.
-#' This function extracts the time series and "spreads" them in time to produce a tibble with distances.
-#'
-#' @param  ts.tb          Tibble with time series
-#' @param  shift          Adjustment value to avoid negative pixel vales
-#' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
-#' @export
-sits_distances_from_ts <- function(ts.tb, shift = 3.0){
-
-    # flatten the values
-    distances.tb <- ts.tb %>%
-        dplyr::select(-Index) %>%
-        purrr::map(function(band) band) %>%
-        unlist() %>%
-        as.matrix() %>%
-        t() %>%
-        tibble::as_tibble()
-
-    # add constant to get positive values
-    distances.tb[1,] <-  distances.tb[1,] + shift
-
-    # spread these values as distance attributes
-    distances.tb <- dplyr::bind_cols(original_row = 1, reference = "NoClass", distances.tb)
-
-    return(distances.tb)
-}

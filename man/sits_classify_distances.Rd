@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_classification.R
 \name{sits_classify_distances}
 \alias{sits_classify_distances}
-\title{Classify a sits distances tibble using machine learning models}
+\title{Classify a distances matrix using machine learning models}
 \usage{
 sits_classify_distances(data.mx, timeline, time_index.lst, nsamples, attr_names,
   bands, ml_model = NULL, multicores = 1)

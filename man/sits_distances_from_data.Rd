@@ -4,17 +4,14 @@
 \alias{sits_distances_from_data}
 \title{Use time series values from a sits tibble as distances for training patterns}
 \usage{
-sits_distances_from_data(data.tb = NULL, patterns.tb = NULL, shift = 3,
-  .break = TRUE)
+sits_distances_from_data(data.tb = NULL, patterns.tb, shift = 3)
 }
 \arguments{
 \item{data.tb}{a SITS tibble with original data}
 
-\item{patterns.tb}{Set of patterns obtained from training samples}
+\item{patterns.tb}{Set of known temporal signatures for the chosen classes}
 
 \item{shift}{Adjustment value to avoid negative pixel vales}
-
-\item{.break}{Controls whether the series is to be broken}
 }
 \value{
 distances.tb  a tibble where columns have the reference label and the time series values as distances
