@@ -22,43 +22,30 @@
 #'
 #' @param  data.tb       a tibble in SITS format with time series
 #' @param  timeline      timeline with the all dates for the coverage
-#' @param  from          starting date of the estimate (month-day)
-#' @param  to            end data of the estimated (month-day)
+#' @param  start_date    starting date of the estimate (month-day)
+#' @param  end_date      end data of the estimated (month-day)
 #' @param  freq          int - the interval in days for the estimates to be generated
 #' @param  formula       the formula to be applied in the estimate
-#' @param  interval      the interval to obtain the patterns
 #' @param  ...           any additional parameters
 #' @return patterns.tb   a SITS tibble with the patterns
 #' @export
 #'
-sits_gam <- function (data.tb = NULL, timeline = NULL, from = NULL, to = NULL,
-                      freq = 8, formula = y ~ s(x), interval = "12 month", ...){
+sits_gam <- function (data.tb = NULL, timeline = NULL, start_date = NULL, end_date = NULL,
+                      freq = 8, formula = y ~ s(x), ...){
 
 
     # function that is used to be called as a value from another function
-    result_fun <- function(tb, timeline){
+    result_fun <- function(tb){
 
         # does the input data exist?
         .sits_test_tibble (tb)
 
-        # ensure timeline is not null
-        ensurer::ensure_that(timeline, !purrr::is_null(.), err_desc = "sits_patterns : please provide the timeline of the coverage")
-
-        times <- timeline
 
         # find the bands of the data
         bds <- sits_bands(tb)
 
-
-        ensurer::ensure_that(tb[1,]$start_date, .sits_is_valid_start_date(., timeline),
-                             err_desc = ".sits_gam: expected start date in not inside timeline of observations")
-
-        ensurer::ensure_that(tb[1,]$end_date, .sits_is_valid_end_date(., timeline),
-                             err_desc = ".sits_gam: expected end date in not inside timeline of observations")
-
-
         # create a tibble to store the results
-        patterns.tb <- sits_tibble_patterns()
+        patterns.tb <- sits_tibble()
 
         # what are the variables in the formula?
         vars <-  all.vars(formula)
@@ -68,14 +55,14 @@ sits_gam <- function (data.tb = NULL, timeline = NULL, from = NULL, to = NULL,
         tb           <- .sits_align (tb, sample_dates)
 
         # if "from" and "to" are not given, extract them from the data samples
-        if (purrr::is_null (from) || purrr::is_null (to)) {
-            from <- lubridate::as_date(utils::head(sample_dates, n = 1))
-            to   <- lubridate::as_date(utils::tail(sample_dates, n = 1))
+        if (purrr::is_null (start_date) || purrr::is_null (end_date)) {
+            start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
+            end_date   <- lubridate::as_date(utils::tail(sample_dates, n = 1))
         }
 
         # determine the sequence of prediction times
-        pred_time = seq(from = lubridate::as_date(from),
-                        to   = lubridate::as_date(to),
+        pred_time = seq(from = lubridate::as_date(start_date),
+                        to   = lubridate::as_date(end_date),
                         by   = freq)
 
         # how many different labels are there?
@@ -143,21 +130,13 @@ sits_gam <- function (data.tb = NULL, timeline = NULL, from = NULL, to = NULL,
                 ts <- tibble::lst()
                 ts[[1]] <- res.tb
 
-                # obtain the reference dates that match the patterns in the full timeline
-                ref_dates.lst <- .sits_match_timelines(timeline, as.Date(from), as.Date (to), interval = interval)
-
-                # obtain the indexes of the timeline that match the reference dates
-                dates_index.lst <- .sits_match_indexes(timeline, ref_dates.lst)
 
                 # add the pattern to the results tibble
                 patterns.tb <<- tibble::add_row (patterns.tb,
-                                                 start_date     = as.Date(from),
-                                                 end_date       = as.Date(to),
+                                                 start_date     = as.Date(start_date),
+                                                 end_date       = as.Date(end_date),
                                                  label          = lb,
                                                  coverage       = label.tb[1,]$coverage,
-                                                 timeline       = list(times),
-                                                 ref_dates      = list(ref_dates.lst),
-                                                 dates_index    = list(dates_index.lst),
                                                  time_series    = ts)
             })
 
@@ -165,5 +144,5 @@ sits_gam <- function (data.tb = NULL, timeline = NULL, from = NULL, to = NULL,
         return (patterns.tb)
     }
 
-    result <- .sits_factory_function2 (data.tb, timeline, result_fun)
+    result <- .sits_factory_function (data.tb, result_fun)
 }

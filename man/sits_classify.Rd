@@ -4,28 +4,29 @@
 \alias{sits_classify}
 \title{Classify a sits tibble using machine learning models}
 \usage{
-sits_classify(data.tb = NULL, patterns.tb = NULL, ml_model = NULL,
-  dist_method = sits_distances_from_data(.break = FALSE),
-  interval = "12 month")
+sits_classify(data.tb = NULL, class_info.tb = NULL, ml_model = NULL)
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series}
+\item{data.tb}{a SITS tibble time series (cleaned)}
 
-\item{patterns.tb}{a set of known temporal signatures for the chosen classes}
+\item{class_info.tb}{a tibble with the information on classification}
 
 \item{ml_model}{a model trained by \code{\link[sits]{sits_train}}}
-
-\item{dist_method}{method to compute distances (e.g., sits_TWDTW_distances)}
-
-\item{interval}{the period between two classifications}
-
-\item{...}{other parameters to be passed to the distance function}
 }
 \value{
 data.tb         a SITS tibble with the predicted labels for each input segment
 }
 \description{
-Returns a sits table with the results of the ML classifier.
+This is the main classification function for time series data
+organized as a SITS tibble (one row per time series). It considers that
+the machine learning model used to classify the data set has been trained
+with samples which match the full dimension of the time series. This means that,
+if the sample has four bands with 20 time instances,  the
+machine learning model is 80-dimension. Each time instance is considered as
+a dimension.
+
+In terms of the SITS package, the sits_classify function assumes that, when
+tranining the model, the user has called the \code{\link[sits]{sits_distances_from_data}} function.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -1,29 +1,77 @@
+#' @title Define the information required for classifying time series
+#' @name sits_class_info
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Time series classification requires that users do a series of steps:
+#' (a) Provide labelled samples that will be used as training data.
+#' (b) Provide information on how the classification will be performed, including data timeline,
+#' temporal interval, and start and end dates per interval.
+#' (c) Clean the training data to ensure it meets the specifications of the classification info.
+#' (d) Use the clean data to train a machine learning classifier.
+#' (e) Classify non-labelled data sets
+#'
+#' In this set of steps, this function provides support for step (b). It requires the user
+#' to provide a timeline, the classification interval, and the start and end dates of
+#' the reference period. The results is a tibble with information that allows the user
+#' to perform steps (c) to (e)
+#'
+#' @param  timeline        The timeline of the coverage being classified
+#' @param  interval        The interval between two sucessive classification
+#' @param  start_date      The start date of the reference period for classification (inside an interval)
+#' @param  end_date        The end date of the reference period for classification (inside an interval)
+#' @return class_info.tb   A SITS tibble with the classification information
+#' @export
+sits_class_info <- function (timeline, interval, start_date, end_date){
+
+    # ensure timeline is not null
+    ensurer::ensure_that(timeline, !purrr::is_null(.), err_desc = "sits_class_info : please provide the timeline of the coverage")
+
+    # obtain the reference dates that match the patterns in the full timeline
+    ref_dates.lst <- .sits_match_timelines(timeline, as.Date(start_date), as.Date (end_date), interval)
+
+    # obtain the indexes of the timeline that match the reference dates
+    dates_index.lst <- .sits_match_indexes(timeline, ref_dates.lst)
+
+    class_info.tb <- tibble::tibble (
+        interval       = interval,
+        timeline       = list(timeline),
+        ref_dates      = list(ref_dates.lst),
+        dates_index    = list(dates_index.lst)
+    )
+    return (class_info.tb)
+}
+
 #' @title Classify a sits tibble using machine learning models
 #' @name sits_classify
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Returns a sits table with the results of the ML classifier.
+#' @description This is the main classification function for time series data
+#' organized as a SITS tibble (one row per time series). It considers that
+#' the machine learning model used to classify the data set has been trained
+#' with samples which match the full dimension of the time series. This means that,
+#' if the sample has four bands with 20 time instances,  the
+#' machine learning model is 80-dimension. Each time instance is considered as
+#' a dimension.
 #'
-#' @param  data.tb         a SITS tibble time series
-#' @param  patterns.tb     a set of known temporal signatures for the chosen classes
+#' In terms of the SITS package, the sits_classify function assumes that, when
+#' tranining the model, the user has called the \code{\link[sits]{sits_distances_from_data}} function.
+#'
+#' @param  data.tb         a SITS tibble time series (cleaned)
+#' @param  class_info.tb   a tibble with the information on classification
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
-#' @param  dist_method     method to compute distances (e.g., sits_TWDTW_distances)
-#' @param  interval        the period between two classifications
-#' @param  ...             other parameters to be passed to the distance function
 #' @return data.tb         a SITS tibble with the predicted labels for each input segment
 #' @export
-sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
-                           ml_model = NULL, dist_method = sits_distances_from_data(),
-                           interval = "12 month"){
+sits_classify <- function (data.tb = NULL,  class_info.tb = NULL, ml_model = NULL){
 
     .sits_test_tibble(data.tb)
-    .sits_test_tibble(patterns.tb)
+    .sits_test_tibble(class_info.tb)
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
+
     # create a tibble to store the result
     result.tb <- sits_tibble_classification()
 
     # find the subsets of the input data
-    ref_dates.lst <- patterns.tb[1,]$ref_dates[[1]]
+    ref_dates.lst <- class_info.tb$ref_dates[[1]]
     # get the
 
     # go over every row of the table
@@ -39,7 +87,7 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
                     row_subset.tb <- .sits_extract(row, dates[1], dates[2])
 
                     # find the distances in the subset data
-                    distances.tb  <- sits_distances (row_subset.tb, patterns.tb, dist_method = dist_method)
+                    distances.tb  <- sits_distances_from_data (row_subset.tb)
 
                     # classify the subset data
                     predicted <- sits_predict(distances.tb, ml_model)
@@ -83,7 +131,7 @@ sits_classify <- function (data.tb = NULL, patterns.tb =  NULL,
 #'              described by tibble (created by \code{\link[sits]{sits_fromRaster}}),
 #'              a set of patterns (created by \code{\link[sits]{sits_patterns}}),
 #'              a prediction model (created by \code{\link[sits]{sits_train}}), and
-#'              a method to extract shape attributes from time_series (used by  \code{\link[sits]{sits_distances}} ),
+#'              a method to extract shape attributes from time_series (used by  \code{\link[sits]{sits_distances_from_data}} ),
 #'              and produces a classified set of RasterLayers. This function is similar to
 #'               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
 #'

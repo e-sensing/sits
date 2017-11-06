@@ -23,6 +23,7 @@ Description: A set of tools for working with satellite image time series.
 URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2 | file LICENSE
+ByteCompile: true
 LazyData: true
 Imports:
     magrittr,
