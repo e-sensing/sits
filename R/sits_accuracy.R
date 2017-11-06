@@ -129,27 +129,18 @@ sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample =
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
 #'
 #' @param  data.tb       A sits tibble containing a set of samples with known and trusted labels
-#' @param  patterns.tb   A sits tibble containing a set of patterns (independent of input data)
+#' @param  class_info.tb A tibble containing classification information
 #' @param  ml_model      A model trained by \code{\link[sits]{sits_train}}
-#' @param  dist_method   Method to compute distances (e.g., sits_TWDTW_distances)
-#' @param  interval      Period between two classifications
-#' @param ...            Other parameters to be passed to the distance function
 #' @return assess        Assessment of validation
 #' @export
-sits_accuracy_classif <- function (data.tb,
-                                   patterns.tb,
-                                   ml_model,
-                                   dist_method = sits_TWDTW_distances(),
-                                   interval = "12 month") {
+sits_accuracy_classif <- function (data.tb, class_info.tb, ml_model) {
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
-    .sits_test_tibble (patterns.tb)
-     ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),
-                            err_desc = "sits_test_patterns: please provide a labelled set of time series")
+    .sits_test_tibble (class_info.tb)
 
      # classify data
-     class.tb <- sits_classify (data.tb, patterns.tb, ml_model, dist_method, interval = interval)
+     class.tb <- sits_classify (data.tb, class_info.tb, ml_model)
      # retrieve the reference labels
      class.tb <- dplyr::mutate (class.tb, reference = label)
 

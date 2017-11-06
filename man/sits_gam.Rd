@@ -4,23 +4,21 @@
 \alias{sits_gam}
 \title{Create temporal patterns using a generalised additive model (gam)}
 \usage{
-sits_gam(data.tb = NULL, timeline = NULL, from = NULL, to = NULL,
-  freq = 8, formula = y ~ s(x), interval = "12 month", ...)
+sits_gam(data.tb = NULL, timeline = NULL, start_date = NULL,
+  end_date = NULL, freq = 8, formula = y ~ s(x), ...)
 }
 \arguments{
 \item{data.tb}{a tibble in SITS format with time series}
 
 \item{timeline}{timeline with the all dates for the coverage}
 
-\item{from}{starting date of the estimate (month-day)}
+\item{start_date}{starting date of the estimate (month-day)}
 
-\item{to}{end data of the estimated (month-day)}
+\item{end_date}{end data of the estimated (month-day)}
 
 \item{freq}{int - the interval in days for the estimates to be generated}
 
 \item{formula}{the formula to be applied in the estimate}
-
-\item{interval}{the interval to obtain the patterns}
 
 \item{...}{any additional parameters}
 }

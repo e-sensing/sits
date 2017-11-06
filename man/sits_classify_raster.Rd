@@ -35,7 +35,7 @@ Takes a set of spatio-temporal raster bricks, whose metadata is
              described by tibble (created by \code{\link[sits]{sits_fromRaster}}),
              a set of patterns (created by \code{\link[sits]{sits_patterns}}),
              a prediction model (created by \code{\link[sits]{sits_train}}), and
-             a method to extract shape attributes from time_series (used by  \code{\link[sits]{sits_distances}} ),
+             a method to extract shape attributes from time_series (used by  \code{\link[sits]{sits_distances_from_data}} ),
              and produces a classified set of RasterLayers. This function is similar to
               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
 }

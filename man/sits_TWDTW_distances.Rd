@@ -5,16 +5,13 @@
 \title{Find distances between a set of SITS patterns and segments of sits tibble using TWDTW}
 \usage{
 sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL,
-  interval = "12 month", dist.method = "euclidean", alpha = -0.1,
-  beta = 100, theta = 0.5, span = 250, keep = FALSE, multicores = 1,
-  .break = TRUE)
+  dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
+  span = 250, keep = FALSE, multicores = 2)
 }
 \arguments{
 \item{data.tb}{Table in SITS format with a time series to be classified using TWTDW}
 
 \item{patterns.tb}{Set of known temporal signatures for the chosen classes}
-
-\item{interval}{Period to match the data to the patterns}
 
 \item{dist.method}{Method to derive the local cost matrix.}
 
@@ -30,15 +27,20 @@ sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL,
 
 \item{multicores}{Number of threads to process the validation (Linux only). Each process will run a
 whole partition validation.}
-
-\item{.break}{Controls whether the series is to be broken}
 }
 \value{
 distances.tb       a SITS table with the information on distances for the data
 }
 \description{
 Returns a SITS table with distances to be used for training in ML methods
-This is a front-end to the sits_TWDTW_matches whose outout is trimmed down to contain just distances
+This is a front-end to the sits_TWDTW_matches whose outout is trimmed down to
+contain just distances
+}
+\references{
+Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
+A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.
+IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
+August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 }
 \author{
 Rolf Simoes, \email{rolf.simores@inpe.br}

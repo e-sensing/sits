@@ -21,7 +21,6 @@ embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi"))
 # define the patterns from data
 patterns.tb <- sits_patterns(embrapa.tb, timeline)
 
-
 # distances from data
 distances.tb <- sits_distances_from_data(embrapa.tb, patterns.tb)
 

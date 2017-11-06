@@ -132,29 +132,6 @@ sits_tibble_coverage <- function () {
     return (result.tb)
 }
 
-#' @title Create an empty tibble to store the patterns used for classification
-#' @name sits_tibble_patterns
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Create an empty tibble to store a set of patterns
-#'
-#' @return result.tb   a tibble to store the result of classifications
-#' @export
-#'
-sits_tibble_patterns <- function () {
-    result.tb <- tibble::tibble(start_date  = as.Date(character()),
-                                end_date    = as.Date(character()),
-                                label       = character(),
-                                coverage    = character(),
-                                timeline    = list(),
-                                ref_dates   = list(),
-                                dates_index = list(),
-                                time_series = list()
-                                )
-    return (result.tb)
-}
-
 #' @title Create one line of metadata tibble to store the description of a spatio-temporal raster
 #' @name sits_tibble_raster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

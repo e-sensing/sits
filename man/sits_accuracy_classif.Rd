@@ -4,21 +4,14 @@
 \alias{sits_accuracy_classif}
 \title{Evaluates the accuracy of a labelled set of data}
 \usage{
-sits_accuracy_classif(data.tb, patterns.tb, ml_model,
-  dist_method = sits_TWDTW_distances(), interval = "12 month")
+sits_accuracy_classif(data.tb, class_info.tb, ml_model)
 }
 \arguments{
 \item{data.tb}{A sits tibble containing a set of samples with known and trusted labels}
 
-\item{patterns.tb}{A sits tibble containing a set of patterns (independent of input data)}
+\item{class_info.tb}{A tibble containing classification information}
 
 \item{ml_model}{A model trained by \code{\link[sits]{sits_train}}}
-
-\item{dist_method}{Method to compute distances (e.g., sits_TWDTW_distances)}
-
-\item{interval}{Period between two classifications}
-
-\item{...}{Other parameters to be passed to the distance function}
 }
 \value{
 assess        Assessment of validation
