@@ -15,12 +15,6 @@ sits_timeline <- function (data.tb){
 
     return (data.tb[1,]$timeline[[1]])
 }
-.sits_align_data_patterns <- function (data.tb, patterns.tb){
-    # get the reference dates of the patterns
-    ref_dates.lst <- patterns.tb[1,]$ref_list
-
-
-}
 #' @title Find dates in the input coverage that match those of the patterns
 #' @name .sits_match_timelines
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

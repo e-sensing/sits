@@ -34,20 +34,19 @@
 #' to one time step. The time steps are specified in a list of dates.
 #'
 #' @param  raster.tb         Tibble with metadata about the input RasterBrick objects
-#' @param  patterns.tb       Tibble with list of patterns (used to store the classification labels)
+#' @param  class_info.tb     Tibble with the information on classification
 #' @param  file              Generic name of the files that will contain the RasterLayers
-#' @param  interval          Interval between classifications
 #' @return raster_layers.tb  Tibble with metadata about the output RasterLayer objects
 #'
 #' @export
-.sits_create_classified_raster <- function (raster.tb, patterns.tb, file, interval = "12 month"){
+.sits_create_classified_raster <- function (raster.tb, class_info.tb, file){
     # ensure metadata tibble exists
     .sits_test_tibble (raster.tb)
 
     # get the timeline of observations (required for matching dates)
-    timeline <- raster.tb[1,]$timeline[[1]]
+    timeline <- class_info.tb$timeline[[1]]
     # produce the breaks used to generate the output rasters
-    subset_dates.lst <- .sits_match_timelines(timeline, patterns.tb[1,]$start_date, patterns.tb[1,]$end_date, interval)
+    subset_dates.lst <- .sits_match_timelines(timeline, class_info.tb$start_date, class_info.tb$end_date, class_info.tb$interval)
 
     # create a list to store the results
     raster.lst <- list()

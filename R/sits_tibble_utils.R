@@ -93,44 +93,7 @@
     return (data1.tb)
 }
 
-#' @title Break a SITS tibble based on information about ref dates
-#' @name .sits_break
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description returns a vector containing the dates of a sits table
-#'
-#' @param  row.tb       a tibble in SITS format with time series for different bands
-#' @param  patterns.tb  a set of patterns with reference dates
-#' @return subset.tb  a tibble in SITS format with the chosen subset
-.sits_break <- function (data.tb, patterns.tb) {
 
-    # create a tibble to store the results
-    subset.tb <- sits_tibble()
-
-    ref_dates.lst <- patterns.tb[1,]$ref_dates[[1]]
-
-    data.tb %>%
-        purrrlyr::by_row (function (row.tb){
-            # extract the subsets of time series
-            new_ts.lst <- .sits_break_ts (row.tb$time_series[[1]], ref_dates.lst)
-
-            new_ts.lst %>%
-                purrr::map (function (ts){
-                    subset.tb <<- tibble::add_row(subset.tb,
-                                                  longitude    = row.tb$longitude,
-                                                  latitude     = row.tb$latitude,
-                                                  start_date   = as.Date(ts$Index[1]),
-                                                  end_date     = as.Date(ts$Index[NROW(ts)]),
-                                                  label        = row.tb$label,
-                                                  coverage     = row.tb$coverage,
-                                                  time_series  = list(ts)
-
-                    )
-                })
-        })
-
-    return (subset.tb)
-}
 #' @title Break a time series to match the time range of a set of patterns
 #' @name .sits_break_ts
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

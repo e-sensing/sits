@@ -4,22 +4,17 @@
 \alias{sits_classify_raster}
 \title{Classify a set of spatio-temporal raster bricks using machine learning models}
 \usage{
-sits_classify_raster(raster.tb, file = NULL, patterns.tb, ml_model = NULL,
-  dist_method = sits_distances_from_data(), interval = "12 month",
+sits_classify_raster(raster.tb, file = NULL, class_info.tb, ml_model = NULL,
   blocksize = 250000, multicores = 2)
 }
 \arguments{
 \item{raster.tb}{a tibble with information about a set of space-time raster bricks}
 
-\item{file}{a general set of file names (one file per classified year)}
+\item{file}{a set of file names to store the output (one file per classified year)}
 
-\item{patterns.tb}{a set of known temporal signatures for the chosen classes}
+\item{class_info.tb}{a tibble with the information on classification}
 
 \item{ml_model}{a model trained by \code{\link[sits]{sits_train}}}
-
-\item{dist_method}{method to compute distances (e.g., sits_TWDTW_distances)}
-
-\item{interval}{the period between two classifications}
 
 \item{blocksize}{Default size of the block (rows * cols) (see function .sits_raster_block_size)}
 
@@ -33,11 +28,14 @@ raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 \description{
 Takes a set of spatio-temporal raster bricks, whose metadata is
              described by tibble (created by \code{\link[sits]{sits_fromRaster}}),
-             a set of patterns (created by \code{\link[sits]{sits_patterns}}),
+             the information on classification intervals (created by \code{\link[sits]{sits_class_info}}),
              a prediction model (created by \code{\link[sits]{sits_train}}), and
              a method to extract shape attributes from time_series (used by  \code{\link[sits]{sits_distances_from_data}} ),
              and produces a classified set of RasterLayers. This function is similar to
               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
+
+The sits_classify_raster function assumes that, when
+tranining the model, the user has called the \code{\link[sits]{sits_distances_from_data}} function.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

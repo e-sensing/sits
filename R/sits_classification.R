@@ -15,13 +15,15 @@
 #' the reference period. The results is a tibble with information that allows the user
 #' to perform steps (c) to (e)
 #'
+#' @param  bands           The bands to be used for classification
+#' @param  labels          A vector with the labels of the classes to be classified
 #' @param  timeline        The timeline of the coverage being classified
 #' @param  interval        The interval between two sucessive classification
 #' @param  start_date      The start date of the reference period for classification (inside an interval)
 #' @param  end_date        The end date of the reference period for classification (inside an interval)
 #' @return class_info.tb   A SITS tibble with the classification information
 #' @export
-sits_class_info <- function (timeline, interval, start_date, end_date){
+sits_class_info <- function (bands, labels, timeline, interval, start_date, end_date){
 
     # ensure timeline is not null
     ensurer::ensure_that(timeline, !purrr::is_null(.), err_desc = "sits_class_info : please provide the timeline of the coverage")
@@ -33,7 +35,11 @@ sits_class_info <- function (timeline, interval, start_date, end_date){
     dates_index.lst <- .sits_match_indexes(timeline, ref_dates.lst)
 
     class_info.tb <- tibble::tibble (
+        bands          = list (bands),
+        labels         = list (labels),
         interval       = interval,
+        start_date     = as.Date(start_date),
+        end_date       = as.Date(end_date),
         timeline       = list(timeline),
         ref_dates      = list(ref_dates.lst),
         dates_index    = list(dates_index.lst)
@@ -53,7 +59,7 @@ sits_class_info <- function (timeline, interval, start_date, end_date){
 #' machine learning model is 80-dimension. Each time instance is considered as
 #' a dimension.
 #'
-#' In terms of the SITS package, the sits_classify function assumes that, when
+#' In terms of the SITS package, the sits_classify_raster function assumes that, when
 #' tranining the model, the user has called the \code{\link[sits]{sits_distances_from_data}} function.
 #'
 #' @param  data.tb         a SITS tibble time series (cleaned)
@@ -129,57 +135,56 @@ sits_classify <- function (data.tb = NULL,  class_info.tb = NULL, ml_model = NUL
 #'
 #' @description Takes a set of spatio-temporal raster bricks, whose metadata is
 #'              described by tibble (created by \code{\link[sits]{sits_fromRaster}}),
-#'              a set of patterns (created by \code{\link[sits]{sits_patterns}}),
+#'              the information on classification intervals (created by \code{\link[sits]{sits_class_info}}),
 #'              a prediction model (created by \code{\link[sits]{sits_train}}), and
 #'              a method to extract shape attributes from time_series (used by  \code{\link[sits]{sits_distances_from_data}} ),
 #'              and produces a classified set of RasterLayers. This function is similar to
 #'               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
 #'
+#' The sits_classify_raster function assumes that, when
+#' tranining the model, the user has called the \code{\link[sits]{sits_distances_from_data}} function.
 #'
 #' @param  raster.tb       a tibble with information about a set of space-time raster bricks
-#' @param  file            a general set of file names (one file per classified year)
-#' @param  patterns.tb     a set of known temporal signatures for the chosen classes
+#' @param  file            a set of file names to store the output (one file per classified year)
+#' @param  class_info.tb   a tibble with the information on classification
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
-#' @param  dist_method     method to compute distances (e.g., sits_TWDTW_distances)
-#' @param  interval        the period between two classifications
 #' @param  blocksize       Default size of the block (rows * cols) (see function .sits_raster_block_size)
 #' @param  multicores      Number of threads to process the time series.
 #' @param  ...             other parameters to be passed to the distance function
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 #' @export
-sits_classify_raster <- function (raster.tb, file = NULL, patterns.tb, ml_model = NULL,
-                                  dist_method = sits_distances_from_data(),
-                                  interval = "12 month", blocksize = 250000, multicores = 2){
+sits_classify_raster <- function (raster.tb, file = NULL, class_info.tb, ml_model = NULL,
+                                  blocksize = 250000, multicores = 2){
 
     # ensure metadata tibble exists
     .sits_test_tibble (raster.tb)
     # ensure patterns tibble exits
-    .sits_test_tibble (patterns.tb)
+    .sits_test_tibble (class_info.tb)
 
     # ensure that file name and prediction model are provided
     ensurer::ensure_that(file,      !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
     ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits-classify-raster: please provide a machine learning model already trained")
 
     # create the raster objects and their respective filenames
-    raster_class.tb <- .sits_create_classified_raster(raster.tb, patterns.tb, file, interval)
+    raster_class.tb <- .sits_create_classified_raster(raster.tb, class_info.tb, file)
 
     # get the labels of the data
-    labels <- sits_labels(patterns.tb)$label
+    labels <- class_info.tb$label[[1]]
     # create a named vector with integers match the class labels
     int_labels <- c(1:length(labels))
     names (int_labels) <- labels
 
     # find the subsets of the input data
-    dates_index.lst <- patterns.tb[1,]$dates_index[[1]]
+    dates_index.lst <- class_info.tb$dates_index[[1]]
 
     # find the number of the samples
     nsamples <- dates_index.lst[[1]][2] - dates_index.lst[[1]][1] + 1
 
     #retrieve the timeline of the data
-    timeline <- patterns.tb[1,]$timeline[[1]]
+    timeline <- class_info.tb$timeline[[1]]
 
     # retrieve the bands
-    bands <- sits_bands (patterns.tb)
+    bands <- raster.tb$band
 
     #retrieve the time index
     time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)

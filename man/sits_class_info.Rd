@@ -4,9 +4,13 @@
 \alias{sits_class_info}
 \title{Define the information required for classifying time series}
 \usage{
-sits_class_info(timeline, interval, start_date, end_date)
+sits_class_info(bands, labels, timeline, interval, start_date, end_date)
 }
 \arguments{
+\item{bands}{The bands to be used for classification}
+
+\item{labels}{A vector with the labels of the classes to be classified}
+
 \item{timeline}{The timeline of the coverage being classified}
 
 \item{interval}{The interval between two sucessive classification}

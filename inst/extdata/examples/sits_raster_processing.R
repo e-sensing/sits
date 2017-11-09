@@ -29,13 +29,14 @@ embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package 
 
 embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi"))
 
-
 # define the patterns from data
-patterns.tb <- sits_patterns(embrapa.tb, timeline)
-
+patterns.tb <- sits_patterns(embrapa.tb)
 
 # distances from data
-distances.tb <- sits_distances_from_data(embrapa.tb, patterns.tb)
+distances.tb <- sits_distances_from_data(embrapa.tb)
+
+# set the classification information
+class_info.tb <- sits_class_info(timeline = timeline, interval = "12 mion")
 
 # estimate an SVM model for this training data
 model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0.001, epsilon = 0.1)

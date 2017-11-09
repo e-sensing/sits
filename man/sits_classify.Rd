@@ -25,7 +25,7 @@ if the sample has four bands with 20 time instances,  the
 machine learning model is 80-dimension. Each time instance is considered as
 a dimension.
 
-In terms of the SITS package, the sits_classify function assumes that, when
+In terms of the SITS package, the sits_classify_raster function assumes that, when
 tranining the model, the user has called the \code{\link[sits]{sits_distances_from_data}} function.
 }
 \author{
