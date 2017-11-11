@@ -29,14 +29,26 @@ embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package 
 
 embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi"))
 
+# retrieve the labels
+labels <- sits_labels(embrapa.tb)$label
+
+# get the start and end dates
+start_date <-  embrapa.tb[1,]$start_date
+end_date   <-  embrapa.tb[1,]$end_date
+
 # define the patterns from data
 patterns.tb <- sits_patterns(embrapa.tb)
+
+#plot the patterns
+sits_plot(patterns.tb, type = "patterns")
 
 # distances from data
 distances.tb <- sits_distances_from_data(embrapa.tb)
 
 # set the classification information
-class_info.tb <- sits_class_info(timeline = timeline, interval = "12 mion")
+class_info.tb <- sits_class_info(bands = c("ndvi", "evi"), labels = labels,
+                                 timeline = timeline, interval = "12 month",
+                                 start_date = start_date, end_date = end_date)
 
 # estimate an SVM model for this training data
 model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0.001, epsilon = 0.1)
@@ -46,6 +58,6 @@ model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0
 #                     patterns.tb, model.ml, multicores = 2)})
 
 sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
-                    patterns.tb, model.ml, multicores = 2)
+                    class_info.tb, model.ml, multicores = 2)
 
 

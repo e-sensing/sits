@@ -74,8 +74,7 @@
             row.tb <- sits_tibble_raster (r_out, band, timeline, scale_factor)
 
             # store the labels of the classified image
-            labels <- sits_labels(patterns.tb)$label
-            row.tb$labels <- list(labels)
+            row.tb$labels <- class_info.tb$labels
 
             # add the metadata information to the list
             raster.lst[[length(raster.lst) + 1 ]] <<- row.tb
