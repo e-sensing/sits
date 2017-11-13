@@ -1,60 +1,64 @@
-#files <- c("/Users/gilbertocamara/Dropbox/brickBuilder/Sinop_ndvi.tif",
- #          "/Users/gilbertocamara/Dropbox/brickBuilder/Sinop_evi.tif")
+# Read ndvi and evi data from dropbox
 
-files <- c("/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-ndvi.tif",
-        "/Users/gilbertocamara/sits/inst/extdata/raster/sinop/sinop-crop-evi.tif")
+# these are the symbolic links for the files at dropbox
+ndvi <- paste0("https://www.dropbox.com/s/epqfo5vdu1cox6i/Sinop_ndvi.tif?raw=1")
+evi <- paste0("https://www.dropbox.com/s/xb9embetftxyr6w/Sinop_evi.tif?raw=1")
 
+# read the files to a local directory
+download.file(ndvi, dest="./Sinop_ndvi.tif")
+download.file(evi, dest ="./Sinop_evi.tif")
+
+# select the files for processing
+files <- c("./Sinop_ndvi.tif", "./Sinop_evi.tif")
+# select the bands
 bands <- c("ndvi", "evi")
-
+# define the scale factors
 scale_factors <- c(0.0001, 0.0001)
-
-timeline <- read.csv("/Users/gilbertocamara/Dropbox/BrickBuilder/mod13Q1-timeline-2000-2017.csv", header = FALSE)
+# define the timeline
+timeline <- read.csv(system.file("extdata/raster/sinop/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
 timeline <- lubridate::as_date (timeline$V1)
 
+# create a raster metadata file based on the information about the files
 raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 
+# print the raster metadata
+print(raster.tb)
+
+# select a location to read
 longitude <- -55.48177
 latitude  <- -11.67966
 
-data.tb <- sits_getdata(raster.tb, longitude = longitude, latitude = latitude)
+# test the data by reading a point
+point.tb <- sits_getdata(raster.tb, longitude = longitude, latitude = latitude)
+# plot the time series for the point
+sits_plot(point.tb)
 
-sits_plot(data.tb)
+# read a number of time series from the data
+series.tb <- sits_getdata(raster.tb, file = system.file("extdata/samples/samples_sinop_raster.csv",package = "sits"))
 
-data2.tb <- sits_getdata(raster.tb, file = system.file("extdata/samples/samples_sinop_raster_crop.csv",package = "sits"))
+# plot the data
+sits_plot(series.tb)
 
-sits_plot(data2.tb)
+# retrieve the samples from EMBRAPA (used as training sets for classification)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 
-# retrieve the samples from EMBRAPA
-embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-
-embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi"))
-
-# retrieve the labels
-labels <- sits_label(embrapa.tb)$label
-
-# get the start and end dates
-start_date <-  embrapa.tb[1,]$start_date
-end_date   <-  embrapa.tb[1,]$end_date
+#select the bands for classification
+samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi"))
 
 # define the patterns from data
-patterns.tb <- sits_patterns(embrapa.tb)
+patterns.tb <- sits_patterns(samples.tb)
 
-# distances from data
-distances.tb <- sits_distances_from_data(embrapa.tb)
+# plot the patterns
+sits_plot(patterns.tb)
 
-# set the classification information
-class_info.tb <- sits_class_info(bands = c("ndvi", "evi"), labels = labels,
-                                 timeline = timeline, interval = "12 month",
-                                 start_date = start_date, end_date = end_date)
+# obtain the distances from data to use as training data
+distances.tb <- sits_distances_from_data(samples.tb)
 
 # estimate an SVM model for this training data
-model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial",tolerance = 0.001, epsilon = 0.1)
+model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial", tolerance = 0.001, epsilon = 0.1)
 
-# classify a raster image
-#system.time({sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
-#                     patterns.tb, model.ml, multicores = 2)})
-
-sits_classify_raster (raster.tb, file = "/Users/gilbertocamara/Dropbox/BrickBuilder/sinop-class",
-                    patterns.tb, model.ml, multicores = 2)
+# classify the raster image
+sits_classify_raster (file = "./sinop-class", raster.tb, samples.tb, model.ml, blocksize = 300000,
+                      multicores = 2)
 
 

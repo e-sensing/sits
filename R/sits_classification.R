@@ -1,52 +1,3 @@
-#' @title Define the information required for classifying time series
-#' @name sits_class_info
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Time series classification requires that users do a series of steps:
-#' (a) Provide labelled samples that will be used as training data.
-#' (b) Provide information on how the classification will be performed, including data timeline,
-#' temporal interval, and start and end dates per interval.
-#' (c) Clean the training data to ensure it meets the specifications of the classification info.
-#' (d) Use the clean data to train a machine learning classifier.
-#' (e) Classify non-labelled data sets
-#'
-#' In this set of steps, this function provides support for step (b). It requires the user
-#' to provide a timeline, the classification interval, and the start and end dates of
-#' the reference period. The results is a tibble with information that allows the user
-#' to perform steps (c) to (e)
-#'
-#' @param  bands           The bands to be used for classification
-#' @param  labels          A vector with the labels of the classes to be classified
-#' @param  timeline        The timeline of the coverage being classified
-#' @param  interval        The interval between two sucessive classification
-#' @param  start_date      The start date of the reference period for classification (inside an interval)
-#' @param  end_date        The end date of the reference period for classification (inside an interval)
-#' @return class_info.tb   A SITS tibble with the classification information
-#' @export
-sits_class_info <- function (bands, labels, timeline, interval, start_date, end_date){
-
-    # ensure timeline is not null
-    ensurer::ensure_that(timeline, !purrr::is_null(.), err_desc = "sits_class_info : please provide the timeline of the coverage")
-
-    # obtain the reference dates that match the patterns in the full timeline
-    ref_dates.lst <- .sits_match_timelines(timeline, as.Date(start_date), as.Date (end_date), interval)
-
-    # obtain the indexes of the timeline that match the reference dates
-    dates_index.lst <- .sits_match_indexes(timeline, ref_dates.lst)
-
-    class_info.tb <- tibble::tibble (
-        bands          = list (bands),
-        labels         = list (labels),
-        interval       = interval,
-        start_date     = as.Date(start_date),
-        end_date       = as.Date(end_date),
-        timeline       = list(timeline),
-        ref_dates      = list(ref_dates.lst),
-        dates_index    = list(dates_index.lst)
-    )
-    return (class_info.tb)
-}
-
 #' @title Classify a sits tibble using machine learning models
 #' @name sits_classify
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -62,72 +13,133 @@ sits_class_info <- function (bands, labels, timeline, interval, start_date, end_
 #' In terms of the SITS package, the sits_classify_raster function assumes that, when
 #' tranining the model, the user has called the \code{\link[sits]{sits_distances_from_data}} function.
 #'
-#' @param  data.tb         a SITS tibble time series (cleaned)
-#' @param  class_info.tb   a tibble with the information on classification
+#' @param  data.tb         SITS tibble time series (cleaned)
+#' @param  samples.tb      The samples used for training the classification model
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
-#' @return data.tb         a SITS tibble with the predicted labels for each input segment
+#' @param  interval        The interval used for classification
+#' @return data.tb         SITS tibble with the predicted labels for each input segment
 #' @export
-sits_classify <- function (data.tb = NULL,  class_info.tb = NULL, ml_model = NULL){
+sits_classify <- function (data.tb = NULL,  samples.tb = NULL, ml_model = NULL, interval = "12 month"){
 
     .sits_test_tibble(data.tb)
-    .sits_test_tibble(class_info.tb)
+    .sits_test_tibble(samples.tb)
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
-    # create a tibble to store the result
-    result.tb <- sits_tibble_classification()
+    # define the classification info parameters
+    class_info.tb <- .sits_class_info(data.tb, samples.tb, interval)
 
     # find the subsets of the input data
     ref_dates.lst <- class_info.tb$ref_dates[[1]]
-    # get the
 
-    # go over every row of the table
-    data.tb %>%
-        purrrlyr::by_row (function (row) {
-            # create a table to store the result
-            predict.tb <- sits_tibble_prediction()
+    # create a table to store the result
+    predict.tb <- .sits_tibble_prediction(data.tb, class_info.tb)
 
-            ref_dates.lst %>%
-                purrr::map (function (dates){
+    # obtain the distances from the data
+    distances.tb <- sits_distances_from_data(data.tb)
 
-                    # find the n-th subset of the input data
-                    row_subset.tb <- .sits_extract(row, dates[1], dates[2])
+    # create a list to store the predicted results
+    predict.lst <- .sits_classify_distances (distances.tb)
 
-                    # find the distances in the subset data
-                    distances.tb  <- sits_distances_from_data (row_subset.tb)
+    predict.tb$predicted <- predict.lst
 
-                    # classify the subset data
-                    predicted <- sits_predict(distances.tb, ml_model)
+    # create a list to store the zoo time series coming from the WTSS service
+    pred.lst <- list()
+    # transform the zoo list into a tibble to store in memory
+    pred.lst[[1]] <- predict.tb
 
-                    # save the results
-                    predict.tb   <<- tibble::add_row(predict.tb,
-                                                from      = lubridate::as_date(dates[1]),
-                                                to        = lubridate::as_date(dates[2]),
-                                                distance  = 0.0,
-                                                predicted = predicted
-                    )
+    # include the prediction in the SITS tibble
 
-                })
+    data.tb$predicted <- pred.lst
 
-            # create a list to store the zoo time series coming from the WTSS service
-            pred.lst <- list()
-            # transform the zoo list into a tibble to store in memory
-            pred.lst[[1]] <- predict.tb
+    return(data.tb)
+}
+#' @title Classify a distances tibble using machine learning models
+#' @name .sits_classify_distances
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a sits table with the results of the ML classifier.
+#'
+#' @param  distances.tb    a tibble with distances
+#' @param  class_info.tb   a tibble with the information on classification
+#' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
+#' @param  multicores      Number of threads to process the time series.
+#' @return pred.lst        list with the predicted labels for each output time interval
+.sits_classify_distances <- function (distances.tb, class_info.tb, ml_model = NULL, multicores = 2){
 
-            # include the matches in the SITS table
+    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
-            result.tb <<- tibble::add_row (result.tb,
-                                           longitude   = row$longitude,
-                                           latitude    = row$latitude,
-                                           start_date  = as.Date(row$start_date),
-                                           end_date    = as.Date(row$end_date),
-                                           label       = row$label,
-                                           coverage    = row$coverage,
-                                           time_series = row$time_series,
-                                           predicted   = pred.lst)
+    # find the subsets of the input data
+    dates_index.lst <- class_info.tb$dates_index[[1]]
 
+    # find the number of the samples
+    nsamples <- class_info.tb$num_samples
+
+    #retrieve the timeline of the data
+    timeline <- class_info.tb$timeline[[1]]
+
+    # retrieve the bands
+    bands <- class_info.tb$bands[[1]]
+
+    #retrieve the time index
+    time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
+
+    # define the column names
+    attr_names <- vector()
+    bands %>%
+        purrr::map (function (b){
+            attr_names <<- c(attr_names, paste (c(rep(b, nsamples)), as.character(c(1:nsamples)), sep = ""))
         })
 
-    return(result.tb)
+    attr_names <- c("original_row", "reference", attr_names)
+
+
+    # classify a block of data
+    classify_block <- function (distances.tb) {
+        # create a list to get the predictions
+        pred_block.lst <- list()
+        for (t in 1:length(time_index.lst)){
+            idx <- time_index.lst[[t]]
+            for (b in 1:length(bands)){
+                # find the start and end columns of the distance table
+                col1 <- 3 + (b - 1)*nsamples
+                col2 <- col1 + nsamples - 1
+                # retrieve the values used for classification
+                values.tb <- distances.tb[,idx[(2*b - 1)]:idx[2*b]]
+            }
+            dist.tb <- data.frame("original_row" = rep(1,nrow(distances.tb)) , "reference" = rep("NoClass", nrow(distances.tb)))
+            dist.tb[,3:(nsamples*length(bands) + 2)] <- values.tb
+
+            colnames(dist.tb) <- attr_names
+            # classify the subset data
+            pred_block.lst[[t]] <- sits_predict(dist.tb, ml_model)
+        }
+        return(pred_block.lst)
+    }
+
+    join_blocks <- function (blocks.lst) {
+        pred.lst <- list()
+        for (t in 1:length(time_index.lst)){
+            pred.lst[[t]] <- vector()
+        }
+        for (i in 1:length(blocks.lst)){
+            for (t in 1:length(time_index.lst)){
+                pred.lst[[t]] <- c(pred.lst[[t]], blocks.lst[[i]][[t]])
+            }
+        }
+        return (pred.lst)
+    }
+
+    if (multicores > 1) {
+        blocks.lst <- split.data.frame(distances.tb, cut(1:nrow(distances.tb),multicores, labels = FALSE))
+        # apply parallel processing to the split dat
+        results <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
+
+        pred.lst <- join_blocks(results)
+    }
+    else
+        pred.lst <- classify_block(distances.tb)
+
+    return (pred.lst)
 }
 #' @title Classify a set of spatio-temporal raster bricks using machine learning models
 #' @name sits_classify_raster
@@ -146,57 +158,39 @@ sits_classify <- function (data.tb = NULL,  class_info.tb = NULL, ml_model = NUL
 #'
 #' @param  raster.tb       a tibble with information about a set of space-time raster bricks
 #' @param  file            a set of file names to store the output (one file per classified year)
-#' @param  class_info.tb   a tibble with the information on classification
+#' @param  samples.tb      The samples used for training the classification model
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
+#' @param  interval        The interval between two sucessive classification
 #' @param  blocksize       Default size of the block (rows * cols) (see function .sits_raster_block_size)
 #' @param  multicores      Number of threads to process the time series.
 #' @param  ...             other parameters to be passed to the distance function
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 #' @export
-sits_classify_raster <- function (raster.tb, file = NULL, class_info.tb, ml_model = NULL,
+sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_model = NULL, interval = "12 month",
                                   blocksize = 250000, multicores = 2){
 
     # ensure metadata tibble exists
     .sits_test_tibble (raster.tb)
     # ensure patterns tibble exits
-    .sits_test_tibble (class_info.tb)
+    .sits_test_tibble (samples.tb)
 
     # ensure that file name and prediction model are provided
     ensurer::ensure_that(file,      !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
     ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits-classify-raster: please provide a machine learning model already trained")
 
+
     # create the raster objects and their respective filenames
-    raster_class.tb <- .sits_create_classified_raster(raster.tb, class_info.tb, file)
+    raster_class.tb <- .sits_create_classified_raster(raster.tb, samples.tb, file, interval)
+
+    # define the classification info parameters
+    class_info.tb <- .sits_class_info(raster.tb, samples.tb, interval)
 
     # get the labels of the data
-    labels <- class_info.tb$label[[1]]
+    labels <- sits_labels(samples.tb)$label
+
     # create a named vector with integers match the class labels
     int_labels <- c(1:length(labels))
     names (int_labels) <- labels
-
-    # find the subsets of the input data
-    dates_index.lst <- class_info.tb$dates_index[[1]]
-
-    # find the number of the samples
-    nsamples <- dates_index.lst[[1]][2] - dates_index.lst[[1]][1] + 1
-
-    #retrieve the timeline of the data
-    timeline <- class_info.tb$timeline[[1]]
-
-    # retrieve the bands
-    bands <- raster.tb$band
-
-    #retrieve the time index
-    time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
-
-    # define the column names
-    attr_names <- vector()
-    bands %>%
-        purrr::map (function (b){
-            attr_names <<- c(attr_names, paste (c(rep(b, nsamples)), as.character(c(1:nsamples)), sep = ""))
-        })
-
-    attr_names <- c("original_row", "reference", attr_names)
 
     #initiate writing
     raster_class.tb$r_obj <- raster_class.tb$r_obj %>%
@@ -215,7 +209,7 @@ sits_classify_raster <- function (raster.tb, file = NULL, class_info.tb, ml_mode
         data.mx <- .sits_data_from_block (raster.tb, row = bs$row[i], nrows = bs$nrows[i])
 
         # classify the time series that are part of the block
-        pred.lst <- sits_classify_distances(data.mx, timeline, time_index.lst, nsamples, attr_names, bands, ml_model, multicores = multicores)
+        pred.lst <- .sits_classify_block(data.mx, class_info.tb, ml_model, multicores = multicores)
 
         # write the block back
         raster_class.tb <- .sits_block_from_data (pred.lst, raster_class.tb, int_labels, bs$row[i])
@@ -230,41 +224,62 @@ sits_classify_raster <- function (raster.tb, file = NULL, class_info.tb, ml_mode
 
 
 
-#' @title Classify a distances matrix using machine learning models
-#' @name sits_classify_distances
+#' @title Classify a distances matrix extracted from raster using machine learning models
+#' @name .sits_classify_block
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Returns a sits table with the results of the ML classifier.
 #'
 #' @param  data.mx         a matrix with data values
-#' @param  timeline        the timeline of the data set
-#' @param  time_index.lst  The subsets of the timeline
-#' @param  nsamples        number of samples
-#' @param  attr_names       Names of columns of distance tibble
-#' @param  bands           Bands used for classification
+#' @param  class_info.tb   a tibble with the information on classification
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  multicores      Number of threads to process the time series.
 #' @return pred.lst        list with the predicted labels for each output time interval
-#' @export
-sits_classify_distances <- function (data.mx, timeline, time_index.lst, nsamples,
-                                    attr_names, bands, ml_model = NULL, multicores = 1){
+.sits_classify_block <- function (data.mx, class_info.tb, ml_model = NULL, multicores = 1){
 
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
-    classify_block <- function (data.mx) {
+    # find the subsets of the input data
+    dates_index.lst <- class_info.tb$dates_index[[1]]
+
+    # find the number of the samples
+    nsamples <- dates_index.lst[[1]][2] - dates_index.lst[[1]][1] + 1
+
+    #retrieve the timeline of the data
+    timeline <- class_info.tb$timeline[[1]]
+
+    # retrieve the bands
+    bands <- class_info.tb$bands[[1]]
+
+    #retrieve the time index
+    time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
+
+    # define the column names
+    attr_names <- vector()
+    bands %>%
+        purrr::map (function (b){
+            attr_names <<- c(attr_names, paste (c(rep(b, nsamples)), as.character(c(1:nsamples)), sep = ""))
+        })
+
+    attr_names <- c("original_row", "reference", attr_names)
+
+
+    # classify a block of data
+    classify_block <- function (block.mx) {
+        # create a list to get the predictions
         pred_block.lst <- list()
         for (t in 1:length(time_index.lst)){
             # create an empty matrix to store the subset of the data
-            values.mx <- matrix(nrow = nrow (data.mx), ncol = 0)
+            values.mx <- matrix(nrow = nrow (block.mx), ncol = 0)
             idx <- time_index.lst[[t]]
             for (b in 1:length(bands)){
                 # find the start and end columns of the distance table
                 col1 <- 3 + (b - 1)*nsamples
                 col2 <- col1 + nsamples - 1
                 # retrieve the values used for classification
-                values.mx <- cbind(values.mx, data.mx[,idx[(2*b - 1)]:idx[2*b]])
+                values.mx <- cbind(values.mx, block.mx[,idx[(2*b - 1)]:idx[2*b]])
             }
-            dist.tb <- data.frame("original_row" = rep(1,nrow(data.mx)) , "reference" = rep("NoClass", nrow(data.mx)))
+            dist.tb <- data.frame("original_row" = rep(1,nrow(block.mx)) , "reference" = rep("NoClass", nrow(block.mx)))
             dist.tb[,3:(nsamples*length(bands) + 2)] <- values.mx
 
             colnames(dist.tb) <- attr_names
@@ -301,3 +316,61 @@ sits_classify_distances <- function (data.mx, timeline, time_index.lst, nsamples
 }
 
 
+
+#' @title Define the information required for classifying time series
+#' @name sits_class_info
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Time series classification requires that users do a series of steps:
+#' (a) Provide labelled samples that will be used as training data.
+#' (b) Provide information on how the classification will be performed, including data timeline,
+#' temporal interval, and start and end dates per interval.
+#' (c) Clean the training data to ensure it meets the specifications of the classification info.
+#' (d) Use the clean data to train a machine learning classifier.
+#' (e) Classify non-labelled data sets
+#'
+#' In this set of steps, this function provides support for step (b). It requires the user
+#' to provide a timeline, the classification interval, and the start and end dates of
+#' the reference period. The results is a tibble with information that allows the user
+#' to perform steps (c) to (e)
+#'
+#' @param  data.tb         Description on the data being classified
+#' @param  samples.tb      The samples used for training the classification model
+#' @param  interval        The interval between two sucessive classification
+#' @return class_info.tb   A SITS tibble with the classification information
+#'
+.sits_class_info <- function (data.tb, samples.tb, interval){
+
+    # find the timeline
+    timeline <- sits_timeline (data.tb)
+
+    # find the labels
+    labels <- sits_labels(samples.tb)$label
+    # find the bands
+    bands <- sits_bands (samples.tb)
+
+    # what is the reference start date?
+    ref_start_date <- lubridate::as_date(samples.tb[1,]$start_date)
+    # what is the reference end date?
+    ref_end_date <- lubridate::as_date(samples.tb[1,]$end_date)
+
+    # obtain the reference dates that match the patterns in the full timeline
+    ref_dates.lst <- .sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
+
+    # obtain the indexes of the timeline that match the reference dates
+    dates_index.lst <- .sits_match_indexes(timeline, ref_dates.lst)
+
+    # find the number of the samples
+    nsamples <- dates_index.lst[[1]][2] - dates_index.lst[[1]][1] + 1
+
+    class_info.tb <- tibble::tibble (
+        bands          = list (bands),
+        labels         = list (labels),
+        interval       = interval,
+        timeline       = list(timeline),
+        num_samples    = nsamples,
+        ref_dates      = list(ref_dates.lst),
+        dates_index    = list(dates_index.lst)
+    )
+    return (class_info.tb)
+}

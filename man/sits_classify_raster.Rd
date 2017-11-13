@@ -4,17 +4,19 @@
 \alias{sits_classify_raster}
 \title{Classify a set of spatio-temporal raster bricks using machine learning models}
 \usage{
-sits_classify_raster(raster.tb, file = NULL, class_info.tb, ml_model = NULL,
-  blocksize = 250000, multicores = 2)
+sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
+  interval = "12 month", blocksize = 250000, multicores = 2)
 }
 \arguments{
-\item{raster.tb}{a tibble with information about a set of space-time raster bricks}
-
 \item{file}{a set of file names to store the output (one file per classified year)}
 
-\item{class_info.tb}{a tibble with the information on classification}
+\item{raster.tb}{a tibble with information about a set of space-time raster bricks}
+
+\item{samples.tb}{The samples used for training the classification model}
 
 \item{ml_model}{a model trained by \code{\link[sits]{sits_train}}}
+
+\item{interval}{The interval between two sucessive classification}
 
 \item{blocksize}{Default size of the block (rows * cols) (see function .sits_raster_block_size)}
 

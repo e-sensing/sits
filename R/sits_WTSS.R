@@ -113,8 +113,8 @@ sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage
      cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
 
      b <- tibble::as.tibble(band_info[, -(3:4)])
-     coverage.tb <-  sits_tibble_coverage()
-     coverage.tb <- tibble::add_row(coverage.tb,
+     coverage.tb <-  .sits_tibble_coverage()
+     coverage.tb <-  tibble::add_row(coverage.tb,
                                  wtss.obj       = list(wtss.obj),
                                  name           = cov$name,
                                  bands          = list(b),

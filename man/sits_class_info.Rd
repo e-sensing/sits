@@ -2,22 +2,17 @@
 % Please edit documentation in R/sits_classification.R
 \name{sits_class_info}
 \alias{sits_class_info}
+\alias{.sits_class_info}
 \title{Define the information required for classifying time series}
 \usage{
-sits_class_info(bands, labels, timeline, interval, start_date, end_date)
+.sits_class_info(data.tb, samples.tb, interval)
 }
 \arguments{
-\item{bands}{The bands to be used for classification}
+\item{data.tb}{Description on the data being classified}
 
-\item{labels}{A vector with the labels of the classes to be classified}
-
-\item{timeline}{The timeline of the coverage being classified}
+\item{samples.tb}{The samples used for training the classification model}
 
 \item{interval}{The interval between two sucessive classification}
-
-\item{start_date}{The start date of the reference period for classification (inside an interval)}
-
-\item{end_date}{The end date of the reference period for classification (inside an interval)}
 }
 \value{
 class_info.tb   A SITS tibble with the classification information

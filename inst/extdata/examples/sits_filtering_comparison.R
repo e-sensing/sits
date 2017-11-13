@@ -14,7 +14,6 @@ coverage <- "mixl8mod"
 
 # get information about a specific coverage
 coverage.tb <- sits_coverageWTSS(URL,coverage)
-timeline <- sits_timeline (coverage.tb)
 #select the bands used for classification
 bands <- c("ndvi", "evi")
 

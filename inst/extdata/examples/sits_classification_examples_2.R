@@ -11,7 +11,6 @@ wtss_inpe <- sits_infoWTSS(URL)
 
 # get information about a specific coverage
 coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
-timeline <- sits_timeline(coverage.tb)
 
 # choose a coverage
 coverage <- "mod13q1_512"

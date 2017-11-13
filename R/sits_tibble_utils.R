@@ -221,5 +221,166 @@
     return (subset.tb)
 }
 
+#' @title Tests if a sits tibble is valid
+#' @name .sits_test_tibble
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Tests if a SITS tibble exists or has data inside
+#'
+#' @param data.tb  a SITS tibble
+#' @return returns TRUE if data.tb has data.
+#'
+.sits_test_tibble <- function (data.tb) {
+    ensurer::ensure_that(data.tb, !purrr::is_null(.),
+                         err_desc = "input data not provided")
+    ensurer::ensure_that(data.tb, NROW(.) > 0,
+                         err_desc = "input data is empty")
+    return (TRUE)
+}
 
+
+#' @title Create an empty tibble to store the results of classifications
+#' @name .sits_tibble_classification
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Create an empty tibble to store the results of classification
+#'
+#' @return result.tb   a tibble to store the result of classifications
+#'
+.sits_tibble_classification <- function () {
+    result.tb <- tibble::tibble(longitude   = double(),
+                                latitude    = double (),
+                                start_date  = as.Date(character()),
+                                end_date    = as.Date(character()),
+                                label       = character(),
+                                coverage    = character(),
+                                time_series = list(),
+                                predicted   = list()
+    )
+    return (result.tb)
+}
+
+#' @title Create an empty tibble to store the metadata of a coverage
+#' @name .sits_tibble_coverage
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Create an empty tibble to store the metadata about a coverage
+#'
+#' @return coverage.tb   a tibble to store the metadata
+#'
+.sits_tibble_coverage <- function () {
+    result.tb <- tibble::tibble(wtss.obj       = list(),
+                                name           = character(),
+                                bands          = list(),
+                                start_date     = as.Date(character()),
+                                end_date       = as.Date(character()),
+                                timeline       = list(),
+                                xmin           = double(),
+                                xmax           = double(),
+                                ymin           = double(),
+                                ymax           = double(),
+                                xres           = double(),
+                                yres           = double(),
+                                crs            = character()
+    )
+    return (result.tb)
+}
+#' @title Create an empty tibble to store the results of predictions
+#' @name .sits_tibble_prediction
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Create a tibble to store the results of predictions
+#' @param  data.tb         a tibble with the input data
+#' @param  class_info.tb   a tibble with the information on classification
+#' @return predic.tb       a tibble to store the predictions
+#'
+.sits_tibble_prediction <- function (data.tb, class_info.tb){
+
+    # retrieve the list of reference dates
+    # this list is a global one and it is created based on the samples
+    ref_dates.lst   <- class_info.tb$ref_dates[[1]]
+
+    # retrieve the global timeline
+    timeline_global <- class_info.tb$timeline[[1]]
+
+    # size of prediction table
+    nrows <- length (ref_dates.lst)
+
+    from_dates <- vector()
+    to_dates   <- vector()
+
+    data.tb %>%
+        purrrlyr::by_row(row, function (row) {
+            # get the timeline of the row
+            timeline_row <- sits_timeline (row)
+            # the timeline of the row may be different from the global timeline
+            # this happens when we are processing samples with different
+            if (timeline_row != timeline_global) {
+                # what is the reference start date?
+                ref_start_date <- lubridate::as_date(row$start_date)
+                # what is the reference end date?
+                ref_end_date <- lubridate::as_date(row$end_date)
+                # what are the reference dates to do the classification?
+                ref_dates.lst <- .sits_match_timeline(timeline_row, ref_start_date, ref_end_date, interval)
+            }
+            ref_dates.lst %>%
+                purrr::map (function (idx){
+                    from_dates <<-  c(as.Date(from_dates), as.Date(idx[1]))
+                    to_dates   <<-  c(as.Date(to_dates),   as.Date(idx[2]))
+                })
+
+            # save the results
+            predict.tb   <- tibble::tibble(from      = as.Date(from_dates),
+                                           to        = as.Date(to_dates),
+                                           distance  = rep(0.0, nrows),
+                                           predicted = rep("NoClass", nrows))
+
+
+
+
+        })
+
+
+    )
+    return (predict.tb)
+}
+#' @title Create one line of metadata tibble to store the description of a spatio-temporal raster
+#' @name .sits_tibble_raster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description  This function creates one line of tibble containing the metadata for
+#'               a set of spatio-temporal raster files.
+#'
+#' @param raster.obj     Valid Raster object (associated to filename)
+#' @param band           Name of band (either raw or classified)
+#' @param timeline       Timeline of data collection
+#' @param scale_factor   Scale factor to correct data
+#' @return raster.tb     A tibble for storing metadata about a spatio-temporal raster
+
+.sits_tibble_raster <- function (raster.obj, band, timeline, scale_factor){
+
+    raster.tb <- tibble::tibble (
+        r_obj           = list(raster.obj),
+        ncols           = raster.obj@ncols,
+        nrows           = raster.obj@nrows,
+        band            = band,
+        start_date      = lubridate::as_date(timeline[1]),
+        end_date        = lubridate::as_date(timeline[length(timeline)]),
+        timeline        = list(timeline),
+        xmin            = raster.obj@extent@xmin,
+        xmax            = raster.obj@extent@xmax,
+        ymin            = raster.obj@extent@ymin,
+        ymax            = raster.obj@extent@ymax,
+        xres            = raster::xres (raster.obj),
+        yres            = raster::yres (raster.obj),
+        scale_factor    = scale_factor,
+        crs             = raster.obj@crs@projargs,
+        name            = raster.obj@file@name
+    )
+    return (raster.tb)
+}
 

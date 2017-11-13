@@ -4,14 +4,10 @@
 \alias{sits_plot_classification}
 \title{Plot classification results}
 \usage{
-sits_plot_classification(data.tb, patterns.tb, band = NULL)
+sits_plot_classification(data.tb)
 }
 \arguments{
 \item{data.tb}{A SITS tibble with one or more time series that have been classified}
-
-\item{patterns.tb}{Patterns used for classification}
-
-\item{band}{the band to be plotted}
 }
 \description{
 Plots the classification results (code reused from the dtwSat package by Victor Maus)
