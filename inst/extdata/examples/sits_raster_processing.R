@@ -45,13 +45,6 @@ samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package 
 #select the bands for classification
 samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi"))
 
-# retrieve the labels
-labels <- sits_labels(embrapa.tb)$label
-
-# get the start and end dates
-start_date <-  embrapa.tb[1,]$start_date
-end_date   <-  embrapa.tb[1,]$end_date
-
 # define the patterns from data
 patterns.tb <- sits_patterns(samples.tb)
 
@@ -60,7 +53,6 @@ sits_plot(patterns.tb)
 
 # obtain the distances from data to use as training data
 distances.tb <- sits_distances_from_data(samples.tb)
-
 
 # estimate an SVM model for this training data
 model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial", tolerance = 0.001, epsilon = 0.1)

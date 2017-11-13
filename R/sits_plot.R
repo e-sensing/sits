@@ -110,7 +110,7 @@ sits_plot_classification <- function (data.tb) {
             i <- 1
             pred %>%
                 purrrlyr::by_row(function (p){
-                    best_class <- as.character(p$predicted)
+                    best_class <- as.character(p$class)
 
                     df.p <- data.frame(
                         Time  = c(lubridate::as_date(p$from), lubridate::as_date(p$to),

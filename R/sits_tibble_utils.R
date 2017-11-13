@@ -288,6 +288,19 @@
     )
     return (result.tb)
 }
+.sits_include_prediction <-  function (data.tb, predict.lst) {
+
+    idx <- 1
+    data.tb %>%
+        purrrlyr::by_row (function (row){
+            pred.tb <- row$predicted[[1]]
+            intervals <- length(pred.tb)
+            pred.tb$class <- predict.lst[[idx:(idx + intervals -1)]]
+            row$predicted <-
+                idx <<- idx + intervals
+
+        })
+}
 #' @title Create an empty tibble to store the results of predictions
 #' @name .sits_tibble_prediction
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -296,9 +309,11 @@
 #' @description Create a tibble to store the results of predictions
 #' @param  data.tb         a tibble with the input data
 #' @param  class_info.tb   a tibble with the information on classification
+#' @param  class.lst       the result of the classification (one class per row per interval)
+#' @param  interval        the time interval between two classifications
 #' @return predic.tb       a tibble to store the predictions
 #'
-.sits_tibble_prediction <- function (data.tb, class_info.tb){
+.sits_tibble_prediction <- function (data.tb, class_info.tb, class.lst, interval){
 
     # retrieve the list of reference dates
     # this list is a global one and it is created based on the samples
@@ -313,13 +328,17 @@
     from_dates <- vector()
     to_dates   <- vector()
 
+    predicted.lst <- list()
+
+    class_idx <-  1
+
     data.tb %>%
-        purrrlyr::by_row(row, function (row) {
+        purrrlyr::by_row(function (row) {
             # get the timeline of the row
             timeline_row <- sits_timeline (row)
             # the timeline of the row may be different from the global timeline
             # this happens when we are processing samples with different
-            if (timeline_row != timeline_global) {
+            if (timeline_row[1] != timeline_global[1]) {
                 # what is the reference start date?
                 ref_start_date <- lubridate::as_date(row$start_date)
                 # what is the reference end date?
@@ -327,26 +346,29 @@
                 # what are the reference dates to do the classification?
                 ref_dates.lst <- .sits_match_timeline(timeline_row, ref_start_date, ref_end_date, interval)
             }
+            # create a tibble to store the classification
+            predict.tb   <- tibble::tibble(from      = as.Date(),
+                                           to        = as.Date(),
+                                           distance  = double(),
+                                           class     = character())
+
+            # store the classification results
             ref_dates.lst %>%
-                purrr::map (function (idx){
-                    from_dates <<-  c(as.Date(from_dates), as.Date(idx[1]))
-                    to_dates   <<-  c(as.Date(to_dates),   as.Date(idx[2]))
+                purrr::map (function (d){
+                    line <- tibble::tibble(
+                        from      <- d[1],
+                        to        <- d[2],
+                        distance  <-  0.0,
+                        class     <- class.lst[[class_idx]]
+                    )
+                    class_idx  <<- class_idx + 1
+                    predict.tb <<- dplyr::bind_rows (predict.tb, line)
                 })
-
-            # save the results
-            predict.tb   <- tibble::tibble(from      = as.Date(from_dates),
-                                           to        = as.Date(to_dates),
-                                           distance  = rep(0.0, nrows),
-                                           predicted = rep("NoClass", nrows))
-
-
-
-
+            predicted.lst[[length(predicted.lst) + 1 ]] <<- predict.tb
         })
 
-
-    )
-    return (predict.tb)
+    data.tb$predicted <- predicted.lst
+    return (data.tb)
 }
 #' @title Create one line of metadata tibble to store the description of a spatio-temporal raster
 #' @name .sits_tibble_raster

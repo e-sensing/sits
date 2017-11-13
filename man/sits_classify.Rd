@@ -5,7 +5,7 @@
 \title{Classify a sits tibble using machine learning models}
 \usage{
 sits_classify(data.tb = NULL, samples.tb = NULL, ml_model = NULL,
-  interval = "12 month")
+  interval = "12 month", multicores = 1)
 }
 \arguments{
 \item{data.tb}{SITS tibble time series (cleaned)}
@@ -15,6 +15,8 @@ sits_classify(data.tb = NULL, samples.tb = NULL, ml_model = NULL,
 \item{ml_model}{a model trained by \code{\link[sits]{sits_train}}}
 
 \item{interval}{The interval used for classification}
+
+\item{multicores}{Number of threads to process the time series.}
 }
 \value{
 data.tb         SITS tibble with the predicted labels for each input segment
