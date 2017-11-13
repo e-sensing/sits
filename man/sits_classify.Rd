@@ -4,17 +4,20 @@
 \alias{sits_classify}
 \title{Classify a sits tibble using machine learning models}
 \usage{
-sits_classify(data.tb = NULL, class_info.tb = NULL, ml_model = NULL)
+sits_classify(data.tb = NULL, samples.tb = NULL, ml_model = NULL,
+  interval = "12 month")
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series (cleaned)}
+\item{data.tb}{SITS tibble time series (cleaned)}
 
-\item{class_info.tb}{a tibble with the information on classification}
+\item{samples.tb}{The samples used for training the classification model}
 
 \item{ml_model}{a model trained by \code{\link[sits]{sits_train}}}
+
+\item{interval}{The interval used for classification}
 }
 \value{
-data.tb         a SITS tibble with the predicted labels for each input segment
+data.tb         SITS tibble with the predicted labels for each input segment
 }
 \description{
 This is the main classification function for time series data

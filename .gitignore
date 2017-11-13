@@ -11,3 +11,4 @@ src/*.dll
 src/*.so
 R/.Rapp.history
 inst/doc
+raster/*.tif

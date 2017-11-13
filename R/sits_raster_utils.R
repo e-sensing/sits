@@ -34,19 +34,25 @@
 #' to one time step. The time steps are specified in a list of dates.
 #'
 #' @param  raster.tb         Tibble with metadata about the input RasterBrick objects
-#' @param  class_info.tb     Tibble with the information on classification
+#' @param  samples.tb        The samples used for training the classification model
 #' @param  file              Generic name of the files that will contain the RasterLayers
 #' @return raster_layers.tb  Tibble with metadata about the output RasterLayer objects
 #'
-#' @export
-.sits_create_classified_raster <- function (raster.tb, class_info.tb, file){
+.sits_create_classified_raster <- function (raster.tb, samples.tb, file, interval){
     # ensure metadata tibble exists
     .sits_test_tibble (raster.tb)
 
     # get the timeline of observations (required for matching dates)
-    timeline <- class_info.tb$timeline[[1]]
+    timeline <- raster.tb[1,]$timeline[[1]]
+
+    labels <- sits_labels(samples.tb)$label
+    # what is the reference start date?
+    ref_start_date <- lubridate::as_date(samples.tb[1,]$start_date)
+    # what is the reference end date?
+    ref_end_date  <- lubridate::as_date(samples.tb[1,]$end_date)
+
     # produce the breaks used to generate the output rasters
-    subset_dates.lst <- .sits_match_timelines(timeline, class_info.tb$start_date, class_info.tb$end_date, class_info.tb$interval)
+    subset_dates.lst <- .sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
 
     # create a list to store the results
     raster.lst <- list()
@@ -71,10 +77,10 @@
             scale_factor <- 1
 
             # create a new RasterLayer for a defined period and generate the associated metadata
-            row.tb <- sits_tibble_raster (r_out, band, timeline, scale_factor)
+            row.tb <- .sits_tibble_raster (r_out, band, timeline, scale_factor)
 
             # store the labels of the classified image
-            row.tb$labels <- class_info.tb$labels
+            row.tb$labels <- list(labels)
 
             # add the metadata information to the list
             raster.lst[[length(raster.lst) + 1 ]] <<- row.tb

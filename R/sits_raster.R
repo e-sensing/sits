@@ -33,7 +33,7 @@ sits_STRaster <- function (files, timeline, bands, scale_factors){
                     ensurer::ensure_that(n_layers, (.) == length(timeline),
                                          err_desc = "duration of timeline is not matched by number of layers in raster")
 
-                    row_raster.tb <- sits_tibble_raster (raster.obj, band, timeline, sf)
+                    row_raster.tb <- .sits_tibble_raster (raster.obj, band, timeline, sf)
 
                 }) %>% dplyr::bind_rows()
 

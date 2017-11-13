@@ -9,7 +9,7 @@ wtss_inpe <- sits_infoWTSS(URL)
 coverage  <- "mod13q1_512"
 
 coverage.tb <- sits_coverageWTSS(URL, coverage)
-timeline    <- sits_timeline (coverage.tb)
+timeline    <- coverage.tb$timeline[[1]]
 
 #load a data set for with samples for EMBRAPA data set
 embrapa.tb <- readRDS(system.file ("extdata/time_series/embrapa_mt.rds", package = "sits"))

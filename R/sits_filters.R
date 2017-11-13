@@ -32,7 +32,7 @@ sits_linear_interp <- function(data.tb, n = 23){
     return(result.tb)
 }
 
-#' @title Inerpolation function of the time series of a sits_tibble
+#' @title Interpolation function of the time series of a sits_tibble
 #' @name sits_interp
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Computes the linearly interpolated bands for a given resolution
