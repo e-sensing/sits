@@ -73,6 +73,12 @@ sits_classify <- function (data.tb = NULL,  samples.tb = NULL, ml_model = NULL, 
     #retrieve the time index
     time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
 
+    # add a shift of two positions to the time index
+    time_index.lst  <- time_index.lst %>%
+        purrr::map(function (ti){
+            ti <- ti + 2
+        })
+
     # define the column names
     attr_names <- vector()
     bands %>%
@@ -251,6 +257,12 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_model 
 
     #retrieve the time index
     time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
+
+    # add a shift of two positions to the time index
+    time_index.lst  <- time_index.lst %>%
+        purrr::map(function (ti){
+            ti <- ti + 2
+        })
 
     # define the column names
     attr_names <- vector()

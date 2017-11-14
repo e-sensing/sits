@@ -48,7 +48,8 @@ latitude  <- -11.66789
 
 # retrieve the time series associated with the point from the WTSS server
 point.tb <- sits_getdata(latitude = latitude, longitude = longitude,
-                          URL = URL, coverage = "mod13q1_512", bands = bands)
+                          URL = URL, coverage = "mod13q1_512", bands = bands,
+                         start_date = "2000-02-18", end_date = "2016-12-18")
 
 # plot the series (only the ndvi and evi bands)
 sits_plot (sits_select (point.tb, bands = c("ndvi", "evi")))
@@ -59,7 +60,6 @@ class.tb <- sits_classify(point.tb, embrapa.tb, model_svm.ml)
 # plot the classification of the time series by yearly intervals
 sits_plot_classification(class.tb, band = "ndvi")
 
-
 # retrieve a series of samples defined by a CSV file
 # obtain a time series from the WTSS server for these samples
 data.tb <- sits_getdata (file = system.file ("extdata/samples/samples_matogrosso.csv", package = "sits"),
@@ -67,7 +67,6 @@ data.tb <- sits_getdata (file = system.file ("extdata/samples/samples_matogrosso
 
 # plot the data
 sits_plot(data.tb[1,])
-
 
 # classify the test data
 class2.tb <- sits_classify(data.tb, embrapa.tb, model_svm.ml)
