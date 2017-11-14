@@ -12,7 +12,7 @@
 #' @return data.tb      Input SITS table (useful for chaining functions)
 #' @export
 #
-sits_plot <- function (data.tb, patterns.tb = NULL, cluster_obj = NULL, cutree_height = NULL,
+sits_plot <- function (data.tb, band = NULL, cluster_obj = NULL, cutree_height = NULL,
                        type = "allyears", colors = "Set1") {
 
     # check the input exists
@@ -21,7 +21,7 @@ sits_plot <- function (data.tb, patterns.tb = NULL, cluster_obj = NULL, cutree_h
     if (max (sits_labels(data.tb)$count) == 1 && nrow(data.tb) > 1)
         type <- "patterns"
     # Both data.tb and patterns.tb exist? Plot classification!
-    if (!purrr::is_null(patterns.tb))
+    if ("predicted" %in% names (data.tb))
         type <- "classification"
     # Is there a "cluster_obj"? Plot dendogram!
     if (!purrr::is_null(cluster_obj))
@@ -35,7 +35,7 @@ sits_plot <- function (data.tb, patterns.tb = NULL, cluster_obj = NULL, cutree_h
            "one_by_one"     = sits_plot_one_by_one (data.tb, colors),
            "together"       = sits_plot_together (data.tb, colors),
            "patterns"       = sits_plot_patterns (data.tb),
-           "classification" = sits_plot_classification (data.tb),
+           "classification" = sits_plot_classification (data.tb, band = band),
            "dendrogram"     = sits_plot_dendrogram (data.tb, cluster_obj, cutree_height = NULL,
                                                     colors = colors),
            "alignments"     = .sits_plot_alignments (data.tb),
@@ -58,7 +58,7 @@ sits_plot <- function (data.tb, patterns.tb = NULL, cluster_obj = NULL, cutree_h
 sits_plot_allyears <- function (data.tb, colors) {
      locs <- dplyr::distinct (data.tb, longitude, latitude)
      locs %>%
-          purrrlyr::by_row( function (r){
+          purrrlyr::by_row(function (r){
                long = as.double (r$longitude)
                lat  = as.double (r$latitude)
                # filter only those rows with the same label
@@ -75,12 +75,13 @@ sits_plot_allyears <- function (data.tb, colors) {
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @description   Plots the classification results (code reused from the dtwSat package by Victor Maus)
 #' @param data.tb      A SITS tibble with one or more time series that have been classified
+#' @param band         Band for plotting the classification
 #' @export
 #'
-sits_plot_classification <- function (data.tb) {
+sits_plot_classification <- function (data.tb, band = NULL) {
 
-
-    band <- sits_bands(data.tb)[1]
+    if (purrr::is_null (band))
+        band <- sits_bands(data.tb)[1]
 
     # prepare a data frame for plotting
 
@@ -90,7 +91,8 @@ sits_plot_classification <- function (data.tb) {
     # put the time series in the data frame
     data.tb %>%
         purrrlyr::by_row(function (r){
-            lb = as.character (r$label)
+            #lb = as.character (r$label)
+            lb = .sits_plot_title(r)
             # extract the time series
             ts <- r$time_series[[1]]
             # convert to data frame
@@ -144,8 +146,10 @@ sits_plot_classification <- function (data.tb) {
                 ggplot2::ylab("Value") +
                 ggplot2::xlab("Time")
 
-            graphics::plot (gp)
+            graphics::plot(gp)
         })
+
+
 
     return (invisible(data.tb))
 }

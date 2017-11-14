@@ -94,14 +94,6 @@ sits_timeline <- function (data.tb){
     # make sure the timelines is a valid set of dates
     timeline <- lubridate::as_date (timeline)
 
-    # are the start and end dates inside the timeline?
-    ensurer::ensure_that(timeline, ref_start_date %in% (.),
-                         err_desc = "sits_match_timelines - reference start date is not in the timeline")
-
-    ensurer::ensure_that(timeline, ref_end_date %in% (.),
-                         err_desc = "sits_match_timelines - reference end date is not in the timeline")
-
-
     #define the input start and end dates
     input_start_date <- timeline [1]
     input_end_date   <- timeline [length(timeline)]

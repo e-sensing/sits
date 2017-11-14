@@ -10,10 +10,13 @@ library(sits)
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 
-# select the bands
-embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi"))
+# print the bands available
+sits_bands (embrapa.tb)
 
-# This function generates the patterns for the MatoGrosso data using the GAM model
+# select the bands "ndvi", "evi", "nir", and "mir"
+embrapa.tb <- sits_select (embrapa.tb, bands = c("ndvi","evi","nir","mir"))
+
+# Show the patterns for the MatoGrosso data using the GAM model
 patterns.tb <- sits_gam (embrapa.tb)
 
 # Plot the patterns
@@ -37,10 +40,9 @@ coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
 # choose a coverage
 coverage <- "mod13q1_512"
 # recover the NDVI, EVI, MIR and NIR bands
-bands <- c("ndvi", "evi")
+bands <- c("ndvi", "evi", "nir", "mir")
 
-# a point in the transition forest pasture in Northern MT
-
+# select a point in the transition from forest to pasture in Northern MT
 longitude <- -55.31657
 latitude  <- -11.66789
 
@@ -48,8 +50,8 @@ latitude  <- -11.66789
 point.tb <- sits_getdata(latitude = latitude, longitude = longitude,
                           URL = URL, coverage = "mod13q1_512", bands = bands)
 
-# plot the series
-sits_plot (point.tb)
+# plot the series (only the ndvi and evi bands)
+sits_plot (sits_select (point.tb, bands = c("ndvi", "evi")))
 
 # classify the test data
 class.tb <- sits_classify(point.tb, embrapa.tb, model_svm.ml)
@@ -60,30 +62,15 @@ sits_plot_classification(class.tb, band = "ndvi")
 
 # retrieve a series of samples defined by a CSV file
 # obtain a time series from the WTSS server for these samples
-# the start and end dates are chosen to be the same as the samples
 data.tb <- sits_getdata (file = system.file ("extdata/samples/samples_matogrosso.csv", package = "sits"),
                          URL = URL, bands = bands, coverage = coverage)
 
 # plot the data
-sits_plot(data.tb)
+sits_plot(data.tb[1,])
 
-
-
-# get the start and end dates
-# note the importance of setting up the right dates
-start_date <-  lubridate::as_date ("2008-09-13")
-end_date   <-  lubridate::as_date ("2015-08-29")
-
-# set the timeline
-timeline <- lubridate::as_date(data.tb[1,]$time_series[[1]]$Index)
-
-# set the classification information
-class_info.tb <- sits_class_info(bands = c("ndvi", "evi"), labels = labels,
-                                 timeline = timeline, interval = "12 month",
-                                 start_date = start_date, end_date = end_date)
 
 # classify the test data
-class.tb <- sits_classify(point.tb, class_info.tb, model_svm.ml)
+class2.tb <- sits_classify(data.tb, embrapa.tb, model_svm.ml)
 
 # plot the classification of the time series by yearly intervals
-sits_plot_classification(class.tb, band = "ndvi")
+sits_plot_classification(class2.tb, band = "ndvi")

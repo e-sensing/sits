@@ -325,9 +325,6 @@
     # size of prediction table
     nrows <- length (ref_dates.lst)
 
-    from_dates <- vector()
-    to_dates   <- vector()
-
     predicted.lst <- list()
 
     class_idx <-  1
@@ -346,25 +343,19 @@
                 # what are the reference dates to do the classification?
                 ref_dates.lst <- .sits_match_timeline(timeline_row, ref_start_date, ref_end_date, interval)
             }
-            # create a tibble to store the classification
-            predict.tb   <- tibble::tibble(from      = as.Date(),
-                                           to        = as.Date(),
-                                           distance  = double(),
-                                           class     = character())
-
+            pred_row.lst <- list()
             # store the classification results
-            ref_dates.lst %>%
-                purrr::map (function (d){
-                    line <- tibble::tibble(
-                        from      <- d[1],
-                        to        <- d[2],
-                        distance  <-  0.0,
-                        class     <- class.lst[[class_idx]]
+            for (d in 1:length(ref_dates.lst)) {
+                pred_row.lst[[d]] <- tibble::tibble(
+                    from      = as.Date(ref_dates.lst[[d]][1]),
+                    to        = as.Date(ref_dates.lst[[d]][2]),
+                    distance  =  0.0,
+                    class     = class.lst[[1]][class_idx]
                     )
-                    class_idx  <<- class_idx + 1
-                    predict.tb <<- dplyr::bind_rows (predict.tb, line)
-                })
-            predicted.lst[[length(predicted.lst) + 1 ]] <<- predict.tb
+                class_idx  <<- class_idx + 1
+            }
+
+            predicted.lst[[length(predicted.lst) + 1]] <<- dplyr::bind_rows(pred_row.lst)
         })
 
     data.tb$predicted <- predicted.lst

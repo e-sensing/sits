@@ -91,25 +91,26 @@ sits_classify <- function (data.tb = NULL,  samples.tb = NULL, ml_model = NULL, 
     classify_block <- function (distances.tb) {
         # create a list to get the predictions
         pred_block.lst <- list()
+        # create a list to store the rows
+        row.lst <- list()
         # create a block of distances to be classified
         for (r in 1:nrow(distances.tb)){
-            # create a data table to store the distances for each row
-            dist_row.tb <- data.table::data.table("original_row" = rep(1,length(time_index.lst)) , "reference" = rep("NoClass", length(time_index.lst)))
             # create a data table to store the values of the distances
-            values.tb <- data.table::data.table(nrow = length(time_index.lst), ncol = 0)
             for (t in 1:length(time_index.lst)){
+                # create a data table to store the distances for each row
+                row.tb <- data.table::data.table("original_row" = 1, "reference" = "NoClass")
                 idx <- time_index.lst[[t]]
                 for (b in 1:length(bands)){
                     # retrieve the values used for classification
-                    values.tb <- cbind(values.tb, distances.tb[r,idx[(2*b - 1)]:idx[2*b]])
+                    row.tb <- cbind (row.tb, distances.tb[r,idx[(2*b - 1)]:idx[2*b]])
                 }
+                row.lst[[length(row.lst) + 1 ]] <- row.tb
             }
-            dist_row.tb[,3:(nsamples*length(bands) + 2)] <- values.tb
-            dist.tb <- rbind(dist.tb, dist_row.tb)
         }
+        dist.tb <- data.table::rbindlist(row.lst)
         colnames(dist.tb) <- attr_names
         # classify the subset data
-        pred_block.lst[[t]] <- sits_predict(dist.tb, ml_model)
+        pred_block.lst[[1]] <- sits_predict(dist.tb, ml_model)
         return(pred_block.lst)
     }
 
