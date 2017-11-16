@@ -4,13 +4,13 @@
 \alias{sits_plot}
 \title{Plot a set of satellite image time series}
 \usage{
-sits_plot(data.tb, patterns.tb = NULL, cluster_obj = NULL,
-  cutree_height = NULL, type = "allyears", colors = "Set1")
+sits_plot(data.tb, band = NULL, cluster_obj = NULL, cutree_height = NULL,
+  type = "allyears", colors = "Set1")
 }
 \arguments{
 \item{data.tb}{A SITS tibble with the list of time series to be plotted}
 
-\item{patterns.tb}{Patterns used for classification (required for sits_plot_classification)}
+\item{band}{The band used for visualisation (optional for sits_plot_classification)}
 
 \item{cluster_obj}{Useful for plotting a dendrogram.}
 

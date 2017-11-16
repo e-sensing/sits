@@ -4,7 +4,7 @@
 #' @description Given a SITS tibble with a set of time series, plot them
 #'
 #' @param  data.tb       A SITS tibble with the list of time series to be plotted
-#' @param  patterns.tb   Patterns used for classification (required for sits_plot_classification)
+#' @param  band          The band used for visualisation (optional for sits_plot_classification)
 #' @param  type          Type of plot to be generated
 #' @param  cluster_obj   Useful for plotting a dendrogram.
 #' @param  cutree_height A dashed horizontal line to be drawed indicating the height of dendrogram cutting.
@@ -27,7 +27,7 @@ sits_plot <- function (data.tb, band = NULL, cluster_obj = NULL, cutree_height =
     if (!purrr::is_null(cluster_obj))
         type <- "dendogram"
     # Are there more than 50 samples? Plot them together!
-    if (nrow(data.tb) > 50)
+    if (nrow(data.tb) > 30)
         type <- "together"
 
     switch(type,
