@@ -65,10 +65,10 @@ samples.tb <- sits_getdata (file = system.file ("extdata/samples/samples_matogro
                          start_date = "2000-02-18", end_date = "2016-12-18")
 
 # plot the data
-sits_plot(data.tb[1,])
+sits_plot(samples.tb[1,])
 
 # classify the test data
-class2.tb <- sits_classify(data.tb, embrapa.tb, model_svm.ml)
+class2.tb <- sits_classify(samples.tb, embrapa.tb, model_svm.ml)
 
 # plot the classification of the time series by yearly intervals
 sits_plot_classification(class2.tb, band = "ndvi")
