@@ -42,7 +42,7 @@ point.tb <- sits_getdata(latitude = lat, longitude = long, URL = URL, coverage =
 sits_plot (point.tb)
 
 # classify the test data
-class.tb <- sits_classify(point.tb, patterns_data.tb, model_mlr.ml, dist_method = sits_distances_from_data())
+class.tb <- sits_classify(point.tb, patterns_data.tb, model_mlr.ml)
 
 # plot the classification of the time series by yearly intervals
-sits_plot_classification(class.tb, patterns_data.tb, band = "ndvi")
+sits_plot_classification(class.tb, band = "ndvi")
