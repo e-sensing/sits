@@ -5,24 +5,20 @@ URL <- "http://www.dpi.inpe.br/tws/wtss"
 wtss_inpe <- sits_infoWTSS(URL)
 
 # get information about a specific coverage
-coverage.tb <- sits_coverageWTSS(URL,"MOD13Q1")
+coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
 
 # choose a coverage
-coverage <- "MOD13Q1"
+coverage <- "mod13q1_512"
 bands <-  c("ndvi", "evi", "red", "nir", "blue", "mir")
 
 # select a point in the transition from forest to pasture in Northern MT
 longitude <- -58.8967
 latitude  <- -13.7214
 
-longitude <- -59.0
-latitude  <- -13.7
-
 
 # retrieve the time series associated with the point from the WTSS server
 point.tb <- sits_getdata(latitude = latitude, longitude = longitude, bands = bands,
-                         URL = URL, coverage = coverage,
-                         start_date = "2000-02-18", end_date = "2016-09-18")
+                         URL = URL, coverage = coverage)
 
 # plot the series (only the ndvi and evi bands)
 sits_plot (sits_select (point.tb, bands = c("ndvi", "evi")))

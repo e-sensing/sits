@@ -17,8 +17,12 @@ keywords:
 preamble: >
   \usepackage{microtype} 
   \usepackage{amsmath}
-output: rticles::jss_article
-bibliography: e-sensing.bib
+  \usepackage{float}
+documentclass: article
+classoption: shortnames
+output: 
+  rticles::jss_article:
+    pandoc_args: --natbib
 date: "`r Sys.Date()`"
 vignette: >
   %\VignetteIndexEntry{SITS: Satellite Image Time Series package}
@@ -29,12 +33,9 @@ vignette: >
 ```{r include = FALSE}
 library(sits)
 ```
-
-
 # Introduction 
 ```{r, child='sec01_introd.Rmd'}
 ```
-
 # Data Handling in SITS
 ```{r, child='sec02_data.Rmd'}
 ```
@@ -46,4 +47,5 @@ library(sits)
 \section*{Acknowledgments}
 This work is supported by the São Paulo State Foundation (FAPESP) under grant 2014/08398-6 ("e-sensing: Big Earth observation data analytics for land use and land cover change information"), and by the Germany International Klimate Initiative under the RESTORE+ grant17_III_084_Global_A_RESTORE+ (“RESTORE+: Addressing Landscape Restoration on Degraded Land in Indonesia and Brazil”).  Gilberto Camara's work is also supported by CNPq (grant 312151\/2014-4).
 
-
+\bibliographystyle{jss}
+\bibliography{references}
