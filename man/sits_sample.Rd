@@ -20,7 +20,7 @@ result.tb  the new SITS table with a fixed quantity of samples of informed label
 takes a sits table with different labels and
              returns a new table. For a given field as a group criterion, this new table contains a given number or percentage
              of the total number of samples per group. Parameter n indicantes the number of random samples with reposition.
-             Parameter frac indicates a fraction of random samples without reposition. If frac > 1, the sampling is taken with reposition.
+             Parameter frac indicates a fraction of random samples without reposition. If frac > 1, no sampling is done.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

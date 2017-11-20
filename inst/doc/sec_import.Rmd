@@ -1,0 +1,22 @@
+To get a remote sensing time series, one first organises a large set of EO data as a 3D array. From each pixel location in the array, one can extract a time series of one or more variables for a temporal interval. The WTSS service is independent of the actual data architecture used for 3D array store. It can work with solutions such as flat files, MapReduce distributed datasets, array databases or object-relational databases. We have implemented the service using both a set of flat files and the SciDB array database management system \cite{Stonebraker2013}, with the same external interface. 
+```{r}
+URL <- "http://www.dpi.inpe.br/tws/wtss"
+wtss_inpe <- sits_infoWTSS(URL)
+```
+
+
+```{r}
+# get information about a specific coverage
+sits_coverageWTSS(URL,"mod13q1_512")
+# choose a coverage
+coverage <- "mod13q1_512"
+# recover all bands
+bands <- c("ndvi", "evi", "nir")
+# a point in the transition forest pasture in Northern MT
+long <- -55.57320
+lat <- -11.50566
+# obtain a time series from the WTSS server for this point
+series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, coverage = "mod13q1_512", bands = bands)
+# plot the series
+sits_plot (series.tb)
+```

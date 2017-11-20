@@ -55,10 +55,6 @@
     # create an output table
     data1.tb <- sits_tibble()
 
-    # add a progress bar
-    message("Aligning samples time series intervals...")
-    progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
-
     for (i in 1:nrow(data.tb)) {
         # extract the time series
         row <- data.tb[i,]
@@ -84,12 +80,7 @@
         row$start_date <- lubridate::as_date(ref_dates[1])
         row$end_date   <- ref_dates[length(ref_dates)]
         data1.tb <- dplyr::bind_rows(data1.tb, row)
-
-        # update progress bar
-        utils::setTxtProgressBar(progress_bar, i)
     }
-
-    close(progress_bar)
     return (data1.tb)
 }
 
