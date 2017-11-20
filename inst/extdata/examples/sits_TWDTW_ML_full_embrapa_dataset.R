@@ -37,15 +37,16 @@ sits_bands(embrapa_mt.tb)
 embrapa_mt2.tb <- sits_select(embrapa_mt.tb, bands = c("ndvi", "evi", "nir", "mir") )
 
 # obtain a set of patterns for these samples
-patterns.tb <- sits_patterns(embrapa_mt2.tb, timeline)
+patterns.tb <- sits_patterns(embrapa_mt2.tb) # , timeline)
 
 sits_plot (patterns.tb, type = "patterns")
 
 # find the matches between the patterns and the time series using the TWDTW algorithm
 # (uses the dtwSat R package)
 
-new_data.tb <- sits_getdata(file = "./inst/extdata/samples/samples_matogrosso.csv", URL = )
-distances_train.tb <- sits_distances (embrapa_mt2.tb, patterns.tb)
+new_data.tb <- sits_getdata(file = "./inst/extdata/samples/samples_matogrosso.csv", URL = URL,
+                            coverage = coverage, bands = c("ndvi", "evi", "red", "nir", "blue", "mir"))
+distances_train.tb <- sits_distances_from_data (embrapa_mt2.tb)
 
 # save the distances for reusing the distance file later
 saveRDS (distances_train.tb, file = paste0(WD,"/embrapa_mt_distances_train.rds"))
@@ -54,7 +55,7 @@ saveRDS (distances_train.tb, file = paste0(WD,"/embrapa_mt_distances_train.rds")
 model.ml <- sits_svm (distances_train.tb, cost = 10, kernel = "radial",tolerance = 0.001, epsilon = 0.1)
 
 # classify the test data
-class.tb <- sits_classify(series.tb, patterns.tb, model.ml, start_date = "2000-09-14", end_date = "2016-08-29")
+class.tb <- sits_classify(series.tb, patterns.tb, model.ml)
 
 # plot the classification of the time series by yearly intervals
-sits_plot(class.tb, patterns.tb, band = "ndvi")
+sits_plot(class.tb, band = "ndvi")
