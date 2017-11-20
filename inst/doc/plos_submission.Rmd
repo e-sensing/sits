@@ -1,6 +1,6 @@
 ---
-title: "SITS - An R Package for Data Access, Visualisation, Filtering,
-    Clustering, Event Detection and Classification of Satellite Image Time Series"
+title: "SITS - An R Package for Data Analysis and Machine Learning
+    using Satellite Image Time Series"
 author:
   - name: Rolf Simoes
     email: rolf.simoes@inpe.br 
@@ -24,7 +24,7 @@ address:
     address: International Institute for Applied System Analysis (IIASA), Schlossplatz 2, Laxenburg, 2361, Austria
      
 abstract: |
-  Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. Given this motivation, this package provides a set of tools for data access, filtering, clustering and classification of satellite image time series.
+  Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. The SITS package provides support on how to use statistical learning techniques with image time series. These methods include linear and quadratic discrimination analysis, support vector machines, random forests and neural networks.
   
 author_summary: |
   Rolf Simoes is a PhD candidate at the Computer Science program at INPE. Gilberto Camara is an emeritus researcher at INPE. Alexandre Ywata is a senior researcher at INPE. Victor Maus is a research scholar at IIASA.
