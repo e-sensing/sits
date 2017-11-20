@@ -25,10 +25,10 @@ embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
 # CLASSIFICATION USING THE DISTANCES FROM DATA
 #create patterns
-patterns_data.tb <- sits_patterns_from_data(embrapa.tb, timeline)
+patterns_data.tb <- sits_patterns(embrapa.tb)
 
 # estimate distances
-distances_data.tb <- sits_distances_from_data(embrapa.tb, patterns_data.tb)
+distances_data.tb <- sits_distances_from_data(embrapa.tb, 3)
 
 # estimate an SVM model for this training data
 model_svm.ml <- sits_svm(distances_data.tb, kernel = "radial", cost = 10)
@@ -43,7 +43,7 @@ point.tb <- sits_getdata(latitude = lat, longitude = long, URL = URL, coverage =
 sits_plot (point.tb)
 
 # classify the test data
-class.tb <- sits_classify(point.tb, patterns_data.tb, model_svm.ml, dist_method = sits_distances_from_data())
+class.tb <- sits_classify(point.tb, patterns_data.tb,  ml_model = model_svm.ml)
 
 # plot the classification of the time series by yearly intervals
-sits_plot_classification(class.tb, patterns_data.tb, band = "ndvi")
+sits_plot_classification(class.tb, band = "ndvi")
