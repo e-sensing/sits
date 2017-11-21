@@ -4,13 +4,13 @@
 \alias{sits_TS_distances}
 \title{Calculate a set of distance measures for satellite image time series}
 \usage{
-sits_TS_distances(data.tb = NULL, patterns.tb = NULL, distance = "dtw",
-  ...)
+sits_TS_distances(data.tb = NULL, pt_method = sits_gam(),
+  distance = "dtw", ...)
 }
 \arguments{
 \item{data.tb}{SITS tibble time series}
 
-\item{patterns.tb}{Set of patterns obtained from training samples}
+\item{pt_method}{Method to calculate the patterns}
 
 \item{distance}{Method for calculating distances between time series and pattern}
 

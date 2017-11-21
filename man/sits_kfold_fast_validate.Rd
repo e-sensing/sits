@@ -4,24 +4,20 @@
 \alias{sits_kfold_fast_validate}
 \title{Cross-validate temporal patterns (faster than sits_kfold_validate)}
 \usage{
-sits_kfold_fast_validate(data.tb, folds = 5, timeline = NULL,
-  pt_method = sits_gam(), dist_method = sits_distances_from_data(),
-  tr_method = sits_svm(), multicores = 1)
+sits_kfold_fast_validate(data.tb, folds = 5,
+  dist_method = sits_distances_from_data(), tr_method = sits_svm(),
+  multicores = 1)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
 
 \item{folds}{number of partitions to create.}
 
-\item{timeline}{the valid timeline of the data}
-
-\item{pt_method}{method to create patterns (sits_patterns_gam, sits_dendogram)}
-
 \item{dist_method}{method to compute distances (e.g., sits_TWDTW_distances)}
 
 \item{tr_method}{machine learning training method}
 
-\item{multicores}{number of threads to process the validation (Linux only). Each process will run a whole partition validation.}
+\item{multicores}{number of threads to process the validation (Linux or MacOSX only). Each process will run a whole partition validation.}
 }
 \value{
 conf.tb        a tibble containing pairs of reference and predicted values

@@ -4,14 +4,14 @@
 \alias{sits_TWDTW_distances}
 \title{Find distances between a set of SITS patterns and segments of sits tibble using TWDTW}
 \usage{
-sits_TWDTW_distances(data.tb = NULL, patterns.tb = NULL,
+sits_TWDTW_distances(data.tb = NULL, pt_method = sits_gam(),
   dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
   span = 250, keep = FALSE, multicores = 2)
 }
 \arguments{
 \item{data.tb}{Table in SITS format with a time series to be classified using TWTDW}
 
-\item{patterns.tb}{Set of known temporal signatures for the chosen classes}
+\item{pt_method}{Method to calculate the patterns}
 
 \item{dist.method}{Method to derive the local cost matrix.}
 
