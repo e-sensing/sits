@@ -18,32 +18,27 @@ coverage <- "mod13q1_512"
 # recover the NDVI, EVI, MIR and NIR bands
 bands <- c("ndvi", "evi", "nir", "mir")
 
+# retrieve a series of samples defined by a CSV file
+# obtain a time series from the WTSS server for these samples
+samples.tb <- sits_getdata (file = system.file ("extdata/samples/samples_TO_GO_Cerrado.csv", package = "sits"),
+                            URL = URL, bands = bands, coverage = coverage)
+
+
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 
 embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
-# CLASSIFICATION USING THE DISTANCES FROM DATA
-#create patterns
-patterns_data.tb <- sits_patterns(embrapa.tb)
+# CLASSIFICATION USING DISTANCES FROM DATA
 
 # estimate distances
-distances_data.tb <- sits_distances_from_data(embrapa.tb, 3)
+distances_data.tb <- sits_distances_from_data(embrapa.tb)
 
 # estimate an SVM model for this training data
 model_svm.ml <- sits_svm(distances_data.tb, kernel = "radial", cost = 10)
 
+# classify the samples
+class.tb <- sits_classify(samples.tb, embrapa.tb, model_svm.ml)
 
-# a point in the Para sta
-long <- -53.67105
-lat <- -6.06105
-
-point.tb <- sits_getdata(latitude = lat, longitude = long, URL = URL, coverage = coverage, bands = bands)
-
-sits_plot (point.tb)
-
-# classify the test data
-class.tb <- sits_classify(point.tb, patterns_data.tb,  ml_model = model_svm.ml)
-
-# plot the classification of the time series by yearly intervals
-sits_plot_classification(class.tb, band = "ndvi")
+# get confusion matrix
+conf.mx <- sits_conf_matrix(class.tb)

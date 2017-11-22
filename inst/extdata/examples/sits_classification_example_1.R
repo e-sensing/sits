@@ -73,5 +73,4 @@ class2.tb <- sits_classify(samples.tb, embrapa.tb, model_svm.ml)
 sits_plot_classification(class2.tb[1:5,], band = "ndvi")
 
 # estimate the accuracy of the result and the confusion matrix
-pred_ref.tb <- sits_accuracy(class2.tb)
-conf.mx <- sits_conf_matrix (pred_ref.tb)
+conf.mx <- sits_conf_matrix (class2.tb)

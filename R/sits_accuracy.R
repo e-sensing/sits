@@ -1,43 +1,3 @@
-#' @title Evaluates the accuracy of a labelled set of data
-#' @name sits_accuracy
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#
-#' @description Tests the accuracy of a classification model by comparing an input data set
-#' that has been obtained independently to a the predicted values of the model.
-#' This function can be used to test the accuracy of a classification model against a
-#' data set that is obtained independently. The quality of the accuracy assessment
-#' depends critically of the quality of the input data set, which should be be part of the
-#' data set used for training the model.
-#' This function should be used when the patterns are not directly derived from the samples.
-#' It provides an initial assessment of the validity of using this set of pattern
-#' to classify an area whose samples are given.
-#' This function returns a set of predicted and reference vectors that are then
-#' printed by sits_confmatrix (see above.
-#'
-#' @param  class.tb       A sits tibble containing a set of classified samples whose labels are known
-#' @return pred_ref.tb    A tibble with predicted and reference values
-#' @export
-sits_accuracy <- function (class.tb) {
-
-    # does the input data exist?
-    ensurer::ensure_that(class.tb, "predicted" %in% names(.), err_desc = "sits_accuracy: input data does not contain predicted values")
-
-    # retrieve the predicted values
-    pred.vec <- unlist(purrr::map(class.tb$predicted, function(r) r$class))
-
-    # retrieve the reference labels
-    ref.vec <- class.tb$label
-    # does the input data contained valid reference labels?
-    ensurer::ensure_that(ref.vec, !("NoClass" %in% (.)), err_desc = "sits_accuracy: input data does not contain reference values")
-
-    # build the tibble
-    pred_ref.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
-
-    # return the tibble
-    return (pred_ref.tb)
-}
-
-
 #' @title Assessment of the accuracy of classification based on a confusion matrix
 #' @name sits_conf_matrix
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -48,16 +8,18 @@ sits_accuracy <- function (class.tb) {
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 #'
 #'
-#' @param pred_ref.tb    A tibble containing pairs of reference and predicted values
+#' @param  class.tb      A sits tibble containing a set of classified samples whose labels are known
 #' @param conv.lst       A list conversion list of labels. If NULL no conversion is done.
 #' @param pred_sans_ext  (Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
 #' @return caret_assess  a confusion matrix assessment produced by the caret package
 #'
 #' @export
-sits_conf_matrix <- function(pred_ref.tb, conv.lst = NULL, pred_sans_ext = FALSE){
+sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
 
     # recover predicted and reference vectors from input
+    pred_ref.tb <- .sits_pred_ref (class.tb)
+
     pred.vec <- pred_ref.tb$predicted
     ref.vec  <- pred_ref.tb$reference
 
@@ -70,7 +32,7 @@ sits_conf_matrix <- function(pred_ref.tb, conv.lst = NULL, pred_sans_ext = FALSE
         names_ref <- dplyr::pull (dplyr::distinct (pred_ref.tb, reference))
         ensurer::ensure_that(names_ref,
                              all(. %in% names(conv.lst)),
-                             err_desc = "sits_accuracy: conversion list does not contain all reference labels")
+                             err_desc = "sits_conf_matrix: conversion list does not contain all reference labels")
         pred.vec <- as.character(conv.lst[pred.vec])
         ref.vec  <- as.character(conv.lst[ref.vec])
     }
@@ -243,3 +205,30 @@ sits_accuracy_area <- function (class.tb, area = NULL, conf.int = 0.95, rm.nosam
     invisible(x)
 }
 
+#' @title Obtains the predicted value of a reference set
+#' @name .sits_pred_ref
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#
+#' @description Obtains a tibble of predicted and reference values from a classified data set
+#'
+#' @param  class.tb       A sits tibble containing a set of classified samples whose labels are known
+#' @return pred_ref.tb    A tibble with predicted and reference values
+.sits_pred_ref <- function (class.tb) {
+
+    # does the input data exist?
+    ensurer::ensure_that(class.tb, "predicted" %in% names(.), err_desc = "sits_conf_matrix: input data does not contain predicted values")
+
+    # retrieve the predicted values
+    pred.vec <- unlist(purrr::map(class.tb$predicted, function(r) r$class))
+
+    # retrieve the reference labels
+    ref.vec <- class.tb$label
+    # does the input data contained valid reference labels?
+    ensurer::ensure_that(ref.vec, !("NoClass" %in% (.)), err_desc = "sits_accuracy: input data does not contain reference values")
+
+    # build the tibble
+    pred_ref.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
+
+    # return the tibble
+    return (pred_ref.tb)
+}
