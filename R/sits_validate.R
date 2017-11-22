@@ -20,15 +20,14 @@
 #' is determine for each instance in the dataset, and an overall
 #' accuracy estimate is provided.
 #'
-#' This function returns the Overall Accuracy, User's Accuracy,
-#' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
+#' This function returns the confusion matrix, and Kappa values.
 #'
 #' @param data.tb         a SITS tibble
 #' @param folds           number of partitions to create.
 #' @param dist_method     method to compute distances (e.g., sits_TWDTW_distances)
 #' @param tr_method       machine learning training method
 #' @param multicores      number of threads to process the validation (Linux and MacOS only). Each process will run a whole partition validation.
-#' @return conf.tb        a tibble containing pairs of reference and predicted values
+#' @return pred_ref.tb        a tibble containing pairs of reference and predicted values
 #' @export
 
 sits_kfold_validate <- function (data.tb, folds = 5,
@@ -86,9 +85,9 @@ sits_kfold_validate <- function (data.tb, folds = 5,
         ref.vec <<-  c(ref.vec, e[(mid+1):length(e)])
     })
 
-    conf.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
+    pred_ref.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
 
-    return (conf.tb)
+    return (pred_ref.tb)
 }
 #' @title Cross-validate temporal patterns (faster than sits_kfold_validate)
 #' @name sits_kfold_fast_validate
@@ -104,15 +103,14 @@ sits_kfold_validate <- function (data.tb, folds = 5,
 #' This function should be used for a first comparison between different machine learning methods.
 #' For reporting in papers, please use the sits_kfold_validate method.
 #'
-#' This function returns the Overall Accuracy, User's Accuracy,
-#' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
+#' This function returns the confusion matrix.
 #'
 #' @param data.tb         a SITS tibble
 #' @param folds           number of partitions to create.
 #' @param dist_method     method to compute distances (e.g., sits_TWDTW_distances)
 #' @param tr_method       machine learning training method
 #' @param multicores      number of threads to process the validation (Linux or MacOSX only). Each process will run a whole partition validation.
-#' @return conf.tb        a tibble containing pairs of reference and predicted values
+#' @return pred_ref.tb    a tibble containing pairs of reference and predicted values
 #' @export
 
 sits_kfold_fast_validate <- function (data.tb, folds = 5,
@@ -168,7 +166,7 @@ sits_kfold_fast_validate <- function (data.tb, folds = 5,
         ref.vec <<-  c(ref.vec, e[(mid+1):length(e)])
     })
 
-    conf.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
+    pred_ref.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
 
-    return (conf.tb)
+    return (pred_ref.tb)
 }

@@ -85,7 +85,6 @@ Collate:
     'sits_classification.R'
     'sits_cluster.R'
     'sits_colors.R'
-    'sits_confusion_matrix.R'
     'sits_data_table.R'
     'sits_dendrogram.R'
     'sits_distances.R'
@@ -114,3 +113,4 @@ Collate:
 Suggests: knitr,
     rmarkdown,
     testthat
+VignetteBuilder: knitr

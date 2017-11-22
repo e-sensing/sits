@@ -2,26 +2,29 @@
 % Please edit documentation in R/sits_accuracy.R
 \name{sits_accuracy}
 \alias{sits_accuracy}
-\title{Evaluates the accuracy of classification}
+\title{Evaluates the accuracy of a labelled set of data}
 \usage{
-sits_accuracy(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE)
+sits_accuracy(class.tb)
 }
 \arguments{
-\item{conf.tb}{A tibble containing pairs of reference and predicted values}
-
-\item{conv.lst}{A list conversion list of labels. If NULL no conversion is done.}
-
-\item{pred_sans_ext}{(Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.}
+\item{class.tb}{A sits tibble containing a set of classified samples whose labels are known}
 }
 \value{
-caret_assess  a confusion matrix assessment produced by the caret package
+pred_ref.tb    A tibble with predicted and reference values
 }
 \description{
-Evaluates the accuracy of classification stored in two vectors.
-Returns a confusion matrix used by the "caret" package
+Tests the accuracy of a classification model by comparing an input data set
+that has been obtained independently to a the predicted values of the model.
+This function can be used to test the accuracy of a classification model against a
+data set that is obtained independently. The quality of the accuracy assessment
+depends critically of the quality of the input data set, which should be be part of the
+data set used for training the model.
+This function should be used when the patterns are not directly derived from the samples.
+It provides an initial assessment of the validity of using this set of pattern
+to classify an area whose samples are given.
+This function returns a set of predicted and reference vectors that are then
+printed by sits_confmatrix (see above.
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
-
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

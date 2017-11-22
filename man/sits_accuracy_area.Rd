@@ -4,10 +4,11 @@
 \alias{sits_accuracy_area}
 \title{Area-weighted post-classification accuracy assessment of classified maps}
 \usage{
-sits_accuracy_area(results.tb, area, conf.int = 0.95, rm.nosample = FALSE)
+sits_accuracy_area(class.tb, area = NULL, conf.int = 0.95,
+  rm.nosample = FALSE)
 }
 \arguments{
-\item{results.tb}{a sits table with a set of lat/long/time locations  with known and trusted labels and
+\item{class.tb}{a sits table with a set of lat/long/time locations  with known and trusted labels and
 with the result of classification method}
 
 \item{area}{a list with the area of each label}

@@ -20,7 +20,7 @@ sits_kfold_validate(data.tb, folds = 5,
 \item{multicores}{number of threads to process the validation (Linux and MacOS only). Each process will run a whole partition validation.}
 }
 \value{
-conf.tb        a tibble containing pairs of reference and predicted values
+pred_ref.tb        a tibble containing pairs of reference and predicted values
 }
 \description{
 Splits the set of time series into training and validation and
@@ -40,8 +40,7 @@ on all other subsets. This process is completed until accuracy
 is determine for each instance in the dataset, and an overall
 accuracy estimate is provided.
 
-This function returns the Overall Accuracy, User's Accuracy,
-Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
+This function returns the confusion matrix, and Kappa values.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

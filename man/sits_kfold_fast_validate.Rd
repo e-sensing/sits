@@ -20,7 +20,7 @@ sits_kfold_fast_validate(data.tb, folds = 5,
 \item{multicores}{number of threads to process the validation (Linux or MacOSX only). Each process will run a whole partition validation.}
 }
 \value{
-conf.tb        a tibble containing pairs of reference and predicted values
+pred_ref.tb    a tibble containing pairs of reference and predicted values
 }
 \description{
 Splits the set of time series into training and validation and
@@ -32,8 +32,7 @@ the results will be faster than the full validate.
 This function should be used for a first comparison between different machine learning methods.
 For reporting in papers, please use the sits_kfold_validate method.
 
-This function returns the Overall Accuracy, User's Accuracy,
-Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
+This function returns the confusion matrix.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

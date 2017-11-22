@@ -39,7 +39,7 @@ coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
 
 # choose a coverage
 coverage <- "mod13q1_512"
-bands <-  c("ndvi", "evi", "red", "nir", "blue", "mir")
+bands <-  c("ndvi", "evi", "nir", "mir")
 
 # select a point in the transition from forest to pasture in Northern MT
 longitude <- -58.8967
@@ -61,8 +61,7 @@ sits_plot_classification(class.tb, band = "ndvi")
 # retrieve a series of samples defined by a CSV file
 # obtain a time series from the WTSS server for these samples
 samples.tb <- sits_getdata (file = system.file ("extdata/samples/samples_matogrosso.csv", package = "sits"),
-                         URL = URL, bands = bands, coverage = coverage,
-                         start_date = "2000-02-18", end_date = "2016-12-18")
+                         URL = URL, bands = bands, coverage = coverage)
 
 # plot the data
 sits_plot(samples.tb[1,])
@@ -71,4 +70,8 @@ sits_plot(samples.tb[1,])
 class2.tb <- sits_classify(samples.tb, embrapa.tb, model_svm.ml)
 
 # plot the classification of the time series by yearly intervals
-sits_plot_classification(class2.tb, band = "ndvi")
+sits_plot_classification(class2.tb[1:5,], band = "ndvi")
+
+# estimate the accuracy of the result and the confusion matrix
+pred_ref.tb <- sits_accuracy(class2.tb)
+conf.mx <- sits_conf_matrix (pred_ref.tb)

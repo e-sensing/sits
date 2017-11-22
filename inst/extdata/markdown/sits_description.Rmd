@@ -26,9 +26,10 @@ bibliography: references-sits.bib
 biblio-style: agsm
 endnote: no
 vignette: >
-  %\VignetteEngine{knitr::knitr}
-  %\VignetteIndexEntry{"SITS - An R Package for Data Analysis and Machine Learning
-    using Satellite Image Time Series"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{SITS - An R Package for Data Analysis and Machine Learning
+    using Satellite Image Time Series}
+  %\VignetteEncoding{UTF-8}
 ---
 ```{r include = FALSE}
 library(sits)

@@ -1,0 +1,91 @@
+\begin{thebibliography}{xx}
+
+\harvarditem[Arvor et~al.]{Arvor, Meirelles, Dubreuil, Bégué \harvardand\
+  Shimabukuro}{2012}{Arvor2012}
+Arvor, D., Meirelles, M., Dubreuil, V., Bégué, A. \harvardand\ Shimabukuro,
+  Y.~E.  \harvardyearleft 2012\harvardyearright , `Analyzing the agricultural
+  transition in {Mato Grosso, Brazil}, using satellite-derived indices', {\em
+  Applied Geography} {\bf 32}(2),~702--713.
+
+\harvarditem[Brown et~al.]{Brown, Kastens, Coutinho, Victoria \harvardand\
+  Bishop}{2013}{Brown2013}
+Brown, J.~C., Kastens, J.~H., Coutinho, A.~C., Victoria, D. d.~C. \harvardand\
+  Bishop, C.~R.  \harvardyearleft 2013\harvardyearright , `Classifying
+  multiyear agricultural land use data from {Mato Grosso} using time-series
+  {MODIS} vegetation index data', {\em Remote Sensing of Environment} {\bf
+  130},~39--50.
+
+\harvarditem[Estel et~al.]{Estel, Kuemmerle, Alcantara, Levers, Prishchepov
+  \harvardand\ Hostert}{2015}{Estel2015}
+Estel, S., Kuemmerle, T., Alcantara, C., Levers, C., Prishchepov, A.
+  \harvardand\ Hostert, P.  \harvardyearleft 2015\harvardyearright , `Mapping
+  farmland abandonment and recultivation across {Europe} using {MODIS NDVI}
+  time series', {\em Remote Sensing of Environment} {\bf 163},~312--325.
+
+\harvarditem[Galford et~al.]{Galford, Mustard, Melillo, Gendrin, Cerri
+  \harvardand\ Cerri}{2008}{Galford2008}
+Galford, G.~L., Mustard, J.~F., Melillo, J., Gendrin, A., Cerri, C.~C.
+  \harvardand\ Cerri, C.~E.  \harvardyearleft 2008\harvardyearright , `Wavelet
+  analysis of {MODIS} time series to detect expansion and intensification of
+  row-crop agriculture in {Brazil}', {\em Remote sensing of environment} {\bf
+  112}(2),~576--587.
+
+\harvarditem[Hastie et~al.]{Hastie, Tibshirani \harvardand\
+  J.}{2009}{Hastie2009}
+Hastie, T., Tibshirani, R. \harvardand\ J., F.  \harvardyearleft
+  2009\harvardyearright , {\em The Elements of Statistical Learning. Data
+  Mining, Inference, and Prediction}, Springer, New York.
+
+\harvarditem[James et~al.]{James, Witten, Hastie \harvardand\
+  Tibshirani}{2013}{James2013}
+James, G., Witten, D., Hastie, T. \harvardand\ Tibshirani, R.  \harvardyearleft
+  2013\harvardyearright , {\em An Introduction to Statistical Learning: with
+  Applications in R}, Springer, New York, EUA.
+
+\harvarditem{Jönsson \harvardand\ Eklundh}{2004}{Jonsson2004}
+Jönsson, P. \harvardand\ Eklundh, L.  \harvardyearleft 2004\harvardyearright ,
+  `{TIMESAT}—a program for analyzing time-series of satellite sensor data',
+  {\em Computers \& Geosciences} {\bf 30}(8),~833 -- 845.
+
+\harvarditem[Kastens et~al.]{Kastens, Brown, Coutinho, Bishop \harvardand\
+  Esquerdo}{2017}{Kastens2017}
+Kastens, J., Brown, J., Coutinho, A., Bishop, C. \harvardand\ Esquerdo, J.
+  \harvardyearleft 2017\harvardyearright , `Soy moratorium impacts on soybean
+  and deforestation dynamics in {Mato Grosso, Brazil}', {\em PLOS ONE} {\bf
+  12}(4),~e0176168.
+
+\harvarditem[Kennedy et~al.]{Kennedy, Yang \harvardand\
+  Cohen}{2010}{Kennedy2010}
+Kennedy, R.~E., Yang, Z. \harvardand\ Cohen, W.~B.  \harvardyearleft
+  2010\harvardyearright , `Detecting trends in forest disturbance and recovery
+  using yearly {L}andsat time series', {\em Remote Sensing of Environment} {\bf
+  114}(12),~2897--2910.
+
+\harvarditem[Lambin et~al.]{Lambin, Geist \harvardand\
+  Lepers}{2003}{Lambin2003}
+Lambin, E.~F., Geist, H.~J. \harvardand\ Lepers, E.  \harvardyearleft
+  2003\harvardyearright , `Dynamics of land-use and land-cover change in
+  tropical regions', {\em Annual review of environment and resources} {\bf
+  28}(1),~205--241.
+
+\harvarditem[Pasquarella et~al.]{Pasquarella, Holden, Kaufman \harvardand\
+  Woodcock}{2016}{Pasquarella2016}
+Pasquarella, V.~J., Holden, C.~E., Kaufman, L. \harvardand\ Woodcock, C.~E.
+  \harvardyearleft 2016\harvardyearright , `From imagery to ecology: leveraging
+  time series of all available {LANDSAT} observations to map and monitor
+  ecosystem state and dynamics', {\em Remote Sensing in Ecology and
+  Conservation} {\bf 2}(3),~152--170.
+
+\harvarditem[Pelletier et~al.]{Pelletier, Valero, Inglada, Champion
+  \harvardand\ Dedieu}{2016}{Pelletier2016}
+Pelletier, C., Valero, S., Inglada, J., Champion, N. \harvardand\ Dedieu, G.
+  \harvardyearleft 2016\harvardyearright , `Assessing the robustness of random
+  forests to map land cover with high resolution satellite image time series
+  over large areas', {\em Remote Sensing of Environment} {\bf 187},~156--168.
+
+\harvarditem{Wickham \harvardand\ Grolemund}{2017}{Wickham2017}
+Wickham, H. \harvardand\ Grolemund, G.  \harvardyearleft 2017\harvardyearright
+  , {\em R for Data Science: Import, Tidy, Transform, Visualize, and Model
+  Data}, O'Reilly Media, Inc.
+
+\end{thebibliography}
