@@ -241,9 +241,9 @@ sits_TWDTW_distances <- function (data.tb = NULL, pt_method = sits_gam(),
                             patt_b.tb  <- sits_select_bands (patterns.tb, bands = b)
 
                             # convert data to TWDTW format
-                            twdtw_series   <- sits_toTWDTW(data_b.tb)
+                            twdtw_series   <- .sits_toTWDTW(data_b.tb)
                             # convert patterns to TWDTW format
-                            twdtw_patterns <- sits_toTWDTW(patt_b.tb)
+                            twdtw_patterns <- .sits_toTWDTW(patt_b.tb)
 
                             #classify the data using TWDTW
                             matches.twdtw = dtwSat::twdtwApply(

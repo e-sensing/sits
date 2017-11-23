@@ -5,13 +5,8 @@
 #' @description This is the main classification function for time series data
 #' organized as a SITS tibble (one row per time series). It considers that
 #' the machine learning model used to classify the data set has been trained
-#' with samples which match the full dimension of the time series. This means that,
-#' if the sample has four bands with 20 time instances,  the
-#' machine learning model is 80-dimension. Each time instance is considered as
-#' a dimension.
+#' with a distance function.
 #'
-#' In terms of the SITS package, the sits_classify_raster function assumes that, when
-#' tranining the model, the user has called the \code{\link[sits]{sits_distances_from_data}} function.
 #'
 #' @param  data.tb           SITS tibble time series (cleaned)
 #' @param  train_samples.tb  The samples used for training the classification model

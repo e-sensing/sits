@@ -54,7 +54,7 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
     # select the bands for patterns time series and convert to TWDTW format
     twdtw_patterns <- patterns.tb %>%
         sits_select_bands (bands = bands) %>%
-        sits_toTWDTW()
+        .sits_toTWDTW()
 
     # Define the logistic function
     log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
@@ -64,7 +64,7 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
             # select the bands for the samples time series and convert to TWDTW format
             twdtw_series <- row.tb %>%
                 sits_select_bands (bands = bands) %>%
-                sits_toTWDTW()
+                .sits_toTWDTW()
 
             #classify the data using TWDTW
             matches = dtwSat::twdtwApply(x          = twdtw_series,

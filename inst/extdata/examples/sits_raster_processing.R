@@ -15,7 +15,7 @@ bands <- c("ndvi", "evi")
 # define the scale factors
 scale_factors <- c(0.0001, 0.0001)
 # define the timeline
-timeline <- read.csv(system.file("extdata/raster/sinop/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
+timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
 timeline <- lubridate::as_date (timeline$V1)
 
 # create a raster metadata file based on the information about the files
