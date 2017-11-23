@@ -313,7 +313,8 @@ sits_fromSHP <- function (shp_file, URL, coverage.tb, bands, start_date = NULL, 
     while (longitude <= bbox["xmax"] ){
         latitude  <- bbox["ymin"]
         while (latitude <= bbox["ymax"]){
-            if (sf::st_within(longitude, latitude, sf_shape)) {
+            ll <- sf::st_point(c(longitude, latitude))
+            if (1 %in% as.logical (unlist(sf::st_within(ll, sf_shape)))) {
                 row <- sits_fromWTSS (longitude, latitude, start_date, end_date, label, wtss.obj, cov, bands)
                 shape.tb <- dplyr::bind_rows(shape.tb, row)
             }
