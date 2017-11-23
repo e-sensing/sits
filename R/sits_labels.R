@@ -46,7 +46,7 @@ sits_relabel <- function (data.tb, conv.lst = list()){
     if (length(conv.lst) > 0){
 
         # get those labels not in conv.lst names
-        conv.lst <- sits_labels_list(data.tb, conv.lst)
+        conv.lst <- .sits_labels_list(data.tb, conv.lst)
 
         # convert labels and return
         result.tb$label <- as.character(conv.lst[result.tb$label])
@@ -54,7 +54,7 @@ sits_relabel <- function (data.tb, conv.lst = list()){
     return (result.tb)
 }
 #' @title SITS labels processing function
-#' @name sits_labels_list
+#' @name .sits_labels_list
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description completes list.lst list as a named list (names are unique labels from data.tb) according
@@ -66,8 +66,7 @@ sits_relabel <- function (data.tb, conv.lst = list()){
 #' @param  fun_label   a function that will be executed for each label non listed in list.lst parameter. The result of
 #'                     the function is used as list.lst value for the respective label.
 #' @return result.lst  a list whose values non informed in list.lst is filled by fun_label for each unique label in data.tb.
-#' @export
-sits_labels_list <- function(data.tb, list.lst = list(), fun_label = function(lb) lb) {
+.sits_labels_list <- function(data.tb, list.lst = list(), fun_label = function(lb) lb) {
 
     # verify if data.tb has data
     .sits_test_tibble (data.tb)

@@ -30,7 +30,7 @@ sits_plot(prodes_patterns.tb, type = "patterns")
 conf.tb <- sits_kfold_fast_validate (prodes.tb, folds = 2, timeline = timeline)
 
 #evaluate the accuracy of the classification
-sits_accuracy(conf.tb)
+sits_conf_matrix(conf.tb)
 
 # relabel and see new assessment
 prodes_relabel.lst <-  tibble::lst("Forest" = "Forest",
@@ -38,7 +38,7 @@ prodes_relabel.lst <-  tibble::lst("Forest" = "Forest",
                                    "ClearCut" = "NonForest",
                                    "Pasture"  = "NonForest")
 
-sits_accuracy(conf.tb, prodes_relabel.lst)
+sits_conf_matrix(conf.tb, prodes_relabel.lst)
 
 # test savitsky golay filter
 prodes_sg.tb <- sits_sgolay(prodes.tb, order = 2, scale = 1)
@@ -59,9 +59,9 @@ sg1 %>%
 conf_sg.tb <- sits_kfold_fast_validate (prodes_sg.tb, folds = 2, timeline = timeline)
 
 #evaluate the accuracy of the classification
-sits_accuracy(conf_sg.tb)
+sits_conf_matrix(conf_sg.tb)
 
-sits_accuracy(conf_sg.tb, prodes_relabel.lst)
+sits_conf_matrix(conf_sg.tb, prodes_relabel.lst)
 
 # =========== WHITAKKER SMOOTHER =============
 
@@ -79,7 +79,7 @@ w1 %>%
 conf_whit.tb <- sits_kfold_fast_validate (prodes_whit.tb, folds = 2, timeline = timeline)
 
 #evaluate the accuracy of the classification
-sits_accuracy(conf_whit.tb)
+sits_conf_matrix(conf_whit.tb)
 
 # relabel and see assessment
-sits_accuracy(conf_whit.tb, prodes_relabel.lst)
+sits_conf_matrix(conf_whit.tb, prodes_relabel.lst)

@@ -5,29 +5,24 @@
 #' @description This is the main classification function for time series data
 #' organized as a SITS tibble (one row per time series). It considers that
 #' the machine learning model used to classify the data set has been trained
-#' with samples which match the full dimension of the time series. This means that,
-#' if the sample has four bands with 20 time instances,  the
-#' machine learning model is 80-dimension. Each time instance is considered as
-#' a dimension.
+#' with a distance function.
 #'
-#' In terms of the SITS package, the sits_classify_raster function assumes that, when
-#' tranining the model, the user has called the \code{\link[sits]{sits_distances_from_data}} function.
 #'
-#' @param  data.tb         SITS tibble time series (cleaned)
-#' @param  samples.tb      The samples used for training the classification model
-#' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
-#' @param  interval        The interval used for classification
-#' @param  multicores      Number of threads to process the time series.
-#' @return data.tb         SITS tibble with the predicted labels for each input segment
+#' @param  data.tb           SITS tibble time series (cleaned)
+#' @param  train_samples.tb  The samples used for training the classification model
+#' @param  ml_model          A model trained by \code{\link[sits]{sits_train}}
+#' @param  interval          The interval used for classification
+#' @param  multicores        Number of threads to process the time series.
+#' @return data.tb           SITS tibble with the predicted labels for each input segment
 #' @export
-sits_classify <- function (data.tb = NULL,  samples.tb = NULL, ml_model = NULL, interval = "12 month", multicores = 1){
+sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_model = NULL, interval = "12 month", multicores = 1){
 
     .sits_test_tibble(data.tb)
-    .sits_test_tibble(samples.tb)
+    .sits_test_tibble(train_samples.tb)
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
     # define the classification info parameters
-    class_info.tb <- .sits_class_info(data.tb, samples.tb, interval)
+    class_info.tb <- .sits_class_info(data.tb, train_samples.tb, interval)
 
     # find the subsets of the input data
     ref_dates.lst <- class_info.tb$ref_dates[[1]]
@@ -257,12 +252,6 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_model 
 
     #retrieve the time index
     time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
-
-    # add a shift of two positions to the time index
-    # time_index.lst  <- time_index.lst %>%
-    #     purrr::map(function (ti){
-    #         ti <- ti + 2
-    #     })
 
     # define the column names
     attr_names <- vector()

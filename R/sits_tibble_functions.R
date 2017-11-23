@@ -421,7 +421,7 @@ sits_rename <- function(data.tb, names){
 #' @description takes a sits table with different labels and
 #'              returns a new table. For a given field as a group criterion, this new table contains a given number or percentage
 #'              of the total number of samples per group. Parameter n indicantes the number of random samples with reposition.
-#'              Parameter frac indicates a fraction of random samples without reposition. If frac > 1, the sampling is taken with reposition.
+#'              Parameter frac indicates a fraction of random samples without reposition. If frac > 1, no sampling is done.
 #'
 #' @param  data.tb    input SITS table
 #' @param  n          the quantity of samples to pick from a given group of data.
@@ -439,7 +439,10 @@ sits_sample <- function (data.tb, n = NULL, frac = NULL){
 
     # prepare sampling function
     sampling_fun <- if (!base::is.null(n))
-        function(tb) tb %>% dplyr::sample_n(size = n, replace = TRUE)
+        function(tb) {
+            if (nrow (tb) >= n) return (dplyr::sample_n(tb, size = n, replace = FALSE))
+            else return (tb)
+        }
     else if (frac <= 1)
         function(tb) tb %>% dplyr::sample_frac(size = frac, replace = FALSE)
     else
@@ -520,27 +523,6 @@ sits_select_bands <- function (data.tb, bands) {
         purrr::map (function (ts) ts[, c("Index", bands)])
 
     # return the result
-    return (result.tb)
-}
-#' @title returns the labels' count of a sits tibble
-#' @name sits_summary
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description  returns the labels and its respective counting and frequency.
-#'
-#' @param data.tb     a valid sits table
-#' @return result.tb  a tibble with the names of the labels and its absolute and relative frequency
-#' @export
-#'
-sits_summary <- function (data.tb) {
-
-    # get frequency table
-    data.vec <- table(data.tb$label)
-
-    # compose output tibble containing labels, count and relative frequency columns
-    result.tb <- tibble::as_tibble(list(label = names(data.vec),
-                                        count = as.integer(data.vec),
-                                        freq  = as.numeric(prop.table(data.vec))))
     return (result.tb)
 }
 #' @title Add new SITS bands and drops existing.

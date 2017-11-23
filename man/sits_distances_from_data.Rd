@@ -4,10 +4,13 @@
 \alias{sits_distances_from_data}
 \title{Use time series values from a sits tibble as distances for training patterns}
 \usage{
-sits_distances_from_data(data.tb = NULL, shift = 3)
+sits_distances_from_data(data.tb = NULL, pt_method = sits_gam(),
+  shift = 3)
 }
 \arguments{
 \item{data.tb}{a SITS tibble with original data}
+
+\item{pt_method}{Method used for calculating the patterns}
 
 \item{shift}{Adjustment value to avoid negative pixel vales}
 }

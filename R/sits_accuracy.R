@@ -1,23 +1,27 @@
-#' @title Evaluates the accuracy of classification
-#' @name sits_accuracy
+#' @title Assessment of the accuracy of classification based on a confusion matrix
+#' @name sits_conf_matrix
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
-#' @description Evaluates the accuracy of classification stored in two vectors.
-#' Returns a confusion matrix used by the "caret" package
+#' @description Evaluates the confusion matrix based on "reference" and "predicted" values
+#' This function returns the Overall Accuracy, User's Accuracy,
+#' Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 #'
-#' @param conf.tb        A tibble containing pairs of reference and predicted values
+#'
+#' @param  class.tb      A sits tibble containing a set of classified samples whose labels are known
 #' @param conv.lst       A list conversion list of labels. If NULL no conversion is done.
 #' @param pred_sans_ext  (Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
 #' @return caret_assess  a confusion matrix assessment produced by the caret package
 #'
 #' @export
-sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
+sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
 
     # recover predicted and reference vectors from input
-    pred.vec <- conf.tb$predicted
-    ref.vec  <- conf.tb$reference
+    pred_ref.tb <- .sits_pred_ref (class.tb)
+
+    pred.vec <- pred_ref.tb$predicted
+    ref.vec  <- pred_ref.tb$reference
 
     # remove predicted labels' extensions
     if (pred_sans_ext)
@@ -25,10 +29,10 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
     # convert class names
     if (!purrr::is_null(conv.lst)) {
-        names_ref <- dplyr::pull (dplyr::distinct (conf.tb, reference))
+        names_ref <- dplyr::pull (dplyr::distinct (pred_ref.tb, reference))
         ensurer::ensure_that(names_ref,
                              all(. %in% names(conv.lst)),
-                             err_desc = "sits_accuracy: conversion list does not contain all reference labels")
+                             err_desc = "sits_conf_matrix: conversion list does not contain all reference labels")
         pred.vec <- as.character(conv.lst[pred.vec])
         ref.vec  <- as.character(conv.lst[ref.vec])
     }
@@ -73,24 +77,20 @@ sits_accuracy <- function(conf.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 #' Good practices for estimating area and assessing accuracy of land change. Remote Sensing of
 #' Environment, 148, pp. 42-57.
 #'
-#' @param results.tb a sits table with a set of lat/long/time locations  with known and trusted labels and
+#' @param class.tb a sits table with a set of lat/long/time locations  with known and trusted labels and
 #' with the result of classification method
 #' @param area a list with the area of each label
 #' @param conf.int specifies the confidence level (0-1).
 #' @param rm.nosample if sum of columns and sum of rows of the error matrix are zero
 #' then remove class. Default is TRUE.
 #' @export
-sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample = FALSE){
+sits_accuracy_area <- function (class.tb, area = NULL, conf.int = 0.95, rm.nosample = FALSE){
 
      # Get reference classes
-     references <- results.tb$label
-
-     # Get mapped classes
-     # mapped    <- dplyr::bind_rows(results.tb$distances) %>%
-     #                          dplyr::select(dplyr::matches("classification")) %>% unlist
+     references <- class.tb$label
 
      # create a vector to store the result of the predictions
-     mapped <- results.tb$class
+     mapped <- unlist(purrr::map(class.tb$predicted, function(r) r$class))
      # Get all labels
      classes   <- unique(c(references, mapped))
 
@@ -99,7 +99,7 @@ sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample =
                            factor(references, levels = classes, labels = classes))
 
      # Get area - TO IMPROVE USING THE METADATA FROM SATELLITE PRODUCTS
-     if(missing(area))
+     if(purrr::is_null(area))
           area <- rowSums(error_matrix)
 
      # Compute accuracy metrics using dtwSat::twdtwAssess
@@ -112,43 +112,123 @@ sits_accuracy_area <- function (results.tb, area, conf.int = 0.95, rm.nosample =
 
 }
 
-#' @title Evaluates the accuracy of a labelled set of data
-#' @name sits_accuracy_classif
+#' @title Print the values of a confusion matrix
+#' @name .print_confusion_matrix
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
-#' @description Tests the accuracy of a classification model by comparing an input data set
-#' that has been obtained independently to a the predicted values of the model.
-#' This function can be used to test the accuracy of a classification model against a
-#' data set that is obtained independently. The quality of the accuracy assessment
-#' depends critically of the quality of the input data set, which should be be part of the
-#' data set used for training the model.
-#' This function should be used when the patterns are not directly derived from the samples.
-#' It provides an initial assessment of the validity of using this set of pattern
-#' to classify an area whose samples are given.
-#' This function returns the Overall Accuracy, User's Accuracy,
-#' Producer's Accuracy, error matrix (confusion matrix), and Kappa values.
+#' @description This is an adaptation of the print.confusionMatrix method by the "caret" package
+#' with some of the descriptions adapted for the more common usage in Earth Observation
 #'
-#' @param  data.tb       A sits tibble containing a set of samples with known and trusted labels
-#' @param  class_info.tb A tibble containing classification information
-#' @param  ml_model      A model trained by \code{\link[sits]{sits_train}}
-#' @return assess        Assessment of validation
-#' @export
-sits_accuracy_classif <- function (data.tb, class_info.tb, ml_model) {
+#'
+#' @param x an object of class \code{confusionMatrix}
+#' @param mode a single character string either "sens_spec", "prec_recall", or
+#' "everything"
+#' @param digits number of significant digits when printed
+#' @param \dots optional arguments to pass to \code{print.table}
+#' @return \code{x} is invisibly returned
+#' @seealso \code{\link{confusionMatrix}}
 
-    # does the input data exist?
-    .sits_test_tibble (data.tb)
-    .sits_test_tibble (class_info.tb)
+.print_confusion_matrix <- function(x, mode = "sens_spec", digits = max(3, getOption("digits") - 3), ...){
 
-     # classify data
-     class.tb <- sits_classify (data.tb, class_info.tb, ml_model)
-     # retrieve the reference labels
-     class.tb <- dplyr::mutate (class.tb, reference = label)
+    cat("Confusion Matrix and Statistics\n\n")
+    print(x$table, ...)
 
-     # calculate the accuracy assessment
-     assess <- sits_accuracy(class.tb, pred_sans_ext = TRUE)
+    # round the data to the significant digits
+    overall <- round(x$overall, digits = digits)
 
-     return (invisible (assess))
+    # get the values of the p-index
+    # pIndex <- grep("PValue", names(x$overall))
+    # tmp[pIndex] <- format.pval(x$overall[pIndex], digits = digits)
+    # overall <- tmp
+
+    accCI <- paste("(",
+                   paste( overall[ c("AccuracyLower", "AccuracyUpper")], collapse = ", "), ")",
+                   sep = "")
+
+    overallText <- c(paste(overall["Accuracy"]), accCI, "", paste(overall["Kappa"]))
+
+    overallNames <- c("Accuracy", "95% CI", "", "Kappa")
+
+    if(dim(x$table)[1] > 2){
+        cat("\nOverall Statistics\n")
+        overallNames <- ifelse(overallNames == "",
+                               "",
+                               paste(overallNames, ":"))
+        out <- cbind(format(overallNames, justify = "right"), overallText)
+        colnames(out) <- rep("", ncol(out))
+        rownames(out) <- rep("", nrow(out))
+
+        print(out, quote = FALSE)
+
+        cat("\nStatistics by Class:\n\n")
+        x$byClass <- x$byClass[,grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+                                      colnames(x$byClass))]
+        ass.mx <- t(x$byClass)
+        rownames(ass.mx) <- c("Prod Acc (Sensitivity)", "Specificity", "User Acc (Pos Pred Value)", "Neg Pred Value" )
+        print(ass.mx, digits = digits)
+
+    } else {
+        # this is the case of ony two classes
+        # get the values of the User's and Producer's Accuracy for the two classes
+        # the names in caret are different from the usual names in Earth observation
+        x$byClass <- x$byClass[grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+                                     names(x$byClass))]
+        # get the names of the two classes
+        nm <- row.names(x$table)
+        # the first class (which is called the "positive" class by caret)
+        c1 <- x$positive
+        # the second class
+        c2 <- nm[!(nm == x$positive)]
+        # make up the values of UA and PA for the two classes
+        pa1 <- paste("Prod Acc ", c1)
+        pa2 <- paste("Prod Acc ", c2)
+        ua1 <- paste("User Acc ", c1)
+        ua2 <- paste("User Acc ", c2)
+        names (x$byClass) <- c(pa1, pa2, ua1, ua2)
+
+
+        overallText <- c(overallText,
+                         "",
+                         format(x$byClass, digits = digits))
+        overallNames <- c(overallNames, "", names(x$byClass))
+        overallNames <- ifelse(overallNames == "", "", paste(overallNames, ":"))
+
+        out <- cbind(format(overallNames, justify = "right"), overallText)
+        colnames(out) <- rep("", ncol(out))
+        rownames(out) <- rep("", nrow(out))
+
+        out <- rbind(out, rep("", 2))
+
+        print(out, quote = FALSE)
+    }
+
+    invisible(x)
 }
 
+#' @title Obtains the predicted value of a reference set
+#' @name .sits_pred_ref
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#
+#' @description Obtains a tibble of predicted and reference values from a classified data set
+#'
+#' @param  class.tb       A sits tibble containing a set of classified samples whose labels are known
+#' @return pred_ref.tb    A tibble with predicted and reference values
+.sits_pred_ref <- function (class.tb) {
 
+    # does the input data exist?
+    ensurer::ensure_that(class.tb, "predicted" %in% names(.), err_desc = "sits_conf_matrix: input data does not contain predicted values")
 
+    # retrieve the predicted values
+    pred.vec <- unlist(purrr::map(class.tb$predicted, function(r) r$class))
+
+    # retrieve the reference labels
+    ref.vec <- class.tb$label
+    # does the input data contained valid reference labels?
+    ensurer::ensure_that(ref.vec, !("NoClass" %in% (.)), err_desc = "sits_accuracy: input data does not contain reference values")
+
+    # build the tibble
+    pred_ref.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
+
+    # return the tibble
+    return (pred_ref.tb)
+}

@@ -1,0 +1,54 @@
+---
+title: "SITS - An R Package for Data Analysis and Machine Learning
+    using Satellite Image Time Series"
+author:
+  - name: Rolf Simoes
+    email: rolf.simoes@inpe.br 
+    affiliation: 1
+    corresponding: rolf.simoes@inpe.br
+  - name: Gilberto Camara
+    affiliation: 1
+    email: gilberto.camara@inpe.br 
+  - name: Alexandre Ywata de Carvalho
+    email: alexandre.carvalho@ipea.gov.br
+    affiliation: 2
+  - name: Victor Maus
+    email: victor.maus@iiasa.ac.at
+    affiliation: 3
+address:
+  - code: 1
+    address: National Institute for Space Research (INPE), Image Processing Division, Av dos Astronautas 1758, Sao Jose dos Campos, SP, 12227-001, Brazil
+  - code: 2
+    address: Institute for Applied Economics Research (IPEA), Department of Urban and Regional Studies, SBS - Quadra 1 - Bloco J, Brasilia, DF, 70076-900, Brazil
+  - code: 3
+    address: International Institute for Applied System Analysis (IIASA), Schlossplatz 2, Laxenburg, 2361, Austria
+     
+abstract: |
+  Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. The SITS package provides support on how to use statistical learning techniques with image time series. These methods include linear and quadratic discrimination analysis, support vector machines, random forests and neural networks.
+  
+author_summary: |
+  Rolf Simoes is a PhD candidate at the Computer Science program at INPE. Gilberto Camara is an emeritus researcher at INPE. Alexandre Ywata is a senior researcher at INPE. Victor Maus is a research scholar at IIASA.
+bibliography: references-sits.bib
+output: rticles::plos_article
+csl: plos.csl
+
+---
+```{r include = FALSE}
+library(sits)
+```
+# Introduction 
+```{r, child='sec_introd.Rmd'}
+```
+# Data Handling in SITS
+```{r, child='sec_data.Rmd'}
+```
+
+# Using the Web Time Series Service WTSS
+```{r, child='sec_import.Rmd'}
+```
+
+\section*{Acknowledgments}
+This work is supported by the São Paulo State Foundation (FAPESP) under grant 2014/08398-6 ("e-sensing: Big Earth observation data analytics for land use and land cover change information"), and by the Germany International Klimate Initiative under the RESTORE+ grant17_III_084_Global_A_RESTORE+ (“RESTORE+: Addressing Landscape Restoration on Degraded Land in Indonesia and Brazil”).  Gilberto Camara's work is also supported by CNPq (grant 312151\/2014-4).
+
+
+# References {#references .unnumbered}

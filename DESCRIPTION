@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.9.17
-Date: 2017-09-17
+Version: 0.11.24
+Date: 2017-11-24
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut', 'cre'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
@@ -61,13 +61,11 @@ Imports:
     sf,
     signal,
     snow,
-    sp,
     stats,
     tibble,
     tidyr,
     tools,
     utils,
-    wtsps,
     TSdist,
     zoo,
     wtss,
@@ -76,21 +74,16 @@ LinkingTo:
     Rcpp
 Remotes:
     e-sensing/wtss,
-    e-sensing/wtsps,
     rolfsimoes/dtwSat
 RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'
-    'sits_SCIDB.R'
     'sits_TWDTW.R'
-    'sits_TWDTW_plot.R'
-    'sits_WTSPS.R'
     'sits_WTSS.R'
     'sits_accuracy.R'
     'sits_classification.R'
     'sits_cluster.R'
     'sits_colors.R'
-    'sits_confusion_matrix.R'
     'sits_data_table.R'
     'sits_dendrogram.R'
     'sits_distances.R'
@@ -119,3 +112,4 @@ Collate:
 Suggests: knitr,
     rmarkdown,
     testthat
+VignetteBuilder: knitr

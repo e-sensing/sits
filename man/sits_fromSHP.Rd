@@ -4,22 +4,21 @@
 \alias{sits_fromSHP}
 \title{Obtain timeSeries from WTSS server, based on a SHP file.}
 \usage{
-sits_fromSHP(shp_file, wtss.obj, cov, bands, start_date, end_date, label)
+sits_fromSHP(shp_file, URL, coverage.tb, bands, start_date = NULL,
+  end_date = NULL)
 }
 \arguments{
 \item{shp_file}{string  - name of a SHP file which provides the boundaries of a region of interest}
 
-\item{wtss.obj}{WTSS object - the WTSS object that describes the WTSS server}
+\item{URL}{string - the URL of WTSS (Web Time Series Service)}
 
-\item{cov}{list - a list with coverage information (retrieved from the WTSS)}
+\item{coverage.tb}{metadata describing the coverage}
 
 \item{bands}{string vector - the names of the bands to be retrieved}
 
 \item{start_date}{date - the start of the period}
 
 \item{end_date}{date - the end of the period}
-
-\item{label}{string - the label to attach to the time series}
 }
 \value{
 table          a SITS tibble

@@ -1,7 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 .travis.yml$
-vignettes/.texpadtmp$
 ^packrat/
 ^\.Rprofile$
 ^\.tmp$

@@ -49,6 +49,8 @@ sits_getdata <- function (raster.tb   = NULL,
                           n_max       = Inf,
                           ignore_dates = FALSE) {
 
+
+
      # a JSON file has all the data and metadata - no need to access the WTSS server
     if  (!purrr::is_null (file) && tolower(tools::file_ext(file)) == "json"){
           data.tb <- sits_fromJSON (file)
@@ -80,6 +82,9 @@ sits_getdata <- function (raster.tb   = NULL,
      #retrieve coverage information
      cov <- sits_getcovWTSS(URL, coverage)
 
+     # get information about a specific coverage
+     coverage.tb <- sits_coverageWTSS(URL, coverage)
+
      # get data based on latitude and longitude
      if (purrr::is_null (file) && purrr::is_null (raster.tb) && !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
           data.tb <- sits_fromLatLong (longitude, latitude, start_date, end_date, wtss.obj, cov, bands)
@@ -92,7 +97,7 @@ sits_getdata <- function (raster.tb   = NULL,
      }
      # get data based on SHP file
      if (!purrr::is_null (file) && tolower(tools::file_ext(file)) == "shp") {
-          data.tb <- sits_fromSHP (file, wtss.obj, cov, bands, start_date, end_date, label)
+          data.tb <- sits_fromSHP (file, coverage.tb, bands, start_date, end_date, label)
           return (data.tb)
      }
      message (paste ("No valid input to retrieve time series data!!","\n",sep=""))
@@ -275,111 +280,52 @@ sits_fromRaster <- function (raster.tb, file = NULL, longitude = NULL, latitude 
 #' temporal resolution from the WTSS configuration.
 #'
 #'
-#' @param shp_file   string  - name of a SHP file which provides the boundaries of a region of interest
-#' @param wtss.obj        WTSS object - the WTSS object that describes the WTSS server
-#' @param cov             list - a list with coverage information (retrieved from the WTSS)
+#' @param shp_file        string  - name of a SHP file which provides the boundaries of a region of interest
+#' @param URL             string - the URL of WTSS (Web Time Series Service)
+#' @param coverage.tb     metadata describing the coverage
 #' @param bands           string vector - the names of the bands to be retrieved
 #' @param start_date      date - the start of the period
 #' @param end_date        date - the end of the period
-#' @param label           string - the label to attach to the time series
 #' @return table          a SITS tibble
 #' @export
-sits_fromSHP <- function (shp_file, wtss.obj, cov, bands, start_date, end_date, label) {
+#'
+sits_fromSHP <- function (shp_file, URL, coverage.tb, bands, start_date = NULL, end_date = NULL) {
 
-     # build grid points in Sinusoidal
-     buildGridPoints <- function(points_Sinu.sp) {
+    # read the shapefile
+    sf_shape <- sf::read_sf(shp_file)
+    # get the bounding box
+    bbox <- sf::st_bbox (sf_shape)
 
-          # pixel size Sinusoidal according to the gdalinfo
-          # this should be changed to use information from "describeCoverage" (ATTENTION)
-          pixel_size_Sinu <- 231.656358263958
+    shape.tb <- sits_tibble()
+    label <- "NoClass"
+    # retrieve the wtss.obj
+    wtss.obj <- coverage.tb$wtss.obj[[1]]
 
-          # bounding box of sinusoidal points
-          bb_Sinu.num <- sp::bbox(points_Sinu.sp)
+    #retrieve coverage information
+    cov <- sits_getcovWTSS(URL, coverage.tb$name)
 
-          # define coordinates by resolution according to the bounding box + one pixel size
-          long.num <- seq(from=bb_Sinu.num[1],
-                          to=bb_Sinu.num[3],
-                          by=pixel_size_Sinu)
+    # adjust start and end dates
+    if (purrr::is_null (start_date)) start_date <- as.Date (coverage.tb$start_date)
+    if (purrr::is_null (end_date)) end_date <- as.Date (coverage.tb$end_date)
 
-          lat.num <- seq(from=bb_Sinu.num[2],
-                         to=bb_Sinu.num[4],
-                         by=pixel_size_Sinu)
-
-          # build the latitude and longitude
-          coordinates.sp <- sp::SpatialPoints(data.frame(longitude = rep(long.num,
-                                                                         each=length(lat.num)),
-                                                         latitude = rep(lat.num,
-                                                                        length(long.num))),
-                                              proj4string=sp::CRS(sp::proj4string(points_Sinu.sp)))
-
-          coordinates.sp
-
-     }
-
-     # spatial points to sits tibble
-     sp2SitsTable <- function(coordinates.sp){
-
-          # using the WTSS
-          sits_points.tb <- sits_tibble()
-
-          # fill rows with coordinates
-          sits_points.tb <- tibble::add_row(sits_points.tb,
-                                            longitude = coordinates.sp@coords[,1],
-                                            latitude = coordinates.sp@coords[,2])
-
-          sits_points.tb
-
-     }
-
-     # sitsTable longitude and latitude to crs shapefile
-     sitsTable2sp <- function(points.tb){
-
-          points.sp <-  sp::SpatialPoints(data.frame(points.tb$longitude,
-                                                     points.tb$latitude),
-                                          proj4string=sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
-
-          points.sp
-
-     }
-
-     # extract latitude and longitude values of sits points from polygon
-     extractFromPolygon <- function(points.sp, roi.shp) {
-
-          # subset of points.sp
-          points.sp <- points.sp[!is.na(sp::over(points.sp, methods::as(roi.shp, "SpatialPolygons")) == 1)]
-
-          points.sp
-
-     }
-
-     # read shapefile and get first point time series
-     roi.shp <- raster::shapefile(shp_file)
-     roi.shp <- sp::spTransform(roi.shp, sp::CRS("+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"))
-     pt.df <- data.frame(longitude = sp::bbox(roi.shp)[1,], latitude = sp::bbox(roi.shp)[2,])
-     pt.sp <- sp::SpatialPoints(pt.df, sp::CRS(sp::proj4string(roi.shp)))
-     pt.sp <- sp::spTransform(pt.sp, sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
-     pt.tb <- sp2SitsTable(pt.sp)
-     pt_wtss.tb <- pt.tb %>%
-          dplyr::rowwise() %>%
-          dplyr::do (sits_fromWTSS (.$longitude, .$latitude, start_date, end_date, label, wtss.obj, cov, bands))
-
-     # transform grid points in Sinusoidal into WGS
-     pt_wtss.sp <- sitsTable2sp(pt_wtss.tb)
-     pt_wtss.sp <- sp::spTransform(pt_wtss.sp, sp::CRS("+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"))
-     grid_pts.sp <- buildGridPoints(pt_wtss.sp)
-     # transform WGS sp into sits table to get data from server
-     plg_pts.sp <- extractFromPolygon(grid_pts.sp, roi.shp)
-     if (nrow(plg_pts.sp@coords)) {
-         plg_pts.sp <- sp::spTransform(plg_pts.sp, sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
-         plg_pts.tb <- sp2SitsTable(plg_pts.sp)
-         wtss_points.tb <- plg_pts.tb %>%
-               dplyr::rowwise() %>%
-               dplyr::do (sits_fromWTSS (.$longitude, .$latitude, start_date, end_date, label, wtss.obj, cov, bands))
-     } else
-          wtss_points.tb <- sits_tibble()
-
-     return (wtss_points.tb)
+    # recover the bounding boxes
+    longitude <- bbox["xmin"]
+    while (longitude <= bbox["xmax"] ){
+        latitude  <- bbox["ymin"]
+        while (latitude <= bbox["ymax"]){
+            ll <- sf::st_point(c(longitude, latitude))
+            if (1 %in% as.logical (unlist(sf::st_within(ll, sf_shape)))) {
+                row <- sits_fromWTSS (longitude, latitude, start_date, end_date, label, wtss.obj, cov, bands)
+                shape.tb <- dplyr::bind_rows(shape.tb, row)
+            }
+            latitude <-  latitude + coverage.tb$yres
+        }
+        longitude <- longitude + coverage.tb$xres
+    }
+    return (shape.tb)
 }
+
+
 
 #' @title Obtain one timeSeries from WTSS server and load it on a sits tibble
 #' @name sits_fromWTSS

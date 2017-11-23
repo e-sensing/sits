@@ -87,7 +87,7 @@ sits_toZOO <- function (ts.tb, band = NULL){
 }
 
 #' @title Export data to be used by the dtwSat package
-#' @name sits_toTWDTW
+#' @name .sits_toTWDTW
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -97,7 +97,7 @@ sits_toZOO <- function (ts.tb, band = NULL){
 #'
 #' @param  data.tb       a table in SITS format with time series to be converted to TWTDW time series
 #' @return ts.twdtw      a time series in TWDTW format (an object of the twdtwTimeSeries class)
-sits_toTWDTW <- function (data.tb){
+.sits_toTWDTW <- function (data.tb){
     # transform each sits time series into a list of zoo
     ts <- data.tb$time_series %>%
         purrr::map(function (ts) zoo::zoo(ts[,2:ncol(ts), drop=FALSE], ts$Index))
@@ -108,7 +108,7 @@ sits_toTWDTW <- function (data.tb){
     return (ts.twdtw)
 }
 #' @title Export data to be used by the dtwSat package
-#' @name sits_toTWDTW_matches
+#' @name .sits_toTWDTW_matches
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Converts data from a SITS table to an instance of a TWDTW matches class,
@@ -118,10 +118,10 @@ sits_toTWDTW <- function (data.tb){
 #' @param  patterns.tb   patterns SITS tibble used to matching
 #' @return ts.twdtw      a time series in TWDTW format (an object of the twdtwTimeSeries class)
 #'
-sits_toTWDTW_matches <- function(data.tb, patterns.tb){
+.sits_toTWDTW_matches <- function(data.tb, patterns.tb){
     # compute patterns dtwSat::twdtwTimeSeries object
     pat.twdtw <- patterns.tb %>%
-        sits_toTWDTW()
+        .sits_toTWDTW()
 
     # traverse data.tb and, for each row, create a list of dtwSat::twdtwMatches objects
     data.tb %>%
@@ -148,7 +148,7 @@ sits_toTWDTW_matches <- function(data.tb, patterns.tb){
 
             # generate a dtwSat::twdtwTimeSeries object for the correspondent time series matched by patterns
             ts.twdtw <- row.tb %>%
-                sits_toTWDTW()
+                .sits_toTWDTW()
 
             # with all required information, creates a new dtwSat::twdtwMatches object for this row
             ts.twdtw <- methods::new("twdtwMatches", timeseries = ts.twdtw,
