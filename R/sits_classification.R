@@ -28,7 +28,7 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_model = 
     ref_dates.lst <- class_info.tb$ref_dates[[1]]
 
     # obtain the distances from the data
-    distances.tb <- sits_distances_from_data(data.tb)
+    distances.tb <- sits_distances(data.tb)
 
     # create a list to store the predicted results
     predict.lst <- .sits_classify_distances (distances.tb, class_info.tb, ml_model, multicores)
@@ -146,14 +146,11 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_model = 
 #'
 #' @description Takes a set of spatio-temporal raster bricks, whose metadata is
 #'              described by tibble (created by \code{\link[sits]{sits_fromRaster}}),
-#'              the information on classification intervals (created by \code{\link[sits]{sits_class_info}}),
-#'              a prediction model (created by \code{\link[sits]{sits_train}}), and
-#'              a method to extract shape attributes from time_series (used by  \code{\link[sits]{sits_distances_from_data}} ),
+#'              a set of samples used for training a classification model,
+#'              a prediction model (created by \code{\link[sits]{sits_train}}),
 #'              and produces a classified set of RasterLayers. This function is similar to
 #'               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
 #'
-#' The sits_classify_raster function assumes that, when
-#' tranining the model, the user has called the \code{\link[sits]{sits_distances_from_data}} function.
 #'
 #' @param  raster.tb       a tibble with information about a set of space-time raster bricks
 #' @param  file            a set of file names to store the output (one file per classified year)

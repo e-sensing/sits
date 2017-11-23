@@ -32,7 +32,7 @@ embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
 # CLASSIFICATION USING DISTANCES FROM DATA
 
 # estimate distances
-distances_data.tb <- sits_distances_from_data(embrapa.tb)
+distances_data.tb <- sits_distances(embrapa.tb)
 
 # estimate an SVM model for this training data
 model_svm.ml <- sits_svm(distances_data.tb, kernel = "radial", cost = 10)

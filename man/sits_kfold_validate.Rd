@@ -4,16 +4,13 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate temporal patterns}
 \usage{
-sits_kfold_validate(data.tb, folds = 5,
-  dist_method = sits_distances_from_data(), tr_method = sits_svm(),
+sits_kfold_validate(data.tb, folds = 5, tr_method = sits_svm(),
   multicores = 1)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
 
 \item{folds}{number of partitions to create.}
-
-\item{dist_method}{method to compute distances (e.g., sits_TWDTW_distances)}
 
 \item{tr_method}{machine learning training method}
 

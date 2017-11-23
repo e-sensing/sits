@@ -1,5 +1,5 @@
 #' @title Brewer color schemes
-#' @name sits_plot_title
+#' @name sits_color_nama
 #'
 #' @description brewer color schemes names to be used with `sits_plot_dendrogram`
 #'

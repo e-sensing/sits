@@ -4,14 +4,16 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Evaluates the confusion matrix based on "reference" and "predicted" values
+#' provided in a SITS tibble that has been classified. Please run \code{\link[sits]{sits_classify}}
+#' and take its output as input to this function.
 #' This function returns the Overall Accuracy, User's Accuracy,
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 #'
 #'
-#' @param  class.tb      A sits tibble containing a set of classified samples whose labels are known
-#' @param conv.lst       A list conversion list of labels. If NULL no conversion is done.
-#' @param pred_sans_ext  (Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
-#' @return caret_assess  a confusion matrix assessment produced by the caret package
+#' @param  class.tb        A sits tibble containing a set of classified samples whose labels are known
+#' @param  conv.lst        A list conversion list of labels. If NULL no conversion is done.
+#' @param  pred_sans_ext  (boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
+#' @return caret_assess   a confusion matrix assessment produced by the caret package
 #'
 #' @export
 sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE){

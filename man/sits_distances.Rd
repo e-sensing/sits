@@ -2,27 +2,25 @@
 % Please edit documentation in R/sits_distances.R
 \name{sits_distances}
 \alias{sits_distances}
-\title{Calculate a set of distance measures for satellite image time series}
+\title{Use time series values from a sits tibble as distances for training patterns}
 \usage{
-sits_distances(data.tb, pt_method = sits_gam(),
-  dist_method = sits_distances_from_data())
+sits_distances(data.tb = NULL, shift = 3)
 }
 \arguments{
-\item{data.tb}{SITS tibble time series}
+\item{data.tb}{a SITS tibble with original data}
 
-\item{pt_method}{Method used for calculating the patterns}
-
-\item{dist_method}{Method for calculating distances between time series}
+\item{shift}{Adjustment value to avoid negative pixel vales}
 }
 \value{
-result          Set of distance metrics
+distances.tb  a tibble where columns have the reference label and the time series values as distances
 }
 \description{
-This function allows the user to select different alternatives to define a set of
-distances between a set of satellite image time series and a set of patterns.
- The alternatives are:
-"TWTDTW"    - uses the TWDTW (time-weighted dynamic time warping)
-other methods as used by the TSdist package
+This function allows using a set of labelled time series as
+input to the machine learning models. Instead of first estimating a set
+of idealised patterns and then computing distances from these patterns,
+the attributes used to train the model are the series themselves.
+This function then extracts the time series from a SITS tibble and
+"spreads" them in time to produce a tibble with distances.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

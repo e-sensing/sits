@@ -6,8 +6,8 @@ Date: 2017-11-24
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut', 'cre'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
+             person('Alexandre', 'Carvalho', role = c('aut', 'ctb')),
              person('Luiz', 'Assis', role = c('ctb')),
-             person('Alexandre', 'Carvalho', role = c('ctb')),
              person('Adeline', 'Marinho', role = c('ctb')),
              person('Lorena', 'Santos', role = c('ctb')),
              person('Gilberto', 'Queiroz', role = c('ctb'))
@@ -63,10 +63,8 @@ Imports:
     snow,
     stats,
     tibble,
-    tidyr,
     tools,
     utils,
-    TSdist,
     zoo,
     wtss,
     dtwSat
@@ -84,7 +82,6 @@ Collate:
     'sits_classification.R'
     'sits_cluster.R'
     'sits_colors.R'
-    'sits_data_table.R'
     'sits_dendrogram.R'
     'sits_distances.R'
     'sits_export.R'

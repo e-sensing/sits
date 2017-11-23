@@ -30,14 +30,10 @@ raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 \description{
 Takes a set of spatio-temporal raster bricks, whose metadata is
              described by tibble (created by \code{\link[sits]{sits_fromRaster}}),
-             the information on classification intervals (created by \code{\link[sits]{sits_class_info}}),
-             a prediction model (created by \code{\link[sits]{sits_train}}), and
-             a method to extract shape attributes from time_series (used by  \code{\link[sits]{sits_distances_from_data}} ),
+             a set of samples used for training a classification model,
+             a prediction model (created by \code{\link[sits]{sits_train}}),
              and produces a classified set of RasterLayers. This function is similar to
               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
-
-The sits_classify_raster function assumes that, when
-tranining the model, the user has called the \code{\link[sits]{sits_distances_from_data}} function.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

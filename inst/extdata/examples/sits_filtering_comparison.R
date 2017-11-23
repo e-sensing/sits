@@ -27,7 +27,7 @@ prodes_patterns.tb <- sits_patterns(prodes.tb)
 sits_plot(prodes_patterns.tb, type = "patterns")
 
 #cross_validate raw series
-conf.tb <- sits_kfold_fast_validate (prodes.tb, folds = 2, timeline = timeline)
+conf.tb <- sits_kfold_validate (prodes.tb, folds = 2, timeline = timeline)
 
 #evaluate the accuracy of the classification
 sits_conf_matrix(conf.tb)
@@ -56,7 +56,7 @@ sg1 %>%
      sits_select (bands = c("ndvi", "ndvi.sg")) %>%
      sits_plot()
 
-conf_sg.tb <- sits_kfold_fast_validate (prodes_sg.tb, folds = 2, timeline = timeline)
+conf_sg.tb <- sits_kfold_validate (prodes_sg.tb, folds = 2, timeline = timeline)
 
 #evaluate the accuracy of the classification
 sits_conf_matrix(conf_sg.tb)
@@ -76,7 +76,7 @@ w1 %>%
     sits_select (bands = c("ndvi", "ndvi.with")) %>%
     sits_plot()
 
-conf_whit.tb <- sits_kfold_fast_validate (prodes_whit.tb, folds = 2, timeline = timeline)
+conf_whit.tb <- sits_kfold_validate (prodes_whit.tb, folds = 2, timeline = timeline)
 
 #evaluate the accuracy of the classification
 sits_conf_matrix(conf_whit.tb)
