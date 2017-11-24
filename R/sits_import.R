@@ -8,9 +8,11 @@
 #' from the WTSS service
 #' (b) The source is a CSV file - retrieves the metadata from the CSV file and the data
 #' from the WTSS service
-#' (c) The source is a JSON file - retrieves the metadata and data from the JSON file.
-#' (d) The source is a gz file (compressed JSON file) - retrieves the metadata and data from the compressed JSON file.
-#' (e) No source is given - it retrieves the data based on <long, lat, wtss>
+#' (c) The source is a SHP file - retrives all points inside the shapefile from the WTSS service
+#' (d) The source is a JSON file - retrieves the metadata and data from the JSON file.
+#' (e) The source is a gz file (compressed JSON file) - retrieves the metadata and data from the compressed JSON file.
+#' (f) The source is a RasterBrick - retrieves the point based on lat/long from the RasterBrick
+#' (g) No source is given - it retrieves the data based on <long, lat, wtss>
 #' A sits tibble has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
@@ -286,10 +288,11 @@ sits_fromRaster <- function (raster.tb, file = NULL, longitude = NULL, latitude 
 #' @param bands           string vector - the names of the bands to be retrieved
 #' @param start_date      date - the start of the period
 #' @param end_date        date - the end of the period
+#' @param label           string - the label to attach to the time series
 #' @return table          a SITS tibble
 #' @export
 #'
-sits_fromSHP <- function (shp_file, URL, coverage.tb, bands, start_date = NULL, end_date = NULL) {
+sits_fromSHP <- function (shp_file, URL, coverage.tb, bands, start_date = NULL, end_date = NULL, label = NULL ) {
 
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)

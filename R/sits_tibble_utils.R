@@ -300,11 +300,11 @@
 #' @description Create a tibble to store the results of predictions
 #' @param  data.tb         a tibble with the input data
 #' @param  class_info.tb   a tibble with the information on classification
-#' @param  class.lst       the result of the classification (one class per row per interval)
+#' @param  pred.vec        the result of the classification (one class per row per interval)
 #' @param  interval        the time interval between two classifications
 #' @return predic.tb       a tibble to store the predictions
 #'
-.sits_tibble_prediction <- function (data.tb, class_info.tb, class.lst, interval){
+.sits_tibble_prediction <- function (data.tb, class_info.tb, class.vec, interval){
 
     # retrieve the list of reference dates
     # this list is a global one and it is created based on the samples
@@ -341,7 +341,7 @@
                     from      = as.Date(ref_dates.lst[[d]][1]),
                     to        = as.Date(ref_dates.lst[[d]][2]),
                     distance  =  0.0,
-                    class     = class.lst[[1]][class_idx]
+                    class     = pred.vec[class_idx]
                     )
                 class_idx  <<- class_idx + 1
             }

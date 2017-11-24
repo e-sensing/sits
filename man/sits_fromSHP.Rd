@@ -5,7 +5,7 @@
 \title{Obtain timeSeries from WTSS server, based on a SHP file.}
 \usage{
 sits_fromSHP(shp_file, URL, coverage.tb, bands, start_date = NULL,
-  end_date = NULL)
+  end_date = NULL, label = NULL)
 }
 \arguments{
 \item{shp_file}{string  - name of a SHP file which provides the boundaries of a region of interest}
@@ -19,6 +19,8 @@ sits_fromSHP(shp_file, URL, coverage.tb, bands, start_date = NULL,
 \item{start_date}{date - the start of the period}
 
 \item{end_date}{date - the end of the period}
+
+\item{label}{string - the label to attach to the time series}
 }
 \value{
 table          a SITS tibble
