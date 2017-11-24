@@ -1,12 +1,11 @@
 #' @title Obtains the timeline for a coverage
-#' @name sits_timeline
+#' @name .sits_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function returns the timeline for a given coverage
 #'
 #' @param  data.tb  A sits tibble (either a SITS tibble or a raster metadata)
-#' @export
-sits_timeline <- function (data.tb){
+.sits_timeline <- function (data.tb){
 
     timeline <-  NULL
     # is this a raster metadata?

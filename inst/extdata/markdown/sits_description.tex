@@ -604,6 +604,33 @@ same external interface.
 \NormalTok{lat <-}\StringTok{ }\OperatorTok{-}\FloatTok{11.50566}
 \CommentTok{# obtain a time series from the WTSS server for this point}
 \NormalTok{series.tb <-}\StringTok{ }\KeywordTok{sits_getdata}\NormalTok{(}\DataTypeTok{longitude =}\NormalTok{ long, }\DataTypeTok{latitude =}\NormalTok{ lat, }\DataTypeTok{URL =}\NormalTok{ URL, }\DataTypeTok{coverage =} \StringTok{"mod13q1_512"}\NormalTok{, }\DataTypeTok{bands =}\NormalTok{ bands)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## ----------------------------------------------------------------------------------
+## Coverage: mod13q1_512
+## Description: Vegetation Indices 16-Day L3 Global 250m
+## Source: https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1
+## Bands: 
+##   name                            description
+## 1 ndvi                      250m 16 days NDVI
+## 2  evi                       250m 16 days EVI
+## 3  red  250m 16 days red reflectance (Band 1)
+## 4  nir  250m 16 days NIR reflectance (Band 2)
+## 5 blue 250m 16 days blue reflectance (Band 3)
+## 6  mir  250m 16 days MIR reflectance (Band 7)
+## 
+## Spatial extent: (-180, -90) - (180, 90)
+## Spatial resolution: (0.00208334, 0.00208334)
+## Projection CRS: +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs
+## Time range: 2000-02-18 to 2017-02-18
+## Temporal resolution: 16 days 
+## ----------------------------------------------------------------------------------
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \CommentTok{# plot the series}
 \KeywordTok{sits_plot}\NormalTok{ (series.tb)}
 \end{Highlighting}

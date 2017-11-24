@@ -128,9 +128,9 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_model = 
     if (multicores > 1) {
         blocks.lst <- split.data.frame(distances.tb, cut(1:nrow(distances.tb),multicores, labels = FALSE))
         # apply parallel processing to the split dat
-        results <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
+        results.lst <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
 
-        pred.vec <- join_blocks(results)
+        pred.vec <- join_blocks(results.lst)
     }
     else
         pred.vec <- classify_block(distances.tb)
@@ -330,7 +330,7 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_model 
 .sits_class_info <- function (data.tb, samples.tb, interval){
 
     # find the timeline
-    timeline <- sits_timeline (data.tb)
+    timeline <- .sits_timeline (data.tb)
 
     # find the labels
     labels <- sits_labels(samples.tb)$label

@@ -40,7 +40,6 @@ Imports:
     glmnet,
     graphics,
     grDevices,
-    h2o,
     kohonen,
     jsonlite,
     lubridate,

@@ -11,7 +11,6 @@ wtss_inpe <- sits_infoWTSS(URL)
 
 # get information about a specific coverage
 coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
-timeline  <- sits_timeline (coverage.tb)
 
 # choose a coverage
 coverage <- "mod13q1_512"
@@ -34,7 +33,7 @@ embrapa_mt.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", packa
 # obtain a set of patterns for these samples
 patterns.tb <- sits_patterns(embrapa_mt.tb)
 
-sits_plot (patterns.tb, type = "patterns")
+sits_plot (patterns.tb)
 
 # find the matches between the patterns and the time series using the TWDTW algorithm
 # (uses the dtwSat R package)
