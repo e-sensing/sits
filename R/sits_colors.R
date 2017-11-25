@@ -152,7 +152,7 @@ sits_colors <- function(brewer, n = 3){
                     purrr::map(function(n) length(n)) %>%
                     as.numeric()) > 1)
           }))
-     return(sum((.sits_brewerRGB[[sits_color_name(brewer)]] %>%
+     return(sum((.sits_brewerRGB[[.sits_color_name(brewer)]] %>%
                       purrr::map(function(n) length(n)) %>%
                       as.numeric()) > 1))
 }

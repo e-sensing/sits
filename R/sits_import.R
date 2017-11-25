@@ -311,20 +311,21 @@ sits_fromSHP <- function (shp_file, URL, coverage.tb, bands, start_date = NULL, 
     if (purrr::is_null (start_date)) start_date <- as.Date (coverage.tb$start_date)
     if (purrr::is_null (end_date)) end_date <- as.Date (coverage.tb$end_date)
 
-    # recover the bounding boxes
-    longitude <- bbox["xmin"]
-    while (longitude <= bbox["xmax"] ){
-        latitude  <- bbox["ymin"]
-        while (latitude <= bbox["ymax"]){
-            ll <- sf::st_point(c(longitude, latitude))
-            if (1 %in% as.logical (unlist(sf::st_within(ll, sf_shape)))) {
-                row <- sits_fromWTSS (longitude, latitude, start_date, end_date, label, wtss.obj, cov, bands)
-                shape.tb <- dplyr::bind_rows(shape.tb, row)
-            }
-            latitude <-  latitude + coverage.tb$yres
-        }
-        longitude <- longitude + coverage.tb$xres
-    }
+    # setup the vectors of latitudes and longitudes
+    longitudes <- seq(from = bbox["xmin"], to = bbox["xmax"], by = coverage.tb$xres)
+    latitudes  <- seq(from = bbox["ymin"], to = bbox["ymax"], by = coverage.tb$yres)
+
+    longitudes %>%
+        purrr::map (function (long){
+            latitudes %>%
+                purrr::map (function (lat){
+                    ll <- sf::st_point(c(long, lat))
+                    if (1 %in% as.logical (unlist(sf::st_within(ll, sf_shape)))) {
+                        row <- sits_fromWTSS (long, lat, start_date, end_date, label, wtss.obj, cov, bands)
+                        shape.tb <<- dplyr::bind_rows(shape.tb, row)
+                    }
+                })
+        })
     return (shape.tb)
 }
 

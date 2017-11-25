@@ -91,8 +91,8 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_model = 
     # classify a block of data
     classify_block <- function (distances.tb) {
         # create a list to get the predictions
-        pred_block.lst <- list()
-        # create a list to store the rows
+
+                # create a list to store the rows
         row.lst <- list()
         # create a block of distances to be classified
         for (r in 1:nrow(distances.tb)){
@@ -120,7 +120,7 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_model = 
         pred.vec <- vector()
         blocks.lst %>%
             purrr::map (function (block){
-                pred.vec <- c(pred.vec, block )
+                pred.vec <<- c(pred.vec, block )
             })
         return (pred.vec)
     }

@@ -19,18 +19,15 @@ coverage <- "mod13q1_512"
 bands <- c("ndvi", "evi", "nir", "mir")
 
 # shapefile
-shp_file <- system.file("extdata/shapefiles/sao_pedro_da_cipa/sao_pedro_da_cipa.shp", package = "sits")
+shp_file <- system.file("extdata/shapefiles/anhanguera/anhanguera.shp", package = "sits")
 
-sao_pedro.tb <- sits_fromSHP(shp_file, URL, coverage.tb, bands)
-
-# select the ndvi and evi bands
-sao_pedro.tb <- sits_select(sao_pedro.tb, bands = c("ndvi", "evi"))
+munic.tb <- sits_fromSHP(shp_file, URL, coverage.tb, bands)
 
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 
 # select the bands for classification
-embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi"))
+embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
 # train a model
 distances.tb <- sits_distances(embrapa.tb)
@@ -38,15 +35,6 @@ distances.tb <- sits_distances(embrapa.tb)
 model_svm.ml <- sits_svm (distances.tb)
 
 # classify the data
-class.tb <- sits_classify(sao_pedro.tb[1:10,], embrapa.tb, model_svm.ml, multicores = 2)
+class.tb <- sits_classify(munic.tb[1:2,], embrapa.tb, model_svm.ml, multicores = 2)
 
-# obtain indepedent samples
-data.tb <- readRDS("./inst/extdata/time_series/cerrado_agriculture.rds")
 
-data.tb <- sits_select(data.tb, bands = c("ndvi", "evi"))
-
-# classify the samples
-class.tb <- sits_classify(data.tb, embrapa.tb, model_svm.ml)
-
-# get confusion matrix
-conf.mx <- sits_conf_matrix(class.tb)
