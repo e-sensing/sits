@@ -50,7 +50,7 @@ sits_labels(samples2.tb)
 ```
 
 Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions of the `dplyr`, `tidyr` and `purrr` packages of the "tidyverse" [@Wickham2017] to process the data. For example, the following example uses the `sits_select` function to get a subset of the sample data set with two bands ("ndvi" and "evi") and then uses the `dplyr::filter` function to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot` function to display the time series. Given a small number of samples to display, the `sits_plot` function tries to group as many spatial locations together. In the following example, the first 15 samples of the "Cerrado" class all refer to the same spatial location in consecutive times. For this reason, these samples are plotted together.
-```{r, fig.align="center", fig.height=3.1, fig.width=5}
+```{r fig.align="center", fig.height=3.1, fig.width=5}
 # select the "ndvi" bands
 samples_ndvi.tb <- sits_select(samples.tb, bands = c("ndvi"))
 # select only the samples with the cerrado label

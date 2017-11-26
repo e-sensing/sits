@@ -85,7 +85,7 @@ sits_getdata <- function (raster.tb   = NULL,
      cov <- sits_getcovWTSS(URL, coverage)
 
      # get information about a specific coverage
-     coverage.tb <- sits_coverageWTSS(URL, coverage)
+     coverage.tb <- sits_coverageWTSS(URL, coverage, .show = FALSE)
 
      # get data based on latitude and longitude
      if (purrr::is_null (file) && purrr::is_null (raster.tb) && !purrr::is_null(latitude) && !purrr::is_null(longitude)) {

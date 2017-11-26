@@ -36,6 +36,10 @@ Hastie, T., Tibshirani, R. \harvardand\ J., F.  \harvardyearleft
   2009\harvardyearright , {\em The Elements of Statistical Learning. Data
   Mining, Inference, and Prediction}, Springer, New York.
 
+\harvarditem{Hijmans}{2015}{Hijmans2015}
+Hijmans, R.~J.  \harvardyearleft 2015\harvardyearright , {\em raster:
+  Geographic Data Analysis and Modeling}.
+
 \harvarditem[James et~al.]{James, Witten, Hastie \harvardand\
   Tibshirani}{2013}{James2013}
 James, G., Witten, D., Hastie, T. \harvardand\ Tibshirani, R.  \harvardyearleft
@@ -83,9 +87,21 @@ Pelletier, C., Valero, S., Inglada, J., Champion, N. \harvardand\ Dedieu, G.
   forests to map land cover with high resolution satellite image time series
   over large areas', {\em Remote Sensing of Environment} {\bf 187},~156--168.
 
+\harvarditem[Vinhas et~al.]{Vinhas, Ribeiro, Ferreira \harvardand\
+  Camara}{2016}{Vinhas2016}
+Vinhas, L., Ribeiro, G., Ferreira, K.~R. \harvardand\ Camara, G.
+  \harvardyearleft 2016\harvardyearright , Web services for big {Earth}
+  observation data, {\em in} `Proceedings of the 17th Brazilian Symposium on
+  GeoInformatics', INPE, Campos do Jordão, SP, Brazil, pp.~26--35.
+
 \harvarditem{Wickham \harvardand\ Grolemund}{2017}{Wickham2017}
 Wickham, H. \harvardand\ Grolemund, G.  \harvardyearleft 2017\harvardyearright
   , {\em R for Data Science: Import, Tidy, Transform, Visualize, and Model
   Data}, O'Reilly Media, Inc.
+
+\harvarditem{Zeileis \harvardand\ Grothendieck}{2005}{Zeileis2005}
+Zeileis, A. \harvardand\ Grothendieck, G.  \harvardyearleft
+  2005\harvardyearright , `zoo: S3 infrastructure for regular and irregular
+  time series', {\em Journal of Statistical Software} {\bf 14}(6),~1--27.
 
 \end{thebibliography}

@@ -35,6 +35,5 @@ distances.tb <- sits_distances(embrapa.tb)
 model_svm.ml <- sits_svm (distances.tb)
 
 # classify the data
-class.tb <- sits_classify(munic.tb[1:2,], embrapa.tb, model_svm.ml, multicores = 2)
-
+class.tb <- sits_classify(munic.tb, embrapa.tb, model_svm.ml, multicores = 2)
 

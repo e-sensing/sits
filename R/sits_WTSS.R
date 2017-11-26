@@ -60,9 +60,10 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
 #'
 #' @param URL        the URL for the WTSS time series service
 #' @param coverage   the name of the coverage
+#' @param .show      show information about the coverage
 #' @export
 #'
-sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL) {
+sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL, .show = TRUE) {
      # obtains information about the WTSS service
      wtss.obj         <- wtss::WTSS(URL)
      # obtains information about the coverages
@@ -74,43 +75,48 @@ sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage
      cov.lst    <- wtss::describeCoverage(wtss.obj, coverage)
      cov <- cov.lst[[coverage]]
 
-     # name, description and source of coverage
-     cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
-     cat (paste ("Coverage: ", cov$name, "\n",sep = ""))
-     cat (paste ("Description: ", cov$description, "\n", sep = ""))
-     cat (paste ("Source: ", cov$detail, "\n", sep = ""))
-
-     # information about the bands
-     cat (paste ("Bands: ", "\n", sep = "", collapse=""))
-
      # retrieve information about the bands
      band_info <- cov$attributes
-
-     attr <- as.data.frame(band_info)
-     print (attr[1:2])
-
-     # spatial extent and resolution, projection CRS
-     cat (paste ("\nSpatial extent: ", "(",
-                 cov$spatial_extent$xmin, ", ",
-                 cov$spatial_extent$ymin, ") - (",
-                 cov$spatial_extent$xmax, ", ",
-                 cov$spatial_extent$ymax, ")", sep =""))
-     cat (paste ("\nSpatial resolution: ", "(",
-                 cov$spatial_resolution$x, ", ",
-                 cov$spatial_resolution$y, ")", sep = ""))
-     cat (paste ("\nProjection CRS: ", cov$crs$proj4, sep = ""))
 
      # temporal extent
      timeline <- cov$timeline
      start <- timeline[1]
      end <- timeline[length(timeline)]
-     cat (paste ("\nTime range: ", start, " to ", end, "\n", sep = ""))
 
      # temporal resolution is approximate, taken as the difference between first and second date
      temporal_resolution <- as.integer ((lubridate::as_date(timeline[2])
-          - lubridate::as_date(timeline[1]))/lubridate::ddays(1))
-     cat (paste ("Temporal resolution: ", temporal_resolution, " days ", "\n", sep = ""))
-     cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
+                                         - lubridate::as_date(timeline[1]))/lubridate::ddays(1))
+
+     if (.show) {
+         # name, description and source of coverage
+         cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
+         cat (paste ("Coverage: ", cov$name, "\n",sep = ""))
+         cat (paste ("Description: ", cov$description, "\n", sep = ""))
+         cat (paste ("Source: ", cov$detail, "\n", sep = ""))
+
+         # information about the bands
+         cat (paste ("Bands: ", "\n", sep = "", collapse=""))
+
+         attr <- as.data.frame(band_info)
+         print (attr[1:2])
+
+         # spatial extent and resolution, projection CRS
+         cat (paste ("\nSpatial extent: ", "(",
+                     cov$spatial_extent$xmin, ", ",
+                     cov$spatial_extent$ymin, ") - (",
+                     cov$spatial_extent$xmax, ", ",
+                     cov$spatial_extent$ymax, ")", sep =""))
+         cat (paste ("\nSpatial resolution: ", "(",
+                     cov$spatial_resolution$x, ", ",
+                     cov$spatial_resolution$y, ")", sep = ""))
+         cat (paste ("\nProjection CRS: ", cov$crs$proj4, sep = ""))
+
+         cat (paste ("\nTime range: ", start, " to ", end, "\n", sep = ""))
+
+         cat (paste ("Temporal resolution: ", temporal_resolution, " days ", "\n", sep = ""))
+         cat (paste ("----------------------------------------------------------------------------------", "\n",sep = ""))
+     }
+
 
      b <- tibble::as.tibble(band_info[, -(3:4)])
      coverage.tb <-  .sits_tibble_coverage()
