@@ -25,3 +25,4 @@ sits_plot (series.tb)
 ```
 
 A useful case is when users have a set of labelled samples, that are to be used as a training data set. In this case, one usually has some field data or trusted observations which are labelled. 
+
