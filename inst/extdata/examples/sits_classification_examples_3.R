@@ -18,27 +18,22 @@ coverage <- "mod13q1_512"
 # recover the NDVI, EVI, MIR and NIR bands
 bands <- c("ndvi", "evi", "nir", "mir")
 
-# retrieve a series of samples defined by a CSV file
-# obtain a time series from the WTSS server for these samples
-samples.tb <- sits_getdata (file = system.file ("extdata/samples/samples_TO_GO_Cerrado.csv", package = "sits"),
-                            URL = URL, bands = bands, coverage = coverage)
+# shapefile
+shp_file <- system.file("extdata/shapefiles/anhanguera/anhanguera.shp", package = "sits")
 
+munic.tb <- sits_fromSHP(shp_file, URL, coverage.tb, bands)
 
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 
+# select the bands for classification
 embrapa.tb <- sits_select(embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
-# CLASSIFICATION USING DISTANCES FROM DATA
+# train a model
+distances.tb <- sits_distances(embrapa.tb)
 
-# estimate distances
-distances_data.tb <- sits_distances(embrapa.tb)
+model_svm.ml <- sits_svm (distances.tb)
 
-# estimate an SVM model for this training data
-model_svm.ml <- sits_svm(distances_data.tb, kernel = "radial", cost = 10)
+# classify the data
+class.tb <- sits_classify(munic.tb, embrapa.tb, model_svm.ml, multicores = 2)
 
-# classify the samples
-class.tb <- sits_classify(samples.tb, embrapa.tb, model_svm.ml)
-
-# get confusion matrix
-conf.mx <- sits_conf_matrix(class.tb)

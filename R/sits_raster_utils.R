@@ -233,7 +233,7 @@
 
     raster.tb %>%
         purrrlyr::by_row (function (row){
-            # obtain the Raster Layer object
+            # obtain the Raster Brick object
             r_obj <- row$r_obj[[1]]
             # get the values of the time series
             values <- as.vector(raster::extract(r_obj, xy))

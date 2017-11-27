@@ -2,28 +2,51 @@
 % Please edit documentation in R/sits_patterns.R
 \name{sits_patterns}
 \alias{sits_patterns}
-\title{Create time series patterns for classification}
+\title{Create temporal patterns using a generalised additive model (gam)}
 \usage{
-sits_patterns(data.tb, pt_method = sits_gam(data.tb = NULL, start_date = NULL,
-  end_date = NULL, freq = 8, formula = y ~ s(x)))
+sits_patterns(data.tb = NULL, timeline = NULL, start_date = NULL,
+  end_date = NULL, freq = 8, formula = y ~ s(x), ...)
 }
 \arguments{
-\item{data.tb}{a SITS tibble time series with an alignment column}
+\item{data.tb}{a tibble in SITS format with time series}
 
-\item{pt_method}{a pattern fitting method}
+\item{timeline}{timeline with the all dates for the coverage}
+
+\item{start_date}{starting date of the estimate (month-day)}
+
+\item{end_date}{end data of the estimated (month-day)}
+
+\item{freq}{int - the interval in days for the estimates to be generated}
+
+\item{formula}{the formula to be applied in the estimate}
+
+\item{...}{any additional parameters}
 }
 \value{
-result          a model fitted into input data given by train_method parameter
+patterns.tb   a SITS tibble with the patterns
 }
 \description{
-This function allows the user to select different alternatives to define a set of
-patterns, given his samples. The alternatives are:
-"gam" - uses a generalised additive model to approximate a smooth spline for each pattern
-"dendogram" - uses a herarchical clustering method to group the patterns
-"centroids" - uses a positional clustering method to group the patterns
+This function takes a set of time series samples as input
+estimates a set of patterns. The patterns are calculated based in a GAM model.
+The idea is to use a formula of type y ~ s(x), where x is a temporal
+reference and y if the value of the signal. For each time, there will be as many predictions
+as there are sample values. The GAM model predicts a suitable
+approximation that fits the assumptions of the statistical model.
+By default, the gam methods  produces an approximation based on a smooth function.
+
+This method is based on the "createPatterns" method of the dtwSat package, which is also
+described in the reference paper.
+}
+\references{
+Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
+A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.
+IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
+August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Victor Maus, \email{vwmaus1@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

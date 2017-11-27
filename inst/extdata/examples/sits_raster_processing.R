@@ -52,7 +52,7 @@ patterns.tb <- sits_patterns(samples.tb)
 sits_plot(patterns.tb)
 
 # obtain the distances from data to use as training data
-distances.tb <- sits_distances_from_data(samples.tb)
+distances.tb <- sits_distances(samples.tb)
 
 # estimate an SVM model for this training data
 model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial", tolerance = 0.001, epsilon = 0.1)

@@ -192,7 +192,7 @@ sits_plot_dendrogram <- function(data.tb,
     uniq_labels <- base::unique(data_labels)
 
     # warns if the number of available colors is insufficient to all labels
-    if (length(uniq_labels) > (length(.sits_brewerRGB[[sits_color_name(colors)]]) - 1))
+    if (length(uniq_labels) > (length(.sits_brewerRGB[[.sits_color_name(colors)]]) - 1))
         message("sits_plot_dendrogram: The number of labels is greater than the number of available colors.")
 
     # extract the dendrogram object
@@ -206,7 +206,7 @@ sits_plot_dendrogram <- function(data.tb,
     i <- 1
     seq(uniq_labels) %>%
         purrr::map(function (i){
-            cols[data_labels[hclust_cl$order] == uniq_labels[i]] <<- .sits_brewerRGB[[sits_color_name(colors)]][[length(uniq_labels)]][[i]]
+            cols[data_labels[hclust_cl$order] == uniq_labels[i]] <<- .sits_brewerRGB[[.sits_color_name(colors)]][[length(uniq_labels)]][[i]]
             i <<- i + 1
         })
 
@@ -223,7 +223,7 @@ sits_plot_dendrogram <- function(data.tb,
 
     # plot legend
     graphics::legend("topright",
-                     fill = as.character(.sits_brewerRGB[[sits_color_name(colors)]][[length(uniq_labels)]]),
+                     fill = as.character(.sits_brewerRGB[[.sits_color_name(colors)]][[length(uniq_labels)]]),
                      legend = uniq_labels)
 }
 

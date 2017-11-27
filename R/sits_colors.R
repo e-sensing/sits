@@ -1,12 +1,23 @@
 #' @title Brewer color schemes
-#' @name sits_plot_title
+#' @name sits_colors
+#'
+#' @description Number of colors available in brewer color schemes
+#'
+#' @param brewer    name of the brewer color set
+#' @param n         number of desirable colors (default 3)
+#' @return list     list of rgb colors
+#' @export
+sits_colors <- function(brewer, n = 3){
+    return(.sits_brewerRGB[[.sits_color_name(name)]][[as.character(n)]])
+}
+#' @title Brewer color schemes
+#' @name .sits_color_nama
 #'
 #' @description brewer color schemes names to be used with `sits_plot_dendrogram`
 #'
 #' @param name      name of the brewer color set
 #' @return name   string - a common color set name
-#' @export
-sits_color_name <- function(name = NULL){
+.sits_color_name <- function(name = NULL){
      # approximate equivalent names in ISCC-NBS system
      # see http://en.wikipedia.or"g/wiki/ISCC-NBS_system
      names <- tibble::lst("BuGn" = "BuGn",
@@ -128,37 +139,25 @@ sits_color_name <- function(name = NULL){
 }
 
 #' @title Brewer color schemes
-#' @name sits_max_colors
+#' @name .sits_max_colors
 #'
 #' @description Number of colors available in brewer color schemes
 #'
 #' @param brewer    name of the brewer color set
 #' @return numeric  number of available colors
-#' @export
-sits_max_colors <- function(brewer = NULL){
+.sits_max_colors <- function(brewer = NULL){
      if (is.null(brewer))
           return(.sits_brewerRGB %>% purrr::map(function(sch){
                sum((sch %>%
                     purrr::map(function(n) length(n)) %>%
                     as.numeric()) > 1)
           }))
-     return(sum((.sits_brewerRGB[[sits_color_name(brewer)]] %>%
+     return(sum((.sits_brewerRGB[[.sits_color_name(brewer)]] %>%
                       purrr::map(function(n) length(n)) %>%
                       as.numeric()) > 1))
 }
 
-#' @title Brewer color schemes
-#' @name sits_colors
-#'
-#' @description Number of colors available in brewer color schemes
-#'
-#' @param brewer    name of the brewer color set
-#' @param n         number of desirable colors (default 3)
-#' @return list     list of rgb colors
-#' @export
-sits_colors <- function(brewer, n = 3){
-    return(.sits_brewerRGB[[sits_color_name(name)]][[as.character(n)]])
-}
+
 
 # Brewer color set constant
 # based on http://colorbrewer2.org colors' schemes

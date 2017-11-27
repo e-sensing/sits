@@ -44,9 +44,11 @@ time series. The following options are available:
 from the WTSS service
 (b) The source is a CSV file - retrieves the metadata from the CSV file and the data
 from the WTSS service
-(c) The source is a JSON file - retrieves the metadata and data from the JSON file.
-(d) The source is a gz file (compressed JSON file) - retrieves the metadata and data from the compressed JSON file.
-(e) No source is given - it retrieves the data based on <long, lat, wtss>
+(c) The source is a SHP file - retrives all points inside the shapefile from the WTSS service
+(d) The source is a JSON file - retrieves the metadata and data from the JSON file.
+(e) The source is a gz file (compressed JSON file) - retrieves the metadata and data from the compressed JSON file.
+(f) The source is a RasterBrick - retrieves the point based on lat/long from the RasterBrick
+(g) No source is given - it retrieves the data based on <long, lat, wtss>
 A sits tibble has the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
 

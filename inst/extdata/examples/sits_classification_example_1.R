@@ -23,7 +23,7 @@ patterns.tb <- sits_gam (embrapa.tb)
 sits_plot(patterns.tb)
 
 # estimate distances from the data
-distances.tb <- sits_distances_from_data(embrapa.tb)
+distances.tb <- sits_distances(embrapa.tb)
 
 # estimate an SVM model for this training data
 model_svm.ml <- sits_svm(distances.tb, kernel = "radial", cost = 10)

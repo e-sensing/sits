@@ -11,7 +11,7 @@ embrapa.tb <- readRDS(system.file ("extdata/time_series/embrapa_mt.rds", package
 results <- list()
 
 # test accuracy of TWDTW to measure distances
-conf_svm.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 2,
+conf_svm.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
                                    dist_method = sits_TWDTW_distances(multicores = 2),
                                    tr_method   = sits_svm (cost = 10, kernel = "radial",
                                                            tolerance = 0.001, epsilon = 0.1))
@@ -27,7 +27,7 @@ results[[length(results) + 1]] <- conf_svm.mx
 # =============== GLM ==============================
 
 # generalized liner model (glm)
-conf_glm.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 2,
+conf_glm.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
                                    dist_method = sits_TWDTW_distances(multicores = 2),
                                    tr_method   = sits_glm())
 
@@ -43,7 +43,7 @@ results[[length(results) + 1]] <- conf_glm.mx
 # =============== RFOR ==============================
 
 # test accuracy of TWDTW to measure distances
-conf_rfor.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 2,
+conf_rfor.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
                                    dist_method = sits_TWDTW_distances(multicores = 2),
                                    tr_method   = sits_rfor ())
 print("==================================================")
@@ -56,7 +56,7 @@ results[[length(results) + 1]] <- conf_rfor.mx
 # =============== LDA ==============================
 
 # test accuracy of TWDTW to measure distances
-conf_lda.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 2,
+conf_lda.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
                                    dist_method = sits_TWDTW_distances(multicores = 2),
                                    tr_method   = sits_lda ())
 
@@ -69,7 +69,7 @@ results[[length(results) + 1]] <- conf_lda.mx
 
 # =============== MLR ==============================
 # "multinomial log-linear (mlr)
-conf_mlr.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 1,
+conf_mlr.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 1,
                                    dist_method = sits_TWDTW_distances(multicores = 1),
                                    tr_method   = sits_mlr())
 
@@ -83,7 +83,7 @@ results[[length(results) + 1]] <- conf_mlr.mx
 
 # =============== GBM ==============================
 # Gradient Boosting Machine
-conf_gbm.tb <- sits_kfold_fast_validate(embrapa.tb, folds = 5, multicores = 1,
+conf_gbm.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 1,
                                         dist_method = sits_TWDTW_distances(multicores = 1),
                                         tr_method   = sits_gbm())
 

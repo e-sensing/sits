@@ -4,24 +4,37 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Evaluates the confusion matrix based on "reference" and "predicted" values
+#' provided in a SITS tibble that has been classified. This function takes two kinds of input:
+#' (a) The output of the \code{\link[sits]{sits_classify}} function (a tibble with a list of predicted values)
+#' (b) The output of the \code{\link[sits]{sits_kfold_validate}} function (a tibble with two columns - predicted and reference)
 #' This function returns the Overall Accuracy, User's Accuracy,
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 #'
 #'
-#' @param  class.tb      A sits tibble containing a set of classified samples whose labels are known
-#' @param conv.lst       A list conversion list of labels. If NULL no conversion is done.
-#' @param pred_sans_ext  (Boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
-#' @return caret_assess  a confusion matrix assessment produced by the caret package
+#' @param  class.tb        A sits tibble containing a set of classified samples whose labels are known
+#' @param  conv.lst        A list conversion list of labels. If NULL no conversion is done.
+#' @param  pred_sans_ext  (boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
+#' @return caret_assess   a confusion matrix assessment produced by the caret package
 #'
 #' @export
 sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
+    # does the input data contain a set of predicted values?
+    ensurer::ensure_that(class.tb, "predicted" %in% names(.), err_desc = "sits_conf_matrix: input data does not contain predicted values")
+
 
     # recover predicted and reference vectors from input
-    pred_ref.tb <- .sits_pred_ref (class.tb)
-
-    pred.vec <- pred_ref.tb$predicted
-    ref.vec  <- pred_ref.tb$reference
+    # is the input the result of a sits_classify?
+    if ("label" %in% names (class.tb)) {
+        pred_ref.tb <- .sits_pred_ref (class.tb)
+        pred.vec <- pred_ref.tb$predicted
+        ref.vec  <- pred_ref.tb$reference
+    }
+    # is the input the result of the sits_kfold_validate?
+    else{
+        pred.vec <- class.tb$predicted
+        ref.vec  <- class.tb$reference
+    }
 
     # remove predicted labels' extensions
     if (pred_sans_ext)
@@ -214,9 +227,6 @@ sits_accuracy_area <- function (class.tb, area = NULL, conf.int = 0.95, rm.nosam
 #' @param  class.tb       A sits tibble containing a set of classified samples whose labels are known
 #' @return pred_ref.tb    A tibble with predicted and reference values
 .sits_pred_ref <- function (class.tb) {
-
-    # does the input data exist?
-    ensurer::ensure_that(class.tb, "predicted" %in% names(.), err_desc = "sits_conf_matrix: input data does not contain predicted values")
 
     # retrieve the predicted values
     pred.vec <- unlist(purrr::map(class.tb$predicted, function(r) r$class))
