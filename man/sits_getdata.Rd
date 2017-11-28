@@ -5,9 +5,9 @@
 \title{Obtain timeSeries from different sources}
 \usage{
 sits_getdata(raster.tb = NULL, file = NULL, longitude = NULL,
-  latitude = NULL, start_date = NULL, end_date = NULL, label = NULL,
-  URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL, bands = NULL,
-  n_max = Inf, ignore_dates = FALSE)
+  latitude = NULL, start_date = NULL, end_date = NULL,
+  URL = "http://www.dpi.inpe.br/tws/wtss", coverage = "mod13q1_512",
+  bands = NULL, label = "NoClass", n_max = Inf, ignore_dates = FALSE)
 }
 \arguments{
 \item{raster.tb}{an STRaster  object (tibble with raster information)}
@@ -22,13 +22,13 @@ sits_getdata(raster.tb = NULL, file = NULL, longitude = NULL,
 
 \item{end_date}{date - the end of the period}
 
-\item{label}{string - the label to attach to the time series}
-
 \item{URL}{string - the URL of WTSS (Web Time Series Service)}
 
 \item{coverage}{string - the name of the coverage to be retrieved}
 
 \item{bands}{string vector - the names of the bands to be retrieved}
+
+\item{label}{string - the label to be assigned to the time series}
 
 \item{n_max}{integer - the maximum number of samples to be read (optional)}
 
@@ -54,6 +54,32 @@ A sits tibble has the metadata and data for each time series
 
 A Web Time Series Service (WTSS) is a light-weight service that
 retrieves one or more time series in JSON format from a data base.
+}
+\examples{
+# Read a single lat long point from a WTSS server
+point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557,
+         URL = "http://www.dpi.inpe.br/tws/wtss", coverage    = "mod13q1_512")
+
+# Read a set of points defined in a CSV file from a WTSS server
+csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
+points.tb <- sits_getdata (file = csv_file, URL = "http://www.dpi.inpe.br/tws/wtss",
+             coverage = "mod13q1_512")
+
+# Read a point in a Raster Brick
+# define the file that has the raster brick
+files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+# select the bands
+bands <- c("ndvi")
+# define the scale factors
+scale_factors <- c(0.0001)
+# define the timeline
+timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
+timeline <- lubridate::as_date (timeline$V1)
+# create a raster metadata file based on the information about the files
+raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
+# read the point from the raster
+point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
+
 }
 \references{
 Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,

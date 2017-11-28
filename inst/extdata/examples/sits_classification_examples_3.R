@@ -21,7 +21,7 @@ bands <- c("ndvi", "evi", "nir", "mir")
 # shapefile
 shp_file <- system.file("extdata/shapefiles/anhanguera/anhanguera.shp", package = "sits")
 
-munic.tb <- sits_fromSHP(shp_file, URL, coverage.tb, bands)
+munic.tb <- sits_fromSHP(shp_file, URL, coverage)
 
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 embrapa.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))

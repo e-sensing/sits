@@ -4,8 +4,9 @@
 \alias{sits_fromWTSS}
 \title{Obtain one timeSeries from WTSS server and load it on a sits tibble}
 \usage{
-sits_fromWTSS(longitude, latitude, start_date, end_date, label, wtss.obj, cov,
-  bands, ignore_dates = FALSE)
+sits_fromWTSS(longitude, latitude, start_date = NULL, end_date = NULL,
+  URL = "http://www.dpi.inpe.br/tws/wtss", coverage = "mod13q1_512",
+  bands = NULL, label = "NoClass", ignore_dates = FALSE)
 }
 \arguments{
 \item{longitude}{double - the longitude of the chosen location}
@@ -16,13 +17,13 @@ sits_fromWTSS(longitude, latitude, start_date, end_date, label, wtss.obj, cov,
 
 \item{end_date}{date - the end of the period}
 
-\item{label}{string - the label to attach to the time series (optional)}
+\item{URL}{string - the URL of WTSS (Web Time Series Service)}
 
-\item{wtss.obj}{an R object that represents the WTSS server}
-
-\item{cov}{a list containing information about the coverage from which data is to be recovered}
+\item{coverage}{name of the coverage}
 
 \item{bands}{list of string - a list of the names of the bands of the coverage}
+
+\item{label}{string - the label to attach to the time series (optional)}
 
 \item{ignore_dates}{whether to use the dates of the coverage and not those specified in the file}
 }
@@ -35,6 +36,12 @@ Given a location (lat/long), and start/end period, and the WTSS server informati
 retrieve a time series and include it on a stis tibble.
 A Web Time Series Service (WTSS) is a light-weight service that
 retrieves one or more time series in JSON format from a data base.
+}
+\examples{
+#' # Read a single lat long point from a WTSS server
+point.tb <- sits_fromWTSS (longitude = -55.50563, latitude = -11.71557,
+         URL = "http://www.dpi.inpe.br/tws/wtss", coverage    = "mod13q1_512")
+
 }
 \references{
 Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,

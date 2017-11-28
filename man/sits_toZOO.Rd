@@ -18,6 +18,14 @@ ts.zoo   a time series in zoo format
 \description{
 Converts data from a SITS tibble to an instance of a zoo series,
 }
+\examples{
+
+# read a tibble with 400 samples of Cerrado and 346 samples of Pasture
+cerrado2.tb <- readRDS(system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+# export a time series to zoo
+ts.zoo <- sits_toZOO (cerrado2.tb[1,]$time_series[[1]])
+
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

@@ -25,10 +25,6 @@ Accuracy assessment set us a confusion matrix to determine the accuracy of your 
 This function uses an area-weighted technique proposed by Olofsson et al. to
 produce accuracy estimates that are more reliable
 
-We plan to do an improved version of this function that includes a Raster R object
-with the classified map and a vector with the labels of the classified map
-(Gilberto-Rolf-05-Jun-2017)
-
 This function calls \code{\link[dtwSat]{twdtwAssess}} from \pkg{dtwSat}.
 \code{\link[dtwSat]{twdtwAssess}} performs an accuracy assessment of the classified, including
 Overall Accuracy, User's Accuracy, Produce's Accuracy, error matrix (confusion matrix),

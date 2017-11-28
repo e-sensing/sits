@@ -56,9 +56,6 @@ sits_kfold_validate <- function (data.tb, folds = 5,
         data_train.tb <- data.tb[data.tb$folds != k,]
         data_test.tb  <- data.tb[data.tb$folds == k,]
 
-        #
-        message("Creating patterns from a data sample...")
-
         # find the matches on the training data
         distances_train.tb <- sits_distances (data_train.tb)
 

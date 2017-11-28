@@ -14,6 +14,13 @@
 #' @param  data.tb        a SITS tibble with original data
 #' @param  shift          Adjustment value to avoid negative pixel vales
 #' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
+#'
+#' @examples
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' # estimate distances from the data
+#' distances.tb <- sits_distances(samples.tb)
+#'
 #' @export
 sits_distances <- function(data.tb = NULL, shift = 3.0){
     # create a list with the time series transposed from columns to rows

@@ -4,15 +4,16 @@
 \alias{sits_classify}
 \title{Classify a sits tibble using machine learning models}
 \usage{
-sits_classify(data.tb = NULL, train_samples.tb = NULL, ml_model = NULL,
-  interval = "12 month", multicores = 1)
+sits_classify(data.tb = NULL, train_samples.tb = NULL,
+  ml_method = sits_svm(kernel = "radial", cost = 10), interval = "12 month",
+  multicores = 1)
 }
 \arguments{
 \item{data.tb}{SITS tibble time series (cleaned)}
 
 \item{train_samples.tb}{The samples used for training the classification model}
 
-\item{ml_model}{A model trained by \code{\link[sits]{sits_train}}}
+\item{ml_method}{A machine learning method (see \code{\link[sits]{sits_train}})}
 
 \item{interval}{The interval used for classification}
 
@@ -22,10 +23,52 @@ sits_classify(data.tb = NULL, train_samples.tb = NULL, ml_model = NULL,
 data.tb           SITS tibble with the predicted labels for each input segment
 }
 \description{
-This is the main classification function for time series data
-organized as a SITS tibble (one row per time series). It considers that
-the machine learning model used to classify the data set has been trained
-with a distance function.
+This function classifies a set of time series, given
+a set of training samples, an inference model, and an interval.
+To perform the classification, users should provide a set of
+labelled samples. Each samples should be associated to one spatial location
+(latitude/longitude), one time interval and a label.
+
+After defining the training samples, the users need to provide a machine learning model.
+Currenly, sits supports the following models:
+'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
+'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
+'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
+'lasso' (see \code{\link[sits]{sits_mlr}}), and 'ridge' (see \code{\link[sits]{sits_mlr}}).
+
+The default is to use an SVM with a radial kernel, but users are encouraged to test
+alternatives.
+}
+\examples{
+
+# read a training data set
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+# select the band "ndvi"
+samples.tb <- sits_select (samples.tb, bands = c("ndvi"))
+
+# read a raster file and put it into a vector
+files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+# select the bands
+bands <- c("ndvi")
+# define the scale factors
+scale_factors <- c(0.0001)
+# define the timeline
+timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
+timeline <- lubridate::as_date (timeline$V1)
+# create a raster metadata file based on the information about the files
+raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
+# read a point from the raster
+point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
+#' # Alternative - read the point from the WTSS server
+\dontrun{
+point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)}
+# classify the point
+class.tb <-  sits_classify (point.tb, samples.tb)
+# plot the classification
+sits_plot_classification (class.tb)
+
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

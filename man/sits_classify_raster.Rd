@@ -4,8 +4,9 @@
 \alias{sits_classify_raster}
 \title{Classify a set of spatio-temporal raster bricks using machine learning models}
 \usage{
-sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
-  interval = "12 month", blocksize = 250000, multicores = 2)
+sits_classify_raster(file = NULL, raster.tb, samples.tb,
+  ml_method = sits_svm(), interval = "12 month", blocksize = 250000,
+  multicores = 2)
 }
 \arguments{
 \item{file}{a set of file names to store the output (one file per classified year)}
@@ -14,7 +15,7 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
 
 \item{samples.tb}{The samples used for training the classification model}
 
-\item{ml_model}{a model trained by \code{\link[sits]{sits_train}}}
+\item{ml_method}{a model trained by \code{\link[sits]{sits_train}}}
 
 \item{interval}{The interval between two sucessive classification}
 
@@ -34,6 +35,23 @@ Takes a set of spatio-temporal raster bricks, whose metadata is
              a prediction model (created by \code{\link[sits]{sits_train}}),
              and produces a classified set of RasterLayers. This function is similar to
               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
+}
+\examples{
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+# select the band "ndvi"
+samples.tb <- sits_select (samples.tb, bands = c("ndvi"))
+# read a raster file and put it into a vector
+files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+# define the timeline
+timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
+timeline <- lubridate::as_date (timeline$V1)
+# create a raster metadata file based on the information about the files
+raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
+# classify the raster file
+raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples.tb,
+   blocksize = 300000, multicores = 2)
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
