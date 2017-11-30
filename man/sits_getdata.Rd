@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_import.R
 \name{sits_getdata}
 \alias{sits_getdata}
-\title{Obtain timeSeries from different sources}
+\title{Obtain time series from different sources}
 \usage{
 sits_getdata(raster.tb = NULL, file = NULL, longitude = NULL,
   latitude = NULL, start_date = NULL, end_date = NULL,
@@ -10,50 +10,50 @@ sits_getdata(raster.tb = NULL, file = NULL, longitude = NULL,
   bands = NULL, label = "NoClass", n_max = Inf, ignore_dates = FALSE)
 }
 \arguments{
-\item{raster.tb}{an STRaster  object (tibble with raster information)}
+\item{raster.tb}{(optional) an STRaster  object (tibble with raster information)}
 
-\item{file}{the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)}
+\item{file}{(optional) the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)}
 
 \item{longitude}{double - the longitude of the chosen location}
 
 \item{latitude}{double - the latitude of the chosen location)}
 
-\item{start_date}{date - the start of the period}
+\item{start_date}{(optional) date - the start of the period}
 
-\item{end_date}{date - the end of the period}
+\item{end_date}{(optional) date - the end of the period}
 
 \item{URL}{string - the URL of WTSS (Web Time Series Service)}
 
 \item{coverage}{string - the name of the coverage to be retrieved}
 
-\item{bands}{string vector - the names of the bands to be retrieved}
+\item{bands}{(optional) vector - the names of the bands to be retrieved}
 
-\item{label}{string - the label to be assigned to the time series}
+\item{label}{(optional) string - the label to be assigned to the time series}
 
-\item{n_max}{integer - the maximum number of samples to be read (optional)}
+\item{n_max}{(optional) integer - the maximum number of samples to be read}
 
-\item{ignore_dates}{use the start and end dates from the coverage instead of the time series}
+\item{ignore_dates}{(optional) use the start and end dates from the coverage instead of the time series}
 }
 \value{
 data.tb        a SITS tibble
 }
 \description{
-Reads descriptive information about a data source to retrieve a set of
-time series. The following options are available:
-(a) The source is a SITS tibble - retrieves the metadata from the sits table and the data
-from the WTSS service
-(b) The source is a CSV file - retrieves the metadata from the CSV file and the data
-from the WTSS service
-(c) The source is a SHP file - retrives all points inside the shapefile from the WTSS service
-(d) The source is a JSON file - retrieves the metadata and data from the JSON file.
-(e) The source is a gz file (compressed JSON file) - retrieves the metadata and data from the compressed JSON file.
-(f) The source is a RasterBrick - retrieves the point based on lat/long from the RasterBrick
-(g) No source is given - it retrieves the data based on <long, lat, wtss>
-A sits tibble has the metadata and data for each time series
+Retrieve a set of time series. There are two main ways of retrieving time series:
+using the WTSS service (Web Time Series Service) and from a Raster Brick. The Web Time Series Service (WTSS)
+is a light-weight service that provides access to time series.
+Please see \code{link[sits]{sits_infoWTSS}} for more information on thw WTSS service.
+The following options are available:
+\enumerate{
+\item No input file is given - it retrieves the data and metadata based on the latitude/longitude location
+and on the information provided by the WTSS server.
+\item The source is a CSV file - retrieves the metadata from the CSV file and the time series
+from the WTSS service.
+\item The source is a SHP file - retrives all points inside the shapefile from the WTSS service.
+\item The source is a RasterBrick - retrieves the point based on lat/long from the RasterBrick.
+\item The source is a ZOO time series - retrieves the time series from the ZOO file, and
+the user should supply the metadata.
+}
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
-
-A Web Time Series Service (WTSS) is a light-weight service that
-retrieves one or more time series in JSON format from a data base.
 }
 \examples{
 # Read a single lat long point from a WTSS server
@@ -68,15 +68,11 @@ points.tb <- sits_getdata (file = csv_file, URL = "http://www.dpi.inpe.br/tws/wt
 # Read a point in a Raster Brick
 # define the file that has the raster brick
 files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
-# select the bands
-bands <- c("ndvi")
-# define the scale factors
-scale_factors <- c(0.0001)
 # define the timeline
 timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
 timeline <- lubridate::as_date (timeline$V1)
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
+raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
 # read the point from the raster
 point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
 

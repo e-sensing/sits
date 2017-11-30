@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_mlr}
 \alias{sits_mlr}
-\title{Train SITS classifiction models}
+\title{Train a SITS classifiaction model using multinomial log-linear fitting}
 \usage{
 sits_mlr(distances.tb = NULL, formula = sits_formula_logref(), ...)
 }
@@ -22,6 +22,19 @@ These attributes are distance metrics between patterns and observations, obtaine
 function in SITS (either sits_distances or sits_TWTDTW_distances).
 This function is a front-end to the "multinom" method in the "nnet" package.
 Please refer to the documentation in that package for more details.
+}
+\examples{
+\donttest{
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+# get a point with a 16 year time series
+point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+# classify the point
+class.tb <- sits_classify (point.tb, samples.tb,
+       ml_method = sits_mlr())
+}
 }
 \author{
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

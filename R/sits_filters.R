@@ -18,6 +18,18 @@
 #' @param data.tb       a valid sits tibble
 #' @param n             the number of time series elements to be created between start date and end date
 #' @return result.tb    a sits tibble with same samples and the new bands
+#' @examples
+#' # Retrieve a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' # select one band
+#' point.tb <- sits_select (point.tb, bands = c("ndvi"))
+#' # find out how many time instances are there
+#' n_times <- NROW (point.tb$time_series[[1]])
+#' # interpolate three times more points
+#' point_int.tb <- sits_linear_interp(point.tb, n = 3*n_times)
+#' # plot the result
+#' sits_plot (point_int.tb)
+#'
 #' @export
 sits_linear_interp <- function(data.tb, n = 23){
 
@@ -44,6 +56,18 @@ sits_linear_interp <- function(data.tb, n = 23){
 #'                      an argument, e.g. n(band) (default: `length` function)
 #' @param ...           additional parameters to be used by the fun function
 #' @return result.tb    a sits tibble with same samples and the new bands
+#' @examples
+#' # Retrieve a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' # select one band
+#' point.tb <- sits_select (point.tb, bands = c("ndvi"))
+#' # find out how many time instances are there
+#' n_times <- NROW (point.tb$time_series[[1]])
+#' # interpolate three times more points
+#' point_int.tb <- sits_interp(point.tb, fun = stats::spline, n = 3*n_times)
+#' # plot the result
+#' sits_plot (point_int.tb)
+#'
 #' @export
 sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...){
 
@@ -89,6 +113,21 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' @param operations   character sequence indicating which operations must be taken. "U" for upper filter, "D" for down filter.
 #' @param bands_suffix the suffix to be appended to the resulting data (default "env")
 #' @return result.tb   a sits tibble with same samples and the new bands
+#' @examples
+#' # Read a set of samples of forest/non-forest in Amazonia
+#' # This is an area full of clouds
+#' prodes.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+#' # Take the first point
+#' prodes1.tb <- prodes.tb[1,]
+#' # Select the NDVI band
+#' prodes1.tb <- sits_select (prodes1.tb, bands = c("ndvi"))
+#' # Apply the envelope filter
+#' prodes_env.tb <- sits_envelope(prodes1.tb)
+#' # Merge the filtered with the raw data
+#' prodes2.tb <- sits_merge (prodes1.tb, prodes_env.tb)
+#' # Plot the result
+#' sits_plot (prodes2.tb)
+#'
 #' @export
 sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 

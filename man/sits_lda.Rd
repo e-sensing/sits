@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_lda}
 \alias{sits_lda}
-\title{Train SITS classifiction models with Linear Discriminant Analysis}
+\title{Train a SITS classification model using linear discriminant analysis}
 \usage{
 sits_lda(distances.tb = NULL, formula = sits_formula_logref(), ...)
 }
@@ -23,6 +23,19 @@ function in SITS (either sits_distances or sits_TWTDTW_distances).
 The method performs a linear discriminant analysis (lda) to obtain a predictive model.
 This function is a front-end to the "lda" method in the "MASS" package.
 Please refer to the documentation in that package for more details.
+}
+\examples{
+\donttest{
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+# get a point with a 16 year time series
+point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+# classify the point
+class.tb <- sits_classify (point.tb, samples.tb,
+       ml_method = sits_lda())
+}
 }
 \author{
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

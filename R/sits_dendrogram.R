@@ -18,6 +18,17 @@
 #' @param grouping_method the agglomeration method to be used. Any `hclust` method (see `hclust`) Default is 'ward.D2'..
 #' @param  ...            any additional parameters to be passed to dtwclust::tsclust() function
 #' @return clusters       a clusters obj from dtwclust with the full dendrogram tree for data analysis
+#'
+#' @examples
+#' # Load the "dtwclust" package
+#' library (dtwclust)
+#' # load a simple data set with two classes
+#' data.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' # calculate the dendrogram
+#' clusters.obj <- sits_dendrogram (data.tb, bands = c("ndvi"))
+#' # plot the dendrogram
+#' sits_plot_dendrogram (data.tb, clusters.obj)
+#'
 #' @export
 sits_dendrogram <- function (data.tb, bands = NULL,
                             dist_method = "dtw_basic",

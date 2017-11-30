@@ -47,22 +47,18 @@ samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package 
 # select the band "ndvi"
 samples.tb <- sits_select (samples.tb, bands = c("ndvi"))
 
-# read a raster file and put it into a vector
+# define the files that make up a RasterBrick
 files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
-# select the bands
-bands <- c("ndvi")
-# define the scale factors
-scale_factors <- c(0.0001)
-# define the timeline
-timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
-timeline <- lubridate::as_date (timeline$V1)
+# read the timeline associated to a RasterBrick
+timeline <- lubridate::as_date((read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv",
+            package = "sits"), header = FALSE))[,1])
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
+raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
 # read a point from the raster
 point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
-#' # Alternative - read the point from the WTSS server
-\dontrun{
-point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)}
+
+# Alternative - read the point from the WTSS server
+point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
 # classify the point
 class.tb <-  sits_classify (point.tb, samples.tb)
 # plot the classification

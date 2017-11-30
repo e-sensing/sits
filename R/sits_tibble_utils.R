@@ -277,20 +277,8 @@
                                 yres           = double(),
                                 crs            = character()
     )
+    class (result.tb) <- append (class(result.tb), "sits_tibble_coverage")
     return (result.tb)
-}
-.sits_include_prediction <-  function (data.tb, predict.lst) {
-
-    idx <- 1
-    data.tb %>%
-        purrrlyr::by_row (function (row){
-            pred.tb <- row$predicted[[1]]
-            intervals <- length(pred.tb)
-            pred.tb$class <- predict.lst[[idx:(idx + intervals -1)]]
-            row$predicted <-
-                idx <<- idx + intervals
-
-        })
 }
 #' @title Create an empty tibble to store the results of predictions
 #' @name .sits_tibble_prediction
@@ -350,6 +338,7 @@
         })
 
     data.tb$predicted <- predicted.lst
+    class (data.tb) <- append (class(data.tb), "sits_tibble_prediction")
     return (data.tb)
 }
 #' @title Create one line of metadata tibble to store the description of a spatio-temporal raster
@@ -385,6 +374,7 @@
         crs             = raster.obj@crs@projargs,
         name            = raster.obj@file@name
     )
+    class (raster.tb) <- append (class(raster.tb), "sits_tibble_raster")
     return (raster.tb)
 }
 

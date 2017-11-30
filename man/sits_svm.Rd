@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_svm}
 \alias{sits_svm}
-\title{Train SITS classifier with a Support Vector Machine}
+\title{Train a SITS classification model using a support vector machine}
 \usage{
 sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
   kernel = "radial", degree = 3, coef0 = 0, cost = 10,
@@ -41,6 +41,18 @@ For this purpose, it uses the "one-against-one" approach, in which k(k-1)/2 bina
 classifiers are trained; the appropriate class is found by a voting scheme.
 This function is a front-end to the "svm" method in the "e1071" package.
 Please refer to the documentation in that package for more details.
+}
+\examples{
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+# get a point with a 16 year time series
+point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+# classify the point
+class.tb <- sits_classify (point.tb, samples.tb,
+       ml_method = sits_svm(kernel = "radial", degree = 3, cost = 10))
+
 }
 \author{
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

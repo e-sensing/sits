@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_gbm}
 \alias{sits_gbm}
-\title{Train SITS classifiction models with Gradient Boosting Machine}
+\title{Train a SITS classification model with a gradient boosting machine}
 \usage{
 sits_gbm(distances.tb = NULL, formula = sits_formula_logref(),
   distribution = "multinomial", n.trees = 500, interaction.depth = 2,
@@ -38,6 +38,19 @@ Boosting is the process of iteratively adding basis functions in a greedy fashio
 so that each additional basis function further reduces the selected loss function.
 This function is a front-end to the "gbm" method in the "gbm" package.
 Please refer to the documentation in that package for more details.
+}
+\examples{
+\donttest{
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+# get a point with a 16 year time series
+point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+# classify the point
+class.tb <- sits_classify (point.tb, samples.tb,
+       ml_method = sits_gbm())
+}
 }
 \author{
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

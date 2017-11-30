@@ -30,3 +30,11 @@ to retrieve the time series, and stores the time series on a SITS tibble for lat
 The CSV file should have the following column names:
 "longitude", "latitude", "start_date", "end_date", "label"
 }
+\examples{
+\donttest{
+#' # Read a set of points defined in a CSV file from a WTSS server
+csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
+points.tb <- sits_getdata (file = csv_file, URL = "http://www.dpi.inpe.br/tws/wtss",
+             coverage = "mod13q1_512")
+}
+}

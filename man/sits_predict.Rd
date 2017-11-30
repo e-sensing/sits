@@ -15,6 +15,29 @@ sits_predict(distances.tb = NULL, ml_model, ...)
 }
 \value{
 predicted    the predicted labels (vector)
+
+#' @examples
+
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+# find the distance from the data
+distances.tb <- sits_distances (samples.tb)
+# find a training model based on the distances
+ml_model <- sits_train (distances.tb, ml_method = sits_svm(kernel = "radial", cost = 10))
+# get a point using the WTSS server
+point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
+point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+# align the point to the samples (breaks a long time series into intervals)
+point_align.tb <- sits_align(point.tb, samples.tb)
+# calculate the distances for the point
+dist_point.tb <- sits_distances(point_align.tb)
+# predict the classification
+predicted.lst <- sits_predict(dist_point.tb, ml_model)
+
+The sits_predict function is called inside \code{\link[sits]{sits_classify}}
+and \code{\link[sits]{sits_classify_raster}}, so the user does not need
+to explicitly use it. Please see the above-mention classification functions.
 }
 \description{
 Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train}},

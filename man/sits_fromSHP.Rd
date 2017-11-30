@@ -4,7 +4,7 @@
 \alias{sits_fromSHP}
 \title{Obtain timeSeries from WTSS server, based on a SHP file.}
 \usage{
-sits_fromSHP(shp_file, URL, coverage, bands, start_date = NULL,
+sits_fromSHP(shp_file, URL, coverage, bands = NULL, start_date = NULL,
   end_date = NULL, label = "NoClass")
 }
 \arguments{
@@ -30,4 +30,12 @@ reads a shapefile and retrieves a SITS tibble
 containing time series from a coverage that are inside the SHP file.
 The script uses the WTSS service, taking information about coverage, spatial and
 temporal resolution from the WTSS configuration.
+}
+\examples{
+\donttest{
+# define a shapefile and read from the points inside it from the WTSS service
+shp_file <- system.file("extdata/shapefiles/anhanguera/anhanguera.shp", package = "sits")
+munic.tb <- sits_fromSHP(shp_file, URL = "http://www.dpi.inpe.br/tws/wtss",
+             coverage = "mod13q1_512")
+}
 }
