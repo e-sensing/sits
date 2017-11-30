@@ -18,8 +18,9 @@ caret_assess   a confusion matrix assessment produced by the caret package
 }
 \description{
 Evaluates the confusion matrix based on "reference" and "predicted" values
-provided in a SITS tibble that has been classified. Please run \code{\link[sits]{sits_classify}}
-and take its output as input to this function.
+provided in a SITS tibble that has been classified. This function takes two kinds of input:
+(a) The output of the \code{\link[sits]{sits_classify}} function (a tibble with a list of predicted values)
+(b) The output of the \code{\link[sits]{sits_kfold_validate}} function (a tibble with two columns - predicted and reference)
 This function returns the Overall Accuracy, User's Accuracy,
 Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 }

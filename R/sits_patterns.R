@@ -73,7 +73,7 @@ sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, e
 
         # add a progress bar
         i <- 0
-        progress_bar <- utils::txtProgressBar(min = 0, max = length(labels) * length(bands), style = 3)
+        progress_bar <- utils::txtProgressBar(min = 0, max = length(labels) * length(bds), style = 3)
 
         # traverse labels
         labels %>%

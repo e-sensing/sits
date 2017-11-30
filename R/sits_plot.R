@@ -432,6 +432,11 @@ sits_plot_together <- function (data.tb, colors) {
 #' @export
 sits_plot_TWDTW_alignments <- function (matches){
 
+    # verifies if dtwSat package is installed
+    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+    }
+
     matches %>%
         purrr::map( function (m.twdtw) {
             dtwSat::plot (m.twdtw, type = "alignments") %>%
@@ -453,6 +458,11 @@ sits_plot_TWDTW_alignments <- function (matches){
 #' @param  overlap      Minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.
 #' @export
 sits_plot_TWDTW_classification <- function (matches, start_date = NULL, end_date = NULL, interval = "12 month", overlap = 0.5){
+
+    # verifies if dtwSat package is installed
+    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+    }
 
     matches %>%
         purrr::map(function (m.twdtw) {

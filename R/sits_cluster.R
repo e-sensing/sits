@@ -43,6 +43,11 @@ sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
 #' @export
 sits_cluster_validity <-  function (data.tb, type = "valid") {
 
+    # verifies if dtwclust package is installed
+    if (!requireNamespace("dtwclust", quietly = TRUE)) {
+        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+    }
+
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_validity: input data does not contain cluster column")
 

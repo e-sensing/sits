@@ -99,29 +99,34 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 #' @export
 sits_accuracy_area <- function (class.tb, area = NULL, conf.int = 0.95, rm.nosample = FALSE){
 
-     # Get reference classes
-     references <- class.tb$label
+    # verifies if dtwSat package is installed
+    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+    }
 
-     # create a vector to store the result of the predictions
-     mapped <- unlist(purrr::map(class.tb$predicted, function(r) r$class))
-     # Get all labels
-     classes   <- unique(c(references, mapped))
+    # Get reference classes
+    references <- class.tb$label
 
-     # Create error matrix
-     error_matrix <- table(factor(mapped,     levels = classes, labels = classes),
-                           factor(references, levels = classes, labels = classes))
+    # create a vector to store the result of the predictions
+    mapped <- unlist(purrr::map(class.tb$predicted, function(r) r$class))
+    # Get all labels
+    classes   <- unique(c(references, mapped))
 
-     # Get area - TO IMPROVE USING THE METADATA FROM SATELLITE PRODUCTS
-     if(purrr::is_null(area))
-          area <- rowSums(error_matrix)
+    # Create error matrix
+    error_matrix <- table(factor(mapped,     levels = classes, labels = classes),
+                          factor(references, levels = classes, labels = classes))
 
-     # Compute accuracy metrics using dtwSat::twdtwAssess
-     assessment <- dtwSat::twdtwAssess (error_matrix,
-                                        area = area,
-                                        conf.int = conf.int,
-                                        rm.nosample = rm.nosample )
+    # Get area - TO IMPROVE USING THE METADATA FROM SATELLITE PRODUCTS
+    if(purrr::is_null(area))
+        area <- rowSums(error_matrix)
 
-     return (assessment)
+    # Compute accuracy metrics using dtwSat::twdtwAssess
+    assessment <- dtwSat::twdtwAssess (error_matrix,
+                                       area = area,
+                                       conf.int = conf.int,
+                                       rm.nosample = rm.nosample )
+
+    return (assessment)
 
 }
 

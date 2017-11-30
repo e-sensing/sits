@@ -3,8 +3,8 @@
     packageStartupMessage(
         sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.\n",
                 utils::packageDescription("sits")$Version) )
-    packageStartupMessage("Registering TWDTW distance from `dtwSat` into `proxy::pr_DB`.\n")
-    dtwSat::twdtwProxyRegister()
+    # packageStartupMessage("Registering TWDTW distance from `dtwSat` into `proxy::pr_DB`.\n")
+    # dtwSat::twdtwProxyRegister()
 }
 
 # Include the following global variables in the SITS package
@@ -17,9 +17,9 @@ utils::globalVariables(c(".", "%>%", "Index", "from", "value", "variable", "cond
                          "segr", "frac", "total", "n",
                          "distance", "predicted", "new_values",
                          "Alig.N", "matches", "reference", "cluster", ".data"))
-#' @import dtwSat
-#' @import dtwclust
-#' @importFrom dtw symmetric1 symmetric2
+#' import dtwSat
+#' import dtwclust
+#' importFrom dtw symmetric1 symmetric2
 #' @importFrom lubridate %within% %m+%
 #' @useDynLib sits, .registration = TRUE
 NULL

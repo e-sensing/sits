@@ -9,7 +9,7 @@ sits_envelope(data.tb, operations = "UULL", bands_suffix = "env")
 \arguments{
 \item{data.tb}{a valid sits tibble}
 
-\item{operations}{character sequence indicating which operations must be taken. "U" for upper filter, "D" for down filter.}
+\item{operations}{character sequence indicating which operations must be taken. "U" for upper filter, "L" for down filter.}
 
 \item{bands_suffix}{the suffix to be appended to the resulting data (default "env")}
 }
@@ -18,7 +18,7 @@ result.tb   a sits tibble with same samples and the new bands
 }
 \description{
 This function computes the envelope of a time series using the
-streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelop` function.
+streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelope` function.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -33,8 +33,6 @@ Imports:
     e1071,
     ensurer,
     dplyr,
-    dtw,
-    dtwclust,
     gbm,
     ggplot2,
     glmnet,
@@ -66,7 +64,9 @@ Imports:
     utils,
     zoo,
     wtss,
-    dtwSat
+    dtwSat,
+    dtwclust,
+    dtw
 LinkingTo:
     Rcpp
 Remotes:
