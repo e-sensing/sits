@@ -3,8 +3,8 @@
 #' computed by the TWTDW function (see documentation on sits_TWDTW_matches_tibble)
 #'
 #'
-#' models supported: 'svm', 'random forests', 'boosting', 'lda', 'qda'
-#'                   'multinomial logit', 'lasso', 'ridge', 'elnet', 'best model'
+#' models supported: 'svm', 'random forest', 'boosting', 'lda', 'qda'
+#'                   'multinomial logit', 'lasso', 'ridge'
 
 #' @title Train SITS classification models
 #' @name sits_train

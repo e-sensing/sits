@@ -16,6 +16,15 @@
 #' @param  pred_sans_ext  (boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
 #' @return caret_assess   a confusion matrix assessment produced by the caret package
 #'
+#' @examples
+#' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
+#' cerrado2.tb <- readRDS(system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' # perform a 2 fold validation of this sample file
+#' pred_ref.tb <-  sits_kfold_validate(cerrado2.tb, folds = 2)
+#' # calculate and print the confusion matrix
+#' conf.mx <- sits_conf_matrix(pred_ref.tb)
+#'
+#'
 #' @export
 sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
@@ -69,10 +78,6 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 #' Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
 #' This function uses an area-weighted technique proposed by Olofsson et al. to
 #' produce accuracy estimates that are more reliable
-#'
-#' We plan to do an improved version of this function that includes a Raster R object
-#' with the classified map and a vector with the labels of the classified map
-#' (Gilberto-Rolf-05-Jun-2017)
 #'
 #' This function calls \code{\link[dtwSat]{twdtwAssess}} from \pkg{dtwSat}.
 #' \code{\link[dtwSat]{twdtwAssess}} performs an accuracy assessment of the classified, including

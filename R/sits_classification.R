@@ -2,24 +2,69 @@
 #' @name sits_classify
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This is the main classification function for time series data
-#' organized as a SITS tibble (one row per time series). It considers that
-#' the machine learning model used to classify the data set has been trained
-#' with a distance function.
+#' @description This function classifies a set of time series, given
+#' a set of training samples, an inference model, and an interval.
+#' To perform the classification, users should provide a set of
+#' labelled samples. Each samples should be associated to one spatial location
+#' (latitude/longitude), one time interval and a label.
+#'
+#' After defining the training samples, the users need to provide a machine learning model.
+#' Currenly, sits supports the following models:
+#' 'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
+#' 'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
+#' 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
+#' 'lasso' (see \code{\link[sits]{sits_mlr}}), and 'ridge' (see \code{\link[sits]{sits_mlr}}).
+#'
+#' The default is to use an SVM with a radial kernel, but users are encouraged to test
+#' alternatives.
 #'
 #'
 #' @param  data.tb           SITS tibble time series (cleaned)
 #' @param  train_samples.tb  The samples used for training the classification model
-#' @param  ml_model          A model trained by \code{\link[sits]{sits_train}}
+#' @param  ml_method         A machine learning method (see \code{\link[sits]{sits_train}})
 #' @param  interval          The interval used for classification
 #' @param  multicores        Number of threads to process the time series.
 #' @return data.tb           SITS tibble with the predicted labels for each input segment
+#' @examples
+#'
+#' # read a training data set
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' # select the band "ndvi"
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi"))
+#'
+#' # read a raster file and put it into a vector
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' # select the bands
+#' bands <- c("ndvi")
+#' # define the scale factors
+#' scale_factors <- c(0.0001)
+#' # define the timeline
+#' timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
+#' timeline <- lubridate::as_date (timeline$V1)
+#' # create a raster metadata file based on the information about the files
+#' raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
+#' # read a point from the raster
+#' point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
+#' #' # Alternative - read the point from the WTSS server
+#' \dontrun{
+#' point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)}
+#' # classify the point
+#' class.tb <-  sits_classify (point.tb, samples.tb)
+#' # plot the classification
+#' sits_plot_classification (class.tb)
+#'
+#'
 #' @export
-sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_model = NULL, interval = "12 month", multicores = 1){
+sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method = sits_svm(kernel = "radial", cost = 10) , interval = "12 month", multicores = 1){
 
     .sits_test_tibble(data.tb)
     .sits_test_tibble(train_samples.tb)
-    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
+
+    # obtain the machine learning model
+    distances.tb <- sits_distances (train_samples.tb)
+
+    ml_model = sits_train (distances.tb, ml_method)
 
     # define the classification info parameters
     class_info.tb <- .sits_class_info(data.tb, train_samples.tb, interval)
@@ -152,14 +197,31 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_model = 
 #' @param  raster.tb       a tibble with information about a set of space-time raster bricks
 #' @param  file            a set of file names to store the output (one file per classified year)
 #' @param  samples.tb      The samples used for training the classification model
-#' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
+#' @param  ml_method       a model trained by \code{\link[sits]{sits_train}}
 #' @param  interval        The interval between two sucessive classification
 #' @param  blocksize       Default size of the block (rows * cols) (see function .sits_raster_block_size)
 #' @param  multicores      Number of threads to process the time series.
 #' @param  ...             other parameters to be passed to the distance function
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
+#'
+#' @examples
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' # select the band "ndvi"
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi"))
+#' # read a raster file and put it into a vector
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' # define the timeline
+#' timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
+#' timeline <- lubridate::as_date (timeline$V1)
+#' # create a raster metadata file based on the information about the files
+#' raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
+#' # classify the raster file
+#' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples.tb,
+#'    blocksize = 300000, multicores = 2)
+#'
 #' @export
-sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_model = NULL, interval = "12 month",
+sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method = sits_svm(), interval = "12 month",
                                   blocksize = 250000, multicores = 2){
 
     # ensure metadata tibble exists
@@ -169,8 +231,10 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_model 
 
     # ensure that file name and prediction model are provided
     ensurer::ensure_that(file,      !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
-    ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits-classify-raster: please provide a machine learning model already trained")
 
+    # set up the ML model
+    distances.tb <- sits_distances (samples.tb)
+    ml_model <- sits_train (distances.tb, ml_method)
 
     # create the raster objects and their respective filenames
     raster_class.tb <- .sits_create_classified_raster(raster.tb, samples.tb, file, interval)
@@ -306,7 +370,7 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_model 
 
 
 #' @title Define the information required for classifying time series
-#' @name sits_class_info
+#' @name .sits_class_info
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Time series classification requires that users do a series of steps:

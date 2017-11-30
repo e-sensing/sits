@@ -4,15 +4,15 @@
 \alias{sits_fromSHP}
 \title{Obtain timeSeries from WTSS server, based on a SHP file.}
 \usage{
-sits_fromSHP(shp_file, URL, coverage.tb, bands, start_date = NULL,
-  end_date = NULL, label = NULL)
+sits_fromSHP(shp_file, URL, coverage, bands, start_date = NULL,
+  end_date = NULL, label = "NoClass")
 }
 \arguments{
 \item{shp_file}{string  - name of a SHP file which provides the boundaries of a region of interest}
 
 \item{URL}{string - the URL of WTSS (Web Time Series Service)}
 
-\item{coverage.tb}{metadata describing the coverage}
+\item{coverage}{name of the coverage}
 
 \item{bands}{string vector - the names of the bands to be retrieved}
 

@@ -4,15 +4,15 @@
 \alias{sits_fromCSV}
 \title{Obtain timeSeries from WTSS server, based on a CSV file.}
 \usage{
-sits_fromCSV(csv_file, wtss.obj, cov, bands, n_max = Inf,
+sits_fromCSV(csv_file, URL, coverage, bands, n_max = Inf,
   ignore_dates = FALSE)
 }
 \arguments{
 \item{csv_file}{string  - name of a CSV file with information <id, latitude, longitude, from, end, label>}
 
-\item{wtss.obj}{WTSS object - the WTSS object that describes the WTSS server}
+\item{URL}{string - the URL of WTSS (Web Time Series Service)}
 
-\item{cov}{list - a list with coverage information (retrieved from the WTSS)}
+\item{coverage}{string - the name of the coverage to be retrieved}
 
 \item{bands}{string vector - the names of the bands to be retrieved}
 

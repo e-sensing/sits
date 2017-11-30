@@ -22,6 +22,13 @@ the attributes used to train the model are the series themselves.
 This function then extracts the time series from a SITS tibble and
 "spreads" them in time to produce a tibble with distances.
 }
+\examples{
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+# estimate distances from the data
+distances.tb <- sits_distances(samples.tb)
+
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 
