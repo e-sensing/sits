@@ -6,4 +6,5 @@
 #' @name %>%
 #' @rdname pipe
 #' @param lhs,rhs A visualisation and a function to apply to it
+#' @export
 NULL

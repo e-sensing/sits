@@ -20,7 +20,7 @@ utils::globalVariables(c(".", "%>%", "Index", "from", "value", "variable", "cond
                          "Alig.N", "matches", "reference", "cluster", ".data"))
 #' import dtwSat
 #' import dtwclust
-#' importFrom dtw symmetric1 symmetric2
+#' @importFrom dtw symmetric1 symmetric2
 #' @importFrom lubridate %within% %m+%
 #' @useDynLib sits, .registration = TRUE
 NULL
