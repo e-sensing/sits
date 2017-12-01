@@ -29,6 +29,17 @@ The similarity measure used to group time series in a cluster is the dtw metric.
 The procedure is deterministic, so it will always give the same
 result for a chosen set of similarity measures (taken from the DTWCLUST package docs).
 }
+\examples{
+# Load the "dtwclust" package
+library (dtwclust)
+# load a simple data set with two classes
+data.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+# calculate the dendrogram
+clusters.obj <- sits_dendrogram (data.tb, bands = c("ndvi"))
+# plot the dendrogram
+sits_plot_dendrogram (data.tb, clusters.obj)
+
+}
 \references{
 `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 }

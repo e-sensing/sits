@@ -163,8 +163,9 @@ sits_colors <- function(brewer, n = 3){
 # based on http://colorbrewer2.org colors' schemes
 .sits_brewerRGB = tibble::lst(
      "Spectral" =  tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255)),
+          "2" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
+                            grDevices::rgb(153 / 255, 213 / 255, 148 / 255)),
           "3" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
                             grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
                             grDevices::rgb(153 / 255, 213 / 255, 148 / 255)),
@@ -231,8 +232,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "divergent"
      ),
      "RdYlGn" = tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 191 / 255)),
+          "2" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
+                            grDevices::rgb(145 / 255, 207 / 255, 96 / 255)),
           "3" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
                             grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
                             grDevices::rgb(145 / 255, 207 / 255, 96 / 255)),
@@ -299,7 +301,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "divergent"
      ),
      "RdBu" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(103 / 255, 169 / 255, 207 / 255)),
           "2" = tibble::lst(grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
                             grDevices::rgb(103 / 255, 169 / 255, 207 / 255)),
           "3" = tibble::lst(grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
@@ -368,7 +370,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "divergent"
      ),
      "PiYG" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(161 / 255, 215 / 255, 106 / 255)),
           "2" = tibble::lst(grDevices::rgb(233 / 255, 163 / 255, 201 / 255),
                             grDevices::rgb(161 / 255, 215 / 255, 106 / 255)),
           "3" = tibble::lst(grDevices::rgb(233 / 255, 163 / 255, 201 / 255),
@@ -437,8 +439,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "divergent"
      ),
      "PRGn" = tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(247 / 255, 247 / 255, 247 / 255)),
+          "2" = tibble::lst(grDevices::rgb(175 / 255, 141 / 255, 195 / 255),
+                            grDevices::rgb(127 / 255, 191 / 255, 123 / 255)),
           "3" = tibble::lst(grDevices::rgb(175 / 255, 141 / 255, 195 / 255),
                             grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
                             grDevices::rgb(127 / 255, 191 / 255, 123 / 255)),
@@ -505,7 +508,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "divergent"
      ),
      "RdYlBu" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 191 / 255)),
           "2" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
                             grDevices::rgb(145 / 255, 191 / 255, 219 / 255)),
           "3" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
@@ -574,7 +577,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "divergent"
      ),
      "BrBG" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(245 / 255, 245 / 255, 245 / 255)),
           "2" = tibble::lst(grDevices::rgb(216 / 255, 179 / 255, 101 / 255),
                             grDevices::rgb(90 / 255, 180 / 255, 172 / 255)),
           "3" = tibble::lst(grDevices::rgb(216 / 255, 179 / 255, 101 / 255),
@@ -643,7 +646,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "divergent"
      ),
      "RdGy" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255)),
           "2" = tibble::lst(grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
                             grDevices::rgb(153 / 255, 153 / 255, 153 / 255)),
           "3" = tibble::lst(grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
@@ -712,7 +715,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "divergent"
      ),
      "PuOr" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(247 / 255, 247 / 255, 247 / 255)),
           "2" = tibble::lst(grDevices::rgb(241 / 255, 163 / 255, 64 / 255),
                             grDevices::rgb(153 / 255, 142 / 255, 195 / 255)),
           "3" = tibble::lst(grDevices::rgb(241 / 255, 163 / 255, 64 / 255),
@@ -781,8 +784,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "divergent"
      ),
      "Set2" = tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 98 / 255)),
+          "2" = tibble::lst(grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
+                            grDevices::rgb(141 / 255, 160 / 255, 203 / 255)),
           "3" = tibble::lst(grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
                             grDevices::rgb(252 / 255, 141 / 255, 98 / 255),
                             grDevices::rgb(141 / 255, 160 / 255, 203 / 255)),
@@ -819,8 +823,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "qualitative"
      ),
      "Accent" =  tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(190 / 255, 174 / 255, 212 / 255)),
+          "2" = tibble::lst(grDevices::rgb(127 / 255, 201 / 255, 127 / 255),
+                            grDevices::rgb(253 / 255, 192 / 255, 134 / 255)),
           "3" = tibble::lst(grDevices::rgb(127 / 255, 201 / 255, 127 / 255),
                             grDevices::rgb(190 / 255, 174 / 255, 212 / 255),
                             grDevices::rgb(253 / 255, 192 / 255, 134 / 255)),
@@ -857,8 +862,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "qualitative"
      ),
      "Set1" =  tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(55 / 255, 126 / 255, 184 / 255)),
+          "2" = tibble::lst(grDevices::rgb(228 / 255, 26 / 255, 28 / 255),
+                            grDevices::rgb(77 / 255, 175 / 255, 74 / 255)),
           "3" = tibble::lst(grDevices::rgb(228 / 255, 26 / 255, 28 / 255),
                             grDevices::rgb(55 / 255, 126 / 255, 184 / 255),
                             grDevices::rgb(77 / 255, 175 / 255, 74 / 255)),
@@ -904,8 +910,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "qualitative"
      ),
      "Set3" = tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 179 / 255)),
+          "2" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
+                            grDevices::rgb(190 / 255, 186 / 255, 218 / 255)),
           "3" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
                             grDevices::rgb(255 / 255, 255 / 255, 179 / 255),
                             grDevices::rgb(190 / 255, 186 / 255, 218 / 255)),
@@ -984,8 +991,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "qualitative"
      ),
      "Dark" = tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(217 / 255, 95 / 255, 2 / 255)),
+          "2" = tibble::lst(grDevices::rgb(27 / 255, 158 / 255, 119 / 255),
+                            grDevices::rgb(117 / 255, 112 / 255, 179 / 255)),
           "3" = tibble::lst(grDevices::rgb(27 / 255, 158 / 255, 119 / 255),
                             grDevices::rgb(217 / 255, 95 / 255, 2 / 255),
                             grDevices::rgb(117 / 255, 112 / 255, 179 / 255)),
@@ -1022,8 +1030,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "qualitative"
      ),
      "Paired" = tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(31 / 255, 120 / 255, 180 / 255)),
+          "2" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
+                            grDevices::rgb(178 / 255, 223 / 255, 138 / 255)),
           "3" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
                             grDevices::rgb(31 / 255, 120 / 255, 180 / 255),
                             grDevices::rgb(178 / 255, 223 / 255, 138 / 255)),
@@ -1102,7 +1111,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "qualitative"
      ),
      "Pastel2" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(203 / 255, 213 / 255, 232 / 255)),
           "2" = tibble::lst(grDevices::rgb(179 / 255, 226 / 255, 205 / 255),
                             grDevices::rgb(203 / 255, 213 / 255, 232 / 255)),
           "3" = tibble::lst(grDevices::rgb(179 / 255, 226 / 255, 205 / 255),
@@ -1141,7 +1150,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "qualitative"
      ),
      "Pastel1" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(204 / 255, 235 / 255, 197 / 255)),
           "2" = tibble::lst(grDevices::rgb(251 / 255, 180 / 255, 174 / 255),
                             grDevices::rgb(204 / 255, 235 / 255, 197 / 255)),
           "3" = tibble::lst(grDevices::rgb(251 / 255, 180 / 255, 174 / 255),
@@ -1189,8 +1198,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "qualitative"
      ),
      "OrRd" = tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(253 / 255, 187 / 255, 132 / 255)),
+          "2" = tibble::lst(grDevices::rgb(254 / 255, 232 / 255, 200 / 255),
+                            grDevices::rgb(227 / 255, 74 / 255, 51 / 255)),
           "3" = tibble::lst(grDevices::rgb(254 / 255, 232 / 255, 200 / 255),
                             grDevices::rgb(253 / 255, 187 / 255, 132 / 255),
                             grDevices::rgb(227 / 255, 74 / 255, 51 / 255)),
@@ -1401,8 +1411,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "PuBu" = tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(166 / 255, 189 / 255, 219 / 255)),
+          "2" = tibble::lst(grDevices::rgb(236 / 255, 231 / 255, 242 / 255),
+                            grDevices::rgb(43 / 255, 140 / 255, 190 / 255)),
           "3" = tibble::lst(grDevices::rgb(236 / 255, 231 / 255, 242 / 255),
                             grDevices::rgb(166 / 255, 189 / 255, 219 / 255),
                             grDevices::rgb(43 / 255, 140 / 255, 190 / 255)),
@@ -1613,8 +1624,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "BuPu" = tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(158 / 255, 188 / 255, 218 / 255)),
+          "2" = tibble::lst(grDevices::rgb(224 / 255, 236 / 255, 244 / 255),
+                            grDevices::rgb(136 / 255, 86 / 255, 167 / 255)),
           "3" = tibble::lst(grDevices::rgb(224 / 255, 236 / 255, 244 / 255),
                             grDevices::rgb(158 / 255, 188 / 255, 218 / 255),
                             grDevices::rgb(136 / 255, 86 / 255, 167 / 255)),
@@ -1825,7 +1837,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "Oranges" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(230 / 255, 85 / 255, 13 / 255)),
           "2" = tibble::lst(grDevices::rgb(254 / 255, 230 / 255, 206 / 255),
                             grDevices::rgb(230 / 255, 85 / 255, 13 / 255)),
           "3" = tibble::lst(grDevices::rgb(254 / 255, 230 / 255, 206 / 255),
@@ -2038,8 +2050,9 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "BuGn" = tibble::lst(
-          "1" = tibble::lst(),
-          "2" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(153 / 255, 216 / 255, 201 / 255)),
+          "2" = tibble::lst(grDevices::rgb(229 / 255, 245 / 255, 249 / 255),
+                            grDevices::rgb(44 / 255, 162 / 255, 95 / 255)),
           "3" = tibble::lst(grDevices::rgb(229 / 255, 245 / 255, 249 / 255),
                             grDevices::rgb(153 / 255, 216 / 255, 201 / 255),
                             grDevices::rgb(44 / 255, 162 / 255, 95 / 255)),
@@ -2250,7 +2263,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "YlOrBr" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(217 / 255, 95 / 255, 14 / 255)),
           "2" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 188 / 255),
                             grDevices::rgb(217 / 255, 95 / 255, 14 / 255)),
           "3" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 188 / 255),
@@ -2463,7 +2476,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "YlGn" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(49 / 255, 163 / 255, 84 / 255)),
           "2" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 185 / 255),
                             grDevices::rgb(49 / 255, 163 / 255, 84 / 255)),
           "3" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 185 / 255),
@@ -2676,7 +2689,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "Reds" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(222 / 255, 45 / 255, 38 / 255)),
           "2" = tibble::lst(grDevices::rgb(254 / 255, 224 / 255, 210 / 255),
                             grDevices::rgb(222 / 255, 45 / 255, 38 / 255)),
           "3" = tibble::lst(grDevices::rgb(254 / 255, 224 / 255, 210 / 255),
@@ -2889,7 +2902,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "RdPu" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(250 / 255, 159 / 255, 181 / 255)),
           "2" = tibble::lst(grDevices::rgb(253 / 255, 224 / 255, 221 / 255),
                             grDevices::rgb(197 / 255, 27 / 255, 138 / 255)),
           "3" = tibble::lst(grDevices::rgb(253 / 255, 224 / 255, 221 / 255),
@@ -3102,7 +3115,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "Greens" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(161 / 255, 217 / 255, 155 / 255)),
           "2" = tibble::lst(grDevices::rgb(229 / 255, 245 / 255, 224 / 255),
                             grDevices::rgb(49 / 255, 163 / 255, 84 / 255)),
           "3" = tibble::lst(grDevices::rgb(229 / 255, 245 / 255, 224 / 255),
@@ -3315,7 +3328,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "YlGnBu" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(127 / 255, 205 / 255, 187 / 255)),
           "2" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 177 / 255),
                             grDevices::rgb(44 / 255, 127 / 255, 184 / 255)),
           "3" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 177 / 255),
@@ -3528,7 +3541,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "Purples" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(188 / 255, 189 / 255, 220 / 255)),
           "2" = tibble::lst(grDevices::rgb(239 / 255, 237 / 255, 245 / 255),
                             grDevices::rgb(117 / 255, 107 / 255, 177 / 255)),
           "3" = tibble::lst(grDevices::rgb(239 / 255, 237 / 255, 245 / 255),
@@ -3741,7 +3754,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "GnBu" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(168 / 255, 221 / 255, 181 / 255)),
           "2" = tibble::lst(grDevices::rgb(224 / 255, 243 / 255, 219 / 255),
                             grDevices::rgb(67 / 255, 162 / 255, 202 / 255)),
           "3" = tibble::lst(grDevices::rgb(224 / 255, 243 / 255, 219 / 255),
@@ -3954,7 +3967,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "Greys" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(189 / 255, 189 / 255, 189 / 255)),
           "2" = tibble::lst(grDevices::rgb(240 / 255, 240 / 255, 240 / 255),
                             grDevices::rgb(99 / 255, 99 / 255, 99 / 255)),
           "3" = tibble::lst(grDevices::rgb(240 / 255, 240 / 255, 240 / 255),
@@ -4167,7 +4180,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "YlOrRd" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(254 / 255, 178 / 255, 76 / 255)),
           "2" = tibble::lst(grDevices::rgb(255 / 255, 237 / 255, 160 / 255),
                             grDevices::rgb(240 / 255, 59 / 255, 32 / 255)),
           "3" = tibble::lst(grDevices::rgb(255 / 255, 237 / 255, 160 / 255),
@@ -4380,7 +4393,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "PuRd" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(201 / 255, 148 / 255, 199 / 255)),
           "2" = tibble::lst(grDevices::rgb(231 / 255, 225 / 255, 239 / 255),
                             grDevices::rgb(221 / 255, 28 / 255, 119 / 255)),
           "3" = tibble::lst(grDevices::rgb(231 / 255, 225 / 255, 239 / 255),
@@ -4593,7 +4606,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "Blues" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(158 / 255, 202 / 255, 225 / 255)),
           "2" = tibble::lst(grDevices::rgb(222 / 255, 235 / 255, 247 / 255),
                             grDevices::rgb(49 / 255, 130 / 255, 189 / 255)),
           "3" = tibble::lst(grDevices::rgb(222 / 255, 235 / 255, 247 / 255),
@@ -4806,7 +4819,7 @@ sits_colors <- function(brewer, n = 3){
           "type" = "sequential"
      ),
      "PuBuGn" = tibble::lst(
-          "1" = tibble::lst(),
+          "1" = tibble::lst(grDevices::rgb(166 / 255, 189 / 255, 219 / 255)),
           "2" = tibble::lst(grDevices::rgb(236 / 255, 226 / 255, 240 / 255),
                             grDevices::rgb(28 / 255, 144 / 255, 153 / 255)),
           "3" = tibble::lst(grDevices::rgb(236 / 255, 226 / 255, 240 / 255),

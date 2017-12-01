@@ -20,6 +20,22 @@ result.tb   a sits tibble with same samples and the new bands
 This function computes the envelope of a time series using the
 streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelope` function.
 }
+\examples{
+# Read a set of samples of forest/non-forest in Amazonia
+# This is an area full of clouds
+prodes.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+# Take the first point
+prodes1.tb <- prodes.tb[1,]
+# Select the NDVI band
+prodes1.tb <- sits_select (prodes1.tb, bands = c("ndvi"))
+# Apply the envelope filter
+prodes_env.tb <- sits_envelope(prodes1.tb)
+# Merge the filtered with the raw data
+prodes2.tb <- sits_merge (prodes1.tb, prodes_env.tb)
+# Plot the result
+sits_plot (prodes2.tb)
+
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

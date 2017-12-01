@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_glm}
 \alias{sits_glm}
-\title{Train SITS classifiction models with Generalised Linear Models}
+\title{Train a SITS classification models using generalised linear models (lasso and ridge)}
 \usage{
 sits_glm(distances.tb = NULL, family = "multinomial", alpha = 1,
   lambda_kfolds = 10, ...)
@@ -29,6 +29,19 @@ These attributes are distance metrics between patterns and observations, obtaine
 function in SITS (either sits_distances or sits_TWTDTW_distances).
 This function is a front-end to the "cv.glmnet" method in the "glmnet" package.
 Please refer to the documentation in that package for more details.
+}
+\examples{
+\donttest{
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+# get a point with a 16 year time series
+point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+# classify the point
+class.tb <- sits_classify (point.tb, samples.tb,
+       ml_method = sits_glm(alpha = 1.0))
+}
 }
 \author{
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

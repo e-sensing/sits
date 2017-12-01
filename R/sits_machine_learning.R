@@ -1,11 +1,3 @@
-#' Functions for machine learning associated to the SITS package
-#' The attributes for the training functions are the DTW distances
-#' computed by the TWTDW function (see documentation on sits_TWDTW_matches_tibble)
-#'
-#'
-#' models supported: 'svm', 'random forest', 'boosting', 'lda', 'qda'
-#'                   'multinomial logit', 'lasso', 'ridge'
-
 #' @title Train SITS classification models
 #' @name sits_train
 #'
@@ -14,33 +6,72 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a tibble with a set of distance measures,
-#' returns trained models using support vector machines. This function will
-#' use the TWDTW alignment information for all classes as the attributes
-#' of the chosen machine learning methods. Please use this function in the following way:
-#' 1. call sits_patterns to produce a set a labelled patterns from a reference data set
-#' 2. call a method to get distances between a time series and patterns to produce a set of alignements
-#' 3. use the distances tibble as an input to the training function
+#' returns trained models using support vector machines.
+#' #' After defining the training samples, the users need to provide a machine learning model.
+#' Currenly, sits supports the following models:
+#' 'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
+#' 'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
+#' 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
+#' 'lasso' (see \code{\link[sits]{sits_mlr}}), and 'ridge' (see \code{\link[sits]{sits_mlr}}).
 #'
+#' The sits_train function is called inside \code{\link[sits]{sits_classify}}
+#' and \code{\link[sits]{sits_classify_raster}}, so the user does not need
+#' to explicitly use this function. Please see the above-mention classification functions.
 #'
 #' @param distances.tb     a time series with a set of distance measures for each training sample
-#' @param tr_method        a traning method that returns a model for prediction
+#' @param ml_method        a machine learning method that returns a model for prediction
 #' @return result          a model fitted into input data given by train_method parameter
+#'
+#' @examples
+#'
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+#' # find the distance from the data
+#' distances.tb <- sits_distances (samples.tb)
+#' # find a training model based on the distances
+#' ml_model <- sits_train (distances.tb, ml_method = sits_svm(kernel = "radial", cost = 10))
+#' # get a point using the WTSS server
+#' point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
+#' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+#' # align the point to the samples (breaks a long time series into intervals)
+#' point_align.tb <- sits_align(point.tb, samples.tb)
+#' # calculate the distances for the point
+#' dist_point.tb <- sits_distances(point_align.tb)
+#' # predict the classification
+#' predicted.lst <- sits_predict(dist_point.tb, ml_model)
+#'
+#' # NOTE: the above code shows a step-by-step approach to classification.
+#' # Users are recommended to use the "sits_classify" function, as follows:
+#'
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+#' # get a point using the WTSS server
+#' point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
+#' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+#' # classify the point
+#' class.tb <- sits_classify (point.tb, samples.tb,
+#'        ml_method = sits_svm(kernel = "radial", cost = 10))
+#'
+#' # in the above code, the "sits_train" function is called internally.
+#'
 #' @export
 #'
-sits_train <- function(distances.tb, tr_method = sits_svm()){
+sits_train <- function(distances.tb, ml_method = sits_svm()){
 
     # is the input data the result of a TWDTW matching function?
     ensurer::ensure_that(distances.tb, "reference" %in% names (.), err_desc = "sits_train: input data does not contain TWDTW matches")
 
     # is the train method a function?
-    ensurer::ensure_that(tr_method, class(.) == "function", err_desc = "sits_train: train_method is not a valid function")
+    ensurer::ensure_that(ml_method, class(.) == "function", err_desc = "sits_train: train_method is not a valid function")
 
     # compute the training method by the given data
-    result <- tr_method(distances.tb)
+    result <- ml_method(distances.tb)
     return(result)
 }
 
-#' @title Train SITS classifier with a Support Vector Machine
+#' @title Train a SITS classification model using a support vector machine
 #' @name sits_svm
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -67,6 +98,18 @@ sits_train <- function(distances.tb, tr_method = sits_svm()){
 #' @param cross            the number of cross validation folds applied on the training data to assess the quality of the model,
 #' @param ...              other parameters to be passed to e1071::svm function
 #' @return result          a fitted model function to be passed in sits_predict
+#'
+#' @examples
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+#' # get a point with a 16 year time series
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+#' # classify the point
+#' class.tb <- sits_classify (point.tb, samples.tb,
+#'        ml_method = sits_svm(kernel = "radial", degree = 3, cost = 10))
+#'
 #' @export
 #'
 sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kernel = "radial",
@@ -100,7 +143,7 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 
     result <- .sits_factory_function (distances.tb, result_fun)
 }
-#' @title Train SITS classifiction models with Linear Discriminant Analysis
+#' @title Train a SITS classification model using linear discriminant analysis
 #' @name sits_lda
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -118,6 +161,19 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param ...              other parameters to be passed to MASS::lda function
 #' @return result          a model function to be passed in sits_predict
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+#' # get a point with a 16 year time series
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+#' # classify the point
+#' class.tb <- sits_classify (point.tb, samples.tb,
+#'        ml_method = sits_lda())
+#' }
 #' @export
 #'
 sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
@@ -149,7 +205,7 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     return(result)
 }
 
-#' @title Train SITS classifiction models with Quadratic Discriminant Analysis
+#' @title Train a SITS classification model using quadratic discriminant analysis
 #' @name sits_qda
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -167,6 +223,19 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param ...              other parameters to be passed to MASS::lda function
 #' @return result          a model function to be passed in sits_predict
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+#' # get a point with a 16 year time series
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+#' # classify the point
+#' class.tb <- sits_classify (point.tb, samples.tb,
+#'        ml_method = sits_qda())
+#' }
 #' @export
 #'
 sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
@@ -198,7 +267,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     return(result)
 }
 
-#' @title Train SITS classifiction models
+#' @title Train a SITS classifiaction model using multinomial log-linear fitting
 #' @name sits_mlr
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -215,6 +284,19 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param ...              other parameters to be passed to nnet::multinom function
 #' @return result          a model function to be passed in sits_predict
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+#' # get a point with a 16 year time series
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+#' # classify the point
+#' class.tb <- sits_classify (point.tb, samples.tb,
+#'        ml_method = sits_mlr())
+#' }
 #' @export
 #'
 sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
@@ -247,7 +329,7 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     return(result)
 }
 
-#' @title Train SITS classifiction models with Generalised Linear Models
+#' @title Train a SITS classification models using generalised linear models (lasso and ridge)
 #' @name sits_glm
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -268,6 +350,18 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' @param lambda_kfolds    number of folds to find best lambda parameter (default: 10)
 #' @param ...              other parameters to be passed to `glmnet::cv.glmnet` function
 #' @return result          a model function to be passed in sits_predict
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+#' # get a point with a 16 year time series
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+#' # classify the point
+#' class.tb <- sits_classify (point.tb, samples.tb,
+#'        ml_method = sits_glm(alpha = 1.0))
+#' }
 #' @export
 #'
 sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, lambda_kfolds = 10, ...) {
@@ -299,7 +393,7 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
     return(result)
 }
 
-#' @title Train SITS classifiction models with Gradient Boosting Machine
+#' @title Train a SITS classification model with a gradient boosting machine
 #' @name sits_gbm
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -324,6 +418,20 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
 #' @param n.cores          number of cores to run
 #' @param ...              other parameters to be passed to `gbm::gbm` function
 #' @return result          a model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+#' # get a point with a 16 year time series
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+#' # classify the point
+#' class.tb <- sits_classify (point.tb, samples.tb,
+#'        ml_method = sits_gbm())
+#' }
+
 #' @export
 #'
 sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distribution = "multinomial",
@@ -365,7 +473,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
     return(result)
 }
 
-#' @title Train SITS classifiction models
+#' @title Train a SITS classifiction model using random forest algorithm
 #' @name sits_rfor
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -381,6 +489,18 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
 #'                         to ensure that every input row gets predicted at least a few times. (default: 500)
 #' @param ...              other parameters to be passed to `randomForest::randomForest` function
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+#' # get a point with a 16 year time series
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+#' # classify the point
+#' class.tb <- sits_classify (point.tb, samples.tb,
+#'        ml_method = sits_rfor())
+#' }
 #' @export
 #'
 sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
@@ -525,6 +645,29 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #' @param ml_model      a model trained by \code{\link[sits]{sits_train}}
 #' @param ...           other parameters to be passed to the model function
 #' @return predicted    the predicted labels (vector)
+#'
+#'#' @examples
+#'
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+#' # find the distance from the data
+#' distances.tb <- sits_distances (samples.tb)
+#' # find a training model based on the distances
+#' ml_model <- sits_train (distances.tb, ml_method = sits_svm(kernel = "radial", cost = 10))
+#' # get a point using the WTSS server
+#' point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
+#' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+#' # align the point to the samples (breaks a long time series into intervals)
+#' point_align.tb <- sits_align(point.tb, samples.tb)
+#' # calculate the distances for the point
+#' dist_point.tb <- sits_distances(point_align.tb)
+#' # predict the classification
+#' predicted.lst <- sits_predict(dist_point.tb, ml_model)
+#'
+#' The sits_predict function is called inside \code{\link[sits]{sits_classify}}
+#' and \code{\link[sits]{sits_classify_raster}}, so the user does not need
+#' to explicitly use it. Please see the above-mention classification functions.
 #'
 #' @export
 sits_predict <- function(distances.tb = NULL, ml_model, ...){

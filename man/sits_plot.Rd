@@ -16,15 +16,7 @@ sits_plot(data.tb, band = NULL, cluster_obj = NULL, cutree_height = NULL,
 
 \item{cutree_height}{A dashed horizontal line to be drawed indicating the height of dendrogram cutting.}
 
-\item{type}{Type of plot to be generated
-\itemize{
- \item{"all years"}{Plot all samples from the same location together}
- \item{"one by one"}{Plot each time series separately}
- \item{"patterns"}{Plot the patterns for a given set of classes}
- \item{"classification"}{Plot the results of a classification}
- \item{"dendogram"}{Plot a cluster object}
- \item{"together"}{Plot all samples of the same band and label together}
-}}
+\item{type}{Type of plot to be generated}
 
 \item{colors}{Color pallete to be used (based on Color Brewer - default is "Dark2")}
 }
@@ -33,12 +25,22 @@ data.tb      Input SITS table (useful for chaining functions)
 }
 \description{
 Given a SITS tibble with a set of time series, plot them.
+
+The following types of plot are supported (parameter "type):
+\itemize{
+ \item{"all years"}{Plot all samples from the same location together}
+ \item{"one by one"}{Plot each time series separately}
+ \item{"patterns"}{Plot the patterns for a given set of classes}
+ \item{"classification"}{Plot the results of a classification}
+ \item{"dendogram"}{Plot a cluster object}
+ \item{"together"}{Plot all samples of the same band and label together}
+}
 If the user does not specify the type of plot (parameter "type"),
 the sits_plot function makes an educated guess of what plot is required,
 based on the input data. If the input data has less than 30 samples, it
 will default to "all years". If there is only one sample per class, it will
 default to "patterns". If there are more than 30 samples, it will default to
-"together".
+"together". If there
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

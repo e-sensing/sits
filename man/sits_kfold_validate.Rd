@@ -4,7 +4,7 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate temporal patterns}
 \usage{
-sits_kfold_validate(data.tb, folds = 5, tr_method = sits_svm(),
+sits_kfold_validate(data.tb, folds = 5, ml_method = sits_svm(),
   multicores = 1)
 }
 \arguments{
@@ -12,9 +12,9 @@ sits_kfold_validate(data.tb, folds = 5, tr_method = sits_svm(),
 
 \item{folds}{number of partitions to create.}
 
-\item{tr_method}{machine learning training method}
+\item{ml_method}{machine learning training method}
 
-\item{multicores}{number of threads to process the validation (Linux and MacOS only). Each process will run a whole partition validation.}
+\item{multicores}{number of threads to process the validation (Linux and MacOS only).}
 }
 \value{
 pred_ref.tb        a tibble containing pairs of reference and predicted values
@@ -38,6 +38,107 @@ is determine for each instance in the dataset, and an overall
 accuracy estimate is provided.
 
 This function returns the confusion matrix, and Kappa values.
+}
+\examples{
+# read a set of samples
+samples.tb <- readRDS (system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+
+# perform a five fold validation with the SVM machine learning method
+conf_matrix1.mx <- sits_kfold_validate (samples.tb)
+
+\donttest{
+#load a data set for with samples for EMBRAPA data set
+embrapa.tb <- readRDS(system.file ("extdata/time_series/embrapa_mt.rds", package = "sits"))
+
+embrapa.tb <- sits_select (embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
+
+# create a list to save the results
+results <- list()
+
+conf_svm1.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
+                ml_method   = sits_svm (kernel = "radial", cost = 10))
+ print("==================================================")
+ print ("== Confusion Matrix = SVM =======================")
+ conf_svm1.mx <- sits_conf_matrix(conf_svm1.tb)
+ conf_svm1.mx$name <- "svm_10"
+
+ # save the results in a list
+ results[[length(results) + 1]] <- conf_svm1.mx
+
+ # =============== GLM ==============================
+ # generalized liner model (glm)
+ conf_glm.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
+              ml_method   = sits_glm())
+
+ # print the accuracy of the generalized liner model (glm)
+ print("===============================================")
+ print ("== Confusion Matrix = GLM  =======================")
+ conf_glm.mx <- sits_conf_matrix(conf_glm.tb)
+
+ conf_glm.mx$name <- "glm"
+ # save the results in a list
+ results[[length(results) + 1]] <- conf_glm.mx
+
+ # =============== RFOR ==============================
+ # validate random forest model
+ conf_rfor.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
+                 ml_method   = sits_rfor ())
+ print("==================================================")
+ print ("== Confusion Matrix = RFOR =======================")
+
+ conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
+ conf_rfor.mx$name <- "rfor"
+ # save the results in a list
+ results[[length(results) + 1]] <- conf_rfor.mx
+
+ # =============== LDA ==============================
+
+ # test validation of LDA method
+ conf_lda.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
+                 ml_method   = sits_lda ())
+
+ print("==================================================")
+ print ("== Confusion Matrix = LDA =======================")
+ conf_lda.mx <- sits_conf_matrix(conf_lda.tb)
+ conf_lda.mx$name <- "lda"
+ # save the results in a list
+ results[[length(results) + 1]] <- conf_lda.mx
+
+ # =============== MLR ==============================
+ # "multinomial log-linear (mlr)
+ conf_mlr.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
+                ml_method   = sits_mlr())
+
+# print the accuracy of the Multinomial log-linear
+print("===============================================")
+print ("== Confusion Matrix = MLR =======================")
+
+conf_mlr.mx <- sits_conf_matrix(conf_mlr.tb)
+
+conf_mlr.mx$name <- "mlr"
+# save the results in a list
+results[[length(results) + 1]] <- conf_mlr.mx
+
+# =============== GBM ==============================
+# Gradient Boosting Machine
+
+conf_gbm.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 1,
+               ml_method   = sits_gbm())
+
+ # print the accuracy of the Gradient Boosting Machine
+ print("===============================================")
+ print ("== Confusion Matrix = GBM =======================")
+
+ conf_gbm.mx <- sits_conf_matrix(conf_gbm.tb)
+ conf_gbm.mx$name <- "gbm"
+ # save the results in a list
+ results[[length(results) + 1]] <- conf_gbm.mx
+
+ # Save the results list in a XLSX (Excel file)
+ WD = getwd()
+ sits_toXLSX(results, file = paste0(WD, "/accuracy_results.xlsx"))
+
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

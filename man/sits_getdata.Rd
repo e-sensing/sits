@@ -68,15 +68,11 @@ points.tb <- sits_getdata (file = csv_file, URL = "http://www.dpi.inpe.br/tws/wt
 # Read a point in a Raster Brick
 # define the file that has the raster brick
 files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
-# select the bands
-bands <- c("ndvi")
-# define the scale factors
-scale_factors <- c(0.0001)
 # define the timeline
 timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
 timeline <- lubridate::as_date (timeline$V1)
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
+raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
 # read the point from the raster
 point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
 

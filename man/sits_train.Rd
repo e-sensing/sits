@@ -4,32 +4,64 @@
 \alias{sits_train}
 \title{Train SITS classification models}
 \usage{
-sits_train(distances.tb, tr_method = sits_svm())
+sits_train(distances.tb, ml_method = sits_svm())
 }
 \arguments{
 \item{distances.tb}{a time series with a set of distance measures for each training sample}
 
-\item{tr_method}{a traning method that returns a model for prediction}
+\item{ml_method}{a machine learning method that returns a model for prediction}
 }
 \value{
 result          a model fitted into input data given by train_method parameter
 }
 \description{
 Given a tibble with a set of distance measures,
-returns trained models using support vector machines. This function will
-use the TWDTW alignment information for all classes as the attributes
-of the chosen machine learning methods. Please use this function in the following way:
-1. call sits_patterns to produce a set a labelled patterns from a reference data set
-2. call a method to get distances between a time series and patterns to produce a set of alignements
-3. use the distances tibble as an input to the training function
-}
-\details{
-Functions for machine learning associated to the SITS package
-The attributes for the training functions are the DTW distances
-computed by the TWTDW function (see documentation on sits_TWDTW_matches_tibble)
+returns trained models using support vector machines.
+#' After defining the training samples, the users need to provide a machine learning model.
+Currenly, sits supports the following models:
+'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
+'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
+'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
+'lasso' (see \code{\link[sits]{sits_mlr}}), and 'ridge' (see \code{\link[sits]{sits_mlr}}).
 
-models supported: 'svm', 'random forest', 'boosting', 'lda', 'qda'
-                  'multinomial logit', 'lasso', 'ridge'
+The sits_train function is called inside \code{\link[sits]{sits_classify}}
+and \code{\link[sits]{sits_classify_raster}}, so the user does not need
+to explicitly use this function. Please see the above-mention classification functions.
+}
+\examples{
+
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+# find the distance from the data
+distances.tb <- sits_distances (samples.tb)
+# find a training model based on the distances
+ml_model <- sits_train (distances.tb, ml_method = sits_svm(kernel = "radial", cost = 10))
+# get a point using the WTSS server
+point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
+point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+# align the point to the samples (breaks a long time series into intervals)
+point_align.tb <- sits_align(point.tb, samples.tb)
+# calculate the distances for the point
+dist_point.tb <- sits_distances(point_align.tb)
+# predict the classification
+predicted.lst <- sits_predict(dist_point.tb, ml_model)
+
+# NOTE: the above code shows a step-by-step approach to classification.
+# Users are recommended to use the "sits_classify" function, as follows:
+
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+# get a point using the WTSS server
+point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
+point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+# classify the point
+class.tb <- sits_classify (point.tb, samples.tb,
+       ml_method = sits_svm(kernel = "radial", cost = 10))
+
+# in the above code, the "sits_train" function is called internally.
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

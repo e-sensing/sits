@@ -18,6 +18,19 @@ result.tb    a sits tibble with same samples and the new bands
 Computes the linearly interpolated bands for a given resolution
               using the R base function approx
 }
+\examples{
+# Retrieve a point
+point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+# select one band
+point.tb <- sits_select (point.tb, bands = c("ndvi"))
+# find out how many time instances are there
+n_times <- NROW (point.tb$time_series[[1]])
+# interpolate three times more points
+point_int.tb <- sits_linear_interp(point.tb, n = 3*n_times)
+# plot the result
+sits_plot (point_int.tb)
+
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
