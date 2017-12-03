@@ -22,6 +22,7 @@
 #' @param  data.tb           SITS tibble time series (cleaned)
 #' @param  train_samples.tb  The samples used for training the classification model
 #' @param  ml_method         A machine learning method (see \code{\link[sits]{sits_train}})
+#' @param  dist_method       The method to obtain the values to be used from training and classification
 #' @param  interval          The interval used for classification
 #' @param  multicores        Number of threads to process the time series.
 #' @return data.tb           SITS tibble with the predicted labels for each input segment
@@ -31,7 +32,7 @@
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 #' # select the band "ndvi"
-#' samples.tb <- sits_select (samples.tb, bands = c("ndvi"))
+#' samples_ndvi.tb <- sits_select (samples.tb, bands = c("ndvi"))
 #'
 #' # define the files that make up a RasterBrick
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
@@ -42,23 +43,35 @@
 #' raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
 #' # read a point from the raster
 #' point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
-#'
-#' # Alternative - read the point from the WTSS server
-#' point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
 #' # classify the point
-#' class.tb <-  sits_classify (point.tb, samples.tb)
+#' class.tb <-  sits_classify (point.tb, samples_ndvi.tb)
 #' # plot the classification
 #' sits_plot_classification (class.tb)
 #'
+#' # Alternative - read the point from the WTSS server
+#'
+#' point2.tb <- sits_getdata (longitude = -46.4070, latitude = -10.8630)
+#'
+#' # select 4 bands to do the classification
+#' samples_4bands.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir", "mir"))
+#' point2.tb <- sits_select (point2.tb, bands = c("ndvi", "evi", "nir", "mir"))
+#' # classify the point
+#' class2.tb <-  sits_classify (point2.tb, samples_4bands.tb)
+#' # plot the classification
+#' sits_plot_classification (class2.tb)
+#'
 #'
 #' @export
-sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method = sits_svm(kernel = "radial", cost = 10) , interval = "12 month", multicores = 1){
+sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL,
+                           ml_method = sits_svm(kernel = "radial", cost = 10) ,
+                           dist_method = sits_distances_from_data(),
+                           interval = "12 month", multicores = 1){
 
     .sits_test_tibble(data.tb)
     .sits_test_tibble(train_samples.tb)
 
     # obtain the machine learning model
-    distances.tb <- sits_distances (train_samples.tb)
+    distances.tb <- dist_method (train_samples.tb)
 
     ml_model = sits_train (distances.tb, ml_method)
 
@@ -69,7 +82,7 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method =
     ref_dates.lst <- class_info.tb$ref_dates[[1]]
 
     # obtain the distances from the data
-    distances.tb <- sits_distances(data.tb)
+    distances.tb <- dist_method (data.tb)
 
     # create a vector to store the predicted results
     predict.vec <- .sits_classify_distances (distances.tb, class_info.tb, ml_model, multicores)
@@ -194,6 +207,7 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method =
 #' @param  file            a set of file names to store the output (one file per classified year)
 #' @param  samples.tb      The samples used for training the classification model
 #' @param  ml_method       a model trained by \code{\link[sits]{sits_train}}
+#' @param  dist_method     The method to obtain the values to be used from training and classification
 #' @param  interval        The interval between two sucessive classification
 #' @param  blocksize       Default size of the block (rows * cols) (see function .sits_raster_block_size)
 #' @param  multicores      Number of threads to process the time series.
@@ -257,7 +271,9 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method =
 #' }
 #'
 #' @export
-sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method = sits_svm(), interval = "12 month",
+sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method = sits_svm(),
+                                  dist_method = sits_distances_from_data(),
+                                  interval = "12 month",
                                   blocksize = 250000, multicores = 2){
 
     # ensure metadata tibble exists
@@ -269,7 +285,7 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method
     ensurer::ensure_that(file,      !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
 
     # set up the ML model
-    distances.tb <- sits_distances (samples.tb)
+    distances.tb <- dist_method (samples.tb)
     ml_model <- sits_train (distances.tb, ml_method)
 
     # create the raster objects and their respective filenames

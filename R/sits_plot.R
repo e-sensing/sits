@@ -17,35 +17,63 @@
 #' based on the input data. If the input data has less than 30 samples, it
 #' will default to "all years". If there is only one sample per class, it will
 #' default to "patterns". If there are more than 30 samples, it will default to
-#' "together". If there
+#' "together". If there is a cluster object as a parameter, it will plot the dendrogram.
+#' If the input data has predicted values resulting from a classification, it will
+#' plot the classification.
 #'
 #'
 #' @param  data.tb       A SITS tibble with the list of time series to be plotted
-#' @param  band          The band used for visualisation (optional for sits_plot_classification)
+#' @param  clusters      The output of \code{\link[sits]{sits_dendrogram}}. Required for dendrogram plotting.
+#' @param  cutree_height A dashed horizontal line to be drawed indicating the height of dendrogram cutt
 #' @param  type          Type of plot to be generated
-#' @param  cluster_obj   Useful for plotting a dendrogram.
-#' @param  cutree_height A dashed horizontal line to be drawed indicating the height of dendrogram cutting.
+#' @param  band          The band used for visualisation (optional for sits_plot_classification)
 #' @param  colors       Color pallete to be used (based on Color Brewer - default is "Dark2")
 #' @return data.tb      Input SITS table (useful for chaining functions)
+#'
+#' @examples
+#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
+#' samples.tb <- readRDS (system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' # Plot all the samples together
+#' sits_plot (samples.tb)
+#' # Plot the first 20 samples (defaults to "allyears")
+#' sits_plot (samples.tb[1:20,])
+#' # Plot the patterns
+#' sits_plot (sits_patterns(samples.tb))
+#' \donttest{
+#' # Generate and plot a dendrogram
+#' library (dtwclust)
+#' clusters <- sits_dendrogram (samples.tb, bands = c("ndvi"))
+#' sits_plot (samples.tb, clusters)
+#' }
 #' @export
 #
-sits_plot <- function (data.tb, band = NULL, cluster_obj = NULL, cutree_height = NULL,
-                       type = "allyears", colors = "Dark2") {
+sits_plot <- function (data.tb, clusters = NULL, cutree_height = NULL,
+                       type = NULL, band = NULL, colors = "Set1") {
 
     # check the input exists
     .sits_test_tibble(data.tb)
-    # is there only one sample per label? Plot patterns!
-    if (max (sits_labels(data.tb)$count) == 1 && nrow(data.tb) > 1)
-        type <- "patterns"
-    # Both data.tb and patterns.tb exist? Plot classification!
-    if ("predicted" %in% names (data.tb))
-        type <- "classification"
-    # Is there a "cluster_obj"? Plot dendogram!
-    if (!purrr::is_null(cluster_obj))
-        type <- "dendogram"
-    # Are there more than 50 samples? Plot them together!
-    if (nrow(data.tb) > 30)
-        type <- "together"
+
+    # try to guess what is the plot type
+    if(purrr::is_null (type)) {
+        # is there only one sample per label? Plot patterns!
+        if (max (sits_labels(data.tb)$count) == 1 && nrow(data.tb) > 1)
+            type <- "patterns"
+        # Both data.tb and patterns.tb exist? Plot classification!
+        else if ("predicted" %in% names (data.tb)) {
+            type <- "classification"
+        }
+        # Is there a "cluster_obj"? Plot dendogram!
+        else if (!purrr::is_null(clusters)) {
+            type <- "dendrogram"
+        }
+        # Are there more than 30 samples? Plot them together!
+        else if (nrow(data.tb) > 30) {
+            type <- "together"
+        }
+        # If no conditions are met, take "allyears" as the default
+        else
+            type = "allyears"
+    }
 
     switch(type,
            "allyears"       = sits_plot_allyears (data.tb, colors),
@@ -53,7 +81,7 @@ sits_plot <- function (data.tb, band = NULL, cluster_obj = NULL, cutree_height =
            "together"       = sits_plot_together (data.tb, colors),
            "patterns"       = sits_plot_patterns (data.tb),
            "classification" = sits_plot_classification (data.tb, band = band),
-           "dendrogram"     = sits_plot_dendrogram (data.tb, cluster_obj, cutree_height = NULL,
+           "dendrogram"     = sits_plot_dendrogram (data.tb, clusters, cutree_height = NULL,
                                                     colors = colors),
            "alignments"     = .sits_plot_alignments (data.tb),
            message (paste ("sits_plot: valid plot types are allyears, one_by_one,
@@ -70,7 +98,7 @@ sits_plot <- function (data.tb, band = NULL, cluster_obj = NULL, cutree_height =
 #' @description for each lat/long location in the data, join temporal
 #' instances of the same place together for plotting
 #' @param data.tb one or more time series (stored in a SITS tibble)
-#' @param colors  the color pallete to be used (default is "Dark2")
+#' @param colors  the color pallete to be used (default is "Set2")
 #' @export
 sits_plot_allyears <- function (data.tb, colors) {
      locs <- dplyr::distinct (data.tb, longitude, latitude)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_sgolay}
 \alias{sits_sgolay}
-\title{Smooth the time series using Savitsky-Golay filter (based on signal package)}
+\title{Smooth the time series using Savitsky-Golay filter}
 \usage{
 sits_sgolay(data.tb, order = 3, scale = 1, bands_suffix = "sg")
 }
@@ -17,9 +17,17 @@ sits_sgolay(data.tb, order = 3, scale = 1, bands_suffix = "sg")
 }
 \value{
 output.tb a tibble with smoothed sits time series
+#' # Read a point
+point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+# Select the NDVI band
+point.tb <- sits_select (point.tb, bands = c("ndvi"))
+# Filter the point using the whittaker smoother
+point_sg.tb <- sits_sgolay (point.tb, order = 3, scale = 2)
+# Plot the two points to see the smoothing effect
+sits_plot(sits_merge(point.tb, point_sg.tb))
 }
 \description{
 The algorithm searches for an optimal polynomial describing the warping.
-The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 10.0)
+The degree of smoothing depends on the filter order (usually 3.0)
 Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 }

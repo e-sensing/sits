@@ -17,7 +17,7 @@ sits_bands (embrapa.tb)
 embrapa.tb <- sits_select (embrapa.tb, bands = c("ndvi","evi","nir","mir"))
 
 # Show the patterns for the MatoGrosso data using the GAM model
-patterns.tb <- sits_gam (embrapa.tb)
+patterns.tb <- sits_patterns(embrapa.tb)
 
 # Plot the patterns
 sits_plot(patterns.tb)
@@ -46,14 +46,14 @@ longitude <- -58.8967
 latitude  <- -13.7214
 
 # retrieve the time series associated with the point from the WTSS server
-point.tb <- sits_getdata(latitude = latitude, longitude = longitude, bands = bands,
+point.tb <- sits_getdata(longitude = -59.66994, latitude = -9.31750, bands = bands,
                           URL = URL, coverage = coverage)
 
 # plot the series (only the ndvi and evi bands)
 sits_plot (sits_select (point.tb, bands = c("ndvi", "evi")))
 
 # classify the test data
-class.tb <- sits_classify(point.tb, embrapa.tb, model_svm.ml)
+class.tb <- sits_classify(point.tb, embrapa.tb)
 
 # plot the classification of the time series by yearly intervals
 sits_plot_classification(class.tb, band = "ndvi")

@@ -133,7 +133,7 @@ sits_fromJSON <- function (file) {
      # add the contents of the JSON file to a SITS tibble
      table <- tibble::as_tibble (jsonlite::fromJSON (file))
      # convert Indexes in time series to dates
-     table1 <- sits_tibble()
+     table1 <- .sits_tibble()
      table %>%
           purrrlyr::by_row(function (r) {
                tb <- tibble::as_tibble(r$time_series[[1]])
@@ -208,7 +208,7 @@ sits_fromCSV <-  function (csv_file, URL, coverage, bands, n_max = Inf, ignore_d
     # read sample information from CSV file and put it in a tibble
     csv.tb <- readr::read_csv (csv_file, n_max = n_max, col_types = cols_csv)
     # create the tibble
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # for each row of the input, retrieve the time series
     csv.tb %>%
         purrrlyr::by_row( function (r){
@@ -260,7 +260,7 @@ sits_fromCSV <-  function (csv_file, URL, coverage, bands, n_max = Inf, ignore_d
 #' # create a raster metadata file based on the information about the files
 #' raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 #' # read the point from the raster
-#' point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
+#' point.tb <- sits_fromRaster(raster.tb, longitude = -55.50563, latitude = -11.71557)
 #'
 #' @export
 sits_fromRaster <- function (raster.tb, file = NULL, longitude = NULL, latitude = NULL,  xcoord = NULL, ycoord = NULL,
@@ -315,7 +315,7 @@ sits_fromSHP <- function (shp_file, URL, coverage, bands = NULL, start_date = NU
     # get the bounding box
     bbox <- sf::st_bbox (sf_shape)
 
-    shape.tb <- sits_tibble()
+    shape.tb <- .sits_tibble()
 
     coverage.tb <- sits_coverageWTSS(URL, coverage, .show = FALSE)
 
@@ -433,7 +433,7 @@ sits_fromWTSS <- function (longitude, latitude, start_date = NULL, end_date = NU
     ts.lst[[1]] <- row.tb
 
     # create a tibble to store the WTSS data
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # add one row to the tibble
     data.tb <- tibble::add_row (data.tb,
                                 longitude    = longitude,
@@ -461,11 +461,18 @@ sits_fromWTSS <- function (longitude, latitude, start_date = NULL, end_date = NU
 #' @param label         Label to attach to the time series (optional)
 #' @param coverage      Name of the coverage where data comes from
 #' @return data.tb      A time series in SITS tibble format
+#'
+#' @examples
+#' # Read a time series in ZOO format
+#' ts.zoo <- readRDS(system.file("extdata/time_series/zoo_ex.rds", package = "sits"))
+#' # Convert the zoo series into a SITS tibble
+#' data.tb <- sits_fromZOO (ts.zoo, longitude = -54.2313, latitude = -14.0482,
+#'            label = "Cerrado", coverage = "mod13q1")
 #' @export
 sits_fromZOO <- function (ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoClass", coverage = "unknown"){
 
     # convert the data from the zoo format to the SITS format
-    ts.tb <- tibble::as_tibble (zoo::fortify.zoo (time_series))
+    ts.tb <- tibble::as_tibble (zoo::fortify.zoo (ts.zoo))
 
     # create a list to store the zoo time series coming from the WTSS service
     ts.lst <- list()
@@ -478,7 +485,7 @@ sits_fromZOO <- function (ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
     end_date <- ts.tb[NROW(ts.tb),]$Index
 
     # create a tibble to store the WTSS data
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # add one row to the tibble
     data.tb <- .sits_add_row (data.tb,
                                 longitude    = longitude,

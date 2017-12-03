@@ -13,11 +13,27 @@ sits_relabel(data.tb, conv.lst = list())
 An empty list produces no difference.}
 }
 \value{
-result.tb      an assessment of validation
+result.tb      a new SITS tibble with modified labels
 }
 \description{
 Given a SITS tibble with a set of labels, and a conversion list
 between the original labels and new labels, returns a new SITS tibble whose labels are changed.
+}
+\examples{
+# Read a set of time series with information on deforestation
+data.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+# Print the labels
+sits_labels (data.tb)
+# Create a conversion list
+conv.lst = list("Deforestation_2014" = "NonForest",
+             "Deforestation_2015" = "NonForest",
+             "Forest" = "Forest",
+             "Pasture" = "NonForest")
+# relabel the data
+new_data.tb <- sits_relabel (data.tb, conv.lst)
+# show the new labels
+sits_labels (new_data.tb)
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

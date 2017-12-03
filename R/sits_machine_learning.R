@@ -28,33 +28,33 @@
 #' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 #' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
 #' # find the distance from the data
-#' distances.tb <- sits_distances (samples.tb)
+#' distances.tb <- sits_distances_from_data (samples.tb)
 #' # find a training model based on the distances
 #' ml_model <- sits_train (distances.tb, ml_method = sits_svm(kernel = "radial", cost = 10))
-#' # get a point using the WTSS server
-#' point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
+#' # get a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
 #' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
-#' # align the point to the samples (breaks a long time series into intervals)
-#' point_align.tb <- sits_align(point.tb, samples.tb)
+#' # break the point to match the samples (breaks a long time series into intervals)
+#' point2.tb <- sits_break(point.tb, samples.tb)
 #' # calculate the distances for the point
-#' dist_point.tb <- sits_distances(point_align.tb)
+#' dist_point.tb <- sits_distances_from_data(point2.tb)
 #' # predict the classification
-#' predicted.lst <- sits_predict(dist_point.tb, ml_model)
+#' predicted.vec <- sits_predict(dist_point.tb, ml_model)
 #'
 #' # NOTE: the above code shows a step-by-step approach to classification.
-#' # Users are recommended to use the "sits_classify" function, as follows:
+#' # Users are recommended to use the "sits_classify" function, which
+#' # calls the "sits_train" function is called internally.
+#' # The following code is recommended:
 #'
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
 #' samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
-#' # get a point using the WTSS server
-#' point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
+#' # get a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
 #' point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
 #' # classify the point
 #' class.tb <- sits_classify (point.tb, samples.tb,
 #'        ml_method = sits_svm(kernel = "radial", cost = 10))
-#'
-#' # in the above code, the "sits_train" function is called internally.
 #'
 #' @export
 #'
@@ -80,7 +80,7 @@ sits_train <- function(distances.tb, ml_method = sits_svm()){
 #'
 #' @description This function receives a tibble with a set of attributes X for each observation Y
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in SITS (either sits_distances or sits_TWTDTW_distances).
+#' function in SITS (see \code{link[sits]{sits_distances}}).
 #' The SVM algorithm is used for multiclass-classification.
 #' For this purpose, it uses the "one-against-one" approach, in which k(k-1)/2 binary
 #' classifiers are trained; the appropriate class is found by a voting scheme.
@@ -152,7 +152,7 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 #'
 #' @description This function receives a tibble with a set of attributes X for each observation Y
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in SITS (either sits_distances or sits_TWTDTW_distances).
+#' function in SITS (see \code{link[sits]{sits_distances}}).
 #' The method performs a linear discriminant analysis (lda) to obtain a predictive model.
 #' This function is a front-end to the "lda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
@@ -214,7 +214,7 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #'
 #' @description This function receives a tibble with a set of attributes X for each observation Y
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in SITS (either sits_distances or sits_TWTDTW_distances).
+#' function in SITS (see \code{link[sits]{sits_distances}}).
 #' The function performs a quadratic discriminant analysis (qda) to obtain a predictive model.
 #' This function is a front-end to the "qda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
@@ -276,7 +276,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #'
 #' @description Use multinomial log-linear (mlr) fitting model via neural networks to classify data.
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in SITS (either sits_distances or sits_TWTDTW_distances).
+#' function in SITS (see \code{link[sits]{sits_distances}}).
 #' This function is a front-end to the "multinom" method in the "nnet" package.
 #' Please refer to the documentation in that package for more details.
 #'
@@ -538,8 +538,9 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description A function to be used as a symbolic description of some fitting models such as svm.
-#' `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
+#' @description A function to be used as a symbolic description of some fitting models such as svm, lda, qda, and gbm.
+#' This function instructs the model to do a logarithm transformation of the input values.
+#' The `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
 #' If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
 #'
 #' @param predictors_index  the index of the valid columns whose names are used to compose formula (default: NULL)
@@ -573,7 +574,8 @@ sits_formula_logref <- function(predictors_index = -2:0){
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description A function to be used as a symbolic description of some fitting models such as svm.
-#' `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
+#' This function instructs the model to do a linear transformation of the input values.
+#' The `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
 #' If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
 #'
 #' @param predictors_index  the index of the valid columns whose names are used to compose formula (default: NULL)
@@ -605,6 +607,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description A function to be used as a symbolic description of some fitting models such as gam.
+#' This function instructs the model to do a smoothing transformation (via splines) of the input values.
 #' `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
 #' If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
 #'
@@ -663,7 +666,7 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #' # calculate the distances for the point
 #' dist_point.tb <- sits_distances(point_align.tb)
 #' # predict the classification
-#' predicted.lst <- sits_predict(dist_point.tb, ml_model)
+#' predicted.vec <- sits_predict(dist_point.tb, ml_model)
 #'
 #' The sits_predict function is called inside \code{\link[sits]{sits_classify}}
 #' and \code{\link[sits]{sits_classify_raster}}, so the user does not need

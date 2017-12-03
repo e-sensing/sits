@@ -5,8 +5,8 @@
 \title{Classify a set of spatio-temporal raster bricks using machine learning models}
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb,
-  ml_method = sits_svm(), interval = "12 month", blocksize = 250000,
-  multicores = 2)
+  ml_method = sits_svm(), dist_method = sits_distances_from_data(),
+  interval = "12 month", blocksize = 250000, multicores = 2)
 }
 \arguments{
 \item{file}{a set of file names to store the output (one file per classified year)}
@@ -16,6 +16,8 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb,
 \item{samples.tb}{The samples used for training the classification model}
 
 \item{ml_method}{a model trained by \code{\link[sits]{sits_train}}}
+
+\item{dist_method}{The method to obtain the values to be used from training and classification}
 
 \item{interval}{The interval between two sucessive classification}
 

@@ -247,13 +247,13 @@
 
     # create a list to store the time series coming from the set of Raster Layers
     ts.lst <- list()
-    # transform the zoo list into a tibble to store in memory
+    # transform the list into a tibble to store in memory
     ts.lst[[1]] <- ts.tb
     # set a name for the coverage
     if (purrr::is_null(coverage))
         coverage = tools::file_path_sans_ext(basename (raster.tb[1,]$name))
     # create a tibble to store the WTSS data
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # add one row to the tibble
     data.tb <- tibble::add_row (data.tb,
                                 longitude    = longitude,
@@ -293,7 +293,7 @@
     # read sample information from CSV file and put it in a tibble
     csv.tb <- readr::read_csv (file, col_types = cols_csv)
     # create the tibble
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # for each row of the input, retrieve the time series
     csv.tb %>%
         purrrlyr::by_row( function (r){
@@ -305,38 +305,4 @@
             data.tb <<- dplyr::bind_rows (data.tb, row.tb)
         })
     return (data.tb)
-}
-#' @title Retrieve a set of time series from a block of values obtained from a RasterBrick
-#' @name .sits_values_from_block
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Takes a block of values obtained form a RasterBrick, whose metadata is
-#' described by a raster tibble, and produce a list of time series for further processing
-#'
-#' @param  values.mx     Matrix of values obtained from a RasterBrick (rows are pixels, cols are layers in time)
-#' @param  scale_factor  Scale factor to convert the values from [0..1]
-#' @return ts.lst        List of time series (one per pixel)
-#'
-.sits_values_from_block <- function (values.mx, scale_factor){
-
-    # create a time series to store the result
-    #ts.lst <- list()
-    # loop through all rows of the matrix (each row is a pixel)
-    # for (i in 1:nrow(values.mx)){
-    #     # the values of each row are layers (values in time for a RasterBrick)
-    #     ts <- values.mx[i,]
-    #     # interpolate missing values
-    #     ts <- zoo::na.spline(ts)
-    #     # create a tibble to store the values of the time series
-    #     ts.tb <- tibble::tibble(ts)
-    #     # give a name to the tibble taken from the metadata associated to each raster object
-    #     names(ts.tb) <- tibble_row$band
-    #     # correct the values by the scale factor provided by the metadata information
-    #     ts.tb <- ts.tb[,1]*tibble_row$scale_factor
-    #     # include the time series in the output list
-    #     ts.lst [[length(ts.lst) + 1]] <- ts.tb
-    # }
-    values.mx <- zoo::na.spline(values.mx)
-    values.mx <- values.mx$scale_factor
-    return (tibble::as.tibble(values.mx))
 }

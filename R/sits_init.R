@@ -4,8 +4,6 @@
     packageStartupMessage(
         sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.\n",
                 utils::packageDescription("sits")$Version) )
-    packageStartupMessage("Registering TWDTW distance from `dtwSat` into `proxy::pr_DB`.\n")
-    dtwSat::twdtwProxyRegister()
 }
 
 # Include the following global variables in the SITS package

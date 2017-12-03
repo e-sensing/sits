@@ -15,6 +15,13 @@ result.tb  a tibble with the names of the labels and its absolute and relative f
 \description{
 returns the labels and its respective counting and frequency.
 }
+\examples{
+# read a tibble with 400 samples of Cerrado and 346 samples of Pasture
+cerrado2.tb <- readRDS(system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+# print the labels
+sits_labels (cerrado2.tb)
+
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

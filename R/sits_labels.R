@@ -6,8 +6,14 @@
 #'
 #' @param data.tb     a valid sits table
 #' @return result.tb  a tibble with the names of the labels and its absolute and relative frequency
-#' @export
 #'
+#' @examples
+#' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
+#' cerrado2.tb <- readRDS(system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' # print the labels
+#' sits_labels (cerrado2.tb)
+#'
+#' @export
 sits_labels <- function (data.tb) {
 
     # get frequency table
@@ -30,7 +36,23 @@ sits_labels <- function (data.tb) {
 #' @param  data.tb        a SITS tibble
 #' @param  conv.lst       a named list used to convert labels to a new value. Actual labels must be the names of the conv.lst elements.
 #'                        An empty list produces no difference.
-#' @return result.tb      an assessment of validation
+#' @return result.tb      a new SITS tibble with modified labels
+#'
+#' @examples
+#' # Read a set of time series with information on deforestation
+#' data.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+#' # Print the labels
+#' sits_labels (data.tb)
+#' # Create a conversion list
+#' conv.lst = list("Deforestation_2014" = "NonForest",
+#'              "Deforestation_2015" = "NonForest",
+#'              "Forest" = "Forest",
+#'              "Pasture" = "NonForest")
+#' # relabel the data
+#' new_data.tb <- sits_relabel (data.tb, conv.lst)
+#' # show the new labels
+#' sits_labels (new_data.tb)
+#'
 #' @export
 sits_relabel <- function (data.tb, conv.lst = list()){
 

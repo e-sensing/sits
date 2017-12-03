@@ -51,7 +51,7 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
     # convert class names
     if (!purrr::is_null(conv.lst)) {
-        names_ref <- dplyr::pull (dplyr::distinct (pred_ref.tb, reference))
+        names_ref <- unique (ref.vec)
         ensurer::ensure_that(names_ref,
                              all(. %in% names(conv.lst)),
                              err_desc = "sits_conf_matrix: conversion list does not contain all reference labels")

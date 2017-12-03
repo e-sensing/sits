@@ -2,25 +2,32 @@
 #' @name sits_toZOO
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Converts data from a SITS tibble to an instance of a zoo series,
+#' @description Converts data from a SITS tibble to a list of a zoo series.
 #'
-#' @param  ts.tb    a tibble with the indexes and values of a SITS time series
-#'                  the tibble should have only the time series and should not be a full tibble
-#' @param  band     the name of the band to be exported (if NULL all bands are exported)
-#' @return ts.zoo   a time series in zoo format
+#' @param  data.tb    a SITS time series
+#' @param  band       the name of the band to be exported (if NULL all bands are exported)
+#' @return zoo.lst    a list of time series in zoo format
 #' @examples
 #'
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' cerrado2.tb <- readRDS(system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
 #' # export a time series to zoo
-#' ts.zoo <- sits_toZOO (cerrado2.tb[1,]$time_series[[1]])
+#' zoo.lst <- sits_toZOO (cerrado2.tb[1:20,])
 #'
 #' @export
-sits_toZOO <- function (ts.tb, band = NULL){
-    if (purrr::is_null(band))
-        band <-  colnames(ts.tb[-1:0])
-    # transform each sits time series into a list of zoo
-    return (zoo::zoo(ts.tb[,band, drop=FALSE], ts.tb$Index))
+sits_toZOO <- function (data.tb, band = NULL){
+
+    zoo.lst <- list()
+    data.tb %>%
+        purrrlyr::by_row( function (row){
+            ts.tb <- row$time_series[[1]]
+            if (purrr::is_null(band))
+                band <-  colnames(ts.tb[-1:0])
+            # transform each sits time series into a list of zoo
+            zoo.lst[[length(zoo.lst) + 1]] <<- zoo::zoo(ts.tb[,band, drop=FALSE], ts.tb$Index)
+        })
+
+    return (zoo.lst)
 }
 
 #' @title Saves the results of accuracy assessments as Excel files

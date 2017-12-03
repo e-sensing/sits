@@ -3,9 +3,9 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  This function creates a tibble containing the metadata for
-#'               a set of spatio-temporal raster files, defined as a set of "Raster Bricks".
+#'               a set of spatio-temporal raster files, organized as a set of "Raster Bricks".
 #'               These files should be of the same size and
-#'               projection. Each raster file should contain a data set, one layer
+#'               projection. Each raster brick file should contain one band
 #'               per time step. Different bands are archived in different raster files.
 #'
 #' @param  files         Vector with the file paths of the raster files
@@ -14,8 +14,17 @@
 #' @param  scale_factors Scale factors to convert each band to [0..1] range (in the same order as the files)
 #' @return raster.tb   A tibble with metadata information about a raster data set
 #'
-#' @description This function creates a tibble to store the information
-#' about a raster time series
+#'
+#' @examples
+#' # read a raster file and put it into a vector
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#'
+#' # define the timeline
+#' timeline <- lubridate::as_date((read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv",
+#'             package = "sits"), header = FALSE))[,1])
+#'
+#' # create a raster metadata file based on the information about the files
+#' raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
 #'
 #' @export
 sits_STRaster <- function (files, timeline, bands, scale_factors){

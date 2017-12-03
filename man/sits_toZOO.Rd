@@ -4,26 +4,25 @@
 \alias{sits_toZOO}
 \title{Export data to be used to the zoo format}
 \usage{
-sits_toZOO(ts.tb, band = NULL)
+sits_toZOO(data.tb, band = NULL)
 }
 \arguments{
-\item{ts.tb}{a tibble with the indexes and values of a SITS time series
-the tibble should have only the time series and should not be a full tibble}
+\item{data.tb}{a SITS time series}
 
 \item{band}{the name of the band to be exported (if NULL all bands are exported)}
 }
 \value{
-ts.zoo   a time series in zoo format
+zoo.lst    a list of time series in zoo format
 }
 \description{
-Converts data from a SITS tibble to an instance of a zoo series,
+Converts data from a SITS tibble to a list of a zoo series.
 }
 \examples{
 
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 cerrado2.tb <- readRDS(system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
 # export a time series to zoo
-ts.zoo <- sits_toZOO (cerrado2.tb[1,]$time_series[[1]])
+zoo.lst <- sits_toZOO (cerrado2.tb[1:20,])
 
 }
 \author{

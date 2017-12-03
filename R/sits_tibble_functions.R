@@ -1,5 +1,28 @@
-#' @title Align a data set to the dates of a set of samples, given an interval
-#' @name sits_align
+#' @title names of the bands of a time series
+#' @name sits_bands
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  finds the names of the bands of time series in a sits table
+#'               or sets the names of the bands if a set of values is given
+#'
+#' @param data.tb      a valid sits table
+#' @return result.vec  a string vector with the names of the bands
+#'
+#' @examples
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' # print the bands
+#' sits_bands(samples.tb)
+#' @export
+#'
+sits_bands <- function (data.tb) {
+    result.vec <- data.tb[1,]$time_series[[1]] %>%
+        colnames() %>% .[2:length(.)]
+    return (result.vec)
+}
+#' @title Break a data set in segments to match the dates of a set of samples, given an interval
+#' @name sits_break
 #' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
 #'
 #' @description This function aligns an input data set to the dates used by a set of samples
@@ -8,15 +31,21 @@
 #' @param samples.tb  the samples used in the classification
 #' @param interval    the interval between the classificationa
 #'
+#' @examples
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' # get a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' # break the point to match the samples (breaks a long time series into intervals)
+#' point2.tb <- sits_break(point.tb, samples.tb)
 #' @export
-
-sits_align <- function (data.tb, samples.tb, interval = "12 month"){
+sits_break <- function (data.tb, samples.tb, interval = "12 month"){
 
     # verify the input data
     .sits_test_tibble(data.tb)
     .sits_test_tibble(samples.tb)
 
-    output.tb <- sits_tibble()
+    output.tb <- .sits_tibble()
 
     data.tb %>%
         purrrlyr::by_row( function (row){
@@ -39,177 +68,6 @@ sits_align <- function (data.tb, samples.tb, interval = "12 month"){
         })
     return (output.tb)
 }
-
-
-#' @title Apply a function over SITS bands.
-#' @name sits_apply
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description Apply a 1D generic function to a time series and specific methods for
-#  common tasks such as missing values removal and smoothing.
-#' `sits_apply` returns a sits tibble with the same samples points and new bands computed by `fun`,
-#' `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
-#' whose vector values is passed as the function argument.
-#' The `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
-#' of the corresponding band. In the second case, the returned list must have names, and each element vector will
-#' generate a new band which name composed by concatenating original band name and the corresponding list element name.
-#'
-#' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
-#'
-#' @param data.tb       a valid sits table
-#' @param fun           a function with one parameter as input and a vector or list of vectors as output.
-#' @param fun_index     a function with one parameter as input and a Date vector as output.
-#' @param bands_suffix  a string informing the resulting bands name's suffix.
-#' @return data.tb      a sits tibble with same samples and the new bands
-#' @export
-sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
-
-    # verify if data.tb has values
-    .sits_test_tibble (data.tb)
-
-    # computes fun and fun_index for all time series and substitutes the original time series data
-    data.tb$time_series <- data.tb$time_series %>%
-        purrr::map(function(ts.tb) {
-            ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
-                purrr::map(fun)
-
-            # append bands names' suffixes
-            if (nchar(bands_suffix) != 0)
-                names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
-
-            # unlist if there are more than one result from `fun`
-            if (is.recursive(ts_computed.lst[[1]]))
-                ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
-
-            # convert to tibble
-            ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
-
-            # compute Index column
-            ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
-
-            # reorganizes time series tibble
-            return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
-        })
-    return(data.tb)
-}
-#' @title Apply a function on each SITS tibble column element
-#' @name sits_apply_on
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Computes new values for a given SITS tibble field and returns a tibble whose field column have
-#' the new values.
-#'
-#' @param  data.tb    a SITS tibble
-#' @param  field      a valid field of data.tb to apply `fun` function
-#' @param  fun        a function to apply in field data. The function must have an input parameter to receive each
-#'                    field data element at a time and output a new value.
-#' @return result.tb  a tibble where columns have the reference label and the time series bands as distances
-sits_apply_on <- function(data.tb, field, fun){
-
-    .sits_test_tibble(data.tb)
-
-    # prepare field to be used in dplyr
-    field <- deparse(substitute(field))
-
-    # define what to do after apply fun to field data...
-    post_process_func <- function(value) {
-        if (length(value) == 0)
-            return(value)
-        # ...if atomic, unlist vectors or other atomic values
-        if (is.atomic(value[[1]]))
-            return(unlist(value))
-        # ...by default, does nothing in non atomic values (like tibbles and list)
-        value
-    }
-
-    # apply function to field data and return
-    data.tb[[field]]  <- post_process_func(purrr::map(data.tb[[field]], fun))
-
-    return(data.tb)
-}
-#' @title Apply a function over a set of time series.
-#' @name sits_apply_ts
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description Apply a 1D generic function to a time series and specific methods for
-#  common tasks such as missing values removal and smoothing.
-#' `sits_apply_ts` returns a time series tibble with the same samples points and new bands computed by `fun`,
-#' `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
-#' whose vector values is passed as the function argument.
-#' The `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
-#' of the corresponding band. In the second case, the returned list must have names, and each element vector will
-#' generate a new band which name composed by concatenating original band name and the corresponding list element name.
-#'
-#' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
-#'
-#' @param ts.tb         a valid sits table
-#' @param fun           a function with one parameter as input and a vector or list of vectors as output.
-#' @param fun_index     a function with one parameter as input and a Date vector as output.
-#' @param bands_suffix  a string informing the resulting bands name's suffix.
-#' @return data.tb      a sits tibble with same samples and the new bands
-#' @export
-sits_apply_ts <- function(ts.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
-
-
-    # computes fun and fun_index for all time series and substitutes the original time series data
-    ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
-        purrr::map(fun)
-
-    # append bands names' suffixes
-    if (nchar(bands_suffix) != 0)
-        names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
-
-    # unlist if there are more than one result from `fun`
-    if (is.recursive(ts_computed.lst[[1]]))
-        ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
-
-    # convert to tibble
-    ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
-
-    # compute Index column
-    ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
-
-    # reorganizes time series tibble
-    return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
-
-    return(ts.tb)
-}
-#' @title names of the bands of a time series
-#' @name sits_bands
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description  finds the names of the bands of time series in a sits table
-#'               or sets the names of the bands if a set of values is given
-#'
-#' @param data.tb      a valid sits table
-#' @return result.vec  a string vector with the names of the bands
-#' @export
-#'
-sits_bands <- function (data.tb) {
-    result.vec <- data.tb[1,]$time_series[[1]] %>%
-        colnames() %>% .[2:length(.)]
-    return (result.vec)
-}
-#' @title Bind two SITS tibbles
-#' @name sits_bind
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function merges two STIS tables.
-#' To merge two series, we consider that they contain different spatio-temporal location
-#' but refer to the same coverage, and have the same attributes.
-#'
-#' @param data1.tb      the first SITS table to be bound
-#' @param data2.tb      the second SITS table to be bound
-#' @return result.tb    a merged SITS tibble with a bind set of time series
-#' @export
-sits_bind <-  function(data1.tb, data2.tb) {
-
-
-    # prepare result
-    result.tb <- dplyr::bind_rows(data1.tb, data2.tb)
-
-    # merge time series
-    return (result.tb)
-}
 #' @title Return the dates of a sits table
 #' @name sits_dates
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -218,66 +76,16 @@ sits_bind <-  function(data1.tb, data2.tb) {
 #'
 #' @param  data.tb a tibble in SITS format with time series for different bands
 #' @return table   a tibble in SITS format with values of time indexes
+#' # get a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' # return a vector of values
+#' sits_dates (point.tb)
 #' @export
 sits_dates <- function (data.tb) {
-    values <- data.tb$time_series %>%
-        data.frame() %>%
-        tibble::as_tibble() %>%
-        dplyr::select (dplyr::starts_with ("Index")) %>%
-        t() %>%
-        as.vector() %>%
-        lubridate::as_date()
+    values <- data.tb$time_series[[1]]$Index
     return (values)
 }
-#' @title apply a function to a grouped SITS table
-#' @name sits_foreach
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description returns a sits table by compound the sits tables apply a function to a grouped SITS table
-#'
-#' @param data.tb      a sits table with the time series of the selected bands
-#' @param field        one sits table field that are used to group the data.
-#'                     See `dplyr::group_by` help for more details.
-#' @param fun          a function that receives as input an sits table and outputs an sits table
-#' @return result.tb   a tibble in SITS format with the selected bands
-#' @export
-sits_foreach <- function (data.tb, field, fun){
 
-    .sits_test_tibble(data.tb)
-
-    field <- deparse(substitute(field))
-
-    # execute the foreach applying fun function to each group
-    result.tb <- data.tb %>%
-        dplyr::group_by_(field) %>%
-        dplyr::do(.data %>% fun())
-
-    # comply result with sits table format and return
-    result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
-    return (result.tb)
-}
-
-#' @title Group the contents of a sits tibble by different criteria
-#' @name sits_group_by
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description returns a sits table by compound the sits tables apply a function to a grouped SITS table
-#'
-#' @param data.tb      a sits table with the time series of the selected bands
-#' @param ...          one or more sits table field separated by commas that are used to group the data.
-#'                     See `dplyr::group_by` help for more details.
-#' @return result.tb   a tibble in SITS format with the selected bands
-#' @export
-sits_group_by <- function (data.tb, ...){
-
-    # execute the group by function from dplyr
-    result.tb <- data.tb %>%
-        dplyr::group_by(...)
-
-    # comply result with sits table format and return
-    result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
-    return (result.tb)
-}
 #' @title Merge two satellite image time series
 #' @name sits_merge
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -292,6 +100,17 @@ sits_group_by <- function (data.tb, ...){
 #' @param data1.tb      the first SITS table to be merged
 #' @param data2.tb      the second SITS table to be merged
 #' @return result.tb    a merged SITS tibble with a nested set of time series
+#' @examples
+#' # Read a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' # Select the NDVI band
+#' point.tb <- sits_select (point.tb, bands = c("ndvi"))
+#' # Filter the point using the whittaker smoother
+#' point_ws.tb <- sits_whittaker (point.tb, lambda = 3.0)
+#' # Merge the two tibbles
+#' point_merge.tb <- sits_merge(point.tb, point_ws.tb)
+#' # Plot the merged time series to see the smoothing effect
+#' sits_plot(point_merge.tb)
 #' @export
 sits_merge <-  function(data1.tb, data2.tb) {
 
@@ -318,74 +137,6 @@ sits_merge <-  function(data1.tb, data2.tb) {
         return (ts3.tb)
     })
     return (result.tb)
-}
-#' @title Add new SITS bands.
-#' @name sits_mutate
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Adds new bands and preserves existing in the time series of a sits tibble using dplyr::mutate function
-#' @param data.tb       a valid sits tibble
-#' @param ...           `name=value` pairs expressions. See `dplyr::mutate` help for more details.
-#' @return data.tb      a sits tibble with same samples and the new bands
-#' @export
-sits_mutate <- function(data.tb, ...){
-
-    # verify if data.tb has values
-    .sits_test_tibble (data.tb)
-
-    # compute mutate for each time_series tibble
-    proc_fun <- function(...){
-        data.tb$time_series <- data.tb$time_series %>%
-            purrr::map(function(ts.tb) {
-                ts_computed.tb <- ts.tb %>%
-                    dplyr::mutate(...)
-                return(ts_computed.tb)
-            })
-    }
-
-    # compute mutate for each time_series tibble
-    data.tb$time_series <- proc_fun(...)
-    return(data.tb)
-}
-#' @title  Prunes dates of time series to fit a timeline
-#' @name   sits_prune
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description prunes the times series contained a set of sits tables
-#' to a timeline. This function is useful to constrain the different samples
-#' of land cover to a timeline of available input
-#'
-#' @param    data.tb      tibble - input SITS table
-#' @param    timeline     a timeline of dates for which data is available
-#' @return   pruned.tb    tibble - the converted SITS table
-#' @export
-sits_prune <- function (data.tb, timeline) {
-    #does the input data exist?
-    .sits_test_tibble(data.tb)
-
-    pruned.tb    <- sits_tibble()
-    discarded.tb <- sits_tibble()
-
-    timeline_start_date <- lubridate::as_date(timeline[1])
-    timeline_end_date   <- lubridate::as_date(timeline[length(timeline)])
-
-    data.tb %>%
-        purrrlyr::by_row (function (row) {
-
-            if (row$start_date > timeline_start_date && row$end_date < timeline_end_date)
-                pruned.tb <<- dplyr::bind_rows(pruned.tb, row)
-            else
-                discarded.tb <<- dplyr::bind_rows(discarded.tb, row)
-        })
-
-    if (nrow(discarded.tb) > 0){
-        message("The following sample(s) has(have) been discarded:\n")
-        print(tibble::as_tibble(discarded.tb))
-    }
-    else
-        message("No sample(s) has(have) been discarded:\n")
-
-    return (pruned.tb)
 }
 #' @title names of the bands of a time series
 #' @name sits_rename
@@ -448,7 +199,7 @@ sits_sample <- function (data.tb, n = NULL, frac = NULL){
         function(tb) tb %>% dplyr::sample_frac(size = frac, replace = TRUE)
 
     # compute sampling
-    result.tb <- sits_tibble()
+    result.tb <- .sits_tibble()
     labels <- sits_labels (data.tb)$label
     labels %>%
         purrr::map (function (l){

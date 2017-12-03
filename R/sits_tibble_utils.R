@@ -53,7 +53,7 @@
     # get the reference date
     start_date <- lubridate::as_date(ref_dates[1])
     # create an output table
-    data1.tb <- sits_tibble()
+    data1.tb <- .sits_tibble()
 
     for (i in 1:nrow(data.tb)) {
         # extract the time series
@@ -84,7 +84,135 @@
     return (data1.tb)
 }
 
+#' @title Apply a function over SITS bands.
+#' @name .sits_apply
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description Apply a 1D generic function to a time series and specific methods for
+#  common tasks such as missing values removal and smoothing.
+#' `sits_apply` returns a sits tibble with the same samples points and new bands computed by `fun`,
+#' `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
+#' whose vector values is passed as the function argument.
+#' The `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
+#' of the corresponding band. In the second case, the returned list must have names, and each element vector will
+#' generate a new band which name composed by concatenating original band name and the corresponding list element name.
+#'
+#' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
+#'
+#' @param data.tb       a valid sits table
+#' @param fun           a function with one parameter as input and a vector or list of vectors as output.
+#' @param fun_index     a function with one parameter as input and a Date vector as output.
+#' @param bands_suffix  a string informing the resulting bands name's suffix.
+#' @return data.tb      a sits tibble with same samples and the new bands
+.sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
 
+    # verify if data.tb has values
+    .sits_test_tibble (data.tb)
+
+    # computes fun and fun_index for all time series and substitutes the original time series data
+    data.tb$time_series <- data.tb$time_series %>%
+        purrr::map(function(ts.tb) {
+            ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
+                purrr::map(fun)
+
+            # append bands names' suffixes
+            if (nchar(bands_suffix) != 0)
+                names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
+
+            # unlist if there are more than one result from `fun`
+            if (is.recursive(ts_computed.lst[[1]]))
+                ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
+
+            # convert to tibble
+            ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
+
+            # compute Index column
+            ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
+
+            # reorganizes time series tibble
+            return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
+        })
+    return(data.tb)
+}
+#' @title Apply a function on each SITS tibble column element
+#' @name .sits_apply_on
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Computes new values for a given SITS tibble field and returns a tibble whose field column have
+#' the new values.
+#'
+#' @param  data.tb    a SITS tibble
+#' @param  field      a valid field of data.tb to apply `fun` function
+#' @param  fun        a function to apply in field data. The function must have an input parameter to receive each
+#'                    field data element at a time and output a new value.
+#' @return result.tb  a tibble where columns have the reference label and the time series bands as distances
+.sits_apply_on <- function(data.tb, field, fun){
+
+    .sits_test_tibble(data.tb)
+
+    # prepare field to be used in dplyr
+    field <- deparse(substitute(field))
+
+    # define what to do after apply fun to field data...
+    post_process_func <- function(value) {
+        if (length(value) == 0)
+            return(value)
+        # ...if atomic, unlist vectors or other atomic values
+        if (is.atomic(value[[1]]))
+            return(unlist(value))
+        # ...by default, does nothing in non atomic values (like tibbles and list)
+        value
+    }
+
+    # apply function to field data and return
+    data.tb[[field]]  <- post_process_func(purrr::map(data.tb[[field]], fun))
+
+    return(data.tb)
+}
+#' @title Apply a function over a set of time series.
+#' @name .sits_apply_ts
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description Apply a 1D generic function to a time series and specific methods for
+#  common tasks such as missing values removal and smoothing.
+#' `sits_apply_ts` returns a time series tibble with the same samples points and new bands computed by `fun`,
+#' `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
+#' whose vector values is passed as the function argument.
+#' The `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
+#' of the corresponding band. In the second case, the returned list must have names, and each element vector will
+#' generate a new band which name composed by concatenating original band name and the corresponding list element name.
+#'
+#' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
+#'
+#' @param ts.tb         a valid sits table
+#' @param fun           a function with one parameter as input and a vector or list of vectors as output.
+#' @param fun_index     a function with one parameter as input and a Date vector as output.
+#' @param bands_suffix  a string informing the resulting bands name's suffix.
+#' @return data.tb      a sits tibble with same samples and the new bands
+.sits_apply_ts <- function(ts.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
+
+
+    # computes fun and fun_index for all time series and substitutes the original time series data
+    ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
+        purrr::map(fun)
+
+    # append bands names' suffixes
+    if (nchar(bands_suffix) != 0)
+        names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
+
+    # unlist if there are more than one result from `fun`
+    if (is.recursive(ts_computed.lst[[1]]))
+        ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
+
+    # convert to tibble
+    ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
+
+    # compute Index column
+    ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
+
+    # reorganizes time series tibble
+    return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
+
+    return(ts.tb)
+}
 #' @title Break a time series to match the time range of a set of patterns
 #' @name .sits_break_ts
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -96,7 +224,6 @@
 #' @param  ts             time series data
 #' @param  ref_dates.lst  list with dates to break
 #' @return ts.lst         list with the breaks of the time series data
-#' @export
 #'
 .sits_break_ts <-  function (ts, ref_dates.lst){
 
@@ -170,7 +297,7 @@
 .sits_extract <- function (row.tb, start_date, end_date) {
 
     # create a tibble to store the results
-    subset.tb <- sits_tibble()
+    subset.tb <- .sits_tibble()
 
     # filter the time series by start and end dates
     sub.ts <- row.tb$time_series[[1]] %>%
@@ -211,7 +338,78 @@
 
     return (subset.tb)
 }
+#' @title apply a function to a grouped SITS table
+#' @name .sits_foreach
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description returns a sits table by compound the sits tables apply a function to a grouped SITS table
+#'
+#' @param data.tb      a sits table with the time series of the selected bands
+#' @param field        one sits table field that are used to group the data.
+#'                     See `dplyr::group_by` help for more details.
+#' @param fun          a function that receives as input an sits table and outputs an sits table
+#' @return result.tb   a tibble in SITS format with the selected bands
+.sits_foreach <- function (data.tb, field, fun){
 
+    .sits_test_tibble(data.tb)
+
+    field <- deparse(substitute(field))
+
+    # execute the foreach applying fun function to each group
+    result.tb <- data.tb %>%
+        dplyr::group_by_(field) %>%
+        dplyr::do(.data %>% fun())
+
+    # comply result with sits table format and return
+    result.tb <- dplyr::bind_rows(list(.sits_tibble(), result.tb))
+    return (result.tb)
+}
+#' @title Group the contents of a sits tibble by different criteria
+#' @name .sits_group_by
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description returns a sits table by compound the sits tables apply a function to a grouped SITS table
+#'
+#' @param data.tb      a sits table with the time series of the selected bands
+#' @param ...          one or more sits table field separated by commas that are used to group the data.
+#'                     See `dplyr::group_by` help for more details.
+#' @return result.tb   a tibble in SITS format with the selected bands
+.sits_group_by <- function (data.tb, ...){
+
+    # execute the group by function from dplyr
+    result.tb <- data.tb %>%
+        dplyr::group_by(...)
+
+    # comply result with sits table format and return
+    result.tb <- dplyr::bind_rows(list(.sits_tibble(), result.tb))
+    return (result.tb)
+}
+#' @title Add new SITS bands.
+#' @name .sits_mutate
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Adds new bands and preserves existing in the time series of a sits tibble using dplyr::mutate function
+#' @param data.tb       a valid sits tibble
+#' @param ...           `name=value` pairs expressions. See `dplyr::mutate` help for more details.
+#' @return data.tb      a sits tibble with same samples and the new bands
+.sits_mutate <- function(data.tb, ...){
+
+    # verify if data.tb has values
+    .sits_test_tibble (data.tb)
+
+    # compute mutate for each time_series tibble
+    proc_fun <- function(...){
+        data.tb$time_series <- data.tb$time_series %>%
+            purrr::map(function(ts.tb) {
+                ts_computed.tb <- ts.tb %>%
+                    dplyr::mutate(...)
+                return(ts_computed.tb)
+            })
+    }
+
+    # compute mutate for each time_series tibble
+    data.tb$time_series <- proc_fun(...)
+    return(data.tb)
+}
 #' @title Tests if a sits tibble is valid
 #' @name .sits_test_tibble
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

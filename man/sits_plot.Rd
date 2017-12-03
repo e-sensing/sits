@@ -4,19 +4,19 @@
 \alias{sits_plot}
 \title{Plot a set of satellite image time series}
 \usage{
-sits_plot(data.tb, band = NULL, cluster_obj = NULL, cutree_height = NULL,
-  type = "allyears", colors = "Dark2")
+sits_plot(data.tb, clusters = NULL, cutree_height = NULL, type = NULL,
+  band = NULL, colors = "Set1")
 }
 \arguments{
 \item{data.tb}{A SITS tibble with the list of time series to be plotted}
 
-\item{band}{The band used for visualisation (optional for sits_plot_classification)}
+\item{clusters}{The output of \code{\link[sits]{sits_dendrogram}}. Required for dendrogram plotting.}
 
-\item{cluster_obj}{Useful for plotting a dendrogram.}
-
-\item{cutree_height}{A dashed horizontal line to be drawed indicating the height of dendrogram cutting.}
+\item{cutree_height}{A dashed horizontal line to be drawed indicating the height of dendrogram cutt}
 
 \item{type}{Type of plot to be generated}
+
+\item{band}{The band used for visualisation (optional for sits_plot_classification)}
 
 \item{colors}{Color pallete to be used (based on Color Brewer - default is "Dark2")}
 }
@@ -40,7 +40,25 @@ the sits_plot function makes an educated guess of what plot is required,
 based on the input data. If the input data has less than 30 samples, it
 will default to "all years". If there is only one sample per class, it will
 default to "patterns". If there are more than 30 samples, it will default to
-"together". If there
+"together". If there is a cluster object as a parameter, it will plot the dendrogram.
+If the input data has predicted values resulting from a classification, it will
+plot the classification.
+}
+\examples{
+# Read a set of samples with 2 classes ("Cerrado" and "Pasture")
+samples.tb <- readRDS (system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+# Plot all the samples together
+sits_plot (samples.tb)
+# Plot the first 20 samples (defaults to "allyears")
+sits_plot (samples.tb[1:20,])
+# Plot the patterns
+sits_plot (sits_patterns(samples.tb))
+\donttest{
+# Generate and plot a dendrogram
+library (dtwclust)
+clusters <- sits_dendrogram (samples.tb, bands = c("ndvi"))
+sits_plot (samples.tb, clusters)
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

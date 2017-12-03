@@ -14,7 +14,8 @@ result_fun       a function that computes a valid formula
 }
 \description{
 A function to be used as a symbolic description of some fitting models such as svm.
-`predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
+This function instructs the model to do a linear transformation of the input values.
+The `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
 If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
 }
 \author{

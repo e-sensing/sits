@@ -60,7 +60,7 @@ timeline <- lubridate::as_date (timeline$V1)
 # create a raster metadata file based on the information about the files
 raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 # read the point from the raster
-point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
+point.tb <- sits_fromRaster(raster.tb, longitude = -55.50563, latitude = -11.71557)
 
 }
 \author{
