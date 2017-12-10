@@ -16,6 +16,12 @@ result.vec  a string vector with the names of the bands
 finds the names of the bands of time series in a sits table
               or sets the names of the bands if a set of values is given
 }
+\examples{
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+# print the bands
+sits_bands(samples.tb)
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 

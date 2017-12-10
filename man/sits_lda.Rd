@@ -33,8 +33,7 @@ samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
 point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
 point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
 # classify the point
-class.tb <- sits_classify (point.tb, samples.tb,
-       ml_method = sits_lda())
+class.tb <- sits_classify (point.tb, samples.tb, ml_method = sits_lda())
 }
 }
 \author{

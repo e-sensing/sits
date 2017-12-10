@@ -37,6 +37,23 @@ By default, the gam methods  produces an approximation based on a smooth functio
 This method is based on the "createPatterns" method of the dtwSat package, which is also
 described in the reference paper.
 }
+\examples{
+# Read a set of samples for two classes
+samples.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+# Estimate a set of patterns (one for each label)
+patterns.tb <- sits_patterns (samples.tb)
+\donttest{
+# Show the patterns
+sits_plot (patterns.tb)
+
+# Read a set of samples for the state of Mato Grosso, Brazil, provided by EMBRAPA
+samples.tb <- readRDS(system.file ("extdata/time_series/embrapa_mt.rds", package = "sits"))
+# Estimate a set of patterns (one for each label)
+patterns.tb <- sits_patterns (samples.tb)
+# Show the patterns
+sits_plot (patterns.tb)
+}
+}
 \references{
 Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
 A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.

@@ -41,15 +41,20 @@
 #' @return data.tb        a SITS tibble
 #'
 #' @examples
+#' \donttest{
 #' # Read a single lat long point from a WTSS server
 #' point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557,
 #'          URL = "http://www.dpi.inpe.br/tws/wtss", coverage    = "mod13q1_512")
 #'
+#' # show the point
+#' show(point.tb)
 #' # Read a set of points defined in a CSV file from a WTSS server
 #' csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
 #' points.tb <- sits_getdata (file = csv_file, URL = "http://www.dpi.inpe.br/tws/wtss",
 #'              coverage = "mod13q1_512")
-#'
+#' show (points.tb)
+#' # show the points retrieved for the WTSS server
+#' }
 #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
@@ -207,19 +212,41 @@ sits_fromCSV <-  function (csv_file, URL, coverage, bands, n_max = Inf, ignore_d
                             label       = readr::col_character())
     # read sample information from CSV file and put it in a tibble
     csv.tb <- readr::read_csv (csv_file, n_max = n_max, col_types = cols_csv)
+
+    # create a variable to test the number of samples
+    n_samples_ref <-  -1
+    # create a variable to store the number of rows
+    nrow = 0
+    # create a vector to store the lines with different number of samples
+    diff_lines <- vector()
     # create the tibble
     data.tb <- .sits_tibble()
     # for each row of the input, retrieve the time series
     csv.tb %>%
         purrrlyr::by_row( function (r){
             row <- sits_fromWTSS (r$longitude, r$latitude, r$start_date, r$end_date, URL, coverage, bands, r$label, ignore_dates)
-
+            nrow <-  nrow + 1
             # ajust the start and end dates
             row$start_date <- lubridate::as_date(utils::head(row$time_series[[1]]$Index, 1))
             row$end_date   <- lubridate::as_date(utils::tail(row$time_series[[1]]$Index, 1))
 
+            n_samples <- nrow (row$time_series[[1]])
+            if (n_samples_ref == -1 )
+                n_samples_ref <<- n_samples
+            else
+                if (n_samples_ref != n_samples){
+                    diff_lines [length(diff_lines) + 1 ] <<- nrow
+                }
+
             data.tb <<- dplyr::bind_rows (data.tb, row)
         })
+    if (length (diff_lines) > 0) {
+        if (length (diff_lines) == (nrow(csv.tb) - 1))
+            message ("First line has different number of samples than others")
+        else
+            message("Some lines have different number of samples than the first line")
+    }
+
     return (data.tb)
 }
 #' @title Extract a time series from a ST raster data set
@@ -369,10 +396,11 @@ sits_fromSHP <- function (shp_file, URL, coverage, bands = NULL, start_date = NU
 #' @return data.tb        a SITS tibble
 #'
 #' @examples
-#' #' # Read a single lat long point from a WTSS server
+#' \donttest{
+#' # Read a single lat long point from a WTSS server
 #' point.tb <- sits_fromWTSS (longitude = -55.50563, latitude = -11.71557,
 #'          URL = "http://www.dpi.inpe.br/tws/wtss", coverage    = "mod13q1_512")
-#'
+#' }
 #' @export
 sits_fromWTSS <- function (longitude, latitude, start_date = NULL, end_date = NULL, URL = "http://www.dpi.inpe.br/tws/wtss", coverage = "mod13q1_512", bands = NULL, label = "NoClass", ignore_dates = FALSE) {
 

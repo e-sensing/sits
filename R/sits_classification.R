@@ -30,10 +30,16 @@
 #'
 #' # read a training data set
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-#' # select the band "ndvi"
-#' samples_ndvi.tb <- sits_select (samples.tb, bands = c("ndvi"))
+#' samples_ndvi.tb <- readRDS(system.file("extdata/time_series/samples_mt_ndvi.rds", package = "sits"))
+#' # Retrieve a point
+#' point_ndvi.tb <- readRDS(system.file("extdata/time_series/point_ndvi.rds", package = "sits"))
+#' # classify the point
+#' class_ndvi.tb <-  sits_classify (point_ndvi.tb, samples_ndvi.tb)
+#' #
+#' # plot the classification
+#' sits_plot (class_ndvi.tb)
 #'
+#' \donttest{
 #' # define the files that make up a RasterBrick
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
 #' # read the timeline associated to a RasterBrick
@@ -46,20 +52,18 @@
 #' # classify the point
 #' class.tb <-  sits_classify (point.tb, samples_ndvi.tb)
 #' # plot the classification
-#' sits_plot_classification (class.tb)
+#' sits_plot (class.tb)
 #'
 #' # Alternative - read the point from the WTSS server
-#'
 #' point2.tb <- sits_getdata (longitude = -46.4070, latitude = -10.8630)
 #'
-#' # select 4 bands to do the classification
-#' samples_4bands.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir", "mir"))
-#' point2.tb <- sits_select (point2.tb, bands = c("ndvi", "evi", "nir", "mir"))
+#' # select the ndvi
+#' point2.tb <- sits_select (point2.tb, bands = c("ndvi"))
 #' # classify the point
-#' class2.tb <-  sits_classify (point2.tb, samples_4bands.tb)
+#' class2.tb <-  sits_classify (point2.tb, samples_ndvi.tb)
 #' # plot the classification
-#' sits_plot_classification (class2.tb)
-#'
+#' sits_plot (class2.tb)
+#' }
 #'
 #' @export
 sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL,
@@ -69,6 +73,9 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL,
 
     .sits_test_tibble(data.tb)
     .sits_test_tibble(train_samples.tb)
+
+    n_samples <- nrow(train_samples.tb[1,]$time_series[[1]])
+
 
     # obtain the machine learning model
     distances.tb <- dist_method (train_samples.tb)
@@ -216,10 +223,7 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL,
 #'
 #' @examples
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-#'
-#' # select the band "ndvi"
-#' samples.tb <- sits_select (samples.tb, bands = c("ndvi"))
+#' samples.tb <- readRDS(system.file("extdata/time_series/samples_mt_ndvi.rds", package = "sits"))
 #'
 #' # read a raster file and put it into a vector
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))

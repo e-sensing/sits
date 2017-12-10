@@ -40,10 +40,7 @@ Takes a set of spatio-temporal raster bricks, whose metadata is
 }
 \examples{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-
-# select the band "ndvi"
-samples.tb <- sits_select (samples.tb, bands = c("ndvi"))
+samples.tb <- readRDS(system.file("extdata/time_series/samples_mt_ndvi.rds", package = "sits"))
 
 # read a raster file and put it into a vector
 files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))

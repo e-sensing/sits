@@ -2,15 +2,31 @@
 % Please edit documentation in R/sits_TWDTW.R
 \name{sits_TWDTW_classify}
 \alias{sits_TWDTW_classify}
-\title{Classify a sits tibble using the matches found by the TWDTW methods}
+\title{Find matches between a set of SITS patterns and segments of sits tibble using TWDTW}
 \usage{
-sits_TWDTW_classify(matches, data.tb, start_date = NULL, end_date = NULL,
+sits_TWDTW_classify(data.tb = NULL, patterns.tb = NULL, bands = NULL,
+  dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
+  span = 250, keep = FALSE, start_date = NULL, end_date = NULL,
   interval = "12 month", overlap = 0.5)
 }
 \arguments{
-\item{matches}{a dtwSat S4 object with the matches that have been produced by the sits_TWTDW_matches function}
+\item{data.tb}{a table in SITS format with a time series to be classified using TWTDW}
 
-\item{data.tb}{the SITS tibble used as input for the TWDTW matching function}
+\item{patterns.tb}{a set of known temporal signatures for the chosen classes}
+
+\item{bands}{string - the bands to be used for classification}
+
+\item{dist.method}{A character. Method to derive the local cost matrix.}
+
+\item{alpha}{(double) - the steepness of the logistic function used for temporal weighting}
+
+\item{beta}{(integer) - the midpoint (in days) of the logistic function}
+
+\item{theta}{(double)  - the relative weight of the time distance compared to the dtw distance}
+
+\item{span}{minimum number of days between two matches of the same pattern in the time series (approximate)}
+
+\item{keep}{keep internal values for plotting matches}
 
 \item{start_date}{date - the start of the classification period}
 
@@ -21,12 +37,20 @@ sits_TWDTW_classify(matches, data.tb, start_date = NULL, end_date = NULL,
 \item{overlap}{minimum overlapping between one match and the interval of classification}
 }
 \value{
-class.tb      a SITS table with the information on matches for the data
+matches       a dtwSat S4 object with the matches
 }
 \description{
-Returns a sits table with the results of the TWDTW classifier.
-The TWDTW classifier uses the result of the sits_TWDTW_matches function to
-find the best alignments of these matches in intervals chosen by the user
+Returns  the results of the TWDTW matching function.
+The TWDTW matching function compares the values of a satellite image time series with
+the values of known patters and tries to match each pattern to a part of the time series
+
+The TWDTW (time-weighted dynamical time warping) is a version of the
+Dynamic Time Warping method for land use and land cover mapping using a sequence
+of multi-band satellite images. Methods based on dynamic time warping are flexible to
+handle irregular sampling and out-of-phase time series, and they have achieved significant
+results in time series analysis. In contrast to standard DTW, the TWDTW method is sensitive to seasonal
+changes of natural and cultivated vegetation types. It also considers inter-annual climatic and
+seasonal variability.
 }
 \references{
 Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).

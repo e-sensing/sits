@@ -30,13 +30,21 @@
 #' @return patterns.tb   a SITS tibble with the patterns
 #'
 #' @examples
+#' # Read a set of samples for two classes
+#' samples.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' # Estimate a set of patterns (one for each label)
+#' patterns.tb <- sits_patterns (samples.tb)
+#' \donttest{
+#' # Show the patterns
+#' sits_plot (patterns.tb)
+#'
 #' # Read a set of samples for the state of Mato Grosso, Brazil, provided by EMBRAPA
-#' samples.tb <- readRDS(system.file ("extdata/time_series/embrapa_mt.rds", package = "sits))
+#' samples.tb <- readRDS(system.file ("extdata/time_series/embrapa_mt.rds", package = "sits"))
 #' # Estimate a set of patterns (one for each label)
 #' patterns.tb <- sits_patterns (samples.tb)
 #' # Show the patterns
 #' sits_plot (patterns.tb)
-#'
+#' }
 #' @export
 #'
 sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, end_date = NULL,

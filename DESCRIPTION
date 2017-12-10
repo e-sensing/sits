@@ -12,7 +12,7 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut', 'cre'), email = 'rolf.simo
              person('Lorena', 'Santos', role = c('ctb')),
              person('Gilberto', 'Queiroz', role = c('ctb'))
              )
-Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
+Maintainer: Rolf Simoes <rolf.simoes@inpe.br>
 Description: A set of tools for working with satellite image time series.
     Supports data retrieval from a WTSS (web time series service) and other data sets.
     Provides different visualisation methods for image time series.
@@ -35,6 +35,7 @@ Imports:
     dplyr,
     dtw,
     dtwclust,
+    dtwSat,
     gbm,
     ggplot2,
     glmnet,
@@ -64,14 +65,11 @@ Imports:
     tibble,
     tools,
     utils,
-    zoo,
-    wtss,
-    dtwSat
+    zoo
+Remotes:
+    esensing/wtss
 LinkingTo:
     Rcpp
-Remotes:
-    e-sensing/wtss,
-    rolfsimoes/dtwSat
 RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'

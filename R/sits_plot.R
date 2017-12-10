@@ -3,14 +3,15 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Given a SITS tibble with a set of time series, plot them.
 #'
-#' The following types of plot are supported (parameter "type):
+#' The following types of plot are supported:
 #' \itemize{
-#'  \item{"all years"}{Plot all samples from the same location together}
-#'  \item{"one by one"}{Plot each time series separately}
-#'  \item{"patterns"}{Plot the patterns for a given set of classes}
-#'  \item{"classification"}{Plot the results of a classification}
-#'  \item{"dendogram"}{Plot a cluster object}
-#'  \item{"together"}{Plot all samples of the same band and label together}
+#'  \item{"all years" - }{Plot all samples from the same location together (default)}
+#'  \item{"patterns" - }{Plot the patterns for a given set of classes}
+#'  \item{"classification" - }{Plot the results of a classification}
+#'  \item{"dendogram" - }{Plot a cluster object}
+#'  \item{"together" - }{Plot all samples of the same band and label together}
+#'  \item{"alignments" - }{Plot the alignments (used by TWDTW method)}
+#'  \item{"matches" = }{Plot the matches produced by TWTDW matches}
 #' }
 #' If the user does not specify the type of plot (parameter "type"),
 #' the sits_plot function makes an educated guess of what plot is required,
@@ -22,15 +23,14 @@
 #' plot the classification.
 #'
 #'
-#' @param  data.tb       A SITS tibble with the list of time series to be plotted
-#' @param  clusters      The output of \code{\link[sits]{sits_dendrogram}}. Required for dendrogram plotting.
-#' @param  cutree_height A dashed horizontal line to be drawed indicating the height of dendrogram cutt
-#' @param  type          Type of plot to be generated
-#' @param  band          The band used for visualisation (optional for sits_plot_classification)
-#' @param  colors       Color pallete to be used (based on Color Brewer - default is "Dark2")
-#' @return data.tb      Input SITS table (useful for chaining functions)
+#' @param  data           The data to be plotted (can be a SITS tibble, clusters, or TWDTW matches)
+#' @param  cutree_height (optional) A dashed horizontal line to be drawed indicating the height of dendrogram cut
+#' @param  band          (optional) The band used for visualisation (optional for sits_plot_classification)
+#' @param  colors        (optional)Color pallete to be used (based on Color Brewer - default is "Dark2")
+#' @return data          Input SITS table (useful for chaining functions)
 #'
 #' @examples
+#' \donttest{
 #' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
 #' samples.tb <- readRDS (system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
 #' # Plot all the samples together
@@ -39,75 +39,58 @@
 #' sits_plot (samples.tb[1:20,])
 #' # Plot the patterns
 #' sits_plot (sits_patterns(samples.tb))
-#' \donttest{
 #' # Generate and plot a dendrogram
 #' library (dtwclust)
 #' clusters <- sits_dendrogram (samples.tb, bands = c("ndvi"))
-#' sits_plot (samples.tb, clusters)
+#' sits_plot (clusters)
 #' }
 #' @export
 #
-sits_plot <- function (data.tb, clusters = NULL, cutree_height = NULL,
-                       type = NULL, band = NULL, colors = "Set1") {
+sits_plot <- function (data, cutree_height = NULL,
+                       band = "ndvi", colors = "Set1") {
 
-    # check the input exists
-    .sits_test_tibble(data.tb)
+
+    if ("dtwclust" %in% class(data))
+        .sits_plot_dendrogram(data, cutree_height, colors = colors)
+    if ("twdtwMatches" %in% class (data))
+        .sits_plot_TWDTW_alignments(data)
 
     # try to guess what is the plot type
-    if(purrr::is_null (type)) {
+    if ("sits_tibble" %in% class (data)) {
         # is there only one sample per label? Plot patterns!
-        if (max (sits_labels(data.tb)$count) == 1 && nrow(data.tb) > 1)
-            type <- "patterns"
-        # Both data.tb and patterns.tb exist? Plot classification!
-        else if ("predicted" %in% names (data.tb)) {
-            type <- "classification"
-        }
-        # Is there a "cluster_obj"? Plot dendogram!
-        else if (!purrr::is_null(clusters)) {
-            type <- "dendrogram"
+        if (max (sits_labels(data)$count) == 1 && nrow(data) > 1)
+            .sits_plot_patterns (data)
+        # Both data and prediction exist? Plot classification!
+        else if ("predicted" %in% names (data)) {
+            .sits_plot_classification (data, band = band)
         }
         # Are there more than 30 samples? Plot them together!
-        else if (nrow(data.tb) > 30) {
-            type <- "together"
+        else if (nrow(data) > 30) {
+            .sits_plot_together (data, colors)
         }
         # If no conditions are met, take "allyears" as the default
         else
-            type = "allyears"
+            .sits_plot_allyears(data, colors)
     }
-
-    switch(type,
-           "allyears"       = sits_plot_allyears (data.tb, colors),
-           "one_by_one"     = sits_plot_one_by_one (data.tb, colors),
-           "together"       = sits_plot_together (data.tb, colors),
-           "patterns"       = sits_plot_patterns (data.tb),
-           "classification" = sits_plot_classification (data.tb, band = band),
-           "dendrogram"     = sits_plot_dendrogram (data.tb, clusters, cutree_height = NULL,
-                                                    colors = colors),
-           "alignments"     = .sits_plot_alignments (data.tb),
-           message (paste ("sits_plot: valid plot types are allyears, one_by_one,
-                           together, patterns, classification, dendrogram, alignments", "\n", sep = ""))
-           )
-
     # return the original SITS table - useful for chaining
-    return (invisible (data.tb))
+    return (invisible (data))
 }
 
 #' @title Plot all time intervals of one time series for the same lat/long together
-#' @name sits_plot_allyears
+#' @name .sits_plot_allyears
 #'
 #' @description for each lat/long location in the data, join temporal
 #' instances of the same place together for plotting
-#' @param data.tb one or more time series (stored in a SITS tibble)
+#' @param data    one or more time series (stored in a SITS tibble)
 #' @param colors  the color pallete to be used (default is "Set2")
-#' @export
-sits_plot_allyears <- function (data.tb, colors) {
-     locs <- dplyr::distinct (data.tb, longitude, latitude)
+.sits_plot_allyears <- function (data, colors) {
+     locs <- dplyr::distinct (data, longitude, latitude)
      locs %>%
           purrrlyr::by_row(function (r){
                long = as.double (r$longitude)
                lat  = as.double (r$latitude)
                # filter only those rows with the same label
-               data2.tb <- dplyr::filter (data.tb, longitude == long, latitude == lat)
+               data2.tb <- dplyr::filter (data, longitude == long, latitude == lat)
                # use ggplot to plot the time series together
                data2.tb %>%
                     .sits_ggplot_series(colors) %>%
@@ -116,25 +99,24 @@ sits_plot_allyears <- function (data.tb, colors) {
 }
 
 #' @title Plot classification results
-#' @name sits_plot_classification
+#' @name .sits_plot_classification
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @description   Plots the classification results (code reused from the dtwSat package by Victor Maus)
-#' @param data.tb      A SITS tibble with one or more time series that have been classified
+#' @param data         A SITS tibble with one or more time series that have been classified
 #' @param band         Band for plotting the classification
-#' @export
 #'
-sits_plot_classification <- function (data.tb, band = NULL) {
+.sits_plot_classification <- function (data, band = NULL) {
 
     if (purrr::is_null (band))
-        band <- sits_bands(data.tb)[1]
+        band <- sits_bands(data)[1]
 
     # prepare a data frame for plotting
 
     #get the labels
-    labels <- sits_labels (data.tb)$label
+    labels <- sits_labels (data)$label
 
     # put the time series in the data frame
-    data.tb %>%
+    data %>%
         purrrlyr::by_row(function (r){
             #lb = as.character (r$label)
             lb = .sits_plot_title(r)
@@ -196,21 +178,19 @@ sits_plot_classification <- function (data.tb, band = NULL) {
 
 
 
-    return (invisible(data.tb))
+    return (invisible(data))
 }
 
 #' @title Plot a dendrogram
-#' @name sits_plot_dendrogram
+#' @name .sits_plot_dendrogram
 #'
 #' @description Plot an enhanced dendrogram based on a cluster object usually found in `.sits_last_cluster`
 #'
-#' @param data.tb       SITS tibble to extract labels
+#' @param data         SITS tibble to extract labels
 #' @param cluster_obj   cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`
 #' @param cutree_height A dashed horizontal line to be drawed indicating the height of dendrogram cutting.
 #' @param colors        a color scheme as showed in `sits_color_name` function
-#' @export
-sits_plot_dendrogram <- function(data.tb,
-                                 cluster_obj,
+.sits_plot_dendrogram <- function(cluster_obj,
                                  cutree_height = NULL,
                                  colors = "RdYlGn"){
 
@@ -259,13 +239,12 @@ sits_plot_dendrogram <- function(data.tb,
 }
 
 #' @title Plot  time intervals of one time series separately (one-by-one)
-#' @name sits_plot_one_by_one
+#' @name .sits_plot_one_by_one
 #'
 #' @description plots each row of a data set separately
 #' @param data.tb one or more time series (stored in a SITS tibble)
 #' @param colors  the color pallete to be used (default is "Dark2")
-#' @export
-sits_plot_one_by_one <- function (data.tb, colors){
+.sits_plot_one_by_one <- function (data.tb, colors){
     data.tb %>%
         purrrlyr::by_row( function (r){
             .sits_ggplot_series (r,colors) %>%
@@ -274,13 +253,12 @@ sits_plot_one_by_one <- function (data.tb, colors){
 
 }
 #' @title Plot classification patterns
-#' @name sits_plot_patterns
+#' @name .sits_plot_patterns
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @description plots the patterns to be used for classification
 #'              this code is reused from the dtwSat package by Victor Maus
 #' @param data.tb one or more time series containing patterns (stored in a SITS tibble)
-#' @export
-sits_plot_patterns <- function (data.tb) {
+.sits_plot_patterns <- function (data.tb) {
 
     # prepare a data frame for plotting
     plot.df <- data.frame()
@@ -313,7 +291,7 @@ sits_plot_patterns <- function (data.tb) {
 
 #' @title Plot a set of time series for the same spatio-temporal reference
 #'
-#' @name sits_plot_together
+#' @name .sits_plot_together
 #'
 #' @description plots all time series for the same label together
 #' This function is useful to find out the spread of the values of the time serie
@@ -322,9 +300,8 @@ sits_plot_patterns <- function (data.tb) {
 #' @param    data.tb    tibble - a SITS table with the list of time series to be plotted
 #' @param    colors     the color pallete to be used (default is "Set1")
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
-#' @keywords SITS
 #'
-sits_plot_together <- function (data.tb, colors) {
+.sits_plot_together <- function (data.tb, colors) {
      # this function plots all the values of all time series together (for one band)
      plot_samples <- function (ts, band, label, number) {
           series.tb <- ts %>%
@@ -439,29 +416,16 @@ sits_plot_together <- function (data.tb, colors) {
                      sep = "")
      return (title)
 }
-#' @title Create a plot title to use with ggplot
-#' @name .sits_plot_alignments
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description This function should plot the alignments in a similar way as the
-#'              sits_plot_TWDTW_alignments
-#' @param  data.tb       A SITS tibble with the list of time series to be plotted
-#' @param  distances.tb  Distances from each series to each attribute (generated by sits_distances)
-#' @return data.tb       The input SITS tibble
-.sits_plot_alignments <- function (data.tb, distances.tb){
-    message ("sits_plot_alignments function not yet available")
-    return (data.tb)
 
-}
 #' @title Plot classification alignments using the dtwSat package
-#' @name sits_plot_TWDTW_alignments
+#' @name .sits_plot_TWDTW_alignments
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description        plots the alignments from TWDTW classification (uses dtwSat)
 #' @param matches      a list of dtwSat S4 matches objects produced by sits_TWDTW_matches
 #'
-#' @export
-sits_plot_TWDTW_alignments <- function (matches){
+.sits_plot_TWDTW_alignments <- function (matches){
 
     matches %>%
         purrr::map( function (m.twdtw) {
@@ -472,7 +436,7 @@ sits_plot_TWDTW_alignments <- function (matches){
 }
 
 #' @title Plot classification results using the dtwSat package
-#' @name sits_plot_TWDTW_classification
+#' @name .sits_plot_TWDTW_classification
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -482,8 +446,7 @@ sits_plot_TWDTW_alignments <- function (matches){
 #' @param  end_date     End date of the plot (used for showing classifications)
 #' @param  interval     Interval between classifications (used for showing classifications)
 #' @param  overlap      Minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.
-#' @export
-sits_plot_TWDTW_classification <- function (matches, start_date = NULL, end_date = NULL, interval = "12 month", overlap = 0.5){
+.sits_plot_TWDTW_classification <- function (matches, start_date = NULL, end_date = NULL, interval = "12 month", overlap = 0.5){
 
     matches %>%
         purrr::map(function (m.twdtw) {
@@ -499,7 +462,7 @@ sits_plot_TWDTW_classification <- function (matches, start_date = NULL, end_date
 }
 
 #' @title Plot matches between a label pattern and a time series using the dtwSat package
-#' @name sits_plot_TWDTW_matches
+#' @name .sits_plot_TWDTW_matches
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -508,8 +471,7 @@ sits_plot_TWDTW_classification <- function (matches, start_date = NULL, end_date
 #' @param matches       a list of dtwSat S4 matches objects produced by sits_TWDTW_matches
 #' @param patterns.tb   a set of known temporal signatures for the chosen classes
 #' @param n_matches     number of matches of a given label to be displayed
-#' @export
-sits_plot_TWDTW_matches <- function (matches, patterns.tb, n_matches = 4) {
+.sits_plot_TWDTW_matches <- function (matches, patterns.tb, n_matches = 4) {
 
     matches %>%
         purrr::map(function (m.twdtw) {

@@ -611,14 +611,18 @@ that can be visualised using \texttt{sits\_plot}.
 \NormalTok{lat <-}\StringTok{ }\OperatorTok{-}\FloatTok{11.50566}
 \CommentTok{# obtain a time series from the WTSS server for this point}
 \NormalTok{series.tb <-}\StringTok{ }\KeywordTok{sits_getdata}\NormalTok{(}\DataTypeTok{longitude =}\NormalTok{ long, }\DataTypeTok{latitude =}\NormalTok{ lat, }\DataTypeTok{URL =}\NormalTok{ URL, }
-                          \DataTypeTok{coverage =} \StringTok{"mod13q1_512"}\NormalTok{, }\DataTypeTok{bands =} \KeywordTok{c}\NormalTok{(}\StringTok{"ndvi"}\NormalTok{, }\StringTok{"evi"}\NormalTok{),}
-                          \DataTypeTok{start_date =} \StringTok{"2001-01-01"}\NormalTok{, }\DataTypeTok{end_date =} \StringTok{"2016-12-31"}\NormalTok{)}
+             \DataTypeTok{coverage =} \StringTok{"mod13q1_512"}\NormalTok{, }\DataTypeTok{bands =} \KeywordTok{c}\NormalTok{(}\StringTok{"ndvi"}\NormalTok{, }\StringTok{"evi"}\NormalTok{),}
+             \DataTypeTok{start_date =} \StringTok{"2001-01-01"}\NormalTok{, }\DataTypeTok{end_date =} \StringTok{"2016-12-31"}\NormalTok{)}
 \CommentTok{# plot the series}
 \KeywordTok{sits_plot}\NormalTok{ (series.tb)}
 \end{Highlighting}
 \end{Shaded}
 
 \includegraphics{sits_description_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+A useful case is when users have a set of labelled samples, that are to
+be used as a training data set. In this case, one usually has some field
+data or trusted observations which are labelled.
 \newpage
 \singlespacing
 \bibliography{references-sits.bib}

@@ -20,6 +20,7 @@
 #' @return clusters       a clusters obj from dtwclust with the full dendrogram tree for data analysis
 #'
 #' @examples
+#' \donttest{
 #' # Load the "dtwclust" package
 #' library (dtwclust)
 #' # load a simple data set with two classes
@@ -28,7 +29,7 @@
 #' clusters <- sits_dendrogram (data.tb, bands = c("ndvi"))
 #' # plot the dendrogram
 #' sits_plot_dendrogram (data.tb, clusters)
-#'
+#' }
 #' @export
 sits_dendrogram <- function (data.tb, bands = NULL,
                             dist_method = "dtw_basic",

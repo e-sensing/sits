@@ -4,21 +4,18 @@
 \alias{sits_plot}
 \title{Plot a set of satellite image time series}
 \usage{
-sits_plot(data.tb, clusters = NULL, cutree_height = NULL, type = NULL,
-  band = NULL, colors = "Set1")
+sits_plot(data, cutree_height = NULL, band = "ndvi", colors = "Set1")
 }
 \arguments{
-\item{data.tb}{A SITS tibble with the list of time series to be plotted}
+\item{data}{The data to be plotted (can be a SITS tibble, clusters, or TWDTW matches)}
 
-\item{clusters}{The output of \code{\link[sits]{sits_dendrogram}}. Required for dendrogram plotting.}
+\item{cutree_height}{(optional) A dashed horizontal line to be drawed indicating the height of dendrogram cutt}
 
-\item{cutree_height}{A dashed horizontal line to be drawed indicating the height of dendrogram cutt}
+\item{band}{(optional) The band used for visualisation (optional for sits_plot_classification)}
 
-\item{type}{Type of plot to be generated}
+\item{colors}{(optional)Color pallete to be used (based on Color Brewer - default is "Dark2")}
 
-\item{band}{The band used for visualisation (optional for sits_plot_classification)}
-
-\item{colors}{Color pallete to be used (based on Color Brewer - default is "Dark2")}
+\item{type}{(optional) Type of plot to be generated}
 }
 \value{
 data.tb      Input SITS table (useful for chaining functions)
@@ -26,14 +23,15 @@ data.tb      Input SITS table (useful for chaining functions)
 \description{
 Given a SITS tibble with a set of time series, plot them.
 
-The following types of plot are supported (parameter "type):
+The following types of plot are supported:
 \itemize{
- \item{"all years"}{Plot all samples from the same location together}
- \item{"one by one"}{Plot each time series separately}
- \item{"patterns"}{Plot the patterns for a given set of classes}
- \item{"classification"}{Plot the results of a classification}
- \item{"dendogram"}{Plot a cluster object}
- \item{"together"}{Plot all samples of the same band and label together}
+ \item{"all years" - }{Plot all samples from the same location together (default)}
+ \item{"patterns" - }{Plot the patterns for a given set of classes}
+ \item{"classification" - }{Plot the results of a classification}
+ \item{"dendogram" - }{Plot a cluster object}
+ \item{"together" - }{Plot all samples of the same band and label together}
+ \item{"alignments" - }{Plot the alignments (used by TWDTW method)}
+ \item{"matches" = }{Plot the matches produced by TWTDW matches}
 }
 If the user does not specify the type of plot (parameter "type"),
 the sits_plot function makes an educated guess of what plot is required,
@@ -45,6 +43,7 @@ If the input data has predicted values resulting from a classification, it will
 plot the classification.
 }
 \examples{
+\donttest{
 # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
 samples.tb <- readRDS (system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
 # Plot all the samples together
@@ -53,11 +52,10 @@ sits_plot (samples.tb)
 sits_plot (samples.tb[1:20,])
 # Plot the patterns
 sits_plot (sits_patterns(samples.tb))
-\donttest{
 # Generate and plot a dendrogram
 library (dtwclust)
 clusters <- sits_dendrogram (samples.tb, bands = c("ndvi"))
-sits_plot (samples.tb, clusters)
+sits_plot (clusters)
 }
 }
 \author{

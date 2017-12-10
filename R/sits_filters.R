@@ -299,14 +299,16 @@ sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suf
 #' @param scale      time scaling
 #' @param bands_suffix the suffix to be appended to the smoothed filters
 #' @return output.tb a tibble with smoothed sits time series
-#' #' # Read a point
+#' @examples
+#' # Read a point
 #' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
 #' # Select the NDVI band
 #' point.tb <- sits_select (point.tb, bands = c("ndvi"))
-#' # Filter the point using the whittaker smoother
+#' # Filter the point using the Savitsky Golay smoother
 #' point_sg.tb <- sits_sgolay (point.tb, order = 3, scale = 2)
 #' # Plot the two points to see the smoothing effect
 #' sits_plot(sits_merge(point.tb, point_sg.tb))
+#'
 #' @export
 sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
     result.tb <- .sits_apply(data.tb,

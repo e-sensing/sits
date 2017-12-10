@@ -38,10 +38,11 @@ A Web Time Series Service (WTSS) is a light-weight service that
 retrieves one or more time series in JSON format from a data base.
 }
 \examples{
-#' # Read a single lat long point from a WTSS server
+\donttest{
+# Read a single lat long point from a WTSS server
 point.tb <- sits_fromWTSS (longitude = -55.50563, latitude = -11.71557,
          URL = "http://www.dpi.inpe.br/tws/wtss", coverage    = "mod13q1_512")
-
+}
 }
 \references{
 Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,

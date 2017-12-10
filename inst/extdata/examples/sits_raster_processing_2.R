@@ -40,14 +40,10 @@ patterns.tb <- sits_patterns(samples.tb)
 # plot the patterns
 sits_plot(patterns.tb)
 
-# obtain the distances from data to use as training data
-distances.tb <- sits_distances(samples.tb)
-
-# estimate an SVM model for this training data
-model.ml <- sits_svm (distances.tb, cost = 1000, kernel = "radial", tolerance = 0.001, epsilon = 0.1)
-
 # classify the raster image
 
 system.time({sits_classify_raster (file = "./embrapa-class",
-                                   raster.tb, samples.tb, model.ml, blocksize = 300000, multicores = 2)})
+                                   raster.tb, samples.tb,
+                                   ml_method = sits_svm (cost = 1000, kernel = "radial", tolerance = 0.001, epsilon = 0.1),
+                                   blocksize = 300000, multicores = 2)})
 

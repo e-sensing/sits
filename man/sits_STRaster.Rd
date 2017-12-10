@@ -27,14 +27,20 @@ This function creates a tibble containing the metadata for
 }
 \examples{
 # read a raster file and put it into a vector
-files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif",
+         package = "sits"))
 
 # define the timeline
-timeline <- lubridate::as_date((read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv",
-            package = "sits"), header = FALSE))[,1])
+timeline <- read.csv(system.file("extdata/raster/mod13q1/timeline-2000-2017.csv",
+            package = "sits"), header = FALSE)
+timeline <- lubridate::as_date (timeline$V1)
+# define the bands
+bands <- c("ndvi")
+# define the scale factor
+scale_factors <-  c(0.0001)
 
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
+raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 
 }
 \author{

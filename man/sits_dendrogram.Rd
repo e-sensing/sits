@@ -30,6 +30,7 @@ The procedure is deterministic, so it will always give the same
 result for a chosen set of similarity measures (see \code{\link[dtwclust]{tsclust}}).
 }
 \examples{
+\donttest{
 # Load the "dtwclust" package
 library (dtwclust)
 # load a simple data set with two classes
@@ -38,7 +39,7 @@ data.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", pack
 clusters <- sits_dendrogram (data.tb, bands = c("ndvi"))
 # plot the dendrogram
 sits_plot_dendrogram (data.tb, clusters)
-
+}
 }
 \references{
 `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)

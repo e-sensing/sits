@@ -30,22 +30,23 @@ to explicitly use this function. Please see the above-mention classification fun
 }
 \examples{
 
+\donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+samples.tb <- readRDS(system.file("extdata/time_series/samples_mt_ndvi.rds", package = "sits"))
 # find the distance from the data
 distances.tb <- sits_distances_from_data (samples.tb)
 # find a training model based on the distances
 ml_model <- sits_train (distances.tb, ml_method = sits_svm(kernel = "radial", cost = 10))
-# get a point using the WTSS server
+# get a point
 point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
-point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
-# align the point to the samples (breaks a long time series into intervals)
-point_align.tb <- sits_align(point.tb, samples.tb)
+point.tb <- sits_select (point.tb, bands = c("ndvi"))
+# break the point to match the samples (breaks a long time series into intervals)
+point2.tb <- sits_break(point.tb, samples.tb)
 # calculate the distances for the point
-dist_point.tb <- sits_distances_from_data(point_align.tb)
+dist_point.tb <- sits_distances_from_data(point2.tb)
 # predict the classification
 predicted.vec <- sits_predict(dist_point.tb, ml_model)
+}
 
 # NOTE: the above code shows a step-by-step approach to classification.
 # Users are recommended to use the "sits_classify" function, which
@@ -53,11 +54,10 @@ predicted.vec <- sits_predict(dist_point.tb, ml_model)
 # The following code is recommended:
 
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
-# get a point using the WTSS server
+samples.tb <- readRDS(system.file("extdata/time_series/samples_mt_ndvi.rds", package = "sits"))
+# get a point
 point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
-point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+point.tb <- sits_select (point.tb, bands = c("ndvi"))
 # classify the point
 class.tb <- sits_classify (point.tb, samples.tb,
        ml_method = sits_svm(kernel = "radial", cost = 10))
