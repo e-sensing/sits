@@ -30,11 +30,11 @@
 #' @return patterns.tb   a SITS tibble with the patterns
 #'
 #' @examples
+#' \donttest{
 #' # Read a set of samples for two classes
 #' samples.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", package = "sits"))
 #' # Estimate a set of patterns (one for each label)
 #' patterns.tb <- sits_patterns (samples.tb)
-#' \donttest{
 #' # Show the patterns
 #' sits_plot (patterns.tb)
 #'

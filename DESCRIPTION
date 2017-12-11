@@ -65,9 +65,10 @@ Imports:
     tibble,
     tools,
     utils,
+    wtss,
     zoo
 Remotes:
-    esensing/wtss
+    github::e-sensing/wtss
 LinkingTo:
     Rcpp
 RoxygenNote: 6.0.1

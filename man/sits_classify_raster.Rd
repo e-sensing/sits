@@ -39,15 +39,16 @@ Takes a set of spatio-temporal raster bricks, whose metadata is
               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
 }
 \examples{
+\donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 samples.tb <- readRDS(system.file("extdata/time_series/samples_mt_ndvi.rds", package = "sits"))
 
 # read a raster file and put it into a vector
-files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
 
 # define the timeline
-timeline <- lubridate::as_date((read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv",
-            package = "sits"), header = FALSE))[,1])
+timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
+timeline <- lubridate::as_date (timeline$V1)
 
 # create a raster metadata file based on the information about the files
 raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
@@ -56,8 +57,6 @@ raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = 
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples.tb,
    ml_method = sits_svm(), blocksize = 300000, multicores = 2)
 
-
-\donttest{
 # Process a larger-scale raster image brick
 # these are the symbolic links for the files at dropbox
 ndvi <- paste0("https://www.dropbox.com/s/epqfo5vdu1cox6i/Sinop_ndvi.tif?raw=1")
@@ -72,11 +71,16 @@ files <- c("./Sinop_ndvi.tif", "./Sinop_evi.tif")
 
 # define the timeline
 # read the timeline associated to a RasterBrick
-timeline <- lubridate::as_date((read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv",
-            package = "sits"), header = FALSE))[,1])
+timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
+timeline <- lubridate::as_date (timeline$V1)
+
+# define the bands
+bands <- c("ndvi", "evi")
+# define the scale factors
+scale_factors <-  c(0.0001, 0.0001)
 
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi", "evi"), scale_factors = c(0.0001, 0.0001))
+raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 
 # retrieve the samples from EMBRAPA (used as training sets for classification)
 samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))

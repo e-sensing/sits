@@ -57,10 +57,10 @@ sits_plot (class_ndvi.tb)
 
 \donttest{
 # define the files that make up a RasterBrick
-files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
 # read the timeline associated to a RasterBrick
-timeline <- lubridate::as_date((read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv",
-            package = "sits"), header = FALSE))[,1])
+timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
+timeline <- lubridate::as_date (timeline$V1)
 # create a raster metadata file based on the information about the files
 raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
 # read a point from the raster

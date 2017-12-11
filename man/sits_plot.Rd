@@ -4,21 +4,17 @@
 \alias{sits_plot}
 \title{Plot a set of satellite image time series}
 \usage{
-sits_plot(data, cutree_height = NULL, band = "ndvi", colors = "Set1")
+sits_plot(data, band = "ndvi", colors = "Set1")
 }
 \arguments{
 \item{data}{The data to be plotted (can be a SITS tibble, clusters, or TWDTW matches)}
 
-\item{cutree_height}{(optional) A dashed horizontal line to be drawed indicating the height of dendrogram cutt}
-
 \item{band}{(optional) The band used for visualisation (optional for sits_plot_classification)}
 
-\item{colors}{(optional)Color pallete to be used (based on Color Brewer - default is "Dark2")}
-
-\item{type}{(optional) Type of plot to be generated}
+\item{colors}{(optional) Color pallete to be used (based on Color Brewer - default is "Dark2")}
 }
 \value{
-data.tb      Input SITS table (useful for chaining functions)
+data          Input SITS table (useful for chaining functions)
 }
 \description{
 Given a SITS tibble with a set of time series, plot them.
@@ -52,10 +48,6 @@ sits_plot (samples.tb)
 sits_plot (samples.tb[1:20,])
 # Plot the patterns
 sits_plot (sits_patterns(samples.tb))
-# Generate and plot a dendrogram
-library (dtwclust)
-clusters <- sits_dendrogram (samples.tb, bands = c("ndvi"))
-sits_plot (clusters)
 }
 }
 \author{

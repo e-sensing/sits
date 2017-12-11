@@ -57,9 +57,9 @@
 #' }
 #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
 #' # define the timeline
-#' timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
+#' timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
 #' timeline <- lubridate::as_date (timeline$V1)
 #' # create a raster metadata file based on the information about the files
 #' raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
@@ -276,13 +276,13 @@ sits_fromCSV <-  function (csv_file, URL, coverage, bands, n_max = Inf, ignore_d
 #'
 #' #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
 #' # select the bands
 #' bands <- c("ndvi")
 #' # define the scale factors
 #' scale_factors <- c(0.0001)
 #' # define the timeline
-#' timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
+#' timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
 #' timeline <- lubridate::as_date (timeline$V1)
 #' # create a raster metadata file based on the information about the files
 #' raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)

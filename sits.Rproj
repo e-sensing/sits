@@ -11,6 +11,7 @@ Encoding: UTF-8
 
 RnwWeave: knitr
 LaTeX: pdfLaTeX
+RootDocument: README.md
 
 AutoAppendNewline: Yes
 StripTrailingWhitespace: Yes

@@ -38,11 +38,11 @@ This method is based on the "createPatterns" method of the dtwSat package, which
 described in the reference paper.
 }
 \examples{
+\donttest{
 # Read a set of samples for two classes
 samples.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", package = "sits"))
 # Estimate a set of patterns (one for each label)
 patterns.tb <- sits_patterns (samples.tb)
-\donttest{
 # Show the patterns
 sits_plot (patterns.tb)
 

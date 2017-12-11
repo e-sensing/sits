@@ -32,7 +32,7 @@ samples2.tb <- sits_relabel(samples.tb, new_labels)
 # view the result
 sits_labels(samples2.tb)
 
-## ----fig.align="center", fig.height=3.1, fig.width=5---------------------
+## ----fig.align="center", fig.height=3.1, fig.width=5, fig=TRUE-----------
 # select the "ndvi" bands
 samples_ndvi.tb <- sits_select(samples.tb, bands = c("ndvi"))
 # select only the samples with the cerrado label
@@ -44,22 +44,22 @@ sits_plot (samples_cerrado.tb[1:15,])
 # plot all cerrado samples together (shows the distribution)
 sits_plot (samples_cerrado.tb)
 
-## ------------------------------------------------------------------------
-URL <- "http://www.dpi.inpe.br/tws/wtss"
-wtss_inpe <- sits_infoWTSS(URL)
+## ---- eval = FALSE, echo = TRUE------------------------------------------
+#  URL <- "http://www.dpi.inpe.br/tws/wtss"
+#  wtss_inpe <- sits_infoWTSS(URL)
 
-## ------------------------------------------------------------------------
-# get information about a specific coverage
-coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
+## ---- eval = FALSE, echo = TRUE------------------------------------------
+#  # get information about a specific coverage
+#  coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
 
-## ------------------------------------------------------------------------
-# a point in the transition forest pasture in Northern MT
-long <- -55.57320
-lat <- -11.50566
-# obtain a time series from the WTSS server for this point
-series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL, 
-             coverage = "mod13q1_512", bands = c("ndvi", "evi"),
-             start_date = "2001-01-01", end_date = "2016-12-31")
-# plot the series
-sits_plot (series.tb)
+## ---- eval = FALSE, echo = TRUE------------------------------------------
+#  # a point in the transition forest pasture in Northern MT
+#  long <- -55.57320
+#  lat <- -11.50566
+#  # obtain a time series from the WTSS server for this point
+#  series.tb <- sits_getdata(longitude = long, latitude = lat, URL = URL,
+#               coverage = "mod13q1_512", bands = c("ndvi", "evi"),
+#               start_date = "2001-01-01", end_date = "2016-12-31")
+#  # plot the series
+#  sits_plot (series.tb)
 
