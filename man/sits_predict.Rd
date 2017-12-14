@@ -33,7 +33,7 @@ point_align.tb <- sits_align(point.tb, samples.tb)
 # calculate the distances for the point
 dist_point.tb <- sits_distances(point_align.tb)
 # predict the classification
-predicted.lst <- sits_predict(dist_point.tb, ml_model)
+predicted.vec <- sits_predict(dist_point.tb, ml_model)
 
 The sits_predict function is called inside \code{\link[sits]{sits_classify}}
 and \code{\link[sits]{sits_classify_raster}}, so the user does not need

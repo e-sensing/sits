@@ -41,20 +41,25 @@
 #' @return data.tb        a SITS tibble
 #'
 #' @examples
+#' \donttest{
 #' # Read a single lat long point from a WTSS server
 #' point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557,
 #'          URL = "http://www.dpi.inpe.br/tws/wtss", coverage    = "mod13q1_512")
 #'
+#' # show the point
+#' show(point.tb)
 #' # Read a set of points defined in a CSV file from a WTSS server
 #' csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
 #' points.tb <- sits_getdata (file = csv_file, URL = "http://www.dpi.inpe.br/tws/wtss",
 #'              coverage = "mod13q1_512")
-#'
+#' show (points.tb)
+#' # show the points retrieved for the WTSS server
+#' }
 #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
 #' # define the timeline
-#' timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
+#' timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
 #' timeline <- lubridate::as_date (timeline$V1)
 #' # create a raster metadata file based on the information about the files
 #' raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
@@ -133,7 +138,7 @@ sits_fromJSON <- function (file) {
      # add the contents of the JSON file to a SITS tibble
      table <- tibble::as_tibble (jsonlite::fromJSON (file))
      # convert Indexes in time series to dates
-     table1 <- sits_tibble()
+     table1 <- .sits_tibble()
      table %>%
           purrrlyr::by_row(function (r) {
                tb <- tibble::as_tibble(r$time_series[[1]])
@@ -207,19 +212,40 @@ sits_fromCSV <-  function (csv_file, URL, coverage, bands, n_max = Inf, ignore_d
                             label       = readr::col_character())
     # read sample information from CSV file and put it in a tibble
     csv.tb <- readr::read_csv (csv_file, n_max = n_max, col_types = cols_csv)
+
+    # create a variable to test the number of samples
+    n_samples_ref <-  -1
+    # create a variable to store the number of rows
+    nrow = 0
+    # create a vector to store the lines with different number of samples
+    diff_lines <- vector()
     # create the tibble
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # for each row of the input, retrieve the time series
     csv.tb %>%
         purrrlyr::by_row( function (r){
             row <- sits_fromWTSS (r$longitude, r$latitude, r$start_date, r$end_date, URL, coverage, bands, r$label, ignore_dates)
-
             # # ajust the start and end dates
             # row$start_date <- lubridate::as_date(utils::head(row$time_series[[1]]$Index, 1))
             # row$end_date   <- lubridate::as_date(utils::tail(row$time_series[[1]]$Index, 1))
+            nrow <-  nrow + 1
+            n_samples <- nrow (row$time_series[[1]])
+            if (n_samples_ref == -1 )
+                n_samples_ref <<- n_samples
+            else
+                if (n_samples_ref != n_samples){
+                    diff_lines [length(diff_lines) + 1 ] <<- nrow
+                }
 
             data.tb <<- dplyr::bind_rows (data.tb, row)
         })
+    if (length (diff_lines) > 0) {
+        if (length (diff_lines) == (nrow(csv.tb) - 1))
+            message ("First line has different number of samples than others")
+        else
+            message("Some lines have different number of samples than the first line")
+    }
+
     return (data.tb)
 }
 #' @title Extract a time series from a ST raster data set
@@ -249,18 +275,18 @@ sits_fromCSV <-  function (csv_file, URL, coverage, bands, n_max = Inf, ignore_d
 #'
 #' #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
 #' # select the bands
 #' bands <- c("ndvi")
 #' # define the scale factors
 #' scale_factors <- c(0.0001)
 #' # define the timeline
-#' timeline <- read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv", package = "sits"), header = FALSE)
+#' timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
 #' timeline <- lubridate::as_date (timeline$V1)
 #' # create a raster metadata file based on the information about the files
 #' raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 #' # read the point from the raster
-#' point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
+#' point.tb <- sits_fromRaster(raster.tb, longitude = -55.50563, latitude = -11.71557)
 #'
 #' @export
 sits_fromRaster <- function (raster.tb, file = NULL, longitude = NULL, latitude = NULL,  xcoord = NULL, ycoord = NULL,
@@ -315,7 +341,7 @@ sits_fromSHP <- function (shp_file, URL, coverage, bands = NULL, start_date = NU
     # get the bounding box
     bbox <- sf::st_bbox (sf_shape)
 
-    shape.tb <- sits_tibble()
+    shape.tb <- .sits_tibble()
 
     coverage.tb <- sits_coverageWTSS(URL, coverage, .show = FALSE)
 
@@ -369,10 +395,11 @@ sits_fromSHP <- function (shp_file, URL, coverage, bands = NULL, start_date = NU
 #' @return data.tb        a SITS tibble
 #'
 #' @examples
-#' #' # Read a single lat long point from a WTSS server
+#' \donttest{
+#' # Read a single lat long point from a WTSS server
 #' point.tb <- sits_fromWTSS (longitude = -55.50563, latitude = -11.71557,
 #'          URL = "http://www.dpi.inpe.br/tws/wtss", coverage    = "mod13q1_512")
-#'
+#' }
 #' @export
 sits_fromWTSS <- function (longitude, latitude, start_date = NULL, end_date = NULL, URL = "http://www.dpi.inpe.br/tws/wtss", coverage = "mod13q1_512", bands = NULL, label = "NoClass", ignore_dates = FALSE) {
 
@@ -433,7 +460,7 @@ sits_fromWTSS <- function (longitude, latitude, start_date = NULL, end_date = NU
     ts.lst[[1]] <- row.tb
 
     # create a tibble to store the WTSS data
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # add one row to the tibble
     data.tb <- tibble::add_row (data.tb,
                                 longitude    = longitude,
@@ -461,11 +488,18 @@ sits_fromWTSS <- function (longitude, latitude, start_date = NULL, end_date = NU
 #' @param label         Label to attach to the time series (optional)
 #' @param coverage      Name of the coverage where data comes from
 #' @return data.tb      A time series in SITS tibble format
+#'
+#' @examples
+#' # Read a time series in ZOO format
+#' ts.zoo <- readRDS(system.file("extdata/time_series/zoo_ex.rds", package = "sits"))
+#' # Convert the zoo series into a SITS tibble
+#' data.tb <- sits_fromZOO (ts.zoo, longitude = -54.2313, latitude = -14.0482,
+#'            label = "Cerrado", coverage = "mod13q1")
 #' @export
 sits_fromZOO <- function (ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoClass", coverage = "unknown"){
 
     # convert the data from the zoo format to the SITS format
-    ts.tb <- tibble::as_tibble (zoo::fortify.zoo (time_series))
+    ts.tb <- tibble::as_tibble (zoo::fortify.zoo (ts.zoo))
 
     # create a list to store the zoo time series coming from the WTSS service
     ts.lst <- list()
@@ -478,7 +512,7 @@ sits_fromZOO <- function (ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
     end_date <- ts.tb[NROW(ts.tb),]$Index
 
     # create a tibble to store the WTSS data
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # add one row to the tibble
     data.tb <- .sits_add_row (data.tb,
                                 longitude    = longitude,

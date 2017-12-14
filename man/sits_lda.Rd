@@ -19,7 +19,7 @@ result          a model function to be passed in sits_predict
 \description{
 This function receives a tibble with a set of attributes X for each observation Y
 These attributes are distance metrics between patterns and observations, obtained by a distance
-function in SITS (either sits_distances or sits_TWTDTW_distances).
+function in SITS (see \code{link[sits]{sits_distances}}).
 The method performs a linear discriminant analysis (lda) to obtain a predictive model.
 This function is a front-end to the "lda" method in the "MASS" package.
 Please refer to the documentation in that package for more details.
@@ -33,8 +33,7 @@ samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
 point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
 point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
 # classify the point
-class.tb <- sits_classify (point.tb, samples.tb,
-       ml_method = sits_lda())
+class.tb <- sits_classify (point.tb, samples.tb, ml_method = sits_lda())
 }
 }
 \author{

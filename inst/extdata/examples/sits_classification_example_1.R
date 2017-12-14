@@ -17,16 +17,10 @@ sits_bands (embrapa.tb)
 embrapa.tb <- sits_select (embrapa.tb, bands = c("ndvi","evi","nir","mir"))
 
 # Show the patterns for the MatoGrosso data using the GAM model
-patterns.tb <- sits_gam (embrapa.tb)
+patterns.tb <- sits_patterns(embrapa.tb)
 
 # Plot the patterns
 sits_plot(patterns.tb)
-
-# estimate distances from the data
-distances.tb <- sits_distances(embrapa.tb)
-
-# estimate an SVM model for this training data
-model_svm.ml <- sits_svm(distances.tb, kernel = "radial", cost = 10)
 
 # Get information about the WTSS (web time series service)
 # see WTSS paper for more information ("Web Services for Big Data")
@@ -42,21 +36,22 @@ coverage <- "mod13q1_512"
 bands <-  c("ndvi", "evi", "nir", "mir")
 
 # select a point in the transition from forest to pasture in Northern MT
-longitude <- -58.8967
-latitude  <- -13.7214
+longitude <- -38.290080
+latitude  <- -60.203649
 
 # retrieve the time series associated with the point from the WTSS server
-point.tb <- sits_getdata(latitude = latitude, longitude = longitude, bands = bands,
+point.tb <- sits_getdata(longitude = longitude, latitude = latitude, bands = bands,
                           URL = URL, coverage = coverage)
 
 # plot the series (only the ndvi and evi bands)
-sits_plot (sits_select (point.tb, bands = c("ndvi", "evi")))
+sits_plot (sits_select (point.tb, bands = c("ndvi", "evi", "nir", "mir")))
 
 # classify the test data
-class.tb <- sits_classify(point.tb, embrapa.tb, model_svm.ml)
+# use an SVM model with radial kernel
+class.tb <- sits_classify(point.tb, embrapa.tb, ml_method = sits_svm(kernel = "radial", cost = 10))
 
 # plot the classification of the time series by yearly intervals
-sits_plot_classification(class.tb, band = "ndvi")
+sits_plot(class.tb, band = "ndvi")
 
 # retrieve a series of samples defined by a CSV file
 # obtain a time series from the WTSS server for these samples
@@ -66,11 +61,11 @@ samples.tb <- sits_getdata (file = system.file ("extdata/samples/samples_matogro
 # plot the data
 sits_plot(samples.tb[1,])
 
-# classify the test data
-class2.tb <- sits_classify(samples.tb, embrapa.tb, model_svm.ml)
+# classify the test data using a random forest model
+class2.tb <- sits_classify(samples.tb, embrapa.tb, ml_method = sits_rfor() )
 
 # plot the classification of the time series by yearly intervals
-sits_plot_classification(class2.tb[1:5,], band = "ndvi")
+sits_plot(class2.tb[1:5,], band = "ndvi")
 
 # estimate the accuracy of the result and the confusion matrix
 conf.mx <- sits_conf_matrix (class2.tb)

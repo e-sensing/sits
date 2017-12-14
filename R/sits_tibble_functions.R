@@ -1,5 +1,28 @@
-#' @title Align a data set to the dates of a set of samples, given an interval
-#' @name sits_align
+#' @title names of the bands of a time series
+#' @name sits_bands
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  finds the names of the bands of time series in a sits table
+#'               or sets the names of the bands if a set of values is given
+#'
+#' @param data.tb      a valid sits table
+#' @return result.vec  a string vector with the names of the bands
+#'
+#' @examples
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' # print the bands
+#' sits_bands(samples.tb)
+#' @export
+#'
+sits_bands <- function (data.tb) {
+    result.vec <- data.tb[1,]$time_series[[1]] %>%
+        colnames() %>% .[2:length(.)]
+    return (result.vec)
+}
+#' @title Break a data set in segments to match the dates of a set of samples, given an interval
+#' @name sits_break
 #' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
 #'
 #' @description This function aligns an input data set to the dates used by a set of samples
@@ -8,15 +31,21 @@
 #' @param samples.tb  the samples used in the classification
 #' @param interval    the interval between the classificationa
 #'
+#' @examples
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' # get a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' # break the point to match the samples (breaks a long time series into intervals)
+#' point2.tb <- sits_break(point.tb, samples.tb)
 #' @export
-
-sits_align <- function (data.tb, samples.tb, interval = "12 month"){
+sits_break <- function (data.tb, samples.tb, interval = "12 month"){
 
     # verify the input data
     .sits_test_tibble(data.tb)
     .sits_test_tibble(samples.tb)
 
-    output.tb <- sits_tibble()
+    output.tb <- .sits_tibble()
 
     data.tb %>%
         purrrlyr::by_row( function (row){
@@ -39,7 +68,6 @@ sits_align <- function (data.tb, samples.tb, interval = "12 month"){
         })
     return (output.tb)
 }
-
 
 #' @title Apply a function over SITS bands.
 #' @name sits_apply
@@ -242,6 +270,7 @@ sits_bind <-  function(data1.tb, data2.tb) {
     # merge time series
     return (result.tb)
 }
+
 #' @title Return the dates of a sits table
 #' @name sits_dates
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -250,66 +279,16 @@ sits_bind <-  function(data1.tb, data2.tb) {
 #'
 #' @param  data.tb a tibble in SITS format with time series for different bands
 #' @return table   a tibble in SITS format with values of time indexes
+#' # get a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' # return a vector of values
+#' sits_dates (point.tb)
 #' @export
 sits_dates <- function (data.tb) {
-    values <- data.tb$time_series %>%
-        data.frame() %>%
-        tibble::as_tibble() %>%
-        dplyr::select (dplyr::starts_with ("Index")) %>%
-        t() %>%
-        as.vector() %>%
-        lubridate::as_date()
+    values <- data.tb$time_series[[1]]$Index
     return (values)
 }
-#' @title apply a function to a grouped SITS table
-#' @name sits_foreach
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description returns a sits table by compound the sits tables apply a function to a grouped SITS table
-#'
-#' @param data.tb      a sits table with the time series of the selected bands
-#' @param field        one sits table field that are used to group the data.
-#'                     See `dplyr::group_by` help for more details.
-#' @param fun          a function that receives as input an sits table and outputs an sits table
-#' @return result.tb   a tibble in SITS format with the selected bands
-#' @export
-sits_foreach <- function (data.tb, field, fun){
 
-    .sits_test_tibble(data.tb)
-
-    field <- deparse(substitute(field))
-
-    # execute the foreach applying fun function to each group
-    result.tb <- data.tb %>%
-        dplyr::group_by_(field) %>%
-        dplyr::do(.data %>% fun())
-
-    # comply result with sits table format and return
-    result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
-    return (result.tb)
-}
-
-#' @title Group the contents of a sits tibble by different criteria
-#' @name sits_group_by
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description returns a sits table by compound the sits tables apply a function to a grouped SITS table
-#'
-#' @param data.tb      a sits table with the time series of the selected bands
-#' @param ...          one or more sits table field separated by commas that are used to group the data.
-#'                     See `dplyr::group_by` help for more details.
-#' @return result.tb   a tibble in SITS format with the selected bands
-#' @export
-sits_group_by <- function (data.tb, ...){
-
-    # execute the group by function from dplyr
-    result.tb <- data.tb %>%
-        dplyr::group_by(...)
-
-    # comply result with sits table format and return
-    result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
-    return (result.tb)
-}
 #' @title Merge two satellite image time series
 #' @name sits_merge
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -324,6 +303,17 @@ sits_group_by <- function (data.tb, ...){
 #' @param data1.tb      the first SITS table to be merged
 #' @param data2.tb      the second SITS table to be merged
 #' @return result.tb    a merged SITS tibble with a nested set of time series
+#' @examples
+#' # Read a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' # Select the NDVI band
+#' point.tb <- sits_select (point.tb, bands = c("ndvi"))
+#' # Filter the point using the whittaker smoother
+#' point_ws.tb <- sits_whittaker (point.tb, lambda = 3.0)
+#' # Merge the two tibbles
+#' point_merge.tb <- sits_merge(point.tb, point_ws.tb)
+#' # Plot the merged time series to see the smoothing effect
+#' sits_plot(point_merge.tb)
 #' @export
 sits_merge <-  function(data1.tb, data2.tb) {
 
@@ -350,74 +340,6 @@ sits_merge <-  function(data1.tb, data2.tb) {
         return (ts3.tb)
     })
     return (result.tb)
-}
-#' @title Add new SITS bands.
-#' @name sits_mutate
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Adds new bands and preserves existing in the time series of a sits tibble using dplyr::mutate function
-#' @param data.tb       a valid sits tibble
-#' @param ...           `name=value` pairs expressions. See `dplyr::mutate` help for more details.
-#' @return data.tb      a sits tibble with same samples and the new bands
-#' @export
-sits_mutate <- function(data.tb, ...){
-
-    # verify if data.tb has values
-    .sits_test_tibble (data.tb)
-
-    # compute mutate for each time_series tibble
-    proc_fun <- function(...){
-        data.tb$time_series <- data.tb$time_series %>%
-            purrr::map(function(ts.tb) {
-                ts_computed.tb <- ts.tb %>%
-                    dplyr::mutate(...)
-                return(ts_computed.tb)
-            })
-    }
-
-    # compute mutate for each time_series tibble
-    data.tb$time_series <- proc_fun(...)
-    return(data.tb)
-}
-#' @title  Prunes dates of time series to fit a timeline
-#' @name   sits_prune
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description prunes the times series contained a set of sits tables
-#' to a timeline. This function is useful to constrain the different samples
-#' of land cover to a timeline of available input
-#'
-#' @param    data.tb      tibble - input SITS table
-#' @param    timeline     a timeline of dates for which data is available
-#' @return   pruned.tb    tibble - the converted SITS table
-#' @export
-sits_prune <- function (data.tb, timeline) {
-    #does the input data exist?
-    .sits_test_tibble(data.tb)
-
-    pruned.tb    <- sits_tibble()
-    discarded.tb <- sits_tibble()
-
-    timeline_start_date <- lubridate::as_date(timeline[1])
-    timeline_end_date   <- lubridate::as_date(timeline[length(timeline)])
-
-    data.tb %>%
-        purrrlyr::by_row (function (row) {
-
-            if (row$start_date > timeline_start_date && row$end_date < timeline_end_date)
-                pruned.tb <<- dplyr::bind_rows(pruned.tb, row)
-            else
-                discarded.tb <<- dplyr::bind_rows(discarded.tb, row)
-        })
-
-    if (nrow(discarded.tb) > 0){
-        message("The following sample(s) has(have) been discarded:\n")
-        print(tibble::as_tibble(discarded.tb))
-    }
-    else
-        message("No sample(s) has(have) been discarded:\n")
-
-    return (pruned.tb)
 }
 #' @title names of the bands of a time series
 #' @name sits_rename
@@ -480,7 +402,7 @@ sits_sample <- function (data.tb, n = NULL, frac = NULL){
         function(tb) tb %>% dplyr::sample_frac(size = frac, replace = TRUE)
 
     # compute sampling
-    result.tb <- sits_tibble()
+    result.tb <- .sits_tibble()
     labels <- sits_labels (data.tb)$label
     labels %>%
         purrr::map (function (l){

@@ -1,16 +1,4 @@
 #' @title Brewer color schemes
-#' @name sits_colors
-#'
-#' @description Number of colors available in brewer color schemes
-#'
-#' @param brewer    name of the brewer color set
-#' @param n         number of desirable colors (default 3)
-#' @return list     list of rgb colors
-#' @export
-sits_colors <- function(brewer, n = 3){
-    return(.sits_brewerRGB[[.sits_color_name(name)]][[as.character(n)]])
-}
-#' @title Brewer color schemes
 #' @name .sits_color_nama
 #'
 #' @description brewer color schemes names to be used with `sits_plot_dendrogram`
@@ -131,7 +119,8 @@ sits_colors <- function(brewer, n = 3){
                           "Set2" = "Set2",
                           "Set3" = "Set3",
                           "Accent" = "Accent",
-                          "Dark" = "Dark"
+                          "Dark" = "Dark2",
+                          "Dark2" = "Dark2"
      )
      if (is.null(name))
           return(names)
@@ -990,7 +979,7 @@ sits_colors <- function(brewer, n = 3){
                              grDevices::rgb(255 / 255, 237 / 255, 111 / 255)),
           "type" = "qualitative"
      ),
-     "Dark" = tibble::lst(
+     "Dark2" = tibble::lst(
           "1" = tibble::lst(grDevices::rgb(217 / 255, 95 / 255, 2 / 255)),
           "2" = tibble::lst(grDevices::rgb(27 / 255, 158 / 255, 119 / 255),
                             grDevices::rgb(117 / 255, 112 / 255, 179 / 255)),

@@ -8,7 +8,7 @@ sits_plot_dendrogram(data.tb, cluster_obj, cutree_height = NULL,
   colors = "RdYlGn")
 }
 \arguments{
-\item{data.tb}{SITS tibble to extract labels}
+\item{data.tb}{SITS tibble with data used to extract the dendrogram}
 
 \item{cluster_obj}{cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`}
 
@@ -17,5 +17,18 @@ sits_plot_dendrogram(data.tb, cluster_obj, cutree_height = NULL,
 \item{colors}{a color scheme as showed in `sits_color_name` function}
 }
 \description{
-Plot an enhanced dendrogram based on a cluster object usually found in `.sits_last_cluster`
+Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendrogram}}
+}
+\examples{
+\donttest{
+# Read a set of samples with 2 classes ("Cerrado" and "Pasture")
+samples.tb <- readRDS (system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+# Generate and plot a dendrogram
+library (dtwclust)
+clusters <- sits_dendrogram (samples.tb, bands = c("ndvi"))
+sits_plot_dendogram (samples.tb, clusters)
+}
+}
+\author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

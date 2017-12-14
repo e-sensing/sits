@@ -11,6 +11,10 @@ sits_dates(data.tb)
 }
 \value{
 table   a tibble in SITS format with values of time indexes
+# get a point
+point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+# return a vector of values
+sits_dates (point.tb)
 }
 \description{
 returns a vector containing the dates of a sits table

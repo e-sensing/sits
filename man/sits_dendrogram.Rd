@@ -27,24 +27,25 @@ is an algorithm that tries to create a hierarchy of groups in which, as the leve
 the clusters from the next lower level, such that an ordered sequence of groupings is obtained.
 The similarity measure used to group time series in a cluster is the dtw metric.
 The procedure is deterministic, so it will always give the same
-result for a chosen set of similarity measures (taken from the DTWCLUST package docs).
+result for a chosen set of similarity measures (see \code{\link[dtwclust]{tsclust}}).
 }
 \examples{
+\donttest{
 # Load the "dtwclust" package
 library (dtwclust)
 # load a simple data set with two classes
 data.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", package = "sits"))
 # calculate the dendrogram
-clusters.obj <- sits_dendrogram (data.tb, bands = c("ndvi"))
+clusters <- sits_dendrogram (data.tb, bands = c("ndvi"))
 # plot the dendrogram
-sits_plot_dendrogram (data.tb, clusters.obj)
-
+sits_plot_dendrogram (data.tb, clusters)
+}
 }
 \references{
 `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

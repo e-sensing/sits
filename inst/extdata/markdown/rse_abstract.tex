@@ -1,0 +1,199 @@
+\documentclass[11pt,]{article}
+\usepackage[left=1in,top=1in,right=1in,bottom=1in]{geometry}
+\newcommand*{\authorfont}{\fontfamily{phv}\selectfont}
+\usepackage[adobe-utopia]{mathdesign}
+
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{inconsolata}
+
+%\setmonofont{inconsolata}[Scale=0.5]
+
+\usepackage{microtype}
+
+\usepackage{geometry}
+\geometry{a4paper, top=40mm, left=35mm, right=35mm, bottom=30mm}
+
+\usepackage{fancyvrb} % Allows customization of verbatim environments
+\fvset{fontsize=\normalsize} % The font size of all verbatim text can be changed here
+
+\usepackage[all,defaultlines=3]{nowidow} % avoids widow and orphan sentences
+
+
+\usepackage{abstract}
+\renewcommand{\abstractname}{}    % clear the title
+\renewcommand{\absnamepos}{empty} % originally center
+
+\renewenvironment{abstract}
+ {{%
+    \setlength{\leftmargin}{0mm}
+    \setlength{\rightmargin}{\leftmargin}%
+  }%
+  \relax}
+ {\endlist}
+
+\makeatletter
+\def\@maketitle{%
+  \newpage
+%  \null
+%  \vskip 2em%
+%  \begin{center}%
+  \let \footnote \thanks
+    {\fontsize{18}{20}\selectfont\raggedright  \setlength{\parindent}{0pt} \@title \par}%
+}
+%\fi
+\makeatother
+
+
+
+
+\setcounter{secnumdepth}{0}
+
+
+
+\title{Comparing Visual Interpretation and Satellite Time Series Analysis to
+Detect Deforestation in Amazonia  }
+
+
+
+\author{\Large Rolf Simoes\vspace{0.05in} \newline\normalsize\emph{National Institute for Space Reseach, INPE, Brazil}   \and \Large Gilberto Camara\vspace{0.05in} \newline\normalsize\emph{National Institute for Space Reseach, INPE, Brazil}   \and \Large Alexandre Iwata\vspace{0.05in} \newline\normalsize\emph{Institute for Applied Economics Research (IPEA), Brazil}   \and \Large Rodrigo Bergotti\vspace{0.05in} \newline\normalsize\emph{National Institute for Space Reseach, INPE, Brazil}  }
+
+
+\date{}
+
+\usepackage{titlesec}
+
+\titleformat*{\section}{\normalsize\bfseries}
+\titleformat*{\subsection}{\normalsize\itshape}
+\titleformat*{\subsubsection}{\normalsize\itshape}
+\titleformat*{\paragraph}{\normalsize\itshape}
+\titleformat*{\subparagraph}{\normalsize\itshape}
+
+
+\usepackage{natbib}
+\bibliographystyle{agsm}
+\usepackage[strings]{underscore} % protect underscores in most circumstances
+
+
+
+\newtheorem{hypothesis}{Hypothesis}
+\usepackage{setspace}
+
+\makeatletter
+\@ifpackageloaded{hyperref}{}{%
+\ifxetex
+  \PassOptionsToPackage{hyphens}{url}\usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \PassOptionsToPackage{hyphens}{url}\usepackage[unicode=true]{hyperref}
+\fi
+}
+
+\@ifpackageloaded{color}{
+    \PassOptionsToPackage{usenames,dvipsnames}{color}
+}{%
+    \usepackage[usenames,dvipsnames]{color}
+}
+\makeatother
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Rolf Simoes (National Institute for Space Reseach, INPE, Brazil) and Gilberto Camara (National Institute for Space Reseach, INPE, Brazil) and Alexandre Iwata (Institute for Applied Economics Research (IPEA), Brazil) and Rodrigo Bergotti (National Institute for Space Reseach, INPE, Brazil)},
+             pdfkeywords = {},
+            pdftitle={Comparing Visual Interpretation and Satellite Time Series Analysis to
+Detect Deforestation in Amazonia},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+
+% set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+
+
+% add tightlist ----------
+\providecommand{\tightlist}{%
+\setlength{\itemsep}{0pt}\setlength{\parskip}{12pt}}
+
+\begin{document}
+
+% \pagenumbering{arabic}% resets `page` counter to 1
+%
+% \maketitle
+
+{% \usefont{T1}{pnc}{m}{n}
+\setlength{\parindent}{0pt}
+\thispagestyle{plain}
+{\fontsize{18}{20}\selectfont\raggedright
+\maketitle  % title \par
+
+}
+
+{
+   \vskip 13.5pt\relax \normalsize\fontsize{11}{12}
+\textbf{\authorfont Rolf Simoes} \hskip 15pt \emph{\small National Institute for Space Reseach, INPE, Brazil}   \par \textbf{\authorfont Gilberto Camara} \hskip 15pt \emph{\small National Institute for Space Reseach, INPE, Brazil}   \par \textbf{\authorfont Alexandre Iwata} \hskip 15pt \emph{\small Institute for Applied Economics Research (IPEA), Brazil}   \par \textbf{\authorfont Rodrigo Bergotti} \hskip 15pt \emph{\small National Institute for Space Reseach, INPE, Brazil}   
+
+}
+
+}
+
+
+
+
+
+
+\vskip 6.5pt
+
+\setlength{\parskip}{6pt}
+%\renewcommand{\baselinestretch}{15pt}
+\noindent  \section{Extended Abstract}\label{extended-abstract}
+
+In 1988, Brazil's National Institute for Space Research (INPE) set up an
+operational monitoring of the Brazilian Amazonia rain forest. Called
+PRODES, this system uses visual interpretation of LANDSAT images to
+produce yearly estimates of forest loss. The scientific community
+considers it as a standard reference for studies involving tropical
+deforestation \citep{Morton2006}\citep{Hansen2013}. Brazil uses PRODES
+as a key part for the country's estimates of greenhouse gases emissions
+and for measuring its international commitments to the UN Climate and
+Biodiversity conferences. Despite strong support and acceptance, PRODES
+has drawbacks. The results rely on the abilities of skilled
+interpreters, which comes at a high cost. Given these limitations, in
+this paper we investigate if satellite image time series analysis
+methods can match the PRODES quality and thus reduce its cost, while
+improving its reproducibility.
+
+Ours is a novel approach, taking the full depth of the time series to
+create larger dimensional spaces to support machine learning
+classifiers. The method has a deceptive simplicity: use all the data
+available in the time series samples. As established in the literature,
+machine learning models perform better in high-dimensional spaces. Thus,
+the idea is to have as many temporal attributes as possible, increasing
+the dimension of the classification space. The time series combine data
+from LANDSAT 8 and MODIS to get 23 samples per year per pixel, with 3
+bands (NVDI, EVI, nir). We then feed the statistical inference model
+with a 69-dimensional attribute space.
+
+We took areas in Amazonia with much cloud cover, and fed the statistical
+model with samples of forest and deforested areas for 2014, 2015 and
+2016. These samples trained a support vector machine classifier that
+reached 95\% accuracy. There was no filtering for cloud removal since
+these filters reduce the accuracy of the classification. This
+counter-intuitive result shows that machine learning classifiers are
+robust to noise. Attempts at noise reduction and cloud removal are
+counterproductive when dealing with dense satellite image time series.
+
+In the final version of the paper, we will report on the results of
+large-scale processing of time series on different regions of the
+Amazon. We will discuss on whether the proposed techniques can enhance
+or even replace the current visual interpretation used by the PRODES.
+\newpage
+\singlespacing
+\bibliography{references-sits.bib}
+\end{document}

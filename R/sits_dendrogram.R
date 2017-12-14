@@ -1,14 +1,14 @@
 #' @title Cluster a set of time series using hierarchical clustering
 #' @name sits_dendrogram
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Cluster time series in hierarchical mode. Hierarchical clustering, as its name suggests,
 #' is an algorithm that tries to create a hierarchy of groups in which, as the level in the hierarchy increases, clusters are created by merging
 #' the clusters from the next lower level, such that an ordered sequence of groupings is obtained.
 #' The similarity measure used to group time series in a cluster is the dtw metric.
 #' The procedure is deterministic, so it will always give the same
-#' result for a chosen set of similarity measures (taken from the DTWCLUST package docs).
+#' result for a chosen set of similarity measures (see \code{\link[dtwclust]{tsclust}}).
 #'
 #' @references `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 #'
@@ -20,15 +20,16 @@
 #' @return clusters       a clusters obj from dtwclust with the full dendrogram tree for data analysis
 #'
 #' @examples
+#' \donttest{
 #' # Load the "dtwclust" package
 #' library (dtwclust)
 #' # load a simple data set with two classes
 #' data.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", package = "sits"))
 #' # calculate the dendrogram
-#' clusters.obj <- sits_dendrogram (data.tb, bands = c("ndvi"))
+#' clusters <- sits_dendrogram (data.tb, bands = c("ndvi"))
 #' # plot the dendrogram
-#' sits_plot_dendrogram (data.tb, clusters.obj)
-#'
+#' sits_plot_dendrogram (data.tb, clusters)
+#' }
 #' @export
 sits_dendrogram <- function (data.tb, bands = NULL,
                             dist_method = "dtw_basic",

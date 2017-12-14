@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_whittaker}
 \alias{sits_whittaker}
-\title{Smooth the time series using Whittaker smoother (based on PTW package)}
+\title{Smooth the time series using Whittaker smoother}
 \usage{
 sits_whittaker(data.tb, lambda = 1, differences = 3,
   bands_suffix = "whit")
@@ -21,6 +21,25 @@ output.tb a tibble with smoothed sits time series
 }
 \description{
 The algorithm searches for an optimal polynomial describing the warping.
+Some authors consider the Whittaker smoother to be a good method for smoothing and
+gap filling for satellite image time series
 The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 10.0)
 Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
+}
+\examples{
+# Read a point
+point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+# Select the NDVI band
+point.tb <- sits_select (point.tb, bands = c("ndvi"))
+# Filter the point using the whittaker smoother
+point_ws.tb <- sits_whittaker (point.tb, lambda = 3.0)
+# Plot the two points to see the smoothing effect
+sits_plot(sits_merge(point.tb, point_ws.tb))
+
+}
+\references{
+Francesco Vuolo, Wai-Tim Ng, Clement Atzberger,
+"Smoothing and gap-filling of high resolution multi-spectral timeseries:
+Example of Landsat data", Int Journal of Applied Earth Observation and Geoinformation,
+vol. 57, pg. 202-213, 2107.
 }

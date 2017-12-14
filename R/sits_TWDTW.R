@@ -1,5 +1,5 @@
 #' @title Find matches between a set of SITS patterns and segments of sits tibble using TWDTW
-#' @name sits_TWDTW_matches
+#' @name sits_TWDTW_classify
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -29,10 +29,16 @@
 #' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
 #' @param  span          minimum number of days between two matches of the same pattern in the time series (approximate)
 #' @param  keep          keep internal values for plotting matches
+#' @param  start_date    date - the start of the classification period
+#' @param  end_date      date - the end of the classification period
+#' @param  interval      the period between two classifications
+#' @param  overlap       minimum overlapping between one match and the interval of classification
 #' @return matches       a dtwSat S4 object with the matches
 #' @export
-sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
-                        alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE){
+sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
+                        alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE,
+                        start_date = NULL, end_date = NULL,
+                        interval = "12 month", overlap = 0.5){
 
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
@@ -91,11 +97,21 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
             }
         })
     if (!purrr::is_null(progress_bar)) close(progress_bar)
-    return (matches.lst)
+
+    .sits_plot_TWDTW_alignments (matches.lst[[1]])
+
+    # Classify a sits tibble using the matches found by the TWDTW methods
+    data.tb <- .sits_TWDTW_breaks (matches.lst, data.tb,
+                                   start_date = start_date, end_date = end_date,
+                                   interval, overlap)
+    .sits_plot_TWDTW_classification(matches.lst,
+                                    start_date = start_date, end_date = end_date,
+                                    interval = interval, overlap = overlap)
+    return (data.tb)
 }
 
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
-#' @name sits_TWDTW_classify
+#' @name .sits_TWDTW_breaks
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -115,9 +131,8 @@ sits_TWDTW_matches <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL
 #' @param  overlap       minimum overlapping between one match and the interval of classification
 #' @return class.tb      a SITS table with the information on matches for the data
 #'
-#' @export
 #'
-sits_TWDTW_classify <- function (matches, data.tb, start_date = NULL, end_date = NULL,
+.sits_TWDTW_breaks <- function (matches, data.tb, start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
 
     # verifies if dtwSat package is installed

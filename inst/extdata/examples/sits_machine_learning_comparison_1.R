@@ -11,7 +11,7 @@ embrapa.tb <- sits_select (embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
 results <- list()
 
-conf_svm1.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
+conf_svm1.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicorcran <- getOption("repos")es = 2,
                                    tr_method   = sits_svm (kernel = "radial", cost = 10))
 print("==================================================")
 print ("== Confusion Matrix = SVM =======================")

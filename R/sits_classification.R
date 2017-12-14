@@ -22,6 +22,7 @@
 #' @param  data.tb           SITS tibble time series (cleaned)
 #' @param  train_samples.tb  The samples used for training the classification model
 #' @param  ml_method         A machine learning method (see \code{\link[sits]{sits_train}})
+#' @param  dist_method       The method to obtain the values to be used from training and classification
 #' @param  interval          The interval used for classification
 #' @param  multicores        Number of threads to process the time series.
 #' @return data.tb           SITS tibble with the predicted labels for each input segment
@@ -29,36 +30,55 @@
 #'
 #' # read a training data set
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-#' # select the band "ndvi"
-#' samples.tb <- sits_select (samples.tb, bands = c("ndvi"))
+#' samples_ndvi.tb <- readRDS(system.file("extdata/time_series/samples_mt_ndvi.rds", package = "sits"))
+#' # Retrieve a point
+#' point_ndvi.tb <- readRDS(system.file("extdata/time_series/point_ndvi.rds", package = "sits"))
+#' # classify the point
+#' class_ndvi.tb <-  sits_classify (point_ndvi.tb, samples_ndvi.tb)
+#' #
+#' # plot the classification
+#' sits_plot (class_ndvi.tb)
 #'
+#' \donttest{
 #' # define the files that make up a RasterBrick
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
 #' # read the timeline associated to a RasterBrick
-#' timeline <- lubridate::as_date((read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv",
-#'             package = "sits"), header = FALSE))[,1])
+#' timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
+#' timeline <- lubridate::as_date (timeline$V1)
 #' # create a raster metadata file based on the information about the files
 #' raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
 #' # read a point from the raster
 #' point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
+#' # classify the point
+#' class.tb <-  sits_classify (point.tb, samples_ndvi.tb)
+#' # plot the classification
+#' sits_plot (class.tb)
 #'
 #' # Alternative - read the point from the WTSS server
-#' point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
-#' # classify the point
-#' class.tb <-  sits_classify (point.tb, samples.tb)
-#' # plot the classification
-#' sits_plot_classification (class.tb)
+#' point2.tb <- sits_getdata (longitude = -46.4070, latitude = -10.8630)
 #'
+#' # select the ndvi
+#' point2.tb <- sits_select (point2.tb, bands = c("ndvi"))
+#' # classify the point
+#' class2.tb <-  sits_classify (point2.tb, samples_ndvi.tb)
+#' # plot the classification
+#' sits_plot (class2.tb)
+#' }
 #'
 #' @export
-sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method = sits_svm(kernel = "radial", cost = 10) , interval = "12 month", multicores = 1){
+sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL,
+                           ml_method = sits_svm(kernel = "radial", cost = 10) ,
+                           dist_method = sits_distances_from_data(),
+                           interval = "12 month", multicores = 1){
 
     .sits_test_tibble(data.tb)
     .sits_test_tibble(train_samples.tb)
 
+    n_samples <- nrow(train_samples.tb[1,]$time_series[[1]])
+
+
     # obtain the machine learning model
-    distances.tb <- sits_distances (train_samples.tb)
+    distances.tb <- dist_method (train_samples.tb)
 
     ml_model = sits_train (distances.tb, ml_method)
 
@@ -69,7 +89,7 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method =
     ref_dates.lst <- class_info.tb$ref_dates[[1]]
 
     # obtain the distances from the data
-    distances.tb <- sits_distances(data.tb)
+    distances.tb <- dist_method (data.tb)
 
     # create a vector to store the predicted results
     predict.vec <- .sits_classify_distances (distances.tb, class_info.tb, ml_model, multicores)
@@ -194,6 +214,7 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method =
 #' @param  file            a set of file names to store the output (one file per classified year)
 #' @param  samples.tb      The samples used for training the classification model
 #' @param  ml_method       a model trained by \code{\link[sits]{sits_train}}
+#' @param  dist_method     The method to obtain the values to be used from training and classification
 #' @param  interval        The interval between two sucessive classification
 #' @param  blocksize       Default size of the block (rows * cols) (see function .sits_raster_block_size)
 #' @param  multicores      Number of threads to process the time series.
@@ -201,18 +222,16 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method =
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 #'
 #' @examples
+#' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-#'
-#' # select the band "ndvi"
-#' samples.tb <- sits_select (samples.tb, bands = c("ndvi"))
+#' samples.tb <- readRDS(system.file("extdata/time_series/samples_mt_ndvi.rds", package = "sits"))
 #'
 #' # read a raster file and put it into a vector
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
 #'
 #' # define the timeline
-#' timeline <- lubridate::as_date((read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv",
-#'             package = "sits"), header = FALSE))[,1])
+#' timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
+#' timeline <- lubridate::as_date (timeline$V1)
 #'
 #' # create a raster metadata file based on the information about the files
 #' raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
@@ -221,8 +240,6 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method =
 #' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples.tb,
 #'    ml_method = sits_svm(), blocksize = 300000, multicores = 2)
 #'
-#'
-#' \donttest{
 #' # Process a larger-scale raster image brick
 #' # these are the symbolic links for the files at dropbox
 #' ndvi <- paste0("https://www.dropbox.com/s/epqfo5vdu1cox6i/Sinop_ndvi.tif?raw=1")
@@ -237,11 +254,16 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method =
 #'
 #' # define the timeline
 #' # read the timeline associated to a RasterBrick
-#' timeline <- lubridate::as_date((read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv",
-#'             package = "sits"), header = FALSE))[,1])
+#' timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
+#' timeline <- lubridate::as_date (timeline$V1)
+#'
+#' # define the bands
+#' bands <- c("ndvi", "evi")
+#' # define the scale factors
+#' scale_factors <-  c(0.0001, 0.0001)
 #'
 #' # create a raster metadata file based on the information about the files
-#' raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi", "evi"), scale_factors = c(0.0001, 0.0001))
+#' raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 #'
 #' # retrieve the samples from EMBRAPA (used as training sets for classification)
 #' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
@@ -257,7 +279,9 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL, ml_method =
 #' }
 #'
 #' @export
-sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method = sits_svm(), interval = "12 month",
+sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method = sits_svm(),
+                                  dist_method = sits_distances_from_data(),
+                                  interval = "12 month",
                                   blocksize = 250000, multicores = 2){
 
     # ensure metadata tibble exists
@@ -270,7 +294,7 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method
     ensurer::ensure_that(file, !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
 
     # set up the ML model
-    distances.tb <- sits_distances (samples.tb)
+    distances.tb <- dist_method (samples.tb)
     ml_model <- sits_train (distances.tb, ml_method)
 
     # create the raster objects and their respective filenames

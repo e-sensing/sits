@@ -5,7 +5,8 @@
 \title{Classify a sits tibble using machine learning models}
 \usage{
 sits_classify(data.tb = NULL, train_samples.tb = NULL,
-  ml_method = sits_svm(kernel = "radial", cost = 10), interval = "12 month",
+  ml_method = sits_svm(kernel = "radial", cost = 10),
+  dist_method = sits_distances_from_data(), interval = "12 month",
   multicores = 1)
 }
 \arguments{
@@ -14,6 +15,8 @@ sits_classify(data.tb = NULL, train_samples.tb = NULL,
 \item{train_samples.tb}{The samples used for training the classification model}
 
 \item{ml_method}{A machine learning method (see \code{\link[sits]{sits_train}})}
+
+\item{dist_method}{The method to obtain the values to be used from training and classification}
 
 \item{interval}{The interval used for classification}
 
@@ -43,27 +46,40 @@ alternatives.
 
 # read a training data set
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-# select the band "ndvi"
-samples.tb <- sits_select (samples.tb, bands = c("ndvi"))
+samples_ndvi.tb <- readRDS(system.file("extdata/time_series/samples_mt_ndvi.rds", package = "sits"))
+# Retrieve a point
+point_ndvi.tb <- readRDS(system.file("extdata/time_series/point_ndvi.rds", package = "sits"))
+# classify the point
+class_ndvi.tb <-  sits_classify (point_ndvi.tb, samples_ndvi.tb)
+#
+# plot the classification
+sits_plot (class_ndvi.tb)
 
+\donttest{
 # define the files that make up a RasterBrick
-files  <- c(system.file ("extdata/raster/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
 # read the timeline associated to a RasterBrick
-timeline <- lubridate::as_date((read.csv(system.file("extdata/raster/mod13q1/mod13Q1-timeline-2000-2017.csv",
-            package = "sits"), header = FALSE))[,1])
+timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
+timeline <- lubridate::as_date (timeline$V1)
 # create a raster metadata file based on the information about the files
 raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
 # read a point from the raster
 point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
+# classify the point
+class.tb <-  sits_classify (point.tb, samples_ndvi.tb)
+# plot the classification
+sits_plot (class.tb)
 
 # Alternative - read the point from the WTSS server
-point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557)
-# classify the point
-class.tb <-  sits_classify (point.tb, samples.tb)
-# plot the classification
-sits_plot_classification (class.tb)
+point2.tb <- sits_getdata (longitude = -46.4070, latitude = -10.8630)
 
+# select the ndvi
+point2.tb <- sits_select (point2.tb, bands = c("ndvi"))
+# classify the point
+class2.tb <-  sits_classify (point2.tb, samples_ndvi.tb)
+# plot the classification
+sits_plot (class2.tb)
+}
 
 }
 \author{

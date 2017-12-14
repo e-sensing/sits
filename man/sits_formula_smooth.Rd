@@ -14,6 +14,7 @@ result_fun       a function that computes a valid formula
 }
 \description{
 A function to be used as a symbolic description of some fitting models such as gam.
+This function instructs the model to do a smoothing transformation (via splines) of the input values.
 `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
 If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
 }

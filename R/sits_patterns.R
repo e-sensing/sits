@@ -28,6 +28,23 @@
 #' @param  formula       the formula to be applied in the estimate
 #' @param  ...           any additional parameters
 #' @return patterns.tb   a SITS tibble with the patterns
+#'
+#' @examples
+#' \donttest{
+#' # Read a set of samples for two classes
+#' samples.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' # Estimate a set of patterns (one for each label)
+#' patterns.tb <- sits_patterns (samples.tb)
+#' # Show the patterns
+#' sits_plot (patterns.tb)
+#'
+#' # Read a set of samples for the state of Mato Grosso, Brazil, provided by EMBRAPA
+#' samples.tb <- readRDS(system.file ("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' # Estimate a set of patterns (one for each label)
+#' patterns.tb <- sits_patterns (samples.tb)
+#' # Show the patterns
+#' sits_plot (patterns.tb)
+#' }
 #' @export
 #'
 sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, end_date = NULL,
@@ -45,7 +62,7 @@ sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, e
         bds <- sits_bands(tb)
 
         # create a tibble to store the results
-        patterns.tb <- sits_tibble()
+        patterns.tb <- .sits_tibble()
 
         # what are the variables in the formula?
         vars <-  all.vars(formula)
@@ -67,13 +84,6 @@ sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, e
 
         # how many different labels are there?
         labels <- dplyr::distinct (tb, label)$label
-
-        #
-        message("Applying GAM to get time series patterns...")
-
-        # add a progress bar
-        i <- 0
-        progress_bar <- utils::txtProgressBar(min = 0, max = length(labels) * length(bds), style = 3)
 
         # traverse labels
         labels %>%
@@ -121,9 +131,6 @@ sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, e
                         # return the value out of the function scope
                         res.tb <<- res.tb
 
-                        # update progress bar
-                        i <<- i + 1
-                        utils::setTxtProgressBar(progress_bar, i)
                     }) # for each band
 
                 # put the pattern in a list to store in a sits tibble
@@ -140,7 +147,6 @@ sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, e
                                                  time_series    = ts)
             })
 
-        close(progress_bar)
         return (patterns.tb)
     }
 

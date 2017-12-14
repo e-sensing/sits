@@ -28,7 +28,29 @@ sits_cloud_filter(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
 result.tb    a sits tibble with same samples and the new bands
 }
 \description{
-This function tries to remove clouds in the satellite image time series
+This function tries to remove clouds in the ndvi band of
+a satellite image time series. It looks for points where the value of the NDVI
+band goes down abruptly. These points are taken as those whose difference is more
+than a cutoff value which is set by thw user. Then it applies an ARIMA model
+to predict the missing value. Finally, the function applies a whitakker smoother.
+The parameters of the ARIMA model can be set by the user. Please see \code{\link[stats]{arima}}
+for the detailed description of parameters p, d, and q.
+}
+\examples{
+# Read a set of samples of forest/non-forest in Amazonia
+# This is an area full of clouds
+data.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+# Take the first point
+point1.tb <- data.tb[1,]
+# Select the NDVI band
+point1.tb <- sits_select (point1.tb, bands = c("ndvi"))
+# Apply the envelope filter
+point_env.tb <- sits_cloud_filter(point1.tb)
+# Merge the filtered with the raw data
+point2.tb <- sits_merge (point1.tb, point_env.tb)
+# Plot the result
+sits_plot (point2.tb)
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

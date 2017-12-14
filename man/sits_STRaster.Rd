@@ -20,13 +20,26 @@ raster.tb   A tibble with metadata information about a raster data set
 }
 \description{
 This function creates a tibble containing the metadata for
-              a set of spatio-temporal raster files, defined as a set of "Raster Bricks".
+              a set of spatio-temporal raster files, organized as a set of "Raster Bricks".
               These files should be of the same size and
-              projection. Each raster file should contain a data set, one layer
+              projection. Each raster brick file should contain one band
               per time step. Different bands are archived in different raster files.
+}
+\examples{
+# read a raster file and put it into a vector
+files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
 
-This function creates a tibble to store the information
-about a raster time series
+# define the timeline
+timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
+timeline <- lubridate::as_date (timeline$V1)
+# define the bands
+bands <- c("ndvi")
+# define the scale factor
+scale_factors <-  c(0.0001)
+
+# create a raster metadata file based on the information about the files
+raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

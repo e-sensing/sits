@@ -37,7 +37,7 @@ sits_linear_interp <- function(data.tb, n = 23){
     .sits_test_tibble(data.tb)
 
     # compute linear approximation
-    result.tb <- sits_apply(data.tb,
+    result.tb <- .sits_apply(data.tb,
                             fun = function(band) stats::approx(band, n = n, ties=mean)$y,
                             fun_index = function(band) as.Date(stats::approx(band, n = n, ties=mean)$y,
                                                                origin = "1970-01-01"))
@@ -75,7 +75,7 @@ sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...){
     .sits_test_tibble(data.tb)
 
     # compute linear approximation
-    result.tb <- sits_apply(data.tb,
+    result.tb <- .sits_apply(data.tb,
                             fun = function(band) {
                                 if (class(n) == "function")
                                     return(fun(band, n = n(band), ...)$y)
@@ -100,7 +100,7 @@ sits_missing_values <-  function(data.tb, miss_value) {
     .sits_test_tibble(data.tb)
 
     # remove missing values by NAs
-    result.tb <- sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
+    result.tb <- .sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
     return (result.tb)
 }
 
@@ -116,17 +116,17 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' @examples
 #' # Read a set of samples of forest/non-forest in Amazonia
 #' # This is an area full of clouds
-#' prodes.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+#' data.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
 #' # Take the first point
-#' prodes1.tb <- prodes.tb[1,]
+#' point1.tb <- data.tb[1,]
 #' # Select the NDVI band
-#' prodes1.tb <- sits_select (prodes1.tb, bands = c("ndvi"))
+#' point1.tb <- sits_select (point1.tb, bands = c("ndvi"))
 #' # Apply the envelope filter
-#' prodes_env.tb <- sits_envelope(prodes1.tb)
+#' point_env.tb <- sits_envelope(point1.tb)
 #' # Merge the filtered with the raw data
-#' prodes2.tb <- sits_merge (prodes1.tb, prodes_env.tb)
+#' point2.tb <- sits_merge (point1.tb, point_env.tb)
 #' # Plot the result
-#' sits_plot (prodes2.tb)
+#' sits_plot (point2.tb)
 #'
 #' @export
 sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
@@ -147,7 +147,7 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
                          err_desc = "sits_envelope: invalid operation sequence")
 
     # compute envelopes
-    result.tb <- sits_apply(data.tb,
+    result.tb <- .sits_apply(data.tb,
                             fun = function(band) {
                                 for (op in operations){
                                     upper_lower.lst <- dtwclust::compute_envelope(band, window.size = 1, error.check = FALSE)
@@ -164,7 +164,14 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 #' @title Cloud filter
 #' @name sits_cloud_filter
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description  This function tries to remove clouds in the satellite image time series
+#' @description  This function tries to remove clouds in the ndvi band of
+#' a satellite image time series. It looks for points where the value of the NDVI
+#' band goes down abruptly. These points are taken as those whose difference is more
+#' than a cutoff value which is set by thw user. Then it applies an ARIMA model
+#' to predict the missing value. Finally, the function applies a whitakker smoother.
+#' The parameters of the ARIMA model can be set by the user. Please see \code{\link[stats]{arima}}
+#' for the detailed description of parameters p, d, and q.
+#'
 #' @param data.tb       a valid sits tibble containing the "ndvi" band
 #' @param cutoff        a numeric value for the maximum acceptable value of a NDVI difference
 #' @param p             the order (number of time lags) of the autoregressive model,
@@ -174,6 +181,22 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 #' @param apply_whit    apply the whittaker smoother after filtering
 #' @param lambda_whit   lambda parameter of the whittaker smoother
 #' @return result.tb    a sits tibble with same samples and the new bands
+#'
+#' @examples
+#' # Read a set of samples of forest/non-forest in Amazonia
+#' # This is an area full of clouds
+#' data.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+#' # Take the first point
+#' point1.tb <- data.tb[1,]
+#' # Select the NDVI band
+#' point1.tb <- sits_select (point1.tb, bands = c("ndvi"))
+#' # Apply the envelope filter
+#' point_env.tb <- sits_cloud_filter(point1.tb)
+#' # Merge the filtered with the raw data
+#' point2.tb <- sits_merge (point1.tb, point_env.tb)
+#' # Plot the result
+#' sits_plot (point2.tb)
+#'
 #' @export
 sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
                               bands_suffix = ".cf", apply_whit = TRUE, lambda_whit = 1.0){
@@ -220,21 +243,39 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
     return(result.tb)
 }
 
-#' Smooth the time series using Whittaker smoother (based on PTW package)
+#' Smooth the time series using Whittaker smoother
 #' @name sits_whittaker
 #' @description  The algorithm searches for an optimal polynomial describing the warping.
+#' Some authors consider the Whittaker smoother to be a good method for smoothing and
+#' gap filling for satellite image time series
 #' The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 10.0)
 #' Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
+#'
+#' @references Francesco Vuolo, Wai-Tim Ng, Clement Atzberger,
+#' "Smoothing and gap-filling of high resolution multi-spectral timeseries:
+#' Example of Landsat data", Int Journal of Applied Earth Observation and Geoinformation,
+#' vol. 57, pg. 202-213, 2107.
 #'
 #' @param data.tb      The SITS tibble containing the original time series
 #' @param lambda       double   - the smoothing factor to be applied (default 1.0)
 #' @param differences  an integer indicating the order of differences of contiguous elements (default 3)
 #' @param bands_suffix the suffix to be appended to the smoothed filters (default "whit")
 #' @return output.tb a tibble with smoothed sits time series
+#'
+#' @examples
+#' # Read a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' # Select the NDVI band
+#' point.tb <- sits_select (point.tb, bands = c("ndvi"))
+#' # Filter the point using the whittaker smoother
+#' point_ws.tb <- sits_whittaker (point.tb, lambda = 3.0)
+#' # Plot the two points to see the smoothing effect
+#' sits_plot(sits_merge(point.tb, point_ws.tb))
+#'
 #' @export
 sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
 
-    result.tb <- sits_apply(data.tb,
+    result.tb <- .sits_apply(data.tb,
                             fun = function(band){
                                 # According to: Whittaker (1923). On a new method of graduation.
                                 # Proceedings of the Edinburgh Mathematical Society, 41, 63-73.
@@ -252,10 +293,10 @@ sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suf
     return(result.tb)
 }
 
-#' Smooth the time series using Savitsky-Golay filter (based on signal package)
+#' Smooth the time series using Savitsky-Golay filter
 #' @name sits_sgolay
 #' @description  The algorithm searches for an optimal polynomial describing the warping.
-#' The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 10.0)
+#' The degree of smoothing depends on the filter order (usually 3.0)
 #' Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 #'
 #' @param data.tb    The SITS tibble containing the original time series
@@ -263,9 +304,19 @@ sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suf
 #' @param scale      time scaling
 #' @param bands_suffix the suffix to be appended to the smoothed filters
 #' @return output.tb a tibble with smoothed sits time series
+#' @examples
+#' # Read a point
+#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' # Select the NDVI band
+#' point.tb <- sits_select (point.tb, bands = c("ndvi"))
+#' # Filter the point using the Savitsky Golay smoother
+#' point_sg.tb <- sits_sgolay (point.tb, order = 3, scale = 2)
+#' # Plot the two points to see the smoothing effect
+#' sits_plot(sits_merge(point.tb, point_sg.tb))
+#'
 #' @export
 sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
-    result.tb <- sits_apply(data.tb,
+    result.tb <- .sits_apply(data.tb,
                             fun = function(band) signal::sgolayfilt(band, p = order, ts = scale),
                             fun_index = function(band) band,
                             bands_suffix = bands_suffix)
@@ -282,7 +333,7 @@ sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
 #' @return output.tb   A tibble with smoothed sits time series
 #' @export
 sits_kf <- function(data.tb, bands_suffix = "kf"){
-    result.tb <- sits_apply(data.tb,
+    result.tb <- .sits_apply(data.tb,
                             fun = function(band) .kalmanfilter(band, NULL, NULL, NULL),
                             fun_index = function(band) band,
                             bands_suffix = bands_suffix)

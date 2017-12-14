@@ -1,5 +1,5 @@
 #' @title Relabel raster stack object
-#' @name sits_stack_relabel
+#' @name .sits_stack_relabel
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
 #' @include RcppExports.R
@@ -15,7 +15,7 @@
 #' @description This function updates categorical raster values (labels).
 #'
 #' @export
-sits_stack_relabel <- function(x,
+.sits_stack_relabel <- function(x,
                                old_values,
                                new_values,
                                filename = "",
@@ -42,7 +42,7 @@ sits_stack_relabel <- function(x,
 }
 
 #' @title Relabel raster stack based on temporal transitions
-#' @name sits_stack_transition_relabel
+#' @name .sits_stack_transition_relabel
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
 #' @param x raster stack object
@@ -60,7 +60,7 @@ sits_stack_relabel <- function(x,
 #' assuming Class(t) = f(Class(t-1), Class(t)) subject to the initial condition Class(t=1) = Class(t=1)
 #'
 #' @export
-sits_stack_transition_relabel <- function(x,
+.sits_stack_transition_relabel <- function(x,
                                           A,
                                           filename = "",
                                           progress = 'text',
