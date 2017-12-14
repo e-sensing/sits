@@ -225,10 +225,11 @@ sits_fromCSV <-  function (csv_file, URL, coverage, bands, n_max = Inf, ignore_d
     csv.tb %>%
         purrrlyr::by_row( function (r){
             row <- sits_fromWTSS (r$longitude, r$latitude, r$start_date, r$end_date, URL, coverage, bands, r$label, ignore_dates)
+
+            nrow <-  nrow + 1
             # # ajust the start and end dates
             # row$start_date <- lubridate::as_date(utils::head(row$time_series[[1]]$Index, 1))
             # row$end_date   <- lubridate::as_date(utils::tail(row$time_series[[1]]$Index, 1))
-            nrow <-  nrow + 1
             n_samples <- nrow (row$time_series[[1]])
             if (n_samples_ref == -1 )
                 n_samples_ref <<- n_samples
