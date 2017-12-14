@@ -14,9 +14,9 @@ author:
 - name: Gilberto Camara
   affiliation: National Institute for Space Reseach, INPE, Brazil
 - name: Alexandre Iwata
-  affiliation: Institute for Applied Economics Research (IPEA), Brazil
+  affiliation: Institute for Applied Economics Research, IPEA, Brazil
 - name: Victor Maus
-  affiliation: International Institute for Applied System Analysis (IIASA)
+  affiliation: International Institute for Applied System Analysis, IIASA, 
 abstract: "Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. The SITS package provides support on how to use statistical learning techniques with image time series. These methods include linear and quadratic discrimination analysis, support vector machines, random forests and neural networks."
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 fontfamily: mathdesign

@@ -262,11 +262,12 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method
 
     # ensure metadata tibble exists
     .sits_test_tibble (raster.tb)
+
     # ensure patterns tibble exits
     .sits_test_tibble (samples.tb)
 
     # ensure that file name and prediction model are provided
-    ensurer::ensure_that(file,      !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
+    ensurer::ensure_that(file, !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
 
     # set up the ML model
     distances.tb <- sits_distances (samples.tb)

@@ -66,29 +66,61 @@ sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) 
     # verify if data.tb has values
     .sits_test_tibble (data.tb)
 
-    # computes fun and fun_index for all time series and substitutes the original time series data
-    data.tb$time_series <- data.tb$time_series %>%
-        purrr::map(function(ts.tb) {
-            ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
-                purrr::map(fun)
+    # save columns name from the first time series tibble
+    ts_cols <- names(data.tb$time_series[[1]])
 
-            # append bands names' suffixes
-            if (nchar(bands_suffix) != 0)
-                names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
+    # unnest tibble
+    data.tb <-
+        data.tb %>%
+        tidyr::unnest()
 
-            # unlist if there are more than one result from `fun`
-            if (is.recursive(ts_computed.lst[[1]]))
-                ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
+    # computes fun for all time series fields and substitutes the original time series data
+    data.tb[,ts_cols] <-
+        data.tb[,ts_cols[-1:0]] %>%
+        purrr::map(fun) %>%
+        dplyr::bind_cols()
 
-            # convert to tibble
-            ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
+    # computes fun_index for all time series fields and substitutes the original time series data
+    data.tb[,ts_cols[1]] <-
+        data.tb[,ts_cols[1]] %>%
+        purrr::map(fun_index) %>%
+        dplyr::bind_cols()
 
-            # compute Index column
-            ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
+    # verifies if there is a suffix and updates the columns names
+    if (nchar(bands_suffix) != 0)
+        ts_cols[-1:0] <- paste0(ts_cols[-1:0], ".", bands_suffix)
 
-            # reorganizes time series tibble
-            return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
-        })
+    # append bands names' suffixes
+    names(data.tb) <- c(names(data.tb)[1:(length(names(data.tb))-length(ts_cols))], ts_cols)
+
+    # nest result and return
+    data.tb <-
+        data.tb %>%
+        tidyr::nest(ts_cols, .key = "time_series")
+    #
+    # # computes fun and fun_index for all time series and substitutes the original time series data
+    # data.tb$time_series <- data.tb$time_series %>%
+    #     purrr::map(function(ts.tb) {
+    #         ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
+    #             purrr::map(fun)
+    #
+    #         # append bands names' suffixes
+    #         if (nchar(bands_suffix) != 0)
+    #             names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
+    #
+    #         # unlist if there are more than one result from `fun`
+    #         if (is.recursive(ts_computed.lst[[1]]))
+    #             ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
+    #
+    #         # convert to tibble
+    #         ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
+    #
+    #         # compute Index column
+    #         ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
+    #
+    #         # reorganizes time series tibble
+    #         return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
+    #     })
     return(data.tb)
 }
 #' @title Apply a function on each SITS tibble column element
