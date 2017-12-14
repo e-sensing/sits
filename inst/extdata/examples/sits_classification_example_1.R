@@ -36,8 +36,8 @@ coverage <- "mod13q1_512"
 bands <-  c("ndvi", "evi", "nir", "mir")
 
 # select a point in the transition from forest to pasture in Northern MT
-longitude <- -38.290080
-latitude  <- -60.203649
+longitude <- -47.0516
+latitude  <- -10.7241
 
 # retrieve the time series associated with the point from the WTSS server
 point.tb <- sits_getdata(longitude = longitude, latitude = latitude, bands = bands,
