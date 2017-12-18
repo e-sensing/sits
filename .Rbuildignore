@@ -2,5 +2,6 @@
 ^\.Rproj\.user$
 .travis.yml$
 ^packrat/
-^\.Rprofile$
+.Rprofile$
+.RData$
 ^\.tmp$

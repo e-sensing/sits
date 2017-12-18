@@ -4,7 +4,7 @@
 \alias{sits_plot}
 \title{Plot a set of satellite image time series}
 \usage{
-sits_plot(data, band = "ndvi", colors = "Set1")
+sits_plot(data, band = "ndvi", colors = "Dark2")
 }
 \arguments{
 \item{data}{The data to be plotted (can be a SITS tibble, clusters, or TWDTW matches)}

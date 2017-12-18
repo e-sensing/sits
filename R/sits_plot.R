@@ -41,7 +41,7 @@
 #' }
 #' @export
 #
-sits_plot <- function (data, band = "ndvi", colors = "Set1") {
+sits_plot <- function (data, band = "ndvi", colors = "Dark2") {
 
 
     if ("dtwclust" %in% class(data))
@@ -50,7 +50,7 @@ sits_plot <- function (data, band = "ndvi", colors = "Set1") {
         .sits_plot_TWDTW_alignments(data)
 
     # try to guess what is the plot type
-    if ("sits_tibble" %in% class (data)) {
+    if ("time_series" %in% names (data)) {
         # is there only one sample per label? Plot patterns!
         if (max (sits_labels(data)$count) == 1 && nrow(data) > 1)
             .sits_plot_patterns (data)
