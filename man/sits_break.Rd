@@ -18,11 +18,11 @@ This function aligns an input data set to the dates used by a set of samples
 }
 \examples{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+data(samples_MT_9classes)
 # get a point
-point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+data (ts_2000_2016)
 # break the point to match the samples (breaks a long time series into intervals)
-point2.tb <- sits_break(point.tb, samples.tb)
+point2.tb <- sits_break(ts_2000_2016, samples_MT_9classes)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

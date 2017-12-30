@@ -20,10 +20,10 @@ input to the machine learning models. The values used as input for the training 
 are computed by the function defined by the parameter dist_method
 }
 \examples{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+# Retrieve the set of samples for the Cerrado and Pasture classes
+data(cerrado_2classes)
 # estimate distances from the data
-distances.tb <- sits_distances(samples.tb)
+distances.tb <- sits_distances(cerrado_2classes)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

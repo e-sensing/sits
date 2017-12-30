@@ -25,14 +25,12 @@ Computes the linearly interpolated bands for a given resolution
               using the R base function approx
 }
 \examples{
-# Retrieve a point
-point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
-# select one band
-point.tb <- sits_select (point.tb, bands = c("ndvi"))
+# Retrieve a time series with values of NDVI
+data(point_ndvi)
 # find out how many time instances are there
-n_times <- NROW (point.tb$time_series[[1]])
+n_times <- NROW (point_ndvi$time_series[[1]])
 # interpolate three times more points
-point_int.tb <- sits_interp(point.tb, fun = stats::spline, n = 3*n_times)
+point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3*n_times)
 # plot the result
 sits_plot (point_int.tb)
 

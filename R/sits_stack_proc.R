@@ -14,7 +14,6 @@
 #'
 #' @description This function updates categorical raster values (labels).
 #'
-#' @export
 .sits_stack_relabel <- function(x,
                                old_values,
                                new_values,
@@ -59,7 +58,6 @@
 #' @description This function updates categorical raster values (labels) based on the temporal transitions,
 #' assuming Class(t) = f(Class(t-1), Class(t)) subject to the initial condition Class(t=1) = Class(t=1)
 #'
-#' @export
 .sits_stack_transition_relabel <- function(x,
                                           A,
                                           filename = "",

@@ -20,9 +20,9 @@ Converts data from a SITS tibble to a list of a zoo series.
 \examples{
 
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-cerrado2.tb <- readRDS(system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+data(cerrado_2classes)
 # export a time series to zoo
-zoo.lst <- sits_toZOO (cerrado2.tb[1:20,])
+zoo.lst <- sits_toZOO (cerrado_2classes[1:5,])
 
 }
 \author{

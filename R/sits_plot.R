@@ -31,13 +31,13 @@
 #' @examples
 #' \donttest{
 #' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-#' samples.tb <- readRDS (system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' data ("cerrado_2classes")
 #' # Plot all the samples together
-#' sits_plot (samples.tb)
+#' sits_plot (cerrado_2classes)
 #' # Plot the first 20 samples (defaults to "allyears")
-#' sits_plot (samples.tb[1:20,])
+#' sits_plot (cerrado_2classes[1:20,])
 #' # Plot the patterns
-#' sits_plot (sits_patterns(samples.tb))
+#' sits_plot (sits_patterns(cerrado_2classes))
 #' }
 #' @export
 #
@@ -341,7 +341,7 @@ sits_plot <- function (data, band = "ndvi", colors = "Dark2") {
 }
 
 #' @title Create a plot title to use with ggplot
-#' @name sits_plot_title
+#' @name .sits_plot_title
 #'
 #' @description creates a plot title from row information
 #'
@@ -433,11 +433,11 @@ sits_plot <- function (data, band = "ndvi", colors = "Dark2") {
 #' @examples
 #' \donttest{
 #' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-#' samples.tb <- readRDS (system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' data ("cerrado_2classes")
 #' # Generate and plot a dendrogram
 #' library (dtwclust)
-#' clusters <- sits_dendrogram (samples.tb, bands = c("ndvi"))
-#' sits_plot_dendogram (samples.tb, clusters)
+#' clusters <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+#' sits_plot_dendrogram (cerrado_2classes, clusters)
 #' }
 sits_plot_dendrogram <- function(data.tb,
                                   cluster_obj,

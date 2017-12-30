@@ -45,20 +45,20 @@ sits_plot (samples_cerrado.tb[1:15,])
 # plot all cerrado samples together (shows the distribution)
 sits_plot (samples_cerrado.tb)
 
-## ---- eval = FALSE-------------------------------------------------------
-#  URL <- "http://www.dpi.inpe.br/tws/wtss"
-#  wtss_inpe <- sits_infoWTSS(URL)
+## ---- eval = TRUE--------------------------------------------------------
+URL <- "http://www.dpi.inpe.br/tws/wtss"
+wtss_inpe <- sits_infoWTSS(URL)
 
-## ---- eval = FALSE-------------------------------------------------------
-#  # get information about a specific coverage
-#  coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
+## ---- eval = TRUE--------------------------------------------------------
+# get information about a specific coverage
+coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
 
-## ---- eval = FALSE, echo = TRUE------------------------------------------
-#  # a point in the transition forest pasture in Northern MT
-#  # obtain a time series from the WTSS server for this point
-#  series.tb <- sits_getdata(longitude = -55.57320, latitude = -11.50566, URL = URL,
-#  coverage = "mod13q1_512", bands = c("ndvi", "evi"),
-#  start_date = "2001-01-01", end_date = "2016-12-31")
-#  # plot the series
-#  sits_plot (series.tb)
+## ---- eval = TRUE, echo = TRUE-------------------------------------------
+# a point in the transition forest pasture in Northern MT
+# obtain a time series from the WTSS server for this point
+series.tb <- sits_getdata(longitude = -55.57320, latitude = -11.50566, URL = URL,
+coverage = "mod13q1_512", bands = c("ndvi", "evi"),
+start_date = "2001-01-01", end_date = "2016-12-31")
+# plot the series
+sits_plot (series.tb)
 

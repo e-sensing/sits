@@ -22,11 +22,11 @@ Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendro
 \examples{
 \donttest{
 # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-samples.tb <- readRDS (system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+data ("cerrado_2classes")
 # Generate and plot a dendrogram
 library (dtwclust)
-clusters <- sits_dendrogram (samples.tb, bands = c("ndvi"))
-sits_plot_dendogram (samples.tb, clusters)
+clusters <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+sits_plot_dendrogram (cerrado_2classes, clusters)
 }
 }
 \author{

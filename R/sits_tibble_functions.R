@@ -11,9 +11,9 @@
 #'
 #' @examples
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' data(samples_MT_9classes)
 #' # print the bands
-#' sits_bands(samples.tb)
+#' sits_bands(samples_MT_9classes)
 #' @export
 #'
 sits_bands <- function (data.tb) {
@@ -33,11 +33,11 @@ sits_bands <- function (data.tb) {
 #'
 #' @examples
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' data(samples_MT_9classes)
 #' # get a point
-#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' data (ts_2000_2016)
 #' # break the point to match the samples (breaks a long time series into intervals)
-#' point2.tb <- sits_break(point.tb, samples.tb)
+#' point2.tb <- sits_break(ts_2000_2016, samples_MT_9classes)
 #' @export
 sits_break <- function (data.tb, samples.tb, interval = "12 month"){
 
@@ -77,9 +77,9 @@ sits_break <- function (data.tb, samples.tb, interval = "12 month"){
 #' @param  data.tb a tibble in SITS format with time series for different bands
 #' @return table   a tibble in SITS format with values of time indexes
 #' # get a point
-#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
+#' data (ts_2000_2016)
 #' # return a vector of values
-#' sits_dates (point.tb)
+#' sits_dates (ts_2000_2016)
 #' @export
 sits_dates <- function (data.tb) {
     values <- data.tb$time_series[[1]]$Index
@@ -101,16 +101,12 @@ sits_dates <- function (data.tb) {
 #' @param data2.tb      the second SITS table to be merged
 #' @return result.tb    a merged SITS tibble with a nested set of time series
 #' @examples
-#' # Read a point
-#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
-#' # Select the NDVI band
-#' point.tb <- sits_select (point.tb, bands = c("ndvi"))
+#' # Retrieve a time series with values of NDVI
+#' data(point_ndvi)
 #' # Filter the point using the whittaker smoother
-#' point_ws.tb <- sits_whittaker (point.tb, lambda = 3.0)
-#' # Merge the two tibbles
-#' point_merge.tb <- sits_merge(point.tb, point_ws.tb)
-#' # Plot the merged time series to see the smoothing effect
-#' sits_plot(point_merge.tb)
+#' point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0)
+#' # Plot the two points to see the smoothing effect
+#' sits_plot(sits_merge(point_ndvi, point_ws.tb))
 #' @export
 sits_merge <-  function(data1.tb, data2.tb) {
 

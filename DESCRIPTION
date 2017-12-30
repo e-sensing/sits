@@ -1,10 +1,10 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 0.11.24
-Date: 2017-11-24
-Authors@R: c(person('Rolf', 'Simoes', role = c('aut', 'cre'), email = 'rolf.simoes@inpe.br'),
-             person('Gilberto', 'Camara', role = c('aut'), email = 'gilberto.camara@inpe.br'), 
+Version: 0.12.24
+Date: 2017-12-24
+Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
+             person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Alexandre', 'Carvalho', role = c('aut', 'ctb')),
              person('Luiz', 'Assis', role = c('ctb')),
@@ -12,7 +12,7 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut', 'cre'), email = 'rolf.simo
              person('Lorena', 'Santos', role = c('ctb')),
              person('Gilberto', 'Queiroz', role = c('ctb'))
              )
-Maintainer: Rolf Simoes <rolf.simoes@inpe.br>
+Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series.
     Supports data retrieval from a WTSS (web time series service) and other data sets.
     Provides different visualisation methods for image time series.
@@ -28,6 +28,7 @@ LazyData: true
 Imports:
     magrittr,
     caret,
+    BBmisc,
     data.table,
     dendextend,
     e1071,
@@ -67,13 +68,12 @@ Imports:
     utils,
     wtss,
     zoo
-Remotes:
-    github::e-sensing/wtss
 LinkingTo:
     Rcpp
 RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'
+    'data.R'
     'sits_TWDTW.R'
     'sits_WTSS.R'
     'sits_accuracy.R'
@@ -103,6 +103,9 @@ Collate:
     'sits_timeline.R'
     'sits_validate.R'
 Suggests: knitr,
+    mxnet,
     rmarkdown,
     testthat
+Additional_repositories:
+    https://apache-mxnet.s3-accelerate.dualstack.amazonaws.com/R/CRAN/
 VignetteBuilder: knitr

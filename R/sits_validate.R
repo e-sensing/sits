@@ -30,21 +30,21 @@
 #'
 #' @examples
 #' # read a set of samples
-#' samples.tb <- readRDS (system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' data (cerrado_2classes)
 #'
 #' # perform a five fold validation with the SVM machine learning method
-#' conf_matrix1.mx <- sits_kfold_validate (samples.tb)
+#' conf_matrix1.mx <- sits_kfold_validate (cerrado_2classes)
 #'
 #' \donttest{
 #' #load a data set for with samples for EMBRAPA data set
-#' embrapa.tb <- readRDS(system.file ("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' data(samples_MT_9classes)
 #'
-#' embrapa.tb <- sits_select (embrapa.tb, bands = c("ndvi", "evi", "nir", "mir"))
+#' samples.tb <- sits_select (samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
 #'
 #' # create a list to save the results
 #' results <- list()
 #'
-#' conf_svm1.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
+#' conf_svm1.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
 #'                 ml_method   = sits_svm (kernel = "radial", cost = 10))
 #'  print("==================================================")
 #'  print ("== Confusion Matrix = SVM =======================")
@@ -56,7 +56,7 @@
 #'
 #'  # =============== GLM ==============================
 #'  # generalized liner model (glm)
-#'  conf_glm.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
+#'  conf_glm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
 #'               ml_method   = sits_glm())
 #'
 #'  # print the accuracy of the generalized liner model (glm)
@@ -70,7 +70,7 @@
 #'
 #'  # =============== RFOR ==============================
 #'  # validate random forest model
-#'  conf_rfor.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
+#'  conf_rfor.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
 #'                  ml_method   = sits_rfor ())
 #'  print("==================================================")
 #'  print ("== Confusion Matrix = RFOR =======================")
@@ -83,7 +83,7 @@
 #'  # =============== LDA ==============================
 #'
 #'  # test validation of LDA method
-#'  conf_lda.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
+#'  conf_lda.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
 #'                  ml_method   = sits_lda ())
 #'
 #'  print("==================================================")
@@ -95,7 +95,7 @@
 #'
 #'  # =============== MLR ==============================
 #'  # "multinomial log-linear (mlr)
-#'  conf_mlr.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 2,
+#'  conf_mlr.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
 #'                 ml_method   = sits_mlr())
 #'
 #' # print the accuracy of the Multinomial log-linear
@@ -111,7 +111,7 @@
 #' # =============== GBM ==============================
 #' # Gradient Boosting Machine
 #'
-#' conf_gbm.tb <- sits_kfold_validate(embrapa.tb, folds = 5, multicores = 1,
+#' conf_gbm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
 #'                ml_method   = sits_gbm())
 #'
 #'  # print the accuracy of the Gradient Boosting Machine
@@ -167,7 +167,7 @@ sits_kfold_validate <- function (data.tb, folds = 5,
         distances_test.tb  <- sits_distances (data_test.tb)
 
         # classify the test data
-        predicted <- sits_predict(distances_test.tb, model.ml)
+        predicted <- .sits_predict(distances_test.tb, model.ml)
 
         ref.vec  <- c(ref.vec,  data_test.tb$label)
         pred.vec <- c(pred.vec, predicted)

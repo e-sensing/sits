@@ -1,12 +1,11 @@
 ---
 output:
     pdf_document:
+        df_print: tibble
         citation_package: natbib
         fig_caption: true
         latex_engine: pdflatex
         template: latex-ms.tex
-        pandoc_args: [
-        ]
 title: "SITS: Data Analysis and Machine Learning using Satellite Image Time Series"
 author:
 - name: Rolf Simoes
@@ -23,10 +22,10 @@ fontfamily: mathdesign
 fontfamilyoptions: adobe-utopia
 fontsize: 11pt
 bibliography: references-sits.bib
-biblio-style: agsm
+csl: plos-one.csl
 endnote: no
 vignette: >
-    %\VignetteEngine{knitr::knitr}
+    %\VignetteEngine{knitr::rmarkdown}
     %\VignetteIndexEntry{SITS: Data Analysis and Machine Learning using Satellite Image Time Series}
     %\VignetteEncoding{UTF-8}
 ---
@@ -122,20 +121,20 @@ sits_plot (samples_cerrado.tb)
 
 # Importing data into SITS
 The SITS package allows different methods of data input, including: (a) obtain data from a WTSS (Web Series Time Service); (b) read data stored in a time series in the ZOO format [@Zeileis2005]; (c) read a time series from a RasterBrick [@Hijmans2015]. This section describes options (a) and (b). Option (c) will be described in the section were we describe raster processing. The WTSS service is a light-weight service, designed to retrieve time series for selected locations and periods [@Vinhas2016]. This service has been implemented by the research team of the National Institute for Space Research to allow remote access to time series data. To access the service, the user needs to provide a URL that points to the WTSS server location and use the function `sits_infoWTSS` that provides information on the coverages available on the server.
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 URL <- "http://www.dpi.inpe.br/tws/wtss"
 wtss_inpe <- sits_infoWTSS(URL)
 ```
 After finding out which coverages are available at the WTSS service, one may request specific information on each coverage by using the function `sits_coverageWTSS` which lists the contents of the data set, including source, bands, spatial extent and resolution, time range, and temporal resolution. This information is then stored in a tibble for later use.
 
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 # get information about a specific coverage
 coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
 ```
 
 The user can then request one or more points using the `sits_getdata` function. This function provides a general means of access to image time series. In it simplest fashion, the user provides the latitude and longitude of the desired location, the URL of the WTSS services, the coverage name, the bands, and the start date and end date of the time series. If the start and end dates are not provided, all of the samples are retrived. The result is a SITS tibble that can be visualised using `sits_plot`.
 
-```{r, eval = FALSE, echo = TRUE}
+```{r, eval = TRUE, echo = TRUE}
 # a point in the transition forest pasture in Northern MT
 # obtain a time series from the WTSS server for this point
 series.tb <- sits_getdata(longitude = -55.57320, latitude = -11.50566, URL = URL,

@@ -26,12 +26,14 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+data(samples_MT_9classes)
+# Select 3 bands for classification
+samples.tb <- sits_select (samples_MT_9classes, bands = c("ndvi", "evi", "nir"))
 # get a point with a 16 year time series
-point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
-point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
-# classify the point
+data(ts_2000_2016)
+# Select 3 bands for classification
+point.tb <- sits_select (ts_2000_2016, bands = c("ndvi", "evi", "nir"))
+# Classify the point
 class.tb <- sits_classify (point.tb, samples.tb, ml_method = sits_mlr())
 }
 }

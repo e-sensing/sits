@@ -9,7 +9,6 @@
 #' @param  int_labels        Named vector with integers match the class labels
 #' @param  init_row          Starting row of the output RasterLayer
 #' @return raster_class.tb   Metadata with information on a set of RasterLayers
-#' @export
 
 .sits_block_from_data <- function (pred.lst, raster_class.tb, int_labels, init_row){
 

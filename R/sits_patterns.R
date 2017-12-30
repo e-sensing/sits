@@ -32,16 +32,16 @@
 #' @examples
 #' \donttest{
 #' # Read a set of samples for two classes
-#' samples.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' data(cerrado_2classes)
 #' # Estimate a set of patterns (one for each label)
-#' patterns.tb <- sits_patterns (samples.tb)
+#' patterns.tb <- sits_patterns (cerrado_2classes)
 #' # Show the patterns
 #' sits_plot (patterns.tb)
 #'
 #' # Read a set of samples for the state of Mato Grosso, Brazil, provided by EMBRAPA
-#' samples.tb <- readRDS(system.file ("extdata/time_series/embrapa_mt.rds", package = "sits"))
+#' data(samples_MT_9classes)
 #' # Estimate a set of patterns (one for each label)
-#' patterns.tb <- sits_patterns (samples.tb)
+#' patterns.tb <- sits_patterns (samples_MT_9classes)
 #' # Show the patterns
 #' sits_plot (patterns.tb)
 #' }

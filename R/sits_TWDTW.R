@@ -93,7 +93,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
         })
     if (!purrr::is_null(progress_bar)) close(progress_bar)
 
-    .sits_plot_TWDTW_alignments (matches.lst[[1]])
+    .sits_plot_TWDTW_alignments (matches.lst)
 
     # Classify a sits tibble using the matches found by the TWDTW methods
     data.tb <- .sits_TWDTW_breaks (matches.lst, data.tb,

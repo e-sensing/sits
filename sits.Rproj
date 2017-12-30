@@ -11,13 +11,12 @@ Encoding: UTF-8
 
 RnwWeave: knitr
 LaTeX: pdfLaTeX
-RootDocument: README.md
 
 AutoAppendNewline: Yes
 StripTrailingWhitespace: Yes
 
 BuildType: Package
 PackageInstallArgs: --no-multiarch --with-keep.source
-PackageBuildArgs: --no-build-vignettes
+PackageBuildArgs: --resave-data
 PackageCheckArgs: --as-cran
 PackageRoxygenize: rd,collate,namespace

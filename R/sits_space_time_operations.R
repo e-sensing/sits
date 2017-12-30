@@ -33,7 +33,6 @@
 #' @param raster.tb  Tibble with metadata information about a raster data set
 #' @return bool      TRUE if XY is inside the raster extent, FALSE otherwise
 #'
-#' @export
 .sits_XY_inside_raster <- function (xy, raster.tb){
 
     if (xy[1,"X"] < raster.tb[1,]$xmin) return (FALSE)

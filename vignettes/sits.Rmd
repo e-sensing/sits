@@ -1,12 +1,11 @@
 ---
 output:
     pdf_document:
+        df_print: tibble
         citation_package: natbib
         fig_caption: true
         latex_engine: pdflatex
         template: latex-ms.tex
-        pandoc_args: [
-        ]
 title: "SITS: Data Analysis and Machine Learning using Satellite Image Time Series"
 author:
 - name: Rolf Simoes
@@ -23,10 +22,10 @@ fontfamily: mathdesign
 fontfamilyoptions: adobe-utopia
 fontsize: 11pt
 bibliography: references-sits.bib
-biblio-style: agsm
+csl: plos-one.csl
 endnote: no
 vignette: >
-    %\VignetteEngine{knitr::knitr}
+    %\VignetteEngine{knitr::rmarkdown}
     %\VignetteIndexEntry{SITS: Data Analysis and Machine Learning using Satellite Image Time Series}
     %\VignetteEncoding{UTF-8}
 ---
@@ -57,8 +56,8 @@ The samples contain time series extracted from the MODIS MOD13Q1 product from NA
 
 ```{r}
 # retrieve a set of samples from an RDS file
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-samples.tb
+data("samples_MT_9classes")
+samples_MT_9classes
 ```
 
 The "SITS tibble" contains data and metadata. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location (-55.1852, -10.8387), and is considered valid for the period (2013-09-14, 2014-08-29). Informing the dates where the label is valid is crucial for correct classification. In this case, the researchers involved in labelling the samples chose to use the agricultural calendar in Brazil, where the spring crop is planted in the months of September and October, and the autmun crop is planted in the months of February and March. For other applications and other countries, the relevant dates will most likely be different from those used in the example.
@@ -67,18 +66,18 @@ The SITS tibble also contains the time series data for each spatiotemporal locat
 
 ```{r}
 #print the first time series
-samples.tb[1,]$time_series
+samples_MT_9classes[1,]$time_series
 ```
 
 The SITS package provides functions for data manipulation and displaying information of a SITS tibble. For example, the function is `sits_bands` that lists the available bands.
 
 ```{r}
-sits_bands (samples.tb)
+sits_bands (samples_MT_9classes)
 ```
 
 Another useful command is `sits_labels` that shows the labels of the sample set and their frequencies.
 ```{r}
-sits_labels (samples.tb)
+sits_labels (samples_MT_9classes)
 ```
 
 
@@ -94,7 +93,7 @@ new_labels <- list("Cerrado"       = "Savanna",
 "Soy_Millet"    = "Single_Cropping",
 "Fallow_Cotton" = "Single_Cropping")
 # apply the sits_relabel function
-samples2.tb <- sits_relabel(samples.tb, new_labels)
+samples2.tb <- sits_relabel(samples_MT_9classes, new_labels)
 # view the result
 sits_labels(samples2.tb)
 ```
@@ -102,7 +101,7 @@ sits_labels(samples2.tb)
 Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions of the `dplyr`, `tidyr` and `purrr` packages of the "tidyverse" [@Wickham2017] to process the data. For example, the following example uses the `sits_select` function to get a subset of the sample data set with two bands ("ndvi" and "evi") and then uses the `dplyr::filter` function to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot` function to display the time series. Given a small number of samples to display, the `sits_plot` function tries to group as many spatial locations together. In the following example, the first 15 samples of the "Cerrado" class all refer to the same spatial location in consecutive times. For this reason, these samples are plotted together.
 ```{r}
 # select the "ndvi" bands
-samples_ndvi.tb <- sits_select(samples.tb, bands = c("ndvi"))
+samples_ndvi.tb <- sits_select(samples_MT_9classes, bands = c("ndvi"))
 # select only the samples with the cerrado label
 samples_cerrado.tb <- dplyr::filter (samples_ndvi.tb, label == "Cerrado")
 ```
@@ -122,25 +121,26 @@ sits_plot (samples_cerrado.tb)
 
 # Importing data into SITS
 The SITS package allows different methods of data input, including: (a) obtain data from a WTSS (Web Series Time Service); (b) read data stored in a time series in the ZOO format [@Zeileis2005]; (c) read a time series from a RasterBrick [@Hijmans2015]. This section describes options (a) and (b). Option (c) will be described in the section were we describe raster processing. The WTSS service is a light-weight service, designed to retrieve time series for selected locations and periods [@Vinhas2016]. This service has been implemented by the research team of the National Institute for Space Research to allow remote access to time series data. To access the service, the user needs to provide a URL that points to the WTSS server location and use the function `sits_infoWTSS` that provides information on the coverages available on the server.
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 URL <- "http://www.dpi.inpe.br/tws/wtss"
 wtss_inpe <- sits_infoWTSS(URL)
 ```
 After finding out which coverages are available at the WTSS service, one may request specific information on each coverage by using the function `sits_coverageWTSS` which lists the contents of the data set, including source, bands, spatial extent and resolution, time range, and temporal resolution. This information is then stored in a tibble for later use.
 
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 # get information about a specific coverage
 coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
 ```
 
 The user can then request one or more points using the `sits_getdata` function. This function provides a general means of access to image time series. In it simplest fashion, the user provides the latitude and longitude of the desired location, the URL of the WTSS services, the coverage name, the bands, and the start date and end date of the time series. If the start and end dates are not provided, all of the samples are retrived. The result is a SITS tibble that can be visualised using `sits_plot`.
 
-```{r, eval = FALSE, echo = TRUE}
+```{r, eval = TRUE, echo = TRUE}
 # a point in the transition forest pasture in Northern MT
 # obtain a time series from the WTSS server for this point
-series.tb <- sits_getdata(longitude = -55.57320, latitude = -11.50566, URL = URL,
-coverage = "mod13q1_512", bands = c("ndvi", "evi"),
-start_date = "2001-01-01", end_date = "2016-12-31")
+series.tb <- sits_getdata(longitude = -55.57320, latitude = -11.50566, 
+                          URL = URL, coverage = "mod13q1_512", 
+                          bands = c("ndvi", "evi"),
+                          start_date = "2001-01-01", end_date = "2016-12-31")
 # plot the series
 sits_plot (series.tb)
 ```

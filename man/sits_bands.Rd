@@ -18,9 +18,9 @@ finds the names of the bands of time series in a sits table
 }
 \examples{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+data(samples_MT_9classes)
 # print the bands
-sits_bands(samples.tb)
+sits_bands(samples_MT_9classes)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

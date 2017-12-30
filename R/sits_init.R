@@ -2,8 +2,8 @@
 .onAttach = function(lib, pkg){
     packageStartupMessage("Satellite Image Time Series package.")
     packageStartupMessage(
-        sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.\n",
-                utils::packageDescription("sits")$Version) )
+        sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.\n
+                See demo() for examples", utils::packageDescription("sits")$Version) )
 }
 
 # Include the following global variables in the SITS package

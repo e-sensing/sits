@@ -10,9 +10,9 @@
 #' @examples
 #'
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-#' cerrado2.tb <- readRDS(system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' data(cerrado_2classes)
 #' # export a time series to zoo
-#' zoo.lst <- sits_toZOO (cerrado2.tb[1:20,])
+#' zoo.lst <- sits_toZOO (cerrado_2classes[1:5,])
 #'
 #' @export
 sits_toZOO <- function (data.tb, band = NULL){
@@ -43,9 +43,9 @@ sits_toZOO <- function (data.tb, band = NULL){
 #'
 #' @examples
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-#' cerrado2.tb <- readRDS(system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' data(cerrado_2classes)
 #' # perform a 2 fold validation of this sample file
-#' pred_ref.tb <-  sits_kfold_validate(cerrado2.tb, folds = 2)
+#' pred_ref.tb <-  sits_kfold_validate(cerrado_2classes, folds = 2)
 #' # calculate and print the confusion matrix
 #' conf.mx <- sits_conf_matrix(pred_ref.tb)
 #' # create a list to store the results
@@ -130,5 +130,5 @@ sits_toXLSX <- function(acc.lst, file = NULL){
     # write the worksheets to the XLSX file
     openxlsx::saveWorkbook(wb, file = file, overwrite = TRUE)
 
-    return (NULL)
+    return (message(paste("Saved Excel file", file)))
 }
