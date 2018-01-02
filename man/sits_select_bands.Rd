@@ -17,6 +17,16 @@ result.tb   a tibble in SITS format with the selected bands
 \description{
 returns a sits table with the selected bands
 }
+\examples{
+# Retrieve a set of time series with 2 classes
+data (cerrado_2classes)
+# Print the original bands
+sits_bands (cerrado_2classes)
+# Select only the "ndvi" band
+data.tb <- sits_select_bands (cerrado_2classes, bands = c("ndvi"))
+# Print the labels of the resulting table
+sits_bands (data.tb)
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

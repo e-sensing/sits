@@ -1,36 +1,3 @@
-#' @title Add a new row to a SITS tibble
-#' @name .sits_add_row
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Adds a row to a tibble, with suitable defaults
-#'
-#' @param data.tb         A SITS tibble
-#' @param longitude       Longitude of the chosen location
-#' @param latitude        Latitude of the chosen location
-#' @param start_date      Start of the period
-#' @param end_date        End of the period
-#' @param label           Label to attach to the time series (optional)
-#' @param coverage        The name of the coverage
-#' @param time_series     List containing a time series (Index and band values)
-#' @return data.tb        An updated SITS tibble
-#'
-.sits_add_row <- function (data.tb = NULL, longitude = 0.0, latitude = 0.0,
-                           start_date = "1970-01-01", end_date = "1970-01-01",
-                           label = "NoClass", coverage = "image", time_series = list()) {
-
-
-    data.tb <- tibble::add_row (data.tb,
-                                longitude    = longitude,
-                                latitude     = latitude,
-                                start_date   = as.Date(start_date),
-                                end_date     = as.Date(end_date),
-                                label        = label,
-                                coverage     = coverage,
-                                time_series  = time_series)
-
-    return (data.tb)
-}
-
 #' @title Aligns dates of time series to a reference date
 #' @name .sits_align
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -53,7 +20,7 @@
     # get the reference date
     start_date <- lubridate::as_date(ref_dates[1])
     # create an output table
-    data1.tb <- .sits_tibble()
+    data1.tb <- sits_tibble()
 
     for (i in 1:nrow(data.tb)) {
         # extract the time series
@@ -84,55 +51,7 @@
     return (data1.tb)
 }
 
-#' @title Apply a function over SITS bands.
-#' @name .sits_apply
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description Apply a 1D generic function to a time series and specific methods for
-#  common tasks such as missing values removal and smoothing.
-#' `sits_apply` returns a sits tibble with the same samples points and new bands computed by `fun`,
-#' `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
-#' whose vector values is passed as the function argument.
-#' The `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
-#' of the corresponding band. In the second case, the returned list must have names, and each element vector will
-#' generate a new band which name composed by concatenating original band name and the corresponding list element name.
-#'
-#' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
-#'
-#' @param data.tb       a valid sits table
-#' @param fun           a function with one parameter as input and a vector or list of vectors as output.
-#' @param fun_index     a function with one parameter as input and a Date vector as output.
-#' @param bands_suffix  a string informing the resulting bands name's suffix.
-#' @return data.tb      a sits tibble with same samples and the new bands
-.sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
 
-    # verify if data.tb has values
-    .sits_test_tibble (data.tb)
-
-    # computes fun and fun_index for all time series and substitutes the original time series data
-    data.tb$time_series <- data.tb$time_series %>%
-        purrr::map(function(ts.tb) {
-            ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
-                purrr::map(fun)
-
-            # append bands names' suffixes
-            if (nchar(bands_suffix) != 0)
-                names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
-
-            # unlist if there are more than one result from `fun`
-            if (is.recursive(ts_computed.lst[[1]]))
-                ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
-
-            # convert to tibble
-            ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
-
-            # compute Index column
-            ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
-
-            # reorganizes time series tibble
-            return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
-        })
-    return(data.tb)
-}
 #' @title Apply a function on each SITS tibble column element
 #' @name .sits_apply_on
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -297,7 +216,7 @@
 .sits_extract <- function (row.tb, start_date, end_date) {
 
     # create a tibble to store the results
-    subset.tb <- .sits_tibble()
+    subset.tb <- sits_tibble()
 
     # filter the time series by start and end dates
     sub.ts <- row.tb$time_series[[1]] %>%
@@ -361,7 +280,7 @@
         dplyr::do(.data %>% fun())
 
     # comply result with sits table format and return
-    result.tb <- dplyr::bind_rows(list(.sits_tibble(), result.tb))
+    result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
     return (result.tb)
 }
 #' @title Group the contents of a sits tibble by different criteria
@@ -381,7 +300,7 @@
         dplyr::group_by(...)
 
     # comply result with sits table format and return
-    result.tb <- dplyr::bind_rows(list(.sits_tibble(), result.tb))
+    result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
     return (result.tb)
 }
 #' @title Add new SITS bands.

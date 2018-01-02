@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tibble_functions.R
 \name{sits_bands}
 \alias{sits_bands}
-\title{names of the bands of a time series}
+\title{Informs the names of the bands of a time series}
 \usage{
 sits_bands(data.tb)
 }

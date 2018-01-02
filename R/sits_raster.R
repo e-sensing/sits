@@ -17,11 +17,11 @@
 #'
 #' @examples
 #' # read a raster file and put it into a vector
-#' files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #'
 #' # define the timeline
-#' timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
-#' timeline <- lubridate::as_date (timeline$V1)
+#' data(timeline_mod13q1)
+#' timeline <- lubridate::as_date (timeline_mod13q1$V1)
 #' # define the bands
 #' bands <- c("ndvi")
 #' # define the scale factor

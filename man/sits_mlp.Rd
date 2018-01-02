@@ -7,7 +7,8 @@
 sits_mlp(distances.tb = NULL, hidden_node = c(400, 200, 100),
   learning.rate = 0.001, dropout = NULL, activation = "sigmoid",
   out_activation = "softmax", optimizer = "adam", num.round = 5000,
-  batch.size = 32, stop.metric = 0.98, device = mxnet::mx.cpu(), ...)
+  batch.size = 32, stop.metric = 0.98, multicores = 1,
+  device = mxnet::mx.cpu(), ...)
 }
 \arguments{
 \item{distances.tb}{a time series with a set of distance measures for each training sample}
@@ -30,6 +31,8 @@ sits_mlp(distances.tb = NULL, hidden_node = c(400, 200, 100),
 
 \item{stop.metric}{precision where iteration stops}
 
+\item{multicores}{number of cores to use for training (default = 1)}
+
 \item{device}{whether to train on mx.cpu (default) or mx.gpu}
 
 \item{...}{other parameters to be passed to `mx.model.FeedForward.create` function}
@@ -45,16 +48,12 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_9classes)
-# Select 3 bands for classification
-samples.tb <- sits_select (samples_MT_9classes, bands = c("ndvi", "evi", "nir"))
+data(samples_MT_ndvi)
 # get a point with a 16 year time series
-data(ts_2000_2016)
-# Select 3 bands for classification
-point.tb <- sits_select (ts_2000_2016, bands = c("ndvi", "evi", "nir"))
-# Classify the point
-class.tb <- sits_classify (point.tb, samples.tb,
-       ml_method = sits_mlp())
+data(point_ndvi)
+# classify the point
+class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_mlp(),
+        sits_distances = sits_distances_from_data (shift = 0.0))
 }
 }
 \author{

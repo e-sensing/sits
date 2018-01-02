@@ -29,6 +29,14 @@ The Web Time Series Service is a lightweight web service the allow remote access
  3. time series: this operation requests the time series of values of a coverage attribute
    at a given location.
 }
+\examples{
+\donttest{
+# Set the URL of the WTSS service
+URL <- "http://www.dpi.inpe.br/tws/wtss"
+# Obtain information about the coverages available
+wtss_inpe <- sits_infoWTSS(URL)
+}
+}
 \author{
 Gilberto Camara
 }

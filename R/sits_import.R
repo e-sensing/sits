@@ -57,10 +57,10 @@
 #' }
 #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
-#' files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #' # define the timeline
-#' timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
-#' timeline <- lubridate::as_date (timeline$V1)
+#' data(timeline_mod13q1)
+#' timeline <- lubridate::as_date (timeline_mod13q1$V1)
 #' # create a raster metadata file based on the information about the files
 #' raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
 #' # read the point from the raster
@@ -138,7 +138,7 @@ sits_fromJSON <- function (file) {
      # add the contents of the JSON file to a SITS tibble
      table <- tibble::as_tibble (jsonlite::fromJSON (file))
      # convert Indexes in time series to dates
-     table1 <- .sits_tibble()
+     table1 <- sits_tibble()
      table %>%
           purrrlyr::by_row(function (r) {
                tb <- tibble::as_tibble(r$time_series[[1]])
@@ -220,7 +220,7 @@ sits_fromCSV <-  function (csv_file, URL, coverage, bands, n_max = Inf, ignore_d
     # create a vector to store the lines with different number of samples
     diff_lines <- vector()
     # create the tibble
-    data.tb <- .sits_tibble()
+    data.tb <- sits_tibble()
     # for each row of the input, retrieve the time series
     csv.tb %>%
         purrrlyr::by_row( function (r){
@@ -276,14 +276,14 @@ sits_fromCSV <-  function (csv_file, URL, coverage, bands, n_max = Inf, ignore_d
 #'
 #' #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
-#' files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #' # select the bands
 #' bands <- c("ndvi")
 #' # define the scale factors
 #' scale_factors <- c(0.0001)
 #' # define the timeline
-#' timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
-#' timeline <- lubridate::as_date (timeline$V1)
+#' data(timeline_mod13q1)
+#' timeline <- lubridate::as_date (timeline_mod13q1$V1)
 #' # create a raster metadata file based on the information about the files
 #' raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 #' # read the point from the raster
@@ -342,7 +342,7 @@ sits_fromSHP <- function (shp_file, URL, coverage, bands = NULL, start_date = NU
     # get the bounding box
     bbox <- sf::st_bbox (sf_shape)
 
-    shape.tb <- .sits_tibble()
+    shape.tb <- sits_tibble()
 
     coverage.tb <- sits_coverageWTSS(URL, coverage, .show = FALSE)
 
@@ -461,7 +461,7 @@ sits_fromWTSS <- function (longitude, latitude, start_date = NULL, end_date = NU
     ts.lst[[1]] <- row.tb
 
     # create a tibble to store the WTSS data
-    data.tb <- .sits_tibble()
+    data.tb <- sits_tibble()
     # add one row to the tibble
     data.tb <- tibble::add_row (data.tb,
                                 longitude    = longitude,
@@ -499,12 +499,11 @@ sits_fromWTSS <- function (longitude, latitude, start_date = NULL, end_date = NU
 #' @export
 sits_fromZOO <- function (ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoClass", coverage = "unknown"){
 
-    # convert the data from the zoo format to the SITS format
+    # convert the data from the zoo format to a tibble used by SITS
     ts.tb <- tibble::as_tibble (zoo::fortify.zoo (ts.zoo))
-
-    # create a list to store the zoo time series coming from the WTSS service
+    # create a list to store the zoo time series
     ts.lst <- list()
-    # transform the zoo list into a tibble to store in memory
+    # put the time series in the list
     ts.lst[[1]] <- ts.tb
 
     # get the start date
@@ -513,9 +512,9 @@ sits_fromZOO <- function (ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
     end_date <- ts.tb[NROW(ts.tb),]$Index
 
     # create a tibble to store the WTSS data
-    data.tb <- .sits_tibble()
+    data.tb <- sits_tibble()
     # add one row to the tibble
-    data.tb <- .sits_add_row (data.tb,
+    data.tb <- sits_add_row (data.tb,
                                 longitude    = longitude,
                                 latitude     = latitude,
                                 start_date   = as.Date(start_date),

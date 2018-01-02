@@ -62,7 +62,7 @@ sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, e
         bds <- sits_bands(tb)
 
         # create a tibble to store the results
-        patterns.tb <- .sits_tibble()
+        patterns.tb <- sits_tibble()
 
         # what are the variables in the formula?
         vars <-  all.vars(formula)

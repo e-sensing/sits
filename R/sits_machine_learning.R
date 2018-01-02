@@ -523,6 +523,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
 #' @param batch.size       batch size used for array training
 #' @param stop.metric      precision where iteration stops
 #' @param device           whether to train on mx.cpu (default) or mx.gpu
+#' @param multicores       number of cores to use for training (default = 1)
 #' @param ...              other parameters to be passed to `mx.model.FeedForward.create` function
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @examples
@@ -539,7 +540,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
 #'
 sits_mlp <- function(distances.tb = NULL, hidden_node=c(400,200,100), learning.rate = 0.001,
                      dropout = NULL, activation = "sigmoid", out_activation="softmax", optimizer = "adam",
-                     num.round = 5000, batch.size = 32, stop.metric = 0.98,
+                     num.round = 5000, batch.size = 32, stop.metric = 0.98, multicores = 1,
                      device = mxnet::mx.cpu(), ...) {
 
     # function that returns `mxnet::mx.mlp` model based on a sits sample tibble
@@ -557,7 +558,6 @@ sits_mlp <- function(distances.tb = NULL, hidden_node=c(400,200,100), learning.r
         # create a named vector with integers match the class labels
         int_labels <- c(1:length(labels))
         names (int_labels) <- labels
-        print (int_labels)
 
         # shuflle the data
         train_data.tb <- dplyr::sample_frac(train_data.tb, 1.0)
@@ -565,18 +565,19 @@ sits_mlp <- function(distances.tb = NULL, hidden_node=c(400,200,100), learning.r
         train.x <- data.matrix (train_data.tb[, -(1:2)])
         train.y <- unname (int_labels [as.vector(train_data.tb[, 2])]) -1
 
+        logger <- mxnet::mx.metric.logger$new()
         mxnet::mx.set.seed(0)
         model.mlp <- mxnet::mx.mlp(train.x, train.y, hidden_node = hidden_node, out_node = length (labels),
                         activation = activation, out_activation = out_activation, optimizer = optimizer,
                         num.round = num.round, array.batch.size = batch.size, learning.rate = learning.rate,
                         eval.metric = mxnet::mx.metric.accuracy,
+                        ctx = mxnet::mx.cpu (multicores),
                         epoch.end.callback = mxnet::mx.callback.early.stop(train.metric = stop.metric, maximize = TRUE))
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
             values.x <- data.matrix (values.tb[, -(1:2)])
             preds <- stats::predict(model.mlp, values.x)
-            print(preds)
             pred.labels <- names (int_labels[max.col(t(preds))])
             return(pred.labels)
         }

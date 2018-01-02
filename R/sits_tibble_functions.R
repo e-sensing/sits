@@ -1,4 +1,111 @@
-#' @title names of the bands of a time series
+#' @title Add a new row to a SITS tibble
+#' @name sits_add_row
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Adds a row to a tibble, with suitable defaults
+#'
+#' @param data.tb         A SITS tibble
+#' @param longitude       Longitude of the chosen location
+#' @param latitude        Latitude of the chosen location
+#' @param start_date      Start of the period
+#' @param end_date        End of the period
+#' @param label           Label to attach to the time series (optional)
+#' @param coverage        The name of the coverage
+#' @param time_series     List containing a time series (Index and band values)
+#' @return data.tb        An updated SITS tibble
+#' @examples
+#' # Reads a data set with a ZOO time series
+#' data (ts_zoo)
+#' # convert the data from the zoo format to the SITS format
+#' ts.tb <- tibble::as_tibble (zoo::fortify.zoo (ts_zoo))
+#' # create a list to store the zoo time series
+#' ts.lst <- list()
+#' # Put the tibble in the list
+#' ts.lst[[1]] <- ts.tb
+#' # get the start date
+#' start_date <- ts.tb[1,]$Index
+#' # get the end date
+#' end_date <- ts.tb[NROW(ts.tb),]$Index
+#' # create an empty sits tibble
+#' data.tb <- sits_tibble()
+#' # put the time series data and metadata into the tibble
+#' data.tb <- sits_add_row (data.tb, longitude = -54.2313, latitude = -14.0482,
+#'            start_date = start_date, end_date = end_date,
+#'            label = "Cerrado", coverage = "mod13q1", time_series = ts.lst)
+#' @export
+sits_add_row <- function (data.tb = NULL, longitude = 0.0, latitude = 0.0,
+                          start_date = "1970-01-01", end_date = "1970-01-01",
+                          label = "NoClass", coverage = "image", time_series = list()) {
+
+
+    data.tb <- tibble::add_row (data.tb,
+                                longitude    = longitude,
+                                latitude     = latitude,
+                                start_date   = as.Date(start_date),
+                                end_date     = as.Date(end_date),
+                                label        = label,
+                                coverage     = coverage,
+                                time_series  = time_series)
+
+    return (data.tb)
+}
+#' @title Apply a function over SITS bands.
+#' @name sits_apply
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description Apply a 1D generic function to a time series and specific methods for
+#  common tasks such as missing values removal and smoothing.
+#' `sits_apply` returns a sits tibble with the same samples points and new bands computed by `fun`,
+#' `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
+#' whose vector values is passed as the function argument.
+#' The `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
+#' of the corresponding band. In the second case, the returned list must have names, and each element vector will
+#' generate a new band which name composed by concatenating original band name and the corresponding list element name.
+#'
+#' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
+#'
+#' @param data.tb       a valid sits table
+#' @param fun           a function with one parameter as input and a vector or list of vectors as output.
+#' @param fun_index     a function with one parameter as input and a Date vector as output.
+#' @param bands_suffix  a string informing the resulting bands name's suffix.
+#' @return data.tb      a sits tibble with same samples and the new bands
+#' @examples
+#' # Get a time series
+#' data(point_ndvi)
+#' # apply a normalization function
+#' point2 <- sits_apply (point_ndvi, fun = function (x) { (x - min (x))/(max(x) - min(x))} )
+#'
+#' @export
+sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
+
+    # verify if data.tb has values
+    .sits_test_tibble (data.tb)
+
+    # computes fun and fun_index for all time series and substitutes the original time series data
+    data.tb$time_series <- data.tb$time_series %>%
+        purrr::map(function(ts.tb) {
+            ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
+                purrr::map(fun)
+
+            # append bands names' suffixes
+            if (nchar(bands_suffix) != 0)
+                names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
+
+            # unlist if there are more than one result from `fun`
+            if (is.recursive(ts_computed.lst[[1]]))
+                ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
+
+            # convert to tibble
+            ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
+
+            # compute Index column
+            ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
+
+            # reorganizes time series tibble
+            return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
+        })
+    return(data.tb)
+}
+#' @title Informs the names of the bands of a time series
 #' @name sits_bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -45,7 +152,7 @@ sits_break <- function (data.tb, samples.tb, interval = "12 month"){
     .sits_test_tibble(data.tb)
     .sits_test_tibble(samples.tb)
 
-    output.tb <- .sits_tibble()
+    output.tb <- sits_tibble()
 
     data.tb %>%
         purrrlyr::by_row( function (row){
@@ -134,6 +241,40 @@ sits_merge <-  function(data1.tb, data2.tb) {
     })
     return (result.tb)
 }
+#' @title Add new SITS bands.
+#' @name sits_mutate
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Adds new bands and preserves existing in the time series of a sits tibble using dplyr::mutate function
+#' @param data.tb       a valid sits tibble
+#' @param ...           `name=value` pairs expressions. See `dplyr::mutate` help for more details.
+#' @examples
+#' \donttest{
+#' # Retrieve data for time series with label samples in Mato Grosso in Brazil
+#' data (samples_MT_9classes)
+#' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
+#' savi.tb <- sits_mutate (samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#' }
+#' @return data.tb      a sits tibble with same samples and the new bands
+#' @export
+sits_mutate <- function(data.tb, ...){
+
+    # verify if data.tb has values
+    .sits_test_tibble (data.tb)
+
+    # compute mutate for each time_series tibble
+    proc_fun <- function(...){
+        data.tb$time_series <- data.tb$time_series %>%
+            purrr::map(function(ts.tb) {
+                ts_computed.tb <- ts.tb %>%
+                    dplyr::mutate(...)
+                return(ts_computed.tb)
+            })
+    }
+
+    # compute mutate for each time_series tibble
+    data.tb$time_series <- proc_fun(...)
+    return(data.tb)
+}
 #' @title names of the bands of a time series
 #' @name sits_rename
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -144,6 +285,13 @@ sits_merge <-  function(data1.tb, data2.tb) {
 #' @param data.tb      a valid sits tibble
 #' @param names        string vector with the new bands' names
 #' @return data.tb     the sits tibble with the new names for the bands
+#' @examples
+#' # Retrieve a time series with one band
+#' data(point_ndvi)
+#' # Rename the band
+#' ndvi1.tb <- sits_rename (point_ndvi, names = c("veg_index"))
+#' # print the names of the new band
+#' sits_bands (ndvi1.tb)
 #' @export
 #'
 sits_rename <- function(data.tb, names){
@@ -173,6 +321,16 @@ sits_rename <- function(data.tb, names){
 #' @param  n          the quantity of samples to pick from a given group of data.
 #' @param  frac       the percentage of samples to pick from a given group of data.
 #' @return result.tb  the new SITS table with a fixed quantity of samples of informed labels and all other
+#' @examples
+#' # Retrieve a set of time series with 2 classes
+#' data (cerrado_2classes)
+#' # Print the labels of the resulting table
+#' sits_labels (cerrado_2classes)
+#' # Samples the data set
+#' data.tb <- sits_sample (cerrado_2classes, n = 10)
+#' # Print the labels of the resulting table
+#' sits_labels (data.tb)
+#'
 #' @export
 sits_sample <- function (data.tb, n = NULL, frac = NULL){
 
@@ -195,7 +353,7 @@ sits_sample <- function (data.tb, n = NULL, frac = NULL){
         function(tb) tb %>% dplyr::sample_frac(size = frac, replace = TRUE)
 
     # compute sampling
-    result.tb <- .sits_tibble()
+    result.tb <- sits_tibble()
     labels <- sits_labels (data.tb)$label
     labels %>%
         purrr::map (function (l){
@@ -220,6 +378,13 @@ sits_sample <- function (data.tb, n = NULL, frac = NULL){
 #'                     or 'bands = c(band names)' for selection of a subset of bands
 #'                     See `dplyr::filter` help for more details..
 #' @return data.tb     a tibble in SITS format with the selected bands
+#' @examples
+#' #' # Retrieve a set of time series with 2 classes
+#' data (cerrado_2classes)
+#' # Select only the time series with the "Cerrado" label
+#' data.tb <- sits_select (cerrado_2classes, label == "Cerrado")
+#' # Print the labels of the resulting table
+#' sits_labels (data.tb)
 #' @export
 sits_select <- function (data.tb, ...) {
 
@@ -254,6 +419,15 @@ sits_select <- function (data.tb, ...) {
 #' @param data.tb      a sits table with the time series of the selected bands
 #' @param bands        a vector of bands
 #' @return result.tb   a tibble in SITS format with the selected bands
+#' @examples
+#' # Retrieve a set of time series with 2 classes
+#' data (cerrado_2classes)
+#' # Print the original bands
+#' sits_bands (cerrado_2classes)
+#' # Select only the "ndvi" band
+#' data.tb <- sits_select_bands (cerrado_2classes, bands = c("ndvi"))
+#' # Print the labels of the resulting table
+#' sits_bands (data.tb)
 #' @export
 sits_select_bands <- function (data.tb, bands) {
 
@@ -278,6 +452,13 @@ sits_select_bands <- function (data.tb, bands) {
 #' @param data.tb       a valid sits tibble
 #' @param ...           `name=value` pairs expressions. See `dplyr::transmute` help for more details.
 #' @return data.tb      a sits tibble with same samples and the new bands
+#' @examples
+#' \donttest{
+#' # Retrieve data for time series with label samples in Mato Grosso in Brazil
+#' data (samples_MT_9classes)
+#' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
+#' savi.tb <- sits_transmute (samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#' }
 #' @export
 sits_transmute <- function(data.tb, ...){
 
@@ -309,7 +490,12 @@ sits_transmute <- function(data.tb, ...){
 #' @param  bands      string - a group of bands whose values are to be extracted. If no bands is informed extract ALL bands.
 #' @param  format     string - either "cases_dates_bands" or "bands_cases_dates" or "bands_dates_cases"
 #' @return table   a tibble in SITS format with values
-#' @family   STIS table functions
+#' @examples
+#' # Retrieve a set of time series with 2 classes
+#' data (cerrado_2classes)
+#' # retrieve the values split by bands
+#' sits_values (cerrado_2classes[1:2,], format = "bands_dates_cases")
+#'
 #' @export
 sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
     ensurer::ensure_that(format, . == "cases_dates_bands" || . == "bands_cases_dates" || . == "bands_dates_cases",

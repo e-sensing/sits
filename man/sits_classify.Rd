@@ -56,23 +56,9 @@ class_ndvi.tb <-  sits_classify (point_ndvi, samples_MT_ndvi)
 sits_plot (class_ndvi.tb)
 
 
-# define the files that make up a RasterBrick
-files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
-# read the timeline associated to a RasterBrick
-data(timeline_mod13q1)
-timeline <- lubridate::as_date (timeline_mod13q1$V1)
-# create a raster metadata file based on the information about the files
-raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
-# read a point from the raster
-point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
-# classify the point
-class.tb <-  sits_classify (point.tb, samples_MT_ndvi)
-# plot the classification
-sits_plot (class.tb)
 
 # Read a point from the WTSS server
 point2.tb <- sits_getdata (longitude = -46.4070, latitude = -10.8630)
-
 # select the ndvi
 point2.tb <- sits_select (point2.tb, bands = c("ndvi"))
 # classify the point

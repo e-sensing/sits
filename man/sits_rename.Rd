@@ -17,6 +17,14 @@ data.tb     the sits tibble with the new names for the bands
 \description{
 set the names of the bands of time series in a sits table
 }
+\examples{
+# Retrieve a time series with one band
+data(point_ndvi)
+# Rename the band
+ndvi1.tb <- sits_rename (point_ndvi, names = c("veg_index"))
+# print the names of the new band
+sits_bands (ndvi1.tb)
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 

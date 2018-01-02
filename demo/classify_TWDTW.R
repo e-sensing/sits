@@ -1,10 +1,8 @@
 # satellite image time series package (SITS)
-# example of the classification of a time series
-#devtools::install_github("gilbertocamara/sits")
+# example of the classification of a time series using the TWDTW algorithm
 library(sits)
 
-# Get information about the WTSS (web time series service)
-# see WTSS paper for more information ("Web Services for Big Data")
+# Get a 17 year time series
 
 data("ts_2000_2016")
 # plot the series

@@ -35,7 +35,7 @@ sits_linear_interp <- function(data.tb, n = 23){
     .sits_test_tibble(data.tb)
 
     # compute linear approximation
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band) stats::approx(band, n = n, ties=mean)$y,
                             fun_index = function(band) as.Date(stats::approx(band, n = n, ties=mean)$y,
                                                                origin = "1970-01-01"))
@@ -71,7 +71,7 @@ sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...){
     .sits_test_tibble(data.tb)
 
     # compute linear approximation
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band) {
                                 if (class(n) == "function")
                                     return(fun(band, n = n(band), ...)$y)
@@ -96,7 +96,7 @@ sits_missing_values <-  function(data.tb, miss_value) {
     .sits_test_tibble(data.tb)
 
     # remove missing values by NAs
-    result.tb <- .sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
+    result.tb <- sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
     return (result.tb)
 }
 
@@ -138,7 +138,7 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
                          err_desc = "sits_envelope: invalid operation sequence")
 
     # compute envelopes
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band) {
                                 for (op in operations){
                                     upper_lower.lst <- dtwclust::compute_envelope(band, window.size = 1, error.check = FALSE)
@@ -264,7 +264,7 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
 #' @export
 sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
 
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band){
                                 # According to: Whittaker (1923). On a new method of graduation.
                                 # Proceedings of the Edinburgh Mathematical Society, 41, 63-73.
@@ -303,7 +303,7 @@ sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suf
 #'
 #' @export
 sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band) signal::sgolayfilt(band, p = order, ts = scale),
                             fun_index = function(band) band,
                             bands_suffix = bands_suffix)
@@ -320,7 +320,7 @@ sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
 #' @return output.tb   A tibble with smoothed sits time series
 #' @export
 sits_kf <- function(data.tb, bands_suffix = "kf"){
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band) .kalmanfilter(band, NULL, NULL, NULL),
                             fun_index = function(band) band,
                             bands_suffix = bands_suffix)

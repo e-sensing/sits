@@ -25,16 +25,11 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_9classes)
-# Select 3 bands for classification
-samples.tb <- sits_select (samples_MT_9classes, bands = c("ndvi", "evi", "nir"))
+data(samples_MT_ndvi)
 # get a point with a 16 year time series
-data(ts_2000_2016)
-# Select 3 bands for classification
-point.tb <- sits_select (ts_2000_2016, bands = c("ndvi", "evi", "nir"))
-# Classify the point
-class.tb <- sits_classify (point.tb, samples.tb,
-       ml_method = sits_rfor())
+data(point_ndvi)
+# classify the point
+class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_rfor())
 }
 }
 \author{

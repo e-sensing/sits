@@ -275,7 +275,7 @@ sits_classify_model <- function (data.tb = NULL,
 #' data(samples_MT_ndvi)
 #'
 #' # read a raster file and put it into a vector
-#' files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #'
 #' # define the timeline
 #' data(timeline_mod13q1)

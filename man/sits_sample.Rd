@@ -22,6 +22,17 @@ takes a sits table with different labels and
              of the total number of samples per group. Parameter n indicantes the number of random samples with reposition.
              Parameter frac indicates a fraction of random samples without reposition. If frac > 1, no sampling is done.
 }
+\examples{
+# Retrieve a set of time series with 2 classes
+data (cerrado_2classes)
+# Print the labels of the resulting table
+sits_labels (cerrado_2classes)
+# Samples the data set
+data.tb <- sits_sample (cerrado_2classes, n = 10)
+# Print the labels of the resulting table
+sits_labels (data.tb)
+
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

@@ -1,5 +1,5 @@
 #' @title Create a sits table to store the time series information
-#' @name .sits_tibble
+#' @name sits_tibble
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description this function returns an empty sits table.
@@ -12,8 +12,9 @@
 #' and a sits tibble as output. This allows for chaining of operation on time series.
 #'
 #' @return result.tb  a tibble in SITS format
+#' @export
 
-.sits_tibble <- function () {
+sits_tibble <- function () {
     result.tb <- tibble::tibble(longitude   = double(),
                                 latitude    = double (),
                                 start_date  = as.Date(character()),

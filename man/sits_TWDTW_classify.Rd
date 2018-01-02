@@ -6,7 +6,7 @@
 \usage{
 sits_TWDTW_classify(data.tb = NULL, patterns.tb = NULL, bands = NULL,
   dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
-  span = 250, keep = FALSE, start_date = NULL, end_date = NULL,
+  span = 0, keep = FALSE, start_date = NULL, end_date = NULL,
   interval = "12 month", overlap = 0.5)
 }
 \arguments{
@@ -51,6 +51,19 @@ handle irregular sampling and out-of-phase time series, and they have achieved s
 results in time series analysis. In contrast to standard DTW, the TWDTW method is sensitive to seasonal
 changes of natural and cultivated vegetation types. It also considers inter-annual climatic and
 seasonal variability.
+}
+\examples{
+\donttest{
+# Get a 17 year time series
+data("point_ndvi")
+# retrieve a set of samples
+data(samples_MT_ndvi)
+# obtain a set of patterns for these samples
+patterns.tb <- sits_patterns(samples_MT_ndvi)
+# find the matches between the patterns and the time series using the TWDTW algorithm
+matches <- sits_TWDTW_classify(ts_2000_2016, patterns.tb, bands = c("ndvi"),
+                               alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
+}
 }
 \references{
 Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).

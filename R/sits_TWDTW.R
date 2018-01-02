@@ -34,9 +34,21 @@
 #' @param  interval      the period between two classifications
 #' @param  overlap       minimum overlapping between one match and the interval of classification
 #' @return matches       a dtwSat S4 object with the matches
+#' @examples
+#' \donttest{
+#' # Get a 17 year time series
+#' data("point_ndvi")
+#' # retrieve a set of samples
+#' data(samples_MT_ndvi)
+#' # obtain a set of patterns for these samples
+#' patterns.tb <- sits_patterns(samples_MT_ndvi)
+#' # find the matches between the patterns and the time series using the TWDTW algorithm
+#' matches <- sits_TWDTW_classify(ts_2000_2016, patterns.tb, bands = c("ndvi"),
+#'                                alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
+#' }
 #' @export
 sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
-                        alpha = -0.1, beta = 100, theta = 0.5, span  = 250, keep  = FALSE,
+                        alpha = -0.1, beta = 100, theta = 0.5, span  = 0, keep  = FALSE,
                         start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
 
@@ -141,11 +153,13 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
                     interval <- lubridate::as_date(end_date) - lubridate::as_date(start_date)
                }
 
-               # define the temporal intervals of each classification
-               breaks <- seq(from = as.Date(start_date), to = as.Date(end_date), by = interval)
-
-               classify <- dtwSat::twdtwClassify(x = matches[[i]], breaks = breaks, overlap = overlap)
-               class.lst <- .sits_fromTWDTW_matches(classify)
+               # classify using the TWDTWclassify function
+               classify <- dtwSat::twdtwClassify(x = matches[[i]],
+                                                 from = as.Date(start_date),
+                                                 to = as.Date(end_date),
+                                                 by = interval,
+                                                 overlap = overlap)
+               class.lst <- .sits_fromTWDTW_matches(matches[[i]])
 
                i <- i + 1
 
