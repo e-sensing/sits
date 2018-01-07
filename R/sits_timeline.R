@@ -220,7 +220,6 @@
 #' @param  timeline        The timeline of the data set
 #' @param  bands           Bands used for classification
 #' @return  time_index.lst  The subsets of the timeline
-#' @export
 .sits_time_index <- function (dates_index.lst, timeline, bands) {
 
     # create an empty list of time index

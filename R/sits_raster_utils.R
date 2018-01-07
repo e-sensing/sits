@@ -9,7 +9,6 @@
 #' @param  int_labels        Named vector with integers match the class labels
 #' @param  init_row          Starting row of the output RasterLayer
 #' @return raster_class.tb   Metadata with information on a set of RasterLayers
-#' @export
 
 .sits_block_from_data <- function (pred.lst, raster_class.tb, int_labels, init_row){
 
@@ -253,7 +252,7 @@
     if (purrr::is_null(coverage))
         coverage = tools::file_path_sans_ext(basename (raster.tb[1,]$name))
     # create a tibble to store the WTSS data
-    data.tb <- .sits_tibble()
+    data.tb <- sits_tibble()
     # add one row to the tibble
     data.tb <- tibble::add_row (data.tb,
                                 longitude    = longitude,
@@ -293,7 +292,7 @@
     # read sample information from CSV file and put it in a tibble
     csv.tb <- readr::read_csv (file, col_types = cols_csv)
     # create the tibble
-    data.tb <- .sits_tibble()
+    data.tb <- sits_tibble()
     # for each row of the input, retrieve the time series
     csv.tb %>%
         purrrlyr::by_row( function (r){

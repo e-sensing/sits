@@ -42,14 +42,11 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
-samples.tb <- sits_select (samples.tb, bands = c("ndvi", "evi", "nir"))
+data(samples_MT_ndvi)
 # get a point with a 16 year time series
-point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
-point.tb <- sits_select (point.tb, bands = c("ndvi", "evi", "nir"))
+data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point.tb, samples.tb,
-       ml_method = sits_gbm())
+class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_gbm())
 }
 }
 \author{

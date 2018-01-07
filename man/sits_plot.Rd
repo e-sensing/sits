@@ -4,7 +4,7 @@
 \alias{sits_plot}
 \title{Plot a set of satellite image time series}
 \usage{
-sits_plot(data, band = "ndvi", colors = "Set1")
+sits_plot(data, band = "ndvi", colors = "Dark2")
 }
 \arguments{
 \item{data}{The data to be plotted (can be a SITS tibble, clusters, or TWDTW matches)}
@@ -41,13 +41,13 @@ plot the classification.
 \examples{
 \donttest{
 # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-samples.tb <- readRDS (system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+data ("cerrado_2classes")
 # Plot all the samples together
-sits_plot (samples.tb)
+sits_plot (cerrado_2classes)
 # Plot the first 20 samples (defaults to "allyears")
-sits_plot (samples.tb[1:20,])
+sits_plot (cerrado_2classes[1:20,])
 # Plot the patterns
-sits_plot (sits_patterns(samples.tb))
+sits_plot (sits_patterns(cerrado_2classes))
 }
 }
 \author{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_formula_linear}
 \alias{sits_formula_linear}
-\title{Train SITS classifiction models}
+\title{Define a linear formula for classification models}
 \usage{
 sits_formula_linear(predictors_index = -2:0)
 }

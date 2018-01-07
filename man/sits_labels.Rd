@@ -17,9 +17,9 @@ returns the labels and its respective counting and frequency.
 }
 \examples{
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-cerrado2.tb <- readRDS(system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+data(cerrado_2classes)
 # print the labels
-sits_labels (cerrado2.tb)
+sits_labels (cerrado_2classes)
 
 }
 \author{

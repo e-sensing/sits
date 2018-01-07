@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_formula_logref}
 \alias{sits_formula_logref}
-\title{Train SITS classifiction models}
+\title{Define a log formula for classification models}
 \usage{
 sits_formula_logref(predictors_index = -2:0)
 }

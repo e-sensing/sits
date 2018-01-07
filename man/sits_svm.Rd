@@ -30,7 +30,7 @@ sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
 \item{...}{other parameters to be passed to e1071::svm function}
 }
 \value{
-result          a fitted model function to be passed in sits_predict
+result          a fitted model function to be passed to sits_predict
 }
 \description{
 This function receives a tibble with a set of attributes X for each observation Y
@@ -44,12 +44,11 @@ Please refer to the documentation in that package for more details.
 }
 \examples{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples.tb <- readRDS(system.file("extdata/time_series/samples_mt_ndvi.rds", package = "sits"))
+data(samples_MT_ndvi)
 # get a point
-point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
-point.tb <- sits_select (point.tb, bands = c("ndvi"))
+data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point.tb, samples.tb,
+class.tb <- sits_classify (point_ndvi, samples_MT_ndvi,
        ml_method = sits_svm(kernel = "radial", cost = 10))
 
 }

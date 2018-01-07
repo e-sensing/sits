@@ -21,6 +21,14 @@ This is a general selection function for extracting any subset of a sits tibble
              It supports spatial selection by lat/long bounding boxes, names of labels,
              start and end dates, and subset of bands
 }
+\examples{
+#' # Retrieve a set of time series with 2 classes
+data (cerrado_2classes)
+# Select only the time series with the "Cerrado" label
+data.tb <- sits_select (cerrado_2classes, label == "Cerrado")
+# Print the labels of the resulting table
+sits_labels (data.tb)
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 

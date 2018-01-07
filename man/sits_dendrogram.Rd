@@ -34,11 +34,11 @@ result for a chosen set of similarity measures (see \code{\link[dtwclust]{tsclus
 # Load the "dtwclust" package
 library (dtwclust)
 # load a simple data set with two classes
-data.tb <- readRDS(system.file ("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+data(cerrado_2classes)
 # calculate the dendrogram
-clusters <- sits_dendrogram (data.tb, bands = c("ndvi"))
+clusters <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
 # plot the dendrogram
-sits_plot_dendrogram (data.tb, clusters)
+sits_plot_dendrogram (cerrado_2classes, clusters)
 }
 }
 \references{

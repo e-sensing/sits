@@ -21,16 +21,16 @@ between the original labels and new labels, returns a new SITS tibble whose labe
 }
 \examples{
 # Read a set of time series with information on deforestation
-data.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+data(prodes_226_064)
 # Print the labels
-sits_labels (data.tb)
+sits_labels (prodes_226_064)
 # Create a conversion list
 conv.lst = list("Deforestation_2014" = "NonForest",
              "Deforestation_2015" = "NonForest",
              "Forest" = "Forest",
              "Pasture" = "NonForest")
 # relabel the data
-new_data.tb <- sits_relabel (data.tb, conv.lst)
+new_data.tb <- sits_relabel (prodes_226_064, conv.lst)
 # show the new labels
 sits_labels (new_data.tb)
 

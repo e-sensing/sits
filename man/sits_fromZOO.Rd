@@ -26,9 +26,9 @@ Converts data from an instance of a zoo series to a SITS tibble
 }
 \examples{
 # Read a time series in ZOO format
-ts.zoo <- readRDS(system.file("extdata/time_series/zoo_ex.rds", package = "sits"))
+data(ts_zoo)
 # Convert the zoo series into a SITS tibble
-data.tb <- sits_fromZOO (ts.zoo, longitude = -54.2313, latitude = -14.0482,
+data.tb <- sits_fromZOO (ts_zoo, longitude = -54.2313, latitude = -14.0482,
            label = "Cerrado", coverage = "mod13q1")
 }
 \author{

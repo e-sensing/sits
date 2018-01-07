@@ -19,14 +19,12 @@
 #' @param n             the number of time series elements to be created between start date and end date
 #' @return result.tb    a sits tibble with same samples and the new bands
 #' @examples
-#' # Retrieve a point
-#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
-#' # select one band
-#' point.tb <- sits_select (point.tb, bands = c("ndvi"))
+#' # Retrieve a time series with values of NDVI
+#' data(point_ndvi)
 #' # find out how many time instances are there
-#' n_times <- NROW (point.tb$time_series[[1]])
+#' n_times <- NROW (point_ndvi$time_series[[1]])
 #' # interpolate three times more points
-#' point_int.tb <- sits_linear_interp(point.tb, n = 3*n_times)
+#' point_int.tb <- sits_linear_interp(point_ndvi, n = 3*n_times)
 #' # plot the result
 #' sits_plot (point_int.tb)
 #'
@@ -37,7 +35,7 @@ sits_linear_interp <- function(data.tb, n = 23){
     .sits_test_tibble(data.tb)
 
     # compute linear approximation
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band) stats::approx(band, n = n, ties=mean)$y,
                             fun_index = function(band) as.Date(stats::approx(band, n = n, ties=mean)$y,
                                                                origin = "1970-01-01"))
@@ -57,14 +55,12 @@ sits_linear_interp <- function(data.tb, n = 23){
 #' @param ...           additional parameters to be used by the fun function
 #' @return result.tb    a sits tibble with same samples and the new bands
 #' @examples
-#' # Retrieve a point
-#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
-#' # select one band
-#' point.tb <- sits_select (point.tb, bands = c("ndvi"))
+#' # Retrieve a time series with values of NDVI
+#' data(point_ndvi)
 #' # find out how many time instances are there
-#' n_times <- NROW (point.tb$time_series[[1]])
+#' n_times <- NROW (point_ndvi$time_series[[1]])
 #' # interpolate three times more points
-#' point_int.tb <- sits_interp(point.tb, fun = stats::spline, n = 3*n_times)
+#' point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3*n_times)
 #' # plot the result
 #' sits_plot (point_int.tb)
 #'
@@ -75,7 +71,7 @@ sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...){
     .sits_test_tibble(data.tb)
 
     # compute linear approximation
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band) {
                                 if (class(n) == "function")
                                     return(fun(band, n = n(band), ...)$y)
@@ -100,7 +96,7 @@ sits_missing_values <-  function(data.tb, miss_value) {
     .sits_test_tibble(data.tb)
 
     # remove missing values by NAs
-    result.tb <- .sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
+    result.tb <- sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
     return (result.tb)
 }
 
@@ -116,9 +112,9 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' @examples
 #' # Read a set of samples of forest/non-forest in Amazonia
 #' # This is an area full of clouds
-#' data.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+#' data(prodes_226_064)
 #' # Take the first point
-#' point1.tb <- data.tb[1,]
+#' point1.tb <- prodes_226_064[1,]
 #' # Select the NDVI band
 #' point1.tb <- sits_select (point1.tb, bands = c("ndvi"))
 #' # Apply the envelope filter
@@ -147,7 +143,7 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
                          err_desc = "sits_envelope: invalid operation sequence")
 
     # compute envelopes
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band) {
                                 for (op in operations){
                                     upper_lower.lst <- dtwclust::compute_envelope(band, window.size = 1, error.check = FALSE)
@@ -185,9 +181,9 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 #' @examples
 #' # Read a set of samples of forest/non-forest in Amazonia
 #' # This is an area full of clouds
-#' data.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+#' data(prodes_226_064)
 #' # Take the first point
-#' point1.tb <- data.tb[1,]
+#' point1.tb <- prodes_226_064[1,]
 #' # Select the NDVI band
 #' point1.tb <- sits_select (point1.tb, bands = c("ndvi"))
 #' # Apply the envelope filter
@@ -199,7 +195,7 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 #'
 #' @export
 sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
-                              bands_suffix = ".cf", apply_whit = TRUE, lambda_whit = 1.0){
+                              bands_suffix = "cf", apply_whit = TRUE, lambda_whit = 1.0){
 
     # find the bands of the data
     bands <- sits_bands (data.tb)
@@ -263,19 +259,17 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
 #' @return output.tb a tibble with smoothed sits time series
 #'
 #' @examples
-#' # Read a point
-#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
-#' # Select the NDVI band
-#' point.tb <- sits_select (point.tb, bands = c("ndvi"))
+#' # Retrieve a time series with values of NDVI
+#' data(point_ndvi)
 #' # Filter the point using the whittaker smoother
-#' point_ws.tb <- sits_whittaker (point.tb, lambda = 3.0)
+#' point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0)
 #' # Plot the two points to see the smoothing effect
-#' sits_plot(sits_merge(point.tb, point_ws.tb))
+#' sits_plot(sits_merge(point_ndvi, point_ws.tb))
 #'
 #' @export
 sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
 
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band){
                                 # According to: Whittaker (1923). On a new method of graduation.
                                 # Proceedings of the Edinburgh Mathematical Society, 41, 63-73.
@@ -305,18 +299,16 @@ sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suf
 #' @param bands_suffix the suffix to be appended to the smoothed filters
 #' @return output.tb a tibble with smoothed sits time series
 #' @examples
-#' # Read a point
-#' point.tb <- readRDS(system.file("extdata/time_series/point.rds", package = "sits"))
-#' # Select the NDVI band
-#' point.tb <- sits_select (point.tb, bands = c("ndvi"))
+#' # Retrieve a time series with values of NDVI
+#' data(point_ndvi)
 #' # Filter the point using the Savitsky Golay smoother
-#' point_sg.tb <- sits_sgolay (point.tb, order = 3, scale = 2)
+#' point_sg.tb <- sits_sgolay (point_ndvi, order = 3, scale = 2)
 #' # Plot the two points to see the smoothing effect
-#' sits_plot(sits_merge(point.tb, point_sg.tb))
+#' sits_plot(sits_merge(point_ndvi, point_sg.tb))
 #'
 #' @export
 sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band) signal::sgolayfilt(band, p = order, ts = scale),
                             fun_index = function(band) band,
                             bands_suffix = bands_suffix)
@@ -333,7 +325,7 @@ sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
 #' @return output.tb   A tibble with smoothed sits time series
 #' @export
 sits_kf <- function(data.tb, bands_suffix = "kf"){
-    result.tb <- .sits_apply(data.tb,
+    result.tb <- sits_apply(data.tb,
                             fun = function(band) .kalmanfilter(band, NULL, NULL, NULL),
                             fun_index = function(band) band,
                             bands_suffix = bands_suffix)

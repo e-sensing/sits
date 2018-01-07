@@ -17,6 +17,14 @@ data.tb      a sits tibble with same samples and the new bands
 \description{
 Adds new bands and drops existing in the time series of a sits tibble using dplyr::transmute function
 }
+\examples{
+\donttest{
+# Retrieve data for time series with label samples in Mato Grosso in Brazil
+data (samples_MT_9classes)
+# Generate a new image with the SAVI (Soil-adjusted vegetation index)
+savi.tb <- sits_transmute (samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+}
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

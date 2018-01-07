@@ -4,7 +4,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description reads a list of clusters provided by the dtwclust
-#' package and produces a sits tibble.
+#' package,  and produces a sits tibble with an added "cluster" column
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb          a tibble with input data of dtwclust.
@@ -12,6 +12,19 @@
 #' @param k                the desired number of clusters
 #' @param height           the desired height to cut the dendrogram. At least one of k or height must be specified, k overrides height if both are given.
 #' @return result.tb       a SITS tibble with the clusters or clusters' members
+#'
+#' @examples
+#' \donttest{
+#' # Load the "dtwclust" package
+#' library (dtwclust)
+#' # load a simple data set with two classes
+#' data(cerrado_2classes)
+#' # calculate the dendrogram
+#' clusters <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+#' # include the cluster info in the SITS tibble
+#' clustered.tb <- sits_cluster (cerrado_2classes, clusters, k = 6)
+#' }
+#'
 #' @export
 sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
 

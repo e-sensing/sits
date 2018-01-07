@@ -23,9 +23,9 @@ streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::c
 \examples{
 # Read a set of samples of forest/non-forest in Amazonia
 # This is an area full of clouds
-data.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+data(prodes_226_064)
 # Take the first point
-point1.tb <- data.tb[1,]
+point1.tb <- prodes_226_064[1,]
 # Select the NDVI band
 point1.tb <- sits_select (point1.tb, bands = c("ndvi"))
 # Apply the envelope filter

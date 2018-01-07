@@ -21,6 +21,14 @@
 #'
 #' @param URL             the URL for the WTSS time series service
 #' @return wtss.obj       an R object containing the information about the WTSS server
+#'
+#' @examples
+#' \donttest{
+#' # Set the URL of the WTSS service
+#' URL <- "http://www.dpi.inpe.br/tws/wtss"
+#' # Obtain information about the coverages available
+#' wtss_inpe <- sits_infoWTSS(URL)
+#' }
 #' @export
 
 sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {

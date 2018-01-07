@@ -30,7 +30,7 @@ sits_kohonen <- function (data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5, r
         bands <- sits_bands(data.tb)
 
     # creates the resulting tibble
-    cluster.tb <- .sits_tibble()
+    cluster.tb <- sits_tibble()
 
     # how many different labels are there?
     labels <- dplyr::distinct (data.tb, label)$label

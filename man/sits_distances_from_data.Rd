@@ -23,10 +23,10 @@ This function then extracts the time series from a SITS tibble and
 "spreads" them in time to produce a tibble with distances.
 }
 \examples{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", package = "sits"))
+# Retrieve the set of samples for the Cerrado and Pasture classes
+data(cerrado_2classes)
 # estimate distances from the data
-distances.tb <- sits_distances_from_data(samples.tb)
+distances.tb <- sits_distances_from_data(cerrado_2classes)
 
 }
 \author{

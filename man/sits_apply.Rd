@@ -30,6 +30,13 @@ generate a new band which name composed by concatenating original band name and 
 
 If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
 }
+\examples{
+# Get a time series
+data(point_ndvi)
+# apply a normalization function
+point2 <- sits_apply (point_ndvi, fun = function (x) { (x - min (x))/(max(x) - min(x))} )
+
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

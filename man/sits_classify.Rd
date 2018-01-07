@@ -5,8 +5,9 @@
 \title{Classify a sits tibble using machine learning models}
 \usage{
 sits_classify(data.tb = NULL, train_samples.tb = NULL,
-  ml_method = sits_svm(kernel = "radial", cost = 10),
-  dist_method = sits_distances_from_data(), interval = "12 month",
+  ml_method = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance =
+  0.001, epsilon = 0.1, cross = 4),
+  dist_method = sits_distances_from_data(shift = 3), interval = "12 month",
   multicores = 1)
 }
 \arguments{
@@ -43,40 +44,25 @@ The default is to use an SVM with a radial kernel, but users are encouraged to t
 alternatives.
 }
 \examples{
-
+\donttest{
 # read a training data set
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples_ndvi.tb <- readRDS(system.file("extdata/time_series/samples_mt_ndvi.rds", package = "sits"))
+data(samples_MT_ndvi)
 # Retrieve a point
-point_ndvi.tb <- readRDS(system.file("extdata/time_series/point_ndvi.rds", package = "sits"))
+data(point_ndvi)
 # classify the point
-class_ndvi.tb <-  sits_classify (point_ndvi.tb, samples_ndvi.tb)
-#
+class_ndvi.tb <-  sits_classify (point_ndvi, samples_MT_ndvi)
 # plot the classification
 sits_plot (class_ndvi.tb)
 
-\donttest{
-# define the files that make up a RasterBrick
-files  <- c(system.file ("extdata/mod13q1/sinop_ndvi_sample.tif", package = "sits"))
-# read the timeline associated to a RasterBrick
-timeline <- read.csv(system.file("extdata/mod13q1/timeline.csv", package = "sits"), header = FALSE)
-timeline <- lubridate::as_date (timeline$V1)
-# create a raster metadata file based on the information about the files
-raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
-# read a point from the raster
-point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
-# classify the point
-class.tb <-  sits_classify (point.tb, samples_ndvi.tb)
-# plot the classification
-sits_plot (class.tb)
 
-# Alternative - read the point from the WTSS server
+
+# Read a point from the WTSS server
 point2.tb <- sits_getdata (longitude = -46.4070, latitude = -10.8630)
-
 # select the ndvi
 point2.tb <- sits_select (point2.tb, bands = c("ndvi"))
 # classify the point
-class2.tb <-  sits_classify (point2.tb, samples_ndvi.tb)
+class2.tb <-  sits_classify (point2.tb, samples_MT_ndvi)
 # plot the classification
 sits_plot (class2.tb)
 }

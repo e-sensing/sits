@@ -9,9 +9,9 @@
 #'
 #' @examples
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-#' cerrado2.tb <- readRDS(system.file("extdata/time_series/cerrado_2classes.rds", package = "sits"))
+#' data(cerrado_2classes)
 #' # print the labels
-#' sits_labels (cerrado2.tb)
+#' sits_labels (cerrado_2classes)
 #'
 #' @export
 sits_labels <- function (data.tb) {
@@ -40,16 +40,16 @@ sits_labels <- function (data.tb) {
 #'
 #' @examples
 #' # Read a set of time series with information on deforestation
-#' data.tb <- readRDS (system.file("extdata/time_series/prodes_226_064.rds", package = "sits"))
+#' data(prodes_226_064)
 #' # Print the labels
-#' sits_labels (data.tb)
+#' sits_labels (prodes_226_064)
 #' # Create a conversion list
 #' conv.lst = list("Deforestation_2014" = "NonForest",
 #'              "Deforestation_2015" = "NonForest",
 #'              "Forest" = "Forest",
 #'              "Pasture" = "NonForest")
 #' # relabel the data
-#' new_data.tb <- sits_relabel (data.tb, conv.lst)
+#' new_data.tb <- sits_relabel (prodes_226_064, conv.lst)
 #' # show the new labels
 #' sits_labels (new_data.tb)
 #'
