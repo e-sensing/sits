@@ -232,23 +232,6 @@ sits_apply_ts <- function(ts.tb, fun, fun_index = function(index){ return(index)
 
     return(ts.tb)
 }
-#' @title names of the bands of a time series
-#' @name sits_bands
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description  finds the names of the bands of time series in a sits table
-#'               or sets the names of the bands if a set of values is given
-#'
-#' @param data.tb      a valid sits table
-#' @return result.vec  a string vector with the names of the bands
-#' @export
-#'
-sits_bands <- function (data.tb) {
-    result.vec <- data.tb[1,]$time_series[[1]] %>%
-        colnames() %>% .[2:length(.)]
-    return (result.vec)
-}
 #' @title Bind two SITS tibbles
 #' @name sits_bind
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

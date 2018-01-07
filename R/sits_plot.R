@@ -50,7 +50,7 @@ sits_plot <- function (data, band = "ndvi", colors = "Set1") {
         .sits_plot_TWDTW_alignments(data)
 
     # try to guess what is the plot type
-    if ("sits_tibble" %in% class (data)) {
+    # if ("sits_tibble" %in% class (data)) {
         # is there only one sample per label? Plot patterns!
         if (max (sits_labels(data)$count) == 1 && nrow(data) > 1)
             .sits_plot_patterns (data)
@@ -65,7 +65,7 @@ sits_plot <- function (data, band = "ndvi", colors = "Set1") {
         # If no conditions are met, take "allyears" as the default
         else
             .sits_plot_allyears(data, colors)
-    }
+    # }
     # return the original SITS table - useful for chaining
     return (invisible (data))
 }

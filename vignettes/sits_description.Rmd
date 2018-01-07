@@ -1,13 +1,14 @@
 ---
+title: "SITS - An R Package for Data Analysis and Machine Learning using Satellite Image Time Series"
 output: 
   pdf_document:
     citation_package: natbib
-    keep_tex: true
-    fig_caption: true
-    latex_engine: pdflatex
-    template: latex-ms.tex
-title: "SITS - An R Package for Data Analysis and Machine Learning
-    using Satellite Image Time Series"
+    fig_caption: yes
+    keep_tex: no
+vignette: >
+  %\VignetteIndexEntry{SITS - An R Package for Data Analysis and Machine Learning using Satellite Image Time Series}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::knitr}
 author:
 - name: Rolf Simoes
   affiliation: National Institute for Space Reseach, INPE, Brazil
@@ -25,13 +26,8 @@ fontsize: 11pt
 bibliography: references-sits.bib
 biblio-style: agsm
 endnote: no
-vignette: >
-  %\VignetteEngine{knitr::knitr}
-  %\VignetteIndexEntry{SITS - An R Package for Data Analysis and Machine Learning
-    using Satellite Image Time Series}
-  %\VignetteEncoding{UTF-8}
 ---
-```{r include = FALSE}
+```{r, include = FALSE}
 library(sits)
 ```
 # Introduction 
@@ -57,10 +53,11 @@ For a better explanation of how the "SITS tibble" works, we will read a data set
 The samples contain time series extracted from the MODIS MOD13Q1 product from NASA from 2001 to 2016, provided every 16 days at 250-meter spatial resolution in the Sinusoidal projection. Based on ground surveys and high resolution imagery, we selected 2,115 samples of nine classes: forest, cerrado, pasture, soybean-fallow, fallow-cotton,  soybean-cotton, soybean-corn, (8) soybean-millet, soybean-sunflower. Crop and pasture ground data was collected by researchers Alexandre Coutinho, Julio Esquerdo and Joao Antunes from the Brazilian Agricultural Research Agency (EMBRAPA) through farmer interviews in October 2009 and in October 2013. Samples for cerrado and forest classes were provided by Rodrigo Bergotti from INPE. Ground samples for soybean-fallow class were provided by Damien Arvor[@Arvor2012].
 
 ```{r}
+library(sits)
 # retrieve a set of samples from an RDS file
 samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", 
                                      package = "sits"))
-samples.tb
+samples.tb[1:10,]
 ```
 
 The "SITS tibble" contains data and metadata. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location (-55.1852, -10.8387), and is considered valid for the period (2013-09-14, 2014-08-29). Informing the dates where the label is valid is crucial for correct classification. In this case, the researchers involved in labelling the samples chose to use the agricultural calendar in Brazil, where the spring crop is planted in the months of September and October, and the autmun crop is planted in the months of February and March. For other applications and other countries, the relevant dates will most likely be different from those used in the example.

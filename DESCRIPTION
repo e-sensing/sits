@@ -63,6 +63,7 @@ Imports:
     snow,
     stats,
     tibble,
+    tidyr,
     tools,
     utils,
     wtss,

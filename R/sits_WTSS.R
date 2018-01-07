@@ -60,10 +60,10 @@ sits_infoWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss") {
 #'
 #' @param URL        the URL for the WTSS time series service
 #' @param coverage   the name of the coverage
-#' @param .show      show information about the coverage
+#' @param .show      show information about the coverage (Default: FALSE)
 #' @export
 #'
-sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL, .show = TRUE) {
+sits_coverageWTSS <- function (URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL, .show = FALSE) {
      # obtains information about the WTSS service
      wtss.obj         <- wtss::WTSS(URL)
      # obtains information about the coverages
