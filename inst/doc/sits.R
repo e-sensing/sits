@@ -11,10 +11,10 @@ samples_MT_9classes
 samples_MT_9classes[1,]$time_series
 
 ## ------------------------------------------------------------------------
-sits_bands (samples_MT_9classes)
+sits_bands(samples_MT_9classes)
 
 ## ------------------------------------------------------------------------
-sits_labels (samples_MT_9classes)
+sits_labels(samples_MT_9classes)
 
 ## ------------------------------------------------------------------------
 # a list for relabelling the samples
@@ -35,15 +35,15 @@ sits_labels(samples2.tb)
 # select the "ndvi" bands
 samples_ndvi.tb <- sits_select(samples_MT_9classes, bands = c("ndvi"))
 # select only the samples with the cerrado label
-samples_cerrado.tb <- dplyr::filter (samples_ndvi.tb, label == "Cerrado")
+samples_cerrado.tb <- dplyr::filter(samples_ndvi.tb, label == "Cerrado")
 
 ## ---- fig.height=3.1, fig.width=5----------------------------------------
 # plot the first 15 samples (different dates for the same points)
-sits_plot (samples_cerrado.tb[1:15,])
+sits_plot(samples_cerrado.tb[1:15,])
 
 ## ---- fig.align="center", fig.height=3.1, fig.width=5--------------------
 # plot all cerrado samples together (shows the distribution)
-sits_plot (samples_cerrado.tb)
+sits_plot(samples_cerrado.tb)
 
 ## ---- eval = TRUE--------------------------------------------------------
 wtss_inpe <- sits_infoWTSS()
@@ -55,10 +55,10 @@ coverage.tb <- sits_coverageWTSS("mod13q1_512")
 ## ---- eval = TRUE, echo = TRUE-------------------------------------------
 # a point in the transition forest pasture in Northern MT
 # obtain a time series from the WTSS server for this point
-series.tb <- sits_getdata(longitude = -55.57320, latitude = -11.50566,
-                          URL = URL, coverage = "mod13q1_512",
+series.tb <- sits_getdata(longitude = -55.57320, latitude = -11.50566, 
+                          service = "WTSS", coverage = "mod13q1_512", 
                           bands = c("ndvi", "evi"),
                           start_date = "2001-01-01", end_date = "2016-12-31")
 # plot the series
-sits_plot (series.tb)
+sits_plot(series.tb)
 

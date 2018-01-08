@@ -24,23 +24,26 @@
 #'
 sits_config <- function() {
 
-    config_sits <- NULL
-
-    # try to find a valid configuration file
-    WD <- getwd()
-    if (file.exists(paste0(WD, "/config.yml")))
-        yml_file <- paste0(WD, "/config.yml")
-    else
+    if (purrr::is_null(sits.env$config)){
+        # run the default configuration file
         yml_file <- system.file("extdata", "config.yml", package = "sits")
 
-    # check that the file is valid
-    ensurer::ensure_that(yml_file, !purrr::is_null(.),
-                         err_desc = "sits_config : Please provide a valid configuration file")
+        # check that the file is valid
+        ensurer::ensure_that(yml_file, !purrr::is_null(.),
+                             err_desc = "sits_config : Please provide a valid configuration file")
 
-    # read the configuration parameters
-    config_sits <<- config::get(file = yml_file)
+        # read the configuration parameters
+        sits.env$config <- config::get(file = yml_file)
 
-    return(invisible(config_sits))
+        # try to find a valid user configuration file
+        WD <- getwd()
+        if (file.exists(paste0(WD, "/config.yml"))) {
+            user_yml_file <- paste0(WD, "/config.yml")
+            config_user <- config::get(file = user_yml_file)
+            sits.env$config <- config::merge(sits.env$config, config_user)
+        }
+    }
+    return(invisible(sits.env$config))
 }
 
 #' @title Shows the contents of the SITS configuration file

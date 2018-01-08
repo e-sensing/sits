@@ -30,16 +30,16 @@
 sits_infoWTSS <- function() {
 
     # load the configuration file
-    if (!exists("config_sys"))
-        config_sits <- sits_config()
+    if (purrr::is_null(sits.env$config))
+        sits_config()
 
     # load the configuration file
-    if (!exists("logger"))
-        logger <- sits_log()
+    if (purrr::is_null(sits.env$logger))
+        sits_log()
 
     wtss.obj <- NULL
     # obtains information about the WTSS service
-    URL       <- config_sits$WTSS_server
+    URL       <- sits.env$config$WTSS_server
     tryCatch({
         wtss.obj  <- wtss::WTSS(URL)
         cat(paste("-----------------------------------------------------------", "\n",sep = ""))
@@ -53,8 +53,8 @@ sits_infoWTSS <- function() {
         cat(paste("------------------------------------------------------------", "\n",sep = ""))
 
     }, error = function(e) {
-        msg <- paste0("WTSS service not available at URL ", config_sits$WTSS_server)
-        log4r::error(logger, msg)
+        msg <- paste0("WTSS service not available at URL ", sits.env$config$WTSS_server)
+        log4r::error(sits.env$logger, msg)
         message(msg)
         }
     )
@@ -86,11 +86,11 @@ sits_infoWTSS <- function() {
 sits_coverageWTSS <- function(coverage = NULL, .show = TRUE) {
 
     # load the configuration file
-    if (!exists("config_sys"))
-        config_sits <- sits_config()
+    if (purrr::is_null(sits.env$config))
+        sits_config()
 
     # obtains information about the WTSS service
-    URL <- config_sits$WTSS_server
+    URL <- sits.env$config$WTSS_server
     wtss.obj         <- wtss::WTSS(URL)
 
     # obtains information about the available coverages
@@ -154,11 +154,11 @@ sits_getcovWTSS <- function(coverage = NULL) {
                          err_desc = "sits_getcovWTSS: Coverage name must be provided")
 
     # load the configuration file
-    if (!exists("config_sys"))
-        config_sits <- sits_config()
+    if (purrr::is_null(sits.env$config))
+        sits_config()
 
     # obtains information about the WTSS service
-    URL <- config_sits$WTSS_server
+    URL <- sits.env$config$WTSS_server
     wtss.obj         <- wtss::WTSS(URL)
     # obtains information about the coverages
     coverages.vec    <- wtss::listCoverages(wtss.obj)
@@ -208,12 +208,15 @@ sits_fromWTSS <- function(longitude,
                           bands      = NULL,
                           label      = "NoClass") {
 
-    # load the configuration file
-    if (!exists("config_sys"))
-        config_sits <- sits_config()
+    # load the configuration and logger
+    if (purrr::is_null(sits.env$config))
+        sits_config()
+
+    if (purrr::is_null(sits.env$logger))
+        sits_log()
 
     # obtains an R object that represents the WTSS service
-    URL <- config_sits$WTSS_server
+    URL <- sits.env$config$WTSS_server
     wtss.obj <- wtss::WTSS(URL)
 
     #retrieve coverage information
@@ -238,71 +241,71 @@ sits_fromWTSS <- function(longitude,
                                latitude,
                                start_date,
                                end_date)
+
+        # retrieve the time series information
+        time_series <- ts[[cov$name]]$attributes
+
+        # retrieve information about the bands
+        band_info <- cov$attributes
+
+        # determine the missing value for each band
+        miss_value <- function(band) {
+            return(band_info[which(band == band_info[, "name"]), "missing_value"])
+        }
+        # update missing values to NA
+        for (b in bands) {
+            time_series[, b][time_series[, b] == miss_value(b)] <- NA
+        }
+
+        # interpolate missing values
+        time_series[, bands] <- zoo::na.spline(time_series[, bands])
+
+        # calculate the scale factor for each band
+        scale_factor <- function(band) {
+            return(band_info[which(band == band_info[, "name"]), "scale_factor"])
+        }
+        # scale the time series
+        bands %>%
+            purrr::map(function(b) {
+                time_series[, b] <<- time_series[, b]*scale_factor(b)
+            })
+
+        # convert the series to a tibble
+        ts.tb <- tibble::as_tibble(zoo::fortify.zoo(time_series))
+
+        # adjust the dates
+        if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
+            start_date <- as.Date(ts.tb$Index[1])
+            end_date   <- as.Date(ts.tb$Index[NROW(ts.tb)])
+        }
+
+        # create a list to store the time series coming from the WTSS service
+        ts.lst <- list()
+        ts.lst[[1]] <- ts.tb
+
+        # create a tibble to store the WTSS data
+        data.tb <- sits_tibble()
+        # add one row to the tibble
+        data.tb <- tibble::add_row(data.tb,
+                                   longitude,
+                                   latitude,
+                                   start_date  = start_date,
+                                   end_date    = end_date,
+                                   label       = label,
+                                   coverage    = cov$name,
+                                   time_series = ts.lst)
+
+        # return the tibble with the time series
+        return(data.tb)
+
     }, warning = function(w){
 
     }, error = function(e){
         msg <- paste0("WTSS - unable to retrieve point (", longitude, ", ", latitude, ", ", start_date," ,", end_date,")")
-        log4r::error(logger, msg)
-        log4r::write.message(logger, msg)
+        log4r::error(sits.env$logger, msg)
+        message ("WTSS - unable to retrieve point - see log file for details" )
         return (NULL)
     })
-
-
-    # retrieve the time series information
-    time_series <- ts[[cov$name]]$attributes
-
-    # retrieve information about the bands
-    band_info <- cov$attributes
-
-    # determine the missing value for each band
-    miss_value <- function(band) {
-        return(band_info[which(band == band_info[, "name"]), "missing_value"])
-    }
-    # update missing values to NA
-    for (b in bands) {
-        time_series[, b][time_series[, b] == miss_value(b)] <- NA
-    }
-
-    # interpolate missing values
-    time_series[, bands] <- zoo::na.spline(time_series[, bands])
-
-    # calculate the scale factor for each band
-    scale_factor <- function(band) {
-        return(band_info[which(band == band_info[, "name"]), "scale_factor"])
-    }
-    # scale the time series
-    bands %>%
-        purrr::map(function(b) {
-            time_series[, b] <<- time_series[, b]*scale_factor(b)
-        })
-
-    # convert the series to a tibble
-    ts.tb <- tibble::as_tibble(zoo::fortify.zoo(time_series))
-
-    # adjust the dates
-    if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
-        start_date <- as.Date(ts.tb$Index[1])
-        end_date   <- as.Date(ts.tb$Index[NROW(ts.tb)])
-    }
-
-    # create a list to store the time series coming from the WTSS service
-    ts.lst <- list()
-    ts.lst[[1]] <- ts.tb
-
-    # create a tibble to store the WTSS data
-    data.tb <- sits_tibble()
-    # add one row to the tibble
-    data.tb <- tibble::add_row(data.tb,
-                               longitude,
-                               latitude,
-                               start_date  = start_date,
-                               end_date    = end_date,
-                               label       = label,
-                               coverage    = cov$name,
-                               time_series = ts.lst)
-
-    # return the tibble with the time series
-    return(data.tb)
 }
 
 #' @title Provides information about one coverage of the WTSS service
