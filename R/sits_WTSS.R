@@ -33,20 +33,32 @@ sits_infoWTSS <- function() {
     if (!exists("config_sys"))
         config_sits <- sits_config()
 
+    # load the configuration file
+    if (!exists("logger"))
+        logger <- sits_log()
+
+    wtss.obj <- NULL
     # obtains information about the WTSS service
     URL       <- config_sits$WTSS_server
-    wtss.obj  <- wtss::WTSS(URL)
-    cat(paste("-----------------------------------------------------------", "\n",sep = ""))
-    cat(paste("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
+    tryCatch({
+        wtss.obj  <- wtss::WTSS(URL)
+        cat(paste("-----------------------------------------------------------", "\n",sep = ""))
+        cat(paste("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
 
-    # obtains information about the coverages
-    coverages.obj    <- wtss::listCoverages(wtss.obj)
-    cat(paste("Available coverages: \n"))
-    coverages.obj %>%
-        purrr::map(function(c) cat(paste(c, "\n", sep = "")))
-    cat(paste("------------------------------------------------------------", "\n",sep = ""))
+        # obtains information about the coverages
+        coverages.obj    <- wtss::listCoverages(wtss.obj)
+        cat(paste("Available coverages: \n"))
+        coverages.obj %>%
+            purrr::map(function(c) cat(paste(c, "\n", sep = "")))
+        cat(paste("------------------------------------------------------------", "\n",sep = ""))
 
-    return (invisible(wtss.obj))
+    }, error = function(e) {
+        msg <- paste0("WTSS service not available at URL ", config_sits$WTSS_server)
+        log4r::error(logger, msg)
+        message(msg)
+        }
+    )
+    return(invisible(wtss.obj))
 }
 #' @title Provides information about one coverage of the WTSS service
 #' @name sits_coverageWTSS

@@ -13,7 +13,9 @@
 sits_log <- function(overwrite = TRUE) {
 
     # Does a logger object exist? If not create it
-    if (!exists(as.character(substitute(logger)))) {
+    if (!exists("logger")) {
+
+        logger <- NULL
 
         # try to find a valid log file
         WD <- getwd()

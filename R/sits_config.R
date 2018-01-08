@@ -24,6 +24,8 @@
 #'
 sits_config <- function() {
 
+    config_sits <- NULL
+
     # try to find a valid configuration file
     WD <- getwd()
     if (file.exists(paste0(WD, "/config.yml")))

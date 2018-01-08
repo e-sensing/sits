@@ -1,6 +1,6 @@
 default:
     ts_services      : ["WTSS", "SATVEG"]
-    WTSS_server      : "http://www.dpi.inpe.br/tws/wtss2"
+    WTSS_server      : "http://www.dpi.inpe.br/tws/wtss"
     SATVEG_server    : "https://www.satveg.cnptia.embrapa.br"
     SATVEG_account   : "/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
     SATVEG_satellites: ["terra", "aqua", "comb"]
