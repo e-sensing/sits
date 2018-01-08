@@ -35,7 +35,6 @@ Imports:
     ensurer,
     dplyr,
     dtw,
-    dtwclust,
     dtwSat,
     gbm,
     ggplot2,
@@ -103,7 +102,8 @@ Collate:
     'sits_tibble_utils.R'
     'sits_timeline.R'
     'sits_validate.R'
-Suggests: knitr,
+Suggests: dtwclust,
+    knitr,
     mxnet,
     rmarkdown,
     testthat

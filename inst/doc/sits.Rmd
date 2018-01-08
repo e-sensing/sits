@@ -4,24 +4,22 @@ output:
   pdf_document:
     citation_package: natbib
     fig_caption: yes
-    keep_tex: no
 vignette: >
   %\VignetteIndexEntry{SITS - An R Package for Data Analysis and Machine Learning using Satellite Image Time Series}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::knitr}
 author:
 - name: Rolf Simoes
-  affiliation: National Institute for Space Research, INPE, Brazil
+  affiliation: National Institute for Space Reseach (INPE), Brazil
 - name: Gilberto Camara
-  affiliation: National Institute for Space Research, INPE, Brazil
+  affiliation: National Institute for Space Reseach (INPE), Brazil
 - name: Alexandre Carvalho
   affiliation: Institute for Applied Economics Research (IPEA), Brazil
 - name: Victor Maus
-  affiliation: International Institute for Applied System Analysis (IIASA)
+  affiliation: International Institute for Applied System Analysis (IIASA), Switzerland
 abstract: "Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. The SITS package provides support on how to use statistical learning techniques with image time series. These methods include linear and quadratic discrimination analysis, support vector machines, random forests and neural networks."
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 fontfamily: mathdesign
-fontfamilyoptions: adobe-utopia
 fontsize: 11pt
 bibliography: references-sits.bib
 csl: plos-one.csl
@@ -29,123 +27,285 @@ endnote: no
 ---
 ```{r, include = FALSE}
 library(sits)
+library(tibble)
+library(dtwclust)
 ```
-# Introduction
+
+# Introduction 
+
 Earth observation satellites provide a continuous and consistent set of information about the Earth’s land and oceans. Most space agencies have adopted an open data policy, making unprecedented amounts of satellite data available for research and operational use. This data deluge has brought about a major challenge: \textit{How to design and build technologies that allow the Earth observation community to analyse big data sets?}
 
-The approach taken in the current package is to develop data analysis methods that work with satellite image time series (SITS). The time series are obtained by taking calibrated and comparable measures of the same location in Earth at different times. These measures can be obtained by a single sensor (e.g., MODIS) or by combining different sensores (e.g., LANDSAT-8 and SENTINEL-2). If obtained by frequent revisits, the temporal resolution of these data sets can capture the most important land use changes.
+The approach taken in the current package is to develop data analysis methods that work with satellite image time series. The time series are obtained by taking calibrated and comparable measures of the same location in Earth at different times. These measures can be obtained by a single sensor (e.g., MODIS) or by combining different sensors (e.g., LANDSAT-8 and SENTINEL-2). If obtained by frequent revisits, the temporal resolution of these data sets can capture the most important land use changes. 
 
 Time series of remote sensing data show that land cover changes do not always occur in a progressive and gradual way, but they may also show periods of rapid and abrupt change followed either by a quick recovery [@Lambin2003]. Analyses of multiyear time series of land surface attributes, their fine-scale spatial pattern, and their seasonal evolution leads to a broader view of land-cover change. Satellite image time series have already been applied to applications such as mapping for detecting forest disturbance [@Kennedy2010], ecology dynamics [@Pasquarella2016], agricultural intensification [@Galford2008] and its impacts on deforestation [@Arvor2012].
 
-The SITS package provides support on how to use statistical learning techniques with image time series. In a broad sense, statistical learning refers to a class of algorithms for classification and regression analysis [@Hastie2009]. These methods include linear and quadratic discrimination analysis, support vector machines, random forests and neural networks. In a typical classification problem, we have measures that capture class attributes. Based on these measures, referred as training data, one's task is to select a predictive model that allows inferring classes of a larger data set.
+The SITS package provides support on how to use statistical learning techniques with image time series. In a broad sense, statistical learning refers to a class of algorithms for classification and regression analysis [@Hastie2009]. These methods include linear and quadratic discrimination analysis, support vector machines, random forests and neural networks. In a typical classification problem, we have measures that capture class attributes. Based on these measures, referred as training data, one's task is to select a predictive model that allows inferring classes of a larger data set. 
 
 Current approaches to image time series analysis still use limited number of attributes. A common approach is deriving a small set of phenological parameters from vegetation indexes, like beginning, peak, and length of growing season [@Brown2013] [@Kastens2017] [@Estel2015] [@Pelletier2016]. These phenological parameters are then fed in specialised classifiers such as TIMESAT [@Jonsson2004]. These approaches do not use the power of advanced statistical learning techniques to work on high-dimensional spaces and with big training data sets [@James2013].
 
-The SITS package uses the full depth of satellite image time series to create larger dimensional spaces. We tested different methods of extracting attributes from time series data, including those reported by @Pelletier2016 and @Kastens2017. Our conclusion is that part of the information in raw time series is lost after filtering or statistical approximation. Thus, the method we developed has a deceptive simplicity: \emph{use all the data available in the time series samples}. The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. Our experiments found out that modern statistical models such as support vector machines, and random forests perform better in high-dimensional spaces than in lower dimensional ones.
+The SITS package uses the full depth of satellite image time series to create larger dimensional spaces. We tested different methods of extracting attributes from time series data, including those reported by @Pelletier2016 and @Kastens2017. Our conclusion is that part of the information in raw time series is lost after filtering or statistical approximation. Thus, the method we developed has a deceptive simplicity: \emph{use all the data available in the time series samples}. The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. Our experiments found out that modern statistical models such as support vector machines, and random forests perform better in high-dimensional spaces than in lower dimensional ones. 
 
-In what follows, we describe the main characteristics of the SITS package. The first part  describes the basic data structures used in SITS and the tools used for visualisation and data exploration. Then we show how to do data acquision from external sources, with an emphasis on the WTSS ("web time series service"). The next sections describe filtering and clustering techniques. We then discuss machine learning techiques for SITS data and how to apply them to image time series. Finally, we present validation methods.
+In what follows, we describe the main characteristics of the SITS package. The first part describes the basic data structures used in SITS and the tools used for visualisation and data exploration. Then we show how to do data acquisition from external sources, with an emphasis on the WTSS ("web time series service"). The next sections describe filtering and clustering techniques. We then discuss machine learning techniques for satellite image time series data and how to apply them to image time series. Finally, we present validation methods.
 
 # Data Handling and Visualisation Basics in SITS
-The basic data unit in the sits package is the SITS tibble, which is a way of organizing a set of time series data with associated spatial information. In R, a "tibble" differs from the traditional data frame, insofar as a tibble can contain lists embedded as column arguments. Tibbles are part of the "tidyverse", a collection of R package designed to work together in data manipulation. The "tidyverse" includes packages such as "ggplot2", "dplyr" and "purrr" [@Wickham2017]. The "SITS" package makes extensive use of the "tidyverse".
 
-For a better explanation of how the "SITS tibble" works, we will read a data set containing  2,115 labelled samples of land cover in Mato Grosso state of Brazil. This state has 903,357 km\textsuperscript{2} of extension, being the third largest state of Brazil. It includes three of Brazil's biomes: Amazonia, Cerrado and Pantanal. It is the most important agricultural frontier of Brazil and is Brazil's largest producer of soybeans, corn and cotton.
+The basic data unit in the SITS package is the SITS tibble, which is a way of organizing a set of time series data with associated spatial information. In R, a "tibble" differs from the traditional data frame, insofar as a tibble can contain lists embedded as column arguments. Tibbles are part of the "tidyverse", a collection of R package designed to work together in data manipulation. The "tidyverse" includes packages such as "ggplot2", "dplyr" and "purrr" [@Wickham2017]. The SITS package makes extensive use of the "tidyverse". 
 
-The samples contain time series extracted from the MODIS MOD13Q1 product from NASA from 2001 to 2016, provided every 16 days at 250-meter spatial resolution in the Sinusoidal projection. Based on ground surveys and high resolution imagery, we selected 2,115 samples of nine classes: forest, cerrado, pasture, soybean-fallow, fallow-cotton,  soybean-cotton, soybean-corn, (8) soybean-millet, soybean-sunflower. Crop and pasture ground data was collected by researchers Alexandre Coutinho, Julio Esquerdo and Joao Antunes from the Brazilian Agricultural Research Agency (EMBRAPA) through farmer interviews in October 2009 and in October 2013. Samples for cerrado and forest classes were provided by Rodrigo Bergotti from INPE. Ground samples for soybean-fallow class were provided by Damien Arvor[@Arvor2012].
+For a better explanation of how the "SITS tibble" works, we will read a data set containing  2,115 labelled samples of land cover in Mato Grosso state of Brazil. This state has 903,357 km\textsuperscript{2} of extension, being the third largest state of Brazil. It includes three of Brazil's biomes: Amazonia, Cerrado and Pantanal. It is the most important agricultural frontier of Brazil and is Brazil's largest producer of soybeans, corn and cotton. 
+
+The samples contain time series extracted from the MODIS MOD13Q1 product from NASA from 2000 to 2016, provided every 16 days at 250-meter spatial resolution in the Sinusoidal projection. Based on ground surveys and high resolution imagery, we selected 2,115 samples of nine classes: forest, cerrado, pasture, soybean-fallow, fallow-cotton, soybean-cotton, soybean-corn, soybean-millet, and soybean-sunflower. Crop and pasture ground data was collected by researchers Alexandre Coutinho, Julio Esquerdo and Joao Antunes from the Brazilian Agricultural Research Agency (EMBRAPA) through farmer interviews in October 2009 and in October 2013. Samples for cerrado and forest classes were provided by Rodrigo Bergotti from INPE. Ground samples for soybean-fallow class were provided by Damien Arvor[@Arvor2012].
 
 ```{r}
-library(sits)
 # retrieve a set of samples from an RDS file
-samples.tb <- readRDS(system.file("extdata/time_series/embrapa_mt.rds", 
-                                  package = "sits"))
+samples.tb <- samples_MT_9classes
 samples.tb
 ```
 
-The "SITS tibble" contains data and metadata. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location (-55.1852, -10.8387), and is considered valid for the period (2013-09-14, 2014-08-29). Informing the dates where the label is valid is crucial for correct classification. In this case, the researchers involved in labelling the samples chose to use the agricultural calendar in Brazil, where the spring crop is planted in the months of September and October, and the autmun crop is planted in the months of February and March. For other applications and other countries, the relevant dates will most likely be different from those used in the example.
+The "SITS tibble" contains data and metadata. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location (-55.1852, -10.8387), and is considered valid for the period (2013-09-14, 2014-08-29). Informing the dates where the label is valid is crucial for correct classification. In this case, the researchers involved in labelling the samples chose to use the agricultural calendar in Brazil, where the spring crop is planted in the months of September and October, and the autumn crop is planted in the months of February and March. For other applications and other countries, the relevant dates will most likely be different from those used in the example.
 
-The SITS tibble also contains the time series data for each spatiotemporal location. The timeseries data is also organized as a tibble, with a column with the dates and the other columns with the values for each spectral band.
+The "SITS tibble" also contains the time series data for each spatiotemporal location. The timeseries data is also organized as a tibble, with a column with the dates and the other columns with the values for each spectral band. 
 
 ```{r}
-#print the first time series
-samples.tb[1,]$time_series
+# print the first time series
+samples.tb$time_series[[1]]
 ```
 
-The SITS package provides functions for data manipulation and displaying information of a SITS tibble. For example, the function is `sits_bands` that lists the available bands.
+The SITS package provides functions for data manipulation and displaying information of a "SITS tibble". For example, the function `sits_bands` lists the available bands.
 
 ```{r}
-sits_bands (samples.tb)
+sits_bands(samples.tb)
 ```
 
 Another useful command is `sits_labels` that shows the labels of the sample set and their frequencies.
+
 ```{r}
-sits_labels (samples.tb)
+sits_labels(samples.tb)
 ```
 
+In many cases, it is useful to relabel the data set. For examples, there may be situations when one wants to use a smaller set of labels, since samples in one label on the original set may not be distinguishable from samples with other labels. We then should use the `sits_relabel` function. This function requires a conversion list, as shown in the example below.
 
-In many cases, it is useful to relabel the data set. For examples, there may be situations when one wants to use a smaller set of labels, since samples in one label on the original set may not be distinguishable for samples with other labels. We then should use the `sits_relabel` function. This function requires a conversion list, as shown in the example below.
 ```{r}
 # a list for relabelling the samples
-new_labels <- list("Cerrado"       = "Savanna",
-"Pasture"       = "Grasslands",
-"Soy_Corn"      = "Double_Cropping",
-"Soy_Cotton"    = "Double_Cropping",
-"Soy_Sunflower" = "Double_Cropping",
-"Soy_Fallow"    = "Single_Cropping",
-"Soy_Millet"    = "Single_Cropping",
-"Fallow_Cotton" = "Single_Cropping")
+new_labels <- list("Cerrado"       = "Savanna", 
+                   "Pasture"       = "Grasslands", 
+                   "Soy_Corn"      = "Double_Cropping",
+                   "Soy_Cotton"    = "Double_Cropping",
+                   "Soy_Sunflower" = "Double_Cropping",
+                   "Soy_Fallow"    = "Single_Cropping",
+                   "Soy_Millet"    = "Single_Cropping",
+                   "Fallow_Cotton" = "Single_Cropping")
 # apply the sits_relabel function
 samples2.tb <- sits_relabel(samples.tb, new_labels)
 # view the result
 sits_labels(samples2.tb)
 ```
 
-Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions of the `dplyr`, `tidyr` and `purrr` packages of the "tidyverse" [@Wickham2017] to process the data. For example, the following example uses the `sits_select` function to get a subset of the sample data set with two bands ("ndvi" and "evi") and then uses the `dplyr::filter` function to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot` function to display the time series. Given a small number of samples to display, the `sits_plot` function tries to group as many spatial locations together. In the following example, the first 15 samples of the "Cerrado" class all refer to the same spatial location in consecutive times. For this reason, these samples are plotted together.
-```{r}
+Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions of the `dplyr`, `tidyr` and `purrr` packages of the "tidyverse" [@Wickham2017] to process the data. For example, the following code uses the `sits_select` function to get a subset of the sample data set with two bands ("ndvi" and "evi") and then uses the `dplyr::filter` function to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot` function to display the time series. Given a small number of samples to display, the `sits_plot` function tries to group as many spatial locations together. In the following example, the first 15 samples of the "Cerrado" class all refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together.
+
+```{r fig.align="center", fig.height=3.1, fig.width=5}
 # select the "ndvi" bands
 samples_ndvi.tb <- sits_select(samples.tb, bands = c("ndvi"))
 # select only the samples with the cerrado label
-samples_cerrado.tb <- dplyr::filter (samples_ndvi.tb, label == "Cerrado")
-```
-
-```{r, fig.height=3.1, fig.width=5}
+samples_cerrado.tb <- dplyr::filter(samples_ndvi.tb, label == "Cerrado")
 # plot the first 15 samples (different dates for the same points)
-sits_plot (samples_cerrado.tb[1:15,])
+sits_plot(samples_cerrado.tb[1:15,])
 ```
-
 
 For a large number of samples, where the amount of individual plots would be substantial, the default visualisation combines all samples together in a single temporal interval (even if they are valid for different years). Therefore, all samples of the same band and the same label are aligned to a common interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, and the two orange lines are the first and third interquartile ranges. The `sits_plot` function has different ways of working. Please refer to the documentation for more details.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5}
 # plot all cerrado samples together (shows the distribution)
-sits_plot (samples_cerrado.tb)
+sits_plot(samples_cerrado.tb)
 ```
 
 # Importing data into SITS
+
 The SITS package allows different methods of data input, including: (a) obtain data from a WTSS (Web Series Time Service); (b) read data stored in a time series in the ZOO format [@Zeileis2005]; (c) read a time series from a RasterBrick [@Hijmans2015]. This section describes options (a) and (b). Option (c) will be described in the section were we describe raster processing. The WTSS service is a light-weight service, designed to retrieve time series for selected locations and periods [@Vinhas2016]. This service has been implemented by the research team of the National Institute for Space Research to allow remote access to time series data. To access the service, the user needs to provide a URL that points to the WTSS server location and use the function `sits_infoWTSS` that provides information on the coverages available on the server.
-```{r, eval = TRUE}
+
+```{r}
 URL <- "http://www.dpi.inpe.br/tws/wtss"
-wtss_inpe <- sits_infoWTSS(URL)
+sits_infoWTSS(URL)
 ```
+
 After finding out which coverages are available at the WTSS service, one may request specific information on each coverage by using the function `sits_coverageWTSS` which lists the contents of the data set, including source, bands, spatial extent and resolution, time range, and temporal resolution. This information is then stored in a tibble for later use.
 
-```{r, eval = TRUE}
+```{r}
 # get information about a specific coverage
-coverage.tb <- sits_coverageWTSS(URL,"mod13q1_512")
+coverage.tb <- sits_coverageWTSS(URL, "mod13q1_512")
+coverage.tb
 ```
 
-The user can then request one or more points using the `sits_getdata` function. This function provides a general means of access to image time series. In it simplest fashion, the user provides the latitude and longitude of the desired location, the URL of the WTSS services, the coverage name, the bands, and the start date and end date of the time series. If the start and end dates are not provided, all of the samples are retrived. The result is a SITS tibble that can be visualised using `sits_plot`.
+The user can then request one or more points using the `sits_getdata` function. This function provides a general means of access to image time series. In its simplest fashion, the user provides the latitude and longitude of the desired location, the URL of the WTSS service, the coverage name, the bands, and the start date and end date of the time series. If the start and end dates are not provided, all available period is retrived. The result is a "SITS tibble" that can be visualised using `sits_plot`.
 
-```{r, eval = TRUE, echo = TRUE}
+```{r, fig.align="center", fig.height=3.1, fig.width=5}
 # a point in the transition forest pasture in Northern MT
+long <- -55.57320
+lat <- -11.50566
 # obtain a time series from the WTSS server for this point
-series.tb <- sits_getdata(longitude = -55.57320, latitude = -11.50566, URL = URL,
-coverage = "mod13q1_512", bands = c("ndvi", "evi"),
-start_date = "2001-01-01", end_date = "2016-12-31")
+series.tb <- 
+    sits_getdata(longitude = long, latitude = lat, URL = URL, 
+                 coverage = "mod13q1_512", bands = c("ndvi", "evi"),
+                 start_date = "2001-01-01", end_date = "2016-12-31")
 # plot the series
-sits_plot (series.tb)
+sits_plot(series.tb)
 ```
 
-A useful case is when users have a set of labelled samples, that are to be used as a training data set. In this case, one usually has some field data or trusted observations which are labelled.
+A useful case is when users have a set of labelled samples, that are to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. The `sits_getdata` function can receive a CSV file path as an argument. In this case, the CSV must provide some required fields. Each location information must have its latitude and longitude, the start and end dates of an yearly time series, and the label, as showm in the example bellow.
 
+```{r}
+# open CSV file with trusted samples
+read.csv(system.file("extdata/samples/samples_import.csv",
+                     package = "sits"))
+```
+
+CSV files enable `sits_getdata` function to retrieve all samples at once. Groud truth samples are used to train machine learning algorithms to classify images. However it may be useful to explore some of its characteristics before generate the classification model. These characteristics can enable the specialist to verify the quality of the sample, its representativeness regarding the land use and land cover universe and, its self consistency. To support these tasks SITS package provides some functionalities such as filtering and clustering. These subjects are discussed in the next section.
+
+# Filtering techniques
+
+Optical remotely sensed data are affected by cloud cover that introduces a large amount of noise in satellite image time series. Inter-annual climate variability also changes the phenological cycles of the vegetation, resulting in time series whose periods and intensities do not match on an year to year basis [@Atkinson2012]. To associate intervals of a satellite image time series with land-use and land-cover classes, we need methods suitable for noisy and out-of-phase time series.
+
+Several techniques have been used to correct and smooth such time-series vegetation index data, and to support the estimation of phenological parameters. These methods include curve fitting [@Bradley2007], asymmetric Gaussian functions [@Jonsson2002], wavelet decomposition [@Sakamoto2005], the Savitzky–Golay filter [@Chen2004], and the Whittaker smoother [@Atzberger2011]. In this section, we present all time series filtering routines (also known as *smoothing* routines) supported by SITS package: Savitzky–Golay filter (`sits_sgolay()`), Whitakker filter (`sits_whittaker()`), envelope filter (`sits_envelope()`) and, autoregressive integrated moving average (ARIMA) filter (`sits_cloud_filter()`).
+
+For this purpose, we use a single time series data derived from the very same coordinate point used to retrieve WTSS data. To best visualize the effects of filtering we select only NDVI band of the first two years of the time series.  
+
+```{r}
+# obtain two years NDVI time series from the WTSS server for the last used coordinates
+series.tb <- 
+    sits_getdata(longitude = long, latitude = lat, URL = URL, 
+                 coverage = "mod13q1_512", bands = c("ndvi"),
+                 start_date = "2001-01-01", end_date = "2002-12-31")
+```
+
+## Savitzky–Golay filter
+
+The Savitsky-Golay filter works by fitting successive sub-sets of adjacent data points with a low-degree polynomial by the method of linear least squares. The difference between an original and a filtered time series using the Savitsky-Golay filter is shown in example bellow. 
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5}
+# apply Savitzky–Golay filter
+series_sg.tb <- sits_sgolay(series.tb)
+# plot the series
+sits_plot(sits_merge(series_sg.tb, series.tb))
+```
+
+## Whitakker filter
+
+The Whittaker smoother attempts to fit a curve that represents the raw data, but is penalized if subsequent points vary too much [@Atzberger2011]. Mathematically it is a large, but sparse optimisation problem. The difference between an original and a filtered time series using the Whitakker filter is shown in example bellow.
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5}
+# apply Whitakker filter
+series_whit.tb <- sits_whittaker(series.tb)
+# plot the series
+sits_plot(sits_merge(series_whit.tb, series.tb))
+```
+
+## Envelope filter
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5}
+# apply envelope filter
+series_env.tb <- sits_envelope(series.tb)
+# plot the series
+sits_plot(sits_merge(series_env.tb, series.tb))
+```
+
+## ARIMA filter
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5}
+# apply ARIMA filter
+series_cf.tb <- sits_cloud_filter(series.tb)
+# plot the series
+sits_plot(sits_merge(series_cf.tb, series.tb))
+```
+
+Time series filtering can be useful to work with noisy data.
+
+# Clustering techniques
+
+One of the main uses of clustering for satellite image time series is dealing with data with high-variability  and  incomplete information. Since observations of same land cover can differ from year to year, clustering techniques can assist in an exploratory analysis of such data. These methods help us to determine what is the separability of the training samples.
+
+The subject of time series clustering has attracted much interest on the literature. Two important reviews are provided by @Aghabozorgi2015 and @Liao2005. @Aghabozorgi2015 divides these methods in \emph{shape-based}, \emph{feature-based} and \emph{model-based}. In the shape-based approach, shapes of two time series are matched as well as possible, by a non-linear stretching and contracting of the time axes. This is the case of the dynamic time-warping (DTW) techique. In the feature-based approach, the raw time series is treated as a feature vector pertaining of a multi-dimensional space. In model-based methods, a raw time-series is transformed into model parameters and then a suitable model distance and then a clustering algorithm is applied to these parameters. SITS package provide support for the first two methods by informing an appropriate distance function. 
+
+In SITS, we have chosen to explore agglomerative hierarchical clustering. The main advantage of this method is that it does not require a predefined number of clusters as an initial parameter. This is an important feature in satellite image time series clustering since it is not easy to define the number of clusters present in a set of multi-attribute time series [@Aghabozorgi2015]. In what follows, we discuss agglomerative hierarchical clustering method and present how to use it in SITS.
+
+## Agglomerative hierarchical clustering
+
+Hierarchical clustering is a family of methods that groups elements using a distance function to associate a real value to a pair of elements. From this distance measure, we can compute the dissimilarity between any two elements from the data set. Using a linkage criterion, the algorithm decides which two clusters are merged or split at a given iteration. There are many variations of this technique since we can use different distance functions and linkage criteria. It is one of the most used clustering techniques, given its visualisation power and ease of use [@Keogh2003].
+
+There are two kinds of hierarchical clustering processes: \emph{agglomerative} and \emph{divisive}. The first one is also known as "bottom up strategy" in which every initial element of the data set is itself a cluster. This process starts by merging them according to the linkage criterion. It can continue up until only one cluster remains in the data set. On the contrary, the second kind is a "top down strategy" in which initial elements start as an unique cluster and at each iteration, the clusters are partitioned. This process can proceed until each element becomes itself a cluster. Algorithms for agglomerative hierarchical clustering (AHC) are much more common than the divisive algorithms counterparts [@Berkhin2006]. SITS focuses on the AHC method, since it allows us to use the dendrogram to decide on the most appropriate cluster partition [@Hennig2015]. Dendrograms are quite useful to decide on the number of cluster and one the metric and linkage criterion. In SITS, the procedure to generate clusters is divided in two steps: first, we produce a dendrogram from the data; second, we generate different clusters by cutting the dendrogram tree at some level. The first step is realized by `sits_dendrogram()` function and, the second step by `sits_cluster()`.  
+
+In AHC, different linkage criteria produce distinct results. The most common methods are single-linkage, complete-linkage, average-linkage, and Ward-linkage.  Complete-linkage prioritises the within-cluster dissimilarities, producing clusters with shorter distance samples. Complete-linkage clustering can be sensitive to outliers, that can increase the resulting intracluster data variance. As an alternative, Ward proposes a criteria to minimise the data variance by means of either \emph{sum-of-squares} or \emph{sum-of-squares-error} [@Ward1963]. Ward's intuition is that clusters of multivariate observations, such as time series, should be approximately elliptical in shape. The linkage creteria is used to generate the dendrogram tree and hence is passed as an argument of `sits_dendrogram()` function.
+
+In our subsequent examples we use the relabeled set created above and stored in `samples2.tb` variable. It consists of 2,115 samples distributed in five labels: "Savanna", "Grasslands", "Double_Cropping", "Single_Cropping" and, "Forest". 
+
+## Dendrogram 
+
+A dendrogram is a tree defined by an ultrametric distance [@Hennig2015]. It is used to visualise the successive merges in the hierarchical process. The dendrogram shows the height where each merge happened, which corresponds to the minimum distance between two clusters defined by a linkage criterion. The dendrogram can be used to evaluate cluster separability in a qualitative fashion, and helps the practitioner to determine where to cut the tree to obtain the final clusters [@Liao2005]. In the following code, we create a dendrogram object with default clustering parameters for linkage criterion (Ward) and distance function (DTW).
+
+```{r}
+# create a dendrogram object with default clustering parameters
+dendro <- sits_dendrogram(samples2.tb)
+```
+
+`sits_dendrogram()` has an expensive computation and hence the procedure takes several seconds to finish. Once a dendrogram is computed it is easy to create the clusters by cutting the dendrogram tree at some linkage distance. We can see the dendrogram by calling `sits_plot_dendrogram()`.
+
+```{r, fig.align="center", fig.height=4.5, fig.width=5.5}
+# plot the resulting dendrogram
+sits_plot_dendrogram(samples2.tb, dendro, cutree_height = 40)
+```
+
+The position a sample takes on the dendrogram, i.e. its linked edges, gives an general view how similar/dissimilar the land use classes are to each other. We can see that most of samples for each class are grouped together. We can note in the detail (at the bottom of Figure \ref{fig:ahc-ward}) the existence of some outliers, those thin blocks fragments of different colour from its surroundings. Probably, these are a strong source of confusion. In our example above, we can separate our samples by cutting the tree at some level to get two groups. At left, we have the "yellow" and "orange" samples that correspond to "Double" and "Single" croping; at right, we see "greens" and "red" samples corresponding to "Savanna", "Forest" and, "Grasslands". 
+
+```{r}
+# create clusters by cutting the dendrogram at the linkage distance 300
+clusters.tb <- sits_cluster(samples2.tb, dendro, height = 300)
+# show clusters samples frequency
+sits_cluster_frequency(clusters.tb)
+```
+
+This division makes sense by separating "Cropping" and "Non-Cropping" land use class. It is possible to relabel samples according to its corresponding cluster by calling `sits_cluster_relabel()` function. Before we proceed the labeling its is important to remove the outliers samples. This can be accomplished with the function `sits_cluster_cleaner()` that removes all samples whose label (cluster) counts less than a given percentual relative to its cluster (label). 
+
+```{r}
+# clear sample outliers relative to clusters (those with less than 1% in a cluster)
+clusters2.tb <- sits_cluster_cleaner(clusters.tb, min_clu_perc = 0.01)
+# show clusters samples frequency
+sits_cluster_frequency(clusters2.tb)
+```
+
+Now, we can proceed by renaming the samples labels according to its respective cluster. 
+
+```{r}
+# proceed relabeling procedure
+clusters2.tb <- 
+    sits_cluster_relabel(clusters2.tb,
+                         c("Non-Cropping_Land", "Cropping_Land"))
+# show clusters samples frequency
+sits_cluster_frequency(clusters2.tb)
+```
+
+This function must be used with caution as it renames the original label by a corresponding cluster name passed as parameter without any verification. We could proceed by cutting the dendrogram at lower linkage distances to obtain other set of clusters. We can note that at some point it is possible to achieve a reasonable separability between classes (in our example, this is indicated by the dashed line drawed according to `cutree_height` parameter). The dendrogram thus provides users with a powerful visual aid to understand data separability. Depending on the level of dendrogram cut, we will find more or less confusion inside the clusters.
+
+# Land use and land cover classification using satelite image time series
+
+The main advantage using satellite image time series in land use studies is that the time series is methodologically consistent with the very nature of the land covers. Using this kind of data allows focusing on land changes through time. Currently, most studies that use satellite image time series for land classification still use variations of the classical remote sensing image classification methods. Given a series of images, researchers use methods that produce a single composite for the whole series @[Gomez2016]. In their review on this subject, @Gomez2016 discuss 12 papers that use satellite image time series to derive image composites that are later used for classification. @Camara2016 denote these works as taking a \textit{space-first, time-later} approach.
+
+An example of \textit{space-first, time-later} work on big EO data analysis is the work by @Hansen2013. Using more than 650,000 LANDSAT images and processing more than 140 billion pixels, the authors compared data from 2000 to 2010 to produce maps of global forest loss during the decade. A pixel-based classification algorithm was used to process each image to detect forest cover. The method classifies each 2D image one by one. 
+
+In our view, these methods do not use the full potential of satellite image time series. The benefits of remote sensing time series analysis arise when the temporal resolution of the big data set is able to capture the most important changes. Here, the temporal autocorrelation of the data can be stronger than the spatial autocorrelation. Given data with adequate repeatability, a pixel will be more related to its temporal neighbours than to its spatial ones. In this case, \emph{time-first, space-later} methods lead to better results than the \emph{space-first, time-later} approach [@Camara2016].
+
+SITS package provides functionality to explore the full depth of such kind of data. It treat time series segments as a feature vector in its entirety, transforming each measured point in the signal as a feature. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars, also known as training data, to infer classes of a larger data set. In the next section we discuss about machine learning techniques supported in SITS package with more detail.
+
+## Machine Learning classification models
+
+In the training stage, Additional "bands" can be computed to increase the distinction between classes. This method has a deceptive simplicity 
+
+## Support Vector Machine
+
+## Random Forest
+
+# Validation techniques
+
+Our experiment consists of the comparison of different methods to obtain the time series prototypes for each class. After obtaining the prototypes, we classified the data using the TWDTW method and used a cross-validation procedure to evaluate the results.
+
+# Final remarks
 
 <!--
 # References
@@ -155,3 +315,4 @@ A useful case is when users have a set of labelled samples, that are to be used 
 \vspace*{-0.2in}
 \noindent
 -->
+

@@ -26,7 +26,7 @@ prodes_relabel.lst <-  tibble::lst("Forest" = "Forest",
 
 sits_conf_matrix(conf.tb, prodes_relabel.lst)
 
-# =========== SAVITKSY - GOLAY FILTER =============
+cat ("# =========== SAVITKSY - GOLAY FILTER =============\n")
 
 # test savitsky golay filter
 prodes_sg.tb <- sits_sgolay(prodes_226_064, order = 2, scale = 1)
@@ -47,7 +47,7 @@ sits_conf_matrix(conf_sg.tb)
 #evaluate the accuracy of the classification with 2 classes
 sits_conf_matrix(conf_sg.tb, prodes_relabel.lst)
 
-# =========== WHITAKKER SMOOTHER =============
+cat ("# =========== WHITAKKER SMOOTHER =============\n")
 
 # test whitakker filter
 prodes_whit.tb <- sits_whittaker(prodes_226_064, lambda = 2.0)
@@ -68,7 +68,7 @@ sits_conf_matrix(conf_whit.tb)
 # relabel and see assessment
 sits_conf_matrix(conf_whit.tb, prodes_relabel.lst)
 
-# =========== ENVELOPE FILTER =============
+cat ("# =========== ENVELOPE FILTER =============\n")
 
 # The envelope filter works with the NDVI band
 
@@ -94,7 +94,7 @@ sits_conf_matrix(conf_env.tb)
 sits_conf_matrix(conf_env.tb, prodes_relabel.lst)
 
 
-# =========== CLOUD REMOVAL FILTER =============
+cat ("# =========== CLOUD REMOVAL FILTER =============\n")
 
 # The could removal filter works with the NDVI band
 
