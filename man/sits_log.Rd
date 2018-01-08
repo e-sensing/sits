@@ -4,10 +4,7 @@
 \alias{sits_log}
 \title{Creates a directory and logfile for logging information and debug}
 \usage{
-sits_log(overwrite = TRUE)
-}
-\arguments{
-\item{overwrite}{If a file exist should it be overwritten?}
+sits_log()
 }
 \value{
 logger      A pointer to a logger

@@ -87,8 +87,8 @@ sits_getdata <- function(raster.tb   = NULL,
                          n_max       = Inf) {
 
     # load the configuration file
-    if (!exists("config_sys"))
-        config_sits <- sits_config()
+    if (purrr::is_null(sits.env$config))
+        sits_config()
 
     # a JSON file has all the data and metadata
     if  (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "json") {
@@ -112,7 +112,7 @@ sits_getdata <- function(raster.tb   = NULL,
     }
 
     # Ensure that the service is available
-    ensurer::ensure_that(service, (.) %in% config_sits$ts_services,
+    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
                          err_desc = "sits_getdata: Invalid time series service")
 
     # get data based on latitude and longitude
@@ -177,7 +177,7 @@ sits_from_service <- function(service    = "WTSS",
     if (!exists("config_sys"))
         config_sits <- sits_config()
 
-    ensurer::ensure_that(service, (.) %in% config_sits$ts_services,
+    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
                          err_desc = "sits_from_ts_service: Invalid time series service")
 
     if (service == "WTSS")

@@ -8,9 +8,10 @@
     Sys.setenv(R_CONFIG_ACTIVE = "default")
     Sys.setenv(R_CONFIG_FILE = "config.yml")
     sits_config()
-    logger <- sits_log()
+    sits_log()
 }
-
+sits.env <- new.env()
+sits.env$config <- NULL
 # Include the following global variables in the SITS package
 utils::globalVariables(c(".", "%>%", "Index", "from", "value", "variable", "cond",
                          "med", "qt25", "qt75", "cluster_id",
@@ -20,7 +21,7 @@ utils::globalVariables(c(".", "%>%", "Index", "from", "value", "variable", "cond
                          "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n",
                          "distance", "predicted", "new_values",
-                         "Alig.N", "matches", "reference", "cluster", ".data", "config_sits", "logger"))
+                         "Alig.N", "matches", "reference", "cluster", ".data", "logger"))
 #' @import dtwSat
 #' @import dtwclust
 #' @importFrom dtw symmetric1 symmetric2

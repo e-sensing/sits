@@ -32,8 +32,8 @@ sits_fromSATVEG <- function(longitude  = NULL,
                             label       = "NoClass") {
 
     # load the configuration file
-    if (!exists("config_sys"))
-        config_sits <- sits_config()
+    if (purrr::is_null(sits.env$config))
+        sits_config()
 
     # check parameters
     .sits_check_SATVEG(longitude, latitude, satellite, prefilter)
@@ -88,9 +88,9 @@ sits_fromSATVEG <- function(longitude  = NULL,
                          err_desc = "sits_fromSATVEG: Missing longitude info")
     ensurer::ensure_that(latitude,  !purrr::is_null(.),
                          err_desc = "sits_fromSATVEG: Missing latitude info")
-    ensurer::ensure_that(satellite, (.) %in% config_sits$SATVEG_satellites,
+    ensurer::ensure_that(satellite, (.) %in% sits.env$config$SATVEG_satellites,
                          err_desc = "sits_fromSATVEG: Invalid satellite param")
-    ensurer::ensure_that(prefilter, (.) %in% config_sits$SATVEG_prefilter,
+    ensurer::ensure_that(prefilter, (.) %in% sits.env$config$SATVEG_prefilter,
                          err_desc = "sits_fromSATVEG: prefilter choice is not available")
 
     status <- TRUE
@@ -119,10 +119,10 @@ sits_fromSATVEG <- function(longitude  = NULL,
     has_timeline <- FALSE
 
     # URL to access SATVEG services
-    URL <- paste0(config_sits$SATVEG_server, config_sits$SATVEG_account)
+    URL <- paste0(sits.env$config$SATVEG_server, sits.env$config$SATVEG_account)
 
     # bands available in SATVEG
-    bands <- config_sits$SATVEG_bands
+    bands <- sits.env$config$SATVEG_bands
 
     # read each of the bands separately
     for (b in bands) {

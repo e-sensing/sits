@@ -1,6 +1,7 @@
 default:
+    log_file         : "~/.sits/sits.log"
     ts_services      : ["WTSS", "SATVEG"]
-    WTSS_server      : "http://www.dpi.inpe.br/tws/wtss2"
+    WTSS_server      : "http://www.dpi.inpe.br/tws/wtss"
     SATVEG_server    : "https://www.satveg.cnptia.embrapa.br"
     SATVEG_account   : "/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
     SATVEG_satellites: ["terra", "aqua", "comb"]
@@ -11,4 +12,3 @@ default:
         MODIS:
             xres: 0.00208334
             yres: 0.00208334
-    csv_columns     : ["longitude", "latitude", "start_date", "end_date", "label"]

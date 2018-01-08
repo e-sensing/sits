@@ -37,17 +37,17 @@ sits_fromSHP <- function(shp_file,
                          label      = "NoClass") {
 
     # load the configuration file
-    if (!exists("config_sys"))
-        config_sits <- sits_config()
+    if (purrr::is_null(sits.env$config))
+        sits_config()
 
     # test parameters
     ensurer::ensure_that(file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
                          err_desc = "sits_fromSHP: please provide a valid SHP file")
     # Ensure that the service is available
-    ensurer::ensure_that(service, (.) %in% config_sits$ts_services,
+    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
                          err_desc = "sits_formSHP: Invalid time series service")
 
-    ensurer::ensure_that(satellite, (.) %in% config_sits$SATVEG_satellites,
+    ensurer::ensure_that(satellite, (.) %in% sits.env$config$SATVEG_satellites,
                          err_desc = "sits_fromSHP: SATVEG service does not support this satellite")
 
     # read the shapefile
@@ -64,8 +64,8 @@ sits_fromSHP <- function(shp_file,
     }
     if (service == "SATVEG") {
         if (satellite %in% c("terra","aqua","comb")) {
-            xres <- config_sits$resolution$MODIS$xres
-            yres <- config_sits$resolution$MODIS$yres
+            xres <- sits.env$config$resolution$MODIS$xres
+            yres <- sits.env$config$resolution$MODIS$yres
         }
     }
 
