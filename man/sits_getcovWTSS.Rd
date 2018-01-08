@@ -4,11 +4,9 @@
 \alias{sits_getcovWTSS}
 \title{Obtain information about one coverage of the WTSS service}
 \usage{
-sits_getcovWTSS(URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL)
+sits_getcovWTSS(coverage = NULL)
 }
 \arguments{
-\item{URL}{the URL for the WTSS time series service}
-
 \item{coverage}{the name of the coverage}
 }
 \value{

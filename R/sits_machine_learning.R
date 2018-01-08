@@ -42,13 +42,16 @@
 sits_train <- function(data.tb, ml_method = sits_svm(), dist_method = sits_distances_from_data()){
 
     # is the input data a valid SITS tibble?
-    ensurer::ensure_that(data.tb, "label" %in% names (.), err_desc = "sits_train: input data does not contain a valid SITS tibble")
+    ensurer::ensure_that(data.tb, "label" %in% names (.),
+                         err_desc = "sits_train: input data does not contain a valid SITS tibble")
 
     # is the train method a function?
-    ensurer::ensure_that(ml_method, class(.) == "function", err_desc = "sits_train: ml_method is not a valid function")
+    ensurer::ensure_that(ml_method, class(.) == "function",
+                         err_desc = "sits_train: ml_method is not a valid function")
 
     #is the distance method a function ?
-    ensurer::ensure_that(dist_method, class(.) == "function", err_desc = "sits_train: dist_method is not a valid function")
+    ensurer::ensure_that(dist_method, class(.) == "function",
+                         err_desc = "sits_train: dist_method is not a valid function")
 
     # compute the distances
     distances.tb <- sits_distances_from_data(data.tb)
@@ -166,10 +169,11 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_tibble (train_data.tb)
+        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_lda: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
+                             err_desc = "sits_lda: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -185,7 +189,7 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
         return(model_predict)
     }
 
-    result <- .sits_factory_function (distances.tb, result_fun)
+    result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
 
@@ -225,10 +229,11 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_tibble (train_data.tb)
+        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_qda: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
+                             err_desc = "sits_qda: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -244,7 +249,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
         return(model_predict)
     }
 
-    result <- .sits_factory_function (distances.tb, result_fun)
+    result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
 
@@ -283,10 +288,11 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_tibble (train_data.tb)
+        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_mlr: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
+                             err_desc = "sits_mlr: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -303,7 +309,7 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
         return(model_predict)
     }
 
-    result <- .sits_factory_function (distances.tb, result_fun)
+    result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
 
@@ -345,10 +351,11 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_tibble (train_data.tb)
+        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_glm: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
+                             err_desc = "sits_glm: input data does not contain distance")
 
         # call glmnet::multinom method and return the trained multinom model
         result_glm <- glmnet::cv.glmnet(y = factor(data.matrix(train_data.tb$reference)),
@@ -364,7 +371,7 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
         return(model_predict)
     }
 
-    result <- .sits_factory_function (distances.tb, result_fun)
+    result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
 
@@ -413,10 +420,11 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_tibble (train_data.tb)
+        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_gbm: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
+                             err_desc = "sits_gbm: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -441,7 +449,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
         return(model_predict)
     }
 
-    result <- .sits_factory_function (distances.tb, result_fun)
+    result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
 
@@ -478,13 +486,14 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_tibble (train_data.tb)
+        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_rfor: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names (.),
+                             err_desc = "sits_rfor: input data does not contain distance")
 
         # call `randomForest::randomForest` method and return the trained multinom model
-        df <- data.frame (train_data.tb[-1:0])
+        df <- data.frame(train_data.tb[-1:0])
         result_rfor <- randomForest::randomForest(x = df[-1:0],
                                                   y = as.factor(df$reference),
                                                   data = NULL, ntree = ntree, nodesize = 1,
@@ -497,7 +506,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
         return(model_predict)
     }
 
-    result <- .sits_factory_function (distances.tb, result_fun)
+    result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
 
@@ -534,7 +543,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
 #' data(point_ndvi)
 #' # classify the point
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_mlp(),
-#'         sits_distances = sits_distances_from_data (shift = 0.0))
+#'         sits_distances = sits_distances_from_data (fun = identity()))
 #' }
 #' @export
 #'
@@ -547,44 +556,45 @@ sits_mlp <- function(distances.tb = NULL, hidden_node=c(400,200,100), learning.r
     result_fun <- function(train_data.tb){
 
         # verify if data input is not empty
-        .sits_test_tibble (train_data.tb)
+        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names (.), err_desc = "sits_mlp: input data does not contain distance")
+        ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
+                             err_desc = "sits_mlp: input data does not contain distance")
 
         # get the labels of the data
-        labels <- as.vector (unique (train_data.tb$reference))
+        labels <- as.vector(unique(train_data.tb$reference))
 
         # create a named vector with integers match the class labels
         int_labels <- c(1:length(labels))
-        names (int_labels) <- labels
+        names(int_labels) <- labels
 
         # shuflle the data
         train_data.tb <- dplyr::sample_frac(train_data.tb, 1.0)
 
-        train.x <- data.matrix (train_data.tb[, -(1:2)])
-        train.y <- unname (int_labels [as.vector(train_data.tb[, 2])]) -1
+        train.x <- data.matrix(train_data.tb[, -(1:2)])
+        train.y <- unname(int_labels [as.vector(train_data.tb[, 2])]) -1
 
         logger <- mxnet::mx.metric.logger$new()
         mxnet::mx.set.seed(0)
-        model.mlp <- mxnet::mx.mlp(train.x, train.y, hidden_node = hidden_node, out_node = length (labels),
+        model.mlp <- mxnet::mx.mlp(train.x, train.y, hidden_node = hidden_node, out_node = length(labels),
                         activation = activation, out_activation = out_activation, optimizer = optimizer,
                         num.round = num.round, array.batch.size = batch.size, learning.rate = learning.rate,
                         eval.metric = mxnet::mx.metric.accuracy,
-                        ctx = mxnet::mx.cpu (multicores),
+                        ctx = mxnet::mx.cpu(multicores),
                         epoch.end.callback = mxnet::mx.callback.early.stop(train.metric = stop.metric, maximize = TRUE))
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
-            values.x <- data.matrix (values.tb[, -(1:2)])
+            values.x <- data.matrix(values.tb[, -(1:2)])
             preds <- stats::predict(model.mlp, values.x)
-            pred.labels <- names (int_labels[max.col(t(preds))])
+            pred.labels <- names(int_labels[max.col(t(preds))])
             return(pred.labels)
         }
-        return (model_predict)
+        return(model_predict)
     }
 
-    result <- .sits_factory_function (distances.tb, result_fun)
+    result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
 #' @title Define a log formula for classification models
@@ -710,10 +720,12 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 .sits_predict <- function(distances.tb = NULL, ml_model, ...){
 
     # is the input data the result of a TWDTW matching function?
-    ensurer::ensure_that(distances.tb, "reference" %in% names (.), err_desc = "sits_predict: input data does not contain TWDTW matches")
+    ensurer::ensure_that(distances.tb, "reference" %in% names(.),
+                         err_desc = "sits_predict: input data does not contain TWDTW matches")
 
     # is the input model a model function?
-    ensurer::ensure_that(ml_model, class (.) == "function", err_desc = "sits_predict: model parameter is not a function model returned by sits_train.")
+    ensurer::ensure_that(ml_model, class(.) == "function",
+                         err_desc = "sits_predict: model parameter is not a function model returned by sits_train.")
 
     predicted <- as.character(ml_model(distances.tb))
 

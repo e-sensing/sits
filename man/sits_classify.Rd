@@ -6,9 +6,8 @@
 \usage{
 sits_classify(data.tb = NULL, train_samples.tb = NULL,
   ml_method = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance =
-  0.001, epsilon = 0.1, cross = 4),
-  dist_method = sits_distances_from_data(shift = 3), interval = "12 month",
-  multicores = 1)
+  0.001, epsilon = 0.1, cross = 4), dist_method = sits_distances_from_data(),
+  interval = "12 month", multicores = 1)
 }
 \arguments{
 \item{data.tb}{SITS tibble time series (cleaned)}
@@ -54,8 +53,6 @@ data(point_ndvi)
 class_ndvi.tb <-  sits_classify (point_ndvi, samples_MT_ndvi)
 # plot the classification
 sits_plot (class_ndvi.tb)
-
-
 
 # Read a point from the WTSS server
 point2.tb <- sits_getdata (longitude = -46.4070, latitude = -10.8630)

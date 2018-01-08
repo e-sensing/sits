@@ -4,10 +4,7 @@
 \alias{sits_infoWTSS}
 \title{Provides information about WTSS service}
 \usage{
-sits_infoWTSS(URL = "http://www.dpi.inpe.br/tws/wtss")
-}
-\arguments{
-\item{URL}{the URL for the WTSS time series service}
+sits_infoWTSS()
 }
 \value{
 wtss.obj       an R object containing the information about the WTSS server
@@ -31,10 +28,8 @@ The Web Time Series Service is a lightweight web service the allow remote access
 }
 \examples{
 \donttest{
-# Set the URL of the WTSS service
-URL <- "http://www.dpi.inpe.br/tws/wtss"
 # Obtain information about the coverages available
-wtss_inpe <- sits_infoWTSS(URL)
+wtss_inpe <- sits_infoWTSS()
 }
 }
 \author{

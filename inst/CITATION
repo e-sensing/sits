@@ -1,0 +1,18 @@
+citHeader("To cite lubridate in publications use:")
+
+citEntry(entry = "Manual",
+         title        = "{SITS}: Data Analysis and Machine Learning using Satellite Image Time Series",
+         author       = personList(as.person("Rolf Simoes"),
+                                   as.person("Gilberto Camara"),
+                                   as.person("Alexandre Ywata de Carvalho"),
+                                   as.person("Victor Maus")),
+         organization = "INPE - Brazilian National Institute for Space Research",
+         address      = "Sao Jose dos Campos, Brazil",
+         year         = "2018",
+         url          = "https://github.com/e-sensing/sits",
+
+         textVersion  =
+             paste("Rolf Simoes, Gilberto Camara, Alexandre Carvalho, Victor Maus (2018).",
+                   "SITS: Data Analysis and Machine Learning using Satellite Image Time Series.",
+                   "URL https://github.com/e-sensing/sits.")
+)

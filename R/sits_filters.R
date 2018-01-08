@@ -29,7 +29,7 @@
 #' sits_plot (point_int.tb)
 #'
 #' @export
-sits_linear_interp <- function(data.tb, n = 23){
+sits_linear_interp <- function(data.tb, n = 23) {
 
     # test if data.tb has data
     .sits_test_tibble(data.tb)
@@ -65,7 +65,7 @@ sits_linear_interp <- function(data.tb, n = 23){
 #' sits_plot (point_int.tb)
 #'
 #' @export
-sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...){
+sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...) {
 
     # test if data.tb has data
     .sits_test_tibble(data.tb)
@@ -97,7 +97,7 @@ sits_missing_values <-  function(data.tb, miss_value) {
 
     # remove missing values by NAs
     result.tb <- sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
-    return (result.tb)
+    return(result.tb)
 }
 
 #' @title Envelope filter
@@ -140,7 +140,7 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
     # compute envelopes
     result.tb <- sits_apply(data.tb,
                             fun = function(band) {
-                                for (op in operations){
+                                for (op in operations) {
                                     upper_lower.lst <- dtwclust::compute_envelope(band, window.size = 1, error.check = FALSE)
                                     band <- upper_lower.lst[[def_op[[op]]]]
                                 }
@@ -193,36 +193,36 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
                               bands_suffix = "cf", apply_whit = TRUE, lambda_whit = 1.0){
 
     # find the bands of the data
-    bands <- sits_bands (data.tb)
+    bands <- sits_bands(data.tb)
     ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
 
     # predictive model for missing values
-    pred_arima <- function (x, p, d, q ) {
-        idx <- which (is.na(x))
+    pred_arima <- function(x, p, d, q ) {
+        idx <- which(is.na(x))
         for (i in idx) {
                prev3 <- x[(i - q):(i - 1)]
                ensurer::ensure_that(prev3, !anyNA(.),
                                     err_desc = "Cannot remove clouds, please reduce filter order")
                arima.ml <- stats::arima(prev3, c(p, d , q))
-               x[i] <- as.vector(stats::predict (arima.ml, n.ahead = 1)$pred)
+               x[i] <- as.vector(stats::predict(arima.ml, n.ahead = 1)$pred)
         }
-        return (x)
+        return(x)
     }
     # prepare result SITS tibble
     result.tb <- data.tb
 
     # select the chosen bands for the time series
     result.tb$time_series <- data.tb$time_series %>%
-        purrr::map (function (ts) {
+        purrr::map(function(ts) {
             ndvi <- dplyr::pull(ts[, "ndvi"])
-            idx <- which (c(0, diff(ndvi)) < cutoff)
+            idx <- which(c(0, diff(ndvi)) < cutoff)
             idx <- idx[!idx %in% 1:q]
             ts[,bands][idx,] <- NA
             # interpolate missing values
             bands %>%
-                purrr::map (function (b)
-                    ts[,b] <<- pred_arima (dplyr::pull(ts[,b]), p = p, d = d, q = q))
-            return (ts)
+                purrr::map(function(b)
+                    ts[,b] <<- pred_arima(dplyr::pull(ts[,b]), p = p, d = d, q = q))
+            return(ts)
         })
     # rename the output bands
     new_bands <- paste0(bands, ".", bands_suffix)
@@ -262,7 +262,7 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
 #' sits_plot(sits_merge(point_ndvi, point_ws.tb))
 #'
 #' @export
-sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
+sits_whittaker <- function(data.tb, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
 
     result.tb <- sits_apply(data.tb,
                             fun = function(band){
@@ -302,7 +302,7 @@ sits_whittaker <- function (data.tb, lambda    = 1.0, differences = 3, bands_suf
 #' sits_plot(sits_merge(point_ndvi, point_sg.tb))
 #'
 #' @export
-sits_sgolay <- function (data.tb, order = 3, scale = 1, bands_suffix = "sg") {
+sits_sgolay <- function(data.tb, order = 3, scale = 1, bands_suffix = "sg") {
     result.tb <- sits_apply(data.tb,
                             fun = function(band) signal::sgolayfilt(band, p = order, ts = scale),
                             fun_index = function(band) band,
@@ -344,13 +344,13 @@ sits_kf <- function(data.tb, bands_suffix = "kf"){
     e_est <- vector(mode = "logical", length = length(measurement) + 1)
     #
     # default values
-    if(is.null(initial_estimate) || is.na(initial_estimate)){
+    if (is.null(initial_estimate) || is.na(initial_estimate)) {
         initial_estimate <- base::mean(measurement, na.rm = TRUE)
     }
-    if(is.null(initial_error_in_estimate) || is.na(initial_error_in_estimate)){
+    if (is.null(initial_error_in_estimate) || is.na(initial_error_in_estimate)) {
         initial_error_in_estimate <- base::abs(stats::sd(measurement, na.rm = TRUE))
     }
-    if(is.null(error_in_measurement)){
+    if (is.null(error_in_measurement)) {
         error_in_measurement <- rep(stats::sd(measurement, na.rm = TRUE), length.out = base::length(measurement))
     }
     #
@@ -380,10 +380,10 @@ sits_kf <- function(data.tb, bands_suffix = "kf"){
     e_est[1] <- initial_error_in_estimate[1]
     kg[1] <- NA
     # compute
-    for(i in 2:(length(measurement) + 1)){
+    for (i in 2:(length(measurement) + 1)) {
         kg[i] <- .KG(e_est[i - 1], error_in_measurement[i - 1])
         m <- measurement[i - 1]
-        if(is.na(m)){
+        if (is.na(m)) {
             m <- est[i - 1]                                                           # if the measurement is missing, use the estimation instead
         }
         est[i] <- .EST_t(kg[i], est[i - 1], m)

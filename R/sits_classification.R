@@ -38,8 +38,6 @@
 #' # plot the classification
 #' sits_plot (class_ndvi.tb)
 #'
-#'
-#'
 #' # Read a point from the WTSS server
 #' point2.tb <- sits_getdata (longitude = -46.4070, latitude = -10.8630)
 #' # select the ndvi
@@ -51,16 +49,16 @@
 #' }
 #'
 #' @export
-sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL,
-                           ml_method = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance = 0.001, epsilon = 0.1, cross = 4) ,
-                           dist_method = sits_distances_from_data(shift = 3.0),
-                           interval = "12 month", multicores = 1){
+sits_classify <- function(data.tb = NULL,  train_samples.tb = NULL,
+                          ml_method = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance = 0.001, epsilon = 0.1, cross = 4) ,
+                          dist_method = sits_distances_from_data(),
+                          interval = "12 month", multicores = 1) {
 
     .sits_test_tibble(data.tb)
     .sits_test_tibble(train_samples.tb)
 
     # obtain the machine learning model based on the training samples
-    ml_model = sits_train (train_samples.tb, ml_method = ml_method, dist_method = dist_method)
+    ml_model = sits_train(train_samples.tb, ml_method = ml_method, dist_method = dist_method)
 
     # define the parameters for breaking up a long time series
     class_info.tb <- .sits_class_info(data.tb, train_samples.tb, interval)
@@ -69,10 +67,10 @@ sits_classify <- function (data.tb = NULL,  train_samples.tb = NULL,
     ref_dates.lst <- class_info.tb$ref_dates[[1]]
 
     # obtain the distances from the data
-    distances.tb <- dist_method (data.tb)
+    distances.tb <- dist_method(data.tb)
 
     # create a vector to store the predicted results
-    predict.vec <- .sits_classify_distances (distances.tb, class_info.tb, ml_model, multicores)
+    predict.vec <- .sits_classify_distances(distances.tb, class_info.tb, ml_model, multicores)
 
     # Store the result in the input data
     data.tb <- .sits_tibble_prediction(data.tb, class_info.tb, predict.vec, interval)
@@ -137,10 +135,10 @@ sits_classify_model <- function (data.tb = NULL,
     ref_dates.lst <- class_info.tb$ref_dates[[1]]
 
     # obtain the distances from the data
-    distances.tb <- dist_method (data.tb)
+    distances.tb <- dist_method(data.tb)
 
     # create a vector to store the predicted results
-    predict.vec <- .sits_classify_distances (distances.tb, class_info.tb, model, multicores)
+    predict.vec <- .sits_classify_distances(distances.tb, class_info.tb, model, multicores)
 
     # Store the result in the input data
     data.tb <- .sits_tibble_prediction(data.tb, class_info.tb, predict.vec, interval)
@@ -158,7 +156,7 @@ sits_classify_model <- function (data.tb = NULL,
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  multicores      Number of threads to process the time series.
 #' @return pred.vec        vector with the predicted labels
-.sits_classify_distances <- function (distances.tb, class_info.tb, ml_model = NULL, multicores = 1){
+.sits_classify_distances <- function(distances.tb, class_info.tb, ml_model = NULL, multicores = 1) {
 
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
@@ -179,40 +177,38 @@ sits_classify_model <- function (data.tb = NULL,
 
     # add a shift of two positions to the time index
     time_index.lst  <- time_index.lst %>%
-        purrr::map(function (ti){
+        purrr::map(function(ti){
             ti <- ti + 2
         })
 
     # define the column names
     attr_names <- vector()
     bands %>%
-        purrr::map (function (b){
+        purrr::map (function(b){
             attr_names <<- c(attr_names, paste (c(rep(b, nsamples)), as.character(c(1:nsamples)), sep = ""))
         })
 
     attr_names <- c("original_row", "reference", attr_names)
 
-    size_dist <- nrow (distances.tb) * length(time_index.lst)
+    size_dist <- nrow(distances.tb) * length(time_index.lst)
 
     # create a data table to store the distances
     dist.tb <- data.table::data.table(nrow = 0, ncol = 2 + length(bands)*nsamples)
 
     # classify a block of data
-    classify_block <- function (distances.tb) {
+    classify_block <- function(distances.tb) {
         # create a list to get the predictions
-
-                # create a list to store the rows
         row.lst <- list()
         # create a block of distances to be classified
-        for (r in 1:nrow(distances.tb)){
+        for (r in 1:nrow(distances.tb)) {
             # create a data table to store the values of the distances
-            for (t in 1:length(time_index.lst)){
+            for (t in 1:length(time_index.lst)) {
                 # create a data table to store the distances for each row
                 row.tb <- data.table::data.table("original_row" = 1, "reference" = "NoClass")
                 idx <- time_index.lst[[t]]
-                for (b in 1:length(bands)){
+                for (b in 1:length(bands)) {
                     # retrieve the values used for classification
-                    row.tb <- cbind (row.tb, distances.tb[r,idx[(2*b - 1)]:idx[2*b]])
+                    row.tb <- cbind(row.tb, distances.tb[r,idx[(2*b - 1)]:idx[2*b]])
                 }
                 row.lst[[length(row.lst) + 1 ]] <- row.tb
             }
@@ -224,14 +220,14 @@ sits_classify_model <- function (data.tb = NULL,
         return(pred_block.vec)
     }
 
-    join_blocks <- function (blocks.lst) {
+    join_blocks <- function(blocks.lst) {
 
         pred.vec <- vector()
         blocks.lst %>%
-            purrr::map (function (block){
+            purrr::map(function(block){
                 pred.vec <<- c(pred.vec, block )
             })
-        return (pred.vec)
+        return(pred.vec)
     }
 
     if (multicores > 1) {
@@ -244,7 +240,7 @@ sits_classify_model <- function (data.tb = NULL,
     else
         pred.vec <- classify_block(distances.tb)
 
-    return (pred.vec)
+    return(pred.vec)
 }
 #' @title Classify a set of spatio-temporal raster bricks using machine learning models
 #' @name sits_classify_raster
@@ -290,21 +286,22 @@ sits_classify_model <- function (data.tb = NULL,
 #' }
 #'
 #' @export
-sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method = sits_svm(),
-                                  dist_method = sits_distances_from_data(),
-                                  interval = "12 month",
-                                  blocksize = 250000, multicores = 2){
+sits_classify_raster <- function(file = NULL, raster.tb,  samples.tb, ml_method = sits_svm(),
+                                 dist_method = sits_distances_from_data(),
+                                 interval = "12 month",
+                                 blocksize = 250000, multicores = 2){
 
     # ensure metadata tibble exists
-    .sits_test_tibble (raster.tb)
+    .sits_test_tibble(raster.tb)
     # ensure patterns tibble exits
-    .sits_test_tibble (samples.tb)
+    .sits_test_tibble(samples.tb)
 
     # ensure that file name and prediction model are provided
-    ensurer::ensure_that(file,      !purrr::is_null(.), err_desc = "sits-classify-raster: please provide name of output file")
+    ensurer::ensure_that(file, !purrr::is_null(.),
+                         err_desc = "sits-classify-raster: please provide name of output file")
 
     # set up the ML model
-    ml_model <- sits_train (samples.tb, ml_method = ml_method, dist_method = dist_method)
+    ml_model <- sits_train(samples.tb, ml_method = ml_method, dist_method = dist_method)
 
     # create the raster objects and their respective filenames
     raster_class.tb <- .sits_create_classified_raster(raster.tb, samples.tb, file, interval)
@@ -317,36 +314,36 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method
 
     # create a named vector with integers match the class labels
     int_labels <- c(1:length(labels))
-    names (int_labels) <- labels
+    names(int_labels) <- labels
 
     #initiate writing
     raster_class.tb$r_obj <- raster_class.tb$r_obj %>%
-        purrr::map(function (layer) {
+        purrr::map(function(layer) {
             raster::writeStart(layer, layer@file@name, overwrite = TRUE)
         })
 
     # recover the input data by blocks for efficiency
-    bs <- .sits_raster_block_size (raster_class.tb[1,], blocksize)
+    bs <- .sits_raster_block_size(raster_class.tb[1,], blocksize)
 
     # read the input raster in blocks
 
-    for (i in 1:bs$n){
+    for (i in 1:bs$n) {
 
         # extract time series from the block of RasterBrick rows
-        data.mx <- .sits_data_from_block (raster.tb, row = bs$row[i], nrows = bs$nrows[i])
+        data.mx <- .sits_data_from_block(raster.tb, row = bs$row[i], nrows = bs$nrows[i])
 
         # classify the time series that are part of the block
         pred.lst <- .sits_classify_block(data.mx, class_info.tb, ml_model, multicores = multicores)
 
         # write the block back
-        raster_class.tb <- .sits_block_from_data (pred.lst, raster_class.tb, int_labels, bs$row[i])
+        raster_class.tb <- .sits_block_from_data(pred.lst, raster_class.tb, int_labels, bs$row[i])
     }
     # finish writing
     raster_class.tb$r_obj <- raster_class.tb$r_obj %>%
-        purrr::map(function (layer) {
+        purrr::map(function(layer) {
             raster::writeStop(layer)
         })
-    return (raster_class.tb)
+    return(raster_class.tb)
 }
 
 #' @title Classify a distances matrix extracted from raster using machine learning models
@@ -360,9 +357,10 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  multicores      Number of threads to process the time series.
 #' @return pred.lst        list with the predicted labels for each output time interval
-.sits_classify_block <- function (data.mx, class_info.tb, ml_model = NULL, multicores = 1){
+.sits_classify_block <- function(data.mx, class_info.tb, ml_model = NULL, multicores = 1){
 
-    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
+    ensurer::ensure_that(ml_model, !purrr::is_null(.),
+                         err_desc = "sits-classify: please provide a machine learning model already trained")
 
     # find the subsets of the input data
     dates_index.lst <- class_info.tb$dates_index[[1]]
@@ -382,26 +380,27 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method
     # define the column names
     attr_names <- vector()
     bands %>%
-        purrr::map (function (b){
-            attr_names <<- c(attr_names, paste (c(rep(b, nsamples)), as.character(c(1:nsamples)), sep = ""))
+        purrr::map(function(b){
+            attr_names <<- c(attr_names, paste(c(rep(b, nsamples)), as.character(c(1:nsamples)), sep = ""))
         })
 
     attr_names <- c("original_row", "reference", attr_names)
 
 
     # classify a block of data
-    classify_block <- function (block.mx) {
+    classify_block <- function(block.mx) {
         # create a list to get the predictions
         pred_block.lst <- list()
-        for (t in 1:length(time_index.lst)){
+        for (t in 1:length(time_index.lst)) {
             # create an empty matrix to store the subset of the data
-            values.mx <- matrix(nrow = nrow (block.mx), ncol = 0)
+            values.mx <- matrix(nrow = nrow(block.mx), ncol = 0)
             idx <- time_index.lst[[t]]
-            for (b in 1:length(bands)){
+            for (b in 1:length(bands)) {
                 # retrieve the values used for classification
                 values.mx <- cbind(values.mx, block.mx[,idx[(2*b - 1)]:idx[2*b]])
             }
-            dist.tb <- data.frame("original_row" = rep(1,nrow(block.mx)) , "reference" = rep("NoClass", nrow(block.mx)))
+            dist.tb <- data.frame("original_row" = rep(1,nrow(block.mx)) ,
+                                  "reference" = rep("NoClass", nrow(block.mx)))
             dist.tb[,3:(nsamples*length(bands) + 2)] <- values.mx
 
             colnames(dist.tb) <- attr_names
@@ -411,15 +410,15 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method
         return(pred_block.lst)
     }
 
-    join_blocks <- function (blocks.lst) {
+    join_blocks <- function(blocks.lst) {
         pred.lst <- list()
-        for (t in 1:length(time_index.lst)){
+        for (t in 1:length(time_index.lst)) {
             pred.lst[[t]] <- vector()
         }
-        for (i in 1:length(blocks.lst)){
+        for (i in 1:length(blocks.lst)) {
             pred.lst <- c(pred.lst[[t]], blocks.lst[[i]][[t]])
         }
-        return (pred.lst)
+        return(pred.lst)
     }
 
     if (multicores > 1) {
@@ -432,7 +431,7 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method
     else
         pred.lst <- classify_block(data.mx)
 
-    return (pred.lst)
+    return(pred.lst)
 }
 
 
@@ -459,15 +458,15 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method
 #' @param  interval        The interval between two sucessive classification
 #' @return class_info.tb   A SITS tibble with the classification information
 #'
-.sits_class_info <- function (data.tb, samples.tb, interval){
+.sits_class_info <- function(data.tb, samples.tb, interval){
 
     # find the timeline
-    timeline <- .sits_timeline (data.tb)
+    timeline <- .sits_timeline(data.tb)
 
     # find the labels
     labels <- sits_labels(samples.tb)$label
     # find the bands
-    bands <- sits_bands (samples.tb)
+    bands <- sits_bands(samples.tb)
 
     # what is the reference start date?
     ref_start_date <- lubridate::as_date(samples.tb[1,]$start_date)
@@ -483,15 +482,15 @@ sits_classify_raster <- function (file = NULL, raster.tb,  samples.tb, ml_method
     # find the number of the samples
     nsamples <- dates_index.lst[[1]][2] - dates_index.lst[[1]][1] + 1
 
-    class_info.tb <- tibble::tibble (
-        bands          = list (bands),
-        labels         = list (labels),
+    class_info.tb <- tibble::tibble(
+        bands          = list(bands),
+        labels         = list(labels),
         interval       = interval,
         timeline       = list(timeline),
         num_samples    = nsamples,
         ref_dates      = list(ref_dates.lst),
         dates_index    = list(dates_index.lst)
     )
-    return (class_info.tb)
+    return(class_info.tb)
 }
 

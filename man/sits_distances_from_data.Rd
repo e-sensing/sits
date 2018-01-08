@@ -4,12 +4,12 @@
 \alias{sits_distances_from_data}
 \title{Use time series values from a sits tibble as distances for training patterns}
 \usage{
-sits_distances_from_data(data.tb = NULL, shift = 3)
+sits_distances_from_data(data.tb = NULL, fun = function(x) {     x + 3 })
 }
 \arguments{
-\item{data.tb}{a SITS tibble with original data}
+\item{data.tb}{SITS tibble with original data}
 
-\item{shift}{Adjustment value to avoid negative pixel vales}
+\item{fun}{Function to be applied to the data}
 }
 \value{
 distances.tb  a tibble where columns have the reference label and the time series values as distances

@@ -31,26 +31,85 @@
 #' raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
 #'
 #' @export
-sits_STRaster <- function (files, timeline, bands, scale_factors){
+sits_STRaster <- function(files, timeline, bands, scale_factors) {
 
-    ensurer::ensure_that (bands, length(.) == length(files), err_desc = "number of bands does not match number of files")
-    ensurer::ensure_that (scale_factors, length(.) == length(files), err_desc = "scale_factors do not match number of files")
+    ensurer::ensure_that(bands, length(.) == length(files),
+                         err_desc = "number of bands does not match number of files")
+    ensurer::ensure_that(scale_factors, length(.) == length(files),
+                         err_desc = "scale_factors do not match number of files")
 
     raster.tb <- purrr::pmap(list(files, bands, scale_factors),
-                function (file, band, sf){
+                function(file, band, sf){
                     # create a raster object associated to the file
-                    raster.obj <- raster::brick (file)
+                    raster.obj <- raster::brick(file)
                     # find out how many layers the object has
                     n_layers    <-  raster.obj@file@nbands
                     # check that there are as many layers as the length of the timeline
                     ensurer::ensure_that(n_layers, (.) == length(timeline),
                                          err_desc = "duration of timeline is not matched by number of layers in raster")
 
-                    row_raster.tb <- .sits_tibble_raster (raster.obj, band, timeline, sf)
+                    row_raster.tb <- .sits_tibble_raster(raster.obj, band, timeline, sf)
 
                 }) %>% dplyr::bind_rows()
 
-    return (raster.tb)
+    return(raster.tb)
 }
+#' @title Extract a time series from a ST raster data set
+#' @name sits_fromRaster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Reads metadata about a raster data set to retrieve a set of
+#' time series.
+#'
+#' @param raster.tb       A tibble with metadata describing a spatio-temporal data set
+#' @param file            A CSV file with lat/long locations to be retrieve
+#' @param longitude       double - the longitude of the chosen location
+#' @param latitude        double - the latitude of the chosen location
+#' @param start_date      date - the start of the period
+#' @param end_date        date - the end of the period
+#' @param label           string - the label to attach to the time series
+#' @param coverage        string - the name of the coverage to be retrieved
+#' @return data.tb        a SITS tibble with the time series
+#'
+#' @examples
+#'
+#' #' # Read a point in a Raster Brick
+#' # define the file that has the raster brick
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#' # select the bands
+#' bands <- c("ndvi")
+#' # define the scale factors
+#' scale_factors <- c(0.0001)
+#' # define the timeline
+#' data(timeline_mod13q1)
+#' timeline <- lubridate::as_date (timeline_mod13q1$V1)
+#' # create a raster metadata file based on the information about the files
+#' raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
+#' # read the point from the raster
+#' point.tb <- sits_fromRaster(raster.tb, longitude = -55.50563, latitude = -11.71557)
+#'
+#' @export
+sits_fromRaster <- function(raster.tb,
+                            file = NULL,
+                            longitude = NULL,
+                            latitude = NULL,
+                            start_date = NULL,
+                            end_date  = NULL,
+                            label = "NoClass",
+                            coverage = NULL){
 
+    # ensure metadata tibble exists
+    .sits_test_tibble(raster.tb)
+
+    # get data based on CSV file
+    if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv") {
+        data.tb <- .sits_ts_fromRasterCSV(raster.tb, file)
+    }
+
+    if (!purrr::is_null(longitude) && !purrr::is_null(latitude)) {
+        xy <- .sits_latlong_to_proj(longitude, latitude, raster.tb[1, ]$crs)
+        data.tb <- .sits_ts_fromRasterXY(raster.tb, xy, longitude, latitude, label, coverage)
+    }
+    return(data.tb)
+}
 
