@@ -1,7 +1,7 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 1.01.02
+Version: 1.1.2
 Date: 2017-12-24
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
@@ -27,8 +27,9 @@ ByteCompile: true
 LazyData: true
 Imports:
     magrittr,
-    caret,
     BBmisc,
+    caret,
+    config,
     data.table,
     dendextend,
     e1071,
@@ -43,6 +44,7 @@ Imports:
     grDevices,
     kohonen,
     jsonlite,
+    log4r,
     lubridate,
     MASS,
     methods,
@@ -56,12 +58,14 @@ Imports:
     raster,
     readr,
     reshape2,
+    RCurl,
     R.utils,
     scales,
     sf,
     signal,
     snow,
     stats,
+    stringr,
     tibble,
     tidyr,
     tools,
@@ -74,21 +78,25 @@ RoxygenNote: 6.0.1
 Collate: 
     'RcppExports.R'
     'data.R'
+    'sits_SATVEG.R'
+    'sits_SHP.R'
     'sits_TWDTW.R'
     'sits_WTSS.R'
     'sits_accuracy.R'
     'sits_classification.R'
     'sits_cluster.R'
     'sits_colors.R'
+    'sits_config.R'
+    'sits_csv.R'
     'sits_dendrogram.R'
     'sits_distances.R'
-    'sits_export.R'
     'sits_factory.R'
     'sits_filters.R'
+    'sits_getdata.R'
     'sits_import.R'
-    'sits_init.R'
     'sits_kohonen.R'
     'sits_labels.R'
+    'sits_log.R'
     'sits_machine_learning.R'
     'sits_patterns.R'
     'sits_pipe.R'
@@ -102,6 +110,8 @@ Collate:
     'sits_tibble_utils.R'
     'sits_timeline.R'
     'sits_validate.R'
+    'sits_zoo.R'
+    'zzz.R'
 Suggests: dtwclust,
     knitr,
     mxnet,

@@ -4,12 +4,9 @@
 \alias{sits_coverageWTSS}
 \title{Provides information about one coverage of the WTSS service}
 \usage{
-sits_coverageWTSS(URL = "http://www.dpi.inpe.br/tws/wtss", coverage = NULL,
-  .show = FALSE)
+sits_coverageWTSS(coverage = NULL, .show = TRUE)
 }
 \arguments{
-\item{URL}{the URL for the WTSS time series service}
-
 \item{coverage}{the name of the coverage}
 
 \item{.show}{show information about the coverage (Default: FALSE)}

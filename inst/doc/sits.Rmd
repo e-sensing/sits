@@ -1,29 +1,36 @@
 ---
-title: "SITS - An R Package for Data Analysis and Machine Learning using Satellite Image Time Series"
-output: 
-  pdf_document:
-    citation_package: natbib
-    fig_caption: yes
-vignette: >
-  %\VignetteIndexEntry{SITS - An R Package for Data Analysis and Machine Learning using Satellite Image Time Series}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::knitr}
+output:
+    pdf_document:
+        df_print: tibble
+        citation_package: natbib
+        fig_caption: true
+        latex_engine: pdflatex
+        template: latex-ms.tex
+title: "SITS: Data Analysis and Machine Learning using Satellite Image Time Series"
 author:
 - name: Rolf Simoes
-  affiliation: National Institute for Space Reseach (INPE), Brazil
+  affiliation: National Institute for Space Research (INPE), Brazil
 - name: Gilberto Camara
-  affiliation: National Institute for Space Reseach (INPE), Brazil
+  affiliation: National Institute for Space Research (INPE), Brazil
 - name: Alexandre Carvalho
   affiliation: Institute for Applied Economics Research (IPEA), Brazil
 - name: Victor Maus
   affiliation: International Institute for Applied System Analysis (IIASA), Switzerland
+- name: Gilberto Queiroz
+  affiliation: National Institute for Space Research (INPE), Brazil
 abstract: "Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. The SITS package provides support on how to use statistical learning techniques with image time series. These methods include linear and quadratic discrimination analysis, support vector machines, random forests and neural networks."
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 fontfamily: mathdesign
+fontfamilyoptions: adobe-utopia
 fontsize: 11pt
 bibliography: references-sits.bib
 csl: plos-one.csl
 endnote: no
+graphics: true
+vignette: >
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{SITS: Data Analysis and Machine Learning using Satellite Image Time Series}
+    %\VignetteEncoding{UTF-8}
 ---
 ```{r, include = FALSE}
 library(sits)
@@ -95,7 +102,7 @@ new_labels <- list("Cerrado"       = "Savanna",
                    "Soy_Millet"    = "Single_Cropping",
                    "Fallow_Cotton" = "Single_Cropping")
 # apply the sits_relabel function
-samples2.tb <- sits_relabel(samples.tb, new_labels)
+samples2.tb <- sits_relabel(samples_MT_9classes, new_labels)
 # view the result
 sits_labels(samples2.tb)
 ```
@@ -104,7 +111,7 @@ Given that we have used the tibble data format for the metadata and and the embe
 
 ```{r fig.align="center", fig.height=3.1, fig.width=5}
 # select the "ndvi" bands
-samples_ndvi.tb <- sits_select(samples.tb, bands = c("ndvi"))
+samples_ndvi.tb <- sits_select(samples_MT_9classes, bands = c("ndvi"))
 # select only the samples with the cerrado label
 samples_cerrado.tb <- dplyr::filter(samples_ndvi.tb, label == "Cerrado")
 # plot the first 15 samples (different dates for the same points)
@@ -120,22 +127,21 @@ sits_plot(samples_cerrado.tb)
 
 # Importing data into SITS
 
-The SITS package allows different methods of data input, including: (a) obtain data from a WTSS (Web Series Time Service); (b) read data stored in a time series in the ZOO format [@Zeileis2005]; (c) read a time series from a RasterBrick [@Hijmans2015]. This section describes options (a) and (b). Option (c) will be described in the section were we describe raster processing. The WTSS service is a light-weight service, designed to retrieve time series for selected locations and periods [@Vinhas2016]. This service has been implemented by the research team of the National Institute for Space Research to allow remote access to time series data. To access the service, the user needs to provide a URL that points to the WTSS server location and use the function `sits_infoWTSS()` that provides information on the coverages available on the server.
+The SITS package allows different methods of data input, including: (a) obtain data from a WTSS (Web Series Time Service); (b) obtain data from the SATVEG service developed by EMBRAPA (Brazil's Agriculture Research Agency). (x) read data stored in a time series in the ZOO format [@Zeileis2005]; (d) read a time series from a RasterBrick [@Hijmans2015]. Option (d) will be described in the section were we describe raster processing. The WTSS service is a light-weight service, designed to retrieve time series for selected locations and periods [@Vinhas2016]. This service has been implemented by the research team of the National Institute for Space Research to allow remote access to time series data. To view service details, the user needs to call the function `sits_infoWTSS()` that provides information on the coverages available on the server.
 
 ```{r}
-URL <- "http://www.dpi.inpe.br/tws/wtss"
-sits_infoWTSS(URL)
+sits_infoWTSS()
 ```
 
 After finding out which coverages are available at the WTSS service, one may request specific information on each coverage by using the function `sits_coverageWTSS()` which lists the contents of the data set, including source, bands, spatial extent and resolution, time range, and temporal resolution. This information is then stored in a tibble for later use.
 
 ```{r}
 # get information about a specific coverage
-coverage.tb <- sits_coverageWTSS(URL, "mod13q1_512")
+coverage.tb <- sits_coverageWTSS("mod13q1_512")
 coverage.tb
 ```
 
-The user can then request one or more points using the `sits_getdata()` function. This function provides a general means of access to image time series. In its simplest fashion, the user provides the latitude and longitude of the desired location, the URL of the WTSS service, the coverage name, the bands, and the start date and end date of the time series. If the start and end dates are not provided, all available period is retrived. The result is a "SITS tibble" that can be visualised using `sits_plot()`.
+The user can then request one or more points using the `sits_getdata()` function. This function provides a general means of access to image time series. In its simplest fashion, the user provides the latitude and longitude of the desired location, the coverage name, the bands, and the start date and end date of the time series. If the start and end dates are not provided, all available period is retrived. The result is a "SITS tibble" that can be visualised using `sits_plot()`.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5}
 # a point in the transition forest pasture in Northern MT
@@ -143,7 +149,7 @@ long <- -55.57320
 lat <- -11.50566
 # obtain a time series from the WTSS server for this point
 series.tb <- 
-    sits_getdata(longitude = long, latitude = lat, URL = URL, 
+    sits_getdata(longitude = long, latitude = lat, service = "WTSS",
                  coverage = "mod13q1_512", bands = c("ndvi", "evi"),
                  start_date = "2001-01-01", end_date = "2016-12-31")
 # plot the series
@@ -171,7 +177,7 @@ For this purpose, we use a single time series data derived from the very same co
 ```{r}
 # obtain two years NDVI time series from the WTSS server for the last used coordinates
 series.tb <- 
-    sits_getdata(longitude = long, latitude = lat, URL = URL, 
+    sits_getdata(longitude = long, latitude = lat, service = "WTSS", 
                  coverage = "mod13q1_512", bands = c("ndvi"),
                  start_date = "2001-01-01", end_date = "2002-12-31")
 ```

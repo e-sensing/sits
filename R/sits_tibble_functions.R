@@ -33,21 +33,21 @@
 #'            start_date = start_date, end_date = end_date,
 #'            label = "Cerrado", coverage = "mod13q1", time_series = ts.lst)
 #' @export
-sits_add_row <- function (data.tb = NULL, longitude = 0.0, latitude = 0.0,
-                          start_date = "1970-01-01", end_date = "1970-01-01",
-                          label = "NoClass", coverage = "image", time_series = list()) {
+sits_add_row <- function(data.tb = NULL, longitude = 0.0, latitude = 0.0,
+                         start_date = "1970-01-01", end_date = "1970-01-01",
+                         label = "NoClass", coverage = "image", time_series = list()) {
 
 
-    data.tb <- tibble::add_row (data.tb,
-                                longitude    = longitude,
-                                latitude     = latitude,
-                                start_date   = as.Date(start_date),
-                                end_date     = as.Date(end_date),
-                                label        = label,
-                                coverage     = coverage,
-                                time_series  = time_series)
+    data.tb <- tibble::add_row(data.tb,
+                               longitude    = longitude,
+                               latitude     = latitude,
+                               start_date   = as.Date(start_date),
+                               end_date     = as.Date(end_date),
+                               label        = label,
+                               coverage     = coverage,
+                               time_series  = time_series)
 
-    return (data.tb)
+    return(data.tb)
 }
 #' @title Apply a function over SITS bands.
 #' @name sits_apply
@@ -78,7 +78,7 @@ sits_add_row <- function (data.tb = NULL, longitude = 0.0, latitude = 0.0,
 sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
 
     # verify if data.tb has values
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble(data.tb)
 
     # computes fun and fun_index for all time series and substitutes the original time series data
     data.tb$time_series <- data.tb$time_series %>%
@@ -123,10 +123,10 @@ sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) 
 #' sits_bands(samples_MT_9classes)
 #' @export
 #'
-sits_bands <- function (data.tb) {
+sits_bands <- function(data.tb) {
     result.vec <- data.tb[1,]$time_series[[1]] %>%
         colnames() %>% .[2:length(.)]
-    return (result.vec)
+    return(result.vec)
 }
 #' @title Break a data set in segments to match the dates of a set of samples, given an interval
 #' @name sits_break
@@ -146,7 +146,7 @@ sits_bands <- function (data.tb) {
 #' # break the point to match the samples (breaks a long time series into intervals)
 #' point2.tb <- sits_break(ts_2000_2016, samples_MT_9classes)
 #' @export
-sits_break <- function (data.tb, samples.tb, interval = "12 month"){
+sits_break <- function(data.tb, samples.tb, interval = "12 month") {
 
     # verify the input data
     .sits_test_tibble(data.tb)
@@ -155,7 +155,7 @@ sits_break <- function (data.tb, samples.tb, interval = "12 month"){
     output.tb <- sits_tibble()
 
     data.tb %>%
-        purrrlyr::by_row( function (row){
+        purrrlyr::by_row(function(row){
             # define the classification info parameters
             class_info.tb <- .sits_class_info(row, samples.tb, interval)
 
@@ -164,16 +164,16 @@ sits_break <- function (data.tb, samples.tb, interval = "12 month"){
 
             # extract the subseries
             ref_dates.lst %>%
-                purrr::map (function (date_pair){
+                purrr::map(function(date_pair){
 
                     # find the n-th subset of the input data
                     row_subset.tb <- .sits_extract(row, date_pair[1], date_pair[2])
                     # create a new row in the output
-                    output.tb <<- dplyr::bind_rows (output.tb, row_subset.tb)
+                    output.tb <<- dplyr::bind_rows(output.tb, row_subset.tb)
 
                 })
         })
-    return (output.tb)
+    return(output.tb)
 }
 
 #' @title Apply a function over SITS bands.
@@ -353,9 +353,9 @@ sits_bind <-  function(data1.tb, data2.tb) {
 #' # return a vector of values
 #' sits_dates (ts_2000_2016)
 #' @export
-sits_dates <- function (data.tb) {
+sits_dates <- function(data.tb) {
     values <- data.tb$time_series[[1]]$Index
-    return (values)
+    return(values)
 }
 
 #' @title Merge two satellite image time series
@@ -388,9 +388,9 @@ sits_merge <-  function(data1.tb, data2.tb) {
 
     # if some parameter is empty returns the another one
     if (NROW(data1.tb) == 0)
-        return (data2.tb)
+        return(data2.tb)
     if (NROW(data2.tb) == 0)
-        return (data1.tb)
+        return(data1.tb)
 
     # verify if data1.tb and data2.tb has the same number of rows
     ensurer::ensure_that(data1.tb, NROW(.) == NROW(data2.tb),
@@ -400,11 +400,11 @@ sits_merge <-  function(data1.tb, data2.tb) {
     result.tb <- data1.tb
 
     # merge time series
-    result.tb$time_series <- purrr::map2 (data1.tb$time_series, data2.tb$time_series, function (ts1.tb, ts2.tb) {
+    result.tb$time_series <- purrr::map2(data1.tb$time_series, data2.tb$time_series, function(ts1.tb, ts2.tb) {
         ts3.tb <- dplyr::bind_cols(ts1.tb, dplyr::select(ts2.tb, -Index))
-        return (ts3.tb)
+        return(ts3.tb)
     })
-    return (result.tb)
+    return(result.tb)
 }
 #' @title Add new SITS bands.
 #' @name sits_mutate
@@ -424,7 +424,7 @@ sits_merge <-  function(data1.tb, data2.tb) {
 sits_mutate <- function(data.tb, ...){
 
     # verify if data.tb has values
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble(data.tb)
 
     # compute mutate for each time_series tibble
     proc_fun <- function(...){
@@ -497,10 +497,10 @@ sits_rename <- function(data.tb, names){
 #' sits_labels (data.tb)
 #'
 #' @export
-sits_sample <- function (data.tb, n = NULL, frac = NULL){
+sits_sample <- function(data.tb, n = NULL, frac = NULL){
 
     # verify if data.tb is empty
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble(data.tb)
 
     # verify if either n or frac is informed
     ensurer::ensure_that(n, !(base::is.null(.) & base::is.null(frac)),
@@ -509,8 +509,8 @@ sits_sample <- function (data.tb, n = NULL, frac = NULL){
     # prepare sampling function
     sampling_fun <- if (!base::is.null(n))
         function(tb) {
-            if (nrow (tb) >= n) return (dplyr::sample_n(tb, size = n, replace = FALSE))
-            else return (tb)
+            if (nrow(tb) >= n) return(dplyr::sample_n(tb, size = n, replace = FALSE))
+            else return(tb)
         }
     else if (frac <= 1)
         function(tb) tb %>% dplyr::sample_frac(size = frac, replace = FALSE)
@@ -519,9 +519,9 @@ sits_sample <- function (data.tb, n = NULL, frac = NULL){
 
     # compute sampling
     result.tb <- sits_tibble()
-    labels <- sits_labels (data.tb)$label
+    labels <- sits_labels(data.tb)$label
     labels %>%
-        purrr::map (function (l){
+        purrr::map(function(l){
             tb_l <- dplyr::filter (data.tb, label == l)
             tb_s <- sampling_fun(tb_l)
             result.tb <<- dplyr::bind_rows(result.tb, tb_s)
@@ -551,7 +551,7 @@ sits_sample <- function (data.tb, n = NULL, frac = NULL){
 #' # Print the labels of the resulting table
 #' sits_labels (data.tb)
 #' @export
-sits_select <- function (data.tb, ...) {
+sits_select <- function(data.tb, ...) {
 
     # store the dots in a list
     dots <- match.call(expand.dots = TRUE)
@@ -568,12 +568,12 @@ sits_select <- function (data.tb, ...) {
             data.tb <- dplyr::filter_(data.tb, toString(dots[i]))
 
     #retrieve only the chosen bands (if the bands argument is used)
-    if (!purrr::is_null(bands)){
-        b1 <- as.character (bands)
+    if (!purrr::is_null(bands)) {
+        b1 <- as.character(bands)
         data.tb <- sits_select_bands(data.tb, b1[-1])
     }
 
-    return (data.tb)
+    return(data.tb)
 }
 #' @title Filter bands on a SITS table
 #' @name sits_select_bands
@@ -594,7 +594,7 @@ sits_select <- function (data.tb, ...) {
 #' # Print the labels of the resulting table
 #' sits_bands (data.tb)
 #' @export
-sits_select_bands <- function (data.tb, bands) {
+sits_select_bands <- function(data.tb, bands) {
 
     # verify if bands exists in data.tb
     ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
@@ -605,10 +605,10 @@ sits_select_bands <- function (data.tb, bands) {
 
     # select the chosen bands for the time series
     result.tb$time_series <- data.tb$time_series %>%
-        purrr::map (function (ts) ts[, c("Index", bands)])
+        purrr::map(function(ts) ts[, c("Index", bands)])
 
     # return the result
-    return (result.tb)
+    return(result.tb)
 }
 #' @title Add new SITS bands and drops existing.
 #' @name sits_transmute
@@ -628,12 +628,12 @@ sits_select_bands <- function (data.tb, bands) {
 sits_transmute <- function(data.tb, ...){
 
     # verify if data.tb has values
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble(data.tb)
 
     # tricky to include "Index" column and expand `...` arguments
     proc_fun <- function(..., Index = Index){
         Index <- quote(Index)
-        purrr::map(data.tb$time_series, function (ts.tb) {
+        purrr::map(data.tb$time_series, function(ts.tb) {
             ts_computed.tb <- dplyr::transmute(ts.tb, !!(Index), ...)
         })
     }
@@ -676,7 +676,7 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
 
         # populates result
         values.lst <- data.tb$time_series %>%
-            purrr::map(function (ts) {
+            purrr::map(function(ts) {
                 data.matrix(dplyr::select(ts, dplyr::one_of(bands)))
             })
 
@@ -684,9 +684,9 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
         # used in sits_kohonen input
         # list elements: bands, matrix's rows: cases, matrix's cols: dates
     } else if (format == "bands_cases_dates") {
-        values.lst <- bands %>% purrr::map(function (band) {
+        values.lst <- bands %>% purrr::map(function(band) {
             data.tb$time_series %>%
-                purrr::map(function (ts) {
+                purrr::map(function(ts) {
                     dplyr::select(ts, dplyr::one_of(band))
                 }) %>%
                 data.frame() %>%
@@ -698,9 +698,9 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
         # equivalent to former sits_values_cols()
         # list elements: bands, matrix's rows: dates, matrix's cols: cases
     } else if (format == "bands_dates_cases") {
-        values.lst <- bands %>% purrr::map(function (band) {
+        values.lst <- bands %>% purrr::map(function(band) {
             data.tb$time_series %>%
-                purrr::map(function (ts) {
+                purrr::map(function(ts) {
                     dplyr::select(ts, dplyr::one_of(band))
                 }) %>%
                 data.frame() %>%
@@ -710,5 +710,5 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
 
         names(values.lst) <- bands
     }
-    return (values.lst)
+    return(values.lst)
 }

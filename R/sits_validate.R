@@ -25,7 +25,8 @@
 #' @param data.tb         a SITS tibble
 #' @param folds           number of partitions to create.
 #' @param ml_method       machine learning training method
-#' @param multicores      number of threads to process the validation (Linux and MacOS only).
+#' @param dist_method     distance method to be applied to the data
+#' @param multicores      number of threads to process the validation (Linux and MacOS only)
 #' @return pred_ref.tb        a tibble containing pairs of reference and predicted values
 #'
 #' @examples
@@ -37,41 +38,42 @@
 #'
 #' @export
 
-sits_kfold_validate <- function (data.tb, folds = 5,
-                                 ml_method   = sits_svm(),
-                                 multicores = 1){
+sits_kfold_validate <- function(data.tb, folds = 5,
+                                ml_method   = sits_svm(),
+                                dist_method = sits_distances_from_data(),
+                                multicores = 1){
 
     # does the input data exist?
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble(data.tb)
 
     # is the data labelled?
-    ensurer::ensure_that (data.tb, !("NoClass" %in% sits_labels(.)),
-                          err_desc = "sits_cross_validate: please provide a labelled set of time series")
+    ensurer::ensure_that(data.tb, !("NoClass" %in% sits_labels(.)),
+                         err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
     #is the bands are not provided, deduced them from the data
-    bands <- sits_bands (data.tb)
+    bands <- sits_bands(data.tb)
 
     # create partitions different splits of the input data
-    data.tb <- .sits_create_folds (data.tb, folds = folds)
+    data.tb <- .sits_create_folds(data.tb, folds = folds)
 
     # create prediction and reference vector
     pred.vec = character()
     ref.vec  = character()
 
-    conf.lst <- parallel::mclapply(X = 1:folds, FUN = function (k)
+    conf.lst <- parallel::mclapply(X = 1:folds, FUN = function(k)
     {
         # split data into training and test data sets
         data_train.tb <- data.tb[data.tb$folds != k,]
         data_test.tb  <- data.tb[data.tb$folds == k,]
 
         # find the matches on the training data
-        distances_train.tb <- sits_distances (data_train.tb)
+        distances_train.tb <- dist_method(data_train.tb)
 
         # find a model on the training data set
-        model.ml <- ml_method (distances_train.tb)
+        model.ml <- ml_method(distances_train.tb)
 
         # find the distances in the test data
-        distances_test.tb  <- sits_distances (data_test.tb)
+        distances_test.tb  <- dist_method(data_test.tb)
 
         # classify the test data
         predicted <- .sits_predict(distances_test.tb, model.ml)
@@ -79,16 +81,16 @@ sits_kfold_validate <- function (data.tb, folds = 5,
         ref.vec  <- c(ref.vec,  data_test.tb$label)
         pred.vec <- c(pred.vec, predicted)
 
-        return (c(pred.vec, ref.vec))
+        return(c(pred.vec, ref.vec))
     }, mc.cores = multicores)
 
-    purrr::map(conf.lst, function (e) {
-        mid <- length (e)/2
+    purrr::map(conf.lst, function(e) {
+        mid <- length(e)/2
         pred.vec <<- c(pred.vec, e[1:mid])
-        ref.vec <<-  c(ref.vec, e[(mid+1):length(e)])
+        ref.vec  <<-  c(ref.vec, e[(mid + 1):length(e)])
     })
 
     pred_ref.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
 
-    return (pred_ref.tb)
+    return(pred_ref.tb)
 }

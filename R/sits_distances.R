@@ -18,7 +18,7 @@
 #' distances.tb <- sits_distances(cerrado_2classes)
 #
 #' @export
-sits_distances <- function (data.tb, dist_method = sits_distances_from_data()){
+sits_distances <- function(data.tb, dist_method = sits_distances_from_data()){
 
     # is the input data a valid SITS tibble?
     .sits_test_tibble(data.tb)
@@ -26,9 +26,9 @@ sits_distances <- function (data.tb, dist_method = sits_distances_from_data()){
     ensurer::ensure_that(dist_method, class(.) == "function", err_desc = "sits_distances: dist_method is not a valid function")
 
     # calculate distances
-    distances.tb <- dist_method (data.tb)
+    distances.tb <- dist_method(data.tb)
 
-    return (distances.tb)
+    return(distances.tb)
 }
 
 #' @title Use time series values from a sits tibble as distances for training patterns
@@ -43,8 +43,8 @@ sits_distances <- function (data.tb, dist_method = sits_distances_from_data()){
 #' This function then extracts the time series from a SITS tibble and
 #' "spreads" them in time to produce a tibble with distances.
 #'
-#' @param  data.tb        a SITS tibble with original data
-#' @param  shift          Adjustment value to avoid negative pixel vales
+#' @param  data.tb       SITS tibble with original data
+#' @param  fun           Function to be applied to the data
 #' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
 #'
 #' @examples
@@ -54,25 +54,25 @@ sits_distances <- function (data.tb, dist_method = sits_distances_from_data()){
 #' distances.tb <- sits_distances_from_data(cerrado_2classes)
 #'
 #' @export
-sits_distances_from_data <- function(data.tb = NULL, shift = 3.0){
+sits_distances_from_data <- function(data.tb = NULL, fun = function(x) {x + 3.0}) {
 
     result_fun <- function(input.tb){
 
         # create a list with the time series transposed from columns to rows
         ts.lst <- input.tb$time_series %>%
-            purrr::map (function (ts){
+            purrr::map(function(ts){
                 as.data.frame(t(unlist(ts[-1])))
             })
         # bind the lists of time series together
         dist.tb <- data.table::rbindlist(ts.lst)
-        # shift the values of the time series to avoid negative numbers
-        dist.tb <- dist.tb + shift
+        # apply a function to the data
+        dist.tb <- fun(dist.tb)
         # create a data frame with the first two columns for training
         distances.tb <- data.frame("original_row" = 1:nrow(input.tb), "reference" = input.tb$label)
         # join the two references columns with the data values
         distances.tb <- cbind(distances.tb, dist.tb)
     }
-    result <- .sits_factory_function (data.tb, result_fun)
+    result <- .sits_factory_function(data.tb, result_fun)
 }
 #' @title Use time series values from a sits tibble as distances for training patterns
 #' @name sits_distances_normalized
@@ -107,19 +107,17 @@ sits_distances_normalized <- function(data.tb = NULL, method = "center", margin 
 
         # create a list with the time series transposed from columns to rows
         ts.lst <- input.tb$time_series %>%
-            purrr::map (function (ts){
+            purrr::map(function(ts){
                 as.data.frame(t(unlist(ts[-1])))
             })
         # bind the lists of time series together
         dist.tb <- data.table::rbindlist(ts.lst)
         # shift the values of the time series to avoid negative numbers
-        dist.tb <- BBmisc::normalize (dist.tb, method = method, margin = margin)
+        dist.tb <- BBmisc::normalize(dist.tb, method = method, margin = margin)
         # create a data frame with the first two columns for training
         distances.tb <- data.frame("original_row" = 1:nrow(input.tb), "reference" = input.tb$label)
         # join the two references columns with the data values
         distances.tb <- cbind(distances.tb, dist.tb)
     }
-    result <- .sits_factory_function (data.tb, result_fun)
+    result <- .sits_factory_function(data.tb, result_fun)
 }
-
-.normalize <- function (x){(x-min(x))/(max(x)-min(x))}

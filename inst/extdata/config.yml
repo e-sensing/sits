@@ -1,0 +1,14 @@
+default:
+    log_file         : "~/.sits/sits.log"
+    ts_services      : ["WTSS", "SATVEG"]
+    WTSS_server      : "http://www.dpi.inpe.br/tws/wtss"
+    SATVEG_server    : "https://www.satveg.cnptia.embrapa.br"
+    SATVEG_account   : "/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
+    SATVEG_satellites: ["terra", "aqua", "comb"]
+    SATVEG_bands     : ["ndvi", "evi"]
+    # prefilters: "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
+    SATVEG_prefilter : ["0", "1", "2", "3"]
+    resolution:
+        MODIS:
+            xres: 0.00208334
+            yres: 0.00208334

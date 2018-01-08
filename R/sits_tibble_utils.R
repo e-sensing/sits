@@ -12,7 +12,7 @@
 #' @param  ref_dates     the dates to align the time series
 #' @return data1.tb      tibble - the converted SITS table (useful for chaining functions)
 #'
-.sits_align <- function (data.tb, ref_dates) {
+.sits_align <- function(data.tb, ref_dates) {
 
     # function to shift a time series in time
     shift_ts <- function(d, k) dplyr::bind_rows(utils::tail(d,k), utils::head(d,-k))
@@ -27,13 +27,13 @@
         row <- data.tb[i,]
         ts <- row$time_series[[1]]
         # rows that do not match the number of reference dates are discarded
-        if(length(ref_dates) != nrow(ts)) {
+        if (length(ref_dates) != nrow(ts)) {
             next
         }
         # in what direction do we need to shift the time series?
-        sense <- lubridate::yday(lubridate::as_date (ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
+        sense <- lubridate::yday(lubridate::as_date(ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
         # find the date of minimum distance to the reference date
-        idx <- which.min(abs((lubridate::as_date (ts$Index) - lubridate::as_date(start_date))/lubridate::ddays(1)))
+        idx <- which.min(abs((lubridate::as_date(ts$Index) - lubridate::as_date(start_date))/lubridate::ddays(1)))
         # do we shift time up or down?
         if (sense < 0) shift <- -(idx - 1) else shift <- (idx - 1)
         # shift the time series to match dates
@@ -41,14 +41,14 @@
         # convert the time index to a reference year
         first_date <- lubridate::as_date(ts[1,]$Index)
         # change the dates to the reference dates
-        ts1 <- dplyr::mutate (ts, Index = ref_dates)
+        ts1 <- dplyr::mutate(ts, Index = ref_dates)
         # save the resulting row in the output table
         row$time_series[[1]] <- ts1
         row$start_date <- lubridate::as_date(ref_dates[1])
         row$end_date   <- ref_dates[length(ref_dates)]
         data1.tb <- dplyr::bind_rows(data1.tb, row)
     }
-    return (data1.tb)
+    return(data1.tb)
 }
 
 
@@ -144,20 +144,20 @@
 #' @param  ref_dates.lst  list with dates to break
 #' @return ts.lst         list with the breaks of the time series data
 #'
-.sits_break_ts <-  function (ts, ref_dates.lst){
+.sits_break_ts <-  function(ts, ref_dates.lst) {
 
     new_ts.lst <- list()
     ref_dates.lst %>%
-        purrr::map(function (dates) {
+        purrr::map(function(dates) {
             if (ts$Index[1] <= dates[1]) {
-                if (ts$Index[length(ts$Index)] >= dates[2]){
-                    ts_b <- ts %>% dplyr::filter (dplyr::between (.$Index, dates[1], dates[2]))
+                if (ts$Index[length(ts$Index)] >= dates[2]) {
+                    ts_b <- ts %>% dplyr::filter(dplyr::between(.$Index, dates[1], dates[2]))
                     new_ts.lst[[length(new_ts.lst) + 1 ]] <<- ts_b
                 }
             }
         })
 
-    return (new_ts.lst)
+    return(new_ts.lst)
 }
 
 
@@ -171,15 +171,15 @@
 #'
 #' @param data.tb a SITS table to be partitioned
 #' @param folds   number of folds
-.sits_create_folds <- function (data.tb, folds = 5) {
+.sits_create_folds <- function(data.tb, folds = 5) {
 
     # verify if data.tb exists
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble(data.tb)
 
     # splits the data into k groups
     data.tb$folds <- caret::createFolds(data.tb$label, k = folds, returnTrain = FALSE, list = FALSE)
 
-    return (data.tb)
+    return(data.tb)
 }
 #' @title Create a list to store time series by timeline
 #' @name  .sits_create_ts_list
@@ -191,17 +191,17 @@
 #' @param n         Number of time series to create
 #' @return ts.lst   list with the time series that share the same timeline
 #'
-.sits_create_ts_list <- function (timeline, n) {
+.sits_create_ts_list <- function(timeline, n) {
 
     ts.lst <- list()
     # create one time series per pixel
     # all time series share the same timeline
     for (i in 1:n) {
-        ts.tb <- tibble::tibble (Index = timeline)
+        ts.tb <- tibble::tibble(Index = timeline)
         ts.lst[[length(ts.lst) + 1 ]] <- ts.tb
         i <- i + 1
     }
-    return (ts.lst)
+    return(ts.lst)
 }
 #' @title Extract a subset of the data based on dates
 #' @name .sits_extract
@@ -213,29 +213,28 @@
 #' @param  start_date the starting date of the time series segment
 #' @param  end_date   the end date of the time series segment
 #' @return subset.tb  a tibble in SITS format with the chosen subset
-.sits_extract <- function (row.tb, start_date, end_date) {
+.sits_extract <- function(row.tb, start_date, end_date) {
 
     # create a tibble to store the results
     subset.tb <- sits_tibble()
 
     # filter the time series by start and end dates
     sub.ts <- row.tb$time_series[[1]] %>%
-        dplyr::filter (dplyr::between (.$Index, start_date, end_date))
-
+        dplyr::filter (dplyr::between(.$Index, start_date, end_date))
 
     # store the subset of the time series in a list
     ts.lst <- tibble::lst()
     ts.lst[[1]] <- sub.ts
     # create a new row of the output tibble
-    subset.tb <- tibble::add_row (subset.tb,
-                                   longitude    = row.tb$longitude,
-                                   latitude     = row.tb$latitude,
-                                   start_date   = as.Date(start_date),
-                                   end_date     = as.Date(end_date),
-                                   label        = row.tb$label,
-                                   coverage     = row.tb$coverage,
-                                   time_series  = ts.lst)
-    return (subset.tb)
+    subset.tb <- tibble::add_row(subset.tb,
+                                 longitude    = row.tb$longitude,
+                                 latitude     = row.tb$latitude,
+                                 start_date   = as.Date(start_date),
+                                 end_date     = as.Date(end_date),
+                                 label        = row.tb$label,
+                                 coverage     = row.tb$coverage,
+                                 time_series  = ts.lst)
+    return(subset.tb)
 }
 
 #' @title Extract a subset of time series tibble based on dates
@@ -248,14 +247,14 @@
 #' @param  start_index the starting date of the time series segment
 #' @param  end_index   the end date of the time series segment
 #' @return subset.tb  a tibble with time series with the chosen subset
-.sits_extract_ts <- function (ts.tb, start_index, end_index) {
+.sits_extract_ts <- function(ts.tb, start_index, end_index) {
 
 
     # filter the time series by start and end dates
     subset.tb <- ts.tb %>%
-        dplyr::filter (dplyr::between (.$Index, start_date, end_date))
+        dplyr::filter(dplyr::between(.$Index, start_date, end_date))
 
-    return (subset.tb)
+    return(subset.tb)
 }
 #' @title apply a function to a grouped SITS table
 #' @name .sits_foreach
@@ -268,7 +267,7 @@
 #'                     See `dplyr::group_by` help for more details.
 #' @param fun          a function that receives as input an sits table and outputs an sits table
 #' @return result.tb   a tibble in SITS format with the selected bands
-.sits_foreach <- function (data.tb, field, fun){
+.sits_foreach <- function(data.tb, field, fun){
 
     .sits_test_tibble(data.tb)
 
@@ -281,7 +280,7 @@
 
     # comply result with sits table format and return
     result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
-    return (result.tb)
+    return(result.tb)
 }
 #' @title Group the contents of a sits tibble by different criteria
 #' @name .sits_group_by
@@ -293,7 +292,7 @@
 #' @param ...          one or more sits table field separated by commas that are used to group the data.
 #'                     See `dplyr::group_by` help for more details.
 #' @return result.tb   a tibble in SITS format with the selected bands
-.sits_group_by <- function (data.tb, ...){
+.sits_group_by <- function(data.tb, ...){
 
     # execute the group by function from dplyr
     result.tb <- data.tb %>%
@@ -301,7 +300,7 @@
 
     # comply result with sits table format and return
     result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
-    return (result.tb)
+    return(result.tb)
 }
 #' @title Add new SITS bands.
 #' @name .sits_mutate
@@ -313,7 +312,7 @@
 .sits_mutate <- function(data.tb, ...){
 
     # verify if data.tb has values
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble(data.tb)
 
     # compute mutate for each time_series tibble
     proc_fun <- function(...){
@@ -339,12 +338,12 @@
 #' @param data.tb  a SITS tibble
 #' @return returns TRUE if data.tb has data.
 #'
-.sits_test_tibble <- function (data.tb) {
+.sits_test_tibble <- function(data.tb) {
     ensurer::ensure_that(data.tb, !purrr::is_null(.),
                          err_desc = "input data not provided")
     ensurer::ensure_that(data.tb, NROW(.) > 0,
                          err_desc = "input data is empty")
-    return (TRUE)
+    return(TRUE)
 }
 
 
@@ -357,9 +356,9 @@
 #'
 #' @return result.tb   a tibble to store the result of classifications
 #'
-.sits_tibble_classification <- function () {
+.sits_tibble_classification <- function() {
     result.tb <- tibble::tibble(longitude   = double(),
-                                latitude    = double (),
+                                latitude    = double(),
                                 start_date  = as.Date(character()),
                                 end_date    = as.Date(character()),
                                 label       = character(),
@@ -367,7 +366,7 @@
                                 time_series = list(),
                                 predicted   = list()
     )
-    return (result.tb)
+    return(result.tb)
 }
 
 #' @title Create an empty tibble to store the metadata of a coverage
@@ -379,7 +378,7 @@
 #'
 #' @return coverage.tb   a tibble to store the metadata
 #'
-.sits_tibble_coverage <- function () {
+.sits_tibble_coverage <- function() {
     result.tb <- tibble::tibble(wtss.obj       = list(),
                                 name           = character(),
                                 bands          = list(),
@@ -394,8 +393,8 @@
                                 yres           = double(),
                                 crs            = character()
     )
-    class (result.tb) <- append (class(result.tb), "sits_tibble_coverage")
-    return (result.tb)
+    class(result.tb) <- append(class(result.tb), "sits_tibble_coverage")
+    return(result.tb)
 }
 #' @title Create an empty tibble to store the results of predictions
 #' @name .sits_tibble_prediction
@@ -409,7 +408,7 @@
 #' @param  interval        the time interval between two classifications
 #' @return predic.tb       a tibble to store the predictions
 #'
-.sits_tibble_prediction <- function (data.tb, class_info.tb, pred.vec, interval){
+.sits_tibble_prediction <- function(data.tb, class_info.tb, pred.vec, interval) {
 
     # retrieve the list of reference dates
     # this list is a global one and it is created based on the samples
@@ -419,16 +418,16 @@
     timeline_global <- class_info.tb$timeline[[1]]
 
     # size of prediction table
-    nrows <- length (ref_dates.lst)
+    nrows <- length(ref_dates.lst)
 
     predicted.lst <- list()
 
     class_idx <-  1
 
     data.tb %>%
-        purrrlyr::by_row(function (row) {
+        purrrlyr::by_row(function(row) {
             # get the timeline of the row
-            timeline_row <- .sits_timeline (row)
+            timeline_row <- .sits_timeline(row)
             # the timeline of the row may be different from the global timeline
             # this happens when we are processing samples with different
             if (timeline_row[1] != timeline_global[1]) {
@@ -455,8 +454,8 @@
         })
 
     data.tb$predicted <- predicted.lst
-    class (data.tb) <- append (class(data.tb), "sits_tibble_prediction")
-    return (data.tb)
+    class(data.tb) <- append(class(data.tb), "sits_tibble_prediction")
+    return(data.tb)
 }
 #' @title Create one line of metadata tibble to store the description of a spatio-temporal raster
 #' @name .sits_tibble_raster
@@ -471,9 +470,9 @@
 #' @param scale_factor   Scale factor to correct data
 #' @return raster.tb     A tibble for storing metadata about a spatio-temporal raster
 
-.sits_tibble_raster <- function (raster.obj, band, timeline, scale_factor){
+.sits_tibble_raster <- function(raster.obj, band, timeline, scale_factor) {
 
-    raster.tb <- tibble::tibble (
+    raster.tb <- tibble::tibble(
         r_obj           = list(raster.obj),
         ncols           = raster.obj@ncols,
         nrows           = raster.obj@nrows,
@@ -485,13 +484,13 @@
         xmax            = raster.obj@extent@xmax,
         ymin            = raster.obj@extent@ymin,
         ymax            = raster.obj@extent@ymax,
-        xres            = raster::xres (raster.obj),
-        yres            = raster::yres (raster.obj),
+        xres            = raster::xres(raster.obj),
+        yres            = raster::yres(raster.obj),
         scale_factor    = scale_factor,
         crs             = raster.obj@crs@projargs,
         name            = raster.obj@file@name
     )
-    class (raster.tb) <- append (class(raster.tb), "sits_tibble_raster")
-    return (raster.tb)
+    class(raster.tb) <- append(class(raster.tb), "sits_tibble_raster")
+    return(raster.tb)
 }
 
