@@ -104,9 +104,9 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' @name sits_envelope
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  This function computes the envelope of a time series using the
-#' streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelop` function.
+#' streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelope` function.
 #' @param data.tb      a valid sits tibble
-#' @param operations   character sequence indicating which operations must be taken. "U" for upper filter, "D" for down filter.
+#' @param operations   character sequence indicating which operations must be taken. "U" for upper filter, "L" for down filter.
 #' @param bands_suffix the suffix to be appended to the resulting data (default "env")
 #' @return result.tb   a sits tibble with same samples and the new bands
 #' @examples
@@ -126,6 +126,11 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #'
 #' @export
 sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
+
+    # verifies if dtwclust package is installed
+    if (!requireNamespace("dtwclust", quietly = TRUE)) {
+        stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
+    }
 
     # definitions of operations and the key returned by `dtwclust::compute_envelope`
     def_op <- list("U" = "upper", "L" = "lower", "u" = "upper", "l" = "lower")

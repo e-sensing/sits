@@ -1,4 +1,4 @@
-citHeader("To cite lubridate in publications use:")
+citHeader("To cite SITS in publications use:")
 
 citEntry(entry = "Manual",
          title        = "{SITS}: Data Analysis and Machine Learning using Satellite Image Time Series",

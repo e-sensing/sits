@@ -35,6 +35,11 @@ sits_dendrogram <- function (data.tb, bands = NULL,
                             dist_method = "dtw_basic",
                             grouping_method = "ward.D2", ...){
 
+    # verifies if dtwclust package is installed
+    if (!requireNamespace("dtwclust", quietly = TRUE)) {
+        stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
+    }
+
     # does the input data exist?
     .sits_test_tibble(data.tb)
 
