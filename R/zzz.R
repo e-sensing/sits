@@ -2,9 +2,10 @@
 .onAttach = function(lib, pkg){
     packageStartupMessage("Satellite Image Time Series package.")
     packageStartupMessage(
-        sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication. See demo() for examples.", utils::packageDescription("sits")$Version) )
+        sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.
+                See demo(package = 'sits') for examples.", utils::packageDescription("sits")$Version) )
 }
-.onLoad = function (lib, pkg) {
+.onLoad = function(lib, pkg) {
     Sys.setenv(R_CONFIG_ACTIVE = "default")
     Sys.setenv(R_CONFIG_FILE = "config.yml")
     sits_config()
@@ -15,7 +16,7 @@ sits.env$config <- NULL
 # Include the following global variables in the SITS package
 utils::globalVariables(c(".", "%>%", "Index", "from", "value", "variable", "cond",
                          "med", "qt25", "qt75", "cluster_id",
-                         "longitude", "latitude", "label", "coverage",
+                         "longitude", "latitude", "label", "coverage", "service",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
                          "original_label", "n_members", "n_members.n", "count",

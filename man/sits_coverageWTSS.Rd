@@ -14,7 +14,7 @@ sits_coverageWTSS(coverage = NULL, .show = TRUE)
 \description{
 uses the WTSS services to print information and save metadata about a
 chosen coverage:
- bands          - the bands of the data to be retrieved from the WTSS
+ bands          - the information about the bands of the data to be retrieved from the WTSS
  start_date     - the start date for the time series data in the coverage
  end_date       - the end date for the time series data in the coverage
  xres           - spatial resolution (x dimension)
