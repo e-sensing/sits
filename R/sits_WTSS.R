@@ -156,44 +156,6 @@ sits_coverageWTSS <- function(coverage = NULL, .show = TRUE) {
     return(coverage.tb)
 }
 
-#' @title Obtain information about one coverage of the WTSS service
-#' @name sits_getcovWTSS
-#'
-#' @description uses the WTSS services to retrieve information about a given coverage:
-#'  name            - coverage name
-#'  description     - description
-#'  detail          - more information (source)
-#'  attributes      - spectral bands (name, description, datatype, valid_range.min, valid_range.max, scale_factor, missing_value)
-#'  spatial_extent  - bounding box in space (xmin, ymin, xmax, ymax)
-#'  crs             - Projection CRS
-#'  timeline        - dates of images contained in the coverage
-#'
-#' @param coverage   the name of the coverage
-#' @return cov       a list with descriptive information about the coverage
-#' @export
-sits_getcovWTSS <- function(coverage = NULL) {
-    # is the coverage name provided?
-    ensurer::ensure_that(coverage, !purrr::is_null(.),
-                         err_desc = "sits_getcovWTSS: Coverage name must be provided")
-
-    # load the configuration file
-    if (purrr::is_null(sits.env$config))
-        sits_config()
-
-    # obtains information about the WTSS service
-    URL <- sits.env$config$WTSS_server
-    wtss.obj         <- wtss::WTSS(URL)
-    # obtains information about the coverages
-    coverages.vec    <- wtss::listCoverages(wtss.obj)
-    # is the coverage in the list of coverages?
-    ensurer::ensure_that(coverage, . %in% coverages.vec,
-                         err_desc = "sits_getcovWTSS: coverage is not available in the WTSS server")
-    #retrive the coverage information
-    cov.lst    <- wtss::describeCoverage(wtss.obj, coverage)
-    cov <- cov.lst[[coverage]]
-
-    return(cov)
-}
 #' @title Obtain one timeSeries from WTSS server and load it on a sits tibble
 #' @name sits_fromWTSS
 #'
@@ -240,17 +202,16 @@ sits_fromWTSS <- function(longitude,
         sits_log()
 
     # does the coverage info exist? If not, build it
-    if (purrr::is_null(sits.env$config$coverages))
+    # does the coverage info exist but the current coverage is not there? If so, include it
+    if (purrr::is_null(sits.env$config$coverages) ||
+        NROW(dplyr::filter(sits.env$config$coverages, name == coverage & service == "WTSS")) != 1)
         coverage.tb <- sits_coverageWTSS(coverage)
+    else
+        coverage.tb <- dplyr::filter(sits.env$config$coverages, name == coverage & service == "WTSS")
 
-    # does the coverage info exist but the current coverage is not there? If so, build it
-    if (NROW(dplyr::filter(sits.env$config$coverages, name == coverage & service == "WTSS")) != 1)
-        coverage.tb <- sits_coverageWTSS(coverage)
-
-
-    # retrieve information about the bands
-    band_info <- coverage.tb $attributes
-    b <- tibble::as.tibble(band_info[, -(3:4)])
+    # ensure the coverage information exists and is unique
+    ensurer::ensure_that(coverage.tb, NROW(.) == 1,
+                         err_desc = "sits_fromWTSS - coverage not available")
 
     # try to get a time series from the WTSS server
     tryCatch({
@@ -276,13 +237,12 @@ sits_fromWTSS <- function(longitude,
 
         # retrieve the time series information
         time_series <- ts[[coverage]]$attributes
-
         # retrieve information about the bands
         band_info <- coverage.tb$band_info[[1]]
 
         # determine the missing value for each band
         miss_value <- function(band) {
-            return(band_info[which(band == band_info[, "name"]), "missing_value"])
+            return(as.numeric(band_info[which(band == band_info[, "name"]), "missing_value"]))
         }
         # update missing values to NA
         for (b in bands) {
@@ -294,7 +254,7 @@ sits_fromWTSS <- function(longitude,
 
         # calculate the scale factor for each band
         scale_factor <- function(band) {
-            return(band_info[which(band == band_info[, "name"]), "scale_factor"])
+            return(as.numeric(band_info[which(band == band_info[, "name"]), "scale_factor"]))
         }
         # scale the time series
         bands %>%
