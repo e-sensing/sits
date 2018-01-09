@@ -292,7 +292,8 @@ sits_classify_raster <- function(file = NULL, raster.tb,  samples.tb, ml_method 
                                  blocksize = 250000, multicores = 2){
 
     # ensure metadata tibble exists
-    .sits_test_tibble(raster.tb)
+    .sits_test_tibble (raster.tb)
+
     # ensure patterns tibble exits
     .sits_test_tibble(samples.tb)
 

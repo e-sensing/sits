@@ -80,7 +80,7 @@ sits_infoWTSS <- function() {
 #'  crs            - Projection crs
 #'
 #' @param coverage   the name of the coverage
-#' @param .show      show information about the coverage
+#' @param .show      show information about the coverage (Default: FALSE)
 #' @export
 #'
 sits_coverageWTSS <- function(coverage = NULL, .show = TRUE) {

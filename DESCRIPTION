@@ -36,7 +36,6 @@ Imports:
     ensurer,
     dplyr,
     dtw,
-    dtwclust,
     dtwSat,
     gbm,
     ggplot2,
@@ -68,6 +67,7 @@ Imports:
     stats,
     stringr,
     tibble,
+    tidyr,
     tools,
     utils,
     wtss,
@@ -112,7 +112,8 @@ Collate:
     'sits_validate.R'
     'sits_zoo.R'
     'zzz.R'
-Suggests: knitr,
+Suggests: dtwclust,
+    knitr,
     mxnet,
     rmarkdown,
     testthat

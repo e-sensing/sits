@@ -56,6 +56,11 @@ sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
 #' @export
 sits_cluster_validity <-  function (data.tb, type = "valid") {
 
+    # verifies if dtwclust package is installed
+    if (!requireNamespace("dtwclust", quietly = TRUE)) {
+        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+    }
+
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_validity: input data does not contain cluster column")
 
@@ -146,53 +151,33 @@ sits_cluster_cleaner <-  function (data.tb, min_clu_perc = 0.0, min_lab_perc = 0
     return (result.tb)
 }
 
-#' @title Cluster label
-#' @name sits_cluster_names
+#' @title Cluster relabel
+#' @name sits_cluster_relabel
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Renames the labels of SITS tibble samples according to its respective cluster.
-#' This function needs as input a SITS tibble with `cluster` column.
-#'
-#' @param data.tb          a SITS tibble with `cluster` column.
-#' @return cluster_names   character vector informing all cluster names. If unnamed vector is informed,
-#'                         the index of each name will be treated as cluster code
-#' @export
-sits_cluster_names <- function (data.tb) {
-
-    # is the input data the result of a cluster function?
-    ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_names: input data does not contain cluster column")
-
-    # compute clusters names and return
-    cluster_names <- sort(base::unique(data.tb$cluster))
-    return (cluster_names)
-}
-
-#' @title Cluster names
-#' @name `sits_cluster_names<-`
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Renames the labels of SITS tibble samples according to its respective cluster.
+#' @description Relabel the SITS tibble samples according to its respective cluster.
 #' This function needs as input a SITS tibble with `cluster` column.
 #'
 #' @param data.tb          a SITS tibble with `cluster` column.
 #' @param value            character vector informing all cluster names. If unnamed vector is informed,
 #'                         the index of each name will be treated as cluster code
-#' @return data.tb         SITS tibble with relabeled samples
+#' @return result.tb       SITS tibble with relabeled samples
 #' @export
-`sits_cluster_names<-` <-  function (data.tb, value) {
+sits_cluster_relabel <-  function (data.tb, value) {
 
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.),
                          err_desc = "sits_cluster_names: input data does not contain cluster column")
 
     # verify if the informed cluster names has the same length of clusters names
-    ensurer::ensure_that(data.tb, length(sits_cluster_names(.)) == length(value),
+    ensurer::ensure_that(data.tb, length(base::unique(.$cluster)) == length(value),
                          err_desc = "sits_cluster_name: informed names has length different of the number of clusters")
 
     # compute new clusters names
     data_cluster_names.vec <- value[data.tb$cluster] %>% unlist()
 
     # relabel result and return
-    data.tb$label <- data_cluster_names.vec
-    return (data.tb)
+    result.tb <- data.tb
+    result.tb$label <- data_cluster_names.vec
+    return (result.tb)
 }

@@ -9,7 +9,7 @@ sits_coverageWTSS(coverage = NULL, .show = TRUE)
 \arguments{
 \item{coverage}{the name of the coverage}
 
-\item{.show}{show information about the coverage}
+\item{.show}{show information about the coverage (Default: FALSE)}
 }
 \description{
 uses the WTSS services to print information and save metadata about a

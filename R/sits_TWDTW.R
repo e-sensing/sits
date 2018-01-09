@@ -52,6 +52,11 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
                         start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
 
+    # verifies if dtwSat package is installed
+    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+    }
+
     # add a progress bar
     progress_bar <- NULL
     if (nrow (data.tb) > 10) {
@@ -142,6 +147,11 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 .sits_TWDTW_breaks <- function (matches, data.tb, start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
 
+    # verifies if dtwSat package is installed
+    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+    }
+
     # create a tibble to store the results
     i <- 1
     class.tb <- data.tb %>%
@@ -202,6 +212,12 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 #' @return ts.twdtw      a time series in TWDTW format (an object of the twdtwTimeSeries class)
 #'
 .sits_toTWDTW_matches <- function(data.tb, patterns.tb){
+
+    # verifies if dtwSat package is installed
+    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+    }
+
     # compute patterns dtwSat::twdtwTimeSeries object
     pat.twdtw <- patterns.tb %>%
         .sits_toTWDTW()
