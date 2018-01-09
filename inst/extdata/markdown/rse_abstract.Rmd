@@ -1,0 +1,48 @@
+---
+output: 
+  pdf_document:
+    citation_package: natbib
+    keep_tex: true
+    fig_caption: true
+    latex_engine: pdflatex
+    template: latex-ms.tex
+title: "Comparing Visual Interpretation and Satellite Time Series Analysis to Detect Deforestation in Amazonia"
+author:
+- name: Rolf Simoes
+  affiliation: National Institute for Space Reseach, INPE, Brazil
+- name: Gilberto Camara
+  affiliation: National Institute for Space Reseach, INPE, Brazil
+- name: Alexandre Iwata
+  affiliation: Institute for Applied Economics Research (IPEA), Brazil
+- name: Rodrigo Bergotti
+  affiliation: National Institute for Space Reseach, INPE, Brazil
+
+
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+fontfamily: mathdesign
+fontfamilyoptions: adobe-utopia
+fontsize: 11pt
+bibliography: references-sits.bib
+biblio-style: agsm
+endnote: no
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Comparing Visual Interpretation and Satellite Time Series Analysis to Detect Deforestation in Amazonia}
+  %\VignetteEncoding{UTF-8}
+---
+# Extended Abstract
+In 1988, Brazil's National Institute for Space Research (INPE) set up an operational monitoring of the Brazilian Amazonia rain forest. Called PRODES, this system uses visual interpretation of LANDSAT images to produce yearly estimates of forest loss. The scientific community considers it as a standard reference for studies involving tropical deforestation [@Morton2006][@Hansen2013]. Brazil uses PRODES as a key part for the country's estimates of greenhouse gases emissions and for measuring its international commitments to the UN Climate and Biodiversity conferences. Despite strong support and acceptance, PRODES has drawbacks. The results rely on the abilities of skilled interpreters, which comes at a high cost. Given these limitations, in this paper we investigate if satellite image time series analysis methods can match the PRODES quality and thus reduce its cost, while improving its reproducibility.
+
+Ours is a novel approach, taking the full depth of the time series to create larger dimensional spaces to support machine learning classifiers. The method has a deceptive simplicity: use all the data available in the time series samples. As established in the literature, machine learning models perform better in high-dimensional spaces. Thus, the idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. The time series combine data from LANDSAT 8 and MODIS to get 23 samples per year per pixel, with 3 bands (NVDI, EVI, nir). We then feed the statistical inference model with a 69-dimensional attribute space. 
+
+We took areas in Amazonia with much cloud cover, and fed the statistical model with samples of forest and deforested areas for 2014, 2015 and 2016. These samples trained a support vector machine classifier that reached  95% accuracy. There was no filtering for cloud removal since these filters reduce the accuracy of the classification. This counter-intuitive result shows that machine learning classifiers are robust to noise. Attempts at noise reduction and cloud removal are counterproductive when dealing with dense satellite image time series.
+
+In the final version of the paper, we will report on the results of large-scale processing of time series on different regions of the Amazon. We will discuss on whether the proposed techniques can enhance or even replace the current visual interpretation used by the PRODES. 
+<!--
+# References
+\setlength{\parindent}{-0.2in}
+\setlength{\leftskip}{0.2in}
+\setlength{\parskip}{8pt}
+\vspace*{-0.2in}
+\noindent
+-->

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_csv.R
 \name{sits_fromCSV}
 \alias{sits_fromCSV}
-\title{Obtain timeSeries from WTSS server, based on a CSV file.}
+\title{Obtain timeSeries from time series server, based on a CSV file.}
 \usage{
 sits_fromCSV(csv_file, service = "WTSS", coverage = "mod13q1_512",
   bands = NULL, satellite = "terra", prefilter = "1", n_max = Inf)

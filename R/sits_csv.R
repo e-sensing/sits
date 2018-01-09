@@ -1,4 +1,4 @@
-#' @title Obtain timeSeries from WTSS server, based on a CSV file.
+#' @title Obtain timeSeries from time series server, based on a CSV file.
 #' @name sits_fromCSV
 #'
 #' @description reads descriptive information about a set of
@@ -67,7 +67,7 @@ sits_fromCSV <-  function(csv_file,
     csv.tb <- readr::read_csv(csv_file, n_max = n_max, col_types = cols_csv)
 
     # find how many samples are to be read
-    n_rows_csv <- NROW (csv.tb)
+    n_rows_csv <- NROW(csv.tb)
 
     # create a variable to test the number of samples
     n_samples_ref <-  -1
@@ -77,25 +77,42 @@ sits_fromCSV <-  function(csv_file,
     diff_lines <- vector()
     # create the tibble
     data.tb <- sits_tibble()
+    # create a file to store the unread rows
+    csv_unread.tb <- .sits_tibble_csv()
     # for each row of the input, retrieve the time series
     csv.tb %>%
         purrrlyr::by_row(function(r){
             row <- sits_from_service(service, r$longitude, r$latitude, r$start_date, r$end_date,
                                      coverage, bands, satellite, prefilter, r$label)
-            if (!purrr::is_null (row)){
+            # did we get the data?
+            if (!purrr::is_null(row)){
                 nrow <-  nrow + 1
 
+                # test if the points have the same number of samples
                 n_samples <- nrow(row$time_series[[1]])
                 if (n_samples_ref == -1 )
                     n_samples_ref <<- n_samples
                 else
                     if (n_samples_ref != n_samples) {
                         diff_lines[length(diff_lines) + 1 ] <<- nrow
-                        msg <- paste0("Point (", longitude, latitude, start_date, end_date, ") has different number of samples")
+                        msg <- paste0("Point (", r$longitude, r$latitude, r$start_date, r$end_date, ") has different number of samples")
                         log4r::error(sits.env$logger, msg)
                     }
-
+                # add the new point to the SITS tibble
                 data.tb <<- dplyr::bind_rows(data.tb, row)
+            }
+            # the point could not be read
+            else {
+                csv_unread_row.tb <- tibble::tibble(
+                    longitude  = r$longitude,
+                    latitude   = r$latitude,
+                    start_date = r$start_date,
+                    end_date   = r$end_date,
+                    label      = r$label
+                )
+                csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
+                msg <- paste0("Point (", r$longitude, r$latitude, r$start_date, r$end_date, ") could not be retrieved")
+                log4r::error(sits.env$logger, msg)
             }
         })
     if (length(diff_lines) > 0) {
@@ -105,8 +122,9 @@ sits_fromCSV <-  function(csv_file,
             message("Some lines have different number of samples than the first line - see log file")
     }
     # Have all input rows being read?
-    if (nrow != n_rows_csv){
-        message("Some points could not be retrieved - see log file")
+    if (nrow != n_rows_csv) {
+        message("Some points could not be retrieved - see log file and csv_unread_file")
+        sits_toCSV(csv_unread.tb, file = paste0(dirname(sits.env$config$log_file),"/", "unread_samples.csv"))
     }
 
     return(data.tb)

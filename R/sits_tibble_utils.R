@@ -369,6 +369,25 @@
     return(result.tb)
 }
 
+#' @title Create an empty tibble to store the results of CSV samples that coudl not be read
+#' @name .sits_tibble_csv
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Create an empty tibble to store the results of classification
+#'
+#' @return result.tb   a tibble to store the result of classifications
+#'
+.sits_tibble_csv <- function() {
+    result.tb <- tibble::tibble(longitude   = double(),
+                                latitude    = double(),
+                                start_date  = as.Date(character()),
+                                end_date    = as.Date(character()),
+                                label       = character()
+    )
+    return(result.tb)
+}
+
 #' @title Create an empty tibble to store the metadata of a coverage
 #' @name .sits_tibble_coverage
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -380,8 +399,9 @@
 #'
 .sits_tibble_coverage <- function() {
     result.tb <- tibble::tibble(wtss.obj       = list(),
+                                service        = character(),
                                 name           = character(),
-                                bands          = list(),
+                                band_info      = list(),
                                 start_date     = as.Date(character()),
                                 end_date       = as.Date(character()),
                                 timeline       = list(),
