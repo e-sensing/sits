@@ -4,7 +4,7 @@
 \alias{sits_coverageWTSS}
 \title{Provides information about one coverage of the WTSS service}
 \usage{
-sits_coverageWTSS(coverage = NULL, .show = TRUE)
+sits_coverageWTSS(coverage = NULL, .show = FALSE)
 }
 \arguments{
 \item{coverage}{the name of the coverage}
