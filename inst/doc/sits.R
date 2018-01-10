@@ -66,46 +66,43 @@ series.tb <-
 sits_plot(series.tb)
 
 ## ------------------------------------------------------------------------
-# open CSV file with trusted samples
-read.csv(system.file("extdata/samples/samples_import.csv",
-                     package = "sits"))
-
-## ------------------------------------------------------------------------
-# obtain two years NDVI time series from the WTSS server for the last used coordinates
-series.tb <- 
-    sits_getdata(longitude = long, latitude = lat, service = "WTSS", 
-                 coverage = "mod13q1_512", bands = c("ndvi"),
-                 start_date = "2001-01-01", end_date = "2002-12-31")
+prodes_226_064[1:3,]
 
 ## ---- fig.align="center", fig.height=3.1, fig.width=5--------------------
+# Take the NDVI band of the first sample data set
+point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 # apply Savitzky–Golay filter
-series_sg.tb <- sits_sgolay(series.tb)
+point_sg.tb <- sits_sgolay(point.tb)
 # plot the series
-sits_plot(sits_merge(series_sg.tb, series.tb))
+sits_plot(sits_merge(point_sg.tb, point.tb))
 
 ## ---- fig.align="center", fig.height=3.1, fig.width=5--------------------
+# Take the NDVI band of the first sample data set
+point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 # apply Whitakker filter
-series_whit.tb <- sits_whittaker(series.tb)
+point_whit.tb <- sits_whittaker(point.tb)
 # plot the series
-sits_plot(sits_merge(series_whit.tb, series.tb))
+sits_plot(sits_merge(point_whit.tb, point.tb))
 
 ## ---- fig.align="center", fig.height=3.1, fig.width=5--------------------
+# Take the NDVI band of the first sample data set
+point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 # apply envelope filter
-series_env.tb <- sits_envelope(series.tb)
+point_env.tb <- sits_envelope(point.tb)
 # plot the series
-sits_plot(sits_merge(series_env.tb, series.tb))
+sits_plot(sits_merge(point_env.tb, point.tb))
 
 ## ---- fig.align="center", fig.height=3.1, fig.width=5--------------------
+# Take the NDVI band of the first sample data set
+point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 # apply ARIMA filter
-series_cf.tb <- sits_cloud_filter(series.tb)
+point_cf.tb <- sits_cloud_filter(point.tb)
 # plot the series
-sits_plot(sits_merge(series_cf.tb, series.tb))
+sits_plot(sits_merge(point_cf.tb, point.tb))
 
-## ------------------------------------------------------------------------
+## ----dendrogram, cache=TRUE, fig.align="center", fig.height=4.5, fig.width=5.5----
 # create a dendrogram object with default clustering parameters
 dendro <- sits_dendrogram(samples2.tb)
-
-## ---- fig.align="center", fig.height=4.5, fig.width=5.5------------------
 # plot the resulting dendrogram
 sits_plot_dendrogram(samples2.tb, dendro, cutree_height = 40)
 
@@ -122,10 +119,21 @@ clusters2.tb <- sits_cluster_cleaner(clusters.tb, min_clu_perc = 0.01)
 sits_cluster_frequency(clusters2.tb)
 
 ## ------------------------------------------------------------------------
-# proceed relabeling procedure
-clusters2.tb <- 
-    sits_cluster_relabel(clusters2.tb,
-                         c("Non-Cropping_Land", "Cropping_Land"))
-# show clusters samples frequency
-sits_cluster_frequency(clusters2.tb)
+# Retrieve the set of samples for the Mato Grosso region 
+# (provided by EMBRAPA) (samples_MT_ndvi) and 
+# get a point to be classified (point_ndvi)
+class.tb <- sits_classify(point_ndvi,
+                          samples_MT_ndvi,
+                          ml_method = sits_svm(kernel = "radial", 
+                                               cost = 10))
+sits_plot(class.tb)
+
+## ------------------------------------------------------------------------
+# Retrieve the set of samples for the Mato Grosso region 
+# (provided by EMBRAPA) (samples_MT_ndvi) and 
+# get a point to be classified (point_ndvi)
+class.tb <- sits_classify(point_ndvi,
+                          samples_MT_ndvi,
+                          ml_method = sits_rfor())
+sits_plot(class.tb)
 

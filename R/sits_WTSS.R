@@ -86,7 +86,7 @@ sits_infoWTSS <- function() {
 #' coverage.tb <- sits_coverageWTSS("mod13q1_512")
 #' @export
 #'
-sits_coverageWTSS <- function(coverage = NULL, .show = TRUE) {
+sits_coverageWTSS <- function(coverage = NULL, .show = FALSE) {
 
     # load the configuration file
     if (purrr::is_null(sits.env$config))
