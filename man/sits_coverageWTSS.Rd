@@ -9,7 +9,7 @@ sits_coverageWTSS(coverage = NULL, .show = TRUE)
 \arguments{
 \item{coverage}{the name of the coverage}
 
-\item{.show}{show information about the coverage (Default: FALSE)}
+\item{.show}{show information about the coverage (Default: TRUE)}
 }
 \description{
 uses the WTSS services to print information and save metadata about a
@@ -27,4 +27,8 @@ chosen coverage:
  ymax           - spatial extent (ymin)
  scale_factor   - scale factor to covert bands to a [0..1] scale
  crs            - Projection crs
+}
+\examples{
+# Retrieve information about a WTSS coverage
+coverage.tb <- sits_coverageWTSS("mod13q1_512")
 }

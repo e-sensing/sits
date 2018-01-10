@@ -1,14 +1,52 @@
 default:
     log_file         : "~/.sits/sits.log"
-    ts_services      : ["WTSS", "SATVEG"]
+    ts_services      : ["WTSS", "SATVEG", "RASTER"]
     WTSS_server      : "http://www.dpi.inpe.br/tws/wtss"
+    WTSS_products    : ["MOD13Q1"]
+    WTSS_bbox        : 
+        xmin         : -81.2341
+        xmax         : -31.9165
+        ymin         : -30.000
+        ymax         :  10.000
+    WTSS_size        :
+        nrows        : 24000
+        ncols        : 19200
     SATVEG_server    : "https://www.satveg.cnptia.embrapa.br"
+    SATVEG_products  : ["MOD13Q1"]
     SATVEG_account   : "/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
     SATVEG_satellites: ["terra", "aqua", "comb"]
     SATVEG_bands     : ["ndvi", "evi"]
+    SATVEG_bbox      : 
+        xmin         : -81.2341
+        xmax         : -31.9165
+        ymin         : -30.0000
+        ymax         :  10.000
+    SATVEG_size      :
+        nrows        : 24000
+        ncols        : 19200
     # prefilters: "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
     SATVEG_prefilter : ["0", "1", "2", "3"]
-    resolution:
-        MODIS:
-            xres: 0.00208334
-            yres: 0.00208334
+    
+    MOD13Q1_resolution:
+        xres        : 0.00208334
+        yres        : 0.00208334
+
+    MOD13Q1_missing_value:
+        ndvi        : -3000
+        evi         : -3000
+        red         : -1000
+        nir         : -1000
+        blue        : -1000
+        mir         : -1000
+
+    MOD13Q1_scale_factor:
+        ndvi        : 0.0001
+        evi         : 0.0001
+        red         : 0.0001
+        nir         : 0.0001
+        blue        : 0.0001
+        mir         : 0.0001
+
+
+
+

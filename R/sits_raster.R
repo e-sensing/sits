@@ -1,5 +1,5 @@
 #' @title Create a metadata tibble to store the description of a spatio-temporal raster dataset
-#' @name sits_STRaster
+#' @name sits_coverageRaster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  This function creates a tibble containing the metadata for
@@ -9,6 +9,8 @@
 #'               per time step. Different bands are archived in different raster files.
 #'
 #' @param  files         Vector with the file paths of the raster files
+#' @param  product       The image product where the files are extracted (e.g. MOD13Q1)
+#' @param  name          The name of the coverage file
 #' @param  timeline      Vector of dates with the timeline of the bands
 #' @param  bands         The bands contained in the Raster Brick set (in the same order as the files)
 #' @param  scale_factors Scale factors to convert each band to [0..1] range (in the same order as the files)
@@ -22,35 +24,34 @@
 #' # define the timeline
 #' data(timeline_mod13q1)
 #' timeline <- lubridate::as_date (timeline_mod13q1$V1)
-#' # define the bands
-#' bands <- c("ndvi")
-#' # define the scale factor
-#' scale_factors <-  c(0.0001)
 #'
 #' # create a raster metadata file based on the information about the files
-#' raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
+#' raster.tb <- sits_coverageRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
 #'
 #' @export
-sits_STRaster <- function(files, timeline, bands, scale_factors) {
+sits_coverageRaster <- function(files, product = "MOD13Q1", name = NULL, timeline, bands = NULL) {
 
     ensurer::ensure_that(bands, length(.) == length(files),
-                         err_desc = "number of bands does not match number of files")
-    ensurer::ensure_that(scale_factors, length(.) == length(files),
-                         err_desc = "scale_factors do not match number of files")
+                         err_desc = "sits_coverageRaster: number of bands does not match number of files")
+    ensurer::ensure_that(name, !purrr::is_null(.),
+                         err_desc = "sits_coverageRaster: name of the image must be provided")
 
-    raster.tb <- purrr::pmap(list(files, bands, scale_factors),
-                function(file, band, sf){
+    # create a list to store the raster objects
+    raster.lst <- list()
+
+    raster.tb <- purrr::pmap(list(files, bands),
+                function(file, band) {
                     # create a raster object associated to the file
                     raster.obj <- raster::brick(file)
                     # find out how many layers the object has
-                    n_layers    <-  raster.obj@file@nbands
+                    n_layers   <-  raster.obj@file@nbands
                     # check that there are as many layers as the length of the timeline
                     ensurer::ensure_that(n_layers, (.) == length(timeline),
                                          err_desc = "duration of timeline is not matched by number of layers in raster")
-
-                    row_raster.tb <- .sits_tibble_raster(raster.obj, band, timeline, sf)
-
-                }) %>% dplyr::bind_rows()
+                    # add the object to the raster object list
+                    raster.lst[[length(raster.lst) + 1]] <- raster.obj
+                })
+    raster.tb <- .sits_tibble_raster(raster.lst, name, bands, timeline, product, files)
 
     return(raster.tb)
 }

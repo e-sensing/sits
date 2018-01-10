@@ -29,7 +29,7 @@ The Web Time Series Service is a lightweight web service the allow remote access
 \examples{
 \donttest{
 # Obtain information about the coverages available
-wtss_inpe <- sits_infoWTSS()
+sits_infoWTSS()
 }
 }
 \author{

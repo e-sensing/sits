@@ -23,7 +23,7 @@
 #' @examples
 #' \donttest{
 #' # Obtain information about the coverages available
-#' wtss_inpe <- sits_infoWTSS()
+#' sits_infoWTSS()
 #' }
 #' @export
 
@@ -80,7 +80,10 @@ sits_infoWTSS <- function() {
 #'  crs            - Projection crs
 #'
 #' @param coverage   the name of the coverage
-#' @param .show      show information about the coverage (Default: FALSE)
+#' @param .show      show information about the coverage (Default: TRUE)
+#' @examples
+#' # Retrieve information about a WTSS coverage
+#' coverage.tb <- sits_coverageWTSS("mod13q1_512")
 #' @export
 #'
 sits_coverageWTSS <- function(coverage = NULL, .show = TRUE) {
@@ -120,27 +123,31 @@ sits_coverageWTSS <- function(coverage = NULL, .show = TRUE) {
         timeline <- cov$timeline
 
         # retrieve information about the bands
-        band_info <- tibble::as.tibble(cov$attributes[, -(3:4)])
+        band_info <- tibble::as.tibble(cov$attributes[, -(2:4)])
 
         # create a tibble to store the metadata
         coverage.tb <- tibble::tibble(
-            wtss.obj       = list(wtss.obj),
-            service        = "WTSS",
+            r.objs         = list(wtss.obj),
             name           = cov$name,
+            service        = "WTSS",
+            product        = sits.env$config$WTSS_products,
             band_info      = list(band_info),
             start_date     = as.Date(cov$timeline[1]),
             end_date       = as.Date(cov$timeline[length(timeline)]),
             timeline       = list(cov$timeline),
-            xmin           = cov$spatial_extent$xmin,
-            xmax           = cov$spatial_extent$xmax,
-            ymin           = cov$spatial_extent$ymin,
-            ymax           = cov$spatial_extent$ymax,
+            nrows          = sits.env$config$WTSS_size$nrows,
+            ncols          = sits.env$config$WTSS_size$ncols,
+            xmin           = sits.env$config$WTSS_bbox$xmin,
+            xmax           = sits.env$config$WTSS_bbox$xmax,
+            ymin           = sits.env$config$WTSS_bbox$ymin,
+            ymax           = sits.env$config$WTSS_bbox$ymax,
             xres           = cov$spatial_resolution$x,
             yres           = cov$spatial_resolution$y,
-            crs            = cov$crs$proj4)
+            crs            = cov$crs$proj4,
+            file_name      = NA)
 
         # add the metadata to the global list of coverages
-        sits.env$config$coverages <-  tibble::add_row(sits.env$config$coverages, coverage.tb)
+        sits.env$config$coverages <-  dplyr::bind_rows(sits.env$config$coverages, coverage.tb)
 
         # if asked, show the coverage attributes
         if (.show)
@@ -227,7 +234,7 @@ sits_fromWTSS <- function(longitude,
             ensurer::ensure_that(bands, (.) %in% coverage.tb$band_info[[1]]$name,
                                  err_desc = "sits_fromWTSS: requested bands are not available in the coverage")
 
-        ts <- wtss::timeSeries(coverage.tb$wtss.obj[[1]],
+        ts <- wtss::timeSeries(coverage.tb$r.obj[[1]],
                                coverage,
                                bands,
                                longitude,

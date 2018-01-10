@@ -13,7 +13,8 @@
 #' @param bands           string vector - the names of the bands to be retrieved
 #' @param satellite       (optional) - the same of the satellite (options - "terra", "aqua", "comb")
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @param n_max           integer - the maximum number of samples to be read
+#' @param .n_max          the maximum number of samples to be read
+#' @param .n_save         number of samples to save as intermediate files (used for long reads)
 #' @return data.tb        a SITS tibble
 #'
 #' @examples
@@ -30,7 +31,8 @@ sits_fromCSV <-  function(csv_file,
                           bands = NULL,
                           satellite = "terra",
                           prefilter = "1",
-                          n_max = Inf) {
+                          .n_save = 0,
+                          .n_max = Inf) {
 
     # test the configuration file
     if (purrr::is_null(sits.env$config))
@@ -64,7 +66,7 @@ sits_fromCSV <-  function(csv_file,
                             end_date    = readr::col_date(),
                             label       = readr::col_character())
     # read sample information from CSV file and put it in a tibble
-    csv.tb <- readr::read_csv(csv_file, n_max = n_max, col_types = cols_csv)
+    csv.tb <- readr::read_csv(csv_file, n_max = .n_max, col_types = cols_csv)
 
     # find how many samples are to be read
     n_rows_csv <- NROW(csv.tb)
@@ -85,7 +87,7 @@ sits_fromCSV <-  function(csv_file,
             row <- sits_from_service(service, r$longitude, r$latitude, r$start_date, r$end_date,
                                      coverage, bands, satellite, prefilter, r$label)
             # did we get the data?
-            if (!purrr::is_null(row)){
+            if (!purrr::is_null(row)) {
                 nrow <-  nrow + 1
 
                 # test if the points have the same number of samples
@@ -100,6 +102,12 @@ sits_fromCSV <-  function(csv_file,
                     }
                 # add the new point to the SITS tibble
                 data.tb <<- dplyr::bind_rows(data.tb, row)
+
+                # optional - save the results to an intermediate file
+                if (.n_save != 0) {
+
+
+                }
             }
             # the point could not be read
             else {
