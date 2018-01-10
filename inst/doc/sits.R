@@ -66,11 +66,6 @@ series.tb <-
 sits_plot(series.tb)
 
 ## ------------------------------------------------------------------------
-# open CSV file with trusted samples
-read.csv(system.file("extdata/samples/samples_import.csv",
-                     package = "sits"))
-
-## ------------------------------------------------------------------------
 prodes_226_064[1:3,]
 
 ## ---- fig.align="center", fig.height=3.1, fig.width=5--------------------
@@ -122,4 +117,23 @@ sits_cluster_frequency(clusters.tb)
 clusters2.tb <- sits_cluster_cleaner(clusters.tb, min_clu_perc = 0.01)
 # show clusters samples frequency
 sits_cluster_frequency(clusters2.tb)
+
+## ------------------------------------------------------------------------
+# Retrieve the set of samples for the Mato Grosso region 
+# (provided by EMBRAPA) (samples_MT_ndvi) and 
+# get a point to be classified (point_ndvi)
+class.tb <- sits_classify(point_ndvi,
+                          samples_MT_ndvi,
+                          ml_method = sits_svm(kernel = "radial", 
+                                               cost = 10))
+sits_plot(class.tb)
+
+## ------------------------------------------------------------------------
+# Retrieve the set of samples for the Mato Grosso region 
+# (provided by EMBRAPA) (samples_MT_ndvi) and 
+# get a point to be classified (point_ndvi)
+class.tb <- sits_classify(point_ndvi,
+                          samples_MT_ndvi,
+                          ml_method = sits_rfor())
+sits_plot(class.tb)
 

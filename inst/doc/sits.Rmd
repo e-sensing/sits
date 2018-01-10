@@ -42,7 +42,7 @@ library(dtwclust)
 
 Earth observation satellites provide a continuous and consistent set of information about the Earth’s land and oceans. Most space agencies have adopted an open data policy, making unprecedented amounts of satellite data available for research and operational use. This data deluge has brought about a major challenge: *How to design and build technologies that allow the Earth observation community to analyse big data sets?*
 
-The approach taken in the current package is to develop data analysis methods that work with satellite image time series. The time series are obtained by taking calibrated and comparable measures of the same location in Earth at different times. These measures can be obtained by a single sensor (e.g., MODIS) or by combining different sensors (e.g., LANDSAT-8 and SENTINEL-2). If obtained by frequent revisits, the temporal resolution of these data sets can capture the most important land use changes. 
+The approach taken in the current package is to develop data analysis methods that work with satellite image time series. The time series are obtained by taking calibrated and comparable measures of the same location in Earth at different times. These measures can be obtained by a single sensor (*e.g.*, MODIS) or by combining different sensors (*e.g.*, LANDSAT-8 and SENTINEL-2). If obtained by frequent revisits, the temporal resolution of these data sets can capture the most important land use changes. 
 
 Time series of remote sensing data show that land cover changes do not always occur in a progressive and gradual way, but they may also show periods of rapid and abrupt change followed either by a quick recovery [@Lambin2003]. Analyses of multiyear time series of land surface attributes, their fine-scale spatial pattern, and their seasonal evolution leads to a broader view of land-cover change. Satellite image time series have already been applied to applications such as mapping for detecting forest disturbance [@Kennedy2010], ecology dynamics [@Pasquarella2016], agricultural intensification [@Galford2008] and its impacts on deforestation [@Arvor2012].
 
@@ -52,7 +52,7 @@ Current approaches to image time series analysis still use limited number of att
 
 The SITS package uses the full depth of satellite image time series to create larger dimensional spaces. We tested different methods of extracting attributes from time series data, including those reported by @Pelletier2016 and @Kastens2017. Our conclusion is that part of the information in raw time series is lost after filtering or statistical approximation. Thus, the method we developed has a deceptive simplicity: *use all the data available in the time series samples*. The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. Our experiments found out that modern statistical models such as support vector machines, and random forests perform better in high-dimensional spaces than in lower dimensional ones. 
 
-In what follows, we describe the main characteristics of the SITS package. The first part describes the basic data structures used in SITS and the tools used for visualisation and data exploration. Then we show how to do data acquisition from external sources, with an emphasis on the WTSS ("web time series service"). The next sections describe filtering and clustering techniques. We then discuss machine learning techniques for satellite image time series data and how to apply them to image time series. Finally, we present validation methods.
+In what follows, we describe the main characteristics of the SITS package. The first part describes the basic data structures used in SITS and the tools used for visualisation and data exploration. Then we show how to do data acquisition from external sources, with an emphasis on the WTSS (an acronym for Web Time Series Service) [@Ribeiro2015]. The next sections describe filtering and clustering techniques. We then discuss machine learning techniques for satellite image time series data and how to apply them to image time series. Finally, we present validation methods.
 
 # Data Handling and Visualisation Basics in SITS
 
@@ -156,17 +156,11 @@ series.tb <-
 sits_plot(series.tb)
 ```
 
-A useful case is when users have a set of labelled samples, that are to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. The `sits_getdata()` function can receive a CSV file path as an argument. In this case, the CSV must provide some required fields. Each location information must have its latitude and longitude, the start and end dates of an yearly time series, and the label, as showm in the example bellow.
-
-```{r}
-# open CSV file with trusted samples
-read.csv(system.file("extdata/samples/samples_import.csv",
-                     package = "sits"))
-```
+A useful case is when users have a set of labelled samples, that are to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. The `sits_getdata()` function can receive a CSV file path as an argument. In this case, the CSV must provide some required fields. Each location information must have its latitude and longitude, the start and end dates, and a label associated.
 
 CSV files enable `sits_getdata()` function to retrieve all samples at once. Groud truth samples are used to train machine learning algorithms to classify images. However it may be useful to explore some of its characteristics before generate the classification model. These characteristics can enable the specialist to verify the quality of the sample, its representativeness regarding the land use and land cover universe and, its self consistency. To support these tasks SITS package provides some functionalities such as filtering and clustering. These subjects are discussed in the next section.
 
-# Filtering techniques
+# Filtering techniques for satellite image time series
 
 Satellite image time series will always be contaminated by atmospheric influence, geolocation error, and directional effects [@Lambin2006]. In tropical regions, clouds are a major factor on reducing the quality of the data. Inter-annual climate variability also changes the phenological cycles of the vegetation, resulting in time series whose periods and intensities do not match on an year to year basis [@Atkinson2012]. The same land use and land cover class is subject to intrinsic year to year variability. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with data sets that are noisy and non-homogeneous. 
 
@@ -234,7 +228,7 @@ sits_plot(sits_merge(point_cf.tb, point.tb))
 
 Time series filtering can be useful to work with noisy and non-homogeneous intra-class data.
 
-# Clustering techniques
+# Clustering in satellite image time series
 
 One of the main interests of analysing satellite image time series is to measure land use and land cover change. Such continuous observation provided by an evergrowing disponibility of satellite imagery data can help to understand the impact and extent of the humanity's transformation on the Earth's ecosystems and landscapes. In this regard, one of the more promising uses of satellite time series is its application for classification of land use and land cover. With the advance of big data era, robust classification techniques such as machine learning and deep learning depends on a reasonable amount of good quality samples. One of the main concerns in preparing such classification models is the quality and separability of the training samples. Algorithms such as SVM [(cite)] and Random Forest [(cite)] need a set of good-quality samples for each land cover class to be identified. These samples are usually provided by experts. They need to be tested for separability. Given a set of samples, we need good clustering methods and statistical analysis to find out if these samples can actually serve as a basis for good quality classification.
 
@@ -279,7 +273,7 @@ We could proceed by cutting the dendrogram at lower linkage distances to obtain 
 
 The dendrogram can be used to evaluate cluster separability in a qualitative fashion, and helps the practitioner to determine where to cut the tree to obtain the final clusters [@Liao2005].
 
-# Land use and land cover classification using satelite image time series
+# Machine learning classification for land use and land cover using satelite image time series
 
 The main advantage using satellite image time series in land use studies is that the time series is methodologically consistent with the very nature of the land covers. Using this kind of data allows focusing on land changes through time. Currently, most studies that use satellite image time series for land classification still use variations of the classical remote sensing image classification methods. Given a series of images, researchers use methods that produce a single composite for the whole series [@Gomez2016]. In their review on this subject, @Gomez2016 discuss 12 papers that use satellite image time series to derive image composites that are later used for classification. @Camara2016 denote these works as taking a \textit{space-first, time-later} approach.
 
@@ -289,13 +283,32 @@ In our view, these methods do not use the full potential of satellite image time
 
 SITS package provides functionality to explore the full depth of satellite image time series data. It treat time series as a feature vector. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars, also known as training data, to infer classes of a larger data set. In the next section we discuss about machine learning techniques supported in SITS package with more detail.
 
-## Machine Learning classification models
-
 In the training stage, Additional "bands" can be computed to increase the distinction between classes. This method has a deceptive simplicity 
 
 ## Support Vector Machine
 
+```{r}
+# Retrieve the set of samples for the Mato Grosso region 
+# (provided by EMBRAPA) (samples_MT_ndvi) and 
+# get a point to be classified (point_ndvi)
+class.tb <- sits_classify(point_ndvi,
+                          samples_MT_ndvi,
+                          ml_method = sits_svm(kernel = "radial", 
+                                               cost = 10))
+sits_plot(class.tb)
+```
+
 ## Random Forest
+
+```{r}
+# Retrieve the set of samples for the Mato Grosso region 
+# (provided by EMBRAPA) (samples_MT_ndvi) and 
+# get a point to be classified (point_ndvi)
+class.tb <- sits_classify(point_ndvi,
+                          samples_MT_ndvi,
+                          ml_method = sits_rfor())
+sits_plot(class.tb)
+```
 
 # Validation techniques
 
