@@ -14,6 +14,9 @@ sits_band_info(bands, product)
 \value{
 band_info a tibble with information about the bands (missing values and scale factors)
 }
+\description{
+Reads information about missing values and scale factor for image products
+}
 \examples{
 band_info <- sits_band_info(bands = c("ndvi", "evi"), product = "MOD13Q1")
 }

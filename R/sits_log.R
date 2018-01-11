@@ -22,12 +22,16 @@ sits_log <- function() {
     return(TRUE)
 }
 
+.sits_log_error <- function(message) {
+    log4r::error(sits.env$logger, message)
+}
+
 .sits_log_data <- function(data, file_name = "data_save.rda") {
     # pre-conditions
     ensurer::ensure_that(data, !purrr::is_null(.),
                          err_desc = "Cannot save NULL data")
 
-    save(data.tb, file = paste0(dirname(sits.env$config$log_file),"/", file_name))
+    save(data, file = paste0(dirname(sits.env$config$log_file),"/", file_name))
 
     # post-condition
     ensurer::ensure_that(file, file.exists(.),

@@ -7,7 +7,7 @@
 sits_log()
 }
 \value{
-logger      A pointer to a logger
+boolean      TRUE if creation succeeds
 }
 \description{
 Creates a logger file for debugging and information (uses log4r package)

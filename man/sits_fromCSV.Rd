@@ -4,13 +4,16 @@
 \alias{sits_fromCSV}
 \title{Obtain timeSeries from time series server, based on a CSV file.}
 \usage{
-sits_fromCSV(csv_file, service = "WTSS", coverage = "mod13q1_512",
-  bands = NULL, prefilter = "1", n_save = 0, n_max = Inf)
+sits_fromCSV(csv_file, service = "WTSS", product = "MOD13Q1",
+  coverage = "mod13q1_512", bands = NULL, prefilter = "1", n_save = 0,
+  n_max = Inf)
 }
 \arguments{
 \item{csv_file}{string  - name of a CSV file with information <id, latitude, longitude, from, end, label>}
 
 \item{service}{string - name of the time series service (options are "WTSS" or "SATVEG")}
+
+\item{product}{string - the name of the product (e.g., "MOD13Q1")}
 
 \item{coverage}{string - the name of the coverage to be retrieved}
 

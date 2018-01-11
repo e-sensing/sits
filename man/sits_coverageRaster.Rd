@@ -4,19 +4,19 @@
 \alias{sits_coverageRaster}
 \title{Create a metadata tibble to store the description of a spatio-temporal raster dataset}
 \usage{
-sits_coverageRaster(files, product = "MOD13Q1", name = NULL, timeline,
-  bands = NULL)
+sits_coverageRaster(product = "MOD13Q1", coverage = NULL, timeline = NULL,
+  bands, files)
 }
 \arguments{
-\item{files}{Vector with the file paths of the raster files}
-
 \item{product}{The image product where the files are extracted (e.g. MOD13Q1)}
 
-\item{name}{The name of the coverage file}
+\item{coverage}{The name of the coverage file}
 
 \item{timeline}{Vector of dates with the timeline of the bands}
 
 \item{bands}{The bands contained in the Raster Brick set (in the same order as the files)}
+
+\item{files}{Vector with the file paths of the raster files}
 }
 \value{
 raster.tb   A tibble with metadata information about a raster data set
@@ -37,8 +37,8 @@ data(timeline_mod13q1)
 timeline <- lubridate::as_date (timeline_mod13q1$V1)
 
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_coverageRaster(files, name = "Sinop-crop",
-             timeline = timeline, bands = c("ndvi"))
+raster.tb <- sits_coverageRaster(coverage = "Sinop-crop",
+             timeline = timeline, bands = c("ndvi"), files = files)
 
 }
 \author{

@@ -33,10 +33,6 @@ sits_fromSATVEG <- function(product     = "MOD13Q1",
                             prefilter   = "1",
                             label       = "NoClass") {
 
-    # load the configuration file
-    if (purrr::is_null(sits.env$config))
-        sits_config()
-
     # check parameters
     .sits_check_SATVEG(longitude, latitude, coverage, prefilter)
 

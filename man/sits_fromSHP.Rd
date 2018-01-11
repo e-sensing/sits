@@ -4,20 +4,22 @@
 \alias{sits_fromSHP}
 \title{Obtain timeSeries from WTSS server, based on a SHP file.}
 \usage{
-sits_fromSHP(shp_file, service = "WTSS", start_date = NULL,
-  end_date = NULL, coverage = "mod13q1_512", bands = NULL,
-  prefilter = "1", label = "NoClass")
+sits_fromSHP(shp_file, service = "WTSS", product = "MOD13Q1",
+  coverage = "mod13q1_512", start_date = NULL, end_date = NULL,
+  bands = NULL, prefilter = "1", label = "NoClass")
 }
 \arguments{
 \item{shp_file}{string  - name of a SHP file which provides the boundaries of a region of interest}
 
 \item{service}{string - name of the time series service (options are "WTSS" or "SATVEG")}
 
+\item{product}{string - the name of the product (e.g., "MOD13Q1")}
+
+\item{coverage}{string - name of the coverage}
+
 \item{start_date}{date - the start of the period}
 
 \item{end_date}{date - the end of the period}
-
-\item{coverage}{name of the coverage}
 
 \item{bands}{string vector - the names of the bands to be retrieved}
 

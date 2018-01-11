@@ -4,10 +4,15 @@
 \alias{sits_fromWTSS}
 \title{Obtain one timeSeries from WTSS server and load it on a sits tibble}
 \usage{
-sits_fromWTSS(longitude, latitude, start_date = NULL, end_date = NULL,
-  coverage = "mod13q1_512", bands = NULL, label = "NoClass")
+sits_fromWTSS(product = "MOD13Q1", coverage = "mod13q1_512", longitude,
+  latitude, start_date = NULL, end_date = NULL, bands = NULL,
+  label = "NoClass")
 }
 \arguments{
+\item{product}{the image product where the coverage depends}
+
+\item{coverage}{name of the coverage}
+
 \item{longitude}{double - the longitude of the chosen location}
 
 \item{latitude}{double - the latitude of the chosen location}
@@ -15,8 +20,6 @@ sits_fromWTSS(longitude, latitude, start_date = NULL, end_date = NULL,
 \item{start_date}{date - the start of the period}
 
 \item{end_date}{date - the end of the period}
-
-\item{coverage}{name of the coverage}
 
 \item{bands}{list of string - a list of the names of the bands of the coverage}
 

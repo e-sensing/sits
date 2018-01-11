@@ -34,9 +34,6 @@ sits_fromCSV <-  function(csv_file,
                           n_save    = 0,
                           n_max     = Inf) {
 
-    # test the configuration file
-    if (purrr::is_null(sits.env$config))
-        sits_config()
 
     # check that the input is a CSV file
     ensurer::ensure_that(csv_file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "csv",
@@ -58,9 +55,6 @@ sits_fromCSV <-  function(csv_file,
 
     # find how many samples are to be read
     n_rows_csv <- NROW(csv.tb)
-
-    # create a variable to test the number of samples
-    n_samples_ref <-  -1
     # create a variable to store the number of rows
     nrow <- 0
     # create the tibble
@@ -97,18 +91,13 @@ sits_fromCSV <-  function(csv_file,
             }
         })
 
-
-    if (length(diff_lines) > 0) {
-        if (length(diff_lines) == (nrow(csv.tb) - 1))
-            message("First line has different number of samples than others - see log file")
-        else
-            message("Some lines have different number of samples than the first line - see log file")
-    }
     # Have all input rows being read?
     if (nrow != n_rows_csv) {
         message("Some points could not be retrieved - see log file and csv_unread_file")
         .sits_log_CSV(csv_unread.tb, "unread_samples.csv")
     }
+    # check that all time series have the same number of samples
+    data.tb <- sits_prune(data.tb)
 
     return(data.tb)
 }
@@ -131,9 +120,6 @@ sits_fromCSV <-  function(csv_file,
 #' @export
 sits_toCSV <- function(data.tb, file){
 
-    # load the configuration file
-    if (purrr::is_null(sits.env$config))
-        sits_config()
 
     csv_columns <- c("longitude", "latitude", "start_date", "end_date", "label")
 

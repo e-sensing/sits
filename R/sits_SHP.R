@@ -36,9 +36,6 @@ sits_fromSHP <- function(shp_file,
                          prefilter  = "1",
                          label      = "NoClass") {
 
-    # load the configuration file
-    if (purrr::is_null(sits.env$config))
-        sits_config()
 
     # test parameters
     ensurer::ensure_that(file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",

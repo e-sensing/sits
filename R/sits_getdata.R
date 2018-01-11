@@ -86,10 +86,6 @@ sits_getdata <- function(file        = NULL,
                          label       = "NoClass",
                          n_max       = Inf) {
 
-    # load the configuration file
-    if (purrr::is_null(sits.env$config))
-        sits_config()
-
     # a JSON file has all the data and metadata
     if  (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "json") {
           data.tb <- sits_fromJSON(file)
@@ -154,28 +150,28 @@ sits_getdata <- function(file        = NULL,
                                prefilter  = "1",
                                label      = "NoClass") {
 
-    # load the configuration file
-    if (!exists("config_sys"))
-        config_sits <- sits_config()
 
     # Ensure that the service is available
     .sits_check_service(service)
 
     if (service == "WTSS")
-        data.tb <- sits_fromWTSS(latitude, longitude, start_date, end_date, coverage, bands, label)
+        data.tb <- sits_fromWTSS(product, coverage, latitude, longitude, start_date, end_date, bands, label)
     if (service == "SATVEG")
-        data.tb <- sits_fromSATVEG(latitude, longitude, start_date, end_date, coverage, prefilter, label)
+        data.tb <- sits_fromSATVEG(product, coverage, latitude, longitude, start_date, end_date, prefilter, label)
 
     return(data.tb)
 }
 #' @title Obtain the band information from the configuration file
 #' @name sits_band_info
 #'
+#' @description Reads information about missing values and scale factor for image products
+#  from the SITS configuration file (see \code{\link[sits]{sits_config}})
+#'
 #' @param bands  a list of bands whose information is to be retrieved
 #' @param product the image product whose information we need to retrieve
 #' @return band_info a tibble with information about the bands (missing values and scale factors)
 #' @examples
-#' band_info <- sits_band_info(bands = c("ndvi", "evi"), service = "WTSS", product = "MOD13Q1")
+#' band_info <- sits_band_info(bands = c("ndvi", "evi"), product = "MOD13Q1")
 #' @export
 sits_band_info <- function(bands, product) {
 

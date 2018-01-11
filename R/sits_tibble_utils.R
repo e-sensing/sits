@@ -343,6 +343,13 @@
                          err_desc = "input data not provided")
     ensurer::ensure_that(data.tb, NROW(.) > 0,
                          err_desc = "input data is empty")
+
+    names <- c("longitude", "latitude", "start_date", "end_date",
+               "label", "coverage", "time_series")
+
+    ensurer::ensure_that(data.tb, all(names %in% colnames(.)),
+                         err_desc = "data input is not a valid SITS tibble")
+
     return(TRUE)
 }
 
@@ -415,7 +422,7 @@
                                 xres           = double(),
                                 yres           = double(),
                                 crs            = character(),
-                                file_names     = list()
+                                files          = list()
     )
     class(result.tb) <- append(class(result.tb), "sits_tibble_coverage")
     return(result.tb)

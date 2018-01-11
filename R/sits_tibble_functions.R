@@ -440,6 +440,53 @@ sits_mutate <- function(data.tb, ...){
     data.tb$time_series <- proc_fun(...)
     return(data.tb)
 }
+
+#' @title Checks that the timeline of all time series of a data set are equal
+#' @name sits_prune
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function tests if all time series in a SITS tibble
+#' have the same number of samples, and returns a time series whose indices
+#' match the majority of the samples
+#'
+#' @param  data.tb  A sits tibble (either a SITS tibble or a raster metadata
+#' @return data.tb  A SITS tibble
+#' @export
+sits_prune <- function(data.tb) {
+    .sits_test_tibble(data.tb)
+
+    # create a vector to store the number of indices per time series
+    n_samples <- vector()
+
+    data.tb %>%
+        purrrlyr::by_row(function (r) {
+            n_samples[length(n_samples) + 1] <- length(r$time_series[[1]]$Index)
+        })
+
+    # check if all time indices are equal to the median
+    if (all(n_samples == stats::median(n_samples))) {
+        message("All samples of time series have the same number of time indices")
+        return(data.tb)
+    }
+    else{
+        message("Some samples of time series do not have the same number of time indices
+                as the majority of the data - see log file")
+
+        # save the wrong data in a log file
+        ind1 <- which (n_samples != stats::median(n_samples))
+        msg_log <- paste0("Lines with wrong number of samples are ",ind1)
+        .sits_log_error(msg_log)
+        data_err.tb <- data.tb[ind1, ]
+        .sits_log_data(data_err.tb, file_name = "data_wrong_indices.rda")
+
+        # return the time series that have the same number of samples
+        ind2 <- which (n_samples == stats::median(n_samples))
+
+        return(data.tb[ind2, ])
+    }
+}
+
+
 #' @title names of the bands of a time series
 #' @name sits_rename
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

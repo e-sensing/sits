@@ -4,14 +4,15 @@
 \alias{sits_coverageSATVEG}
 \title{Retrieve a coverage name from the SATVEG service}
 \usage{
-sits_coverageSATVEG(coverage, bands = c("ndvi", "evi"), product = "MOD13Q1")
+sits_coverageSATVEG(product = "MOD13Q1", coverage = "terra",
+  timeline = NULL)
 }
 \arguments{
+\item{product}{the SATVEG product}
+
 \item{coverage}{the name of the coverage ("terra", "aqua", "comb")}
 
-\item{bands}{the bands available in SATVEG}
-
-\item{product}{the SATVEG product}
+\item{timeline}{the timeline for the SATVEG product (optional)}
 }
 \value{
 coverage.tb       metadata about the coverage

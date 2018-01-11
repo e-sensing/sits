@@ -83,44 +83,6 @@ sits_show_config <- function() {
 
     return(TRUE)
 }
-#' @title Retrieve the time series server for the product
-#' @name .sits_get_server
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#'
-#' @param service         The name of the service
-#' @return serverURL      A string with the server URL that provides the service
-#'
-.sits_get_server <- function(service) {
-    # pre-condition
-    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
-                         err_desc = "Service not available - check configuration file")
-
-    # get the server URL from the configuration file
-    s <- paste0(service,"_server")
-    serverURL <- sits.env$config[[s]]
-
-    #post-condition
-    ensurer::ensure_that(serverURL, RCurl::url.exists(serverURL),
-                         err_desc = "URL not available for service", service)
-
-    return(serverURL)
-}
-
-.sits_get_coverage <- function(service, coverage) {
-
-    if (purrr::is_null(sits.env$config$coverages))
-        return(NULL)
-    else {
-        coverage.tb <- dplyr::filter(sits.env$config$coverages, coverage == coverage & service == "WTSS")
-        if (NROW(coverage.tb) == 1)
-            return(coverage.tb)
-        else
-            return(NULL)
-    }
-}
-
-
 
 .sits_get_account <- function(service, product) {
     # pre-condition
@@ -161,7 +123,7 @@ sits_show_config <- function() {
 
     #post-condition
     ensurer::ensure_that(bands, length(.) > 0,
-                         err_desc = "bands not available for", product, "in service", service)
+                         err_desc = paste0("bands not available for", product, "in service", service))
 
     return(bands)
 }
@@ -185,6 +147,20 @@ sits_show_config <- function() {
     return(bbox)
 }
 
+.sits_get_coverage <- function(service, coverage) {
+
+    if (purrr::is_null(sits.env$config$coverages))
+        return(NULL)
+    else {
+        coverage.tb <- dplyr::filter(sits.env$config$coverages, coverage == coverage & service == "WTSS")
+        if (NROW(coverage.tb) == 1)
+            return(coverage.tb)
+        else
+            return(NULL)
+    }
+}
+
+
 .sits_get_missing_value <- function(product, band) {
 
     # create a string to query for the missing values
@@ -192,7 +168,7 @@ sits_show_config <- function() {
     mv <- as.numeric(sits.env$config[[mv_name]][[band]])
     #post-condition
     ensurer::ensure_that(mv, !purrr::is_null(.),
-                         err_desc = "Configuration file has no missing values for", band, "of", product)
+                         err_desc = paste0("Configuration file has no missing values for", band, "of", product))
 
     return(mv)
 }
@@ -213,7 +189,7 @@ sits_show_config <- function() {
 
     #post-condition
     ensurer::ensure_that(crs, length(.) > 0,
-                         err_desc = "Projection information for ", product, "of service", service, "not available")
+                         err_desc = paste0("Projection information for ", product, "of service", service, "not available"))
 
     return(crs)
 }
@@ -227,12 +203,32 @@ sits_show_config <- function() {
         res[c] <- sits.env$config[[s]][[c]]
 
     #post-condition
-    ensurer::ensure_that(size["xres"], (.) > 0,
-                         err_desc = "Horizontal resolution not available for ", product, "of service", service)
-    ensurer::ensure_that(size["yres"], (.) > 0,
-                         err_desc = "Vertical resolution not available for product", product, "of service", service)
+    ensurer::ensure_that(res["xres"], (.) > 0,
+                         err_desc = paste0("Horizontal resolution not available for ", product, "of service", service))
+    ensurer::ensure_that(res["yres"], (.) > 0,
+                         err_desc = paste0("Vertical resolution not available for product", product, "of service", service))
 
     return(res)
+}
+
+#' @title Retrieve the time series server for the product
+#' @name .sits_get_server
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#'
+#' @param service         The name of the service
+#' @return serverURL      A string with the server URL that provides the service
+#'
+.sits_get_server <- function(service) {
+    # pre-condition
+    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
+                         err_desc = "Service not available - check configuration file")
+
+    # get the server URL from the configuration file
+    s <- paste0(service,"_server")
+    serverURL <- sits.env$config[[s]]
+
+    return(serverURL)
 }
 
 .sits_get_size <- function(service, product) {
@@ -251,9 +247,9 @@ sits_show_config <- function() {
 
     #post-condition
     ensurer::ensure_that(size["nrows"], (.) > 0,
-                         err_desc = "Number of rows not available for product", product, "for service", service)
+                         err_desc = paste0("Number of rows not available for product", product, "for service", service))
     ensurer::ensure_that(size["ncols"], (.) > 0,
-                         err_desc = "Number of cols not available for product", product, "for service", service)
+                         err_desc = paste0("Number of cols not available for product", product, "for service", service))
 
     return(size)
 }
@@ -264,18 +260,42 @@ sits_show_config <- function() {
     sf <- as.numeric(sits.env$config[[product]][[band]])
     #post-condition
     ensurer::ensure_that(sf, !purrr::is_null(.),
-                         err_desc = "Configuration file has no scale factors for", band, "of", product)
+                         err_desc = paste0("Configuration file has no scale factors for", band, "of", product))
     return(sf)
 }
 
-.sits_get_timeline <- function(product){
-    s <- paste0(product, "_timeline")
-    timeline <- lubridate::as_date(sits.env$config[[s]])
+.sits_get_timeline <- function(service, product, coverage){
 
-    ensurer::ensure_that(timeline, length(.) > 0,
-                         err_desc = "Could not retrieve timeline for product ", product)
+    if (service == "RASTER")
+        message("Please provide timeline for raster data: will use default timeline")
 
-    return(timeline)
+    if (service == "WTSS") {
+        URL  <- .sits_get_server("WTSS")
+        # obtains information about the available coverages
+        wtss.obj         <- wtss::WTSS(URL)
+        coverages.vec    <- wtss::listCoverages(wtss.obj)
+
+        # is the coverage in the list of coverages?
+        ensurer::ensure_that(coverage, (.) %in% coverages.vec,
+                             err_desc = "sits_coverageWTSS: coverage is not available in the WTSS server")
+
+        # describe the coverage
+        cov.lst    <- wtss::describeCoverage(wtss.obj, coverage)
+        cov        <- cov.lst[[coverage]]
+
+        # temporal extent
+        timeline <- cov$timeline
+
+    }
+    else {
+        s <- paste0(service, "_timeline")
+        timeline <- lubridate::as_date(sits.env$config[[s]][[product]])
+
+        ensurer::ensure_that(timeline, length(.) > 0,
+                             err_desc = paste0("Could not retrieve timeline for product ", product))
+    }
+
+    return(lubridate::as_date(timeline))
 }
 
 .sits_check_service <- function(service){

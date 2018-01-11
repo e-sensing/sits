@@ -29,17 +29,9 @@
 
 sits_infoWTSS <- function() {
 
-    # load the configuration file
-    if (purrr::is_null(sits.env$config))
-        sits_config()
-
-    # load the configuration file
-    if (purrr::is_null(sits.env$logger))
-        sits_log()
-
     wtss.obj <- NULL
     # obtains information about the WTSS service
-    URL       <- sits.env$config$WTSS_server
+    URL       <- .sits_get_server(service = "WTSS")
     tryCatch({
         wtss.obj  <- wtss::WTSS(URL)
         cat(paste("-----------------------------------------------------------", "\n",sep = ""))
@@ -53,8 +45,8 @@ sits_infoWTSS <- function() {
         cat(paste("------------------------------------------------------------", "\n",sep = ""))
 
     }, error = function(e) {
-        msg <- paste0("WTSS service not available at URL ", sits.env$config$WTSS_server)
-        log4r::error(sits.env$logger, msg)
+        msg <- paste0("WTSS service not available at URL ", URL)
+        .sits_log_error(msg)
         message(msg)
         }
     )
@@ -76,11 +68,12 @@ sits_infoWTSS <- function() {
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177
 #'
+#' @param product         the image product where the coverage depends
+#' @param coverage        name of the coverage
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location
 #' @param start_date      date - the start of the period
 #' @param end_date        date - the end of the period
-#' @param coverage        name of the coverage
 #' @param bands           list of string - a list of the names of the bands of the coverage
 #' @param label           string - the label to attach to the time series (optional)
 #' @return data.tb        a SITS tibble
@@ -91,33 +84,20 @@ sits_infoWTSS <- function() {
 #' point.tb <- sits_fromWTSS (longitude = -55.50563, latitude = -11.71557)
 #' }
 #' @export
-sits_fromWTSS <- function(longitude,
+sits_fromWTSS <- function(product    = "MOD13Q1",
+                          coverage   = "mod13q1_512",
+                          longitude,
                           latitude,
                           start_date = NULL,
                           end_date   = NULL,
-                          coverage   = "mod13q1_512",
                           bands      = NULL,
                           label      = "NoClass") {
 
-    # does the configuration info exist? If not, build it
-    if (purrr::is_null(sits.env$config))
-        sits_config()
-
-    # does the logger info exist? If not, build it
-    if (purrr::is_null(sits.env$logger))
-        sits_log()
-
-    # does the coverage info exist? If not, build it
-    # does the coverage info exist but the current coverage is not there? If so, include it
-    if (purrr::is_null(sits.env$config$coverages) ||
-        NROW(dplyr::filter(sits.env$config$coverages, coverage == coverage & service == "WTSS")) != 1)
-        coverage.tb <- sits_coverageWTSS(coverage)
-    else
-        coverage.tb <- dplyr::filter(sits.env$config$coverages, coverage == coverage & service == "WTSS")
-
-    # ensure the coverage information exists and is unique
-    ensurer::ensure_that(coverage.tb, NROW(.) == 1,
-                         err_desc = "sits_fromWTSS - coverage not available")
+    # tests if the coverage is available in the global list of coverages
+    # if it does not exits, create an empty one to hold the metadata about the coverages
+    coverage.tb <- .sits_get_coverage(service = "WTSS", coverage = coverage)
+    if (purrr::is_null(coverage.tb))
+       coverage.tb <- sits_coverage(service = "WTSS", product = product, coverage = coverage)
 
     # try to get a time series from the WTSS server
     tryCatch({
@@ -192,7 +172,7 @@ sits_fromWTSS <- function(longitude,
 
     }, error = function(e){
         msg <- paste0("WTSS - unable to retrieve point (", longitude, ", ", latitude, ", ", start_date," ,", end_date,")")
-        log4r::error(sits.env$logger, msg)
+        .sits_log_error(msg)
         message("WTSS - unable to retrieve point - see log file for details" )
         return(NULL)
     })

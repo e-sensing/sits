@@ -4,13 +4,19 @@
 \alias{sits_getdata}
 \title{Obtain time series from different sources}
 \usage{
-sits_getdata(file = NULL, longitude = NULL, latitude = NULL,
-  start_date = NULL, end_date = NULL, service = "WTSS",
-  coverage = "mod13q1_512", bands = NULL, prefilter = "1",
+sits_getdata(file = NULL, service = "WTSS", product = "MOD13Q1",
+  coverage = "mod13q1_512", longitude = NULL, latitude = NULL,
+  start_date = NULL, end_date = NULL, bands = NULL, prefilter = "1",
   label = "NoClass", n_max = Inf)
 }
 \arguments{
 \item{file}{(optional) the name of a file with information on the data to be retrieved (options - CSV, SHP)}
+
+\item{service}{string - name of the time series service (options are "WTSS" or "SATVEG")}
+
+\item{product}{the product from where the information is retrieved}
+
+\item{coverage}{string - the name of the coverage to be retrieved}
 
 \item{longitude}{double - the longitude of the chosen location}
 
@@ -19,10 +25,6 @@ sits_getdata(file = NULL, longitude = NULL, latitude = NULL,
 \item{start_date}{(optional) date - the start of the period}
 
 \item{end_date}{(optional) date - the end of the period}
-
-\item{service}{string - name of the time series service (options are "WTSS" or "SATVEG")}
-
-\item{coverage}{string - the name of the coverage to be retrieved}
 
 \item{bands}{(optional) vector - the names of the bands to be retrieved}
 
@@ -61,13 +63,13 @@ the user should supply the metadata.
 \donttest{
 # Read a single lat long point from a WTSS server
 point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557,
-         service = "WTSS", coverage    = "mod13q1_512")
+         service = "WTSS", product = "MOD13Q1", coverage    = "mod13q1_512")
 
 # show the point
 show(point.tb)
 # Read a set of points defined in a CSV file from a WTSS server
 csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
-points.tb <- sits_getdata (file = csv_file, service = "WTSS",
+points.tb <- sits_getdata (file = csv_file, service = "WTSS", product = "MOD13Q1",
              coverage = "mod13q1_512")
 
 # show the points retrieved for the WTSS server
