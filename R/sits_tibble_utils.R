@@ -415,7 +415,7 @@
                                 xres           = double(),
                                 yres           = double(),
                                 crs            = character(),
-                                file_name      = character()
+                                file_names     = list()
     )
     class(result.tb) <- append(class(result.tb), "sits_tibble_coverage")
     return(result.tb)
@@ -489,34 +489,17 @@
 #'               a set of spatio-temporal raster files.
 #'
 #' @param raster.lst     List of valid raster objects (associated to filename)
-#' @param name           the name of the set of images
+#' @param coverage       The coverage name
 #' @param bands          Vector of bands (either raw or classified)
 #' @param timeline       Timeline of data collection
 #' @param product        The product associated to the images
 #' @return raster.tb     A tibble for storing metadata about a raster coverage
 
-.sits_tibble_raster <- function(raster.lst, name, bands, timeline, product, files) {
+.sits_tibble_raster <- function(raster.lst, coverage, bands, timeline, product, files) {
 
-    band_info <- tibble::tibble(
-        name          = character(),
-        scale_factor  = double(),
-        missing_value = integer()
-    )
+    # get the information about the bands (missing values and scale factors)
+    band_info <- sits_band_info(bands, product)
 
-    mv <- paste0(product,"_missing_value")
-    ensurer::ensure_that(sits.env$config$mv$b, !purrr::is_null(.),
-                         err_desc = " .sits_tibble_raster: cannot read missing values")
-
-    sf <- paste0(product,"_scale_factor")
-
-    for (b in bands) {
-        bi <- tibble::tibble(
-            name          = b,
-            scale_factor  = sits.env$config$mv$b,
-            missing_value = sits.env$config$sf$b
-        )
-        band_info <- dplyr::bind_rows(band_info, bi)
-    }
     # use the first raster object as a reference to build the metadata
     raster.obj <- raster.lst[[1]]
 
@@ -527,7 +510,7 @@
     # fill the parameters of the raster coverage
     raster.tb <- tibble::tibble(
         r.objs          = raster.lst,
-        name            = name,
+        coverage        = coverage,
         service         = "RASTER",
         product         = product,
         band_info       = list(band_info),

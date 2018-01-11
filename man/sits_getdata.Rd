@@ -4,15 +4,13 @@
 \alias{sits_getdata}
 \title{Obtain time series from different sources}
 \usage{
-sits_getdata(raster.tb = NULL, file = NULL, longitude = NULL,
-  latitude = NULL, start_date = NULL, end_date = NULL, service = "WTSS",
-  coverage = "mod13q1_512", bands = NULL, satellite = "terra",
-  prefilter = "1", label = "NoClass", n_max = Inf)
+sits_getdata(file = NULL, longitude = NULL, latitude = NULL,
+  start_date = NULL, end_date = NULL, service = "WTSS",
+  coverage = "mod13q1_512", bands = NULL, prefilter = "1",
+  label = "NoClass", n_max = Inf)
 }
 \arguments{
-\item{raster.tb}{(optional) an STRaster  object (tibble with raster information)}
-
-\item{file}{(optional) the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)}
+\item{file}{(optional) the name of a file with information on the data to be retrieved (options - CSV, SHP)}
 
 \item{longitude}{double - the longitude of the chosen location}
 
@@ -27,8 +25,6 @@ sits_getdata(raster.tb = NULL, file = NULL, longitude = NULL,
 \item{coverage}{string - the name of the coverage to be retrieved}
 
 \item{bands}{(optional) vector - the names of the bands to be retrieved}
-
-\item{satellite}{(optional) - the same of the satellite (options - "terra", "aqua", "comb")}
 
 \item{prefilter}{string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
 
@@ -73,20 +69,22 @@ show(point.tb)
 csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
 points.tb <- sits_getdata (file = csv_file, service = "WTSS",
              coverage = "mod13q1_512")
-show (points.tb)
+
 # show the points retrieved for the WTSS server
-}
+show (points.tb)
+
 # Read a point in a Raster Brick
 # define the file that has the raster brick
 files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 # define the timeline
 data(timeline_mod13q1)
-timeline <- lubridate::as_date (timeline_mod13q1$V1)
+timeline <- lubridate::as_date(timeline_mod13q1$V1)
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
+raster.tb <- sits_coverageRaster(files, name = "Sinop-crop", timeline, bands = c("ndvi"))
 # read the point from the raster
-point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
-
+point.tb <- sits_getdata(longitude = -55.50563, latitude = -11.71557,
+            service = "RASTER", name = "Sinop-Crop")
+}
 }
 \references{
 Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
