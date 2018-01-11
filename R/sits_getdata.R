@@ -30,16 +30,15 @@
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177.
 #'
-#' @param raster.tb       (optional) an STRaster  object (tibble with raster information)
-#' @param file            (optional) the name of a file with information on the data to be retrieved (options - CSV, JSON, SHP)
+#' @param file            (optional) the name of a file with information on the data to be retrieved (options - CSV, SHP)
+#' @param service         string - name of the time series service (options are "WTSS" or "SATVEG")
+#' @param product         the product from where the information is retrieved
+#' @param coverage        string - the name of the coverage to be retrieved
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location)
 #' @param start_date      (optional) date - the start of the period
 #' @param end_date        (optional) date - the end of the period
-#' @param service         string - name of the time series service (options are "WTSS" or "SATVEG")
-#' @param coverage        string - the name of the coverage to be retrieved
 #' @param bands           (optional) vector - the names of the bands to be retrieved
-#' @param satellite       (optional) - the same of the satellite (options - "terra", "aqua", "comb")
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
 #' @param label           (optional) string - the label to be assigned to the time series
 #' @param n_max           (optional) integer - the maximum number of samples to be read
@@ -49,39 +48,40 @@
 #' \donttest{
 #' # Read a single lat long point from a WTSS server
 #' point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557,
-#'          service = "WTSS", coverage    = "mod13q1_512")
+#'          service = "WTSS", product = "MOD13Q1", coverage    = "mod13q1_512")
 #'
 #' # show the point
 #' show(point.tb)
 #' # Read a set of points defined in a CSV file from a WTSS server
 #' csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
-#' points.tb <- sits_getdata (file = csv_file, service = "WTSS",
+#' points.tb <- sits_getdata (file = csv_file, service = "WTSS", product = "MOD13Q1",
 #'              coverage = "mod13q1_512")
-#' show (points.tb)
+#'
 #' # show the points retrieved for the WTSS server
-#' }
+#' show (points.tb)
+#'
 #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #' # define the timeline
 #' data(timeline_mod13q1)
-#' timeline <- lubridate::as_date (timeline_mod13q1$V1)
+#' timeline <- lubridate::as_date(timeline_mod13q1$V1)
 #' # create a raster metadata file based on the information about the files
-#' raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
+#' raster.tb <- sits_coverageRaster(files, name = "Sinop-crop", timeline, bands = c("ndvi"))
 #' # read the point from the raster
-#' point.tb <- sits_getdata(raster.tb, longitude = -55.50563, latitude = -11.71557)
-#'
+#' point.tb <- sits_getdata(longitude = -55.50563, latitude = -11.71557,
+#'             service = "RASTER", name = "Sinop-Crop")
+#' }
 #' @export
-sits_getdata <- function(raster.tb   = NULL,
-                         file        = NULL,
+sits_getdata <- function(file        = NULL,
+                         service     = "WTSS",
+                         product     = "MOD13Q1",
+                         coverage    = "mod13q1_512",
                          longitude   = NULL,
                          latitude    = NULL,
                          start_date  = NULL,
                          end_date    = NULL,
-                         service     = "WTSS",
-                         coverage    = "mod13q1_512",
                          bands       = NULL,
-                         satellite   = "terra",
                          prefilter   = "1",
                          label       = "NoClass",
                          n_max       = Inf) {
@@ -101,36 +101,24 @@ sits_getdata <- function(raster.tb   = NULL,
         return(data.tb)
     }
 
-    # get data based from ST Raster file
-    if (!purrr::is_null(raster.tb)) {
-        if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv")
-            data.tb <- sits_fromRaster(raster.tb, file = file)
-        if (!purrr::is_null(longitude) && !purrr::is_null(latitude))
-            data.tb <- sits_fromRaster(raster.tb,
-                        longitude = longitude, latitude = latitude)
-        return(data.tb)
-    }
-
     # Ensure that the service is available
-    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
-                         err_desc = "sits_getdata: Invalid time series service")
+    .sits_check_service(service)
 
     # get data based on latitude and longitude
-    if (purrr::is_null(file) && purrr::is_null(raster.tb)
-        && !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
-        data.tb <- sits_from_service(service, longitude, latitude, start_date, end_date,
-                                     coverage, bands, satellite, prefilter, label)
+    if (purrr::is_null(file) &&
+        !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
+        data.tb <- .sits_from_service(service, product, coverage, longitude, latitude, start_date, end_date,
+                                      bands, prefilter, label)
         return(data.tb)
     }
     # get data based on CSV file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv") {
-        data.tb <- sits_fromCSV(file, service, coverage, bands, satellite, prefilter, n_max)
+        data.tb <- sits_fromCSV(file, service, product, coverage, bands, prefilter, n_max)
         return(data.tb)
     }
     # get data based on SHP file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "shp") {
-        data.tb <- sits_fromSHP(file, service, start_date, end_date, coverage, bands,
-                                satellite, prefilter, label)
+        data.tb <- sits_fromSHP(file, service, product, coverage, start_date, end_date, bands, prefilter, label)
         return(data.tb)
     }
     message(paste("No valid input to retrieve time series data!!", "\n", sep = ""))
@@ -138,55 +126,83 @@ sits_getdata <- function(raster.tb   = NULL,
 }
 
 #' @title Obtain timeSeries from time series service
-#' @name sits_from_service
+#' @name .sits_from_service
 #'
 #' @description obtains a time series from a time series service
 #'
 #' @param service         string - name of the time series service (options are "WTSS" or "SATVEG")
+#' @param product         string - the name of the product (e.g., "MOD13Q1")
+#' @param coverage        name of the coverage
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location)
 #' @param start_date      (optional) date - the start of the period
 #' @param end_date        (optional) date - the end of the period
-#' @param coverage        name of the coverage (required for WTSS)
 #' @param bands           (optional) string vector - the names of the bands to be retrieved
 #' @param satellite       (optional) - the same of the satellite (options - "terra", "aqua", "comb")
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
 #' @param label           string - the label to attach to the time series
 #' @return table          a SITS tibble
 #'
-#' @examples
-#' \donttest{
-#' # define a shapefile and read from the points inside it from the WTSS service
-#' shp_file <- system.file("extdata/shapefiles/anhanguera/anhanguera.shp", package = "sits")
-#' munic.tb <- sits_fromSHP(shp_file)
-#' }
-#' @export
-#'
-sits_from_service <- function(service    = "WTSS",
-                              latitude   = NULL,
-                              longitude  = NULL,
-                              start_date = NULL,
-                              end_date   = NULL,
-                              coverage   = "mod13q1_512",
-                              bands      = NULL,
-                              satellite  = "terra",
-                              prefilter  = "1",
-                              label      = "NoClass") {
+.sits_from_service <- function(service    = "WTSS",
+                               product    = "MOD13Q1",
+                               coverage   = "mod13q1_512",
+                               latitude   = NULL,
+                               longitude  = NULL,
+                               start_date = NULL,
+                               end_date   = NULL,
+                               bands      = NULL,
+                               prefilter  = "1",
+                               label      = "NoClass") {
 
     # load the configuration file
     if (!exists("config_sys"))
         config_sits <- sits_config()
 
-    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
-                         err_desc = "sits_from_ts_service: Invalid time series service")
+    # Ensure that the service is available
+    .sits_check_service(service)
 
     if (service == "WTSS")
         data.tb <- sits_fromWTSS(latitude, longitude, start_date, end_date, coverage, bands, label)
     if (service == "SATVEG")
-        data.tb <- sits_fromSATVEG(latitude, longitude, start_date, end_date, satellite, prefilter, label)
+        data.tb <- sits_fromSATVEG(latitude, longitude, start_date, end_date, coverage, prefilter, label)
 
     return(data.tb)
 }
+#' @title Obtain the band information from the configuration file
+#' @name sits_band_info
+#'
+#' @param bands  a list of bands whose information is to be retrieved
+#' @param product the image product whose information we need to retrieve
+#' @return band_info a tibble with information about the bands (missing values and scale factors)
+#' @examples
+#' band_info <- sits_band_info(bands = c("ndvi", "evi"), service = "WTSS", product = "MOD13Q1")
+#' @export
+sits_band_info <- function(bands, product) {
 
+    # create a tibble to store the band info
 
+    band_info <- tibble::tibble(
+        name          = character(),
+        scale_factor  = double(),
+        missing_value = integer()
+    )
+    # fill the values of the tibble
+    for (b in bands) {
+        # get missing value
+        mv <- .sits_get_missing_value(product, b)
+
+        # get scale factor
+        sf <- .sits_get_scale_factor(product, b)
+
+        # fill the value for each band
+        bi <- tibble::tibble(
+            name          = b,
+            scale_factor  = mv,
+            missing_value = sf
+        )
+        # join the information from one band to the others
+        band_info <- dplyr::bind_rows(band_info, bi)
+    }
+    return(band_info)
+}
 

@@ -6,7 +6,7 @@
 \usage{
 sits_fromSHP(shp_file, service = "WTSS", start_date = NULL,
   end_date = NULL, coverage = "mod13q1_512", bands = NULL,
-  satellite = "terra", prefilter = "1", label = "NoClass")
+  prefilter = "1", label = "NoClass")
 }
 \arguments{
 \item{shp_file}{string  - name of a SHP file which provides the boundaries of a region of interest}
@@ -20,8 +20,6 @@ sits_fromSHP(shp_file, service = "WTSS", start_date = NULL,
 \item{coverage}{name of the coverage}
 
 \item{bands}{string vector - the names of the bands to be retrieved}
-
-\item{satellite}{(optional) - the same of the satellite (options - "terra", "aqua", "comb")}
 
 \item{prefilter}{string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
 

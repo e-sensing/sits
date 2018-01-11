@@ -60,108 +60,7 @@ sits_infoWTSS <- function() {
     )
     return(invisible(wtss.obj))
 }
-#' @title Provides information about one coverage of the WTSS service
-#' @name sits_coverageWTSS
-#'
-#' @description uses the WTSS services to print information and save metadata about a
-#' chosen coverage:
-#'  bands          - the information about the bands of the data to be retrieved from the WTSS
-#'  start_date     - the start date for the time series data in the coverage
-#'  end_date       - the end date for the time series data in the coverage
-#'  xres           - spatial resolution (x dimension)
-#'  yres           - spatial resolution (y dimension)
-#'  start_date     - initial date of the coverage time series
-#'  end_date       - final date of the coverage time series
-#'  xmin           - spatial extent (xmin)
-#'  ymin           - spatial extent (ymin)
-#'  xmax           - spatial extent (xmax)
-#'  ymax           - spatial extent (ymin)
-#'  scale_factor   - scale factor to covert bands to a [0..1] scale
-#'  crs            - Projection crs
-#'
-#' @param coverage   the name of the coverage
-#' @param .show      show information about the coverage (Default: TRUE)
-#' @examples
-#' # Retrieve information about a WTSS coverage
-#' coverage.tb <- sits_coverageWTSS("mod13q1_512")
-#' @export
-#'
-sits_coverageWTSS <- function(coverage = NULL, .show = FALSE) {
 
-    # load the configuration file
-    if (purrr::is_null(sits.env$config))
-        sits_config()
-
-    # tests if the global list of coverages exists
-    # if it does not exits, create an empty one to hold the metadata about the coverages
-    if (purrr::is_null(sits.env$config$coverages))
-        sits.env$config$coverages <- .sits_tibble_coverage()
-    else {
-        coverage.tb <- dplyr::filter(sits.env$config$coverages, name == coverage & service == "WTSS")
-        if (NROW(coverage.tb) == 1)
-            return(coverage.tb)
-    }
-
-    # obtains information about the WTSS service
-    URL <- sits.env$config$WTSS_server
-    tryCatch({
-        # create a WTSS object
-        wtss.obj         <- wtss::WTSS(URL)
-
-        # obtains information about the available coverages
-        coverages.vec    <- wtss::listCoverages(wtss.obj)
-
-        # is the coverage in the list of coverages?
-        ensurer::ensure_that(coverage, (.) %in% coverages.vec,
-                             err_desc = "sits_coverageWTSS: coverage is not available in the WTSS server")
-
-        # describe the coverage
-        cov.lst    <- wtss::describeCoverage(wtss.obj, coverage)
-        cov        <- cov.lst[[coverage]]
-
-        # temporal extent
-        timeline <- cov$timeline
-
-        # retrieve information about the bands
-        band_info <- tibble::as.tibble(cov$attributes[, -(2:4)])
-
-        # create a tibble to store the metadata
-        coverage.tb <- tibble::tibble(
-            r.objs         = list(wtss.obj),
-            name           = cov$name,
-            service        = "WTSS",
-            product        = sits.env$config$WTSS_products,
-            band_info      = list(band_info),
-            start_date     = as.Date(cov$timeline[1]),
-            end_date       = as.Date(cov$timeline[length(timeline)]),
-            timeline       = list(cov$timeline),
-            nrows          = sits.env$config$WTSS_size$nrows,
-            ncols          = sits.env$config$WTSS_size$ncols,
-            xmin           = sits.env$config$WTSS_bbox$xmin,
-            xmax           = sits.env$config$WTSS_bbox$xmax,
-            ymin           = sits.env$config$WTSS_bbox$ymin,
-            ymax           = sits.env$config$WTSS_bbox$ymax,
-            xres           = cov$spatial_resolution$x,
-            yres           = cov$spatial_resolution$y,
-            crs            = cov$crs$proj4,
-            file_name      = NA)
-
-        # add the metadata to the global list of coverages
-        sits.env$config$coverages <-  dplyr::bind_rows(sits.env$config$coverages, coverage.tb)
-
-        # if asked, show the coverage attributes
-        if (.show)
-            .sits_print_coverage_attrs(cov)
-
-    }, error = function(e){
-        msg <- paste0("WTSS service not available at URL ", sits.env$config$WTSS_server)
-        log4r::error(sits.env$logger, msg)
-        message(msg)
-    })
-
-    # return the tibble with coverage info
-    return(coverage.tb)
-}
 
 #' @title Obtain one timeSeries from WTSS server and load it on a sits tibble
 #' @name sits_fromWTSS
@@ -211,10 +110,10 @@ sits_fromWTSS <- function(longitude,
     # does the coverage info exist? If not, build it
     # does the coverage info exist but the current coverage is not there? If so, include it
     if (purrr::is_null(sits.env$config$coverages) ||
-        NROW(dplyr::filter(sits.env$config$coverages, name == coverage & service == "WTSS")) != 1)
+        NROW(dplyr::filter(sits.env$config$coverages, coverage == coverage & service == "WTSS")) != 1)
         coverage.tb <- sits_coverageWTSS(coverage)
     else
-        coverage.tb <- dplyr::filter(sits.env$config$coverages, name == coverage & service == "WTSS")
+        coverage.tb <- dplyr::filter(sits.env$config$coverages, coverage == coverage & service == "WTSS")
 
     # ensure the coverage information exists and is unique
     ensurer::ensure_that(coverage.tb, NROW(.) == 1,

@@ -8,11 +8,12 @@
 #' and inclues the data on a stis tibble. If start and end date are given, the function
 #' filter the data to limit the temporal interval.
 #'
+#' @param product         an image product (e.g., "MOD13Q1")
+#' @param coverage        the coverage (e.g., "terra", "aqua", "comb")
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location
 #' @param start_date      date - the start of the period
 #' @param end_date        date - the end of the period
-#' @param satellite       the satellite ("terra", "aqua", "comb")
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
 #' @param label           string - the label to attach to the time series (optional)
 #' @return data.tb        a SITS tibble
@@ -23,11 +24,12 @@
 #' point.tb <- sits_fromSATVEG (longitude = -55.50563, latitude = -11.71557)
 #' }
 #' @export
-sits_fromSATVEG <- function(longitude  = NULL,
+sits_fromSATVEG <- function(product     = "MOD13Q1",
+                            coverage    = "terra",
+                            longitude   = NULL,
                             latitude    = NULL,
                             start_date  = NULL,
                             end_date    = NULL,
-                            satellite   = "terra",
                             prefilter   = "1",
                             label       = "NoClass") {
 
@@ -36,10 +38,13 @@ sits_fromSATVEG <- function(longitude  = NULL,
         sits_config()
 
     # check parameters
-    .sits_check_SATVEG(longitude, latitude, satellite, prefilter)
+    .sits_check_SATVEG(longitude, latitude, coverage, prefilter)
+
+    # create the coverage metadata
+    coverage.tb <- sits_coverageSATVEG(coverage)
 
     # retrieve the time series
-    ts.tb <- .sits_ts_from_SATVEG(longitude, latitude, satellite, prefilter)
+    ts.tb <- .sits_ts_from_SATVEG(longitude, latitude, coverage, prefilter)
 
     # filter the dates
     if (!purrr::is_null(start_date) && !purrr::is_null(end_date))
@@ -48,8 +53,6 @@ sits_fromSATVEG <- function(longitude  = NULL,
         start_date <- as.Date(ts.tb$Index[1])
         end_date   <- as.Date(ts.tb$Index[NROW(ts.tb)])
     }
-    # set the name of the coverage
-    coverage <- .sits_coverage_SATVEG(satellite)
 
     # use a list to store the time series
     ts.lst <- list()
@@ -88,7 +91,7 @@ sits_fromSATVEG <- function(longitude  = NULL,
                          err_desc = "sits_fromSATVEG: Missing longitude info")
     ensurer::ensure_that(latitude,  !purrr::is_null(.),
                          err_desc = "sits_fromSATVEG: Missing latitude info")
-    ensurer::ensure_that(satellite, (.) %in% sits.env$config$SATVEG_satellites,
+    ensurer::ensure_that(coverage, (.) %in% sits.env$config$SATVEG_coverages,
                          err_desc = "sits_fromSATVEG: Invalid satellite param")
     ensurer::ensure_that(prefilter, (.) %in% sits.env$config$SATVEG_prefilter,
                          err_desc = "sits_fromSATVEG: prefilter choice is not available")
@@ -106,11 +109,12 @@ sits_fromSATVEG <- function(longitude  = NULL,
 #'
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location
-#' @param satellite       the satellite ("terra", "aqua", "comb")
+#' @param coverage        the desired coverage in SATVEG (see configuration file)
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
+#' @param product         the SATVEG product we are using
 #' @return status         TRUE if no problems are detected
 #'
-.sits_ts_from_SATVEG <- function(longitude, latitude, satellite, prefilter){
+.sits_ts_from_SATVEG <- function(longitude, latitude, coverage, prefilter, product = "MOD13Q1"){
 
     # the parameter filter is not used
     filter <- ""
@@ -119,15 +123,15 @@ sits_fromSATVEG <- function(longitude  = NULL,
     has_timeline <- FALSE
 
     # URL to access SATVEG services
-    URL <- paste0(sits.env$config$SATVEG_server, sits.env$config$SATVEG_account)
+    URL <- .sits_get_account("SATVEG", product)
 
     # bands available in SATVEG
-    bands <- sits.env$config$SATVEG_bands
+    bands <- .sits_get_bands("SATVEG", product)
 
     # read each of the bands separately
     for (b in bands) {
         # Build the URL to retrieve the time series
-        URL_ts <- paste0(URL, b, "/ponto", "/", longitude, "/", latitude, "/", satellite, "/",
+        URL_ts <- paste0(URL, b, "/ponto", "/", longitude, "/", latitude, "/", coverage, "/",
                          prefilter, "/", filter, "/", filter_par)
 
         # Get the data from SATVEG service
@@ -167,24 +171,4 @@ sits_fromSATVEG <- function(longitude  = NULL,
     return(ts.tb)
 }
 
-#' @title Retrieve a coverage name from the SATVEG service
-#' @name .sits_coverage_SATVEG
-#' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Retrieves a coverage name based on the capabilities of the SATVEG service
-#'
-#' @param satellite       the satellite ("terra", "aqua", "comb")
-#' @return coverage       the name of the coverage
-#'
-.sits_coverage_SATVEG <- function(satellite) {
-    if (satellite == "terra")
-        coverage <- "MOD13Q1_C6_Terra"
-    else {
-        if (satellite == "aqua")
-            coverage <- "MOD13Q1_C6_Aqua"
-        else
-            coverage <- "MOD13Q1_C6_Terra_Aqua"
-    }
-    return(coverage)
-}
+

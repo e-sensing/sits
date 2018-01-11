@@ -5,7 +5,7 @@
 \title{Obtain one timeSeries from the EMBRAPA SATVEG server and load it on a sits tibble}
 \usage{
 sits_fromSATVEG(longitude = NULL, latitude = NULL, start_date = NULL,
-  end_date = NULL, satellite = "terra", prefilter = "1",
+  end_date = NULL, coverage = "terra", prefilter = "1",
   label = "NoClass")
 }
 \arguments{
@@ -17,7 +17,7 @@ sits_fromSATVEG(longitude = NULL, latitude = NULL, start_date = NULL,
 
 \item{end_date}{date - the end of the period}
 
-\item{satellite}{the satellite ("terra", "aqua", "comb")}
+\item{coverage}{the coverage ("terra", "aqua", "comb")}
 
 \item{prefilter}{string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
 
