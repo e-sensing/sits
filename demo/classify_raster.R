@@ -16,7 +16,7 @@ data(timeline_mod13q1)
 timeline <- lubridate::as_date(timeline_mod13q1$V1)
 
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_coverageRaster(files, timeline, bands = c("ndvi", "evi"), scale_factors = c(0.0001, 0.0001))
+raster.tb <- sits_coverageRaster(coverage = "Sinop", timeline = timeline, bands = c("ndvi", "evi"), files = files)
 
 # retrieve the samples from EMBRAPA (used as training sets for classification)
 data(samples_MT_9classes)

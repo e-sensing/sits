@@ -26,7 +26,7 @@
 #'
 #'
 #' @export
-sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE){
+sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
 
     # does the input data contain a set of predicted values?
     ensurer::ensure_that(class.tb, "predicted" %in% names(.), err_desc = "sits_conf_matrix: input data does not contain predicted values")
@@ -51,7 +51,9 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE){
 
     # convert class names
     if (!purrr::is_null(conv.lst)) {
-        names_ref <- unique (ref.vec)
+        # select the label names
+        names_ref <- unique(ref.vec)
+        # are all input labels in the coversion list?
         ensurer::ensure_that(names_ref,
                              all(. %in% names(conv.lst)),
                              err_desc = "sits_conf_matrix: conversion list does not contain all reference labels")
@@ -286,7 +288,7 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
 #' # add the confusion matrix to the results
 #' results[[length(results) + 1]] <- conf.mx
 #' # save the results to an XLSX file
-#' sits_toXLSX(results, file = "./confusion_matrix.xlsx")
+#' sits_toXLSX(results, file = paste0(getwd(),"/confusion_matrix.xlsx"))
 #'
 #'
 #' @export
