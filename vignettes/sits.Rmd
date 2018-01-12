@@ -192,7 +192,7 @@ prodes_226_064[1:3,]
 
 All samples span one year, starting in August 1st of an year and ending in July 31st of the next year. This sampling procedure was chosen to reflect the PRODES methodology for estimating deforestation by clear cuts in the Amazon, which uses the same period. In practice, most of the areas detected by PRODES came from images from the months from April to July, when there is less cloud cover in the region.
 
-The filtering algorithms provided by SITS package are: Savitzky–Golay filter (`sits_sgolay()`), Whitaker filter (`sits_whittaker()`), envelope filter (`sits_envelope()`) and, autoregressive integrated moving average (ARIMA) filter (`sits_cloud_filter()`). In what follows, we explain each technique and provide some examples using the afore described PRODES data set. To best visualize the effects of filtering we select only NDVI band of the time series.
+The filtering algorithms provided by SITS package are: Savitzky–Golay filter (`sits_sgolay()`), Whitaker filter (`sits_whittaker()`), envelope filter (`sits_envelope()`) and, the "cloud filter" (`sits_cloud_filter()`). In what follows, we explain each technique and provide some examples using the afore described PRODES data set. To best visualize the effects of filtering we select only NDVI band of the time series.
 
 ## Savitzky–Golay filter
 
@@ -247,9 +247,9 @@ Whittaker filter is obtained by finding a new time series $\hat{x}$ whose points
 $$
 X(\hat{x},\lambda{})=RSS+\lambda{}M_3,
 $$ 
-where $\lambda{}$, a scalar, works as an "smoothing wheight" parameter. The minimization can be obtained by differentiating the equivalent expression $(x - \hat{x})^{T}(x - \hat{x})+\lambda\hat{x}^{T}D^{T}D\hat{x}$ with respect to $\hat{x}$ and equating it to zero, whose solution gives the Whittaker filter function
+where $\lambda{}$, a scalar, works as an "smoothing wheight" parameter. The minimization can be obtained by differentiating the equivalent expression $(x - \hat{x})^{T}(x - \hat{x})+\lambda\hat{x}^{T}D^{T}D\hat{x}$ with respect to $\hat{x}$ and equating it to zero, whose solution gives the Whittaker filtered time series
 $$
-X(x,\lambda) = ({\bf I} + \lambda {D}^{T} D)^{-1}x.
+\hat{x} = ({\bf I} + \lambda {D}^{T} D)^{-1}x.
 $$
 
 The Whitakker filter can be a large but sparse optimisation problem, as we can note from $D$ matrix. In SITS implementation, the default $\lambda{}$ parameter is $1.0$. New values can be passed to the SITS function. The example bellow depicts an original and a filtered time series.
@@ -265,22 +265,38 @@ sits_plot(sits_merge(point_whit.tb, point.tb))
 
 ## Envelope filter
 
+This filter produces a bounding (superior or inferior) time series relative to an input signal. We can bound a time series signal by two basic operations: upper and lower dilations. Both operations assumes an unitary window to which the dilation occurs. An upper dilation can be defined as
+$$
+u_i=\max_{k}{(\{x_{k}:\left|k-i\right|\le{}1\})},
+$$
+whereas an lower dilation is obtained by
+$$
+l_i=\min_{k}{(\{x_{k}:\left|k-i\right|\le{}1\})}.
+$$
+Here, $x$ is the input time series and, $k$ and $i$ are vector indices.
+
+The envelope filter function can combine both upper and lower dilations recursively by a sequence of "U" (upper) and "L" (lower) characters passed as parameter. A repeated sequence of a same operation is equivalent to one operation with a larger dilation window. The final result of the recursive operations over the input time series is than returned.
+
+This filter can be useful to remove isolated noises in the input signal. For example, an downward (upward) noise spike formed by one point in the series can be removed by an "UL" ("LU") sequence of dilations. For spikes with two points, we can repeat each operation, for example "UULL" (the default sequence), to increase the dilation window and remove such imperfections on the time series. In the following example we can see an application of `sits_envelope()` function.
+
 ```{r, fig.align="center", fig.height=3.1, fig.width=5}
 # Take the NDVI band of the first sample data set
 point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
-# apply envelope filter
-point_env.tb <- sits_envelope(point.tb)
+# apply envelope filter (remove short downward noises)
+point_env.tb <- sits_envelope(point.tb, "UL")
 # plot the series
 sits_plot(sits_merge(point_env.tb, point.tb))
 ```
 
-## ARIMA filter
+## Cloud filter
+
+This function tries to remove noise from the input time series. It looks the first order difference time serie for points where the value of the difference goes up abruptly. These points are taken as those whose difference is more than a cutoff value which is set by the user. Then, it applies an autoregressive integrated moving average (ARIMA) model [@] to predict the missing value. Finally, the function applies a whitakker smoother. The parameters of the ARIMA model can be set by the user. Please see arima for the detailed description of parameters p, d, and q.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5}
 # Take the NDVI band of the first sample data set
 point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 # apply ARIMA filter
-point_cf.tb <- sits_cloud_filter(point.tb)
+point_cf.tb <- sits_cloud_filter(point.tb, apply_whit = FALSE)
 # plot the series
 sits_plot(sits_merge(point_cf.tb, point.tb))
 ```
