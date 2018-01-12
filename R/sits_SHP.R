@@ -9,11 +9,11 @@
 #'
 #' @param shp_file        string  - name of a SHP file which provides the boundaries of a region of interest
 #' @param service         string - name of the time series service (options are "WTSS" or "SATVEG")
-#' @param coverage        name of the coverage
+#' @param product         string - the name of the product (e.g., "MOD13Q1")
+#' @param coverage        string - name of the coverage
 #' @param bands           string vector - the names of the bands to be retrieved
 #' @param start_date      date - the start of the period
 #' @param end_date        date - the end of the period
-#' @param satellite       (optional) - the same of the satellite (options - "terra", "aqua", "comb")
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
 #' @param label           string - the label to attach to the time series
 #' @return table          a SITS tibble
@@ -28,50 +28,34 @@
 #'
 sits_fromSHP <- function(shp_file,
                          service    = "WTSS",
+                         product    = "MOD13Q1",
+                         coverage   = "mod13q1_512",
                          start_date = NULL,
                          end_date   = NULL,
-                         coverage   = "mod13q1_512",
                          bands      = NULL,
-                         satellite  = "terra",
                          prefilter  = "1",
                          label      = "NoClass") {
 
-    # load the configuration file
-    if (purrr::is_null(sits.env$config))
-        sits_config()
 
     # test parameters
     ensurer::ensure_that(file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
                          err_desc = "sits_fromSHP: please provide a valid SHP file")
     # Ensure that the service is available
-    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
-                         err_desc = "sits_formSHP: Invalid time series service")
+    .sits_check_service(service)
 
-    ensurer::ensure_that(satellite, (.) %in% sits.env$config$SATVEG_satellites,
-                         err_desc = "sits_fromSHP: SATVEG service does not support this satellite")
 
+    # recover the coverage resolution
+    resolution <- .sits_get_resolution(product)
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
     # get the bounding box
     bbox <- sf::st_bbox(sf_shape)
     # create an empty sits tibble
     shape.tb <- sits_tibble()
-    # recover the coverage information
-    if (service == "WTSS") {
-        coverage.tb <- sits_coverageWTSS(coverage, .show = FALSE)
-        xres <- coverage.tb$xres
-        yres <- coverage.tb$yres
-    }
-    if (service == "SATVEG") {
-        if (satellite %in% c("terra","aqua","comb")) {
-            xres <- sits.env$config$resolution$MODIS$xres
-            yres <- sits.env$config$resolution$MODIS$yres
-        }
-    }
 
     # setup the sequence of latitudes and longitudes to be searched
-    longitudes <- seq(from = bbox["xmin"], to = bbox["xmax"], by = xres)
-    latitudes  <- seq(from = bbox["ymin"], to = bbox["ymax"], by = yres)
+    longitudes <- seq(from = bbox["xmin"], to = bbox["xmax"], by = resolution["xres"])
+    latitudes  <- seq(from = bbox["ymin"], to = bbox["ymax"], by = resolution["yres"])
 
     longitudes %>%
         purrr::map(function(long){
@@ -79,8 +63,8 @@ sits_fromSHP <- function(shp_file,
                 purrr::map(function(lat){
                     ll <- sf::st_point(c(long, lat))
                     if (1 %in% as.logical(unlist(sf::st_within(ll, sf_shape)))) {
-                            row <- sits_from_service(service, long, lat, start_date, end_date,
-                                                     coverage, bands, satellite, prefilter, label)
+                            row <- .sits_from_service(service, product, coverage, long, lat, start_date, end_date,
+                                                      bands, prefilter, label)
                         shape.tb <<- dplyr::bind_rows(shape.tb, row)
                     }
                 })

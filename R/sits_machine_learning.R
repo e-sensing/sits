@@ -108,9 +108,6 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(train_data.tb){
 
-        # verify if data input is not empty
-        .sits_test_tibble (train_data.tb)
-
         # is the input data the result of a matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.),
                              err_desc = "sits_svm: input data does not contain references information")
@@ -167,9 +164,6 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(train_data.tb){
-
-        # verify if data input is not empty
-        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
@@ -228,9 +222,6 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(train_data.tb){
 
-        # verify if data input is not empty
-        .sits_test_tibble(train_data.tb)
-
         # is the input data the result of a matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
                              err_desc = "sits_qda: input data does not contain distance")
@@ -287,8 +278,6 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
     # function that returns nnet::multinom model based on a sits sample tibble
     result_fun <- function(train_data.tb){
 
-        # verify if data input is not empty
-        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
@@ -350,8 +339,6 @@ sits_glm <- function(distances.tb = NULL, family = "multinomial", alpha = 1.0, l
     # function that returns glmnet::multinom model based on a sits sample tibble
     result_fun <- function(train_data.tb){
 
-        # verify if data input is not empty
-        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
@@ -419,9 +406,6 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
     # function that returns glmnet::multinom model based on a sits sample tibble
     result_fun <- function(train_data.tb){
 
-        # verify if data input is not empty
-        .sits_test_tibble(train_data.tb)
-
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
                              err_desc = "sits_gbm: input data does not contain distance")
@@ -484,9 +468,6 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
 
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
     result_fun <- function(train_data.tb){
-
-        # verify if data input is not empty
-        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names (.),
@@ -554,9 +535,6 @@ sits_mlp <- function(distances.tb = NULL, hidden_node=c(400,200,100), learning.r
 
     # function that returns `mxnet::mx.mlp` model based on a sits sample tibble
     result_fun <- function(train_data.tb){
-
-        # verify if data input is not empty
-        .sits_test_tibble(train_data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names(.),

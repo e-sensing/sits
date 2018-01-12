@@ -4,11 +4,15 @@
 \alias{sits_fromSATVEG}
 \title{Obtain one timeSeries from the EMBRAPA SATVEG server and load it on a sits tibble}
 \usage{
-sits_fromSATVEG(longitude = NULL, latitude = NULL, start_date = NULL,
-  end_date = NULL, satellite = "terra", prefilter = "1",
+sits_fromSATVEG(product = "MOD13Q1", coverage = "terra", longitude = NULL,
+  latitude = NULL, start_date = NULL, end_date = NULL, prefilter = "1",
   label = "NoClass")
 }
 \arguments{
+\item{product}{an image product (e.g., "MOD13Q1")}
+
+\item{coverage}{the coverage (e.g., "terra", "aqua", "comb")}
+
 \item{longitude}{double - the longitude of the chosen location}
 
 \item{latitude}{double - the latitude of the chosen location}
@@ -16,8 +20,6 @@ sits_fromSATVEG(longitude = NULL, latitude = NULL, start_date = NULL,
 \item{start_date}{date - the start of the period}
 
 \item{end_date}{date - the end of the period}
-
-\item{satellite}{the satellite ("terra", "aqua", "comb")}
 
 \item{prefilter}{string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
 

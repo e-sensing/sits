@@ -148,8 +148,10 @@ After finding out which coverages are available at the WTSS service, one may req
 
 ```{r}
 # get information about a specific coverage
-coverage.tb <- sits_coverageWTSS("mod13q1_512")
-# print the coverage informations
+coverage.tb <- 
+    sits_coverage(service  = "WTSS", 
+                  product  = "MOD13Q1", 
+                  coverage = "mod13q1_512")
 coverage.tb
 ```
 
@@ -163,7 +165,8 @@ lat  <- -11.50566
 series.tb <- 
     sits_getdata(longitude  = long, 
                  latitude   = lat, 
-                 service    = "WTSS",
+                 service    = "WTSS", 
+                 product    = "MOD13Q1",
                  coverage   = "mod13q1_512", 
                  bands      = c("ndvi", "evi"),
                  start_date = "2001-01-01", 
@@ -290,7 +293,7 @@ sits_plot(sits_merge(point_env.tb, point.tb))
 
 ## Cloud filter
 
-This function tries to remove noise from the input time series. It looks the first order difference time serie for points where the value of the difference goes up abruptly. These points are taken as those whose difference is more than a cutoff value which is set by the user. Then, it applies an autoregressive integrated moving average (ARIMA) model [@] to predict the missing value. Finally, the function applies a whitakker smoother. The parameters of the ARIMA model can be set by the user. Please see arima for the detailed description of parameters p, d, and q.
+This function tries to remove noise from the input time series. It looks the first order difference time serie for points where the value of the difference goes up abruptly. These points are taken as those whose difference is more than a cutoff value which is set by the user. Then, it applies an autoregressive integrated moving average (ARIMA) model to predict the missing values. The parameters of the ARIMA model can be set by the user. Please see arima for the detailed description of parameters p, d, and q.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5}
 # Take the NDVI band of the first sample data set

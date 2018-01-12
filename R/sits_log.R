@@ -4,7 +4,7 @@
 #'
 #' @description Creates a logger file for debugging and information (uses log4r package)
 #'
-#' @return logger      A pointer to a logger
+#' @return boolean      TRUE if creation succeeds
 #' @examples
 #' # Creates a sits logger using the default location
 #' logger <- sits_log()
@@ -17,5 +17,35 @@ sits_log <- function() {
         sits.env$logger <- log4r::create.logger(logfile = sits.env$config$log_file, level = "ERROR")
         message(paste0("Created logger for SITS package in ", sits.env$config$log_file))
     }
-    return(invisible(sits.env$logger))
+    ensurer::ensure_that(sits.env$config$log_file, file.exists(.),
+                         err_desc = "Log file does not exist")
+    return(TRUE)
+}
+
+.sits_log_error <- function(message) {
+    log4r::error(sits.env$logger, message)
+}
+
+.sits_log_data <- function(data, file_name = "data_save.rda") {
+    # pre-conditions
+    ensurer::ensure_that(data, !purrr::is_null(.),
+                         err_desc = "Cannot save NULL data")
+
+    save(data, file = paste0(dirname(sits.env$config$log_file),"/", file_name))
+
+    # post-condition
+    ensurer::ensure_that(file, file.exists(.),
+                         err_desc = "Unable to save temporary data")
+}
+
+.sits_log_CSV <- function(csv.tb, file_name = "csv.rda"){
+    # pre-conditions
+    ensurer::ensure_that(csv.tb, !purrr::is_null(.),
+                         err_desc = "Cannot save NULL CSV data")
+
+    sits_toCSV(csv.tb, file = paste0(dirname(sits.env$config$log_file),"/", file_name))
+
+    # post-condition
+    ensurer::ensure_that(file, file.exists(.),
+                         err_desc = "Unable to save temporary CSV data")
 }

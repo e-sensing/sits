@@ -343,6 +343,13 @@
                          err_desc = "input data not provided")
     ensurer::ensure_that(data.tb, NROW(.) > 0,
                          err_desc = "input data is empty")
+
+    names <- c("longitude", "latitude", "start_date", "end_date",
+               "label", "coverage", "time_series")
+
+    ensurer::ensure_that(data.tb, all(names %in% colnames(.)),
+                         err_desc = "data input is not a valid SITS tibble")
+
     return(TRUE)
 }
 
@@ -398,20 +405,24 @@
 #' @return coverage.tb   a tibble to store the metadata
 #'
 .sits_tibble_coverage <- function() {
-    result.tb <- tibble::tibble(wtss.obj       = list(),
-                                service        = character(),
+    result.tb <- tibble::tibble(r.objs         = list(),
                                 name           = character(),
+                                service        = character(),
+                                product        = character(),
                                 band_info      = list(),
                                 start_date     = as.Date(character()),
                                 end_date       = as.Date(character()),
                                 timeline       = list(),
+                                nrows          = integer(),
+                                ncols          = integer(),
                                 xmin           = double(),
                                 xmax           = double(),
                                 ymin           = double(),
                                 ymax           = double(),
                                 xres           = double(),
                                 yres           = double(),
-                                crs            = character()
+                                crs            = character(),
+                                files          = list()
     )
     class(result.tb) <- append(class(result.tb), "sits_tibble_coverage")
     return(result.tb)
@@ -484,33 +495,49 @@
 #' @description  This function creates one line of tibble containing the metadata for
 #'               a set of spatio-temporal raster files.
 #'
-#' @param raster.obj     Valid Raster object (associated to filename)
-#' @param band           Name of band (either raw or classified)
+#' @param raster.lst     List of valid raster objects (associated to filename)
+#' @param coverage       The coverage name
+#' @param bands          Vector of bands (either raw or classified)
 #' @param timeline       Timeline of data collection
-#' @param scale_factor   Scale factor to correct data
-#' @return raster.tb     A tibble for storing metadata about a spatio-temporal raster
+#' @param product        The product associated to the images
+#' @return raster.tb     A tibble for storing metadata about a raster coverage
 
-.sits_tibble_raster <- function(raster.obj, band, timeline, scale_factor) {
+.sits_tibble_raster <- function(raster.lst, coverage, bands, timeline, product, files) {
 
+    # get the information about the bands (missing values and scale factors)
+    band_info <- sits_band_info(bands, product)
+
+    # use the first raster object as a reference to build the metadata
+    raster.obj <- raster.lst[[1]]
+
+    # build the metadata table
+    # the same metadata is used for all time series services
+    coverage.tb <- .sits_tibble_coverage()
+
+    # fill the parameters of the raster coverage
     raster.tb <- tibble::tibble(
-        r_obj           = list(raster.obj),
-        ncols           = raster.obj@ncols,
-        nrows           = raster.obj@nrows,
-        band            = band,
+        r.objs          = raster.lst,
+        coverage        = coverage,
+        service         = "RASTER",
+        product         = product,
+        band_info       = list(band_info),
         start_date      = lubridate::as_date(timeline[1]),
         end_date        = lubridate::as_date(timeline[length(timeline)]),
         timeline        = list(timeline),
+        nrows           = raster.obj@nrows,
+        ncols           = raster.obj@ncols,
         xmin            = raster.obj@extent@xmin,
         xmax            = raster.obj@extent@xmax,
         ymin            = raster.obj@extent@ymin,
         ymax            = raster.obj@extent@ymax,
         xres            = raster::xres(raster.obj),
         yres            = raster::yres(raster.obj),
-        scale_factor    = scale_factor,
         crs             = raster.obj@crs@projargs,
-        name            = raster.obj@file@name
+        file_names      = list(files)
     )
-    class(raster.tb) <- append(class(raster.tb), "sits_tibble_raster")
-    return(raster.tb)
-}
 
+    # join the rows (ensures that all metadata tables are consistent)
+    coverage.tb <- dplyr::bind_rows(coverage.tb, raster.tb)
+
+    return(coverage.tb)
+}
