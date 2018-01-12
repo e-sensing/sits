@@ -6,14 +6,11 @@ library(dtwclust)
 ## ------------------------------------------------------------------------
 # data set of samples
 # print the first three samples
-samples_MT_9classes[1:3,]
+data(samples_MT_9classes[1:3,])
 
 ## ------------------------------------------------------------------------
 # print the first 10 time series records of the first sample
 samples_MT_9classes$time_series[[1]]
-
-## ------------------------------------------------------------------------
-sits_bands(samples_MT_9classes)
 
 ## ------------------------------------------------------------------------
 sits_labels(samples_MT_9classes)
@@ -54,7 +51,7 @@ sits_plot(samples_cerrado.tb)
 
 ## ------------------------------------------------------------------------
 # print the WTSS web service description
-sits_infoWTSS()
+sits_services()
 
 ## ------------------------------------------------------------------------
 # get information about a specific coverage
@@ -66,12 +63,10 @@ coverage.tb
 
 ## ---- fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI and EVI time series fetched from WTSS service."----
 # a point in the transition forest pasture in Northern MT
-long <- -55.57320
-lat  <- -11.50566
 # obtain a time series from the WTSS server for this point
 series.tb <- 
-    sits_getdata(longitude  = long, 
-                 latitude   = lat, 
+    sits_getdata(longitude  = -55.57320, 
+                 latitude   = -11.50566, 
                  service    = "WTSS", 
                  product    = "MOD13Q1",
                  coverage   = "mod13q1_512", 
@@ -116,9 +111,16 @@ point_cf.tb <- sits_cloud_filter(point.tb, apply_whit = FALSE)
 # plot the series
 sits_plot(sits_merge(point_cf.tb, point.tb))
 
+## ----dendrogram, cache=TRUE, fig.align="center", fig.height=4.5, fig.width=5.5----
+# take a set of patterns for 2 classes
+# create a dendrogram object with default clustering parameters
+dendro <- sits_dendrogram(cerrado_2classes)
+# plot the resulting dendrogram
+sits_plot_dendrogram(cerrado_2classes, dendro, cutree_height = 22)
+
 ## ------------------------------------------------------------------------
 # create clusters by cutting the dendrogram at the linkage distance 300
-clusters.tb <- sits_cluster(samples.tb, dendro, height = 300)
+clusters.tb <- sits_cluster(cerrado_2classes, dendro, height = 22)
 # show clusters samples frequency
 sits_cluster_frequency(clusters.tb)
 

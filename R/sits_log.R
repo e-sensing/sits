@@ -12,6 +12,7 @@
 sits_log <- function() {
 
     dir.create(dirname(sits.env$config$log_file), showWarnings = FALSE)
+    file.create(sits.env$config$log_file, showWarnings = FALSE)
     # Does a logger object exist? If not create it
     if (purrr::is_null(sits.env$logger)) {
         sits.env$logger <- log4r::create.logger(logfile = sits.env$config$log_file, level = "ERROR")

@@ -13,11 +13,14 @@
 .sits_block_from_data <- function(pred.lst, raster_class.tb, int_labels, init_row) {
 
     # for each layer, write the values
-    for (i in 1:nrow(raster_class.tb)) {
-        layer <- raster_class.tb[i,]
-        values             <- as.integer(int_labels[pred.lst[[i]]])
-        layer$r.objs[[1]]  <- raster::writeValues(layer$r.objs[[1]], values, init_row)
-    }
+    i <- 0
+    raster_class.tb$r.objs %>%
+        purrr::map(function(layer){
+            i <- i + 1
+            values <- as.integer(int_labels[pred.lst[[i]]])
+            layer  <- raster::writeValues(layer, values, init_row)
+
+        })
     return(raster_class.tb)
 }
 
@@ -229,14 +232,13 @@
 #' @param longitude        Longitude of the chosen location
 #' @param latitude         Latitude of the chosen location
 #' @param label            Label to attach to the time series
-#' @param coverage         Name of the coverage to be retrieved
 #' @return data.tb         SITS tibble with the time series
 #'
 #' @description This function creates a tibble to store the information
 #' about a raster time series
 #'
 
-.sits_ts_fromRasterXY <- function(raster.tb, xy, longitude, latitude, label = "NoClass", coverage = NULL){
+.sits_ts_fromRasterXY <- function(raster.tb, xy, longitude, latitude, label = "NoClass"){
 
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) == 1,
@@ -248,30 +250,32 @@
 
     nband <- 0
     # An input raster brick contains several files, each corresponds to a band
-    raster.tb$r.objs %>%
+    values.lst <- raster.tb$r.objs %>%
         purrr::map(function(r_brick) {
             # eack brick is a banc
             nband <- nband + 1
             # get the values of the time series
             values <- as.vector(raster::extract(r_brick, xy))
+            # if (all(is.na(values)))
             # create a tibble to store the values
             values.tb <- tibble::tibble(values)
             # find the names of the tibble column
             names(values.tb) <- as.character(raster.tb$band_info[[1]][nband, "name"])
             # correct the values using the scale factor
             scale_factor <- as.numeric(raster.tb$band_info[[1]][nband, "scale_factor"])
-            values.tb <- values.tb[,1]*row$scale_factor
+            values.tb <- values.tb[,1]*scale_factor
+            return (values.tb)
             # add the column to the SITS tibble
-            ts.tb <<- dplyr::bind_cols(ts.tb, values.tb)
+            #ts.tb <<- dplyr::bind_cols(ts.tb, values.tb)
         })
+
+    ts.tb <- dplyr::bind_cols(ts.tb, values.lst)
 
     # create a list to store the time series coming from the set of Raster Layers
     ts.lst <- list()
     # transform the list into a tibble to store in memory
     ts.lst[[1]] <- ts.tb
-    # set a name for the coverage
-    if (purrr::is_null(coverage))
-        coverage = tools::file_path_sans_ext(basename(raster.tb[1,]$name))
+
     # create a tibble to store the WTSS data
     data.tb <- sits_tibble()
     # add one row to the tibble
@@ -281,7 +285,7 @@
                                start_date   = as.Date(timeline[1]),
                                end_date     = as.Date(timeline[length(timeline)]),
                                label        = label,
-                               coverage     = coverage,
+                               coverage     = raster.tb$coverage,
                                time_series  = ts.lst
     )
     return(data.tb)

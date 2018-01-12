@@ -106,6 +106,7 @@ Collate:
     'sits_plot.R'
     'sits_raster.R'
     'sits_raster_utils.R'
+    'sits_services.R'
     'sits_space_time_operations.R'
     'sits_stack_proc.R'
     'sits_tibble.R'

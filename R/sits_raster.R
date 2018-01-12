@@ -13,7 +13,6 @@
 #' @param start_date      date - the start of the period
 #' @param end_date        date - the end of the period
 #' @param label           string - the label to attach to the time series
-#' @param coverage        string - the name of the coverage to be retrieved
 #' @return data.tb        a SITS tibble with the time series
 #'
 #' @examples
@@ -23,15 +22,14 @@
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #' # select the bands
 #' bands <- c("ndvi")
-#' # define the scale factors
-#' scale_factors <- c(0.0001)
 #' # define the timeline
 #' data(timeline_mod13q1)
 #' timeline <- lubridate::as_date (timeline_mod13q1$V1)
 #' # create a raster metadata file based on the information about the files
-#' raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
+#' raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-Crop",
+#'              timeline = timeline, bands = c("ndvi"), files = files)
 #' # read the point from the raster
-#' point.tb <- sits_fromRaster(raster.tb, longitude = -55.50563, latitude = -11.71557)
+#' point.tb <- sits_fromRaster(raster.tb, longitude = -55.55502, latitude = -11.52774)
 #'
 #' @export
 sits_fromRaster <- function(raster.tb,
@@ -40,11 +38,11 @@ sits_fromRaster <- function(raster.tb,
                             latitude = NULL,
                             start_date = NULL,
                             end_date  = NULL,
-                            label = "NoClass",
-                            coverage = NULL){
+                            label = "NoClass"){
 
     # ensure metadata tibble exists
-    .sits_test_tibble(raster.tb)
+    ensurer::ensure_that(raster.tb, NROW(.) == 1,
+                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
 
     # get data based on CSV file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv") {
@@ -53,7 +51,7 @@ sits_fromRaster <- function(raster.tb,
 
     if (!purrr::is_null(longitude) && !purrr::is_null(latitude)) {
         xy <- .sits_latlong_to_proj(longitude, latitude, raster.tb[1, ]$crs)
-        data.tb <- .sits_ts_fromRasterXY(raster.tb, xy, longitude, latitude, label, coverage)
+        data.tb <- .sits_ts_fromRasterXY(raster.tb, xy, longitude, latitude, label)
     }
     return(data.tb)
 }
