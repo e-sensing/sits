@@ -42,7 +42,6 @@ sits_fromCSV <-  function(csv_file,
     # Ensure that the service is available
     .sits_check_service(service)
 
-
     # configure the format of the CSV file to be read
     cols_csv <- readr::cols(id          = readr::col_integer(),
                             longitude   = readr::col_double(),

@@ -259,6 +259,7 @@ sits_classify_model <- function (data.tb = NULL,
 #' @param  samples.tb      The samples used for training the classification model
 #' @param  ml_method       a model trained by \code{\link[sits]{sits_train}}
 #' @param  dist_method     The method to obtain the values to be used from training and classification
+#' @param  adj_fun         Function to adjust the values (required for ML classification)
 #' @param  interval        The interval between two sucessive classification
 #' @param  blocksize       Default size of the block (rows * cols) (see function .sits_raster_block_size)
 #' @param  multicores      Number of threads to process the time series.
@@ -278,21 +279,24 @@ sits_classify_model <- function (data.tb = NULL,
 #' timeline <- lubridate::as_date (timeline_mod13q1$V1)
 #'
 #' # create a raster metadata file based on the information about the files
-#' raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
+#' raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-Crop",
+#'              timeline = timeline, bands = c("ndvi"), files = files)
 #'
 #' # classify the raster file
 #' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-#'    ml_method = sits_svm(), blocksize = 300000, multicores = 2)
+#'    ml_method = sits_svm(), blocksize = 300000, multicores = 1)
 #' }
 #'
 #' @export
 sits_classify_raster <- function(file = NULL, raster.tb,  samples.tb, ml_method = sits_svm(),
                                  dist_method = sits_distances_from_data(),
+                                 adj_fun     = function(x) {x + 3.0},
                                  interval = "12 month",
                                  blocksize = 250000, multicores = 2){
 
     # ensure metadata tibble exists
-    .sits_test_tibble (raster.tb)
+    ensurer::ensure_that(raster.tb, NROW(.) == 1,
+                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
 
     # ensure patterns tibble exits
     .sits_test_tibble(samples.tb)
@@ -318,7 +322,7 @@ sits_classify_raster <- function(file = NULL, raster.tb,  samples.tb, ml_method 
     names(int_labels) <- labels
 
     #initiate writing
-    raster_class.tb$r_obj <- raster_class.tb$r_obj %>%
+    raster_class.tb$r.objs <- raster_class.tb$r.objs %>%
         purrr::map(function(layer) {
             raster::writeStart(layer, layer@file@name, overwrite = TRUE)
         })
@@ -326,12 +330,15 @@ sits_classify_raster <- function(file = NULL, raster.tb,  samples.tb, ml_method 
     # recover the input data by blocks for efficiency
     bs <- .sits_raster_block_size(raster_class.tb[1,], blocksize)
 
+    # retrieve the scale factor
+    scale_factor <- raster.tb$band_info[[1]]
+
     # read the input raster in blocks
 
     for (i in 1:bs$n) {
 
         # extract time series from the block of RasterBrick rows
-        data.mx <- .sits_data_from_block(raster.tb, row = bs$row[i], nrows = bs$nrows[i])
+        data.mx <- .sits_data_from_block(raster.tb, row = bs$row[i], nrows = bs$nrows[i], adj_fun = adj_fun)
 
         # classify the time series that are part of the block
         pred.lst <- .sits_classify_block(data.mx, class_info.tb, ml_model, multicores = multicores)
@@ -340,7 +347,7 @@ sits_classify_raster <- function(file = NULL, raster.tb,  samples.tb, ml_method 
         raster_class.tb <- .sits_block_from_data(pred.lst, raster_class.tb, int_labels, bs$row[i])
     }
     # finish writing
-    raster_class.tb$r_obj <- raster_class.tb$r_obj %>%
+    raster_class.tb$r.objs <- raster_class.tb$r.objs %>%
         purrr::map(function(layer) {
             raster::writeStop(layer)
         })

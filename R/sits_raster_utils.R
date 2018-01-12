@@ -4,7 +4,7 @@
 #'
 #' @description Takes a SITS tibble with label values and write a block inside a set of RasterLayers
 #'
-#' @param  class.tb          Classified SITS tibble
+#' @param  pred.lst          Vector with list of predicted classes
 #' @param  raster_class.tb   Metadata of RasterLayers where label values are to be writtenn
 #' @param  int_labels        Named vector with integers match the class labels
 #' @param  init_row          Starting row of the output RasterLayer
@@ -15,8 +15,8 @@
     # for each layer, write the values
     for (i in 1:nrow(raster_class.tb)) {
         layer <- raster_class.tb[i,]
-        values            <- as.integer(int_labels[pred.lst[[i]]])
-        layer$r_obj[[1]]  <- raster::writeValues(layer$r_obj[[1]], values, init_row)
+        values             <- as.integer(int_labels[pred.lst[[i]]])
+        layer$r.objs[[1]]  <- raster::writeValues(layer$r.objs[[1]], values, init_row)
     }
     return(raster_class.tb)
 }
@@ -38,8 +38,10 @@
 #' @return raster_layers.tb  Tibble with metadata about the output RasterLayer objects
 #'
 .sits_create_classified_raster <- function(raster.tb, samples.tb, file, interval){
+
     # ensure metadata tibble exists
-    .sits_test_tibble(raster.tb)
+    ensurer::ensure_that(raster.tb, NROW(.) == 1,
+                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
 
     # get the timeline of observations (required for matching dates)
     timeline <- raster.tb[1,]$timeline[[1]]
@@ -58,14 +60,17 @@
 
     # loop through the list of dates
     subset_dates.lst %>%
-        purrr::map (function(date_pair) {
+        purrr::map(function(date_pair) {
             # create one raster layer per date pair
-            r_out <- raster::raster(raster.tb[1,]$r_obj[[1]])
+            r_out <- raster::raster(raster.tb[1,]$r.objs[[1]])
 
             # define the timeline for the classified image
             start_date <- date_pair[1]
             end_date   <- date_pair[2]
             timeline   <- c(start_date, end_date)
+
+            # define the coverage name (must be unique)
+            coverage   <- paste0(raster.tb$coverage, "-class-", start_date, "-", end_date)
 
             # define the filename for the classified image
             filename <- .sits_raster_filename(file, start_date, end_date)
@@ -76,10 +81,16 @@
             scale_factor <- 1
 
             # create a new RasterLayer for a defined period and generate the associated metadata
-            row.tb <- .sits_tibble_raster(r_out, band, timeline, scale_factor)
+            row.tb <- .sits_coverage_metadata(service  = "RASTER",
+                                              product  = raster.tb$product,
+                                              coverage = coverage,
+                                              r.objs   = list(r_out),
+                                              timeline = timeline,
+                                              bands    = raster.tb$band_info[[1]]$name,
+                                              files    = list(filename))
 
             # store the labels of the classified image
-            row.tb$labels <- list(labels)
+            #row.tb$labels <- list(labels)
 
             # add the metadata information to the list
             raster.lst[[length(raster.lst) + 1 ]] <<- row.tb
@@ -100,30 +111,33 @@
 #' @param  raster.tb      Metadata for a RasterBrick
 #' @param  row            Starting row from the RasterBrick
 #' @param  nrow           Number of rows in the block extracted from the RasterBrick
-#' @param  shift          Adjustment value to avoid negative pixel vales
+#' @param  adj_fun        Function to adjust the values (required for ML classification)
 #' @return data.mx        Matrix with data values
 #'
-.sits_data_from_block <- function(raster.tb, row, nrows, shift = 3.0) {
+.sits_data_from_block <- function(raster.tb, row, nrows, adj_fun) {
 
     values.lst <- list()
 
-    # go line by line of the raster metadata tibble (each line points to a RasterBrick)
-    raster.tb %>%
-        purrrlyr::by_row(function(r_brick){
+    nband <- 0
+    # go element by element of the raster metadata tibble (each object points to a RasterBrick)
+    raster.tb[1,]$r.objs %>%
+        purrr::map(function(r_brick) {
             # the raster::getValues function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            values.mx   <- raster::getValues(r_brick$r_obj[[1]], row = row, nrows = nrows)
+            values.mx   <- raster::getValues(r_brick, row = row, nrows = nrows)
 
             # remove NA values
             values.mx[is.na(values.mx)] <- 0
             #values.mx   <- zoo::na.spline(values.mx)
 
             # correct by the scale factor
-            values.mx   <- values.mx*r_brick$scale_factor
+            nband        <- nband + 1
+            scale_factor <- as.numeric(raster.tb$band_info[[1]][nband, "scale_factor"])
+            values.mx    <- values.mx*scale_factor
 
             # adjust values to avoid negative pixel vales
-            values.mx <-  values.mx + shift
+            values.mx <-  adj_fun(values.mx)
 
             # Convert the matrix to a list of time series (all with values for a single band)
             values.lst[[length(values.lst) + 1]]  <<- values.mx
@@ -223,22 +237,29 @@
 #'
 
 .sits_ts_fromRasterXY <- function(raster.tb, xy, longitude, latitude, label = "NoClass", coverage = NULL){
+
     # ensure metadata tibble exists
-    .sits_test_tibble(raster.tb)
+    ensurer::ensure_that(raster.tb, NROW(.) == 1,
+                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
 
     timeline <- raster.tb[1,]$timeline[[1]]
 
     ts.tb <- tibble::tibble(Index = timeline)
 
-    raster.tb %>%
-        purrrlyr::by_row(function (row){
-            # obtain the Raster Brick object
-            r_obj <- row$r_obj[[1]]
+    nband <- 0
+    # An input raster brick contains several files, each corresponds to a band
+    raster.tb$r.objs %>%
+        purrr::map(function(r_brick) {
+            # eack brick is a banc
+            nband <- nband + 1
             # get the values of the time series
-            values <- as.vector(raster::extract(r_obj, xy))
+            values <- as.vector(raster::extract(r_brick, xy))
+            # create a tibble to store the values
             values.tb <- tibble::tibble(values)
-            names(values.tb) <- row$band
+            # find the names of the tibble column
+            names(values.tb) <- as.character(raster.tb$band_info[[1]][nband, "name"])
             # correct the values using the scale factor
+            scale_factor <- as.numeric(raster.tb$band_info[[1]][nband, "scale_factor"])
             values.tb <- values.tb[,1]*row$scale_factor
             # add the column to the SITS tibble
             ts.tb <<- dplyr::bind_cols(ts.tb, values.tb)
@@ -279,8 +300,10 @@
 #' @return data.tb         SITS tibble with the time series
 
 .sits_ts_fromRasterCSV <- function(raster.tb, file) {
+
     # ensure metadata tibble exists
-    .sits_test_tibble(raster.tb)
+    ensurer::ensure_that(raster.tb, NROW(.) == 1,
+                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
 
     # configure the format of the CSV file to be read
     cols_csv <- readr::cols(id          = readr::col_integer(),
@@ -289,19 +312,41 @@
                             start_date  = readr::col_date(),
                             end_date    = readr::col_date(),
                             label       = readr::col_character())
+
     # read sample information from CSV file and put it in a tibble
     csv.tb <- readr::read_csv(file, col_types = cols_csv)
-    # create the tibble
+    # create a tibble for the time series
     data.tb <- sits_tibble()
+    # create a tibble  to store the unread rows
+    csv_unread.tb <- .sits_tibble_csv()
     # for each row of the input, retrieve the time series
     csv.tb %>%
         purrrlyr::by_row(function(r){
-            xy <- .sits_latlong_to_proj(r$longitude, r$latitude, raster.tb[1,]$crs)
-            ensurer::ensure_that(xy, .sits_XY_inside_raster((.), raster.tb),
-                                 err_desc = "lat-long point not inside raster")
+            # covert to the projection coordinates
+            xy <- .sits_latlong_to_proj(r$longitude, r$latitude, raster.tb$crs)
+
+            if (!.sits_XY_inside_raster(xy, raster.tb)) {
+                    csv_unread_row.tb <- tibble::tibble(
+                        longitude  = r$longitude,
+                        latitude   = r$latitude,
+                        start_date = r$start_date,
+                        end_date   = r$end_date,
+                        label      = r$label)
+                    csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
+            }
+            # read the time series
             row.tb <- .sits_ts_fromRasterXY(raster.tb, xy, r$longitude, r$latitude, r$label)
+            # extract the time interval
             row.tb <- .sits_extract(row.tb, r$start_date, r$end_date)
+            # put one more row in the outopur tibble
             data.tb <<- dplyr::bind_rows(data.tb, row.tb)
         })
+    if (NROW(csv_unread.tb) > 0) {
+        message("Some points could not be retrieved - see log file and csv_unread_file")
+        .sits_log_CSV(csv_unread.tb, "unread_samples.csv")
+    }
+
+
+
     return(data.tb)
 }
