@@ -5,8 +5,7 @@
 \title{Provides information about one coverage used to retrieve data}
 \usage{
 sits_coverage(service = "WTSS", product = "MOD13Q1",
-  coverage = "mod13q1_512", timeline = NULL, bands = NULL,
-  file_names = NA)
+  coverage = "mod13q1_512", timeline = NULL, bands = NULL, files = NA)
 }
 \arguments{
 \item{service}{the name of the time series service}
@@ -19,7 +18,7 @@ sits_coverage(service = "WTSS", product = "MOD13Q1",
 
 \item{bands}{list of bands (for raster data)}
 
-\item{file_names}{file names (for raster data)}
+\item{files}{file names (for raster data)}
 }
 \description{
 uses the configuration file to print information and save metadata about a

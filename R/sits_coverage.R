@@ -66,13 +66,12 @@ sits_coverage <- function(service  = "WTSS",
 #'
 #' @param product    the name of the product
 #' @param coverage   the name of the coverage
-#' @param .show      show information about the coverage (Default: TRUE)
 #' @examples
 #' # Retrieve information about a WTSS coverage
 #' coverage.tb <- sits_coverageWTSS(coverage = "mod13q1_512")
 #' @export
 #'
-sits_coverageWTSS <- function(product = "MOD13Q1", coverage = "mod13q1_512", .show = TRUE) {
+sits_coverageWTSS <- function(product = "MOD13Q1", coverage = "mod13q1_512") {
 
     # tests if the coverage is available in the global list of coverages
     # if it does not exits, create an empty one to hold the metadata about the coverages
@@ -80,25 +79,13 @@ sits_coverageWTSS <- function(product = "MOD13Q1", coverage = "mod13q1_512", .sh
     if (!purrr::is_null(coverage.tb))
         return(coverage.tb)
 
-    # obtains information about the WTSS service
-    URL <- .sits_get_server("WTSS")
     tryCatch({
-        # create a WTSS object
+        URL  <- .sits_get_server("WTSS")
+        # obtains information about the available coverages
         wtss.obj         <- wtss::WTSS(URL)
 
-        # obtains information about the available coverages
-        coverages.vec    <- wtss::listCoverages(wtss.obj)
-
-        # is the coverage in the list of coverages?
-        ensurer::ensure_that(coverage, (.) %in% coverages.vec,
-                             err_desc = "sits_coverageWTSS: coverage is not available in the WTSS server")
-
-        # describe the coverage
-        cov.lst    <- wtss::describeCoverage(wtss.obj, coverage)
-        cov        <- cov.lst[[coverage]]
-
         # temporal extent
-        timeline <- cov$timeline
+        timeline <- .sits_get_timeline("WTSS", product, coverage)
 
         # create a coverage metadata
         coverage.tb <- .sits_coverage_metadata(service = "WTSS",
@@ -106,10 +93,6 @@ sits_coverageWTSS <- function(product = "MOD13Q1", coverage = "mod13q1_512", .sh
                                                coverage = coverage,
                                                r.objs  = list(wtss.obj),
                                                timeline = timeline)
-
-        # if asked, show the coverage attributes
-        if (.show)
-            .sits_print_coverage_attrs(cov)
 
     }, error = function(e){
         msg <- paste0("WTSS service not available at URL ", URL)
@@ -174,7 +157,7 @@ sits_coverageSATVEG <- function(product = "MOD13Q1", coverage = "terra", timelin
 #' timeline <- lubridate::as_date (timeline_mod13q1$V1)
 #'
 #' # create a raster metadata file based on the information about the files
-#' raster.tb <- sits_coverageRaster(coverage = "Sinop-crop",
+#' raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-crop",
 #'              timeline = timeline, bands = c("ndvi"), files = files)
 #'
 #' @export
@@ -188,7 +171,7 @@ sits_coverageRaster <- function(product = "MOD13Q1", coverage = NULL, timeline =
     # create a list to store the raster objects
     raster.lst <- list()
 
-    raster.tb <- purrr::pmap(list(files, bands),
+    raster.lst <- purrr::pmap(list(files, bands),
                              function(file, band) {
                                  # create a raster object associated to the file
                                  raster.obj <- raster::brick(file)
@@ -247,13 +230,13 @@ sits_coverageRaster <- function(product = "MOD13Q1", coverage = NULL, timeline =
         timeline <- .sits_get_timeline(service, product, coverage)
 
     # get the size of the coverage
-    size <- .sits_get_size(service, product)
+    size <- .sits_get_size(service, product, r.objs)
     # get the bounding box of the product
-    bbox <- .sits_get_bbox(service, product)
+    bbox <- .sits_get_bbox(service, product, r.objs)
     # get the resolution of the product
     res <- .sits_get_resolution(product)
     # get the CRS projection
-    crs <- .sits_get_projection(service, product)
+    crs <- .sits_get_projection(service, product, r.objs)
 
     # create a tibble to store the metadata
     coverage.tb <- tibble::tibble(

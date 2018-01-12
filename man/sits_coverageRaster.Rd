@@ -37,7 +37,7 @@ data(timeline_mod13q1)
 timeline <- lubridate::as_date (timeline_mod13q1$V1)
 
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_coverageRaster(coverage = "Sinop-crop",
+raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-crop",
              timeline = timeline, bands = c("ndvi"), files = files)
 
 }

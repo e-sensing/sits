@@ -103,8 +103,10 @@ sits_getdata <- function(file        = NULL,
     # get data based on latitude and longitude
     if (purrr::is_null(file) &&
         !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
-        data.tb <- .sits_from_service(service, product, coverage, longitude, latitude, start_date, end_date,
-                                      bands, prefilter, label)
+        data.tb <- .sits_from_service(service = service, product = product, coverage = coverage,
+                                      longitude = longitude, latitude = latitude,
+                                      start_date = start_date, end_date = end_date,
+                                      bands = bands, prefilter = prefilter, label = label)
         return(data.tb)
     }
     # get data based on CSV file
@@ -139,25 +141,25 @@ sits_getdata <- function(file        = NULL,
 #' @param label           string - the label to attach to the time series
 #' @return table          a SITS tibble
 #'
-.sits_from_service <- function(service    = "WTSS",
-                               product    = "MOD13Q1",
-                               coverage   = "mod13q1_512",
-                               latitude   = NULL,
-                               longitude  = NULL,
-                               start_date = NULL,
-                               end_date   = NULL,
-                               bands      = NULL,
-                               prefilter  = "1",
-                               label      = "NoClass") {
+.sits_from_service <- function(service, product, coverage,
+                               longitude, latitude,
+                               start_date, end_date,
+                               bands, prefilter  = "1", label = "NoClass") {
 
 
     # Ensure that the service is available
     .sits_check_service(service)
 
     if (service == "WTSS")
-        data.tb <- sits_fromWTSS(product, coverage, latitude, longitude, start_date, end_date, bands, label)
+        data.tb <- sits_fromWTSS(product = product, coverage = coverage,
+                                 longitude = longitude, latitude = latitude,
+                                 start_date = start_date, end_date = end_date,
+                                 bands = bands, label = label)
     if (service == "SATVEG")
-        data.tb <- sits_fromSATVEG(product, coverage, latitude, longitude, start_date, end_date, prefilter, label)
+        data.tb <- sits_fromSATVEG(product = product, coverage = coverage,
+                                   longitude = longitude, latitude = latitude,
+                                   start_date = start_date, end_date = end_date,
+                                   prefilter = prefilter, label = label)
 
     return(data.tb)
 }
@@ -193,8 +195,8 @@ sits_band_info <- function(bands, product) {
         # fill the value for each band
         bi <- tibble::tibble(
             name          = b,
-            scale_factor  = mv,
-            missing_value = sf
+            scale_factor  = sf,
+            missing_value = mv
         )
         # join the information from one band to the others
         band_info <- dplyr::bind_rows(band_info, bi)

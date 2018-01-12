@@ -4,15 +4,12 @@
 \alias{sits_coverageWTSS}
 \title{Provides information about one coverage of the WTSS service}
 \usage{
-sits_coverageWTSS(product = "MOD13Q1", coverage = "mod13q1_512",
-  .show = TRUE)
+sits_coverageWTSS(product = "MOD13Q1", coverage = "mod13q1_512")
 }
 \arguments{
 \item{product}{the name of the product}
 
 \item{coverage}{the name of the coverage}
-
-\item{.show}{show information about the coverage (Default: TRUE)}
 }
 \description{
 uses the WTSS services to print information and save metadata about a

@@ -96,6 +96,7 @@ Collate:
     'sits_filters.R'
     'sits_getdata.R'
     'sits_import.R'
+    'sits_info.R'
     'sits_kohonen.R'
     'sits_labels.R'
     'sits_log.R'

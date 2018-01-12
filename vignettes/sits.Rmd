@@ -154,7 +154,7 @@ series.tb <-
                  start_date = "2001-01-01", end_date = "2016-12-31")
 # plot the series
 sits_plot(series.tb)
-```
+```?
 
 A useful case is when users have a set of labelled samples, that are to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. The `sits_getdata()` function can receive a CSV file path as an argument. In this case, the CSV must provide some required fields. Each location information must have its latitude and longitude, the start and end dates, and a label associated.
 

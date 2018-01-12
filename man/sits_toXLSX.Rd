@@ -30,7 +30,7 @@ conf.mx$name <- "confusion_matrix"
 # add the confusion matrix to the results
 results[[length(results) + 1]] <- conf.mx
 # save the results to an XLSX file
-sits_toXLSX(results, file = "./confusion_matrix.xlsx")
+sits_toXLSX(results, file = paste0(getwd(),"/confusion_matrix.xlsx"))
 
 
 }

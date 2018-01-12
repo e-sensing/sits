@@ -406,7 +406,7 @@
 #'
 .sits_tibble_coverage <- function() {
     result.tb <- tibble::tibble(r.objs         = list(),
-                                name           = character(),
+                                coverage       = character(),
                                 service        = character(),
                                 product        = character(),
                                 band_info      = list(),
@@ -487,57 +487,4 @@
     data.tb$predicted <- predicted.lst
     class(data.tb) <- append(class(data.tb), "sits_tibble_prediction")
     return(data.tb)
-}
-#' @title Create one line of metadata tibble to store the description of a spatio-temporal raster
-#' @name .sits_tibble_raster
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description  This function creates one line of tibble containing the metadata for
-#'               a set of spatio-temporal raster files.
-#'
-#' @param raster.lst     List of valid raster objects (associated to filename)
-#' @param coverage       The coverage name
-#' @param bands          Vector of bands (either raw or classified)
-#' @param timeline       Timeline of data collection
-#' @param product        The product associated to the images
-#' @return raster.tb     A tibble for storing metadata about a raster coverage
-
-.sits_tibble_raster <- function(raster.lst, coverage, bands, timeline, product, files) {
-
-    # get the information about the bands (missing values and scale factors)
-    band_info <- sits_band_info(bands, product)
-
-    # use the first raster object as a reference to build the metadata
-    raster.obj <- raster.lst[[1]]
-
-    # build the metadata table
-    # the same metadata is used for all time series services
-    coverage.tb <- .sits_tibble_coverage()
-
-    # fill the parameters of the raster coverage
-    raster.tb <- tibble::tibble(
-        r.objs          = raster.lst,
-        coverage        = coverage,
-        service         = "RASTER",
-        product         = product,
-        band_info       = list(band_info),
-        start_date      = lubridate::as_date(timeline[1]),
-        end_date        = lubridate::as_date(timeline[length(timeline)]),
-        timeline        = list(timeline),
-        nrows           = raster.obj@nrows,
-        ncols           = raster.obj@ncols,
-        xmin            = raster.obj@extent@xmin,
-        xmax            = raster.obj@extent@xmax,
-        ymin            = raster.obj@extent@ymin,
-        ymax            = raster.obj@extent@ymax,
-        xres            = raster::xres(raster.obj),
-        yres            = raster::yres(raster.obj),
-        crs             = raster.obj@crs@projargs,
-        file_names      = list(files)
-    )
-
-    # join the rows (ensures that all metadata tables are consistent)
-    coverage.tb <- dplyr::bind_rows(coverage.tb, raster.tb)
-
-    return(coverage.tb)
 }
