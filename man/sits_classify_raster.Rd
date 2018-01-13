@@ -6,7 +6,8 @@
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb,
   ml_method = sits_svm(), dist_method = sits_distances_from_data(),
-  interval = "12 month", blocksize = 250000, multicores = 2)
+  adj_fun = function(x) {     x + 3 }, interval = "12 month",
+  blocksize = 250000, multicores = 2)
 }
 \arguments{
 \item{file}{a set of file names to store the output (one file per classified year)}
@@ -18,6 +19,8 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb,
 \item{ml_method}{a model trained by \code{\link[sits]{sits_train}}}
 
 \item{dist_method}{The method to obtain the values to be used from training and classification}
+
+\item{adj_fun}{Function to adjust the values (required for ML classification)}
 
 \item{interval}{The interval between two sucessive classification}
 
@@ -51,11 +54,12 @@ data(timeline_mod13q1)
 timeline <- lubridate::as_date (timeline_mod13q1$V1)
 
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_STRaster (files, timeline, bands = c("ndvi"), scale_factors = c(0.0001))
+raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-Crop",
+             timeline = timeline, bands = c("ndvi"), files = files)
 
 # classify the raster file
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-   ml_method = sits_svm(), blocksize = 300000, multicores = 2)
+   ml_method = sits_svm(), blocksize = 300000, multicores = 1)
 }
 
 }

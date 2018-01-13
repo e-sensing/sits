@@ -45,7 +45,8 @@ scale_factors <- c(0.0001)
 data(timeline_mod13q1)
 timeline <- lubridate::as_date (timeline_mod13q1$V1)
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_STRaster (files, timeline, bands, scale_factors)
+raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-Crop",
+             timeline = timeline, bands = c("ndvi"), files = files)
 # read the point from the raster
 point.tb <- sits_fromRaster(raster.tb, longitude = -55.50563, latitude = -11.71557)
 
