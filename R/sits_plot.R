@@ -492,8 +492,8 @@ sits_plot_dendrogram <- function(data.tb,
     dendrogram %>%
         dendextend::set("labels", character(length = length(data_labels))) %>%
         dendextend::set("branches_k_color", value = cols, k = length(data_labels)) %>%
-        graphics::plot(xlab = "Clusters", ylab = paste(tools::file_path_sans_ext(cluster_obj@method),
-                                                       "linkage distance"))
+        graphics::plot(ylab = paste(tools::file_path_sans_ext(cluster_obj@method),
+                                    "linkage distance"))
 
 
     # plot cutree line

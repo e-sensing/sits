@@ -8,8 +8,6 @@ sits_cluster_validity(data.tb, type = "valid")
 }
 \arguments{
 \item{data.tb}{a SITS tibble with `cluster` column.}
-
-\item{type}{character vector indicating which indices are to be computed. (Default "valid")}
 }
 \value{
 result.vec      vectors with chosen CVIs
