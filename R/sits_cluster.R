@@ -8,7 +8,7 @@
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb          a tibble with input data of dtwclust.
-#' @param clusters         a cluster structure returned from dtwclust.
+#' @param dendro.obj       a dendrogram object returned from `sits_dendro()`.
 #' @param k                the desired number of clusters
 #' @param height           the desired height to cut the dendrogram. At least one of k or height must be specified, k overrides height if both are given.
 #' @return result.tb       a SITS tibble with the clusters or clusters' members
@@ -20,23 +20,23 @@
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # calculate the dendrogram
-#' clusters <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+#' dendro.obj <- sits_dendro (cerrado_2classes, bands = c("ndvi"))
 #' # include the cluster info in the SITS tibble
-#' clustered.tb <- sits_cluster (cerrado_2classes, clusters, k = 6)
+#' clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
 #' }
 #'
 #' @export
-sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
+sits_cluster <-  function (data.tb, dendro.obj, k = NULL, height = NULL) {
 
-    #verifies if either k or height were informed
-    ensurer::ensure_that(k, !(is.null(.) & is.null(height)),
-                         err_desc = "sits_cluster: you must provide at least k or height")
+    #verifies if either k or height has length one
+    ensurer::ensure_that(k, (length(.) == 1 || length(height) == 1),
+                         err_desc = "sits_cluster: you must provide at least k or height.")
 
     # create a tibble to store the results
     result.tb <- data.tb
 
     # cut the tree
-    result.tb$cluster <- stats::cutree(clusters, k, height)
+    result.tb$cluster <- stats::cutree(dendro.obj, k[[1]], height[[1]])
 
     return (result.tb)
 }
@@ -51,9 +51,10 @@ sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb          a SITS tibble with `cluster` column.
+#' @param collapse         (boolean) rename clusters regarding more frequent labels.
 #' @return result.vec      vectors with chosen CVIs
 #' @export
-sits_cluster_validity <-  function (data.tb, type = "valid") {
+sits_cluster_validity <- function(data.tb, collapse = FALSE) {
 
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
@@ -61,14 +62,21 @@ sits_cluster_validity <-  function (data.tb, type = "valid") {
     }
 
     # is the input data the result of a cluster function?
-    ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_validity: input data does not contain cluster column")
+    ensurer::ensure_that(data.tb, "cluster" %in% names (.),
+                         err_desc = "sits_cluster_validity: input data does not contain cluster column")
 
     # rename clusters to correspond the more frequent class
-    max_labels_names.vec <-
-        apply(sits_cluster_frequency(data.tb, totals = FALSE), 2, which.max)
-    new_clusters_names.vec <-
-        sits_labels(data.tb)$label[max_labels_names.vec]
-    data.tb <- sits_cluster_rename(data.tb, new_clusters_names.vec)
+    if (collapse){
+        # is the input data the result of a cluster function?
+        ensurer::ensure_that(data.tb, length(base::unique(.$cluster)) >= length(base::unique(.$labels)),
+                             err_desc = "sits_cluster_validity: cannot collapse clusters as there are less clusters than labels.")
+
+        max_labels_names.vec <-
+            apply(sits_cluster_contigency(data.tb, totals = FALSE), 2, which.max)
+        new_clusters_names.vec <-
+            sits_labels(data.tb)$label[max_labels_names.vec]
+        data.tb <- sits_cluster_rename(data.tb, new_clusters_names.vec)
+    }
 
     # compute CVIs and return
     result.vec <- dtwclust::cvi(a = factor(data.tb$cluster), b = factor(data.tb$label), type = "external", log.base = 10)
@@ -76,11 +84,11 @@ sits_cluster_validity <-  function (data.tb, type = "valid") {
     return (result.vec)
 }
 
-#' @title Cluster frequency
-#' @name sits_cluster_frequency
+#' @title Cluster contigency table
+#' @name sits_cluster_contigency
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Computes the frequency of labels in each cluster.
+#' @description Computes the contingency table between labels and clusters.
 #' This function needs as input a SITS tibble with `cluster` column.
 #'
 #' @param data.tb          a SITS tibble with `cluster` column.
@@ -89,10 +97,11 @@ sits_cluster_validity <-  function (data.tb, type = "valid") {
 #' @param totals           (boolean) return the totals of rows and columns?
 #' @return result.mtx      matrix containing all frequencies of labels in clusters
 #' @export
-sits_cluster_frequency <-  function (data.tb, relative = FALSE, to_margin = 2, totals = TRUE) {
+sits_cluster_contigency <-  function (data.tb, relative = FALSE, to_margin = 2, totals = TRUE) {
 
     # is the input data the result of a cluster function?
-    ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_frequency: input data does not contain cluster column")
+    ensurer::ensure_that(data.tb, "cluster" %in% names (.),
+                         err_desc = "sits_cluster_contigency: input data does not contain cluster column")
 
     # compute frequency table
     result.mtx <- table(data.tb$label, data.tb$cluster)
@@ -104,6 +113,8 @@ sits_cluster_frequency <-  function (data.tb, relative = FALSE, to_margin = 2, t
     # compute total row and col
     if (totals)
         result.mtx <- stats::addmargins(result.mtx, FUN = list(Total = sum), quiet = TRUE)
+
+    # return result
     return (result.mtx)
 }
 
@@ -128,7 +139,7 @@ sits_cluster_cleaner <-  function (data.tb, min_clu_perc = 0.0, min_lab_perc = 0
     ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
 
     # compute frequency in each cluster
-    freq.mtx <- sits_cluster_frequency(data.tb, relative = TRUE, to_margin = 2)
+    freq.mtx <- sits_cluster_contigency(data.tb, relative = TRUE, to_margin = 2)
 
     # get those indexes whose labels represents more than `min_clu_perc`
     index.mtx <- which(freq.mtx[1:NROW(freq.mtx) - 1,1:NCOL(freq.mtx) - 1] > min_clu_perc, arr.ind = TRUE, useNames = TRUE)
@@ -139,7 +150,7 @@ sits_cluster_cleaner <-  function (data.tb, min_clu_perc = 0.0, min_lab_perc = 0
                                    collapse = " | ")
 
     # compute frequency in each label
-    freq.mtx <- sits_cluster_frequency(data.tb, relative = TRUE, to_margin = 1)
+    freq.mtx <- sits_cluster_contigency(data.tb, relative = TRUE, to_margin = 1)
 
     # get those indexes whose labels represents more than `min_lab_perc`
     index.mtx <- which(freq.mtx[1:NROW(freq.mtx) - 1,1:NCOL(freq.mtx) - 1] > min_lab_perc, arr.ind = TRUE, useNames = TRUE)
@@ -175,11 +186,15 @@ sits_cluster_rename <-  function (data.tb, values) {
 
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.),
-                         err_desc = "sits_cluster_names: input data does not contain cluster column")
+                         err_desc = "sits_cluster_rename: input data does not contain cluster column")
 
     # verify if the informed cluster names has the same length of clusters names
     ensurer::ensure_that(data.tb, length(base::unique(.$cluster)) == length(values),
-                         err_desc = "sits_cluster_name: informed names has length different of the number of clusters")
+                         err_desc = "sits_cluster_rename: informed names has length different of the number of clusters")
+
+    # verify if a named list is required
+    ensurer::ensure_that(data.tb$cluster, is.integer(.) || (is.character(.) && !is.null(names(values))),
+                         err_desc = "sits_cluster_rename: values must be a named vector")
 
     # compute new clusters names
     data_cluster_names.vec <- values[data.tb$cluster] %>% unlist()

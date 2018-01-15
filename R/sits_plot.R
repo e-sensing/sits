@@ -436,13 +436,13 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
     return(invisible(matches))
 }
 #' @title Plot a dendrogram
-#' @name sits_plot_dendrogram
+#' @name sits_plot_dendro
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendrogram}}
+#' @description Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendro}}
 #'
 #' @param data.tb       SITS tibble with data used to extract the dendrogram
-#' @param cluster_obj   cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`
+#' @param dendro.obj    cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`
 #' @param cutree_height A dashed horizontal line to be drawed indicating the height of dendrogram cutting.
 #' @param colors        a color scheme as showed in `sits_color_name` function
 #' @export
@@ -452,17 +452,17 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' data ("cerrado_2classes")
 #' # Generate and plot a dendrogram
 #' library (dtwclust)
-#' clusters <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
-#' sits_plot_dendrogram (cerrado_2classes, clusters)
+#' dendro.obj <- sits_dendro (cerrado_2classes, bands = c("ndvi"))
+#' sits_plot_dendro (cerrado_2classes, dendro.obj)
 #' }
-sits_plot_dendrogram <- function(data.tb,
-                                  cluster_obj,
-                                  cutree_height = NULL,
-                                  colors = "RdYlGn"){
+sits_plot_dendro <- function(data.tb,
+                             dendro.obj,
+                             cutree_height = NULL,
+                             colors = "RdYlGn"){
 
     # ensures that a cluster object is informed or exists in .sits_last_cluster global variable.
-    ensurer::ensure_that(cluster_obj, !is.null(.),
-                         err_desc = "plot_dendrogram: no valid `cluster_obj` informed or found in `.sits_last_cluster`.")
+    ensurer::ensure_that(dendro.obj, !is.null(.),
+                         err_desc = "plot_dendrogram: no valid `dendro.obj` informed or found in `.sits_last_cluster`.")
 
     # get unique labels
     data_labels <- data.tb$label
@@ -473,7 +473,7 @@ sits_plot_dendrogram <- function(data.tb,
         message("sits_plot_dendrogram: The number of labels is greater than the number of available colors.")
 
     # extract the dendrogram object
-    hclust_cl <- methods::S3Part(cluster_obj, strictS3 = TRUE)
+    hclust_cl <- methods::S3Part(dendro.obj, strictS3 = TRUE)
     dendrogram <- hclust_cl %>%
         stats::as.dendrogram()
 
@@ -492,7 +492,7 @@ sits_plot_dendrogram <- function(data.tb,
     dendrogram %>%
         dendextend::set("labels", character(length = length(data_labels))) %>%
         dendextend::set("branches_k_color", value = cols, k = length(data_labels)) %>%
-        graphics::plot(ylab = paste(tools::file_path_sans_ext(cluster_obj@method),
+        graphics::plot(ylab = paste(tools::file_path_sans_ext(dendro.obj@method),
                                     "linkage distance"))
 
 
