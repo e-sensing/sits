@@ -32,8 +32,8 @@
 #' }
 #' @export
 sits_dendrogram <- function (data.tb, bands = NULL,
-                            dist_method = "dtw_basic",
-                            grouping_method = "ward.D2", ...){
+                             dist_method = "dtw_basic",
+                             grouping_method = "ward.D2", ...){
 
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {

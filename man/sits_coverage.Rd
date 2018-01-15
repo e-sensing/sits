@@ -23,19 +23,22 @@ sits_coverage(service = "WTSS", product = "MOD13Q1",
 \description{
 uses the configuration file to print information and save metadata about a
 chosen coverage:
- bands          - the information about the bands of the data to be retrieved from the WTSS
+ r_objs.lst     - list of R objects associated with the coverage
+ coverage       = name of the coverage (must be unique)
+ service        - name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER")
+ product        - name of the product associated with coverage (e.g., "MOD13Q1")
+ band_info      - tibble with information about the bands (name, scale_factor and missing_value)
  start_date     - the start date for the time series data in the coverage
  end_date       - the end date for the time series data in the coverage
- xres           - spatial resolution (x dimension)
- yres           - spatial resolution (y dimension)
- start_date     - initial date of the coverage time series
- end_date       - final date of the coverage time series
+ timeline       - the timeline of the coverage
  xmin           - spatial extent (xmin)
  ymin           - spatial extent (ymin)
  xmax           - spatial extent (xmax)
  ymax           - spatial extent (ymin)
- scale_factor   - scale factor to covert bands to a [0..1] scale
+ xres           - spatial resolution (x dimension)
+ yres           - spatial resolution (y dimension)
  crs            - Projection crs
+ files          - Files associated with the coverage (in the case of service == "RASTER")
 }
 \examples{
 # Retrieve information about a WTSS coverage

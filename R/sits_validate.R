@@ -25,9 +25,9 @@
 #' @param data.tb         a SITS tibble
 #' @param folds           number of partitions to create.
 #' @param ml_method       machine learning training method
-#' @param dist_method     distance method to be applied to the data
+#' @param adj_fun         adjustment function applied to the input data
 #' @param multicores      number of threads to process the validation (Linux and MacOS only)
-#' @return pred_ref.tb        a tibble containing pairs of reference and predicted values
+#' @return pred_ref.tb    a tibble containing pairs of reference and predicted values
 #'
 #' @examples
 #' # read a set of samples
@@ -40,8 +40,8 @@
 
 sits_kfold_validate <- function(data.tb, folds = 5,
                                 ml_method   = sits_svm(),
-                                dist_method = sits_distances_from_data(),
-                                multicores = 1){
+                                adj_fun     = sits_adjust(),
+                                multicores  = 1){
 
     # does the input data exist?
     .sits_test_tibble(data.tb)
@@ -67,13 +67,13 @@ sits_kfold_validate <- function(data.tb, folds = 5,
         data_test.tb  <- data.tb[data.tb$folds == k,]
 
         # find the matches on the training data
-        distances_train.tb <- dist_method(data_train.tb)
+        distances_train.tb <- sits_distances(data_train.tb, adj_fun)
 
         # find a model on the training data set
         model.ml <- ml_method(distances_train.tb)
 
         # find the distances in the test data
-        distances_test.tb  <- dist_method(data_test.tb)
+        distances_test.tb  <- sits_distances(data_test.tb, adj_fun)
 
         # classify the test data
         predicted <- .sits_predict(distances_test.tb, model.ml)

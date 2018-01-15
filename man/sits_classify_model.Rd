@@ -5,8 +5,7 @@
 \title{Classify a sits tibble using pre-built machine learning models}
 \usage{
 sits_classify_model(data.tb = NULL, train_samples.tb = NULL, model = NULL,
-  dist_method = sits_distances_from_data(), interval = "12 month",
-  multicores = 1)
+  adj_fun = sits_adjust(), interval = "12 month", multicores = 1)
 }
 \arguments{
 \item{data.tb}{SITS tibble time series (cleaned)}
@@ -15,7 +14,7 @@ sits_classify_model(data.tb = NULL, train_samples.tb = NULL, model = NULL,
 
 \item{model}{A pre-built ML model (see \code{\link[sits]{sits_train}})}
 
-\item{dist_method}{The method to obtain the values to be used from training and classification}
+\item{adj_fun}{Adjustment function to be applied to the data}
 
 \item{interval}{The interval used for classification}
 

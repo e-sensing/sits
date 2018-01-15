@@ -13,15 +13,15 @@
 #' @param coverage        string - the name of the coverage to be retrieved
 #' @param bands           string vector - the names of the bands to be retrieved
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @param n_save         number of samples to save as intermediate files (used for long reads)
-#' @param n_max          the maximum number of samples to be read
+#' @param .n_max          the maximum number of samples to be read
+#' @param .n_save         number of samples to save as intermediate files (used for long reads)
 #' @return data.tb        a SITS tibble
 #'
 #' @examples
 #' \donttest{
 #' #' # Read a set of points defined in a CSV file from a WTSS server
-#' csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
-#' points.tb <- sits_fromCSV (file = csv_file)
+#' csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
+#' points.tb <- sits_fromCSV (csv_file = csv_file)
 #' }
 #' @export
 
@@ -31,8 +31,8 @@ sits_fromCSV <-  function(csv_file,
                           coverage  = "mod13q1_512",
                           bands     = NULL,
                           prefilter = "1",
-                          n_save    = 0,
-                          n_max     = Inf) {
+                          .n_max    = Inf,
+                          .n_save   = 0) {
 
 
     # check that the input is a CSV file
@@ -50,7 +50,7 @@ sits_fromCSV <-  function(csv_file,
                             end_date    = readr::col_date(),
                             label       = readr::col_character())
     # read sample information from CSV file and put it in a tibble
-    csv.tb <- readr::read_csv(csv_file, n_max = n_max, col_types = cols_csv)
+    csv.tb <- readr::read_csv(csv_file, n_max = .n_max, col_types = cols_csv)
 
     # find how many samples are to be read
     n_rows_csv <- NROW(csv.tb)
@@ -67,17 +67,17 @@ sits_fromCSV <-  function(csv_file,
                                       bands, prefilter, r$label)
             # did we get the data?
             if (!purrr::is_null(row)) {
-                nrow <-  nrow + 1
+                nrow <<-  nrow + 1
 
                 # add the new point to the SITS tibble
                 data.tb <<- dplyr::bind_rows(data.tb, row)
 
                 # optional - save the results to an intermediate file
-                if (n_save != 0 && !(nrow %% n_save)) {
+                if (.n_save != 0 && !(nrow %% .n_save)) {
                     .sits_log_data(data.tb)
                 }
             }
-            # the point could not be read
+            # the point could not be read - save it in the log file
             else {
                 csv_unread_row.tb <- tibble::tibble(
                     longitude  = r$longitude,
@@ -89,6 +89,7 @@ sits_fromCSV <-  function(csv_file,
                 csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
             }
         })
+
 
     # Have all input rows being read?
     if (nrow != n_rows_csv) {

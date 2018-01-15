@@ -52,8 +52,7 @@ data(samples_MT_ndvi)
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_mlp(),
-        sits_distances = sits_distances_from_data (fun = identity()))
+class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_mlp(), adj_fun = identity)
 }
 }
 \author{

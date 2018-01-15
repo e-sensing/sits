@@ -20,6 +20,9 @@ coverage.tb       metadata about the coverage
 \description{
 Retrieves a coverage name based on the capabilities of the SATVEG service
 }
+\examples{
+coverage.tb <- sits_coverageSATVEG(product = "MOD13Q1", coverage = "terra")
+}
 \author{
 Julio Esquerdo, \email{julio.esquerdo@embrapa.br}
 

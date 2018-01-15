@@ -16,7 +16,7 @@
 #' @examples
 #' \donttest{
 #' # Load the "dtwclust" package
-#' library (dtwclust)
+#' library(dtwclust)
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # calculate the dendrogram
@@ -26,7 +26,7 @@
 #' }
 #'
 #' @export
-sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
+sits_cluster <-  function(data.tb, clusters, k = NULL, height = NULL) {
 
     #verifies if either k or height were informed
     ensurer::ensure_that(k, !(is.null(.) & is.null(height)),
@@ -38,7 +38,7 @@ sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
     # cut the tree
     result.tb$cluster <- stats::cutree(clusters, k, height)
 
-    return (result.tb)
+    return(result.tb)
 }
 
 #' @title Cluster validity indices
@@ -54,7 +54,7 @@ sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
 #' @param type             character vector indicating which indices are to be computed. (Default "valid")
 #' @return result.vec      vectors with chosen CVIs
 #' @export
-sits_cluster_validity <-  function (data.tb, type = "valid") {
+sits_cluster_validity <-  function(data.tb, type = "valid") {
 
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
@@ -62,12 +62,12 @@ sits_cluster_validity <-  function (data.tb, type = "valid") {
     }
 
     # is the input data the result of a cluster function?
-    ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_validity: input data does not contain cluster column")
+    ensurer::ensure_that(data.tb, "cluster" %in% names(.), err_desc = "sits_cluster_validity: input data does not contain cluster column")
 
     # compute CVIs and return
     result.vec <- dtwclust::cvi(a = data.tb$cluster, b = factor(data.tb$label), type = type, log.base = 10)
 
-    return (result.vec)
+    return(result.vec)
 }
 
 #' @title Cluster frequency
@@ -82,7 +82,7 @@ sits_cluster_validity <-  function (data.tb, type = "valid") {
 #' @param margin           number indicating how to compute relative frequency (1 regarding labels, 2 regarding clusters) (default 2)
 #' @return result.mtx      matrix containing all frequencies of labels in clusters
 #' @export
-sits_cluster_frequency <-  function (data.tb, relative = FALSE, margin = 2) {
+sits_cluster_frequency <-  function(data.tb, relative = FALSE, margin = 2) {
 
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_frequency: input data does not contain cluster column")
@@ -111,10 +111,10 @@ sits_cluster_frequency <-  function (data.tb, relative = FALSE, margin = 2) {
 #' @param min_lab_perc     minimum percentage of labels regarding its total to be keeped in cluster.
 #' @return result.tb       a SITS tibble with all selected samples
 #' @export
-sits_cluster_cleaner <-  function (data.tb, min_clu_perc = 0.0, min_lab_perc = 0.0) {
+sits_cluster_cleaner <-  function(data.tb, min_clu_perc = 0.0, min_lab_perc = 0.0) {
 
     # verify if data.tb has data
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble(data.tb)
 
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
@@ -163,10 +163,10 @@ sits_cluster_cleaner <-  function (data.tb, min_clu_perc = 0.0, min_lab_perc = 0
 #'                         the index of each name will be treated as cluster code
 #' @return result.tb       SITS tibble with relabeled samples
 #' @export
-sits_cluster_relabel <-  function (data.tb, value) {
+sits_cluster_relabel <-  function(data.tb, value) {
 
     # is the input data the result of a cluster function?
-    ensurer::ensure_that(data.tb, "cluster" %in% names (.),
+    ensurer::ensure_that(data.tb, "cluster" %in% names(.),
                          err_desc = "sits_cluster_names: input data does not contain cluster column")
 
     # verify if the informed cluster names has the same length of clusters names
@@ -179,5 +179,5 @@ sits_cluster_relabel <-  function (data.tb, value) {
     # relabel result and return
     result.tb <- data.tb
     result.tb$label <- data_cluster_names.vec
-    return (result.tb)
+    return(result.tb)
 }

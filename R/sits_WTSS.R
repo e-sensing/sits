@@ -93,26 +93,13 @@ sits_fromWTSS <- function(product    = "MOD13Q1",
                           bands      = NULL,
                           label      = "NoClass") {
 
-    # tests if the coverage is available in the global list of coverages
-    # if it does not exits, create an empty one to hold the metadata about the coverages
-    coverage.tb <- .sits_get_coverage(service = "WTSS", coverage = coverage)
-    if (purrr::is_null(coverage.tb))
-       coverage.tb <- sits_coverage(service = "WTSS", product = product, coverage = coverage)
-
-
-
-    # set the start and end dates from the coverage
-    if (purrr::is_null(start_date)) start_date <- coverage.tb[1,]$start_date
-    if (purrr::is_null(end_date))   end_date   <- coverage.tb[1,]$end_date
-
     # if bands are not provided, use all bands available in the coverage
+    cov_bands <- .sits_get_bands("WTSS", product = product)
     if (purrr::is_null(bands))
-        bands <- coverage.tb$band_info[[1]]$name
-    else {
-        cov_bands <- .sits_get_bands("WTSS", product = product)
+        bands <- cov_bands
+    else
         ensurer::ensure_that(bands, all((.) %in% cov_bands),
                              err_desc = "sits_fromWTSS: requested bands are not available in the coverage")
-    }
 
     # try to get a time series from the WTSS server
     tryCatch({
@@ -128,29 +115,28 @@ sits_fromWTSS <- function(product    = "MOD13Q1",
 
         # retrieve the time series information
         time_series <- ts[[coverage]]$attributes
-        # retrieve information about the bands
-        band_info <- coverage.tb$band_info[[1]]
 
         # determine the missing value for each band
-        miss_value <- function(band) {
-            return(as.numeric(band_info[which(band == band_info[, "name"]), "missing_value"]))
-        }
+        miss_value <- vector()
+        for (b in bands)
+            miss_value[b] <- .sits_get_missing_value(product, b)
+
         # update missing values to NA
         for (b in bands) {
-            time_series[, b][time_series[, b] == miss_value(b)] <- NA
+            time_series[, b][time_series[, b] == miss_value[b]] <- NA
         }
 
         # interpolate missing values
         time_series[, bands] <- zoo::na.spline(time_series[, bands])
 
-        # calculate the scale factor for each band
-        scale_factor <- function(band) {
-            return(as.numeric(band_info[which(band == band_info[, "name"]), "scale_factor"]))
-        }
+        scale_factor <- vector()
+        for (b in bands)
+            scale_factor[b] <- .sits_get_scale_factor(product, b)
+
         # scale the time series
         bands %>%
             purrr::map(function(b) {
-                time_series[, b] <<- time_series[, b]*scale_factor(b)
+                time_series[, b] <<- time_series[, b]*scale_factor[b]
             })
 
         # convert the series to a tibble

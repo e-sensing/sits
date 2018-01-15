@@ -5,8 +5,7 @@
 \title{Extract a time series from a ST raster data set}
 \usage{
 sits_fromRaster(raster.tb, file = NULL, longitude = NULL, latitude = NULL,
-  start_date = NULL, end_date = NULL, label = "NoClass",
-  coverage = NULL)
+  start_date = NULL, end_date = NULL, label = "NoClass")
 }
 \arguments{
 \item{raster.tb}{A tibble with metadata describing a spatio-temporal data set}
@@ -22,8 +21,6 @@ sits_fromRaster(raster.tb, file = NULL, longitude = NULL, latitude = NULL,
 \item{end_date}{date - the end of the period}
 
 \item{label}{string - the label to attach to the time series}
-
-\item{coverage}{string - the name of the coverage to be retrieved}
 }
 \value{
 data.tb        a SITS tibble with the time series
@@ -39,8 +36,6 @@ time series.
 files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 # select the bands
 bands <- c("ndvi")
-# define the scale factors
-scale_factors <- c(0.0001)
 # define the timeline
 data(timeline_mod13q1)
 timeline <- lubridate::as_date (timeline_mod13q1$V1)
@@ -48,7 +43,7 @@ timeline <- lubridate::as_date (timeline_mod13q1$V1)
 raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-Crop",
              timeline = timeline, bands = c("ndvi"), files = files)
 # read the point from the raster
-point.tb <- sits_fromRaster(raster.tb, longitude = -55.50563, latitude = -11.71557)
+point.tb <- sits_fromRaster(raster.tb, longitude = -55.55502, latitude = -11.52774)
 
 }
 \author{

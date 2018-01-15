@@ -1,23 +1,18 @@
 # Example of classification of a series of samples defined by a CSV file
 
-# choose a coverage
-coverage <- "mod13q1_512"
-bands <-  c("ndvi", "evi", "nir", "mir")
-
-# obtain a time series from the WTSS server for these samples
+# obtain a time series from the WTSS server for a set of 30 samples
 samples.tb <- sits_getdata(file = system.file("extdata/samples/samples_matogrosso.csv", package = "sits"),
-                           service = "WTSS", bands = bands, coverage = coverage)
+                           service = "WTSS", product = "MOD13Q1", coverage = "mod13q1_512",
+                           bands = c("ndvi", "evi"),  .n_save = 0)
 
 # plot the data
 sits_plot(samples.tb[1,])
 
 # get the samples used for classifation
-data("samples_MT_9classes")
+data("cerrado_2classes")
 
-samples_MT_9classes <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
-
-# classify the test data using a LASSO model
-class.tb <- sits_classify(samples.tb, samples_MT_9classes, ml_method = sits_glm())
+# classify the test data using an SVM model
+class.tb <- sits_classify(samples.tb, cerrado_2classes, ml_method = sits_svm())
 
 # plot the classification of the time series by yearly intervals
 sits_plot(class.tb[1:5,], band = "ndvi")

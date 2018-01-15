@@ -7,7 +7,7 @@
 sits_getdata(file = NULL, service = "WTSS", product = "MOD13Q1",
   coverage = "mod13q1_512", longitude = NULL, latitude = NULL,
   start_date = NULL, end_date = NULL, bands = NULL, prefilter = "1",
-  label = "NoClass", n_max = Inf)
+  label = "NoClass", .n_max = Inf, .n_save = 0)
 }
 \arguments{
 \item{file}{(optional) the name of a file with information on the data to be retrieved (options - CSV, SHP)}
@@ -32,7 +32,9 @@ sits_getdata(file = NULL, service = "WTSS", product = "MOD13Q1",
 
 \item{label}{(optional) string - the label to be assigned to the time series}
 
-\item{n_max}{(optional) integer - the maximum number of samples to be read}
+\item{.n_max}{(optional) integer - the maximum number of samples to be read}
+
+\item{.n_save}{number of samples to save as intermediate files (used for long reads)}
 }
 \value{
 data.tb        a SITS tibble

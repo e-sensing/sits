@@ -155,14 +155,14 @@
 #' @return dates_index.lst     A list of indexes that match the reference dates to the timelines
 #'
 .sits_match_indexes <- function(timeline, ref_dates.lst){
-    dates_index.lst <- list()
 
-    ref_dates.lst %>%
+    dates_index.lst <- ref_dates.lst %>%
         purrr::map(function(date_pair) {
             start_index <- which(timeline == date_pair[1])
             end_index   <- which(timeline == date_pair[2])
 
-            dates_index.lst[[length(dates_index.lst) + 1]] <<- c(start_index, end_index)
+            dates_index <- c(start_index, end_index)
+            return(dates_index)
         })
 
     return(dates_index.lst)
@@ -222,12 +222,9 @@
 #' @return  time_index.lst  The subsets of the timeline
 .sits_time_index <- function(dates_index.lst, timeline, bands) {
 
-    # create an empty list of time index
-    time_index.lst <- list()
-
     # transform the dates index (a list of dates) to a list of indexes
     # this speeds up extracting the distances for classification
-    dates_index.lst %>%
+    time_index.lst <- dates_index.lst %>%
         purrr::map(function(idx){
             index_ts <- vector()
             for (i in 1:length(bands)) {
@@ -236,7 +233,7 @@
                 idx2 <- idx[2] + (i - 1)*length(timeline)
                 index_ts[length(index_ts) + 1 ] <- idx2
             }
-            time_index.lst[[length(time_index.lst) + 1]] <<- index_ts
+            return(index_ts)
         })
     return(time_index.lst)
 }
