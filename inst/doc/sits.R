@@ -6,32 +6,14 @@ library(dtwclust)
 ## ------------------------------------------------------------------------
 # data set of samples
 # print the first three samples
-data(samples_MT_9classes[1:3,])
+samples_MT_9classes[1:3,]
 
 ## ------------------------------------------------------------------------
 # print the first 10 time series records of the first sample
-samples_MT_9classes$time_series[[1]]
+samples_MT_9classes$time_series[[1]][1:3,]
 
 ## ------------------------------------------------------------------------
 sits_labels(samples_MT_9classes)
-
-## ------------------------------------------------------------------------
-# a list for relabelling the samples
-new_labels <- 
-    list("Cerrado"       = "Savanna", 
-         "Pasture"       = "Grasslands", 
-         "Soy_Corn"      = "Double_Cropping",
-         "Soy_Cotton"    = "Double_Cropping",
-         "Soy_Sunflower" = "Double_Cropping",
-         "Soy_Fallow"    = "Single_Cropping",
-         "Soy_Millet"    = "Single_Cropping",
-         "Fallow_Cotton" = "Single_Cropping")
-# apply the sits_relabel function
-samples.tb <- 
-    sits_relabel(samples_MT_9classes, 
-                 conv.lst = new_labels)
-# view the result
-sits_labels(samples.tb)
 
 ## ----cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 15 'Cerrado' samples from data set \textbf{\texttt{samples_MT_9classes}} (different dates for the same point location)."----
 # select the "ndvi" bands
@@ -50,16 +32,13 @@ sits_plot(samples_cerrado.tb[1:15,])
 sits_plot(samples_cerrado.tb)
 
 ## ------------------------------------------------------------------------
-# print the WTSS web service description
-sits_services()
-
-## ------------------------------------------------------------------------
-# get information about a specific coverage
+# get information about a specific coverage from WTSS
 coverage.tb <- 
     sits_coverage(service  = "WTSS", 
                   product  = "MOD13Q1", 
                   coverage = "mod13q1_512")
-coverage.tb
+coverage.tb[, c("xmin","xmax","ymin","ymax",
+                "start_date", "end_date")]
 
 ## ---- fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI and EVI time series fetched from WTSS service."----
 # a point in the transition forest pasture in Northern MT
@@ -75,6 +54,27 @@ series.tb <-
                  end_date   = "2016-12-31")
 # plot the series
 sits_plot(series.tb)
+
+## ----dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5----
+# take a set of patterns for 2 classes
+# create a dendrogram object with default clustering parameters
+dendro <- sits_dendrogram(cerrado_2classes)
+# plot the resulting dendrogram
+sits_plot_dendrogram(cerrado_2classes, 
+                     dendro, 
+                     cutree_height = 22)
+
+## ------------------------------------------------------------------------
+# create clusters by cutting the dendrogram at the linkage distance 300
+clusters.tb <- sits_cluster(cerrado_2classes, dendro, height = 22)
+# show clusters samples frequency
+sits_cluster_frequency(clusters.tb)
+
+## ------------------------------------------------------------------------
+# clear sample outliers relative to clusters (those with less than 1% in a cluster)
+clusters2.tb <- sits_cluster_cleaner(clusters.tb, min_clu_perc = 0.01)
+# show clusters samples frequency
+sits_cluster_frequency(clusters2.tb)
 
 ## ------------------------------------------------------------------------
 prodes_226_064[1:3,]
@@ -110,25 +110,6 @@ point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 point_cf.tb <- sits_cloud_filter(point.tb, apply_whit = FALSE)
 # plot the series
 sits_plot(sits_merge(point_cf.tb, point.tb))
-
-## ----dendrogram, cache=TRUE, fig.align="center", fig.height=4.5, fig.width=5.5----
-# take a set of patterns for 2 classes
-# create a dendrogram object with default clustering parameters
-dendro <- sits_dendrogram(cerrado_2classes)
-# plot the resulting dendrogram
-sits_plot_dendrogram(cerrado_2classes, dendro, cutree_height = 22)
-
-## ------------------------------------------------------------------------
-# create clusters by cutting the dendrogram at the linkage distance 300
-clusters.tb <- sits_cluster(cerrado_2classes, dendro, height = 22)
-# show clusters samples frequency
-sits_cluster_frequency(clusters.tb)
-
-## ------------------------------------------------------------------------
-# clear sample outliers relative to clusters (those with less than 1% in a cluster)
-clusters2.tb <- sits_cluster_cleaner(clusters.tb, min_clu_perc = 0.01)
-# show clusters samples frequency
-sits_cluster_frequency(clusters2.tb)
 
 ## ------------------------------------------------------------------------
 # Retrieve the set of samples for the Mato Grosso region 
