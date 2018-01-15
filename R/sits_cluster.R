@@ -51,7 +51,6 @@ sits_cluster <-  function (data.tb, clusters, k = NULL, height = NULL) {
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb          a SITS tibble with `cluster` column.
-#' @param type             character vector indicating which indices are to be computed. (Default "valid")
 #' @return result.vec      vectors with chosen CVIs
 #' @export
 sits_cluster_validity <-  function (data.tb, type = "valid") {
@@ -64,8 +63,15 @@ sits_cluster_validity <-  function (data.tb, type = "valid") {
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_validity: input data does not contain cluster column")
 
+    # rename clusters to correspond the more frequent class
+    max_labels_names.vec <-
+        apply(sits_cluster_frequency(data.tb, totals = FALSE), 2, which.max)
+    new_clusters_names.vec <-
+        sits_labels(data.tb)$label[max_labels_names.vec]
+    data.tb <- sits_cluster_rename(data.tb, new_clusters_names.vec)
+
     # compute CVIs and return
-    result.vec <- dtwclust::cvi(a = data.tb$cluster, b = factor(data.tb$label), type = type, log.base = 10)
+    result.vec <- dtwclust::cvi(a = factor(data.tb$cluster), b = factor(data.tb$label), type = "external", log.base = 10)
 
     return (result.vec)
 }
@@ -79,10 +85,11 @@ sits_cluster_validity <-  function (data.tb, type = "valid") {
 #'
 #' @param data.tb          a SITS tibble with `cluster` column.
 #' @param relative         (boolean) return relative frequency?
-#' @param margin           number indicating how to compute relative frequency (1 regarding labels, 2 regarding clusters) (default 2)
+#' @param to_margin        number indicating how to compute relative frequency (1 regarding labels, 2 regarding clusters) (default 2)
+#' @param totals           (boolean) return the totals of rows and columns?
 #' @return result.mtx      matrix containing all frequencies of labels in clusters
 #' @export
-sits_cluster_frequency <-  function (data.tb, relative = FALSE, margin = 2) {
+sits_cluster_frequency <-  function (data.tb, relative = FALSE, to_margin = 2, totals = TRUE) {
 
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_frequency: input data does not contain cluster column")
@@ -92,10 +99,11 @@ sits_cluster_frequency <-  function (data.tb, relative = FALSE, margin = 2) {
 
     # compute relative frequency
     if (relative)
-        result.mtx <- prop.table(result.mtx, margin = margin)
+        result.mtx <- prop.table(result.mtx, margin = to_margin)
 
     # compute total row and col
-    result.mtx <- stats::addmargins(result.mtx, FUN = list(Total = sum), quiet = TRUE)
+    if (totals)
+        result.mtx <- stats::addmargins(result.mtx, FUN = list(Total = sum), quiet = TRUE)
     return (result.mtx)
 }
 
@@ -120,7 +128,7 @@ sits_cluster_cleaner <-  function (data.tb, min_clu_perc = 0.0, min_lab_perc = 0
     ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
 
     # compute frequency in each cluster
-    freq.mtx <- sits_cluster_frequency(data.tb, relative = TRUE, margin = 2)
+    freq.mtx <- sits_cluster_frequency(data.tb, relative = TRUE, to_margin = 2)
 
     # get those indexes whose labels represents more than `min_clu_perc`
     index.mtx <- which(freq.mtx[1:NROW(freq.mtx) - 1,1:NCOL(freq.mtx) - 1] > min_clu_perc, arr.ind = TRUE, useNames = TRUE)
@@ -131,7 +139,7 @@ sits_cluster_cleaner <-  function (data.tb, min_clu_perc = 0.0, min_lab_perc = 0
                                    collapse = " | ")
 
     # compute frequency in each label
-    freq.mtx <- sits_cluster_frequency(data.tb, relative = TRUE, margin = 1)
+    freq.mtx <- sits_cluster_frequency(data.tb, relative = TRUE, to_margin = 1)
 
     # get those indexes whose labels represents more than `min_lab_perc`
     index.mtx <- which(freq.mtx[1:NROW(freq.mtx) - 1,1:NCOL(freq.mtx) - 1] > min_lab_perc, arr.ind = TRUE, useNames = TRUE)
@@ -151,33 +159,33 @@ sits_cluster_cleaner <-  function (data.tb, min_clu_perc = 0.0, min_lab_perc = 0
     return (result.tb)
 }
 
-#' @title Cluster relabel
-#' @name sits_cluster_relabel
+#' @title Cluster rename
+#' @name sits_cluster_rename
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Relabel the SITS tibble samples according to its respective cluster.
+#' @description Rename the SITS tibble clusters names according to a given value.
 #' This function needs as input a SITS tibble with `cluster` column.
 #'
 #' @param data.tb          a SITS tibble with `cluster` column.
-#' @param value            character vector informing all cluster names. If unnamed vector is informed,
+#' @param values           character vector informing all cluster names. If unnamed vector is informed,
 #'                         the index of each name will be treated as cluster code
 #' @return result.tb       SITS tibble with relabeled samples
 #' @export
-sits_cluster_relabel <-  function (data.tb, value) {
+sits_cluster_rename <-  function (data.tb, values) {
 
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.),
                          err_desc = "sits_cluster_names: input data does not contain cluster column")
 
     # verify if the informed cluster names has the same length of clusters names
-    ensurer::ensure_that(data.tb, length(base::unique(.$cluster)) == length(value),
+    ensurer::ensure_that(data.tb, length(base::unique(.$cluster)) == length(values),
                          err_desc = "sits_cluster_name: informed names has length different of the number of clusters")
 
     # compute new clusters names
-    data_cluster_names.vec <- value[data.tb$cluster] %>% unlist()
+    data_cluster_names.vec <- values[data.tb$cluster] %>% unlist()
 
     # relabel result and return
     result.tb <- data.tb
-    result.tb$label <- data_cluster_names.vec
+    result.tb$cluster <- data_cluster_names.vec
     return (result.tb)
 }
