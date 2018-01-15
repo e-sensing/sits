@@ -1,11 +1,11 @@
 ---
 output:
     pdf_document:
-        df_print: tibble
-        citation_package: natbib
-        fig_caption: true
-        latex_engine: pdflatex
-        template: latex-ms.tex
+      citation_package: natbib
+      df_print: tibble
+      fig_caption: yes
+      keep_tex: yes
+      template: latex-ms.tex
 title: "SITS: Data Analysis and Machine Learning using Satellite Image Time Series"
 author:
 - name: Rolf Simoes
@@ -29,9 +29,9 @@ endnote: false
 graphics: true
 mathtools: true
 vignette: >
+    %\VignetteEncoding{UTF-8}
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteIndexEntry{SITS: Data Analysis and Machine Learning using Satellite Image Time Series}
-    %\VignetteEncoding{UTF-8}
 ---
 ```{r, include = FALSE}
 library(sits)
@@ -84,7 +84,7 @@ The SITS package provides functions for data manipulation and displaying informa
 sits_labels(samples_MT_9classes)
 ```
 
-In many cases, it is useful to relabel the data set. For examples, there may be situations when one wants to use a smaller set of labels, since samples in one label on the original set may not be distinguishable from samples with other labels. We then should use `sits_relabel()`, which requires a conversion list (for details, see `?sits_relabel`).
+In many cases, it is useful to relabel the data set. For example, there may be situations when one wants to use a smaller set of labels, since samples in one label on the original set may not be distinguishable from samples with other labels. We then should use `sits_relabel()`, which requires a conversion list (for details, see `?sits_relabel`).
 
 Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions of the **`dplyr`**, **`tidyr`** and **`purrr`** packages of the **`tidyverse`** [@Wickham2017] to process the data. For example, the following code uses the `sits_select()` function to get a subset of the sample data set with two bands ("ndvi" and "evi") and then uses the `dplyr::filter()` function to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot()` function to display the time series. Given a small number of samples to display, the `sits_plot()` function tries to group as many spatial locations together. In the following example, the first 15 samples of the "Cerrado" class all refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together.
 
@@ -108,24 +108,25 @@ For a large number of samples, where the amount of individual plots would be sub
 sits_plot(samples_cerrado.tb)
 ```
 
-We can note in the figure above the variability of 400 samples from different years and/or locations. This characteristics is intrinsic to the remote sensing data of land use and land cover. Atmospheric noise, interferences on observations or different equipaments specifications, as well as the very nature of the climate-land dynamics can be sources of such variability. The main consequence of this characteristic is an impact on the capacity to distinguish the land use and land cover class of a given time series, so the importance to of analyse the quality of a sample. Usually, samples are provided by experts whose take *in-loco* field observations or recognises land classes from high resolution images. In any case, we need access to a data source to fetch time series data regarding a spatiotemporal location of interest. This process is discussed in the next section.
+Usually, samples are provided by experts whose take *in-loco* field observations or recognises land classes from high resolution images. In any case, we need access to a data source to fetch time series data regarding a spatiotemporal location of interest. The process of importing data samples is discussed in the next section.
 
 # Importing data samples into SITS
 
-The SITS package allows different methods of data input, including: (a) obtain data from a WTSS (Web Series Time Service); (b) obtain data from the SATVEG service developed by EMBRAPA (Brazil's Agriculture Research Agency). (c) read data stored in a time series in the ZOO format [@Zeileis2005]; (d) read a time series from a RasterBrick [@Hijmans2015]. Option (d) will be described in the section were we describe raster processing. The WTSS service is a light-weight service, designed to retrieve time series for selected locations and periods [@Vinhas2016], been implemented by the research team of the National Institute for Space Research to allow remote access to time series data. The SATVEG service is.... To view service details, the user needs to call `sits_services()` that provides information on the coverages available on the server.
+The SITS package allows different methods of data input, including: (a) obtain data from a WTSS (Web Series Time Service); (b) obtain data from the SATVEG service developed by EMBRAPA (Brazil's Agriculture Research Agency). (c) read data stored in a time series in the ZOO format [@Zeileis2005]; (d) read a time series from a RasterBrick [@Hijmans2015]. Option (d) will be described in the section were we describe raster processing. The WTSS service is a light-weight service, designed to retrieve time series for selected locations and periods [@Vinhas2016], been implemented by the research team of the National Institute for Space Research to allow remote access to time series data. The SATVEG service provides NDVI and EVI time series vegetation indexes from MODIS image from whole Brazilian territory [@Embrapa2014]. To view service details, the user needs to call `sits_services()` that provides information on the coverages available on the server.
 
 After finding out which coverages are available at the different time series services, one may request specific information on each coverage by using  `sits_coverage()`. This lists the contents of the data set, including source, bands, spatial extent and resolution, time range, and temporal resolution. This information is then stored in a tibble for later use.
 
 ```{r}
-# get information about a specific coverage
+# get information about a specific coverage from WTSS
 coverage.tb <- 
     sits_coverage(service  = "WTSS", 
                   product  = "MOD13Q1", 
                   coverage = "mod13q1_512")
-coverage.tb[,c("xmin","xmax","ymin","ymax","start_date", "end_date")]
+coverage.tb[, c("xmin","xmax","ymin","ymax",
+                "start_date", "end_date")]
 ```
 
-The user can request one or more time series points using `sits_getdata()`. This function provides a general means of access to image time series. In its simplest fashion, the user provides the latitude and longitude of the desired location, the coverage name, the bands, and the start date and end date of the time series. If the start and end dates are not provided, all available period is retrived. The result is a tibble that can be visualised using `sits_plot()`.
+The user can request one or more time series points using `sits_getdata()`. This function provides a general means of access to image time series. In its simplest fashion, the user provides the latitude and longitude of the desired location, the product and coverage names, the bands, and the start date and end date of the time series. If the start and end dates are not provided, all available period is retrived. The result is a tibble that can be visualised using `sits_plot()`.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI and EVI time series fetched from WTSS service."}
 # a point in the transition forest pasture in Northern MT
@@ -143,7 +144,54 @@ series.tb <-
 sits_plot(series.tb)
 ```
 
-A useful case is when users have a set of labelled samples, that are to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. The `sits_getdata()` function can receive a CSV file path as an argument. The CSV file must provide for each time series, its latitude and longitude, the start and end dates, and a label associated to a ground sample.
+A useful case is when users have a set of labelled samples, that are to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. The `sits_getdata()` function can receive a CSV file path as an argument. The CSV file must provide for each time series, its latitude and longitude, the start and end dates, and a label associated to a ground sample. 
+
+After importing the samples time series, it is useful to explore the data and see how is it underlying structured and its inter-class separability. For example, We can note in the figure above the variability of 400 time series samples along time. Those samples were collected from different years and/or locations. The scattering behaviour is intrinsic to remote sensing data. Atmospheric noise, sun angle, interferences on observations or different equipaments specifications, as well as the very nature of the climate-land dynamics can be sources of such variability [@Atkinson2012]. One helpful technique to explore such properties is cluster analysis. In the following section we present a cluster technique supported by SITS. 
+
+# Clustering in satellite image time series
+
+Cluster analysis has been used for many purposes in satellite image time series literature ranging from unsupervised classification [@Petitjean2011], and pattern detection [@Romani2011]. Here, we are interested in the second use of clustering, as a way to improve training data to use in machine learning classification models. In this regard, cluster analysis can assist the identification of structural *time series patterns*, and anomalous samples [@Romani2011][@Chandola2009]. 
+
+One of the main challanges in work with cluster anaysis on satellite image time series is to deal with data with high-variability and incomplete information. Since observations of the same land cover class differs from year to year, robusts similarity/dissimilarity functions are need and, in this regard, the use of the shape-based distance function *dynamic time warping* (DTW) has been spreaded in many applications. So is in time series clustering literature. Research on time series data mining shows that methods based on DTW have achieved significant results in many applications [@Esling2012]. DTW works by comparing two time series and finds their optimal alignment, providing a dissimilarity measure as a result [@Mueller2007]. DTW provides a robust distance measure for comparing time series, even if they are irregularly sampled or are out of phase in the time axis [@Keogh2005], hence diminishing the influence of intra-class variability. 
+
+SITS package provide support for the agglomerative hierarchical clustering (AHC). Hierarchical clustering is a family of methods that groups elements using a distance function to associate a real value to a pair of elements. From this distance measure, we can compute the dissimilarity between any two elements from the data set. Depending on the distance functions and linkage criteria, the algorithm decides which two clusters are merged at each iteration. The AHC approach is suitable for the purposes of samples data exploration awe its visualisation power and ease of use [@Keogh2003]. Moreover, AHC does not require a predefined number of clusters as an initial parameter. This is an important feature in satellite image time series clustering since it is not easy to define the number of clusters present in a set of multi-attribute time series [@Aghabozorgi2015].
+
+The ultrametric relation formed by the successive merges in the hierarchical process is represented by a *dendrogram* tree. Dendrograms are quite useful to decide on the number of clusters has the data [@Hennig2015]. The dendrogram shows the height where each merging happened, which corresponds to the minimum distance between two clusters defined by a *linkage criterion*. The most commom linkage criteria are *single-linkage*, *complete-linkage*, *average-linkage*, and *Ward-linkage*. Complete-linkage prioritises the within-cluster dissimilarities, producing clusters with shorter distance samples. Complete-linkage clustering can be sensitive to outliers, that can increase the resulting intracluster data variance. As an alternative, Ward proposes a criteria to minimise the data variance by means of either *sum-of-squares* or *sum-of-squares-error* [@Ward1963]. Ward's intuition is that clusters of multivariate observations, such as time series, should be approximately elliptical in shape. The linkage criterion used to generate the dendrogram can be informed to `sits_dendrogram()` and the default option is the *Ward-linkage*. The following code shows how to create and visualise a dendrogram in SITS.
+
+```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
+# take a set of patterns for 2 classes
+# create a dendrogram object with default clustering parameters
+dendro <- sits_dendrogram(cerrado_2classes)
+# plot the resulting dendrogram
+sits_plot_dendrogram(cerrado_2classes, 
+                     dendro, 
+                     cutree_height = 22)
+```
+
+In our example above, we can separate our samples by cutting the dendrogram tree at some level to achieve a balancing of two objectives: get as large clusters as possible, and get as homogeneous clusters as possible. Despite the existence of various indices that try to capture this balancing relation [], there is no an automatic way of achieving it [@Liao2005][@Aghabozorgi2015]. This process can be realised visually by looking the dendrogram or assisted by an *external cluster validity indexes* such as Rand Index ... as shows the cut height dashed line in our example.
+
+The position a sample takes on the dendrogram, i.e. its linked edges, gives an general view how similar/dissimilar the land use classes are to each other. We can see that most of samples for each class are grouped together. We can note in the detail (at the bottom of the above figure) the existence of some outliers, those thin blocks fragments of different colour from its surroundings. Probably, these are a strong source of confusion. 
+
+```{r}
+# create clusters by cutting the dendrogram at the linkage distance 300
+clusters.tb <- sits_cluster(cerrado_2classes, dendro, height = 22)
+# show clusters samples frequency
+sits_cluster_frequency(clusters.tb)
+```
+
+It is possible to rename clusters by calling `sits_cluster_rename()` function. ...remove the outliers samples to avoid further confusion. This can be accomplished with the function `sits_cluster_cleaner()` that removes all samples whose label (cluster) counts less than a given percentual relative to its cluster (label). 
+
+```{r}
+# clear sample outliers relative to clusters (those with less than 1% in a cluster)
+clusters2.tb <- sits_cluster_cleaner(clusters.tb, min_clu_perc = 0.01)
+# show clusters samples frequency
+sits_cluster_frequency(clusters2.tb)
+```
+
+<!-- subsituir por uma discussao sobre o uso de clustering em SITS -->
+<!-- We could proceed by cutting the dendrogram at lower linkage distances to obtain other set of clusters. We can note that at some point it is possible to achieve a reasonable separability between classes (in our example, this is indicated by the dashed line drawed according to `cutree_height` parameter). The dendrogram thus provides users with a powerful visual aid to understand data separability. Depending on the level of dendrogram cut, we will find more or less confusion inside the clusters.-->
+
+The dendrogram can be used to evaluate cluster separability in a qualitative fashion, and helps the practitioner to determine where to cut the tree to obtain the final clusters [@Liao2005].
 
 
 # Filtering techniques 
@@ -276,55 +324,6 @@ point_cf.tb <- sits_cloud_filter(point.tb, apply_whit = FALSE)
 # plot the series
 sits_plot(sits_merge(point_cf.tb, point.tb))
 ```
-
-
-# Clustering in satellite image time series
-
-One of the main interests of analysing satellite image time series is to measure land use and land cover change. Such continuous observation provided by an evergrowing disponibility of satellite imagery data can help to understand the impact and extent of the humanity's transformation on the Earth's ecosystems and landscapes. In this regard, one of the more promising uses of satellite time series is its application for classification of land use and land cover. With the advance of big data era, robust classification techniques such as machine learning and deep learning depends on a reasonable amount of good quality samples. One of the main concerns in preparing such classification models is the quality and separability of the training samples. Algorithms such as SVM [(cite)] and Random Forest [(cite)] need a set of good-quality samples for each land cover class to be identified. These samples are usually provided by experts. They need to be tested for separability. Given a set of samples, we need good clustering methods and statistical analysis to find out if these samples can actually serve as a basis for good quality classification.
-
-The subject of time series in clustering literature has attracted much interest. Two important reviews are provided by @Aghabozorgi2015 and @Liao2005. One of the main uses of clustering for satellite image time series is dealing with data with high-variability and incomplete information. Since observations of same land cover can differ from year to year, clustering techniques can assist in an exploratory analysis of such data. These methods help us to determine what is the separability of the training samples and further improving the quality of the samples by identifiyng outliers.
-
-SITS package provide support for the agglomerative hierarchical clustering (AHC). Hierarchical clustering is a family of methods that groups elements using a distance function to associate a real value to a pair of elements. From this distance measure, we can compute the dissimilarity between any two elements from the data set. Depending on the distance functions and linkage criteria, the algorithm decides which two clusters are merged at each iteration. The AHC approach is suitable for the purposes of samples data exploration awe its visualisation power and ease of use [@Keogh2003]. Moreover, AHC does not require a predefined number of clusters as an initial parameter. This is an important feature in satellite image time series clustering since it is not easy to define the number of clusters present in a set of multi-attribute time series [@Aghabozorgi2015].
-
-The visual strengh of AHC comes from the ultrametric relation formed by the successive merges in the hierarchical process that can be represented by a dendrogram. Dendrograms are quite useful to decide on the number of cluster [@Hennig2015]. The dendrogram shows the height where each merge happened, which corresponds to the minimum distance between two clusters defined by a linkage criterion. The most commom linkage criteria are *single-linkage*, *complete-linkage*, *average-linkage*, and *Ward-linkage*. Complete-linkage prioritises the within-cluster dissimilarities, producing clusters with shorter distance samples. Complete-linkage clustering can be sensitive to outliers, that can increase the resulting intracluster data variance. As an alternative, Ward proposes a criteria to minimise the data variance by means of either *sum-of-squares* or *sum-of-squares-error* [@Ward1963]. Ward's intuition is that clusters of multivariate observations, such as time series, should be approximately elliptical in shape. The following code shows how to create and visualise a dendrogram in SITS. 
-
-```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.5, fig.width=5.5}
-# take a set of patterns for 2 classes
-# create a dendrogram object with default clustering parameters
-dendro <- sits_dendrogram(cerrado_2classes)
-# plot the resulting dendrogram
-sits_plot_dendrogram(cerrado_2classes, dendro, cutree_height = 22)
-```
-
-The linkage criterion to be used to generate a dendrogram can be informed to `sits_dendrogram()` function and the default option is Ward-linkage. Other important parameter to generate a dendrogram from satellite image time series is the distance function used to compute the similarity/dissimilarity measure between the exemplars. There are a diverse set of such functions in the literature. However, due to the intrinsic variability associated with satellite image time series data the use of euclidean metric can introduce confusion among clusters with different land use and land cover classes. More robust distance functions such as dynamic time warping (DTW) can reduce this source of miss clustering. 
-
-Research on time series data mining shows that methods based on dynamic time warping have achieved significant results in many applications [@Esling2012]. DTW works by comparing two time series and finds their optimal alignment, providing a dissimilarity measure as a result [@Mueller2007]. DTW provides a robust distance measure for comparing time series, even if they are irregularly sampled or are out of phase in the time axis [@Keogh2005]. As SITS uses "dtwclust" package for clustering, it supports DTW measure as a distance function parameter of `sits_dendrogram()`. This is the default distance function for clustering in SITS.
-
-In our example above, we can separate our samples by cutting the tree at some level to get two groups. At left, we have the "yellow" and "orange" samples that correspond to "Double" and "Single" croping; at right, we see "greens" and "red" samples corresponding to "Savanna", "Forest" and, "Grasslands". 
-
-The position a sample takes on the dendrogram, i.e. its linked edges, gives an general view how similar/dissimilar the land use classes are to each other. We can see that most of samples for each class are grouped together. We can note in the detail (at the bottom of the above figure) the existence of some outliers, those thin blocks fragments of different colour from its surroundings. Probably, these are a strong source of confusion. 
-
-```{r}
-# create clusters by cutting the dendrogram at the linkage distance 300
-clusters.tb <- sits_cluster(cerrado_2classes, dendro, height = 22)
-# show clusters samples frequency
-sits_cluster_frequency(clusters.tb)
-```
-
-<!-- rever -->
-This division makes sense by separating "Cropping" and "Non-Cropping" land use classes. It is possible to relabel samples according to its corresponding cluster by calling `sits_cluster_relabel()` function. Before we proceed the labeling it is important to remove the outliers samples to avoid further confusion. This can be accomplished with the function `sits_cluster_cleaner()` that removes all samples whose label (cluster) counts less than a given percentual relative to its cluster (label). 
-
-```{r}
-# clear sample outliers relative to clusters (those with less than 1% in a cluster)
-clusters2.tb <- sits_cluster_cleaner(clusters.tb, min_clu_perc = 0.01)
-# show clusters samples frequency
-sits_cluster_frequency(clusters2.tb)
-```
-
-<!-- subsituir por uma discussao sobre o uso de clustering em SITS -->
-<!-- We could proceed by cutting the dendrogram at lower linkage distances to obtain other set of clusters. We can note that at some point it is possible to achieve a reasonable separability between classes (in our example, this is indicated by the dashed line drawed according to `cutree_height` parameter). The dendrogram thus provides users with a powerful visual aid to understand data separability. Depending on the level of dendrogram cut, we will find more or less confusion inside the clusters.-->
-
-The dendrogram can be used to evaluate cluster separability in a qualitative fashion, and helps the practitioner to determine where to cut the tree to obtain the final clusters [@Liao2005].
 
 # Machine learning classification for land use and land cover using satelite image time series
 
