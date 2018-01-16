@@ -45,49 +45,74 @@ default:
             nrows    : 24000
             ncols    : 19200
     SATVEG_prefilter :
-        MOD13Q1      : ["0", "1", "2", "3"] # "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
+        MOD13Q1      : &prefilter ["0", "1", "2", "3"] # "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
+        MYD13Q1      : *prefilter
+        MOD-MYD13Q1  : *prefilter
     SATVEG_crs       :
-        MOD13Q1      : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+        MOD13Q1      : &crs-wgs84 "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+        MYD13Q1      : *crs-wgs84
+        MOD-MYD13Q1  : *crs-wgs84
 
     MOD13Q1_resolution:
-        xres        : 0.00208334
-        yres        : 0.00208334
+        xres        : &mod13q1-x 0.00208334
+        yres        : &mod13q1-y 0.00208334
 
     MYD13Q1_resolution:
-        xres        : 0.00208334
-        yres        : 0.00208334
+        xres        : *mod13q1-x
+        yres        : *mod13q1-y
+
+    MOD-MYD13Q1_resolution:
+        xres        : *mod13q1-x
+        yres        : *mod13q1-y
 
     MOD13Q1_missing_value:
-        ndvi        : -3000
-        evi         : -3000
-        red         : -1000
-        nir         : -1000
-        blue        : -1000
-        mir         : -1000
+        ndvi        : &ndvi-mv -3000
+        evi         : &evi-mv  -3000
+        red         : &red-mv  -1000
+        nir         : &nir-mv  -1000
+        blue        : &blue-mv -1000
+        mir         : &mir-mv  -1000
 
     MYD13Q1_missing_value:
-        ndvi        : -3000
-        evi         : -3000
-        red         : -1000
-        nir         : -1000
-        blue        : -1000
-        mir         : -1000
+        ndvi        : *ndvi-mv
+        evi         : *evi-mv
+        red         : *red-mv
+        nir         : *nir-mv
+        blue        : *blue-mv
+        mir         : *mir-mv
+
+    MOD-MYD13Q1_missing_value:
+        ndvi        : *ndvi-mv
+        evi         : *evi-mv
+        red         : *red-mv
+        nir         : *nir-mv
+        blue        : *blue-mv
+        mir         : *mir-mv
 
     MOD13Q1_scale_factor:
-        ndvi        : 0.0001
-        evi         : 0.0001
-        red         : 0.0001
-        nir         : 0.0001
-        blue        : 0.0001
-        mir         : 0.0001
+        ndvi        : &ndvi-sf 0.0001
+        evi         : &evi-sf  0.0001
+        red         : &red-sf  0.0001
+        nir         : &nir-sf  0.0001
+        blue        : &blue-sf 0.0001
+        mir         : &mir-sf  0.0001
 
     MYD13Q1_scale_factor:
-        ndvi        : 0.0001
-        evi         : 0.0001
-        red         : 0.0001
-        nir         : 0.0001
-        blue        : 0.0001
-        mir         : 0.0001
+        ndvi        : *ndvi-sf
+        evi         : *evi-sf
+        red         : *red-sf
+        nir         : *nir-sf
+        blue        : *blue-sf
+        mir         : *mir-sf
+
+    MOD-MYD13Q1_scale_factor:
+        ndvi        : *ndvi-sf
+        evi         : *evi-sf
+        red         : *red-sf
+        nir         : *nir-sf
+        blue        : *blue-sf
+        mir         : *mir-sf
+
 
     SATVEG_timeline :
         MOD13Q1     : [ "2000-02-18", "2000-03-05", "2000-03-21", "2000-04-06", "2000-04-22", "2000-05-08", "2000-05-24", 2000-06-09",

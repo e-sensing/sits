@@ -34,7 +34,7 @@ sits_fromSATVEG <- function(product     = "MOD13Q1",
                             label       = "NoClass") {
 
     # check parameters
-    .sits_check_SATVEG(longitude, latitude, coverage, prefilter)
+    .sits_check_SATVEG(longitude, latitude, product, coverage, prefilter)
 
     # create the coverage metadata
     coverage.tb <- sits_coverageSATVEG(coverage)
@@ -77,19 +77,20 @@ sits_fromSATVEG <- function(product     = "MOD13Q1",
 #'
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location
-#' @param satellite       the satellite ("terra", "aqua", "comb")
+#' @param product         an image product (e.g., "MOD13Q1")
+#' @param coverage        name of coverage ("terra", "aqua", "comb")
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
 #' @return status         TRUE if no problems are detected
 #'
-.sits_check_SATVEG <- function(longitude, latitude, satellite, prefilter){
+.sits_check_SATVEG <- function(longitude, latitude, product, coverage, prefilter){
 
     ensurer::ensure_that(longitude, !purrr::is_null(.),
                          err_desc = "sits_fromSATVEG: Missing longitude info")
     ensurer::ensure_that(latitude,  !purrr::is_null(.),
                          err_desc = "sits_fromSATVEG: Missing latitude info")
-    ensurer::ensure_that(coverage, (.) %in% sits.env$config$SATVEG_coverages,
+    ensurer::ensure_that(coverage, (.) %in% sits.env$config$SATVEG_coverages[[product]],
                          err_desc = "sits_fromSATVEG: Invalid satellite param")
-    ensurer::ensure_that(prefilter, (.) %in% sits.env$config$SATVEG_prefilter,
+    ensurer::ensure_that(prefilter, (.) %in% sits.env$config$SATVEG_prefilter[[product]],
                          err_desc = "sits_fromSATVEG: prefilter choice is not available")
 
     status <- TRUE
