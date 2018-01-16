@@ -439,7 +439,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' @name sits_plot_dendro
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendro}}
+#' @description Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendrogram}}
 #'
 #' @param data.tb       SITS tibble with data used to extract the dendrogram
 #' @param dendro.obj    cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`
@@ -452,13 +452,13 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' data ("cerrado_2classes")
 #' # Generate and plot a dendrogram
 #' library (dtwclust)
-#' dendro.obj <- sits_dendro (cerrado_2classes, bands = c("ndvi"))
-#' sits_plot_dendro (cerrado_2classes, dendro.obj)
+#' dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+#' sits_plot_dendrogram (cerrado_2classes, dendro.obj)
 #' }
-sits_plot_dendro <- function(data.tb,
-                             dendro.obj,
-                             cutree_height = NULL,
-                             colors = "RdYlGn"){
+sits_plot_dendrogram <- function (data.tb,
+                                  dendro.obj,
+                                  cutree_height = NULL,
+                                  colors = "RdYlGn"){
 
     # ensures that a cluster object is informed or exists in .sits_last_cluster global variable.
     ensurer::ensure_that(dendro.obj, !is.null(.),
@@ -484,7 +484,7 @@ sits_plot_dendro <- function(data.tb,
     i <- 1
     seq(uniq_labels) %>%
         purrr::map(function(i) {
-            cols[data_labels[hclust_cl$order] == uniq_labels[i]] <<- .sits_brewerRGB[[.sits_color_name(colors)]][[length(uniq_labels)]][[i]]
+            cols[data_labels[dendro.obj$order] == uniq_labels[i]] <<- .sits_brewerRGB[[.sits_color_name(colors)]][[length(uniq_labels)]][[i]]
             i <<- i + 1
         })
 

@@ -38,7 +38,7 @@ The CSV file should have the following column names:
 \examples{
 \donttest{
 #' # Read a set of points defined in a CSV file from a WTSS server
-csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
-points.tb <- sits_fromCSV (file = csv_file)
+csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
+points.tb <- sits_fromCSV (csv_file = csv_file)
 }
 }

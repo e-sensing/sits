@@ -2,25 +2,18 @@
 % Please edit documentation in R/sits_cluster.R
 \name{sits_cluster_frequency}
 \alias{sits_cluster_frequency}
-\title{Cluster frequency}
+\title{Cluster contigency table}
 \usage{
-sits_cluster_frequency(data.tb, relative = FALSE, to_margin = 2,
-  totals = TRUE)
+sits_cluster_frequency(data.tb)
 }
 \arguments{
 \item{data.tb}{a SITS tibble with `cluster` column.}
-
-\item{relative}{(boolean) return relative frequency?}
-
-\item{to_margin}{number indicating how to compute relative frequency (1 regarding labels, 2 regarding clusters) (default 2)}
-
-\item{totals}{(boolean) return the totals of rows and columns?}
 }
 \value{
 result.mtx      matrix containing all frequencies of labels in clusters
 }
 \description{
-Computes the frequency of labels in each cluster.
+Computes the contingency table between labels and clusters.
 This function needs as input a SITS tibble with `cluster` column.
 }
 \author{

@@ -92,6 +92,6 @@ testthat::test_that("Reading a CSV file", {
 })
 
 context("Data output")
-testthat::test_that("Reading a CSV file",
+# testthat::test_that("Reading a CSV file",
 
 

@@ -4,12 +4,12 @@
 \alias{sits_cluster}
 \title{Cuts a cluster tree produced by sits_dendrogram}
 \usage{
-sits_cluster(data.tb, clusters, k = NULL, height = NULL)
+sits_cluster(data.tb, dendro.obj, k = NULL, height = NULL)
 }
 \arguments{
 \item{data.tb}{a tibble with input data of dtwclust.}
 
-\item{clusters}{a cluster structure returned from dtwclust.}
+\item{dendro.obj}{a dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.}
 
 \item{k}{the desired number of clusters}
 
@@ -25,13 +25,13 @@ package,  and produces a sits tibble with an added "cluster" column
 \examples{
 \donttest{
 # Load the "dtwclust" package
-library (dtwclust)
+library(dtwclust)
 # load a simple data set with two classes
 data(cerrado_2classes)
 # calculate the dendrogram
-clusters <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
 # include the cluster info in the SITS tibble
-clustered.tb <- sits_cluster (cerrado_2classes, clusters, k = 6)
+clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
 }
 
 }

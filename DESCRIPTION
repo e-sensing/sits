@@ -38,6 +38,7 @@ Imports:
     dplyr,
     dtw,
     dtwSat,
+    flexclust,
     gbm,
     ggplot2,
     glmnet,

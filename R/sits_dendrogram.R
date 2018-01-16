@@ -12,7 +12,7 @@
 #'
 #' @references `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param data.tb         a tibble the list of time series to be clustered
+#' @param data.tb         A SITS tibble to be used to generate the dendrogram.
 #' @param bands           a vector the bands to be clusterized.
 #' @param dist_method     A supported distance from proxy's dist, e.g. \code{TWDTW}.
 #' @param linkage         the agglomeration method to be used. Any `hclust` method (see `hclust`) Default is 'ward.D2'..
@@ -62,49 +62,57 @@ sits_dendrogram <- function (data.tb, bands = NULL,
 }
 
 #' @title Compute validity indexes to a range of cut height
-#' @name sits_dendro_validity
+#' @name sits_dendro_bestcut
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description reads a list of clusters provided by the dtwclust
-#' package,  and produces a sits tibble with an added "cluster" column
-#' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
+#' @description reads a dendrogram object and its corresponding SITS tibble and
+#' computes the best number of clusters that maximizes the adjusted Rand index.
 #'
-#' @param data.tb          a tibble the list of time series to be clustered
-#' @param dendro.obj       a dendrogram object returned from `sits_dendro()`.
-#' @param from_k           start range of the desired number of clusters to compute indexes
-#' @param to_k             stop range of the desired number of clusters to compute indexes
-#' @return result.tb       a SITS tibble with the clusters or clusters' members
+#' @references
+#' Lawrence Hubert and Phipps Arabie. Comparing partitions.
+#' Journal of Classification, 2, p.193--218, 1985.
+#'
+#' See \link[flexclust]{randIndex} for implementation details.
+#'
+#' @param data.tb          The same SITS tibble used to generate `dendro.obj`.
+#' @param dendro.obj       a dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.
+#'
+#' @return
+#' A vector with the best number of clusters (k) and its respective heigh.
+#'
+#' @examples
+#' \donttest{
+#' # load a simple data set with two classes
+#' data(cerrado_2classes)
+#' # calculate the dendrogram
+#' dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi", "evi"))
+#' # include the cluster info in the SITS tibble
+#' sits_dendro_bestcut (cerrado_2classes, dendro.obj)
+#' }
+#'
 #' @export
-sits_dendro_validity <-  function (data.tb, dendro.obj, from_k, to_k) {
+sits_dendro_bestcut <-  function (data.tb, dendro.obj) {
 
     # compute range
-    k_range <- seq(from_k, to_k)
+    k_range <- seq(1, length(dendro.obj$height))
 
-    # compute clusters
-    clusters.mx <- stats::cutree(dendro.obj, k = k_range)
+    # compute ARI for each k
+    ari.vec <-
+        k_range %>%
+        purrr::map(function(k) {
+            flexclust::randIndex(stats::cutree(dendro.obj, k = k),
+                                 factor(data.tb$label),
+                                 correct = TRUE)
+        }) %>%
+        unlist()
 
-    # create a tibble to store the results
-    result.tb <- tibble::tibble(k = k_range,
-                                height = c(0, dendro.obj$height)[length(dendro.obj$height) - k_range + 2])
+    # get the best ARI result
+    k_result <- k_range[which.max(ari.vec)]
 
-    # compute CVIs and prepare it to return
-    result.tb <-
-        result.tb %>%
-        list(
-            lapply(
-                lapply(
-                    lapply(seq_along(k_range),
-                           function(i) {
-                               dtwclust::cvi(a = clusters.mx[,i],
-                                             b = factor(data.tb$label),
-                                             type = "external",
-                                             log.base = 10)
-                           }),
-                    function(v) lapply(v, function(e) e)
-                ),
-                function(l) tibble::as.tibble(l)
-            ) %>% dplyr::bind_rows()) %>%
-        dplyr::bind_cols()
+    # compute each height corresponding to `k_result`
+    h_result <- c(0, dendro.obj$height)[length(dendro.obj$height) - k_result + 2]
 
-    return (result.tb)
+    # create a named vector and return
+    result.vec <- structure(c(k_result, h_result), .Names = c("k", "height"))
+    return (result.vec)
 }
