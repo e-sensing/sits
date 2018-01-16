@@ -101,7 +101,7 @@
 #'
 #' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
 #'
-#' @param ts.tb         a valid sits table
+#' @param ts.tb         a tibble with a time series (one or more bands)
 #' @param fun           a function with one parameter as input and a vector or list of vectors as output.
 #' @param fun_index     a function with one parameter as input and a Date vector as output.
 #' @param bands_suffix  a string informing the resulting bands name's suffix.
@@ -146,17 +146,15 @@
 #'
 .sits_break_ts <-  function(ts, ref_dates.lst) {
 
-    new_ts.lst <- list()
-    ref_dates.lst %>%
+    new_ts.lst <- ref_dates.lst %>%
         purrr::map(function(dates) {
             if (ts$Index[1] <= dates[1]) {
                 if (ts$Index[length(ts$Index)] >= dates[2]) {
                     ts_b <- ts %>% dplyr::filter(dplyr::between(.$Index, dates[1], dates[2]))
-                    new_ts.lst[[length(new_ts.lst) + 1 ]] <<- ts_b
+                    return(ts_b)
                 }
             }
         })
-
     return(new_ts.lst)
 }
 
@@ -373,6 +371,7 @@
                                 time_series = list(),
                                 predicted   = list()
     )
+    class(result.tb) <- append(class(result.tb), "sits")
     return(result.tb)
 }
 
@@ -405,11 +404,11 @@
 #' @return coverage.tb   a tibble to store the metadata
 #'
 .sits_tibble_coverage <- function() {
-    result.tb <- tibble::tibble(r.objs         = list(),
+    result.tb <- tibble::tibble(r_obj          = list(),
                                 coverage       = character(),
                                 service        = character(),
                                 product        = character(),
-                                band_info      = list(),
+                                bands          = list(),
                                 start_date     = as.Date(character()),
                                 end_date       = as.Date(character()),
                                 timeline       = list(),
@@ -422,7 +421,7 @@
                                 xres           = double(),
                                 yres           = double(),
                                 crs            = character(),
-                                files          = list()
+                                file           = character()
     )
     class(result.tb) <- append(class(result.tb), "sits_tibble_coverage")
     return(result.tb)
@@ -455,7 +454,7 @@
 
     class_idx <-  1
 
-    data.tb %>%
+    data.tb <- data.tb %>%
         purrrlyr::by_row(function(row) {
             # get the timeline of the row
             timeline_row <- .sits_timeline(row)
@@ -469,22 +468,26 @@
                 # what are the reference dates to do the classification?
                 ref_dates.lst <- .sits_match_timeline(timeline_row, ref_start_date, ref_end_date, interval)
             }
-            pred_row.lst <- list()
+
             # store the classification results
-            for (d in 1:length(ref_dates.lst)) {
-                pred_row.lst[[d]] <- tibble::tibble(
-                    from      = as.Date(ref_dates.lst[[d]][1]),
-                    to        = as.Date(ref_dates.lst[[d]][2]),
-                    distance  =  0.0,
-                    class     = pred.vec[class_idx]
+            pred_row.lst <- ref_dates.lst %>%
+                purrr::map(function(rd){
+                    pred_row <- tibble::tibble(
+                        from      = as.Date(rd[1]),
+                        to        = as.Date(rd[2]),
+                        distance  =  0.0,
+                        class     = pred.vec[class_idx]
                     )
-                class_idx  <<- class_idx + 1
-            }
+                    class_idx  <<- class_idx + 1
+                    return(pred_row)
+                })
+            # transform the list into a tibble
+            predicted.tb <- dplyr::bind_rows(pred_row.lst)
+            return(predicted.tb)
+        }, .to = "predicted") # include a new column in the data.tb tibble
 
-            predicted.lst[[length(predicted.lst) + 1]] <<- dplyr::bind_rows(pred_row.lst)
-        })
-
-    data.tb$predicted <- predicted.lst
-    class(data.tb) <- append(class(data.tb), "sits_tibble_prediction")
     return(data.tb)
 }
+
+# join all rows in a single tibble
+# raster_layers.tb <- dplyr::bind_rows(raster.lst)

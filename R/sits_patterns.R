@@ -47,7 +47,7 @@
 #' }
 #' @export
 #'
-sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, end_date = NULL,
+sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, end_date = NULL,
                       freq = 8, formula = y ~ s(x), ...){
 
 
@@ -55,8 +55,7 @@ sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, e
     result_fun <- function(tb){
 
         # does the input data exist?
-        .sits_test_tibble (tb)
-
+        .sits_test_tibble(tb)
 
         # find the bands of the data
         bds <- sits_bands(tb)
@@ -69,10 +68,10 @@ sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, e
 
         # align all samples to the same time series intervals
         sample_dates <- lubridate::as_date(tb[1,]$time_series[[1]]$Index)
-        tb           <- .sits_align (tb, sample_dates)
+        tb           <- .sits_align(tb, sample_dates)
 
         # if "from" and "to" are not given, extract them from the data samples
-        if (purrr::is_null (start_date) || purrr::is_null (end_date)) {
+        if (purrr::is_null(start_date) || purrr::is_null(end_date)) {
             start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
             end_date   <- lubridate::as_date(utils::tail(sample_dates, n = 1))
         }
@@ -83,14 +82,14 @@ sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, e
                         by   = freq)
 
         # how many different labels are there?
-        labels <- dplyr::distinct (tb, label)$label
+        labels <- dplyr::distinct(tb, label)$label
 
         # traverse labels
-        labels %>%
-            purrr::map(function (lb){
+        patterns.lst <- labels %>%
+            purrr::map(function(lb) {
 
                 # filter only those rows with the same label
-                label.tb <- dplyr::filter (tb, label == lb)
+                label.tb <- dplyr::filter(tb, label == lb)
 
                 # create a data frame to store the time instances
                 time <- data.frame(as.numeric(pred_time))
@@ -99,22 +98,22 @@ sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, e
                 names(time) = vars[2]
 
                 # create a tibble to store the time series associated to the pattern
-                res.tb <- tibble::tibble (Index = lubridate::as_date(pred_time))
+                ind.tb <- tibble::tibble(Index = lubridate::as_date(pred_time))
 
                 # calculate the fit for each band
-                bds %>%
-                    purrr::map(function (bd) {
+                fit.lst <- bds %>%
+                    purrr::map(function(bd) {
 
                         # retrieve the time series for each band
-                        label_b.tb <- sits_select_bands (label.tb, bd)
+                        label_b.tb <- sits_select_bands(label.tb, bd)
                         ts <- label_b.tb$time_series
 
                         # melt the time series for each band into a long table
                         # with all values together
                         ts2 <- ts %>%
-                            reshape2::melt   (id.vars = "Index") %>%
-                            dplyr::select    (Index, value)      %>%
-                            dplyr::transmute (x = as.numeric(Index), y = value)
+                            reshape2::melt(id.vars = "Index") %>%
+                            dplyr::select(Index, value)       %>%
+                            dplyr::transmute(x = as.numeric(Index), y = value)
 
                         #calculate the best fit for the data set
                         fit <-  mgcv::gam(data = ts2, formula = formula)
@@ -124,32 +123,38 @@ sits_patterns <- function (data.tb = NULL, timeline = NULL, start_date = NULL, e
                         pred_values <- mgcv::predict.gam(fit, newdata = time)
 
                         #include the predicted values for the band in the results tibble
-                        res.tb <- tibble::add_column(res.tb, b = pred_values)
+                        res.tb <- tibble::tibble(b = pred_values)
 
                         # rename the column to match the band names
                         names(res.tb)[names(res.tb) == "b"] <- bd
-                        # return the value out of the function scope
-                        res.tb <<- res.tb
+                        # return the tibble column to the list
+                        return(res.tb)
 
                     }) # for each band
+
+                res.tb <- dplyr::bind_cols(fit.lst)
+                res.tb <- dplyr::bind_cols(ind.tb, res.tb)
 
                 # put the pattern in a list to store in a sits tibble
                 ts <- tibble::lst()
                 ts[[1]] <- res.tb
 
-
                 # add the pattern to the results tibble
-                patterns.tb <<- tibble::add_row (patterns.tb,
-                                                 start_date     = as.Date(start_date),
-                                                 end_date       = as.Date(end_date),
-                                                 label          = lb,
-                                                 coverage       = label.tb[1,]$coverage,
-                                                 time_series    = ts)
+                row <- tibble::tibble(
+                    longitude      = 0.0,
+                    latitude       = 0.0,
+                    start_date     = as.Date(start_date),
+                    end_date       = as.Date(end_date),
+                    label          = lb,
+                    coverage       = label.tb[1,]$coverage,
+                    time_series    = ts)
+                return(row)
             })
 
-        return (patterns.tb)
+        patterns.tb <- dplyr::bind_rows(patterns.lst)
+        return(patterns.tb)
     }
 
-    result <- .sits_factory_function (data.tb, result_fun)
+    result <- .sits_factory_function(data.tb, result_fun)
 }
 

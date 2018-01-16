@@ -19,7 +19,7 @@ sits_coverageRaster(product = "MOD13Q1", coverage = NULL, timeline = NULL,
 \item{files}{Vector with the file paths of the raster files}
 }
 \value{
-raster.tb   A tibble with metadata information about a raster data set
+raster.tb     A tibble with metadata information about a raster data set
 }
 \description{
 This function creates a tibble containing the metadata for

@@ -1,5 +1,5 @@
 #' @title Compute a dendrogram using hierarchical clustering
-#' @name sits_dendro
+#' @name sits_dendrogram
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -26,14 +26,14 @@
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # calculate the dendrogram
-#' clusters <- sits_dendro (cerrado_2classes, bands = c("ndvi"))
+#' clusters <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
 #' # plot the dendrogram
-#' sits_plot_dendro (cerrado_2classes, clusters)
+#' sits_plot_dendrogram (cerrado_2classes, clusters)
 #' }
 #' @export
-sits_dendro <- function (data.tb, bands = NULL,
-                         dist_method = "dtw_basic",
-                         linkage = "ward.D2", ...){
+sits_dendrogram <- function (data.tb, bands = NULL,
+                             dist_method = "dtw_basic",
+                             linkage = "ward.D2", ...){
 
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {

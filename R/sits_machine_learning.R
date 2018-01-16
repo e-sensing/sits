@@ -19,10 +19,10 @@
 #' and \code{\link[sits]{sits_classify_raster}}, so the user does not need
 #' to explicitly use this function. Please see the above-mention classification functions.
 #'
-#' @param data.tb          a time series with the training samples
-#' @param ml_method        the machine learning method that returns a model for prediction
-#' @param dist_method      the method used to compute the distances used to build the model
-#' @return result          a model fitted into input data given by train_method parameter
+#' @param  data.tb          a time series with the training samples
+#' @param  ml_method        the machine learning method that returns a model for prediction
+#' @param  adj_fun          Adjustment function to be applied to the data
+#' @return result           a model fitted into input data given by train_method parameter
 #'
 #' @examples
 #'
@@ -39,10 +39,10 @@
 #' }
 #' @export
 #'
-sits_train <- function(data.tb, ml_method = sits_svm(), dist_method = sits_distances_from_data()){
+sits_train <- function(data.tb, ml_method = sits_svm(), adj_fun = sits_adjust()) {
 
     # is the input data a valid SITS tibble?
-    ensurer::ensure_that(data.tb, "label" %in% names (.),
+    ensurer::ensure_that(data.tb, "label" %in% names(.),
                          err_desc = "sits_train: input data does not contain a valid SITS tibble")
 
     # is the train method a function?
@@ -50,11 +50,11 @@ sits_train <- function(data.tb, ml_method = sits_svm(), dist_method = sits_dista
                          err_desc = "sits_train: ml_method is not a valid function")
 
     #is the distance method a function ?
-    ensurer::ensure_that(dist_method, class(.) == "function",
-                         err_desc = "sits_train: dist_method is not a valid function")
+    ensurer::ensure_that(adj_fun, class(.) == "function",
+                         err_desc = "sits_train: adj_fun is not a valid function")
 
     # compute the distances
-    distances.tb <- sits_distances_from_data(data.tb)
+    distances.tb <- sits_distances(data.tb, adj_fun)
 
     # compute the training method by the given data
     result <- ml_method(distances.tb)
@@ -523,8 +523,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_mlp(),
-#'         sits_distances = sits_distances_from_data (fun = identity()))
+#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_mlp(), adj_fun = identity)
 #' }
 #' @export
 #'

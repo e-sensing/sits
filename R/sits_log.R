@@ -32,10 +32,11 @@ sits_log <- function() {
     ensurer::ensure_that(data, !purrr::is_null(.),
                          err_desc = "Cannot save NULL data")
 
-    save(data, file = paste0(dirname(sits.env$config$log_file),"/", file_name))
+    file_save = paste0(dirname(sits.env$config$log_file),"/", file_name)
+    save(data, file = file_save)
 
     # post-condition
-    ensurer::ensure_that(file, file.exists(.),
+    ensurer::ensure_that(file_save, file.exists(.),
                          err_desc = "Unable to save temporary data")
 }
 

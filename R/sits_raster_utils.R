@@ -14,7 +14,7 @@
 
     # for each layer, write the values
     i <- 0
-    raster_class.tb$r.objs %>%
+    raster_class.tb$r_objs.lst %>%
         purrr::map(function(layer){
             i <- i + 1
             values <- as.integer(int_labels[pred.lst[[i]]])
@@ -23,7 +23,93 @@
         })
     return(raster_class.tb)
 }
+#' @title Classify a distances matrix extracted from raster using machine learning models
+#' @name .sits_classify_block
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a sits table with the results of the ML classifier.
+#'
+#' @param  data.mx         a matrix with data values
+#' @param  class_info.tb   a tibble with the information on classification
+#' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
+#' @param  multicores      Number of threads to process the time series.
+#' @return pred.lst        list with the predicted labels for each output time interval
+.sits_classify_block <- function(data.mx, class_info.tb, ml_model = NULL, multicores = 1){
 
+    ensurer::ensure_that(ml_model, !purrr::is_null(.),
+                         err_desc = "sits-classify: please provide a machine learning model already trained")
+
+    # find the subsets of the input data
+    dates_index.lst <- class_info.tb$dates_index[[1]]
+
+    # find the number of the samples
+    nsamples <- dates_index.lst[[1]][2] - dates_index.lst[[1]][1] + 1
+
+    #retrieve the timeline of the data
+    timeline <- class_info.tb$timeline[[1]]
+
+    # retrieve the bands
+    bands <- class_info.tb$bands[[1]]
+
+    #retrieve the time index
+    time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
+
+    # define the column names
+    attr_names.lst <- bands %>%
+        purrr::map(function(b){
+            attr_names_b <- c(paste(c(rep(b, nsamples)), as.character(c(1:nsamples)), sep = ""))
+            return(attr_names_b)
+        })
+    attr_names <- unlist(attr_names.lst)
+    attr_names <- c("original_row", "reference", attr_names)
+
+
+    # classify a block of data
+    classify_block <- function(block.mx) {
+        # create a list to get the predictions
+        pred_block.lst <- list()
+        for (t in 1:length(time_index.lst)) {
+            # create an empty matrix to store the subset of the data
+            values.mx <- matrix(nrow = nrow(block.mx), ncol = 0)
+            idx <- time_index.lst[[t]]
+            for (b in 1:length(bands)) {
+                # retrieve the values used for classification
+                values.mx <- cbind(values.mx, block.mx[,idx[(2*b - 1)]:idx[2*b]])
+            }
+            dist.tb <- data.frame("original_row" = rep(1,nrow(block.mx)) ,
+                                  "reference" = rep("NoClass", nrow(block.mx)))
+            dist.tb[,3:(nsamples*length(bands) + 2)] <- values.mx
+
+            colnames(dist.tb) <- attr_names
+            # classify the subset data
+            pred_block.lst[[t]] <- .sits_predict(dist.tb, ml_model)
+        }
+        return(pred_block.lst)
+    }
+
+    join_blocks <- function(blocks.lst) {
+        pred.lst <- list()
+        for (t in 1:length(time_index.lst)) {
+            pred.lst[[t]] <- vector()
+        }
+        for (i in 1:length(blocks.lst)) {
+            pred.lst <- c(pred.lst[[t]], blocks.lst[[i]][[t]])
+        }
+        return(pred.lst)
+    }
+
+    if (multicores > 1) {
+        blocks.lst <- split.data.frame(data.mx, cut(1:nrow(data.mx),multicores, labels = FALSE))
+        # apply parallel processing to the split data
+        results <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
+
+        pred.lst <- join_blocks(results)
+    }
+    else
+        pred.lst <- classify_block(data.mx)
+
+    return(pred.lst)
+}
 
 
 #' @title Create a set of RasterLayer objects to store time series classification results
@@ -43,13 +129,12 @@
 .sits_create_classified_raster <- function(raster.tb, samples.tb, file, interval){
 
     # ensure metadata tibble exists
-    ensurer::ensure_that(raster.tb, NROW(.) == 1,
+    ensurer::ensure_that(raster.tb, NROW(.) > 0,
                          err_desc = "sits_classify_raster: need a valid metadata for coverage")
 
     # get the timeline of observations (required for matching dates)
     timeline <- raster.tb[1,]$timeline[[1]]
 
-    labels <- sits_labels(samples.tb)$label
     # what is the reference start date?
     ref_start_date <- lubridate::as_date(samples.tb[1,]$start_date)
     # what is the reference end date?
@@ -58,14 +143,12 @@
     # produce the breaks used to generate the output rasters
     subset_dates.lst <- .sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
 
-    # create a list to store the results
-    raster.lst <- list()
 
     # loop through the list of dates
-    subset_dates.lst %>%
+    raster.lst <- subset_dates.lst %>%
         purrr::map(function(date_pair) {
             # create one raster layer per date pair
-            r_out <- raster::raster(raster.tb[1,]$r.objs[[1]])
+            r_out <- raster::raster(raster.tb[1,]$r_objs.lst[[1]])
 
             # define the timeline for the classified image
             start_date <- date_pair[1]
@@ -84,20 +167,17 @@
             scale_factor <- 1
 
             # create a new RasterLayer for a defined period and generate the associated metadata
-            row.tb <- .sits_coverage_metadata(service  = "RASTER",
-                                              product  = raster.tb$product,
-                                              coverage = coverage,
-                                              r.objs   = list(r_out),
-                                              timeline = timeline,
-                                              bands    = raster.tb$band_info[[1]]$name,
-                                              files    = list(filename))
+            row.tb <- .sits_coverage_raster  (r_objs      = list(r_out),
+                                              service     = "RASTER",
+                                              product     = raster.tb$product,
+                                              coverage    = coverage,
+                                              timeline    = timeline,
+                                              bands       = raster.tb$band_info[[1]]$name,
+                                              files       = list(filename))
 
-            # store the labels of the classified image
-            #row.tb$labels <- list(labels)
 
             # add the metadata information to the list
-            raster.lst[[length(raster.lst) + 1 ]] <<- row.tb
-
+            return(row.tb)
         })
     # join all rows in a single tibble
     raster_layers.tb <- dplyr::bind_rows(raster.lst)
@@ -114,16 +194,15 @@
 #' @param  raster.tb      Metadata for a RasterBrick
 #' @param  row            Starting row from the RasterBrick
 #' @param  nrow           Number of rows in the block extracted from the RasterBrick
-#' @param  adj_fun        Function to adjust the values (required for ML classification)
+#' @param  adj_fun        Adjustment function to be applied to the data
 #' @return data.mx        Matrix with data values
 #'
 .sits_data_from_block <- function(raster.tb, row, nrows, adj_fun) {
 
-    values.lst <- list()
 
     nband <- 0
     # go element by element of the raster metadata tibble (each object points to a RasterBrick)
-    raster.tb[1,]$r.objs %>%
+    values.lst <- raster.tb$r_objs.lst %>%
         purrr::map(function(r_brick) {
             # the raster::getValues function returns a matrix
             # the rows of the matrix are the pixels
@@ -143,8 +222,8 @@
             values.mx <-  adj_fun(values.mx)
 
             # Convert the matrix to a list of time series (all with values for a single band)
-            values.lst[[length(values.lst) + 1]]  <<- values.mx
-            })
+            return(values.mx)
+        })
     data.mx <- do.call(cbind, values.lst)
     return(data.mx)
 }
@@ -250,13 +329,15 @@
 
     nband <- 0
     # An input raster brick contains several files, each corresponds to a band
-    values.lst <- raster.tb$r.objs %>%
+    values.lst <- raster.tb$r_objs.lst %>%
         purrr::map(function(r_brick) {
             # eack brick is a banc
             nband <- nband + 1
             # get the values of the time series
             values <- as.vector(raster::extract(r_brick, xy))
-            # if (all(is.na(values)))
+            # is the data valid?
+            if (all(is.na(values)))
+                return(NULL)
             # create a tibble to store the values
             values.tb <- tibble::tibble(values)
             # find the names of the tibble column
@@ -264,9 +345,7 @@
             # correct the values using the scale factor
             scale_factor <- as.numeric(raster.tb$band_info[[1]][nband, "scale_factor"])
             values.tb <- values.tb[,1]*scale_factor
-            return (values.tb)
-            # add the column to the SITS tibble
-            #ts.tb <<- dplyr::bind_cols(ts.tb, values.tb)
+            return(values.tb)
         })
 
     ts.tb <- dplyr::bind_cols(ts.tb, values.lst)
@@ -325,8 +404,8 @@
     csv_unread.tb <- .sits_tibble_csv()
     # for each row of the input, retrieve the time series
     csv.tb %>%
-        purrrlyr::by_row(function(r){
-            # covert to the projection coordinates
+        purrrlyr::by_row(function(r) {
+            # convert to the projection coordinates
             xy <- .sits_latlong_to_proj(r$longitude, r$latitude, raster.tb$crs)
 
             if (!.sits_XY_inside_raster(xy, raster.tb)) {

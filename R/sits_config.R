@@ -77,21 +77,7 @@ sits_show_config <- function() {
     return(invisible())
 }
 
-#' @title Add a coverage to the table of coverages used in the global configuration
-#' @name .sits_add_coverage
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#'
-#' @param coverage.tb     The name of the coverage
-#' @return bool           Boolean - returns TRUE if successful
-#'
-.sits_add_coverage <- function(coverage.tb) {
-    ensurer::ensure_that(sits.env$config$coverages, !purrr::is_null(.),
-                         err_desc = "Coverage configuration file does not exist")
-    sits.env$config$coverages <- dplyr::bind_rows(sits.env$config$coverages, coverage.tb)
 
-    return(TRUE)
-}
 #' @title Get an account to access a time series service
 #' @name .sits_get_account
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -106,7 +92,7 @@ sits_show_config <- function() {
                          err_desc = "Account only required for service SATVEG")
     s <- paste0(service,"_products")
     ensurer::ensure_that(product, (.) %in% sits.env$config[[s]],
-                         err_desc = paste0("Product ", product, "not available for service ", service))
+                         err_desc = paste0("Product ", product, " not available for service ", service))
 
     i1      <- paste0(service,"_account")
     account <- sits.env$config[[i1]][[product]]
@@ -122,6 +108,11 @@ sits_show_config <- function() {
                          err_desc = paste0("accountURL not available for service ", service))
 
     return(accountURL)
+}
+.sits_get_adjustment_shift <- function() {
+
+    return(sits.env$config$adjustment_shift)
+
 }
 #' @title Retrieve the bands avaliable for the product in the time series service
 #' @name .sits_get_bands
@@ -139,7 +130,7 @@ sits_show_config <- function() {
     if (service != "RASTER") {
         s <- paste0(service,"_products")
         ensurer::ensure_that(product, (.) %in% sits.env$config[[s]],
-                             err_desc = paste0("Product ", product, "not available for service ", service))
+                             err_desc = paste0("Product ", product, " not available for service ", service))
 
         # get the bands information from the configuration file
         b <- paste0(service,"_bands")
@@ -154,35 +145,35 @@ sits_show_config <- function() {
 #' @name .sits_get_bbox
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        the name of the time series service
-#' @param product        the name of the product
-#' @param r.objs         list of raster objects
+#' @param service        name of the time series service
+#' @param product        name of the product
+#' @param r_obj          R object associated with the coverage
 #' @return bbox          bounding box
 #'
-.sits_get_bbox <- function(service, product, r.objs = NA){
+.sits_get_bbox <- function(service, product, r_obj = NA){
 
     bbox         <- vector(length = 4)
     names(bbox)  <- c("xmin", "xmax", "ymin", "ymax")
 
-    if (service != "RASTER") {
+    if (service == "RASTER") {
+        ensurer::ensure_that(r_obj, length(.) > 0,
+                             err_desc = "raster objects have not been created")
+        bbox["xmin"] <- r_obj@extent@xmin
+        bbox["xmax"] <- r_obj@extent@xmax
+        bbox["ymin"] <- r_obj@extent@ymin
+        bbox["ymax"] <- r_obj@extent@ymax
+    }
+    else {
         # pre-condition
         s <- paste0(service,"_products")
         ensurer::ensure_that(product, (.) %in% sits.env$config[[s]],
-                             err_desc = paste0("Product ", product, "not available for service ", service))
+                             err_desc = paste0("Product ", product, " not available for service ", service))
 
         # get the bounding box from the configuration file
         i1 <- paste0(service,"_bbox")
 
         for (c in names(bbox))
             bbox[c] <- sits.env$config[[i1]][[product]][[c]]
-    }
-    else {
-        ensurer::ensure_that(r.objs, length(.) > 0,
-                             err_desc = "raster objects have not been created")
-        bbox["xmin"] <- r.objs[[1]]@extent@xmin
-        bbox["xmax"] <- r.objs[[1]]@extent@xmax
-        bbox["ymin"] <- r.objs[[1]]@extent@ymin
-        bbox["ymax"] <- r.objs[[1]]@extent@ymax
     }
     return(bbox)
 }
@@ -224,7 +215,7 @@ sits_show_config <- function() {
     mv <- as.numeric(sits.env$config[[mv_name]][[band]])
     #post-condition
     ensurer::ensure_that(mv, !purrr::is_null(.),
-                         err_desc = paste0("Configuration file has no missing values for ", band, "of ", product))
+                         err_desc = paste0("Configuration file has no missing values for ", band, " of ", product))
 
     return(mv)
 }
@@ -238,10 +229,10 @@ sits_show_config <- function() {
 #'
 #' @param service        the name of the time series service
 #' @param product        the name of the product
-#' @param r.objs         list of raster objects
+#' @param r_obj          R object associated with the coverage
 #' @return crs           CRS PROJ4 infomation
 
-.sits_get_projection <- function(service, product, r.objs = NA) {
+.sits_get_projection <- function(service, product, r_obj = NA) {
 
     # pre-condition
     ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
@@ -250,7 +241,7 @@ sits_show_config <- function() {
     if (service != "RASTER") {
         s <- paste0(service,"_products")
         ensurer::ensure_that(product, (.) %in% sits.env$config[[s]],
-                             err_desc = paste0("Product ", product, "not available for service ", service))
+                             err_desc = paste0("Product ", product, " not available for service ", service))
 
         # create a string to store the query
         s <- paste0(service, "_crs")
@@ -258,12 +249,12 @@ sits_show_config <- function() {
 
         #post-condition
         ensurer::ensure_that(crs, length(.) > 0,
-                             err_desc = paste0("Projection information for ", product, "of service ", service, "not available"))
+                             err_desc = paste0("Projection information for ", product, " of service ", service, " not available"))
     }
     else {
-        ensurer::ensure_that(r.objs, length(.) > 0,
+        ensurer::ensure_that(r_obj, length(.) > 0,
                              err_desc = "raster objects have not been created")
-        crs <- r.objs[[1]]@crs@projargs
+        crs <- r_obj@crs@projargs
     }
 
     return(crs)
@@ -326,9 +317,9 @@ sits_show_config <- function() {
 #'
 #' @param service        the name of the time series service
 #' @param product        the name of the product
-#' @param r.objs         list of raster objects
+#' @param r_obj          R object associated with the coverage
 #' @return size          vector of (nrows, ncols)
-.sits_get_size <- function(service, product, r.objs = NA) {
+.sits_get_size <- function(service, product, r_obj = NA) {
 
     size         <- vector(length = 2)
     names(size)  <- c("nrows", "ncols")
@@ -337,26 +328,26 @@ sits_show_config <- function() {
         # pre-condition
         s <- paste0(service,"_products")
         ensurer::ensure_that(product, (.) %in% sits.env$config[[s]],
-                             err_desc = paste0("Product ", product, "not available for service ", service))
+                             err_desc = paste0("Product ", product, " not available for service ", service))
 
         # get the size from the configuration file
-        i1           <- paste0(service,"_size")
+        i1  <- paste0(service,"_size")
 
         for (c in names(size))
             size[c] <- sits.env$config[[i1]][[product]][[c]]
     }
     else {
-        ensurer::ensure_that(r.objs, length(.) > 0,
+        ensurer::ensure_that(r_obj, length(.) > 0,
                              err_desc = "raster objects have not been created")
-        size["nrows"] <- r.objs[[1]]@nrows
-        size["ncols"] <- r.objs[[1]]@ncols
+        size["nrows"] <- r_obj@nrows
+        size["ncols"] <- r_obj@ncols
     }
 
     #post-condition
     ensurer::ensure_that(size["nrows"], as.integer(.) > 0,
-                         err_desc = paste0("Number of rows not available for product ", product, "for service ", service))
+                         err_desc = paste0("Number of rows not available for product ", product, " for service ", service))
     ensurer::ensure_that(size["ncols"], as.integer(.) > 0,
-                         err_desc = paste0("Number of cols not available for product ", product, "for service ", service))
+                         err_desc = paste0("Number of cols not available for product ", product, " for service ", service))
 
     return(size)
 }
@@ -375,7 +366,7 @@ sits_show_config <- function() {
     sf <- as.numeric(sits.env$config[[sf_name]][[band]])
     #post-condition
     ensurer::ensure_that(sf, !purrr::is_null(.),
-                         err_desc = paste0("Configuration file has no scale factors for ", band, "of ", product))
+                         err_desc = paste0("Configuration file has no scale factors for ", band, " of ", product))
     return(sf)
 }
 

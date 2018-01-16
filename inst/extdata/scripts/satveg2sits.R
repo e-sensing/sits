@@ -121,6 +121,8 @@ satveg2sits <- function(longitude = longitude, latitude = latitude, sat = sat,
                       label = "NoClass", coverage = "satveg-mod13q1",
                       time_series = list(time_series))
 
+  class(satveg.tb) <- append(class(satveg.tb), "sits")
+
   return(satveg.tb)
 
   }

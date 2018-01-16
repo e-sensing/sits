@@ -46,7 +46,7 @@ sits_add_row <- function(data.tb = NULL, longitude = 0.0, latitude = 0.0,
                                label        = label,
                                coverage     = coverage,
                                time_series  = time_series)
-
+    class(data.tb) <- append(class(data.tb), "sits")
     return(data.tb)
 }
 #' @title Apply a function over SITS bands.
@@ -459,8 +459,8 @@ sits_prune <- function(data.tb) {
     n_samples <- vector()
 
     data.tb %>%
-        purrrlyr::by_row(function (r) {
-            n_samples[length(n_samples) + 1] <- length(r$time_series[[1]]$Index)
+        purrrlyr::by_row(function(r) {
+            n_samples[length(n_samples) + 1] <<- length(r$time_series[[1]]$Index)
         })
 
     # check if all time indices are equal to the median

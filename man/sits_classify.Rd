@@ -6,7 +6,7 @@
 \usage{
 sits_classify(data.tb = NULL, train_samples.tb = NULL,
   ml_method = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance =
-  0.001, epsilon = 0.1, cross = 4), dist_method = sits_distances_from_data(),
+  0.001, epsilon = 0.1, cross = 4), adj_fun = sits_adjust(),
   interval = "12 month", multicores = 1)
 }
 \arguments{
@@ -16,7 +16,7 @@ sits_classify(data.tb = NULL, train_samples.tb = NULL,
 
 \item{ml_method}{A machine learning method (see \code{\link[sits]{sits_train}})}
 
-\item{dist_method}{The method to obtain the values to be used from training and classification}
+\item{adj_fun}{Adjustment function to be applied to the data}
 
 \item{interval}{The interval used for classification}
 

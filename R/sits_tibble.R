@@ -14,15 +14,15 @@
 #' @return result.tb  a tibble in SITS format
 #' @export
 
-sits_tibble <- function () {
+sits_tibble <- function() {
     result.tb <- tibble::tibble(longitude   = double(),
-                                latitude    = double (),
+                                latitude    = double(),
                                 start_date  = as.Date(character()),
                                 end_date    = as.Date(character()),
                                 label       = character(),
                                 coverage    = character(),
                                 time_series = list()
     )
-    class (result.tb) <- append (class(result.tb), "sits_tibble")
-    return (result.tb)
+    class(result.tb) <- append(class(result.tb), "sits")
+    return(result.tb)
 }

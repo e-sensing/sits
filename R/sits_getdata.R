@@ -41,7 +41,8 @@
 #' @param bands           (optional) vector - the names of the bands to be retrieved
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
 #' @param label           (optional) string - the label to be assigned to the time series
-#' @param n_max           (optional) integer - the maximum number of samples to be read
+#' @param .n_max          (optional) integer - the maximum number of samples to be read
+#' @param .n_save         number of samples to save as intermediate files (used for long reads)
 #' @return data.tb        a SITS tibble
 #'
 #' @examples
@@ -84,7 +85,8 @@ sits_getdata <- function(file        = NULL,
                          bands       = NULL,
                          prefilter   = "1",
                          label       = "NoClass",
-                         n_max       = Inf) {
+                         .n_max      = Inf,
+                         .n_save     = 0) {
 
     # a JSON file has all the data and metadata
     if  (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "json") {
@@ -111,7 +113,9 @@ sits_getdata <- function(file        = NULL,
     }
     # get data based on CSV file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv") {
-        data.tb <- sits_fromCSV(file, service, product, coverage, bands, prefilter, n_max)
+        data.tb <- sits_fromCSV(csv_file = file, service = service, product = product,
+                                coverage = coverage, bands = bands, prefilter = prefilter,
+                                .n_max = .n_max, .n_save = .n_save)
         return(data.tb)
     }
     # get data based on SHP file

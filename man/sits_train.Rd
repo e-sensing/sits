@@ -4,18 +4,17 @@
 \alias{sits_train}
 \title{Train SITS classification models}
 \usage{
-sits_train(data.tb, ml_method = sits_svm(),
-  dist_method = sits_distances_from_data())
+sits_train(data.tb, ml_method = sits_svm(), adj_fun = sits_adjust())
 }
 \arguments{
 \item{data.tb}{a time series with the training samples}
 
 \item{ml_method}{the machine learning method that returns a model for prediction}
 
-\item{dist_method}{the method used to compute the distances used to build the model}
+\item{adj_fun}{Adjustment function to be applied to the data}
 }
 \value{
-result          a model fitted into input data given by train_method parameter
+result           a model fitted into input data given by train_method parameter
 }
 \description{
 Given a tibble with a set of distance measures,

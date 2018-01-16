@@ -5,7 +5,7 @@
 \title{Cross-validate temporal patterns}
 \usage{
 sits_kfold_validate(data.tb, folds = 5, ml_method = sits_svm(),
-  dist_method = sits_distances_from_data(), multicores = 1)
+  adj_fun = sits_adjust(), multicores = 1)
 }
 \arguments{
 \item{data.tb}{a SITS tibble}
@@ -14,12 +14,12 @@ sits_kfold_validate(data.tb, folds = 5, ml_method = sits_svm(),
 
 \item{ml_method}{machine learning training method}
 
-\item{dist_method}{distance method to be applied to the data}
+\item{adj_fun}{adjustment function applied to the input data}
 
 \item{multicores}{number of threads to process the validation (Linux and MacOS only)}
 }
 \value{
-pred_ref.tb        a tibble containing pairs of reference and predicted values
+pred_ref.tb    a tibble containing pairs of reference and predicted values
 }
 \description{
 Splits the set of time series into training and validation and

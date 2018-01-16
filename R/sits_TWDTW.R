@@ -155,7 +155,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
     # create a tibble to store the results
     i <- 1
     class.tb <- data.tb %>%
-          purrrlyr::by_row (function (row) {
+          purrrlyr::by_row (function(row) {
 
                if (purrr::is_null (start_date)) {
                     start_date  <- row$start_date
@@ -177,7 +177,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
                return(class.lst[[1]])
 
           }, .to = "predicted")
-    return (class.tb)
+    return(class.tb)
 }
 #' @title Export data to be used by the dtwSat package
 #' @name .sits_toTWDTW
@@ -224,19 +224,19 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 
     # traverse data.tb and, for each row, create a list of dtwSat::twdtwMatches objects
     data.tb %>%
-        purrrlyr::by_row(function (row.tb){
+        purrrlyr::by_row(function(row.tb){
             # get predicted labels (pattern labels in matches)
             labels <- base::unique(row.tb$matches[[1]]$predicted)
 
             # traverse predicted labels and, for each entry, generate the alignments' information
             # required by dtwSat::twdtwMatches@alignments
             align.lst <- labels %>%
-                purrr::map(function (lb){
+                purrr::map(function(lb){
                     entry.lst <- list(label = c(lb))
                     entry.lst <- c(entry.lst, row.tb$matches[[1]] %>%
                                        dplyr::filter(predicted == lb) %>%
                                        dplyr::select(-predicted) %>%
-                                       purrr::map(function (col) col))
+                                       purrr::map(function(col) col))
                     entry.lst <- c(entry.lst, list(K = length(entry.lst$from),
                                                    matching = list(), internals = list()))
                     entry.lst

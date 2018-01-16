@@ -16,11 +16,11 @@
 #' @examples
 #' \donttest{
 #' # Load the "dtwclust" package
-#' library (dtwclust)
+#' library(dtwclust)
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # calculate the dendrogram
-#' dendro.obj <- sits_dendro (cerrado_2classes, bands = c("ndvi"))
+#' dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
 #' # include the cluster info in the SITS tibble
 #' clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
 #' }
@@ -38,7 +38,7 @@ sits_cluster <-  function (data.tb, dendro.obj, k = NULL, height = NULL) {
     # cut the tree
     result.tb$cluster <- stats::cutree(dendro.obj, k[[1]], height[[1]])
 
-    return (result.tb)
+    return(result.tb)
 }
 
 #' @title Cluster validity indices
@@ -51,37 +51,26 @@ sits_cluster <-  function (data.tb, dendro.obj, k = NULL, height = NULL) {
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb          a SITS tibble with `cluster` column.
-#' @param collapse         (boolean) rename clusters regarding more frequent labels.
 #' @return result.vec      vectors with chosen CVIs
 #' @export
-sits_cluster_validity <- function(data.tb, collapse = FALSE) {
+sits_cluster_validity <-  function(data.tb) {
 
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+        stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
     }
 
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.),
                          err_desc = "sits_cluster_validity: input data does not contain cluster column")
 
-    # rename clusters to correspond the more frequent class
-    if (collapse){
-        # is the input data the result of a cluster function?
-        ensurer::ensure_that(data.tb, length(base::unique(.$cluster)) >= length(base::unique(.$labels)),
-                             err_desc = "sits_cluster_validity: cannot collapse clusters as there are less clusters than labels.")
-
-        max_labels_names.vec <-
-            apply(sits_cluster_contigency(data.tb, totals = FALSE), 2, which.max)
-        new_clusters_names.vec <-
-            sits_labels(data.tb)$label[max_labels_names.vec]
-        data.tb <- sits_cluster_rename(data.tb, new_clusters_names.vec)
-    }
-
     # compute CVIs and return
-    result.vec <- dtwclust::cvi(a = factor(data.tb$cluster), b = factor(data.tb$label), type = "external", log.base = 10)
+    result.vec <- dtwclust::cvi(a = factor(data.tb$cluster),
+                                b = factor(data.tb$label),
+                                type = "external",
+                                log.base = 10)
 
-    return (result.vec)
+    return(result.vec)
 }
 
 #' @title Cluster contigency table
@@ -92,12 +81,9 @@ sits_cluster_validity <- function(data.tb, collapse = FALSE) {
 #' This function needs as input a SITS tibble with `cluster` column.
 #'
 #' @param data.tb          a SITS tibble with `cluster` column.
-#' @param relative         (boolean) return relative frequency?
-#' @param to_margin        number indicating how to compute relative frequency (1 regarding labels, 2 regarding clusters) (default 2)
-#' @param totals           (boolean) return the totals of rows and columns?
 #' @return result.mtx      matrix containing all frequencies of labels in clusters
 #' @export
-sits_cluster_contigency <-  function (data.tb, relative = FALSE, to_margin = 2, totals = TRUE) {
+sits_cluster_frequency <-  function (data.tb) {
 
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.),
@@ -106,15 +92,8 @@ sits_cluster_contigency <-  function (data.tb, relative = FALSE, to_margin = 2, 
     # compute frequency table
     result.mtx <- table(data.tb$label, data.tb$cluster)
 
-    # compute relative frequency
-    if (relative)
-        result.mtx <- prop.table(result.mtx, margin = to_margin)
-
     # compute total row and col
-    if (totals)
-        result.mtx <- stats::addmargins(result.mtx, FUN = list(Total = sum), quiet = TRUE)
-
-    # return result
+    result.mtx <- stats::addmargins(result.mtx, FUN = list(Total = sum), quiet = TRUE)
     return (result.mtx)
 }
 
@@ -123,47 +102,51 @@ sits_cluster_contigency <-  function (data.tb, relative = FALSE, to_margin = 2, 
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Removes SITS tibble samples of labels that are minority in each cluster.
-#' This function needs as input a SITS tibble with `cluster` column.
+#' The function sets a percentage threshold for removal of samples of a label
+#' from a cluster to be excluded from that cluster
+#' If the method "intracluster" is chosen, the "min_perc" parameter
+#' controls the relative percentage of labels inside each cluster. If samples
+#' of a given label inside one cluster are below this limit, then the samples of this label are
+#' removed from the clustar. If the method intercluster" is set, the "min_perc"
+#' parameter is used a threshold that controls the minimum
+#' percentage of each label in all clusters. If the percentage of samples of a label is a cluster is less
+#' than this value, all samples from this label are removed from the cluster.
 #'
-#' @param data.tb          a SITS tibble with `cluster` column.
-#' @param min_clu_perc     minimum percentage of labels inside a cluster to remain in cluster.
-#' @param min_lab_perc     minimum percentage of labels regarding its total to be keeped in cluster.
-#' @return result.tb       a SITS tibble with all selected samples
+#'
+#' @param data.tb           a SITS tibble with `cluster` column.
+#' @param min_perc          The minimum percentage of label inside a cluster for the label to remain in cluster.
+#' @param method            Either "intracluster" or "intercluster"
+#' @return result.tb        a SITS tibble with all selected samples
 #' @export
-sits_cluster_cleaner <-  function (data.tb, min_clu_perc = 0.0, min_lab_perc = 0.0) {
+sits_cluster_cleaner <-  function(data.tb, min_perc = 0.05, method = "intracluster") {
 
     # verify if data.tb has data
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble(data.tb)
+
+    ensurer::ensure_that(method, (.) %in% c("intercluster", "intracluster"),
+                         err_desc = "sits_cluster_cleaner: chosen method is invalid")
 
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
 
-    # compute frequency in each cluster
-    freq.mtx <- sits_cluster_contigency(data.tb, relative = TRUE, to_margin = 2)
+    # compute frequency table
+    result.mtx <- table(data.tb$label, data.tb$cluster)
 
-    # get those indexes whose labels represents more than `min_clu_perc`
-    index.mtx <- which(freq.mtx[1:NROW(freq.mtx) - 1,1:NCOL(freq.mtx) - 1] > min_clu_perc, arr.ind = TRUE, useNames = TRUE)
+    if (method == "intracluster")
+        # compute frequency in each cluster
+        # compute relative frequency
+        freq.mtx <- prop.table(result.mtx, margin = 2)
+    else
+        # compute frequency in each label
+        freq.mtx <- prop.table(result.mtx, margin = 1)
 
-    # return only those samples that satisfies the `min_clu_perc` condition
-    filter_condition_clu <- paste0(purrr::map2(rownames(index.mtx), index.mtx[,2],
+    # get those indexes whose labels represents more than `min_perc`
+    index.mtx <- which(freq.mtx[1:NROW(freq.mtx),1:NCOL(freq.mtx)] > min_perc, arr.ind = TRUE, useNames = TRUE)
+
+    # return only those samples that satisfies the `min_perc` condition
+    filter_condition <- paste0(purrr::map2(rownames(index.mtx), index.mtx[,2],
                                                function(lb, clu) paste0("label=='", lb, "' & cluster==", clu)),
                                    collapse = " | ")
-
-    # compute frequency in each label
-    freq.mtx <- sits_cluster_contigency(data.tb, relative = TRUE, to_margin = 1)
-
-    # get those indexes whose labels represents more than `min_lab_perc`
-    index.mtx <- which(freq.mtx[1:NROW(freq.mtx) - 1,1:NCOL(freq.mtx) - 1] > min_lab_perc, arr.ind = TRUE, useNames = TRUE)
-
-    # return only those samples that satisfies the `min_lab_perc` condition
-    filter_condition_lab <- paste0(purrr::map2(rownames(index.mtx), index.mtx[,2],
-                                               function(lb, clu) paste0("label=='", lb, "' & cluster==", clu)),
-                                   collapse = " | ")
-
-    # if no index selected, return none
-    filter_condition <- ifelse(filter_condition_clu != "",
-                               ifelse(filter_condition_lab != "", paste0("(", filter_condition_clu, ") & (", filter_condition_lab, ")"), "FALSE"),
-                               "FALSE")
 
     # filter result and return
     result.tb <- dplyr::filter_(data.tb, filter_condition)
