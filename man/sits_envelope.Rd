@@ -27,7 +27,7 @@ data(prodes_226_064)
 # Select the NDVI band of the first point
 point_ndvi.tb <- sits_select (prodes_226_064[1,], bands = c("ndvi"))
 # Apply the envelope filter
-point_env.tb <- sits_envelope(point1.tb)
+point_env.tb <- sits_envelope(point_ndvi.tb)
 # Merge the filtered with the raw data
 point2.tb <- sits_merge (point_ndvi.tb, point_env.tb)
 # Plot the result

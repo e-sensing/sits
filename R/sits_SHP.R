@@ -21,7 +21,7 @@
 #' @examples
 #' \donttest{
 #' # define a shapefile and read from the points inside it from the WTSS service
-#' shp_file <- system.file("extdata/shapefiles/anhanguera/anhanguera.shp", package = "sits")
+#' shp_file <- system.file("extdata/shapefiles/madre_de_deus/madre_de_deus.shp", package = "sits")
 #' munic.tb <- sits_fromSHP(shp_file)
 #' }
 #' @export
@@ -38,7 +38,7 @@ sits_fromSHP <- function(shp_file,
 
 
     # test parameters
-    ensurer::ensure_that(file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
+    ensurer::ensure_that(shp_file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
                          err_desc = "sits_fromSHP: please provide a valid SHP file")
     # Ensure that the service is available
     .sits_check_service(service)

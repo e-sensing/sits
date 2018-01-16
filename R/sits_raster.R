@@ -41,7 +41,7 @@ sits_fromRaster <- function(raster.tb,
                             label = "NoClass"){
 
     # ensure metadata tibble exists
-    ensurer::ensure_that(raster.tb, NROW(.) == 1,
+    ensurer::ensure_that(raster.tb, NROW(.) >= 1,
                          err_desc = "sits_classify_raster: need a valid metadata for coverage")
 
     # get data based on CSV file
@@ -137,19 +137,14 @@ sits_classify_raster <- function(file = NULL,
     names(int_labels) <- labels
 
     #initiate writing
-    for (i in 1:NROW(raster_class.tb)) {
-        r_obj <- raster_class.tb[i, ]$r_objs.lst[[1]][[1]]
-    }
-    r_objs.lst <- raster_class.tb$r_objs.lst[[1]] %>%
-        purrr::map(function(layer) {
-            raster::writeStart(layer, layer@file@name, overwrite = TRUE)
-        })
+    for (i in 1:NROW(raster_class.tb))
+        raster_class.tb[i,]$r_obj[[1]] <- raster::writeStart(raster_class.tb[i,]$r_obj[[1]],
+                                                             raster_class.tb[i,]$r_obj[[1]]@file@name,
+                                                             overwrite = TRUE)
+
 
     # recover the input data by blocks for efficiency
     bs <- .sits_raster_block_size(raster_class.tb[1,], blocksize)
-
-    # retrieve the scale factor
-    scale_factor <- raster.tb$band_info[[1]]
 
     # read the input raster in blocks
 
@@ -165,11 +160,79 @@ sits_classify_raster <- function(file = NULL,
         raster_class.tb <- .sits_block_from_data(pred.lst, raster_class.tb, int_labels, bs$row[i])
     }
     # finish writing
-    r_objs.lst <- raster_class.tb$r_objs.lst %>%
-        purrr::map(function(layer) {
-            raster::writeStop(layer)
-        })
+    for (i in 1:NROW(raster_class.tb))
+        raster_class.tb[i,]$r_obj[[1]] <- raster::writeStop(raster_class.tb[i,]$r_obj[[1]])
+
     return(raster_class.tb)
 }
+#' @title Create a metadata tibble to store the description of a spatio-temporal raster dataset
+#' @name sits_coverageRaster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description  This function creates a tibble containing the metadata for
+#'               a set of spatio-temporal raster files, organized as a set of "Raster Bricks".
+#'               These files should be of the same size and
+#'               projection. Each raster brick file should contain one band
+#'               per time step. Different bands are archived in different raster files.
+#'
+#' @param  product       The image product where the files are extracted (e.g. MOD13Q1)
+#' @param  coverage      The name of the coverage file
+#' @param  timeline      Vector of dates with the timeline of the bands
+#' @param  bands         The bands contained in the Raster Brick set (in the same order as the files)
+#' @param  files         Vector with the file paths of the raster files
+#' @return raster.tb     A tibble with metadata information about a raster data set
+#'
+#'
+#' @examples
+#' # read a raster file and put it into a vector
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#'
+#' # define the timeline
+#' data(timeline_mod13q1)
+#' timeline <- lubridate::as_date (timeline_mod13q1$V1)
+#'
+#' # create a raster metadata file based on the information about the files
+#' raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-crop",
+#'              timeline = timeline, bands = c("ndvi"), files = files)
+#'
+#' @export
+sits_coverageRaster <- function(product = "MOD13Q1", coverage = NULL, timeline = NULL, bands, files) {
 
+    ensurer::ensure_that(bands, length(.) == length(files),
+                         err_desc = "sits_coverageRaster: number of bands does not match number of files")
+    ensurer::ensure_that(coverage, !purrr::is_null(.),
+                         err_desc = "sits_coverageRaster: name of the image must be provided")
+    ensurer::ensure_that(bands, !purrr::is_null(.),
+                         err_desc = "sits_coverageRaster - bands must be provided")
+    ensurer::ensure_that(files, !purrr::is_null(.),
+                         err_desc = "sits_coverageRaster - files must be provided")
+
+    # get the timeline
+    if (purrr::is_null(timeline))
+        timeline <- .sits_get_timeline(service = "RASTER", product = product, coverage = coverage)
+
+    # create a list to store the raster objects
+
+    brick.lst <- purrr::pmap(list(files, bands),
+                             function(file, band) {
+                                 # create a raster object associated to the file
+                                 raster.obj <- raster::brick(file)
+                                 # find out how many layers the object has
+                                 n_layers   <-  raster.obj@file@nbands
+                                 # check that there are as many layers as the length of the timeline
+                                 ensurer::ensure_that(n_layers, (.) == length(timeline),
+                                                      err_desc = "duration of timeline is not matched by number of layers in raster")
+                                 # add the object to the raster object list
+                                 return(raster.obj)
+                             })
+    coverage.tb <- .sits_create_raster_coverage(brick.lst   = brick.lst,
+                                                service  = "RASTER",
+                                                product  = product,
+                                                coverage = coverage,
+                                                timeline = timeline,
+                                                bands    = bands,
+                                                files    = files)
+
+    return(coverage.tb)
+}
 

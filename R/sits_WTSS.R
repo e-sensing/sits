@@ -94,24 +94,34 @@ sits_fromWTSS <- function(product    = "MOD13Q1",
                           label      = "NoClass") {
 
     # if bands are not provided, use all bands available in the coverage
-    cov_bands <- .sits_get_bands("WTSS", product = product)
+
+    coverage.tb <- sits_coverageWTSS(product = "MOD13Q1", coverage = "mod13q1_512")
+
+    # check the bands are available
+    cov_bands <- coverage.tb$bands[[1]]
     if (purrr::is_null(bands))
         bands <- cov_bands
     else
         ensurer::ensure_that(bands, all((.) %in% cov_bands),
                              err_desc = "sits_fromWTSS: requested bands are not available in the coverage")
 
+    # check start and end dates
+    if (purrr::is_null(start_date))
+        start_date <- coverage.tb$start_date
+    if (purrr::is_null(end_date))
+        end_date <- coverage.tb$end_date
+
     # try to get a time series from the WTSS server
     tryCatch({
         URL <- .sits_get_server("WTSS")
         wtss.obj <- wtss::WTSS(URL)
-        ts <- wtss::timeSeries(wtss.obj,
-                               coverage,
-                               bands,
-                               longitude,
-                               latitude,
-                               start_date,
-                               end_date)
+        ts <- wtss::timeSeries(object     = wtss.obj,
+                               coverages  = coverage,
+                               attributes = bands,
+                               longitude  = longitude,
+                               latitude   = latitude,
+                               start_date = start_date,
+                               end_date   = end_date)
 
         # retrieve the time series information
         time_series <- ts[[coverage]]$attributes

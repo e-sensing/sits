@@ -39,7 +39,7 @@ temporal resolution from the WTSS configuration.
 \examples{
 \donttest{
 # define a shapefile and read from the points inside it from the WTSS service
-shp_file <- system.file("extdata/shapefiles/anhanguera/anhanguera.shp", package = "sits")
+shp_file <- system.file("extdata/shapefiles/madre_de_deus/madre_de_deus.shp", package = "sits")
 munic.tb <- sits_fromSHP(shp_file)
 }
 }
