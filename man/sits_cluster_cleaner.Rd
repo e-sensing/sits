@@ -11,22 +11,21 @@ sits_cluster_cleaner(data.tb, min_perc = 0.05, method = "intracluster")
 
 \item{min_perc}{The minimum percentage of label inside a cluster for the label to remain in cluster.}
 
-\item{method}{Either "intracluster" or "intercluster"}
+\item{method}{a vector with "intracluster" or "intercluster" or both.}
 }
 \value{
 result.tb        a SITS tibble with all selected samples
 }
 \description{
 Removes SITS tibble samples of labels that are minority in each cluster.
-The function sets a percentage threshold for removal of samples of a label
-from a cluster to be excluded from that cluster
+The function removes samples according to a percentage threshold "min_perc".
 If the method "intracluster" is chosen, the "min_perc" parameter
-controls the relative percentage of labels inside each cluster. If samples
-of a given label inside one cluster are below this limit, then the samples of this label are
-removed from the clustar. If the method intercluster" is set, the "min_perc"
-parameter is used a threshold that controls the minimum
-percentage of each label in all clusters. If the percentage of samples of a label is a cluster is less
-than this value, all samples from this label are removed from the cluster.
+controls the relative percentage of labels inside each cluster. If the number of samples
+of a given label inside a cluster are below this limit, then all those label samples are
+removed from that cluster. If the method "intercluster" is set, the "min_perc"
+parameter is a threshold that controls the minimum
+percentage of each label in all clusters. If the percentage of samples of a label in a cluster
+is less than this "min_perc", all thise label samples are removed from that cluster.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

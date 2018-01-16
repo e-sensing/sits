@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_cluster.R
 \name{sits_cluster_frequency}
 \alias{sits_cluster_frequency}
-\title{Cluster frequency}
+\title{Cluster contigency table}
 \usage{
 sits_cluster_frequency(data.tb)
 }
@@ -13,7 +13,7 @@ sits_cluster_frequency(data.tb)
 result.mtx      matrix containing all frequencies of labels in clusters
 }
 \description{
-Computes the frequency of labels in each cluster.
+Computes the contingency table between labels and clusters.
 This function needs as input a SITS tibble with `cluster` column.
 }
 \author{

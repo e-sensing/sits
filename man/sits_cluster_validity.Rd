@@ -4,20 +4,33 @@
 \alias{sits_cluster_validity}
 \title{Cluster validity indices}
 \usage{
-sits_cluster_validity(data.tb, type = "valid")
+sits_cluster_validity(data.tb)
 }
 \arguments{
 \item{data.tb}{a SITS tibble with `cluster` column.}
-
-\item{type}{the type of analysis to perform}
 }
 \value{
-result.vec      vectors with chosen CVIs
+A vector with (adjusted) Rand index CVIs
 }
 \description{
 Compute different cluster validity indices. This function needs
 as input a SITS tibble with `cluster` column. It is a front-end to
 `dtwclust::cvi` function. Please refer to the documentation in that package for more details.
+}
+\examples{
+\donttest{
+# Load the "dtwclust" package
+library(dtwclust)
+# load a simple data set with two classes
+data(cerrado_2classes)
+# calculate the dendrogram
+dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+# include the cluster info in the SITS tibble
+clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
+# computes its external validity indexes
+sits_cluster_validity(clusters.tb)
+}
+
 }
 \references{
 "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
