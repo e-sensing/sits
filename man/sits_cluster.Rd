@@ -25,7 +25,7 @@ package,  and produces a sits tibble with an added "cluster" column
 \examples{
 \donttest{
 # Load the "dtwclust" package
-library (dtwclust)
+library(dtwclust)
 # load a simple data set with two classes
 data(cerrado_2classes)
 # calculate the dendrogram

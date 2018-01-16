@@ -179,28 +179,6 @@
 
     return(data.tb)
 }
-#' @title Create a list to store time series by timeline
-#' @name  .sits_create_ts_list
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Create a list of time series that share the same timeline
-#'
-#' @param timeline  the timeline (dates of the time series)
-#' @param n         Number of time series to create
-#' @return ts.lst   list with the time series that share the same timeline
-#'
-.sits_create_ts_list <- function(timeline, n) {
-
-    ts.lst <- list()
-    # create one time series per pixel
-    # all time series share the same timeline
-    for (i in 1:n) {
-        ts.tb <- tibble::tibble(Index = timeline)
-        ts.lst[[length(ts.lst) + 1 ]] <- ts.tb
-        i <- i + 1
-    }
-    return(ts.lst)
-}
 #' @title Extract a subset of the data based on dates
 #' @name .sits_extract
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -233,52 +211,6 @@
                                  coverage     = row.tb$coverage,
                                  time_series  = ts.lst)
     return(subset.tb)
-}
-
-#' @title Extract a subset of time series tibble based on dates
-#' @name .sits_extract_ts
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description returns a vector containing the dates of a sits table
-#'
-#' @param  ts.tb      a tibble  with time series for different bands
-#' @param  start_index the starting date of the time series segment
-#' @param  end_index   the end date of the time series segment
-#' @return subset.tb  a tibble with time series with the chosen subset
-.sits_extract_ts <- function(ts.tb, start_index, end_index) {
-
-
-    # filter the time series by start and end dates
-    subset.tb <- ts.tb %>%
-        dplyr::filter(dplyr::between(.$Index, start_date, end_date))
-
-    return(subset.tb)
-}
-#' @title apply a function to a grouped SITS table
-#' @name .sits_foreach
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description returns a sits table by compound the sits tables apply a function to a grouped SITS table
-#'
-#' @param data.tb      a sits table with the time series of the selected bands
-#' @param field        one sits table field that are used to group the data.
-#'                     See `dplyr::group_by` help for more details.
-#' @param fun          a function that receives as input an sits table and outputs an sits table
-#' @return result.tb   a tibble in SITS format with the selected bands
-.sits_foreach <- function(data.tb, field, fun){
-
-    .sits_test_tibble(data.tb)
-
-    field <- deparse(substitute(field))
-
-    # execute the foreach applying fun function to each group
-    result.tb <- data.tb %>%
-        dplyr::group_by_(field) %>%
-        dplyr::do(.data %>% fun())
-
-    # comply result with sits table format and return
-    result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
-    return(result.tb)
 }
 #' @title Group the contents of a sits tibble by different criteria
 #' @name .sits_group_by
@@ -349,30 +281,6 @@
                          err_desc = "data input is not a valid SITS tibble")
 
     return(TRUE)
-}
-
-
-#' @title Create an empty tibble to store the results of classifications
-#' @name .sits_tibble_classification
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Create an empty tibble to store the results of classification
-#'
-#' @return result.tb   a tibble to store the result of classifications
-#'
-.sits_tibble_classification <- function() {
-    result.tb <- tibble::tibble(longitude   = double(),
-                                latitude    = double(),
-                                start_date  = as.Date(character()),
-                                end_date    = as.Date(character()),
-                                label       = character(),
-                                coverage    = character(),
-                                time_series = list(),
-                                predicted   = list()
-    )
-    class(result.tb) <- append(class(result.tb), "sits")
-    return(result.tb)
 }
 
 #' @title Create an empty tibble to store the results of CSV samples that coudl not be read
@@ -488,6 +396,3 @@
 
     return(data.tb)
 }
-
-# join all rows in a single tibble
-# raster_layers.tb <- dplyr::bind_rows(raster.lst)

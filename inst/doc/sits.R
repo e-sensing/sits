@@ -71,8 +71,8 @@ clusters.tb <- sits_cluster(cerrado_2classes, dendro, height = 22)
 sits_cluster_frequency(clusters.tb)
 
 ## ------------------------------------------------------------------------
-# clear sample outliers relative to clusters (those with less than 1% in a cluster)
-clusters2.tb <- sits_cluster_cleaner(clusters.tb, min_clu_perc = 0.01)
+# clear sample outliers relative to clusters (those with less than 2% in a cluster)
+clusters2.tb <- sits_cluster_cleaner(clusters.tb, min_perc = 0.02, method = "intracluster")
 # show clusters samples frequency
 sits_cluster_frequency(clusters2.tb)
 

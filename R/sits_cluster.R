@@ -51,6 +51,7 @@ sits_cluster <-  function(data.tb, clusters, k = NULL, height = NULL) {
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb          a SITS tibble with `cluster` column.
+#' @param type             the type of analysis to perform
 #' @return result.vec      vectors with chosen CVIs
 #' @export
 sits_cluster_validity <-  function(data.tb, type = "valid") {
@@ -65,7 +66,7 @@ sits_cluster_validity <-  function(data.tb, type = "valid") {
 
     # rename clusters to correspond the more frequent class
     max_labels_names.vec <-
-        apply(sits_cluster_frequency(data.tb, totals = FALSE), 2, which.max)
+        apply(sits_cluster_frequency(data.tb), 2, which.max)
     new_clusters_names.vec <-
         sits_labels(data.tb)$label[max_labels_names.vec]
     data.tb <- sits_cluster_rename(data.tb, new_clusters_names.vec)

@@ -1,54 +1,3 @@
-#' @title Add a new row to a SITS tibble
-#' @name sits_add_row
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Adds a row to a tibble, with suitable defaults
-#'
-#' @param data.tb         A SITS tibble
-#' @param longitude       Longitude of the chosen location
-#' @param latitude        Latitude of the chosen location
-#' @param start_date      Start of the period
-#' @param end_date        End of the period
-#' @param label           Label to attach to the time series (optional)
-#' @param coverage        The name of the coverage
-#' @param time_series     List containing a time series (Index and band values)
-#' @return data.tb        An updated SITS tibble
-#' @examples
-#' # Reads a data set with a ZOO time series
-#' data (ts_zoo)
-#' # convert the data from the zoo format to the SITS format
-#' ts.tb <- tibble::as_tibble (zoo::fortify.zoo (ts_zoo))
-#' # create a list to store the zoo time series
-#' ts.lst <- list()
-#' # Put the tibble in the list
-#' ts.lst[[1]] <- ts.tb
-#' # get the start date
-#' start_date <- ts.tb[1,]$Index
-#' # get the end date
-#' end_date <- ts.tb[NROW(ts.tb),]$Index
-#' # create an empty sits tibble
-#' data.tb <- sits_tibble()
-#' # put the time series data and metadata into the tibble
-#' data.tb <- sits_add_row (data.tb, longitude = -54.2313, latitude = -14.0482,
-#'            start_date = start_date, end_date = end_date,
-#'            label = "Cerrado", coverage = "mod13q1", time_series = ts.lst)
-#' @export
-sits_add_row <- function(data.tb = NULL, longitude = 0.0, latitude = 0.0,
-                         start_date = "1970-01-01", end_date = "1970-01-01",
-                         label = "NoClass", coverage = "image", time_series = list()) {
-
-
-    data.tb <- tibble::add_row(data.tb,
-                               longitude    = longitude,
-                               latitude     = latitude,
-                               start_date   = as.Date(start_date),
-                               end_date     = as.Date(end_date),
-                               label        = label,
-                               coverage     = coverage,
-                               time_series  = time_series)
-    class(data.tb) <- append(class(data.tb), "sits")
-    return(data.tb)
-}
 #' @title Apply a function over SITS bands.
 #' @name sits_apply
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -317,27 +266,6 @@ sits_apply_ts <- function(ts.tb, fun, fun_index = function(index){ return(index)
     return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
 
     return(ts.tb)
-}
-#' @title Bind two SITS tibbles
-#' @name sits_bind
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function merges two STIS tables.
-#' To merge two series, we consider that they contain different spatio-temporal location
-#' but refer to the same coverage, and have the same attributes.
-#'
-#' @param data1.tb      the first SITS table to be bound
-#' @param data2.tb      the second SITS table to be bound
-#' @return result.tb    a merged SITS tibble with a bind set of time series
-#' @export
-sits_bind <-  function(data1.tb, data2.tb) {
-
-
-    # prepare result
-    result.tb <- dplyr::bind_rows(data1.tb, data2.tb)
-
-    # merge time series
-    return (result.tb)
 }
 
 #' @title Return the dates of a sits table

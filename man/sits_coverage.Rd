@@ -23,8 +23,8 @@ sits_coverage(service = "WTSS", product = "MOD13Q1",
 \description{
 uses the configuration file to print information and save metadata about a
 chosen coverage:
- r_objs.lst     - list of R objects associated with the coverage
- coverage       = name of the coverage (must be unique)
+ r_obj          - R object associated with the coverage
+ coverage       - name of the coverage (must be unique)
  service        - name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER")
  product        - name of the product associated with coverage (e.g., "MOD13Q1")
  band_info      - tibble with information about the bands (name, scale_factor and missing_value)

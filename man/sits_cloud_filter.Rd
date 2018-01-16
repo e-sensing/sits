@@ -40,14 +40,12 @@ for the detailed description of parameters p, d, and q.
 # Read a set of samples of forest/non-forest in Amazonia
 # This is an area full of clouds
 data(prodes_226_064)
-# Take the first point
-point1.tb <- prodes_226_064[1,]
-# Select the NDVI band
-point1.tb <- sits_select (point1.tb, bands = c("ndvi"))
-# Apply the envelope filter
-point_env.tb <- sits_cloud_filter(point1.tb)
+# Select the NDVI band of the first point
+point_ndvi.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
+# Apply the cloud filter
+point_cld.tb <- sits_cloud_filter(point_ndvi.tb)
 # Merge the filtered with the raw data
-point2.tb <- sits_merge (point1.tb, point_env.tb)
+point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 # Plot the result
 sits_plot (point2.tb)
 

@@ -13,14 +13,10 @@
 .sits_block_from_data <- function(pred.lst, raster_class.tb, int_labels, init_row) {
 
     # for each layer, write the values
-    i <- 0
-    raster_class.tb$r_objs.lst %>%
-        purrr::map(function(layer){
-            i <- i + 1
-            values <- as.integer(int_labels[pred.lst[[i]]])
-            layer  <- raster::writeValues(layer, values, init_row)
-
-        })
+    for (i in 1:NROW(raster_class.tb)) {
+        values <- as.integer(int_labels[pred.lst[[i]]])
+        raster_class.tb[i,]$r_obj[[1]]  <- raster::writeValues(raster_class.tb[i,]$r_obj[[1]], values, init_row)
+        }
     return(raster_class.tb)
 }
 #' @title Classify a distances matrix extracted from raster using machine learning models
@@ -111,7 +107,73 @@
     return(pred.lst)
 }
 
+#' @title Provides information about the coverages that make up a set of raster bricks
+#' @name .sits_create_raster_coverage
+#'
+#' @description creates a tibble with metadata about a given coverage
+#'
+#' @param brick.lst  the list of Raster Brick objects associated with the raster coverages
+#' @param service    the time series service
+#' @param product    the SATVEG product
+#' @param coverage   the name of the coverage
+#' @param timeline   (optional) the coverage timeline
+#' @param bands      vector with names of bands
+#' @param files      vector of names of raster files where the data is stored
+#'
+.sits_create_raster_coverage <- function(brick.lst  = NULL,
+                                      service = "WTSS",
+                                      product = "MOD13Q1",
+                                      coverage,
+                                      timeline,
+                                      bands,
+                                      files) {
 
+
+
+    # get the size of the coverage
+    size <- .sits_get_size(service, product, brick.lst[[1]])
+    # get the bounding box of the product
+    bbox <- .sits_get_bbox(service, product, brick.lst[[1]])
+    # get the resolution of the product
+    res <- .sits_get_resolution(product)
+    # get the CRS projection
+    crs <- .sits_get_projection(service, product, brick.lst[[1]])
+
+    coverage.tb <- .sits_tibble_coverage()
+
+    # initiate writing
+    i <- 0
+    brick.lst %>%
+        purrr::map(function(brick){
+            # retrieve the information specific for each RasterBrick
+            i <- i + 1
+            band  <- bands[i]
+            file  <- files[i]
+            # create a tibble to store the metadata
+            coverage.tb <<- dplyr::add_row(coverage.tb,
+                                          r_obj          = list(brick),
+                                          coverage       = coverage,
+                                          service        = service,
+                                          product        = product,
+                                          bands          = list(band),
+                                          start_date     = as.Date(timeline[1]),
+                                          end_date       = as.Date(timeline[length(timeline)]),
+                                          timeline       = list(timeline),
+                                          nrows          = size["nrows"],
+                                          ncols          = size["ncols"],
+                                          xmin           = bbox["xmin"],
+                                          xmax           = bbox["xmax"],
+                                          ymin           = bbox["ymin"],
+                                          ymax           = bbox["ymax"],
+                                          xres           = res["xres"],
+                                          yres           = res["yres"],
+                                          crs            = crs,
+                                          file           = file)
+
+        })
+
+    return(coverage.tb)
+}
 #' @title Create a set of RasterLayer objects to store time series classification results
 #' @name .sits_create_classified_raster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -148,7 +210,7 @@
     raster.lst <- subset_dates.lst %>%
         purrr::map(function(date_pair) {
             # create one raster layer per date pair
-            r_out <- raster::raster(raster.tb[1,]$r_objs.lst[[1]])
+            r_out <- raster::raster(raster.tb[1,]$r_obj[[1]])
 
             # define the timeline for the classified image
             start_date <- date_pair[1]
@@ -164,16 +226,15 @@
 
             #define the band and the scale factor
             band <- "class"
-            scale_factor <- 1
 
             # create a new RasterLayer for a defined period and generate the associated metadata
-            row.tb <- .sits_coverage_raster  (r_objs      = list(r_out),
-                                              service     = "RASTER",
-                                              product     = raster.tb$product,
-                                              coverage    = coverage,
-                                              timeline    = timeline,
-                                              bands       = raster.tb$band_info[[1]]$name,
-                                              files       = list(filename))
+            row.tb <- .sits_create_raster_coverage(brick.lst    = list(r_out),
+                                                service     = "RASTER",
+                                                product     = raster.tb$product,
+                                                coverage    = coverage,
+                                                timeline    = timeline,
+                                                bands       = list(band),
+                                                files       = list(filename))
 
 
             # add the metadata information to the list
@@ -202,7 +263,8 @@
 
     nband <- 0
     # go element by element of the raster metadata tibble (each object points to a RasterBrick)
-    values.lst <- raster.tb$r_objs.lst %>%
+    brick.lst <- raster.tb$r_obj
+    values.lst <- brick.lst %>%
         purrr::map(function(r_brick) {
             # the raster::getValues function returns a matrix
             # the rows of the matrix are the pixels
@@ -215,7 +277,7 @@
 
             # correct by the scale factor
             nband        <- nband + 1
-            scale_factor <- as.numeric(raster.tb$band_info[[1]][nband, "scale_factor"])
+            scale_factor <- .sits_get_scale_factor(raster.tb$product, raster.tb$bands[[1]][nband])
             values.mx    <- values.mx*scale_factor
 
             # adjust values to avoid negative pixel vales
@@ -320,7 +382,7 @@
 .sits_ts_fromRasterXY <- function(raster.tb, xy, longitude, latitude, label = "NoClass"){
 
     # ensure metadata tibble exists
-    ensurer::ensure_that(raster.tb, NROW(.) == 1,
+    ensurer::ensure_that(raster.tb, NROW(.) >= 1,
                          err_desc = "sits_classify_raster: need a valid metadata for coverage")
 
     timeline <- raster.tb[1,]$timeline[[1]]
@@ -329,10 +391,11 @@
 
     nband <- 0
     # An input raster brick contains several files, each corresponds to a band
-    values.lst <- raster.tb$r_objs.lst %>%
+    brick.lst <- raster.tb$r_obj
+    values.lst <- brick.lst %>%
         purrr::map(function(r_brick) {
-            # eack brick is a banc
-            nband <- nband + 1
+            # eack brick is a band
+            nband <<- nband + 1
             # get the values of the time series
             values <- as.vector(raster::extract(r_brick, xy))
             # is the data valid?
@@ -341,9 +404,10 @@
             # create a tibble to store the values
             values.tb <- tibble::tibble(values)
             # find the names of the tibble column
-            names(values.tb) <- as.character(raster.tb$band_info[[1]][nband, "name"])
+            band <- as.character(raster.tb$bands[[1]])
+            names(values.tb) <- band
             # correct the values using the scale factor
-            scale_factor <- as.numeric(raster.tb$band_info[[1]][nband, "scale_factor"])
+            scale_factor <- .sits_get_scale_factor(raster.tb$product, band)
             values.tb <- values.tb[,1]*scale_factor
             return(values.tb)
         })

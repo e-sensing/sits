@@ -8,6 +8,8 @@ sits_cluster_validity(data.tb, type = "valid")
 }
 \arguments{
 \item{data.tb}{a SITS tibble with `cluster` column.}
+
+\item{type}{the type of analysis to perform}
 }
 \value{
 result.vec      vectors with chosen CVIs

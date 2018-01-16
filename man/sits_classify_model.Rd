@@ -36,17 +36,17 @@ labelled samples. Each samples should be associated to one spatial location
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
 # select the bands "ndvi", "evi", "nir", and "mir"
-samples.tb <- sits_select (samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
+samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
 # find a training model based on the distances and on default values
-model <- sits_train (samples.tb)
+model <- sits_train(samples.tb)
 # Retrieve a time series
-data ("ts_2000_2016")
+data("ts_2000_2016")
 # select the bands "ndvi", "evi", "nir", and "mir"
-point.tb <- sits_select (ts_2000_2016, bands = c("ndvi","evi","nir","mir"))
+point.tb <- sits_select(ts_2000_2016, bands = c("ndvi","evi","nir","mir"))
 # classify the point
-class.tb <-  sits_classify_model (point.tb, samples.tb, model)
+class.tb <-  sits_classify_model(point.tb, samples.tb, model)
 # plot the classification
-sits_plot (class.tb)
+sits_plot(class.tb)
 }
 
 }
