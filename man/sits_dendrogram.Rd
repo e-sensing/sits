@@ -2,24 +2,24 @@
 % Please edit documentation in R/sits_dendrogram.R
 \name{sits_dendrogram}
 \alias{sits_dendrogram}
-\title{Cluster a set of time series using hierarchical clustering}
+\title{Compute a dendrogram using hierarchical clustering}
 \usage{
 sits_dendrogram(data.tb, bands = NULL, dist_method = "dtw_basic",
-  grouping_method = "ward.D2", ...)
+  linkage = "ward.D2", ...)
 }
 \arguments{
-\item{data.tb}{a tibble the list of time series to be clustered}
+\item{data.tb}{A SITS tibble to be used to generate the dendrogram.}
 
 \item{bands}{a vector the bands to be clusterized.}
 
 \item{dist_method}{A supported distance from proxy's dist, e.g. \code{TWDTW}.}
 
-\item{grouping_method}{the agglomeration method to be used. Any `hclust` method (see `hclust`) Default is 'ward.D2'..}
+\item{linkage}{the agglomeration method to be used. Any `hclust` method (see `hclust`) Default is 'ward.D2'..}
 
 \item{...}{any additional parameters to be passed to dtwclust::tsclust() function}
 }
 \value{
-clusters       a clusters obj from dtwclust with the full dendrogram tree for data analysis
+dendro.obj     a full dendrogram tree for data analysis
 }
 \description{
 Cluster time series in hierarchical mode. Hierarchical clustering, as its name suggests,
