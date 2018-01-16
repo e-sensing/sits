@@ -84,7 +84,7 @@ In many cases, it is useful to relabel the data set. For example, there may be s
 
 Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions of the `dplyr`, `tidyr` and `purrr` packages of the `tidyverse` [@Wickham2017] to process the data. For example, the following code uses the `sits_select()` function to get a subset of the sample data set with two bands ("ndvi" and "evi") and then uses the `dplyr::filter()` function to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot()` function to display the time series. Given a small number of samples to display, the `sits_plot()` function tries to group as many spatial locations together. In the following example, the first 15 samples of the "Cerrado" class all refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together.
 
-```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 15 'Cerrado' samples from data set \textbf{\texttt{samples_MT_9classes}} (different dates for the same point location)."}
+```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 15 'Cerrado' samples from data set \\texttt{samples_MT_9classes} (different dates for the same point location)."}
 # select the "ndvi" bands
 samples_ndvi.tb <- 
     sits_select(samples_MT_9classes, 
@@ -99,7 +99,7 @@ sits_plot(samples_cerrado.tb[1:15,])
 
 For a large number of samples, where the amount of individual plots would be substantial, the default visualisation combines all samples together in a single temporal interval (even if they are valid for different years). Therefore, all samples of the same band and the same label are aligned to a common interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, and the two orange lines are the first and third interquartile ranges. The `sits_plot()` function has different ways of working. Please, refer to the package documentation for more details.
 
-```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all 'Cerrado' samples from data set \textbf{\texttt{samples_MT_9classes}}."}
+```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all 'Cerrado' samples from data set \\texttt{samples_MT_9classes}."}
 # plot all cerrado samples together (shows the distribution)
 sits_plot(samples_cerrado.tb)
 ```
@@ -169,7 +169,18 @@ sits_dendro_bestcut(cerrado_2classes,
                     dendro)
 ```
 
-The position a sample takes on the dendrogram, i.e. its linked edges, gives an general view how similar/dissimilar the land use classes are to each other. We can see that most of samples for each class are grouped together. We can note in the detail (at the bottom of the above figure) the existence of some outliers, those thin blocks fragments of different colour from its surroundings. Probably, these are a strong source of confusion. 
+This height optmises the ARI and generates $6$ clusters. The ARI considers any pair of distinct samples and computes the following counts:
+a) the number of distinct pairs whose samples have the same label and are in the same cluster;
+b) the number of distinct pairs whose samples have the same label and are in different clusters;
+c) the number of distinct pairs whose samples have different labels and are in the same cluster;
+d) the number of distinct pairs whose samples have the different labels and are in different clusters.
+Where $a$ and $d$ consists in all agreements, and $b$ and $c$ all disagreements. The ARI can be obtained by
+$$
+ARI=\frac{a+d-e}{a+d+b+c-e},
+$$
+where $e$ is the expected agreement. An important relation captured by ARI is the key to... 
+
+takes into consideration both the number of partitions and the total agreements between any two pairs of samples with respect to those partitions. 
 
 ```{r}
 # create clusters by cutting the dendrogram at the linkage distance 300
@@ -374,7 +385,7 @@ Current approaches to image time series analysis still use limited number of att
 
 The `sits` uses the full depth of satellite image time series to create larger dimensional spaces. We tested different methods of extracting attributes from time series data, including those reported by @Pelletier2016 and @Kastens2017. Our conclusion is that part of the information in raw time series is lost after filtering or statistical approximation. Thus, the method we developed has a deceptive simplicity: *use all the data available in the time series samples*. The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. Our experiments found out that modern statistical models such as support vector machines, and random forests perform better in high-dimensional spaces than in lower dimensional ones. 
 
-# Aknowledgements
+# Acknowledgements
 
 We want to thanks all the researchers whom provided data samples used in the examples. Alexandre Coutinho, Julio Esquerdo and Joao Antunes from the Brazilian Agricultural Research Agency (EMBRAPA) provided the samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes that were collected through farmer interviews and *in-loco* observations from October 2009 until October 2013. Rodrigo Bergotti from INPE whom provided samples for "cerrado" and "forest" classes through high resolution images observations. Damien Arvor [@Arvor2012] whom provided ground samples for "soybean-fallow" class through *in-loco* observations.
 
