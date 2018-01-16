@@ -36,7 +36,7 @@ library (dtwclust)
 # load a simple data set with two classes
 data(cerrado_2classes)
 # calculate the dendrogram
-clusters <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+clusters <- sits_dendrogram (cerrado_2classes, bands = c("ndvi", "evi"))
 # plot the dendrogram
 sits_plot_dendrogram (cerrado_2classes, clusters)
 }

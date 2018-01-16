@@ -23,7 +23,7 @@
 #' dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
 #' # include the cluster info in the SITS tibble
 #' clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
-#' }
+c#' }
 #'
 #' @export
 sits_cluster <-  function (data.tb, dendro.obj, k = NULL, height = NULL) {
@@ -67,7 +67,7 @@ sits_cluster <-  function (data.tb, dendro.obj, k = NULL, height = NULL) {
 #' # include the cluster info in the SITS tibble
 #' clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
 #' # computes its external validity indexes
-#' sits_cluster_validity(clusters.tb)
+#' sits_cluster_validity(clustered.tb)
 #' }
 #'
 #' @export
@@ -133,7 +133,7 @@ sits_cluster_frequency <-  function (data.tb) {
 }
 
 #' @title Cluster cleaner
-#' @name sits_cluster_cleaner
+#' @name sits_cluster_clean
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Removes SITS tibble samples of labels that are minority in each cluster.
@@ -151,12 +151,12 @@ sits_cluster_frequency <-  function (data.tb) {
 #' @param method            a vector with "intracluster" or "intercluster" or both.
 #' @return result.tb        a SITS tibble with all selected samples
 #' @export
-sits_cluster_cleaner <-  function (data.tb, min_perc = 0.05, method = "intracluster") {
+sits_cluster_clean <-  function (data.tb, min_perc = 0.05, method = "intracluster") {
 
     # verify if data.tb has data
     .sits_test_tibble(data.tb)
 
-    ensurer::ensure_that(method, all((.) %in% c("intercluster", "intracluster")),
+    ensurer::ensure_that(method, (.) %in% c("intercluster", "intracluster"),
                          err_desc = "sits_cluster_cleaner: chosen method is invalid")
 
     # is the input data the result of a cluster function?
@@ -166,41 +166,58 @@ sits_cluster_cleaner <-  function (data.tb, min_perc = 0.05, method = "intraclus
     # compute frequency table
     result.mtx <- table(data.tb$label, data.tb$cluster)
 
-    # allocate filter conditions
-    filter_condition1 <- "TRUE"
-    filter_condition2 <- "TRUE"
-
     # compute frequency in each cluster according to the corresponding method
-    if ("intracluster" %in% method){
+    if (method == "intracluster")
         # compute relative frequency
         freq.mtx <- prop.table(result.mtx, margin = 2)
-
-        # get those indexes whose labels represents more than `min_perc`
-        index.mtx <- which(freq.mtx > min_perc, arr.ind = TRUE, useNames = TRUE)
-
-        # return only those samples that satisfies the `min_perc` condition
-        filter_condition1 <- paste0(purrr::map2(rownames(index.mtx), index.mtx[,2],
-                                                function(lb, clu) paste0("(label=='", lb, "' & cluster==", clu, ")")),
-                                    collapse = " | ")
-        if (filter_condition1 == "") filter_condition1 = "FALSE"
-    }
-    if ("intercluster" %in% method){
+    else
         # compute frequency in each label
         freq.mtx <- prop.table(result.mtx, margin = 1)
 
-        # get those indexes whose labels represents more than `min_perc`
-        index.mtx <- which(freq.mtx > min_perc, arr.ind = TRUE, useNames = TRUE)
+    # get those indexes whose labels represents more than `min_perc`
+    index.mtx <- which(freq.mtx > min_perc, arr.ind = TRUE, useNames = TRUE)
 
-        # return only those samples that satisfies the `min_perc` condition
-        filter_condition2 <- paste0(purrr::map2(rownames(index.mtx), index.mtx[,2],
-                                                function(lb, clu) paste0("(label=='", lb, "' & cluster==", clu, ")")),
-                                    collapse = " | ")
-        if (filter_condition2 == "") filter_condition2 = "FALSE"
-    }
+    # return only those samples that satisfies the `min_perc` condition
+    filter_condition <- paste0(purrr::map2(rownames(index.mtx), index.mtx[,2],
+                                            function(lb, clu) paste0("(label=='", lb, "' & cluster==", clu, ")")),
+                                collapse = " | ")
+    # filter result and return
+    result.tb <- dplyr::filter_(data.tb, filter_condition)
+    return (result.tb)
+}
+
+#' @title Remove cluster with mixed classes
+#' @name sits_cluster_remove
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' The function removes cluster according to a percentage threshold "min_perc".
+#' A cluster is considered good when the most frequent class has a percentage
+#' of samples greater than the "min_perc" threshold.
+#'
+#' @param data.tb           a SITS tibble with `cluster` column.
+#' @param min_perc          The minimum percentage of the most frequent label inside a cluster for the cluster not to be deleted.
+#' @return result.tb        a SITS tibble with all selected samples
+#' @export
+sits_cluster_remove <-  function (data.tb, min_perc = 0.90) {
+
+    # verify if data.tb has data
+    .sits_test_tibble(data.tb)
+
+    # is the input data the result of a cluster function?
+    ensurer::ensure_that(data.tb, "cluster" %in% names (.),
+                         err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
+
+    # compute frequency table
+    result.mtx <- table(data.tb$label, data.tb$cluster)
+
+    # compute relative frequency
+    freq.mtx <- prop.table(result.mtx, margin = 2)
+
+    # get those indexes whose labels represents more than `min_perc`
+    index.mtx <- which(freq.mtx > min_perc, arr.ind = TRUE, useNames = TRUE)
 
     # filter result and return
-    result.tb <- dplyr::filter_(data.tb, paste(paste0("(", filter_condition1),
-                                               paste0(filter_condition2, ")"),
-                                               sep = ") & ("))
+    result.tb <- dplyr::filter(data.tb, cluster %in% as.integer(index.mtx[,"col"]))
     return (result.tb)
 }

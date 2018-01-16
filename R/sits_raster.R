@@ -16,7 +16,7 @@
 #' @return data.tb        a SITS tibble with the time series
 #'
 #' @examples
-#'
+#' \donttest{
 #' #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
@@ -30,7 +30,7 @@
 #'              timeline = timeline, bands = c("ndvi"), files = files)
 #' # read the point from the raster
 #' point.tb <- sits_fromRaster(raster.tb, longitude = -55.55502, latitude = -11.52774)
-#'
+#' }
 #' @export
 sits_fromRaster <- function(raster.tb,
                             file = NULL,

@@ -15,7 +15,7 @@ author:
 - name: Alexandre Carvalho
   affiliation: Institute for Applied Economics Research (IPEA), Brazil
 - name: Victor Maus
-  affiliation: International Institute for Applied System Analysis (IIASA), Switzerland
+  affiliation: International Institute for Applied System Analysis (IIASA), Austria
 - name: Gilberto Queiroz
   affiliation: National Institute for Space Research (INPE), Brazil
 abstract: "Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. Here, we present the open source R package for satellite image time series analysis, the `sits` package. The `sits` provides support on how to use statistical learning techniques with image time series. These methods include linear and quadratic discrimination analysis, support vector machines, random forests and neural networks."
@@ -213,7 +213,7 @@ Satellite image time series will always be contaminated by atmospheric influence
 
 Several techniques have been used to correct and smooth such time-series vegetation index data, and to support the estimation of phenological parameters. These methods include curve fitting [@Bradley2007], asymmetric Gaussian functions [@Jonsson2002], wavelet decomposition [@Sakamoto2005], the Savitzky–Golay filter [@Chen2004], and the Whittaker smoother [@Atzberger2011]. 
 
-For this purpose, we use data produced by the PRODES project [@INPE2017] to extract our samples data set. The samples were extracted by the expert Dr. Rodrigo Bergotti (INPE). The PRODES project uses visual interpretation to detect new areas of clear cuts in the Amazon forest. Its interpreters are highly skilled and the accuracy of PRODES has been essential for Brazil's actions to control Amazon deforestation [@Rajao2009]. Our time series were generated from a combination of MODIS and Landsat 8 images covering the region corresponding to the standard Landsat Path/Row 226/064. This is an area in the East of the Pará state. The area has been chosen because the area is subject to strong cloud cover from November to March, which is a significant factor in degrading time series quality.
+One of the main uses of time series filtering is to reduce the noise produced by clouds in tropical areas. The following examples we use data produced by the PRODES project [@INPE2017], which detects deforestation in the Brazilian Amazon rain forest by visual interpretation.  Its interpreters are highly skilled and the accuracy of PRODES has been essential for Brazil's actions to control Amazon deforestation [@Rajao2009]. Our time series were generated from a combination of MODIS and Landsat 8 images covering the region corresponding to the standard Landsat Path/Row 226/064. This is an area in the East of the Pará state. The area has been chosen because the area is subject to strong cloud cover from November to March, which is a significant factor in degrading time series quality.
 
 Each location information consists of its latitude and longitude, the start and end dates of an yearly time series, and the label, as showm below. Three land cover classes were identified: "Forest" (natural forest), "Deforestation_2014" and "Deforestation_2015" (areas identified by PRODES in years 2014 and 2015 as clear cuts, respectivelly) and "Pasture" (areas that had been deforested before 2014). 
 
@@ -388,7 +388,7 @@ The `sits` uses the full depth of satellite image time series to create larger d
 
 # Acknowledgements
 
-We want to thanks all the researchers whom provided data samples used in the examples. Alexandre Coutinho, Julio Esquerdo and Joao Antunes from the Brazilian Agricultural Research Agency (EMBRAPA) provided the samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes that were collected through farmer interviews and *in-loco* observations from October 2009 until October 2013. Rodrigo Bergotti from INPE whom provided samples for "cerrado" and "forest" classes through high resolution images observations. Damien Arvor [@Arvor2012] whom provided ground samples for "soybean-fallow" class through *in-loco* observations.
+We want to thanks all the researchers whom provided data samples used in the examples. Alexandre Coutinho, Julio Esquerdo and Joao Antunes from the Brazilian Agricultural Research Agency (EMBRAPA) provided the samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes that were collected through farmer interviews and *in-loco* observations from October 2009 until October 2013. Rodrigo Bergotti from INPE whom provided samples for "cerrado" and "forest" classes through high resolution images observations. Damien Arvor (Rennes University) provided ground samples for "soybean-fallow" class.
 
 <!--
 # References

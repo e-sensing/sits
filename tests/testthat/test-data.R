@@ -26,8 +26,8 @@ testthat::test_that("Reading a point from WTSS ",{
                                       product = "MOD13Q1", coverage = "mod13q1_512")
     timeline <- as.vector(point.tb$time_series[[1]]$Index)
 
-    testthat::expect_true(coverage.tb$start_date == timeline[1])
-    testthat::expect_true(coverage.tb$end_date == timeline[length(timeline)])
+    testthat::expect_true(point.tb$start_date == timeline[1])
+    testthat::expect_true(point.tb$end_date == timeline[length(timeline)])
 })
 
 testthat::test_that("Reading a point from SATVEG ",{

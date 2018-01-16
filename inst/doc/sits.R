@@ -55,12 +55,20 @@ series.tb <-
 # plot the series
 sits_plot(series.tb)
 
-## -----------------------------------------------------------------------------------------
+## ----dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5----
+# take a set of patterns for 2 classes
+# create a dendrogram object with default clustering parameters
+dendro <- sits_dendrogram(cerrado_2classes)
+# plot the resulting dendrogram
+sits_plot_dendrogram(cerrado_2classes, 
+                     dendro)
+
+## ------------------------------------------------------------------------
 # search for the best height to cut the dendrogram
 sits_dendro_bestcut(cerrado_2classes, 
                     dendro)
 
-## -----------------------------------------------------------------------------------------
+## ------------------------------------------------------------------------
 # create 6 clusters by cutting the dendrogram at the linkage distance 20.39655
 clusters.tb <- 
     sits_cluster(cerrado_2classes, 
@@ -69,17 +77,17 @@ clusters.tb <-
 # show clusters samples frequency
 sits_cluster_frequency(clusters.tb)
 
-## -----------------------------------------------------------------------------------------
+## ------------------------------------------------------------------------
 # clear sample outliers relative to clusters 
 # (those with less than 5% relative to intracluster)
 clusters2.tb <- sits_cluster_cleaner(clusters.tb)
 # show clusters samples frequency
 sits_cluster_frequency(clusters2.tb)
 
-## -----------------------------------------------------------------------------------------
+## ------------------------------------------------------------------------
 prodes_226_064[1:3,]
 
-## ---- fig.align="center", fig.height=3.1, fig.width=5-------------------------------------
+## ---- fig.align="center", fig.height=3.1, fig.width=5--------------------
 # Take the NDVI band of the first sample data set
 point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 # apply Savitzky–Golay filter
@@ -95,7 +103,7 @@ point_whit.tb <- sits_whittaker(point.tb)
 # plot the series
 sits_plot(sits_merge(point_whit.tb, point.tb))
 
-## ---- fig.align="center", fig.height=3.1, fig.width=5-------------------------------------
+## ---- fig.align="center", fig.height=3.1, fig.width=5--------------------
 # Take the NDVI band of the first sample data set
 point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 # apply envelope filter (remove short downward noises)
@@ -103,7 +111,7 @@ point_env.tb <- sits_envelope(point.tb, "UL")
 # plot the series
 sits_plot(sits_merge(point_env.tb, point.tb))
 
-## ---- fig.align="center", fig.height=3.1, fig.width=5-------------------------------------
+## ---- fig.align="center", fig.height=3.1, fig.width=5--------------------
 # Take the NDVI band of the first sample data set
 point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 # apply ARIMA filter
@@ -111,7 +119,7 @@ point_cf.tb <- sits_cloud_filter(point.tb, apply_whit = FALSE)
 # plot the series
 sits_plot(sits_merge(point_cf.tb, point.tb))
 
-## -----------------------------------------------------------------------------------------
+## ------------------------------------------------------------------------
 # Retrieve the set of samples for the Mato Grosso region 
 # (provided by EMBRAPA) (samples_MT_ndvi) and 
 # get a point to be classified (point_ndvi)
@@ -121,7 +129,7 @@ class.tb <- sits_classify(point_ndvi,
                                                cost = 10))
 sits_plot(class.tb)
 
-## -----------------------------------------------------------------------------------------
+## ------------------------------------------------------------------------
 # Retrieve the set of samples for the Mato Grosso region 
 # (provided by EMBRAPA) (samples_MT_ndvi) and 
 # get a point to be classified (point_ndvi)

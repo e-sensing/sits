@@ -1,5 +1,8 @@
 testthat::test_that("Working with raster coverages", {
     testthat::skip_on_cran()
+    library(rgdal)
+    library(raster)
+    library(sf)
     files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
     data(timeline_mod13q1)
     timeline <- lubridate::as_date(timeline_mod13q1$V1)

@@ -28,7 +28,7 @@ dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
 # include the cluster info in the SITS tibble
 clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
 # computes its external validity indexes
-sits_cluster_validity(clusters.tb)
+sits_cluster_validity(clustered.tb)
 }
 
 }
