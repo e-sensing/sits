@@ -370,6 +370,14 @@ Our experiment consists of the comparison of different methods to obtain the tim
 
 # Final remarks
 
+Current approaches to image time series analysis still use limited number of attributes. A common approach is deriving a small set of phenological parameters from vegetation indexes, like beginning, peak, and length of growing season [@Brown2013], [@Kastens2017], [@Estel2015], [@Pelletier2016]. These phenological parameters are then fed in specialised classifiers such as TIMESAT [@Jonsson2004]. These approaches do not use the power of advanced statistical learning techniques to work on high-dimensional spaces and with big training data sets [@James2013].
+
+The `sits` uses the full depth of satellite image time series to create larger dimensional spaces. We tested different methods of extracting attributes from time series data, including those reported by @Pelletier2016 and @Kastens2017. Our conclusion is that part of the information in raw time series is lost after filtering or statistical approximation. Thus, the method we developed has a deceptive simplicity: *use all the data available in the time series samples*. The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. Our experiments found out that modern statistical models such as support vector machines, and random forests perform better in high-dimensional spaces than in lower dimensional ones. 
+
+# Aknowledgements
+
+We want to thanks all the researchers whom provided data samples used in the examples. Alexandre Coutinho, Julio Esquerdo and Joao Antunes from the Brazilian Agricultural Research Agency (EMBRAPA) provided the samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes that were collected through farmer interviews and *in-loco* observations from October 2009 until October 2013. Rodrigo Bergotti from INPE whom provided samples for "cerrado" and "forest" classes through high resolution images observations. Damien Arvor [@Arvor2012] whom provided ground samples for "soybean-fallow" class through *in-loco* observations.
+
 <!--
 # References
 \setlength{\parindent}{-0.2in}
