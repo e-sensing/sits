@@ -97,9 +97,9 @@ samples_cerrado.tb <-
 sits_plot(samples_cerrado.tb[1:15,])
 ```
 
-For a large number of samples, where the amount of individual plots would be substantial, the default visualisation combines all samples together in a single temporal interval (even if they are valid for different years). Therefore, all samples of the same band and the same label are aligned to a common interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, and the two orange lines are the first and third interquartile ranges. The `sits_plot()` function has different ways of working. Please refer to the package documentation for more details.
+For a large number of samples, where the amount of individual plots would be substantial, the default visualisation combines all samples together in a single temporal interval (even if they are valid for different years). Therefore, all samples of the same band and the same label are aligned to a common interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, and the two orange lines are the first and third interquartile ranges. The `sits_plot()` function has different ways of working. Please, refer to the package documentation for more details.
 
-```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all 'Cerrado' samples from data set \\textbf{\\texttt{samples_MT_9classes}}."}
+```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all 'Cerrado' samples from data set \textbf{\texttt{samples_MT_9classes}}."}
 # plot all cerrado samples together (shows the distribution)
 sits_plot(samples_cerrado.tb)
 ```
@@ -150,7 +150,7 @@ Cluster analysis has been used for many purposes in satellite image time series 
 
 Hierarchical clustering is a family of methods that groups elements using a distance function to associate a real value to a pair of elements. From this distance measure, we can compute the dissimilarity between any two elements from the data set. Depending on the distance functions and linkage criteria, the algorithm decides which two clusters are merged at each iteration. The AHC approach is suitable for the purposes of samples data exploration awe its visualisation power and ease of use [@Keogh2003]. Moreover, AHC does not require a predefined number of clusters as an initial parameter. This is an important feature in satellite image time series clustering since it is not easy to define the number of clusters present in a set of multi-attribute time series [@Aghabozorgi2015].
 
-The main result of AHC method is the *dendrogram*, an ultrametric relation formed by the successive merges in the hierarchical process that can be represented by a tree. Dendrograms are quite useful to decide on the number of clusters has the data . The dendrogram shows the height where each merging happened, which corresponds to the minimum distance between two clusters defined by a *linkage criterion*. The most commom linkage criteria are *single-linkage*, *complete-linkage*, *average-linkage*, and *Ward-linkage*. Complete-linkage prioritises the within-cluster dissimilarities, producing clusters with shorter distance samples. Complete-linkage clustering can be sensitive to outliers, that can increase the resulting intracluster data variance. As an alternative, Ward proposes a criteria to minimise the data variance by means of either *sum-of-squares* or *sum-of-squares-error* [@Ward1963]. Ward's intuition is that clusters of multivariate observations, such as time series, should be approximately elliptical in shape [@Hennig2015]. To create a dendrogram in `sits` we use `sits_dendrogram()`. For more details, see `?sits_dendrogram`. The following example illustrates how to create, visualise, and cut a dendrogram.
+The main result of AHC method is the *dendrogram*. A *dendrogram* is the ultrametric relation formed by the successive merges in the hierarchical process that can be represented by a tree. Dendrograms are quite useful to decide on the number of clusters has the data. It shows the height where each merging happened, which corresponds to the minimum distance between two clusters defined by a *linkage criterion*. The most commom linkage criteria are: *single-linkage*, *complete-linkage*, *average-linkage*, and *Ward-linkage*. Complete-linkage prioritises the within-cluster dissimilarities, producing clusters with shorter distance samples. Complete-linkage clustering can be sensitive to outliers, that can increase the resulting intracluster data variance. As an alternative, Ward proposes a criteria to minimise the data variance by means of either *sum-of-squares* or *sum-of-squares-error* [@Ward1963]. Ward's intuition is that clusters of multivariate observations, such as time series, should be approximately elliptical in shape [@Hennig2015]. In `sits`, a dendrogram can be generated by `sits_dendrogram()`. The following codes illustrate how to create, visualise, and cut a dendrogram (for details, see `?sits_dendrogram()`).
 
 ```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
 # take a set of patterns for 2 classes
@@ -161,13 +161,21 @@ sits_plot_dendrogram(cerrado_2classes,
                      dendro)
 ```
 
-To cut the dendrogram tree at some level to achieve a balancing between two objectives: get clusters as large as possible, and get clusters as homogeneous as possible. To help this process, `sits` provides `sits_dendro_validity()` which computes a series of external validity indexes for a given range of number  [], there is no an automatic way of achieving it [@Liao2005], [@Aghabozorgi2015]. This process can be realised visually by looking the dendrogram or assisted by an *external cluster validity indexes* such as Rand Index ... as shows the cut height dashed line in our example.
+After the creation of a dendrogram, an important question emerges: *where to cut the dendrogram?* The answer depends on what are the purposes of the cluster analysis [@Hennig2015]. If one is interested in an unsupervised classification, it is commom to use *internal validity indexes*, such as Silhouettes [@Rousseeuw1987], to help determine the best number of clusters. However, if one is interested in understand the structure of a labeled data set, or in the identification of sample anomaly, as we are here, one can reccur to *external validity indexes* to assist the semisupervised procedure that achieves the optimal correspondence between the clusters and classes partitions. In this regard, we need to balance two objectives: get clusters as large as possible, and get clusters as homogeneous as possible with respect to its known classes. To help this process, `sits` provides `sits_dendro_bestcut()` function that computes the external validity index *adjusted Rand index* (ARI) for a series of different number of generated clusters. The function returns the height where to cut the dendrogram.
+
+```{r}
+# search for the best height to cut the dendrogram
+sits_dendro_bestcut(cerrado_2classes, 
+                    dendro)
+```
 
 The position a sample takes on the dendrogram, i.e. its linked edges, gives an general view how similar/dissimilar the land use classes are to each other. We can see that most of samples for each class are grouped together. We can note in the detail (at the bottom of the above figure) the existence of some outliers, those thin blocks fragments of different colour from its surroundings. Probably, these are a strong source of confusion. 
 
 ```{r}
 # create clusters by cutting the dendrogram at the linkage distance 300
-clusters.tb <- sits_cluster(cerrado_2classes, dendro, height = 22)
+clusters.tb <- sits_cluster(cerrado_2classes, 
+                            dendro, 
+                            height = 22)
 # show clusters samples frequency
 sits_cluster_frequency(clusters.tb)
 ```
@@ -326,7 +334,7 @@ An example of \textit{space-first, time-later} work on big EO data analysis is t
 
 In our view, these methods do not use the full potential of satellite image time series. The benefits of remote sensing time series analysis arise when the temporal resolution of the big data set is able to capture the most important changes. Here, the temporal autocorrelation of the data can be stronger than the spatial autocorrelation. Given data with adequate repeatability, a pixel will be more related to its temporal neighbours than to its spatial ones. In this case, *time-first, space-later* methods lead to better results than the *space-first, time-later* approach [@Camara2016].
 
-`sits` package provides functionality to explore the full depth of satellite image time series data. It treat time series as a feature vector. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars, also known as training data, to infer classes of a larger data set. In the next section we discuss about machine learning techniques supported in `sits` with more detail.
+The `sits` package provides functionality to explore the full depth of satellite image time series data. It treat time series as a feature vector. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars, also known as training data, to infer classes of a larger data set. In the next section we discuss about machine learning techniques supported in `sits` with more detail.
 
 In the training stage, Additional "bands" can be computed to increase the distinction between classes. This method has a deceptive simplicity 
 
@@ -361,14 +369,6 @@ sits_plot(class.tb)
 Our experiment consists of the comparison of different methods to obtain the time series prototypes for each class. After obtaining the prototypes, we classified the data using the TWDTW method and used a cross-validation procedure to evaluate the results.
 
 # Final remarks
-
-Current approaches to image time series analysis still use limited number of attributes. A common approach is deriving a small set of phenological parameters from vegetation indexes, like beginning, peak, and length of growing season [@Brown2013], [@Kastens2017], [@Estel2015], [@Pelletier2016]. These phenological parameters are then fed in specialised classifiers such as TIMESAT [@Jonsson2004]. These approaches do not use the power of advanced statistical learning techniques to work on high-dimensional spaces and with big training data sets [@James2013].
-
-The `sits` uses the full depth of satellite image time series to create larger dimensional spaces. We tested different methods of extracting attributes from time series data, including those reported by @Pelletier2016 and @Kastens2017. Our conclusion is that part of the information in raw time series is lost after filtering or statistical approximation. Thus, the method we developed has a deceptive simplicity: *use all the data available in the time series samples*. The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. Our experiments found out that modern statistical models such as support vector machines, and random forests perform better in high-dimensional spaces than in lower dimensional ones. 
-
-# Aknowledgements
-
-We want to thanks all the researchers whom provided data samples used in the examples. Alexandre Coutinho, Julio Esquerdo and Joao Antunes from the Brazilian Agricultural Research Agency (EMBRAPA) provided the samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes that were collected through farmer interviews and *in-loco* observations from October 2009 until October 2013. Rodrigo Bergotti from INPE whom provided samples for "cerrado" and "forest" classes through high resolution images observations. Damien Arvor [@Arvor2012] whom provided ground samples for "soybean-fallow" class through *in-loco* observations.
 
 <!--
 # References
