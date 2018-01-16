@@ -11,7 +11,7 @@ sits_cluster_cleaner(data.tb, min_perc = 0.05, method = "intracluster")
 
 \item{min_perc}{The minimum percentage of label inside a cluster for the label to remain in cluster.}
 
-\item{method}{Either "intracluster" or "intercluster"}
+\item{method}{a vector with "intracluster" or "intercluster" or both.}
 }
 \value{
 result.tb        a SITS tibble with all selected samples

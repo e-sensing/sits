@@ -148,7 +148,7 @@ sits_cluster_frequency <-  function (data.tb) {
 #'
 #' @param data.tb           a SITS tibble with `cluster` column.
 #' @param min_perc          The minimum percentage of label inside a cluster for the label to remain in cluster.
-#' @param method            Either "intracluster" or "intercluster"
+#' @param method            a vector with "intracluster" or "intercluster" or both.
 #' @return result.tb        a SITS tibble with all selected samples
 #' @export
 sits_cluster_cleaner <-  function (data.tb, min_perc = 0.05, method = "intracluster") {
@@ -156,32 +156,51 @@ sits_cluster_cleaner <-  function (data.tb, min_perc = 0.05, method = "intraclus
     # verify if data.tb has data
     .sits_test_tibble(data.tb)
 
-    ensurer::ensure_that(method, (.) %in% c("intercluster", "intracluster"),
+    ensurer::ensure_that(method, all((.) %in% c("intercluster", "intracluster")),
                          err_desc = "sits_cluster_cleaner: chosen method is invalid")
 
     # is the input data the result of a cluster function?
-    ensurer::ensure_that(data.tb, "cluster" %in% names (.), err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
+    ensurer::ensure_that(data.tb, "cluster" %in% names (.),
+                         err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
 
     # compute frequency table
     result.mtx <- table(data.tb$label, data.tb$cluster)
 
-    if (method == "intracluster")
-        # compute frequency in each cluster
+    # allocate filter conditions
+    filter_condition1 <- "TRUE"
+    filter_condition2 <- "TRUE"
+
+    # compute frequency in each cluster according to the corresponding method
+    if ("intracluster" %in% method){
         # compute relative frequency
         freq.mtx <- prop.table(result.mtx, margin = 2)
-    else
+
+        # get those indexes whose labels represents more than `min_perc`
+        index.mtx <- which(freq.mtx > min_perc, arr.ind = TRUE, useNames = TRUE)
+
+        # return only those samples that satisfies the `min_perc` condition
+        filter_condition1 <- paste0(purrr::map2(rownames(index.mtx), index.mtx[,2],
+                                                function(lb, clu) paste0("(label=='", lb, "' & cluster==", clu, ")")),
+                                    collapse = " | ")
+        if (filter_condition1 == "") filter_condition1 = "FALSE"
+    }
+    if ("intercluster" %in% method){
         # compute frequency in each label
         freq.mtx <- prop.table(result.mtx, margin = 1)
 
-    # get those indexes whose labels represents more than `min_perc`
-    index.mtx <- which(freq.mtx[1:NROW(freq.mtx),1:NCOL(freq.mtx)] > min_perc, arr.ind = TRUE, useNames = TRUE)
+        # get those indexes whose labels represents more than `min_perc`
+        index.mtx <- which(freq.mtx > min_perc, arr.ind = TRUE, useNames = TRUE)
 
-    # return only those samples that satisfies the `min_perc` condition
-    filter_condition <- paste0(purrr::map2(rownames(index.mtx), index.mtx[,2],
-                                               function(lb, clu) paste0("label=='", lb, "' & cluster==", clu)),
-                                   collapse = " | ")
+        # return only those samples that satisfies the `min_perc` condition
+        filter_condition2 <- paste0(purrr::map2(rownames(index.mtx), index.mtx[,2],
+                                                function(lb, clu) paste0("(label=='", lb, "' & cluster==", clu, ")")),
+                                    collapse = " | ")
+        if (filter_condition2 == "") filter_condition2 = "FALSE"
+    }
 
     # filter result and return
-    result.tb <- dplyr::filter_(data.tb, filter_condition)
+    result.tb <- dplyr::filter_(data.tb, paste(paste0("(", filter_condition1),
+                                               paste0(filter_condition2, ")"),
+                                               sep = ") & ("))
     return (result.tb)
 }
