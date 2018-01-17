@@ -57,7 +57,7 @@ The basic data unit in the `sits` package is the "`sits` tibble", which is a way
 
 For a better explanation of how the "`sits` tibble" works, we will read a data set containing 2,115 labelled samples of land cover in Mato Grosso state of Brazil. This state has 903,357 km^2^ of extension, being the third largest state of Brazil. It includes three of Brazil's biomes: Amazonia, Cerrado and Pantanal. It is the most important agricultural frontier of Brazil and is Brazil's largest producer of soybeans, corn and cotton. 
 
-The samples contain time series extracted from the MODIS MOD13Q1 product from NASA from 2000 to 2016, provided every 16 days at 250-meter spatial resolution in the Sinusoidal projection. Based on ground surveys and high resolution imagery, we selected $2,115$ samples of nine classes: forest, cerrado, pasture, soybean-fallow, fallow-cotton, soybean-cotton, soybean-corn, soybean-millet, and soybean-sunflower.
+The samples contain time series extracted from the MODIS MOD13Q1 product from 2000 to 2016, provided every 16 days at 250-meter spatial resolution in the Sinusoidal projection. Based on ground surveys and high resolution imagery, we selected $2,115$ samples of nine classes: "Forest", "Cerrado", "Pasture", "Soybean-fallow", "Fallow-Cotton", "Sybean-Cotton", "Soybean-Corn", "Soybean-Millet", and "Soybean-Sunflower".
 
 ```{r}
 # data set of samples
@@ -193,7 +193,9 @@ clusters.tb <-
 sits_cluster_frequency(clusters.tb)
 ```
 
-Note in this example that almost all clusters has a predomination of either "Cerrado" or "Pasture" classes with the exception of cluster $3$. The contigency table ploted by `sits_cluster_frequency` shows how the samples are distributed across the clusters and helps to identify two kinds of confusions. The first is relative to those small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$), and the second is relative to those samples in non-dominated clusters (*e.g.* cluster $3$). These confusions can be an indication of poor quality of samples, or an inadequacy between the used parameters in cluster analysis, or even a natural confusion due to the inherent variability of the land classes. For whatever reason, the specialist can check other methods to assist her decision, either by improving the data set or by eliminating part of it. If one considers such cases as outliers, it is possible to remove them using the functions `sits_cluster_clean()` and `sits_cluster_remove()`. The first removes all those minority samples that do not reach a minimum percentage close to $0\%$, whereas the second removes an entire cluster if its dominant class does not reach a minimum percentage, close to $100\%$. The example illustrates the second aproach.
+Note in this example that almost all clusters has a predomination of either "Cerrado" or "Pasture" classes with the exception of cluster $3$. The contigency table ploted by `sits_cluster_frequency` shows how the samples are distributed across the clusters and helps to identify two kinds of confusions. The first is relative to those small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$), and the second is relative to those samples in non-dominated clusters (*e.g.* cluster $3$). These confusions can be an indication of poor quality of samples, or an inadequacy between the used parameters in cluster analysis, or even a natural confusion due to the inherent variability of the land classes.
+
+For whatever reason, one can check other methods to assist one's decision, either by eliminating part of it, or by improving the data set. If one considers such cases as outliers, it is possible to remove them using the functions `sits_cluster_clean()` and `sits_cluster_remove()`. The first removes all those minority samples that do not reach a minimum percentage close to $0\%$, whereas the second removes an entire cluster if its dominant class does not reach a minimum percentage, close to $100\%$. The example illustrates the second aproach.
 
 ```{r}
 # clear those samples with a high confusion rate in a cluster 
@@ -206,35 +208,29 @@ cleaned.tb <-
 sits_cluster_frequency(cleaned.tb)
 ```
 
-Along the process of cluster analysis, it may be a good practice to measure the correspondence between clusters and labels partitions through computation of external validity indices. These measures can help the comparison among different procedures and assits the decision-making. `sits_cluster_validity()` provides a way to compute some external validation indices other than ARI (for details, see `?sits_cluster_validity()`). Moreover, these indices try to capture some of the cluster structure that is present in the correspondence of its partitions [@Hubert1985].
+Along the process of cluster analysis, it may be a good practice to measure the correspondence between clusters and labels partitions through computation of external validity indices. These measures can help the comparison among different procedures and assits the decision-making. `sits_cluster_validity()` provides a way to compute some external validation indices other than ARI (for details, see `?sits_cluster_validity()`). Moreover, these indices capture some of the cluster structure that is present in the correspondence of its partitions [@Hubert1985].
 
 # Filtering techniques 
 
-Satellite image time series will always be contaminated by atmospheric influence, geolocation error, and directional effects [@Lambin2006]. In tropical regions, clouds are a major factor on reducing the quality of the data. Inter-annual climate variability also changes the phenological cycles of the vegetation, resulting in time series whose periods and intensities do not match on an year to year basis [@Atkinson2012]. As we can note in The same land use and land cover class is subject to intrinsic year to year variability. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with data sets that are *noisy* and *non-homogeneous*.
+Satellite image time series generally is contaminated by atmospheric influence, geolocation error, and directional effects [@Lambin2006]. Inter-annual climate variability also changes the phenological cycles of the vegetation, resulting in time series whose periods and intensities do not match on an year to year basis. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with data sets that are *noisy* and *non-homogeneous*. In this section we discuss filtering techniques, a method used to improve time series data that presents missing values or noise.
 
-Several techniques have been used to correct and smooth such time-series vegetation index data, and to support the estimation of phenological parameters. These methods include curve fitting [@Bradley2007], asymmetric Gaussian functions [@Jonsson2002], wavelet decomposition [@Sakamoto2005], the Savitzky–Golay filter [@Chen2004], and the Whittaker smoother [@Atzberger2011]. 
+The literature on satellite image time series have several applications of filtering used to correct or smooth vegetation index data. The `sits` have support for Savitzky–Golay (`sits_sgolay()`), Whitaker (`sits_whittaker()`), envelope (`sits_envelope()`) and, the "cloud filter" (`sits_cloud_filter()`) filters. The first two filters are commonly used in the literature. The remaining two are adaptations of other models and, for our knowledge, its use has not been reported in the literature.
 
-One of the main uses of time series filtering is to reduce the noise produced by clouds in tropical areas. The following examples we use data produced by the PRODES project [@INPE2017], which detects deforestation in the Brazilian Amazon rain forest by visual interpretation.  Its interpreters are highly skilled and the accuracy of PRODES has been essential for Brazil's actions to control Amazon deforestation [@Rajao2009]. Our time series were generated from a combination of MODIS and Landsat 8 images covering the region corresponding to the standard Landsat Path/Row 226/064. This is an area in the East of the Pará state. The area has been chosen because the area is subject to strong cloud cover from November to March, which is a significant factor in degrading time series quality.
+In an investigation of phenological parameter estimation, @Atkinson2012 compare the application of Fourier transform, asymmetric Gaussian, double logistic and the Whittaker filters to preprocess MERIS NDVI time series for estimating phenological parameters in India. They found out that the Whittaker and Fourier transform approaches were preferable to the double logistic and asymmetric Gaussian models.
 
-Each location information consists of its latitude and longitude, the start and end dates of an yearly time series, and the label, as showm below. Three land cover classes were identified: "Forest" (natural forest), "Deforestation_2014" and "Deforestation_2015" (areas identified by PRODES in years 2014 and 2015 as clear cuts, respectivelly) and "Pasture" (areas that had been deforested before 2014). 
+Using the same filters, @Shao2016 compare the impact of filtering on land use and land cover classification accuracy. The authors used MODIS NDVI time series from the Great Lakes region in North America. As in the previous work, they concluded that only Fourier transform and Whittaker techniques improved interclass separability for crop classes and significantly improved overall classification accuracy. 
 
-```{r}
-prodes_226_064[1:3,]
-```
+In a time series reconstruction investigation, @Zhou2016 compare the Fourier transform, double logistic, asymmetric Gaussian, Whittaker and Savitzky-Golay filters methods for noise removal in MODIS NDVI data from sites spreaded worldwide in different climatological conditions. The authors found that asymmetric Gaussian model outperforms other models over high latitude boreal biomes, while the Savitzky-Golay model gives the best reconstruction performance in tropical evergreen broadleaf forests. In the remaining biomes, Whittaker gives superior results. Other techniques can be found in the literature such as curve fitting [@Bradley2007] and wavelet decomposition [@Sakamoto2005].
 
-<!-- All samples span one year, starting in August 1st of an year and ending in July 31st of the next year. This sampling procedure was chosen to reflect the PRODES methodology for estimating deforestation by clear cuts in the Amazon, which uses the same period. In practice, most of the areas detected by PRODES came from images from the months from April to July, when there is less cloud cover in the region.-->
-
-The filtering algorithms provided by `sits` are: Savitzky–Golay filter (`sits_sgolay()`), Whitaker filter (`sits_whittaker()`), envelope filter (`sits_envelope()`) and, the "cloud filter" (`sits_cloud_filter()`). In what follows, we explain each technique and provide some examples using the afore described PRODES data set. To best visualize the effects of filtering we select only NDVI band of the time series.
+One of the main uses of time series filtering is to reduce the noise and miss data produced by clouds in tropical areas. The following examples use data produced by the PRODES project [@INPE2017], which detects deforestation in the Brazilian Amazon rain forest by visual interpretation. `sits` provides $617$ samples from a region corresponding to the standard Landsat Path/Row 226/064. This is an area in the East of the Brazilian Pará state and has been chosen because its strongly cloud cover from November to March, which is a significant factor in degrading time series quality. Its NDVI and EVI time series were extracted from a combination of MOD13Q1 and Landsat8 images (to best visualize the effects of each filter, we selected only NDVI time series).
 
 ## Savitzky–Golay filter
 
-The Savitzky-Golay filter works by fitting successive sub-sets of adjacent data points with a low-degree polynomial whose coefficients can be derived by through the method of linear least squares. The resulting $i$-th point of the filtered time series is obtained by substituting the polynomial independent terms by the $n$-adjacent points relative to the central point $i$ in the original time series, as expressed in
+The Savitzky-Golay filter works by fitting successive sub-sets of adjacent data points with a low-degree polynomial whose coefficients can be derived by through the method of linear least squares. The resulting $i$-th point of the filtered time series is obtained by substituting the polynomial independent terms by the $n$-adjacent points relative to a central one, $i$, in the original time series, as expressed by
 $$
 {\hat{x}_{i}=\sum _{j=-n}^{n}C_{j}\,x_{i+j}},
 $$
-where $\hat{x}$ is the the filtered time series, $C_{j}$ is the polynomial coefficient respective to the $j$-th adjacent point and, $x$ is the original time series. The coefficients have analytical solution when the time series is equally spaced and depends uniquely on polynomial degree and the length of the sub set of adjacent data points (including the central point, $2n+1$). More details on the procedure of coefficient determination can be found in @Savitzky1964.
-
-The main purpose of Savitzky-Golay filter is to increase the signal-to-noise ratio with a minimum distortion of the time series. The difference between an original and a filtered time series using the Savitsky-Golay filter is shown in example bellow.
+where $\hat{x}$ is the the filtered time series, $C_{j}$ is the polynomial coefficient respective to the $j$-th adjacent point and, $x$ is the original time series. The coefficients have analytical solution when the time series is equally spaced and depends uniquely on polynomial degree and the length of the sub set of adjacent data points (including the central point, $2n+1$). More details on the procedure of coefficient determination can be found in @Savitzky1964. The difference between an original and a filtered time series using the Savitsky-Golay filter is shown in example bellow.
 
 <!-- Colocar bibliografia de uso do SG em SITS -->
 
@@ -250,45 +246,38 @@ sits_plot(sits_merge(point_sg.tb, point.tb))
 ## Whittaker filter
 
 <!-- reduzir um pouco a discussao tecnica, falar mais sobre os resultados obtidos em comparacao de metodos -->
-
 The Whittaker smoother attempts to fit a curve that represents the raw data, but is penalized if subsequent points vary too much [@Atzberger2011]. The Whittaker filter is a balancing between the residual to the original data and the "smoothness" of the fitted curve [@deRooi2013]. The residual, as measured by the sum of squares of all $n$ time series points deviations, in matrix form, is given by
 $$
 RSS=(x - \hat{x})^{T}(x - \hat{x}),
 $$
-where $x$ and $\hat{x}$ are the original and the filtered time series vectors, respectivelly. The "smoothness" is assumed to be the measure of the the sum of the squares of the third differences [@Whittaker1922], which is given by
+where $x$ and $\hat{x}$ are the original and the filtered time series vectors, respectivelly. The smoothness is assumed to be the measure of the the sum of the squares of the third order differences of the time series [@Whittaker1922] which is given by
 $$
 \begin{split}
-M_3 = (\hat{x}_4 - 3\hat{x}_3 + 3\hat{x}_2 - \hat{x}_1)^2 + (\hat{x}_5 - 3\hat{x}_4 + 3\hat{x}_3 - \hat{x}_2)^2 \\ + \ldots + (\hat{x}_n - 3\hat{x}_{n-1} + 3\hat{x}_{n-2} - \hat{x}_{n-3})^2,
+SSD_3 = (\hat{x}_4 - 3\hat{x}_3 + 3\hat{x}_2 - \hat{x}_1)^2 + (\hat{x}_5 - 3\hat{x}_4 + 3\hat{x}_3 - \hat{x}_2)^2 \\ + \ldots + (\hat{x}_n - 3\hat{x}_{n-1} + 3\hat{x}_{n-2} - \hat{x}_{n-3})^2.
 \end{split}
 $$
-which in matrix form, can be expressed as
+
+Whittaker filter is obtained by finding a new time series $\hat{x}$ whose points minimize the expression
 $$
-\begin{split}
-M_3 = \hat{x}^{T}D^{T}D\hat{x},
-\end{split}
+RSS+\lambda{}SSD_3,
+$$ 
+where $\lambda{}$, a scalar, works as an "smoothing wheight" parameter. The minimization can be obtained by differentiating the expression with respect to $\hat{x}$ and equating it to zero. The solution of the resulting linear system of equations gives the filtered time series which, in matrix form, can be expressed as
 $$
-where
+\hat{x} = ({\rm I} + \lambda {D}^{T} D)^{-1}x,
+$$
+where ${\rm I}$ is the identity matrix and 
 $$
 D = \left[\begin{array}{ccccccc}
-   1 & -3 & 3 & -1 & 0 & 0 &\cdots \\
-   0 & 1 & -3 & 3 & -1 & 0 &\cdots \\
-   0 & 0 & 1 & -3 & 3 & -1 & \cdots \\
-  \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots
+1 & -3 & 3 & -1 & 0 & 0 &\cdots \\
+0 & 1 & -3 & 3 & -1 & 0 &\cdots \\
+0 & 0 & 1 & -3 & 3 & -1 & \cdots \\
+\vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots
 \end{array}
 \right]
 $$
 is the third order difference matrix.
 
-Whittaker filter is obtained by finding a new time series $\hat{x}$ whose points minimize the function 
-$$
-X(\hat{x},\lambda{})=RSS+\lambda{}M_3,
-$$ 
-where $\lambda{}$, a scalar, works as an "smoothing wheight" parameter. The minimization can be obtained by differentiating the equivalent expression $(x - \hat{x})^{T}(x - \hat{x})+\lambda\hat{x}^{T}D^{T}D\hat{x}$ with respect to $\hat{x}$ and equating it to zero, whose solution gives the Whittaker filtered time series
-$$
-\hat{x} = ({\bf I} + \lambda {D}^{T} D)^{-1}x.
-$$
-
-The Whitakker filter can be a large but sparse optimisation problem, as we can note from $D$ matrix. In `sits` implementation, the default $\lambda{}$ parameter is $1.0$. The example bellow depicts an original and a filtered time series.
+The Whitakker filter can be a large but sparse optimisation problem, as we can note from $D$ matrix. In `sits` implementation, the default $\lambda{}$ parameter is $1.0$. <!-- @Zhou2016 used different values for $\lambda{}$. For its purpose $\lambda=15$ gives he best result. --> were used in Shoe1 The example bellow depicts an original and a filtered time series.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker filter applied on a one-year sample NDVI time series."}
 # Take the NDVI band of the first sample data set
@@ -301,8 +290,7 @@ sits_plot(sits_merge(point_whit.tb, point.tb))
 
 ## Envelope filter
 
-<!-- qual a referencia na literature -->
-
+<!-- qual a referencia na literature ::: MVC!!! -->
 This filter produces a bounding (superior or inferior) time series relative to an input signal. We can bound a time series signal by two basic operations: upper and lower dilations. Both operations assumes an unitary window to which the dilation occurs. An upper dilation can be defined as
 $$
 u_i=\max_{k}{(\{x_{k}:\left|k-i\right|\le{}1\})},
@@ -389,7 +377,7 @@ The `sits` uses the full depth of satellite image time series to create larger d
 
 # Acknowledgements
 
-We want to thanks all the researchers whom provided data samples used in the examples. Alexandre Coutinho, Julio Esquerdo and Joao Antunes from the Brazilian Agricultural Research Agency (EMBRAPA) provided the samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes that were collected through farmer interviews and *in-loco* observations from October 2009 until October 2013. Rodrigo Bergotti from INPE whom provided samples for "cerrado" and "forest" classes through high resolution images observations. Damien Arvor (Rennes University) provided ground samples for "soybean-fallow" class.
+The authors would like to thank all the researchers whose provided data samples used in the examples: Alexandre Coutinho, Julio Esquerdo and Joao Antunes (Brazilian Agricultural Research Agency, Brazil) who provided ground samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes; Rodrigo Bergotti (National Institute for Space Research, Brazil) who provided samples for "cerrado" and "forest" classes; and Damien Arvor (Rennes University, France) who provided ground samples for "soybean-fallow" class.
 
 <!--
 # References
