@@ -133,9 +133,7 @@ series.tb <-
                  service    = "WTSS", 
                  product    = "MOD13Q1",
                  coverage   = "mod13q1_512", 
-                 bands      = c("ndvi", "evi"),
-                 start_date = "2001-01-01", 
-                 end_date   = "2016-12-31")
+                 bands      = c("ndvi", "evi"))
 # plot the series
 sits_plot(series.tb)
 ```
@@ -176,12 +174,17 @@ c) the number of distinct pairs whose samples have different labels and are in t
 d) the number of distinct pairs whose samples have the different labels and are in different clusters.
 Here, $a$ and $d$ consists in all agreements, and $b$ and $c$ all disagreements. The ARI is obtained by
 $$
-ARI=\frac{a+d-e}{a+d+b+c-e},
+ARI=\frac{a+d-E}{a+d+b+c-E},
 $$
-where $e$ is the expected agreement, a random chance correction [@Hubert1985]. Different from others validity index such as Jaccard and Fowlkes-Mallows indices, ARI is more appropriate either when the nuber of clusters is outwheighted by the number of labels (or conversely) and the number of samples is imbalanced between labels and clusters (which is usually the case).
+where $E$ is the expected agreement, a random chance correction calculated by 
+$$
+E=(a+b)(b+c)+(c+d)(b+d).
+$$ 
+Different from others validity index such as Jaccard ($J=a/(a+b+c)$), Fowlkes-Mallows ($FM=a/\sqrt{(a+b)(a+c)}$), and Rand (without the $E$ adjustment) indices, ARI is more appropriate either when the number of clusters is outwheighted by the number of labels (and *vice versa*) and the amount of samples in labels and clusters is imbalanced [@Hubert1985], which is usually the case.
 
 ```{r}
-# create 6 clusters by cutting the dendrogram at the linkage distance 20.39655
+# create 6 clusters by cutting the dendrogram at 
+# the linkage distance 20.39655
 clusters.tb <- 
     sits_cluster(cerrado_2classes, 
                  dendro, 
@@ -190,22 +193,20 @@ clusters.tb <-
 sits_cluster_frequency(clusters.tb)
 ```
 
-Note in this example that almost all clusters has a predomination of either "Cerrado" or "Pasture" classes with the exception of cluster $3$. The contigency table ploted by `sits_cluster_frequency` is useful to identify anomalies in samples in a qualitative fashion. If one considers such cases as outliers, it is possible to exclude them using the function `sits_cluster_cleaner()` that removes all samples whose label (cluster) counts less than a given percentual relative to its cluster (label).
+Note in this example that almost all clusters has a predomination of either "Cerrado" or "Pasture" classes with the exception of cluster $3$. The contigency table ploted by `sits_cluster_frequency` shows how the samples are distributed across the clusters and helps to identify two kinds of confusions. The first is relative to those small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$), and the second is relative to those samples in non-dominated clusters (*e.g.* cluster $3$). These confusions can be an indication of poor quality of samples, or an inadequacy between the used parameters in cluster analysis, or even a natural confusion due to the inherent variability of the land classes. For whatever reason, the specialist can check other methods to assist her decision, either by improving the data set or by eliminating part of it. If one considers such cases as outliers, it is possible to remove them using the functions `sits_cluster_clean()` and `sits_cluster_remove()`. The first removes all those minority samples that do not reach a minimum percentage close to $0\%$, whereas the second removes an entire cluster if its dominant class does not reach a minimum percentage, close to $100\%$. The example illustrates the second aproach.
 
 ```{r}
-# clear sample outliers relative to clusters 
-# (those with less than 5% relative to intracluster)
-clusters2.tb <- sits_cluster_cleaner(clusters.tb)
+# clear those samples with a high confusion rate in a cluster 
+# (those clusters which majority class does not reach 90% of 
+#  samples in that cluster)
+cleaned.tb <- 
+    sits_cluster_remove(clusters.tb, 
+                        min_perc = 0.9)
 # show clusters samples frequency
-sits_cluster_frequency(clusters2.tb)
+sits_cluster_frequency(cleaned.tb)
 ```
 
-
-<!-- subsituir por uma discussao sobre o uso de clustering em SITS -->
-<!-- We could proceed by cutting the dendrogram at lower linkage distances to obtain other set of clusters. We can note that at some point it is possible to achieve a reasonable separability between classes (in our example, this is indicated by the dashed line drawed according to `cutree_height` parameter). The dendrogram thus provides users with a powerful visual aid to understand data separability. Depending on the level of dendrogram cut, we will find more or less confusion inside the clusters.-->
-
-The dendrogram can be used to evaluate cluster separability in a qualitative fashion, and helps the practitioner to determine where to cut the tree to obtain the final clusters [@Liao2005].
-
+Along the process of cluster analysis, it may be a good practice to measure the correspondence between clusters and labels partitions through computation of external validity indices. These measures can help the comparison among different procedures and assits the decision-making. `sits_cluster_validity()` provides a way to compute some external validation indices other than ARI (for details, see `?sits_cluster_validity()`). Moreover, these indices try to capture some of the cluster structure that is present in the correspondence of its partitions [@Hubert1985].
 
 # Filtering techniques 
 
