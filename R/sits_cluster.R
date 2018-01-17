@@ -46,15 +46,17 @@ sits_cluster <-  function (data.tb, dendro.obj, k = NULL, height = NULL) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Compute different cluster validity indices. This function needs
-#' as input a SITS tibble with `cluster` column. It is a front-end to
-#' `dtwclust::cvi` function. Please refer to the documentation in that package for more details.
+#' as input a SITS tibble with `cluster` column.
+#' It is a front-end to `dtwclust::cvi` function. That function computes five indices:
+#' 1) adjusted Rand index; 2) Rand index; 3) Jaccard index; 4) Fowlkes-Mallows; and 5) Variation of Information index
+#' Please refer to the documentation in that package for more details.
 #'
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data.tb          a SITS tibble with `cluster` column.
 #'
 #' @return
-#' A vector with (adjusted) Rand index CVIs
+#' A vector with four external validity indices
 #'
 #' @examples
 #' \donttest{
@@ -82,29 +84,11 @@ sits_cluster_validity <-  function (data.tb) {
     ensurer::ensure_that(data.tb, "cluster" %in% names (.),
                          err_desc = "sits_cluster_validity: input data does not contain cluster column")
 
-    # is the input data the result of a cluster function?
-    ensurer::ensure_that(data.tb, length(base::unique(.$cluster)) >= length(base::unique(.$label)),
-                         err_desc = "sits_cluster_validity: cannot collapse clusters as there are less clusters than labels.")
-
-    # compute frequency table
-    result.mtx <- table(data.tb$label, data.tb$cluster)
-
-    # get labels of the more frequent class for each cluster
-    max_labels.vec <- apply(result.mtx, 2, which.max)
-
-    # prepares new clusters names vector
-    new_clusters_names.vec <- rownames(result.mtx)[max_labels.vec]
-    names(new_clusters_names.vec) <- colnames(result.mtx)
-
-    # renames clusters and return
-    data.tb$cluster <- new_clusters_names.vec[data.tb$cluster] %>% unlist()
-
     # compute CVIs and return
     result.vec <- dtwclust::cvi(a = factor(data.tb$cluster),
                                 b = factor(data.tb$label),
                                 type = "external",
                                 log.base = 10)
-
     return(result.vec)
 }
 
