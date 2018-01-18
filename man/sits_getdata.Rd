@@ -4,23 +4,18 @@
 \alias{sits_getdata}
 \title{Obtain time series from different sources}
 \usage{
-sits_getdata(file = NULL, service = "WTSS", product = "MOD13Q1",
-  coverage = "mod13q1_512", longitude = NULL, latitude = NULL,
-  start_date = NULL, end_date = NULL, bands = NULL, prefilter = "1",
-  label = "NoClass", .n_max = Inf, .n_save = 0)
+sits_getdata(coverage = NULL, file = NULL, longitude = NULL,
+  latitude = NULL, start_date = NULL, end_date = NULL, bands = NULL,
+  prefilter = "1", label = "NoClass", .n_max = Inf, .n_save = 0)
 }
 \arguments{
+\item{coverage}{(Mandatory) A tibble with information about the coverage}
+
 \item{file}{(optional) the name of a file with information on the data to be retrieved (options - CSV, SHP)}
-
-\item{service}{string - name of the time series service (options are "WTSS" or "SATVEG")}
-
-\item{product}{the product from where the information is retrieved}
-
-\item{coverage}{string - the name of the coverage to be retrieved}
 
 \item{longitude}{double - the longitude of the chosen location}
 
-\item{latitude}{double - the latitude of the chosen location)}
+\item{latitude}{double - the latitude of the chosen location}
 
 \item{start_date}{(optional) date - the start of the period}
 
@@ -48,6 +43,10 @@ Please see \code{link[sits]{sits_fromSATVEG}} for more information on SATVEG.
 The URL and other parameters for access to the time series services are defined in the package
 configuration file. This file is called "config.yml". Please see the \code{link[sits]{sits_config}} for
 more information.
+
+Before using this service, the user should create a valid coverage tibble
+using the \code{link[sits]{sits_coverage}} function.
+
 The following options are available:
 \enumerate{
 \item No input file is given - it retrieves the data and metadata based on the latitude/longitude location
@@ -56,26 +55,31 @@ and on the information provided by the WTSS server.
 from the WTSS service.
 \item The source is a SHP file - retrives all points inside the shapefile from the WTSS service.
 \item The source is a RasterBrick - retrieves the point based on lat/long from the RasterBrick.
-\item The source is a ZOO time series - retrieves the time series from the ZOO file, and
-the user should supply the metadata.
 }
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
 }
 \examples{
 \donttest{
 # Read a single lat long point from a WTSS server
-point.tb <- sits_getdata (longitude = -55.50563, latitude = -11.71557,
-         service = "WTSS", product = "MOD13Q1", coverage    = "mod13q1_512")
-
-# show the point
+wtss_coverage <- sits_coverage(service = "WTSS-INPE-1",
+                    product = "MOD13Q1", name = "mod13q1_512")
+point.tb <- sits_getdata (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
 show(point.tb)
+
 # Read a set of points defined in a CSV file from a WTSS server
 csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
-points.tb <- sits_getdata (file = csv_file, service = "WTSS", product = "MOD13Q1",
-             coverage = "mod13q1_512")
-
+points.tb <- sits_getdata (wtss_coverage, file = csv_file)
 # show the points retrieved for the WTSS server
 show (points.tb)
+
+# Read a single lat long point from the SATVEG server
+satveg_coverage <- sits_coverage(service = "SATVEG", product = "MOD13Q1", name = "terra")
+point_satveg.tb <- sits_fromSATVEG (satveg_coverage, longitude = -55.50563, latitude = -11.71557)
+show (point_satveg.tb)
+
+# define a shapefile and read from the points inside it from the WTSS service
+shp_file <- system.file("extdata/shapefiles/madre_de_deus/madre_de_deus.shp", package = "sits")
+munic.tb <- sits_fromSHP(shp_file, satveg_coverage)
 
 # Read a point in a Raster Brick
 # define the file that has the raster brick
@@ -84,10 +88,10 @@ files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package =
 data(timeline_mod13q1)
 timeline <- lubridate::as_date(timeline_mod13q1$V1)
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_coverageRaster(files, name = "Sinop-crop", timeline, bands = c("ndvi"))
+raster_cov <- sits_coverageRaster(files, name = "Sinop-crop", timeline, bands = c("ndvi"))
 # read the point from the raster
-point.tb <- sits_getdata(longitude = -55.50563, latitude = -11.71557,
-            service = "RASTER", name = "Sinop-Crop")
+point_raster.tb <- sits_getdata(raster_cov, longitude = -55.50563, latitude = -11.71557)
+show(point_raster.tb)
 }
 }
 \references{

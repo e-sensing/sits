@@ -42,12 +42,13 @@ accuracy estimate is provided.
 This function returns the confusion matrix, and Kappa values.
 }
 \examples{
+\donttest{
 # read a set of samples
 data (cerrado_2classes)
 
 # perform a five fold validation with the SVM machine learning method
 conf_matrix1.mx <- sits_kfold_validate (cerrado_2classes)
-
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

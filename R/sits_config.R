@@ -183,16 +183,16 @@ sits_show_config <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        the name of the time series service
-#' @param coverage       the name of the coverage
+#' @param name           the name of the coverage
 #' @return coverage.tb   metadata about the coverage
 #'
 
-.sits_get_coverage <- function(service, coverage) {
+.sits_get_coverage <- function(service, name) {
 
     if (purrr::is_null(sits.env$config$coverages))
         return(NULL)
     else {
-        coverage.tb <- dplyr::filter(sits.env$config$coverages, coverage == coverage & service == service)
+        coverage.tb <- dplyr::filter(sits.env$config$coverages, name == name & service == service)
         if (NROW(coverage.tb) == 1)
             return(coverage.tb)
         else
@@ -259,6 +259,25 @@ sits_show_config <- function() {
 
     return(crs)
 }
+#' @title Retrieve the protocol associated to the time series service
+#' @name .sits_get_protocol
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#'
+#' @param service         The name of the service
+#' @return protocol       The protocol associated to the service
+#'
+.sits_get_protocol <- function(service) {
+    # pre-condition
+    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
+                         err_desc = "Service not available - check configuration file")
+
+    # get the server URL from the configuration file
+    s <- paste0(service,"_protocol")
+    protocol <- sits.env$config[[s]]
+
+    return(protocol)
+}
 #' @title Retrieve the pixel resolution for an image product
 #' @name .sits_get_resolution
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -304,11 +323,17 @@ sits_show_config <- function() {
 #' @title List the time series services available
 #' @name .sits_get_services
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param protocol  The protocol used to assess the time series service
 #'
 #' @return size          vector of (nrows, ncols)
-.sits_get_services <- function() {
-    # pre-condition
-    return(sits.env$config$ts_services)
+.sits_get_services <- function(protocol = NULL) {
+    if (purrr::is_null(protocol))
+        return(sits.env$config$ts_services)
+    else{
+        ensurer::ensure_that(protocol, (.) %in% sits.env$config$protocols)
+        s <- paste0(protocol, "_services")
+        return(sits.env$config[[s]])
+    }
 }
 
 #' @title Retrieve the size of the product for a given time series service
@@ -376,26 +401,28 @@ sits_show_config <- function() {
 #'
 #' @param service        the name of the time series service
 #' @param product        the name of the product
-#' @param coverage       the name of the coverage
+#' @param name           the name of the coverage
 #' @return size          vector of (nrows, ncols)
-.sits_get_timeline <- function(service, product, coverage){
+.sits_get_timeline <- function(service, product, name){
 
     if (service == "RASTER")
         message("Please provide timeline for raster data: will use default timeline")
 
-    if (service == "WTSS") {
-        URL  <- .sits_get_server("WTSS")
+    protocol <- .sits_get_protocol(service)
+
+    if (protocol == "WTSS") {
+        URL  <- .sits_get_server(service)
         # obtains information about the available coverages
         wtss.obj         <- wtss::WTSS(URL)
         coverages.vec    <- wtss::listCoverages(wtss.obj)
 
         # is the coverage in the list of coverages?
-        ensurer::ensure_that(coverage, (.) %in% coverages.vec,
-                             err_desc = "sits_coverageWTSS: coverage is not available in the WTSS server")
+        ensurer::ensure_that(name, (.) %in% coverages.vec,
+                             err_desc = "sits_get_timeline: coverage is not available in the WTSS server")
 
         # describe the coverage
-        cov.lst    <- wtss::describeCoverage(wtss.obj, coverage)
-        cov        <- cov.lst[[coverage]]
+        cov.lst    <- wtss::describeCoverage(wtss.obj, name)
+        cov        <- cov.lst[[name]]
 
         # temporal extent
         timeline <- cov$timeline

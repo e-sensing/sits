@@ -115,15 +115,15 @@
 #' @param brick.lst  the list of Raster Brick objects associated with the raster coverages
 #' @param service    the time series service
 #' @param product    the SATVEG product
-#' @param coverage   the name of the coverage
+#' @param name       the name of the coverage
 #' @param timeline   (optional) the coverage timeline
 #' @param bands      vector with names of bands
 #' @param files      vector of names of raster files where the data is stored
 #'
 .sits_create_raster_coverage <- function(brick.lst  = NULL,
-                                      service = "WTSS",
-                                      product = "MOD13Q1",
-                                      coverage,
+                                      service,
+                                      product,
+                                      name,
                                       timeline,
                                       bands,
                                       files) {
@@ -152,7 +152,7 @@
             # create a tibble to store the metadata
             coverage.tb <<- dplyr::add_row(coverage.tb,
                                           r_obj          = list(brick),
-                                          coverage       = coverage,
+                                          name           = name,
                                           service        = service,
                                           product        = product,
                                           bands          = list(band),
@@ -218,7 +218,7 @@
             timeline   <- c(start_date, end_date)
 
             # define the coverage name (must be unique)
-            coverage   <- paste0(raster.tb$coverage, "-class-", start_date, "-", end_date)
+            name_cov   <- paste0(raster.tb$name, "-class-", start_date, "-", end_date)
 
             # define the filename for the classified image
             filename <- .sits_raster_filename(file, start_date, end_date)
@@ -231,7 +231,7 @@
             row.tb <- .sits_create_raster_coverage(brick.lst    = list(r_out),
                                                 service     = "RASTER",
                                                 product     = raster.tb$product,
-                                                coverage    = coverage,
+                                                name        = name_cov,
                                                 timeline    = timeline,
                                                 bands       = list(band),
                                                 files       = list(filename))
@@ -428,7 +428,7 @@
                                start_date   = as.Date(timeline[1]),
                                end_date     = as.Date(timeline[length(timeline)]),
                                label        = label,
-                               coverage     = raster.tb$coverage,
+                               coverage     = raster.tb$name,
                                time_series  = ts.lst
     )
     return(data.tb)

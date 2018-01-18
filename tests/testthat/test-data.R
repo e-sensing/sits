@@ -1,20 +1,21 @@
 testthat::context("Data input")
 testthat::test_that("Creating a WTSS coverage", {
-    coverage.tb <- sits_coverage(service = "WTSS", product = "MOD13Q1",
-                                 coverage = "mod13q1_512")
-    testthat::expect_true(coverage.tb$service == "WTSS")
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1",
+                                 name = "mod13q1_512")
+    testthat::expect_true(coverage_wtss$service == "WTSS-INPE-1")
 })
 testthat::test_that("Creating a SATVEG coverage", {
-    coverage.tb <- sits_coverage(service = "SATVEG", product = "MOD13Q1",
-                                 coverage = "terra")
-    testthat::expect_true(coverage.tb$service == "SATVEG")
+    coverage_satveg <- sits_coverage(service = "SATVEG", product = "MOD13Q1",
+                                 name = "terra")
+    testthat::expect_true(coverage_satveg$service == "SATVEG")
 })
 
 testthat::test_that("Reading a CSV file from WTSS", {
     testthat::skip_on_cran()
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
-    points.tb <- sits_fromCSV(csv_file = csv_file, service = "WTSS", product = "MOD13Q1",
-                              coverage = "mod13q1_512")
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1",
+                                 name = "mod13q1_512")
+    points.tb <- sits_getdata(coverage = coverage_wtss, file = csv_file)
     testthat::expect_true(NROW(points.tb) > 1)
     testthat::expect_true(length(points.tb[1,]$time_series[[1]]$Index) ==
                               length(points.tb[NROW(points.tb),]$time_series[[1]]$Index))
@@ -22,8 +23,10 @@ testthat::test_that("Reading a CSV file from WTSS", {
 
 testthat::test_that("Reading a point from WTSS ",{
     testthat::skip_on_cran()
-    point.tb <- sits_fromWTSS(longitude = -55.50563, latitude = -11.71557,
-                                      product = "MOD13Q1", coverage = "mod13q1_512")
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1",
+                                      name = "mod13q1_512")
+    point.tb <- sits_getdata(coverage = coverage_wtss,
+                             longitude = -55.50563, latitude = -11.71557)
     timeline <- as.vector(point.tb$time_series[[1]]$Index)
 
     testthat::expect_true(point.tb$start_date == timeline[1])
@@ -32,10 +35,16 @@ testthat::test_that("Reading a point from WTSS ",{
 
 testthat::test_that("Reading a point from SATVEG ",{
     testthat::skip_on_cran()
-    point_terra.tb <- sits_fromSATVEG(longitude = -55.50563, latitude = -11.71557,
-                                      product = "MOD13Q1", coverage = "terra")
-    point_comb.tb <- sits_fromSATVEG(longitude = -55.50563, latitude = -11.71557,
-                                     product = "MOD-MYD13Q1", coverage = "comb")
+    coverage_1 <- sits_coverage(service = "SATVEG", product = "MOD13Q1",
+                                     name = "terra")
+    coverage_2 <- sits_coverage(service = "SATVEG", product = "MYD13Q1",
+                                name = "aqua")
+    coverage_3 <- sits_coverage(service = "SATVEG", product = "MOD-MYD13Q1",
+                                      name = "comb")
+
+    point_terra.tb <- sits_getdata(coverage_1, longitude = -55.50563, latitude = -11.71557)
+    point_aqua.tb <- sits_getdata(coverage_2, longitude = -55.50563, latitude = -11.71557)
+    point_comb.tb <- sits_getdata(coverage_3, longitude = -55.50563, latitude = -11.71557)
 
     testthat::expect_true(length(point_comb.tb$time_series[[1]]$Index) >=
                               length(point_terra.tb$time_series[[1]]$Index))
@@ -44,14 +53,16 @@ testthat::test_that("Reading a point from SATVEG ",{
 testthat::test_that("Reading a ZOO time series", {
     data(ts_zoo)
     data.tb <- sits_fromZOO(ts_zoo, longitude = -54.2313, latitude = -14.0482,
-                            label = "Cerrado", coverage = "mod13q1")
+                            label = "Cerrado", name = "mod13q1")
 
     testthat::expect_true(NROW(ts_zoo) == NROW(data.tb$time_series[[1]]))
 })
 
 testthat::test_that("Reading a shapefile", {
+    coverage_satveg <- sits_coverage(service = "SATVEG", product = "MOD13Q1",
+                                     name = "terra")
     shp_file <- system.file("extdata/shapefiles/santa_cruz_de_minas/santa_cruz_de_minas.shp", package = "sits")
-    munic.tb <- sits_fromSHP(shp_file, service = "SATVEG", product = "MOD13Q1", coverage = "terra")
+    munic.tb <- sits_getdata(coverage = coverage_satveg, file = shp_file)
 
     sf_shape <- sf::read_sf(shp_file)
     bbox <- sf::st_bbox(sf_shape)

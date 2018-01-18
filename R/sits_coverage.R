@@ -7,7 +7,7 @@
 #'  coverage       - name of the coverage (must be unique)
 #'  service        - name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER")
 #'  product        - name of the product associated with coverage (e.g., "MOD13Q1")
-#'  band_info      - tibble with information about the bands (name, scale_factor and missing_value)
+#'  bands          - list of bands
 #'  start_date     - the start date for the time series data in the coverage
 #'  end_date       - the end date for the time series data in the coverage
 #'  timeline       - the timeline of the coverage
@@ -22,132 +22,81 @@
 #'
 #' @param service    the name of the time series service
 #' @param product    the name of the product
-#' @param coverage   the name of the coverage
+#' @param name       the name of the coverage
 #' @param timeline   timeline of the coverage
 #' @param bands      list of bands (for raster data)
 #' @param files      file names (for raster data)
 #' @examples
 #' # Retrieve information about a WTSS coverage
-#' coverage.tb <- sits_coverage(service = "WTSS", product = "MOD13Q1", coverage = "mod13q1_512")
+#' coverage.tb <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1", name = "mod13q1_512")
+#'
+#' # read a raster file and put it into a vector
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#'
+#' # define the timeline
+#' data(timeline_mod13q1)
+#' timeline <- lubridate::as_date (timeline_mod13q1$V1)
+#'
+#' # create a raster coverage file based on the information about the files
+#' raster.tb <- sits_coverage(service = "RASTER", product = "MOD13Q1", name  = "Sinop-crop",
+#'              timeline = timeline, bands = c("ndvi"), files = files)
+#'
 #' @export
 #'
-sits_coverage <- function(service  = "WTSS",
+sits_coverage <- function(service  = "WTSS-INPE-1",
                           product  = "MOD13Q1",
-                          coverage = "mod13q1_512",
+                          name     = "mod13q1_512",
                           timeline = NULL,
                           bands    = NULL,
                           files    = NA) {
     # pre-condition
     .sits_check_service(service)
 
-    if (service == "WTSS")
-        coverage.tb <- sits_coverageWTSS(product, coverage)
-    else if (service == "SATVEG")
-        coverage.tb <- sits_coverageSATVEG(product, coverage, timeline)
+    protocol <- .sits_get_protocol(service)
+
+    if (protocol == "WTSS") {
+        tryCatch({
+            URL  <- .sits_get_server(service)
+            # obtains information about the available coverages
+            wtss.obj         <- wtss::WTSS(URL)
+            # temporal extent
+            timeline <- .sits_get_timeline(service, product, name)
+            # create a coverage
+            coverage.tb <- .sits_coverage_create(wtss.obj, service, product, name, timeline)
+
+        }, error = function(e){
+            msg <- paste0("WTSS service not available at URL ", URL)
+            .sits_log_error(msg)
+            message(msg)
+        })
+    }
+
+    else if (protocol == "SATVEG") {
+        r_obj <- NA
+        coverage.tb <- .sits_coverage_create(r_obj, service, product, name, timeline)
+    }
     else
-        coverage.tb <- sits_coverageRaster(product, coverage, timeline, bands, files)
+        coverage.tb <- .sits_coverage_raster(product, name, timeline, bands, files)
 
     return(coverage.tb)
 
-}
-#' @title Provides information about one coverage of the WTSS service
-#' @name sits_coverageWTSS
-#'
-#' @description uses the WTSS services to print information and save metadata about a
-#' chosen coverage:
-#'  bands          - the information about the bands of the data to be retrieved from the WTSS
-#'  start_date     - the start date for the time series data in the coverage
-#'  end_date       - the end date for the time series data in the coverage
-#'  xres           - spatial resolution (x dimension)
-#'  yres           - spatial resolution (y dimension)
-#'  start_date     - initial date of the coverage time series
-#'  end_date       - final date of the coverage time series
-#'  xmin           - spatial extent (xmin)
-#'  ymin           - spatial extent (ymin)
-#'  xmax           - spatial extent (xmax)
-#'  ymax           - spatial extent (ymin)
-#'  scale_factor   - scale factor to covert bands to a [0..1] scale
-#'  crs            - Projection crs
-#'
-#' @param product    the name of the product
-#' @param coverage   the name of the coverage
-#' @examples
-#' # Retrieve information about a WTSS coverage
-#' coverage.tb <- sits_coverageWTSS(coverage = "mod13q1_512")
-#' @export
-#'
-sits_coverageWTSS <- function(product = "MOD13Q1", coverage = "mod13q1_512") {
-
-    tryCatch({
-        URL  <- .sits_get_server("WTSS")
-        # obtains information about the available coverages
-        wtss.obj         <- wtss::WTSS(URL)
-
-        # temporal extent
-        timeline <- .sits_get_timeline("WTSS", product, coverage)
-
-        # create a coverage metadata
-        coverage.tb <- .sits_coverage_web(r_obj      = wtss.obj,
-                                          service    = "WTSS",
-                                          product    = product,
-                                          coverage   = coverage,
-                                          timeline   = timeline)
-
-    }, error = function(e){
-        msg <- paste0("WTSS service not available at URL ", URL)
-        .sits_log_error(msg)
-        message(msg)
-    })
-
-    # return the tibble with coverage info
-    return(coverage.tb)
-}
-
-#' @title Retrieve a coverage name from the SATVEG service
-#' @name sits_coverageSATVEG
-#' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Retrieves a coverage name based on the capabilities of the SATVEG service
-#'
-#' @param product            the SATVEG product
-#' @param coverage           the name of the coverage ("terra", "aqua", "comb")
-#' @param timeline           the timeline for the SATVEG product (optional)
-#' @return coverage.tb       metadata about the coverage
-#' @examples
-#' coverage.tb <- sits_coverageSATVEG(product = "MOD13Q1", coverage = "terra")
-#' @export
-#'
-sits_coverageSATVEG <- function(product = "MOD13Q1", coverage = "terra", timeline = NULL) {
-
-    coverage.tb <- .sits_coverage_web(service = "SATVEG",
-                                      product = "MOD13Q1",
-                                      coverage = coverage,
-                                      timeline = timeline)
-
-    return(coverage.tb)
 }
 
 #' @title Provides information about one coverage of a web time series service
-#' @name .sits_coverage_web
+#' @name .sits_coverage_create
 #'
 #' @description creates a tibble with metadata about a given coverage
 #'
 #' @param r_obj      the R object associated with the coverage
 #' @param service    the time series service
-#' @param product    the SATVEG product
-#' @param coverage   the name of the coverage
+#' @param product    the image product
+#' @param name       the name of the coverage
 #' @param timeline   (optional) the coverage timeline
 #' @param bands      vector with names of bands
 #' @param file_names vector of names of raster files where the data is stored
 #'
-.sits_coverage_web <- function(r_obj   = NA,
-                               service = "WTSS",
-                               product = "MOD13Q1",
-                               coverage,
-                               timeline = NULL,
-                               bands    = NULL,
-                               files    = NA) {
+.sits_coverage_create <- function(r_obj    = NA, service, product, name,
+                               timeline = NULL, bands = NULL, files = NA) {
 
 
     if (purrr::is_null(bands))
@@ -155,7 +104,7 @@ sits_coverageSATVEG <- function(product = "MOD13Q1", coverage = "terra", timelin
 
     # get the timeline
     if (purrr::is_null(timeline))
-        timeline <- .sits_get_timeline(service, product, coverage)
+        timeline <- .sits_get_timeline(service, product, name)
 
     # get the size of the coverage
     size <- .sits_get_size(service, product, r_obj)
@@ -168,7 +117,7 @@ sits_coverageSATVEG <- function(product = "MOD13Q1", coverage = "terra", timelin
 
     # create a tibble to store the metadata
     coverage.tb <- tibble::tibble(r_obj          = list(r_obj),
-                                  coverage       = coverage,
+                                  name           = name,
                                   service        = service,
                                   product        = product,
                                   bands          = list(bands),
@@ -186,6 +135,63 @@ sits_coverageSATVEG <- function(product = "MOD13Q1", coverage = "terra", timelin
                                   crs            = crs,
                                   file           = NA)
 
+
+    return(coverage.tb)
+}
+
+#' @title Create a metadata tibble to store the description of a spatio-temporal raster dataset
+#' @name .sits_coverage_raster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description  This function creates a tibble containing the metadata for
+#'               a set of spatio-temporal raster files, organized as a set of "Raster Bricks".
+#'               These files should be of the same size and
+#'               projection. Each raster brick file should contain one band
+#'               per time step. Different bands are archived in different raster files.
+#'
+#' @param  product       The image product where the files are extracted (e.g. MOD13Q1)
+#' @param  name         The name of the coverage file
+#' @param  timeline      Vector of dates with the timeline of the bands
+#' @param  bands         The bands contained in the Raster Brick set (in the same order as the files)
+#' @param  files         Vector with the file paths of the raster files
+#' @return raster.tb     A tibble with metadata information about a raster data set
+#'
+.sits_coverage_raster <- function(product = "MOD13Q1", name = NULL, timeline = NULL, bands, files) {
+
+    ensurer::ensure_that(bands, length(.) == length(files),
+                         err_desc = "sits_coverageRaster: number of bands does not match number of files")
+    ensurer::ensure_that(name, !purrr::is_null(.),
+                         err_desc = "sits_coverageRaster: name of the coverega must be provided")
+    ensurer::ensure_that(bands, !purrr::is_null(.),
+                         err_desc = "sits_coverageRaster - bands must be provided")
+    ensurer::ensure_that(files, !purrr::is_null(.),
+                         err_desc = "sits_coverageRaster - files must be provided")
+
+    # get the timeline
+    if (purrr::is_null(timeline))
+        timeline <- .sits_get_timeline(service = "RASTER", product = product, name = name)
+
+    # create a list to store the raster objects
+
+    brick.lst <- purrr::pmap(list(files, bands),
+                             function(file, band) {
+                                 # create a raster object associated to the file
+                                 raster.obj <- raster::brick(file)
+                                 # find out how many layers the object has
+                                 n_layers   <-  raster.obj@file@nbands
+                                 # check that there are as many layers as the length of the timeline
+                                 ensurer::ensure_that(n_layers, (.) == length(timeline),
+                                                      err_desc = "duration of timeline is not matched by number of layers in raster")
+                                 # add the object to the raster object list
+                                 return(raster.obj)
+                             })
+    coverage.tb <- .sits_create_raster_coverage(brick.lst   = brick.lst,
+                                                service  = "RASTER",
+                                                product  = product,
+                                                name     = name,
+                                                timeline = timeline,
+                                                bands    = bands,
+                                                files    = files)
 
     return(coverage.tb)
 }

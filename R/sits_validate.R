@@ -30,12 +30,13 @@
 #' @return pred_ref.tb    a tibble containing pairs of reference and predicted values
 #'
 #' @examples
+#' \donttest{
 #' # read a set of samples
 #' data (cerrado_2classes)
 #'
 #' # perform a five fold validation with the SVM machine learning method
 #' conf_matrix1.mx <- sits_kfold_validate (cerrado_2classes)
-#'
+#' }
 #' @export
 
 sits_kfold_validate <- function(data.tb, folds = 5,

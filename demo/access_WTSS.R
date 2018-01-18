@@ -4,12 +4,11 @@
 wtss_inpe <- sits_infoWTSS()
 
 # get information about a specific coverage
-coverage.tb <- sits_coverageWTSS(product = "MOD13Q1", coverage = "mod13q1_512")
-
+coverage_wtss.tb <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1", name = "mod13q1_512")
 
 # retrieve the time series associated with the point from the WTSS server
-point.tb <- sits_getdata(longitude = -47.0516, latitude = -10.7241, bands = c("ndvi", "evi", "nir", "mir"),
-                         service = "WTSS", coverage = "mod13q1_512")
+point.tb <- sits_getdata(coverage_wtss.tb, longitude = -47.0516, latitude = -10.7241,
+                         bands = c("ndvi", "evi", "nir", "mir"))
 
 # plot the series
 sits_plot(point.tb)

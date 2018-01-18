@@ -313,7 +313,7 @@
 #'
 .sits_tibble_coverage <- function() {
     result.tb <- tibble::tibble(r_obj          = list(),
-                                coverage       = character(),
+                                name           = character(),
                                 service        = character(),
                                 product        = character(),
                                 bands          = list(),

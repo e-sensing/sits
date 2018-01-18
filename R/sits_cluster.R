@@ -23,7 +23,7 @@
 #' dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
 #' # include the cluster info in the SITS tibble
 #' clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
-c#' }
+#' }
 #'
 #' @export
 sits_cluster <-  function (data.tb, dendro.obj, k = NULL, height = NULL) {

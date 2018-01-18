@@ -8,7 +8,7 @@
 #' @param longitude     Longitude of the chosen location
 #' @param latitude      Latitude of the chosen location
 #' @param label         Label to attach to the time series (optional)
-#' @param coverage      Name of the coverage where data comes from
+#' @param name          Name of the coverage where data comes from
 #' @return data.tb      A time series in SITS tibble format
 #'
 #' @examples
@@ -16,9 +16,9 @@
 #' data(ts_zoo)
 #' # Convert the zoo series into a SITS tibble
 #' data.tb <- sits_fromZOO (ts_zoo, longitude = -54.2313, latitude = -14.0482,
-#'            label = "Cerrado", coverage = "mod13q1")
+#'            label = "Cerrado", name = "mod13q1")
 #' @export
-sits_fromZOO <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoClass", coverage = "unknown"){
+sits_fromZOO <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoClass", name  = "unknown"){
 
     # convert the data from the zoo format to a tibble used by SITS
     ts.tb <- tibble::as_tibble(zoo::fortify.zoo(ts.zoo))
@@ -41,7 +41,7 @@ sits_fromZOO <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoC
                                start_date   = as.Date(start_date),
                                end_date     = as.Date(end_date),
                                label        = label,
-                               coverage     = coverage,
+                               coverage     = name,
                                time_series  = ts.lst)
     class(data.tb) <- append(class(data.tb), "sits")
 
