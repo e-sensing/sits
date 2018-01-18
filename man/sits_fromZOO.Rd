@@ -5,7 +5,7 @@
 \title{Import time series in the zoo format to a SITS tibble}
 \usage{
 sits_fromZOO(ts.zoo, longitude = 0, latitude = 0, label = "NoClass",
-  coverage = "unknown")
+  name = "unknown")
 }
 \arguments{
 \item{ts.zoo}{A zoo time series}
@@ -16,7 +16,7 @@ sits_fromZOO(ts.zoo, longitude = 0, latitude = 0, label = "NoClass",
 
 \item{label}{Label to attach to the time series (optional)}
 
-\item{coverage}{Name of the coverage where data comes from}
+\item{name}{Name of the coverage where data comes from}
 }
 \value{
 data.tb      A time series in SITS tibble format
@@ -29,7 +29,7 @@ Converts data from an instance of a zoo series to a SITS tibble
 data(ts_zoo)
 # Convert the zoo series into a SITS tibble
 data.tb <- sits_fromZOO (ts_zoo, longitude = -54.2313, latitude = -14.0482,
-           label = "Cerrado", coverage = "mod13q1")
+           label = "Cerrado", name = "mod13q1")
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

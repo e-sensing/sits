@@ -32,7 +32,7 @@ raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 }
 \description{
 Takes a set of spatio-temporal raster bricks, whose metadata is
-             described by tibble (created by \code{\link[sits]{sits_fromRaster}}),
+             described by tibble (created by \code{\link[sits]{sits_coverage}}),
              a set of samples used for training a classification model,
              a prediction model (created by \code{\link[sits]{sits_train}}),
              and produces a classified set of RasterLayers. This function is similar to

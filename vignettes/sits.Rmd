@@ -114,11 +114,11 @@ After finding out which coverages are available at the different time series ser
 
 ```{r}
 # get information about a specific coverage from WTSS
-coverage.tb <- 
-    sits_coverage(service  = "WTSS", 
+coverage_wtss <- 
+    sits_coverage(service  = "WTSS-INPE-1", 
                   product  = "MOD13Q1", 
-                  coverage = "mod13q1_512")
-coverage.tb[, c("xmin","xmax","ymin","ymax",
+                  name     = "mod13q1_512")
+coverage_wtss[, c("xmin","xmax","ymin","ymax",
                 "start_date", "end_date")]
 ```
 
@@ -130,9 +130,7 @@ The user can request one or more time series points using `sits_getdata()`. This
 series.tb <- 
     sits_getdata(longitude  = -55.57320, 
                  latitude   = -11.50566, 
-                 service    = "WTSS", 
-                 product    = "MOD13Q1",
-                 coverage   = "mod13q1_512", 
+                 coverage   = coverage_wtss, 
                  bands      = c("ndvi", "evi"))
 # plot the series
 sits_plot(series.tb)

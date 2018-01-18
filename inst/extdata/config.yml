@@ -1,121 +1,166 @@
 default:
-    log_file         : "~/.sits/sits.log"
-    adjustment_shift : 3.0
-    ts_services      : ["WTSS", "SATVEG", "RASTER"]
+    log_file                : "~/.sits/sits.log"
+    adjustment_shift        : 3.0
+    protocols               : ["WTSS", "SATVEG", "RASTER"]
+    ts_services             : ["WTSS-INPE-1", "WTSS-INPE-2", "SATVEG", "RASTER"]
+    WTSS_services           : ["WTSS-INPE-1", "WTSS-INPE-2"]
+    SATVEG_services         : ["SATVEG"]
 
-    WTSS_server      : "http://www.dpi.inpe.br/tws/wtss"
-    WTSS_products    : ["MOD13Q1"]
-    WTSS_bands       :
-        MOD13Q1      : ["ndvi", "evi", "nir", "blue", "red", "mir"]
-    WTSS_coverages   :
-        MOD13Q1      : ["mod13q1_512", "MOD13Q1"]
-    WTSS_bbox        :
-        MOD13Q1      :
-            xmin     : -81.2341
-            xmax     : -31.9165
-            ymin     : -30.000
-            ymax     :  10.000
-    WTSS_size        :
-        MOD13Q1      :
-            nrows    : 24000
-            ncols    : 19200
-    WTSS_crs         :
-        MOD13Q1      : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+    RASTER_protocol         : ["RASTER"]
 
-    SATVEG_server    : "https://www.satveg.cnptia.embrapa.br"
-    SATVEG_account   :
-        MOD13Q1      : &account "/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
-        MYD13Q1      : *account
-        MOD-MYD13Q1  : *account
-    SATVEG_products  : ["MOD13Q1", "MYD13Q1", "MOD-MYD13Q1"]
-    SATVEG_bands     :
-        MOD13Q1      : ["ndvi", "evi"]
-    SATVEG_coverages :
-        MOD13Q1      : ["terra"]
-        MYD13Q1      : ["aqua"]
-        MOD-MYD13Q1  : ["comb"]
-    SATVEG_bbox      :
-        MOD13Q1:
-            xmin     : -81.2341
-            xmax     : -31.9165
-            ymin     : -30.0000
-            ymax     :  10.000
-    SATVEG_size      :
-        MOD13Q1      :
-            nrows    : 24000
-            ncols    : 19200
-    SATVEG_prefilter :
-        MOD13Q1      : &prefilter ["0", "1", "2", "3"] # "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
-        MYD13Q1      : *prefilter
-        MOD-MYD13Q1  : *prefilter
-    SATVEG_crs       :
-        MOD13Q1      : &crs-wgs84 "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
-        MYD13Q1      : *crs-wgs84
-        MOD-MYD13Q1  : *crs-wgs84
+    WTSS-INPE-1_protocol    : "WTSS"
+    WTSS-INPE-1_server      : "http://www.dpi.inpe.br/tws/wtss"
+    WTSS-INPE-1_products    : ["MOD13Q1"]
+    WTSS-INPE-1_bands       :
+        MOD13Q1             : ["ndvi", "evi", "nir", "blue", "red", "mir"]
+    WTSS-INPE-1_coverages   :
+        MOD13Q1             : ["mod13q1_512"]
+    WTSS-INPE-1_bbox        :
+        MOD13Q1             :
+            xmin            : -81.2341
+            xmax            : -31.9165
+            ymin            : -30.000
+            ymax            :  10.000
+    WTSS-INPE-1_size        :
+        MOD13Q1             :
+            nrows           : 24000
+            ncols           : 19200
+    WTSS-INPE-1_crs         :
+        MOD13Q1             : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+
+    WTSS-INPE-2_protocol    : "WTSS"
+    WTSS-INPE-2_server      : "http://www.dpi.inpe.br/tws/wtss"
+    WTSS-INPE-2_products    : ["MOD13Q1"]
+    WTSS-INPE-2_bands       :
+        MOD13Q1             : ["ndvi", "evi", "nir", "blue", "red", "mir"]
+    WTSS-INPE-2_coverages   :
+        MOD13Q1             : ["MOD13Q1"]
+    WTSS-INPE-2_bbox        :
+        MOD13Q1             :
+            xmin            : -81.2341
+            xmax            : -31.9165
+            ymin            : -30.000
+            ymax            :  10.000
+    WTSS-INPE-2_size        :
+        MOD13Q1             :
+            nrows           : 24000
+            ncols           : 19200
+    WTSS-INPE-2_crs         :
+        MOD13Q1             : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+
+    SATVEG_protocol         : "SATVEG"
+    SATVEG_server           : "https://www.satveg.cnptia.embrapa.br"
+    SATVEG_account          :
+        MOD13Q1             : &account "/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
+        MYD13Q1             : *account
+        MOD-MYD13Q1         : *account
+    SATVEG_products         : ["MOD13Q1", "MYD13Q1", "MOD-MYD13Q1"]
+    SATVEG_bands            :
+        MOD13Q1             : &bands ["ndvi", "evi"]
+        MYD13Q1             : *bands
+        MOD-MYD13Q1         : *bands
+    SATVEG_coverages        :
+        MOD13Q1             : ["terra"]
+        MYD13Q1             : ["aqua"]
+        MOD-MYD13Q1         : ["comb"]
+    SATVEG_bbox             :
+        MOD13Q1             :
+            xmin            : &xmin_satveg -81.2341
+            xmax            : &xmax_satveg -31.9165
+            ymin            : &ymin_satveg -30.0000
+            ymax            : &ymax_satveg  10.000
+        MYD13Q1             :
+            xmin            : *xmin_satveg
+            xmax            : *xmax_satveg
+            ymin            : *ymin_satveg
+            ymax            : *ymax_satveg
+        MOD-MYD13Q1         :
+            xmin            : *xmin_satveg
+            xmax            : *xmax_satveg
+            ymin            : *ymin_satveg
+            ymax            : *ymax_satveg
+    SATVEG_size             :
+        MOD13Q1             :
+            nrows           : &nrows_satveg 24000
+            ncols           : &ncols_satveg 19200
+        MYD13Q1             :
+            nrows           : *nrows_satveg
+            ncols           : *ncols_satveg
+        MOD-MYD13Q1         :
+            nrows           : *nrows_satveg
+            ncols           : *ncols_satveg
+    SATVEG_prefilter        :
+        MOD13Q1             : &prefilter ["0", "1", "2", "3"] # "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
+        MYD13Q1             : *prefilter
+        MOD-MYD13Q1         : *prefilter
+    SATVEG_crs              :
+        MOD13Q1             : &crs-wgs84 "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+        MYD13Q1             : *crs-wgs84
+        MOD-MYD13Q1         : *crs-wgs84
 
     MOD13Q1_resolution:
-        xres        : &mod13q1-x 0.00208334
-        yres        : &mod13q1-y 0.00208334
+        xres                : &mod13q1-x 0.00208334
+        yres                : &mod13q1-y 0.00208334
 
     MYD13Q1_resolution:
-        xres        : *mod13q1-x
-        yres        : *mod13q1-y
+        xres                : *mod13q1-x
+        yres                : *mod13q1-y
 
     MOD-MYD13Q1_resolution:
-        xres        : *mod13q1-x
-        yres        : *mod13q1-y
+        xres                : *mod13q1-x
+        yres                : *mod13q1-y
 
     MOD13Q1_missing_value:
-        ndvi        : &ndvi-mv -3000
-        evi         : &evi-mv  -3000
-        red         : &red-mv  -1000
-        nir         : &nir-mv  -1000
-        blue        : &blue-mv -1000
-        mir         : &mir-mv  -1000
+        ndvi                : &ndvi-mv -3000
+        evi                 : &evi-mv  -3000
+        red                 : &red-mv  -1000
+        nir                 : &nir-mv  -1000
+        blue                : &blue-mv -1000
+        mir                 : &mir-mv  -1000
 
     MYD13Q1_missing_value:
-        ndvi        : *ndvi-mv
-        evi         : *evi-mv
-        red         : *red-mv
-        nir         : *nir-mv
-        blue        : *blue-mv
-        mir         : *mir-mv
+        ndvi                : *ndvi-mv
+        evi                 : *evi-mv
+        red                 : *red-mv
+        nir                 : *nir-mv
+        blue                : *blue-mv
+        mir                 : *mir-mv
 
     MOD-MYD13Q1_missing_value:
-        ndvi        : *ndvi-mv
-        evi         : *evi-mv
-        red         : *red-mv
-        nir         : *nir-mv
-        blue        : *blue-mv
-        mir         : *mir-mv
+        ndvi                : *ndvi-mv
+        evi                 : *evi-mv
+        red                 : *red-mv
+        nir                 : *nir-mv
+        blue                : *blue-mv
+        mir                 : *mir-mv
 
     MOD13Q1_scale_factor:
-        ndvi        : &ndvi-sf 0.0001
-        evi         : &evi-sf  0.0001
-        red         : &red-sf  0.0001
-        nir         : &nir-sf  0.0001
-        blue        : &blue-sf 0.0001
-        mir         : &mir-sf  0.0001
+        ndvi                : &ndvi-sf 0.0001
+        evi                 : &evi-sf  0.0001
+        red                 : &red-sf  0.0001
+        nir                 : &nir-sf  0.0001
+        blue                : &blue-sf 0.0001
+        mir                 : &mir-sf  0.0001
 
     MYD13Q1_scale_factor:
-        ndvi        : *ndvi-sf
-        evi         : *evi-sf
-        red         : *red-sf
-        nir         : *nir-sf
-        blue        : *blue-sf
-        mir         : *mir-sf
+        ndvi                : *ndvi-sf
+        evi                 : *evi-sf
+        red                 : *red-sf
+        nir                 : *nir-sf
+        blue                : *blue-sf
+        mir                 : *mir-sf
 
     MOD-MYD13Q1_scale_factor:
-        ndvi        : *ndvi-sf
-        evi         : *evi-sf
-        red         : *red-sf
-        nir         : *nir-sf
-        blue        : *blue-sf
-        mir         : *mir-sf
+        ndvi                : *ndvi-sf
+        evi                 : *evi-sf
+        red                 : *red-sf
+        nir                 : *nir-sf
+        blue                : *blue-sf
+        mir                 : *mir-sf
 
 
     SATVEG_timeline :
-        MOD13Q1     : [ "2000-02-18", "2000-03-05", "2000-03-21", "2000-04-06", "2000-04-22", "2000-05-08", "2000-05-24", 2000-06-09",
+        MOD13Q1     : &mod13q1-timeline-satveg [ "2000-02-18", "2000-03-05", "2000-03-21", "2000-04-06", "2000-04-22", "2000-05-08", "2000-05-24", 2000-06-09",
                         "2000-06-25", "2000-07-11", "2000-07-27", "2000-08-12", "2000-08-28", "2000-09-13", "2000-09-29", "2000-10-15",
                         "2000-10-31", "2000-11-16", "2000-12-02", "2000-12-18", "2001-01-01", "2001-01-17", "2001-02-02", "2001-02-18",
                         "2001-03-06", "2001-03-22", "2001-04-07", "2001-04-23", "2001-05-09", "2001-05-25", "2001-06-10", "2001-06-26",
@@ -167,6 +212,9 @@ default:
                         "2017-03-06", "2017-03-22", "2017-04-07", "2017-04-23", "2017-05-09", "2017-05-25", "2017-06-10", "2017-06-26",
                         "2017-07-12", "2017-07-28", "2017-08-13", "2017-08-29", "2017-08-14", "2017-09-30", "2017-10-16", "2017-11-01",
                         "2017-11-17", "2017-12-03" ]
+
+        MYD13Q1     : *mod13q1-timeline-satveg
+        MOD-MYD13Q1 : *mod13q1-timeline-satveg
 
     RASTER_timeline :
         MOD13Q1     : [ "2000-02-18", "2000-03-05", "2000-03-21", "2000-04-06", "2000-04-22", "2000-05-08", "2000-05-24", 2000-06-09",

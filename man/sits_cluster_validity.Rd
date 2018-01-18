@@ -10,12 +10,14 @@ sits_cluster_validity(data.tb)
 \item{data.tb}{a SITS tibble with `cluster` column.}
 }
 \value{
-A vector with (adjusted) Rand index CVIs
+A vector with four external validity indices
 }
 \description{
 Compute different cluster validity indices. This function needs
-as input a SITS tibble with `cluster` column. It is a front-end to
-`dtwclust::cvi` function. Please refer to the documentation in that package for more details.
+as input a SITS tibble with `cluster` column.
+It is a front-end to `dtwclust::cvi` function. That function computes five indices:
+1) adjusted Rand index; 2) Rand index; 3) Jaccard index; 4) Fowlkes-Mallows; and 5) Variation of Information index
+Please refer to the documentation in that package for more details.
 }
 \examples{
 \donttest{

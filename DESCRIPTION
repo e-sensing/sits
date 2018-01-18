@@ -81,7 +81,6 @@ Collate:
     'RcppExports.R'
     'data.R'
     'sits_SATVEG.R'
-    'sits_SHP.R'
     'sits_TWDTW.R'
     'sits_WTSS.R'
     'sits_accuracy.R'

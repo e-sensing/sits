@@ -1,102 +1,3 @@
-#' @title Obtain one timeSeries from the EMBRAPA SATVEG server and load it on a sits tibble
-#' @name sits_fromSATVEG
-#' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns one set of MODIS time series provided by the EMBRAPA server (SATVEG)
-#' Given a location (lat/long), the function retrieves the "ndvi" and "evi" bands from SATVEG
-#' and inclues the data on a stis tibble. If start and end date are given, the function
-#' filter the data to limit the temporal interval.
-#'
-#' @param product         an image product (e.g., "MOD13Q1")
-#' @param coverage        the coverage (e.g., "terra", "aqua", "comb")
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location
-#' @param start_date      date - the start of the period
-#' @param end_date        date - the end of the period
-#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @param label           string - the label to attach to the time series (optional)
-#' @return data.tb        a SITS tibble
-#'
-#' @examples
-#' \donttest{
-#' # Read a single lat long point from the SATVEG server
-#' point.tb <- sits_fromSATVEG (longitude = -55.50563, latitude = -11.71557)
-#' }
-#' @export
-sits_fromSATVEG <- function(product     = "MOD13Q1",
-                            coverage    = "terra",
-                            longitude   = NULL,
-                            latitude    = NULL,
-                            start_date  = NULL,
-                            end_date    = NULL,
-                            prefilter   = "1",
-                            label       = "NoClass") {
-
-    # check parameters
-    .sits_check_SATVEG(longitude, latitude, product, coverage, prefilter)
-
-    # create the coverage metadata
-    coverage.tb <- sits_coverageSATVEG(coverage)
-
-    # retrieve the time series
-    ts.tb <- .sits_ts_from_SATVEG(longitude, latitude, coverage, prefilter)
-
-    # filter the dates
-    if (!purrr::is_null(start_date) && !purrr::is_null(end_date))
-        ts.tb <- dplyr::filter(ts.tb, dplyr::between(ts.tb$Index, start_date, end_date))
-    else {
-        start_date <- as.Date(ts.tb$Index[1])
-        end_date   <- as.Date(ts.tb$Index[NROW(ts.tb)])
-    }
-
-    # use a list to store the time series
-    ts.lst <- list()
-    ts.lst[[1]] <- ts.tb
-
-    # create a tibble to store the SATVEG data
-    data.tb <- sits_tibble()
-    # add one row to the tibble
-    data.tb <- tibble::add_row(data.tb,
-                               longitude    = longitude,
-                               latitude     = latitude,
-                               start_date   = start_date,
-                               end_date     = end_date,
-                               label        = label,
-                               coverage     = coverage,
-                               time_series  = ts.lst
-    )
-    return(data.tb)
-}
-#' @title Check that SATVEG function parameters are correct
-#' @name .sits_check_SATVEG
-#' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Checks each parameters against the SATVEG capabilties
-#'
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location
-#' @param product         an image product (e.g., "MOD13Q1")
-#' @param coverage        name of coverage ("terra", "aqua", "comb")
-#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @return status         TRUE if no problems are detected
-#'
-.sits_check_SATVEG <- function(longitude, latitude, product, coverage, prefilter){
-
-    ensurer::ensure_that(longitude, !purrr::is_null(.),
-                         err_desc = "sits_fromSATVEG: Missing longitude info")
-    ensurer::ensure_that(latitude,  !purrr::is_null(.),
-                         err_desc = "sits_fromSATVEG: Missing latitude info")
-    ensurer::ensure_that(coverage, (.) %in% sits.env$config$SATVEG_coverages[[product]],
-                         err_desc = "sits_fromSATVEG: Invalid satellite param")
-    ensurer::ensure_that(prefilter, (.) %in% sits.env$config$SATVEG_prefilter[[product]],
-                         err_desc = "sits_fromSATVEG: prefilter choice is not available")
-
-    status <- TRUE
-    return(invisible(status))
-
-}
 #' @title Retrieve a time series from the SATVEG service
 #' @name .sits_ts_from_SATVEG
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
@@ -106,12 +7,12 @@ sits_fromSATVEG <- function(product     = "MOD13Q1",
 #'
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location
-#' @param coverage        the desired coverage in SATVEG (see configuration file)
+#' @param name            name of the desired coverage in SATVEG (see configuration file)
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
 #' @param product         the SATVEG product we are using
 #' @return status         TRUE if no problems are detected
 #'
-.sits_ts_from_SATVEG <- function(longitude, latitude, coverage, prefilter, product = "MOD13Q1"){
+.sits_ts_from_SATVEG <- function(longitude, latitude, name, prefilter, product = "MOD13Q1"){
 
     # the parameter filter is not used
     filter <- ""
@@ -128,7 +29,7 @@ sits_fromSATVEG <- function(product     = "MOD13Q1",
     # read each of the bands separately
     for (b in bands) {
         # Build the URL to retrieve the time series
-        URL_ts <- paste0(URL, b, "/ponto", "/", longitude, "/", latitude, "/", coverage, "/",
+        URL_ts <- paste0(URL, b, "/ponto", "/", longitude, "/", latitude, "/", name, "/",
                          prefilter, "/", filter, "/", filter_par)
 
         # Get the data from SATVEG service
