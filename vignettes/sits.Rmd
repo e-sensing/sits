@@ -224,22 +224,26 @@ One of the main uses of time series filtering is to reduce the noise and miss da
 
 ## Savitzky–Golay filter
 
-The Savitzky-Golay filter works by fitting successive sub-sets of adjacent data points with a low-degree polynomial whose coefficients can be derived by through the method of linear least squares. The resulting $i$-th point of the filtered time series is obtained by substituting the polynomial independent terms by the $n$-adjacent points relative to a central one, $i$, in the original time series, as expressed by
+The Savitzky-Golay filter works by fitting successive sub sets of $l$ (odd number) adjacent data points with a low-degree polynomial whose coefficients can be derived through linear least squares. The central point $i$ of the sub set assumes the value of the interpolated polynomial. An equivalent and much faster solution to this iterated process can be obtained by the expression
 $$
 {\hat{x}_{i}=\sum _{j=-n}^{n}C_{j}\,x_{i+j}},
 $$
-where $\hat{x}$ is the the filtered time series, $C_{j}$ is the polynomial coefficient respective to the $j$-th adjacent point and, $x$ is the original time series. The coefficients have analytical solution when the time series is equally spaced and depends uniquely on polynomial degree and the length of the sub set of adjacent data points (including the central point, $2n+1$). More details on the procedure of coefficient determination can be found in @Savitzky1964. The difference between an original and a filtered time series using the Savitsky-Golay filter is shown in example bellow.
+where $\hat{x}$ is the the filtered time series, $C_{j}$ are the Savitzky-Golay smoothin coefficients, and $x$ is the original time series. 
 
-<!-- Colocar bibliografia de uso do SG em SITS -->
+The coeficients $C_{j}$ depends uniquely on polynomial degree $d$ and the length $l$ of the sub set of adjacent data points (including the central point). If $d=0$, the coeficients are constants $C_{j}=1/l$ and the Savitzky-Golay filter is equivalent to moving average filter. When the time series is equally spaced, the coefficients have analytical solution (a list of coefficients and an explanation on how to compute them can be found in @Gorry1990). The following example shows the effect of Savitsky-Golay filter on the original time series.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5}
 # Take the NDVI band of the first sample data set
-point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
+point.tb <- 
+    sits_select(prodes_226_064[1,], 
+                bands = c("ndvi"))
 # apply Savitzky–Golay filter
 point_sg.tb <- sits_sgolay(point.tb)
 # plot the series
 sits_plot(sits_merge(point_sg.tb, point.tb))
 ```
+
+<!-- Colocar bibliografia de uso do SG em SITS -->
 
 ## Whittaker filter
 
@@ -273,9 +277,8 @@ D = \left[\begin{array}{ccccccc}
 \end{array}
 \right]
 $$
-is the third order difference matrix.
-
-The Whitakker filter can be a large but sparse optimisation problem, as we can note from $D$ matrix. In `sits` implementation, the default $\lambda{}$ parameter is $1.0$. <!-- @Zhou2016 used different values for $\lambda{}$. For its purpose $\lambda=15$ gives he best result. --> were used in Shoe1 The example bellow depicts an original and a filtered time series.
+is the third order difference matrix. The Whitakker filter can be a large but sparse optimisation problem, as we can note from $D$ matrix. 
+The filter has one parameter In `sits` implementation, the default $\lambda{}$ parameter is $1.0$. <!-- @Zhou2016 used different values for $\lambda{}$. For its purpose $\lambda=15$ gives he best result. --> were used in Shoe1 The example bellow depicts an original and a filtered time series.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker filter applied on a one-year sample NDVI time series."}
 # Take the NDVI band of the first sample data set
