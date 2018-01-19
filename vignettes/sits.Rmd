@@ -226,16 +226,16 @@ $$
 $$
 where $\hat{x}$ is the the filtered time series, $C_{j}$ are the Savitzky-Golay smoothing coefficients, and $x$ is the original time series.
 
-The coeficients $C_{j}$ depend uniquely on the polynomial degree ($d$) and the length of the window data points (given by parameter $n$). If $d=0$, the coeficients are constants $C_{j}=1/(2n+1)$ and the Savitzky-Golay filter will be equivalent to moving average filter. When the time series is equally spaced, the coefficients have analytical solution. According to @Madden1978, for $d\in{}[2,3]$ each $C_{j}$ smothing coefficient can be obtained by
+The coeficients $C_{j}$ depend uniquely on the polynomial degree ($d$) and the length of the window data points (given by parameter $n$). If $d=0$, the coeficients are constants $C_{j}=1/(2n+1)$ and the Savitzky-Golay filter will be equivalent to moving average filter. When the time series is equally spaced, the coefficients have analytical solution. According to @Madden1978, for $d\in{}[2,3]$ each $C_{j}$ smothing coefficients can be obtained by
 $$
 C_{j}=\frac{3(3n^2+3n-1-5j^2)}{(2n+3)(2n+1)(2n-1)}.
 $$
 
 In general, the Savitzky-Golay filter produces smoother results for a larger value of $n$ and/or a smaller value of $d$ [@Chen2004]. The optimal value for these two parameters can vary from case to case. For example, @Zhou2016 set $d=2$ and $n=10$. @Hird2009 tests the filter for $n\in{}[5,6,7]$ using quadratic polynomial.
 
-The following example shows the effect of Savitsky-Golay filter on the original time series.
+`sits` Savitzky-Golay function  The following example shows the effect of Savitsky-Golay filter on the original time series.
 
-```{r, fig.align="center", fig.height=3.1, fig.width=5}
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Savitzky-Golay filter applied on a one-year NDVI time series."}
 # Take the NDVI band of the first sample data set
 point.tb <- 
     sits_select(prodes_226_064[1,], 
@@ -248,7 +248,7 @@ sits_plot(sits_merge(point_sg.tb, point.tb))
 
 ## Whittaker filter
 
-The Whittaker smoother attempts to fit a curve that represents the raw data, but is penalized if subsequent points vary too much [@Atzberger2011]. The Whittaker filter is a balancing between the residual to the original data and the "smoothness" of the fitted curve [@deRooi2013]. The residual, as measured by the sum of squares of all $n$ time series points deviations, is given by
+The Whittaker smoother attempts to fit a curve that represents the raw data, but is penalized if subsequent points vary too much [@Atzberger2011]. The Whittaker filter is a balancing between the residual to the original data and the "smoothness" of the fitted curve. The residual, as measured by the sum of squares of all $n$ time series points deviations, is given by
 $$
 RSS=\sum_{i}(x_{i} - \hat{x_{i}})^2,
 $$
@@ -279,33 +279,35 @@ D = \left[\begin{array}{ccccccc}
 $$
 is the third order difference matrix. The Whitakker filter can be a large but sparse optimisation problem, as we can note from $D$ matrix. 
 
-The filter has one parameter In `sits` implementation, the default $\lambda{}$ parameter is $1.0$. <!-- @Zhou2016 used different values for $\lambda{}$. For its purpose $\lambda=15$ gives he best result. --> were used in Shoe1 The example bellow depicts an original and a filtered time series.
+Whittaker smoother has been used only recently in satellite image time series investigations. According to @Atzberger2011, the smoother has an advantage over other filtering techniques such as Fourier and wavelets as it does not assume signal periodicity. Moreover, the authors argues that Whittaker permits a rapid processing of large amounts of data, and handles easily incomplete time series with missing values. The fact that it has only one parameter ($\lambda{}$) facilitates its calibration/comparison process. @Zhou2016 found that $\lambda=15$ gives the best result when compared with $\lambda=2$. Larger values of $\lambda{}$ produces smoother results.
 
-```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker filter applied on a one-year sample NDVI time series."}
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=1$ parameter."}
 # Take the NDVI band of the first sample data set
-point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
+point.tb <- 
+    sits_select(prodes_226_064[1,], 
+                bands = c("ndvi"))
 # apply Whitaker filter
 point_whit.tb <- sits_whittaker(point.tb)
 # plot the series
-sits_plot(sits_merge(point_whit.tb, point.tb))
+sits_plot(sits_merge(point_whit.tb, 
+                     point.tb))
 ```
 
 ## Envelope filter
 
-<!-- qual a referencia na literature ::: MVC!!! -->
-This filter produces a bounding (superior or inferior) time series relative to an input signal. We can bound a time series signal by two basic operations: upper and lower dilations. Both operations assumes an unitary window to which the dilation occurs. An upper dilation can be defined as
+This filter can generate a time series corresponding to the superior (inferior) bounding of the input signal. This is acomplished through a convoluting window (odd length) that attributes to the point $i$, in the resulting time series, the maximimum (minimum) value of the points in the window. The $i$ point corresponds to the central point of the window. It can be defined as
 $$
-u_i=\max_{k}{(\{x_{k}:\left|k-i\right|\le{}1\})},
+u_i=\max_{k}{(\{x_{k}:\left|i-k\right|\le{}1\})},
 $$
 whereas an lower dilation is obtained by
 $$
-l_i=\min_{k}{(\{x_{k}:\left|k-i\right|\le{}1\})}.
+l_i=\min_{k}{(\{x_{k}:\left|i-k\right|\le{}1\})}.
 $$
 Here, $x$ is the input time series and, $k$ and $i$ are vector indices.
 
-The envelope filter function can combine both upper and lower dilations recursively by a sequence of "U" (upper) and "L" (lower) characters passed as parameter. A repeated sequence of a same operation is equivalent to one operation with a larger dilation window. The final result of the recursive operations over the input time series is than returned.
+The `sits_envelope()` can combine both maximization and minimization window sequencially. The function can receive a string sequence with "U" (for maximization) and "L" (for minimization) characters passed to its parameter. A repeated sequence of the same character is equivalent to one operation with a larger window. The sequencial operations on the input time series produces the final result that is returned.
 
-This filter can be useful to remove isolated noises in the input signal. For example, an downward (upward) noise spike formed by one point in the series can be removed by an "UL" ("LU") sequence of dilations. For spikes with two points, we can repeat each operation, for example "UULL" (the default sequence), to increase the dilation window and remove such imperfections on the time series. In the following example we can see an application of `sits_envelope()` function.
+This filter can be useful to remove isolated noises in the input signal. For example, an downward (upward) noise peaks formed by one point in the series can be removed by the "UL" ("LU") operations sequence. For peaks with two points, we can repeat each operation, for example "UULL" (the default sequence), to increase the window length and remove such imperfections of the time series. In the following example we can see an application of `sits_envelope()` function.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5}
 # Take the NDVI band of the first sample data set
@@ -316,11 +318,13 @@ point_env.tb <- sits_envelope(point.tb, "UL")
 sits_plot(sits_merge(point_env.tb, point.tb))
 ```
 
+The maximum operator of envelope filter resembles the maximum value composite [Holben1986] technique, commonly used to enhance NDVI images but here, the process is adapted to a time series context.
+
 ## Cloud filter
 
-This function tries to remove noise from the input time series. It looks the first order difference time serie for points where the value of the difference goes up abruptly. These points are taken as those whose difference is more than a cutoff value which is set by the user. Then, it applies an autoregressive integrated moving average (ARIMA) model to predict the missing values. The parameters of the ARIMA model can be set by the user. Please see arima for the detailed description of parameters p, d, and q.
+This function tries to remove noise from the input time series. It looks the first order difference time serie for points where the value of the difference goes up abruptly. These points are taken as those whose difference is more than a cutoff value which is set by the user. Then, it applies an autoregressive integrated moving average (ARIMA) model to predict the missing values. The parameters of the ARIMA model can be set by the user. Please see arima for the detailed description of parameters $p$, $d$, and $q$.
 
-```{r, fig.align="center", fig.height=3.1, fig.width=5}
+```{r, fig.align="center", fig.height=2.5, fig.width=4.1}
 # Take the NDVI band of the first sample data set
 point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 # apply ARIMA filter
