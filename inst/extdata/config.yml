@@ -29,7 +29,7 @@ default:
         MOD13Q1             : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 
     WTSS-INPE-2_protocol    : "WTSS"
-    WTSS-INPE-2_server      : "http://www.dpi.inpe.br/tws/wtss"
+    WTSS-INPE-2_server      : "http://www.terrama2.dpi.inpe.br/esensing/wtss/"
     WTSS-INPE-2_products    : ["MOD13Q1"]
     WTSS-INPE-2_bands       :
         MOD13Q1             : ["ndvi", "evi", "nir", "blue", "red", "mir"]

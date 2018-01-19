@@ -32,17 +32,18 @@
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177.
 #'
-#' @param coverage        (Mandatory) A tibble with information about the coverage
-#' @param file            (optional) the name of a file with information on the data to be retrieved (options - CSV, SHP)
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location
-#' @param start_date      (optional) date - the start of the period
-#' @param end_date        (optional) date - the end of the period
-#' @param bands           (optional) vector - the names of the bands to be retrieved
-#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
+#' @param coverage        (Mandatory) A tibble with information about the coverage.
+#' @param file            (optional) the name of a file with information on the data to be retrieved (options - CSV, SHP).
+#' @param longitude       Longitude of the chosen location.
+#' @param latitude        Latitude of the chosen location.
+#' @param start_date      (optional) Start of the interval for the time series in Date format ("YYYY-MM-DD")
+#' @param end_date        (optional) End of the interval for the time series in Date format ("YYYY-MM-DD")
+#' @param bands           (optional) vector - the names of the bands to be retrieved.
+#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @param label           (optional) string - the label to be assigned to the time series
-#' @param .n_max          (optional) integer - the maximum number of samples to be read
-#' @param .n_save         number of samples to save as intermediate files (used for long reads)
+#' @param .n_start        (optional) integer - Row on the CSV file to start reading
+#' @param .n_max          (optional) integer - maximum number of CSV samples to be read (set to Inf to read all)
+#' @param .n_save         (optional) number of samples to save as intermediate files (used for long reads)
 #' @return data.tb        a SITS tibble
 #'
 #' @examples
@@ -90,6 +91,7 @@ sits_getdata <- function(coverage    = NULL,
                          bands       = NULL,
                          prefilter   = "1",
                          label       = "NoClass",
+                         .n_start    = 1,
                          .n_max      = Inf,
                          .n_save     = 0) {
 
@@ -122,12 +124,13 @@ sits_getdata <- function(coverage    = NULL,
     }
     # get data based on CSV file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv") {
-        data.tb <- .sits_fromCSV(csv_file = file,
-                                 coverage = coverage,
-                                 bands = bands,
+        data.tb <- .sits_fromCSV(csv_file  = file,
+                                 coverage  = coverage,
+                                 bands     = bands,
                                  prefilter = prefilter,
-                                .n_max = .n_max,
-                                .n_save = .n_save)
+                                .n_start   = .n_start,
+                                .n_max     = .n_max,
+                                .n_save    = .n_save)
         return(data.tb)
     }
     # get data based on SHP file
@@ -434,16 +437,12 @@ sits_getdata <- function(coverage    = NULL,
 #' @param coverage        tibble - metadata about coverage which contains data to be retrieved
 #' @param bands           string vector - the names of the bands to be retrieved
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
+#' @param .n_start        (optional) integer - Row on the CSV file to start reading
 #' @param .n_max          the maximum number of samples to be read
 #' @param .n_save         number of samples to save as intermediate files (used for long reads)
 #' @return data.tb        a SITS tibble
 #'
-.sits_fromCSV <-  function(csv_file,
-                          coverage,
-                          bands     = NULL,
-                          prefilter = "1",
-                          .n_max    = Inf,
-                          .n_save   = 0) {
+.sits_fromCSV <-  function(csv_file, coverage, bands, prefilter, .n_start, .n_max, .n_save) {
 
 
     # check that the input is a CSV file
@@ -461,7 +460,13 @@ sits_getdata <- function(coverage    = NULL,
                             end_date    = readr::col_date(),
                             label       = readr::col_character())
     # read sample information from CSV file and put it in a tibble
-    csv.tb <- readr::read_csv(csv_file, n_max = .n_max, col_types = cols_csv)
+    csv.tb <- readr::read_csv(csv_file, n_max = Inf, col_types = cols_csv)
+
+    # select a subset
+    if (.n_max == Inf)
+        .n_max = NROW(csv.tb)
+    csv.tb <- csv.tb[.n_start:.n_max, ]
+
 
     # find how many samples are to be read
     n_rows_csv <- NROW(csv.tb)

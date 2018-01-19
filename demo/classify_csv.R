@@ -1,10 +1,10 @@
 # Example of classification of a series of samples defined by a CSV file
 
-coverage_wtss <- sits_coverage(service = "WTSS", product = "MOD13Q1", name = "mod13q1_512")
+coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1", name = "mod13q1_512")
 
 # obtain a time series from the WTSS server for a set of 30 samples
 samples.tb <- sits_getdata(file = system.file("extdata/samples/samples_matogrosso.csv", package = "sits"),
-                           coverage_wtss,
+                           coverage = coverage_wtss,
                            bands = c("ndvi", "evi"),
                            .n_save = 0)
 
