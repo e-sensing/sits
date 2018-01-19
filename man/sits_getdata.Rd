@@ -6,30 +6,33 @@
 \usage{
 sits_getdata(coverage = NULL, file = NULL, longitude = NULL,
   latitude = NULL, start_date = NULL, end_date = NULL, bands = NULL,
-  prefilter = "1", label = "NoClass", .n_max = Inf, .n_save = 0)
+  prefilter = "1", label = "NoClass", .n_start = 1, .n_max = Inf,
+  .n_save = 0)
 }
 \arguments{
-\item{coverage}{(Mandatory) A tibble with information about the coverage}
+\item{coverage}{(Mandatory) A tibble with information about the coverage.}
 
-\item{file}{(optional) the name of a file with information on the data to be retrieved (options - CSV, SHP)}
+\item{file}{(optional) the name of a file with information on the data to be retrieved (options - CSV, SHP).}
 
-\item{longitude}{double - the longitude of the chosen location}
+\item{longitude}{Longitude of the chosen location.}
 
-\item{latitude}{double - the latitude of the chosen location}
+\item{latitude}{Latitude of the chosen location.}
 
-\item{start_date}{(optional) date - the start of the period}
+\item{start_date}{(optional) Start of the interval for the time series in Date format ("YYYY-MM-DD")}
 
-\item{end_date}{(optional) date - the end of the period}
+\item{end_date}{(optional) End of the interval for the time series in Date format ("YYYY-MM-DD")}
 
-\item{bands}{(optional) vector - the names of the bands to be retrieved}
+\item{bands}{(optional) vector - the names of the bands to be retrieved.}
 
-\item{prefilter}{string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
+\item{prefilter}{string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 
 \item{label}{(optional) string - the label to be assigned to the time series}
 
-\item{.n_max}{(optional) integer - the maximum number of samples to be read}
+\item{.n_start}{(optional) integer - Row on the CSV file to start reading}
 
-\item{.n_save}{number of samples to save as intermediate files (used for long reads)}
+\item{.n_max}{(optional) integer - maximum number of CSV samples to be read (set to Inf to read all)}
+
+\item{.n_save}{(optional) number of samples to save as intermediate files (used for long reads)}
 }
 \value{
 data.tb        a SITS tibble

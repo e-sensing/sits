@@ -1,44 +1,34 @@
 library (sits)
-library (mxnet)
+library (keras)
 
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data("cerrado_13classes_modis_col6")
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-samples.tb <- sits_select(cerrado_13classes_modis_col6, bands = c("ndvi","evi", "nir"))
+samples.tb <- sits_select(cerrado_13classes_modis_col6, bands = c("ndvi","evi", "nir", "mir"))
 
 # find the distance from the data
+distances.tb <- sits_distances(samples.tb, adj_fun  = function(x){BBmisc::normalize(x, method = "range")})
 
-# estimate a multi-layer perceptron model
-ml_model <- sits_train(samples.tb, ml_method = sits_mlp(hidden_node = c(400,200,100),
-                                                           learning.rate = 0.0001,
-                                                           activation = "sigmoid",
-                                                           out_activation = "softmax",
-                                                           optimizer = "adam",
-                                                           num.round = 5000,
-                                                           array.batch.size = 32,
-                                                           multicores = 2,
-                                                           stop.metric = 0.95),
-                                                           adj_fun = identity)
+
+ml_model = sits_deeplearning(distances.tb,
+                              units = c(400,200,100),
+                              activation = "relu",
+                              dropout_rates = c(0.4, 0.3, 0.2),
+                              optimizer = keras::optimizer_adam(),
+                              epochs = 100,
+                              batch_size = 128,
+                              validation_split = 0.2)
 
 
 # Retrieve a time series
 data("ts_2000_2016")
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-point.tb <- sits_select(ts_2000_2016, bands = c("ndvi","evi","nir"))
+point.tb <- sits_select(ts_2000_2016, bands = c("ndvi","evi","nir", "mir"))
 
 # classify the point
-class1.tb <- sits_classify_model(point.tb, samples.tb, ml_model, adj_fun = identity)
+class.tb <- sits_classify_model(point.tb, samples.tb, ml_model, adj_fun = function(x) {BBmisc::normalize(x, method = "range")})
 
 # plot the classification
-sits_plot(class1.tb)
-
-svm_model <- sits_train(samples.tb, ml_method = sits_svm())
-
-
-# classify the point
-class2.tb <- sits_classify_model(point.tb, samples.tb, svm_model)
-
-# plot the classification
-sits_plot(class2.tb)
+sits_plot(class.tb)
