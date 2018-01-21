@@ -27,7 +27,7 @@ sits_plot(sits_select_bands(point.tb, bands = c("ndvi", "evi")))
 # retrieve a series of samples defined by a CSV file
 # obtain a time series from the WTSS server for these samples
 samples.tb <- sits_getdata(file = system.file("extdata/samples/cerrado_13classes_col6.csv", package = "sits"),
-                           coverage = modis_col5.tb, .n_start = 11002, .n_max = Inf, .n_save = 1000)
+                           coverage = modis_col5.tb, .n_start = 11002, .n_max = Inf, .n_save = 100)
 
 save(samples.tb, file = "./inst/extdata/time_series/cerrado_13_classes_col5.rda")
 

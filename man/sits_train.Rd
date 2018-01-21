@@ -18,9 +18,7 @@ result           a model fitted into input data given by train_method parameter
 }
 \description{
 Given a tibble with a set of distance measures,
-returns trained models using support vector machines.
-After defining the training samples, the users need to provide a machine learning model.
-Currenly, sits supports the following models:
+   returns trained models. Currenly, sits supports the following models:
 'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
 'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),

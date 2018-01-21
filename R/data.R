@@ -69,9 +69,9 @@ NULL
 #'
 #' @docType data
 #' @keywords datasets
-#' @name cerrado_13classes_modis_col6
-#' @usage data(cerrado_13classes_modis_col6)
-#' @format A tibble with 11,456 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
+#' @name cerrado_13classes_modis_col5
+#' @usage data(cerrado_13classes_modis_col5)
+#' @format A tibble with 11,744 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),
 #'   coverage (the name of the coverage associated with the data),
