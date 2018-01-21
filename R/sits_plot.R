@@ -436,7 +436,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
     return(invisible(matches))
 }
 #' @title Plot a dendrogram
-#' @name sits_plot_dendro
+#' @name sits_plot_dendrogram
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendrogram}}

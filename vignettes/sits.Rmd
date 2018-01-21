@@ -84,6 +84,8 @@ In many cases, it is useful to relabel the data set. For example, there may be s
 
 Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions of the `dplyr`, `tidyr` and `purrr` packages of the `tidyverse` [@Wickham2017] to process the data. For example, the following code uses the `sits_select()` function to get a subset of the sample data set with two bands ("ndvi" and "evi") and then uses the `dplyr::filter()` function to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot()` function to display the time series. Given a small number of samples to display, the `sits_plot()` function tries to group as many spatial locations together. In the following example, the first 15 samples of the "Cerrado" class all refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together.
 
+
+
 ```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 15 'Cerrado' samples from data set \\texttt{samples_MT_9classes} (different dates for the same point location)."}
 # select the "ndvi" bands
 samples_ndvi.tb <- 
@@ -346,8 +348,6 @@ The `sits` package provides functionality to explore the full depth of satellite
 In the training stage, Additional "bands" can be computed to increase the distinction between classes. This method has a deceptive simplicity 
 
 ## Support Vector Machine
-
-
 ```{r}
 # Retrieve the set of samples for the Mato Grosso region 
 # (provided by EMBRAPA) (samples_MT_ndvi) and 
@@ -359,6 +359,7 @@ class.tb <- sits_classify(point_ndvi,
 sits_plot(class.tb)
 ```
 
+.
 ## Random Forest
 
 ```{r}

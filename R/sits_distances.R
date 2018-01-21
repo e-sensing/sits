@@ -40,7 +40,7 @@ sits_distances <- function(data.tb, adj_fun = sits_adjust()) {
     return(distances.tb)
 
 }
-#' @title Adjust distances used as training sets for machine learning
+#' @title Function for adjust time series distances used as training sets for machine learning
 #' @name sits_adjust
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -64,4 +64,32 @@ sits_distances <- function(data.tb, adj_fun = sits_adjust()) {
 sits_adjust <- function() {
     f1 <- function(x) {x + .sits_get_adjustment_shift()}
     return(f1)
+}
+
+#' @title Sample a percentage of a time series distance matrix
+#' @name .sits_sample_distances
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description takes a sits table with different labels and
+#'              returns a new table. For a given field as a group criterion, this new table contains a given number or percentage
+#'              of the total number of samples per group. Parameter n indicantes the number of random samples with reposition.
+#'              Parameter frac indicates a fraction of random samples without reposition. If frac > 1, no sampling is done.
+#'
+#' @param  distances.tb    data.table objects with the distances associated to a time series
+#' @param  frac            ercentage of samples to pick from a given group of data.
+#' @return result.tb       the new data.table with a fixed quantity of samples of informed labels and all other
+.sits_sample_distances <- function(distances.tb, frac){
+
+
+    # compute sampling
+    result.tb <- data.table::data.table()
+    references <- as.vector(unique(distances.tb$reference))
+    references %>%
+        purrr::map(function(r){
+            tb_r <- dplyr::filter(distances.tb, reference == r)
+            tb_s <- dplyr::sample_frac(tb_r, size = frac, replace = FALSE)
+            result.tb <<- dplyr::bind_rows(result.tb, tb_s)
+        })
+
+    return(result.tb)
 }

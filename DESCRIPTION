@@ -39,12 +39,12 @@ Imports:
     dtw,
     dtwSat,
     flexclust,
-    keras,
     gbm,
     ggplot2,
     glmnet,
     graphics,
     grDevices,
+    keras,
     kohonen,
     jsonlite,
     log4r,
@@ -117,11 +117,9 @@ Collate:
     'sits_validate.R'
     'sits_zoo.R'
     'zzz.R'
-Suggests: dtwclust,
+Suggests: 
+    dtwclust,
     knitr,
-    mxnet,
     rmarkdown,
     testthat
-Additional_repositories:
-    https://apache-mxnet.s3-accelerate.dualstack.amazonaws.com/R/CRAN/
 VignetteBuilder: knitr

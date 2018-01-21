@@ -2,13 +2,13 @@ library (sits)
 library (keras)
 
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data("cerrado_13classes_modis_col6")
+data("samples_MT_9classes")
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-samples.tb <- sits_select(cerrado_13classes_modis_col6, bands = c("ndvi","evi", "nir", "mir"))
+samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi", "nir", "mir"))
 
 # find the distance from the data
-distances.tb <- sits_distances(samples.tb, adj_fun  = function(x){BBmisc::normalize(x, method = "range")})
+distances.tb <- sits_distances(samples.tb, adj_fun  = function(x) {identity(x)})
 
 
 ml_model = sits_deeplearning(distances.tb,
@@ -28,7 +28,7 @@ data("ts_2000_2016")
 point.tb <- sits_select(ts_2000_2016, bands = c("ndvi","evi","nir", "mir"))
 
 # classify the point
-class.tb <- sits_classify_model(point.tb, samples.tb, ml_model, adj_fun = function(x) {BBmisc::normalize(x, method = "range")})
+class.tb <- sits_classify_model(point.tb, samples.tb, ml_model, adj_fun = function(x) {identity(x)})
 
 # plot the classification
 sits_plot(class.tb)

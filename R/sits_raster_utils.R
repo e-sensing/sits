@@ -106,7 +106,77 @@
 
     return(pred.lst)
 }
+#' @title Create a set of RasterLayer objects to store time series classification results
+#' @name .sits_create_classified_raster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Takes a tibble containing metadata about a set of RasterBrick objects
+#' containing time series (each Brick has information for one band) and creates a
+#' set of RasterLayers to store the classification result. Each RasterLayer corresponds
+#' to one time step. The time steps are specified in a list of dates.
+#'
+#' @param  raster.tb         Tibble with metadata about the input RasterBrick objects
+#' @param  samples.tb        The samples used for training the classification model
+#' @param  file              Generic name of the files that will contain the RasterLayers
+#' @return raster_layers.tb  Tibble with metadata about the output RasterLayer objects
+#'
+.sits_create_classified_raster <- function(raster.tb, samples.tb, file, interval){
 
+    # ensure metadata tibble exists
+    ensurer::ensure_that(raster.tb, NROW(.) > 0,
+                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
+
+    # get the timeline of observations (required for matching dates)
+    timeline <- raster.tb[1,]$timeline[[1]]
+
+    # what is the reference start date?
+    ref_start_date <- lubridate::as_date(samples.tb[1,]$start_date)
+    # what is the reference end date?
+    ref_end_date  <- lubridate::as_date(samples.tb[1,]$end_date)
+
+    # produce the breaks used to generate the output rasters
+    subset_dates.lst <- .sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
+
+
+    # loop through the list of dates
+    raster.lst <- subset_dates.lst %>%
+        purrr::map(function(date_pair) {
+            # create one raster layer per date pair
+            r_out <- raster::raster(raster.tb[1,]$r_obj[[1]])
+
+            # define the timeline for the classified image
+            start_date <- date_pair[1]
+            end_date   <- date_pair[2]
+            timeline   <- c(start_date, end_date)
+
+            # define the coverage name (must be unique)
+            name_cov   <- paste0(raster.tb$name, "-class-", start_date, "-", end_date)
+
+            # define the filename for the classified image
+            filename <- .sits_raster_filename(file, start_date, end_date)
+            r_out@file@name <- filename
+
+            #define the band and the scale factor
+            band <- "class"
+
+            # create a new RasterLayer for a defined period and generate the associated metadata
+            row.tb <- .sits_create_raster_coverage(brick.lst    = list(r_out),
+                                                   service     = "RASTER",
+                                                   product     = raster.tb[1,]$product,
+                                                   name        = name_cov,
+                                                   timeline    = timeline,
+                                                   bands       = list(band),
+                                                   files       = list(filename))
+
+
+            # add the metadata information to the list
+            return(row.tb)
+        })
+    # join all rows in a single tibble
+    raster_layers.tb <- dplyr::bind_rows(raster.lst)
+
+    return(raster_layers.tb)
+}
 #' @title Provides information about the coverages that make up a set of raster bricks
 #' @name .sits_create_raster_coverage
 #'
@@ -174,77 +244,7 @@
 
     return(coverage.tb)
 }
-#' @title Create a set of RasterLayer objects to store time series classification results
-#' @name .sits_create_classified_raster
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Takes a tibble containing metadata about a set of RasterBrick objects
-#' containing time series (each Brick has information for one band) and creates a
-#' set of RasterLayers to store the classification result. Each RasterLayer corresponds
-#' to one time step. The time steps are specified in a list of dates.
-#'
-#' @param  raster.tb         Tibble with metadata about the input RasterBrick objects
-#' @param  samples.tb        The samples used for training the classification model
-#' @param  file              Generic name of the files that will contain the RasterLayers
-#' @return raster_layers.tb  Tibble with metadata about the output RasterLayer objects
-#'
-.sits_create_classified_raster <- function(raster.tb, samples.tb, file, interval){
 
-    # ensure metadata tibble exists
-    ensurer::ensure_that(raster.tb, NROW(.) > 0,
-                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
-
-    # get the timeline of observations (required for matching dates)
-    timeline <- raster.tb[1,]$timeline[[1]]
-
-    # what is the reference start date?
-    ref_start_date <- lubridate::as_date(samples.tb[1,]$start_date)
-    # what is the reference end date?
-    ref_end_date  <- lubridate::as_date(samples.tb[1,]$end_date)
-
-    # produce the breaks used to generate the output rasters
-    subset_dates.lst <- .sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
-
-
-    # loop through the list of dates
-    raster.lst <- subset_dates.lst %>%
-        purrr::map(function(date_pair) {
-            # create one raster layer per date pair
-            r_out <- raster::raster(raster.tb[1,]$r_obj[[1]])
-
-            # define the timeline for the classified image
-            start_date <- date_pair[1]
-            end_date   <- date_pair[2]
-            timeline   <- c(start_date, end_date)
-
-            # define the coverage name (must be unique)
-            name_cov   <- paste0(raster.tb$name, "-class-", start_date, "-", end_date)
-
-            # define the filename for the classified image
-            filename <- .sits_raster_filename(file, start_date, end_date)
-            r_out@file@name <- filename
-
-            #define the band and the scale factor
-            band <- "class"
-
-            # create a new RasterLayer for a defined period and generate the associated metadata
-            row.tb <- .sits_create_raster_coverage(brick.lst    = list(r_out),
-                                                service     = "RASTER",
-                                                product     = raster.tb$product,
-                                                name        = name_cov,
-                                                timeline    = timeline,
-                                                bands       = list(band),
-                                                files       = list(filename))
-
-
-            # add the metadata information to the list
-            return(row.tb)
-        })
-    # join all rows in a single tibble
-    raster_layers.tb <- dplyr::bind_rows(raster.lst)
-
-    return(raster_layers.tb)
-}
 
 #' @title Retrieve a block of values obtained from a RasterBrick
 #' @name .sits_data_from_block
