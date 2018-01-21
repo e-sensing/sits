@@ -39,6 +39,7 @@ Imports:
     dtw,
     dtwSat,
     flexclust,
+    keras,
     gbm,
     ggplot2,
     glmnet,

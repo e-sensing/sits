@@ -2,8 +2,9 @@
 #' @name sits_train
 #'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+
 #'
 #' @description Given a tibble with a set of distance measures,
 #' returns trained models using support vector machines.
@@ -13,7 +14,7 @@
 #' 'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
 #' 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 #' 'lasso' (see \code{\link[sits]{sits_mlr}}), 'ridge' (see \code{\link[sits]{sits_mlr}}),
-#' "multi-layer perceptrons" also known as "deep learning" (see \code{\link[sits]{sits_mlp}})
+#' and "deep learning" (see \code{\link[sits]{sits_deeplearning}})
 #'
 #' The sits_train function is called inside \code{\link[sits]{sits_classify}}
 #' and \code{\link[sits]{sits_classify_raster}}, so the user does not need
@@ -491,30 +492,31 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
     return(result)
 }
 
-#' @title Train a SITS classifiction model using multi-layer perceptron (neural networks and deep learning)
-#' @name sits_mlp
+#' @title Train a SITS classifiction model using the keras deep learning
+#' @name sits_deeplearning
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Use a multi-layer perceptron algorithm to classify data.
-#' This function is a front-end to the "mx.mlp" method in the "mxnet" R package.
+#' @description Use a deeplearning algorithm to classify data.
+#' This function is a front-end to the "keras" method R package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     a time series with a set of distance measures for each training sample
-#' @param hidden_node      a vector containing the number of hidden nodes in each hidden layer
-#' @param learning.rate    the learning rate of the MLP (default = 0.001)
-#' @param dropout          a number in (0,1) containing the dropout ratio from the last hidden layer to the output layer
-#' @param activation       either a single string or a vector containing the names of activation functions. Valid values are {'relu', 'sigmoid', 'softrelu', 'tanh'}
-#' @param out_activation   a single string containing the name of the output activation function. Valid values are {'rmse', 'sofrmax', 'logistic'}
-#' @param optimizer        string - default is 'adm', and valid values are 'sgd', 'adam', 'rmsprop', 'adagrad'
-#' @param num.round        number of iterations to train the model
-#' @param batch.size       batch size used for array training
-#' @param stop.metric      precision where iteration stops
-#' @param device           whether to train on mx.cpu (default) or mx.gpu
-#' @param multicores       number of cores to use for training (default = 1)
-#' @param ...              other parameters to be passed to `mx.model.FeedForward.create` function
+#' @param distances.tb      a data.table object with a set of distance measures for each training sample
+#' @param units             a vector containing the number of hidden nodes in each hidden layer
+#' @param activation        a vector containing the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}
+#' @param dropout_rates     a vector number in containing the dropout rates (0,1) from each layer to the next layer
+#' @param optimizer         Function with a pointer to the optimizer function (default is optimization_adam()).
+#'                          Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
+#'                          optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
+#' @param epochs            Number of iterations to train the model.
+#' @param batch_size        Number of samples per gradient update.
+#' @param validation_split	Float between 0 and 1. Fraction of the training data to be used as validation data.
+#'                          The model will set apart this fraction of the training data, will not train on it,
+#'                          and will evaluate the loss and any model metrics on this data at the end of each epoch.
+#'                          The validation data is selected from the last samples in the x and y data provided,
+#'                          before shuffling.
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @examples
 #' \donttest{
@@ -523,21 +525,35 @@ sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_mlp(), adj_fun = identity)
+#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_deeplearning(),
+#'                            adj_fun = function (x) {BBmisc::normalize(x, method = "range")})
 #' }
 #' @export
 #'
-sits_mlp <- function(distances.tb = NULL, hidden_node=c(400,200,100), learning.rate = 0.001,
-                     dropout = NULL, activation = "sigmoid", out_activation="softmax", optimizer = "adam",
-                     num.round = 5000, batch.size = 32, stop.metric = 0.98, multicores = 1,
-                     device = mxnet::mx.cpu(), ...) {
+sits_deeplearning <- function(distances.tb        = NULL,
+                              units            = c(400,200,100),
+                              activation       = 'relu',
+                              dropout_rates    = c(0.4, 0.3, 0.2),
+                              optimizer        = keras::optimization_adam(lr = 0.001),
+                              epochs           = 50,
+                              batch_size       = 128,
+                              validation_split = 0.2) {
 
-    # function that returns `mxnet::mx.mlp` model based on a sits sample tibble
+    library(keras)
+
+    # function that returns keras model based on a sits sample tibble
     result_fun <- function(train_data.tb){
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
-                             err_desc = "sits_mlp: input data does not contain distance")
+                             err_desc = "sits_deeplearning: input data does not contain distance")
+
+        ensurer::ensure_that(units, length(.) == length(dropout_rates),
+                             err_desc = "sits_deeplearning: number of units must match number of dropout rates")
+
+        ensurer::ensure_that(activation, length(.) == length(dropout_rates) || length(.) == 1,
+                             err_desc = "sits_deeplearning: activation vectors should be one string or a
+                             set of strings that match the number of units")
 
         # get the labels of the data
         labels <- as.vector(unique(train_data.tb$reference))
@@ -545,26 +561,76 @@ sits_mlp <- function(distances.tb = NULL, hidden_node=c(400,200,100), learning.r
         # create a named vector with integers match the class labels
         int_labels <- c(1:length(labels))
         names(int_labels) <- labels
+        n_labels <- length(labels)
+
+        # split the data into training and validation
+        # create partitions different splits of the input data
+        test_data.tb <- sits_sample(train_data.tb, frac = validation_split)
+
+        # remove the lines used for validation
+        train_data.tb <- dplyr::anti_join(train_data.tb, test_data.tb)
 
         # shuflle the data
         train_data.tb <- dplyr::sample_frac(train_data.tb, 1.0)
 
+        # organize data for model training
         train.x <- data.matrix(train_data.tb[, -(1:2)])
-        train.y <- unname(int_labels [as.vector(train_data.tb[, 2])]) -1
+        train.y <- unname(int_labels[as.vector(train_data.tb[, 2])]) - 1
 
-        logger <- mxnet::mx.metric.logger$new()
-        mxnet::mx.set.seed(0)
-        model.mlp <- mxnet::mx.mlp(train.x, train.y, hidden_node = hidden_node, out_node = length(labels),
-                        activation = activation, out_activation = out_activation, optimizer = optimizer,
-                        num.round = num.round, array.batch.size = batch.size, learning.rate = learning.rate,
-                        eval.metric = mxnet::mx.metric.accuracy,
-                        ctx = mxnet::mx.cpu(multicores),
-                        epoch.end.callback = mxnet::mx.callback.early.stop(train.metric = stop.metric, maximize = TRUE))
+        # keras requires categorical data to be put in a matrix
+        train.y <- keras::to_categorical(train.y, n_labels)
+
+        # create the test data for keras
+        test.x <- data.matrix(test_data.tb[, -(1:2)])
+        test.y <- unname(int_labels[as.vector(test_data.tb[, 2])]) - 1
+
+        # keras requires categorical data to be put in a matrix
+        test.y <- keras::to_categorical(test.y, n_labels)
+
+        # set the activation vector
+        act_vec <- vector()
+        #
+        for (i in 1:length(units)) {
+            if (length(activation) == 1)
+                act_vec[i] <- activation
+            else
+                act_vec <- activation
+        }
+
+        # build the model step by step
+        # create the input_tensor
+        input_tensor <- keras::layer_input(shape = c(NCOL(train.x)))
+        output_tensor <-  input_tensor
+
+        # build the nodes
+        for (i in 1:length(units)) {
+            output_tensor <- keras::layer_dense(output_tensor, units = units[i], activation = act_vec[i])
+            output_tensor <- keras::layer_dropout(output_tensor, rate = dropout_rates[i])
+        }
+        # create the final tensor
+        output_tensor <- keras::layer_dense(output_tensor, units = n_labels, activation = "softmax")
+        # create the model
+        model.keras <- keras::keras_model(input_tensor, output_tensor)
+
+        # compile the model
+        model.keras %>% keras::compile(
+            loss = "categorical_crossentropy",
+            optimizer = keras::optimizer_adam(),
+            metrics = c("accuracy")
+        )
+
+        history <- model.keras %>% keras::fit(
+            train.x, train.y,
+            epochs = epochs, batch_size = batch_size,
+            validation_data = list(test.x, test.y)
+        )
+
+        graphics::plot(history)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
             values.x <- data.matrix(values.tb[, -(1:2)])
-            preds <- stats::predict(model.mlp, values.x)
+            preds <- stats::predict(model.keras, values.x)
             pred.labels <- names(int_labels[max.col(t(preds))])
             return(pred.labels)
         }

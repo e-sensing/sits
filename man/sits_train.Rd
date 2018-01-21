@@ -25,7 +25,7 @@ Currenly, sits supports the following models:
 'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 'lasso' (see \code{\link[sits]{sits_mlr}}), 'ridge' (see \code{\link[sits]{sits_mlr}}),
-"multi-layer perceptrons" also known as "deep learning" (see \code{\link[sits]{sits_mlp}})
+and "deep learning" (see \code{\link[sits]{sits_deeplearning}})
 
 The sits_train function is called inside \code{\link[sits]{sits_classify}}
 and \code{\link[sits]{sits_classify_raster}}, so the user does not need
@@ -48,7 +48,7 @@ class.tb <- sits_classify_model (point.tb, samples_MT_ndvi, ml_model)
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
-
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 }
