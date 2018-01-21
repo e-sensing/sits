@@ -310,8 +310,6 @@ The `sits_envelope()` can combine both maximum and minimum window sequencially. 
 
 The envelope filter can be viewed through mathematical morphology lenses, a very common field in digital image processing [@Haralick1987]. Here the operations of `"U"` and `"L"` corresponds to the *dilation* and *erosion* morphological operators applied to univariate arrays [@Vavra2004]. Furthermore, the compounds operation of *opening* and *closing* can be obtained by `"UL"` and `"LU"`, respectivelly. This technique has been applied on time series analysis in other fields [@Accardo1997] but, for our knowledge, there is no application in satellite image time series literature.
 
-This filter can be useful to remove isolated noises in the input signal. For example, an downward (upward) noise peaks formed by one point in the series can be removed by the `"UL"` (`"LU"`) operations sequence. For peaks with two points, we can repeat each operation, for example `"UULL"` (the default sequence), to increase the window length and remove such imperfections of the time series. 
-
 In the following example we can see an application of `sits_envelope()` function. There, we performs the *opening filtration* and *closing filtration* introduced by @Vavra2004. The correspondent operations sequence are `"ULLULUUL"` and `"LUULULLU"`.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5}
@@ -344,7 +342,7 @@ The cloud filter makes use of the well known autoregressive integrated moving av
 
 The parameters of the ARIMA model can be set by the user. Please see arima for the detailed description of parameters $p$, $d$, and $q$.
 
-```{r, fig.align="center", fig.height=2.5, fig.width=4.1}
+```{r, fig.align="center", fig.height=3.1, fig.width=5}
 # Take the NDVI band of the first sample data set
 point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 # apply ARIMA filter
@@ -366,7 +364,7 @@ The `sits` package provides functionality to explore the full depth of satellite
 ## Support Vector Machine
 
 
-```{r}
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5}
 # Retrieve the set of samples for the Mato Grosso region 
 # (provided by EMBRAPA) (samples_MT_ndvi) and 
 # get a point to be classified (point_ndvi)
@@ -380,7 +378,7 @@ sits_plot(class.tb)
 
 ## Random Forest
 
-```{r}
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5}
 # Retrieve the set of samples for the Mato Grosso region 
 # (provided by EMBRAPA) (samples_MT_ndvi) and 
 # get a point to be classified (point_ndvi)
@@ -397,7 +395,7 @@ Our experiment consists of the comparison of different methods to obtain the tim
 
 # Raster classification
 
-```{r}
+```{r, fig.align="center", fig.height=3.4, fig.width=4.1}
 # Retrieve the set of samples for the Mato Grosso region 
 data(samples_MT_ndvi)
 
@@ -428,7 +426,10 @@ raster_class.tb <-
                          blocksize = 300000, 
                          multicores = 1)
 # plot classified image
-plot(raster_class.tb$r_obj[1])
+plot(raster_class.tb$r_obj[[1]])
+```
+
+```{r, include=FALSE}
 # remove all files
 file.remove(unlist(raster_class.tb$file))
 ```
