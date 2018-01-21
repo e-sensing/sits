@@ -33,11 +33,13 @@ sits_log <- function() {
                          err_desc = "Cannot save NULL data")
 
     file_save = paste0(dirname(sits.env$config$log_file),"/", file_name)
-    save(data, file = file_save)
 
-    # post-condition
-    ensurer::ensure_that(file_save, file.exists(.),
-                         err_desc = "Unable to save temporary data")
+    tryCatch({save(data, file = file_save)},
+             error = function(e){
+                msg <- paste0("WTSS - unable to save data in file ", file_save)
+                .sits_log_error(msg)
+                message("WTSS - unable to retrieve point - see log file for details" )
+                return(NULL)})
 }
 
 .sits_log_CSV <- function(csv.tb, file_name = "csv.rda"){
@@ -46,8 +48,4 @@ sits_log <- function() {
                          err_desc = "Cannot save NULL CSV data")
 
     sits_toCSV(csv.tb, file = paste0(dirname(sits.env$config$log_file),"/", file_name))
-
-    # post-condition
-    ensurer::ensure_that(file, file.exists(.),
-                         err_desc = "Unable to save temporary CSV data")
 }

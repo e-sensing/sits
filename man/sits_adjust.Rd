@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_distances.R
 \name{sits_adjust}
 \alias{sits_adjust}
-\title{Adjust distances used as training sets for machine learning}
+\title{Function for adjust time series distances used as training sets for machine learning}
 \usage{
 sits_adjust()
 }

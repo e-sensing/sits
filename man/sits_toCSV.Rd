@@ -2,20 +2,22 @@
 % Please edit documentation in R/sits_csv.R
 \name{sits_toCSV}
 \alias{sits_toCSV}
-\title{Export a tibble data to the CSV format}
+\title{Export a SITS tibble metadata to the CSV format}
 \usage{
 sits_toCSV(data.tb, file)
 }
 \arguments{
 \item{data.tb}{a SITS time series}
 
-\item{file}{the name of the CSV file to be exported}
+\item{file}{the name of the exported CSV file}
 }
 \value{
 status     the status of the operation
 }
 \description{
-Converts data from a SITS tibble to a CSV file
+Converts metadata from a SITS tibble to a CSV file. The CSV file will not contain the actual time
+             series. Its columns will be the same as those of a CSV file used to retrieve data from
+             ground information ("latitude", "longitude", "start_date", "end_date", "coverage", "label").
 }
 \examples{
 \donttest{

@@ -1,13 +1,12 @@
 #' @title Obtain timeSeries from a JSON file.
 #'
-#' @name sits_fromJSON
+#' @name .sits_fromJSON
 #'
 #' @description reads a set of data and metadata for satellite image time series from a JSON file
 #'
 #' @param file      string  - name of a JSON file with sits data and metadata
 #' @return data.tb   a SITS tibble
-#' @export
-sits_fromJSON <- function(file){
+.sits_fromJSON <- function(file){
     # add the contents of the JSON file to a SITS tibble
     table <- tibble::as_tibble(jsonlite::fromJSON(file))
     # convert Indexes in time series to dates
@@ -26,19 +25,18 @@ sits_fromJSON <- function(file){
 
 #' @title Obtain timeSeries from a compressed JSON file.
 #'
-#' @name sits_fromGZ
+#' @name .sits_fromGZ
 #'
 #' @description reads a set of data and metadata for satellite image time series from a compressed JSON file
 #'
 #' @param  file       string  - name of a compressed JSON file with sits data and metadata
 #' @return data.tb    a SITS tibble
-#' @export
-sits_fromGZ <- function(file){
+.sits_fromGZ <- function(file){
 
     # uncompress the file
     json_file <- R.utils::gunzip(file, remove = FALSE)
     # retrieve the data
-    data.tb <- sits_fromJSON(json_file)
+    data.tb <- .sits_fromJSON(json_file)
     # remove the uncompressed file
     file.remove(json_file)
 

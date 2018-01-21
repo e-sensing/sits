@@ -11,7 +11,7 @@ samples.tb <- sits_getdata(file = system.file("extdata/samples/samples_matogross
 # plot the data
 sits_plot(samples.tb[1,])
 
-# get the samples used for classifation
+# get the samples used for classification
 data("cerrado_2classes")
 
 # classify the test data using an SVM model

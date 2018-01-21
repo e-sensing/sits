@@ -5,7 +5,7 @@
 \title{Train a SITS classifiction model using the keras deep learning}
 \usage{
 sits_deeplearning(distances.tb = NULL, units = c(400, 200, 100),
-  activation = "relu", dropout_raster = c(0.4, 0.3, 0.2),
+  activation = "relu", dropout_rates = c(0.4, 0.3, 0.2),
   optimizer = keras::optimization_adam(lr = 0.001), epochs = 50,
   batch_size = 128, validation_split = 0.2)
 }
@@ -15,6 +15,8 @@ sits_deeplearning(distances.tb = NULL, units = c(400, 200, 100),
 \item{units}{a vector containing the number of hidden nodes in each hidden layer}
 
 \item{activation}{a vector containing the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}}
+
+\item{dropout_rates}{a vector number in containing the dropout rates (0,1) from each layer to the next layer}
 
 \item{optimizer}{Function with a pointer to the optimizer function (default is optimization_adam()).
 Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
@@ -29,14 +31,6 @@ The model will set apart this fraction of the training data, will not train on i
 and will evaluate the loss and any model metrics on this data at the end of each epoch.
 The validation data is selected from the last samples in the x and y data provided,
 before shuffling.}
-
-\item{dropout_rates}{a vector number in containing the dropout rates (0,1) from each layer to the next layer}
-
-\item{out_activation}{Name of the output activation function. Valid values are {'rmse', 'softmax', 'logistic'}}
-
-\item{device}{whether to train on mx.cpu (default) or mx.gpu}
-
-\item{multicores}{number of cores to use for training (default = 1)}
 }
 \value{
 result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
