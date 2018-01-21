@@ -361,7 +361,7 @@ An example of *space-first*, *time-later* work on big EO data analysis is the wo
 
 In our view, these methods do not use the full potential of satellite image time series. The benefits of remote sensing time series analysis arise when the temporal resolution of the big data set is able to capture the most important changes. Here, the temporal autocorrelation of the data can be stronger than the spatial autocorrelation. Given data with adequate repeatability, a pixel will be more related to its temporal neighbours than to its spatial ones. In this case, *time-first, space-later* methods lead to better results than the *space-first, time-later* approach [@Camara2016].
 
-The `sits` package provides functionality to explore the full depth of satellite image time series data. It treat time series as a feature vector. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars (the training data) to infer classes of a larger data set. In the next section we discuss about machine learning techniques supported in `sits` with more detail.
+The `sits` package provides functionality to explore the full depth of satellite image time series data. It treat time series as a feature vector. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars (the training data) to infer classes of a larger data set. In the following sections we discuss on machine learning techniques supported in `sits` with more detail.
 
 ## Support Vector Machine
 
@@ -397,7 +397,41 @@ Our experiment consists of the comparison of different methods to obtain the tim
 
 # Raster classification
 
+```{r}
+# Retrieve the set of samples for the Mato Grosso region 
+data(samples_MT_ndvi)
 
+# read a raster file and put it into a vector
+files  <- 
+    system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", 
+                package = "sits")
+
+# define the timeline
+data(timeline_mod13q1)
+timeline <- lubridate::as_date(timeline_mod13q1$V1)
+
+# create a raster metadata file based on the information about the files
+raster.tb <- 
+    sits_coverage(service = "RASTER",
+                  product = "MOD13Q1",
+                  name = "Sinop-crop",
+                  timeline = timeline,
+                  bands = c("ndvi"),
+                  files = files)
+
+# classify the raster file
+raster_class.tb <- 
+    sits_classify_raster(file = "./raster-class", 
+                         raster.tb, 
+                         samples_MT_ndvi,
+                         ml_method = sits_svm(), 
+                         blocksize = 300000, 
+                         multicores = 1)
+# plot classified image
+plot(raster_class.tb$r_obj[1])
+# remove all files
+file.remove(unlist(raster_class.tb$file))
+```
 
 # Final remarks
 
