@@ -1,21 +1,18 @@
+#'
 #' @title Train SITS classification models
 #' @name sits_train
 #'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-
 #'
 #' @description Given a tibble with a set of distance measures,
-#' returns trained models using support vector machines.
-#' #' After defining the training samples, the users need to provide a machine learning model.
-#' Currenly, sits supports the following models:
+#'    returns trained models. Currenly, sits supports the following models:
 #' 'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
 #' 'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
 #' 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 #' 'lasso' (see \code{\link[sits]{sits_mlr}}), 'ridge' (see \code{\link[sits]{sits_mlr}}),
 #' and "deep learning" (see \code{\link[sits]{sits_deeplearning}})
-#'
 #' The sits_train function is called inside \code{\link[sits]{sits_classify}}
 #' and \code{\link[sits]{sits_classify_raster}}, so the user does not need
 #' to explicitly use this function. Please see the above-mention classification functions.
@@ -534,12 +531,12 @@ sits_deeplearning <- function(distances.tb        = NULL,
                               units            = c(400,200,100),
                               activation       = 'relu',
                               dropout_rates    = c(0.4, 0.3, 0.2),
-                              optimizer        = keras::optimization_adam(lr = 0.001),
+                              optimizer        = keras::optimizer_adam(lr = 0.001),
                               epochs           = 50,
                               batch_size       = 128,
                               validation_split = 0.2) {
 
-    library(keras)
+    # library(keras)
 
     # function that returns keras model based on a sits sample tibble
     result_fun <- function(train_data.tb){
@@ -565,7 +562,7 @@ sits_deeplearning <- function(distances.tb        = NULL,
 
         # split the data into training and validation
         # create partitions different splits of the input data
-        test_data.tb <- sits_sample(train_data.tb, frac = validation_split)
+        test_data.tb <- .sits_sample_distances(train_data.tb, frac = validation_split)
 
         # remove the lines used for validation
         train_data.tb <- dplyr::anti_join(train_data.tb, test_data.tb)
@@ -615,23 +612,29 @@ sits_deeplearning <- function(distances.tb        = NULL,
         # compile the model
         model.keras %>% keras::compile(
             loss = "categorical_crossentropy",
-            optimizer = keras::optimizer_adam(),
+            optimizer = optimizer,
             metrics = c("accuracy")
         )
-
+        # fit the model
         history <- model.keras %>% keras::fit(
             train.x, train.y,
             epochs = epochs, batch_size = batch_size,
             validation_data = list(test.x, test.y)
         )
+        # evaluate the model
+        sits.env$config$keras_history <- history
 
-        graphics::plot(history)
+        # evaluate the model
+        sits.env$config$keras_eval <- keras::evaluate(model.keras, test.x, test.y, verbose = 0)
+
+        # save the model as a global variable
+        sits.env$config$keras_model <- model.keras
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
-            values.x <- data.matrix(values.tb[, -(1:2)])
-            preds <- stats::predict(model.keras, values.x)
-            pred.labels <- names(int_labels[max.col(t(preds))])
+            values.x    <- data.matrix(values.tb[, -(1:2)])
+            preds       <- stats::predict(model.keras, values.x)
+            pred.labels <- names(int_labels[max.col(preds)])
             return(pred.labels)
         }
         return(model_predict)
@@ -640,6 +643,46 @@ sits_deeplearning <- function(distances.tb        = NULL,
     result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
+#' @title Provides access to diagnostic information about a Keras deep learning model
+#' @name sits_keras_diagnostics
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description After the Keras deeplearning model is compiled and fit, this
+#'              function provides access to the history plot and the evaluation results
+#'
+#' @param test.x  Test data to be run with the model (X variables)
+#' @param test.y  Test data to be run with the model (Y variables)
+#'
+#' @return NULL   Prints the model diagnostics
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' data(cerrado2classes)
+#' # create a vector of distances
+#' distances <- sits_distances(cerrado2classes, adj_fun  = function(x) {identity(x)})
+#' # obtain a DL model
+#' ml_model = sits_deeplearning(distances.tb)
+#' # classify the point
+#' sits_keras_diagnostics()
+#' }
+#' @export
+sits_keras_diagnostics <- function(test.x = NULL, test.y = NULL) {
+    if (purrr::is_null(sits.env$config$keras_model))
+        message("Please configure a keras model before running this function")
+    else {
+        message("Plotting history of the model fit")
+        if (purrr::is_null(test.x) || purrr::is_null(test.y))
+            print(sits.env$config$keras_eval)
+        else
+            keras::evaluate(sits.env$config$keras_model, test.x, test.y, verbose = 0)
+    }
+    return(NULL)
+}
+
+
+#'
 #' @title Define a log formula for classification models
 #' @name sits_formula_logref
 #'
@@ -710,7 +753,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
     return(result_fun)
 }
 
-#' @title Train SITS classifiction models
+#' @title Define a smoothing formula for classification models
 #' @name sits_formula_smooth
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'

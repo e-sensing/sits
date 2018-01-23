@@ -19,14 +19,13 @@ result           a model fitted into input data given by train_method parameter
 \description{
 Given a tibble with a set of distance measures,
 returns trained models using support vector machines.
-#' After defining the training samples, the users need to provide a machine learning model.
+After defining the training samples, the users need to provide a machine learning model.
 Currenly, sits supports the following models:
 'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
 'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 'lasso' (see \code{\link[sits]{sits_mlr}}), 'ridge' (see \code{\link[sits]{sits_mlr}}),
 and "deep learning" (see \code{\link[sits]{sits_deeplearning}})
-
 The sits_train function is called inside \code{\link[sits]{sits_classify}}
 and \code{\link[sits]{sits_classify_raster}}, so the user does not need
 to explicitly use this function. Please see the above-mention classification functions.

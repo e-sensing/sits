@@ -1,11 +1,13 @@
-#' @title Export a tibble data to the CSV format
+#' @title Export a SITS tibble metadata to the CSV format
 #' @name sits_toCSV
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Converts data from a SITS tibble to a CSV file
+#' @description Converts metadata from a SITS tibble to a CSV file. The CSV file will not contain the actual time
+#'              series. Its columns will be the same as those of a CSV file used to retrieve data from
+#'              ground information ("latitude", "longitude", "start_date", "end_date", "coverage", "label").
 #'
 #' @param  data.tb    a SITS time series
-#' @param  file       the name of the CSV file to be exported
+#' @param  file       the name of the exported CSV file
 #' @return status     the status of the operation
 #' @examples
 #' \donttest{
@@ -29,9 +31,14 @@ sits_toCSV <- function(data.tb, file){
     # join the two tibbles
     csv.tb <- dplyr::bind_cols(id.tb, csv.tb)
 
-    # write the CSV file
-    utils::write.csv(csv.tb, file, row.names = FALSE, quote = FALSE)
+    tryCatch({utils::write.csv(csv.tb, file, row.names = FALSE, quote = FALSE)},
+             error = function(e){
+                 msg <- paste0("CSV - unable to save data in file ", file)
+                 .sits_log_error(msg)
+                 message("WTSS - unable to retrieve point - see log file for details" )
+                 return(invisible(FALSE))})
 
+    # write the CSV file
     return(invisible(TRUE))
 }
 

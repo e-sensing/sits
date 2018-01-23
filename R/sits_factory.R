@@ -15,7 +15,7 @@
 #'
 #' @param data.tb   a SITS tibble time series with the data input to the function
 #' @param fun       the function that performs some calculation on the input data
-.sits_factory_function <- function (data.tb, fun) {
+.sits_factory_function <- function(data.tb, fun) {
 
     # if no data is given, we prepare a function to be called as a parameter of other functions
     if (is.null(data.tb))
@@ -45,10 +45,10 @@
 #' @param data.tb   a SITS tibble time series with the first data input to the function
 #' @param data2.tb   a SITS tibble time series with the second data input to the function
 #' @param fun       the function that performs some calculation on the input data
-.sits_factory_function2 <- function (data.tb, data2.tb, fun) {
+.sits_factory_function2 <- function(data.tb, data2.tb, fun) {
 
     # if no data is given, we prepare a function to be called as a parameter of other functions
-    if (is.null(data.tb) && is.null (data2.tb))
+    if (purrr::is_null(data.tb) && purrr::is_null(data2.tb))
         result <- fun
     # ...otherwise compute the result on the input data sets
     else

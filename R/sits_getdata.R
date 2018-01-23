@@ -97,12 +97,12 @@ sits_getdata <- function(coverage    = NULL,
 
     # a JSON file has all the data and metadata
     if  (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "json") {
-          data.tb <- sits_fromJSON(file)
+          data.tb <- .sits_fromJSON(file)
           return(data.tb)
      }
     # get data based on gz (compressed JSON) file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "gz") {
-        data.tb <- sits_fromGZ(file)
+        data.tb <- .sits_fromGZ(file)
         return(data.tb)
     }
 
