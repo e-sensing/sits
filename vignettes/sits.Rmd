@@ -333,7 +333,7 @@ sits_plot(
     sits_merge(
         sits_merge(point_env1.tb, 
                    point_env2.tb),
-        sits_linear_interp(point.tb, 24)))
+        point.tb))
 ```
 
 ## Cloud filter
@@ -363,28 +363,63 @@ The `sits` package provides functionality to explore the full depth of satellite
 
 ## Support Vector Machine
 
-Support Vector Machine (SVM) is a generalization of the *separating hyperplane classifier* [@Hastie2009]. In its simpler formulation, SVM finds linear boundaries in the input feature space. A boundary is a hyperplane that divides the entire feature space into two parts. Hence, if the feature space has $p$ attributes, the hyperplane has dimension $p-1$ and can be written as
+Support Vector Machine (SVM) is a generalization of the *separating hyperplane classifier* [@Hastie2009]. In its simpler formulation, SVM finds linear boundaries in the input feature space. A boundary is a hyperplane that divides the entire feature space into two parts. Let $(x, y)$ be a sample observation with attribute vector $x\in{\mathbb{R}^p}$ and class $y\in\{-1,1\}$. Once feature space has $p$ dimensions, the hyperplane has dimension $p-1$ and can be written as
 $$
 a_0+a_1x_{1}+a_2x_{2}+\ldots+a_px_{p}=0,
 $$
-where $x_{i}$ is the $i$-th attribute of the $x$ sample vector. 
+where $x_{i}$ is the $i$-th attribute of $x$.
 
-Let $y$ be its class and assume that all samples falls into two classes $y\in[-1,1]$. In SVM formulation, the hyperplane has the classification property that, in *most of the cases*, the following relation holds
+If the samples are separable, the hyperplane has a perfect classification property, that is, for a given sample $(x_k, y_k)$, the following relation holds
 $$
-a_0+a_1x_{1}+a_2x_{2}+\ldots+a_px_{p}<0,\quad{}{y=-1},\\
-a_0+a_1x_{1}+a_2x_{2}+\ldots+a_px_{p}>0,\quad{}{y=1}.
+\begin{split}
+a_0+a_1x_{k1}+a_2x_{k2}+\ldots+a_px_{kp}<0,&\quad{}{y_k=-1},\\
+a_0+a_1x_{k1}+a_2x_{k2}+\ldots+a_px_{kp}>0,&\quad{}{y_k=1}.
+\end{split}
 $$
-That is, he hyperplane divides the attribute space in order to separate the samples from distinct classes. However, this must be achieved by maximizing the margin $M$ between the hyperplane and the closest sample vectors. 
 
-The hyperplane coeficients can be determined by an optimization problem: maximize the margin between ... for which a margin between it and the sample vectors is maximized...
-and that the perpendicular distance to any given sample $(x, y)$ is given by
+The hyperplane coeficients define a decision boundary that divides the attribute space separating the samples of distinct classes. Moreover, this division must be achieved by maximizing the margin $M$ between the hyperplane and the attributes vectors for class $1$ and $-1$. One can show that the orthogonal distance between any point $k$ and the hyperplane is
 $$
-d(x, y)=(a_0+a_1x_{1}+a_2x_{2}+\ldots+a_px_{p})y,
+(a_0+a_1x_{k1}+a_2x_{k2}+\ldots+a_px_{kp})y_k\ge{}0,
 $$
-which can be achieved by restricting the coeficients to
+if we constraint the coeficients to
 $$
 \sum_{i=1}^{p}{a_{i}^2}=1.
 $$
+Hence, for all sample $(x_k, y_k)$, the optimization problem can be stated as [@James2013]
+$$
+\begin{split}
+&\max_a{M}\\
+&{\rm subject\ to}\\
+&\sum_{i=1}^{p}{a_{i}^2}=1,\\
+&(a_0+a_1x_{k1}+a_2x_{k2}+\ldots+a_px_{kp})y_k\ge{}M.
+\end{split}
+$$
+
+The condition for which this optimization problem has solution is too restrictive as it needs the perfect separability of the two classes by an hyperplane. However, in a typical classification problem, observations of two classes are not necessarily separable by a hyperplane. When this is the case, there is at least two samples for which the expression  $(a_0+a_1x_{k1}+a_2x_{k2}+\ldots+a_px_{kp})y_k\ge{}0$ does not hold. Under such condition, $M$ would goes bellow zero without any restriction leading the classifier to be extremely sensitive to a change in a single observation. To overcome this undesired behavior, we introduce a softner term in the optimization problem. This modification allow some observations to be on the incorrect part of the feature space violating tha maximum margin classifier but increaing the robustness against to individual observations influence. The final optimization problem can be stated as [@James2013]
+$$
+\begin{split}
+&\max_{a,\epsilon}{M}\\
+&{\rm subject\ to}\\
+&\sum_{i=1}^{p}{a_{i}^2}=1,\\
+&(a_0+a_1x_{k1}+a_2x_{k2}+\ldots+a_px_{kp})y_k\ge{}M(1-\epsilon_k),\\
+&\epsilon_k\ge{}0,\quad\sum_{k=1}^{n}{\epsilon_{k}}\le{}C,
+\end{split}
+$$
+where $x_{ki}$ is the $i$-th attribute of $x_k$ sample attribute vector, $\epsilon_k$ is a slack variable of the $k$-th sample, and $C$ is a tunning parameter that is tipically chosen by a cross-validation procedure. 
+
+<!-- How is the solution? -->
+
+The solution $\hat{a}$ and $\hat{\epsilon}$ of this optimization problem takes into consideration only those sample points that have strictly positive $\epsilon$ values (all those points that violates the *maximum margin* criteria), the so-called *support vectors*. All other points does not have any influence on $\hat{a}$ values.
+
+Now, we can define the hyperplane function $f(x)=\hat{a}_0+\hat{a}_1x_{1}+\hat{a}_2x_{2}+\ldots+\hat{a}_px_{p}$ that classifies any test feature vector $x^*$ according to
+$$
+\begin{split}
+y^*=1&\quad f(x^*)>0,\\
+y^*=-1&\quad f(x^*)<0.
+\end{split}
+$$
+
+This approach can 
 ...
 most or all samples of a given class belongs in the same side. However, when the relationship between a class and its predictors is non-linear, hyperplanes can suffer ... 
 
