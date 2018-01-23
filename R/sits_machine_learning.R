@@ -621,6 +621,7 @@ sits_deeplearning <- function(distances.tb        = NULL,
             epochs = epochs, batch_size = batch_size,
             validation_data = list(test.x, test.y)
         )
+        plot(history)
         # evaluate the model
         sits.env$config$keras_history <- history
 
@@ -672,9 +673,10 @@ sits_keras_diagnostics <- function(test.x = NULL, test.y = NULL) {
     if (purrr::is_null(sits.env$config$keras_model))
         message("Please configure a keras model before running this function")
     else {
-        message("Plotting history of the model fit")
-        if (purrr::is_null(test.x) || purrr::is_null(test.y))
+        message("Plotting history and evaluation of the model fit")
+        if (purrr::is_null(test.x) || purrr::is_null(test.y)) {
             print(sits.env$config$keras_eval)
+        }
         else
             keras::evaluate(sits.env$config$keras_model, test.x, test.y, verbose = 0)
     }

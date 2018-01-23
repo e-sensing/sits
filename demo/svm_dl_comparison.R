@@ -27,11 +27,11 @@ results[[length(results) + 1]] <- conf_svm.mx
 
 conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
                                   ml_method   = sits_deeplearning(
-                                      units            = c(400, 200),
+                                      units            = c(1024, 1024, 512),
                                       activation       = 'relu',
-                                      dropout_rates    = c(0.4, 0.3),
-                                      optimizer        = keras::optimizer_adam(),
-                                      epochs           = 150,
+                                      dropout_rates    = c(0.5, 0.5, 0.3),
+                                      optimizer        = keras::optimizer_nadam(),
+                                      epochs           = 200,
                                       batch_size       = 128,
                                       validation_split = 0.2),
                                   adj_fun = function(x) {identity(x)})
@@ -39,29 +39,9 @@ conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
 print("== Confusion Matrix = DL =======================")
 conf_dl.mx <- sits_conf_matrix(conf_dl.tb)
 
-conf_dl.mx$name <- "dl_400_200_relu_040_030_adam"
+conf_dl.mx$name <- "nadam_512_256_128_025_025_025"
 
 results[[length(results) + 1]] <- conf_dl.mx
-
-# Deep Learning with LTSM
-
-conf_ltsm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
-                                      ml_method        = sits_deeplearning_ltsm(
-                                      units            = c(400, 200,100),
-                                      activation       = 'tanh',
-                                      dropout_rates    = c(0.4, 0.3, 0.2),
-                                      optimizer        = keras::optimizer_adam(),
-                                      epochs           = 150,
-                                      batch_size       = 128,
-                                      validation_split = 0.2),
-                                  adj_fun = function(x) {identity(x)})
-
-print("== Confusion Matrix = DL-LTSM =======================")
-conf_ltsm.mx <- sits_conf_matrix(conf_ltsm.tb)
-
-conf_ltsm.mx$name <- "dl_ltsm_400_200_relu_040_030_adam"
-
-results[[length(results) + 1]] <- conf_ltsm.mx
 
 WD = getwd()
 
