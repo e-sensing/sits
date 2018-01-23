@@ -395,7 +395,7 @@ $$
 \end{split}
 $$
 
-The condition for which this optimization problem has solution is too restrictive as it needs the perfect separability of the two classes by an hyperplane. However, in a typical classification problem, observations of two classes are not necessarily separable by a hyperplane. When this is the case, there is at least two samples for which the expression  $(a_0+a_1x_{k1}+a_2x_{k2}+\ldots+a_px_{kp})y_k\ge{}0$ does not hold. Under such condition, $M$ would goes bellow zero without any restriction leading the classifier to be extremely sensitive to a change in a single observation. To overcome this undesired behavior, we introduce a softner term in the optimization problem. This modification allow some observations to be on the incorrect part of the feature space violating tha maximum margin classifier but increaing the robustness against to individual observations influence. The final optimization problem can be stated as [@James2013]
+The condition for which this optimization problem has solution is too restrictive as it needs the perfect separability of the two classes by an hyperplane. However, in a typical classification problem, observations of two classes are not necessarily separable by a hyperplane. When this is the case, there is at least two samples for which the expression  $(a_0+a_1x_{k1}+a_2x_{k2}+\ldots+a_px_{kp})y_k\ge{}0$ does not hold. Under such condition, $M$ would goes bellow zero without any restriction leading the classifier to be extremely sensitive to a change in a single observation. To overcome this undesired behavior, SVM introduces a softner term in the optimization problem. This modification allow some observations to be on the incorrect part of the feature space violating tha maximum margin classifier but increaing the robustness against individual observations influence. The soft margin optimization problem can be stated as [@James2013]
 $$
 \begin{split}
 &\max_{a,\epsilon}{M}\\
@@ -451,7 +451,27 @@ sits_plot(class.tb)
 
 # Validation techniques
 
-Our experiment consists of the comparison of different methods to obtain the time series prototypes for each class. After obtaining the prototypes, we classified the data using the TWDTW method and used a cross-validation procedure to evaluate the results.
+Validation is a process undertaken on models to estimate some error associated with them, and hence has been used widely in different scientific disciplines. Here, we are interested in estimating the prediction error associated to some model. For this purpose, we concentrate on the *cross-validation* approach, probably the most used validation technique [@Hastie2009].
+
+To be sure, cross-validation estimates the expected prediction error. It uses part of the available samples to fit the classification model, and a different part to test it. The so-called *k-fold* validation, we split the data into $k$ partitions with approximately the same size and proceed by fitting the model and testing it $k$ times. At each step, we take one distinct partition for test and the remaining $k-1$ for training the model, and calculate its prediction error for classifing the test partition. A simple average gives us an estimation of the expected prediction error. 
+
+A natural question that arises is: *how good is this estimation?* According to @Hastie2009, there is a bias-variance trade-off in choice of $k$. If $k$ is set to the number of samples, we obtain the so-called *leave-one-out* validation, the estimator gives a low bias for the true expected error, but produces a high variance expectation. This can be computational expensive as it requires the same number of fitting process as the number of samples. On the other hand, if we choose $k=2$, we get a high biased expected prediction error estimation that overestimates the true prediction error, but has a low variance. The recommended choices of $k$ are $5$ or $10$ [@Hastie2009], which somewhat overestimates the true prediction error. In satellite time series literature we find ...
+
+`sits_kfold_validate` gives support the k-fold validation 
+...
+
+```{r}
+# read a set of samples
+data (cerrado_2classes)
+
+# perform a five fold validation with the 
+# SVM machine learning method using default parameters
+prediction.mx <- 
+    sits_kfold_validate(cerrado_2classes, 
+                        folds = 5)
+# prints the output confusion matrix and statistics 
+sits_conf_matrix(prediction.mx)
+```
 
 # Raster classification
 
