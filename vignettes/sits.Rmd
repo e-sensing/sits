@@ -319,15 +319,13 @@ point.tb <-
                 bands = c("ndvi"))
 # apply envelope filter (remove downward and upward noises)
 point_env1.tb <- 
-    sits_envelope(
-        sits_linear_interp(point.tb, 24),
-        "ULLULUUL",
-        bands_suffix = "OF")
+    sits_envelope(point.tb,
+                  "ULLULUUL",
+                  bands_suffix = "OF")
 point_env2.tb <- 
-    sits_envelope(
-        sits_linear_interp(point.tb, 24), 
-        "LUULULLU", 
-        bands_suffix = "CF")
+    sits_envelope(point.tb,
+                  "LUULULLU",
+                  bands_suffix = "CF")
 # plot the series
 sits_plot(
     sits_merge(
@@ -355,7 +353,7 @@ sits_plot(sits_merge(point_cf.tb, point.tb))
 
 The main advantage using satellite image time series in land use studies is that the time series is methodologically consistent with the very nature of the land covers. Using this kind of data allows focusing on land changes through time. Currently, most studies that use satellite image time series for land classification still use variations of the classical remote sensing image classification methods. Given a series of images, researchers use methods that produce a single composite for the whole series [@Gomez2016]. In their review on this subject, @Gomez2016 discuss $12$ papers that use satellite image time series to derive image composites that are later used for classification. @Camara2016 denote these works as taking a *space-first*, *time-later* approach.
 
-An example of *space-first*, *time-later* work on big EO data analysis is the work by @Hansen2013. Using more than $650,000$ Landsat images and processing more than $140$ billion pixels, the authors compared data from 2000 to 2010 to produce maps of global forest loss during the decade. A pixel-based classification algorithm was used to process each image to detect forest cover. The method classifies each 2D image one by one. 
+An example of *space-first*, *time-later* work on big EO data analysis is the work by @Hansen2013. Using more than $650,000$ Landsat images and processing more than $140$ billion pixels, the authors compared data from 2000 to 2010 to produce maps of global forest loss during the decade. A pixel-based classification algorithm was used to process each image to detect forest cover. The method classifies each 2D image one by one.
 
 In our view, these methods do not use the full potential of satellite image time series. The benefits of remote sensing time series analysis arise when the temporal resolution of the big data set is able to capture the most important changes. Here, the temporal autocorrelation of the data can be stronger than the spatial autocorrelation. Given data with adequate repeatability, a pixel will be more related to its temporal neighbours than to its spatial ones. In this case, *time-first, space-later* methods lead to better results than the *space-first, time-later* approach [@Camara2016].
 
@@ -363,6 +361,30 @@ The `sits` package provides functionality to explore the full depth of satellite
 
 ## Support Vector Machine
 
+Support Vector Machine (SVM) is a generalization of the *separating hyperplane classifier* [@Hastie2009]. In its simpler formulation, SVM finds linear boundaries in the input feature space. A boundary is a hyperplane that divides the entire feature space into two parts. Hence, if the feature space has $p$ attributes, the hyperplane has dimension $p-1$ and can be written as
+$$
+a_0+a_1x_{1}+a_2x_{2}+\ldots+a_px_{p}=0,
+$$
+where $x_{i}$ is the $i$-th attribute of the $x$ sample vector. 
+
+Let $y$ be its class and assume that all samples falls into two classes $y\in[-1,1]$. In SVM formulation, the hyperplane has the classification property that, in *most of the cases*, the following relation holds
+$$
+a_0+a_1x_{1}+a_2x_{2}+\ldots+a_px_{p}<0,\quad{}{y=-1},\\
+a_0+a_1x_{1}+a_2x_{2}+\ldots+a_px_{p}>0,\quad{}{y=1}.
+$$
+That is, he hyperplane divides the attribute space in order to separate the samples from distinct classes. However, this must be achieved by maximizing the margin $M$ between the hyperplane and the closest sample vectors. 
+
+The hyperplane coeficients can be determined by an optimization problem: maximize the margin between ... for which a margin between it and the sample vectors is maximized...
+and that the perpendicular distance to any given sample $(x, y)$ is given by
+$$
+d(x, y)=(a_0+a_1x_{1}+a_2x_{2}+\ldots+a_px_{p})y,
+$$
+which can be achieved by restricting the coeficients to
+$$
+\sum_{i=1}^{p}{a_{i}^2}=1.
+$$
+...
+most or all samples of a given class belongs in the same side. However, when the relationship between a class and its predictors is non-linear, hyperplanes can suffer ... 
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5}
 # Retrieve the set of samples for the Mato Grosso region 
