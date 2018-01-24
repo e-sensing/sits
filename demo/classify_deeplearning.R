@@ -12,11 +12,11 @@ distances.tb <- sits_distances(samples.tb, adj_fun  = function(x) {identity(x)})
 
 
 ml_model = sits_deeplearning(distances.tb,
-                             units            = c(512, 256, 128),
+                             units            = c(400, 200, 100, 50),
                              activation       = 'relu',
-                             dropout_rates    = c(0.25, 0.25, 0.25),
-                             optimizer = keras::optimizer_nadam(),
-                             epochs = 250,
+                             dropout_rates    = c(0.40, 0.30, 0.20, 0.10),
+                             optimizer = keras::optimizer_adam(),
+                             epochs = 300,
                              batch_size = 128,
                              validation_split = 0.2)
 
@@ -24,13 +24,14 @@ sits_keras_diagnostics()
 
 
 conv_model <- sits_convnets(distances.tb,
-                            filters          = c(32, 32),
+                            filters          = c(100, 100, 100),
                             activation       = 'relu',
-                            kerneks          = c(7, 7),
-                            optimizer        = keras::optimizer_nadam(),
+                            kernels          = c(5, 5, 5),
+                            optimizer        = keras::optimizer_adam(),
                             epochs           = 250,
                             batch_size       = 128,
                             validation_split = 0.2)
+
 
 # Retrieve a time series
 data("ts_2000_2016")

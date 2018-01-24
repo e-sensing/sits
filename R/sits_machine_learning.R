@@ -703,12 +703,12 @@ sits_convnets <- function(distances.tb        = NULL,
         ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
                              err_desc = "sits_deeplearning: input data does not contain distance")
 
-        ensurer::ensure_that(filters, length(.) == length(kerneks),
+        ensurer::ensure_that(filters, length(.) == length(kernels),
                              err_desc = "sits_deeplearning: number of filters must match number of kernel sizes")
 
-        ensurer::ensure_that(activation, length(.) == length(dropout_rates) || length(.) == 1,
+        ensurer::ensure_that(activation, length(.) == length(filters) || length(.) == 1,
                              err_desc = "sits_deeplearning: activation vectors should be one string or a
-                             set of strings that match the number of units")
+                             set of strings that match the number of filters")
 
         # get the labels of the data
         labels <- as.vector(unique(train_data.tb$reference))
@@ -723,7 +723,7 @@ sits_convnets <- function(distances.tb        = NULL,
         test_data.tb <- .sits_sample_distances(train_data.tb, frac = validation_split)
 
         # remove the lines used for validation
-        train_data.tb <- dplyr::anti_join(train_data.tb, test_data.tb)
+        train_data.tb <- dplyr::anti_join(train_data.tb, test_data.tb, by = names(train_data.tb))
 
         # shuflle the data
         train_data.tb <- dplyr::sample_frac(train_data.tb, 1.0)
@@ -745,7 +745,7 @@ sits_convnets <- function(distances.tb        = NULL,
         # set the activation vector
         act_vec <- vector()
         #
-        for (i in 1:length(units)) {
+        for (i in 1:length(filters)) {
             if (length(activation) == 1)
                 act_vec[i] <- activation
             else
@@ -754,7 +754,8 @@ sits_convnets <- function(distances.tb        = NULL,
 
         # build the model step by step
         # create the input_tensor
-        model.keras <- keras::model_sequential(input_dim = NROW(train.x), output_dim = n_labels,
+        model.keras <- keras::keras_model_sequential() %>%
+            keras::layer_embedding(input_dim = NROW(train.x), output_dim = n_labels,
                                                input_length = NCOL(train.x))
 
         # build the nodes
@@ -764,7 +765,7 @@ sits_convnets <- function(distances.tb        = NULL,
             if (i < length(filters))
                 model.keras <- keras::layer_max_pooling_1d(model.keras, pool_size = pool_size)
             else
-                model.keras <- keras::layer_global_average_pooling_1d(model.keras)
+                model.keras <- keras::layer_global_max_pooling_1d(model.keras)
 
         }
         # create the final tensor
