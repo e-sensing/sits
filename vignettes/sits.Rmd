@@ -365,7 +365,7 @@ The `sits` package provides functionality to explore the full depth of satellite
 
 The Support Vector Machine (SVM) is a generalization of the *separating hyperplane classifier* [@Hastie2009]. This generalization combines the notions of the *optimal separating hyperplanes*, the *soft margins*, and the *enlargement of the input attribute space* mapping it to non-linear feature space.
 
-In a separating hyperplane formulation, the classifier works only with separable sample sets. It finds a linear boundary in the input attribute space that not only divides two classes but maximizes its margin to them. A boundary is a *hyperplane* that divides the entire attribute space into two parts. Let $(x_k, y_k),\ k\in{}(1,\ldots,N),$ be a set of $N$ observations with attribute vector $x_k\in{\mathbb{R}^p}$ and class $y\in\{-1,1\}$. Once feature space has $p$ dimensions, the hyperplane has dimension $p-1$ and can be written as
+In a separating hyperplane formulation, the classifier works only with separable sample sets. It finds a linear boundary in the input attribute space that not only divides two classes but maximizes its margin to them. A boundary is a *hyperplane* that divides the entire attribute space into two parts. Let $(x_k, y_k),\ k\in{}(1,\ldots,n),$ be a set of $n$ observations with attribute vector $x_k\in{\mathbb{R}^p}$ and class $y\in\{-1,1\}$. Once feature space has $p$ dimensions, the hyperplane has dimension $p-1$ and can be written as
 $$
 a_0+a_1x_{1}+a_2x_{2}+\ldots+a_px_{p}=0,
 $$
@@ -386,11 +386,13 @@ y^*=-1&\quad f(x^*)<0.
 \end{split}
 $$
 
-However, the condition for which this classifier has solution is too restrictive, as it needs a linearly separable data set. This is hardly what one may expect to find in a typical satellite image time series context, where nonlinear relationship between classes and predictors can be find. To overcome this undesired constraint, SVM introduces a softner term in the hyperplane optimization problem. This modification allow some observations to be on the incorrect part of the attribute space violating the maximum margin classifier but incresing the robustness against individual observations influence. The solution for the hyperplane coefficients
+However, the condition for which this classifier has solution is too restrictive, as it needs a linearly separable data set. This is hardly what one may expect in a typical satellite image time series data, where nonlinear relationship between classes and predictors can be find. To overcome this undesired constraint, SVM introduces a *softner term* in the hyperplane optimization problem. This modification allows some observations to be inside the margin band, or even in the incorrect side, violating the maximum margin criteria but increasing the robustness on individual observations influence. 
+
+According to @Cortes1995, the solution for the hyperplane coefficients
 $$
-\hat{a}_0,\ldots,\hat{a}_p
-$$ 
-takes into consideration only those attribute points that violates the *maximum margin* criteria, points that lays either in the margin or in the wrong side of the attribute space, the so-called *support vectors*. All other points does not exert any influence on $\hat{a}$ determinancy.
+\hat{a}_k=\sum_{k=1}^{n}{\omega_{k}x_{k}y_{k}}
+$$
+depends only on those samples that violates the maximum margin criteria, points that lays either in the margin or in the wrong side of the attribute space, the so-called *support vectors*. All other points does not exert any influence on coefficients determinancy.
 
 Now, we can define the hyperplane function $f(x)=\hat{a}_0+\hat{a}_1x_{1}+\hat{a}_2x_{2}+\ldots+\hat{a}_px_{p}$ that classifies any test feature vector $x^*$ according to
 $$
