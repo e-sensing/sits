@@ -22,17 +22,6 @@ ml_model = sits_deeplearning(distances.tb,
 
 sits_keras_diagnostics()
 
-
-conv_model <- sits_convnets(distances.tb,
-                            filters          = c(100, 100, 100),
-                            activation       = 'relu',
-                            kernels          = c(5, 5, 5),
-                            optimizer        = keras::optimizer_adam(),
-                            epochs           = 250,
-                            batch_size       = 128,
-                            validation_split = 0.2)
-
-
 # Retrieve a time series
 data("ts_2000_2016")
 
