@@ -263,28 +263,30 @@
 
     nband <- 0
     # go element by element of the raster metadata tibble (each object points to a RasterBrick)
-    brick.lst <- raster.tb$r_obj
-    values.lst <- brick.lst %>%
-        purrr::map(function(r_brick) {
+    values.lst <- list()
+    raster.tb %>%
+        purrrlyr::by_row(function(r_brick) {
             # the raster::getValues function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            values.mx   <- raster::getValues(r_brick, row = row, nrows = nrows)
+            values.mx   <- raster::getValues(r_brick$r_obj[[1]], row = row, nrows = nrows)
 
-            # remove NA values
-            values.mx[is.na(values.mx)] <- 0
-            #values.mx   <- zoo::na.spline(values.mx)
+            # determine the missing value for each band
+            miss_value <- .sits_get_missing_value(r_brick$product, r_brick$bands[[1]])
+
+            # update missing values to NA (this should be replaced by a fast linear interpolation)
+            values.mx[values.mx == miss_value] <- 0
 
             # correct by the scale factor
             nband        <- nband + 1
-            scale_factor <- .sits_get_scale_factor(raster.tb$product, raster.tb$bands[[1]][nband])
+            scale_factor <- .sits_get_scale_factor(r_brick$product, r_brick$bands[[1]][nband])
             values.mx    <- values.mx*scale_factor
 
             # adjust values to avoid negative pixel vales
             values.mx <-  adj_fun(values.mx)
 
             # Convert the matrix to a list of time series (all with values for a single band)
-            return(values.mx)
+            values.lst[[length(values.lst) + 1]]  <<- values.mx
         })
     data.mx <- do.call(cbind, values.lst)
     return(data.mx)
@@ -407,7 +409,7 @@
             band <- as.character(raster.tb$bands[[1]])
             names(values.tb) <- band
             # correct the values using the scale factor
-            scale_factor <- .sits_get_scale_factor(raster.tb$product, band)
+            scale_factor <- .sits_get_scale_factor(raster.tb[1,]$product, band)
             values.tb <- values.tb[,1]*scale_factor
             return(values.tb)
         })
