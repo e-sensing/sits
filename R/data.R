@@ -62,22 +62,6 @@ NULL
 #'   time_series ( list containing a tibble with the values of the time series).
 NULL
 
-#' @title Samples of 13 classes for the Cerrado biome in Brazil
-#' @description A dataset containing a tibble with time series samples for the Cerrado biome in Brazil.
-#'   The time series comes from MOD13Q1 collection 6 images with six bands
-#'   (ndvi, evi, blue, red, nir, mir)
-#'
-#' @docType data
-#' @keywords datasets
-#' @name cerrado_13classes_modis_col5
-#' @usage data(cerrado_13classes_modis_col5)
-#' @format A tibble with 11,744 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
-#'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
-#'   end_date (final date of the time series), label (the class label associated to the sample),
-#'   coverage (the name of the coverage associated with the data),
-#'   time_series ( list containing a tibble with the values of the time series).
-NULL
-
 #' @title Samples of nine classes for the state of Mato Grosso for the NDVI band
 #' @description A dataset containing a tibble with time series samples for the Mato Grosso state in Brasil.
 #'   The time series come from MOD13Q1 collection 5 images. The data set has the following classes:

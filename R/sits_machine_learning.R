@@ -462,7 +462,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
 #' }
 #' @export
 #'
-sits_rfor <- function(distances.tb = NULL, ntree = 500, ...) {
+sits_rfor <- function(distances.tb = NULL, ntree = 5000, nodesize = 1) {
 
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
     result_fun <- function(train_data.tb){
@@ -621,7 +621,7 @@ sits_deeplearning <- function(distances.tb        = NULL,
             epochs = epochs, batch_size = batch_size,
             validation_data = list(test.x, test.y)
         )
-        plot(history)
+        graphics::plot(history)
         # evaluate the model
         sits.env$config$keras_history <- history
 
