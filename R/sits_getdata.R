@@ -107,7 +107,7 @@ sits_getdata <- function(coverage    = NULL,
     }
 
     # Ensure that the service is available
-    .sits_check_service(coverage$service)
+    .sits_check_service(coverage[1,]$service)
 
     # get data based on latitude and longitude
     if (purrr::is_null(file) &&
@@ -168,10 +168,7 @@ sits_getdata <- function(coverage    = NULL,
                                label = "NoClass") {
 
 
-    # Ensure that the service is available
-    .sits_check_service(coverage$service)
-
-    protocol <- .sits_get_protocol(coverage$service)
+    protocol <- .sits_get_protocol(coverage[1,]$service)
 
     if (protocol == "WTSS") {
         data.tb <- .sits_fromWTSS(coverage = coverage,
@@ -443,14 +440,6 @@ sits_getdata <- function(coverage    = NULL,
 #' @return data.tb        a SITS tibble
 #'
 .sits_fromCSV <-  function(csv_file, coverage, bands, prefilter, .n_start, .n_max, .n_save) {
-
-
-    # check that the input is a CSV file
-    ensurer::ensure_that(csv_file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "csv",
-                         err_desc = "sits_fromCSV: please provide a valid CSV file")
-
-    # Ensure that the service is available
-    .sits_check_service(coverage$service)
 
     # configure the format of the CSV file to be read
     cols_csv <- readr::cols(id          = readr::col_integer(),
