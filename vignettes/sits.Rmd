@@ -381,45 +381,50 @@ $$
 Once the solution for a such hyperplane is obtained (*i.e.* values for coeficients $a_0,a_1,\ldots,a_p$), one is able to derive a very simple classification model
 $$
 \begin{split}
-f(x)&=\hat{a}_0+\sum_{i=1}^{p}\hat{a}_ix_{i}\\
-&=\hat{a}_0+\hat{a}x
+f({\bf x})&=\hat{a}_0+\sum_{i=1}^{p}\hat{a}_ix_{i}\\
+&=\hat{a}_0+\hat{{\bf a}}{\bf x}
 \end{split}
 $$
-that classifies any test vector $x^*$ according to
+that classifies any test vector ${\bf x}$ according to
 $$
 \begin{split}
-y^*=1&\quad{\rm if }\ f(x^*)>0,\\
-y^*=-1&\quad{\rm if }\ f(x^*)<0.
+&y=1,&\quad{\rm if }\ f({\bf x})>0,\\
+&y=-1,&\quad{\rm if }\ f({\bf x})<0.
 \end{split}
 $$
 
-However, the condition under which this classifier has solution is too restrictive, as it needs a linearly separable training set. This is hardly what one may expect in a typical satellite image time series scenario. To overcome this undesired constraint, SVM introduces a *softner term* in the hyperplane optimization problem. This modification allows some observations to be inside the margins band, or even in the incorrect side of the boundary, violating the maximum margin criteria but increasing its robustness by reducing individual observations influence. Moreover, the solution for the hyperplane coefficients $\hat{a}$, given by
+However, the condition under which this classifier has solution is too restrictive, as it needs a linearly separable training set. This is hardly what one may expect in a typical satellite image time series scenario. To overcome this undesired constraint, SVM introduces a *softner term* in the hyperplane optimization problem. This modification allows some observations to be inside the margins band, or even in the incorrect side of the boundary, violating the maximum margin criteria but increasing its robustness by reducing individual observations influence. Moreover, the solution for the hyperplane coefficients $\hat{{\bf a}}=(a_1,\ldots,a_n)^\intercal$, given by
 $$
-\hat{a}=\sum_{k=1}^{n}{\alpha_{k}y_{k}x_{k}},
+\hat{{\bf a}}=\sum_{k=1}^{n}{\alpha_{k}y_{k}{\bf x_{k}}},
 $$
 depends only on those samples that violates the maximum margin criteria, here captured by the fact that $\alpha_k>0$ only for those points laying either inside the margin band or in the wrong side of the boundary, the so-called *support vectors*. For all other points, $\alpha_k=0$. Hence none of them exert any influence on the coefficients determinancy. This property provide SVM a less dependency to outliers. For more details on how to compute $\alpha$ and $\hat{a}_0$, see @Cortes1995, @Hastie2009, and @James2013.
 
-Hyperplanes are linear $(p-1)$-dimensional boundaries and define linear partitions in the attribute space. However, sometimes we are faced with nonlinear relationship between attribute vectors and classes. In such cases, linear classification models can suffer to do a good job. An alternative to this limitation is the *enlargement of the attribute space* by a nonlinear mapping to a higher degree feature space. SVM makes use of *kernels* to accomplish this idea. Under some conditions, kernel functions can be expressed as a dot product in a larger degree feature space. In this manner, the new classification model
+Hyperplanes are linear $(p-1)$-dimensional boundaries and define linear partitions in the attribute space. However, sometimes we are faced with nonlinear relationship between attribute vectors and classes. In such cases, linear classification models can suffer to do a good job. An alternative to this limitation is the *enlargement of the attribute space* by a nonlinear mapping $\phi$ to a higher degree feature space. In this manner, the new classification model
 $$
-f(x)=\hat{a}_0+\hat{a}\phi(x),
+f(x)=\hat{a}_0+\hat{{\bf a}}^\intercal\phi({\bf x}),
 $$
 defines its linear hyperplane on the enlarged feature space which translate to nonlinear boundaries in the original input space. Here, the coefficients are obtained simmilarly by
 $$
-\hat{a}=\sum_{k=1}^{n}{\alpha_{k}y_{k}\phi(x_{k})}.
+\hat{{\bf a}}=\sum_{k=1}^{n}{\alpha_{k}y_{k}\phi({\bf x_{k}})},
 $$
-The linearity of the model implies that the function $f$ can be expressed only as dot products [@Cortes1995]:
+which substituting in $f$ expression above gives us
 $$
-\begin{split}
-f(x)&=\hat{a}_0+\hat{a}\phi(x)\\
-&=\hat{a}_0+\sum_{k=1}^{n}{\alpha_{k}y_{k}\phi(x_{k})\cdot{}\phi(x)}\\
-&=\hat{a}_0+\sum_{k=1}^{n}{\alpha_{k}y_{k}K(x_{k}, x)},
-\end{split}
+f(x)=\hat{a}_0+\sum_{k=1}^{n}{\alpha_{k}y_{k}\phi({\bf x_{k}})^\intercal\phi({\bf x})}.
 $$
-where $K(u,v)$ is a kernel function that, under some conditions, is equivalent to the dot product $\phi(u)\cdot\phi(v)$ (see @Cortes1995). It follows that, we can construct different kernel functions without the need to compute $\phi$, otherwise it would require massive computations. For example, the radial basis function (RBF) kernel
+Moreover, the linearity of the model implies that the function $f$ can be expressed as dot products without change its properties:
 $$
-K(u,v)=\exp(-\gamma\lVert{u-v}\rVert^2),
+f(x)=\hat{a}_0+\sum_{k=1}^{n}{\alpha_{k}y_{k}\phi({\bf x_{k}})\cdot{}\phi({\bf x})}.
 $$
-one of the most used nonlinear kernels, maps the input space to an infinite dimensional feature space, which would be roughly obtained by a power series expansion with substantially more calculations. Other popular choices for $K$ in the SVM literature are the polynomial kernel ($K(u,v)=(\gamma{u^{\intercal}v}+r)^d$, with parameters $\gamma$, $r$, and $d$), and the linear kernel $K(u,v)=u^{\intercal}v$. The use of kernels are an efficient computational strategy to produce different boundaries shapes in the input attribute space. Moreover, this stragey generally this achieves better training-class separation.
+
+However, the enlargement of the feature space can be computationaly expensive. SVM makes use of *kernels* to accomplish this idea. Kernel functions are equivalent to dot products of a larger degree feature space vectors. Hence, we can express $f$ as [@Cortes1995]:
+$$
+f({\bf x})=\hat{a}_0+\sum_{k=1}^{n}{\alpha_{k}y_{k}K({\bf x_{k}}, {\bf x})},
+$$
+where $K(u,v)$ is a kernel function that is equivalent to the dot product $\phi(u)\cdot\phi(v)$ (see @Cortes1995). It follows that, we can use kernel functions without the need to compute $\phi$, otherwise it would require massive computations. For example, the radial basis function (RBF) kernel
+$$
+K({\bf u},{\bf v})=\exp(-\gamma\lVert{{\bf u}-{\bf v}}\rVert^2),
+$$
+one of the most used nonlinear kernels, maps the input space to an infinite dimensional feature space, which would be roughly obtained by a power series expansion with substantially more calculations. Other popular choices for $K$ in the SVM literature are the polynomial kernel ($K({\bf u},{\bf v})=(\gamma{{\bf u}^{\intercal}{\bf v}}+r)^d$, with parameters $\gamma$, $r$, and $d$), and the linear kernel $K({\bf u},{\bf v})={\bf u}^{\intercal}{\bf v}$. The use of kernels are an efficient computational strategy to produce different boundaries shapes in the input attribute space. Moreover, this stragey generally this achieves better training-class separation.
 
 In `sits`, SVM is the default machine learning model. The following example ilustrate how to classify an individual sample (in this case a serie of 16 one-year NDVI time series from the same location). As a training data we used the NDVI time series from Mato Grosso Brazilian state.  
 
@@ -442,7 +447,11 @@ sits_plot(class.tb)
 
 Random forests can be used either as a regression or as a classification technique. Here, we are interested in the latter case. Random forests combines two main ideas that emerged in 1990s statistical learning literature: developing population of trees from *stochastic feature selection* [@Ho1995], and *bagging* [@Breiman1996]. It is an *ensemble learning* technique that develops a population of somewhat uncorrelated decision trees that are combined to form a predicting model which is made by a majority vote schema. This aggregating procedure substantialy improves the predictive power of individual trees. Unlike SVM, random forest undertakes a nondeterministic model fitting. 
 
-It starts by creating trees through a bootstrap procedure, that is, a repeatedly random samplings with replacement from which, at every iteration, a decision tree is produced considering only that fraction of the data. Each growing tree splits its nodes by a *stochastic feature selection*. At each node splitting, it selects $m$ attributes at random from the existing full set of $p$ attributes ($m<p$). The best attribute is selected according to a given criteria among the $m$ candidates, which then is used to split the nodes at some level. (What criteria?). 
+It starts by creating trees through a bootstrap procedure, that is, a repeatedly random samplings with replacement from which, at every iteration, a decision tree is produced considering only that fraction of the data. Each growing tree splits its nodes by a *stochastic feature selection*. At each node splitting, it selects $m$ attributes at random from the existing full set of $p$ attributes ($m<p$). The best attribute is selected according to a given criteria among the $m$ candidates, which then is used to split the nodes at some level. The usual ...
+
+<!--
+Every time a split of a node is made on variable m the gini impurity criterion for the two descendent nodes is less than the parent node. Adding up the gini decreases for each individual variable over all trees in the forest gives a fast variable importance that is often very consistent with the permutation importance measure.
+-->
 
 The stochastic feature selection helps to decorrelate the decision trees produced in the bootstrap. This overall procedure generates a set of $b$ somewhat decorrelated decision trees which forms the final random forest model. The prediction is then made by simple consensus: applying each tree to a given test observation vector and computing the predicted class as one vote we choose the most commonly occurring class among the $b$ predictions as the random forest model prediction.
 
