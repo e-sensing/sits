@@ -481,7 +481,44 @@ sits_conf_matrix(prediction.mx)
 
 # Raster classification
 
-...
+<!--
+Each of these approaches involves producing multiple trees which are then combined to yield a single consensus prediction.
+[@Hastie2013, p.303]
+
+by aggregating many decision trees, using methods like bagging, random forests, and boosting, the predictive performance of trees can be substantially improved.
+[p.316]
+
+The decision trees discussed in Section 8.1 suffer from high variance. This means that if we split the training data into two parts at random, and fit a decision tree to both halves, the results that we get could be quite different. In contrast, a procedure with low variance will yield similar results if applied repeatedly to distinct data sets;
+[p.316]
+
+In other words, averaging a set of observations reduces variance.
+[p.316]
+
+-----[BAGGING]----
+[Using bootstrap...]
+This is called bagging.
+[p.317]
+
+Bagging has been demonstrated to give impressive improvements in accuracy by combining together hundreds or even thousands of trees into a single procedure.
+[p.317]
+
+For a given test observation, we can record the class predicted by each of the B trees, and take a majority vote: the overall prediction is the most commonly occurring class among the B predictions.
+[p.317]
+-----------------
+
+Random forests provide an improvement over bagged trees by way of a small tweak that decorrelates the trees.
+[p.320]
+
+As in bagging, we build a number of decision trees on bootstrapped training samples. But when building these decision trees, each time a split in a tree is considered, a random sample of m predictors is chosen as split candidates from the full set of p predictors.
+[p.320]
+
+Suppose that there is one very strong predictor in the data set, along with a num- ber of other moderately strong predictors. Then in the collection of bagged trees, most or all of the trees will use this strong predictor in the top split. Consequently, all of the bagged trees will look quite similar to each other. Hence the predictions from the bagged trees will be highly correlated. Un- fortunately, averaging many highly correlated quantities does not lead to as large of a reduction in variance as averaging many uncorrelated quanti- ties. In particular, this means that bagging will not lead to a substantial reduction in variance over a single tree in this setting.
+Random forests overcome this problem by forcing each split to consider only a subset of the predictors. ...
+We can think of this process as decorrelating the trees, thereby making the average of the resulting trees less variable and hence more reliable. ....
+if a random forest is built using m = p, then this amounts simply to bagging.
+[p.320]
+
+-->
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=4.1}
 # Retrieve the set of samples for the Mato Grosso region 
