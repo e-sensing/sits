@@ -275,6 +275,7 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
 #' @param file           The file where the XLSX data is to be saved
 #'
 #' @examples
+#' \donttest{
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # perform a 2 fold validation of this sample file
@@ -289,7 +290,7 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
 #' results[[length(results) + 1]] <- conf.mx
 #' # save the results to an XLSX file
 #' sits_toXLSX(results, file = paste0(getwd(),"/confusion_matrix.xlsx"))
-#'
+#' }
 #'
 #' @export
 sits_toXLSX <- function(acc.lst, file = NULL){

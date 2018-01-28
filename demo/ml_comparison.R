@@ -28,6 +28,10 @@ sits_labels(samples.tb)
 # select NDVI, EVI, NIR and MIR
 samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
+#remove samples with labels
+
+samples.tb <- sits_select(samples.tb, !(label %in% c("Soy_Sunflower", "Corn_Cotton")))
+
 results <- list()
 
 conf_svm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
@@ -39,6 +43,16 @@ conf_svm.mx <- sits_conf_matrix(conf_svm.tb)
 conf_svm.mx$name <- "svm_10"
 
 results[[length(results) + 1]] <- conf_svm.mx
+
+conf_svm2.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
+                                   ml_method   = sits_svm(kernel = "radial", cost = 100))
+
+print("== Confusion Matrix = SVM =======================")
+conf_svm2.mx <- sits_conf_matrix(conf_svm2.tb)
+
+conf_svm2.mx$name <- "svm_100"
+
+results[[length(results) + 1]] <- conf_svm2.mx
 
 # Deep Learning
 
@@ -64,46 +78,20 @@ results[[length(results) + 1]] <- conf_dl.mx
 
 # test accuracy of TWDTW to measure distances
 conf_rfor.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
-                                    ml_method   = sits_rfor(ntree = 5000))
+                                    ml_method   = sits_rfor(ntree = 2000))
 print("== Confusion Matrix = RFOR =======================")
 conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
 conf_rfor.mx$name <- "rfor"
 
 results[[length(results) + 1]] <- conf_rfor.mx
 
-# =============== GLM ==============================
-
-# get information about a specific coverage
-coverage_wtss.tb <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1", name = "mod13q1_512")
-
-# retrieve the time series associated with the point from the WTSS server
-point.tb <- sits_getdata(coverage = coverage_wtss.tb, longitude = -47.0516, latitude = -10.7241,
-                         bands = c("ndvi", "evi", "nir", "mir"))
-
-# plot the series
-sits_plot(point.tb)
-
-class.tb <- sits_classify(point.tb, samples.tb, ml_method   = sits_glm())
-
-# generalized liner model (glm)
-conf_glm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
-                                   ml_method   = sits_glm())
-
-# print the accuracy of the generalized liner model (glm)
-print ("== Confusion Matrix = GLM  =======================")
-conf_glm.mx <- sits_conf_matrix(conf_glm.tb)
-
-conf_glm.mx$name <- "glm"
-
-results[[length(results) + 1]] <- conf_glm.mx
-
 
 
 # =============== LDA ==============================
 
 # test accuracy of TWDTW to measure distances
-conf_lda.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
-                                   ml_method   = sits_lda ())
+conf_lda.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
+                                   ml_method   = sits_lda())
 
 print ("== Confusion Matrix = LDA =======================")
 conf_lda.mx <- sits_conf_matrix(conf_lda.tb)
@@ -111,9 +99,21 @@ conf_lda.mx$name <- "lda"
 
 results[[length(results) + 1]] <- conf_lda.mx
 
+# =============== QDA ==============================
+
+# test accuracy of TWDTW to measure distances
+conf_qda.tb <- sits_kfold_validate(samples.tb, folds = 2, multicores = 1,
+                                   ml_method   = sits_qda())
+
+print("== Confusion Matrix = QDA =======================")
+conf_qda.mx <- sits_conf_matrix(conf_qda.tb)
+conf_qda.mx$name <- "qda"
+
+results[[length(results) + 1]] <- conf_qda.mx
+
 # =============== MLR ==============================
 # "multinomial log-linear (mlr)
-conf_mlr.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
+conf_mlr.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
                                    ml_method   = sits_mlr())
 
 # print the accuracy of the Multinomial log-linear

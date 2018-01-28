@@ -2,14 +2,19 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_mlr}
 \alias{sits_mlr}
-\title{Train a SITS classifiaction model using multinomial log-linear fitting}
+\title{Train a SITS classifiaction model using multinomial log-linear regions via neural networks}
 \usage{
-sits_mlr(distances.tb = NULL, formula = sits_formula_logref(), ...)
+sits_mlr(distances.tb = NULL, formula = sits_formula_logref(),
+  n_weights = 5000, maxit = 250, ...)
 }
 \arguments{
 \item{distances.tb}{a time series with a set of distance measures for each training sample}
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
+
+\item{n_weights}{maximum number of weights (should be proportional to size of input data)}
+
+\item{maxit}{maximum number of iterations (default 300)}
 
 \item{...}{other parameters to be passed to nnet::multinom function}
 }

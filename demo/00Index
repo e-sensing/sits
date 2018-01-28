@@ -6,4 +6,3 @@ access_WTSS             Access a time series using the WTSS service
 classify_csv            Classify a set of labelled samples in the CSV format
 filtering_ts            Comparison of different methods for filtering a time series
 ml_comparison           Comparison of different machine learning methods for classifying time series
-svm_dl_comparison       Comparison of SVM and deep learning
