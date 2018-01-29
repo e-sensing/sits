@@ -420,7 +420,7 @@ K({\bf u},{\bf v})=\exp(-\gamma\lVert{{\bf u}-{\bf v}}\rVert^2),
 $$
 one of the most used nonlinear kernels, maps the input space to an infinite dimensional feature space, which would be roughly obtained by a power series expansion with substantially more calculations. Other popular choices for $K$ in the SVM literature are the polynomial kernel ($K({\bf u},{\bf v})=(\gamma{{\bf u}^{\intercal}{\bf v}}+r)^d$, with parameters $\gamma$, $r$, and $d$), and the linear kernel $K({\bf u},{\bf v})={\bf u}^{\intercal}{\bf v}$. The use of kernels are an efficient computational strategy to produce nonlinear boundaries in the input attribute space generally achieving better training-class separation.
 
-In `sits`, SVM is the default machine learning model. The following example ilustrate how to classify an individual sample (in this case a serie of 16 one-year NDVI time series from the same location). As a training data we used the NDVI time series from Mato Grosso Brazilian state.
+In `sits`, SVM is the default machine learning model. As a wrapper to `e1071` R package that uses the `LIBSVM` implementation [@Chang2011], `sits` adopts the *one-against-one* method for multiclass classification. For a $q$ class problem, this method creates $q(q-1)/2$ SVM binary models, one for each class pair combination and tests any unknown input vectors throughout all those models. The overeall result is computed by a voting scheme. The following example ilustrate how to classify an individual sample (in this case a serie of 16 one-year NDVI time series from the same location). We used the NDVI time series from Mato Grosso Brazilian state as a training data set.
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
@@ -497,7 +497,7 @@ sits_conf_matrix(prediction.mx)
 
 # Raster classification
 
-...
+`sits` implements a raster classification scheme based on raster cubes where images are stacked to form the third dimension. Our tested approach is `TIFF` cubes, where the temporal dimension is stored in the image bands. The classification task is realized in pararel.
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=4.1}
 # Retrieve the set of samples for the Mato Grosso region 
@@ -512,7 +512,8 @@ files  <-
 data(timeline_mod13q1)
 timeline <- lubridate::as_date(timeline_mod13q1$V1)
 
-# create a raster metadata file based on the information about the files
+# create a raster metadata file based on the 
+# information about the files
 raster.tb <- 
     sits_coverage(service = "RASTER",
                   product = "MOD13Q1",
