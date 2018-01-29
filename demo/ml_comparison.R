@@ -102,7 +102,7 @@ results[[length(results) + 1]] <- conf_lda.mx
 # =============== QDA ==============================
 
 # test accuracy of TWDTW to measure distances
-conf_qda.tb <- sits_kfold_validate(samples.tb, folds = 2, multicores = 1,
+conf_qda.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
                                    ml_method   = sits_qda())
 
 print("== Confusion Matrix = QDA =======================")
@@ -137,6 +137,6 @@ results[[length(results) + 1]] <- conf_gbm.mx
 
 WD = getwd()
 
-sits_toXLSX(results, file = paste0(WD, "/accuracy_cerrado_1.xlsx"))
+sits_toXLSX(results, file = paste0(WD, "/accuracy_cerrado_2.xlsx"))
 
 

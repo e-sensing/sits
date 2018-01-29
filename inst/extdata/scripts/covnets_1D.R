@@ -45,11 +45,14 @@ batch_size       = 128
 int_conv_factor  = 10000
 validation_split = 0.2
 
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data("cerrado_13classes_modis_col5")
+# Retrieve the set of samples for the Cerrado
+samples <- paste0("https://www.dropbox.com/s/addv5lxbpjm85jr/cerrado_13classes_modis_col6.rda?raw=1")
+
+download.file(samples, destfile = "./cerrado_13classes_modis_col6.rda")
+load(file = "./cerrado_13classes_modis_col6.rda")
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-samples.tb <- sits_select(cerrado_13classes_modis_col5, bands = c("ndvi","evi", "nir", "mir"))
+samples.tb <- sits_select(samples.tb, bands = c("ndvi","evi", "nir", "mir"))
 
 # find the distance from the data
 train_data.tb <- sits_distances(samples.tb, adj_fun  = function(x) {identity(x)})
