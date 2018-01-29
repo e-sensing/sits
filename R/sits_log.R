@@ -47,5 +47,5 @@ sits_log <- function() {
     ensurer::ensure_that(csv.tb, !purrr::is_null(.),
                          err_desc = "Cannot save NULL CSV data")
 
-    sits_toCSV(csv.tb, file = paste0(dirname(sits.env$config$log_file),"/", file_name))
+    sits_metadata_toCSV(csv.tb, file = paste0(dirname(sits.env$config$log_file),"/", file_name))
 }
