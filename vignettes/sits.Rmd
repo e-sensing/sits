@@ -420,7 +420,7 @@ K({\bf u},{\bf v})=\exp(-\gamma\lVert{{\bf u}-{\bf v}}\rVert^2),
 $$
 one of the most used nonlinear kernels, maps the input space to an infinite dimensional feature space, which would be roughly obtained by a power series expansion with substantially more calculations. Other popular choices for $K$ in the SVM literature are the polynomial kernel ($K({\bf u},{\bf v})=(\gamma{{\bf u}^{\intercal}{\bf v}}+r)^d$, with parameters $\gamma$, $r$, and $d$), and the linear kernel $K({\bf u},{\bf v})={\bf u}^{\intercal}{\bf v}$. The use of kernels are an efficient computational strategy to produce nonlinear boundaries in the input attribute space generally achieving better training-class separation.
 
-In `sits`, SVM is the default machine learning model. The following example ilustrate how to classify an individual sample (in this case a serie of 16 one-year NDVI time series from the same location). As a training data we used the NDVI time series from Mato Grosso Brazilian state.
+In `sits`, SVM is the default machine learning model. As a wrapper of `e1071` R package that uses the `LIBSVM` implementation [@Chang2011], `sits` adopts the *one-against-one* method for multiclass classification. For a $q$ class problem, this method creates $q(q-1)/2$ SVM binary models, one for each class pair combination and tests any unknown input vectors throughout all those models. The overeall result is computed by a voting scheme. The following example ilustrate how to classify an individual sample (in this case a serie of 16 one-year NDVI time series from the same location). We used the NDVI time series from Mato Grosso Brazilian state as a training data set.
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
@@ -448,13 +448,13 @@ The stochastic feature selection helps to decorrelate the decision trees produce
 Random forest provides better performances over *bagged trees*, a similar procedure that does not implement stochastic feature selection (*i.e.* when $m=p$). Bagged trees suffer from high correlation among trees introduced by an eventual presence of strong predictors that are deterministically chosen as splitting nodes criterion [@James2013]. However, the random forest classification performance can vary according to the tunning of the model parameters. The main parameters are the number of attributes randomly sampled as candidates at each split ($m$), the number of decision trees to grow ($b$), the minimum size of final nodes (), and the sample size to draw at each bootstrap iteration ().
 
 <!--
------[Variance reduction]---- 
-The decision trees discussed in Section 8.1 suffer from high variance. This means that if we split the training data into two parts at random, and fit a decision tree to both halves, the results that we get could be quite different. In contrast, a procedure with low variance will yield similar results if applied repeatedly to distinct data sets;
-[p.316]
-
-In other words, averaging a set of observations reduces variance.
-[p.316]
-
+%-----[Variance reduction]---- 
+%The decision trees discussed in Section 8.1 suffer from high variance. This means that if we split the training data into two parts at random, and fit a decision tree to both halves, the results that we get could be quite different. In contrast, a procedure with low variance will yield similar results if applied repeatedly to distinct data sets;
+%[p.316]
+%
+%In other words, averaging a set of observations reduces variance.
+%[p.316]
+%
 -->
 
 
@@ -497,7 +497,9 @@ sits_conf_matrix(prediction.mx)
 
 # Raster classification
 
-...
+The continuous observation of the Earth surface provided by orbital sensors is unprecedented in history. Just for the sake of ilustration, a unique tile from MOD13Q1 product, a square of $4800$ pixels provided every 16 days since February 2000 takes around 18GB of uncompressed data to store only one band or vegetation index. This data deluge puts the field into a big data era and imposes challenges to design and build technologies that allow the Earth observation community to analyse those data sets [@Gilberto2017]. `sits` implements an "out of the box" classification scheme based on *raster cubes* where stacked images have spatial and time dimensions.
+
+Our tested approach and bellow illustrated example is `GeoTIFF` cubes, where the temporal dimension is stored in the image bands. The classification task can be realized in pararel, where the data is consumed piecewise. This strategy enables `sits` to work on desktop computers without depleting all computational resources. The code bellow provides one example on how to classify a small cube image provided with `sits` package.
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=4.1}
 # Retrieve the set of samples for the Mato Grosso region 
@@ -512,7 +514,8 @@ files  <-
 data(timeline_mod13q1)
 timeline <- lubridate::as_date(timeline_mod13q1$V1)
 
-# create a raster metadata file based on the information about the files
+# create a raster metadata file based on the 
+# information about the files
 raster.tb <- 
     sits_coverage(service = "RASTER",
                   product = "MOD13Q1",
@@ -548,8 +551,8 @@ The `sits` uses the full depth of satellite image time series to create larger d
 
 The authors would like to thank all the researchers whose provided data samples used in the examples: Alexandre Coutinho, Julio Esquerdo and Joao Antunes (Brazilian Agricultural Research Agency, Brazil) who provided ground samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes; Rodrigo Bergotti (National Institute for Space Research, Brazil) who provided samples for "cerrado" and "forest" classes; and Damien Arvor (Rennes University, France) who provided ground samples for "soybean-fallow" class.
 
-<!--
 # References
+<!--
 \setlength{\parindent}{-0.2in}
 \setlength{\leftskip}{0.2in}
 \setlength{\parskip}{8pt}
