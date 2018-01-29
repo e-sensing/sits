@@ -181,7 +181,7 @@ $$
 E=(a+b)(b+c)+(c+d)(b+d).
 $$ 
 
-Different from others validity index such as Jaccard ($J=a/(a+b+c)$), Fowlkes-Mallows ($FM=a/(a^2+a(b+c)+bc)^{1/2}$), and Rand (the same as ARI without the $E$ adjustment) indices, ARI is more appropriate either when the number of clusters is outwheighted by the number of labels (and *vice versa*) and the amount of samples in labels and clusters is imbalanced [@Hubert1985], which is usually the case.
+Different from others validity index such as Jaccard (${J=a/(a+b+c)}$), Fowlkes-Mallows (${FM=a/(a^2+a(b+c)+bc)^{1/2}}$), and Rand (the same as ARI without the $E$ adjustment) indices, ARI is more appropriate either when the number of clusters is outwheighted by the number of labels (and *vice versa*) and the amount of samples in labels and clusters is imbalanced [@Hubert1985], which is usually the case.
 
 ```{r}
 # create 6 clusters by cutting the dendrogram at 
@@ -194,7 +194,7 @@ clusters.tb <-
 sits_cluster_frequency(clusters.tb)
 ```
 
-Note in this example that almost all clusters has a predomination of either "Cerrado" or "Pasture" classes with the exception of cluster $3$. The contigency table ploted by `sits_cluster_frequency` shows how the samples are distributed across the clusters and helps to identify two kinds of confusions. The first is relative to those small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$), and the second is relative to those samples in non-dominated clusters (*e.g.* cluster $3$). These confusions can be an indication of poor quality of samples, or an inadequacy between the used parameters in cluster analysis, or even a natural confusion due to the inherent variability of the land classes.
+Note in this example that almost all clusters has a predomination of either "Cerrado" or "Pasture" classes with the exception of cluster $3$. The contigency table ploted by `sits_cluster_frequency()` shows how the samples are distributed across the clusters and helps to identify two kinds of confusions. The first is relative to those small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$), and the second is relative to those samples in non-dominated clusters (*e.g.* cluster $3$). These confusions can be an indication of poor quality of samples, or an inadequacy between the used parameters in cluster analysis, or even a natural confusion due to the inherent variability of the land classes.
 
 For whatever reason, one can check other methods to assist one's decision, either by eliminating part of it, or by improving the data set. If one considers such cases as outliers, it is possible to remove them using the functions `sits_cluster_clean()` and `sits_cluster_remove()`. The first removes all those minority samples that do not reach a minimum percentage close to $0\%$, whereas the second removes an entire cluster if its dominant class does not reach a minimum percentage, close to $100\%$. The example illustrates the second aproach.
 
@@ -229,12 +229,12 @@ $$
 $$
 where $\hat{x}$ is the the filtered time series, $C_{j}$ are the Savitzky-Golay smoothing coefficients, and $x$ is the original time series.
 
-The coeficients $C_{j}$ depend uniquely on the polynomial degree ($d$) and the length of the window data points (given by parameter $n$). If $d=0$, the coeficients are constants $C_{j}=1/(2n+1)$ and the Savitzky-Golay filter will be equivalent to moving average filter. When the time series is equally spaced, the coefficients have analytical solution. According to @Madden1978, for $d\in{}[2,3]$ each $C_{j}$ smothing coefficients can be obtained by
+The coeficients $C_{j}$ depend uniquely on the polynomial degree ($d$) and the length of the window data points (given by parameter $n$). If ${d=0}$, the coeficients are constants ${C_{j}=1/(2n+1)}$ and the Savitzky-Golay filter will be equivalent to moving average filter. When the time series is equally spaced, the coefficients have analytical solution. According to @Madden1978, for ${d\in{}[2,3]}$ each $C_{j}$ smothing coefficients can be obtained by
 $$
 C_{j}=\frac{3(3n^2+3n-1-5j^2)}{(2n+3)(2n+1)(2n-1)}.
 $$
 
-In general, the Savitzky-Golay filter produces smoother results for a larger value of $n$ and/or a smaller value of $d$ [@Chen2004]. The optimal value for these two parameters can vary from case to case. For example, @Zhou2016 set $d=2$ and $n=10$. @Hird2009 tests the filter for $n\in{}[5,6,7]$ using quadratic polynomial.
+In general, the Savitzky-Golay filter produces smoother results for a larger value of $n$ and/or a smaller value of $d$ [@Chen2004]. The optimal value for these two parameters can vary from case to case. For example, @Zhou2016 set ${d=2}$ and ${n=10}$. @Hird2009 tests the filter for ${n\in{}[5,6,7]}$ using quadratic polynomial.
 
 `sits` Savitzky-Golay function  The following example shows the effect of Savitsky-Golay filter on the original time series.
 
@@ -258,13 +258,13 @@ $$
 where $x$ and $\hat{x}$ are the original and the filtered time series vectors, respectivelly. The smoothness is assumed to be the measure of the the sum of the squares of the third order differences of the time series [@Whittaker1922] which is given by
 $$
 \begin{split}
-SSD_3 = (\hat{x}_4 - 3\hat{x}_3 + 3\hat{x}_2 - \hat{x}_1)^2 + (\hat{x}_5 - 3\hat{x}_4 + 3\hat{x}_3 - \hat{x}_2)^2 \\ + \ldots + (\hat{x}_n - 3\hat{x}_{n-1} + 3\hat{x}_{n-2} - \hat{x}_{n-3})^2.
+S\!S\!D = (\hat{x}_4 - 3\hat{x}_3 + 3\hat{x}_2 - \hat{x}_1)^2 + (\hat{x}_5 - 3\hat{x}_4 + 3\hat{x}_3 - \hat{x}_2)^2 \\ + \ldots + (\hat{x}_n - 3\hat{x}_{n-1} + 3\hat{x}_{n-2} - \hat{x}_{n-3})^2.
 \end{split}
 $$
 
 Whittaker filter is obtained by finding a new time series $\hat{x}$ whose points minimize the expression
 $$
-RSS+\lambda{}SSD_3,
+RSS+\lambda{}S\!S\!D,
 $$ 
 where $\lambda{}$, a scalar, works as an "smoothing wheight" parameter. The minimization can be obtained by differentiating the expression with respect to $\hat{x}$ and equating it to zero. The solution of the resulting linear system of equations gives the filtered time series which, in matrix form, can be expressed as
 $$
@@ -314,7 +314,7 @@ The envelope filter can be viewed through mathematical morphology lenses, a very
 
 In the following example we can see an application of `sits_envelope()` function. There, we performs the *opening filtration* and *closing filtration* introduced by @Vavra2004. The correspondent operations sequence are `"ULLULUUL"` and `"LUULULLU"`.
 
-```{r, fig.align="center", fig.height=3.1, fig.width=5}
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Envelope filter applied on one-year NDVI time series. The examples uses two morfological filters: opening filtration (~.OF) and closing filtration (~.CF)."}
 # Take the NDVI band of the first sample data set
 point.tb <- 
     sits_select(prodes_226_064[1,], 
@@ -355,23 +355,23 @@ sits_plot(sits_merge(point_cf.tb, point.tb))
 
 The main advantage using satellite image time series in land use studies is that the time series is methodologically consistent with the very nature of the land covers. Using this kind of data allows focusing on land changes through time. Currently, most studies that use satellite image time series for land classification still use variations of the classical remote sensing image classification methods. Given a series of images, researchers use methods that produce a single composite for the whole series [@Gomez2016]. In their review on this subject, @Gomez2016 discuss $12$ papers that use satellite image time series to derive image composites that are later used for classification. @Camara2016 denote these works as taking a *space-first*, *time-later* approach.
 
-An example of *space-first*, *time-later* work on big EO data analysis is the work by @Hansen2013. Using more than $650,000$ Landsat images and processing more than $140$ billion pixels, the authors compared data from 2000 to 2010 to produce maps of global forest loss during the decade. A pixel-based classification algorithm was used to process each image to detect forest cover. The method classifies each 2D image one by one.
+An example of *space-first*, *time-later* work on big Earth observation data analysis is the work by @Hansen2013. Using more than ${650,000}$ Landsat images and processing more than $140$ billion pixels, the authors compared data from 2000 to 2010 to produce maps of global forest loss during the decade. A pixel-based classification algorithm was used to process each image to detect forest cover. The method classifies each 2D image one by one.
 
 In our view, these methods do not use the full potential of satellite image time series. The benefits of remote sensing time series analysis arise when the temporal resolution of the big data set is able to capture the most important changes. Here, the temporal autocorrelation of the data can be stronger than the spatial autocorrelation. Given data with adequate repeatability, a pixel will be more related to its temporal neighbours than to its spatial ones. In this case, *time-first, space-later* methods lead to better results than the *space-first, time-later* approach [@Camara2016].
 
-The `sits` package provides functionality to explore the full depth of satellite image time series data. It treat time series as a feature vector. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars (the training data) to infer classes of a larger data set. `sits` has support for a variety of machine learning techniques (...). In the following sections we discuss on SVM and Random Forest machine learning techniques with more detail.
+The `sits` package provides functionality to explore the full depth of satellite image time series data. It treat time series as a feature vector. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars (the training data) to infer classes of a larger data set. `sits` has support for a variety of machine learning techniques (...). In the following sections we discuss on support vector machine and random forest machine learning techniques with more detail.
 
 ## Support Vector Machine
 
 The Support Vector Machine (SVM) is a generalization of the *separating hyperplane classifier* [@Hastie2009]. This generalization combines the notions of the *optimal separating hyperplanes*, the *soft margins*, and the *enlargement of the input attribute space* with a nonlinear mapping to a feature space.
 
-In a separating hyperplane formulation, the classifier works only with separable sample sets. It finds a linear boundary in the input attribute space that not only divides two classes but maximizes its margin to them. A boundary is a *hyperplane* that divides the entire attribute space into two parts. Let $({\bf x}_k, y_k),\ k\in{}(1,\ldots,n),$ be a set of $n$ observations with attribute vector ${\bf x}_k\in{\mathbb{R}^p}$ and class $y\in\{-1,1\}$. Once feature space has $p$ dimensions, the hyperplane has dimension $p-1$ and can be written as
+In a separating hyperplane formulation, the classifier works only with separable sample sets. It finds a linear boundary in the input attribute space that not only divides two classes but maximizes its margin to them. A boundary is a *hyperplane* that divides the entire attribute space into two parts. Let ${({\rm x}_k, y_k)}$, ${k\in{}(1,\ldots,n)}$ be a set of $n$ observations with attribute vector ${\rm x}_k\in{\mathbb{R}^p}$ and class ${y\in\{-1,1\}}$. Once feature space has $p$ dimensions, the hyperplane has dimension $p-1$ and can be written as
 $$
 a_0+a_1x_{1}+a_2x_{2}+\ldots+a_px_{p}=0,
 $$
-where $x_{i}$ is the $i$-th attribute of ${\bf x}$.
+where $x_{i}$ is the $i$-th attribute of ${\rm x}$.
 
-If the samples are separable, the hyperplane has a perfect classification property, that is, for all sample $({\bf x}_k, y_k)$, the following relation holds
+If the samples are separable, the hyperplane has a perfect classification property, that is, for all sample ${({\rm x}_k, y_k)}$, the following relation holds
 $$
 \begin{split}
 a_0+a_1x_{k_1}+a_2x_{k_2}+\ldots+a_px_{k_p}<0,&\quad{}{y_k=-1},\\
@@ -380,49 +380,49 @@ a_0+a_1x_{k_1}+a_2x_{k_2}+\ldots+a_px_{k_p}>0,&\quad{}{y_k=1}.
 $$
 Once the solution for a such hyperplane is obtained (*i.e.* values for coeficients $a_0,a_1,\ldots,a_p$), one is able to derive a very simple classification model
 $$
-f({\bf x})=\hat{a}_0+\hat{{\bf a}}{\bf x}
+f({\rm x})=\hat{a}_0+\hat{{\rm a}}{\rm x}
 $$
-that classifies any test vector ${\bf x}$ according to
+that classifies any test vector ${\rm x}$ according to
 $$
 \begin{split}
-y=1,&\quad{\rm if }\ f({\bf x})>0,\\
-y=-1,&\quad{\rm if }\ f({\bf x})<0.
+y=1,&\quad{\rm if }\ f({\rm x})>0,\\
+y=-1,&\quad{\rm if }\ f({\rm x})<0.
 \end{split}
 $$
 
-However, the condition under which this classifier has solution is too restrictive, as it needs a linearly separable training set. This is hardly what one may expect in a typical satellite image time series scenario. To overcome this undesired constraint, SVM introduces a *softner term* in the hyperplane optimization problem. This modification allows some observations to be inside the margins band, or even in the incorrect side of the boundary, violating the maximum margin criteria but increasing its robustness by reducing individual observations influence. Moreover, the solution for the hyperplane coefficients $\hat{{\bf a}}=(a_1,\ldots,a_n)^\intercal$, given by
+However, the condition under which this classifier has solution is too restrictive, as it needs a linearly separable training set. This is hardly what one may expect in a typical satellite image time series scenario. To overcome this undesired constraint, SVM introduces a *softner term* in the hyperplane optimization problem. This modification allows some observations to be inside the margins band, or even in the incorrect side of the boundary, violating the maximum margin criteria but increasing its robustness by reducing individual observations influence. Moreover, the solution for the hyperplane coefficients ${\hat{{\rm a}}=(a_1,\ldots,a_n)^\intercal}$, given by
 $$
-\hat{{\bf a}}=\sum_{k=1}^{n}{\alpha_{k}y_{k}{\bf x}_{k}},
+\hat{{\rm a}}=\sum_{k=1}^{n}{\alpha_{k}y_{k}{\rm x}_{k}},
 $$
-depends only on those samples that violates the maximum margin criteria, here captured by the fact that $\alpha_k>0$ only for those points laying either inside the margin band or in the wrong side of the boundary, the so-called *support vectors*. For all other points, $\alpha_k=0$, and hence none of them exert any influence on the coefficients determination. This property let SVM less sensitive to outliers (for more details on how to compute $\alpha$ and $\hat{a}_0$, see @Cortes1995, @Hastie2009, and @James2013).
+depends only on those samples that violates the maximum margin criteria, here captured by the fact that ${\alpha_k>0}$ only for those points laying either inside the margin band or in the wrong side of the boundary, the so-called *support vectors*. For all other points, ${\alpha_k=0}$, and hence none of them exert any influence on the coefficients determination. This property let SVM less sensitive to outliers (for more details on how to compute ${rm \alpha}$ and $\hat{a}_0$, see @Cortes1995, @Hastie2009, and @James2013).
 
-Hyperplanes are linear $(p-1)$-dimensional boundaries and define linear partitions in the attribute space. However, sometimes we are faced with nonlinear relationship between attribute vectors and classes. In such cases, linear classification models can suffer to do a good job. An alternative to this limitation is the *enlargement of the attribute space* by a nonlinear mapping $\phi$ to a higher degree feature space. In this manner, the new classification model
+Hyperplanes are linear ${(p-1)}$-dimensional boundaries and define linear partitions in the attribute space. However, sometimes we are faced with nonlinear relationship between attribute vectors and classes. In such cases, linear classification models can suffer to do a good job. An alternative to this limitation is the *enlargement of the attribute space* by a nonlinear mapping $\phi$ to a higher degree feature space. In this manner, the new classification model
 $$
-f(x)=\hat{a}_0+\hat{{\bf a}}^\intercal\phi({\bf x}),
+f({\rm x})=\hat{a}_0+\hat{{\rm a}}^\intercal\phi({\rm x}),
 $$
 defines its linear hyperplane on the enlarged feature space which translate to nonlinear boundaries in the original input space. Here, the coefficients are obtained simmilarly by
 $$
-\hat{{\bf a}}=\sum_{k=1}^{n}{\alpha_{k}y_{k}\phi({\bf x}_{k})},
+\hat{{\rm a}}=\sum_{k=1}^{n}{\alpha_{k}y_{k}\phi({\rm x}_{k})},
 $$
 which substituting in $f$ expression above gives us
 $$
-f(x)=\hat{a}_0+\sum_{k=1}^{n}{\alpha_{k}y_{k}\phi({\bf x}_{k})^\intercal\phi({\bf x})}.
+f({\rm x})=\hat{a}_0+\sum_{k=1}^{n}{\alpha_{k}y_{k}\phi({\rm x}_{k})^\intercal\phi({\rm x})}.
 $$
-Moreover, the linearity of the model implies that the term $\phi({\bf x}_{k})^\intercal\phi({\bf x})$ can be expressed as a dot product $\phi({\bf x}_{k})\cdot{}\phi({\bf x})$ without change its properties.
+Moreover, the linearity of the model implies that the term ${\phi({\rm x}_{k})^\intercal\phi({\rm x})}$ can be expressed as a dot product ${\phi({\rm x}_{k})\cdot{}\phi({\rm x})}$ without change its properties.
 
 However, the enlargement of the feature space by $\phi$ can be computationaly expensive. SVM makes use of *kernels* to overcome this limitation. Kernel functions are equivalent to dot products of a larger degree feature space vectors. Hence, we can express $f$ as [@Cortes1995]:
 $$
-f({\bf x})=\hat{a}_0+\sum_{k=1}^{n}{\alpha_{k}y_{k}K({\bf x}_{k}, {\bf x})},
+f({\rm x})=\hat{a}_0+\sum_{k=1}^{n}{\alpha_{k}y_{k}K({\rm x}_{k}, {\rm x})},
 $$
-where $K(u,v)$ is a kernel function that is equivalent to the dot product $\phi(u)\cdot\phi(v)$ (see @Cortes1995). It follows that, we can use kernel functions without the need to compute $\phi$, otherwise it would require massive computations. For example, the radial basis function (RBF) kernel
+where ${K(u,v)}$ is a kernel function that is equivalent to the dot product ${\phi(u)\cdot\phi(v)}$ (see @Cortes1995). It follows that, we can use kernel functions without the need to compute $\phi$, otherwise it would require massive computations. For example, the radial basis function (RBF) kernel
 $$
-K({\bf u},{\bf v})=\exp(-\gamma\lVert{{\bf u}-{\bf v}}\rVert^2),
+K({\rm u},{\rm v})=\exp(-\gamma\lVert{{\rm u}-{\rm v}}\rVert^2),
 $$
-one of the most used nonlinear kernels, maps the input space to an infinite dimensional feature space, which would be roughly obtained by a power series expansion with substantially more calculations. Other popular choices for $K$ in the SVM literature are the polynomial kernel ($K({\bf u},{\bf v})=(\gamma{{\bf u}^{\intercal}{\bf v}}+r)^d$, with parameters $\gamma$, $r$, and $d$), and the linear kernel $K({\bf u},{\bf v})={\bf u}^{\intercal}{\bf v}$. The use of kernels are an efficient computational strategy to produce nonlinear boundaries in the input attribute space generally achieving better training-class separation.
+one of the most used nonlinear kernels, maps the input space to an infinite dimensional feature space, which would be roughly obtained by a power series expansion with substantially more calculations. Other popular choices for $K$ in the SVM literature are the polynomial kernel (${K({\rm u},{\rm v})=(\gamma{{\rm u}^{\intercal}{\rm v}}+r)^d}$, with parameters $\gamma$, $r$, and $d$), and the linear kernel ${K({\rm u},{\rm v})={\rm u}^{\intercal}{\rm v}}$. The use of kernels are an efficient computational strategy to produce nonlinear boundaries in the input attribute space generally achieving better training-class separation.
 
-In `sits`, SVM is the default machine learning model. As a wrapper of `e1071` R package that uses the `LIBSVM` implementation [@Chang2011], `sits` adopts the *one-against-one* method for multiclass classification. For a $q$ class problem, this method creates $q(q-1)/2$ SVM binary models, one for each class pair combination and tests any unknown input vectors throughout all those models. The overeall result is computed by a voting scheme. The following example ilustrate how to classify an individual sample (in this case a serie of 16 one-year NDVI time series from the same location). We used the NDVI time series from Mato Grosso Brazilian state as a training data set.
+In `sits`, SVM is the default machine learning model. As a wrapper of `e1071` R package that uses the `LIBSVM` implementation [@Chang2011], `sits` adopts the *one-against-one* method for multiclass classification. For a $q$ class problem, this method creates ${q(q-1)/2}$ SVM binary models, one for each class pair combination and tests any unknown input vectors throughout all those models. The overeall result is computed by a voting scheme. The following example ilustrate how to classify an individual sample (in this case a serie of 16 one-year NDVI time series from the same location). We used the NDVI time series from Mato Grosso Brazilian state as a training data set.
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5}
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="SVM classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
 # Mato Grosso region for train the SVM model
 data(samples_MT_ndvi)
@@ -441,11 +441,11 @@ sits_plot(class.tb)
 
 Random forests can be used either as a regression or as a classification technique. Here, we are interested in the latter case. Random forests combines two main ideas that emerged in 1990s statistical learning literature: developing population of trees from *stochastic feature selection* [@Ho1995], and *bagging* [@Breiman1996]. It is an *ensemble learning* technique that develops a population of somewhat uncorrelated decision trees that are combined to form a predicting model which is made by a majority vote schema. This aggregating procedure substantialy improves the predictive power of individual trees. Unlike SVM, random forest undertakes a nondeterministic model fitting. 
 
-It starts by creating trees through a bootstrap procedure, that is, a repeatedly random samplings with replacement from which, at every iteration, a decision tree is produced considering only that fraction of the data. Each growing tree splits its nodes by a *stochastic feature selection*. At each node splitting, it selects $m$ attributes at random from the existing full set of $p$ attributes ($m<p$). The best attribute is selected according to a given criteria among the $m$ candidates, which then is used to split the nodes at some level. Generally, one can use any purity criterion such as Gini or entropy to decide which attribute is to be used to split the node.
+It starts by creating trees through a bootstrap procedure, that is, a repeatedly random samplings with replacement from which, at every iteration, a decision tree is produced considering only that fraction of the data. Each growing tree splits its nodes by a *stochastic feature selection*. At each node splitting, it selects $m$ attributes at random from the existing full set of $p$ attributes (${m<p}$). The best attribute is selected according to a given criteria among the $m$ candidates, which then is used to split the nodes at some level. Generally, one can use any purity criterion such as Gini or entropy to decide which attribute is to be used to split the node.
 
 The stochastic feature selection helps to decorrelate the decision trees produced in the bootstrap. This overall procedure generates a set of $b$ somewhat decorrelated decision trees which forms the final random forest model. The prediction is then made by simple consensus: applying each tree to a given test observation vector and computing the predicted class as one vote we choose the most commonly occurring class among the $b$ predictions as the random forest model prediction.
 
-Random forest provides better performances over *bagged trees*, a similar procedure that does not implement stochastic feature selection (*i.e.* when $m=p$). Bagged trees suffer from high correlation among trees introduced by an eventual presence of strong predictors that are deterministically chosen as splitting nodes criterion [@James2013]. However, the random forest classification performance can vary according to the tunning of the model parameters. The main parameters are the number of attributes randomly sampled as candidates at each split ($m$), the number of decision trees to grow ($b$), the minimum size of final nodes (), and the sample size to draw at each bootstrap iteration ().
+Random forest provides better performances over *bagged trees*, a similar procedure that does not implement stochastic feature selection (*i.e.* when $m=p$). Bagged trees suffer from high correlation among trees introduced by an eventual presence of strong predictors that are deterministically chosen as splitting nodes criterion [@James2013]. However, the random forest classification performance can vary according to the tunning of the model parameters. The main parameters are the number of attributes randomly sampled as candidates at each split ($m$), the number of decision trees to grow ($b$), and the sample size to draw at each bootstrap iteration ($s$). Low values of $m$ turn 
 
 <!--
 %-----[Variance reduction]---- 
@@ -458,7 +458,7 @@ Random forest provides better performances over *bagged trees*, a similar proced
 -->
 
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5}
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
 # Mato Grosso region for train the Random Forest model.
 data(samples_MT_ndvi)
@@ -476,11 +476,11 @@ sits_plot(class.tb)
 
 Validation is a process undertaken on models to estimate some error associated with them, and hence has been used widely in different scientific disciplines. Here, we are interested in estimating the prediction error associated to some model. For this purpose, we concentrate on the *cross-validation* approach, probably the most used validation technique [@Hastie2009].
 
-To be sure, cross-validation estimates the expected prediction error. It uses part of the available samples to fit the classification model, and a different part to test it. The so-called *k-fold* validation, we split the data into $k$ partitions with approximately the same size and proceed by fitting the model and testing it $k$ times. At each step, we take one distinct partition for test and the remaining $k-1$ for training the model, and calculate its prediction error for classifing the test partition. A simple average gives us an estimation of the expected prediction error. 
+To be sure, cross-validation estimates the expected prediction error. It uses part of the available samples to fit the classification model, and a different part to test it. The so-called *k-fold* validation, we split the data into $k$ partitions with approximately the same size and proceed by fitting the model and testing it $k$ times. At each step, we take one distinct partition for test and the remaining ${k-1}$ for training the model, and calculate its prediction error for classifing the test partition. A simple average gives us an estimation of the expected prediction error. 
 
-A natural question that arises is: *how good is this estimation?* According to @Hastie2009, there is a bias-variance trade-off in choice of $k$. If $k$ is set to the number of samples, we obtain the so-called *leave-one-out* validation, the estimator gives a low bias for the true expected error, but produces a high variance expectation. This can be computational expensive as it requires the same number of fitting process as the number of samples. On the other hand, if we choose $k=2$, we get a high biased expected prediction error estimation that overestimates the true prediction error, but has a low variance. The recommended choices of $k$ are $5$ or $10$ [@Hastie2009], which somewhat overestimates the true prediction error.
+A natural question that arises is: *how good is this estimation?* According to @Hastie2009, there is a bias-variance trade-off in choice of $k$. If $k$ is set to the number of samples, we obtain the so-called *leave-one-out* validation, the estimator gives a low bias for the true expected error, but produces a high variance expectation. This can be computational expensive as it requires the same number of fitting process as the number of samples. On the other hand, if we choose ${k=2}$, we get a high biased expected prediction error estimation that overestimates the true prediction error, but has a low variance. The recommended choices of $k$ are $5$ or $10$ [@Hastie2009], which somewhat overestimates the true prediction error.
 
-`sits_kfold_validate` gives support the k-fold validation in `sits`. The following code gives an example on how to proceed a k-fold cross-validation in the package. It perform a five-fold validation using SVM classification model as a default classifier.
+`sits_kfold_validate()` gives support the k-fold validation in `sits`. The following code gives an example on how to proceed a k-fold cross-validation in the package. It perform a five-fold validation using SVM classification model as a default classifier. We can see in the output text the corresponding confusion matrix and the accuracy statistics (overall and by class).
 
 ```{r}
 # read a set of samples
@@ -497,11 +497,11 @@ sits_conf_matrix(prediction.mx)
 
 # Raster classification
 
-The continuous observation of the Earth surface provided by orbital sensors is unprecedented in history. Just for the sake of ilustration, a unique tile from MOD13Q1 product, a square of $4800$ pixels provided every 16 days since February 2000 takes around 18GB of uncompressed data to store only one band or vegetation index. This data deluge puts the field into a big data era and imposes challenges to design and build technologies that allow the Earth observation community to analyse those data sets [@Gilberto2017]. `sits` implements an "out of the box" classification scheme based on *raster cubes* where stacked images have spatial and time dimensions.
+The continuous observation of the Earth surface provided by orbital sensors is unprecedented in history. Just for the sake of ilustration, a unique tile from MOD13Q1 product, a square of $4800$ pixels provided every 16 days since February 2000 takes around $18$GB of uncompressed data to store only one band or vegetation index. This data deluge puts the field into a big data era and imposes challenges to design and build technologies that allow the Earth observation community to analyse those data sets [@Gilberto2017]. `sits` implements an "out of the box" classification scheme based on *raster bricks* where stacked images have spatial and time dimensions.
 
-Our tested approach and bellow illustrated example is `GeoTIFF` cubes, where the temporal dimension is stored in the image bands. The classification task can be realized in pararel, where the data is consumed piecewise. This strategy enables `sits` to work on desktop computers without depleting all computational resources. The code bellow provides one example on how to classify a small cube image provided with `sits` package.
+Our tested approach (see example illustrated bellow) is `GeoTIFF` bricks, where the temporal dimension is stored in the `GeoTIFF` bands. The classification algorithm implemented in `sits_classify_raster()` allows one to choose how many process will run the task in paralel, and also the size of each data chunk to be consumed at each iteration. This strategy enables `sits` to work on average desktop computers without depleting all computational resources. The code bellow illustrates how to classify a small raster brick image that accompany the package.
 
-```{r, fig.align="center", fig.height=3.4, fig.width=4.1}
+```{r, fig.align="center", fig.height=3.4, fig.width=4.1, fig.cap="Image (${11\\times14}$ pixels) classified using SVM. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
 # Retrieve the set of samples for the Mato Grosso region 
 data(samples_MT_ndvi)
 
@@ -517,24 +517,27 @@ timeline <- lubridate::as_date(timeline_mod13q1$V1)
 # create a raster metadata file based on the 
 # information about the files
 raster.tb <- 
-    sits_coverage(service = "RASTER",
-                  product = "MOD13Q1",
-                  name = "Sinop-crop",
+    sits_coverage(service  = "RASTER",
+                  product  = "MOD13Q1",
+                  name     = "Sinop-crop",
                   timeline = timeline,
-                  bands = c("ndvi"),
-                  files = files)
+                  bands    = c("ndvi"),
+                  files    = files)
 
 # classify the raster file
 raster_class.tb <- 
     sits_classify_raster(file = "./raster-class", 
                          raster.tb, 
                          samples_MT_ndvi,
-                         ml_method = sits_svm(), 
-                         blocksize = 300000, 
+                         ml_method  = sits_svm(), 
+                         blocksize  = 300000, 
                          multicores = 1)
 # plot classified image
 plot(raster_class.tb$r_obj[[1]])
 ```
+
+Note that we need to create a coverage `tibble` with some metadata information before do the classification. We have proceeded in the same way with `sits_getdata()` example above, to retrieve WTSS data. The metadata maily concern about which bands and its respective files to connect to. A `timeline` must be provided and it refers to the corresponding date associated with the MOD13Q1 product images used to compose the raster brick. Once created, the coverage can be used either to retrieve time series data from the raster bricks using `sits_getdata()` or to do the raster classification by calling the function `sits_classify_raster()`. The machine learning model and the training data to be used are passed by the arguments `sits_svm()` (default) and `samples_MT_ndvi` parameters. Note that we need to be consistent about the bands informed to the coverage and the bands present in the training samples. The classification result is stored as a set of files begining with `file` prefix.
+
 
 ```{r, include=FALSE}
 # remove all files
@@ -551,8 +554,8 @@ The `sits` uses the full depth of satellite image time series to create larger d
 
 The authors would like to thank all the researchers whose provided data samples used in the examples: Alexandre Coutinho, Julio Esquerdo and Joao Antunes (Brazilian Agricultural Research Agency, Brazil) who provided ground samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes; Rodrigo Bergotti (National Institute for Space Research, Brazil) who provided samples for "cerrado" and "forest" classes; and Damien Arvor (Rennes University, France) who provided ground samples for "soybean-fallow" class.
 
-# References
 <!--
+# References
 \setlength{\parindent}{-0.2in}
 \setlength{\leftskip}{0.2in}
 \setlength{\parskip}{8pt}
