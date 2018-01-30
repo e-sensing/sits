@@ -58,12 +58,12 @@ results[[length(results) + 1]] <- conf_svm2.mx
 
 conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
                                   ml_method   = sits_deeplearning(
-                                      units            = c(300, 200, 100),
-                                      activation       = 'relu',
+                                      units            = c(400, 200, 100),
+                                      activation       = 'selu',
                                       dropout_rates    = c(0.4, 0.3, 0.2),
                                       optimizer        = keras::optimizer_adam(),
                                       epochs           = 300,
-                                      batch_size       = 128,
+                                      batch_size       = 64,
                                       validation_split = 0.2),
                                       adj_fun = function(x) {identity(x)})
 

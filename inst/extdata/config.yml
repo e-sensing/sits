@@ -158,6 +158,22 @@ default:
         blue                : *blue-sf
         mir                 : *mir-sf
 
+    LC8-MOD13-MYD13_resolution:
+        xres                : 30
+        yres                : 30
+
+    LC8-MOD13-MYD13_scale_factor:
+        ndvi                : 1.0
+        evi                 : 1.0
+        red                 : 1.0
+        nir                 : 1.0
+
+    LC8-MOD13-MYD13_missing_value:
+        ndvi                : -9999
+        evi                 : -9999
+        red                 : -9999
+        nir                 : -9999
+
 
     SATVEG_timeline :
         MOD13Q1     : &mod13q1-timeline-satveg [ "2000-02-18", "2000-03-05", "2000-03-21", "2000-04-06", "2000-04-22", "2000-05-08", "2000-05-24", 2000-06-09",
