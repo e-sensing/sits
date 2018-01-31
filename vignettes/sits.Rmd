@@ -443,40 +443,38 @@ Random forests can be used either as a regression or as a classification techniq
 
 It starts by growing trees through a bootstrap procedure, that is, a repeatedly random samplings with replacement from which, at every step, a decision tree $T$ is produced considering only some fraction $\lambda \in (0,1)$ of the original observations. The final ensemble is composed by a set of decision trees. 
 
-In random forest algorithm, each growing tree splits its nodes by a *stochastic feature selection*. At each node splitting, it selects $m$ attributes at random from the existing full set of $p$ attributes of the input space. According to a *purity criterion*, the best attribute ${\hat{m} \in \{1,\ldots,p\}}$ is selected among the $m$ candidates (${1 < m \le p}$), which then is used to split that node at some value $S$ of the chosen attribute that minimizes the impurity index. Let ${R_j \subseteq \mathbb{R}^p}$ be the input space region associated with a node $j$. We denote by ${\{\{rm x} \in R_j\}}$ the set of all observations vectors comprehended by the region $R_j$. The splitting step creates a partition on the node region containing two subregions ${R_l_j,R_r_j \subset R_j}$ such that
+In random forest algorithm, each growing tree splits its nodes by a *stochastic feature selection*. At each node splitting, it selects $m$ attributes at random from the existing full set of $p$ attributes of the input space. According to a *purity criterion*, the best attribute ${\hat{m} \in \{1,\ldots,p\}}$ is selected among the $m$ candidates (${1 < m \le p}$), which then is used to split that node at some value $S$ of the chosen attribute that minimizes the impurity index. Let ${R_j \subseteq \mathbb{R}^p}$ be the input space region associated with a node $j$. We denote by ${\{{\rm x} \in R_j\}}$ the set of all observations vectors comprehended by the region $R_j$. The splitting step creates a partition on the node region containing two subregions ${R{_\le}_j,R{_>}_j \subset R_j}$ such that
 $$
 \begin{split}
-R_l_j \cap R_r_j &= \empty\\
-R_j &= R_l_j \cup R_r_j\\
-R_l_j&=\{{\rm x} | x_{\hat{m}} \le S,\ \forall {\rm x} \in R_j \}\\
-R_r_j&=\{{\rm x} | x_{\hat{m}} > S,\ \forall {\rm x} \in R_j \}.
+R{_\le}_j&=\{{\rm x}\ |\ x_{\!\hat{m}} \le S,\ \forall {\rm x} \in R_j \}\\
+R{_>}_j&=\{{\rm x}\ |\ x_{\!\hat{m}} > S,\ \forall {\rm x} \in R_j \}.
 \end{split}
 $$
-The splitting process continues until either the number of observations in $|R_j|$ is bellow or equal a given parameter $N_{m\!i\!n}$, or the impurity index reaches zero. The determination of the attribute $\hat{m}$ and the value $S$ can be done quickly by scanning the observations. The best pair ${(\hat{m}, S)}$ is that one with the minimum impurity index.
+The splitting process continues until either the number of observations in $|R_j|$ is bellow or equal a given parameter $N_{\!m\!i\!n}$, or the impurity index reaches zero. The determination of the attribute $\hat{m}$ and the value $S$ can be done quickly by scanning the observations. The best pair ${(\hat{m}, S)}$ is that one with the minimum impurity index.
 
 Generally, one can use any impurity criterion such as *Gini*, *cross-entropy*, or *misclassification error* to decide which attribute is to be used to split the node. Let the proportion of observations of class $q$ in node $j$ given by
 $$
-P_{qj}=\fraq{1}{|R_j|}\sum_{{\rm x}_k \in R_j}{\delta_{y_k}q)},
+P_{jq}=\frac{1}{|R_j|}\sum_{{\rm x}_k \in R_j}{\delta_{y_kq}},
 $$
 where $\delta$ is the Kronecker delta function. The Gini index of a node $j$ can be obtained by
 $$
-G(j)=\sum_{q \in Q}{P_{qj}(1-P_{qj})},
+G_{\!j}=\sum_{q \in Q}{P_{jq}(1-P_{jq})},
 $$
 where $Q$ is set of all class labels. Cross-entropy is the entropy of all classes in a given node $j$ and can be calculated by
 $$
-E(j)=-\sum_{q \in Q}{P_{qj} \log P_{qj}}.
+E_{\!j}=-\sum_{q \in Q}{P_{jq} \log P_{jq}}.
 $$
 Finally, the misclassification error impurity index of a node $j$ can be obtained by
 $$
-M(j)=1-P_{q^*j},
+M_{\!j}=1-P_{{j\hat q}},
 $$
-where ${q^*={\rm arg\!max}_{q}{P_{qj}}}$ is the majority class in the node $j$. A consequence of these formulations, cross-entropy and the Gini index are more sensitive to changes in the node classes proportions than the misclassification error [@Hastie2009].
+where ${{\hat q}={\rm arg\,max}_{q}{P_{jq}}}$ is the majority class in the node $j$. As a consequence of these formulations, cross-entropy and the Gini index are more sensitive to changes in the node classes proportions than the misclassification error [@Hastie2009].
 
 The stochastic feature selection helps to decorrelate the decision trees produced in the bootstrap. This overall procedure generates a set of $b$ somewhat decorrelated decision trees which forms the final random forest model. The prediction is then made by simple consensus: applying each tree to a given test observation vector and computing the predicted class as one vote we choose the most commonly occurring class among the $b$ predictions as the random forest model prediction.
 
 Random forest provides better performances over *bagged trees*, a similar procedure that does not implement stochastic feature selection (*i.e.* when $m=p$). Bagged trees suffer from high correlation among trees introduced by an eventual presence of strong predictors that tends to be chosen as the splitting criterion [@James2013]. However, the random forest classification performance can vary according to the tunning of the model parameters. 
 
-The main random forest parameters are the number of attributes sampled as candidates at each split ($m$), the number of decision trees to grow ($b$), the minimum node size ($N_{m\!i\!n}$), and the sample fraction to be drawed at each bootstrap iteration ($\lambda$). Lower values of $m$ tends to grow taller and uncorrelated decision trees, but decreases the accuracy
+The main random forest parameters are the number of attributes sampled as candidates at each split ($m$), the number of decision trees to grow ($b$), the minimum node size ($N_{\!m\!i\!n}$), and the sample fraction to be drawed at each bootstrap iteration ($\lambda$). Lower values of $m$ tends to grow taller and uncorrelated decision trees, but decreases the model classification accuracy. 
 
 <!--
 %-----[Variance reduction]---- 
