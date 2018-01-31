@@ -117,9 +117,9 @@ After finding out which coverages are available at the different time series ser
 ```{r}
 # get information about a specific coverage from WTSS
 coverage_wtss <- 
-    sits_coverage(service  = "WTSS-INPE-1", 
+    sits_coverage(service  = "WTSS-INPE-2", 
                   product  = "MOD13Q1", 
-                  name     = "mod13q1_512")
+                  name     = "MOD13Q1")
 coverage_wtss[, c("xmin","xmax","ymin","ymax",
                 "start_date", "end_date")]
 ```
@@ -474,18 +474,7 @@ The stochastic feature selection helps to decorrelate the decision trees produce
 
 Random forest provides better performances over *bagged trees*, a similar procedure that does not implement stochastic feature selection (*i.e.* when $m=p$). Bagged trees suffer from high correlation among trees introduced by an eventual presence of strong predictors that tends to be chosen as the splitting criterion [@James2013]. However, the random forest classification performance can vary according to the tunning of the model parameters. 
 
-The main random forest parameters are the number of attributes sampled as candidates at each split ($m$), the number of decision trees to grow ($b$), the minimum node size ($N_{\!m\!i\!n}$), and the sample fraction to be drawed at each bootstrap iteration ($\lambda$). Lower values of $m$ tends to grow taller and uncorrelated decision trees, but decreases the model classification accuracy. 
-
-<!--
-%-----[Variance reduction]---- 
-%The decision trees discussed in Section 8.1 suffer from high variance. This means that if we split the training data into two parts at random, and fit a decision tree to both halves, the results that we get could be quite different. In contrast, a procedure with low variance will yield similar results if applied repeatedly to distinct data sets;
-%[p.316]
-%
-%In other words, averaging a set of observations reduces variance.
-%[p.316]
-%
--->
-
+The main random forest parameters are the number of attributes sampled as candidates at each split ($m$), the number of decision trees to grow ($b$), the minimum node size ($N_{\!m\!i\!n}$), and the sample fraction to be drawed at each bootstrap iteration ($\lambda$). Lower values of $m$ tends to grow taller and uncorrelated decision trees, but decreases the model classification accuracy. The parameter $b$, the number of trees composing the random forest ensemble, is connected with the variance reduction of the model. High values of $b$ can reduce the variance of the model up to a certain level (dependent on the observations data set) but reduces the model performance. Lower values of $N_{\!m\!i\!n}$ parameter can introduce model overfitting but may increase the classification accuracy. Finally, lower values of $\lambda$ tends to increase the model variance but can underrepresent the sample universe reducing its accuracy.
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
@@ -566,7 +555,6 @@ plot(raster_class.tb$r_obj[[1]])
 ```
 
 Note that we need to create a coverage `tibble` with some metadata information before do the classification. We have proceeded in the same way with `sits_getdata()` example above, to retrieve WTSS data. The metadata maily concern about which bands and its respective files to connect to. A `timeline` must be provided and it refers to the corresponding date associated with the MOD13Q1 product images used to compose the raster brick. Once created, the coverage can be used either to retrieve time series data from the raster bricks using `sits_getdata()` or to do the raster classification by calling the function `sits_classify_raster()`. The machine learning model and the training data to be used are passed by the arguments `sits_svm()` (default) and `samples_MT_ndvi` parameters. Note that we need to be consistent about the bands informed to the coverage and the bands present in the training samples. The classification result is stored as a set of files begining with `file` prefix.
-
 
 ```{r, include=FALSE}
 # remove all files
