@@ -41,11 +41,11 @@ library(dtwclust)
 
 # Introduction 
 
-Earth observation satellites provide a continuous and consistent set of information about the Earth’s land and oceans. Most space agencies have adopted an open data policy, making unprecedented amounts of satellite data available for research and operational use. This data deluge has brought about a major challenge: *How to design and build technologies that allow the Earth observation community to analyse big data sets?*
+Earth observation satellites provide a regular and consistent set of information about the land and oceans of the planet. Recently, most space agencies have adopted an open data policy, making unprecedented amounts of satellite data available for research and operational use. This data deluge has brought about a major challenge: *How to design and build technologies that allow the Earth observation community to analyse big data sets?*
 
 The approach taken in the current work is to develop data analysis methods that work with satellite image time series. The time series are obtained by taking calibrated and comparable measures of the same location in Earth at different times. These measures can be obtained by a single sensor (*e.g.*, MODIS) or by combining different sensors (*e.g.*, Landsat 8 and Sentinel-2). If obtained by frequent revisits, the temporal resolution of these data sets can capture the most important land use changes. 
 
-Time series of remote sensing data show that land cover changes do not always occur in a progressive and gradual way, but they may also show periods of rapid and abrupt change followed either by a quick recovery [@Lambin2003]. Analyses of multiyear time series of land surface attributes, their fine-scale spatial pattern, and their seasonal evolution leads to a broader view of land-cover change. Satellite image time series have already been applied to applications such as mapping for detecting forest disturbance [@Kennedy2010], ecology dynamics [@Pasquarella2016], agricultural intensification [@Galford2008] and its impacts on deforestation [@Arvor2012].
+Time series of remote sensing data show that land cover can occur not only in a progressive and gradual way, but they may also show discontinuits with abrupt changes [@Lambin2003]. Analyses of multiyear time series of land surface attributes, their fine-scale spatial pattern, and their seasonal evolution leads to a broader view of land-cover change. Satellite image time series have already been applied to applications such as mapping for detecting forest disturbance [@Kennedy2010], ecology dynamics [@Pasquarella2016], agricultural intensification [@Galford2008] and its impacts on deforestation [@Arvor2012].
 
 In this paper, we present an open source R package for satellite image time series analysis `sits`. The `sits` package provides support on how to use statistical learning techniques with image time series. In a broad sense, statistical learning refers to a class of algorithms for classification and regression analysis [@Hastie2009]. These methods include linear and quadratic discrimination analysis, support vector machines, random forests and neural networks. In a typical classification problem, we have measures that capture class attributes. Based on these measures, referred as training data, one's task is to select a predictive model that allows inferring classes of a larger data set. 
 
@@ -359,66 +359,17 @@ An example of *space-first*, *time-later* work on big Earth observation data ana
 
 In our view, these methods do not use the full potential of satellite image time series. The benefits of remote sensing time series analysis arise when the temporal resolution of the big data set is able to capture the most important changes. Here, the temporal autocorrelation of the data can be stronger than the spatial autocorrelation. Given data with adequate repeatability, a pixel will be more related to its temporal neighbours than to its spatial ones. In this case, *time-first, space-later* methods lead to better results than the *space-first, time-later* approach [@Camara2016].
 
-The `sits` package provides functionality to explore the full depth of satellite image time series data. It treat time series as a feature vector. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars (the training data) to infer classes of a larger data set. `sits` has support for a variety of machine learning techniques (...). In the following sections we discuss on support vector machine and random forest machine learning techniques with more detail.
+The `sits` package provides functionality to explore the full depth of satellite image time series data. It treat time series as a feature vector. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars (the training data) to infer classes of a larger data set. `sits` has support for a variety of machine learning techniques: linear discriminant analysis, quadratic discriminant analysis, multinomial logistic regression, . In the following sections we discuss on support vector machine and random forest machine learning techniques with more detail.
 
 ## Support Vector Machine
 
-The Support Vector Machine (SVM) is a generalization of the *separating hyperplane classifier* [@Hastie2009]. This generalization combines the notions of the *optimal separating hyperplanes*, the *soft margins*, and the *enlargement of the input attribute space* with a nonlinear mapping to a feature space.
+In its base model, the Support Vector Machine (SVM) is a binary classifier that finds a linear boundary in some feature space that not only divides the points of two classes but maximizes the distance between the boundary and the observations. A boundary is a ${(p-1)}$-dimensional *hyperplane* that defines two complementar subspaces in a $p$-dimensional feature space.
 
-In a separating hyperplane formulation, the classifier works only with separable sample sets. It finds a linear boundary in the input attribute space that not only divides two classes but maximizes its margin to them. A boundary is a *hyperplane* that divides the entire attribute space into two parts. Let ${({\rm x}_k, y_k)}$, ${k\in{}(1,\ldots,n)}$ be a set of $n$ observations with attribute vector ${\rm x}_k\in{\mathbb{R}^p}$ and class ${y\in\{-1,1\}}$. Once feature space has $p$ dimensions, the hyperplane has dimension $p-1$ and can be written as
-$$
-a_0+a_1x_{1}+a_2x_{2}+\ldots+a_px_{p}=0,
-$$
-where $x_{i}$ is the $i$-th attribute of ${\rm x}$.
+If the sample observations are linearly separable in the feature space, the hyperplane has a perfect classification property. However, this is hardly what one may expect in a typical satellite image time series scenario. In this regard, the hyperplane optimization problem has a *softner term* that allows some observations to be closer to the margin, or even in the wrong side of its boundary. This relaxation increases the robustness of SVM as it decreases the influence of individual observations on the hyperplane determination. 
 
-If the samples are separable, the hyperplane has a perfect classification property, that is, for all sample ${({\rm x}_k, y_k)}$, the following relation holds
-$$
-\begin{split}
-a_0+a_1x_{k_1}+a_2x_{k_2}+\ldots+a_px_{k_p}<0,&\quad{}{y_k=-1},\\
-a_0+a_1x_{k_1}+a_2x_{k_2}+\ldots+a_px_{k_p}>0,&\quad{}{y_k=1}.
-\end{split}
-$$
-Once the solution for a such hyperplane is obtained (*i.e.* values for coeficients $a_0,a_1,\ldots,a_p$), one is able to derive a very simple classification model
-$$
-f({\rm x})=\hat{a}_0+\hat{{\rm a}}{\rm x}
-$$
-that classifies any test vector ${\rm x}$ according to
-$$
-\begin{split}
-y=1,&\quad{\rm if }\ f({\rm x})>0,\\
-y=-1,&\quad{\rm if }\ f({\rm x})<0.
-\end{split}
-$$
+Moreover, the solution for the hyperplane coefficients depends only on those samples that violates the maximum margin criteria, the so-called *support vectors*. All other points far away from the hyperplane does not exert any influence on the hyperplane coefficients which let SVM less sensitive to outliers.
 
-However, the condition under which this classifier has solution is too restrictive, as it needs a linearly separable training set. This is hardly what one may expect in a typical satellite image time series scenario. To overcome this undesired constraint, SVM introduces a *softner term* in the hyperplane optimization problem. This modification allows some observations to be inside the margins band, or even in the incorrect side of the boundary, violating the maximum margin criteria but increasing its robustness by reducing individual observations influence. Moreover, the solution for the hyperplane coefficients ${\hat{{\rm a}}=(a_1,\ldots,a_n)^\intercal}$, given by
-$$
-\hat{{\rm a}}=\sum_{k=1}^{n}{\alpha_{k}y_{k}{\rm x}_{k}},
-$$
-depends only on those samples that violates the maximum margin criteria, here captured by the fact that ${\alpha_k>0}$ only for those points laying either inside the margin band or in the wrong side of the boundary, the so-called *support vectors*. For all other points, ${\alpha_k=0}$, and hence none of them exert any influence on the coefficients determination. This property let SVM less sensitive to outliers (for more details on how to compute ${rm \alpha}$ and $\hat{a}_0$, see @Cortes1995, @Hastie2009, and @James2013).
-
-Hyperplanes are linear ${(p-1)}$-dimensional boundaries and define linear partitions in the attribute space. However, sometimes we are faced with nonlinear relationship between attribute vectors and classes. In such cases, linear classification models can suffer to do a good job. An alternative to this limitation is the *enlargement of the attribute space* by a nonlinear mapping $\phi$ to a higher degree feature space. In this manner, the new classification model
-$$
-f({\rm x})=\hat{a}_0+\hat{{\rm a}}^\intercal\phi({\rm x}),
-$$
-defines its linear hyperplane on the enlarged feature space which translate to nonlinear boundaries in the original input space. Here, the coefficients are obtained simmilarly by
-$$
-\hat{{\rm a}}=\sum_{k=1}^{n}{\alpha_{k}y_{k}\phi({\rm x}_{k})},
-$$
-which substituting in $f$ expression above gives us
-$$
-f({\rm x})=\hat{a}_0+\sum_{k=1}^{n}{\alpha_{k}y_{k}\phi({\rm x}_{k})^\intercal\phi({\rm x})}.
-$$
-Moreover, the linearity of the model implies that the term ${\phi({\rm x}_{k})^\intercal\phi({\rm x})}$ can be expressed as a dot product ${\phi({\rm x}_{k})\cdot{}\phi({\rm x})}$ without change its properties.
-
-However, the enlargement of the feature space by $\phi$ can be computationaly expensive. SVM makes use of *kernels* to overcome this limitation. Kernel functions are equivalent to dot products of a larger degree feature space vectors. Hence, we can express $f$ as [@Cortes1995]:
-$$
-f({\rm x})=\hat{a}_0+\sum_{k=1}^{n}{\alpha_{k}y_{k}K({\rm x}_{k}, {\rm x})},
-$$
-where ${K(u,v)}$ is a kernel function that is equivalent to the dot product ${\phi(u)\cdot\phi(v)}$ (see @Cortes1995). It follows that, we can use kernel functions without the need to compute $\phi$, otherwise it would require massive computations. For example, the radial basis function (RBF) kernel
-$$
-K({\rm u},{\rm v})=\exp(-\gamma\lVert{{\rm u}-{\rm v}}\rVert^2),
-$$
-one of the most used nonlinear kernels, maps the input space to an infinite dimensional feature space, which would be roughly obtained by a power series expansion with substantially more calculations. Other popular choices for $K$ in the SVM literature are the polynomial kernel (${K({\rm u},{\rm v})=(\gamma{{\rm u}^{\intercal}{\rm v}}+r)^d}$, with parameters $\gamma$, $r$, and $d$), and the linear kernel ${K({\rm u},{\rm v})={\rm u}^{\intercal}{\rm v}}$. The use of kernels are an efficient computational strategy to produce nonlinear boundaries in the input attribute space generally achieving better training-class separation.
+Hyperplanes are linear ${(p-1)}$-dimensional boundaries and define linear partitions in the feature space. However, one can enlarge the input attribute space by transforming it into a higher degree feature space. In this manner, the new classification model, despite having a linear boundary on the enlarged feature space, generally translates its hyperplane to a nonlinear boundaries in the original attribute space. As that enlargement can be computationaly expensive, SVM makes use of *kernels* functions to overcome such limitation. The use of kernels are an efficient computational strategy to produce nonlinear boundaries in the input attribute space an hence can improve training-class separation.
 
 In `sits`, SVM is the default machine learning model. As a wrapper of `e1071` R package that uses the `LIBSVM` implementation [@Chang2011], `sits` adopts the *one-against-one* method for multiclass classification. For a $q$ class problem, this method creates ${q(q-1)/2}$ SVM binary models, one for each class pair combination and tests any unknown input vectors throughout all those models. The overeall result is computed by a voting scheme. The following example ilustrate how to classify an individual sample (in this case a serie of 16 one-year NDVI time series from the same location). We used the NDVI time series from Mato Grosso Brazilian state as a training data set.
 
@@ -439,42 +390,15 @@ sits_plot(class.tb)
 
 ## Random forest
 
-Random forests can be used either as a regression or as a classification technique. Here, we are interested in the latter case. Random forests combines two main ideas that emerged in 1990s statistical learning literature: developing population of trees from *stochastic feature selection* [@Ho1995], and *bagging* [@Breiman1996]. It is an *ensemble learning* technique that develops a population of somewhat uncorrelated decision trees that are combined to form a predicting model which is made by a majority vote schema. This aggregating procedure substantialy improves the predictive power of individual trees. Unlike SVM, random forest undertakes a nondeterministic model fitting. 
+Random forest has *decision tree* as its base model. It combines many decision trees via *bootstrap* procedure and *stochastic feature selection*, developing a population of somewhat uncorrelated base models. The final classification model is obtained by a majority voting schema. This procedure decreases the classification variance, improving prediction of individual decision trees. 
 
-It starts by growing trees through a bootstrap procedure, that is, a repeatedly random samplings with replacement from which, at every step, a decision tree $T$ is produced considering only some fraction $\lambda \in (0,1)$ of the original observations. The final ensemble is composed by a set of decision trees. 
+Random forest training process is essentialy nondeterministic. It starts by growing trees through repeatedly random sampling-with-replacement the observations set. At each growing tree, the random forest considers only a fraction of the original attributes to decide where to split a node, according to a *purity criterion*. This decreases the correlation among trees and improves the prediction performance. The most used impurity criterion are *Gini*, *cross-entropy*, and *misclassification error*. The splitting process continues until the tree reaches some given minimum nodes size or a minimum impurity index value.
 
-In random forest algorithm, each growing tree splits its nodes by a *stochastic feature selection*. At each node splitting, it selects $m$ attributes at random from the existing full set of $p$ attributes of the input space. According to a *purity criterion*, the best attribute ${\hat{m} \in \{1,\ldots,p\}}$ is selected among the $m$ candidates (${1 < m \le p}$), which then is used to split that node at some value $S$ of the chosen attribute that minimizes the impurity index. Let ${R_j \subseteq \mathbb{R}^p}$ be the input space region associated with a node $j$. We denote by ${\{{\rm x} \in R_j\}}$ the set of all observations vectors comprehended by the region $R_j$. The splitting step creates a partition on the node region containing two subregions ${R{_\le}_j,R{_>}_j \subset R_j}$ such that
-$$
-\begin{split}
-R{_\le}_j&=\{{\rm x}\ |\ x_{\!\hat{m}} \le S,\ \forall {\rm x} \in R_j \}\\
-R{_>}_j&=\{{\rm x}\ |\ x_{\!\hat{m}} > S,\ \forall {\rm x} \in R_j \}.
-\end{split}
-$$
-The splitting process continues until either the number of observations in $|R_j|$ is bellow or equal a given parameter $N_{\!m\!i\!n}$, or the impurity index reaches zero. The determination of the attribute $\hat{m}$ and the value $S$ can be done quickly by scanning the observations. The best pair ${(\hat{m}, S)}$ is that one with the minimum impurity index.
+Random forest provides better performances over *bagged trees*, a similar procedure that does not implement stochastic feature selection (*i.e.* when $m=p$). Bagged trees suffer from high correlation among trees introduced by an eventual presence of strong predictors that tends to be chosen as the splitting criterion [@James2013]. However, the random forest classification performance can vary according to the tunning of the model parameters. The main random forest parameters are the number of attributes sampled as candidates at each split, the number of decision trees to grow, the minimum node size, and the sample fraction to be drawed at each bootstrap iteration. 
 
-Generally, one can use any impurity criterion such as *Gini*, *cross-entropy*, or *misclassification error* to decide which attribute is to be used to split the node. Let the proportion of observations of class $q$ in node $j$ given by
-$$
-P_{jq}=\frac{1}{|R_j|}\sum_{{\rm x}_k \in R_j}{\delta_{y_kq}},
-$$
-where $\delta$ is the Kronecker delta function. The Gini index of a node $j$ can be obtained by
-$$
-G_{\!j}=\sum_{q \in Q}{P_{jq}(1-P_{jq})},
-$$
-where $Q$ is set of all class labels. Cross-entropy is the entropy of all classes in a given node $j$ and can be calculated by
-$$
-E_{\!j}=-\sum_{q \in Q}{P_{jq} \log P_{jq}}.
-$$
-Finally, the misclassification error impurity index of a node $j$ can be obtained by
-$$
-M_{\!j}=1-P_{{j\hat q}},
-$$
-where ${{\hat q}={\rm arg\,max}_{q}{P_{jq}}}$ is the majority class in the node $j$. As a consequence of these formulations, cross-entropy and the Gini index are more sensitive to changes in the node classes proportions than the misclassification error [@Hastie2009].
-
-The stochastic feature selection helps to decorrelate the decision trees produced in the bootstrap. This overall procedure generates a set of $b$ somewhat decorrelated decision trees which forms the final random forest model. The prediction is then made by simple consensus: applying each tree to a given test observation vector and computing the predicted class as one vote we choose the most commonly occurring class among the $b$ predictions as the random forest model prediction.
-
-Random forest provides better performances over *bagged trees*, a similar procedure that does not implement stochastic feature selection (*i.e.* when $m=p$). Bagged trees suffer from high correlation among trees introduced by an eventual presence of strong predictors that tends to be chosen as the splitting criterion [@James2013]. However, the random forest classification performance can vary according to the tunning of the model parameters. 
-
-The main random forest parameters are the number of attributes sampled as candidates at each split ($m$), the number of decision trees to grow ($b$), the minimum node size ($N_{\!m\!i\!n}$), and the sample fraction to be drawed at each bootstrap iteration ($\lambda$). Lower values of $m$ tends to grow taller and uncorrelated decision trees, but decreases the model classification accuracy. The parameter $b$, the number of trees composing the random forest ensemble, is connected with the variance reduction of the model. High values of $b$ can reduce the variance of the model up to a certain level (dependent on the observations data set) but reduces the model performance. Lower values of $N_{\!m\!i\!n}$ parameter can introduce model overfitting but may increase the classification accuracy. Finally, lower values of $\lambda$ tends to increase the model variance but can underrepresent the sample universe reducing its accuracy.
+<!--
+% Lower values of $m$ tends to grow taller and uncorrelated decision trees, but decreases the model classification accuracy. The parameter $b$, the number of trees composing the random forest ensemble, is connected with the variance reduction of the model. High values of $b$ can reduce the variance of the model up to a certain level (dependent on the observations data set) but reduces the model performance. Lower values of $N_{\!m\!i\!n}$ parameter can introduce model overfitting but may increase the classification accuracy. Finally, lower values of $\lambda$ tends to increase the model variance but can underrepresent the sample universe reducing its accuracy.
+-->
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
