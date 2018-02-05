@@ -266,26 +266,20 @@ sits_getdata <- function(coverage    = NULL,
         time_series <- ts[[coverage$name]]$attributes
 
         # determine the missing value for each band
-        miss_value <- vector()
-        for (b in bands)
-            miss_value[b] <- .sits_get_missing_value(coverage$product, b)
-
+        missing_values <- coverage$missing_values[[1]]
         # update missing values to NA
         for (b in bands) {
-            time_series[, b][time_series[, b] == miss_value[b]] <- NA
+            time_series[, b][time_series[, b] == missing_values[b]] <- NA
         }
 
         # interpolate missing values
         time_series[, bands] <- zoo::na.spline(time_series[, bands])
 
-        scale_factor <- vector()
-        for (b in bands)
-            scale_factor[b] <- .sits_get_scale_factor(coverage$product, b)
-
         # scale the time series
+        scale_factors <- coverage$scale_factors[[1]]
         bands %>%
             purrr::map(function(b) {
-                time_series[, b] <<- time_series[, b]*scale_factor[b]
+                time_series[, b] <<- time_series[, b]*scale_factors[b]
             })
 
         # convert the series to a tibble

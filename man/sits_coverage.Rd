@@ -4,30 +4,32 @@
 \alias{sits_coverage}
 \title{Provides information about one coverage used to retrieve data}
 \usage{
-sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1",
-  name = "mod13q1_512", timeline = NULL, bands = NULL, files = NA)
+sits_coverage(service = NULL, name, timeline = NULL, bands = NULL,
+  missing_values = NULL, scale_factors = NULL, files = NA)
 }
 \arguments{
-\item{service}{the name of the time series service}
+\item{service}{name of the time series service}
 
-\item{product}{the name of the product}
-
-\item{name}{the name of the coverage}
+\item{name}{name of the coverage}
 
 \item{timeline}{timeline of the coverage}
 
-\item{bands}{list of bands (for raster data)}
+\item{bands}{bands (only for raster data)}
 
-\item{files}{file names (for raster data)}
+\item{missing_values}{missing values (only for raster data)}
+
+\item{scale_factors}{scale factor (only for raster data)}
+
+\item{files}{file names (only for raster data)}
 }
 \description{
 uses the configuration file to print information and save metadata about a
 chosen coverage:
- r_obj          - R object associated with the coverage
- coverage       - name of the coverage (must be unique)
  service        - name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER")
- product        - name of the product associated with coverage (e.g., "MOD13Q1")
- bands          - list of bands
+ name           - name of the coverage (must be unique)
+ bands          - vector of bands
+ scale_factor   - vector of scale factors
+ missing_values - vector of missing values
  start_date     - the start date for the time series data in the coverage
  end_date       - the end date for the time series data in the coverage
  timeline       - the timeline of the coverage
@@ -42,7 +44,7 @@ chosen coverage:
 }
 \examples{
 # Retrieve information about a WTSS coverage
-coverage.tb <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1", name = "mod13q1_512")
+coverage.tb <- sits_coverage(service = "WTSS-INPE-1", name = "mod13q1_512")
 
 # read a raster file and put it into a vector
 files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
@@ -52,7 +54,7 @@ data(timeline_mod13q1)
 timeline <- lubridate::as_date (timeline_mod13q1$V1)
 
 # create a raster coverage file based on the information about the files
-raster.tb <- sits_coverage(service = "RASTER", product = "MOD13Q1", name  = "Sinop-crop",
+raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
              timeline = timeline, bands = c("ndvi"), files = files)
 
 }
