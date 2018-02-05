@@ -83,19 +83,16 @@ sits_show_config <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        the name of the time series service
-#' @param product        the name of the product
+#' @param name           the name of the coverage
 #' @return accountURL    the account for service access
 #'
-.sits_get_account <- function(service, product) {
+.sits_get_account <- function(service, name) {
     # pre-condition
     ensurer::ensure_that(service, (.) == "SATVEG",
                          err_desc = "Account only required for service SATVEG")
-    s <- paste0(service,"_products")
-    ensurer::ensure_that(product, (.) %in% sits.env$config[[s]],
-                         err_desc = paste0("Product ", product, " not available for service ", service))
 
     i1      <- paste0(service,"_account")
-    account <- sits.env$config[[i1]][[product]]
+    account <- sits.env$config[[i1]][[name]]
 
     # get the server URL from the configuration file
     s <- paste0(service,"_server")
@@ -119,23 +116,17 @@ sits_show_config <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        the name of the time series service
-#' @param product        the name of the product
+#' @param name           the name of the product
 #' @return bands         bands available
 #'
-.sits_get_bands <- function(service, product){
+.sits_get_bands <- function(service, name){
     # pre-condition
     ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
                          err_desc = "Service not available - check configuration file")
 
-    if (service != "RASTER") {
-        s <- paste0(service,"_products")
-        ensurer::ensure_that(product, (.) %in% sits.env$config[[s]],
-                             err_desc = paste0("Product ", product, " not available for service ", service))
-
-        # get the bands information from the configuration file
-        b <- paste0(service,"_bands")
-        bands <- sits.env$config[[b]][[product]]
-    }
+    # get the bands information from the configuration file
+    b <- paste0(service,"_bands")
+    bands <- sits.env$config[[b]][[name]]
     #post-condition
     ensurer::ensure_that(bands, length(.) > 0,
                          err_desc = paste0("bands not available for ", product, " in service ", service))
@@ -146,11 +137,11 @@ sits_show_config <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        name of the time series service
-#' @param product        name of the product
+#' @param name           name of the coverage
 #' @param r_obj          R object associated with the coverage
 #' @return bbox          bounding box
 #'
-.sits_get_bbox <- function(service, product, r_obj = NA){
+.sits_get_bbox <- function(service, name, r_obj = NA){
 
     bbox         <- vector(length = 4)
     names(bbox)  <- c("xmin", "xmax", "ymin", "ymax")
@@ -165,15 +156,12 @@ sits_show_config <- function() {
     }
     else {
         # pre-condition
-        s <- paste0(service,"_products")
-        ensurer::ensure_that(product, (.) %in% sits.env$config[[s]],
-                             err_desc = paste0("Product ", product, " not available for service ", service))
-
-        # get the bounding box from the configuration file
-        i1 <- paste0(service,"_bbox")
+        s <- paste0(service,"_bbox")
+        ensurer::ensure_that(name, (.) %in% sits.env$config[[s]],
+                             err_desc = paste0("Coverage ", name, " not available for service ", service))
 
         for (c in names(bbox))
-            bbox[c] <- sits.env$config[[i1]][[product]][[c]]
+            bbox[c] <- sits.env$config[[s]][[name]][[c]]
     }
     return(bbox)
 }
@@ -201,62 +189,48 @@ sits_show_config <- function() {
 }
 
 #' @title Retrieve the missing values for a given band for an image product
-#' @name .sits_get_missing_value
+#' @name .sits_get_missing_values
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param product        the name of the product
-#' @param band           the name of the band
-#' @return mv            missing_value
+#' @param service          name of the product
+#' @param name             name of the coverage
+#' @param bands            vector of bands
+#' @return missing_values
 #'
-.sits_get_missing_value <- function(product, band) {
+.sits_get_missing_values <- function(service, name, bands) {
 
     # create a string to query for the missing values
-    mv_name <- paste0(product,"_missing_value")
-    mv <- as.numeric(sits.env$config[[mv_name]][[band]])
+    missing_values <- vector()
+    mv <- paste0(service,"_missing_value")
+    for (b in bands) {
+        missing_values[b] <- as.numeric(sits.env$config[[mv]][[name]][[b]])
+    }
     #post-condition
-    ensurer::ensure_that(mv, !purrr::is_null(.),
-                         err_desc = paste0("Configuration file has no missing values for ", band, " of ", product))
+    ensurer::ensure_that(missing_values, length(.) == length(bands),
+                         err_desc = paste0("Configuration file has no missing values for service RASTER", band, " of ", product))
 
-    return(mv)
-}
-.sits_get_products <- function(service) {
-    s <- paste0(service,"_products")
-    return(sits.env$config[[s]])
+    return(missing_values)
 }
 #' @title Retrieve the projection for the product available at service
 #' @name .sits_get_projection
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        the name of the time series service
-#' @param product        the name of the product
-#' @param r_obj          R object associated with the coverage
+#' @param name           the name of the coverage
 #' @return crs           CRS PROJ4 infomation
 
-.sits_get_projection <- function(service, product, r_obj = NA) {
+.sits_get_projection <- function(service, name) {
 
     # pre-condition
     ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
                          err_desc = "Service not available - check configuration file")
+    # create a string to store the query
+    s <- paste0(service, "_crs")
+    crs <- sits.env$config[[s]][[name]]
 
-    if (service != "RASTER") {
-        s <- paste0(service,"_products")
-        ensurer::ensure_that(product, (.) %in% sits.env$config[[s]],
-                             err_desc = paste0("Product ", product, " not available for service ", service))
-
-        # create a string to store the query
-        s <- paste0(service, "_crs")
-        crs <- sits.env$config[[s]][[product]]
-
-        #post-condition
-        ensurer::ensure_that(crs, length(.) > 0,
-                             err_desc = paste0("Projection information for ", product, " of service ", service, " not available"))
-    }
-    else {
-        ensurer::ensure_that(r_obj, length(.) > 0,
-                             err_desc = "raster objects have not been created")
-        crs <- r_obj@crs@projargs
-    }
-
+    #post-condition
+    ensurer::ensure_that(crs, length(.) > 0,
+                         err_desc = paste0("Projection information for ", product, " of service ", service, " not available"))
     return(crs)
 }
 #' @title Retrieve the protocol associated to the time series service
@@ -282,15 +256,16 @@ sits_show_config <- function() {
 #' @name .sits_get_resolution
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param product        the name of the product
+#' @param service         The name of the service
+#' @param name        the name of the coverage
 #' @return res           vector of (xres, yres)
-.sits_get_resolution <- function(product) {
+.sits_get_resolution <- function(service, name) {
     # create a string to query for the resolution
-    s <- paste0(product,"_resolution")
+    s <- paste0(service,"_resolution")
     res          <- vector(length = 2)
     names(res)  <- c("xres", "yres")
     for (c in names(res))
-        res[c] <- sits.env$config[[s]][[c]]
+        res[c] <- sits.env$config[[s]][[name]][[c]]
 
     #post-condition
     ensurer::ensure_that(res["xres"], as.numeric(.) > 0,
@@ -300,7 +275,30 @@ sits_show_config <- function() {
 
     return(res)
 }
+#' @title Retrieve the scale factor for a given band for an image product
+#' @name .sits_get_scale_factors
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param service        ame of the service
+#' @param name           name of the coverage
+#' @param bands          vector of bands
+#' @return sf            vector of scale factors
+#'
+#'
+.sits_get_scale_factors <- function(service, name, bands) {
 
+    scale_factors <- vector()
+    for (b in bands) {
+        # create a string to query for the scale factors
+        sfq <- paste0(service,"_scale_factor")
+        scale_factors[b] <- as.numeric(sits.env$config[[sfq]][[name]][[b]])
+    }
+    names(scale_factors) <- bands
+    #post-condition
+    ensurer::ensure_that(scale_factors, !purrr::is_null(.),
+                         err_desc = paste0("Configuration file has no scale factors for ", name, " of ", service))
+    return(scale_factors)
+}
 #' @title Retrieve the time series server for the product
 #' @name .sits_get_server
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -341,25 +339,21 @@ sits_show_config <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        the name of the time series service
-#' @param product        the name of the product
+#' @param name           the name of the coverage
 #' @param r_obj          R object associated with the coverage
 #' @return size          vector of (nrows, ncols)
-.sits_get_size <- function(service, product, r_obj = NA) {
+.sits_get_size <- function(service, name, r_obj = NA) {
 
     size         <- vector(length = 2)
     names(size)  <- c("nrows", "ncols")
 
     if (service != "RASTER") {
-        # pre-condition
-        s <- paste0(service,"_products")
-        ensurer::ensure_that(product, (.) %in% sits.env$config[[s]],
-                             err_desc = paste0("Product ", product, " not available for service ", service))
 
         # get the size from the configuration file
         i1  <- paste0(service,"_size")
 
         for (c in names(size))
-            size[c] <- sits.env$config[[i1]][[product]][[c]]
+            size[c] <- sits.env$config[[i1]][[name]][[c]]
     }
     else {
         ensurer::ensure_that(r_obj, length(.) > 0,
@@ -376,24 +370,7 @@ sits_show_config <- function() {
 
     return(size)
 }
-#' @title Retrieve the scale factor for a given band for an image product
-#' @name .sits_get_scale_factor
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param product        the name of the product
-#' @param band           the name of the band
-#' @return sf            scale factor
-#'
-#'
-.sits_get_scale_factor <- function(product, band) {
-    # create a string to query for the scale factors
-    sf_name <- paste0(product,"_scale_factor")
-    sf <- as.numeric(sits.env$config[[sf_name]][[band]])
-    #post-condition
-    ensurer::ensure_that(sf, !purrr::is_null(.),
-                         err_desc = paste0("Configuration file has no scale factors for ", band, " of ", product))
-    return(sf)
-}
+
 
 #' @title Retrieve the default timeline for a product for a given time series service
 #' @name .sits_get_timeline
@@ -403,10 +380,14 @@ sits_show_config <- function() {
 #' @param product        the name of the product
 #' @param name           the name of the coverage
 #' @return size          vector of (nrows, ncols)
-.sits_get_timeline <- function(service, product, name){
+.sits_get_timeline <- function(service, name){
 
-    if (service == "RASTER")
+    if (service == "RASTER") {
         message("Please provide timeline for raster data: will use default timeline")
+        s <- paste0("RASTER_timline")
+        timeline <- lubridate::as_date(sits.env$config[[s]][name])
+        return(timeline)
+    }
 
     protocol <- .sits_get_protocol(service)
 
@@ -430,7 +411,7 @@ sits_show_config <- function() {
     }
     else {
         s <- paste0(service, "_timeline")
-        timeline <- lubridate::as_date(sits.env$config[[s]][[product]])
+        timeline <- lubridate::as_date(sits.env$config[[s]][[name]])
 
         ensurer::ensure_that(timeline, length(.) > 0,
                              err_desc = paste0("Could not retrieve timeline for product ", product))

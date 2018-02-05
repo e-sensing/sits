@@ -1,52 +1,107 @@
 default:
+    # these are general parameters
+    # location of log file
     log_file                : "~/.sits/sits.log"
+    # adjustment shift for function sits_adjust
     adjustment_shift        : 3.0
-    protocols               : ["WTSS", "SATVEG", "RASTER"]
-    ts_services             : ["WTSS-INPE-1", "WTSS-INPE-2", "SATVEG", "RASTER"]
-    WTSS_services           : ["WTSS-INPE-1", "WTSS-INPE-2"]
-    SATVEG_services         : ["SATVEG"]
 
+    # Description of products
+    # Description of the MOD13Q1 product
+    MOD13Q1_bands           : ["ndvi", "evi", "nir", "blue", "red", "mir"]
+    MOD13Q1_crs             : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+
+    # Description of the LC8-MOD13-MYD13 product
+    LC8-MOD13-MYD13         : ["nir", "ndvi", "evi"]
+    LC8-MOD13-MYD13_crs     : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+
+    # Protocols accepted for data acess
+    protocols               : ["WTSS", "SATVEG", "RASTER"]
+    # Time series services available
+    ts_services             : ["WTSS-INPE-1", "WTSS-INPE-2", "SATVEG", "RASTER"]
+    # Time series services that support the WTSS protocol
+    WTSS_services           : ["WTSS-INPE-1", "WTSS-INPE-2"]
+    # Time series services that support the SATVEG protocol
+    SATVEG_services         : ["SATVEG"]
+    # We consider a general ad-hoc protocol for access to raster data
     RASTER_protocol         : ["RASTER"]
 
+    # Description of the of the WTSS-INPE-1 service
+    # Protocol supported
     WTSS-INPE-1_protocol    : "WTSS"
+    # Server address
     WTSS-INPE-1_server      : "http://www.dpi.inpe.br/tws/wtss"
+    # Products available
     WTSS-INPE-1_products    : ["MOD13Q1"]
-    WTSS-INPE-1_bands       :
-        MOD13Q1             : ["ndvi", "evi", "nir", "blue", "red", "mir"]
+    # Coverages available at the WTSS-INPE-1 services per service
     WTSS-INPE-1_coverages   :
         MOD13Q1             : ["mod13q1_512"]
+
+    # Description of the "mod13q1_512" coverage available at the WTSS-INPE-1 server
     WTSS-INPE-1_bbox        :
-        MOD13Q1             :
+        mod13q1_512         :
             xmin            : -81.2341
             xmax            : -31.9165
             ymin            : -30.000
             ymax            :  10.000
     WTSS-INPE-1_size        :
-        MOD13Q1             :
+        mod13q1_512         :
             nrows           : 24000
             ncols           : 19200
-    WTSS-INPE-1_crs         :
-        MOD13Q1             : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 
+    # Description of the WTSS-INPE-2 service
+    # Protocol supported by the WTSS-INPE-2 service
     WTSS-INPE-2_protocol    : "WTSS"
+    # URL of the WTSS-INPE-2 service
     WTSS-INPE-2_server      : "http://www.terrama2.dpi.inpe.br/esensing/wtss/"
-    WTSS-INPE-2_products    : ["MOD13Q1"]
-    WTSS-INPE-2_bands       :
-        MOD13Q1             : ["ndvi", "evi", "nir", "blue", "red", "mir"]
+    # Products available in the service
+    WTSS-INPE-2_products    : ["MOD13Q1", "LC8-MOD13-MYD13"]
+    # Coverages available at the WTSS-INPE-2 service
     WTSS-INPE-2_coverages   :
         MOD13Q1             : ["MOD13Q1"]
+        LC8-MOD13-MYD13     : ["mixl8mod"]
+    # Bounding boxes for the coverages available at the WTSS-INPE-2 service
     WTSS-INPE-2_bbox        :
         MOD13Q1             :
             xmin            : -81.2341
             xmax            : -31.9165
             ymin            : -30.000
             ymax            :  10.000
+        mixl8mod            :
+            xmin            : -54.44503
+            ymin            : -6.770366
+            xmax            : -52.46246
+            ymax            : -4.802307
+    # Sizes of the coverages available at the WTSS-INPE-2 service
     WTSS-INPE-2_size        :
         MOD13Q1             :
             nrows           : 24000
             ncols           : 19200
-    WTSS-INPE-2_crs         :
-        MOD13Q1             : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+        mixl8mod            :
+            nrows           : 7299
+            ncols           : 7299
+
+    # Timelines for the coverages at the WTSS-INPE-2 service
+
+    WTSS-INPE-2_timeline    :
+        mixl8mod            : [ "2013-04-27", "2013-05-13", "2013-05-29", "2013-06-14", "2013-06-30",
+                                "2013-07-16", "2013-08-01", "2013-08-17", "2013-09-02", "2013-09-18",
+                                "2013-10-04", "2013-10-20", "2013-11-05", "2013-11-21", "2013-12-07",
+                                "2013-12-23", "2014-01-08", "2014-01-24", "2014-02-09", "2014-02-25",
+                                "2014-03-13", "2014-03-29", "2014-04-14", "2014-04-30", "2014-05-16",
+                                "2014-06-01", "2014-06-17", "2014-07-03", "2014-07-19", "2014-08-04",
+                                "2014-08-20", "2014-09-05", "2014-09-21", "2014-10-07", "2014-10-23",
+                                "2014-11-08", "2014-11-24", "2014-12-10", "2014-12-26", "2015-01-11",
+                                "2015-01-27", "2015-02-12", "2015-02-28", "2015-03-16", "2015-04-01",
+                                "2015-04-17", "2015-05-03", "2015-05-19", "2015-06-04", "2015-06-20",
+                                "2015-07-06", "2015-07-22", "2015-08-07", "2015-08-23", "2015-09-08",
+                                "2015-09-24", "2015-10-10", "2015-10-26", "2015-11-11", "2015-11-27",
+                                "2015-12-13", "2015-12-29", "2016-01-14", "2016-01-30", "2016-02-15",
+                                "2016-03-02", "2016-03-18", "2016-04-03", "2016-04-19", "2016-05-05",
+                                "2016-05-21", "2016-06-06", "2016-06-22", "2016-07-08", "2016-07-24",
+                                "2016-08-09", "2016-08-25", "2016-09-10", "2016-09-26", "2016-10-12",
+                                "2016-10-28", "2016-11-13", "2016-11-29", "2016-12-15", "2016-12-31",
+                                "2017-01-16", "2017-02-01", "2017-02-17", "2017-03-05", "2017-03-21",
+                                "2017-04-06", "2017-04-22", "2017-05-08" ]
 
     SATVEG_protocol         : "SATVEG"
     SATVEG_server           : "https://www.satveg.cnptia.embrapa.br"
@@ -159,14 +214,14 @@ default:
         mir                 : *mir-sf
 
     LC8-MOD13-MYD13_resolution:
-        xres                : 30
-        yres                : 30
+        xres                : 0.000292965
+        yres                : 0.000274984
 
     LC8-MOD13-MYD13_scale_factor:
-        ndvi                : 1.0
-        evi                 : 1.0
-        red                 : 1.0
-        nir                 : 1.0
+        ndvi                : 0.0001
+        evi                 : 0.0001
+        red                 : 0.0001
+        nir                 : 0.0001
 
     LC8-MOD13-MYD13_missing_value:
         ndvi                : -9999

@@ -35,12 +35,9 @@ testthat::test_that("Reading a point from WTSS ",{
 
 testthat::test_that("Reading a point from SATVEG ",{
     testthat::skip_on_cran()
-    coverage_1 <- sits_coverage(service = "SATVEG", product = "MOD13Q1",
-                                     name = "terra")
-    coverage_2 <- sits_coverage(service = "SATVEG", product = "MYD13Q1",
-                                name = "aqua")
-    coverage_3 <- sits_coverage(service = "SATVEG", product = "MOD-MYD13Q1",
-                                      name = "comb")
+    coverage_1 <- sits_coverage(service = "SATVEG",  name = "terra")
+    coverage_2 <- sits_coverage(service = "SATVEG",  name = "aqua")
+    coverage_3 <- sits_coverage(service = "SATVEG",  name = "comb")
 
     point_terra.tb <- sits_getdata(coverage_1, longitude = -55.50563, latitude = -11.71557)
     point_aqua.tb <- sits_getdata(coverage_2, longitude = -55.50563, latitude = -11.71557)

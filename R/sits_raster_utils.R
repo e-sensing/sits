@@ -137,9 +137,8 @@
     # produce the breaks used to generate the output rasters
     subset_dates.lst <- .sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
 
-
-    # loop through the list of dates
-    raster.lst <- subset_dates.lst %>%
+    # loop through the list of dates and create raster layers
+    layer.lst <- subset_dates.lst %>%
         purrr::map(function(date_pair) {
             # create one raster layer per date pair
             r_out <- raster::raster(raster.tb[1,]$r_obj[[1]])
@@ -149,31 +148,42 @@
             end_date   <- date_pair[2]
             timeline   <- c(start_date, end_date)
 
-            # define the coverage name (must be unique)
-            name_cov   <- paste0(raster.tb$name, "-class-", start_date, "-", end_date)
+            band   <-  paste0("class-", start_date, "-", end_date)
 
             # define the filename for the classified image
             filename <- .sits_raster_filename(file, start_date, end_date)
             r_out@file@name <- filename
 
-            #define the band and the scale factor
-            band <- "class"
+            layer <- tibble::tibble(layer.obj = list(r_out),
+                                    band = band, filename = filename)
 
-            # create a new RasterLayer for a defined period and generate the associated metadata
-            row.tb <- .sits_create_raster_coverage(brick.lst    = list(r_out),
-                                                   service     = "RASTER",
-                                                   product     = raster.tb[1,]$product,
-                                                   name        = name_cov,
-                                                   timeline    = timeline,
-                                                   bands       = list(band),
-                                                   files       = list(filename))
-
-
-            # add the metadata information to the list
-            return(row.tb)
+            return(layer)
         })
+
     # join all rows in a single tibble
-    raster_layers.tb <- dplyr::bind_rows(raster.lst)
+    raster_layers.tb <- dplyr::bind_rows(layer.lst)
+
+    # get the name of the coverages
+    name   <-  paste0(raster.tb[1,]$name, "-class")
+
+    #define the bands, the scale factors and the missing values
+    bands <- unlist(raster_layers.tb$band)
+
+    scale_factors <- vector()
+    scale_factors[bands] <- 1
+    missing_values <- vector()
+    missing_values[bands] <- -9999
+
+    # create a new RasterLayer for a defined period and generate the associated metadata
+    row.tb <- .sits_create_raster_coverage(brick.lst      = list(r_out),
+                                           service        = "RASTER",
+                                           name           = name,
+                                           timeline       = timeline,
+                                           bands          = bands,
+                                           scale_factors  = scale_factors,
+                                           missing_values = missing_values
+                                           files          = list(filename))
+
 
     return(raster_layers.tb)
 }
@@ -184,63 +194,86 @@
 #'
 #' @param brick.lst  the list of Raster Brick objects associated with the raster coverages
 #' @param service    the time series service
-#' @param product    the SATVEG product
 #' @param name       the name of the coverage
-#' @param timeline   (optional) the coverage timeline
+#' @param timeline   the coverage timeline
 #' @param bands      vector with names of bands
+#' @param scale_factors     scale factors
+#' @param missing_values    missing values
 #' @param files      vector of names of raster files where the data is stored
 #'
-.sits_create_raster_coverage <- function(brick.lst  = NULL,
-                                      service,
-                                      product,
-                                      name,
-                                      timeline,
-                                      bands,
-                                      files) {
+.sits_create_raster_coverage <- function(brick.lst,
+                                         service,
+                                         name,
+                                         timeline,
+                                         bands,
+                                         scale_factors,
+                                         missing_values,
+                                         files) {
 
-
-
+    # associate an R raster object to the first element of the list of bricks
+    r.obj <- brick.lst[[1]]
     # get the size of the coverage
-    size <- .sits_get_size(service, product, brick.lst[[1]])
+    nrows <- r.obj@nrows
+    ncols <- r.obj@ncols
     # get the bounding box of the product
-    bbox <- .sits_get_bbox(service, product, brick.lst[[1]])
+    xmin <- r.obj@extent@xmin
+    xmax <- r.obj@extent@xmax
+    ymin <- r.obj@extent@ymin
+    ymax <- r.obj@extent@ymax
     # get the resolution of the product
-    res <- .sits_get_resolution(product)
+    xres <- raster::xres(r.obj)
+    yres <- raster::yres(r.obj)
     # get the CRS projection
-    crs <- .sits_get_projection(service, product, brick.lst[[1]])
+    crs <- as.character(raster::crs(r.obj))
 
-    coverage.tb <- .sits_tibble_coverage()
+    # if timeline is not provided, try a best guess
+    if (purrr::is_null(timeline))
+        timeline <- .sits_get_timeline("RASTER", "MOD13Q1")
+
+    # if scale factors are not provided, try a best guess
+    if (purrr::is_null(scale_factors)) {
+        # if the projection is UTM, guess it's a LANDSAT data set
+        if (grep("utm", crs))
+            scale_factors <- .sits_get_scale_factors("RASTER", "LANDSAT", bands)
+        # if the projection is sinusoidal, guess it's a MODIS data set
+        if (grep("sinu", crs))
+            scale_factors <- .sits_get_scale_factors("RASTER", "MODIS", bands)
+        ensurer::ensure_that(scale_factors, !(purrr::is_null(.)),
+               err_desc = "Not able to obtain scale factors for raster data")
+    }
+    # if missing_values are not provided, try a best guess
+    if (purrr::is_null(missing_values)) {
+        # if the projection is UTM, guess it's a LANDSAT data set
+        if (grep("utm", crs))
+            missing_values <- .sits_get_missing_values("RASTER", "LANDSAT", bands)
+        # if the projection is sinusoidal, guess it's a MODIS data set
+        if (grep("sinu", crs))
+            missing_values <- .sits_get_missing_values("RASTER", "MODIS", bands)
+        ensurer::ensure_that(missing_values, !(purrr::is_null(.)),
+                             err_desc = "Not able to obtain scale factors for raster data")
+    }
 
     # initiate writing
-    i <- 0
-    brick.lst %>%
-        purrr::map(function(brick){
-            # retrieve the information specific for each RasterBrick
-            i <- i + 1
-            band  <- bands[i]
-            file  <- files[i]
-            # create a tibble to store the metadata
-            coverage.tb <<- dplyr::add_row(coverage.tb,
-                                          r_obj          = list(brick),
-                                          name           = name,
-                                          service        = service,
-                                          product        = product,
-                                          bands          = list(band),
-                                          start_date     = as.Date(timeline[1]),
-                                          end_date       = as.Date(timeline[length(timeline)]),
-                                          timeline       = list(timeline),
-                                          nrows          = size["nrows"],
-                                          ncols          = size["ncols"],
-                                          xmin           = bbox["xmin"],
-                                          xmax           = bbox["xmax"],
-                                          ymin           = bbox["ymin"],
-                                          ymax           = bbox["ymax"],
-                                          xres           = res["xres"],
-                                          yres           = res["yres"],
-                                          crs            = crs,
-                                          file           = file)
-
-        })
+    # create a tibble to store the metadata
+    coverage.tb <- tibble::tibble(r_obj          = brick.lst,
+                                  name           = name,
+                                  service        = service,
+                                  bands          = list(bands),
+                                  scale_factors  = list(scale_factors),
+                                  missing_values = list(missing_values),
+                                  start_date     = as.Date(timeline[1]),
+                                  end_date       = as.Date(timeline[length(timeline)]),
+                                  timeline       = list(timeline),
+                                  nrows          = nrows,
+                                  ncols          = ncols,
+                                  xmin           = xmin,
+                                  xmax           = xmax,
+                                  ymin           = ymin,
+                                  ymax           = ymax,
+                                  xres           = xres,
+                                  yres           = yres,
+                                  crs            = crs,
+                                  files          = list(files))
 
     return(coverage.tb)
 }
@@ -260,8 +293,6 @@
 #'
 .sits_data_from_block <- function(raster.tb, row, nrows, adj_fun) {
 
-
-    nband <- 0
     # go element by element of the raster metadata tibble (each object points to a RasterBrick)
     values.lst <- list()
     raster.tb %>%
@@ -271,16 +302,17 @@
             # the cols of the matrix are the layers
             values.mx   <- raster::getValues(r_brick$r_obj[[1]], row = row, nrows = nrows)
 
+            # get the associated band
+            band <- r_brick$bands[[1]]
             # determine the missing value for each band
-            miss_value <- .sits_get_missing_value(r_brick$product, r_brick$bands[[1]])
+            missing_values <- r_brick$missing_values[[1]]
 
             # update missing values to NA (this should be replaced by a fast linear interpolation)
-            values.mx[values.mx == miss_value] <- 0
+            values.mx[values.mx == missing_values[band]] <- 0
 
             # correct by the scale factor
-            nband        <- nband + 1
-            scale_factor <- .sits_get_scale_factor(r_brick$product, r_brick$bands[[1]][nband])
-            values.mx    <- values.mx*scale_factor
+            scale_factors <- r_brick$scale_factors[[1]]
+            values.mx     <- values.mx*scale_factors[band]
 
             # adjust values to avoid negative pixel vales
             values.mx <-  adj_fun(values.mx)
@@ -409,7 +441,7 @@
             band <- as.character(raster.tb$bands[[1]])
             names(values.tb) <- band
             # correct the values using the scale factor
-            scale_factor <- .sits_get_scale_factor(raster.tb[1,]$product, band)
+            scale_factor <- unlist(raster.tb$scale_factors)[band]
             values.tb <- values.tb[,1]*scale_factor
             return(values.tb)
         })

@@ -42,7 +42,7 @@ The **sits** package is a set of tools for working with satellite image time ser
 Please install the SITS package from github, making sure you have the latest version of the other packages it requires:
 
 ```{r, eval = FALSE}
-devtools::install_github("esensing/sits")
+devtools::install_github("e-sensing/sits")
 ```
  
 

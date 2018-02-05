@@ -6,3 +6,5 @@ access_WTSS             Access a time series using the WTSS service
 classify_csv            Classify a set of labelled samples in the CSV format
 filtering_ts            Comparison of different methods for filtering a time series
 ml_comparison           Comparison of different machine learning methods for classifying time series
+cerrado_comparison      Comparison of SVM, RFOR, Deep Learning for the Cerrado data set
+matogrosso_comparison   Comparison of SVM, RFOR, Deep Learning for the MatoGrosso data set
