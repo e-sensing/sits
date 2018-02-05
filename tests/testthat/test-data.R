@@ -1,20 +1,17 @@
 testthat::context("Data input")
 testthat::test_that("Creating a WTSS coverage", {
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1",
-                                 name = "mod13q1_512")
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", name = "mod13q1_512")
     testthat::expect_true(coverage_wtss$service == "WTSS-INPE-1")
 })
 testthat::test_that("Creating a SATVEG coverage", {
-    coverage_satveg <- sits_coverage(service = "SATVEG", product = "MOD13Q1",
-                                 name = "terra")
+    coverage_satveg <- sits_coverage(service = "SATVEG",  name = "terra")
     testthat::expect_true(coverage_satveg$service == "SATVEG")
 })
 
 testthat::test_that("Reading a CSV file from WTSS", {
     testthat::skip_on_cran()
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1",
-                                 name = "mod13q1_512")
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", name = "mod13q1_512")
     points.tb <- sits_getdata(coverage = coverage_wtss, file = csv_file)
     testthat::expect_true(NROW(points.tb) > 1)
     testthat::expect_true(length(points.tb[1,]$time_series[[1]]$Index) ==
@@ -23,10 +20,8 @@ testthat::test_that("Reading a CSV file from WTSS", {
 
 testthat::test_that("Reading a point from WTSS ",{
     testthat::skip_on_cran()
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1",
-                                      name = "mod13q1_512")
-    point.tb <- sits_getdata(coverage = coverage_wtss,
-                             longitude = -55.50563, latitude = -11.71557)
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", name = "mod13q1_512")
+    point.tb <- sits_getdata(coverage = coverage_wtss, longitude = -55.50563, latitude = -11.71557)
     timeline <- as.vector(point.tb$time_series[[1]]$Index)
 
     testthat::expect_true(point.tb$start_date == timeline[1])
@@ -56,8 +51,7 @@ testthat::test_that("Reading a ZOO time series", {
 })
 
 testthat::test_that("Reading a shapefile", {
-    coverage_satveg <- sits_coverage(service = "SATVEG", product = "MOD13Q1",
-                                     name = "terra")
+    coverage_satveg <- sits_coverage(service = "SATVEG", name = "terra")
     shp_file <- system.file("extdata/shapefiles/santa_cruz_de_minas/santa_cruz_de_minas.shp", package = "sits")
     munic.tb <- sits_getdata(coverage = coverage_satveg, file = shp_file)
 

@@ -129,7 +129,7 @@ sits_show_config <- function() {
     bands <- sits.env$config[[b]][[name]]
     #post-condition
     ensurer::ensure_that(bands, length(.) > 0,
-                         err_desc = paste0("bands not available for ", product, " in service ", service))
+                         err_desc = paste0("bands not available for coverage ", name, " in service ", service))
     return(bands)
 }
 #' @title Retrieve the bounding box for the product available at service
@@ -166,28 +166,6 @@ sits_show_config <- function() {
     return(bbox)
 }
 
-#' @title Retrieve the coverage based in coverage name for a time series service
-#' @name .sits_get_coverage
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param service        the name of the time series service
-#' @param name           the name of the coverage
-#' @return coverage.tb   metadata about the coverage
-#'
-
-.sits_get_coverage <- function(service, name) {
-
-    if (purrr::is_null(sits.env$config$coverages))
-        return(NULL)
-    else {
-        coverage.tb <- dplyr::filter(sits.env$config$coverages, name == name & service == service)
-        if (NROW(coverage.tb) == 1)
-            return(coverage.tb)
-        else
-            return(NULL)
-    }
-}
-
 #' @title Retrieve the missing values for a given band for an image product
 #' @name .sits_get_missing_values
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -207,7 +185,7 @@ sits_show_config <- function() {
     }
     #post-condition
     ensurer::ensure_that(missing_values, length(.) == length(bands),
-                         err_desc = paste0("Configuration file has no missing values for service RASTER", band, " of ", product))
+                         err_desc = paste0("Configuration file has no missing values for service ", service))
 
     return(missing_values)
 }
@@ -230,7 +208,7 @@ sits_show_config <- function() {
 
     #post-condition
     ensurer::ensure_that(crs, length(.) > 0,
-                         err_desc = paste0("Projection information for ", product, " of service ", service, " not available"))
+                         err_desc = paste0("Projection information for coverage ", name, " of service ", service, " not available"))
     return(crs)
 }
 #' @title Retrieve the protocol associated to the time series service
@@ -269,9 +247,9 @@ sits_show_config <- function() {
 
     #post-condition
     ensurer::ensure_that(res["xres"], as.numeric(.) > 0,
-                         err_desc = paste0("Horizontal resolution not available for product ", product))
+                         err_desc = paste0("Horizontal resolution not available for coverage ", name))
     ensurer::ensure_that(res["yres"], as.numeric(.) > 0,
-                         err_desc = paste0("Vertical resolution not available for product ", product))
+                         err_desc = paste0("Vertical resolution not available for coverage ", name))
 
     return(res)
 }
@@ -364,9 +342,9 @@ sits_show_config <- function() {
 
     #post-condition
     ensurer::ensure_that(size["nrows"], as.integer(.) > 0,
-                         err_desc = paste0("Number of rows not available for product ", product, " for service ", service))
+                         err_desc = paste0("Number of rows not available for coverage ", name, " for service ", service))
     ensurer::ensure_that(size["ncols"], as.integer(.) > 0,
-                         err_desc = paste0("Number of cols not available for product ", product, " for service ", service))
+                         err_desc = paste0("Number of cols not available for coverage ", name, " for service ", service))
 
     return(size)
 }
@@ -414,7 +392,7 @@ sits_show_config <- function() {
         timeline <- lubridate::as_date(sits.env$config[[s]][[name]])
 
         ensurer::ensure_that(timeline, length(.) > 0,
-                             err_desc = paste0("Could not retrieve timeline for product ", product))
+                             err_desc = paste0("Could not retrieve timeline for coverage ", name))
     }
 
     return(lubridate::as_date(timeline))

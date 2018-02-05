@@ -44,26 +44,29 @@
 #'
 #' @export
 #'
-sits_coverage <- function(service  = NULL,
+sits_coverage <- function(service        = NULL,
                           name,
-                          timeline = NULL,
-                          bands    = NULL,
+                          timeline       = NULL,
+                          bands          = NULL,
                           missing_values = NULL,
                           scale_factors  = NULL,
-                          files    = NA) {
+                          files          = NA) {
 
     # if no service is specified, but the names of files are provided,
     # assume we are dealing with raster data
     if (purrr::is_null(service) && all(file.exists(files)))
         service <- "RASTER"
     # pre-condition
-    if (all(file.exists(files)) && service != "RASTER") {
-        msg <- paste0("inconsitent specification of coverage paramets - files should
-            be provided only when service is RASTER")
-        .sits_log_error(msg)
-        message(msg)
-        return(NULL)
+    if (!is.na(files)) {
+        if (all(file.exists(files)) && service != "RASTER") {
+            msg <- paste0("inconsitent specification of coverage paramets - files should
+                          be provided only when service is RASTER")
+            .sits_log_error(msg)
+            message(msg)
+            return(NULL)
+        }
     }
+
     # pre-condition
     .sits_check_service(service)
     # get the protocol associated with the service
@@ -73,7 +76,7 @@ sits_coverage <- function(service  = NULL,
         tryCatch({
             URL  <- .sits_get_server(service)
             # obtains information about the available coverages
-            wtss.obj         <- wtss::WTSS(URL)
+            wtss.obj   <- wtss::WTSS(URL)
             # create a coverage
             coverage.tb <- .sits_coverageWTSS(wtss.obj, service, name)
 
@@ -241,13 +244,13 @@ sits_coverage <- function(service  = NULL,
 #'               projection. Each raster brick file should contain one band
 #'               per time step. Different bands are archived in different raster files.
 #'
-#' @param  name         The name of the coverage file
-#' @param  timeline      Vector of dates with the timeline of the bands
-#' @param  bands         The bands contained in the Raster Brick set (in the same order as the files)
+#' @param  name              The name of the coverage file
+#' @param  timeline          Vector of dates with the timeline of the bands
+#' @param  bands             The bands contained in the Raster Brick set (in the same order as the files)
 #' @param  scale_factors     vector of scale factors (one per band)
 #' @param  missing_values    vector of missing values (one per band)
-#' @param  files         Vector with the file paths of the raster files
-#' @return raster.tb     A tibble with metadata information about a raster data set
+#' @param  files             Vector with the file paths of the raster files
+#' @return raster.tb         A tibble with metadata information about a raster data set
 #'
 .sits_coverage_raster <- function(name, timeline, bands,
                                   scale_factors, missing_values, files) {
@@ -279,7 +282,7 @@ sits_coverage <- function(service  = NULL,
                                  return(raster.obj)
                              })
 
-    coverage.tb <- .sits_create_raster_coverage(brick.lst      = brick.lst,
+    coverage.tb <- .sits_create_raster_coverage(raster.lst     = brick.lst,
                                                 service        = "RASTER",
                                                 name           = name,
                                                 timeline       = timeline,

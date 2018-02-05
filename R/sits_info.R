@@ -10,10 +10,32 @@ sits_info_services <- function() {
     services <- .sits_get_services()
 
     for (s in services) {
-        cat(paste0("Service -- ", service))
-        products <- .sits_get_products (s)
-        for (p in products) {
-            cat(paste0("Product -- ", p))
+        # get the protocol associated with the service
+        protocol <- .sits_get_protocol(s)
+
+        if (protocol == "WTSS") {
+            tryCatch({
+                URL  <- .sits_get_server(service)
+                # obtains information about the available coverages
+                wtss.obj   <- wtss::WTSS(URL)
+                # obtains information about the available coverages
+                names    <- wtss::listCoverages(wtss.obj)
+
+            }, error = function(e){
+                msg <- paste0("WTSS service not available at URL ", URL)
+                .sits_log_error(msg)
+                message(msg)
+            })
+
+            cat(paste0("Service -- ", s))
+            cat(paste0("---- Coverages -- ", names))
         }
+        if (protocol == "SATVEG"){
+            q <- paste0("SATVEG_coverages")
+            names <- sits.env$config[[q]]
+            cat(paste0("Service -- ", s))
+            cat(paste0("---- Coverages -- ", names))
+        }
+
     }
 }

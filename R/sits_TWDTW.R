@@ -171,7 +171,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
                                                  overlap = overlap)
                class.lst <- .sits_fromTWDTW_matches(matches[[i]])
 
-               i <- i + 1
+               i <<- i + 1
 
                # add the classification results to the input row
                return(class.lst[[1]])
