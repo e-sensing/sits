@@ -12,7 +12,7 @@ library(sits)
 # @param year       A numeric. PRODES year
 # @param landsatid  A numeric. An ID of a landasat image. e.g. 22664
 # @param nsamples   A numeric. Number of samples for each PRODES polygon. If NULL, then it returns the polygons' centroids
-# @return           A sits' tibble
+# @return           A sits' tibble plus PRODES' viewdate
 sits_sample_prodes <- function(prodes_shp, year, landsatid, nsamples = NULL){
     min_area <- 9 * 30^2                         # minimum PRODES area to take into account e.g. 9 landsat pixels = 9 * 30^2
     dest_crs <- 4326                             # destination spatial reference. e.g. WTSS uses 4326 to retrieve samples
@@ -70,8 +70,8 @@ sits_sample_prodes <- function(prodes_shp, year, landsatid, nsamples = NULL){
     prodes_samples$coverage <- NA
     prodes_samples$time_series <- NA
     prodes_samples$view_date <- as.Date(prodes_samples$view_date)
-    prodes_samples <- prodes_samples[, c("longitude", "latitude", "start_date", "end_date", "class_name", "coverage", "time_series", "view_date")]
-    colnames(prodes_samples) <- c(colnames(sits::sits_tibble()), "view_date")
+    prodes_samples <- prodes_samples[, c("longitude", "latitude", "start_date", "end_date", "class_name", "coverage", "time_series", "view_date", "areameters")]
+    colnames(prodes_samples) <- c(colnames(sits::sits_tibble()), "view_date", "areameters")
     return(dplyr::as_tibble(prodes_samples))
 }
 
@@ -79,12 +79,15 @@ sits_sample_prodes <- function(prodes_shp, year, landsatid, nsamples = NULL){
 # USAGE
 prodes_shp <- "/home/alber/Documents/data/prodes/prodes2017/PDigital2000_2017_AMZ_shp/PDigital2017_AMZ_props.shp"
 landsatid <- 22664                      # landsat image id (path & row)
-year <- 2017
+year <- 2016
 
 # get the PRODES' polygon centroids as sample points
-# prodes_samples <- sits_sample_prodes(prodes_shp, year, landsatid)
+prodes_samples <- sits_sample_prodes(prodes_shp, year, landsatid)
+write.csv(prodes_samples, file = "/home/alber/Documents/Dropbox/alberLocal/inpe/projects/deepLearning/prodes_centroids_20180206.csv")
+
 
 # get nsamples of each PRODES' polygon
 nsamples <- 5
 prodes_samples <- sits_sample_prodes(prodes_shp, year, landsatid, nsamples)
+write.csv(prodes_samples, file = "/home/alber/Documents/Dropbox/alberLocal/inpe/projects/deepLearning/prodes_samples_20180206.csv")
 
