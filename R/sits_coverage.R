@@ -44,7 +44,7 @@
 #'
 #' @export
 #'
-sits_coverage <- function(service        = NULL,
+sits_coverage <- function(service        = "RASTER",
                           name,
                           timeline       = NULL,
                           bands          = NULL,
@@ -54,10 +54,11 @@ sits_coverage <- function(service        = NULL,
 
     # if no service is specified, but the names of files are provided,
     # assume we are dealing with raster data
-    if (purrr::is_null(service) && all(file.exists(files)))
-        service <- "RASTER"
+    if (service == "RASTER")
+        ensurer::ensure_that(files, all(file.exists(.)),
+                             err_desc = "sits_coverage: raster files do not exist")
     # pre-condition
-    if (!is.na(files)) {
+    if (any(!is.na(files))) {
         if (all(file.exists(files)) && service != "RASTER") {
             msg <- paste0("inconsitent specification of coverage paramets - files should
                           be provided only when service is RASTER")

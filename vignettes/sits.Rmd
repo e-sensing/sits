@@ -475,7 +475,7 @@ raster_class.tb <-
                          blocksize  = 300000, 
                          multicores = 1)
 # plot classified image
-plot(raster_class.tb$r_obj[[1]])
+plot(sits_get_raster(raster.tb, 1))
 ```
 
 Note that we need to create a coverage `tibble` with some metadata information before do the classification. We have proceeded in the same way with `sits_getdata()` example above, to retrieve WTSS data. The metadata maily concern about which bands and its respective files to connect to. A `timeline` must be provided and it refers to the corresponding date associated with the MOD13Q1 product images used to compose the raster brick. Once created, the coverage can be used either to retrieve time series data from the raster bricks using `sits_getdata()` or to do the raster classification by calling the function `sits_classify_raster()`. The machine learning model and the training data to be used are passed by the arguments `sits_svm()` (default) and `samples_MT_ndvi` parameters. Note that we need to be consistent about the bands informed to the coverage and the bands present in the training samples. The classification result is stored as a set of files begining with `file` prefix.

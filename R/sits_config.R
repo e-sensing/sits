@@ -149,10 +149,10 @@ sits_show_config <- function() {
     if (service == "RASTER") {
         ensurer::ensure_that(r_obj, length(.) > 0,
                              err_desc = "raster objects have not been created")
-        bbox["xmin"] <- r_obj@extent@xmin
-        bbox["xmax"] <- r_obj@extent@xmax
-        bbox["ymin"] <- r_obj@extent@ymin
-        bbox["ymax"] <- r_obj@extent@ymax
+        bbox["xmin"] <- raster::xmin(r_obj)
+        bbox["xmax"] <- raster::xmax(r_obj)
+        bbox["ymin"] <- raster::ymin(r_obj)
+        bbox["ymax"] <- raster::ymax(r_obj)
     }
     else {
         # pre-condition
@@ -334,8 +334,8 @@ sits_show_config <- function() {
     else {
         ensurer::ensure_that(r_obj, length(.) > 0,
                              err_desc = "raster objects have not been created")
-        size["nrows"] <- r_obj@nrows
-        size["ncols"] <- r_obj@ncols
+        size["nrows"] <- raster::nrow(r_obj)
+        size["ncols"] <- raster::ncol(r_obj)
     }
 
     #post-condition
@@ -360,8 +360,8 @@ sits_show_config <- function() {
 
     if (service == "RASTER") {
         message("Please provide timeline for raster data: will use default timeline")
-        s <- paste0("RASTER_timline")
-        timeline <- lubridate::as_date(sits.env$config[[s]][name])
+        s <- paste0("RASTER_timeline")
+        timeline <- lubridate::as_date(sits.env$config[[s]]["MOD13Q1"])
         return(timeline)
     }
 

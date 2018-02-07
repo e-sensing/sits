@@ -64,25 +64,24 @@ from the WTSS service.
 \examples{
 \donttest{
 # Read a single lat long point from a WTSS server
-wtss_coverage <- sits_coverage(service = "WTSS-INPE-1",
-                    product = "MOD13Q1", name = "mod13q1_512")
+wtss_coverage <- sits_coverage(service = "WTSS-INPE-1", name = "mod13q1_512")
 point.tb <- sits_getdata (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
-show(point.tb)
+sits_plot(point.tb)
 
 # Read a set of points defined in a CSV file from a WTSS server
-csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
+csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
 points.tb <- sits_getdata (wtss_coverage, file = csv_file)
 # show the points retrieved for the WTSS server
-show (points.tb)
+sits_plot (points.tb[1:3,])
 
 # Read a single lat long point from the SATVEG server
-satveg_coverage <- sits_coverage(service = "SATVEG", product = "MOD13Q1", name = "terra")
-point_satveg.tb <- sits_fromSATVEG (satveg_coverage, longitude = -55.50563, latitude = -11.71557)
-show (point_satveg.tb)
+satveg_coverage <- sits_coverage(service = "SATVEG", name = "terra")
+point_satveg.tb <- sits_getdata (satveg_coverage, longitude = -55.50563, latitude = -11.71557)
+sits_plot(point_satveg.tb)
 
 # define a shapefile and read from the points inside it from the WTSS service
 shp_file <- system.file("extdata/shapefiles/madre_de_deus/madre_de_deus.shp", package = "sits")
-munic.tb <- sits_fromSHP(shp_file, satveg_coverage)
+munic.tb <- sits_getdata(coverage = satveg_coverage, file = shp_file)
 
 # Read a point in a Raster Brick
 # define the file that has the raster brick
@@ -91,10 +90,10 @@ files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package =
 data(timeline_mod13q1)
 timeline <- lubridate::as_date(timeline_mod13q1$V1)
 # create a raster metadata file based on the information about the files
-raster_cov <- sits_coverageRaster(files, name = "Sinop-crop", timeline, bands = c("ndvi"))
+raster_cov <- sits_coverage(files = files, name = "Sinop-crop", timeline = timeline, bands = c("ndvi"))
 # read the point from the raster
-point_raster.tb <- sits_getdata(raster_cov, longitude = -55.50563, latitude = -11.71557)
-show(point_raster.tb)
+point_raster.tb <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
+sits_plot(point_raster.tb)
 }
 }
 \references{

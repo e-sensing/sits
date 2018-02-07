@@ -141,7 +141,8 @@
     layer.lst <- subset_dates.lst %>%
         purrr::map(function(date_pair) {
             # create one raster layer per date pair
-            r_out <- raster::raster(raster.tb[1,]$r_objs[[1]])
+            r_obj <- sits_get_raster(raster.tb, 1)
+            r_out <- raster::raster(r_obj)
 
             # define the timeline for the classified image
             start_date <- date_pair[1]
@@ -181,14 +182,14 @@
     layer.lst <- info_layers.tb$layer.obj
 
     # create a new RasterLayer for a defined period and generate the associated metadata
-    coverage.tb <- .sits_create_raster_coverage(raster.lst     = layer.lst,
-                                           service        = "RASTER",
-                                           name           = name,
-                                           timeline       = timeline,
-                                           bands          = list(bands),
-                                           scale_factors  = scale_factors,
-                                           missing_values = missing_values,
-                                           files          = files)
+    coverage.tb <- .sits_create_raster_coverage(raster.lst = layer.lst,
+                                                service        = "RASTER",
+                                                name           = name,
+                                                timeline       = timeline,
+                                                bands          = list(bands),
+                                                scale_factors  = scale_factors,
+                                                missing_values = missing_values,
+                                                files          = files)
 
 
     return(coverage.tb)
@@ -217,39 +218,38 @@
                                          files) {
 
     # associate an R raster object to the first element of the list of bricks
-    r.obj <- raster.lst[[1]]
+    r_obj <- raster.lst[[1]]
     # get the size of the coverage
-    nrows <- r.obj@nrows
-    ncols <- r.obj@ncols
+    nrows <- raster::nrow(r_obj)
+    ncols <- raster::ncol(r_obj)
     # test if all bricks have the same size
     i <- 1
-    while (length(raster.lst) > i) {
+    while (length(raster.lst[[1]]) > i) {
         i <- i + 1
-        ensurer::ensure_that(nrows, (.) == raster.lst[[i]]$r.obj$nrows,
+        ensurer::ensure_that(nrows, (.) == raster::nrow(raster.lst[[i]]),
                              err_desc = "raster bricks/layers do not have the same number of rows")
-        ensurer::ensure_that(ncols, (.) == raster.lst[[i]]$r.obj$ncols,
+        ensurer::ensure_that(ncols, (.) == raster::ncol(raster.lst[[i]]),
                              err_desc = "raster bricks/layers do not have the same number of cols")
     }
     # get the bounding box of the product
-    xmin <- r.obj@extent@xmin
-    xmax <- r.obj@extent@xmax
-    ymin <- r.obj@extent@ymin
-    ymax <- r.obj@extent@ymax
+    xmin <- raster::xmin(r_obj)
+    xmax <- raster::xmax(r_obj)
+    ymin <- raster::ymin(r_obj)
+    ymax <- raster::ymax(r_obj)
     # get the resolution of the product
-    xres <- raster::xres(r.obj)
-    yres <- raster::yres(r.obj)
+    xres <- raster::xres(r_obj)
+    yres <- raster::yres(r_obj)
     # test if all bricks have the same resolution
     i <- 1
     while (length(raster.lst) > i) {
         i <- i + 1
-        ensurer::ensure_that(xres, (.) == raster::xres(raster.lst[[i]]$r.obj),
+        ensurer::ensure_that(xres, (.) == raster::xres(raster.lst[[i]]),
                              err_desc = "raster bricks/layers have different xres")
-        ensurer::ensure_that(yres, (.) == raster::yres(raster.lst[[i]]$r.obj),
+        ensurer::ensure_that(yres, (.) == raster::yres(raster.lst[[i]]),
                              err_desc = "raster bricks/layers have different yres")
     }
     # get the CRS projection
-    crs <- as.character(raster::crs(r.obj))
-
+    crs <- as.character(raster::crs(r_obj))
 
     # if timeline is not provided, try a best guess
     if (purrr::is_null(timeline))
@@ -257,12 +257,17 @@
 
     # if scale factors are not provided, try a best guess
     if (purrr::is_null(scale_factors)) {
+        message("Scale factors not provided - will use defaults values")
         # if the projection is UTM, guess it's a LANDSAT data set
-        if (stringr::str_detect(crs, "utm"))
+        if (stringr::str_detect(crs, "utm")) {
+            message("Data in UTM projection - assuming LANDSAT-compatible images")
             scale_factors <- .sits_get_scale_factors("RASTER", "LANDSAT", bands)
+        }
         # if the projection is sinusoidal, guess it's a MODIS data set
-        if (stringr::str_detect(crs, "sinu"))
+        if (stringr::str_detect(crs, "sinu")){
+            message("Data in Sinusoidal projection - assuming MODIS-compatible images")
             scale_factors <- .sits_get_scale_factors("RASTER", "MODIS", bands)
+        }
         ensurer::ensure_that(scale_factors, !(purrr::is_null(.)),
                err_desc = "Not able to obtain scale factors for raster data")
     }
@@ -280,7 +285,7 @@
 
     # initiate writing
     # create a tibble to store the metadata
-    coverage.tb <- tibble::tibble(r_objs         = raster.lst,
+    coverage.tb <- tibble::tibble(r_objs         = list(raster.lst),
                                   name           = name,
                                   service        = service,
                                   bands          = list(bands),
@@ -321,7 +326,7 @@
     # go element by element of the raster metadata tibble (each object points to a RasterBrick)
     values.lst <- list()
     # get the list of bricks
-    bricks.lst <- raster.tb$r_objs
+    bricks.lst <- sits_get_raster.tb(raster.tb)
     # get the bands, scale factors and missing values
     bands <- unlist(raster.tb$bands)
     missing_values <- unlist(raster.tb$missing_values)
@@ -392,6 +397,25 @@
     }
     return(data.tb)
 }
+#' @title Get a raster object from a raster coverage
+#' @name sits_get_raster
+#'
+#' @param raster.tb  Raster coverage
+#' @param i          i-th element of the list to retrieve
+#' @export
+#
+sits_get_raster <- function (raster.tb, i = NULL){
+
+    if (purrr::is_null(i))
+        return (raster.tb$r_objs[[1]])
+
+    ensurer::ensure_that(i, (.) <= length(raster.tb$r_objs[[1]]),
+                         err_desc = "sits_get_raster: index of raster object cannot be retrieved")
+
+    return (raster.tb$r_objs[[1]][[i]])
+}
+
+
 
 #' @title Define a reasonable block size to process a RasterBrick
 #' @name .sits_raster_block_size
@@ -502,8 +526,8 @@
     ll_sp <- sf::as_Spatial(ll_sfc)
 
     # An input raster brick contains several files, each corresponds to a band
-    brick.lst <- raster.tb$r_objs
-    values.lst <- brick.lst %>%
+    bricks.lst <- sits_get_raster(raster.tb)
+    values.lst <- bricks.lst %>%
         purrr::map(function(r_brick) {
             # eack brick is a band
             nband <<- nband + 1
@@ -582,8 +606,8 @@
     nband <- 0
 
     # An input raster brick contains several files, each corresponds to a band
-    brick.lst <- raster.tb$r_objs
-    values.lst <- brick.lst %>%
+    bricks.lst <- sits_get_raster(raster.tb)
+    values.lst <- bricks.lst %>%
         purrr::map(function(r_brick) {
             # eack brick is a band
             nband <<- nband + 1

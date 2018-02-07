@@ -4,7 +4,7 @@
 \alias{sits_coverage}
 \title{Provides information about one coverage used to retrieve data}
 \usage{
-sits_coverage(service = NULL, name, timeline = NULL, bands = NULL,
+sits_coverage(service = "RASTER", name, timeline = NULL, bands = NULL,
   missing_values = NULL, scale_factors = NULL, files = NA)
 }
 \arguments{

@@ -12,8 +12,9 @@ testthat::test_that("Working with raster coverages", {
                                bands = c("ndvi"),
                                files = files)
 
-    testthat::expect_true(raster.tb$r_objs[[1]]@nrows == raster.tb$nrows)
-    testthat::expect_true(raster.tb$r_objs[[1]]@extent@xmin == raster.tb$xmin)
+    r_obj <- sits_get_raster(raster.tb, 1)
+    testthat::expect_true(raster::nrow(r_obj) == raster.tb$nrows)
+    testthat::expect_true(raster::xmin(r_obj) == raster.tb$xmin)
 
     point.tb <- sits_getdata(coverage = raster.tb, longitude = -55.55502, latitude = -11.52774)
 
@@ -23,8 +24,8 @@ testthat::test_that("Working with raster coverages", {
                                             ml_method = sits_svm(), blocksize = 300000, multicores = 1)
 
     testthat::expect_true(all(file.exists(unlist(raster_class.tb$file))))
-    r_obj <- raster::raster(raster_class.tb[1,]$file[[1]])
-    testthat::expect_true(r_obj@nrows == raster_class.tb[1,]$nrows)
-    testthat::expect_true(all(file.remove(unlist(raster_class.tb$file))))
+    rc_obj <- sits_get_raster(raster_class.tb, 1)
+    testthat::expect_true(raster::nrow(rc_obj) == raster_class.tb[1,]$nrows)
+    testthat::expect_true(all(file.remove(unlist(raster_class.tb$files))))
 
 })

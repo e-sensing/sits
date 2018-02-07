@@ -79,7 +79,7 @@ sits_classify_raster <- function(file = NULL,
     int_labels <- c(1:length(labels))
     names(int_labels) <- labels
 
-    layers.lst <- raster_class.tb$r_objs[[1]]
+    layers.lst <- sits_get_raster(raster_class.tb)
 
     #initiate writing
     layers.lst <- layers.lst %>%
