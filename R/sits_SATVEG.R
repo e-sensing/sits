@@ -1,3 +1,121 @@
+#' @title Provides information about one coverage of a web time series service
+#' @name .sits_coverage_SATVEG
+#'
+#' @description creates a tibble with metadata about a given coverage
+#'
+#' @param name       the name of the coverage
+#' @param timeline   timeline of the coverage
+#'
+.sits_coverage_SATVEG <- function(name, timeline) {
+
+    service <- "SATVEG"
+    # get the bands
+    bands <- .sits_get_bands(service, name)
+
+    # get the timeline
+    if (purrr::is_null(timeline))
+        timeline <- .sits_SATVEG_timeline()
+
+    # get the size of the coverage
+    size <- .sits_get_size(service, name)
+    # get the bounding box of the coverage
+    bbox <- .sits_get_bbox(service, name)
+    # get the resolution of the product
+    res <- .sits_get_resolution(service, name)
+    # get the CRS projection
+    crs <- .sits_get_projection(service, name)
+
+    scale_factors <- .sits_get_scale_factors(service, name, bands)
+
+    missing_values <- .sits_get_missing_values(service, name, bands)
+
+    # create a tibble to store the metadata
+    coverage.tb <- tibble::tibble(r_objs         = NA,
+                                  name           = name,
+                                  service        = service,
+                                  bands          = list(bands),
+                                  scale_factors  = list(scale_factors),
+                                  missing_values = list(missing_values),
+                                  start_date     = as.Date(timeline[1]),
+                                  end_date       = as.Date(timeline[length(timeline)]),
+                                  timeline       = list(timeline),
+                                  nrows          = as.integer(size["nrows"]),
+                                  ncols          = as.integer(size["ncols"]),
+                                  xmin           = as.numeric(bbox["xmin"]),
+                                  xmax           = as.numeric(bbox["xmax"]),
+                                  ymin           = as.numeric(bbox["ymin"]),
+                                  ymax           = as.numeric(bbox["ymax"]),
+                                  xres           = as.numeric(res["xres"]),
+                                  yres           = as.numeric(res["yres"]),
+                                  crs            = crs,
+                                  files          = NA)
+
+
+    return(coverage.tb)
+}
+#' @title Obtain one timeSeries from the EMBRAPA SATVEG server and load it on a sits tibble
+#' @name .sits_fromSATVEG
+#' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns one set of MODIS time series provided by the EMBRAPA server (SATVEG)
+#' Given a location (lat/long), the function retrieves the "ndvi" and "evi" bands from SATVEG
+#' and inclues the data on a stis tibble. If start and end date are given, the function
+#' filter the data to limit the temporal interval.
+#'
+#' @param coverage        the coverage metadata with the SATVEG information
+#' @param longitude       double - the longitude of the chosen location
+#' @param latitude        double - the latitude of the chosen location
+#' @param start_date      date - the start of the period
+#' @param end_date        date - the end of the period
+#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
+#' @param label           string - the label to attach to the time series (optional)
+#' @return data.tb        a SITS tibble
+#'
+.sits_fromSATVEG <- function(coverage,
+                             longitude,
+                             latitude,
+                             start_date  = NULL,
+                             end_date    = NULL,
+                             prefilter   = "1",
+                             label       = "NoClass") {
+
+    # check parameters
+    ensurer::ensure_that(longitude, !purrr::is_null(.),
+                         err_desc = "sits_fromSATVEG: Missing longitude info")
+    ensurer::ensure_that(latitude,  !purrr::is_null(.),
+                         err_desc = "sits_fromSATVEG: Missing latitude info")
+
+    # retrieve the time series
+    ts.tb <- .sits_ts_from_SATVEG(longitude, latitude, coverage$name, prefilter)
+
+    # filter the dates
+    if (!purrr::is_null(start_date) && !purrr::is_null(end_date))
+        ts.tb <- dplyr::filter(ts.tb, dplyr::between(ts.tb$Index, start_date, end_date))
+    else {
+        start_date <- as.Date(ts.tb$Index[1])
+        end_date   <- as.Date(ts.tb$Index[NROW(ts.tb)])
+    }
+
+    # use a list to store the time series
+    ts.lst <- list()
+    ts.lst[[1]] <- ts.tb
+
+    # create a tibble to store the SATVEG data
+    data.tb <- sits_tibble()
+    # add one row to the tibble
+    data.tb <- tibble::add_row(data.tb,
+                               longitude    = longitude,
+                               latitude     = latitude,
+                               start_date   = start_date,
+                               end_date     = end_date,
+                               label        = label,
+                               coverage     = coverage$name,
+                               time_series  = ts.lst
+    )
+    return(data.tb)
+}
+
 #' @title Retrieve a time series from the SATVEG service
 #' @name .sits_ts_from_SATVEG
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
@@ -21,7 +139,7 @@
     has_timeline <- FALSE
 
     # URL to access SATVEG services
-    URL <- .sits_get_account("SATVEG", name)
+    URL <- .sits_get_server("SATVEG")
 
     # bands available in SATVEG
     bands <- .sits_get_bands("SATVEG", name)
@@ -109,12 +227,13 @@
     prefilter <- "1"
 
     # set the name of one of the bands
-    name <- "ndvi"
+    band <- "ndvi"
+    coverage <- "terra"
     # URL to access SATVEG services
-    URL <- .sits_get_account("SATVEG", name)
+    URL <- .sits_get_server("SATVEG")
 
     # Build the URL to retrieve the time series
-    URL_ts <- paste0(URL, name, "/ponto", "/", longitude, "/", latitude, "/", name, "/",
+    URL_ts <- paste0(URL, band, "/ponto", "/", longitude, "/", latitude, "/", coverage, "/",
                      prefilter, "/", filter, "/", filter_par)
 
     # Get the data from SATVEG service

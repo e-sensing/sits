@@ -412,7 +412,7 @@
 #' @return coverage.tb   a tibble to store the metadata
 #'
 .sits_tibble_coverage <- function() {
-    result.tb <- tibble::tibble(r_obj          = list(),
+    result.tb <- tibble::tibble(r_objs          = list(),
                                 name           = character(),
                                 service        = character(),
                                 product        = character(),

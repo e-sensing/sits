@@ -157,8 +157,6 @@ sits_show_config <- function() {
     else {
         # pre-condition
         s <- paste0(service,"_bbox")
-        ensurer::ensure_that(name, (.) %in% sits.env$config[[s]],
-                             err_desc = paste0("Coverage ", name, " not available for service ", service))
 
         for (c in names(bbox))
             bbox[c] <- sits.env$config[[s]][[name]][[c]]

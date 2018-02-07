@@ -25,12 +25,9 @@ default:
 
     # URL to access SATVEG
     SATVEG_protocol         : "SATVEG"
-    SATVEG_server           : "https://www.satveg.cnptia.embrapa.br"
+    SATVEG_server           : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
     SATVEG_coverages        : ["terra", "aqua", "comb"]
-    SATVEG_account          :
-        terra               : &account "/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
-        aqua                : *account
-        comb                : *account
+
     SATVEG_bands            :
         terra               : &bands-sv ["ndvi", "evi"]
         aqua                : *bands-sv
@@ -72,8 +69,8 @@ default:
 
     SATVEG_resolution:
         terra               :
-            xres            : *mod13q1-x
-            yres            : *mod13q1-y
+            xres            : &mod13q1-x 0.00208334
+            yres            : &mod13q1-y 0.00208334
         aqua                :
             xres            : *mod13q1-x
             yres            : *mod13q1-y
@@ -84,8 +81,8 @@ default:
 
     SATVEG_missing_value:
         terra               :
-            ndvi            : *ndvi-mv
-            evi             : *evi-mv
+            ndvi            : &ndvi-mv  -3000
+            evi             : &evi-mv   -3000
         aqua                :
             ndvi            : *ndvi-mv
             evi             : *evi-mv
@@ -95,8 +92,8 @@ default:
 
     SATVEG_scale_factor:
         terra               :
-            ndvi            : *ndvi-sf
-            evi             : *evi-sf
+            ndvi            : &ndvi-sf 0.0001
+            evi             : &evi-sf  0.0001
         aqua                :
             ndvi            : *ndvi-sf
             evi             : *evi-sf
@@ -106,12 +103,12 @@ default:
 
     RASTER_missing_value:
         MODIS               :
-            ndvi            : &ndvi-mv  -3000
-            evi             : &evi-mv   -3000
-            red             : &red-mv   -1000
-            nir             : &nir-mv   -1000
-            blue            : &blue-mv  -1000
-            mir             : &mir-mv   -1000
+            ndvi            : -3000
+            evi             : -3000
+            red             : -1000
+            nir             : -1000
+            blue            : -1000
+            mir             : -1000
         LANDSAT             :
             ndvi            : -9999
             evi             : -9999
@@ -121,22 +118,22 @@ default:
 
     RASTER_scale_factor:
         MODIS               :
-            ndvi            : &ndvi-sf 0.0001
-            evi             : &evi-sf  0.0001
-            red             : &red-sf  0.0001
-            nir             : &nir-sf  0.0001
-            blue            : &blue-sf 0.0001
-            mir             : &mir-sf  0.0001
+            ndvi            : 0.0001
+            evi             : 0.0001
+            red             : 0.0001
+            nir             : 0.0001
+            blue            : 0.0001
+            mir             : 0.0001
         LANDSAT             :
-            ndvi            : *ndvi-sf
-            evi             : *evi-sf
-            red             : *red-sf
-            nir             : *nir-sf
+            ndvi            : 0.0001
+            evi             : 0.0001
+            red             : 0.0001
+            nir             : 0.0001
 
     RASTER_resolution:
         MODIS               :
-            xres            : &mod13q1-x 0.00208334
-            yres            : &mod13q1-y 0.00208334
+            xres            : 0.00208334
+            yres            : 0.00208334
 
     RASTER_timeline :
         MOD13Q1     : [ "2000-02-18", "2000-03-05", "2000-03-21", "2000-04-06", "2000-04-22", "2000-05-08", "2000-05-24", 2000-06-09",

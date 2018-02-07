@@ -7,14 +7,13 @@ testthat::test_that("Working with raster coverages", {
     data(timeline_mod13q1)
     timeline <- lubridate::as_date(timeline_mod13q1$V1)
     raster.tb <- sits_coverage(service = "RASTER",
-                               product = "MOD13Q1",
                                name = "Sinop-crop",
                                timeline = timeline,
                                bands = c("ndvi"),
                                files = files)
 
-    testthat::expect_true(raster.tb$r_obj[[1]]@nrows == raster.tb$nrows)
-    testthat::expect_true(raster.tb$r_obj[[1]]@extent@xmin == raster.tb$xmin)
+    testthat::expect_true(raster.tb$r_objs[[1]]@nrows == raster.tb$nrows)
+    testthat::expect_true(raster.tb$r_objs[[1]]@extent@xmin == raster.tb$xmin)
 
     point.tb <- sits_getdata(coverage = raster.tb, longitude = -55.55502, latitude = -11.52774)
 

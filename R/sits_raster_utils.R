@@ -141,7 +141,7 @@
     layer.lst <- subset_dates.lst %>%
         purrr::map(function(date_pair) {
             # create one raster layer per date pair
-            r_out <- raster::raster(raster.tb[1,]$r_obj[[1]])
+            r_out <- raster::raster(raster.tb[1,]$r_objs[[1]])
 
             # define the timeline for the classified image
             start_date <- date_pair[1]
@@ -222,7 +222,9 @@
     nrows <- r.obj@nrows
     ncols <- r.obj@ncols
     # test if all bricks have the same size
-    for (i in 2:length(raster.lst)) {
+    i <- 1
+    while (length(raster.lst) > i) {
+        i <- i + 1
         ensurer::ensure_that(nrows, (.) == raster.lst[[i]]$r.obj$nrows,
                              err_desc = "raster bricks/layers do not have the same number of rows")
         ensurer::ensure_that(ncols, (.) == raster.lst[[i]]$r.obj$ncols,
@@ -237,7 +239,9 @@
     xres <- raster::xres(r.obj)
     yres <- raster::yres(r.obj)
     # test if all bricks have the same resolution
-    for (i in 2:length(raster.lst)) {
+    i <- 1
+    while (length(raster.lst) > i) {
+        i <- i + 1
         ensurer::ensure_that(xres, (.) == raster::xres(raster.lst[[i]]$r.obj),
                              err_desc = "raster bricks/layers have different xres")
         ensurer::ensure_that(yres, (.) == raster::yres(raster.lst[[i]]$r.obj),
@@ -246,6 +250,7 @@
     # get the CRS projection
     crs <- as.character(raster::crs(r.obj))
 
+
     # if timeline is not provided, try a best guess
     if (purrr::is_null(timeline))
         timeline <- .sits_get_timeline("RASTER", "MOD13Q1")
@@ -253,10 +258,10 @@
     # if scale factors are not provided, try a best guess
     if (purrr::is_null(scale_factors)) {
         # if the projection is UTM, guess it's a LANDSAT data set
-        if (grep("utm", crs))
+        if (stringr::str_detect(crs, "utm"))
             scale_factors <- .sits_get_scale_factors("RASTER", "LANDSAT", bands)
         # if the projection is sinusoidal, guess it's a MODIS data set
-        if (grep("sinu", crs))
+        if (stringr::str_detect(crs, "sinu"))
             scale_factors <- .sits_get_scale_factors("RASTER", "MODIS", bands)
         ensurer::ensure_that(scale_factors, !(purrr::is_null(.)),
                err_desc = "Not able to obtain scale factors for raster data")
@@ -264,10 +269,10 @@
     # if missing_values are not provided, try a best guess
     if (purrr::is_null(missing_values)) {
         # if the projection is UTM, guess it's a LANDSAT data set
-        if (grep("utm", crs))
+        if (stringr::str_detect(crs, "utm"))
             missing_values <- .sits_get_missing_values("RASTER", "LANDSAT", bands)
         # if the projection is sinusoidal, guess it's a MODIS data set
-        if (grep("sinu", crs))
+        if (stringr::str_detect(crs, "sinu"))
             missing_values <- .sits_get_missing_values("RASTER", "MODIS", bands)
         ensurer::ensure_that(missing_values, !(purrr::is_null(.)),
                              err_desc = "Not able to obtain scale factors for raster data")
@@ -349,6 +354,44 @@
     data.mx <- do.call(cbind, values.lst)
     return(data.mx)
 }
+#' @title Extract a time series from a ST raster data set
+#' @name .sits_fromRaster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Reads metadata about a raster data set to retrieve a set of
+#' time series.
+#'
+#' @param coverage        A tibble with metadata describing a raster coverage
+#' @param file            A CSV file with lat/long locations to be retrieve
+#' @param longitude       double - the longitude of the chosen location
+#' @param latitude        double - the latitude of the chosen location
+#' @param start_date      date - the start of the period
+#' @param end_date        date - the end of the period
+#' @param label           string - the label to attach to the time series
+#' @return data.tb        a SITS tibble with the time series
+#'
+.sits_fromRaster <- function(coverage,
+                             file = NULL,
+                             longitude = NULL,
+                             latitude = NULL,
+                             start_date = NULL,
+                             end_date  = NULL,
+                             label = "NoClass"){
+
+    # ensure metadata tibble exists
+    ensurer::ensure_that(coverage, NROW(.) >= 1,
+                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
+
+    # get data based on CSV file
+    if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv") {
+        data.tb <- .sits_ts_fromRasterCSV(coverage, file)
+    }
+
+    if (!purrr::is_null(longitude) && !purrr::is_null(latitude)) {
+        data.tb <- .sits_ts_fromRaster(coverage, longitude, latitude, label)
+    }
+    return(data.tb)
+}
 
 #' @title Define a reasonable block size to process a RasterBrick
 #' @name .sits_raster_block_size
@@ -421,6 +464,89 @@
 }
 
 #' @title Extract a time series for a set of Raster Layers
+#' @name .sits_ts_fromRaster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description  This function extracts a SITS time series from a set of
+#'               Raster Layers whose metadata is stored in a tibble
+#'               created by the sits_STraster function
+#'
+#' @param raster.tb        A tibble with metadata information about a raster data set
+#' @param longitude        Longitude of the chosen location
+#' @param latitude         Latitude of the chosen location
+#' @param label            Label to attach to the time series
+#' @return data.tb         SITS tibble with the time series
+#'
+#' @description This function creates a tibble to store the information
+#' about a raster time series
+#'
+.sits_ts_fromRaster <- function(raster.tb, longitude, latitude, label = "NoClass"){
+
+    # ensure metadata tibble exists
+    ensurer::ensure_that(raster.tb, NROW(.) >= 1,
+                         err_desc = "sits_ts_fromRasterXY: need a valid metadata for coverage")
+
+    timeline <- raster.tb$timeline[[1]]
+
+    ts.tb <- tibble::tibble(Index = timeline)
+
+    # get the bands, scale factors and missing values
+    bands <- unlist(raster.tb$bands)
+    missing_values <- unlist(raster.tb$missing_values)
+    scale_factors  <- unlist(raster.tb$scale_factors)
+    nband <- 0
+
+    # transform longitude and latitude to an sp Spatial Points* (understood by raster)
+    st_point <- sf::st_point(c(longitude, latitude))
+    ll_sfc <- sf::st_sfc(st_point, crs = "+init=epsg:4326")
+    ll_sp <- sf::as_Spatial(ll_sfc)
+
+    # An input raster brick contains several files, each corresponds to a band
+    brick.lst <- raster.tb$r_objs
+    values.lst <- brick.lst %>%
+        purrr::map(function(r_brick) {
+            # eack brick is a band
+            nband <<- nband + 1
+            # get the values of the time series
+            values <- suppressWarnings(as.vector(raster::extract(r_brick, ll_sp)))
+            # is the data valid?
+            if (all(is.na(values))) {
+                message("point outside the raster extent - NULL returned")
+                return(NULL)
+            }
+            # create a tibble to store the values
+            values.tb <- tibble::tibble(values)
+            # find the names of the tibble column
+            band <- bands[nband]
+            names(values.tb) <- band
+            # correct the values using the scale factor
+            values.tb <- values.tb[,1]*scale_factors[band]
+            return(values.tb)
+        })
+
+    ts.tb <- dplyr::bind_cols(ts.tb, values.lst)
+
+    # create a list to store the time series coming from the set of Raster Layers
+    ts.lst <- list()
+    # transform the list into a tibble to store in memory
+    ts.lst[[1]] <- ts.tb
+
+    # create a tibble to store the WTSS data
+    data.tb <- sits_tibble()
+    # add one row to the tibble
+    data.tb <- tibble::add_row(data.tb,
+                               longitude    = longitude,
+                               latitude     = latitude,
+                               start_date   = as.Date(timeline[1]),
+                               end_date     = as.Date(timeline[length(timeline)]),
+                               label        = label,
+                               coverage     = raster.tb$name,
+                               time_series  = ts.lst
+    )
+    return(data.tb)
+}
+
+#' @title Extract a time series for a set of Raster Layers
 #' @name .sits_ts_fromRasterXY
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -456,7 +582,7 @@
     nband <- 0
 
     # An input raster brick contains several files, each corresponds to a band
-    brick.lst <- raster.tb$r_obj
+    brick.lst <- raster.tb$r_objs
     values.lst <- brick.lst %>%
         purrr::map(function(r_brick) {
             # eack brick is a band

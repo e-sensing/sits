@@ -49,25 +49,24 @@
 #' @examples
 #' \donttest{
 #' # Read a single lat long point from a WTSS server
-#' wtss_coverage <- sits_coverage(service = "WTSS-INPE-1",
-#'                     product = "MOD13Q1", name = "mod13q1_512")
+#' wtss_coverage <- sits_coverage(service = "WTSS-INPE-1", name = "mod13q1_512")
 #' point.tb <- sits_getdata (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
-#' show(point.tb)
+#' sits_plot(point.tb)
 #'
 #' # Read a set of points defined in a CSV file from a WTSS server
-#' csv_file <- system.file ("extdata/samples/samples_import.csv", package = "sits")
+#' csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
 #' points.tb <- sits_getdata (wtss_coverage, file = csv_file)
 #' # show the points retrieved for the WTSS server
-#' show (points.tb)
+#' sits_plot (points.tb[1:3,])
 #'
 #' # Read a single lat long point from the SATVEG server
-#' satveg_coverage <- sits_coverage(service = "SATVEG", product = "MOD13Q1", name = "terra")
-#' point_satveg.tb <- sits_fromSATVEG (satveg_coverage, longitude = -55.50563, latitude = -11.71557)
-#' show (point_satveg.tb)
+#' satveg_coverage <- sits_coverage(service = "SATVEG", name = "terra")
+#' point_satveg.tb <- sits_getdata (satveg_coverage, longitude = -55.50563, latitude = -11.71557)
+#' sits_plot(point_satveg.tb)
 #'
 #' # define a shapefile and read from the points inside it from the WTSS service
 #' shp_file <- system.file("extdata/shapefiles/madre_de_deus/madre_de_deus.shp", package = "sits")
-#' munic.tb <- sits_fromSHP(shp_file, satveg_coverage)
+#' munic.tb <- sits_getdata(coverage = satveg_coverage, file = shp_file)
 #'
 #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
@@ -76,10 +75,10 @@
 #' data(timeline_mod13q1)
 #' timeline <- lubridate::as_date(timeline_mod13q1$V1)
 #' # create a raster metadata file based on the information about the files
-#' raster_cov <- sits_coverageRaster(files, name = "Sinop-crop", timeline, bands = c("ndvi"))
+#' raster_cov <- sits_coverage(files = files, name = "Sinop-crop", timeline = timeline, bands = c("ndvi"))
 #' # read the point from the raster
-#' point_raster.tb <- sits_getdata(raster_cov, longitude = -55.50563, latitude = -11.71557)
-#' show(point_raster.tb)
+#' point_raster.tb <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
+#' sits_plot(point_raster.tb)
 #' }
 #' @export
 sits_getdata <- function(coverage    = NULL,
@@ -203,217 +202,7 @@ sits_getdata <- function(coverage    = NULL,
     }
     return(NULL)
 }
-#' @title Obtain one timeSeries from WTSS server and load it on a sits tibble
-#' @name .sits_fromWTSS
-#'
-#' @description Returns one set of time series provided by a WTSS server
-#' Given a location (lat/long), and start/end period, and the WTSS server information
-#' retrieve a time series and include it on a stis tibble.
-#' A Web Time Series Service (WTSS) is a light-weight service that
-#' retrieves one or more time series in JSON format from a data base.
-#' @references
-#' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
-#' Web Services for Big Earth Observation Data.
-#' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
-#' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177
-#'
-#' @param coverage        metadata about the coverage where the data is to be retrived
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location
-#' @param start_date      date - the start of the period
-#' @param end_date        date - the end of the period
-#' @param bands           list of string - a list of the names of the bands of the coverage
-#' @param label           string - the label to attach to the time series (optional)
-#' @return data.tb        a SITS tibble
-#'
-.sits_fromWTSS <- function(coverage,
-                           longitude,
-                           latitude,
-                           start_date = NULL,
-                           end_date   = NULL,
-                           bands      = NULL,
-                           label      = "NoClass") {
 
-    # if bands are not provided, use all bands available in the coverage
-    # check the bands are available
-    cov_bands <- coverage$bands[[1]]
-    if (purrr::is_null(bands))
-        bands <- cov_bands
-    else
-        ensurer::ensure_that(bands, all((.) %in% cov_bands),
-                             err_desc = "sits_fromWTSS: requested bands are not available in the coverage")
-
-    # check start and end dates
-    if (purrr::is_null(start_date))
-        start_date <- coverage$start_date
-    if (purrr::is_null(end_date))
-        end_date <- coverage$end_date
-
-    # try to get a time series from the WTSS server
-    tryCatch({
-        # get the WTSS object associated to the URL
-        wtss.obj <- coverage$r_obj[[1]]
-        # retrieve the time series from the service
-        ts <- wtss::timeSeries(object     = wtss.obj,
-                               coverages  = coverage$name,
-                               attributes = bands,
-                               longitude  = longitude,
-                               latitude   = latitude,
-                               start_date = start_date,
-                               end_date   = end_date)
-
-        # retrieve the time series information
-        time_series <- ts[[coverage$name]]$attributes
-
-        # determine the missing value for each band
-        missing_values <- coverage$missing_values[[1]]
-        # update missing values to NA
-        for (b in bands) {
-            time_series[, b][time_series[, b] == missing_values[b]] <- NA
-        }
-
-        # interpolate missing values
-        time_series[, bands] <- zoo::na.spline(time_series[, bands])
-
-        # scale the time series
-        scale_factors <- coverage$scale_factors[[1]]
-        bands %>%
-            purrr::map(function(b) {
-                time_series[, b] <<- time_series[, b]*scale_factors[b]
-            })
-
-        # convert the series to a tibble
-        ts.tb <- tibble::as_tibble(zoo::fortify.zoo(time_series))
-
-        # create a list to store the time series coming from the WTSS service
-        ts.lst <- list()
-        ts.lst[[1]] <- ts.tb
-
-        # create a tibble to store the WTSS data
-        data.tb <- sits_tibble()
-        # add one row to the tibble
-        data.tb <- tibble::add_row(data.tb,
-                                   longitude,
-                                   latitude,
-                                   start_date  = start_date,
-                                   end_date    = end_date,
-                                   label       = label,
-                                   coverage    = coverage$name,
-                                   time_series = ts.lst)
-
-        # return the tibble with the time series
-        return(data.tb)
-
-    }, error = function(e){
-        msg <- paste0("WTSS - unable to retrieve point (", longitude, ", ", latitude, ", ", start_date," ,", end_date,")")
-        .sits_log_error(msg)
-        message("WTSS - unable to retrieve point - see log file for details" )
-        return(NULL)
-    })
-}
-
-#' @title Obtain one timeSeries from the EMBRAPA SATVEG server and load it on a sits tibble
-#' @name .sits_fromSATVEG
-#' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns one set of MODIS time series provided by the EMBRAPA server (SATVEG)
-#' Given a location (lat/long), the function retrieves the "ndvi" and "evi" bands from SATVEG
-#' and inclues the data on a stis tibble. If start and end date are given, the function
-#' filter the data to limit the temporal interval.
-#'
-#' @param coverage        the coverage metadata with the SATVEG information
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location
-#' @param start_date      date - the start of the period
-#' @param end_date        date - the end of the period
-#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @param label           string - the label to attach to the time series (optional)
-#' @return data.tb        a SITS tibble
-#'
-.sits_fromSATVEG <- function(coverage,
-                             longitude,
-                             latitude,
-                             start_date  = NULL,
-                             end_date    = NULL,
-                             prefilter   = "1",
-                             label       = "NoClass") {
-
-    # check parameters
-    ensurer::ensure_that(longitude, !purrr::is_null(.),
-                         err_desc = "sits_fromSATVEG: Missing longitude info")
-    ensurer::ensure_that(latitude,  !purrr::is_null(.),
-                         err_desc = "sits_fromSATVEG: Missing latitude info")
-
-    # retrieve the time series
-    ts.tb <- .sits_ts_from_SATVEG(longitude, latitude, coverage$name, prefilter)
-
-    # filter the dates
-    if (!purrr::is_null(start_date) && !purrr::is_null(end_date))
-        ts.tb <- dplyr::filter(ts.tb, dplyr::between(ts.tb$Index, start_date, end_date))
-    else {
-        start_date <- as.Date(ts.tb$Index[1])
-        end_date   <- as.Date(ts.tb$Index[NROW(ts.tb)])
-    }
-
-    # use a list to store the time series
-    ts.lst <- list()
-    ts.lst[[1]] <- ts.tb
-
-    # create a tibble to store the SATVEG data
-    data.tb <- sits_tibble()
-    # add one row to the tibble
-    data.tb <- tibble::add_row(data.tb,
-                               longitude    = longitude,
-                               latitude     = latitude,
-                               start_date   = start_date,
-                               end_date     = end_date,
-                               label        = label,
-                               coverage     = coverage$name,
-                               time_series  = ts.lst
-    )
-    return(data.tb)
-}
-
-#' @title Extract a time series from a ST raster data set
-#' @name .sits_fromRaster
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Reads metadata about a raster data set to retrieve a set of
-#' time series.
-#'
-#' @param coverage        A tibble with metadata describing a raster coverage
-#' @param file            A CSV file with lat/long locations to be retrieve
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location
-#' @param start_date      date - the start of the period
-#' @param end_date        date - the end of the period
-#' @param label           string - the label to attach to the time series
-#' @return data.tb        a SITS tibble with the time series
-#'
-.sits_fromRaster <- function(coverage,
-                            file = NULL,
-                            longitude = NULL,
-                            latitude = NULL,
-                            start_date = NULL,
-                            end_date  = NULL,
-                            label = "NoClass"){
-
-    # ensure metadata tibble exists
-    ensurer::ensure_that(coverage, NROW(.) >= 1,
-                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
-
-    # get data based on CSV file
-    if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv") {
-        data.tb <- .sits_ts_fromRasterCSV(coverage, file)
-    }
-
-    if (!purrr::is_null(longitude) && !purrr::is_null(latitude)) {
-        xy <- .sits_latlong_to_proj(longitude, latitude, coverage[1, ]$crs)
-        data.tb <- .sits_ts_fromRasterXY(coverage, xy, longitude, latitude, label)
-    }
-    return(data.tb)
-}
 
 #' @title Obtain timeSeries from time series server, based on a CSV file.
 #' @name .sits_fromCSV
@@ -534,18 +323,34 @@ sits_getdata <- function(coverage    = NULL,
     .sits_check_service(coverage$service)
 
 
-    # recover the coverage resolution
-    resolution <- .sits_get_resolution(coverage$product)
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
+    # find out what is the projection of the shape file
+    crs1 <- sf::st_crs(sf_shape)
+    # if the shapefile is not in EPSG:4326 and WGS84, exit gracefully
+    if (crs1$epsg != 4326) {
+        message("Shapefile are only accepted in SITS if they are in EPSG:4326 and WGS84 coordinate system")
+        return(NULL)
+    }
     # get the bounding box
     bbox <- sf::st_bbox(sf_shape)
     # create an empty sits tibble
     shape.tb <- sits_tibble()
 
+    # if the resolution of the coverage is expressed in meters, convert it to lat long
+    if (coverage$xres > 1) {
+        res <- .sits_convert_resolution(coverage)
+        xres <- res["xres"]
+        yres <- res["yres"]
+    }
+    else {
+        xres <- coverage$xres
+        yres <- coverage$yres
+    }
+
     # setup the sequence of latitudes and longitudes to be searched
-    longitudes <- seq(from = bbox["xmin"], to = bbox["xmax"], by = resolution["xres"])
-    latitudes  <- seq(from = bbox["ymin"], to = bbox["ymax"], by = resolution["yres"])
+    longitudes <- seq(from = bbox["xmin"], to = bbox["xmax"], by = xres)
+    latitudes  <- seq(from = bbox["ymin"], to = bbox["ymax"], by = yres)
 
     longitudes %>%
         purrr::map(function(long){
