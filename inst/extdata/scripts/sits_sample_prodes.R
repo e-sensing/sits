@@ -79,12 +79,10 @@ sits_sample_prodes <- function(prodes_shp, year, landsatid, nsamples = NULL){
 # USAGE
 prodes_shp <- "/home/alber/Documents/data/prodes/prodes2017/PDigital2000_2017_AMZ_shp/PDigital2017_AMZ_props.shp"
 landsatid <- 22664                      # landsat image id (path & row)
-year <- 2016
 
 # get the PRODES' polygon centroids as sample points
 prodes_samples <- sits_sample_prodes(prodes_shp, year, landsatid)
 write.csv(prodes_samples, file = "/home/alber/Documents/Dropbox/alberLocal/inpe/projects/deepLearning/prodes_centroids_20180206.csv")
-
 
 # get nsamples of each PRODES' polygon
 nsamples <- 5
