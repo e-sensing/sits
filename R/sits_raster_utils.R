@@ -106,6 +106,11 @@
     else
         pred.lst <- classify_block(data.mx)
 
+    # check the result has the right dimension
+    ensurer::ensure_that (pred.lst, all(sapply((.), length) == nrow(data.mx)),
+                          err_desc = "sits_classify_raster - number of classified pixels is different
+                                from number of input pixels")
+
     return(pred.lst)
 }
 #' @title Create a set of RasterLayer objects to store time series classification results
@@ -358,8 +363,14 @@
             band <- bands[i]
 
             # update missing values to NA (this should be replaced by a fast linear interpolation)
-            values.mx[values.mx == missing_values[band]] <- 0
+            values.mx[values.mx == missing_values[band]] <- NA
 
+            if (any(is.na(values.mx))) {
+                # transpose matrix to replace NA values
+                values.mx <- t(values.mx)
+                values.mx <- zoo::na.approx(values.mx)
+                values.mx <- t(values.mx)
+            }
             # correct by the scale factor
             values.mx     <- values.mx*scale_factors[band]
 

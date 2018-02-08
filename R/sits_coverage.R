@@ -60,7 +60,7 @@ sits_coverage <- function(service        = "RASTER",
     # pre-condition
     if (any(!is.na(files))) {
         if (all(file.exists(files)) && service != "RASTER") {
-            msg <- paste0("inconsitent specification of coverage paramets - files should
+            msg <- paste0("inconsistent specification of coverage parameters - files should
                           be provided only when service is RASTER")
             .sits_log_error(msg)
             message(msg)
