@@ -23,7 +23,7 @@ testthat::test_that("Working with raster coverages", {
     raster_class.tb <- sits_classify_raster(file = "./raster-class", raster.tb, samples_MT_ndvi,
                                             ml_method = sits_svm(), blocksize = 300000, multicores = 1)
 
-    testthat::expect_true(all(file.exists(unlist(raster_class.tb$file))))
+    testthat::expect_true(all(file.exists(unlist(raster_class.tb$files))))
     rc_obj <- sits_get_raster(raster_class.tb, 1)
     testthat::expect_true(raster::nrow(rc_obj) == raster_class.tb[1,]$nrows)
     testthat::expect_true(all(file.remove(unlist(raster_class.tb$files))))

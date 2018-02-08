@@ -4,7 +4,7 @@
 wtss_inpe <- sits_infoWTSS()
 
 # get information about a specific coverage
-coverage_wtss.tb <- sits_coverage(service = "WTSS-INPE-1", product = "MOD13Q1", name = "mod13q1_512")
+coverage_wtss.tb <- sits_coverage(service = "WTSS-INPE-3", name = "MOD13Q1")
 
 # retrieve the time series associated with the point from the WTSS server
 point.tb <- sits_getdata(coverage_wtss.tb, longitude = -47.0516, latitude = -10.7241,

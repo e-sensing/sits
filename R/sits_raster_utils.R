@@ -85,17 +85,19 @@
 
     join_blocks <- function(blocks.lst) {
         pred.lst <- list()
-        for (t in 1:length(time_index.lst)) {
+        # create a vector to store the prediction list for each time index
+        for (t in 1:length(time_index.lst))
             pred.lst[[t]] <- vector()
-        }
-        for (i in 1:length(blocks.lst)) {
-            pred.lst <- c(pred.lst[[t]], blocks.lst[[i]][[t]])
-        }
+
+        # join the blocks for each time index
+        for (i in 1:length(blocks.lst))
+            for (t in 1:length(time_index.lst))
+                pred.lst[[t]] <- c(pred.lst[[t]], blocks.lst[[i]][[t]])
         return(pred.lst)
     }
 
     if (multicores > 1) {
-        blocks.lst <- split.data.frame(data.mx, cut(1:nrow(data.mx),multicores, labels = FALSE))
+        blocks.lst <- split.data.frame(data.mx, cut(1:nrow(data.mx), multicores, labels = FALSE))
         # apply parallel processing to the split data
         results <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
 
@@ -224,7 +226,7 @@
     ncols <- raster::ncol(r_obj)
     # test if all bricks have the same size
     i <- 1
-    while (length(raster.lst[[1]]) > i) {
+    while (length(raster.lst) > i) {
         i <- i + 1
         ensurer::ensure_that(nrows, (.) == raster::nrow(raster.lst[[i]]),
                              err_desc = "raster bricks/layers do not have the same number of rows")
@@ -257,15 +259,18 @@
 
     # if scale factors are not provided, try a best guess
     if (purrr::is_null(scale_factors)) {
-        message("Scale factors not provided - will use defaults values")
+        msg <- paste0("Scale factors not provided - will use default values: please check they are valid")
+        .sits_log_error(msg)
         # if the projection is UTM, guess it's a LANDSAT data set
         if (stringr::str_detect(crs, "utm")) {
-            message("Data in UTM projection - assuming LANDSAT-compatible images")
+            msg <- paste0("Data in UTM projection - assuming LANDSAT-compatible images")
+            .sits_log_error(msg)
             scale_factors <- .sits_get_scale_factors("RASTER", "LANDSAT", bands)
         }
         # if the projection is sinusoidal, guess it's a MODIS data set
-        if (stringr::str_detect(crs, "sinu")){
-            message("Data in Sinusoidal projection - assuming MODIS-compatible images")
+        if (stringr::str_detect(crs, "sinu")) {
+            msg <-  paste0("Data in Sinusoidal projection - assuming MODIS-compatible images")
+            .sits_log_error(msg)
             scale_factors <- .sits_get_scale_factors("RASTER", "MODIS", bands)
         }
         ensurer::ensure_that(scale_factors, !(purrr::is_null(.)),
@@ -273,12 +278,20 @@
     }
     # if missing_values are not provided, try a best guess
     if (purrr::is_null(missing_values)) {
+        msg <- paste0("Missing values not provided - will use default values: please check they are valid")
+        .sits_log_error(msg)
         # if the projection is UTM, guess it's a LANDSAT data set
-        if (stringr::str_detect(crs, "utm"))
+        if (stringr::str_detect(crs, "utm")) {
+            msg <- paste0("Data in UTM projection - assuming LANDSAT-compatible images")
+            .sits_log_error(msg)
             missing_values <- .sits_get_missing_values("RASTER", "LANDSAT", bands)
+        }
         # if the projection is sinusoidal, guess it's a MODIS data set
-        if (stringr::str_detect(crs, "sinu"))
+        if (stringr::str_detect(crs, "sinu")) {
+            msg <-  paste0("Data in Sinusoidal projection - assuming MODIS-compatible images")
+            .sits_log_error(msg)
             missing_values <- .sits_get_missing_values("RASTER", "MODIS", bands)
+        }
         ensurer::ensure_that(missing_values, !(purrr::is_null(.)),
                              err_desc = "Not able to obtain scale factors for raster data")
     }
@@ -326,7 +339,7 @@
     # go element by element of the raster metadata tibble (each object points to a RasterBrick)
     values.lst <- list()
     # get the list of bricks
-    bricks.lst <- sits_get_raster.tb(raster.tb)
+    bricks.lst <- sits_get_raster(raster.tb)
     # get the bands, scale factors and missing values
     bands <- unlist(raster.tb$bands)
     missing_values <- unlist(raster.tb$missing_values)
@@ -397,25 +410,6 @@
     }
     return(data.tb)
 }
-#' @title Get a raster object from a raster coverage
-#' @name sits_get_raster
-#'
-#' @param raster.tb  Raster coverage
-#' @param i          i-th element of the list to retrieve
-#' @export
-#
-sits_get_raster <- function (raster.tb, i = NULL){
-
-    if (purrr::is_null(i))
-        return (raster.tb$r_objs[[1]])
-
-    ensurer::ensure_that(i, (.) <= length(raster.tb$r_objs[[1]]),
-                         err_desc = "sits_get_raster: index of raster object cannot be retrieved")
-
-    return (raster.tb$r_objs[[1]][[i]])
-}
-
-
 
 #' @title Define a reasonable block size to process a RasterBrick
 #' @name .sits_raster_block_size

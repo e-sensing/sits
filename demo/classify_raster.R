@@ -25,6 +25,8 @@ data(samples_MT_9classes)
 #select the bands for classification
 samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi"))
 
+point.tb <- sits_getdata(coverage = raster.tb, longitude = -55.368, latitude = -11.694)
+
 # classify the raster image
 sits_classify_raster(file = "./sinop-class", raster.tb, samples.tb,
                      ml_method = sits_svm(cost = 10, kernel = "radial", tolerance = 0.001, epsilon = 0.1),

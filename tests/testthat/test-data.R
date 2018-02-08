@@ -11,16 +11,15 @@ testthat::test_that("Creating a SATVEG coverage", {
 testthat::test_that("Reading a CSV file from WTSS", {
     testthat::skip_on_cran()
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", name = "mod13q1_512")
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE-3", name = "MOD13Q1")
     points.tb <- sits_getdata(coverage = coverage_wtss, file = csv_file)
-    testthat::expect_true(NROW(points.tb) > 1)
-    testthat::expect_true(length(points.tb[1,]$time_series[[1]]$Index) ==
-                              length(points.tb[NROW(points.tb),]$time_series[[1]]$Index))
+    df_csv <- utils::read.csv(system.file("extdata/samples/samples_matogrosso.csv", package = "sits"))
+    testthat::expect_true(NROW(points.tb) == NROW(df_csv))
 })
 
 testthat::test_that("Reading a point from WTSS ",{
     testthat::skip_on_cran()
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE-3", name = "MOD13Q1")
     point.tb <- sits_getdata(coverage = coverage_wtss, longitude = -55.50563, latitude = -11.71557)
     timeline <- as.vector(point.tb$time_series[[1]]$Index)
 
@@ -51,23 +50,16 @@ testthat::test_that("Reading a ZOO time series", {
 })
 
 testthat::test_that("Reading a shapefile", {
-    coverage_satveg <- sits_coverage(service = "SATVEG", name = "terra")
+    coverage_satveg <- sits_coverage(service = "WTSS-INPE-3", name = "MOD13Q1")
     shp_file <- system.file("extdata/shapefiles/santa_cruz_de_minas/santa_cruz_de_minas.shp", package = "sits")
     munic.tb <- sits_getdata(coverage = coverage_satveg, file = shp_file)
 
     sf_shape <- sf::read_sf(shp_file)
     bbox <- sf::st_bbox(sf_shape)
-
-    s <- paste0(product = "MOD13Q1","_resolution")
-    res          <- vector(length = 2)
-    names(res)  <- c("xres", "yres")
-    for (c in names(res))
-        res[c] <- sits:::sits.env$config[[s]][[c]]
-
-    longitudes_box <- seq(from = bbox["xmin"], to = bbox["xmax"], by = res["xres"])
     longitudes_shp <- munic.tb$longitude
 
-    testthat::expect_true(all(unique(longitudes_shp) %in% unique(longitudes_box)))
+    testthat::expect_true(all(unique(longitudes_shp) > bbox["xmin"]))
+    testthat::expect_true(all(unique(longitudes_shp) < bbox["xmax"]))
 
 })
 
@@ -81,3 +73,4 @@ testthat::test_that("Labels and re-label",{
 
     testthat::expect_true(length(sits_labels(prodes_226_064)$label) > length(sits_labels(new_data.tb)$label))
 })
+

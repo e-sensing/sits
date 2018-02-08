@@ -5,7 +5,7 @@ output:
       df_print: tibble
       fig_caption: yes
       keep_tex: yes
-      template: latex-ms.tex
+      template: "../inst/extdata/markdown/latex-ms.tex"
 title: "SITS: Data Analysis and Machine Learning using Satellite Image Time Series"
 author:
 - name: Rolf Simoes
@@ -23,8 +23,7 @@ date: "`r format(Sys.time(), '%B %d, %Y')`"
 fontfamily: mathdesign
 fontfamilyoptions: adobe-utopia
 fontsize: 11pt
-bibliography: references-sits.bib
-csl: plos-one.csl
+bibliography: "../inst/extdata/markdown/references-sits.bib"
 endnote: false
 graphics: true
 mathtools: true
@@ -117,9 +116,8 @@ After finding out which coverages are available at the different time series ser
 ```{r}
 # get information about a specific coverage from WTSS
 coverage_wtss <- 
-    sits_coverage(service  = "WTSS-INPE-2", 
-                  product  = "MOD13Q1", 
-                  name     = "MOD13Q1")
+    sits_coverage(service  = "WTSS-INPE-1",
+                  name     = "mod13q1_512")
 coverage_wtss[, c("xmin","xmax","ymin","ymax",
                 "start_date", "end_date")]
 ```
@@ -460,7 +458,6 @@ timeline <- lubridate::as_date(timeline_mod13q1$V1)
 # information about the files
 raster.tb <- 
     sits_coverage(service  = "RASTER",
-                  product  = "MOD13Q1",
                   name     = "Sinop-crop",
                   timeline = timeline,
                   bands    = c("ndvi"),
@@ -482,18 +479,18 @@ Note that we need to create a coverage `tibble` with some metadata information b
 
 ```{r, include=FALSE}
 # remove all files
-file.remove(unlist(raster_class.tb$file))
+file.remove(unlist(raster_class.tb$files))
 ```
 
 # Final remarks
 
 Current approaches to image time series analysis still use limited number of attributes. A common approach is deriving a small set of phenological parameters from vegetation indices, like beginning, peak, and length of growing season [@Brown2013], [@Kastens2017], [@Estel2015], [@Pelletier2016]. These phenological parameters are then fed in specialised classifiers such as TIMESAT [@Jonsson2004]. These approaches do not use the power of advanced statistical learning techniques to work on high-dimensional spaces and with big training data sets [@James2013].
 
-The `sits` uses the full depth of satellite image time series to create larger dimensional spaces. We tested different methods of extracting attributes from time series data, including those reported by @Pelletier2016 and @Kastens2017. Our conclusion is that part of the information in raw time series is lost after filtering or statistical approximation. Thus, the method we developed has a deceptive simplicity: *use all the data available in the time series samples*. The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. Our experiments found out that modern statistical models such as support vector machines, and random forests perform better in high-dimensional spaces than in lower dimensional ones. 
+The `sits` package uses the full depth of satellite image time series to create larger dimensional spaces. We tested different methods of extracting attributes from time series data, including those reported by @Pelletier2016 and @Kastens2017. Our conclusion is that part of the information in raw time series is lost after filtering or statistical approximation. Thus, the method we developed uses all the data available in the time series samples. The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. Our experiments found out that modern statistical models such as support vector machines, and random forests perform better in high-dimensional spaces than in lower dimensional ones. 
 
 # Acknowledgements
 
-The authors would like to thank all the researchers whose provided data samples used in the examples: Alexandre Coutinho, Julio Esquerdo and Joao Antunes (Brazilian Agricultural Research Agency, Brazil) who provided ground samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes; Rodrigo Bergotti (National Institute for Space Research, Brazil) who provided samples for "cerrado" and "forest" classes; and Damien Arvor (Rennes University, France) who provided ground samples for "soybean-fallow" class.
+The authors would like to thank all the researchers whose provided data samples used in the examples: Alexandre Coutinho, Julio Esquerdo and Joao Antunes (Brazilian Agricultural Research Agency, Brazil) who provided ground samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes; Rodrigo Bergotti (National Institute for Space Research, Brazil) who provided samples for "cerrado" and "forest" classes; and Damien Arvor (Rennes University, France) who provided ground samples for "soybean-fallow" class. 
 
 <!--
 # References

@@ -106,10 +106,42 @@ sits_classify_raster <- function(file = NULL,
     }
     # finish writing
     layers.lst %>%
-        purrr::map(function (layer){
+        purrr::map(function(layer){
             layer <- raster::writeStop(layer)
-            return (layer)
+            return(layer)
         })
     return(raster_class.tb)
+}
+#' @title Get a raster object from a raster coverage
+#' @name sits_get_raster
+#' @description This function retrieves one or more raster objects stored in a raster coverage.
+#'              It should be used to ensure that the raster objects are returned correctly.
+#'
+#' @param raster.tb  Raster coverage
+#' @param i          i-th element of the list to retrieve
+#'
+#' @examples
+#' # Define a raster Brick and retrieve the associated object
+#' # define the file that has the raster brick
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#' # define the timeline
+#' data(timeline_mod13q1)
+#' timeline <- lubridate::as_date(timeline_mod13q1$V1)
+#' # create a raster metadata file based on the information about the files
+#' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
+#'                             timeline = timeline, bands = c("ndvi"))
+#' # retrieve the raster object associated to the coverage
+#' raster_object <- sits_get_raster(raster_cov, 1)
+#' @export
+#
+sits_get_raster <- function(raster.tb, i = NULL) {
+
+    if (purrr::is_null(i))
+        return(raster.tb$r_objs[[1]])
+
+    ensurer::ensure_that(i, (.) <= length(raster.tb$r_objs[[1]]),
+                         err_desc = "sits_get_raster: index of raster object cannot be retrieved")
+
+    return(raster.tb$r_objs[[1]][[i]])
 }
 

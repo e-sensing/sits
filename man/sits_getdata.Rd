@@ -90,7 +90,8 @@ files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package =
 data(timeline_mod13q1)
 timeline <- lubridate::as_date(timeline_mod13q1$V1)
 # create a raster metadata file based on the information about the files
-raster_cov <- sits_coverage(files = files, name = "Sinop-crop", timeline = timeline, bands = c("ndvi"))
+raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
+                            timeline = timeline, bands = c("ndvi"))
 # read the point from the raster
 point_raster.tb <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
 sits_plot(point_raster.tb)
