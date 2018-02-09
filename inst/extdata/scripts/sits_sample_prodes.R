@@ -20,11 +20,43 @@ sits_sample_prodes <- function(prodes_shp, year, landsatid, nsamples = NULL){
     if(is.null(nsamples)){
         use_centroids <- T
     }
-    #---- read prodes ----
-    prodes <- sf::st_read(prodes_shp, quiet = T) %>%
+    #---- read prodes & filter ----
+    prodes <- sf::st_read(prodes_shp, quiet = T, stringsAsFactors = F) %>%
         dplyr::filter(pathrow == landsatid) %>%
         dplyr::filter(areameters > min_area) %>%
-        dplyr::filter(ano == year)
+        dplyr::mutate(label = dplyr::recode(class_name,
+                                            FLORESTA = "Forest",
+                                            HIDROGRAFIA = "Water",
+                                            NAO_FLORESTA = "Non-forest",
+                                            NAO_FLORESTA2 = "Non-forest",
+                                            d2012 = "Deforestation_before_2012",
+                                            d2013 = "Deforestation_2013",
+                                            d2014 = "Deforestation_2014",
+                                            d2015 = "Deforestation_2015",
+                                            d2016 = "Deforestation_2016",
+                                            d2017 = "Deforestation_2017",
+                                            d2018 = "Deforestation_2018",
+                                            r2012 = "Def_remainder_before_2012",
+                                            r2013 = "Def_remainder_2013",
+                                            r2014 = "Def_remainder_2014",
+                                            r2015 = "Def_remainder_2015",
+                                            r2016 = "Def_remainder_2016",
+                                            r2017 = "Def_remainder_2017",
+                                            r2018 = "Def_remainder_2018")) %>%
+        dplyr::filter(label %in% c("Forest", "Water", "Non-forest",
+                                   paste0("Deforestation_", year)))
+    #---- compute statistics ----
+    # cast sf to data.frame
+    prod.df <- prodes %>% dplyr::select(label, areameters)
+    prod.df$geometry <- NULL
+    prod.df <- dplyr::as_tibble(prod.df)
+    (prod.df %>% dplyr::group_by(label) %>%
+         dplyr::summarise(
+             count = n(),
+             area_km2 = sum(areameters, na.rm = T)/(10^6),
+             area_mean = mean(areameters, na.rm = T)/(10^6),
+             area_sd = sd(areameters, na.rm = T)/(10^6)
+         ))
     #---- get sample points ----
     prodes_samples <- tibble()
     if(use_centroids){
@@ -70,7 +102,7 @@ sits_sample_prodes <- function(prodes_shp, year, landsatid, nsamples = NULL){
     prodes_samples$coverage <- NA
     prodes_samples$time_series <- NA
     prodes_samples$view_date <- as.Date(prodes_samples$view_date)
-    prodes_samples <- prodes_samples[, c("longitude", "latitude", "start_date", "end_date", "class_name", "coverage", "time_series", "view_date", "areameters")]
+    prodes_samples <- prodes_samples[, c("longitude", "latitude", "start_date", "end_date", "label", "coverage", "time_series", "view_date", "areameters")]
     colnames(prodes_samples) <- c(colnames(sits::sits_tibble()), "view_date", "areameters")
     return(dplyr::as_tibble(prodes_samples))
 }
@@ -79,10 +111,11 @@ sits_sample_prodes <- function(prodes_shp, year, landsatid, nsamples = NULL){
 # USAGE
 prodes_shp <- "/home/alber/Documents/data/prodes/prodes2017/PDigital2000_2017_AMZ_shp/PDigital2017_AMZ_props.shp"
 landsatid <- 22664                      # landsat image id (path & row)
+year <- 2013
 
 # get the PRODES' polygon centroids as sample points
-prodes_samples <- sits_sample_prodes(prodes_shp, year, landsatid)
-write.csv(prodes_samples, file = "/home/alber/Documents/Dropbox/alberLocal/inpe/projects/deepLearning/prodes_centroids_20180206.csv")
+#prodes_samples <- sits_sample_prodes(prodes_shp, year, landsatid)
+#write.csv(prodes_samples, file = "/home/alber/Documents/Dropbox/alberLocal/inpe/projects/deepLearning/prodes_centroids_20180206.csv")
 
 # get nsamples of each PRODES' polygon
 nsamples <- 5
