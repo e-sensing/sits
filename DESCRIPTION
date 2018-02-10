@@ -1,16 +1,18 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 1.1.2
-Date: 2017-12-24
+Version: 1.2.0
+Date: 2018-02-09
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Alexandre', 'Carvalho', role = c('aut', 'ctb')),
+             person('Alber', 'Sanchez', role = c('aut', 'ctb')),
+             person('Gilberto', 'Queiroz', role = c('aut', 'ctb'))
              person('Luiz', 'Assis', role = c('ctb')),
              person('Adeline', 'Marinho', role = c('ctb')),
              person('Lorena', 'Santos', role = c('ctb')),
-             person('Gilberto', 'Queiroz', role = c('ctb'))
+             person('Pedro', 'Andrade', role = c('ctb'))
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series.
