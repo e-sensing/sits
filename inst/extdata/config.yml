@@ -2,14 +2,14 @@ default:
     # location of log file
     log_file                : "~/.sits/sits.log"
     # adjustment shift for function sits_adjust
-    adjustment_shift        : 3.0
+    adjustment_shift        : 1.0
 
     # Protocols accepted for data acess
     protocols               : ["WTSS", "SATVEG", "RASTER"]
     # Time series services known to SITS
-    ts_services             : ["WTSS-INPE-1", "WTSS-INPE-2", "WTSS-INPE-3", "SATVEG", "RASTER"]
+    ts_services             : ["WTSS-INPE-1", "WTSS-INPE-2", "SATVEG", "RASTER"]
     # Names of ts_services per protocols
-    WTSS_services           : ["WTSS-INPE-1", "WTSS-INPE-2", "WTSS-INPE-3"]
+    WTSS_services           : ["WTSS-INPE-1", "WTSS-INPE-2"]
     SATVEG_services         : ["SATVEG"]
     RASTER_protocol         : ["RASTER"]
 
@@ -18,10 +18,7 @@ default:
     WTSS-INPE-1_server      : "http://www.dpi.inpe.br/tws/wtss"
 
     WTSS-INPE-2_protocol    : "WTSS"
-    WTSS-INPE-2_server      : "http://www.terrama2.dpi.inpe.br/esensing/wtss/"
-
-    WTSS-INPE-3_protocol    : "WTSS"
-    WTSS-INPE-3_server      : "http://www.terrama2.dpi.inpe.br/esensing/experimental/wtss/"
+    WTSS-INPE-2_server      : "http://www.esensing.dpi.inpe.br/wtss/"
 
     # URL to access SATVEG
     SATVEG_protocol         : "SATVEG"
@@ -115,6 +112,13 @@ default:
             red             : -9999
             nir             : -9999
 
+    RASTER_minimum_value    :
+        ndvi                : -3000
+        evi                 : -3000
+        red                 : 0
+        blue                : 0
+        nir                 : 0
+        mir                 : 0
 
     RASTER_scale_factor:
         MODIS               :

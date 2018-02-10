@@ -353,7 +353,7 @@
     # get the bands, scale factors and missing values
     bands <- unlist(raster.tb$bands)
     missing_values <- unlist(raster.tb$missing_values)
-    missing_values2 <- .sits_get_missing_values("RASTER", "MODIS", bands)
+    minimum_values <- .sits_get_minimum_values("RASTER", bands)
     scale_factors  <- unlist(raster.tb$scale_factors)
     i <- 0
     # go through all the bricks
@@ -370,7 +370,7 @@
 
             # update missing values to NA (this should be replaced by a fast linear interpolation)
             values.mx[values.mx == missing_values[band]] <- NA
-            values.mx[values.mx == missing_values2[band]] <- NA
+            values.mx[values.mx <= minimum_values[band]] <- NA
 
             if (any(is.na(values.mx))) {
                 # transpose matrix to replace NA values

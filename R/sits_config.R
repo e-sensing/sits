@@ -164,6 +164,29 @@ sits_show_config <- function() {
     return(bbox)
 }
 
+#' @title Retrieve the minimum values for a given band
+#' @name .sits_get_minimum_values
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param service          name of the product
+#' @param bands            vector of bands
+#' @return missing_values
+#'
+.sits_get_minimum_values <- function(service, bands) {
+
+    # create a string to query for the missing values
+    minimum_values <- vector()
+    mv <- paste0(service,"_minimum_value")
+    for (b in bands) {
+        minimum_values[b] <- as.numeric(sits.env$config[[mv]][[b]])
+    }
+    #post-condition
+    ensurer::ensure_that(minimum_values, length(.) == length(bands),
+                         err_desc = paste0("Configuration file has failed to find minimum values for ", service))
+
+    return(minimum_values)
+}
+
 #' @title Retrieve the missing values for a given band for an image product
 #' @name .sits_get_missing_values
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
