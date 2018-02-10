@@ -79,6 +79,9 @@
             colnames(dist.tb) <- attr_names
             # classify the subset data
             pred_block.lst[[t]] <- .sits_predict(dist.tb, ml_model)
+            if (pred_block.lst[[t]] != nrow(dist.tb))
+                print(paste0("number of prediction values ", length(pred_block.lst[[t]]),
+                                                   "different from input data rows, ", nrow(dist.tb)))
         }
         return(pred_block.lst)
     }
@@ -107,9 +110,11 @@
         pred.lst <- classify_block(data.mx)
 
     # check the result has the right dimension
-    ensurer::ensure_that (pred.lst, all(sapply((.), length) == nrow(data.mx)),
-                          err_desc = "sits_classify_raster - number of classified pixels is different
-                                from number of input pixels")
+    print(paste0("length of pred.lst", length(pred.lst[[1]])))
+    print(paste0("dimension of data.mx", nrow(data.mx)))
+    #ensurer::ensure_that(pred.lst[[1]], length(.) == nrow(data.mx),
+     #                    err_desc = "sits_classify_raster - number of classified pixels is different
+     #                           from number of input pixels")
 
     return(pred.lst)
 }
@@ -348,6 +353,7 @@
     # get the bands, scale factors and missing values
     bands <- unlist(raster.tb$bands)
     missing_values <- unlist(raster.tb$missing_values)
+    missing_values2 <- .sits_get_missing_values("RASTER", "MODIS", bands)
     scale_factors  <- unlist(raster.tb$scale_factors)
     i <- 0
     # go through all the bricks
@@ -364,6 +370,7 @@
 
             # update missing values to NA (this should be replaced by a fast linear interpolation)
             values.mx[values.mx == missing_values[band]] <- NA
+            values.mx[values.mx == missing_values2[band]] <- NA
 
             if (any(is.na(values.mx))) {
                 # transpose matrix to replace NA values

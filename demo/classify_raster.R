@@ -30,6 +30,6 @@ point.tb <- sits_getdata(coverage = raster.tb, longitude = -55.368, latitude = -
 # classify the raster image
 sits_classify_raster(file = "./sinop-class", raster.tb, samples.tb,
                      ml_method = sits_svm(cost = 10, kernel = "radial", tolerance = 0.001, epsilon = 0.1),
-                     blocksize = 300000, multicores = 2)
+                     blocksize = 300000, multicores = 4)
 
 
