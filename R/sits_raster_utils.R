@@ -79,7 +79,7 @@
             colnames(dist.tb) <- attr_names
             # classify the subset data
             pred_block.lst[[t]] <- .sits_predict(dist.tb, ml_model)
-            if (pred_block.lst[[t]] != nrow(dist.tb))
+            if (length(pred_block.lst[[t]]) != nrow(dist.tb))
                 print(paste0("number of prediction values ", length(pred_block.lst[[t]]),
                                                    "different from input data rows, ", nrow(dist.tb)))
         }
@@ -100,6 +100,7 @@
     }
 
     if (multicores > 1) {
+        # divide the input matrix into blocks for multicore processing
         blocks.lst <- split.data.frame(data.mx, cut(1:nrow(data.mx), multicores, labels = FALSE))
         # apply parallel processing to the split data
         results <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
@@ -347,22 +348,27 @@
 .sits_data_from_block <- function(raster.tb, row, nrows, adj_fun) {
 
     # go element by element of the raster metadata tibble (each object points to a RasterBrick)
-    values.lst <- list()
+    # values.lst <- list()
     # get the list of bricks
-    bricks.lst <- sits_get_raster(raster.tb)
+    #bricks.lst <- sits_get_raster(raster.tb)
+    bricks.vec <- raster.tb$files[[1]]
     # get the bands, scale factors and missing values
     bands <- unlist(raster.tb$bands)
     missing_values <- unlist(raster.tb$missing_values)
     minimum_values <- .sits_get_minimum_values("RASTER", bands)
     scale_factors  <- unlist(raster.tb$scale_factors)
+    # set the offset and region to be read by GDAL
+    offset <- c(row - 1, 0)
+    region.dim <- c(nrows, raster.tb$ncols)
     i <- 0
     # go through all the bricks
-    bricks.lst %>%
+    values.lst <- bricks.vec %>%
         purrr::map(function(r_brick) {
             # the raster::getValues function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            values.mx   <- raster::getValues(r_brick, row = row, nrows = nrows)
+            #values.mx   <- raster::getValues(r_brick, row = row, nrows = nrows)
+            values.mx    <- (rgdal::readGDAL(r_brick, offset, region.dim))@data
 
             # get the associated band
             i <<- i + 1
@@ -385,7 +391,8 @@
             values.mx <-  adj_fun(values.mx)
 
             # Convert the matrix to a list of time series (all with values for a single band)
-            values.lst[[length(values.lst) + 1]]  <<- values.mx
+            #values.lst[[length(values.lst) + 1]]  <<- values.mx
+            return(values.mx)
         })
     data.mx <- do.call(cbind, values.lst)
     return(data.mx)
