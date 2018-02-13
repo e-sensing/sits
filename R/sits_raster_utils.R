@@ -357,9 +357,12 @@
     missing_values <- unlist(raster.tb$missing_values)
     minimum_values <- .sits_get_minimum_values("RASTER", bands)
     scale_factors  <- unlist(raster.tb$scale_factors)
+    # get the adjustment value
+    adj_value <- as.double(.sits_get_adjustment_shift())
     # set the offset and region to be read by GDAL
     offset <- c(row - 1, 0)
-    region.dim <- c(nrows, raster.tb$ncols)
+    ncols <- raster.tb$ncols
+    region.dim <- c(nrows, ncols)
     i <- 0
     # go through all the bricks
     values.lst <- bricks.vec %>%
@@ -368,30 +371,35 @@
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
             #values.mx   <- raster::getValues(r_brick, row = row, nrows = nrows)
-            values.mx    <- (rgdal::readGDAL(r_brick, offset, region.dim))@data
+            values.mx    <- as.matrix(rgdal::readGDAL(r_brick, offset, region.dim)@data)
 
             # get the associated band
             i <<- i + 1
             band <- bands[i]
+            missing_value <- missing_values[band]
+            minimum_value <- minimum_values[band]
+            scale_factor  <- scale_factors[band]
 
-            # update missing values to NA (this should be replaced by a fast linear interpolation)
-            values.mx[values.mx == missing_values[band]] <- NA
-            values.mx[values.mx <= minimum_values[band]] <- NA
+            values.mx[is.na(values.mx)] <- minimum_value
 
-            if (any(is.na(values.mx))) {
-                # transpose matrix to replace NA values
-                values.mx <- t(values.mx)
-                values.mx <- zoo::na.approx(values.mx)
-                values.mx <- t(values.mx)
-            }
+            # # update missing values to NA (this should be replaced by a fast linear interpolation)
+            # values.mx[values.mx == missing_values[band]] <- NA
+            # values.mx[values.mx <= minimum_values[band]] <- NA
+            #
+            # if (any(is.na(values.mx))) {
+            #     # transpose matrix to replace NA values
+            #     values.mx <- t(values.mx)
+            #     values.mx <- zoo::na.approx(values.mx)
+            #     values.mx <- t(values.mx)
+            # }
             # correct by the scale factor
-            values.mx     <- values.mx*scale_factors[band]
+            #values.mx     <- values.mx*scale_factors[band]
 
             # adjust values to avoid negative pixel vales
-            values.mx <-  adj_fun(values.mx)
+            #values.mx <-  adj_fun(values.mx)
 
-            # Convert the matrix to a list of time series (all with values for a single band)
-            #values.lst[[length(values.lst) + 1]]  <<- values.mx
+            values.mx <- preprocess_data(values.mx, missing_value, minimum_value, scale_factor, adj_value)
+
             return(values.mx)
         })
     data.mx <- do.call(cbind, values.lst)

@@ -18,9 +18,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// preprocess_data
+NumericMatrix preprocess_data(NumericMatrix data, const int& missing_value, const int& minimum_value, const double& scale_factor, const double& adj_value);
+RcppExport SEXP _sits_preprocess_data(SEXP dataSEXP, SEXP missing_valueSEXP, SEXP minimum_valueSEXP, SEXP scale_factorSEXP, SEXP adj_valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const int& >::type missing_value(missing_valueSEXP);
+    Rcpp::traits::input_parameter< const int& >::type minimum_value(minimum_valueSEXP);
+    Rcpp::traits::input_parameter< const double& >::type scale_factor(scale_factorSEXP);
+    Rcpp::traits::input_parameter< const double& >::type adj_value(adj_valueSEXP);
+    rcpp_result_gen = Rcpp::wrap(preprocess_data(data, missing_value, minimum_value, scale_factor, adj_value));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_first_order_transition_rules", (DL_FUNC) &_sits_apply_first_order_transition_rules, 3},
+    {"_sits_preprocess_data", (DL_FUNC) &_sits_preprocess_data, 5},
     {NULL, NULL, 0}
 };
 
