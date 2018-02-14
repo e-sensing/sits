@@ -13,7 +13,7 @@ ndvi <- paste0(data_dir, l8_221065_ndvi)
 evi <- paste0(data_dir,l8_221065_evi)
 nir <- paste0(data_dir,l8_221065_nir)
 
-files <- c(ndvi, evi, nir)
+files <- c(ndvi, evi)
 
 # define the timeline
 #data(timeline_mod13q1)
@@ -25,7 +25,7 @@ timeline1 <- timeline1[1:23]
 
 # create a raster metadata file based on the information about the files
 raster.tb <- sits_coverage(files = files, name = "L8MOD-221_65_2013-2014",
-                           timeline = timeline1, bands = c("ndvi", "evi", "nir"))
+                           timeline = timeline1, bands = c("ndvi", "evi"))
 
 point.tb <- sits_getdata(raster.tb, latitude = -7.23, longitude = -46.15)
 
@@ -41,7 +41,7 @@ samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi", "nir"))
 
 # classify the raster image
 sits_classify_raster(file = "./L8_MOD_221-065-class", raster.tb, samples.tb,
-                     ml_method = sits_svm(cost = 10, kernel = "radial", tolerance = 0.001, epsilon = 0.1),
-                     blocksize = 15000000, multicores = 20)
+                     ml_method = sits_svm(),
+                     blocksize = 500000, multicores = 4)
 
 

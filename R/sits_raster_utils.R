@@ -65,6 +65,10 @@
         # create a list to get the predictions
         pred_block.lst <- list()
         for (t in 1:length(time_index.lst)) {
+             pred_block.lst[[t]] <- vector(length = nrow(block.mx))
+        }
+        # predict the values for each time interval
+        for (t in 1:length(time_index.lst)) {
             # create an empty matrix to store the subset of the data
             values.mx <- matrix(nrow = nrow(block.mx), ncol = 0)
             idx <- time_index.lst[[t]]
@@ -72,25 +76,29 @@
                 # retrieve the values used for classification
                 values.mx <- cbind(values.mx, block.mx[,idx[(2*b - 1)]:idx[2*b]])
             }
+
             dist.tb <- data.frame("original_row" = rep(1,nrow(block.mx)) ,
                                   "reference" = rep("NoClass", nrow(block.mx)))
             dist.tb[,3:(nsamples*length(bands) + 2)] <- values.mx
 
             colnames(dist.tb) <- attr_names
             # classify the subset data
+            
             pred_block.lst[[t]] <- .sits_predict(dist.tb, ml_model)
-            if (length(pred_block.lst[[t]]) != nrow(dist.tb))
-                print(paste0("number of prediction values ", length(pred_block.lst[[t]]),
-                                                   "different from input data rows, ", nrow(dist.tb)))
+            if (length(pred_block.lst[[t]]) != nrow(dist.tb)) {
+                msg <- paste0("number of prediction values ", length(pred_block.lst[[t]]),
+                                                   "different from input data rows, ", nrow(dist.tb))
+                .sits_log_error(msg)
+            }
         }
         return(pred_block.lst)
     }
 
-    join_blocks <- function(blocks.lst) {
+    join_blocks <- function(blocks.lst, nrows) {
         pred.lst <- list()
         # create a vector to store the prediction list for each time index
         for (t in 1:length(time_index.lst))
-            pred.lst[[t]] <- vector()
+            pred.lst[[t]] <- vector(length = nrows)
 
         # join the blocks for each time index
         for (i in 1:length(blocks.lst))
@@ -105,7 +113,7 @@
         # apply parallel processing to the split data
         results <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
 
-        pred.lst <- join_blocks(results)
+        pred.lst <- join_blocks(results, nrow(data.mx))
     }
     else
         pred.lst <- classify_block(data.mx)
@@ -367,10 +375,9 @@
     # go through all the bricks
     values.lst <- bricks.vec %>%
         purrr::map(function(r_brick) {
-            # the raster::getValues function returns a matrix
+            # the readGDAL function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            #values.mx   <- raster::getValues(r_brick, row = row, nrows = nrows)
             values.mx    <- as.matrix(rgdal::readGDAL(r_brick, offset, region.dim)@data)
 
             # get the associated band
@@ -381,22 +388,6 @@
             scale_factor  <- scale_factors[band]
 
             values.mx[is.na(values.mx)] <- minimum_value
-
-            # # update missing values to NA (this should be replaced by a fast linear interpolation)
-            # values.mx[values.mx == missing_values[band]] <- NA
-            # values.mx[values.mx <= minimum_values[band]] <- NA
-            #
-            # if (any(is.na(values.mx))) {
-            #     # transpose matrix to replace NA values
-            #     values.mx <- t(values.mx)
-            #     values.mx <- zoo::na.approx(values.mx)
-            #     values.mx <- t(values.mx)
-            # }
-            # correct by the scale factor
-            #values.mx     <- values.mx*scale_factors[band]
-
-            # adjust values to avoid negative pixel vales
-            #values.mx <-  adj_fun(values.mx)
 
             values.mx <- preprocess_data(values.mx, missing_value, minimum_value, scale_factor, adj_value)
 
