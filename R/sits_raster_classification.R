@@ -18,34 +18,43 @@
                                             bands, attr_names, int_labels, init_row,
                                             ml_model = NULL, multicores = 1){
 
+
+
     ensurer::ensure_that(ml_model, !purrr::is_null(.),
                          err_desc = "sits-classify: please provide a machine learning model already trained")
 
     # iterate through time intervals
 
+    dist.tb <- data.table::data.table("original_row" = rep(1,nrow(data.tb)),
+                                      "reference" = rep("NoClass", nrow(data.tb)))
+    dist.tb <- cbind(dist.tb, data.tb)
+
+    rm (data.tb)
+    gc()
+
     for (t in 1:length(time_index.lst)) {
         idx <- time_index.lst[[t]]
         # for a given time index, build the data.table to be classified
-        # create an empty matrix to store the subset of the data
-        dist.tb <- data.table::data.table("original_row" = rep(1,nrow(data.tb)),
-                                          "reference" = rep("NoClass", nrow(data.tb)))
-
         # build the classification matrix but extracting the relevant columns
+        selec <- logical(length = ncol(dist.tb))
+        selec[1:2] <- TRUE
         for (b in 1:length(bands)) {
-            # retrieve the values used for classification
-            dist.tb <- cbind(dist.tb, data.tb[,idx[(2*b - 1)]:idx[2*b]])
+            selec[idx[(2*b - 1)]:idx[2*b]] <- TRUE
         }
-        colnames(dist.tb) <- attr_names
+        # retrieve the values used for classification
+        dist1.tb <- dist.tb[,selec]
+
+        colnames(dist1.tb) <- attr_names
 
         # classify a block of data
         classify_block <- function(block.tb) {
             # create a vector to get the predictions
-            pred_block.vec <- vector(length = nrow(block.tb))
+            # pred_block.vec <- vector(length = nrow(block.tb))
             # predict the values for each time interval
             # classify the subset data
             pred_block.vec <- .sits_predict(block.tb, ml_model)
 
-            if (length(pred_block.vec) != nrow(dist.tb)) {
+            if (length(pred_block.vec) != nrow(block.tb)) {
                     msg <- paste0("number of prediction values ", length(pred_block.vec),
                                   "different from input data rows, ", nrow(dist.tb))
                     .sits_log_error(msg)
@@ -53,32 +62,27 @@
             return(pred_block.vec)
         }
 
-        join_blocks <- function(blocks.lst) {
-            pred.vec <- vector()
-
-            # join the blocks for a given time index
-            blocks.lst %>%
-                purrr::map(function(block.vec) {
-                    pred.vec <<- c(pred.vec, block.vec)
-                })
-
-            return(pred.vec)
-        }
-
         if (multicores > 1) {
+            block_size.lst <- .sits_split_block_size(nrow(dist1.tb), multicores)
             # divide the input matrix into blocks for multicore processing
-            blocks.lst <- split.data.frame(dist.tb, cut(1:nrow(data.tb), multicores, labels = FALSE))
+            blocks.lst <- block_size.lst %>%
+                purrr::map(function (bs){
+                    block.tb <- dist1.tb[bs[1]:bs[2],]
+                    return(block.tb)
+                })
             # apply parallel processing to the split data
             results <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
-
-            pred.vec <- join_blocks(results)
+            # join the results
+            pred.vec <- unlist(results)
+            rm (block.lst)
+            gc()
         }
         else
-            pred.vec <- classify_block(dist.tb)
+            pred.vec <- classify_block(dist1.tb)
 
         # check the result has the right dimension
         print(paste0("length of prediction vector ", length(pred.vec)))
-        print(paste0("dimension of data ", nrow(dist.tb)))
+        print(paste0("dimension of data ", nrow(dist1.tb)))
         #ensurer::ensure_that(pred.lst[[1]], length(.) == nrow(data.mx),
         #                    err_desc = "sits_classify_raster - number of classified pixels is different
         #                           from number of input pixels")
@@ -86,6 +90,10 @@
         # for each layer, write the predicted values
         values <- as.integer(int_labels[pred.vec])
         layers.lst[[t]]  <- raster::writeValues(layers.lst[[t]], values, init_row)
+
+        # clean-up
+        rm(dist1.tb)
+        gc()
     }
 
     return(layers.lst)
