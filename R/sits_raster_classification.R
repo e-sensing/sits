@@ -63,30 +63,20 @@
         }
 
         if (multicores > 1) {
-<<<<<<< HEAD
             block_size.lst <- .sits_split_block_size(nrow(dist1.tb), multicores)
             # divide the input matrix into blocks for multicore processing
             blocks.lst <- block_size.lst %>%
                 purrr::map(function (bs){
                     block.tb <- dist1.tb[bs[1]:bs[2],]
-=======
-            block_size.lst <- .sits_split_block_size(nrow(dist.tb), multicores)
-            # divide the input matrix into blocks for multicore processing
-            blocks.lst <- block_size.lst %>%
-                purrr::map(function (bs){
-                    block.tb <- dist.tb[bs[1]:bs[2],]
->>>>>>> 484715c4dbb145afc8a7d8d7414f9d5e06d8aed3
+
                     return(block.tb)
                 })
             # apply parallel processing to the split data
             results <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
             # join the results
             pred.vec <- unlist(results)
-<<<<<<< HEAD
             rm (block.lst)
             gc()
-=======
->>>>>>> 484715c4dbb145afc8a7d8d7414f9d5e06d8aed3
         }
         else
             pred.vec <- classify_block(dist1.tb)
