@@ -202,6 +202,25 @@
     return(attr_names)
 }
 
+.sits_split_block_size <- function(nrows, ncores){
+
+    # find the remainder and quotient
+    quo <- nrows %/% ncores
+    rem <- nrows %% ncores
+    # c
+    # create a list to store the result
+    block_size.lst <- list(length = ncores)
+    block_size_end = 0
+    for (i in 1:(ncores)) {
+        block_size_start <- block_size_end + 1
+        block_size_end   <- block_size_start + quo - 1
+        if (i == ncores )
+            block_size_end <- block_size_end + rem
+        block_size.lst[[i]] <- c(block_size_start, block_size_end)
+    }
+    return(block_size.lst)
+}
+
 #' @title Define a reasonable block size to process a RasterBrick
 #' @name .sits_raster_block_size
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
