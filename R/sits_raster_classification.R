@@ -40,12 +40,12 @@
         # classify a block of data
         classify_block <- function(block.tb) {
             # create a vector to get the predictions
-            pred_block.vec <- vector(length = nrow(block.tb))
+            # pred_block.vec <- vector(length = nrow(block.tb))
             # predict the values for each time interval
             # classify the subset data
             pred_block.vec <- .sits_predict(block.tb, ml_model)
 
-            if (length(pred_block.vec) != nrow(dist.tb)) {
+            if (length(pred_block.vec) != nrow(block.tb)) {
                     msg <- paste0("number of prediction values ", length(pred_block.vec),
                                   "different from input data rows, ", nrow(dist.tb))
                     .sits_log_error(msg)
@@ -53,25 +53,18 @@
             return(pred_block.vec)
         }
 
-        join_blocks <- function(blocks.lst) {
-            pred.vec <- vector()
-
-            # join the blocks for a given time index
-            blocks.lst %>%
-                purrr::map(function(block.vec) {
-                    pred.vec <<- c(pred.vec, block.vec)
-                })
-
-            return(pred.vec)
-        }
-
         if (multicores > 1) {
+            block_size.lst <- .sits_split_block_size(nrow(dist.tb), multicores)
             # divide the input matrix into blocks for multicore processing
-            blocks.lst <- split.data.frame(dist.tb, cut(1:nrow(data.tb), multicores, labels = FALSE))
+            blocks.lst <- block_size.lst %>%
+                purrr::map(function (bs){
+                    block.tb <- dist.tb[bs[1]:bs[2],]
+                    return(block.tb)
+                })
             # apply parallel processing to the split data
             results <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
-
-            pred.vec <- join_blocks(results)
+            # join the results
+            pred.vec <- unlist(results)
         }
         else
             pred.vec <- classify_block(dist.tb)
