@@ -83,26 +83,32 @@ sits_classify_raster <- function(file = NULL,
 
     #initiate writing
     layers.lst <- layers.lst %>%
-        purrr::map(function (layer){
+        purrr::map(function(layer){
             layer <- raster::writeStart(layer, layer@file@name, overwrite = TRUE)
-            return (layer)
+            return(layer)
         })
 
     # recover the input data by blocks for efficiency
     bs <- .sits_raster_block_size(raster_class.tb[1,], blocksize)
 
+    # prepare the data required for classification
+    time_index.lst <- .sits_get_time_index(class_info.tb)
+
+    # get attribute names
+    attr_names <- .sits_get_attr_names(class_info.tb)
+
+    # get the bands
+    bands <-  class_info.tb$bands[[1]]
+
     # read the input raster in blocks
 
     for (i in 1:bs$n) {
-
         # extract time series from the block of RasterBrick rows
-        data.mx <- .sits_data_from_block(raster.tb, row = bs$row[i], nrows = bs$nrows[i], adj_fun = adj_fun)
+        data.tb <- .sits_data_from_block(raster.tb, row = bs$row[i], nrows = bs$nrows[i], adj_fun = adj_fun)
 
-        # classify the time series that are part of the block
-        pred.lst <- .sits_classify_block(data.mx, class_info.tb, ml_model, multicores = multicores)
-
-        # write the block back
-        layers.lst <- .sits_block_from_data(pred.lst, layers.lst, int_labels, bs$row[i])
+        layers.lst <- .sits_classify_block_write_data(data.tb, layers.lst, time_index.lst,
+                                                      bands, attr_names, int_labels, bs$row[i],
+                                                      ml_model, multicores)
     }
     # finish writing
     layers.lst %>%
