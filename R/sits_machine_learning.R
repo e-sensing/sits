@@ -298,7 +298,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
 #'
 #' @description This function receives a tibble with a set of attributes X for each observation Y
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in SITS (see \code{link[sits]{sits_distances}}).
+#' function in SITS (see \code{\link[sits]{sits_distances}}).
 #' The method performs a linear discriminant analysis (lda) to obtain a predictive model.
 #' This function is a front-end to the "lda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
@@ -355,7 +355,7 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #'
 #' @description This function receives a tibble with a set of attributes X for each observation Y
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in SITS (see \code{link[sits]{sits_distances}}).
+#' function in SITS (see \code{\link[sits]{sits_distances}}).
 #' The function performs a quadratic discriminant analysis (qda) to obtain a predictive model.
 #' This function is a front-end to the "qda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
@@ -412,7 +412,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #'
 #' @description Use multinomial log-linear (mlr) fitting model via neural networks to classify data.
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in SITS (see \code{link[sits]{sits_distances}}).
+#' function in SITS (see \code{\link[sits]{sits_distances}}).
 #' This function is a front-end to the "multinom" method in the "nnet" package.
 #' Please refer to the documentation in that package for more details.
 #'
@@ -531,7 +531,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 #'
 #' @description This function receives a tibble with a set of attributes X for each observation Y
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in SITS (see \code{link[sits]{sits_distances}}).
+#' function in SITS (see \code{\link[sits]{sits_distances}}).
 #' The SVM algorithm is used for multiclass-classification.
 #' For this purpose, it uses the "one-against-one" approach, in which k(k-1)/2 binary
 #' classifiers are trained; the appropriate class is found by a voting scheme.

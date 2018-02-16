@@ -15,7 +15,7 @@
 #'    SATVEG_server  : "https://www.satveg.cnptia.embrapa.br"
 #'    SATVEG_account : "/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
 #'
-#' To see the contents of the configuration file, please use the function \code{link[sits]{sits_show_config()}}.
+#' To see the contents of the configuration file, please use \code{\link[sits]{sits_show_config}}.
 #'
 #' @return config_sits  A list with the configuration parameters used by SITS
 #' @examples
@@ -52,7 +52,7 @@ sits_config <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Displays the contents of SITS configuration file. For more details
-#' on how to set the configuration file, please use the function \code{link[sits]{sits_config()}}.
+#' on how to set the configuration file, please use \code{\link[sits]{sits_config}}.
 #'
 #' @return config_sits  A list with the configuration parameters used by SITS
 #' @examples
