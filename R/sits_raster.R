@@ -16,7 +16,7 @@
 #' @param  ml_method       a model trained by \code{\link[sits]{sits_train}}
 #' @param  adj_fun         Adjustment function to be applied to the data
 #' @param  interval        The interval between two sucessive classification
-#' @param  blocksize       Default size of the block (rows * cols) (see function .sits_raster_block_size)
+#' @param  read_lines      Number of lines of to be read (see function .sits_raster_block_size)
 #' @param  multicores      Number of threads to process the time series.
 #' @param  ...             other parameters to be passed to the distance function
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
@@ -39,7 +39,7 @@
 #'
 #' # classify the raster file
 #' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-#'    ml_method = sits_svm(), blocksize = 300000, multicores = 1)
+#'    ml_method = sits_svm(), read_lines = 50, multicores = 1)
 #' }
 #'
 #' @export
@@ -49,7 +49,7 @@ sits_classify_raster <- function(file = NULL,
                                  ml_method  = sits_svm(),
                                  adj_fun    = sits_adjust(),
                                  interval   = "12 month",
-                                 blocksize  = 250000,
+                                 read_lines = 200,
                                  multicores = 2){
 
     # ensure metadata tibble exists
@@ -62,6 +62,23 @@ sits_classify_raster <- function(file = NULL,
     # ensure that file name and prediction model are provided
     ensurer::ensure_that(file, !purrr::is_null(.),
                          err_desc = "sits-classify-raster: please provide name of output file")
+
+    # estimate the amount of memory required
+    blocksize <- read_lines * raster.tb$nrows
+    # get the bands
+    bands <-  raster.tb$bands[[1]]
+    nbands <-  length(bands)
+
+    # size of the timeline
+    ntimes <- length(raster.tb$timeline[[1]])
+
+    # estimated memory bloat
+    bloat <- .sits_get_memory_bloat()
+
+    # estimated total memory used (in GB)
+    memory_req <- round((blocksize * nbands * ntimes * 4 * bloat)/1000000000, digits = 2)
+    message(paste0("expected memory use can be as large as ", memory_req," Gb"))
+    message("make sure your computer has this memory available")
 
     # set up the ML model
     ml_model <- sits_train(samples.tb, ml_method = ml_method, adj_fun = adj_fun)
@@ -97,8 +114,7 @@ sits_classify_raster <- function(file = NULL,
     # get attribute names
     attr_names <- .sits_get_attr_names(class_info.tb)
 
-    # get the bands
-    bands <-  class_info.tb$bands[[1]]
+
 
     # read the input raster in blocks
 

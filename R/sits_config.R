@@ -106,6 +106,10 @@ sits_show_config <- function() {
 
     return(accountURL)
 }
+#' @title Retrieve the value of the adjustment shift
+#' @name sits_get_adjustment_shift
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description retrieves the value of the shift to adjust entries to have only positive values
 .sits_get_adjustment_shift <- function() {
 
     return(sits.env$config$adjustment_shift)
@@ -163,6 +167,16 @@ sits_show_config <- function() {
     }
     return(bbox)
 }
+#' @title Retrieve the estimated value of R memory bloat
+#' @name sits_get_memory_bloat
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description retrieve
+.sits_get_memory_bloat <- function() {
+
+    return(sits.env$config$R_memory_bloat)
+
+}
+
 
 #' @title Retrieve the minimum values for a given band
 #' @name .sits_get_minimum_values

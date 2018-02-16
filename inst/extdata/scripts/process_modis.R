@@ -46,6 +46,6 @@ sits_labels(samples.tb)
 # classify the raster image
 sits_classify_raster(file = "/home/gilberto/raster/MOD-h13v10-class", raster.tb, samples.tb,
                      ml_method = sits_svm(),
-                     blocksize = 1500000, multicores = 20)
+                     read_lines = 200, multicores = 20)
 
 

@@ -426,7 +426,7 @@ A natural question that arises is: *how good is this estimation?* According to @
 
 ```{r}
 # read a set of samples
-data (cerrado_2classes)
+data(cerrado_2classes)
 
 # perform a five fold validation with the 
 # SVM machine learning method using default parameters
@@ -471,7 +471,7 @@ raster_class.tb <-
                          raster.tb, 
                          samples_MT_ndvi,
                          ml_method  = sits_svm(), 
-                         blocksize  = 300000, 
+                         read_lines = 50, 
                          multicores = 1)
 # plot classified image
 plot(sits_get_raster(raster.tb, 1))

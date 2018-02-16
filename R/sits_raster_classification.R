@@ -23,15 +23,17 @@
     ensurer::ensure_that(ml_model, !purrr::is_null(.),
                          err_desc = "sits-classify: please provide a machine learning model already trained")
 
-    # iterate through time intervals
 
+    # create a base data table with all data and 2 additional columns
     dist.tb <- data.table::data.table("original_row" = rep(1,nrow(data.tb)),
                                       "reference" = rep("NoClass", nrow(data.tb)))
     dist.tb <- cbind(dist.tb, data.tb)
 
-    rm (data.tb)
+    # clean the input data to save memory
+    rm(data.tb)
     gc()
 
+    # iterate through time intervals
     for (t in 1:length(time_index.lst)) {
         idx <- time_index.lst[[t]]
         # for a given time index, build the data.table to be classified
@@ -48,55 +50,52 @@
 
         # classify a block of data
         classify_block <- function(block.tb) {
-            # create a vector to get the predictions
-            # pred_block.vec <- vector(length = nrow(block.tb))
             # predict the values for each time interval
-            # classify the subset data
             pred_block.vec <- .sits_predict(block.tb, ml_model)
-
-            if (length(pred_block.vec) != nrow(block.tb)) {
-                    msg <- paste0("number of prediction values ", length(pred_block.vec),
-                                  "different from input data rows, ", nrow(dist.tb))
-                    .sits_log_error(msg)
-            }
             return(pred_block.vec)
         }
-
+        # set up multicore processing
         if (multicores > 1) {
+            # estimate the list for breaking a block
             block_size.lst <- .sits_split_block_size(nrow(dist1.tb), multicores)
             # divide the input matrix into blocks for multicore processing
             blocks.lst <- block_size.lst %>%
-                purrr::map(function (bs){
+                purrr::map(function(bs){
                     block.tb <- dist1.tb[bs[1]:bs[2],]
 
                     return(block.tb)
                 })
-            # apply parallel processing to the split data
-            results <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
-            # join the results
-            pred.vec <- unlist(results)
-            rm (block.lst)
+            rm(dist1.tb)
+            gc()
+            # apply parallel processing to the split data and join the results
+            pred.vec <- unlist(parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores))
+            # clean-up
+            rm(block_size.lst)
+            rm(blocks.lst)
             gc()
         }
         else
             pred.vec <- classify_block(dist1.tb)
 
         # check the result has the right dimension
-        print(paste0("length of prediction vector ", length(pred.vec)))
-        print(paste0("dimension of data ", nrow(dist1.tb)))
-        #ensurer::ensure_that(pred.lst[[1]], length(.) == nrow(data.mx),
-        #                    err_desc = "sits_classify_raster - number of classified pixels is different
-        #                           from number of input pixels")
+        ensurer::ensure_that(pred.vec, length(.) == nrow(dist1.tb),
+                           err_desc = "sits_classify_raster - number of classified pixels is different
+                                   from number of input pixels")
 
         # for each layer, write the predicted values
         values <- as.integer(int_labels[pred.vec])
         layers.lst[[t]]  <- raster::writeValues(layers.lst[[t]], values, init_row)
 
+
+        message(paste0("Processed year ", t, " starting from row ", init_row))
+
         # clean-up
-        rm(dist1.tb)
+        rm(pred.vec)
+        rm(values)
         gc()
     }
-
+    rm(dist.tb)
+    gc()
     return(layers.lst)
 }
 
@@ -153,6 +152,10 @@
             return(values.mx)
         })
     data.tb <- data.table::as.data.table(do.call(cbind, values.lst))
+    # cleanup
+    rm(values.lst)
+    gc()
+
     return(data.tb)
 }
 #' @name .sits_get_time_index
@@ -210,7 +213,17 @@
 
     return(attr_names)
 }
-
+#' @title Define the split of the data blocks for multicore processing
+#' @name .sits_split_block_size
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description this functions defines the rows of the input data table that will be
+#' split to fit to be divided between the different cores
+#'
+#' @param nrows number of rows in the input data table
+#' @param ncores number of cores for processing
+#' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
+#'
 .sits_split_block_size <- function(nrows, ncores){
 
     # find the remainder and quotient
@@ -239,7 +252,7 @@
 #' with the number of rows and columns of the Brick. For example, a Raster Brick
 #' with 500 rows and 500 columns and 400 time instances will have a total pixel size
 #' of 250 Mb if pixels are 16-bit (about a GigaByte). If there are 4 bands to be processed together, there will be 4 Raster Bricks.
-#' Thus, a block size of 250000 will use a l GB just to store the image data.
+#' Thus, a block size of 250000 will use a 1 GB just to store the image data.
 #'
 #' As a rule of thumb, consider that for a typical MODIS data set such as MOD13Q1 there will be
 #' about 23 time instances per year. In 20 years, this means about 460 instances.
@@ -253,9 +266,7 @@
 #'                    nrows - number of rows to read at each iteration
 #'
 .sits_raster_block_size <- function(brick.tb, blocksize = 250000){
-    #' n          number of blocks
-    #' row        starting row from the RasterBrick
-    #' nrow       Number of rows in the block extracted from the RasterBrick
+
 
     # number of rows per block
     block_rows <- min(ceiling(blocksize/brick.tb$ncols), brick.tb$nrows)
@@ -269,6 +280,11 @@
 
     # find out the size of the block in pixels
     size <- nrows * brick.tb$ncols
+
+    # elements of the block list
+    # n          number of blocks
+    # row        starting row from the RasterBrick
+    # nrow       Number of rows in the block extracted from the RasterBrick
 
     block <- list(n = nblocks, row = row, nrows = nrows, size = size)
 

@@ -6,7 +6,7 @@
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb,
   ml_method = sits_svm(), adj_fun = sits_adjust(), interval = "12 month",
-  blocksize = 250000, multicores = 2)
+  read_lines = 200, multicores = 2)
 }
 \arguments{
 \item{file}{a set of file names to store the output (one file per classified year)}
@@ -21,7 +21,7 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb,
 
 \item{interval}{The interval between two sucessive classification}
 
-\item{blocksize}{Default size of the block (rows * cols) (see function .sits_raster_block_size)}
+\item{read_lines}{Number of lines of to be read (see function .sits_raster_block_size)}
 
 \item{multicores}{Number of threads to process the time series.}
 
@@ -56,7 +56,7 @@ raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-Crop",
 
 # classify the raster file
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-   ml_method = sits_svm(), blocksize = 300000, multicores = 1)
+   ml_method = sits_svm(), read_lines = 50, multicores = 1)
 }
 
 }
