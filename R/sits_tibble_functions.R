@@ -2,7 +2,7 @@
 #' @name sits_apply
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description Apply a 1D generic function to a time series and specific methods for
-#  common tasks such as missing values removal and smoothing.
+#' common tasks such as missing values removal and smoothing.
 #' `sits_apply` returns a sits tibble with the same samples points and new bands computed by `fun`,
 #' `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
 #' whose vector values is passed as the function argument.
@@ -86,6 +86,7 @@ sits_bands <- function(data.tb) {
 #'
 #' @param  data.tb a tibble in SITS format with time series for different bands
 #' @return table   a tibble in SITS format with values of time indexes
+#' @examples
 #' # get a point
 #' data (ts_2000_2016)
 #' # return a vector of values
