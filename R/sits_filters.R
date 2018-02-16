@@ -235,7 +235,8 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
     return(result.tb)
 }
 
-#' Smooth the time series using Whittaker smoother
+#' @title Smooth the time series using Whittaker smoother
+#'
 #' @name sits_whittaker
 #' @description  The algorithm searches for an optimal polynomial describing the warping.
 #' Some authors consider the Whittaker smoother to be a good method for smoothing and
@@ -283,7 +284,8 @@ sits_whittaker <- function(data.tb, lambda    = 1.0, differences = 3, bands_suff
     return(result.tb)
 }
 
-#' Smooth the time series using Savitsky-Golay filter
+#' @title Smooth the time series using Savitsky-Golay filter
+#'
 #' @name sits_sgolay
 #' @description  The algorithm searches for an optimal polynomial describing the warping.
 #' The degree of smoothing depends on the filter order (usually 3.0)
@@ -311,8 +313,8 @@ sits_sgolay <- function(data.tb, order = 3, scale = 1, bands_suffix = "sg") {
     return(result.tb)
 }
 
-
-#' Kalman filter
+#' @title Kalman filter
+#'
 #' @name sits_kf
 #' @description  A simple Kalman filter implementation
 #'

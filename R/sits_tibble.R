@@ -4,7 +4,7 @@
 #'
 #' @description this function returns an empty sits table.
 #' SITS tibbles are the main structures of the "sits" package.
-#  They contain both the satellite image time series and its metadata.
+#' They contain both the satellite image time series and its metadata.
 #' A sits tibble is a tibble with pre-defined columns that
 #' has the metadata and data for each time series. The columns are
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>

@@ -91,7 +91,7 @@
 #' @name .sits_apply_ts
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description Apply a 1D generic function to a time series and specific methods for
-#  common tasks such as missing values removal and smoothing.
+#' common tasks such as missing values removal and smoothing.
 #' `sits_apply_ts` returns a time series tibble with the same samples points and new bands computed by `fun`,
 #' `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
 #' whose vector values is passed as the function argument.
@@ -255,7 +255,7 @@
 #' @name .sits_fast_apply
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description Apply a 1D generic function to a time series and specific methods for
-#  common tasks such as missing values removal and smoothing.
+#' common tasks such as missing values removal and smoothing.
 #' `sits_apply` returns a sits tibble with the same samples points and new bands computed by `fun`,
 #' `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
 #' whose vector values is passed as the function argument.
