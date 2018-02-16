@@ -10,7 +10,7 @@
 #'
 #' @param data.tb        a SITS tibble the list of time series to be clustered
 #' @param bands          the bands to be clusterized.
-#' @param grid_xdim      x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.
+#' @param grid_xdim      x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendrogram` methods). Defaul is 5.
 #' @param grid_ydim      y dimension of the SOM grid
 #' @param rlen           the number of times the complete data set will be presented to the SOM grid
 #' @param alpha          learning rate, a vector of two numbers indicating the amount of change.
