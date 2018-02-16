@@ -74,11 +74,14 @@
             rm(blocks.lst)
             gc()
         }
-        else
+        else {
             pred.vec <- classify_block(dist1.tb)
+            rm(dist1.tb)
+            gc()
+        }
 
         # check the result has the right dimension
-        ensurer::ensure_that(pred.vec, length(.) == nrow(dist1.tb),
+        ensurer::ensure_that(pred.vec, length(.) == nrow(dist.tb),
                            err_desc = "sits_classify_raster - number of classified pixels is different
                                    from number of input pixels")
 
