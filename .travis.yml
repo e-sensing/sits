@@ -16,8 +16,6 @@ before_install:
 install:
   - ./travis-tool.sh install_deps
 script:
-  - ./travis-tool.sh install_github rolfsimoes/dtwSat
-  - ./travis-tool.sh install_github e-sensing/wtss
   - ./travis-tool.sh install_github e-sensing/sits
   - ./travis-tool.sh run_tests
 after_failure:

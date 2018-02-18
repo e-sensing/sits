@@ -150,17 +150,17 @@
     # if scale factors are not provided, try a best guess
     if (purrr::is_null(scale_factors)) {
         msg <- paste0("Scale factors not provided - will use default values: please check they are valid")
-        .sits_log_error(msg)
+        .sits_log_warning(msg)
         # if the projection is UTM, guess it's a LANDSAT data set
         if (stringr::str_detect(crs, "utm")) {
             msg <- paste0("Data in UTM projection - assuming LANDSAT-compatible images")
-            .sits_log_error(msg)
+            .sits_log_warning(msg)
             scale_factors <- .sits_get_scale_factors("RASTER", "LANDSAT", bands)
         }
         # if the projection is sinusoidal, guess it's a MODIS data set
         if (stringr::str_detect(crs, "sinu")) {
             msg <-  paste0("Data in Sinusoidal projection - assuming MODIS-compatible images")
-            .sits_log_error(msg)
+            .sits_log_warning(msg)
             scale_factors <- .sits_get_scale_factors("RASTER", "MODIS", bands)
         }
         ensurer::ensure_that(scale_factors, !(purrr::is_null(.)),
@@ -169,17 +169,17 @@
     # if missing_values are not provided, try a best guess
     if (purrr::is_null(missing_values)) {
         msg <- paste0("Missing values not provided - will use default values: please check they are valid")
-        .sits_log_error(msg)
+        .sits_log_warning(msg)
         # if the projection is UTM, guess it's a LANDSAT data set
         if (stringr::str_detect(crs, "utm")) {
             msg <- paste0("Data in UTM projection - assuming LANDSAT-compatible images")
-            .sits_log_error(msg)
+            .sits_log_warning(msg)
             missing_values <- .sits_get_missing_values("RASTER", "LANDSAT", bands)
         }
         # if the projection is sinusoidal, guess it's a MODIS data set
         if (stringr::str_detect(crs, "sinu")) {
             msg <-  paste0("Data in Sinusoidal projection - assuming MODIS-compatible images")
-            .sits_log_error(msg)
+            .sits_log_warning(msg)
             missing_values <- .sits_get_missing_values("RASTER", "MODIS", bands)
         }
         ensurer::ensure_that(missing_values, !(purrr::is_null(.)),

@@ -18,7 +18,7 @@
 #' @param  interval        The interval between two sucessive classification
 #' @param  read_lines      Number of lines of to be read (see function .sits_raster_block_size)
 #' @param  multicores      Number of threads to process the time series.
-#' @param  ...             other parameters to be passed to the distance function
+#' @param  verbose         Run function in verbose mode (useful for working with big data sets)
 #' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
 #'
 #' @examples
@@ -50,7 +50,8 @@ sits_classify_raster <- function(file = NULL,
                                  adj_fun    = sits_adjust(),
                                  interval   = "12 month",
                                  read_lines = 200,
-                                 multicores = 2){
+                                 multicores = 2,
+                                 verbose    = TRUE){
 
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) > 0,
@@ -119,12 +120,13 @@ sits_classify_raster <- function(file = NULL,
     # read the input raster in blocks
 
     for (i in 1:bs$n) {
-        # extract time series from the block of RasterBrick rows
-        data.tb <- .sits_data_from_block(raster.tb, row = bs$row[i], nrows = bs$nrows[i], adj_fun = adj_fun)
+        layers.lst <- .sits_classify_bigdata(raster.tb, layers.lst,
+                                               time_index.lst, bands,
+                                               attr_names, int_labels,
+                                               bs$row[i], bs$nrows[i],
+                                               adj_fun = adj_fun,
+                                               ml_model, multicores, verbose)
 
-        layers.lst <- .sits_classify_block_write_data(data.tb, layers.lst, time_index.lst,
-                                                      bands, attr_names, int_labels, bs$row[i],
-                                                      ml_model, multicores)
     }
     # finish writing
     layers.lst %>%

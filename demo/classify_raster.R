@@ -1,15 +1,19 @@
 # Read ndvi and evi data from dropbox
 
 # these are the symbolic links for the files at dropbox
-ndvi <- paste0("https://www.dropbox.com/s/epqfo5vdu1cox6i/Sinop_ndvi.tif?raw=1")
-evi <- paste0("https://www.dropbox.com/s/xb9embetftxyr6w/Sinop_evi.tif?raw=1")
+ndvi_file <- paste0("https://www.dropbox.com/s/epqfo5vdu1cox6i/Sinop_ndvi.tif?raw=1")
+evi_file <- paste0("https://www.dropbox.com/s/xb9embetftxyr6w/Sinop_evi.tif?raw=1")
 
 # read the files to a local directory
-download.file(ndvi, destfile = "./Sinop_ndvi.tif")
-download.file(evi,  destfile = "./Sinop_evi.tif")
+download.file(ndvi_file, destfile = "./Sinop_ndvi.tif")
+download.file(evi_file,  destfile = "./Sinop_evi.tif")
+
+# links to files
+ndvi <- "./Sinop_ndvi.tif"
+evi  <- "./Sinop_evi.tif"
 
 # select the files for processing
-files <- c("./Sinop_ndvi.tif", "./Sinop_evi.tif")
+files <- c(ndvi, evi)
 
 # define the timeline
 data(timeline_mod13q1)

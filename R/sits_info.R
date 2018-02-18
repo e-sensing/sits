@@ -5,7 +5,7 @@
 #' @description    obtains information about the time series servers, their products and their coverages
 #'
 #' @return bool    boolean value indicating success of failure
-#'
+#' @export
 sits_info_services <- function() {
     services <- .sits_get_services()
 

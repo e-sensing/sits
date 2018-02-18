@@ -30,6 +30,7 @@ ByteCompile: true
 LazyData: true
 Imports:
     magrittr,
+    bigmemory,
     BBmisc,
     caret,
     config,
@@ -57,6 +58,7 @@ Imports:
     nnet,
     openxlsx,
     parallel,
+    pryr,
     purrr,
     purrrlyr,
     randomForest,
@@ -89,7 +91,9 @@ Collate:
     'sits_TWDTW.R'
     'sits_WTSS.R'
     'sits_accuracy.R'
+    'sits_bigmemory.R'
     'sits_classification.R'
+    'sits_classify_bigdata.R'
     'sits_cluster.R'
     'sits_colors.R'
     'sits_config.R'

@@ -6,7 +6,7 @@
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb,
   ml_method = sits_svm(), adj_fun = sits_adjust(), interval = "12 month",
-  read_lines = 200, multicores = 2)
+  read_lines = 200, multicores = 2, verbose = TRUE)
 }
 \arguments{
 \item{file}{a set of file names to store the output (one file per classified year)}
@@ -25,7 +25,7 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb,
 
 \item{multicores}{Number of threads to process the time series.}
 
-\item{...}{other parameters to be passed to the distance function}
+\item{verbose}{Run function in verbose mode (useful for working with big data sets)}
 }
 \value{
 raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
