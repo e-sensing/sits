@@ -24,7 +24,7 @@ NULL
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),
 #'   coverage (the name of the coverage associated with the data),
-#'   time_series ( list containing a tibble with the values of the time series).
+#'   time_series (list containing a tibble with the values of the time series).
 NULL
 
 #' @title A time series sample for the NDVI band from 2000 to 2016
@@ -40,7 +40,7 @@ NULL
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),
 #'   coverage (the name of the coverage associated with the data),
-#'   time_series ( list containing a tibble with the values of the time series).
+#'   time_series (list containing a tibble with the values of the time series).
 NULL
 
 #' @title Samples of nine classes for the state of Mato Grosso used for classification
@@ -59,7 +59,7 @@ NULL
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),
 #'   coverage (the name of the coverage associated with the data),
-#'   time_series ( list containing a tibble with the values of the time series).
+#'   time_series (list containing a tibble with the values of the time series).
 NULL
 
 #' @title Samples of nine classes for the state of Mato Grosso for the NDVI band
@@ -76,7 +76,7 @@ NULL
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),
 #'   coverage (the name of the coverage associated with the data),
-#'   time_series ( list containing a tibble with the values of the time series).
+#'   time_series (list containing a tibble with the values of the time series).
 NULL
 
 #' @title Samples of deforestation-related classes for the LANDSAT image WRS 226/064

@@ -50,10 +50,6 @@
 #' @param latitude         Latitude of the chosen location
 #' @param label            Label to attach to the time series
 #' @return data.tb         SITS tibble with the time series
-#'
-#' @description This function creates a tibble to store the information
-#' about a raster time series
-#'
 .sits_ts_fromRaster <- function(raster.tb, longitude, latitude, label = "NoClass"){
 
     # ensure metadata tibble exists
@@ -133,11 +129,6 @@
 #' @param latitude         Latitude of the chosen location
 #' @param label            Label to attach to the time series
 #' @return data.tb         SITS tibble with the time series
-#'
-#' @description This function creates a tibble to store the information
-#' about a raster time series
-#'
-
 .sits_ts_fromRasterXY <- function(raster.tb, xy, longitude, latitude, label = "NoClass"){
 
     # ensure metadata tibble exists
