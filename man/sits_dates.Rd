@@ -11,13 +11,15 @@ sits_dates(data.tb)
 }
 \value{
 table   a tibble in SITS format with values of time indexes
+}
+\description{
+returns a vector containing the dates of a sits table
+}
+\examples{
 # get a point
 data (ts_2000_2016)
 # return a vector of values
 sits_dates (ts_2000_2016)
-}
-\description{
-returns a vector containing the dates of a sits table
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

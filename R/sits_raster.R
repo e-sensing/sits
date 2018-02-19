@@ -51,7 +51,7 @@ sits_classify_raster <- function(file = NULL,
                                  interval   = "12 month",
                                  read_lines = 200,
                                  multicores = 2,
-                                 verbose    = TRUE){
+                                 verbose    = FALSE){
 
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) > 0,
@@ -115,18 +115,31 @@ sits_classify_raster <- function(file = NULL,
     # get attribute names
     attr_names <- .sits_get_attr_names(class_info.tb)
 
-
+    progress_bar <- NULL
+    # create a progress bar
+    if (bs$n > 1) {
+        message("Classifying raster data")
+        progress_bar <- utils::txtProgressBar(min = 0, max = bs$n, style = 3)
+    }
 
     # read the input raster in blocks
+    # classify the data
 
     for (i in 1:bs$n) {
-        layers.lst <- .sits_classify_bigdata(raster.tb, layers.lst,
-                                               time_index.lst, bands,
-                                               attr_names, int_labels,
-                                               bs$row[i], bs$nrows[i],
-                                               adj_fun = adj_fun,
-                                               ml_model, multicores, verbose)
-
+        layers.lst <- .sits_classify_bigdata(raster.tb,
+                                             layers.lst,
+                                             time_index.lst,
+                                             bands,
+                                             attr_names,
+                                             int_labels,
+                                             bs$row[i],
+                                             bs$nrows[i],
+                                             adj_fun = adj_fun,
+                                             ml_model,
+                                             multicores,
+                                             verbose)
+        if (!purrr::is_null(progress_bar))
+            utils::setTxtProgressBar(progress_bar, i)
     }
     # finish writing
     layers.lst %>%
@@ -134,6 +147,7 @@ sits_classify_raster <- function(file = NULL,
             layer <- raster::writeStop(layer)
             return(layer)
         })
+    if (!purrr::is_null(progress_bar)) close(progress_bar)
     return(raster_class.tb)
 }
 #' @title Get a raster object from a raster coverage

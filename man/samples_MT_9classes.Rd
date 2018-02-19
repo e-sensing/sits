@@ -8,7 +8,7 @@
   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
   end_date (final date of the time series), label (the class label associated to the sample),
   coverage (the name of the coverage associated with the data),
-  time_series ( list containing a tibble with the values of the time series).}
+  time_series (list containing a tibble with the values of the time series).}
 \usage{
 data(samples_MT_9classes)
 }

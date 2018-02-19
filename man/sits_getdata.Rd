@@ -41,14 +41,13 @@ data.tb        a SITS tibble
 Retrieve a set of time series. There are two main ways of retrieving time series:
 using a time series service and from a Raster Brick. Two time series services are available:
 (a) the Web Time Series Service (WTSS) by INPE; (b) the SATVEG service from EMBRAPA.
-Please see \code{link[sits]{sits_infoWTSS}} for more information on thw WTSS service.
-Please see \code{link[sits]{sits_fromSATVEG}} for more information on SATVEG.
+Please see \code{\link[sits]{sits_infoWTSS}} for more information on thw WTSS service.
 The URL and other parameters for access to the time series services are defined in the package
-configuration file. This file is called "config.yml". Please see the \code{link[sits]{sits_config}} for
+configuration file. This file is called "config.yml". Please see the \code{\link[sits]{sits_config}} for
 more information.
 
 Before using this service, the user should create a valid coverage tibble
-using the \code{link[sits]{sits_coverage}} function.
+using the \code{\link[sits]{sits_coverage}} function.
 
 The following options are available:
 \enumerate{
@@ -59,6 +58,7 @@ from the WTSS service.
 \item The source is a SHP file - retrives all points inside the shapefile from the WTSS service.
 \item The source is a RasterBrick - retrieves the point based on lat/long from the RasterBrick.
 }
+ The results is a SITS tibble, which  has the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, coverage, time_series>
 }
 \examples{

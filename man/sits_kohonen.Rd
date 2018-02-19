@@ -12,7 +12,7 @@ sits_kohonen(data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5,
 
 \item{bands}{the bands to be clusterized.}
 
-\item{grid_xdim}{x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendogram` methods). Defaul is 5.}
+\item{grid_xdim}{x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendrogram` methods). Defaul is 5.}
 
 \item{grid_ydim}{y dimension of the SOM grid}
 

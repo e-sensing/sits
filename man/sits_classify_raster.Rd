@@ -6,7 +6,7 @@
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb,
   ml_method = sits_svm(), adj_fun = sits_adjust(), interval = "12 month",
-  read_lines = 200, multicores = 2, verbose = TRUE)
+  read_lines = 200, multicores = 2, verbose = FALSE)
 }
 \arguments{
 \item{file}{a set of file names to store the output (one file per classified year)}

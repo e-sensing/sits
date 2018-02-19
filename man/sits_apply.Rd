@@ -21,6 +21,7 @@ data.tb      a sits tibble with same samples and the new bands
 }
 \description{
 Apply a 1D generic function to a time series and specific methods for
+common tasks such as missing values removal and smoothing.
 `sits_apply` returns a sits tibble with the same samples points and new bands computed by `fun`,
 `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
 whose vector values is passed as the function argument.

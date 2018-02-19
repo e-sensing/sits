@@ -23,7 +23,7 @@ default:
    SATVEG_server  : "https://www.satveg.cnptia.embrapa.br"
    SATVEG_account : "/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
 
-To see the contents of the configuration file, please use the function \code{link[sits]{sits_show_config()}}.
+To see the contents of the configuration file, please use \code{\link[sits]{sits_show_config}}.
 }
 \examples{
 config_sits <- sits_config()

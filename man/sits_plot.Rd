@@ -24,7 +24,7 @@ The following types of plot are supported:
  \item{"all years" - }{Plot all samples from the same location together (default)}
  \item{"patterns" - }{Plot the patterns for a given set of classes}
  \item{"classification" - }{Plot the results of a classification}
- \item{"dendogram" - }{Plot a cluster object}
+ \item{"dendrogram" - }{Plot a cluster object}
  \item{"together" - }{Plot all samples of the same band and label together}
  \item{"alignments" - }{Plot the alignments (used by TWDTW method)}
  \item{"matches" = }{Plot the matches produced by TWTDW matches}

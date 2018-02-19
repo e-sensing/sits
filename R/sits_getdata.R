@@ -6,7 +6,6 @@
 #' using a time series service and from a Raster Brick. Two time series services are available:
 #' (a) the Web Time Series Service (WTSS) by INPE; (b) the SATVEG service from EMBRAPA.
 #' Please see \code{\link[sits]{sits_infoWTSS}} for more information on thw WTSS service.
-#' Please see \code{\link[sits]{sits_fromSATVEG}} for more information on SATVEG.
 #' The URL and other parameters for access to the time series services are defined in the package
 #' configuration file. This file is called "config.yml". Please see the \code{\link[sits]{sits_config}} for
 #' more information.
