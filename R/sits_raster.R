@@ -150,11 +150,12 @@ sits_classify_raster <- function(file = NULL,
             utils::setTxtProgressBar(progress_bar, i)
     }
     # finish writing
-    layers.lst %>%
+    raster_class.tb$r_objs <-
+        layers.lst %>%
         purrr::map(function(layer){
             layer <- raster::writeStop(layer)
             return(layer)
-        })
+        }) %>% list()
     if (!purrr::is_null(progress_bar)) close(progress_bar)
     return(raster_class.tb)
 }
