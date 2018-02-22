@@ -6,6 +6,7 @@
 
 language: r
 cache: packages
+r_packages: devtools
 
 before_install:
   - sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable -y
