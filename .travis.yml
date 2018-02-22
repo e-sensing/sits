@@ -12,9 +12,8 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install libproj-dev libudunits2-dev libgdal20 gdal-bin libgdal-dev
 
-install:
-  - R -e 'devtools::install_github("e-sensing/sits")'
-
+r_packages: devtools
+r_github_packages: e-sensing/sits
 r_build_args: --resave-data=best
 
 notifications:
