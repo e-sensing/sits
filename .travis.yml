@@ -4,18 +4,22 @@
 # see the wiki:
 #   https://github.com/craigcitro/r-travis/wiki
 
-language: r
+language: R
 cache: packages
+sudo: required
 
 before_install:
-  - sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable -y
-  - sudo apt-get update -qq
-  - sudo apt-get install libproj-dev libudunits2-dev libgdal20 gdal-bin libgdal-dev
-
-r_packages: devtools
-r_github_packages: e-sensing/sits
-r_build_args: --resave-data=best
-
+  - curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
+  - chmod 755 ./travis-tool.sh
+  - ./travis-tool.sh aptget_install libgdal-dev libproj-dev
+  - ./travis-tool.sh bootstrap
+install:
+  - ./travis-tool.sh install_deps
+script:
+  - ./travis-tool.sh install_github e-sensing/sits
+  - ./travis-tool.sh run_tests
+after_failure:
+  - ./travis-tool.sh dump_logs
 notifications:
   email:
     on_success: change
