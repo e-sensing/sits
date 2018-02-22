@@ -7,7 +7,7 @@
 sits_get_raster(raster.tb, i = NULL)
 }
 \arguments{
-\item{raster.tb}{Raster coverage}
+\item{raster.tb}{raster coverage}
 
 \item{i}{i-th element of the list to retrieve}
 }

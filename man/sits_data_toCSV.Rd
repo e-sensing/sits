@@ -7,12 +7,12 @@
 sits_data_toCSV(data.tb, file)
 }
 \arguments{
-\item{data.tb}{a SITS time series}
+\item{data.tb}{a tibble with time series data and metadata}
 
-\item{file}{the name of the exported CSV file}
+\item{file}{name of the exported CSV file}
 }
 \value{
-status     the status of the operation
+status     status of the operation
 }
 \description{
 Converts time series data from a SITS tibble to a CSV file. The CSV file will not contain the metadata,

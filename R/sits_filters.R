@@ -15,8 +15,8 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Computes the linearly interpolated bands for a given resolution
 #'               using the R base function approx
-#' @param data.tb       a valid sits tibble
-#' @param n             the number of time series elements to be created between start date and end date
+#' @param data.tb       tibble with time series data and metadata
+#' @param n             number of time series elements to be created between start date and end date
 #' @return result.tb    a sits tibble with same samples and the new bands
 #' @examples
 #' # Retrieve a time series with values of NDVI
@@ -47,13 +47,13 @@ sits_linear_interp <- function(data.tb, n = 23) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Computes the linearly interpolated bands for a given resolution
 #'               using the R base function approx
-#' @param data.tb       a valid sits tibble
-#' @param fun           the interpolation function to be used
-#' @param n             the number of time series elements to be created between start date and end date.
+#' @param data.tb       tibble with time series data and metadata
+#' @param fun           interpolation function
+#' @param n             number of time series elements to be created between start date and end date.
 #'                      When a class function is passed to `n`, is is evaluated with each band time series as
 #'                      an argument, e.g. n(band) (default: `length` function)
 #' @param ...           additional parameters to be used by the fun function
-#' @return result.tb    a sits tibble with same samples and the new bands
+#' @return result.tb    tibble with same samples and the new bands
 #' @examples
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
@@ -85,9 +85,9 @@ sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...) {
 #' @name sits_missing_values
 #' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
 #' @description  This function removes the missing values from an image time series by substituting them by NA
-#' @param data.tb     a valid sits tibble
-#' @param miss_value  a number indicating missing values in a time series.
-#' @return result.tb  a sits tibble with same samples and the new bands
+#' @param data.tb     tibble with time series data and metadata
+#' @param miss_value  number indicating missing values in a time series.
+#' @return result.tb  tibble with time series data and metadata (with missing values removed)
 #' @export
 #'
 sits_missing_values <-  function(data.tb, miss_value) {
@@ -105,10 +105,10 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  This function computes the envelope of a time series using the
 #' streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelope` function.
-#' @param data.tb      a valid sits tibble
+#' @param data.tb      tibble with time series data and metadata
 #' @param operations   character sequence indicating which operations must be taken. "U" for upper filter, "L" for down filter.
-#' @param bands_suffix the suffix to be appended to the resulting data (default "env")
-#' @return result.tb   a sits tibble with same samples and the new bands
+#' @param bands_suffix suffix to be appended to the resulting data (default "env")
+#' @return result.tb   tibble with filtered time series values
 #' @examples
 #' # Read a set of samples of forest/non-forest in Amazonia
 #' # This is an area full of clouds
@@ -166,13 +166,13 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 #' The parameters of the ARIMA model can be set by the user. Please see \code{\link[stats]{arima}}
 #' for the detailed description of parameters p, d, and q.
 #'
-#' @param data.tb       a valid sits tibble containing the "ndvi" band
-#' @param cutoff        a numeric value for the maximum acceptable value of a NDVI difference
-#' @param p             the order (number of time lags) of the autoregressive model,
-#' @param d             the degree of differencing (the number of times the data have had past values subtracted),
-#' @param q             the order of the moving-average model.
-#' @param bands_suffix  the suffix to rename the filtered bands
-#' @param apply_whit    apply the whittaker smoother after filtering
+#' @param data.tb       tibble with time series data and metadata with only the "ndvi" band
+#' @param cutoff        numeric value for the maximum acceptable value of a NDVI difference
+#' @param p             order (number of time lags) of the autoregressive model,
+#' @param d             degree of differencing (the number of times the data have had past values subtracted),
+#' @param q             order of the moving-average model.
+#' @param bands_suffix  uffix to rename the filtered bands
+#' @param apply_whit    (logical) apply the whittaker smoother after filtering?
 #' @param lambda_whit   lambda parameter of the whittaker smoother
 #' @return result.tb    a sits tibble with same samples and the new bands
 #'
@@ -249,11 +249,11 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
 #' Example of Landsat data", Int Journal of Applied Earth Observation and Geoinformation,
 #' vol. 57, pg. 202-213, 2107.
 #'
-#' @param data.tb      The SITS tibble containing the original time series
-#' @param lambda       double   - the smoothing factor to be applied (default 1.0)
-#' @param differences  an integer indicating the order of differences of contiguous elements (default 3)
-#' @param bands_suffix the suffix to be appended to the smoothed filters (default "whit")
-#' @return output.tb a tibble with smoothed sits time series
+#' @param data.tb      tibble with time series data and metadata
+#' @param lambda       (double) smoothing factor to be applied (default 1.0)
+#' @param differences  (innteger) the order of differences of contiguous elements (default 3)
+#' @param bands_suffix suffix to be appended to the smoothed filters (default "whit")
+#' @return output.tb   tibble with smoothed sits time series
 #'
 #' @examples
 #' # Retrieve a time series with values of NDVI
@@ -291,11 +291,11 @@ sits_whittaker <- function(data.tb, lambda    = 1.0, differences = 3, bands_suff
 #' The degree of smoothing depends on the filter order (usually 3.0)
 #' Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 #'
-#' @param data.tb    The SITS tibble containing the original time series
-#' @param order      filter order
-#' @param scale      time scaling
-#' @param bands_suffix the suffix to be appended to the smoothed filters
-#' @return output.tb a tibble with smoothed sits time series
+#' @param data.tb       tibble with time series data and metadata
+#' @param order        (integer) filter order
+#' @param scale        (integer) time scaling
+#' @param bands_suffix suffix to be appended to the smoothed filters
+#' @return output.tb   tibble with smoothed sits time series
 #' @examples
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)

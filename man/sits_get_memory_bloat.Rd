@@ -8,7 +8,7 @@
 .sits_get_memory_bloat()
 }
 \description{
-retrieve
+retrieve the expected memory bloat associated to R
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

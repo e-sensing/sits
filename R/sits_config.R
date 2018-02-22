@@ -54,7 +54,7 @@ sits_config <- function() {
 #' @description Displays the contents of SITS configuration file. For more details
 #' on how to set the configuration file, please use \code{\link[sits]{sits_config}}.
 #'
-#' @return config_sits  A list with the configuration parameters used by SITS
+#' @return config_sits  list with the configuration parameters used by SITS
 #' @examples
 #' config_sits <- sits_config()
 #' @export
@@ -119,8 +119,8 @@ sits_show_config <- function() {
 #' @name .sits_get_bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        the name of the time series service
-#' @param name           the name of the product
+#' @param service        name of the time series service
+#' @param name           name of the product
 #' @return bands         bands available
 #'
 .sits_get_bands <- function(service, name){
@@ -170,7 +170,7 @@ sits_show_config <- function() {
 #' @title Retrieve the estimated value of R memory bloat
 #' @name sits_get_memory_bloat
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description retrieve
+#' @description retrieve the expected memory bloat associated to R
 .sits_get_memory_bloat <- function() {
 
     return(sits.env$config$R_memory_bloat)
@@ -228,8 +228,8 @@ sits_show_config <- function() {
 #' @name .sits_get_projection
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        the name of the time series service
-#' @param name           the name of the coverage
+#' @param service        name of the time series service
+#' @param name           name of the coverage
 #' @return crs           CRS PROJ4 infomation
 
 .sits_get_projection <- function(service, name) {
@@ -292,7 +292,7 @@ sits_show_config <- function() {
 #' @name .sits_get_scale_factors
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        ame of the service
+#' @param service        name of the service
 #' @param name           name of the coverage
 #' @param bands          vector of bands
 #' @return sf            vector of scale factors
@@ -317,8 +317,8 @@ sits_show_config <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #'
-#' @param service         The name of the service
-#' @return serverURL      A string with the server URL that provides the service
+#' @param service         name of the service
+#' @return serverURL      string with the server URL that provides the service
 #'
 .sits_get_server <- function(service) {
     # pre-condition
@@ -334,9 +334,9 @@ sits_show_config <- function() {
 #' @title List the time series services available
 #' @name .sits_get_services
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param protocol  The protocol used to assess the time series service
 #'
-#' @return size          vector of (nrows, ncols)
+#' @param protocol  (string) protocol used to assess the time series service
+#' @return size     vector of (nrows, ncols)
 .sits_get_services <- function(protocol = NULL) {
     if (purrr::is_null(protocol))
         return(sits.env$config$ts_services)
@@ -351,8 +351,8 @@ sits_show_config <- function() {
 #' @name .sits_get_size
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        the name of the time series service
-#' @param name           the name of the coverage
+#' @param service        name of the time series service
+#' @param name           name of the coverage
 #' @param r_obj          R object associated with the coverage
 #' @return size          vector of (nrows, ncols)
 .sits_get_size <- function(service, name, r_obj = NA) {
@@ -389,9 +389,9 @@ sits_show_config <- function() {
 #' @name .sits_get_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        the name of the time series service
-#' @param product        the name of the product
-#' @param name           the name of the coverage
+#' @param service        name of the time series service
+#' @param product        name of the product
+#' @param name           name of the coverage
 #' @return size          vector of (nrows, ncols)
 .sits_get_timeline <- function(service, name){
 
@@ -436,7 +436,7 @@ sits_show_config <- function() {
 #' @name .sits_check_service
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        the name of the time series service
+#' @param service        name of the time series service
 .sits_check_service <- function(service){
     # Ensure that the service is available
     ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,

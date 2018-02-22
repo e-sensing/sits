@@ -8,18 +8,18 @@ sits_fromZOO(ts.zoo, longitude = 0, latitude = 0, label = "NoClass",
   name = "unknown")
 }
 \arguments{
-\item{ts.zoo}{A zoo time series}
+\item{ts.zoo}{zoo time series}
 
-\item{longitude}{Longitude of the chosen location}
+\item{longitude}{longitude of the chosen location}
 
-\item{latitude}{Latitude of the chosen location}
+\item{latitude}{latitude of the chosen location}
 
-\item{label}{Label to attach to the time series (optional)}
+\item{label}{label to attach to the time series (optional)}
 
-\item{name}{Name of the coverage where data comes from}
+\item{name}{name of the coverage where data comes from}
 }
 \value{
-data.tb      A time series in SITS tibble format
+data.tb      time series in SITS tibble format
 }
 \description{
 Converts data from an instance of a zoo series to a SITS tibble

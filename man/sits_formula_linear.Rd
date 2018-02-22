@@ -7,7 +7,7 @@
 sits_formula_linear(predictors_index = -2:0)
 }
 \arguments{
-\item{predictors_index}{the index of the valid columns whose names are used to compose formula (default: NULL)}
+\item{predictors_index}{index of the valid columns whose names are used to compose formula (default: NULL)}
 }
 \value{
 result_fun       a function that computes a valid formula

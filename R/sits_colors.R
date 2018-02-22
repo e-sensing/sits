@@ -1,10 +1,10 @@
 #' @title Brewer color schemes
-#' @name .sits_color_nama
+#' @name .sits_color_name
 #'
 #' @description brewer color schemes names to be used with `sits_plot_dendrogram`
 #'
 #' @param name      name of the brewer color set
-#' @return name   string - a common color set name
+#' @return name     string - a common color set name
 .sits_color_name <- function(name = NULL){
      # approximate equivalent names in ISCC-NBS system
      # see http://en.wikipedia.or"g/wiki/ISCC-NBS_system

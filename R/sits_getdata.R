@@ -31,19 +31,19 @@
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177.
 #'
-#' @param coverage        (Mandatory) A tibble with information about the coverage.
-#' @param file            (optional) the name of a file with information on the data to be retrieved (options - CSV, SHP).
-#' @param longitude       Longitude of the chosen location.
-#' @param latitude        Latitude of the chosen location.
-#' @param start_date      (optional) Start of the interval for the time series in Date format ("YYYY-MM-DD")
-#' @param end_date        (optional) End of the interval for the time series in Date format ("YYYY-MM-DD")
+#' @param coverage        (mandatory) tibble with information about the coverage.
+#' @param file            (optional) name of a file with information on the data to be retrieved (options - CSV, SHP).
+#' @param longitude       longitude of the chosen location.
+#' @param latitude        latitude of the chosen location.
+#' @param start_date      (optional) start of the interval for the time series in Date format ("YYYY-MM-DD")
+#' @param end_date        (optional) end of the interval for the time series in Date format ("YYYY-MM-DD")
 #' @param bands           (optional) vector - the names of the bands to be retrieved.
-#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
+#' @param prefilter       (optional) string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @param label           (optional) string - the label to be assigned to the time series
-#' @param .n_start        (optional) integer - Row on the CSV file to start reading
+#' @param .n_start        (optional) integer - row on the CSV file to start reading
 #' @param .n_max          (optional) integer - maximum number of CSV samples to be read (set to Inf to read all)
 #' @param .n_save         (optional) number of samples to save as intermediate files (used for long reads)
-#' @return data.tb        a SITS tibble
+#' @return data.tb        a tibble with time series data and metadata
 #'
 #' @examples
 #' \donttest{

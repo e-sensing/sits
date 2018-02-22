@@ -414,6 +414,37 @@ class.tb <-
 sits_plot(class.tb)
 ```
 
+## Deep learning methods 
+
+
+In `sits`, the interface to deep learning models is done using the `keras` package [@Chollet2018]. This package implements different deep learning techniques. Currently, `sits` provides access to deep feedforward networks. Also called feedforward neural networks, or multilayer perceptrons (MLPs), these are the quintessential deep learning models. The goal of a feedforward network is to approximate some function $f$. For example, for a classifier $y =f(x)$ maps an input $x$ to a category $y$. A feedforward network defines a mapping $y = f(x;\theta)$ and learns the value of the parameters $\theta$ that result in the best function approximation. These models are called feedforward because information flows through the function being evaluated from $x$, through the intermediate computations used to define $f$, and finally to the output $y$. There are no feedback connections in which outputs of the model are fed back into itself [@Goodfellow2016].
+
+Specifying a MLP requires some work on customization, which requires some amount of trial-and-error by the user, since there is no proven model for classification of satellite image time series. The most important decision is the number of layers in the model. Initial tests indicate that 3 to 5 layers are enough to produce good results. The choice of the number of layers depends on the inherent separability of the data set to be classified. For data sets where the classes have different signatures, a shallow model (with 3 layers) may provide appropriate responses. More complex situations require models of deeper hierachy. The user should be aware that some models with many hidden layers may take a long time to train and may not be able to converge. The suggestion is to start with 3 layers and test different options of number of neurons per layer, before increasing the number of layers.
+
+Three other important parameters for an MLP are: (a) the activation function; (b) the optimization method; (c) the dropout rate. The activation function  the activation function of a node defines the output of that node given an input or set of inputs. Following standard practices [@Goodfellow2016], we recommend the use of the "relu" functions. The optimization method is a crucial choice, and the most common choices are gradient descent algorithm. These methods aim to maximize an objective function by updating the parameters in the opposite direction of the gradient of the objective function [@Ruder2016]. Based on experience with image time series, we recommend that users start by using the default method provided by `sits`, which is the `optimizer_adam` method. Please refer to the `keras` package documentation for more information.
+
+The dropout rates have a huge impact on the performance of deep learning classifiers. Dropout is a technique for randomly  droping  units  from  the  neural network during training [@Srivastava2014]. By randomly discarding some neurons, dropout reduces overfitting. It is a counter-intuitive idea that works well. Since the purpose of a cascade of neural nets is to improve learning as more data is acquired, discarding some of these neurons may seem a waste of resources. In fact, as experience has shown [@Goodfellow2016], this procedures prevents an early convergence of the optimization to a local minimum. Thus, in practice, dropout rates between 50% and 20% are recommended for each layer. 
+
+In the following example, we classify the same data set using the default values of the `deep learning` method, which are: (a) Three layers with 400, 200, 100 neurons each; (b) Using the 'relu' activation function and 'optimizer_adam'; (c) dropout rates of 40%, 30% and 20% for the layers. 
+
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Deep learning classification of a $16$ year time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
+# Retrieve the set of samples (provided by EMBRAPA) from the 
+# Mato Grosso region for train the deep learning model.
+data(samples_MT_ndvi)
+# get a point to be classified
+data(point_ndvi)
+# Classify using Random Forest model
+class.tb <- 
+    sits_classify(point_ndvi,
+                  samples_MT_ndvi,
+                  ml_method = sits_deeplearning(),
+                  adj_fun = function (x) {identity(x)})
+sits_plot(class.tb)
+```
+
+
+
+
 # Validation techniques
 
 Validation is a process undertaken on models to estimate some error associated with them, and hence has been used widely in different scientific disciplines. Here, we are interested in estimating the prediction error associated to some model. For this purpose, we concentrate on the *cross-validation* approach, probably the most used validation technique [@Hastie2009].
@@ -441,7 +472,7 @@ sits_conf_matrix(prediction.mx)
 
 The continuous observation of the Earth surface provided by orbital sensors is unprecedented in history. Just for the sake of ilustration, a unique tile from MOD13Q1 product, a square of $4800$ pixels provided every 16 days since February 2000 takes around $18$GB of uncompressed data to store only one band or vegetation index. This data deluge puts the field into a big data era and imposes challenges to design and build technologies that allow the Earth observation community to analyse those data sets [@Gilberto2017]. `sits` implements an "out of the box" classification scheme based on *raster bricks* where stacked images have spatial and time dimensions.
 
-Our tested approach (see example illustrated bellow) is `GeoTIFF` bricks, where the temporal dimension is stored in the `GeoTIFF` bands. The classification algorithm implemented in `sits_classify_raster()` allows one to choose how many process will run the task in paralel, and also the size of each data chunk to be consumed at each iteration. This strategy enables `sits` to work on average desktop computers without depleting all computational resources. The code bellow illustrates how to classify a small raster brick image that accompany the package.
+Our tested approach (see example illustrated bellow) is `GeoTIFF` bricks, where the temporal dimension is stored in the `GeoTIFF` bands. For a multiband, multitemporal image, all time instances of each band should be stored together in a single `GeoTIFF` file. Different bands for the same images should be stored The classification algorithm implemented in `sits_classify_raster()` allows one to choose how many process will run the task in paralel, and also the size of each data chunk to be consumed at each iteration. This strategy enables `sits` to work on average desktop computers without depleting all computational resources. The code bellow illustrates how to classify a small raster brick image that accompany the package.
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=4.1, fig.cap="Image (${11\\times14}$ pixels) classified using SVM. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
 # Retrieve the set of samples for the Mato Grosso region 
@@ -471,7 +502,7 @@ raster_class.tb <-
                          raster.tb, 
                          samples_MT_ndvi,
                          ml_method  = sits_svm(), 
-                         read_lines = 50, 
+                         blocksize = 250, 
                          multicores = 1)
 # plot classified image
 plot(sits_get_raster(raster.tb, 1))
@@ -483,6 +514,16 @@ Note that we need to create a coverage `tibble` with some metadata information b
 # remove all files
 file.remove(unlist(raster_class.tb$files))
 ```
+# Processing of large raster data files
+
+One of the challenges in land use classification is being able to process large data files. To reduce processing time, the `sits_classify_raster` function has two parameters that can be adjusted according to the capabilities of the server. The package tries to keep memory use to a minimum, and performs garbage collection to free memory as often as possible. Nevertheless, there is an inevitable trade-off between computing time, memory use and I/O operations. The best trade-off has to be determined by the user, considering issues such disk read spead, number of cores in the server, and CPU performance. 
+
+The first parameter is "blocksize". It controls the size of the data block to be read from disk for each file. When acessing raster data, the block size is a multiple of the number of columns in each band. Consider an image consisting of 4 bands of 4000 x 4000 pixels with 400 time steps. A block size of 1000000 will result in using blocks of size 250 lines x 4000 columns per each time instance. Considering there are 4 bands, 200 time steps and that R will store this data as a numeric value (8 bytes), R will need about 12.8 GBytes to store this data in memory for each block. Considering a typical factor of 150% of additional memory used for storing copies of the block, we can estimate that the server will need about 32 GB of continuous memory to be used by R. 
+
+The second factor controlling performance of raster classification is "multicores". Once a block of data is read from disk into main memory, it is split into different cores, as specified by the user. In general, the more cores are assigned to classification, the faster the result will be. However, there are overheads in switching time, especially of the server is shared with other processes. 
+
+Based on current experience, the classification of a MODIS tile (4800 x 4800), with 4 bands and 400 time instances, using a SVM with a training data set of about 10,000 samples, takes about 24 hours using 20 cores and a blocksize of 1e+06, in a server with 2.4GHz Xeon CPU and 96 GB memory.
+
 
 # Final remarks
 
@@ -493,6 +534,11 @@ The `sits` package uses the full depth of satellite image time series to create 
 # Acknowledgements
 
 The authors would like to thank all the researchers whose provided data samples used in the examples: Alexandre Coutinho, Julio Esquerdo and Joao Antunes (Brazilian Agricultural Research Agency, Brazil) who provided ground samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes; Rodrigo Bergotti (National Institute for Space Research, Brazil) who provided samples for "cerrado" and "forest" classes; and Damien Arvor (Rennes University, France) who provided ground samples for "soybean-fallow" class. 
+
+This work was partially funded by the São Paulo Research Foundation (FAPESP) through a eScience Program grant 2014/08398-6. We thank the Coordination for the Improvement of Higher Education Personnel (CAPES) and National Council for Scientific and Technological Development (CNPq) grants 312151/2014-4 (GC) and 140684/2016-6 (RS). We thank Ricardo Cartaxo, Lúbia Vinhas, and Karine Ferreira who provided insight and expertise to support this paper.
+
+This work has also been supported  by the International Climate Initiative of the Germany Federal Ministry for the Environment, Nature Conservation, Building and Nuclear Safety under Grant Agreement 17-III-084-Global-A-RESTORE+ (``RESTORE+: Addressing Landscape Restoration on Degraded Land in Indonesia and Brazil''). 
+
 
 <!--
 # References

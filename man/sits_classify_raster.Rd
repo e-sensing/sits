@@ -6,29 +6,29 @@
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb,
   ml_method = sits_svm(), adj_fun = sits_adjust(), interval = "12 month",
-  read_lines = 200, multicores = 2, verbose = FALSE)
+  blocksize = 2000, multicores = 2, verbose = FALSE)
 }
 \arguments{
-\item{file}{a set of file names to store the output (one file per classified year)}
+\item{file}{vector of file names to store the output (one file per classified year)}
 
-\item{raster.tb}{a tibble with information about a set of space-time raster bricks}
+\item{raster.tb}{tibble with information about a set of space-time raster bricks}
 
-\item{samples.tb}{The samples used for training the classification model}
+\item{samples.tb}{tibble with samples used for training the classification model}
 
-\item{ml_method}{a model trained by \code{\link[sits]{sits_train}}}
+\item{ml_method}{an R model trained by \code{\link[sits]{sits_train}}}
 
-\item{adj_fun}{Adjustment function to be applied to the data}
+\item{adj_fun}{adjustment function to be applied to the data}
 
-\item{interval}{The interval between two sucessive classification}
+\item{interval}{interval between two sucessive classifications, expressed in months}
 
-\item{read_lines}{Number of lines of to be read (see function .sits_raster_block_size)}
+\item{blocksize}{size of the block to be read to build a block for classification}
 
-\item{multicores}{Number of threads to process the time series.}
+\item{multicores}{number of threads to process the time series.}
 
-\item{verbose}{Run function in verbose mode (useful for working with big data sets)}
+\item{verbose}{logical: run function in verbose mode? (useful for working with big data sets)}
 }
 \value{
-raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
+raster_class.tb tibble with the metadata for the vector of classified RasterLayers
 }
 \description{
 Takes a set of spatio-temporal raster bricks, whose metadata is
@@ -37,6 +37,12 @@ Takes a set of spatio-temporal raster bricks, whose metadata is
              a prediction model (created by \code{\link[sits]{sits_train}}),
              and produces a classified set of RasterLayers. This function is similar to
               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
+              There are two parameters for optimizing processing of large data sets. These
+              parameters are "blocksize" and "multicores". The first controls the size of the data block to
+              be read from disk. When acessing raster data, the block size is a multiple of the number of
+              columns in each band. Thus, reading a 1000 x 1000 image with a block size of 250000 will result
+              in using blocks of size 250 lines x 1000 columns. The "multicores" parameter defines the
+              number of cores used for processing.
 }
 \examples{
 \donttest{
@@ -56,7 +62,7 @@ raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-Crop",
 
 # classify the raster file
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-   ml_method = sits_svm(), read_lines = 50, multicores = 1)
+   ml_method = sits_svm(), blocksize = 250, multicores = 1)
 }
 
 }

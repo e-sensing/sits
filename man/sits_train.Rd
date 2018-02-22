@@ -7,14 +7,14 @@
 sits_train(data.tb, ml_method = sits_svm(), adj_fun = sits_adjust())
 }
 \arguments{
-\item{data.tb}{a time series with the training samples}
+\item{data.tb}{time series with the training samples}
 
-\item{ml_method}{the machine learning method that returns a model for prediction}
+\item{ml_method}{machine learning method that returns a model for prediction}
 
-\item{adj_fun}{Adjustment function to be applied to the data}
+\item{adj_fun}{adjustment function to be applied to the data}
 }
 \value{
-result           a model fitted into input data given by train_method parameter
+result           model fitted to input data given by train_method parameter
 }
 \description{
 Given a tibble with a set of distance measures,

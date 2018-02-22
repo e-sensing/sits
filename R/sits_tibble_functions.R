@@ -12,11 +12,11 @@
 #'
 #' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
 #'
-#' @param data.tb       a valid sits table
-#' @param fun           a function with one parameter as input and a vector or list of vectors as output.
-#' @param fun_index     a function with one parameter as input and a Date vector as output.
-#' @param bands_suffix  a string informing the resulting bands name's suffix.
-#' @return data.tb      a sits tibble with same samples and the new bands
+#' @param data.tb       valid sits table
+#' @param fun           function with one parameter as input and a vector or list of vectors as output.
+#' @param fun_index     function with one parameter as input and a Date vector as output.
+#' @param bands_suffix  string informing the suffix of the resulting bands.
+#' @return data.tb      sits tibble with same samples and the new bands
 #' @examples
 #' # Get a time series
 #' data(point_ndvi)
@@ -62,8 +62,8 @@ sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) 
 #' @description  finds the names of the bands of time series in a sits table
 #'               or sets the names of the bands if a set of values is given
 #'
-#' @param data.tb      a valid sits table
-#' @return result.vec  a string vector with the names of the bands
+#' @param data.tb      valid sits table
+#' @return result.vec  string vector with the names of the bands
 #'
 #' @examples
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
@@ -84,8 +84,8 @@ sits_bands <- function(data.tb) {
 #'
 #' @description returns a vector containing the dates of a sits table
 #'
-#' @param  data.tb a tibble in SITS format with time series for different bands
-#' @return table   a tibble in SITS format with values of time indexes
+#' @param  data.tb  tibble in SITS format with time series for different bands
+#' @return table    tibble  with values of time indexes
 #' @examples
 #' # get a point
 #' data (ts_2000_2016)
@@ -149,7 +149,7 @@ sits_merge <-  function(data1.tb, data2.tb) {
 #' @name sits_mutate
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Adds new bands and preserves existing in the time series of a sits tibble using dplyr::mutate function
-#' @param data.tb       a valid sits tibble
+#' @param data.tb       valid sits tibble
 #' @param ...           `name=value` pairs expressions. See `dplyr::mutate` help for more details.
 #' @examples
 #' \donttest{
@@ -188,8 +188,8 @@ sits_mutate <- function(data.tb, ...){
 #' have the same number of samples, and returns a time series whose indices
 #' match the majority of the samples
 #'
-#' @param  data.tb  A sits tibble (either a SITS tibble or a raster metadata
-#' @return data.tb  A SITS tibble
+#' @param  data.tb  sits tibble (either a SITS tibble or a raster metadata)
+#' @return data.tb  pruned sits tibble
 #' @export
 sits_prune <- function(data.tb) {
     .sits_test_tibble(data.tb)
@@ -233,9 +233,9 @@ sits_prune <- function(data.tb) {
 #'
 #' @description  set the names of the bands of time series in a sits table
 #'
-#' @param data.tb      a valid sits tibble
-#' @param names        string vector with the new bands' names
-#' @return data.tb     the sits tibble with the new names for the bands
+#' @param data.tb      valid sits tibble
+#' @param names        string vector with the names of the new bands
+#' @return data.tb     sits tibble with the new names for the bands
 #' @examples
 #' # Retrieve a time series with one band
 #' data(point_ndvi)
@@ -269,9 +269,9 @@ sits_rename <- function(data.tb, names){
 #'              Parameter frac indicates a fraction of random samples without reposition. If frac > 1, no sampling is done.
 #'
 #' @param  data.tb    input SITS table
-#' @param  n          the quantity of samples to pick from a given group of data.
-#' @param  frac       the percentage of samples to pick from a given group of data.
-#' @return result.tb  the new SITS table with a fixed quantity of samples of informed labels and all other
+#' @param  n          number of samples to pick from a given group of data.
+#' @param  frac       percentage of samples to pick from a given group of data.
+#' @return result.tb  new SITS table with a fixed quantity of samples of informed labels and all other
 #' @examples
 #' # Retrieve a set of time series with 2 classes
 #' data (cerrado_2classes)
@@ -324,7 +324,7 @@ sits_sample <- function(data.tb, n = NULL, frac = NULL){
 #'              It supports spatial selection by lat/long bounding boxes, names of labels,
 #'              start and end dates, and subset of bands
 #'
-#' @param data.tb      a sits tibble with the time series
+#' @param data.tb      sits tibble with the time series
 #' @param ...          `name == value` logical expressions, where `name` is any SITS column name
 #'                     or 'bands = c(band names)' for selection of a subset of bands
 #'                     See `dplyr::filter` help for more details..
@@ -367,9 +367,9 @@ sits_select <- function(data.tb, ...) {
 #'
 #' @description returns a sits table with the selected bands
 #'
-#' @param data.tb      a sits table with the time series of the selected bands
-#' @param bands        a vector of bands
-#' @return result.tb   a tibble in SITS format with the selected bands
+#' @param data.tb      sits tibble metadata and data on time series
+#' @param bands        vector of bands
+#' @return result.tb   tibble in SITS format with the selected bands
 #' @examples
 #' # Retrieve a set of time series with 2 classes
 #' data (cerrado_2classes)
@@ -400,9 +400,9 @@ sits_select_bands <- function(data.tb, bands) {
 #' @name sits_transmute
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Adds new bands and drops existing in the time series of a sits tibble using dplyr::transmute function
-#' @param data.tb       a valid sits tibble
+#' @param data.tb       valid sits tibble
 #' @param ...           `name=value` pairs expressions. See `dplyr::transmute` help for more details.
-#' @return data.tb      a sits tibble with same samples and the new bands
+#' @return data.tb      sits tibble with same samples and the new bands
 #' @examples
 #' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
@@ -437,10 +437,10 @@ sits_transmute <- function(data.tb, ...){
 #' This function is useful to use packages such as ggplot, dtwclust, or kohonen that
 #' require values that are rowwise or colwise organised.
 #'
-#' @param  data.tb    a tibble in SITS format with time series for different bands
+#' @param  data.tb    tibble in SITS format with time series for different bands
 #' @param  bands      string - a group of bands whose values are to be extracted. If no bands is informed extract ALL bands.
 #' @param  format     string - either "cases_dates_bands" or "bands_cases_dates" or "bands_dates_cases"
-#' @return table   a tibble in SITS format with values
+#' @return table      tibble in SITS format with values
 #' @examples
 #' # Retrieve a set of time series with 2 classes
 #' data (cerrado_2classes)

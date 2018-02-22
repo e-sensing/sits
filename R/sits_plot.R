@@ -23,10 +23,10 @@
 #' plot the classification.
 #'
 #'
-#' @param  data           The data to be plotted (can be a SITS tibble, clusters, or TWDTW matches)
+#' @param  data          data to be plotted (can be a SITS tibble, clusters, or TWDTW matches)
 #' @param  band          (optional) The band used for visualisation (optional for sits_plot_classification)
 #' @param  colors        (optional) Color pallete to be used (based on Color Brewer - default is "Dark2")
-#' @return data          Input SITS table (useful for chaining functions)
+#' @return data          input SITS table (useful for chaining functions)
 #'
 #' @examples
 #' \donttest{
@@ -94,9 +94,9 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' @title Plot classification results
 #' @name .sits_plot_classification
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @description   Plots the classification results (code reused from the dtwSat package by Victor Maus)
-#' @param data         A SITS tibble with one or more time series that have been classified
-#' @param band         Band for plotting the classification
+#' @description        plots the classification results (code reused from the dtwSat package by Victor Maus)
+#' @param data         SITS tibble with one or more time series that have been classified
+#' @param band         band for plotting the classification
 #'
 .sits_plot_classification <- function(data, band = NULL) {
 

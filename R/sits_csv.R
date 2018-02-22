@@ -50,9 +50,9 @@ sits_metadata_toCSV <- function(data.tb, file){
 #' but will have the actual time series, with a reference value. This function is useful to
 #' export the data for external applications
 #'
-#' @param  data.tb    a SITS time series
-#' @param  file       the name of the exported CSV file
-#' @return status     the status of the operation
+#' @param  data.tb    a tibble with time series data and metadata
+#' @param  file       name of the exported CSV file
+#' @return status     status of the operation
 #' @examples
 #' \donttest{
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture

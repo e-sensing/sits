@@ -8,7 +8,7 @@ sits_kfold_validate(data.tb, folds = 5, ml_method = sits_svm(),
   adj_fun = sits_adjust(), multicores = 1)
 }
 \arguments{
-\item{data.tb}{a SITS tibble}
+\item{data.tb}{sits tibble}
 
 \item{folds}{number of partitions to create.}
 
@@ -19,7 +19,7 @@ sits_kfold_validate(data.tb, folds = 5, ml_method = sits_svm(),
 \item{multicores}{number of threads to process the validation (Linux and MacOS only)}
 }
 \value{
-pred_ref.tb    a tibble containing pairs of reference and predicted values
+pred_ref.tb    tibble containing pairs of reference and predicted values
 }
 \description{
 Splits the set of time series into training and validation and

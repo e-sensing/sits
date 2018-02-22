@@ -19,13 +19,13 @@
 #' alternatives.
 #'
 #'
-#' @param  data.tb           SITS tibble time series (cleaned)
-#' @param  train_samples.tb  The samples used for training the classification model
-#' @param  ml_method         A machine learning method (see \code{\link[sits]{sits_train}})
-#' @param  adj_fun           Adjustment function to be applied to the data
-#' @param  interval          The interval used for classification
-#' @param  multicores        Number of threads to process the time series.
-#' @return data.tb           SITS tibble with the predicted labels for each input segment
+#' @param  data.tb           tibble with time series metadata and data
+#' @param  train_samples.tb  tibble with samples used for training the classification model
+#' @param  ml_method         machine learning method (see \code{\link[sits]{sits_train}})
+#' @param  adj_fun           adjustment function to be applied to the data
+#' @param  interval          interval used for classification (in months)
+#' @param  multicores        number of threads to process the time series.
+#' @return data.tb           tibble with the predicted labels for each input segment
 #' @examples
 #' \donttest{
 #' # read a training data set
@@ -89,13 +89,13 @@ sits_classify <- function(data.tb = NULL,
 #' labelled samples. Each samples should be associated to one spatial location
 #' (latitude/longitude), one time interval and a label.
 #'
-#' @param  data.tb           SITS tibble time series (cleaned)
-#' @param  train_samples.tb  The samples used for training the classification model
-#' @param  model             A pre-built ML model (see \code{\link[sits]{sits_train}})
-#' @param  adj_fun           Adjustment function to be applied to the data
-#' @param  interval          The interval used for classification
-#' @param  multicores        Number of threads to process the time series.
-#' @return data.tb           SITS tibble with the predicted labels for each input segment
+#' @param  data.tb           tibble with time series metadata and data
+#' @param  train_samples.tb  tibble with samples used for training the classification model
+#' @param  model             pre-built machine learning model (see \code{\link[sits]{sits_train}})
+#' @param  adj_fun           adjustment function to be applied to the data
+#' @param  interval          interval used for classification (in months)
+#' @param  multicores        number of threads to process the time series
+#' @return data.tb           tibble with the predicted labels for each input segment
 #' @examples
 #' \donttest{
 #' # read a training data set
@@ -153,10 +153,10 @@ sits_classify_model <- function(data.tb = NULL,
 #'
 #' @description Returns a sits table with the results of the ML classifier.
 #'
-#' @param  distances.tb    a tibble with distances
-#' @param  class_info.tb   a tibble with the information on classification
-#' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
-#' @param  multicores      Number of threads to process the time series.
+#' @param  distances.tb    tibble with distances
+#' @param  class_info.tb   tibble with the information on classification
+#' @param  ml_model        model trained by \code{\link[sits]{sits_train}}
+#' @param  multicores      number of threads to process the time series
 #' @return pred.vec        vector with the predicted labels
 .sits_classify_distances <- function(distances.tb, class_info.tb, ml_model = NULL, multicores = 1) {
 
@@ -263,10 +263,10 @@ sits_classify_model <- function(data.tb = NULL,
 #' the reference period. The results is a tibble with information that allows the user
 #' to perform steps (c) to (e)
 #'
-#' @param  data.tb         Description on the data being classified
-#' @param  samples.tb      The samples used for training the classification model
-#' @param  interval        The interval between two sucessive classification
-#' @return class_info.tb   A SITS tibble with the classification information
+#' @param  data.tb         description on the data being classified
+#' @param  samples.tb      samples used for training the classification model
+#' @param  interval        interval between two sucessive classifications
+#' @return class_info.tb   tibble with the classification information
 #'
 .sits_class_info <- function(data.tb, samples.tb, interval){
 

@@ -7,18 +7,18 @@
 sits_interp(data.tb, fun = stats::approx, n = base::length, ...)
 }
 \arguments{
-\item{data.tb}{a valid sits tibble}
+\item{data.tb}{tibble with time series data and metadata}
 
-\item{fun}{the interpolation function to be used}
+\item{fun}{interpolation function}
 
-\item{n}{the number of time series elements to be created between start date and end date.
+\item{n}{number of time series elements to be created between start date and end date.
 When a class function is passed to `n`, is is evaluated with each band time series as
 an argument, e.g. n(band) (default: `length` function)}
 
 \item{...}{additional parameters to be used by the fun function}
 }
 \value{
-result.tb    a sits tibble with same samples and the new bands
+result.tb    tibble with same samples and the new bands
 }
 \description{
 Computes the linearly interpolated bands for a given resolution

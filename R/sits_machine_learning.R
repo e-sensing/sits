@@ -17,10 +17,10 @@
 #' and \code{\link[sits]{sits_classify_raster}}, so the user does not need
 #' to explicitly use this function. Please see the above-mention classification functions.
 #'
-#' @param  data.tb          a time series with the training samples
-#' @param  ml_method        the machine learning method that returns a model for prediction
-#' @param  adj_fun          Adjustment function to be applied to the data
-#' @return result           a model fitted into input data given by train_method parameter
+#' @param  data.tb          time series with the training samples
+#' @param  ml_method        machine learning method that returns a model for prediction
+#' @param  adj_fun          adjustment function to be applied to the data
+#' @return result           model fitted to input data given by train_method parameter
 #'
 #' @examples
 #'
@@ -71,21 +71,21 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_fun = sits_adjust())
 #' This function is a front-end to the "keras" method R package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb      a data.table object with a set of distance measures for each training sample
-#' @param units             a vector containing the number of hidden nodes in each hidden layer
-#' @param activation        a vector containing the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}
-#' @param dropout_rates     a vector number in containing the dropout rates (0,1) from each layer to the next layer
-#' @param optimizer         Function with a pointer to the optimizer function (default is optimization_adam()).
+#' @param distances.tb      data.table object with a set of distance measures for each training sample
+#' @param units             vector with the number of hidden nodes in each hidden layer
+#' @param activation        vector with the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}
+#' @param dropout_rates     vector with the dropout rates (0,1) for each layer to the next layer
+#' @param optimizer         function with a pointer to the optimizer function (default is optimization_adam()).
 #'                          Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
 #'                          optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
-#' @param epochs            Number of iterations to train the model.
-#' @param batch_size        Number of samples per gradient update.
-#' @param validation_split	Float between 0 and 1. Fraction of the training data to be used as validation data.
+#' @param epochs            number of iterations to train the model.
+#' @param batch_size        number of samples per gradient update.
+#' @param validation_split  number between 0 and 1. Fraction of the training data to be used as validation data.
 #'                          The model will set apart this fraction of the training data, will not train on it,
 #'                          and will evaluate the loss and any model metrics on this data at the end of each epoch.
 #'                          The validation data is selected from the last samples in the x and y data provided,
 #'                          before shuffling.
-#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#' @return result           either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
@@ -103,7 +103,7 @@ sits_deeplearning <- function(distances.tb        = NULL,
                               activation       = 'relu',
                               dropout_rates    = c(0.4, 0.3, 0.2),
                               optimizer        = keras::optimizer_adam(lr = 0.001),
-                              epochs           = 50,
+                              epochs           = 300,
                               batch_size       = 128,
                               validation_split = 0.2) {
 
@@ -230,7 +230,7 @@ sits_deeplearning <- function(distances.tb        = NULL,
 #'
 #' @param distances.tb     a time series with a set of distance measures for each training sample
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
-#' @param distribution     The name of the distribution - use "multinomial" for classification
+#' @param distribution     name of the distribution - use "multinomial" for classification
 #' @param n.trees          Number of trees to fit. This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted at least a few times. (default: 5000)
 #' @param interaction.depth  The maximum depth of variable interactions. 1 implies an additive model, 2 implies a model with up to 2-way interactions.
@@ -303,7 +303,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
 #' This function is a front-end to the "lda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     a time series with a set of distance measures for each training sample
+#' @param distances.tb     set of distance measures for each training sample
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param ...              other parameters to be passed to MASS::lda function
 #' @return result          a model function to be passed in sits_predict
@@ -360,8 +360,8 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' This function is a front-end to the "qda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     a time series with a set of distance measures for each training sample
-#' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
+#' @param distances.tb     set of distance measures for each training sample
+#' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param ...              other parameters to be passed to MASS::lda function
 #' @return result          a model function to be passed in sits_predict
 #'
@@ -416,8 +416,8 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' This function is a front-end to the "multinom" method in the "nnet" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     a time series with a set of distance measures for each training sample
-#' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
+#' @param distances.tb     set of distance measures for each training sample
+#' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param n_weights        maximum number of weights (should be proportional to size of input data)
 #' @param maxit            maximum number of iterations (default 300)
 #' @param ...              other parameters to be passed to nnet::multinom function
@@ -434,8 +434,8 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' }
 #' @export
 #'
-sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(),
-                     n_weights = 5000, maxit = 250, ...) {
+sits_mlr <- function(distances.tb = NULL, formula = sits_formula_linear(),
+                     n_weights = 20000, maxit = 2000, ...) {
 
     # function that returns nnet::multinom model based on a sits sample tibble
     result_fun <- function(train_data.tb){
@@ -479,10 +479,10 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_logref(),
 #' This function is a front-end to the "randomForest" method in the "randomForest" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     a time series with a set of distance measures for each training sample
-#' @param ntree            Number of trees to grow. This should not be set to too small a number,
+#' @param distances.tb     set of distance measures for each training sample
+#' @param ntree            number of trees to grow. This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted at least a few times. (default: 2000)
-#' @param nodesize         Minimum size of terminal nodes (default 1 for classification)
+#' @param nodesize         minimum size of terminal nodes (default 1 for classification)
 #' @param ...              other parameters to be passed to `randomForest::randomForest` function
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @examples
@@ -538,17 +538,17 @@ sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 #' This function is a front-end to the "svm" method in the "e1071" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     a time series with a set of distance measures for each training sample
-#' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)
-#' @param kernel           the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
+#' @param distances.tb     set of distance measures for each training sample
+#' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)
+#' @param kernel           kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
 #' @param degree           exponential of polynomial type kernel
 #' @param coef0	           parameter needed for kernels of type polynomial and sigmoid (default: 0)
 #' @param cost             cost of constraints violation
 #' @param tolerance	       tolerance of termination criterion (default: 0.001)
 #' @param epsilon	       epsilon in the insensitive-loss function (default: 0.1)
-#' @param cross            the number of cross validation folds applied on the training data to assess the quality of the model,
+#' @param cross            number of cross validation folds applied on the training data to assess the quality of the model,
 #' @param ...              other parameters to be passed to e1071::svm function
-#' @return result          a fitted model function to be passed to sits_predict
+#' @return result          fitted model function to be passed to sits_predict
 #'
 #' @examples
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
@@ -643,7 +643,7 @@ sits_keras_diagnostics <- function(test.x = NULL, test.y = NULL) {
 #' The `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
 #' If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
 #'
-#' @param predictors_index  the index of the valid columns whose names are used to compose formula (default: NULL)
+#' @param predictors_index  index of the valid columns whose names are used to compose formula (default: NULL)
 #' @return result_fun       a function that computes a valid formula
 #'
 #' @export
@@ -678,7 +678,7 @@ sits_formula_logref <- function(predictors_index = -2:0){
 #' The `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
 #' If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
 #'
-#' @param predictors_index  the index of the valid columns whose names are used to compose formula (default: NULL)
+#' @param predictors_index  index of the valid columns whose names are used to compose formula (default: NULL)
 #' @return result_fun       a function that computes a valid formula
 #'
 #' @export
@@ -711,7 +711,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #' `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
 #' If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
 #'
-#' @param predictors_index  the index of the valid columns whose names are used to compose formula (default: NULL)
+#' @param predictors_index  index of the valid columns whose names are used to compose formula (default: NULL)
 #' @return result_fun       a function that computes a valid formula
 #'
 #' @export
@@ -747,10 +747,10 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #'   and \code{\link[sits]{sits_classify_raster}}, so the user does not need
 #'   to explicitly use it. Please see the above-mentioned classification functions.
 #'
-#' @param distances.tb  a tibble with a set of distance metrics to each of the classes
-#' @param ml_model      a model trained by \code{\link[sits]{sits_train}}
+#' @param distances.tb  set of distance metrics to each of the classes
+#' @param ml_model      model trained by \code{\link[sits]{sits_train}}
 #' @param ...           other parameters to be passed to the model function
-#' @return predicted    the predicted labels (vector)
+#' @return predicted    vector of predicted labels
 #'
 .sits_predict <- function(distances.tb = NULL, ml_model, ...){
 

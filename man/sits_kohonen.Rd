@@ -8,24 +8,24 @@ sits_kohonen(data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5,
   rlen = 100, alpha = c(0.05, 0.01), ...)
 }
 \arguments{
-\item{data.tb}{a SITS tibble the list of time series to be clustered}
+\item{data.tb}{a tibble with time series to be clustered}
 
-\item{bands}{the bands to be clusterized.}
+\item{bands}{bands to be clustered.}
 
-\item{grid_xdim}{x dimension of the SOM grid (used only in `kohonen` or `kohonen-dendrogram` methods). Defaul is 5.}
+\item{grid_xdim}{x dimension of the SOM grid (default = 5)}
 
 \item{grid_ydim}{y dimension of the SOM grid}
 
-\item{rlen}{the number of times the complete data set will be presented to the SOM grid}
+\item{rlen}{number of times the complete data set will be presented to the SOM grid}
 
 \item{alpha}{learning rate, a vector of two numbers indicating the amount of change.
 Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
 
-\item{...}{Additional parameters to be passed to kohonen::supersom function}
+\item{...}{additional parameters to be passed to kohonen::supersom function}
 }
 \value{
-clusters.tb a SITS tibble with the clusters time series or cluster' members time series according to return_member parameter.
-If return_members are FALSE, the returning SITS tibble will contain a new collumn called `n_members` informing how many members has each cluster.
+clusters.tb   a tibble with the clusters time series or cluster' members time series according to return_member parameter.
+If return_members are FALSE, the returning tibble will contain a new collumn called `n_members` informing how many members has each cluster.
 }
 \description{
 This function uses package "kohonen" (self-organized maps) to find clusters in

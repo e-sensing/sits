@@ -8,16 +8,16 @@ sits_apply(data.tb, fun, fun_index = function(index) {     return(index) },
   bands_suffix = "")
 }
 \arguments{
-\item{data.tb}{a valid sits table}
+\item{data.tb}{valid sits table}
 
-\item{fun}{a function with one parameter as input and a vector or list of vectors as output.}
+\item{fun}{function with one parameter as input and a vector or list of vectors as output.}
 
-\item{fun_index}{a function with one parameter as input and a Date vector as output.}
+\item{fun_index}{function with one parameter as input and a Date vector as output.}
 
-\item{bands_suffix}{a string informing the resulting bands name's suffix.}
+\item{bands_suffix}{string informing the suffix of the resulting bands.}
 }
 \value{
-data.tb      a sits tibble with same samples and the new bands
+data.tb      sits tibble with same samples and the new bands
 }
 \description{
 Apply a 1D generic function to a time series and specific methods for

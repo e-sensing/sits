@@ -7,12 +7,12 @@
 sits_select_bands(data.tb, bands)
 }
 \arguments{
-\item{data.tb}{a sits table with the time series of the selected bands}
+\item{data.tb}{sits tibble metadata and data on time series}
 
-\item{bands}{a vector of bands}
+\item{bands}{vector of bands}
 }
 \value{
-result.tb   a tibble in SITS format with the selected bands
+result.tb   tibble in SITS format with the selected bands
 }
 \description{
 returns a sits table with the selected bands

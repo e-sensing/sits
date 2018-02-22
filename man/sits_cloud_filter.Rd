@@ -8,19 +8,19 @@ sits_cloud_filter(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
   bands_suffix = "cf", apply_whit = TRUE, lambda_whit = 1)
 }
 \arguments{
-\item{data.tb}{a valid sits tibble containing the "ndvi" band}
+\item{data.tb}{tibble with time series data and metadata with only the "ndvi" band}
 
-\item{cutoff}{a numeric value for the maximum acceptable value of a NDVI difference}
+\item{cutoff}{numeric value for the maximum acceptable value of a NDVI difference}
 
-\item{p}{the order (number of time lags) of the autoregressive model,}
+\item{p}{order (number of time lags) of the autoregressive model,}
 
-\item{d}{the degree of differencing (the number of times the data have had past values subtracted),}
+\item{d}{degree of differencing (the number of times the data have had past values subtracted),}
 
-\item{q}{the order of the moving-average model.}
+\item{q}{order of the moving-average model.}
 
-\item{bands_suffix}{the suffix to rename the filtered bands}
+\item{bands_suffix}{uffix to rename the filtered bands}
 
-\item{apply_whit}{apply the whittaker smoother after filtering}
+\item{apply_whit}{(logical) apply the whittaker smoother after filtering?}
 
 \item{lambda_whit}{lambda parameter of the whittaker smoother}
 }

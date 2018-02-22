@@ -7,16 +7,16 @@
 sits_sgolay(data.tb, order = 3, scale = 1, bands_suffix = "sg")
 }
 \arguments{
-\item{data.tb}{The SITS tibble containing the original time series}
+\item{data.tb}{tibble with time series data and metadata}
 
-\item{order}{filter order}
+\item{order}{(integer) filter order}
 
-\item{scale}{time scaling}
+\item{scale}{(integer) time scaling}
 
-\item{bands_suffix}{the suffix to be appended to the smoothed filters}
+\item{bands_suffix}{suffix to be appended to the smoothed filters}
 }
 \value{
-output.tb a tibble with smoothed sits time series
+output.tb   tibble with smoothed sits time series
 }
 \description{
 The algorithm searches for an optimal polynomial describing the warping.

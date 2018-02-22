@@ -2,15 +2,15 @@
 % Please edit documentation in R/sits_labels.R
 \name{sits_labels}
 \alias{sits_labels}
-\title{returns the labels' count of a sits table}
+\title{Returns the information about labels  of a sits tibble}
 \usage{
 sits_labels(data.tb)
 }
 \arguments{
-\item{data.tb}{a valid sits table}
+\item{data.tb}{tibble with time series data and metadata}
 }
 \value{
-result.tb  a tibble with the names of the labels and its absolute and relative frequency
+result.tb  tibble with the names of the labels and their absolute and relative frequency
 }
 \description{
 returns the labels and its respective counting and frequency.

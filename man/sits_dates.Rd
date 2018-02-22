@@ -7,10 +7,10 @@
 sits_dates(data.tb)
 }
 \arguments{
-\item{data.tb}{a tibble in SITS format with time series for different bands}
+\item{data.tb}{tibble in SITS format with time series for different bands}
 }
 \value{
-table   a tibble in SITS format with values of time indexes
+table    tibble  with values of time indexes
 }
 \description{
 returns a vector containing the dates of a sits table

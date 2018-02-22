@@ -7,7 +7,7 @@
 #' @param longitude       double - the longitude of the chosen location
 #' @param latitude        double - the latitude of the chosen location
 #' @param crs             projection definition to be converted to
-#' @return xy             a matrix with X/Y coordinates
+#' @return xy             matrix with X/Y coordinates
 .sits_latlong_to_proj <- function(longitude, latitude, crs) {
 
 
@@ -30,7 +30,7 @@
 #' @param x               double - x coordinate of the chosen location
 #' @param y               double - y coordinateof the chosen location
 #' @param crs             projection definition to be converted from
-#' @return xy             a matrix with latlong coordinates
+#' @return xy             matrix with latlong coordinates
 .sits_proj_to_latlong <- function(x, y, crs) {
 
 
@@ -51,7 +51,7 @@
 #' @description Transform a latitude and longitude coordinate to a XY projection coordinate
 #'
 #' @param coverage        metadata about a coverage
-#' @return res            a matrix with resolution in WGS84 coordinates
+#' @return res            matrix with resolution in WGS84 coordinates
 .sits_convert_resolution <- function(coverage) {
 
     # create a vector to store the result

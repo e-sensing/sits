@@ -7,7 +7,7 @@
 sits_cluster_frequency(data.tb)
 }
 \arguments{
-\item{data.tb}{a SITS tibble with `cluster` column.}
+\item{data.tb}{tibble with `cluster` column.}
 }
 \value{
 result.mtx      matrix containing all frequencies of labels in clusters

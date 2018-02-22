@@ -10,20 +10,20 @@ sits_classify(data.tb = NULL, train_samples.tb = NULL,
   interval = "12 month", multicores = 1)
 }
 \arguments{
-\item{data.tb}{SITS tibble time series (cleaned)}
+\item{data.tb}{tibble with time series metadata and data}
 
-\item{train_samples.tb}{The samples used for training the classification model}
+\item{train_samples.tb}{tibble with samples used for training the classification model}
 
-\item{ml_method}{A machine learning method (see \code{\link[sits]{sits_train}})}
+\item{ml_method}{machine learning method (see \code{\link[sits]{sits_train}})}
 
-\item{adj_fun}{Adjustment function to be applied to the data}
+\item{adj_fun}{adjustment function to be applied to the data}
 
-\item{interval}{The interval used for classification}
+\item{interval}{interval used for classification (in months)}
 
-\item{multicores}{Number of threads to process the time series.}
+\item{multicores}{number of threads to process the time series.}
 }
 \value{
-data.tb           SITS tibble with the predicted labels for each input segment
+data.tb           tibble with the predicted labels for each input segment
 }
 \description{
 This function classifies a set of time series, given

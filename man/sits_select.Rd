@@ -7,7 +7,7 @@
 sits_select(data.tb, ...)
 }
 \arguments{
-\item{data.tb}{a sits tibble with the time series}
+\item{data.tb}{sits tibble with the time series}
 
 \item{...}{`name == value` logical expressions, where `name` is any SITS column name
 or 'bands = c(band names)' for selection of a subset of bands

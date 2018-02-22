@@ -219,8 +219,9 @@
 #' @description Obtains the indexes of the blocks to be extract for each time interval
 #' associated with classification
 #'
-#' @param class_info.tb A tibble with information required for classification
-#' @return attr_names   A vector with the names of the columns with the matrix to be classified
+#' @param class_info.tb tibble with information required for classification
+#' @return time_index   list with indexes of the input data set associated to each time interval
+#'                      used for classification
 #'
 .sits_get_time_index <- function(class_info.tb) {
     # find the subsets of the input data
@@ -244,8 +245,8 @@
 #'
 #' @description Obtains the names of the columns of the matrix to be classified
 #'
-#' @param class_info.tb A tibble with information required for classification
-#' @return attr_names   A vector with the names of the columns with the matrix to be classified
+#' @param class_info.tb    tibble with information required for classification
+#' @return attr_names      vector with the names of the columns with the matrix to be classified
 #'
 .sits_get_attr_names <- function(class_info.tb){
 
@@ -276,8 +277,8 @@
 #' @description this functions defines the rows of the input data table that will be
 #' split to fit to be divided between the different cores
 #'
-#' @param nrows number of rows in the input data table
-#' @param ncores number of cores for processing
+#' @param nrows            number of rows in the input data table
+#' @param ncores           number of cores for processing
 #' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
 #'
 .sits_split_block_size <- function(nrows, ncores){
@@ -316,12 +317,12 @@
 #' This is taken to be the default for small machines.
 #' In a larger server, users should increase the block size for improved processing.
 #'
-#' @param  brick.tb   Metadata for a RasterBrick
-#' @param  blocksize  Default size of the block (rows * cols)
+#' @param  brick.tb   metadata for a RasterBrick
+#' @param  blocksize  default size of the block (rows * cols)
 #' @return block      list with three attributes: n (number of blocks), rows (list of rows to begin),
 #'                    nrows - number of rows to read at each iteration
 #'
-.sits_raster_block_size <- function(brick.tb, blocksize = 250000){
+.sits_raster_block_size <- function(brick.tb, blocksize){
 
 
     # number of rows per block

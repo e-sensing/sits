@@ -8,13 +8,13 @@ sits_dendrogram(data.tb, bands = NULL, dist_method = "dtw_basic",
   linkage = "ward.D2", ...)
 }
 \arguments{
-\item{data.tb}{A SITS tibble to be used to generate the dendrogram.}
+\item{data.tb}{tibble with time series data and metadata to be used to generate the dendrogram.}
 
-\item{bands}{a vector the bands to be clusterized.}
+\item{bands}{vector of bands to be clustered.}
 
-\item{dist_method}{A supported distance from proxy's dist, e.g. \code{TWDTW}.}
+\item{dist_method}{(string) one of the supported distance from proxy's dist, e.g. \code{TWDTW}.}
 
-\item{linkage}{the agglomeration method to be used. Any `hclust` method (see `hclust`) Default is 'ward.D2'..}
+\item{linkage}{(string) agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'}
 
 \item{...}{any additional parameters to be passed to dtwclust::tsclust() function}
 }

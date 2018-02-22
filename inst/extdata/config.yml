@@ -8,7 +8,7 @@ default:
     # adjustment shift for function sits_adjust
     adjustment_shift        : 1.0
     # estimated relative growth size of R memory relative to block size
-    R_memory_bloat          : 10
+    R_memory_bloat          : 2.5
 
     # Protocols accepted for data acess
     protocols               : ["WTSS", "SATVEG", "RASTER"]

@@ -7,10 +7,10 @@
 sits_cluster_validity(data.tb)
 }
 \arguments{
-\item{data.tb}{a SITS tibble with `cluster` column.}
+\item{data.tb}{tibble with `cluster` column.}
 }
 \value{
-A vector with four external validity indices
+vector with four external validity indices
 }
 \description{
 Compute different cluster validity indices. This function needs

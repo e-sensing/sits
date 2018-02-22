@@ -7,14 +7,14 @@
 sits_plot(data, band = "ndvi", colors = "Dark2")
 }
 \arguments{
-\item{data}{The data to be plotted (can be a SITS tibble, clusters, or TWDTW matches)}
+\item{data}{data to be plotted (can be a SITS tibble, clusters, or TWDTW matches)}
 
 \item{band}{(optional) The band used for visualisation (optional for sits_plot_classification)}
 
 \item{colors}{(optional) Color pallete to be used (based on Color Brewer - default is "Dark2")}
 }
 \value{
-data          Input SITS table (useful for chaining functions)
+data          input SITS table (useful for chaining functions)
 }
 \description{
 Given a SITS tibble with a set of time series, plot them.
