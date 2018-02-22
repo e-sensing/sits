@@ -20,14 +20,14 @@
 #' IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  data.tb       a tibble in SITS format with time series
-#' @param  timeline      timeline with the all dates for the coverage
+#' @param  data.tb       tibble in SITS format with time series
+#' @param  timeline      vector - timeline with the all dates for the coverage
 #' @param  start_date    starting date of the estimate (month-day)
 #' @param  end_date      end data of the estimated (month-day)
-#' @param  freq          int - the interval in days for the estimates to be generated
-#' @param  formula       the formula to be applied in the estimate
+#' @param  freq          interval in days for the estimates to be generated
+#' @param  formula       formula to be applied in the estimate
 #' @param  ...           any additional parameters
-#' @return patterns.tb   a SITS tibble with the patterns
+#' @return patterns.tb   SITS tibble with the patterns
 #'
 #' @examples
 #' \donttest{

@@ -10,29 +10,29 @@ sits_TWDTW_classify(data.tb = NULL, patterns.tb = NULL, bands = NULL,
   interval = "12 month", overlap = 0.5)
 }
 \arguments{
-\item{data.tb}{a table in SITS format with a time series to be classified using TWTDW}
+\item{data.tb}{sits tibble  to be classified using TWTDW}
 
-\item{patterns.tb}{a set of known temporal signatures for the chosen classes}
+\item{patterns.tb}{tibble with known temporal signatures for the chosen classes}
 
-\item{bands}{string - the bands to be used for classification}
+\item{bands}{(string) bands to be used for classification}
 
-\item{dist.method}{A character. Method to derive the local cost matrix.}
+\item{dist.method}{(string) method to derive the local cost matrix.}
 
-\item{alpha}{(double) - the steepness of the logistic function used for temporal weighting}
+\item{alpha}{(double) steepness of the logistic function used for temporal weighting}
 
-\item{beta}{(integer) - the midpoint (in days) of the logistic function}
+\item{beta}{(integer) midpoint (in days) of the logistic function}
 
-\item{theta}{(double)  - the relative weight of the time distance compared to the dtw distance}
+\item{theta}{(double)  relative weight of the time distance compared to the dtw distance}
 
 \item{span}{minimum number of days between two matches of the same pattern in the time series (approximate)}
 
-\item{keep}{keep internal values for plotting matches}
+\item{keep}{(logical) keep internal values for plotting matches}
 
-\item{start_date}{date - the start of the classification period}
+\item{start_date}{(date) start of the classification period}
 
-\item{end_date}{date - the end of the classification period}
+\item{end_date}{(date) the end of the classification period}
 
-\item{interval}{the period between two classifications}
+\item{interval}{(months) period between two classifications}
 
 \item{overlap}{minimum overlapping between one match and the interval of classification}
 }

@@ -7,10 +7,10 @@
 sits_bands(data.tb)
 }
 \arguments{
-\item{data.tb}{a valid sits table}
+\item{data.tb}{valid sits table}
 }
 \value{
-result.vec  a string vector with the names of the bands
+result.vec  string vector with the names of the bands
 }
 \description{
 finds the names of the bands of time series in a sits table

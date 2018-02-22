@@ -7,12 +7,12 @@
 sits_transmute(data.tb, ...)
 }
 \arguments{
-\item{data.tb}{a valid sits tibble}
+\item{data.tb}{valid sits tibble}
 
 \item{...}{`name=value` pairs expressions. See `dplyr::transmute` help for more details.}
 }
 \value{
-data.tb      a sits tibble with same samples and the new bands
+data.tb      sits tibble with same samples and the new bands
 }
 \description{
 Adds new bands and drops existing in the time series of a sits tibble using dplyr::transmute function

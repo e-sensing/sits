@@ -6,34 +6,34 @@
 \usage{
 sits_deeplearning(distances.tb = NULL, units = c(400, 200, 100),
   activation = "relu", dropout_rates = c(0.4, 0.3, 0.2),
-  optimizer = keras::optimizer_adam(lr = 0.001), epochs = 50,
+  optimizer = keras::optimizer_adam(lr = 0.001), epochs = 300,
   batch_size = 128, validation_split = 0.2)
 }
 \arguments{
-\item{distances.tb}{a data.table object with a set of distance measures for each training sample}
+\item{distances.tb}{data.table object with a set of distance measures for each training sample}
 
-\item{units}{a vector containing the number of hidden nodes in each hidden layer}
+\item{units}{vector with the number of hidden nodes in each hidden layer}
 
-\item{activation}{a vector containing the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}}
+\item{activation}{vector with the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}}
 
-\item{dropout_rates}{a vector number in containing the dropout rates (0,1) from each layer to the next layer}
+\item{dropout_rates}{vector with the dropout rates (0,1) for each layer to the next layer}
 
-\item{optimizer}{Function with a pointer to the optimizer function (default is optimization_adam()).
+\item{optimizer}{function with a pointer to the optimizer function (default is optimization_adam()).
 Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
 optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()}
 
-\item{epochs}{Number of iterations to train the model.}
+\item{epochs}{number of iterations to train the model.}
 
-\item{batch_size}{Number of samples per gradient update.}
+\item{batch_size}{number of samples per gradient update.}
 
-\item{validation_split}{Float between 0 and 1. Fraction of the training data to be used as validation data.
+\item{validation_split}{number between 0 and 1. Fraction of the training data to be used as validation data.
 The model will set apart this fraction of the training data, will not train on it,
 and will evaluate the loss and any model metrics on this data at the end of each epoch.
 The validation data is selected from the last samples in the x and y data provided,
 before shuffling.}
 }
 \value{
-result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+result           either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 }
 \description{
 Use a deeplearning algorithm to classify data.

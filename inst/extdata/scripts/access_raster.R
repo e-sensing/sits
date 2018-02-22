@@ -42,6 +42,6 @@ samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi", "nir"))
 # classify the raster image
 sits_classify_raster(file = "./L8_MOD_221-065-class", raster.tb, samples.tb,
                      ml_method = sits_svm(cost = 10, kernel = "radial", tolerance = 0.001, epsilon = 0.1),
-                     read_lines = 200, multicores = 20)
+                     block_size = 200, multicores = 20)
 
 

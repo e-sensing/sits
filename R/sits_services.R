@@ -24,9 +24,3 @@ sits_services <- function() {
         }
     }
 }
-
-
-
-#' @param service    the name of the time series service
-#' @param product    the name of the product
-#' @param coverage   the name of the coverage

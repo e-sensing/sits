@@ -7,12 +7,12 @@
 sits_cluster_remove(data.tb, min_perc = 0.9)
 }
 \arguments{
-\item{data.tb}{a SITS tibble with `cluster` column.}
+\item{data.tb}{tibble with `cluster` column.}
 
-\item{min_perc}{The minimum percentage of the most frequent label inside a cluster for the cluster not to be deleted.}
+\item{min_perc}{minimum percentage of the most frequent label inside a cluster for the cluster not to be deleted.}
 }
 \value{
-result.tb        a SITS tibble with all selected samples
+result.tb        tibble with all selected samples
 }
 \description{
 The function removes cluster according to a percentage threshold "min_perc".

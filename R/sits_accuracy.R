@@ -11,10 +11,10 @@
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 #'
 #'
-#' @param  class.tb        A sits tibble containing a set of classified samples whose labels are known
-#' @param  conv.lst        A list conversion list of labels. If NULL no conversion is done.
-#' @param  pred_sans_ext  (boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.
-#' @return caret_assess   a confusion matrix assessment produced by the caret package
+#' @param  class.tb        tibble containing a set of classified samples whose labels are known
+#' @param  conv.lst        list with labels to be converted. If NULL no conversion is done.
+#' @param  pred_sans_ext   logical: remove all label extension? (i.e. every string after last '.' character) from predictors before compute assesment.
+#' @return caret_assess    confusion matrix assessment produced by the caret package
 #'
 #' @examples
 #' \donttest{

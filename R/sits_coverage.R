@@ -115,13 +115,13 @@ sits_coverage <- function(service        = "RASTER",
 #'               projection. Each raster brick file should contain one band
 #'               per time step. Different bands are archived in different raster files.
 #'
-#' @param  name              The name of the coverage file
-#' @param  timeline          Vector of dates with the timeline of the bands
-#' @param  bands             The bands contained in the Raster Brick set (in the same order as the files)
+#' @param  name              name of the coverage file
+#' @param  timeline          vector of dates with the timeline of the bands
+#' @param  bands             vector of bands contained in the Raster Brick set (in the same order as the files)
 #' @param  scale_factors     vector of scale factors (one per band)
 #' @param  missing_values    vector of missing values (one per band)
-#' @param  files             Vector with the file paths of the raster files
-#' @return raster.tb         A tibble with metadata information about a raster data set
+#' @param  files             vector with the file paths of the raster files
+#' @return raster.tb         tibble with metadata information about a raster data set
 #'
 .sits_coverage_raster <- function(name, timeline, bands,
                                   scale_factors, missing_values, files) {

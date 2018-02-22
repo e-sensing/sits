@@ -10,32 +10,32 @@ sits_getdata(coverage = NULL, file = NULL, longitude = NULL,
   .n_save = 0)
 }
 \arguments{
-\item{coverage}{(Mandatory) A tibble with information about the coverage.}
+\item{coverage}{(mandatory) tibble with information about the coverage.}
 
-\item{file}{(optional) the name of a file with information on the data to be retrieved (options - CSV, SHP).}
+\item{file}{(optional) name of a file with information on the data to be retrieved (options - CSV, SHP).}
 
-\item{longitude}{Longitude of the chosen location.}
+\item{longitude}{longitude of the chosen location.}
 
-\item{latitude}{Latitude of the chosen location.}
+\item{latitude}{latitude of the chosen location.}
 
-\item{start_date}{(optional) Start of the interval for the time series in Date format ("YYYY-MM-DD")}
+\item{start_date}{(optional) start of the interval for the time series in Date format ("YYYY-MM-DD")}
 
-\item{end_date}{(optional) End of the interval for the time series in Date format ("YYYY-MM-DD")}
+\item{end_date}{(optional) end of the interval for the time series in Date format ("YYYY-MM-DD")}
 
 \item{bands}{(optional) vector - the names of the bands to be retrieved.}
 
-\item{prefilter}{string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
+\item{prefilter}{(optional) string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 
 \item{label}{(optional) string - the label to be assigned to the time series}
 
-\item{.n_start}{(optional) integer - Row on the CSV file to start reading}
+\item{.n_start}{(optional) integer - row on the CSV file to start reading}
 
 \item{.n_max}{(optional) integer - maximum number of CSV samples to be read (set to Inf to read all)}
 
 \item{.n_save}{(optional) number of samples to save as intermediate files (used for long reads)}
 }
 \value{
-data.tb        a SITS tibble
+data.tb        a tibble with time series data and metadata
 }
 \description{
 Retrieve a set of time series. There are two main ways of retrieving time series:

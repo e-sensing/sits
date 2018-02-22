@@ -7,12 +7,12 @@
 sits_rename(data.tb, names)
 }
 \arguments{
-\item{data.tb}{a valid sits tibble}
+\item{data.tb}{valid sits tibble}
 
-\item{names}{string vector with the new bands' names}
+\item{names}{string vector with the names of the new bands}
 }
 \value{
-data.tb     the sits tibble with the new names for the bands
+data.tb     sits tibble with the new names for the bands
 }
 \description{
 set the names of the bands of time series in a sits table

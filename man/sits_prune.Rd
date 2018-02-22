@@ -7,10 +7,10 @@
 sits_prune(data.tb)
 }
 \arguments{
-\item{data.tb}{A sits tibble (either a SITS tibble or a raster metadata}
+\item{data.tb}{sits tibble (either a SITS tibble or a raster metadata)}
 }
 \value{
-data.tb  A SITS tibble
+data.tb  pruned sits tibble
 }
 \description{
 This function tests if all time series in a SITS tibble

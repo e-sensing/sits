@@ -7,12 +7,12 @@
 sits_toZOO(data.tb, band = NULL)
 }
 \arguments{
-\item{data.tb}{a SITS time series}
+\item{data.tb}{sits tibble with time series}
 
-\item{band}{the name of the band to be exported (if NULL all bands are exported)}
+\item{band}{name of the band to be exported (if NULL all bands are exported)}
 }
 \value{
-zoo.lst    a list of time series in zoo format
+zoo.lst    list of time series in zoo format
 }
 \description{
 Converts data from a SITS tibble to a list of a zoo series.

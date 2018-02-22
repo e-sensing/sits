@@ -7,16 +7,16 @@
 sits_cluster(data.tb, dendro.obj, k = NULL, height = NULL)
 }
 \arguments{
-\item{data.tb}{a tibble with input data of dtwclust.}
+\item{data.tb}{tibble with input data of dtwclust.}
 
-\item{dendro.obj}{a dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.}
+\item{dendro.obj}{dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.}
 
-\item{k}{the desired number of clusters}
+\item{k}{(integer): desired number of clusters}
 
-\item{height}{the desired height to cut the dendrogram. At least one of k or height must be specified, k overrides height if both are given.}
+\item{height}{(double) desired height to cut the dendrogram. At least one of k or height must be specified, k overrides height if both are given.}
 }
 \value{
-result.tb       a SITS tibble with the clusters or clusters' members
+result.tb       tibble with the clusters or clusters' members
 }
 \description{
 reads a list of clusters provided by the dtwclust

@@ -9,12 +9,12 @@ sits_sample(data.tb, n = NULL, frac = NULL)
 \arguments{
 \item{data.tb}{input SITS table}
 
-\item{n}{the quantity of samples to pick from a given group of data.}
+\item{n}{number of samples to pick from a given group of data.}
 
-\item{frac}{the percentage of samples to pick from a given group of data.}
+\item{frac}{percentage of samples to pick from a given group of data.}
 }
 \value{
-result.tb  the new SITS table with a fixed quantity of samples of informed labels and all other
+result.tb  new SITS table with a fixed quantity of samples of informed labels and all other
 }
 \description{
 takes a sits table with different labels and

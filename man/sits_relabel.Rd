@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_labels.R
 \name{sits_relabel}
 \alias{sits_relabel}
-\title{relabels a sits tibble}
+\title{Relabels a sits tibble}
 \usage{
 sits_relabel(data.tb, conv.lst = list())
 }
@@ -10,7 +10,7 @@ sits_relabel(data.tb, conv.lst = list())
 \item{data.tb}{a SITS tibble}
 
 \item{conv.lst}{a named list used to convert labels to a new value. Actual labels must be the names of the conv.lst elements.
-An empty list produces no difference.}
+an empty list produces no difference.}
 }
 \value{
 result.tb      a new SITS tibble with modified labels

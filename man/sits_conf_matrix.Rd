@@ -7,14 +7,14 @@
 sits_conf_matrix(class.tb, conv.lst = NULL, pred_sans_ext = FALSE)
 }
 \arguments{
-\item{class.tb}{A sits tibble containing a set of classified samples whose labels are known}
+\item{class.tb}{tibble containing a set of classified samples whose labels are known}
 
-\item{conv.lst}{A list conversion list of labels. If NULL no conversion is done.}
+\item{conv.lst}{list with labels to be converted. If NULL no conversion is done.}
 
-\item{pred_sans_ext}{(boolean) remove all label extension (i.e. every string after last '.' character) from predictors before compute assesment.}
+\item{pred_sans_ext}{logical: remove all label extension? (i.e. every string after last '.' character) from predictors before compute assesment.}
 }
 \value{
-caret_assess   a confusion matrix assessment produced by the caret package
+caret_assess    confusion matrix assessment produced by the caret package
 }
 \description{
 Evaluates the confusion matrix based on "reference" and "predicted" values

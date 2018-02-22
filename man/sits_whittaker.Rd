@@ -8,16 +8,16 @@ sits_whittaker(data.tb, lambda = 1, differences = 3,
   bands_suffix = "whit")
 }
 \arguments{
-\item{data.tb}{The SITS tibble containing the original time series}
+\item{data.tb}{tibble with time series data and metadata}
 
-\item{lambda}{double   - the smoothing factor to be applied (default 1.0)}
+\item{lambda}{(double) smoothing factor to be applied (default 1.0)}
 
-\item{differences}{an integer indicating the order of differences of contiguous elements (default 3)}
+\item{differences}{(innteger) the order of differences of contiguous elements (default 3)}
 
-\item{bands_suffix}{the suffix to be appended to the smoothed filters (default "whit")}
+\item{bands_suffix}{suffix to be appended to the smoothed filters (default "whit")}
 }
 \value{
-output.tb a tibble with smoothed sits time series
+output.tb   tibble with smoothed sits time series
 }
 \description{
 The algorithm searches for an optimal polynomial describing the warping.

@@ -9,11 +9,11 @@ sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
   tolerance = 0.001, epsilon = 0.1, cross = 4, ...)
 }
 \arguments{
-\item{distances.tb}{a time series with a set of distance measures for each training sample}
+\item{distances.tb}{set of distance measures for each training sample}
 
-\item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)}
+\item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)}
 
-\item{kernel}{the kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)}
+\item{kernel}{kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)}
 
 \item{degree}{exponential of polynomial type kernel}
 
@@ -25,12 +25,12 @@ sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
 
 \item{epsilon}{epsilon in the insensitive-loss function (default: 0.1)}
 
-\item{cross}{the number of cross validation folds applied on the training data to assess the quality of the model,}
+\item{cross}{number of cross validation folds applied on the training data to assess the quality of the model,}
 
 \item{...}{other parameters to be passed to e1071::svm function}
 }
 \value{
-result          a fitted model function to be passed to sits_predict
+result          fitted model function to be passed to sits_predict
 }
 \description{
 This function receives a tibble with a set of attributes X for each observation Y

@@ -8,18 +8,24 @@
 #'              a prediction model (created by \code{\link[sits]{sits_train}}),
 #'              and produces a classified set of RasterLayers. This function is similar to
 #'               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
+#'               There are two parameters for optimizing processing of large data sets. These
+#'               parameters are "blocksize" and "multicores". The first controls the size of the data block to
+#'               be read from disk. When acessing raster data, the block size is a multiple of the number of
+#'               columns in each band. Thus, reading a 1000 x 1000 image with a block size of 250000 will result
+#'               in using blocks of size 250 lines x 1000 columns. The "multicores" parameter defines the
+#'               number of cores used for processing.
 #'
 #'
-#' @param  file            a set of file names to store the output (one file per classified year)
-#' @param  raster.tb       a tibble with information about a set of space-time raster bricks
-#' @param  samples.tb      The samples used for training the classification model
-#' @param  ml_method       a model trained by \code{\link[sits]{sits_train}}
-#' @param  adj_fun         Adjustment function to be applied to the data
-#' @param  interval        The interval between two sucessive classification
-#' @param  read_lines      Number of lines of to be read (see function .sits_raster_block_size)
-#' @param  multicores      Number of threads to process the time series.
-#' @param  verbose         Run function in verbose mode (useful for working with big data sets)
-#' @return raster_class.tb a SITS tibble with the metadata for the set of RasterLayers
+#' @param  file            vector of file names to store the output (one file per classified year)
+#' @param  raster.tb       tibble with information about a set of space-time raster bricks
+#' @param  samples.tb      tibble with samples used for training the classification model
+#' @param  ml_method       an R model trained by \code{\link[sits]{sits_train}}
+#' @param  adj_fun         adjustment function to be applied to the data
+#' @param  interval        interval between two sucessive classifications, expressed in months
+#' @param  blocksize       size of the block to be read to build a block for classification
+#' @param  multicores      number of threads to process the time series.
+#' @param  verbose         logical: run function in verbose mode? (useful for working with big data sets)
+#' @return raster_class.tb tibble with the metadata for the vector of classified RasterLayers
 #'
 #' @examples
 #' \donttest{
@@ -39,7 +45,7 @@
 #'
 #' # classify the raster file
 #' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-#'    ml_method = sits_svm(), read_lines = 50, multicores = 1)
+#'    ml_method = sits_svm(), blocksize = 250, multicores = 1)
 #' }
 #'
 #' @export
@@ -49,7 +55,7 @@ sits_classify_raster <- function(file = NULL,
                                  ml_method  = sits_svm(),
                                  adj_fun    = sits_adjust(),
                                  interval   = "12 month",
-                                 read_lines = 200,
+                                 blocksize  = 2000,
                                  multicores = 2,
                                  verbose    = FALSE){
 
@@ -65,7 +71,6 @@ sits_classify_raster <- function(file = NULL,
                          err_desc = "sits-classify-raster: please provide name of output file")
 
     # estimate the amount of memory required
-    blocksize <- read_lines * raster.tb$nrows
     # get the bands
     bands <-  raster.tb$bands[[1]]
     nbands <-  length(bands)
@@ -73,11 +78,14 @@ sits_classify_raster <- function(file = NULL,
     # size of the timeline
     ntimes <- length(raster.tb$timeline[[1]])
 
+    # bytes per double
+    bytes_double <- 8
+
     # estimated memory bloat
     bloat <- .sits_get_memory_bloat()
 
     # estimated total memory used (in GB)
-    memory_req <- round((blocksize * nbands * ntimes * 4 * bloat)/1000000000, digits = 2)
+    memory_req <- round((blocksize * nbands * ntimes * bytes_double * bloat)/1000000000, digits = 2)
     message(paste0("expected memory use can be as large as ", memory_req," Gb"))
     message("make sure your computer has this memory available")
 
@@ -155,7 +163,7 @@ sits_classify_raster <- function(file = NULL,
 #' @description This function retrieves one or more raster objects stored in a raster coverage.
 #'              It should be used to ensure that the raster objects are returned correctly.
 #'
-#' @param raster.tb  Raster coverage
+#' @param raster.tb  raster coverage
 #' @param i          i-th element of the list to retrieve
 #'
 #' @examples

@@ -1,11 +1,11 @@
-#' @title returns the labels' count of a sits table
+#' @title Returns the information about labels  of a sits tibble
 #' @name sits_labels
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description  returns the labels and its respective counting and frequency.
 #'
-#' @param data.tb     a valid sits table
-#' @return result.tb  a tibble with the names of the labels and its absolute and relative frequency
+#' @param data.tb     tibble with time series data and metadata
+#' @return result.tb  tibble with the names of the labels and their absolute and relative frequency
 #'
 #' @examples
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
@@ -25,7 +25,7 @@ sits_labels <- function (data.tb) {
                                         freq  = as.numeric(prop.table(data.vec))))
     return (result.tb)
 }
-#' @title relabels a sits tibble
+#' @title Relabels a sits tibble
 #' @name sits_relabel
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -35,7 +35,7 @@ sits_labels <- function (data.tb) {
 #'
 #' @param  data.tb        a SITS tibble
 #' @param  conv.lst       a named list used to convert labels to a new value. Actual labels must be the names of the conv.lst elements.
-#'                        An empty list produces no difference.
+#'                        an empty list produces no difference.
 #' @return result.tb      a new SITS tibble with modified labels
 #'
 #' @examples

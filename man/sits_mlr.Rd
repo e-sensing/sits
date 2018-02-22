@@ -4,13 +4,13 @@
 \alias{sits_mlr}
 \title{Train a SITS classifiaction model using multinomial log-linear regions via neural networks}
 \usage{
-sits_mlr(distances.tb = NULL, formula = sits_formula_logref(),
-  n_weights = 5000, maxit = 250, ...)
+sits_mlr(distances.tb = NULL, formula = sits_formula_linear(),
+  n_weights = 20000, maxit = 2000, ...)
 }
 \arguments{
-\item{distances.tb}{a time series with a set of distance measures for each training sample}
+\item{distances.tb}{set of distance measures for each training sample}
 
-\item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
+\item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
 \item{n_weights}{maximum number of weights (should be proportional to size of input data)}
 

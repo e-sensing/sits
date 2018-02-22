@@ -7,9 +7,9 @@
 sits_linear_interp(data.tb, n = 23)
 }
 \arguments{
-\item{data.tb}{a valid sits tibble}
+\item{data.tb}{tibble with time series data and metadata}
 
-\item{n}{the number of time series elements to be created between start date and end date}
+\item{n}{number of time series elements to be created between start date and end date}
 }
 \value{
 result.tb    a sits tibble with same samples and the new bands

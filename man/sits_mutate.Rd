@@ -7,7 +7,7 @@
 sits_mutate(data.tb, ...)
 }
 \arguments{
-\item{data.tb}{a valid sits tibble}
+\item{data.tb}{valid sits tibble}
 
 \item{...}{`name=value` pairs expressions. See `dplyr::mutate` help for more details.}
 }

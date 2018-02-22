@@ -7,7 +7,7 @@
 sits_show_config()
 }
 \value{
-config_sits  A list with the configuration parameters used by SITS
+config_sits  list with the configuration parameters used by SITS
 }
 \description{
 Displays the contents of SITS configuration file. For more details

@@ -7,12 +7,12 @@
 sits_distances(data.tb, adj_fun = sits_adjust())
 }
 \arguments{
-\item{data.tb}{SITS tibble with original data}
+\item{data.tb}{tibble with time series data and metadata}
 
-\item{adj_fun}{Adjustment function to be applied to the data}
+\item{adj_fun}{adjustment function to be applied to the data}
 }
 \value{
-distances.tb  a tibble where columns have the reference label and the time series values as distances
+distances.tb  data.table where columns have the reference label and the time series values as distances
 }
 \description{
 This function allows using a set of labelled time series as

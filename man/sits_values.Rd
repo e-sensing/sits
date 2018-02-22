@@ -7,14 +7,14 @@
 sits_values(data.tb, bands = NULL, format = "cases_dates_bands")
 }
 \arguments{
-\item{data.tb}{a tibble in SITS format with time series for different bands}
+\item{data.tb}{tibble in SITS format with time series for different bands}
 
 \item{bands}{string - a group of bands whose values are to be extracted. If no bands is informed extract ALL bands.}
 
 \item{format}{string - either "cases_dates_bands" or "bands_cases_dates" or "bands_dates_cases"}
 }
 \value{
-table   a tibble in SITS format with values
+table      tibble in SITS format with values
 }
 \description{
 this function returns only the values of a sits table (according a specified format).

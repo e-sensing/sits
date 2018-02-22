@@ -12,10 +12,10 @@
 #'
 #' @references `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param data.tb         A SITS tibble to be used to generate the dendrogram.
-#' @param bands           a vector the bands to be clusterized.
-#' @param dist_method     A supported distance from proxy's dist, e.g. \code{TWDTW}.
-#' @param linkage         the agglomeration method to be used. Any `hclust` method (see `hclust`) Default is 'ward.D2'..
+#' @param data.tb         tibble with time series data and metadata to be used to generate the dendrogram.
+#' @param bands           vector of bands to be clustered.
+#' @param dist_method     (string) one of the supported distance from proxy's dist, e.g. \code{TWDTW}.
+#' @param linkage         (string) agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'
 #' @param  ...            any additional parameters to be passed to dtwclust::tsclust() function
 #' @return dendro.obj     a full dendrogram tree for data analysis
 #'
@@ -74,11 +74,9 @@ sits_dendrogram <- function (data.tb, bands = NULL,
 #'
 #' See \link[flexclust]{randIndex} for implementation details.
 #'
-#' @param data.tb          The same SITS tibble used to generate `dendro.obj`.
+#' @param data.tb          tibble used to generate `dendro.obj`.
 #' @param dendro.obj       a dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.
-#'
-#' @return
-#' A vector with the best number of clusters (k) and its respective heigh.
+#' @return                 vector with the best number of clusters (k) and its respective heigh.
 #'
 #' @examples
 #' \donttest{

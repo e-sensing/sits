@@ -10,9 +10,9 @@
 #' function that adjusts the values of the time series to meet the criteria of
 #' machine learning methods, since most ML methods do not allow for negative data.
 #'
-#' @param  data.tb       SITS tibble with original data
-#' @param  adj_fun       Adjustment function to be applied to the data
-#' @return distances.tb  a tibble where columns have the reference label and the time series values as distances
+#' @param  data.tb       tibble with time series data and metadata
+#' @param  adj_fun       adjustment function to be applied to the data
+#' @return distances.tb  data.table where columns have the reference label and the time series values as distances
 #'
 #' @examples
 #' # Retrieve the set of samples for the Cerrado and Pasture classes

@@ -4,12 +4,12 @@
 #'
 #' @description Converts data from an instance of a zoo series to a SITS tibble
 #'
-#' @param ts.zoo        A zoo time series
-#' @param longitude     Longitude of the chosen location
-#' @param latitude      Latitude of the chosen location
-#' @param label         Label to attach to the time series (optional)
-#' @param name          Name of the coverage where data comes from
-#' @return data.tb      A time series in SITS tibble format
+#' @param ts.zoo        zoo time series
+#' @param longitude     longitude of the chosen location
+#' @param latitude      latitude of the chosen location
+#' @param label         label to attach to the time series (optional)
+#' @param name          name of the coverage where data comes from
+#' @return data.tb      time series in SITS tibble format
 #'
 #' @examples
 #' # Read a time series in ZOO format
@@ -54,9 +54,9 @@ sits_fromZOO <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoC
 #'
 #' @description Converts data from a SITS tibble to a list of a zoo series.
 #'
-#' @param  data.tb    a SITS time series
-#' @param  band       the name of the band to be exported (if NULL all bands are exported)
-#' @return zoo.lst    a list of time series in zoo format
+#' @param  data.tb    sits tibble with time series
+#' @param  band       name of the band to be exported (if NULL all bands are exported)
+#' @return zoo.lst    list of time series in zoo format
 #' @examples
 #'
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture

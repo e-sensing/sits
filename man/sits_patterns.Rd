@@ -8,22 +8,22 @@ sits_patterns(data.tb = NULL, timeline = NULL, start_date = NULL,
   end_date = NULL, freq = 8, formula = y ~ s(x), ...)
 }
 \arguments{
-\item{data.tb}{a tibble in SITS format with time series}
+\item{data.tb}{tibble in SITS format with time series}
 
-\item{timeline}{timeline with the all dates for the coverage}
+\item{timeline}{vector - timeline with the all dates for the coverage}
 
 \item{start_date}{starting date of the estimate (month-day)}
 
 \item{end_date}{end data of the estimated (month-day)}
 
-\item{freq}{int - the interval in days for the estimates to be generated}
+\item{freq}{interval in days for the estimates to be generated}
 
-\item{formula}{the formula to be applied in the estimate}
+\item{formula}{formula to be applied in the estimate}
 
 \item{...}{any additional parameters}
 }
 \value{
-patterns.tb   a SITS tibble with the patterns
+patterns.tb   SITS tibble with the patterns
 }
 \description{
 This function takes a set of time series samples as input

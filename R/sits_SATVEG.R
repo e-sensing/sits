@@ -1,9 +1,9 @@
-#' @title Provides information about one coverage of a web time series service
+#' @title Provides information about one coverage of the SATVEG time series service
 #' @name .sits_coverage_SATVEG
 #'
 #' @description creates a tibble with metadata about a given coverage
 #'
-#' @param name       the name of the coverage
+#' @param name       name of the coverage
 #' @param timeline   timeline of the coverage
 #'
 .sits_coverage_SATVEG <- function(name, timeline) {

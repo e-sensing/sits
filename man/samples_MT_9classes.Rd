@@ -14,7 +14,7 @@ data(samples_MT_9classes)
 }
 \description{
 A dataset containing a tibble with time series samples for the Mato Grosso state in Brasil.
-  The time series come from MOD13Q1 collection 5 images. The data set has the following classes:
+  The time series come from MOD13Q1 collection 6 images. The data set has the following classes:
   Cerrado(400 samples), Fallow_Cotton (34 samples), Forest (138 samples), Pasture (370 samples),
   Soy-Corn (398 samples),  Soy-Cotton (399 samples), Soy_Fallow (88 samples),
   Soy_Millet (235 samples), and Soy_Sunflower (53 samples).

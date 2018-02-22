@@ -7,12 +7,12 @@
 sits_dendro_bestcut(data.tb, dendro.obj)
 }
 \arguments{
-\item{data.tb}{The same SITS tibble used to generate `dendro.obj`.}
+\item{data.tb}{tibble used to generate `dendro.obj`.}
 
 \item{dendro.obj}{a dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.}
 }
 \value{
-A vector with the best number of clusters (k) and its respective heigh.
+vector with the best number of clusters (k) and its respective heigh.
 }
 \description{
 reads a dendrogram object and its corresponding SITS tibble and

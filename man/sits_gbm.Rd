@@ -13,7 +13,7 @@ sits_gbm(distances.tb = NULL, formula = sits_formula_logref(),
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
-\item{distribution}{The name of the distribution - use "multinomial" for classification}
+\item{distribution}{name of the distribution - use "multinomial" for classification}
 
 \item{n.trees}{Number of trees to fit. This should not be set to too small a number,
 to ensure that every input row gets predicted at least a few times. (default: 5000)}

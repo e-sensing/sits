@@ -20,18 +20,18 @@
 #'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  data.tb        a table in SITS format with a time series to be classified using TWTDW
-#' @param  patterns.tb   a set of known temporal signatures for the chosen classes
-#' @param  bands         string - the bands to be used for classification
-#' @param  dist.method   A character. Method to derive the local cost matrix.
-#' @param  alpha         (double) - the steepness of the logistic function used for temporal weighting
-#' @param  beta          (integer) - the midpoint (in days) of the logistic function
-#' @param  theta         (double)  - the relative weight of the time distance compared to the dtw distance
+#' @param  data.tb       sits tibble  to be classified using TWTDW
+#' @param  patterns.tb   tibble with known temporal signatures for the chosen classes
+#' @param  bands         (string) bands to be used for classification
+#' @param  dist.method   (string) method to derive the local cost matrix.
+#' @param  alpha         (double) steepness of the logistic function used for temporal weighting
+#' @param  beta          (integer) midpoint (in days) of the logistic function
+#' @param  theta         (double)  relative weight of the time distance compared to the dtw distance
 #' @param  span          minimum number of days between two matches of the same pattern in the time series (approximate)
-#' @param  keep          keep internal values for plotting matches
-#' @param  start_date    date - the start of the classification period
-#' @param  end_date      date - the end of the classification period
-#' @param  interval      the period between two classifications
+#' @param  keep          (logical) keep internal values for plotting matches
+#' @param  start_date    (date) start of the classification period
+#' @param  end_date      (date) the end of the classification period
+#' @param  interval      (months) period between two classifications
 #' @param  overlap       minimum overlapping between one match and the interval of classification
 #' @return matches       a dtwSat S4 object with the matches
 #' @examples

@@ -4,6 +4,7 @@ library(sits)
 library(rgdal)
 library(raster)
 
+cities
 # these are the symbolic links for the files at dropbox
 
 evi <- paste0("h13v10-evi.tiff")

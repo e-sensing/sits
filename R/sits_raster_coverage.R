@@ -7,10 +7,10 @@
 #' set of RasterLayers to store the classification result. Each RasterLayer corresponds
 #' to one time step. The time steps are specified in a list of dates.
 #'
-#' @param  raster.tb         Tibble with metadata about the input RasterBrick objects
-#' @param  samples.tb        The samples used for training the classification model
-#' @param  file              Generic name of the files that will contain the RasterLayers
-#' @return raster_layers.tb  Tibble with metadata about the output RasterLayer objects
+#' @param  raster.tb         tibble with metadata about the input RasterBrick objects
+#' @param  samples.tb        samples used for training the classification model
+#' @param  file              generic name of the files that will contain the RasterLayers
+#' @return raster_layers.tb  tibble with metadata about the output RasterLayer objects
 #'
 .sits_create_classified_raster <- function(raster.tb, samples.tb, file, interval){
 
@@ -86,19 +86,19 @@
 
     return(coverage.tb)
 }
-#' @title Provides information about the coverages that make up a set of raster bricks
+#' @title Creates a tibble with information about a set of raster bricks
 #' @name .sits_create_raster_coverage
 #'
 #' @description creates a tibble with metadata about a given coverage
 #'
-#' @param raster.lst        the list of Raster objects associated with the raster coverages
-#' @param service           the time series service
-#' @param name              the name of the coverage
-#' @param timeline          the coverage timeline
-#' @param bands             vector with names of bands
-#' @param scale_factors     scale factors
-#' @param missing_values    missing values
-#' @param files             vector with names of raster files where the data is stored
+#' @param raster.lst        list of Raster objects associated with the raster coverages
+#' @param service           time series service
+#' @param name              name of the coverage
+#' @param timeline          vector - coverage timeline
+#' @param bands             vector - names of bands
+#' @param scale_factors     vector - scale factors
+#' @param missing_values    vector - missing values
+#' @param files             vector - names of raster files where the data is stored
 #'
 .sits_create_raster_coverage <- function(raster.lst,
                                          service,
@@ -218,9 +218,10 @@
 #' @description    Creates a filename for a raster layer with associated temporal information,
 #'                 given a basic filename
 #'
-#' @param file       The original file name (without temporal information)
-#' @param start_date The starting date of the time series classification
-#' @param end_date   The end date of the time series classification
+#' @param file          original file name (without temporal information)
+#' @param start_date    starting date of the time series classification
+#' @param end_date      end date of the time series classification
+#' @return file_name    name of the classification file for the required interval
 #'
 .sits_raster_filename <- function(file, start_date, end_date){
 

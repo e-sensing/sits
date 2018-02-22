@@ -22,12 +22,12 @@
 #'
 #' This function returns the confusion matrix, and Kappa values.
 #'
-#' @param data.tb         a SITS tibble
+#' @param data.tb         sits tibble
 #' @param folds           number of partitions to create.
 #' @param ml_method       machine learning training method
 #' @param adj_fun         adjustment function applied to the input data
 #' @param multicores      number of threads to process the validation (Linux and MacOS only)
-#' @return pred_ref.tb    a tibble containing pairs of reference and predicted values
+#' @return pred_ref.tb    tibble containing pairs of reference and predicted values
 #'
 #' @examples
 #' \donttest{
