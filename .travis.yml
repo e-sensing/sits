@@ -9,9 +9,11 @@ cache: packages
 sudo: required
 
 before_install:
+  - sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable -y
+  - sudo apt-get update -qq
   - curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
   - chmod 755 ./travis-tool.sh
-  - ./travis-tool.sh aptget_install libgdal-dev libproj-dev
+  - ./travis-tool.sh aptget_install libproj-dev libudunits2-dev libgdal20 gdal-bin libgdal-dev
   - ./travis-tool.sh bootstrap
 install:
   - ./travis-tool.sh install_deps
