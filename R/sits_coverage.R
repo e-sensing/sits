@@ -54,9 +54,12 @@ sits_coverage <- function(service        = "RASTER",
 
     # if no service is specified, but the names of files are provided,
     # assume we are dealing with raster data
-    if (service == "RASTER")
-        ensurer::ensure_that(files, all(file.exists(.)),
-                             err_desc = "sits_coverage: raster files do not exist")
+    if (service == "RASTER") {
+        r <- suppressWarnings(rgdal::GDALinfo(files, silent = FALSE))
+        ensurer::ensure_that(r, all(!purrr::is_null(.)),
+                                        err_desc = "sits_coverage: raster files cannot be accessed")
+    }
+
     # pre-condition
     if (any(!is.na(files))) {
         if (all(file.exists(files)) && service != "RASTER") {

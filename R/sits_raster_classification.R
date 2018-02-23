@@ -69,7 +69,7 @@
             # the readGDAL function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            values.mx    <- as.matrix(rgdal::readGDAL(r_brick, offset, region.dim, silent = TRUE)@data)
+            values.mx    <- as.matrix(suppressWarnings(rgdal::readGDAL(r_brick, offset, region.dim, silent = TRUE))@data)
 
             # get the associated band
             i <<- i + 1
