@@ -8,7 +8,7 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 
 NumericMatrix preprocess_data(NumericMatrix data, const int& missing_value, const int& minimum_value,
-                              const double& scale_factor, const double& adj_value) {
+                              const double& scale_factor) {
 
     int nrows = data.nrow();
     int ncols = data.ncol();
@@ -30,7 +30,7 @@ NumericMatrix preprocess_data(NumericMatrix data, const int& missing_value, cons
             if (data(i, j) == missing_value || data(i, j) <= minimum_value)
                 data(i, j) = (data(i, j - 1 ) + data (i, j + 1))/2;
 
-    new_data = data * scale_factor + adj_value;
+    new_data = data * scale_factor;
 
     return new_data;
 }

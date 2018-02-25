@@ -181,7 +181,7 @@ $$
 E=(a+b)(b+c)+(c+d)(b+d).
 $$ 
 
-Different from others validity index such as Jaccard (${J=a/(a+b+c)}$), Fowlkes-Mallows (${FM=a/(a^2+a(b+c)+bc)^{1/2}}$), and Rand (the same as ARI without the $E$ adjustment) indices, ARI is more appropriate either when the number of clusters is outwheighted by the number of labels (and *vice versa*) and the amount of samples in labels and clusters is imbalanced [@Hubert1985], which is usually the case.
+Unlike other validity indexes such as Jaccard (${J=a/(a+b+c)}$), Fowlkes-Mallows (${FM=a/(a^2+a(b+c)+bc)^{1/2}}$), and Rand (the same as ARI without the $E$ adjustment) indices, ARI is more appropriate either when the number of clusters is outwheighted by the number of labels (and *vice versa*) and the amount of samples in labels and clusters is imbalanced [@Hubert1985], which is usually the case.
 
 ```{r}
 # create 6 clusters by cutting the dendrogram at 

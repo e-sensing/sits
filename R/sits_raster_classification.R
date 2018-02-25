@@ -51,9 +51,6 @@
     minimum_values <- .sits_get_minimum_values("RASTER", bands)
     scale_factors  <- unlist(raster.tb$scale_factors)
 
-    # get the adjustment value
-    adj_value <- as.double(.sits_get_adjustment_shift())
-
     # set the offset and region to be read by GDAL
     offset <- c(init_row - 1, 0)
     ncols <- raster.tb$ncols
@@ -85,8 +82,8 @@
 
             values.mx[is.na(values.mx)] <- minimum_value
 
-            values.mx <- preprocess_data(values.mx, missing_value, minimum_value, scale_factor, adj_value)
-
+            values.mx <- preprocess_data(values.mx, missing_value, minimum_value, scale_factor)
+            values.mx <- adj_fun(values.mx)
             return(values.mx)
         })
 

@@ -5,7 +5,7 @@ apply_first_order_transition_rules <- function(v, A, I) {
     .Call(`_sits_apply_first_order_transition_rules`, v, A, I)
 }
 
-preprocess_data <- function(data, missing_value, minimum_value, scale_factor, adj_value) {
-    .Call(`_sits_preprocess_data`, data, missing_value, minimum_value, scale_factor, adj_value)
+preprocess_data <- function(data, missing_value, minimum_value, scale_factor) {
+    .Call(`_sits_preprocess_data`, data, missing_value, minimum_value, scale_factor)
 }
 
