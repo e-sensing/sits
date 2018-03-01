@@ -174,6 +174,7 @@ sits_deeplearning <- function(distances.tb        = NULL,
         for (i in 1:length(units)) {
             output_tensor <- keras::layer_dense(output_tensor, units = units[i], activation = act_vec[i])
             output_tensor <- keras::layer_dropout(output_tensor, rate = dropout_rates[i])
+            output_tensor <- keras::layer_batch_normalization(output_tensor)
         }
         # create the final tensor
         output_tensor <- keras::layer_dense(output_tensor, units = n_labels, activation = "softmax")
