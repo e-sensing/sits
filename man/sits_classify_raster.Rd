@@ -4,7 +4,7 @@
 \alias{sits_classify_raster}
 \title{Classify a set of spatio-temporal raster bricks using machine learning models}
 \usage{
-sits_classify_raster(file = NULL, raster.tb, samples.tb,
+sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
   ml_method = sits_svm(), adj_fun = sits_adjust(), interval = "12 month",
   blocksize = 2000, multicores = 2, verbose = FALSE)
 }
@@ -15,7 +15,9 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb,
 
 \item{samples.tb}{tibble with samples used for training the classification model}
 
-\item{ml_method}{an R model trained by \code{\link[sits]{sits_train}}}
+\item{ml_model}{an R model trained by \code{\link[sits]{sits_train}}}
+
+\item{ml_method}{an R machine learning method such as SVM, Random Forest or Deep Learning}
 
 \item{adj_fun}{adjustment function to be applied to the data}
 
@@ -53,12 +55,12 @@ data(samples_MT_ndvi)
 files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 
 # define the timeline
-data(timeline_mod13q1)
-timeline <- lubridate::as_date (timeline_mod13q1$V1)
+data(timeline_modis_392)
 
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-Crop",
-             timeline = timeline, bands = c("ndvi"), files = files)
+#' # create a raster coverage file based on the information about the files
+raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
+             timeline = timeline_modis_392, bands = c("ndvi"), files = files)
 
 # classify the raster file
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,

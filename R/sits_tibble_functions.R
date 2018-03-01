@@ -87,10 +87,8 @@ sits_bands <- function(data.tb) {
 #' @param  data.tb  tibble in SITS format with time series for different bands
 #' @return table    tibble  with values of time indexes
 #' @examples
-#' # get a point
-#' data (ts_2000_2016)
-#' # return a vector of values
-#' sits_dates (ts_2000_2016)
+#' # get a point and print its dates
+#' sits_dates (point_MT_6bands)
 #' @export
 sits_dates <- function(data.tb) {
     values <- data.tb$time_series[[1]]$Index

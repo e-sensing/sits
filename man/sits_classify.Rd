@@ -4,7 +4,7 @@
 \alias{sits_classify}
 \title{Classify a sits tibble using machine learning models}
 \usage{
-sits_classify(data.tb = NULL, train_samples.tb = NULL,
+sits_classify(data.tb = NULL, train_samples.tb = NULL, ml_model = NULL,
   ml_method = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance =
   0.001, epsilon = 0.1, cross = 4), adj_fun = sits_adjust(),
   interval = "12 month", multicores = 1)
@@ -13,6 +13,8 @@ sits_classify(data.tb = NULL, train_samples.tb = NULL,
 \item{data.tb}{tibble with time series metadata and data}
 
 \item{train_samples.tb}{tibble with samples used for training the classification model}
+
+\item{ml_model}{pre-built machine learning model (see \code{\link[sits]{sits_train}})}
 
 \item{ml_method}{machine learning method (see \code{\link[sits]{sits_train}})}
 
@@ -39,11 +41,17 @@ Currenly, sits supports the following models:
 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 'lasso' (see \code{\link[sits]{sits_mlr}}), and 'ridge' (see \code{\link[sits]{sits_mlr}}).
 
+The model can be precomputed by the user, or built inside the function.
+In the case the user has already defined the model, this model should be
+passed to the function using the parameter "ml_model". Otherwise, users
+should pass the appropriate values to the "ml_method" and "adj_fun" parameters.
+
 The default is to use an SVM with a radial kernel, but users are encouraged to test
 alternatives.
 }
 \examples{
 \donttest{
+# Option 1. Use the SITS defaults for building a model
 # read a training data set
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
@@ -54,14 +62,19 @@ class_ndvi.tb <-  sits_classify (point_ndvi, samples_MT_ndvi)
 # plot the classification
 sits_plot (class_ndvi.tb)
 
-# Read a point from the WTSS server
-point2.tb <- sits_getdata (longitude = -46.4070, latitude = -10.8630)
-# select the ndvi
-point2.tb <- sits_select (point2.tb, bands = c("ndvi"))
+# Option 2. Build a machine learning model first
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+data(samples_MT_ndvi)
+# select the bands "ndvi", "evi", "nir", and "mir"
+samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
+# build a classification model using random forest
+model_rfor <- sits_train(samples.tb, ml_method = sits_rfor (ntree = 2000))
+# Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
+point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir","mir"))
 # classify the point
-class2.tb <-  sits_classify (point2.tb, samples_MT_ndvi)
+class.tb <-  sits_classify(point.tb, samples.tb, ml_model = model_rfor)
 # plot the classification
-sits_plot (class2.tb)
+sits_plot(class.tb)
 }
 
 }

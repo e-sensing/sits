@@ -77,18 +77,14 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' @param data    one or more time series (stored in a SITS tibble)
 #' @param colors  the color pallete to be used (default is "Set2")
 .sits_plot_allyears <- function(data, colors) {
-     locs <- dplyr::distinct(data, longitude, latitude)
-     locs %>%
-          purrrlyr::by_row(function(r){
-               long = as.double(r$longitude)
-               lat  = as.double(r$latitude)
-               # filter only those rows with the same label
-               data2.tb <- dplyr::filter(data, longitude == long, latitude == lat)
-               # use ggplot to plot the time series together
-               data2.tb %>%
-                    .sits_ggplot_series(colors) %>%
-                    graphics::plot()
-          })
+
+    locs <- dplyr::distinct(data, longitude, latitude)
+
+     purrr::pmap(list(locs$longitude, locs$latitude), function(long, lat) {
+         dplyr::filter(data, longitude == long, latitude == lat) %>%
+             .sits_ggplot_series(colors) %>%
+             graphics::plot()
+    })
 }
 
 #' @title Plot classification results
@@ -109,67 +105,67 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
     labels <- sits_labels(data)$label
 
     # put the time series in the data frame
-    data %>%
-        purrrlyr::by_row(function(r){
-            #lb = as.character (r$label)
-            lb = .sits_plot_title(r)
-            # extract the time series
-            ts <- r$time_series[[1]]
-            # convert to data frame
-            df.x <- data.frame(Time = ts$Index, ts[,band], Series = as.factor(lb) )
-            # melt the time series data for plotting
-            df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
-            # define a nice set of breaks for value plotting
-            y.labels = scales::pretty_breaks()(range(df.x$value, na.rm = TRUE))
-            y.breaks = y.labels
+    for (r in 1:NROW(data)) {
+        row <- data[r,]
+        #lb = as.character (r$label)
+        lb = .sits_plot_title(row)
+        # extract the time series
+        ts <- row$time_series[[1]]
+        # convert to data frame
+        df.x <- data.frame(Time = ts$Index, ts[,band], Series = as.factor(lb) )
+        # melt the time series data for plotting
+        df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
+        # define a nice set of breaks for value plotting
+        y.labels = scales::pretty_breaks()(range(df.x$value, na.rm = TRUE))
+        y.breaks = y.labels
 
-            # get the predicted values as a tibble
+        # get the predicted values as a tibble
 
-            pred <- r$predicted[[1]]
-            df.pol <- data.frame()
+        pred <- row$predicted[[1]]
+        df.pol <- data.frame()
 
-            # create a data frame with the predicted values and time intervals
-            i <- 1
-            pred %>%
-                purrrlyr::by_row(function(p){
-                    best_class <- as.character(p$class)
+        # create a data frame with the predicted values and time intervals
+        i <- 1
+        for (p in 1:NROW(pred)) {
+            row_p <- pred[p, ]
+            best_class <- as.character(row_p$class)
 
-                    df.p <- data.frame(
-                        Time  = c(lubridate::as_date(p$from), lubridate::as_date(p$to),
-                                  lubridate::as_date(p$to), lubridate::as_date(p$from)),
-                        Group = rep(i, 4),
-                        Class = rep(best_class, 4),
-                        value = rep(range(y.breaks, na.rm = TRUE), each = 2)
-                    )
-                    i <<- i + 1
-                    df.pol <<- rbind(df.pol, df.p)
-                })
-            df.pol$Group  <-  factor(df.pol$Group)
-            df.pol$Class  <-  factor(df.pol$Class)
-            df.pol$Series <-  rep(lb, length(df.pol$Time))
+            df.p <- data.frame(
+                Time  = c(lubridate::as_date(row_p$from), lubridate::as_date(row_p$to),
+                          lubridate::as_date(row_p$to), lubridate::as_date(row_p$from)),
+                Group = rep(i, 4),
+                Class = rep(best_class, 4),
+                value = rep(range(y.breaks, na.rm = TRUE), each = 2)
+            )
+            i <- i + 1
+            df.pol <- rbind(df.pol, df.p)
+        }
+        df.pol$Group  <-  factor(df.pol$Group)
+        df.pol$Class  <-  factor(df.pol$Class)
+        df.pol$Series <-  rep(lb, length(df.pol$Time))
 
 
-            I = min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
-                df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
+        I = min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
+            df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
 
-            df.x = df.x[I,,drop = FALSE]
+        df.x = df.x[I,,drop = FALSE]
 
-            gp <-  ggplot2::ggplot() +
-                ggplot2::facet_wrap(~Series, scales = "free_x", ncol = 1) +
-                ggplot2::geom_polygon(data = df.pol,
-                                      ggplot2::aes_string(x = 'Time', y = 'value', group = 'Group', fill = 'Class'),
-                                      alpha = .7) +
-                ggplot2::scale_fill_brewer(palette = "Set3") +
-                ggplot2::geom_line(data = df.x, ggplot2::aes_string(x = 'Time', y = 'value', colour = 'variable')) +
-                ggplot2::scale_y_continuous(expand = c(0, 0), breaks = y.breaks, labels = y.labels) +
-                ggplot2::scale_x_date(breaks = ggplot2::waiver(), labels = ggplot2::waiver()) +
-                ggplot2::theme(legend.position = "bottom") +
-                ggplot2::guides(colour = ggplot2::guide_legend(title = "Bands")) +
-                ggplot2::ylab("Value") +
-                ggplot2::xlab("Time")
+        gp <-  ggplot2::ggplot() +
+            ggplot2::facet_wrap(~Series, scales = "free_x", ncol = 1) +
+            ggplot2::geom_polygon(data = df.pol,
+                                  ggplot2::aes_string(x = 'Time', y = 'value', group = 'Group', fill = 'Class'),
+                                  alpha = .7) +
+            ggplot2::scale_fill_brewer(palette = "Set3") +
+            ggplot2::geom_line(data = df.x, ggplot2::aes_string(x = 'Time', y = 'value', colour = 'variable')) +
+            ggplot2::scale_y_continuous(expand = c(0, 0), breaks = y.breaks, labels = y.labels) +
+            ggplot2::scale_x_date(breaks = ggplot2::waiver(), labels = ggplot2::waiver()) +
+            ggplot2::theme(legend.position = "bottom") +
+            ggplot2::guides(colour = ggplot2::guide_legend(title = "Bands")) +
+            ggplot2::ylab("Value") +
+            ggplot2::xlab("Time")
 
-            graphics::plot(gp)
-        })
+        graphics::plot(gp)
+    }
 
 
 
@@ -178,20 +174,6 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 
 
 
-#' @title Plot  time intervals of one time series separately (one-by-one)
-#' @name .sits_plot_one_by_one
-#'
-#' @description plots each row of a data set separately
-#' @param data.tb one or more time series (stored in a SITS tibble)
-#' @param colors  the color pallete to be used (default is "Dark2")
-.sits_plot_one_by_one <- function(data.tb, colors){
-    data.tb %>%
-        purrrlyr::by_row(function(r){
-            .sits_ggplot_series(r, colors) %>%
-                graphics::plot()
-        })
-
-}
 #' @title Plot classification patterns
 #' @name .sits_plot_patterns
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
@@ -204,14 +186,13 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
     plot.df <- data.frame()
 
     # put the time series in the data frame
-    data.tb %>%
-        purrrlyr::by_row(function(r) {
-            lb = as.character(r$label)
-            # extract the time series and convert
-            ts <- r$time_series[[1]]
-            df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
-            plot.df <<- rbind(plot.df, df)
-        })
+    purrr::pmap(list(data.tb$label, data.tb$time_series),
+                     function(label, ts) {
+                         lb = as.character(label)
+                         # extract the time series and convert
+                         df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
+                         plot.df <<- rbind(plot.df, df)
+    })
 
     plot.df <- reshape2::melt(plot.df, id.vars = c("Time", "Pattern"))
 
@@ -269,28 +250,27 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
      }
 
      # how many different labels are there?
-     labels <- dplyr::distinct(data.tb, label)
+     labels <- sits_labels(data.tb)$label
 
      labels %>%
-          purrrlyr::by_row(function(r) {
-               lb = as.character(r$label)
-               # filter only those rows with the same label
-               data2.tb <- dplyr::filter(data.tb, label == lb)
-               # how many time series are to be plotted?
-               number <- nrow(data2.tb)
-               # what are the band names?
-               bands  <- sits_bands(data2.tb)
-               # what are the reference dates?
-               ref_dates <- data2.tb[1,]$time_series[[1]]$Index
-               # align all time series to the same dates
-               data2.tb <- .sits_align(data2.tb, ref_dates)
-               # extract the time series
-               ts <- data2.tb$time_series
-               # plot all samples for the same label
-               bands %>%
-                    purrr::map(function(band) {plot_samples(ts, band, lb, number)})
-               return(data2.tb)
-          })
+         purrr::map(function(l) {
+             lb = as.character(l)
+             # filter only those rows with the same label
+             data2.tb <- dplyr::filter(data.tb, label == lb)
+             # how many time series are to be plotted?
+             number <- nrow(data2.tb)
+             # what are the band names?
+             bands  <- sits_bands(data2.tb)
+             # what are the reference dates?
+             ref_dates <- data2.tb[1,]$time_series[[1]]$Index
+             # align all time series to the same dates
+             data2.tb <- .sits_align(data2.tb, ref_dates)
+             # extract the time series
+             ts <- data2.tb$time_series
+             # plot all samples for the same label
+             bands %>%
+                 purrr::map(function(band) {plot_samples(ts, band, lb, number)})
+     })
 }
 
 #' @title Plot one timeSeries using ggplot

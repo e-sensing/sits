@@ -4,11 +4,10 @@ testthat::test_that("Working with raster coverages", {
     library(raster)
     library(sf)
     files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-    data(timeline_mod13q1)
-    timeline <- lubridate::as_date(timeline_mod13q1$V1)
+    data("timeline_modis_392")
     raster.tb <- sits_coverage(service = "RASTER",
                                name = "Sinop-crop",
-                               timeline = timeline,
+                               timeline = timeline_modis_392,
                                bands = c("ndvi"),
                                files = files)
 
@@ -18,7 +17,7 @@ testthat::test_that("Working with raster coverages", {
 
     point.tb <- sits_getdata(coverage = raster.tb, longitude = -55.55502, latitude = -11.52774)
 
-    testthat::expect_true(length(point.tb$time_series[[1]]$Index) == length(timeline))
+    testthat::expect_true(length(point.tb$time_series[[1]]$Index) == length(timeline_modis_392))
 
     raster_class.tb <- sits_classify_raster(file = "./raster-class", raster.tb, samples_MT_ndvi,
                                             ml_method = sits_svm(), blocksize = 250, multicores = 2)

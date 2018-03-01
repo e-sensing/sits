@@ -2,7 +2,7 @@ Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
 Version: 1.3.0
-Date: 2018-02-22
+Date: 2018-03-01
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
@@ -71,7 +71,6 @@ Imports:
     scales,
     sf,
     signal,
-    snow,
     stats,
     stringr,
     tibble,
@@ -101,7 +100,6 @@ Collate:
     'sits_factory.R'
     'sits_filters.R'
     'sits_getdata.R'
-    'sits_import.R'
     'sits_info.R'
     'sits_kohonen.R'
     'sits_labels.R'
@@ -116,7 +114,6 @@ Collate:
     'sits_raster_time_series.R'
     'sits_services.R'
     'sits_space_time_operations.R'
-    'sits_stack_proc.R'
     'sits_tibble.R'
     'sits_tibble_functions.R'
     'sits_tibble_utils.R'

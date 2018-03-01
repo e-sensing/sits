@@ -100,6 +100,20 @@ sits_cluster_validity <-  function (data.tb) {
 #'
 #' @param data.tb          tibble with `cluster` column.
 #' @return result.mtx      matrix containing all frequencies of labels in clusters
+#' @examples
+#' \donttest{
+#' # Load the "dtwclust" package
+#' library(dtwclust)
+#' # load a simple data set with two classes
+#' data(cerrado_2classes)
+#' # calculate the dendrogram
+#' dendro <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+#' # include the cluster info in the SITS tibble
+#' # create 6 clusters by cutting the dendrogram
+#' clusters.tb <- sits_cluster(cerrado_2classes, dendro, k = 6)
+#' # show clusters samples frequency
+#' sits_cluster_frequency(clusters.tb)
+#' }
 #' @export
 sits_cluster_frequency <-  function (data.tb) {
 
@@ -133,6 +147,23 @@ sits_cluster_frequency <-  function (data.tb) {
 #' @param min_perc          minimum percentage of label inside a cluster for the label to remain in cluster.
 #' @param method            string with "intracluster" or "intercluster" or both
 #' @return result.tb        tibble with all selected samples
+#' @examples
+#' \donttest{
+#' # Load the "dtwclust" package
+#' library(dtwclust)
+#' # load a simple data set with two classes
+#' data(cerrado_2classes)
+#' # calculate the dendrogram
+#' dendro <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+#' # create 6 clusters by cutting the dendrogram
+#' clusters.tb <- sits_cluster(cerrado_2classes, dendro, k = 6)
+#' # show clusters samples frequency
+#' sits_cluster_frequency(clusters.tb)
+#' # clear those clusters that are less that 25% of each cluster
+#' cleaned.tb <- sits_cluster_clean(clusters.tb, min_perc = 0.25)
+#' # show clusters samples frequency
+#' sits_cluster_frequency(cleaned.tb)
+#' }
 #' @export
 sits_cluster_clean <-  function (data.tb, min_perc = 0.05, method = "intracluster") {
 
@@ -174,13 +205,30 @@ sits_cluster_clean <-  function (data.tb, min_perc = 0.05, method = "intracluste
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description
-#' The function removes cluster according to a percentage threshold "min_perc".
+#' The function removes clusters according to a percentage threshold "min_perc".
 #' A cluster is considered good when the most frequent class has a percentage
 #' of samples greater than the "min_perc" threshold.
 #'
 #' @param data.tb           tibble with `cluster` column.
 #' @param min_perc          minimum percentage of the most frequent label inside a cluster for the cluster not to be deleted.
 #' @return result.tb        tibble with all selected samples
+#' @examples
+#' \donttest{
+#' # Load the "dtwclust" package
+#' library(dtwclust)
+#' # load a simple data set with two classes
+#' data(cerrado_2classes)
+#' # calculate the dendrogram
+#' dendro <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+#' # create 6 clusters by cutting the dendrogram
+#' clusters.tb <- sits_cluster(cerrado_2classes, dendro, k = 6)
+#' # show clusters samples frequency
+#' sits_cluster_frequency(clusters.tb)
+#' # clear those clusters that are less that 25% of each cluster
+#' cleaned.tb <- sits_cluster_remove(clusters.tb, min_perc = 0.70)
+#' # show clusters samples frequency
+#' sits_cluster_frequency(cleaned.tb)
+#' }
 #' @export
 sits_cluster_remove <-  function (data.tb, min_perc = 0.90) {
 

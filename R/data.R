@@ -15,11 +15,11 @@ NULL
 
 #' @title A time series sample with data from 2000 to 2016
 #' @description A dataset containing a tibble with one time series samples in the Mato Grosso state of Brazil.
-#'    The time series comes from MOD13Q1 collection 5 images.
+#'    The time series comes from MOD13Q1 collection 6 images.
 #' @docType data
 #' @keywords datasets
-#' @name ts_2000_2016
-#' @usage data(ts_2000_2016)
+#' @name point_MT_6bands
+#' @usage data(point_MT_6bands)
 #' @format A tibble with 1 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),
@@ -109,11 +109,24 @@ NULL
 
 #' @title The timeline for the sequence of images for MOD13Q1 collection 5
 #'
-#' @description The timeline for the time series used in the examples of the SITS package.
+#' @description The timeline for the time series used in the examples of the SITS package
+#'    that use data from MODIS collection 5.
 #'    There are 392 instances from 2000-02-18 until 2017-02-18.
 #' @docType data
 #' @keywords datasets
-#' @name timeline_mod13q1
-#' @usage data(timeline_mod13q1)
-#' @format A data frame with 392 lines and 1 column
+#' @name timeline_modis_392
+#' @usage data(timeline_modis_392)
+#' @format A vector with 392 dates in YYYY-MM-DD format.
+NULL
+
+#' @title The timeline for the sequence of images for MOD13Q1 collection 6
+#'
+#' @description The timeline for the time series used in the examples of the SITS package
+#'    that use data from MODIS collection 6.
+#'    There are 407 instances from 2000-02-18 until 2017-10-16.
+#' @docType data
+#' @keywords datasets
+#' @name timeline_2000_2017
+#' @usage data(timeline_2000_2017)
+#' @format A vector with 407 dates in YYYY-MM-DD format.
 NULL

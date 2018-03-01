@@ -68,8 +68,9 @@ sits_fromZOO <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoC
 sits_toZOO <- function(data.tb, band = NULL){
 
     zoo.tb <- data.tb %>%
-        purrrlyr::by_row(function(row) {
-            ts.tb <- row$time_series[[1]]
+        dplyr::rowwise() %>%
+        dplyr::do({
+            ts.tb <- (.)$time_series[[1]]
             if (purrr::is_null(band))
                 band <-  colnames(ts.tb[-1:0])
             # transform each sits time series to the zoo format

@@ -1,6 +1,6 @@
 # On load
 .onAttach = function(lib, pkg){
-    packageStartupMessage("Satellite Image Time Series package.")
+    packageStartupMessage("SITS - A package for satellite image time series analysis.")
     packageStartupMessage(
         sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.
                 See demo(package = 'sits') for examples.", utils::packageDescription("sits")$Version) )

@@ -21,6 +21,7 @@ This function computes the envelope of a time series using the
 streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelope` function.
 }
 \examples{
+\donttest{
 # Read a set of samples of forest/non-forest in Amazonia
 # This is an area full of clouds
 data(prodes_226_064)
@@ -32,7 +33,7 @@ point_env.tb <- sits_envelope(point_ndvi.tb)
 point2.tb <- sits_merge (point_ndvi.tb, point_env.tb)
 # Plot the result
 sits_plot (point2.tb)
-
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

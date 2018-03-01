@@ -14,7 +14,7 @@ Displays the contents of SITS configuration file. For more details
 on how to set the configuration file, please use \code{\link[sits]{sits_config}}.
 }
 \examples{
-config_sits <- sits_config()
+sits_show_config()
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

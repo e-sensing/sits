@@ -15,12 +15,17 @@
 #' 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 #' 'lasso' (see \code{\link[sits]{sits_mlr}}), and 'ridge' (see \code{\link[sits]{sits_mlr}}).
 #'
+#' The model can be precomputed by the user, or built inside the function.
+#' In the case the user has already defined the model, this model should be
+#' passed to the function using the parameter "ml_model". Otherwise, users
+#' should pass the appropriate values to the "ml_method" and "adj_fun" parameters.
+#'
 #' The default is to use an SVM with a radial kernel, but users are encouraged to test
 #' alternatives.
 #'
-#'
 #' @param  data.tb           tibble with time series metadata and data
 #' @param  train_samples.tb  tibble with samples used for training the classification model
+#' @param  ml_model          pre-built machine learning model (see \code{\link[sits]{sits_train}})
 #' @param  ml_method         machine learning method (see \code{\link[sits]{sits_train}})
 #' @param  adj_fun           adjustment function to be applied to the data
 #' @param  interval          interval used for classification (in months)
@@ -28,6 +33,7 @@
 #' @return data.tb           tibble with the predicted labels for each input segment
 #' @examples
 #' \donttest{
+#' # Option 1. Use the SITS defaults for building a model
 #' # read a training data set
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
@@ -38,19 +44,25 @@
 #' # plot the classification
 #' sits_plot (class_ndvi.tb)
 #'
-#' # Read a point from the WTSS server
-#' point2.tb <- sits_getdata (longitude = -46.4070, latitude = -10.8630)
-#' # select the ndvi
-#' point2.tb <- sits_select (point2.tb, bands = c("ndvi"))
+#' # Option 2. Build a machine learning model first
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' data(samples_MT_ndvi)
+#' # select the bands "ndvi", "evi", "nir", and "mir"
+#' samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
+#' # build a classification model using random forest
+#' model_rfor <- sits_train(samples.tb, ml_method = sits_rfor (ntree = 2000))
+#' # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
+#' point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir","mir"))
 #' # classify the point
-#' class2.tb <-  sits_classify (point2.tb, samples_MT_ndvi)
+#' class.tb <-  sits_classify(point.tb, samples.tb, ml_model = model_rfor)
 #' # plot the classification
-#' sits_plot (class2.tb)
+#' sits_plot(class.tb)
 #' }
 #'
 #' @export
 sits_classify <- function(data.tb = NULL,
                           train_samples.tb = NULL,
+                          ml_model     = NULL,
                           ml_method = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance = 0.001, epsilon = 0.1, cross = 4) ,
                           adj_fun   = sits_adjust(),
                           interval  = "12 month",
@@ -60,7 +72,8 @@ sits_classify <- function(data.tb = NULL,
     .sits_test_tibble(train_samples.tb)
 
     # obtain the machine learning model based on the training samples
-    ml_model = sits_train(train_samples.tb, ml_method = ml_method, adj_fun = adj_fun)
+    if (purrr::is_null(ml_model))
+        ml_model = sits_train(train_samples.tb, ml_method = ml_method, adj_fun = adj_fun)
 
     # define the parameters for breaking up a long time series
     class_info.tb <- .sits_class_info(data.tb, train_samples.tb, interval)
@@ -73,74 +86,6 @@ sits_classify <- function(data.tb = NULL,
 
     # create a vector to store the predicted results
     predict.vec <- .sits_classify_distances(distances.tb, class_info.tb, ml_model, multicores)
-
-    # Store the result in the input data
-    data.tb <- .sits_tibble_prediction(data.tb, class_info.tb, predict.vec, interval)
-
-    return(data.tb)
-}
-#' @title Classify a sits tibble using pre-built machine learning models
-#' @name sits_classify_model
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function classifies a set of time series, given
-#' a set of training samples, an inference model, and an interval.
-#' To perform the classification, users should provide a set of
-#' labelled samples. Each samples should be associated to one spatial location
-#' (latitude/longitude), one time interval and a label.
-#'
-#' @param  data.tb           tibble with time series metadata and data
-#' @param  train_samples.tb  tibble with samples used for training the classification model
-#' @param  model             pre-built machine learning model (see \code{\link[sits]{sits_train}})
-#' @param  adj_fun           adjustment function to be applied to the data
-#' @param  interval          interval used for classification (in months)
-#' @param  multicores        number of threads to process the time series
-#' @return data.tb           tibble with the predicted labels for each input segment
-#' @examples
-#' \donttest{
-#' # read a training data set
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
-#' # select the bands "ndvi", "evi", "nir", and "mir"
-#' samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
-#' # find a training model based on the distances and on default values
-#' model <- sits_train(samples.tb)
-#' # Retrieve a time series
-#' data("ts_2000_2016")
-#' # select the bands "ndvi", "evi", "nir", and "mir"
-#' point.tb <- sits_select(ts_2000_2016, bands = c("ndvi","evi","nir","mir"))
-#' # classify the point
-#' class.tb <-  sits_classify_model(point.tb, samples.tb, model)
-#' # plot the classification
-#' sits_plot(class.tb)
-#' }
-#'
-#' @export
-sits_classify_model <- function(data.tb = NULL,
-                                train_samples.tb = NULL,
-                                model      = NULL,
-                                adj_fun    = sits_adjust(),
-                                interval   = "12 month",
-                                multicores = 1){
-
-    # check that the input data exists
-    .sits_test_tibble(data.tb)
-    .sits_test_tibble(train_samples.tb)
-
-    # ensures that a machine learning model is provided
-    ensurer::ensure_that(model, !is.null(.), err_desc = "sits_classify_model: please provide a valid inference model")
-
-    # define the parameters for breaking up a long time series
-    class_info.tb <- .sits_class_info(data.tb, train_samples.tb, interval)
-
-    # find the temporal subsets of the input data
-    ref_dates.lst <- class_info.tb$ref_dates[[1]]
-
-    # obtain the distances from the data
-    distances.tb <- sits_distances(data.tb, adj_fun)
-
-    # create a vector to store the predicted results
-    predict.vec <- .sits_classify_distances(distances.tb, class_info.tb, model, multicores)
 
     # Store the result in the input data
     data.tb <- .sits_tibble_prediction(data.tb, class_info.tb, predict.vec, interval)

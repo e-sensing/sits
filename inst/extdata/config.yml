@@ -1,9 +1,4 @@
 default:
-    # location of log file
-    log_files                :
-        ERROR                : "~/.sits/errors.log"
-        WARN                 : "~/.sits/warnings.log"
-        DEBUG                : "~/.sits/debug.log"
 
     # adjustment shift for function sits_adjust
     adjustment_shift        : 1.0

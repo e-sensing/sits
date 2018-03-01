@@ -56,7 +56,7 @@ sits_config <- function() {
 #'
 #' @return config_sits  list with the configuration parameters used by SITS
 #' @examples
-#' config_sits <- sits_config()
+#' sits_show_config()
 #' @export
 #'
 sits_show_config <- function() {

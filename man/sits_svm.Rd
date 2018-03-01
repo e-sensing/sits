@@ -43,6 +43,7 @@ This function is a front-end to the "svm" method in the "e1071" package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
+\donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
 # get a point
@@ -50,7 +51,7 @@ data(point_ndvi)
 # classify the point
 class.tb <- sits_classify (point_ndvi, samples_MT_ndvi,
        ml_method = sits_svm(kernel = "radial", cost = 10))
-
+}
 }
 \author{
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

@@ -17,10 +17,10 @@ sits_bands (samples_MT_9classes)
 samples.tb <- sits_select (samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
 
 # Retrieve a time series
-data ("ts_2000_2016")
+data ("point_MT_6bands")
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-point.tb <- sits_select (ts_2000_2016, bands = c("ndvi","evi","nir","mir"))
+point.tb <- sits_select (point_MT_6bands, bands = c("ndvi", "evi", "nir", "mir"))
 
 # classify the point
 class.tb <- sits_classify(point.tb, samples.tb)

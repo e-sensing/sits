@@ -26,14 +26,13 @@
 #'
 #'\donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
 #' # find a training model based on the distances and default values (SVM model)
-#' ml_model <- sits_train (samples_MT_ndvi)
-#' # get a point
-#' data(ts_2000_2016)
-#' point.tb <- sits_select (ts_2000_2016, bands = c("ndvi"))
-#' # classify the point with the ml_model
-#' class.tb <- sits_classify_model (point.tb, samples_MT_ndvi, ml_model)
+#' samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
+#' ml_model <- sits_train (samples.tb)
+#' # get a point and classify the point with the ml_model
+#' point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi", "nir", "mir"))
+#' class.tb <- sits_classify(point_MT_6bands, samples_MT_9classes, ml_model)
+#' sits_plot(class.tb)
 #' }
 #' @export
 #'
@@ -98,14 +97,15 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_fun = sits_adjust())
 #' }
 #' @export
 #'
-sits_deeplearning <- function(distances.tb        = NULL,
-                              units            = c(400,200,100),
-                              activation       = 'relu',
-                              dropout_rates    = c(0.4, 0.3, 0.2),
+sits_deeplearning <- function(distances.tb     = NULL,
+                              units            = c(512, 512, 512),
+                              activation       = 'elu',
+                              dropout_rates    = c(0.40, 0.40, 0.30),
                               optimizer        = keras::optimizer_adam(lr = 0.001),
-                              epochs           = 300,
+                              epochs           = 500,
                               batch_size       = 128,
-                              validation_split = 0.2) {
+                              validation_split = 0.2)
+{
 
     # library(keras)
 
@@ -174,6 +174,7 @@ sits_deeplearning <- function(distances.tb        = NULL,
         for (i in 1:length(units)) {
             output_tensor <- keras::layer_dense(output_tensor, units = units[i], activation = act_vec[i])
             output_tensor <- keras::layer_dropout(output_tensor, rate = dropout_rates[i])
+            output_tensor <- keras::layer_batch_normalization(output_tensor)
         }
         # create the final tensor
         output_tensor <- keras::layer_dense(output_tensor, units = n_labels, activation = "softmax")
@@ -551,6 +552,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 #' @return result          fitted model function to be passed to sits_predict
 #'
 #' @examples
+#' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
 #' # get a point
@@ -558,7 +560,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 #' # classify the point
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi,
 #'        ml_method = sits_svm(kernel = "radial", cost = 10))
-#'
+#'}
 #' @export
 #'
 sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kernel = "radial",

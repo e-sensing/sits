@@ -6,7 +6,7 @@ citEntry(entry = "Manual",
                                    as.person("Gilberto Camara"),
                                    as.person("Alexandre Ywata de Carvalho"),
                                    as.person("Victor Maus"),
-                                   as.person("Alber Sanchez"),
+                                   as.person("Pedro Andrade"),
                                    as.person("Gilberto Queiroz")),
          organization = "INPE - Brazilian National Institute for Space Research",
          address      = "Sao Jose dos Campos, Brazil",
@@ -15,7 +15,7 @@ citEntry(entry = "Manual",
 
          textVersion  =
              paste("Rolf Simoes, Gilberto Camara, Alexandre Carvalho, Victor Maus,
-             Alber Sanchez, Gilberto Queiroz (2018).",
+             Pedro Andrade, Gilberto Queiroz (2018).",
                    "SITS: Data Analysis and Machine Learning using Satellite Image Time Series.",
                    "URL https://github.com/e-sensing/sits.")
 )

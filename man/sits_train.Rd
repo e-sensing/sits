@@ -32,14 +32,13 @@ to explicitly use this function. Please see the above-mention classification fun
 
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_ndvi)
 # find a training model based on the distances and default values (SVM model)
-ml_model <- sits_train (samples_MT_ndvi)
-# get a point
-data(ts_2000_2016)
-point.tb <- sits_select (ts_2000_2016, bands = c("ndvi"))
-# classify the point with the ml_model
-class.tb <- sits_classify_model (point.tb, samples_MT_ndvi, ml_model)
+samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
+ml_model <- sits_train (samples.tb)
+# get a point and classify the point with the ml_model
+point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi", "nir", "mir"))
+class.tb <- sits_classify(point_MT_6bands, samples_MT_9classes, ml_model)
+sits_plot(class.tb)
 }
 }
 \author{

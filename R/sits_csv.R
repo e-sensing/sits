@@ -58,7 +58,7 @@ sits_metadata_toCSV <- function(data.tb, file){
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # export a time series to zoo
-#' sits_toCSV (cerrado_2classes, file = "./cerrado_2classes.csv")
+#' sits_data_toCSV (cerrado_2classes, file = "./cerrado_2classes.csv")
 #' }
 #' @export
 sits_data_toCSV <- function(data.tb, file){

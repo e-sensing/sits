@@ -20,20 +20,11 @@ evi  <- "./Sinop_evi.tif"
 files <- c(ndvi, evi)
 
 # define the timeline
-data(timeline_mod13q1)
-timeline <- lubridate::as_date(timeline_mod13q1$V1)
+data(timeline_modis_392)
 
 # create a raster metadata file based on the information about the files
 raster.tb <- sits_coverage(service = "RASTER", name = "Sinop",
-                           timeline = timeline, bands = c("ndvi", "evi"), files = files)
-
-# retrieve the samples from EMBRAPA (used as training sets for classification)
-# this is a data set from MODIS collection 5
-data_file <- paste0("https://www.dropbox.com/s/9pidu5ydjym79dc/samples_MT_9classes_col5.rda?raw=1")
-
-# download file to local directory
-download.file(data_file, destfile = "./sample_MT_9classes_col5.rda")
-load("./sample_MT_9classes_col5.rda")
+                           timeline = timeline_modis_392, bands = c("ndvi", "evi"), files = files)
 
 #select the bands for classification
 samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi"))

@@ -24,11 +24,13 @@ The degree of smoothing depends on the filter order (usually 3.0)
 Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 }
 \examples{
-# Retrieve a time series with values of NDVI
+\donttest{
+#' # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the Savitsky Golay smoother
 point_sg.tb <- sits_sgolay (point_ndvi, order = 3, scale = 2)
 # Plot the two points to see the smoothing effect
 sits_plot(sits_merge(point_ndvi, point_sg.tb))
+}
 
 }

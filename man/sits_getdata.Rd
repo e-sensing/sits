@@ -64,7 +64,7 @@ from the WTSS service.
 \examples{
 \donttest{
 # Read a single lat long point from a WTSS server
-wtss_coverage <- sits_coverage(service = "WTSS-INPE-1", name = "mod13q1_512")
+wtss_coverage <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
 point.tb <- sits_getdata (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
 sits_plot(point.tb)
 
@@ -80,18 +80,17 @@ point_satveg.tb <- sits_getdata (satveg_coverage, longitude = -55.50563, latitud
 sits_plot(point_satveg.tb)
 
 # define a shapefile and read from the points inside it from the WTSS service
-shp_file <- system.file("extdata/shapefiles/madre_de_deus/madre_de_deus.shp", package = "sits")
-munic.tb <- sits_getdata(coverage = satveg_coverage, file = shp_file)
+shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
+munic.tb <- sits_getdata(coverage = wtss_coverage, file = shp_file)
 
 # Read a point in a Raster Brick
 # define the file that has the raster brick
 files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 # define the timeline
-data(timeline_mod13q1)
-timeline <- lubridate::as_date(timeline_mod13q1$V1)
+data(timeline_modis_392)
 # create a raster metadata file based on the information about the files
 raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-                            timeline = timeline, bands = c("ndvi"))
+                            timeline = timeline_modis_392, bands = c("ndvi"))
 # read the point from the raster
 point_raster.tb <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
 sits_plot(point_raster.tb)

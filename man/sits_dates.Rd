@@ -16,10 +16,8 @@ table    tibble  with values of time indexes
 returns a vector containing the dates of a sits table
 }
 \examples{
-# get a point
-data (ts_2000_2016)
-# return a vector of values
-sits_dates (ts_2000_2016)
+# get a point and print its dates
+sits_dates (point_MT_6bands)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

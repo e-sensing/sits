@@ -43,18 +43,19 @@ chosen coverage:
  files          - Files associated with the coverage (in the case of service == "RASTER")
 }
 \examples{
-# Retrieve information about a WTSS coverage
-coverage.tb <- sits_coverage(service = "WTSS-INPE-1", name = "mod13q1_512")
+\donttest{
+# Example 1. Retrieve information about a WTSS coverage
+coverage.tb <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
 
+# Example 2. Create a raster coverage with metadata
 # read a raster file and put it into a vector
 files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 
 # define the timeline
-data(timeline_mod13q1)
-timeline <- lubridate::as_date (timeline_mod13q1$V1)
+data(timeline_modis_392)
 
 # create a raster coverage file based on the information about the files
 raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
-             timeline = timeline, bands = c("ndvi"), files = files)
-
+             timeline = timeline_modis_392, bands = c("ndvi"), files = files)
+}
 }

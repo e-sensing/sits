@@ -11,29 +11,18 @@
 #' @export
 sits_log <- function() {
 
-    log_files <- sits.env$config$log_files
-    log_levels <- c("DEBUG", "WARN", "ERROR")
-    log_levels %>%
-        purrr::map(function(level) {
-            logfile <- as.character(log_files[level])
-            dir.create(dirname(logfile), showWarnings = FALSE)
-            file.create(logfile, showWarnings = FALSE)
-            if (level == "DEBUG") {
-                sits.env$logger_debug <- log4r::create.logger(logfile = logfile, level = "DEBUG")
-                message(paste0("Created logger for SITS package for ", level, " level at ", logfile))
-            }
-            if (level == "WARN") {
-                sits.env$logger_warn <- log4r::create.logger(logfile = logfile, level = "WARN")
-                message(paste0("Created logger for SITS package in ", level, " level  at ", logfile))
-            }
-            if (level == "ERROR") {
-                sits.env$logger_error <- log4r::create.logger(logfile = logfile, level = "ERROR")
-                message(paste0("Created logger for SITS package in ", level, " level  at ", logfile))
-            }
-            ensurer::ensure_that(logfile, file.exists(.),
-                                 err_desc = "Log file does not exist")
+    debug_file <- tempfile(pattern = "sits_debug", fileext = ".log")
+    sits.env$logger_debug <- log4r::create.logger(logfile = debug_file, level = "DEBUG")
+    message(paste0("Created logger for SITS package for DEBUG level at ", debug_file))
 
-            })
+    warn_file <- tempfile(pattern = "sits_warn", fileext = ".log")
+    sits.env$logger_warn <- log4r::create.logger(logfile = warn_file, level = "WARN")
+    message(paste0("Created logger for SITS package for WARN level at ", warn_file))
+
+    error_file <- tempfile(pattern = "sits_error", fileext = ".log")
+    sits.env$logger_error <- log4r::create.logger(logfile = error_file, level = "ERROR")
+    message(paste0("Created logger for SITS package for WARN level at ", error_file))
+
 
     return(TRUE)
 }

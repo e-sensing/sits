@@ -1,9 +1,11 @@
 testthat::context("Data input")
 testthat::test_that("Creating a WTSS coverage", {
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE-1", name = "mod13q1_512")
-    testthat::expect_true(coverage_wtss$service == "WTSS-INPE-1")
+    testthat::skip_on_cran()
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
+    testthat::expect_true(coverage_wtss$service == "WTSS-INPE-2")
 })
 testthat::test_that("Creating a SATVEG coverage", {
+    testthat::skip_on_cran()
     coverage_satveg <- sits_coverage(service = "SATVEG",  name = "terra")
     testthat::expect_true(length(coverage_satveg$timeline[[1]]) >  1)
 })
@@ -42,6 +44,7 @@ testthat::test_that("Reading a point from SATVEG ",{
 })
 
 testthat::test_that("Reading a ZOO time series", {
+    testthat::skip_on_cran()
     data(ts_zoo)
     data.tb <- sits_fromZOO(ts_zoo, longitude = -54.2313, latitude = -14.0482,
                             label = "Cerrado", name = "mod13q1")
@@ -50,9 +53,10 @@ testthat::test_that("Reading a ZOO time series", {
 })
 
 testthat::test_that("Reading a shapefile", {
-    coverage_satveg <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
-    shp_file <- system.file("extdata/shapefiles/santa_cruz_de_minas/santa_cruz_de_minas.shp", package = "sits")
-    munic.tb <- sits_getdata(coverage = coverage_satveg, file = shp_file)
+    testthat::skip_on_cran()
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
+    shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
+    munic.tb <- sits_getdata(coverage = coverage_wtss, file = shp_file)
 
     sf_shape <- sf::read_sf(shp_file)
     bbox <- sf::st_bbox(sf_shape)
@@ -64,6 +68,7 @@ testthat::test_that("Reading a shapefile", {
 })
 
 testthat::test_that("Labels and re-label",{
+    testthat::skip_on_cran()
     data(prodes_226_064)
     conv.lst = list("Deforestation_2014" = "NonForest",
                     "Deforestation_2015" = "NonForest",

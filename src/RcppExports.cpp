@@ -5,19 +5,6 @@
 
 using namespace Rcpp;
 
-// apply_first_order_transition_rules
-Rcpp::NumericMatrix apply_first_order_transition_rules(Rcpp::NumericMatrix v, Rcpp::NumericMatrix A, Rcpp::NumericVector I);
-RcppExport SEXP _sits_apply_first_order_transition_rules(SEXP vSEXP, SEXP ASEXP, SEXP ISEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type v(vSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type A(ASEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type I(ISEXP);
-    rcpp_result_gen = Rcpp::wrap(apply_first_order_transition_rules(v, A, I));
-    return rcpp_result_gen;
-END_RCPP
-}
 // preprocess_data
 NumericMatrix preprocess_data(NumericMatrix data, const int& missing_value, const int& minimum_value, const double& scale_factor);
 RcppExport SEXP _sits_preprocess_data(SEXP dataSEXP, SEXP missing_valueSEXP, SEXP minimum_valueSEXP, SEXP scale_factorSEXP) {
@@ -34,7 +21,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_sits_apply_first_order_transition_rules", (DL_FUNC) &_sits_apply_first_order_transition_rules, 3},
     {"_sits_preprocess_data", (DL_FUNC) &_sits_preprocess_data, 4},
     {NULL, NULL, 0}
 };

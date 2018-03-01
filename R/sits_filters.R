@@ -19,6 +19,8 @@
 #' @param n             number of time series elements to be created between start date and end date
 #' @return result.tb    a sits tibble with same samples and the new bands
 #' @examples
+#' \donttest{
+#'
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # find out how many time instances are there
@@ -27,7 +29,7 @@
 #' point_int.tb <- sits_linear_interp(point_ndvi, n = 3*n_times)
 #' # plot the result
 #' sits_plot (point_int.tb)
-#'
+#' }
 #' @export
 sits_linear_interp <- function(data.tb, n = 23) {
 
@@ -55,6 +57,7 @@ sits_linear_interp <- function(data.tb, n = 23) {
 #' @param ...           additional parameters to be used by the fun function
 #' @return result.tb    tibble with same samples and the new bands
 #' @examples
+#' \donttest{
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # find out how many time instances are there
@@ -63,7 +66,7 @@ sits_linear_interp <- function(data.tb, n = 23) {
 #' point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3*n_times)
 #' # plot the result
 #' sits_plot (point_int.tb)
-#'
+#' }
 #' @export
 sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...) {
 
@@ -110,6 +113,7 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' @param bands_suffix suffix to be appended to the resulting data (default "env")
 #' @return result.tb   tibble with filtered time series values
 #' @examples
+#' \donttest{
 #' # Read a set of samples of forest/non-forest in Amazonia
 #' # This is an area full of clouds
 #' data(prodes_226_064)
@@ -121,7 +125,7 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' point2.tb <- sits_merge (point_ndvi.tb, point_env.tb)
 #' # Plot the result
 #' sits_plot (point2.tb)
-#'
+#' }
 #' @export
 sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 
@@ -177,6 +181,7 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 #' @return result.tb    a sits tibble with same samples and the new bands
 #'
 #' @examples
+#' \donttest{
 #' # Read a set of samples of forest/non-forest in Amazonia
 #' # This is an area full of clouds
 #' data(prodes_226_064)
@@ -188,6 +193,7 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 #' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 #' # Plot the result
 #' sits_plot (point2.tb)
+#' }
 #'
 #' @export
 sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
@@ -256,12 +262,14 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
 #' @return output.tb   tibble with smoothed sits time series
 #'
 #' @examples
+#' \donttest{
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the whittaker smoother
 #' point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0)
 #' # Plot the two points to see the smoothing effect
 #' sits_plot(sits_merge(point_ndvi, point_ws.tb))
+#' }
 #'
 #' @export
 sits_whittaker <- function(data.tb, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
@@ -297,12 +305,14 @@ sits_whittaker <- function(data.tb, lambda    = 1.0, differences = 3, bands_suff
 #' @param bands_suffix suffix to be appended to the smoothed filters
 #' @return output.tb   tibble with smoothed sits time series
 #' @examples
-#' # Retrieve a time series with values of NDVI
+#' \donttest{
+#' #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the Savitsky Golay smoother
 #' point_sg.tb <- sits_sgolay (point_ndvi, order = 3, scale = 2)
 #' # Plot the two points to see the smoothing effect
 #' sits_plot(sits_merge(point_ndvi, point_sg.tb))
+#' }
 #'
 #' @export
 sits_sgolay <- function(data.tb, order = 3, scale = 1, bands_suffix = "sg") {

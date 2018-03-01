@@ -20,11 +20,10 @@ This function retrieves one or more raster objects stored in a raster coverage.
 # define the file that has the raster brick
 files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 # define the timeline
-data(timeline_mod13q1)
-timeline <- lubridate::as_date(timeline_mod13q1$V1)
+data(timeline_modis_392)
 # create a raster metadata file based on the information about the files
 raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-                            timeline = timeline, bands = c("ndvi"))
+                            timeline = timeline_modis_392, bands = c("ndvi"))
 # retrieve the raster object associated to the coverage
 raster_object <- sits_get_raster(raster_cov, 1)
 }

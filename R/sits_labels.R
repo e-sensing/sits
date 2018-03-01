@@ -39,6 +39,7 @@ sits_labels <- function (data.tb) {
 #' @return result.tb      a new SITS tibble with modified labels
 #'
 #' @examples
+#' \donttest{
 #' # Read a set of time series with information on deforestation
 #' data(prodes_226_064)
 #' # Print the labels
@@ -52,7 +53,7 @@ sits_labels <- function (data.tb) {
 #' new_data.tb <- sits_relabel (prodes_226_064, conv.lst)
 #' # show the new labels
 #' sits_labels (new_data.tb)
-#'
+#' }
 #' @export
 sits_relabel <- function (data.tb, conv.lst = list()){
 

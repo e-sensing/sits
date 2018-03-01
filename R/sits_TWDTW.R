@@ -36,14 +36,14 @@
 #' @return matches       a dtwSat S4 object with the matches
 #' @examples
 #' \donttest{
-#' # Get a 17 year time series
-#' data("point_ndvi")
-#' # retrieve a set of samples
-#' data(samples_MT_ndvi)
+#' # Get a set of samples for the Mato Grosso state in Brazil
+#' samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
 #' # obtain a set of patterns for these samples
-#' patterns.tb <- sits_patterns(samples_MT_ndvi)
+#' patterns.tb <- sits_patterns(samples.tb)
+#' # Get a point to classify
+#' point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi", "nir", "mir"))
 #' # find the matches between the patterns and the time series using the TWDTW algorithm
-#' matches <- sits_TWDTW_classify(ts_2000_2016, patterns.tb, bands = c("ndvi"),
+#' matches <- sits_TWDTW_classify(point.tb, patterns.tb, bands = c("ndvi", "evi", "nir", "mir"),
 #'                                alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 #' }
 #' @export

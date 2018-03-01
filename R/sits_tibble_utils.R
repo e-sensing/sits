@@ -116,45 +116,6 @@
 
     return(data.tb)
 }
-#' @title Break a data set in segments to match the dates of a set of samples, given an interval
-#' @name .sits_break
-#' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
-#'
-#' @description This function aligns an input data set to the dates used by a set of samples
-#'
-#' @param data.tb     sits tibble
-#' @param samples.tb  samples used in the classification
-#' @param interval    interval between the classificationa
-#'
-.sits_break <- function(data.tb, samples.tb, interval = "12 month") {
-
-    # verify the input data
-    .sits_test_tibble(data.tb)
-    .sits_test_tibble(samples.tb)
-
-    output.tb <- sits_tibble()
-
-    data.tb %>%
-        purrrlyr::by_row(function(row){
-            # define the classification info parameters
-            class_info.tb <- .sits_class_info(row, samples.tb, interval)
-
-            # find the subsets of the input data
-            ref_dates.lst <- class_info.tb$ref_dates[[1]]
-
-            # extract the subseries
-            ref_dates.lst %>%
-                purrr::map(function(date_pair){
-
-                    # find the n-th subset of the input data
-                    row_subset.tb <- .sits_extract(row, date_pair[1], date_pair[2])
-                    # create a new row in the output
-                    output.tb <<- dplyr::bind_rows(output.tb, row_subset.tb)
-
-                })
-        })
-    return(output.tb)
-}
 #' @title Extract a subset of the data based on dates
 #' @name .sits_extract
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

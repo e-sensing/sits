@@ -48,7 +48,7 @@
 #' @examples
 #' \donttest{
 #' # Read a single lat long point from a WTSS server
-#' wtss_coverage <- sits_coverage(service = "WTSS-INPE-1", name = "mod13q1_512")
+#' wtss_coverage <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
 #' point.tb <- sits_getdata (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
 #' sits_plot(point.tb)
 #'
@@ -64,18 +64,17 @@
 #' sits_plot(point_satveg.tb)
 #'
 #' # define a shapefile and read from the points inside it from the WTSS service
-#' shp_file <- system.file("extdata/shapefiles/madre_de_deus/madre_de_deus.shp", package = "sits")
-#' munic.tb <- sits_getdata(coverage = satveg_coverage, file = shp_file)
+#' shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
+#' munic.tb <- sits_getdata(coverage = wtss_coverage, file = shp_file)
 #'
 #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #' # define the timeline
-#' data(timeline_mod13q1)
-#' timeline <- lubridate::as_date(timeline_mod13q1$V1)
+#' data(timeline_modis_392)
 #' # create a raster metadata file based on the information about the files
 #' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-#'                             timeline = timeline, bands = c("ndvi"))
+#'                             timeline = timeline_modis_392, bands = c("ndvi"))
 #' # read the point from the raster
 #' point_raster.tb <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
 #' sits_plot(point_raster.tb)
@@ -249,34 +248,34 @@ sits_getdata <- function(coverage    = NULL,
     # create a file to store the unread rows
     csv_unread.tb <- .sits_tibble_csv()
     # for each row of the input, retrieve the time series
-    csv.tb %>%
-        purrrlyr::by_row(function(r){
-            row <- .sits_from_service(coverage, r$longitude, r$latitude, r$start_date, r$end_date,
-                                      bands, prefilter, r$label)
-            # did we get the data?
-            if (!purrr::is_null(row)) {
-                nrow <<-  nrow + 1
+    for (i in NROW(csv.tb)) {
+        r <- csv.tb[i, ]
+        row <- .sits_from_service(coverage, r$longitude, r$latitude, r$start_date, r$end_date,
+                                  bands, prefilter, r$label)
+        # did we get the data?
+        if (!purrr::is_null(row)) {
+            nrow <-  nrow + 1
 
-                # add the new point to the SITS tibble
-                data.tb <<- dplyr::bind_rows(data.tb, row)
+            # add the new point to the SITS tibble
+            data.tb <<- dplyr::bind_rows(data.tb, row)
 
-                # optional - save the results to an intermediate file
-                if (.n_save != 0 && !(nrow %% .n_save)) {
-                    .sits_log_data(data.tb)
-                }
+            # optional - save the results to an intermediate file
+            if (.n_save != 0 && !(nrow %% .n_save)) {
+                .sits_log_data(data.tb)
             }
-            # the point could not be read - save it in the log file
-            else {
-                csv_unread_row.tb <- tibble::tibble(
-                    longitude  = r$longitude,
-                    latitude   = r$latitude,
-                    start_date = r$start_date,
-                    end_date   = r$end_date,
-                    label      = r$label
-                )
-                csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
-            }
-        })
+        }
+        # the point could not be read - save it in the log file
+        else {
+            csv_unread_row.tb <- tibble::tibble(
+                longitude  = r$longitude,
+                latitude   = r$latitude,
+                start_date = r$start_date,
+                end_date   = r$end_date,
+                label      = r$label
+            )
+            csv_unread.tb <- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
+        }
+    }
 
 
     # Have all input rows being read?

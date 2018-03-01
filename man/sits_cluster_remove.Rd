@@ -15,9 +15,27 @@ sits_cluster_remove(data.tb, min_perc = 0.9)
 result.tb        tibble with all selected samples
 }
 \description{
-The function removes cluster according to a percentage threshold "min_perc".
+The function removes clusters according to a percentage threshold "min_perc".
 A cluster is considered good when the most frequent class has a percentage
 of samples greater than the "min_perc" threshold.
+}
+\examples{
+\donttest{
+# Load the "dtwclust" package
+library(dtwclust)
+# load a simple data set with two classes
+data(cerrado_2classes)
+# calculate the dendrogram
+dendro <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+# create 6 clusters by cutting the dendrogram
+clusters.tb <- sits_cluster(cerrado_2classes, dendro, k = 6)
+# show clusters samples frequency
+sits_cluster_frequency(clusters.tb)
+# clear those clusters that are less that 25\% of each cluster
+cleaned.tb <- sits_cluster_remove(clusters.tb, min_perc = 0.70)
+# show clusters samples frequency
+sits_cluster_frequency(cleaned.tb)
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -20,6 +20,7 @@ Given a SITS tibble with a set of labels, and a conversion list
 between the original labels and new labels, returns a new SITS tibble whose labels are changed.
 }
 \examples{
+\donttest{
 # Read a set of time series with information on deforestation
 data(prodes_226_064)
 # Print the labels
@@ -33,7 +34,7 @@ conv.lst = list("Deforestation_2014" = "NonForest",
 new_data.tb <- sits_relabel (prodes_226_064, conv.lst)
 # show the new labels
 sits_labels (new_data.tb)
-
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

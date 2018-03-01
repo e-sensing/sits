@@ -1,5 +1,6 @@
 testthat::context("Filtering")
 testthat::test_that("Envelope filter", {
+    testthat::skip_on_cran()
     data(prodes_226_064)
     point_ndvi.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
     point_env.tb  <- sits_envelope(point_ndvi.tb)
@@ -7,6 +8,7 @@ testthat::test_that("Envelope filter", {
 })
 
 testthat::test_that("Cloud filter", {
+    testthat::skip_on_cran()
     data(prodes_226_064)
     point_ndvi.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
     point_cld.tb  <- sits_cloud_filter(point_ndvi.tb)
@@ -14,12 +16,14 @@ testthat::test_that("Cloud filter", {
 })
 
 testthat::test_that("Whittaker filter", {
+    testthat::skip_on_cran()
     data(point_ndvi)
     point_ws <- sits_whittaker(point_ndvi, lambda = 3.0)
     testthat::expect_true(NROW(point_ndvi$time_series[[1]]) == NROW(point_ws$time_series[[1]]))
 })
 
 testthat::test_that("Savitsky Golay filter", {
+    testthat::skip_on_cran()
     data(point_ndvi)
     point_sg <- sits_sgolay(point_ndvi)
     testthat::expect_true(NROW(point_ndvi$time_series[[1]]) == NROW(point_sg$time_series[[1]]))

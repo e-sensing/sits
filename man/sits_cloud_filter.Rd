@@ -37,6 +37,7 @@ The parameters of the ARIMA model can be set by the user. Please see \code{\link
 for the detailed description of parameters p, d, and q.
 }
 \examples{
+\donttest{
 # Read a set of samples of forest/non-forest in Amazonia
 # This is an area full of clouds
 data(prodes_226_064)
@@ -48,6 +49,7 @@ point_cld.tb <- sits_cloud_filter(point_ndvi.tb)
 point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 # Plot the result
 sits_plot (point2.tb)
+}
 
 }
 \author{

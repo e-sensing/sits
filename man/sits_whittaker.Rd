@@ -27,12 +27,14 @@ The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 
 Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 }
 \examples{
+\donttest{
 # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the whittaker smoother
 point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0)
 # Plot the two points to see the smoothing effect
 sits_plot(sits_merge(point_ndvi, point_ws.tb))
+}
 
 }
 \references{

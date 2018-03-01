@@ -19,7 +19,8 @@
 #' @param  file            vector of file names to store the output (one file per classified year)
 #' @param  raster.tb       tibble with information about a set of space-time raster bricks
 #' @param  samples.tb      tibble with samples used for training the classification model
-#' @param  ml_method       an R model trained by \code{\link[sits]{sits_train}}
+#' @param  ml_model        an R model trained by \code{\link[sits]{sits_train}}
+#' @param  ml_method       an R machine learning method such as SVM, Random Forest or Deep Learning
 #' @param  adj_fun         adjustment function to be applied to the data
 #' @param  interval        interval between two sucessive classifications, expressed in months
 #' @param  blocksize       size of the block to be read to build a block for classification
@@ -36,12 +37,12 @@
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #'
 #' # define the timeline
-#' data(timeline_mod13q1)
-#' timeline <- lubridate::as_date (timeline_mod13q1$V1)
+#' data(timeline_modis_392)
 #'
 #' # create a raster metadata file based on the information about the files
-#' raster.tb <- sits_coverageRaster(product = "MOD13Q1", coverage = "Sinop-Crop",
-#'              timeline = timeline, bands = c("ndvi"), files = files)
+#' #' # create a raster coverage file based on the information about the files
+#' raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
+#'              timeline = timeline_modis_392, bands = c("ndvi"), files = files)
 #'
 #' # classify the raster file
 #' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
@@ -52,6 +53,7 @@
 sits_classify_raster <- function(file = NULL,
                                  raster.tb,
                                  samples.tb,
+                                 ml_model  = NULL,
                                  ml_method  = sits_svm(),
                                  adj_fun    = sits_adjust(),
                                  interval   = "12 month",
@@ -90,7 +92,8 @@ sits_classify_raster <- function(file = NULL,
     message("make sure your computer has this memory available")
 
     # set up the ML model
-    ml_model <- sits_train(samples.tb, ml_method = ml_method, adj_fun = adj_fun)
+    if (purrr::is_null(ml_model))
+        ml_model <- sits_train(samples.tb, ml_method = ml_method, adj_fun = adj_fun)
 
     # create the raster objects and their respective filenames
     raster_class.tb <- .sits_create_classified_raster(raster.tb, samples.tb, file, interval)
@@ -172,11 +175,10 @@ sits_classify_raster <- function(file = NULL,
 #' # define the file that has the raster brick
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #' # define the timeline
-#' data(timeline_mod13q1)
-#' timeline <- lubridate::as_date(timeline_mod13q1$V1)
+#' data(timeline_modis_392)
 #' # create a raster metadata file based on the information about the files
 #' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-#'                             timeline = timeline, bands = c("ndvi"))
+#'                             timeline = timeline_modis_392, bands = c("ndvi"))
 #' # retrieve the raster object associated to the coverage
 #' raster_object <- sits_get_raster(raster_cov, 1)
 #' @export
@@ -191,4 +193,3 @@ sits_get_raster <- function(raster.tb, i = NULL) {
 
     return(raster.tb$r_objs[[1]][[i]])
 }
-

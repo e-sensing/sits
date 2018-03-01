@@ -4,9 +4,9 @@
 \alias{sits_deeplearning}
 \title{Train a SITS classifiction model using the keras deep learning}
 \usage{
-sits_deeplearning(distances.tb = NULL, units = c(400, 200, 100),
-  activation = "relu", dropout_rates = c(0.4, 0.3, 0.2),
-  optimizer = keras::optimizer_adam(lr = 0.001), epochs = 300,
+sits_deeplearning(distances.tb = NULL, units = c(512, 512, 512),
+  activation = "elu", dropout_rates = c(0.4, 0.4, 0.3),
+  optimizer = keras::optimizer_adam(lr = 0.001), epochs = 500,
   batch_size = 128, validation_split = 0.2)
 }
 \arguments{
