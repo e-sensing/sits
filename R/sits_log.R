@@ -11,17 +11,17 @@
 #' @export
 sits_log <- function() {
 
-    debug_file <- tempfile(pattern = "sits_debug", fileext = ".log")
-    sits.env$logger_debug <- log4r::create.logger(logfile = debug_file, level = "DEBUG")
-    message(paste0("Created logger for SITS package for DEBUG level at ", debug_file))
+    sits.env$debug_file <- tempfile(pattern = "sits_debug", fileext = ".log")
+    sits.env$logger_debug <- log4r::create.logger(logfile = sits.env$debug_file, level = "DEBUG")
+    message(paste0("Created logger for SITS package - DEBUG level at ", sits.env$debug_file))
 
-    warn_file <- tempfile(pattern = "sits_warn", fileext = ".log")
-    sits.env$logger_warn <- log4r::create.logger(logfile = warn_file, level = "WARN")
-    message(paste0("Created logger for SITS package for WARN level at ", warn_file))
+    sits.env$warn_file <- tempfile(pattern = "sits_warn", fileext = ".log")
+    sits.env$logger_warn <- log4r::create.logger(logfile = sits.env$warn_file, level = "WARN")
+    message(paste0("Created logger for SITS package - WARN level at ", sits.env$warn_file))
 
-    error_file <- tempfile(pattern = "sits_error", fileext = ".log")
-    sits.env$logger_error <- log4r::create.logger(logfile = error_file, level = "ERROR")
-    message(paste0("Created logger for SITS package for WARN level at ", error_file))
+    sits.env$error_file <- tempfile(pattern = "sits_error", fileext = ".log")
+    sits.env$logger_error <- log4r::create.logger(logfile = sits.env$error_file, level = "ERROR")
+    message(paste0("Created logger for SITS package - ERROR level at ", sits.env$error_file))
 
 
     return(TRUE)
@@ -72,7 +72,7 @@ sits_log <- function() {
     ensurer::ensure_that(data, !purrr::is_null(.),
                          err_desc = "Cannot save NULL data")
 
-    file_save = paste0(dirname(sits.env$config$log_file),"/", file_name)
+    file_save = paste0(dirname(sits.env$debug_file),"/", file_name)
 
     tryCatch({save(data, file = file_save)},
              error = function(e){
@@ -94,7 +94,7 @@ sits_log <- function() {
     ensurer::ensure_that(csv.tb, !purrr::is_null(.),
                          err_desc = "Cannot save NULL CSV data")
 
-    sits_metadata_toCSV(csv.tb, file = paste0(dirname(sits.env$config$log_file),"/", file_name))
+    sits_metadata_toCSV(csv.tb, file = paste0(dirname(sits.env$debug_file),"/", file_name))
 }
 
 #' @title Shows the memory used in GB

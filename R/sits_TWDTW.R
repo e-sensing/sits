@@ -82,32 +82,32 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
     # Define the logistic function
     log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
-    data.tb %>%
-        purrrlyr::by_row (function (row.tb) {
-            # select the bands for the samples time series and convert to TWDTW format
-            twdtw_series <- row.tb %>%
-                sits_select_bands (bands = bands) %>%
-                .sits_toTWDTW()
+    for (r in 1:NROW(data.tb)) {
+        row.tb <- data.tb[r, ]
+        # select the bands for the samples time series and convert to TWDTW format
+        twdtw_series <- row.tb %>%
+            sits_select_bands (bands = bands) %>%
+            .sits_toTWDTW()
 
-            #classify the data using TWDTW
-            matches = dtwSat::twdtwApply(x          = twdtw_series,
-                                         y          = twdtw_patterns,
-                                         weight.fun = log_fun,
-                                         theta      = theta,
-                                         span       = span,
-                                         keep       = keep,
-                                         dist.method = dist.method)
+        #classify the data using TWDTW
+        matches = dtwSat::twdtwApply(x          = twdtw_series,
+                                     y          = twdtw_patterns,
+                                     weight.fun = log_fun,
+                                     theta      = theta,
+                                     span       = span,
+                                     keep       = keep,
+                                     dist.method = dist.method)
 
-            # add the matches to the lsit
-            matches.lst[[length(matches.lst) + 1]] <<- matches
+        # add the matches to the list
+        matches.lst[[length(matches.lst) + 1]] <- matches
 
 
-            # update progress bar
-            if (!purrr::is_null(progress_bar)) {
-                i <<- i + 1
-                utils::setTxtProgressBar(progress_bar, i)
-            }
-        })
+        # update progress bar
+        if (!purrr::is_null(progress_bar)) {
+            i <- i + 1
+            utils::setTxtProgressBar(progress_bar, i)
+        }
+    }
     if (!purrr::is_null(progress_bar)) close(progress_bar)
 
     .sits_plot_TWDTW_alignments (matches.lst)

@@ -1,0 +1,559 @@
+---
+title: 'SITS: Data Analysis and Machine Learning using Satellite Image Time Series'
+author:
+- affiliation: National Institute for Space Research (INPE), Brazil
+  name: Rolf Simoes
+- affiliation: National Institute for Space Research (INPE), Brazil
+  name: Gilberto Camara
+- affiliation: Institute for Applied Economics Research (IPEA), Brazil
+  name: Alexandre Carvalho
+- affiliation: International Institute for Applied System Analysis (IIASA), Austria
+  name: Victor Maus
+- affiliation: National Institute for Space Research (INPE), Brazil
+  name: Pedro Andrade
+- affiliation: National Institute for Space Research (INPE), Brazil
+  name: Gilberto Queiroz
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    df_print: paged
+    theme: journal
+    highlight: default
+endnote: no
+fontfamily: mathdesign
+fontfamilyoptions: adobe-utopia
+fontsize: 12pt
+graphics: yes
+mathtools: yes
+bibliography: ../inst/extdata/markdown/references-sits.bib
+abstract: Using time series derived from big Earth Observation data sets is one of
+  the leading research trends in Land Use Science and Remote Sensing. One of the more
+  promising uses of satellite time series is its application for classification of
+  land use and land cover, since our growing demand for natural resources has caused
+  major environmental impacts. Here, we present the open source R package for satellite
+  image time series analysis, the `sits` package. The `sits` provides support on how
+  to use statistical learning techniques with image time series. These methods include
+  linear and quadratic discrimination analysis, support vector machines, random forests
+  and neural networks.
+vignette: |
+  %\VignetteEncoding{UTF-8} 
+  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteIndexEntry{SITS: Data Analysis and Machine Learning using Satellite Image Time Series}
+---
+```{r, include = FALSE}
+library(sits)
+library(tibble)
+library(dtwclust)
+```
+
+# Introduction 
+
+Earth observation satellites provide a regular and consistent set of information about the land and oceans of the planet. Recently, most space agencies have adopted an open data policy, making unprecedented amounts of satellite data available for research and operational use. This data deluge has brought about a major challenge: *How to design and build technologies that allow the Earth observation community to analyse big data sets?*
+
+The approach taken in the current work is to develop data analysis methods that work with satellite image time series. The time series are obtained by taking calibrated and comparable measures of the same location in Earth at different times. These measures can be obtained by a single sensor (*e.g.*, MODIS) or by combining different sensors (*e.g.*, Landsat 8 and Sentinel-2). If obtained by frequent revisits, the temporal resolution of these data sets can capture the most important land use changes. 
+
+Time series of remote sensing data show that land cover can occur not only in a progressive and gradual way, but they may also show discontinuits with abrupt changes [@Lambin2003]. Analyses of multiyear time series of land surface attributes, their fine-scale spatial pattern, and their seasonal evolution leads to a broader view of land-cover change. Satellite image time series have already been applied to applications such as mapping for detecting forest disturbance [@Kennedy2010], ecology dynamics [@Pasquarella2016], agricultural intensification [@Galford2008] and its impacts on deforestation [@Arvor2012].
+
+In this paper, we present an open source R package for satellite image time series analysis `sits`. The `sits` package provides support on how to use statistical learning techniques with image time series. In a broad sense, statistical learning refers to a class of algorithms for classification and regression analysis [@Hastie2009]. These methods include linear and quadratic discrimination analysis, support vector machines, random forests and neural networks. In a typical classification problem, we have measures that capture class attributes. Based on these measures, referred as training data, one's task is to select a predictive model that allows inferring classes of a larger data set. 
+
+In what follows, we describe the main characteristics of the `sits`. The first part describes the basic data structures used in it and the tools used for visualisation and data exploration. Then we show how to do data acquisition from external sources, with an emphasis on the WTSS (an acronym for Web Time Series Service) [@Ribeiro2015]. The next sections describe filtering and clustering techniques. We then discuss machine learning techniques for satellite image time series data and how to apply them to image time series. Finally, we present validation methods.
+
+# Data Handling and Visualisation Basics in `sits`
+
+The basic data unit in the `sits` package is the "`sits` tibble", which is a way of organizing a set of time series data with associated spatial information. In R, a `tibble` differs from the traditional data frame, insofar as a `tibble` can contain lists embedded as column arguments. Tibbles are part of the `tidyverse`, a collection of R package designed to work together in data manipulation. The `tidyverse` includes packages such as `ggplot2`, `dplyr` and `purrr` [@Wickham2017]. The `sits` makes extensive use of the `tidyverse`. 
+
+For a better explanation of how the "`sits` tibble" works, we will read a data set containing $2,115$ labelled samples of land cover in Mato Grosso state of Brazil. This state has $903,357$ km^2^ of extension, being the third largest state of Brazil. It includes three of Brazil's biomes: Amazonia, Cerrado and Pantanal. It is the most important agricultural frontier of Brazil and is Brazil's largest producer of soybeans, corn and cotton. 
+
+The samples contain time series extracted from the MODIS MOD13Q1 product from 2000 to 2016, provided every $16$ days at $250$-meter spatial resolution in the Sinusoidal projection. Based on ground surveys and high resolution imagery, we selected $2,115$ samples of nine classes: "Forest", "Cerrado", "Pasture", "Soybean-fallow", "Fallow-Cotton", "Sybean-Cotton", "Soybean-Corn", "Soybean-Millet", and "Soybean-Sunflower".
+
+```{r}
+# data set of samples
+# print the first three samples
+samples_MT_9classes[1:3,]
+```
+
+The "`sits` tibble" contains data and metadata. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location ($-55.1852$, $-10.8387$), and is considered valid for the period (2013-09-14, 2014-08-29). Informing the dates where the label is valid is crucial for correct classification. In this case, the researchers involved in labelling the samples chose to use the agricultural calendar in Brazil, where the spring crop is planted in the months of September and October, and the autumn crop is planted in the months of February and March. For other applications and other countries, the relevant dates will most likely be different from those used in the example.
+
+The "`sits` tibble" also contains the time series data for each spatiotemporal location. The timeseries data is also organized as a tibble, with a column with the dates and the other columns with the values for each spectral band. 
+
+```{r}
+# print the first 10 time series records of the first sample
+samples_MT_9classes$time_series[[1]][1:3,]
+```
+
+The `sits` package provides functions for data manipulation and displaying information of a "`sits` tibble". For example, the command `sits_labels()` that shows the labels of the sample set and their frequencies.
+
+```{r}
+sits_labels(samples_MT_9classes)
+```
+
+In many cases, it is useful to relabel the data set. For example, there may be situations when one wants to use a smaller set of labels, since samples in one label on the original set may not be distinguishable from samples with other labels. We then should use `sits_relabel()`, which requires a conversion list (for details, see `?sits_relabel`).
+
+Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions of the `dplyr`, `tidyr` and `purrr` packages of the `tidyverse` [@Wickham2017] to process the data. For example, the following code uses the `sits_select()` function to get a subset of the sample data set with two bands (NDVI and EVI) and then uses the `dplyr::filter()` function to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot()` function to display the time series. Given a small number of samples to display, the `sits_plot()` function tries to group as many spatial locations together. In the following example, the first 15 samples of the "Cerrado" class all refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together.
+
+
+
+```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 15 'Cerrado' samples from data set \\texttt{samples_MT_9classes} (different dates for the same point location)."}
+# select the "ndvi" bands
+samples_ndvi.tb <- 
+    sits_select(samples_MT_9classes, 
+                bands = c("ndvi"))
+# select only the samples with the cerrado label
+samples_cerrado.tb <- 
+    dplyr::filter(samples_ndvi.tb, 
+                  label == "Cerrado")
+# plot the first 15 samples (different dates for the same points)
+sits_plot(samples_cerrado.tb[1:15,])
+```
+
+For a large number of samples, where the amount of individual plots would be substantial, the default visualisation combines all samples together in a single temporal interval (even if they are valid for different years). Therefore, all samples of the same band and the same label are aligned to a common interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, and the two orange lines are the first and third interquartile ranges. The `sits_plot()` function has different ways of working. Please, refer to the package documentation for more details.
+
+```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all 'Cerrado' samples from data set \\texttt{samples_MT_9classes}."}
+# plot all cerrado samples together (shows the distribution)
+sits_plot(samples_cerrado.tb)
+```
+
+Usually, samples are provided by experts whose take *in-loco* field observations or recognises land classes through high resolution images. In any case, we need access to a data source to fetch time series data regarding a spatiotemporal location of interest. The process of importing data samples is discussed in the next section.
+
+# Importing Data into `sits`
+
+The `sits` package allows different methods of data input, including: (a) obtain data from a WTSS (Web Series Time Service); (b) obtain data from the SATVEG service developed by EMBRAPA (Brazil's Agriculture Research Agency). (c) read data stored in a time series in the ZOO format [@Zeileis2005]; (d) read a time series from a RasterBrick [@Hijmans2015]. Option (d) will be described in the section were we describe raster processing. The WTSS service is a light-weight service, designed to retrieve time series for selected locations and periods [@Vinhas2016], been implemented by the research team of the National Institute for Space Research to allow remote access to time series data. The SATVEG service provides NDVI and EVI time series vegetation indices from MODIS image from whole Brazilian territory [@Embrapa2014]. To view service details, the user needs to call `sits_services()` that provides information on the coverages available on the server.
+
+After finding out which coverages are available at the different time series services, one may request specific information on each coverage by using  `sits_coverage()`. This lists the contents of the data set, including source, bands, spatial extent and resolution, time range, and temporal resolution. This information is then stored in a tibble for later use.
+
+```{r}
+# get information about a specific coverage from WTSS
+coverage_wtss <- 
+    sits_coverage(service  = "WTSS-INPE-1",
+                  name     = "mod13q1_512")
+coverage_wtss[, c("xmin","xmax","ymin","ymax",
+                "start_date", "end_date")]
+```
+
+The user can request one or more time series points using `sits_getdata()`. This function provides a general means of access to image time series. In its simplest fashion, the user provides the latitude and longitude of the desired location, the product and coverage names, the bands, and the start date and end date of the time series. If the start and end dates are not provided, all available period is retrived. The result is a tibble that can be visualised using `sits_plot()`.
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI and EVI time series fetched from WTSS service."}
+# a point in the transition forest pasture in Northern MT
+# obtain a time series from the WTSS server for this point
+series.tb <- 
+    sits_getdata(longitude  = -55.57320, 
+                 latitude   = -11.50566, 
+                 coverage   = coverage_wtss, 
+                 bands      = c("ndvi", "evi"))
+# plot the series
+sits_plot(series.tb)
+```
+
+A useful case is when users have a set of labelled samples, that are to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. The `sits_getdata()` function can receive a CSV file path as an argument. The CSV file must provide for each time series, its latitude and longitude, the start and end dates, and a label associated to a ground sample. 
+
+After importing the samples time series, it is useful to explore the data and see how is it underlying structured and its inter-class separability. For example, We can note in the figure above the variability of 400 time series samples along time. Those samples were collected from different years and/or locations. The scattering behaviour is intrinsic to remote sensing data. Atmospheric noise, sun angle, interferences on observations or different equipaments specifications, as well as the very nature of the climate-land dynamics can be sources of such variability [@Atkinson2012]. One helpful technique to explore such properties is *cluster analysis*. In the following section we present a cluster technique supported by `sits`. 
+
+# Clustering in satellite image time series
+
+Cluster analysis has been used for many purposes in satellite image time series literature ranging from unsupervised classification [@Petitjean2011], and pattern detection [@Romani2011]. Here, we are interested in the second use of clustering, as a way to improve training data to use in machine learning classification models. In this regard, cluster analysis can assist the identification of structural *time series patterns*, and anomalous samples [@Romani2011], [@Chandola2009]. `sits` provides support for the agglomerative hierarchical clustering (AHC). 
+
+Hierarchical clustering is a family of methods that groups elements using a distance function to associate a real value to a pair of elements. From this distance measure, we can compute the dissimilarity between any two elements from the data set. Depending on the distance functions and linkage criteria, the algorithm decides which two clusters are merged at each iteration. The AHC approach is suitable for the purposes of samples data exploration awe its visualisation power and ease of use [@Keogh2003]. Moreover, AHC does not require a predefined number of clusters as an initial parameter. This is an important feature in satellite image time series clustering since it is not easy to define the number of clusters present in a set of multi-attribute time series [@Aghabozorgi2015].
+
+The main result of AHC method is the *dendrogram*. A *dendrogram* is the ultrametric relation formed by the successive merges in the hierarchical process that can be represented by a tree. Dendrograms are quite useful to decide on the number of clusters has the data. It shows the height where each merging happened, which corresponds to the minimum distance between two clusters defined by a *linkage criterion*. The most commom linkage criteria are: *single-linkage*, *complete-linkage*, *average-linkage*, and *Ward-linkage*. Complete-linkage prioritises the within-cluster dissimilarities, producing clusters with shorter distance samples. Complete-linkage clustering can be sensitive to outliers, that can increase the resulting intracluster data variance. As an alternative, Ward proposes a criteria to minimise the data variance by means of either *sum-of-squares* or *sum-of-squares-error* [@Ward1963]. Ward's intuition is that clusters of multivariate observations, such as time series, should be approximately elliptical in shape [@Hennig2015]. In `sits`, a dendrogram can be generated by `sits_dendrogram()`. The following codes illustrate how to create, visualise, and cut a dendrogram (for details, see `?sits_dendrogram()`).
+
+```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
+# take a set of patterns for 2 classes
+# create a dendrogram object with default clustering parameters
+dendro <- sits_dendrogram(cerrado_2classes)
+# plot the resulting dendrogram
+sits_plot_dendrogram(cerrado_2classes, 
+                     dendro)
+```
+
+After the creation of a dendrogram, an important question emerges: *where to cut the dendrogram?* The answer depends on what are the purposes of the cluster analysis [@Hennig2015]. If one is interested in an unsupervised classification, it is commom to use *internal validity indices*, such as Silhouettes [@Rousseeuw1987], to help determine the best number of clusters. However, if one is interested in understand the structure of a labeled data set, or in the identification of sample anomaly, as we are here, one can reccur to *external validity indices* to assist the semisupervised procedure that achieves the optimal correspondence between the clusters and classes partitions. In this regard, we need to balance two objectives: get clusters as large as possible, and get clusters as homogeneous as possible with respect to its known classes. To help this process, `sits` provides `sits_dendro_bestcut()` function that computes the external validity index *adjusted Rand index* (ARI) for a series of different number of generated clusters. The function returns the height where the cut of the dendrogram maximizes the index.
+
+```{r}
+# search for the best height to cut the dendrogram
+sits_dendro_bestcut(cerrado_2classes, 
+                    dendro)
+```
+
+This height optmises the ARI and generates $6$ clusters. The ARI considers any pair of distinct samples and computes the following counts:
+a) the number of distinct pairs whose samples have the same label and are in the same cluster;
+b) the number of distinct pairs whose samples have the same label and are in different clusters;
+c) the number of distinct pairs whose samples have different labels and are in the same cluster;
+d) the number of distinct pairs whose samples have the different labels and are in different clusters.
+Here, $a$ and $d$ consists in all agreements, and $b$ and $c$ all disagreements. The ARI is obtained by
+$$
+ARI=\frac{a+d-E}{a+d+b+c-E},
+$$
+where $E$ is the expected agreement, a random chance correction calculated by 
+$$
+E=(a+b)(b+c)+(c+d)(b+d).
+$$ 
+
+Unlike other validity indexes such as Jaccard (${J=a/(a+b+c)}$), Fowlkes-Mallows (${FM=a/(a^2+a(b+c)+bc)^{1/2}}$), and Rand (the same as ARI without the $E$ adjustment) indices, ARI is more appropriate either when the number of clusters is outwheighted by the number of labels (and *vice versa*) and the amount of samples in labels and clusters is imbalanced [@Hubert1985], which is usually the case.
+
+```{r}
+# create 6 clusters by cutting the dendrogram at 
+# the linkage distance 20.39655
+clusters.tb <- 
+    sits_cluster(cerrado_2classes, 
+                 dendro, 
+                 k = 6)
+# show clusters samples frequency
+sits_cluster_frequency(clusters.tb)
+```
+
+Note in this example that almost all clusters has a predomination of either "Cerrado" or "Pasture" classes with the exception of cluster $3$. The contigency table ploted by `sits_cluster_frequency()` shows how the samples are distributed across the clusters and helps to identify two kinds of confusions. The first is relative to those small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$), and the second is relative to those samples in non-dominated clusters (*e.g.* cluster $3$). These confusions can be an indication of poor quality of samples, or an inadequacy between the used parameters in cluster analysis, or even a natural confusion due to the inherent variability of the land classes.
+
+For whatever reason, one can check other methods to assist one's decision, either by eliminating part of it, or by improving the data set. If one considers such cases as outliers, it is possible to remove them using the functions `sits_cluster_clean()` and `sits_cluster_remove()`. The first removes all those minority samples that do not reach a minimum percentage close to $0\%$, whereas the second removes an entire cluster if its dominant class does not reach a minimum percentage, close to $100\%$. The example illustrates the second aproach.
+
+```{r}
+# clear those samples with a high confusion rate in a cluster 
+# (those clusters which majority class does not reach 90% of 
+#  samples in that cluster)
+cleaned.tb <- 
+    sits_cluster_remove(clusters.tb, 
+                        min_perc = 0.9)
+# show clusters samples frequency
+sits_cluster_frequency(cleaned.tb)
+```
+
+Along the process of cluster analysis, it may be a good practice to measure the correspondence between clusters and labels partitions through computation of external validity indices. These measures can help the comparison among different procedures and assits the decision-making. `sits_cluster_validity()` provides a way to compute some external validation indices other than ARI (for details, see `?sits_cluster_validity()`). Moreover, these indices capture some of the cluster structure that is present in the correspondence of its partitions [@Hubert1985].
+
+# Filtering techniques 
+
+Satellite image time series generally is contaminated by atmospheric influence, geolocation error, and directional effects [@Lambin2006]. Inter-annual climate variability also changes the phenological cycles of the vegetation, resulting in time series whose periods and intensities do not match on an year to year basis. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with data sets that are *noisy* and *non-homogeneous*. In this section we discuss filtering techniques, a method used to improve time series data that presents missing values or noise.
+
+The literature on satellite image time series have several applications of filtering used to correct or smooth vegetation index data. The `sits` have support for Savitzky–Golay (`sits_sgolay()`), Whitaker (`sits_whittaker()`), envelope (`sits_envelope()`) and, the "cloud filter" (`sits_cloud_filter()`) filters. The first two filters are commonly used in the literature. The remaining two are adaptations of other models and, for our knowledge, its use have not been reported in the literature.
+
+Various somewhat conflicting results have been expressed in relation to the time series filtering techniques for phenology applications. For example, in an investigation of phenological parameter estimation, @Atkinson2012 found that the Whittaker and Fourier transform approaches were preferable to the double logistic and asymmetric Gaussian models. They applied the filters to preprocess MERIS NDVI time series for estimating phenological parameters in India. Comparing the same filters as in the previous work, @Shao2016 found that only Fourier transform and Whittaker techniques improved interclass separability for crop classes and significantly improved overall classification accuracy. The authors used MODIS NDVI time series from the Great Lakes region in North America. @Zhou2016 found that asymmetric Gaussian model outperforms other filters over high latitude boreal biomes, while the Savitzky-Golay model gives the best reconstruction performance in tropical evergreen broadleaf forests. In the remaining biommes, Whittaker gives superior results. The authors compare all previous mentioned filters plus Savitzky-Golay method for noise removal in MODIS NDVI data from sites spreaded worldwide in different climatological conditions. Many other techniques can be found in applications on satelite image time series such as curve fitting [@Bradley2007], wavelet decomposition [@Sakamoto2005], and mean-value iteration, ARMD3-ARMA5, and 4253H [@Hird2009] techniques. This shows that comparative analysis of smoothing algorithms depends on the performance measure adopted by the authors.
+
+One of the main uses of time series filtering is to reduce the noise and miss data produced by clouds in tropical areas. The following examples use data produced by the PRODES project [@INPE2017], which detects deforestation in the Brazilian Amazon rain forest by visual interpretation. `sits` provides $617$ samples from a region corresponding to the standard Landsat Path/Row 226/064. This is an area in the East of the Brazilian Pará state and has been chosen because its strongly cloud cover from November to March, which is a significant factor in degrading time series quality. Its NDVI and EVI time series were extracted from a combination of MOD13Q1 and Landsat8 images (to best visualize the effects of each filter, we selected only NDVI time series).
+
+## Savitzky–Golay filter
+
+The Savitzky-Golay filter works by fitting a successive array of $2n+1$ adjacent data points with a $d$-degree polynomial through linear least squares. The central point $i$ of the window array assumes the value of the interpolated polynomial. An equivalent and much faster solution than this convolution procedure is given by the closed expression
+$$
+{\hat{x}_{i}=\sum _{j=-n}^{n}C_{j}\,x_{i+j}},
+$$
+where $\hat{x}$ is the the filtered time series, $C_{j}$ are the Savitzky-Golay smoothing coefficients, and $x$ is the original time series.
+
+The coeficients $C_{j}$ depend uniquely on the polynomial degree ($d$) and the length of the window data points (given by parameter $n$). If ${d=0}$, the coeficients are constants ${C_{j}=1/(2n+1)}$ and the Savitzky-Golay filter will be equivalent to moving average filter. When the time series is equally spaced, the coefficients have analytical solution. According to @Madden1978, for ${d\in{}[2,3]}$ each $C_{j}$ smothing coefficients can be obtained by
+$$
+C_{j}=\frac{3(3n^2+3n-1-5j^2)}{(2n+3)(2n+1)(2n-1)}.
+$$
+
+In general, the Savitzky-Golay filter produces smoother results for a larger value of $n$ and/or a smaller value of $d$ [@Chen2004]. The optimal value for these two parameters can vary from case to case. For example, @Zhou2016 set ${d=2}$ and ${n=10}$. @Hird2009 tests the filter for ${n\in{}[5,6,7]}$ using quadratic polynomial.
+
+`sits` Savitzky-Golay function  The following example shows the effect of Savitsky-Golay filter on the original time series.
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Savitzky-Golay filter applied on a one-year NDVI time series."}
+# Take the NDVI band of the first sample data set
+point.tb <- 
+    sits_select(prodes_226_064[1,], 
+                bands = c("ndvi"))
+# apply Savitzky–Golay filter
+point_sg.tb <- sits_sgolay(point.tb)
+# plot the series
+sits_plot(sits_merge(point_sg.tb, point.tb))
+```
+
+## Whittaker filter
+
+The Whittaker smoother attempts to fit a curve that represents the raw data, but is penalized if subsequent points vary too much [@Atzberger2011]. The Whittaker filter is a balancing between the residual to the original data and the "smoothness" of the fitted curve. The residual, as measured by the sum of squares of all $n$ time series points deviations, is given by
+$$
+RSS=\sum_{i}(x_{i} - \hat{x_{i}})^2,
+$$
+where $x$ and $\hat{x}$ are the original and the filtered time series vectors, respectivelly. The smoothness is assumed to be the measure of the the sum of the squares of the third order differences of the time series [@Whittaker1922] which is given by
+$$
+\begin{split}
+S\!S\!D = (\hat{x}_4 - 3\hat{x}_3 + 3\hat{x}_2 - \hat{x}_1)^2 + (\hat{x}_5 - 3\hat{x}_4 + 3\hat{x}_3 - \hat{x}_2)^2 \\ + \ldots + (\hat{x}_n - 3\hat{x}_{n-1} + 3\hat{x}_{n-2} - \hat{x}_{n-3})^2.
+\end{split}
+$$
+
+Whittaker filter is obtained by finding a new time series $\hat{x}$ whose points minimize the expression
+$$
+RSS+\lambda{}S\!S\!D,
+$$ 
+where $\lambda{}$, a scalar, works as an "smoothing wheight" parameter. The minimization can be obtained by differentiating the expression with respect to $\hat{x}$ and equating it to zero. The solution of the resulting linear system of equations gives the filtered time series which, in matrix form, can be expressed as
+$$
+\hat{x} = ({\rm I} + \lambda {D}^{\intercal} D)^{-1}x,
+$$
+where ${\rm I}$ is the identity matrix and 
+$$
+D = \left[\begin{array}{ccccccc}
+1 & -3 & 3 & -1 & 0 & 0 &\cdots \\
+0 & 1 & -3 & 3 & -1 & 0 &\cdots \\
+0 & 0 & 1 & -3 & 3 & -1 & \cdots \\
+\vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots
+\end{array}
+\right]
+$$
+is the third order difference matrix. The Whitakker filter can be a large but sparse optimisation problem, as we can note from $D$ matrix. 
+
+Whittaker smoother has been used only recently in satellite image time series investigations. According to @Atzberger2011, the smoother has an advantage over other filtering techniques such as Fourier and wavelets as it does not assume signal periodicity. Moreover, the authors argues that Whittaker permits a rapid processing of large amounts of data, and handles easily incomplete time series with missing values. The fact that it has only one parameter ($\lambda{}$) facilitates its calibration/comparison process. @Zhou2016 found that $\lambda=15$ gives the best result when compared with $\lambda=2$. Larger values of $\lambda{}$ produces smoother results.
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=1$ parameter."}
+# Take the NDVI band of the first sample data set
+point.tb <- 
+    sits_select(prodes_226_064[1,], 
+                bands = c("evi"))
+# apply Whitaker filter
+point_whit.tb <- sits_whittaker(point.tb)
+# plot the series
+sits_plot(sits_merge(point_whit.tb, 
+                     point.tb))
+```
+
+## Envelope filter
+
+This filter can generate a time series corresponding to the superior (inferior) bounding of the input signal. This is acomplished through a convoluting window (odd length) that attributes to the point $i$, in the resulting time series, the maximimum (minimum) value of the points in the window. The $i$ point corresponds to the central point of the window. It can be defined as
+$$
+u_i=\max_{k}{(\{x_{k}:\left|i-k\right|\le{}1\})},
+$$
+whereas an lower dilation is obtained by
+$$
+l_i=\min_{k}{(\{x_{k}:\left|i-k\right|\le{}1\})}.
+$$
+Here, $x$ is the input time series and, $k$ and $i$ are vector indices.
+
+The `sits_envelope()` can combine both maximum and minimum window sequencially. The function can receive a string sequence with `"U"` (for maximization) and `"L"` (for minimization) characters passed to its parameter. A repeated sequence of the same character is equivalent to one operation with a larger window. The sequencial operations on the input time series produces the final filtered result that is returned.
+
+The envelope filter can be viewed through mathematical morphology lenses, a very common field in digital image processing [@Haralick1987]. Here the operations of `"U"` and `"L"` corresponds to the *dilation* and *erosion* morphological operators applied to univariate arrays [@Vavra2004]. Furthermore, the compounds operation of *opening* and *closing* can be obtained by `"UL"` and `"LU"`, respectivelly. This technique has been applied on time series analysis in other fields [@Accardo1997] but, for our knowledge, there is no application in satellite image time series literature.
+
+In the following example we can see an application of `sits_envelope()` function. There, we performs the *opening filtration* and *closing filtration* introduced by @Vavra2004. The correspondent operations sequence are `"ULLULUUL"` and `"LUULULLU"`.
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Envelope filter applied on one-year NDVI time series. The examples uses two morfological filters: opening filtration (~.OF) and closing filtration (~.CF)."}
+# Take the NDVI band of the first sample data set
+point.tb <- 
+    sits_select(prodes_226_064[1,], 
+                bands = c("ndvi"))
+# apply envelope filter (remove downward and upward noises)
+point_env1.tb <- 
+    sits_envelope(point.tb,
+                  "ULLULUUL",
+                  bands_suffix = "OF")
+point_env2.tb <- 
+    sits_envelope(point.tb,
+                  "LUULULLU",
+                  bands_suffix = "CF")
+# plot the series
+sits_plot(
+    sits_merge(
+        sits_merge(point_env1.tb, 
+                   point_env2.tb),
+        point.tb))
+```
+
+## Cloud filter
+
+The cloud filter makes use of the well known autoregressive integrated moving average (ARIMA) model. The algorithm looks to the first order difference time series for points where the value is above a certain threshold. This procedure selects only those points with large variations in the original time series, probably associated with noise. Finally, these points are replaced by the ARIMA correspondent values.
+
+The parameters of the ARIMA model can be set by the user. Please see arima for the detailed description of parameters $p$, $d$, and $q$.
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5}
+# Take the NDVI band of the first sample data set
+point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
+# apply ARIMA filter
+point_cf.tb <- sits_cloud_filter(point.tb, apply_whit = FALSE)
+# plot the series
+sits_plot(sits_merge(point_cf.tb, point.tb))
+```
+
+# Machine learning classification for land use and land cover using satelite image time series
+
+The main advantage using satellite image time series in land use studies is that the time series is methodologically consistent with the very nature of the land covers. Using this kind of data allows focusing on land changes through time. Currently, most studies that use satellite image time series for land classification still use variations of the classical remote sensing image classification methods. Given a series of images, researchers use methods that produce a single composite for the whole series [@Gomez2016]. In their review on this subject, @Gomez2016 discuss $12$ papers that use satellite image time series to derive image composites that are later used for classification. @Camara2016 denote these works as taking a *space-first*, *time-later* approach.
+
+An example of *space-first*, *time-later* work on big Earth observation data analysis is the work by @Hansen2013. Using more than ${650,000}$ Landsat images and processing more than $140$ billion pixels, the authors compared data from 2000 to 2010 to produce maps of global forest loss during the decade. A pixel-based classification algorithm was used to process each image to detect forest cover. The method classifies each 2D image one by one.
+
+In our view, these methods do not use the full potential of satellite image time series. The benefits of remote sensing time series analysis arise when the temporal resolution of the big data set is able to capture the most important changes. Here, the temporal autocorrelation of the data can be stronger than the spatial autocorrelation. Given data with adequate repeatability, a pixel will be more related to its temporal neighbours than to its spatial ones. In this case, *time-first, space-later* methods lead to better results than the *space-first, time-later* approach [@Camara2016].
+
+The `sits` package provides functionality to explore the full depth of satellite image time series data. It treat time series as a feature vector. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars (the training data) to infer classes of a larger data set. `sits` has support for a variety of machine learning techniques: linear discriminant analysis, quadratic discriminant analysis, multinomial logistic regression, . In the following sections we discuss on support vector machine and random forest machine learning techniques with more detail.
+
+## Support Vector Machine
+
+In its base model, the Support Vector Machine (SVM) is a binary classifier that finds a linear boundary in some feature space that not only divides the points of two classes but maximizes the distance between the boundary and the observations. A boundary is a ${(p-1)}$-dimensional *hyperplane* that defines two complementar subspaces in a $p$-dimensional feature space.
+
+If the sample observations are linearly separable in the feature space, the hyperplane has a perfect classification property. However, this is hardly what one may expect in a typical satellite image time series scenario. In this regard, the hyperplane optimization problem has a *softner term* that allows some observations to be closer to the margin, or even in the wrong side of its boundary. This relaxation increases the robustness of SVM as it decreases the influence of individual observations on the hyperplane determination. 
+
+Moreover, the solution for the hyperplane coefficients depends only on those samples that violates the maximum margin criteria, the so-called *support vectors*. All other points far away from the hyperplane does not exert any influence on the hyperplane coefficients which let SVM less sensitive to outliers.
+
+Hyperplanes are linear ${(p-1)}$-dimensional boundaries and define linear partitions in the feature space. However, one can enlarge the input attribute space by transforming it into a higher degree feature space. In this manner, the new classification model, despite having a linear boundary on the enlarged feature space, generally translates its hyperplane to a nonlinear boundaries in the original attribute space. As that enlargement can be computationaly expensive, SVM makes use of *kernels* functions to overcome such limitation. The use of kernels are an efficient computational strategy to produce nonlinear boundaries in the input attribute space an hence can improve training-class separation.
+
+In `sits`, SVM is the default machine learning model. As a wrapper of `e1071` R package that uses the `LIBSVM` implementation [@Chang2011], `sits` adopts the *one-against-one* method for multiclass classification. For a $q$ class problem, this method creates ${q(q-1)/2}$ SVM binary models, one for each class pair combination and tests any unknown input vectors throughout all those models. The overeall result is computed by a voting scheme. The following example ilustrate how to classify an individual sample (in this case a serie of 16 one-year NDVI time series from the same location). We used the NDVI time series from Mato Grosso Brazilian state as a training data set.
+
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="SVM classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
+# Retrieve the set of samples (provided by EMBRAPA) from the 
+# Mato Grosso region for train the SVM model
+data(samples_MT_ndvi)
+# get a point to be classified
+data(point_ndvi)
+# Classify using SVM model
+class.tb <- 
+    sits_classify(point_ndvi,
+                  samples_MT_ndvi,
+                  ml_method = sits_svm(kernel = "radial",
+                                       cost = 10))
+sits_plot(class.tb)
+```
+
+## Random forest
+
+Random forest has *decision tree* as its base model. It combines many decision trees via *bootstrap* procedure and *stochastic feature selection*, developing a population of somewhat uncorrelated base models. The final classification model is obtained by a majority voting schema. This procedure decreases the classification variance, improving prediction of individual decision trees. 
+
+Random forest training process is essentialy nondeterministic. It starts by growing trees through repeatedly random sampling-with-replacement the observations set. At each growing tree, the random forest considers only a fraction of the original attributes to decide where to split a node, according to a *purity criterion*. This decreases the correlation among trees and improves the prediction performance. The most used impurity criterion are *Gini*, *cross-entropy*, and *misclassification error*. The splitting process continues until the tree reaches some given minimum nodes size or a minimum impurity index value.
+
+Random forest provides better performances over *bagged trees*, a similar procedure that does not implement stochastic feature selection (*i.e.* when $m=p$). Bagged trees suffer from high correlation among trees introduced by an eventual presence of strong predictors that tends to be chosen as the splitting criterion [@James2013]. However, the random forest classification performance can vary according to the tunning of the model parameters. The main random forest parameters are the number of attributes sampled as candidates at each split, the number of decision trees to grow, the minimum node size, and the sample fraction to be drawed at each bootstrap iteration. 
+
+<!--
+% Lower values of $m$ tends to grow taller and uncorrelated decision trees, but decreases the model classification accuracy. The parameter $b$, the number of trees composing the random forest ensemble, is connected with the variance reduction of the model. High values of $b$ can reduce the variance of the model up to a certain level (dependent on the observations data set) but reduces the model performance. Lower values of $N_{\!m\!i\!n}$ parameter can introduce model overfitting but may increase the classification accuracy. Finally, lower values of $\lambda$ tends to increase the model variance but can underrepresent the sample universe reducing its accuracy.
+-->
+
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
+# Retrieve the set of samples (provided by EMBRAPA) from the 
+# Mato Grosso region for train the Random Forest model.
+data(samples_MT_ndvi)
+# get a point to be classified
+data(point_ndvi)
+# Classify using Random Forest model
+class.tb <- 
+    sits_classify(point_ndvi,
+                  samples_MT_ndvi,
+                  ml_method = sits_rfor())
+sits_plot(class.tb)
+```
+
+## Deep learning methods 
+
+
+In `sits`, the interface to deep learning models is done using the `keras` package [@Chollet2018]. This package implements different deep learning techniques. Currently, `sits` provides access to deep feedforward networks. Also called feedforward neural networks, or multilayer perceptrons (MLPs), these are the quintessential deep learning models. The goal of a feedforward network is to approximate some function $f$. For example, for a classifier $y =f(x)$ maps an input $x$ to a category $y$. A feedforward network defines a mapping $y = f(x;\theta)$ and learns the value of the parameters $\theta$ that result in the best function approximation. These models are called feedforward because information flows through the function being evaluated from $x$, through the intermediate computations used to define $f$, and finally to the output $y$. There are no feedback connections in which outputs of the model are fed back into itself [@Goodfellow2016].
+
+Specifying a MLP requires some work on customization, which requires some amount of trial-and-error by the user, since there is no proven model for classification of satellite image time series. The most important decision is the number of layers in the model. Initial tests indicate that 3 to 5 layers are enough to produce good results. The choice of the number of layers depends on the inherent separability of the data set to be classified. For data sets where the classes have different signatures, a shallow model (with 3 layers) may provide appropriate responses. More complex situations require models of deeper hierachy. The user should be aware that some models with many hidden layers may take a long time to train and may not be able to converge. The suggestion is to start with 3 layers and test different options of number of neurons per layer, before increasing the number of layers.
+
+Three other important parameters for an MLP are: (a) the activation function; (b) the optimization method; (c) the dropout rate. The activation function  the activation function of a node defines the output of that node given an input or set of inputs. Following standard practices [@Goodfellow2016], we recommend the use of the "relu" functions. The optimization method is a crucial choice, and the most common choices are gradient descent algorithm. These methods aim to maximize an objective function by updating the parameters in the opposite direction of the gradient of the objective function [@Ruder2016]. Based on experience with image time series, we recommend that users start by using the default method provided by `sits`, which is the `optimizer_adam` method. Please refer to the `keras` package documentation for more information.
+
+The dropout rates have a huge impact on the performance of deep learning classifiers. Dropout is a technique for randomly  droping  units  from  the  neural network during training [@Srivastava2014]. By randomly discarding some neurons, dropout reduces overfitting. It is a counter-intuitive idea that works well. Since the purpose of a cascade of neural nets is to improve learning as more data is acquired, discarding some of these neurons may seem a waste of resources. In fact, as experience has shown [@Goodfellow2016], this procedures prevents an early convergence of the optimization to a local minimum. Thus, in practice, dropout rates between 50% and 20% are recommended for each layer. 
+
+In the following example, we classify the same data set using the default values of the `deep learning` method, which are: (a) Three layers with 400, 200, 100 neurons each; (b) Using the 'relu' activation function and 'optimizer_adam'; (c) dropout rates of 40%, 30% and 20% for the layers. 
+
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Deep learning classification of a $16$ year time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
+# Retrieve the set of samples (provided by EMBRAPA) from the 
+# Mato Grosso region for train the deep learning model.
+data(samples_MT_ndvi)
+# get a point to be classified
+data(point_ndvi)
+# Classify using Random Forest model
+class.tb <- 
+    sits_classify(point_ndvi,
+                  samples_MT_ndvi,
+                  ml_method = sits_deeplearning(),
+                  adj_fun = function (x) {identity(x)})
+sits_plot(class.tb)
+```
+
+
+
+
+# Validation techniques
+
+Validation is a process undertaken on models to estimate some error associated with them, and hence has been used widely in different scientific disciplines. Here, we are interested in estimating the prediction error associated to some model. For this purpose, we concentrate on the *cross-validation* approach, probably the most used validation technique [@Hastie2009].
+
+To be sure, cross-validation estimates the expected prediction error. It uses part of the available samples to fit the classification model, and a different part to test it. The so-called *k-fold* validation, we split the data into $k$ partitions with approximately the same size and proceed by fitting the model and testing it $k$ times. At each step, we take one distinct partition for test and the remaining ${k-1}$ for training the model, and calculate its prediction error for classifing the test partition. A simple average gives us an estimation of the expected prediction error. 
+
+A natural question that arises is: *how good is this estimation?* According to @Hastie2009, there is a bias-variance trade-off in choice of $k$. If $k$ is set to the number of samples, we obtain the so-called *leave-one-out* validation, the estimator gives a low bias for the true expected error, but produces a high variance expectation. This can be computational expensive as it requires the same number of fitting process as the number of samples. On the other hand, if we choose ${k=2}$, we get a high biased expected prediction error estimation that overestimates the true prediction error, but has a low variance. The recommended choices of $k$ are $5$ or $10$ [@Hastie2009], which somewhat overestimates the true prediction error.
+
+`sits_kfold_validate()` gives support the k-fold validation in `sits`. The following code gives an example on how to proceed a k-fold cross-validation in the package. It perform a five-fold validation using SVM classification model as a default classifier. We can see in the output text the corresponding confusion matrix and the accuracy statistics (overall and by class).
+
+```{r}
+# read a set of samples
+data(cerrado_2classes)
+
+# perform a five fold validation with the 
+# SVM machine learning method using default parameters
+prediction.mx <- 
+    sits_kfold_validate(cerrado_2classes, 
+                        folds = 5)
+# prints the output confusion matrix and statistics 
+sits_conf_matrix(prediction.mx)
+```
+
+# Raster classification
+
+The continuous observation of the Earth surface provided by orbital sensors is unprecedented in history. Just for the sake of ilustration, a unique tile from MOD13Q1 product, a square of $4800$ pixels provided every 16 days since February 2000 takes around $18$GB of uncompressed data to store only one band or vegetation index. This data deluge puts the field into a big data era and imposes challenges to design and build technologies that allow the Earth observation community to analyse those data sets [@Gilberto2017]. `sits` implements an "out of the box" classification scheme based on *raster bricks* where stacked images have spatial and time dimensions.
+
+Our tested approach (see example illustrated bellow) is `GeoTIFF` bricks, where the temporal dimension is stored in the `GeoTIFF` bands. For a multiband, multitemporal image, all time instances of each band should be stored together in a single `GeoTIFF` file. Different bands for the same images should be stored The classification algorithm implemented in `sits_classify_raster()` allows one to choose how many process will run the task in paralel, and also the size of each data chunk to be consumed at each iteration. This strategy enables `sits` to work on average desktop computers without depleting all computational resources. The code bellow illustrates how to classify a small raster brick image that accompany the package.
+
+```{r, fig.align="center", fig.height=3.4, fig.width=4.1, fig.cap="Image (${11\\times14}$ pixels) classified using SVM. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
+# Retrieve the set of samples for the Mato Grosso region 
+data(samples_MT_ndvi)
+
+# read a raster file and put it into a vector
+files  <- 
+    system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", 
+                package = "sits")
+
+# define the timeline
+data("timeline_modis_392")
+
+# create a raster metadata file based on the 
+# information about the files
+raster.tb <- 
+    sits_coverage(service  = "RASTER",
+                  name     = "Sinop-crop",
+                  timeline = timeline_modis_392,
+                  bands    = c("ndvi"),
+                  files    = files)
+
+# classify the raster file
+raster_class.tb <- 
+    sits_classify_raster(file = "./raster-class", 
+                         raster.tb, 
+                         samples_MT_ndvi,
+                         ml_method  = sits_svm(), 
+                         blocksize = 250, 
+                         multicores = 1)
+# plot classified image
+plot(sits_get_raster(raster_class.tb, 1))
+```
+
+Note that we need to create a coverage `tibble` with some metadata information before the classification. We have proceeded in the same way with `sits_getdata()` example above, to retrieve WTSS data. The metadata maily concern about which bands and its respective files to connect to. A `timeline` must be provided and it refers to the corresponding date associated with the MOD13Q1 product images used to compose the raster brick. Once created, the coverage can be used either to retrieve time series data from the raster bricks using `sits_getdata()` or to do the raster classification by calling the function `sits_classify_raster()`. The machine learning model and the training data to be used are passed by the arguments `sits_svm()` (default) and `samples_MT_ndvi` parameters. Note that we need to be consistent about the bands informed to the coverage and the bands present in the training samples. The classification result is stored as a set of files begining with `file` prefix.
+
+```{r, include=FALSE}
+# remove all files
+file.remove(unlist(raster_class.tb$files))
+```
+# Processing of large raster data files
+
+One of the challenges in land use classification is being able to process large data files. To reduce processing time, the `sits_classify_raster` function has two parameters that can be adjusted according to the capabilities of the server. The package tries to keep memory use to a minimum, and performs garbage collection to free memory as often as possible. Nevertheless, there is an inevitable trade-off between computing time, memory use and I/O operations. The best trade-off has to be determined by the user, considering issues such disk read spead, number of cores in the server, and CPU performance. 
+
+The first parameter is "blocksize". It controls the size of the data block to be read from disk for each file. When acessing raster data, the block size is a multiple of the number of columns in each band. Consider an image consisting of 4 bands of 4000 x 4000 pixels with 400 time steps. A block size of 1000000 will result in using blocks of size 250 lines x 4000 columns per each time instance. Considering there are 4 bands, 200 time steps and that R will store this data as a numeric value (8 bytes), R will need about 12.8 GBytes to store this data in memory for each block. Considering a typical factor of 150% of additional memory used for storing copies of the block, we can estimate that the server will need about 32 GB of continuous memory to be used by R. 
+
+The second factor controlling performance of raster classification is "multicores". Once a block of data is read from disk into main memory, it is split into different cores, as specified by the user. In general, the more cores are assigned to classification, the faster the result will be. However, there are overheads in switching time, especially of the server is shared with other processes. 
+
+Based on current experience, the classification of a MODIS tile (4800 x 4800), with 4 bands and 400 time instances, using a SVM with a training data set of about 10,000 samples, takes about 24 hours using 20 cores and a blocksize of 1e+06, in a server with 2.4GHz Xeon CPU and 96 GB memory.
+
+
+# Final remarks
+
+Current approaches to image time series analysis still use limited number of attributes. A common approach is deriving a small set of phenological parameters from vegetation indices, like beginning, peak, and length of growing season [@Brown2013], [@Kastens2017], [@Estel2015], [@Pelletier2016]. These phenological parameters are then fed in specialised classifiers such as TIMESAT [@Jonsson2004]. These approaches do not use the power of advanced statistical learning techniques to work on high-dimensional spaces and with big training data sets [@James2013].
+
+The `sits` package uses the full depth of satellite image time series to create larger dimensional spaces. We tested different methods of extracting attributes from time series data, including those reported by @Pelletier2016 and @Kastens2017. Our conclusion is that part of the information in raw time series is lost after filtering or statistical approximation. Thus, the method we developed uses all the data available in the time series samples. The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. Our experiments found out that modern statistical models such as support vector machines, and random forests perform better in high-dimensional spaces than in lower dimensional ones. 
+
+# Acknowledgements
+
+The authors would like to thank all the researchers whose provided data samples used in the examples: Alexandre Coutinho, Julio Esquerdo and Joao Antunes (Brazilian Agricultural Research Agency, Brazil) who provided ground samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower" and "pasture" classes; Rodrigo Bergotti (National Institute for Space Research, Brazil) who provided samples for "cerrado" and "forest" classes; and Damien Arvor (Rennes University, France) who provided ground samples for "soybean-fallow" class. 
+
+This work was partially funded by the São Paulo Research Foundation (FAPESP) through a eScience Program grant 2014/08398-6. We thank the Coordination for the Improvement of Higher Education Personnel (CAPES) and National Council for Scientific and Technological Development (CNPq) grants 312151/2014-4 (GC) and 140684/2016-6 (RS). We thank Ricardo Cartaxo, Lúbia Vinhas, and Karine Ferreira who provided insight and expertise to support this paper.
+
+This work has also been supported  by the International Climate Initiative of the Germany Federal Ministry for the Environment, Nature Conservation, Building and Nuclear Safety under Grant Agreement 17-III-084-Global-A-RESTORE+ (``RESTORE+: Addressing Landscape Restoration on Degraded Land in Indonesia and Brazil''). 
+
+# References
+
+<!--
+# References
+\setlength{\parindent}{-0.2in}
+\setlength{\leftskip}{0.2in}
+\setlength{\parskip}{8pt}
+\vspace*{-0.2in}
+\noindent
+-->
+

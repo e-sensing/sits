@@ -248,34 +248,38 @@ sits_getdata <- function(coverage    = NULL,
     # create a file to store the unread rows
     csv_unread.tb <- .sits_tibble_csv()
     # for each row of the input, retrieve the time series
-    for (i in NROW(csv.tb)) {
-        r <- csv.tb[i, ]
-        row <- .sits_from_service(coverage, r$longitude, r$latitude, r$start_date, r$end_date,
-                                  bands, prefilter, r$label)
-        # did we get the data?
-        if (!purrr::is_null(row)) {
-            nrow <-  nrow + 1
+    purrr::pmap(list(csv.tb$longitude, csv.tb$latitude, csv.tb$start_date,
+                csv.tb$end_date, csv.tb$label),
+                function (longitude, latitude, start_date, end_date, label){
 
-            # add the new point to the SITS tibble
-            data.tb <<- dplyr::bind_rows(data.tb, row)
+                    row <- .sits_from_service(coverage, longitude, latitude,
+                                              lubridate::as_date(start_date),
+                                              lubridate::as_date(end_date),
+                                              bands, prefilter, label)
+                    # did we get the data?
+                    if (!purrr::is_null(row)) {
+                        nrow <<-  nrow + 1
 
-            # optional - save the results to an intermediate file
-            if (.n_save != 0 && !(nrow %% .n_save)) {
-                .sits_log_data(data.tb)
-            }
-        }
-        # the point could not be read - save it in the log file
-        else {
-            csv_unread_row.tb <- tibble::tibble(
-                longitude  = r$longitude,
-                latitude   = r$latitude,
-                start_date = r$start_date,
-                end_date   = r$end_date,
-                label      = r$label
-            )
-            csv_unread.tb <- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
-        }
-    }
+                        # add the new point to the SITS tibble
+                        data.tb <<- dplyr::bind_rows(data.tb, row)
+
+                        # optional - save the results to an intermediate file
+                        if (.n_save != 0 && !(nrow %% .n_save)) {
+                            .sits_log_data(data.tb)
+                        }
+                    }
+                    # the point could not be read - save it in the log file
+                    else {
+                        csv_unread_row.tb <- tibble::tibble(
+                            longitude  = longitude,
+                            latitude   = latitude,
+                            start_date = lubridate::as_date(start_date),
+                            end_date   = lubridate::as_date(end_date),
+                            label      = label
+                        )
+                        csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
+                    }
+                })
 
 
     # Have all input rows being read?

@@ -3,7 +3,8 @@ classify_raster         Classify RasterBricks in TIFF format using SVM (only NDV
 classify_cities         Shows different options for classification using remote file access
 classify_TWDTW          Classify a time series using TWDTW
 classify_deeplearning   Classify time series using deep learning
-access_WTSS             Access a time series using the WTSS service
+access_WTSS             Access time series using the WTSS service
+access_SATVEG           Access time series using the SATVEG service
 classify_csv            Classify a set of labelled samples in the CSV format
 filtering_ts            Comparison of different methods for filtering a time series
 ml_comparison           Comparison of different machine learning methods for classifying time series

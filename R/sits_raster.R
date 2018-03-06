@@ -9,11 +9,17 @@
 #'              and produces a classified set of RasterLayers. This function is similar to
 #'               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
 #'               There are two parameters for optimizing processing of large data sets. These
-#'               parameters are "blocksize" and "multicores". The first controls the size of the data block to
-#'               be read from disk. When acessing raster data, the block size is a multiple of the number of
-#'               columns in each band. Thus, reading a 1000 x 1000 image with a block size of 250000 will result
-#'               in using blocks of size 250 lines x 1000 columns. The "multicores" parameter defines the
-#'               number of cores used for processing.
+#'               parameters are "blocksize" and "multicores". The "multicores" parameter defines the
+#'               number of cores used for processing. The "blocksize" parameter  controls
+#'               the size of each image block to be read into memory.
+#'               The thumb rule to determine the blockisze is:
+#'
+#'               blocksize = (available memory for use) / (20 * bands * times).
+#'
+#'               For example, for a server with 60 GB available, and an image with
+#'               2 bands and 500 instances of time, the blocksize can be up to 3000000 (3e+06).
+#'               The factor of 20 is an estimate of how many bytes are used for each pixel,
+#'               since R stores everything in double precision and makes copies of data.
 #'
 #'
 #' @param  file            vector of file names to store the output (one file per classified year)
@@ -88,8 +94,8 @@ sits_classify_raster <- function(file = NULL,
 
     # estimated total memory used (in GB)
     memory_req <- round((blocksize * nbands * ntimes * bytes_double * bloat)/1000000000, digits = 2)
-    message(paste0("expected memory use can be as large as ", memory_req," Gb"))
-    message("make sure your computer has this memory available")
+    message(paste0("Information: Expected memory use can be as large as ", memory_req," Gb."))
+    message("Make sure your computer has this memory available.")
 
     # set up the ML model
     if (purrr::is_null(ml_model))

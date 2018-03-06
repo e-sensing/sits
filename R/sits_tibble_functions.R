@@ -195,14 +195,14 @@ sits_prune <- function(data.tb) {
     # create a vector to store the number of indices per time series
     n_samples <- vector()
 
-    data.tb %>%
-        purrrlyr::by_row(function(r) {
-            n_samples[length(n_samples) + 1] <<- length(r$time_series[[1]]$Index)
+    data.tb$time_series %>%
+        purrr::map(function(t) {
+            n_samples[length(n_samples) + 1] <<- NROW(t)
         })
 
     # check if all time indices are equal to the median
     if (all(n_samples == stats::median(n_samples))) {
-        message("All samples of time series have the same number of time indices")
+        message("Success!! All samples of time series have the same number of time indices")
         return(data.tb)
     }
     else{
