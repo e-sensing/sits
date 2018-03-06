@@ -19,12 +19,12 @@ output:
     toc: true
     number_sections: true
     df_print: paged
-    theme: journal
+    theme: flatly
     highlight: default
 endnote: no
 fontfamily: mathdesign
 fontfamilyoptions: adobe-utopia
-fontsize: 12pt
+fontsize: 13pt
 graphics: yes
 mathtools: yes
 bibliography: ../inst/extdata/markdown/references-sits.bib
@@ -429,23 +429,29 @@ In `sits`, the interface to deep learning models is done using the `keras` packa
 
 Specifying a MLP requires some work on customization, which requires some amount of trial-and-error by the user, since there is no proven model for classification of satellite image time series. The most important decision is the number of layers in the model. Initial tests indicate that 3 to 5 layers are enough to produce good results. The choice of the number of layers depends on the inherent separability of the data set to be classified. For data sets where the classes have different signatures, a shallow model (with 3 layers) may provide appropriate responses. More complex situations require models of deeper hierachy. The user should be aware that some models with many hidden layers may take a long time to train and may not be able to converge. The suggestion is to start with 3 layers and test different options of number of neurons per layer, before increasing the number of layers.
 
-Three other important parameters for an MLP are: (a) the activation function; (b) the optimization method; (c) the dropout rate. The activation function  the activation function of a node defines the output of that node given an input or set of inputs. Following standard practices [@Goodfellow2016], we recommend the use of the "relu" functions. The optimization method is a crucial choice, and the most common choices are gradient descent algorithm. These methods aim to maximize an objective function by updating the parameters in the opposite direction of the gradient of the objective function [@Ruder2016]. Based on experience with image time series, we recommend that users start by using the default method provided by `sits`, which is the `optimizer_adam` method. Please refer to the `keras` package documentation for more information.
+Three other important parameters for an MLP are: (a) the activation function; (b) the optimization method; (c) the dropout rate. The activation function  the activation function of a node defines the output of that node given an input or set of inputs. Following standard practices [@Goodfellow2016], we recommend the use of the "relu" and "elu" functions. The optimization method is a crucial choice, and the most common choices are gradient descent algorithm. These methods aim to maximize an objective function by updating the parameters in the opposite direction of the gradient of the objective function [@Ruder2016]. Based on experience with image time series, we recommend that users start by using the default method provided by `sits`, which is the `optimizer_adam` method. Please refer to the `keras` package documentation for more information.
 
 The dropout rates have a huge impact on the performance of deep learning classifiers. Dropout is a technique for randomly  droping  units  from  the  neural network during training [@Srivastava2014]. By randomly discarding some neurons, dropout reduces overfitting. It is a counter-intuitive idea that works well. Since the purpose of a cascade of neural nets is to improve learning as more data is acquired, discarding some of these neurons may seem a waste of resources. In fact, as experience has shown [@Goodfellow2016], this procedures prevents an early convergence of the optimization to a local minimum. Thus, in practice, dropout rates between 50% and 20% are recommended for each layer. 
 
-In the following example, we classify the same data set using the default values of the `deep learning` method, which are: (a) Three layers with 400, 200, 100 neurons each; (b) Using the 'relu' activation function and 'optimizer_adam'; (c) dropout rates of 40%, 30% and 20% for the layers. 
+In the following example, we classify the same data set using a simple example of the `deep learning` method, for fast processing: (a) Two layers with 512 neurons each; (b) Using the 'elu' activation function and 'optimizer_adam'; (c) dropout rates of 40% and 30% for the layers. 
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Deep learning classification of a $16$ year time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
 # Mato Grosso region for train the deep learning model.
-data(samples_MT_ndvi)
+samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi"))
 # get a point to be classified
-data(point_ndvi)
+point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi"))
 # Classify using Random Forest model
 class.tb <- 
     sits_classify(point_ndvi,
                   samples_MT_ndvi,
-                  ml_method = sits_deeplearning(),
+                  ml_method = sits_deeplearning(units = c(512, 512),
+                              activation       = 'elu',
+                              dropout_rates    = c(0.40, 0.30),
+                              optimizer        = keras::optimizer_adam(lr = 0.001),
+                              epochs           = 300,
+                              batch_size       = 128,
+                              validation_split = 0.2),
                   adj_fun = function (x) {identity(x)})
 sits_plot(class.tb)
 ```
