@@ -1,10 +1,9 @@
 # Classification of LANDSAT data
 # these are the symbolic links for the files at dropbox
 
-l8m_222068_evi_file <- paste0("/viscurl/https://www.dropbox.com/s/xukj97v987a50bg/LC8MOD-2015-08-29_evi.tif?raw=1")
-l8m_222068_ndvi_file <- paste0("/vsicurl/https://www.dropbox.com/s/p3whp36fghbag5j/LC8MOD-2015-08-29_ndvi.tif?raw=1")
-l8m_222068_nir_file <- paste0("/vsicul/https://www.dropbox.com/s/z7gnj6moly12gam/LC8MOD-2015-08-29_nir.tif?raw=1")
-# read the files to a local director
+l8m_222068_evi_file <- paste0("/vsicurl/https://www.dropbox.com/s/53w4tvmiqmj7qum/LC8MOD_222068_2015-08-29_evi_3500.tif?raw=1")
+l8m_222068_ndvi_file <- paste0("/vsicurl/https://www.dropbox.com/s/d67dgg6t9yfraoc/LC8MOD_222068_2015-08-29_ndvi_3500.tif?raw=1")
+l8m_222068_nir_file <- paste0("/vsicurl/https://www.dropbox.com/s/j7ipzr02ngne73w/LC8MOD_222068_2015-08-29_nir_3500.tif?raw=1")
 
 files <- c(l8m_222068_ndvi_file, l8m_222068_evi_file, l8m_222068_nir_file)
 
@@ -14,7 +13,7 @@ timeline <- timeline_2000_2017 [timeline_2000_2017 >= lubridate::as_date("2015-0
 timeline <- timeline1[1:23]
 
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_coverage(service = "RASTER", name = "L8MOD-221_65_2013-2014",
+raster.tb <- sits_coverage(service = "RASTER", name = "L8MOD-222_68_2015-2016",
                            timeline = timeline, bands = c("ndvi", "evi", "nir"), files = files)
 
 # retrieve the samples from EMBRAPA (used as training sets for classification)

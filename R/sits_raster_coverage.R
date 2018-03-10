@@ -35,6 +35,7 @@
             # create one raster layer per date pair
             r_obj <- sits_get_raster(raster.tb, 1)
             r_out <- raster::raster(r_obj)
+            raster::dataType(r_out) <- "INT1U"
 
             # define the timeline for the classified image
             start_date <- date_pair[1]

@@ -1,3 +1,207 @@
+#' @title Classify a set of spatio-temporal raster bricks using machine learning models
+#' @name sits_classify_raster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Takes a set of spatio-temporal raster bricks, whose metadata is
+#'              described by tibble (created by \code{\link[sits]{sits_coverage}}),
+#'              a set of samples used for training a classification model,
+#'              a prediction model (created by \code{\link[sits]{sits_train}}),
+#'              and produces a classified set of RasterLayers. This function is similar to
+#'               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
+#'               There are two parameters for optimizing processing of large data sets. These
+#'               parameters are "blocksize" and "multicores". The "multicores" parameter defines the
+#'               number of cores used for processing. The "blocksize" parameter  controls
+#'               the size of each image block to be read into memory.
+#'               The thumb rule to determine the blockisze is:
+#'
+#'               blocksize = (available memory for use) / (20 * bands * times).
+#'
+#'               For example, for a server with 60 GB available, and an image with
+#'               2 bands and 500 instances of time, the blocksize can be up to 3000000 (3e+06).
+#'               The factor of 20 is an estimate of how many bytes are used for each pixel,
+#'               since R stores everything in double precision and makes copies of data.
+#'
+#'
+#' @param  file            vector of file names to store the output (one file per classified year)
+#' @param  raster.tb       tibble with information about a set of space-time raster bricks
+#' @param  samples.tb      tibble with samples used for training the classification model
+#' @param  ml_model        an R model trained by \code{\link[sits]{sits_train}}
+#' @param  ml_method       an R machine learning method such as SVM, Random Forest or Deep Learning
+#' @param  adj_fun         adjustment function to be applied to the data
+#' @param  interval        interval between two sucessive classifications, expressed in months
+#' @param  blocksize       size of the block to be read to build a block for classification
+#' @param  multicores      number of threads to process the time series.
+#' @param  verbose         logical: run function in verbose mode? (useful for working with big data sets)
+#' @return raster_class.tb tibble with the metadata for the vector of classified RasterLayers
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' data(samples_MT_ndvi)
+#'
+#' # read a raster file and put it into a vector
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#'
+#' # define the timeline
+#' data(timeline_modis_392)
+#'
+#' # create a raster metadata file based on the information about the files
+#' #' # create a raster coverage file based on the information about the files
+#' raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
+#'              timeline = timeline_modis_392, bands = c("ndvi"), files = files)
+#'
+#' # classify the raster file
+#' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
+#'    ml_method = sits_svm(), blocksize = 250, multicores = 1)
+#' }
+#'
+#' @export
+sits_classify_raster <- function(file = NULL,
+                                 raster.tb,
+                                 samples.tb,
+                                 ml_model  = NULL,
+                                 ml_method  = sits_svm(),
+                                 adj_fun    = sits_adjust(),
+                                 interval   = "12 month",
+                                 blocksize  = 2000,
+                                 multicores = 2,
+                                 verbose    = FALSE){
+
+    # ensure metadata tibble exists
+    ensurer::ensure_that(raster.tb, NROW(.) > 0,
+                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
+
+    # ensure patterns tibble exits
+    .sits_test_tibble(samples.tb)
+
+    # ensure that file name and prediction model are provided
+    ensurer::ensure_that(file, !purrr::is_null(.),
+                         err_desc = "sits-classify-raster: please provide name of output file")
+
+    # estimate the amount of memory required
+    # get the bands
+    bands <-  raster.tb$bands[[1]]
+    nbands <-  length(bands)
+
+    # size of the timeline
+    ntimes <- length(raster.tb$timeline[[1]])
+
+    # bytes per double
+    bytes_double <- 8
+
+    # estimated memory bloat
+    bloat <- .sits_get_memory_bloat()
+
+    # estimated total memory used (in GB)
+    memory_req <- round((blocksize * nbands * ntimes * bytes_double * bloat)/1000000000, digits = 2)
+    message(paste0("Information: Expected memory use can be as large as ", memory_req," Gb."))
+    message("Make sure your computer has this memory available.")
+
+    # set up the ML model
+    if (purrr::is_null(ml_model))
+        ml_model <- sits_train(samples.tb, ml_method = ml_method, adj_fun = adj_fun)
+
+    # create the raster objects and their respective filenames
+    raster_class.tb <- .sits_create_classified_raster(raster.tb, samples.tb, file, interval)
+
+    # define the classification info parameters
+    class_info.tb <- .sits_class_info(raster.tb, samples.tb, interval)
+
+    # get the labels of the data
+    labels <- sits_labels(samples.tb)$label
+
+    # create a named vector with integers match the class labels
+    int_labels <- c(1:length(labels))
+    names(int_labels) <- labels
+
+    layers.lst <- sits_get_raster(raster_class.tb)
+
+    #initiate writing
+    layers.lst <- layers.lst %>%
+        purrr::map(function(layer){
+            layer <- raster::writeStart(layer, layer@file@name, overwrite = TRUE)
+            return(layer)
+        })
+
+    # recover the input data by blocks for efficiency
+    bs <- .sits_raster_block_size(raster_class.tb[1,], blocksize)
+
+    # prepare the data required for classification
+    time_index.lst <- .sits_get_time_index(class_info.tb)
+
+    # get attribute names
+    attr_names <- .sits_get_attr_names(class_info.tb)
+
+    progress_bar <- NULL
+    # create a progress bar
+    if (bs$n > 1) {
+        message("Classifying raster data")
+        progress_bar <- utils::txtProgressBar(min = 0, max = bs$n, style = 3)
+    }
+
+    # read the input raster in blocks
+    # classify the data
+
+    for (i in 1:bs$n) {
+        layers.lst <- .sits_classify_bigdata(raster.tb,
+                                             layers.lst,
+                                             time_index.lst,
+                                             bands,
+                                             attr_names,
+                                             int_labels,
+                                             bs$row[i],
+                                             bs$nrows[i],
+                                             adj_fun = adj_fun,
+                                             ml_model,
+                                             multicores,
+                                             verbose)
+        if (!purrr::is_null(progress_bar))
+            utils::setTxtProgressBar(progress_bar, i)
+    }
+    # finish writing
+    # raster_class.tb$r_objs <-
+    #     layers.lst %>%
+    #     purrr::map(function(layer){
+    #         layer <- raster::writeStop(layer)
+    #         return(layer)
+    #     }) %>% list()
+    for (i in 1:length(layers.lst)) {
+        raster::writeStop(layers.lst[[i]])
+    }
+    if (!purrr::is_null(progress_bar)) close(progress_bar)
+    return(raster_class.tb)
+}
+#' @title Get a raster object from a raster coverage
+#' @name sits_get_raster
+#' @description This function retrieves one or more raster objects stored in a raster coverage.
+#'              It should be used to ensure that the raster objects are returned correctly.
+#'
+#' @param raster.tb  raster coverage
+#' @param i          i-th element of the list to retrieve
+#'
+#' @examples
+#' # Define a raster Brick and retrieve the associated object
+#' # define the file that has the raster brick
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#' # define the timeline
+#' data(timeline_modis_392)
+#' # create a raster metadata file based on the information about the files
+#' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
+#'                             timeline = timeline_modis_392, bands = c("ndvi"))
+#' # retrieve the raster object associated to the coverage
+#' raster_object <- sits_get_raster(raster_cov, 1)
+#' @export
+#
+sits_get_raster <- function(raster.tb, i = NULL) {
+
+    if (purrr::is_null(i))
+        return(raster.tb$r_objs[[1]])
+
+    ensurer::ensure_that(i, (.) <= length(raster.tb$r_objs[[1]]),
+                         err_desc = "sits_get_raster: index of raster object cannot be retrieved")
+
+    return(raster.tb$r_objs[[1]][[i]])
+}
 #' @title Classify a raster chunk using machine learning models
 #' @name .sits_classify_bigdata
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -110,94 +314,95 @@
         .sits_log_debug(paste0("Memory used after adding two first cols - ", .sits_mem_used(), " GB"))
 
     # iterate through time intervals
-    t <- 1
-    time_index.lst %>%
-        purrr::map(function(idx){
-            # for a given time index, build the data.table to be classified
-            # build the classification matrix but extracting the relevant columns
-            selec <- logical(length = ncol(dist.tb))
-            selec[1:2] <- TRUE
-            for (b in 1:length(bands)) {
-                selec[idx[(2*b - 1)]:idx[2*b]] <- TRUE
-            }
-            # retrieve the values used for classification
-            dist1.tb <- dist.tb[,selec]
-            # set the names of the columns of dist1.tb
-            colnames(dist1.tb) <- attr_names
+    for (t in 1:length(time_index.lst)) {
+        idx <- time_index.lst[[t]]
+        # for a given time index, build the data.table to be classified
+        # build the classification matrix extracting the relevant columns
+        selec <- logical(length = ncol(dist.tb))
+        selec[1:2] <- TRUE
+        for (b in 1:length(bands)) {
+            i1 <- idx[(2*b - 1)] + 2
+            i2 <- idx[2*b] + 2
+            selec[i1:i2] <- TRUE
+        }
+        # retrieve the values used for classification
+        dist1.tb <- dist.tb[,selec]
+        # set the names of the columns of dist1.tb
+        colnames(dist1.tb) <- attr_names
 
+        # memory management
+        if (verbose)
+            .sits_log_debug(paste0("Memory used after selecting data subset  - ", .sits_mem_used(), " GB"))
+
+        # classify a block of data
+        classify_block <- function(block.tb) {
+            # predict the values for each time interval
+            pred_block.vec <- .sits_predict(block.tb, ml_model)
+            return(pred_block.vec)
+        }
+
+        # set up multicore processing
+        if (multicores > 1) {
+            # estimate the list for breaking a block
+            block_size.lst <- .sits_split_block_size(nrow(dist1.tb), multicores)
+            # divide the input matrix into blocks for multicore processing
+            blocks.lst <- vector(mode = "list", length = multicores)
+            for (b in 1:length(block_size.lst)) {
+                bs <- block_size.lst[[b]]
+                    # select a chunk of data for each core
+                    block.tb <- dist1.tb[bs[1]:bs[2],]
+                    blocks.lst[[b]] <- block.tb
+            }
             # memory management
             if (verbose)
-                .sits_log_debug(paste0("Memory used after selecting data subset  - ", .sits_mem_used(), " GB"))
-
-            # classify a block of data
-            classify_block <- function(block.tb) {
-                # predict the values for each time interval
-                pred_block.vec <- .sits_predict(block.tb, ml_model)
-                return(pred_block.vec)
-            }
-
-            # set up multicore processing
-            if (multicores > 1) {
-                # estimate the list for breaking a block
-                block_size.lst <- .sits_split_block_size(nrow(dist1.tb), multicores)
-                # divide the input matrix into blocks for multicore processing
-                blocks.lst <- block_size.lst %>%
-                    purrr::map(function(bs){
-                        # select a chunk of data for each core
-                        block.tb <- dist1.tb[bs[1]:bs[2],]
-                        return(block.tb)
-                    })
-                # memory management
-                if (verbose)
-                    .sits_log_debug(paste0("Memory used after building chunks  - ", .sits_mem_used(), " GB"))
-                rm(dist1.tb)
-                gc()
-                if (verbose)
-                    .sits_log_debug(paste0("Memory used before calling parallel processing - ", .sits_mem_used(), " GB"))
-
-                # apply parallel processing to the split data and join the results
-                pred.vec <- unlist(parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores))
-
-                # memory management
-                if (verbose)
-                    .sits_log_debug(paste0("Memory used after calling parallel processing - ", .sits_mem_used(), " GB"))
-                rm(block_size.lst)
-                rm(blocks.lst)
-                gc()
-                if (verbose)
-                    .sits_log_debug(paste0("Memory used after removing blocks - ", .sits_mem_used(), " GB"))
-            }
-            else {
-                # estimate the prediction vector
-                pred.vec <- classify_block(dist1.tb)
-
-                # memory management
-                rm(dist1.tb)
-                gc()
-                if (verbose)
-                    .sits_log_debug(paste0("Memory used after classification in one core - ", .sits_mem_used(), " GB"))
-            }
-
-            # check the result has the right dimension
-            ensurer::ensure_that(pred.vec, length(.) == nrow(dist.tb),
-                                 err_desc = "sits_classify_raster - number of classified pixels is different
-                                        from number of input pixels")
-
-            # for each layer, write the predicted values
-            values <- as.integer(int_labels[pred.vec])
-            layers.lst[[t]]  <- raster::writeValues(layers.lst[[t]], values, init_row)
-            t <<- t + 1
-
-            if (verbose)
-                message(paste0("Processed year ", t, " starting from row ", init_row))
-
-            # memory management
-            rm(pred.vec)
-            rm(values)
+                .sits_log_debug(paste0("Memory used after building chunks  - ", .sits_mem_used(), " GB"))
+            #rm(dist1.tb)
             gc()
             if (verbose)
-                .sits_log_debug(paste0("Memory used after classification of year ", t, " - ", .sits_mem_used(), " GB"))
-        })
+                .sits_log_debug(paste0("Memory used before calling parallel processing - ", .sits_mem_used(), " GB"))
+
+            # apply parallel processing to the split data and join the results
+            pred.vec <- unlist(parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores))
+
+            # memory management
+            if (verbose)
+                .sits_log_debug(paste0("Memory used after calling parallel processing - ", .sits_mem_used(), " GB"))
+            rm(block_size.lst)
+            rm(blocks.lst)
+            gc()
+            if (verbose)
+                .sits_log_debug(paste0("Memory used after removing blocks - ", .sits_mem_used(), " GB"))
+        }
+        else {
+            # estimate the prediction vector
+            pred.vec <- classify_block(dist1.tb)
+
+            # memory management
+            rm(dist1.tb)
+            gc()
+            if (verbose)
+                .sits_log_debug(paste0("Memory used after classification in one core - ", .sits_mem_used(), " GB"))
+        }
+
+        # check the result has the right dimension
+        ensurer::ensure_that(pred.vec, length(.) == nrow(dist.tb),
+                             err_desc = "sits_classify_raster - number of classified pixels is different
+                                        from number of input pixels")
+
+        # for each layer, write the predicted values
+
+        layers.lst[[t]]  <- raster::writeValues(layers.lst[[t]], as.integer(int_labels[pred.vec]), init_row)
+
+        if (verbose)
+            message(paste0("Processed year ", t, " starting from row ", init_row))
+
+        # memory management
+        rm(pred.vec)
+        #rm(values)
+        gc()
+        if (verbose)
+            .sits_log_debug(paste0("Memory used after classification of year ", t, " - ", .sits_mem_used(), " GB"))
+    }
     # memory management
     rm(dist.tb)
     gc()

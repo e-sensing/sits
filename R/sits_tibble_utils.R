@@ -330,21 +330,20 @@
     # size of prediction table
     nrows <- length(ref_dates.lst)
 
-    predicted.lst <- list()
-
     class_idx <-  1
 
-    data.tb <- data.tb %>%
-        purrrlyr::by_row(function(row) {
+    predicted.lst <- purrr::pmap(
+        list(data.tb$start_date, data.tb$end_date, data.tb$time_series),
+        function(row_start_date, row_end_date, row_time_series) {
             # get the timeline of the row
-            timeline_row <- .sits_timeline(row)
+            timeline_row <- lubridate::as_date(row_time_series$Index)
             # the timeline of the row may be different from the global timeline
-            # this happens when we are processing samples with different
+            # this happens when we are processing samples with different dates
             if (timeline_row[1] != timeline_global[1]) {
                 # what is the reference start date?
-                ref_start_date <- lubridate::as_date(row$start_date)
+                ref_start_date <- lubridate::as_date(row_start_date)
                 # what is the reference end date?
-                ref_end_date <- lubridate::as_date(row$end_date)
+                ref_end_date <- lubridate::as_date(row_end_date)
                 # what are the reference dates to do the classification?
                 ref_dates.lst <- .sits_match_timeline(timeline_row, ref_start_date, ref_end_date, interval)
             }
@@ -364,7 +363,9 @@
             # transform the list into a tibble
             predicted.tb <- dplyr::bind_rows(pred_row.lst)
             return(predicted.tb)
-        }, .to = "predicted") # include a new column in the data.tb tibble
+        })
+
+    data.tb$predicted <- predicted.lst
 
     return(data.tb)
 }

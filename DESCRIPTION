@@ -108,7 +108,6 @@ Collate:
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
-    'sits_raster.R'
     'sits_raster_classification.R'
     'sits_raster_coverage.R'
     'sits_raster_time_series.R'
