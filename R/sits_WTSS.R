@@ -33,28 +33,28 @@ sits_infoWTSS <- function() {
     # obtains information about the WTSS service
     services <- .sits_get_services(protocol = "WTSS")
 
-    for (i in 1:length(services)) {
-        URL       <- .sits_get_server(service = services[i])
-        tryCatch({
-            wtss.obj  <- wtss::WTSS(URL)
-            cat(paste("-----------------------------------------------------------", "\n",sep = ""))
-            cat(paste("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
+    services %>%
+        purrr::pmap(function (service) {
+            URL       <- .sits_get_server(service)
+            tryCatch({
+                wtss.obj  <- wtss::WTSS(URL)
+                cat(paste("-----------------------------------------------------------", "\n",sep = ""))
+                cat(paste("The WTSS server URL is ", wtss.obj@serverUrl, "\n", sep = ""))
 
-            # obtains information about the coverages
-            coverages.obj    <- wtss::listCoverages(wtss.obj)
-            cat(paste("Available coverages: \n"))
-            coverages.obj %>%
-                purrr::map(function(c) cat(paste(c, "\n", sep = "")))
-            cat(paste("------------------------------------------------------------", "\n",sep = ""))
+                # obtains information about the coverages
+                coverages.obj    <- wtss::listCoverages(wtss.obj)
+                cat(paste("Available coverages: \n"))
+                coverages.obj %>%
+                    purrr::map(function(c) cat(paste(c, "\n", sep = "")))
+                cat(paste("------------------------------------------------------------", "\n",sep = ""))
 
-        }, error = function(e) {
-            msg <- paste0("WTSS service not available at URL ", URL)
-            .sits_log_error(msg)
-            message(msg)
-        }
-        )
+            }, error = function(e) {
+                msg <- paste0("WTSS service not available at URL ", URL)
+                .sits_log_error(msg)
+                message(msg)
+            })
 
-    }
+        })
 
     return(invisible(wtss.obj))
 }
@@ -202,9 +202,10 @@ sits_infoWTSS <- function() {
         # determine the missing value for each band
         missing_values <- coverage$missing_values[[1]]
         # update missing values to NA
-        for (b in bands) {
-            time_series[, b][time_series[, b] == missing_values[b]] <- NA
-        }
+        bands %>%
+            purrr::map(function (b) {
+                time_series[, b][time_series[, b] == missing_values[b]] <<- NA
+            })
 
         # interpolate missing values
         time_series[, bands] <- zoo::na.spline(time_series[, bands])

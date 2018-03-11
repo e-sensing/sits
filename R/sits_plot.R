@@ -38,6 +38,15 @@
 #' sits_plot (cerrado_2classes[1:20,])
 #' # Plot the patterns
 #' sits_plot (sits_patterns(cerrado_2classes))
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' data(samples_MT_ndvi)
+#' # Retrieve a point
+#' data(point_ndvi)
+#' # classify the point
+#' class_ndvi.tb <-  sits_classify (point_ndvi, samples_MT_ndvi)
+#' # plot the classification
+#' sits_plot (class_ndvi.tb)
+#'
 #' }
 #' @export
 #
@@ -105,67 +114,72 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
     labels <- sits_labels(data)$label
 
     # put the time series in the data frame
-    for (r in 1:NROW(data)) {
-        row <- data[r,]
-        #lb = as.character (r$label)
-        lb = .sits_plot_title(row)
-        # extract the time series
-        ts <- row$time_series[[1]]
-        # convert to data frame
-        df.x <- data.frame(Time = ts$Index, ts[,band], Series = as.factor(lb) )
-        # melt the time series data for plotting
-        df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
-        # define a nice set of breaks for value plotting
-        y.labels = scales::pretty_breaks()(range(df.x$value, na.rm = TRUE))
-        y.breaks = y.labels
+    purrr::pmap(list(data$latitude, data$longitude, data$label,
+                     data$time_series, data$predicted),
+                function (row_latitude, row_longitude, row_label,
+                          row_time_series, row_predicted) {
+                    lb = .sits_plot_title(row_latitude, row_longitude, row_label)
+                    # extract the time series
+                    ts <- row_time_series
+                    # convert to data frame
+                    df.x <- data.frame(Time = ts$Index, ts[,band], Series = as.factor(lb))
+                    # melt the time series data for plotting
+                    df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
+                    # define a nice set of breaks for value plotting
+                    y.labels = scales::pretty_breaks()(range(df.x$value, na.rm = TRUE))
+                    y.breaks = y.labels
 
-        # get the predicted values as a tibble
+                    # get the predicted values as a tibble
 
-        pred <- row$predicted[[1]]
-        df.pol <- data.frame()
+                    pred <- row_predicted
+                    df.pol <- data.frame()
 
-        # create a data frame with the predicted values and time intervals
-        i <- 1
-        for (p in 1:NROW(pred)) {
-            row_p <- pred[p, ]
-            best_class <- as.character(row_p$class)
+                    # create a data frame with the predicted values and time intervals
+                    i <- 1
+                    purrr::pmap(list(row_predicted$from, row_predicted$to,
+                                     row_predicted$class),
+                                function (rp_from, rp_to, rp_class) {
 
-            df.p <- data.frame(
-                Time  = c(lubridate::as_date(row_p$from), lubridate::as_date(row_p$to),
-                          lubridate::as_date(row_p$to), lubridate::as_date(row_p$from)),
-                Group = rep(i, 4),
-                Class = rep(best_class, 4),
-                value = rep(range(y.breaks, na.rm = TRUE), each = 2)
-            )
-            i <- i + 1
-            df.pol <- rbind(df.pol, df.p)
-        }
-        df.pol$Group  <-  factor(df.pol$Group)
-        df.pol$Class  <-  factor(df.pol$Class)
-        df.pol$Series <-  rep(lb, length(df.pol$Time))
+                                    best_class <- as.character(rp_class)
 
+                                    df.p <- data.frame(
+                                        Time  = c(lubridate::as_date(rp_from), lubridate::as_date(rp_to),
+                                                  lubridate::as_date(rp_to), lubridate::as_date(rp_from)),
+                                        Group = rep(i, 4),
+                                        Class = rep(best_class, 4),
+                                        value = rep(range(y.breaks, na.rm = TRUE), each = 2)
+                                    )
+                                    i <<- i + 1
+                                    df.pol <<- rbind(df.pol, df.p)
 
-        I = min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
-            df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
+                                })
 
-        df.x = df.x[I,,drop = FALSE]
+                    df.pol$Group  <-  factor(df.pol$Group)
+                    df.pol$Class  <-  factor(df.pol$Class)
+                    df.pol$Series <-  rep(lb, length(df.pol$Time))
 
-        gp <-  ggplot2::ggplot() +
-            ggplot2::facet_wrap(~Series, scales = "free_x", ncol = 1) +
-            ggplot2::geom_polygon(data = df.pol,
-                                  ggplot2::aes_string(x = 'Time', y = 'value', group = 'Group', fill = 'Class'),
-                                  alpha = .7) +
-            ggplot2::scale_fill_brewer(palette = "Set3") +
-            ggplot2::geom_line(data = df.x, ggplot2::aes_string(x = 'Time', y = 'value', colour = 'variable')) +
-            ggplot2::scale_y_continuous(expand = c(0, 0), breaks = y.breaks, labels = y.labels) +
-            ggplot2::scale_x_date(breaks = ggplot2::waiver(), labels = ggplot2::waiver()) +
-            ggplot2::theme(legend.position = "bottom") +
-            ggplot2::guides(colour = ggplot2::guide_legend(title = "Bands")) +
-            ggplot2::ylab("Value") +
-            ggplot2::xlab("Time")
+                    I = min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
+                        df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
 
-        graphics::plot(gp)
-    }
+                    df.x = df.x[I,,drop = FALSE]
+
+                    gp <-  ggplot2::ggplot() +
+                        ggplot2::facet_wrap(~Series, scales = "free_x", ncol = 1) +
+                        ggplot2::geom_polygon(data = df.pol,
+                                              ggplot2::aes_string(x = 'Time', y = 'value', group = 'Group', fill = 'Class'),
+                                              alpha = .7) +
+                        ggplot2::scale_fill_brewer(palette = "Set3") +
+                        ggplot2::geom_line(data = df.x, ggplot2::aes_string(x = 'Time', y = 'value', colour = 'variable')) +
+                        ggplot2::scale_y_continuous(expand = c(0, 0), breaks = y.breaks, labels = y.labels) +
+                        ggplot2::scale_x_date(breaks = ggplot2::waiver(), labels = ggplot2::waiver()) +
+                        ggplot2::theme(legend.position = "bottom") +
+                        ggplot2::guides(colour = ggplot2::guide_legend(title = "Bands")) +
+                        ggplot2::ylab("Value") +
+                        ggplot2::xlab("Time")
+
+                    graphics::plot(gp)
+
+                })
 
 
 
@@ -284,7 +298,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' @param colors      string - the set of Brewer colors to be used for plotting
 .sits_ggplot_series <- function(row, colors = "Dark2") {
      # create the plot title
-     plot_title <- .sits_plot_title(row)
+     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
      #extract the time series
      data.ts <- row$time_series
      # melt the data into long format
@@ -328,13 +342,15 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #'
 #' @description creates a plot title from row information
 #'
-#' @param row      data row with <longitude, latitude, label> information
+#' @param latitude   latitude of the location to be plotted
+#' @param longitude  longitude of the location to be plotted
+#' @param label      lable of the location to be plotted
 #' @return title   string - the title to be used in the plot
-.sits_plot_title <- function(row) {
+.sits_plot_title <- function(latitude, longitude, label) {
      title <- paste("location (",
-                     row$latitude,  ", ",
-                     row$longitude, ") - ",
-                     row$label,
+                     latitude,  ", ",
+                     longitude, ") - ",
+                     label,
                      sep = "")
      return(title)
 }

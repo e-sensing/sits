@@ -220,28 +220,30 @@
     data.tb <- sits_tibble()
     # create a tibble  to store the unread rows
     csv_unread.tb <- .sits_tibble_csv()
-    # for each row of the input, retrieve the time series
-    for (i in NROW(csv.tb)) {
-        r <- csv.tb[i, ]
-        # convert to the projection coordinates
-        xy <- .sits_latlong_to_proj(r$longitude, r$latitude, raster.tb$crs)
 
-        if (!.sits_XY_inside_raster(xy, raster.tb)) {
-            csv_unread_row.tb <- tibble::tibble(
-                longitude  = r$longitude,
-                latitude   = r$latitude,
-                start_date = r$start_date,
-                end_date   = r$end_date,
-                label      = r$label)
-            csv_unread.tb <- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
-        }
-        # read the time series
-        row.tb <- .sits_ts_fromRasterXY(raster.tb, xy, r$longitude, r$latitude, r$label)
-        # extract the time interval
-        row.tb <- .sits_extract(row.tb, r$start_date, r$end_date)
-        # put one more row in the outopur tibble
-        data.tb <- dplyr::bind_rows(data.tb, row.tb)
-    }
+    # for each row of the input, retrieve the time series
+    purrr::pmap(list(csv.tb$longitude, csv.tb$latitude,
+                     csv.tb$start_date, csv.tb$end_date, csv.tb$label),
+                function (r_longitude, r_latitude, r_start_date, r_end_date,
+                          r_label){
+                    xy <- .sits_latlong_to_proj(r_longitude, r_latitude, raster.tb$crs)
+
+                    if (!.sits_XY_inside_raster(xy, raster.tb)) {
+                        csv_unread_row.tb <- tibble::tibble(
+                            longitude  = r_longitude,
+                            latitude   = r_latitude,
+                            start_date = lubridate::as_date(r_start_date),
+                            end_date   = lubridate::as_date(r_end_date),
+                            label      = r_label)
+                        csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
+                    }
+                    # read the time series
+                    row.tb <- .sits_ts_fromRasterXY(raster.tb, xy, r_longitude, r_latitude, r_label)
+                    # extract the time interval
+                    row.tb <- .sits_extract(row.tb, lubridate::as_date(r_start_date), lubridate::as_date(r_end_date))
+                    # put one more row in the output tibble
+                    data.tb <<- dplyr::bind_rows(data.tb, row.tb)
+                })
     if (NROW(csv_unread.tb) > 0) {
         message("Some points could not be retrieved - see log file and csv_unread_file")
         .sits_log_CSV(csv_unread.tb, "unread_samples.csv")

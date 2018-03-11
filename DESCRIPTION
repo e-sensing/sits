@@ -59,7 +59,6 @@ Imports:
     parallel,
     pryr,
     purrr,
-    purrrlyr,
     randomForest,
     raster,
     readr,

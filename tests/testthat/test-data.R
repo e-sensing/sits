@@ -19,6 +19,17 @@ testthat::test_that("Reading a CSV file from WTSS", {
     testthat::expect_true(NROW(points.tb) == NROW(df_csv))
 })
 
+testthat::test_that("Reading a CSV file from RASTER", {
+    testthat::skip_on_cran()
+    files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+    raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
+                                timeline = timeline_modis_392, bands = c("ndvi"))
+    csv_raster_file <- system.file ("extdata/samples/samples_sinop_crop.csv", package = "sits")
+    points.tb <- sits_getdata (raster_cov, file = csv_raster_file)
+    df_csv <- utils::read.csv(system.file("extdata/samples/samples_sinop_crop.csv", package = "sits"))
+    testthat::expect_true(NROW(points.tb) == NROW(df_csv))
+})
+
 testthat::test_that("Reading a point from WTSS ",{
     testthat::skip_on_cran()
     coverage_wtss <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")

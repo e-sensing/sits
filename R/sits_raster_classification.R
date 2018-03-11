@@ -114,14 +114,14 @@ sits_classify_raster <- function(file = NULL,
     int_labels <- c(1:length(labels))
     names(int_labels) <- labels
 
-    layers.lst <- sits_get_raster(raster_class.tb)
+
 
     #initiate writing
-    layers.lst <- layers.lst %>%
-        purrr::map(function(layer){
-            layer <- raster::writeStart(layer, layer@file@name, overwrite = TRUE)
-            return(layer)
-        })
+    # layers.lst <- layers.lst %>%
+    #     purrr::map(function(layer){
+    #         layer <- raster::writeStart(layer, layer@file@name, overwrite = TRUE)
+    #         return(layer)
+    #     })
 
     # recover the input data by blocks for efficiency
     bs <- .sits_raster_block_size(raster_class.tb[1,], blocksize)
@@ -143,8 +143,8 @@ sits_classify_raster <- function(file = NULL,
     # classify the data
 
     for (i in 1:bs$n) {
-        layers.lst <- .sits_classify_bigdata(raster.tb,
-                                             layers.lst,
+        raster_class.tb <- .sits_classify_bigdata(raster.tb,
+                                             raster_class.tb,
                                              time_index.lst,
                                              bands,
                                              attr_names,
@@ -165,9 +165,9 @@ sits_classify_raster <- function(file = NULL,
     #         layer <- raster::writeStop(layer)
     #         return(layer)
     #     }) %>% list()
-    for (i in 1:length(layers.lst)) {
-        raster::writeStop(layers.lst[[i]])
-    }
+    # for (i in 1:length(layers.lst)) {
+    #     raster::writeStop(layers.lst[[i]])
+    # }
     if (!purrr::is_null(progress_bar)) close(progress_bar)
     return(raster_class.tb)
 }
@@ -217,7 +217,7 @@ sits_get_raster <- function(raster.tb, i = NULL) {
 #' next year to be classified.
 #'
 #' @param  raster.tb       tibble with metadata for a RasterBrick
-#' @param  layers.lst      list of the classified raster layers
+#' @param  raster_class.tb tibble with classified layers
 #' @param  time_index.lst  a list with the indexes to extract data for each time interval
 #' @param  bands           vector with the names of the bands
 #' @param  attr_names      vector with the attribute names
@@ -231,7 +231,7 @@ sits_get_raster <- function(raster.tb, i = NULL) {
 #' @return layer.lst       list  of the classified raster layers
 #'
 .sits_classify_bigdata <-  function(raster.tb,
-                                    layers.lst,
+                                    raster_class.tb,
                                     time_index.lst,
                                     bands,
                                     attr_names,
@@ -313,6 +313,8 @@ sits_get_raster <- function(raster.tb, i = NULL) {
     if (verbose)
         .sits_log_debug(paste0("Memory used after adding two first cols - ", .sits_mem_used(), " GB"))
 
+    # create a list with the output raster layers
+    layers.lst <- sits_get_raster(raster_class.tb)
     # iterate through time intervals
     for (t in 1:length(time_index.lst)) {
         idx <- time_index.lst[[t]]
@@ -390,9 +392,16 @@ sits_get_raster <- function(raster.tb, i = NULL) {
                                         from number of input pixels")
 
         # for each layer, write the predicted values
-
-        layers.lst[[t]]  <- raster::writeValues(layers.lst[[t]], as.integer(int_labels[pred.vec]), init_row)
-
+        # layers.lst <- layers.lst %>%
+        #     purrr::map(function(layer){
+        #         layer <- raster::writeStart(layer, layer@file@name, overwrite = TRUE)
+        #         return(layer)
+        #     })
+        layer <- layers.lst[[t]]
+        layer <- raster::writeStart(layer, layer@file@name, overwrite = TRUE)
+        layer <- raster::writeValues(layer, as.integer(int_labels[pred.vec]), init_row)
+        layer <- raster::writeStop(layer)
+        layers.lst[[t]] <- layer
         if (verbose)
             message(paste0("Processed year ", t, " starting from row ", init_row))
 
@@ -410,9 +419,9 @@ sits_get_raster <- function(raster.tb, i = NULL) {
         .sits_log_debug(paste0("Memory used after end of processing all years - ", .sits_mem_used(), " GB"))
         message(paste0("Processed block starting from ", init_row, " to ", (init_row + nrows - 1)))
     }
-
-
-    return(layers.lst)
+    # update the raster objects
+    raster_class.tb$r_objs <- list(layers.lst)
+    return(raster_class.tb)
 }
 #' @title Find the time index of the blocks to be extracted for classification
 #' @name .sits_get_time_index
@@ -472,36 +481,6 @@ sits_get_raster <- function(raster.tb, i = NULL) {
 
     return(attr_names)
 }
-#' @title Define the split of the data blocks for multicore processing
-#' @name .sits_split_block_size
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description this functions defines the rows of the input data table that will be
-#' split to fit to be divided between the different cores
-#'
-#' @param nrows            number of rows in the input data table
-#' @param ncores           number of cores for processing
-#' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
-#'
-.sits_split_block_size <- function(nrows, ncores){
-
-    # find the remainder and quotient
-    quo <- nrows %/% ncores
-    rem <- nrows %% ncores
-    # c
-    # create a list to store the result
-    block_size.lst <- list(length = ncores)
-    block_size_end = 0
-    for (i in 1:(ncores)) {
-        block_size_start <- block_size_end + 1
-        block_size_end   <- block_size_start + quo - 1
-        if (i == ncores )
-            block_size_end <- block_size_end + rem
-        block_size.lst[[i]] <- c(block_size_start, block_size_end)
-    }
-    return(block_size.lst)
-}
-
 #' @title Define a reasonable block size to process a RasterBrick
 #' @name .sits_raster_block_size
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -550,6 +529,37 @@ sits_get_raster <- function(raster.tb, i = NULL) {
     return(block)
 
 }
+#' @title Define the split of the data blocks for multicore processing
+#' @name .sits_split_block_size
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description this functions defines the rows of the input data table that will be
+#' split to fit to be divided between the different cores
+#'
+#' @param nrows            number of rows in the input data table
+#' @param ncores           number of cores for processing
+#' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
+#'
+.sits_split_block_size <- function(nrows, ncores){
+
+    # find the remainder and quotient
+    quo <- nrows %/% ncores
+    rem <- nrows %% ncores
+    # c
+    # create a list to store the result
+    block_size.lst <- list(length = ncores)
+    block_size_end = 0
+    for (i in 1:(ncores)) {
+        block_size_start <- block_size_end + 1
+        block_size_end   <- block_size_start + quo - 1
+        if (i == ncores )
+            block_size_end <- block_size_end + rem
+        block_size.lst[[i]] <- c(block_size_start, block_size_end)
+    }
+    return(block_size.lst)
+}
+
+
 
 
 

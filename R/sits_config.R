@@ -162,9 +162,12 @@ sits_show_config <- function() {
         # pre-condition
         s <- paste0(service,"_bbox")
 
-        for (c in names(bbox))
-            bbox[c] <- sits.env$config[[s]][[name]][[c]]
+        names(bbox) %>%
+            purrr::map(function (c) {
+                bbox[c] <<- sits.env$config[[s]][[name]][[c]]
+            })
     }
+
     return(bbox)
 }
 #' @title Retrieve the estimated value of R memory bloat
@@ -191,9 +194,11 @@ sits_show_config <- function() {
     # create a string to query for the missing values
     minimum_values <- vector()
     mv <- paste0(service,"_minimum_value")
-    for (b in bands) {
-        minimum_values[b] <- as.numeric(sits.env$config[[mv]][[b]])
-    }
+    bands %>%
+        purrr::map(function (b) {
+            minimum_values[b] <<- as.numeric(sits.env$config[[mv]][[b]])
+        })
+
     #post-condition
     ensurer::ensure_that(minimum_values, length(.) == length(bands),
                          err_desc = paste0("Configuration file has failed to find minimum values for ", service))
@@ -215,9 +220,10 @@ sits_show_config <- function() {
     # create a string to query for the missing values
     missing_values <- vector()
     mv <- paste0(service,"_missing_value")
-    for (b in bands) {
-        missing_values[b] <- as.numeric(sits.env$config[[mv]][[name]][[b]])
-    }
+    bands %>%
+        purrr::map(function (b) {
+            missing_values[b] <<- as.numeric(sits.env$config[[mv]][[name]][[b]])
+        })
     #post-condition
     ensurer::ensure_that(missing_values, length(.) == length(bands),
                          err_desc = paste0("Configuration file has no missing values for service ", service))
@@ -277,8 +283,11 @@ sits_show_config <- function() {
     s <- paste0(service,"_resolution")
     res          <- vector(length = 2)
     names(res)  <- c("xres", "yres")
-    for (c in names(res))
-        res[c] <- sits.env$config[[s]][[name]][[c]]
+
+    names(res) %>%
+        purrr::map(function(c){
+            res[c] <<- sits.env$config[[s]][[name]][[c]]
+        })
 
     #post-condition
     ensurer::ensure_that(res["xres"], as.numeric(.) > 0,
@@ -301,11 +310,13 @@ sits_show_config <- function() {
 .sits_get_scale_factors <- function(service, name, bands) {
 
     scale_factors <- vector()
-    for (b in bands) {
-        # create a string to query for the scale factors
-        sfq <- paste0(service,"_scale_factor")
-        scale_factors[b] <- as.numeric(sits.env$config[[sfq]][[name]][[b]])
-    }
+    # create a string to query for the scale factors
+    sfq <- paste0(service,"_scale_factor")
+    bands %>%
+        purrr::map(function (b) {
+
+            scale_factors[b] <<- as.numeric(sits.env$config[[sfq]][[name]][[b]])
+    })
     names(scale_factors) <- bands
     #post-condition
     ensurer::ensure_that(scale_factors, !purrr::is_null(.),
@@ -365,8 +376,10 @@ sits_show_config <- function() {
         # get the size from the configuration file
         i1  <- paste0(service,"_size")
 
-        for (c in names(size))
-            size[c] <- sits.env$config[[i1]][[name]][[c]]
+        names(size) %>%
+            purrr::map(function (c){
+                size[c] <<- sits.env$config[[i1]][[name]][[c]]
+            })
     }
     else {
         ensurer::ensure_that(r_obj, length(.) > 0,

@@ -48,6 +48,15 @@ sits_plot (cerrado_2classes)
 sits_plot (cerrado_2classes[1:20,])
 # Plot the patterns
 sits_plot (sits_patterns(cerrado_2classes))
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+data(samples_MT_ndvi)
+# Retrieve a point
+data(point_ndvi)
+# classify the point
+class_ndvi.tb <-  sits_classify (point_ndvi, samples_MT_ndvi)
+# plot the classification
+sits_plot (class_ndvi.tb)
+
 }
 }
 \author{

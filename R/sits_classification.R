@@ -147,16 +147,17 @@ sits_classify <- function(data.tb = NULL,
         # create a block of distances to be classified
         for (r in 1:nrow(distances.tb)) {
             # create a data table to store the values of the distances
-            for (t in 1:length(time_index.lst)) {
+            time_index.lst %>%
+                purrr::map(function (idx) {
                 # create a data table to store the distances for each row
                 row.tb <- data.table::data.table("original_row" = 1, "reference" = "NoClass")
-                idx <- time_index.lst[[t]]
-                for (b in 1:length(bands)) {
-                    # retrieve the values used for classification
-                    row.tb <- cbind(row.tb, distances.tb[r,idx[(2*b - 1)]:idx[2*b]])
-                }
-                row.lst[[length(row.lst) + 1 ]] <- row.tb
-            }
+                1:length(bands) %>%
+                    purrr::map(function(b) {
+                        # retrieve the values used for classification
+                        row.tb <<- cbind(row.tb, distances.tb[r, idx[(2*b - 1)]:idx[2*b]])
+                })
+                row.lst[[length(row.lst) + 1 ]] <<- row.tb
+            })
         }
         dist.tb <- data.table::rbindlist(row.lst)
         colnames(dist.tb) <- attr_names

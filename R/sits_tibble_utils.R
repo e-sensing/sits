@@ -22,32 +22,38 @@
     # create an output table
     data1.tb <- sits_tibble()
 
-    for (i in 1:nrow(data.tb)) {
-        # extract the time series
-        row <- data.tb[i,]
-        ts <- row$time_series[[1]]
-        # rows that do not match the number of reference dates are discarded
-        if (length(ref_dates) != nrow(ts)) {
-            next
-        }
-        # in what direction do we need to shift the time series?
-        sense <- lubridate::yday(lubridate::as_date(ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
-        # find the date of minimum distance to the reference date
-        idx <- which.min(abs((lubridate::as_date(ts$Index) - lubridate::as_date(start_date))/lubridate::ddays(1)))
-        # do we shift time up or down?
-        if (sense < 0) shift <- -(idx - 1) else shift <- (idx - 1)
-        # shift the time series to match dates
-        if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
-        # convert the time index to a reference year
-        first_date <- lubridate::as_date(ts[1,]$Index)
-        # change the dates to the reference dates
-        ts1 <- dplyr::mutate(ts, Index = ref_dates)
-        # save the resulting row in the output table
-        row$time_series[[1]] <- ts1
-        row$start_date <- lubridate::as_date(ref_dates[1])
-        row$end_date   <- ref_dates[length(ref_dates)]
-        data1.tb <- dplyr::bind_rows(data1.tb, row)
-    }
+    purrr::pmap(list(data.tb$longitude, data.tb$latitude,
+                     data.tb$label, data.tb$coverage, data.tb$time_series),
+        function (long, lat, lab, cov, ts) {
+
+            # only rows that match the number of reference dates are kept
+            if (length(ref_dates) == nrow(ts)) {
+                # in what direction do we need to shift the time series?
+                sense <- lubridate::yday(lubridate::as_date(ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
+                # find the date of minimum distance to the reference date
+                idx <- which.min(abs((lubridate::as_date(ts$Index) - lubridate::as_date(start_date))/lubridate::ddays(1)))
+                # do we shift time up or down?
+                if (sense < 0) shift <- -(idx - 1) else shift <- (idx - 1)
+                # shift the time series to match dates
+                if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
+                # convert the time index to a reference year
+                first_date <- lubridate::as_date(ts[1,]$Index)
+                # change the dates to the reference dates
+                ts1 <- dplyr::mutate(ts, Index = ref_dates)
+
+                # save the resulting row in the output table
+                row <- tibble::tibble(longitude   = long,
+                                      latitude    = lat,
+                                      start_date  = lubridate::as_date(ref_dates[1]),
+                                      end_date    = ref_dates[length(ref_dates)],
+                                      label       = lab,
+                                      coverage    = cov,
+                                      time_series = list(ts1))
+
+
+            }
+            data1.tb <<- dplyr::bind_rows(data1.tb, row)
+        })
     return(data1.tb)
 }
 
