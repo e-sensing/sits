@@ -287,6 +287,43 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
      })
 }
 
+#' @title Plot a raster classified images
+#'
+#' @name sits_plot_raster
+#'
+#' @description plots a raster using ggplot. This function is used
+#' for showing the same lat/long location in a series of time steps.
+#'
+#' @param r           a raster layer object with classification
+#' @param title       string
+#' @param labels      names of the classes
+#' @param colors      color pallete
+#' @export
+#'
+sits_plot_raster <- function (r, title, labels, colors) {
+
+
+    # convert from raster to points
+    map.p <- raster::rasterToPoints(r)
+    # create a data frame
+    df <- data.frame(map.p)
+    # define the column names for the data frame
+    colnames(df) <- c("x", "y", "class")
+
+    nclasses <- length(unique(df$class))
+    names(colors) <- as.character(c(1:nclasses))
+    # create a mapping from classes to labels
+    names(labels) = as.character(c(1:nclasses))
+
+    # plot the data with ggplot
+    g <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+        ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
+        ggplot2::labs(title = title) +
+        ggplot2::scale_fill_manual(values = colors, labels = labels, guide = ggplot2::guide_legend(title = "Classes"))
+
+    return(g)
+}
+
 #' @title Plot one timeSeries using ggplot
 #'
 #' @name .sits_ggplot_series

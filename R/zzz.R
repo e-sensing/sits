@@ -17,7 +17,7 @@ sits.env <- new.env()
 
 # Include the following global variables in the SITS package
 utils::globalVariables(c(".", "%>%", "Index", "from", "value", "variable", "cond",
-                         "med", "qt25", "qt75", "cluster_id",
+                         "med", "qt25", "qt75", "cluster_id", "x", "y",
                          "longitude", "latitude", "label", "coverage", "service",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",

@@ -1,5 +1,5 @@
 # Example of accessing a time series using the WTSS (web time series service)
-
+message("WTSS is a web time series service developed by INPE")
 # Obtain information about the coverages available in the WTSS service
 wtss_inpe <- sits_infoWTSS()
 

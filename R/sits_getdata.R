@@ -106,17 +106,6 @@ sits_getdata <- function(coverage    = NULL,
                          .n_max      = Inf,
                          .n_save     = 0) {
 
-    # a JSON file has all the data and metadata
-    if  (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "json") {
-          data.tb <- .sits_fromJSON(file)
-          return(data.tb)
-     }
-    # get data based on gz (compressed JSON) file
-    if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "gz") {
-        data.tb <- .sits_fromGZ(file)
-        return(data.tb)
-    }
-
     # Ensure that the service is available
     .sits_check_service(coverage[1,]$service)
 

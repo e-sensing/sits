@@ -67,20 +67,16 @@ sits_fromZOO <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoC
 #' @export
 sits_toZOO <- function(data.tb, band = NULL){
 
-    zoo.tb <- data.tb %>%
-        dplyr::rowwise() %>%
-        dplyr::do({
-            ts.tb <- (.)$time_series[[1]]
+    zoo.lst <- data.tb$time_series %>%
+        purrr::map(function(ts) {
             if (purrr::is_null(band))
-                band <-  colnames(ts.tb[-1:0])
+                band <-  colnames(ts[-1:0])
             # transform each sits time series to the zoo format
-            zoo.ts <- zoo::zoo(ts.tb[, band, drop = FALSE], ts.tb$Index)
+            zoo.ts <- zoo::zoo(ts[, band, drop = FALSE], ts$Index)
             return(zoo.ts)
-        }, .to = "zoo"
-        )
+        })
 
-    return(zoo.tb$zoo)
+    return(zoo.lst)
 }
-
 
 

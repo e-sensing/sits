@@ -51,7 +51,7 @@ conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
 print("== Confusion Matrix = DL =======================")
 conf_dl.mx <- sits_conf_matrix(conf_dl.tb)
 
-conf_dl.mx$name <- "adm_4_2_1_5_04_03_020_015"
+conf_dl.mx$name <- "deep_learning"
 
 results[[length(results) + 1]] <- conf_dl.mx
 
