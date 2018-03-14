@@ -86,14 +86,11 @@ sits_classify_raster <- function(file = NULL,
     # size of the timeline
     ntimes <- length(raster.tb$timeline[[1]])
 
-    # bytes per double
-    bytes_double <- 8
-
     # estimated memory bloat
-    bloat <- .sits_get_memory_bloat()
+    bloat <- 20
 
     # estimated total memory used (in GB)
-    memory_req <- round((blocksize * nbands * ntimes * bytes_double * bloat)/1000000000, digits = 2)
+    memory_req <- round((as.numeric(blocksize) * as.numeric(nbands) * as.numeric(ntimes) * as.numeric(bloat))/1e+09, digits = 2)
     message(paste0("Information: Expected memory use can be as large as ", memory_req," Gb."))
     message("Make sure your computer has this memory available.")
 
