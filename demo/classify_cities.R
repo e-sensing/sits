@@ -33,15 +33,6 @@ nir["ADN"]  <- paste0("/vsicurl/https://www.dropbox.com/s/ib2vu1rzq24vf1f/Alvora
 blue["ADN"] <- paste0("/vsicurl/https://www.dropbox.com/s/gjcztnrf4i6c20d/AlvoradaDoNorte_GO_blue_reflectance.tif?raw=1")
 red["AND"]  <- paste0("/vsicurl/https://www.dropbox.com/s/4azj3u1ev6yjc97/AlvoradaDoNorte_GO_red_reflectance.tif?raw=1")
 
-## Data for Alvorada do Norte
-
-cities["AlvoradaDoNorte_GO"] <- "ADN"
-evi["ADN"]  <- paste0("/vsicurl/https://www.dropbox.com/s/q2iuzwr24l5nkjo/AlvoradaDoNorte_GO_EVI.tif?raw=1")
-mir["ADN"]  <- paste0("/vsicurl/https://www.dropbox.com/s/kt4pmhe7jpwqt1b/AlvoradaDoNorte_GO_MIR_reflectance.tif?raw=1")
-ndvi["ADN"] <- paste0("/vsicurl/https://www.dropbox.com/s/lei3ff1e09v7mvp/AlvoradaDoNorte_GO_NDVI.tif?raw=1")
-nir["ADN"]  <- paste0("/vsicurl/https://www.dropbox.com/s/ib2vu1rzq24vf1f/AlvoradaDoNorte_GO_NIR_reflectance.tif?raw=1")
-blue["ADN"] <- paste0("/vsicurl/https://www.dropbox.com/s/gjcztnrf4i6c20d/AlvoradaDoNorte_GO_blue_reflectance.tif?raw=1")
-red["AND"]  <- paste0("/vsicurl/https://www.dropbox.com/s/4azj3u1ev6yjc97/AlvoradaDoNorte_GO_red_reflectance.tif?raw=1")
 
 ## Data for Feira Nova do Maranhao
 
@@ -207,7 +198,7 @@ message("Step 3 - Get a valid timeline")
 data("timeline_2000_2017")
 
 ## Step 4. Create a coverage with information about the input data
-##         Thi is a raster metadata table
+##         This is a raster metadata table
 
 cat("\n")
 message("Step 4 - Create a coverage with metadata")
@@ -283,6 +274,7 @@ if (n == 1) {
 } else if (n == 2) {
     method_name <- "rfor"
     method  <- sits_rfor(ntree = 5000)
+    afun <- sits_adjust()
 } else if (n == 3) {
     method_name <- "dl-mlp"
     method <- sits_deeplearning(
@@ -307,6 +299,7 @@ cat("\n")
 ## Step 8. Select a blocksize and number of cores
 #
 message("Please select a blocksize (tipical values 10000 - 1000000)")
+message("blocksize = (free memory available)/20*nbands*ntimes")
 blocksize <- as.integer(readline(prompt="Enter a blocksize value: "))
 
 message("Please select number of cores (tipical values 1 - 32)")
@@ -315,4 +308,4 @@ multicores <- as.integer(readline(prompt="Enter number of cores: "))
 result_file <- paste0("./",code,"-class-",name_samples,"-",method_name)
 
 sits_classify_raster(file = result_file, raster.tb, samples.tb,
-                     ml_method = method,  adj_fun = afun, blocksize = 100000, multicores = 2)
+                     ml_method = method,  adj_fun = afun, blocksize = blocksize, multicores = multicores)

@@ -114,15 +114,13 @@ sits_classify_raster <- function(file = NULL,
     int_labels <- c(1:length(labels))
     names(int_labels) <- labels
 
-
+    # create a list with the output raster layers
+    layers.lst <- sits_get_raster(raster_class.tb)
 
     #initiate writing
-    # layers.lst <- layers.lst %>%
-    #     purrr::map(function(layer){
-    #         layer <- raster::writeStart(layer, layer@file@name, overwrite = TRUE)
-    #         return(layer)
-    #     })
-
+    for (i in 1:length(layers.lst)) {
+        layers.lst[[i]] <- raster::writeStart(layers.lst[[i]], layers.lst[[i]]@file@name, overwrite = TRUE)
+    }
     # recover the input data by blocks for efficiency
     bs <- .sits_raster_block_size(raster_class.tb[1,], blocksize)
 
@@ -143,8 +141,8 @@ sits_classify_raster <- function(file = NULL,
     # classify the data
 
     for (i in 1:bs$n) {
-        raster_class.tb <- .sits_classify_bigdata(raster.tb,
-                                             raster_class.tb,
+        layers.lst <- .sits_classify_bigdata(raster.tb,
+                                             layers.lst,
                                              time_index.lst,
                                              bands,
                                              attr_names,
@@ -159,16 +157,13 @@ sits_classify_raster <- function(file = NULL,
             utils::setTxtProgressBar(progress_bar, i)
     }
     # finish writing
-    # raster_class.tb$r_objs <-
-    #     layers.lst %>%
-    #     purrr::map(function(layer){
-    #         layer <- raster::writeStop(layer)
-    #         return(layer)
-    #     }) %>% list()
-    # for (i in 1:length(layers.lst)) {
-    #     raster::writeStop(layers.lst[[i]])
-    # }
+    for (i in 1:length(layers.lst)) {
+        layers.lst[[i]] <- raster::writeStop(layers.lst[[i]])
+    }
     if (!purrr::is_null(progress_bar)) close(progress_bar)
+    # update the raster objects
+    raster_class.tb$r_objs <- list(layers.lst)
+
     return(raster_class.tb)
 }
 #' @title Get a raster object from a raster coverage
@@ -217,7 +212,7 @@ sits_get_raster <- function(raster.tb, i = NULL) {
 #' next year to be classified.
 #'
 #' @param  raster.tb       tibble with metadata for a RasterBrick
-#' @param  raster_class.tb tibble with classified layers
+#' @param  layers.lst      a list with the raster layer objects to be written
 #' @param  time_index.lst  a list with the indexes to extract data for each time interval
 #' @param  bands           vector with the names of the bands
 #' @param  attr_names      vector with the attribute names
@@ -231,7 +226,7 @@ sits_get_raster <- function(raster.tb, i = NULL) {
 #' @return layer.lst       list  of the classified raster layers
 #'
 .sits_classify_bigdata <-  function(raster.tb,
-                                    raster_class.tb,
+                                    layers.lst,
                                     time_index.lst,
                                     bands,
                                     attr_names,
@@ -313,8 +308,7 @@ sits_get_raster <- function(raster.tb, i = NULL) {
     if (verbose)
         .sits_log_debug(paste0("Memory used after adding two first cols - ", .sits_mem_used(), " GB"))
 
-    # create a list with the output raster layers
-    layers.lst <- sits_get_raster(raster_class.tb)
+
     # iterate through time intervals
     for (t in 1:length(time_index.lst)) {
         idx <- time_index.lst[[t]]
@@ -392,16 +386,8 @@ sits_get_raster <- function(raster.tb, i = NULL) {
                                         from number of input pixels")
 
         # for each layer, write the predicted values
-        # layers.lst <- layers.lst %>%
-        #     purrr::map(function(layer){
-        #         layer <- raster::writeStart(layer, layer@file@name, overwrite = TRUE)
-        #         return(layer)
-        #     })
-        layer <- layers.lst[[t]]
-        layer <- raster::writeStart(layer, layer@file@name, overwrite = TRUE)
-        layer <- raster::writeValues(layer, as.integer(int_labels[pred.vec]), init_row)
-        layer <- raster::writeStop(layer)
-        layers.lst[[t]] <- layer
+
+        layers.lst[[t]] <- raster::writeValues(layers.lst[[t]], as.integer(int_labels[pred.vec]), init_row)
         if (verbose)
             message(paste0("Processed year ", t, " starting from row ", init_row))
 
@@ -419,9 +405,8 @@ sits_get_raster <- function(raster.tb, i = NULL) {
         .sits_log_debug(paste0("Memory used after end of processing all years - ", .sits_mem_used(), " GB"))
         message(paste0("Processed block starting from ", init_row, " to ", (init_row + nrows - 1)))
     }
-    # update the raster objects
-    raster_class.tb$r_objs <- list(layers.lst)
-    return(raster_class.tb)
+
+    return(layers.lst)
 }
 #' @title Find the time index of the blocks to be extracted for classification
 #' @name .sits_get_time_index

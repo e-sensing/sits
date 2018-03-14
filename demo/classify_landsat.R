@@ -1,9 +1,11 @@
 # Classification of LANDSAT data
 # these are the symbolic links for the files at dropbox
 
-l8m_222068_evi_file <- paste0("/vsicurl/https://www.dropbox.com/s/53w4tvmiqmj7qum/LC8MOD_222068_2015-08-29_evi_3500.tif?raw=1")
-l8m_222068_ndvi_file <- paste0("/vsicurl/https://www.dropbox.com/s/d67dgg6t9yfraoc/LC8MOD_222068_2015-08-29_ndvi_3500.tif?raw=1")
-l8m_222068_nir_file <- paste0("/vsicurl/https://www.dropbox.com/s/j7ipzr02ngne73w/LC8MOD_222068_2015-08-29_nir_3500.tif?raw=1")
+message("Processing of a mixed Landsat 8 - MODIS data set")
+message("Please ensure that you have enough memory available")
+l8m_222068_evi_file <- paste0("/vsicurl/https://www.dropbox.com/s/oy0vyx2pfruqzz4/LC8MOD_222068_2015-08-29_evi.tif?raw=1")
+l8m_222068_ndvi_file <- paste0("/vsicurl/https://www.dropbox.com/s/40hoe5v5hbqcltd/LC8MOD_222068_2015-08-29_ndvi.tif?raw=1")
+l8m_222068_nir_file <- paste0("/vsicurl/https://www.dropbox.com/s/1196riyxlwds8hl/LC8MOD_222068_2015-08-29_nir.tif?raw=1")
 
 files <- c(l8m_222068_ndvi_file, l8m_222068_evi_file, l8m_222068_nir_file)
 
@@ -26,9 +28,17 @@ load(file = "./cerrado_13classes_col6_adj.rda")
 #select the bands for classification
 samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi", "nir"))
 
+message("Please select a blocksize (tipical values 10000 - 1000000)")
+message("blocksize = (free memory available)/20*nbands*ntimes")
+blocksize <- as.integer(readline(prompt = "Enter a blocksize value: "))
+
+message("Please select number of cores (tipical values 1 - 32)")
+multicores <- as.integer(readline(prompt = "Enter number of cores: "))
+
+
 # classify the raster image
-sits_classify_raster(file = "./L8_MOD_221-065-class", raster.tb, samples.tb,
+sits_classify_raster(file = "./L8_MOD_222-068-class", raster.tb, samples.tb,
                      ml_method = sits_svm(),
-                     blocksize = 725900, multicores = 16)
+                     blocksize = 20000000, multicores = 24)
 
 
