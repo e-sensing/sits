@@ -1,4 +1,3 @@
-#'
 #' @title Train SITS classification models
 #' @name sits_train
 #'
@@ -35,7 +34,6 @@
 #' sits_plot(class.tb)
 #' }
 #' @export
-#'
 sits_train <- function(data.tb, ml_method = sits_svm(), adj_fun = sits_adjust()) {
 
     # is the input data a valid SITS tibble?
@@ -59,6 +57,7 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_fun = sits_adjust())
     # return a valid machine learning method
     return(result)
 }
+
 #' @title Train a SITS classifiction model using the keras deep learning
 #' @name sits_deeplearning
 #'
@@ -96,7 +95,6 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_fun = sits_adjust())
 #'                            adj_fun = function (x) {BBmisc::normalize(x, method = "range")})
 #' }
 #' @export
-#'
 sits_deeplearning <- function(distances.tb     = NULL,
                               units            = c(512, 512, 512),
                               activation       = 'elu',
@@ -106,7 +104,6 @@ sits_deeplearning <- function(distances.tb     = NULL,
                               batch_size       = 128,
                               validation_split = 0.2)
 {
-
     # library(keras)
 
     # function that returns keras model based on a sits sample tibble
@@ -216,6 +213,7 @@ sits_deeplearning <- function(distances.tb     = NULL,
     result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
+
 #' @title Train a SITS classification model with a gradient boosting machine
 #' @name sits_gbm
 #'
@@ -251,9 +249,7 @@ sits_deeplearning <- function(distances.tb     = NULL,
 #' # classify the point
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_gbm())
 #' }
-
 #' @export
-#'
 sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distribution = "multinomial",
                      n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...) {
 
@@ -290,6 +286,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
     result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
+
 #' @title Train a SITS classification model using linear discriminant analysis
 #' @name sits_lda
 #'
@@ -319,7 +316,6 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_lda())
 #' }
 #' @export
-#'
 sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
@@ -376,7 +372,6 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_qda())
 #' }
 #' @export
-#'
 sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
@@ -423,7 +418,6 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' @param maxit            maximum number of iterations (default 300)
 #' @param ...              other parameters to be passed to nnet::multinom function
 #' @return result          a model function to be passed in sits_predict
-#'
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
@@ -434,7 +428,6 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_mlr())
 #' }
 #' @export
-#'
 sits_mlr <- function(distances.tb = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
 
@@ -468,7 +461,6 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_linear(),
     return(result)
 }
 
-
 #' @title Train a SITS classifiction model using random forest algorithm
 #' @name sits_rfor
 #'
@@ -496,7 +488,6 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_linear(),
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_rfor())
 #' }
 #' @export
-#'
 sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
@@ -523,6 +514,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
     result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
+
 #' @title Train a SITS classification model using a support vector machine
 #' @name sits_svm
 #'
@@ -562,7 +554,6 @@ sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 #'        ml_method = sits_svm(kernel = "radial", cost = 10))
 #'}
 #' @export
-#'
 sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kernel = "radial",
                      degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4, ...) {
 
@@ -591,7 +582,6 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 
     result <- .sits_factory_function(distances.tb, result_fun)
 }
-
 
 #' @title Provides access to diagnostic information about a Keras deep learning model
 #' @name sits_keras_diagnostics
@@ -632,8 +622,6 @@ sits_keras_diagnostics <- function(test.x = NULL, test.y = NULL) {
     return(NULL)
 }
 
-
-#'
 #' @title Define a loglinear formula for classification models
 #' @name sits_formula_logref
 #'
@@ -753,7 +741,6 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #' @param ml_model      model trained by \code{\link[sits]{sits_train}}
 #' @param ...           other parameters to be passed to the model function
 #' @return predicted    vector of predicted labels
-#'
 .sits_predict <- function(distances.tb = NULL, ml_model, ...){
 
     # is the input data the result of a TWDTW matching function?
