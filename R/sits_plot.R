@@ -3,24 +3,22 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Given a SITS tibble with a set of time series, plot them.
 #'
-#' The following types of plot are supported:
+#' The plot function produces different plots based on the input data:
 #' \itemize{
-#'  \item{"all years" - }{Plot all samples from the same location together (default)}
+#'  \item{"all years" - }{Plot all samples from the same location together}
 #'  \item{"patterns" - }{Plot the patterns for a given set of classes}
-#'  \item{"classification" - }{Plot the results of a classification}
-#'  \item{"dendrogram" - }{Plot a cluster object}
 #'  \item{"together" - }{Plot all samples of the same band and label together}
-#'  \item{"alignments" - }{Plot the alignments (used by TWDTW method)}
-#'  \item{"matches" = }{Plot the matches produced by TWTDW matches}
+#'  \item{"classification" - }{Plot the results of a classification}
 #' }
-#' If the user does not specify the type of plot (parameter "type"),
-#' the sits_plot function makes an educated guess of what plot is required,
+#' The sits_plot function makes an educated guess of what plot is required,
 #' based on the input data. If the input data has less than 30 samples, it
 #' will default to "all years". If there is only one sample per class, it will
 #' default to "patterns". If there are more than 30 samples, it will default to
-#' "together". If there is a cluster object as a parameter, it will plot the dendrogram.
-#' If the input data has predicted values resulting from a classification, it will
+#' "together". If the input data has predicted values resulting from a classification, it will
 #' plot the classification.
+#'
+#' To plot the result of a dendrogram, please use \code{\link[sits]{sits_plot_dendrogram}}.
+#' To plot a classified raster image, please use \code{\link[sits]{sits_plot_raster}}.
 #'
 #'
 #' @param  data          data to be plotted (can be a SITS tibble, clusters, or TWDTW matches)
@@ -286,6 +284,141 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
                  purrr::map(function(band) {plot_samples(ts, band, lb, number)})
      })
 }
+#' @title Plot one timeSeries using ggplot
+#'
+#' @name .sits_ggplot_series
+#'
+#' @description plots a set of time series using ggplot. This function is used
+#' for showing the same lat/long location in a series of time steps.
+#'
+#' @param row         a row of a SITS table with the time series to be plotted
+#' @param colors      string - the set of Brewer colors to be used for plotting
+.sits_ggplot_series <- function(row, colors = "Dark2") {
+    # create the plot title
+    plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
+    #extract the time series
+    data.ts <- row$time_series
+    # melt the data into long format
+    melted.ts <- data.ts %>%
+        reshape2::melt(id.vars = "Index") %>%
+        as.data.frame()
+    # plot the data with ggplot
+    g <- ggplot2::ggplot(melted.ts, ggplot2::aes(x = Index, y = value, group = variable)) +
+        ggplot2::geom_line(ggplot2::aes(color = variable)) +
+        ggplot2::labs(title = plot_title) +
+        ggplot2::scale_color_brewer(palette = colors)
+    return(g)
+}
+
+#' @title Plot many timeSeries together using ggplot
+#'
+#' @name .sits_ggplot_together
+#'
+#' @description plots a set of  time series together
+#'
+#' @param melted.tb   a tibble with the time series (a lot of data already melted)
+#' @param means.tb    a tibble with the means and std deviations of the time series
+#' @param plot_title  the title for the plot
+.sits_ggplot_together <- function(melted.tb, means.tb, plot_title) {
+    g <- ggplot2::ggplot(data = melted.tb, ggplot2::aes(x = Index, y = value, group = variable)) +
+        ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
+        ggplot2::labs(title = plot_title) +
+        ggplot2::geom_line(data = means.tb,
+                           ggplot2::aes(x = Index, y = med),  colour = "#B16240", size = 2, inherit.aes = FALSE) +
+        ggplot2::geom_line(data = means.tb,
+                           ggplot2::aes(x = Index, y = qt25), colour = "#B19540", size = 1, inherit.aes = FALSE) +
+        ggplot2::geom_line(data = means.tb,
+                           ggplot2::aes(x = Index, y = qt75), colour = "#B19540", size = 1, inherit.aes = FALSE)
+    return(g)
+
+}
+
+#' @title Create a plot title to use with ggplot
+#' @name .sits_plot_title
+#'
+#' @description creates a plot title from row information
+#'
+#' @param latitude   latitude of the location to be plotted
+#' @param longitude  longitude of the location to be plotted
+#' @param label      lable of the location to be plotted
+#' @return title   string - the title to be used in the plot
+.sits_plot_title <- function(latitude, longitude, label) {
+    title <- paste("location (",
+                   latitude,  ", ",
+                   longitude, ") - ",
+                   label,
+                   sep = "")
+    return(title)
+}
+#' @title Plot a dendrogram
+#' @name sits_plot_dendrogram
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendrogram}}
+#'
+#' @param data.tb       SITS tibble with data used to extract the dendrogram
+#' @param dendro.obj    cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`
+#' @param cutree_height A dashed horizontal line to be drawed indicating the height of dendrogram cutting.
+#' @param colors        a color scheme as showed in `sits_color_name` function
+#' @export
+#' @examples
+#' \donttest{
+#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
+#' data ("cerrado_2classes")
+#' # Generate and plot a dendrogram
+#' library (dtwclust)
+#' dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+#' sits_plot_dendrogram (cerrado_2classes, dendro.obj)
+#' }
+sits_plot_dendrogram <- function(data.tb,
+                                 dendro.obj,
+                                 cutree_height = NULL,
+                                 colors = "RdYlGn"){
+
+    # ensures that a cluster object is informed or exists in .sits_last_cluster global variable.
+    ensurer::ensure_that(dendro.obj, !is.null(.),
+                         err_desc = "plot_dendrogram: no valid `dendro.obj` informed or found in `.sits_last_cluster`.")
+
+    # get unique labels
+    data_labels <- data.tb$label
+    uniq_labels <- base::unique(data_labels)
+
+    # warns if the number of available colors is insufficient to all labels
+    if (length(uniq_labels) > (length(.sits_brewerRGB[[.sits_color_name(colors)]]) - 1))
+        message("sits_plot_dendrogram: The number of labels is greater than the number of available colors.")
+
+    # extract the dendrogram object
+    hclust_cl <- methods::S3Part(dendro.obj, strictS3 = TRUE)
+    dendrogram <- hclust_cl %>%
+        stats::as.dendrogram()
+
+    # prepare labels color vector
+    cols <- character(length(data_labels))
+    cols[] <- grDevices::rgb(0/255,   0/255,   0/255,   0/255)
+
+    i <- 1
+    seq(uniq_labels) %>%
+        purrr::map(function(i) {
+            cols[data_labels[dendro.obj$order] == uniq_labels[i]] <<- .sits_brewerRGB[[.sits_color_name(colors)]][[length(uniq_labels)]][[i]]
+            i <<- i + 1
+        })
+
+    # plot the dendrogram
+    dendrogram %>%
+        dendextend::set("labels", character(length = length(data_labels))) %>%
+        dendextend::set("branches_k_color", value = cols, k = length(data_labels)) %>%
+        graphics::plot(ylab = paste(tools::file_path_sans_ext(dendro.obj@method),
+                                    "linkage distance"))
+
+
+    # plot cutree line
+    if (!is.null(cutree_height)) graphics::abline(h = cutree_height, lty = 2)
+
+    # plot legend
+    graphics::legend("topright",
+                     fill = as.character(.sits_brewerRGB[[.sits_color_name(colors)]][[length(uniq_labels)]]),
+                     legend = uniq_labels)
+}
 
 #' @title Plot a raster classified images
 #'
@@ -300,7 +433,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' @param colors      color pallete
 #' @export
 #'
-sits_plot_raster <- function (r, title, labels, colors) {
+sits_plot_raster <- function(r, title, labels, colors) {
 
 
     # convert from raster to points
@@ -324,73 +457,7 @@ sits_plot_raster <- function (r, title, labels, colors) {
     return(g)
 }
 
-#' @title Plot one timeSeries using ggplot
-#'
-#' @name .sits_ggplot_series
-#'
-#' @description plots a set of time series using ggplot. This function is used
-#' for showing the same lat/long location in a series of time steps.
-#'
-#' @param row         a row of a SITS table with the time series to be plotted
-#' @param colors      string - the set of Brewer colors to be used for plotting
-.sits_ggplot_series <- function(row, colors = "Dark2") {
-     # create the plot title
-     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
-     #extract the time series
-     data.ts <- row$time_series
-     # melt the data into long format
-     melted.ts <- data.ts %>%
-          reshape2::melt(id.vars = "Index") %>%
-          as.data.frame()
-     # plot the data with ggplot
-     g <- ggplot2::ggplot(melted.ts, ggplot2::aes(x = Index, y = value, group = variable)) +
-          ggplot2::geom_line(ggplot2::aes(color = variable)) +
-          ggplot2::labs(title = plot_title) +
-          # ylim(0.0, 1.0) +
-          ggplot2::scale_color_brewer(palette = colors)
-     return(g)
-}
 
-#' @title Plot many timeSeries together using ggplot
-#'
-#' @name .sits_ggplot_together
-#'
-#' @description plots a set of  time series together
-#'
-#' @param melted.tb   a tibble with the time series (a lot of data already melted)
-#' @param means.tb    a tibble with the means and std deviations of the time series
-#' @param plot_title  the title for the plot
-.sits_ggplot_together <- function(melted.tb, means.tb, plot_title) {
-     g <- ggplot2::ggplot(data = melted.tb, ggplot2::aes(x = Index, y = value, group = variable)) +
-          ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
-          ggplot2::labs(title = plot_title) +
-          ggplot2::geom_line(data = means.tb,
-                             ggplot2::aes(x = Index, y = med),  colour = "#B16240", size = 2, inherit.aes = FALSE) +
-          ggplot2::geom_line(data = means.tb,
-                             ggplot2::aes(x = Index, y = qt25), colour = "#B19540", size = 1, inherit.aes = FALSE) +
-          ggplot2::geom_line(data = means.tb,
-                             ggplot2::aes(x = Index, y = qt75), colour = "#B19540", size = 1, inherit.aes = FALSE)
-     return(g)
-
-}
-
-#' @title Create a plot title to use with ggplot
-#' @name .sits_plot_title
-#'
-#' @description creates a plot title from row information
-#'
-#' @param latitude   latitude of the location to be plotted
-#' @param longitude  longitude of the location to be plotted
-#' @param label      lable of the location to be plotted
-#' @return title   string - the title to be used in the plot
-.sits_plot_title <- function(latitude, longitude, label) {
-     title <- paste("location (",
-                     latitude,  ", ",
-                     longitude, ") - ",
-                     label,
-                     sep = "")
-     return(title)
-}
 
 #' @title Plot classification alignments using the dtwSat package
 #' @name .sits_plot_TWDTW_alignments
@@ -467,72 +534,4 @@ sits_plot_raster <- function (r, title, labels, colors) {
         })
     return(invisible(matches))
 }
-#' @title Plot a dendrogram
-#' @name sits_plot_dendrogram
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendrogram}}
-#'
-#' @param data.tb       SITS tibble with data used to extract the dendrogram
-#' @param dendro.obj    cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`
-#' @param cutree_height A dashed horizontal line to be drawed indicating the height of dendrogram cutting.
-#' @param colors        a color scheme as showed in `sits_color_name` function
-#' @export
-#' @examples
-#' \donttest{
-#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-#' data ("cerrado_2classes")
-#' # Generate and plot a dendrogram
-#' library (dtwclust)
-#' dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
-#' sits_plot_dendrogram (cerrado_2classes, dendro.obj)
-#' }
-sits_plot_dendrogram <- function (data.tb,
-                                  dendro.obj,
-                                  cutree_height = NULL,
-                                  colors = "RdYlGn"){
 
-    # ensures that a cluster object is informed or exists in .sits_last_cluster global variable.
-    ensurer::ensure_that(dendro.obj, !is.null(.),
-                         err_desc = "plot_dendrogram: no valid `dendro.obj` informed or found in `.sits_last_cluster`.")
-
-    # get unique labels
-    data_labels <- data.tb$label
-    uniq_labels <- base::unique(data_labels)
-
-    # warns if the number of available colors is insufficient to all labels
-    if (length(uniq_labels) > (length(.sits_brewerRGB[[.sits_color_name(colors)]]) - 1))
-        message("sits_plot_dendrogram: The number of labels is greater than the number of available colors.")
-
-    # extract the dendrogram object
-    hclust_cl <- methods::S3Part(dendro.obj, strictS3 = TRUE)
-    dendrogram <- hclust_cl %>%
-        stats::as.dendrogram()
-
-    # prepare labels color vector
-    cols <- character(length(data_labels))
-    cols[] <- grDevices::rgb(0/255,   0/255,   0/255,   0/255)
-
-    i <- 1
-    seq(uniq_labels) %>%
-        purrr::map(function(i) {
-            cols[data_labels[dendro.obj$order] == uniq_labels[i]] <<- .sits_brewerRGB[[.sits_color_name(colors)]][[length(uniq_labels)]][[i]]
-            i <<- i + 1
-        })
-
-    # plot the dendrogram
-    dendrogram %>%
-        dendextend::set("labels", character(length = length(data_labels))) %>%
-        dendextend::set("branches_k_color", value = cols, k = length(data_labels)) %>%
-        graphics::plot(ylab = paste(tools::file_path_sans_ext(dendro.obj@method),
-                                    "linkage distance"))
-
-
-    # plot cutree line
-    if (!is.null(cutree_height)) graphics::abline(h = cutree_height, lty = 2)
-
-    # plot legend
-    graphics::legend("topright",
-                     fill = as.character(.sits_brewerRGB[[.sits_color_name(colors)]][[length(uniq_labels)]]),
-                     legend = uniq_labels)
-}

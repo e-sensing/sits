@@ -216,7 +216,7 @@ cat("\n")
 message("Step 4. Select a ground sample data set")
 print(paste0("1. Samples (2,115) for 9 classes"))
 print(paste0("2. Samples (2,892) for 11 classes"))
-print(paste0("3. Samples (11,743) for 13 classes"))
+print(paste0("3. Samples (12,048) for 12 classes"))
 
 n <- 0
 while (!(n %in% c(1:3)))
@@ -238,12 +238,11 @@ if (n == 1) {
     name_samples <-  c("11classes")
 } else if (n == 3){
     #samples_dbox <- paste0("https://www.dropbox.com/s/addv5lxbpjm85jr/cerrado_13classes_modis_col6.rda?raw=1")
-    samples_dbox <- paste0("https://www.dropbox.com/s/p1fhzokfwdoum2m/cerrado_13_classes_col6_adj.rda?raw=1")
-
-    download.file(samples_dbox, destfile = "./cerrado_13classes_col6_adj.rda")
-    load(file = "./cerrado_13classes_col6_adj.rda")
-    samples.tb <- sits_select_bands(samples.tb, bands)
-    name_samples <-  c("13classes")
+    samples_dbox <- paste0("https://www.dropbox.com/s/md6qjas7hf7ksp2/samples_cerrado_12_classes.rda?raw=1")
+    download.file(samples_dbox, destfile = "./samples_cerrado_12_classes.rda")
+    load(file = "./samples_cerrado_12_classes.rda")
+    samples.tb <- sits_select_bands(samples_cerrado_12_classes.tb, bands)
+    name_samples <-  c("12classes")
 } else {
     message("Invalid option")
     stop()
@@ -263,7 +262,7 @@ print(paste0("3. Deep learning - 3 hidden layers"))
 
 n <- 0
 while (!(n %in% c(1:3)))
-    n <- as.integer(readline(prompt="Enter an integer value (1-3): "))
+    n <- as.integer(readline(prompt = "Enter an integer value (1-3): "))
 
 if (n == 1) {
     method_name <- "svm"
@@ -300,10 +299,10 @@ cat("\n")
 #
 message("Please select a blocksize (tipical values 10000 - 1000000)")
 message("blocksize = (free memory available)/20*nbands*ntimes")
-blocksize <- as.integer(readline(prompt="Enter a blocksize value: "))
+blocksize <- as.integer(readline(prompt = "Enter a blocksize value: "))
 
 message("Please select number of cores (tipical values 1 - 32)")
-multicores <- as.integer(readline(prompt="Enter number of cores: "))
+multicores <- as.integer(readline(prompt = "Enter number of cores: "))
 
 result_file <- paste0("./",code,"-class-",name_samples,"-",method_name)
 

@@ -26,9 +26,9 @@
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # calculate the dendrogram
-#' clusters <- sits_dendrogram (cerrado_2classes, bands = c("ndvi", "evi"))
+#' dendro <- sits_dendrogram (cerrado_2classes, bands = c("ndvi", "evi"))
 #' # plot the dendrogram
-#' sits_plot_dendrogram (cerrado_2classes, clusters)
+#' sits_plot_dendrogram (cerrado_2classes, dendro)
 #' }
 #' @export
 sits_dendrogram <- function (data.tb, bands = NULL,

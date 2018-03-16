@@ -29,6 +29,8 @@
 #' @param  ml_method       an R machine learning method such as SVM, Random Forest or Deep Learning
 #' @param  adj_fun         adjustment function to be applied to the data
 #' @param  interval        interval between two sucessive classifications, expressed in months
+#' @param  smoothing       (boolean) apply a Whittaker smoothing function?
+#' @param  lambda          degree of smoothing of the Whittaker smoother
 #' @param  blocksize       size of the block to be read to build a block for classification
 #' @param  multicores      number of threads to process the time series.
 #' @param  verbose         logical: run function in verbose mode? (useful for working with big data sets)
@@ -63,6 +65,8 @@ sits_classify_raster <- function(file = NULL,
                                  ml_method  = sits_svm(),
                                  adj_fun    = sits_adjust(),
                                  interval   = "12 month",
+                                 smoothing  = FALSE,
+                                 lambda     = 0.5,
                                  blocksize  = 2000,
                                  multicores = 2,
                                  verbose    = FALSE){
@@ -90,9 +94,14 @@ sits_classify_raster <- function(file = NULL,
     bloat <- 20
 
     # estimated total memory used (in GB)
-    memory_req <- round((as.numeric(blocksize) * as.numeric(nbands) * as.numeric(ntimes) * as.numeric(bloat))/1e+09, digits = 2)
+    memory_req <- round((as.numeric(blocksize) * as.numeric(nbands) * as.numeric(ntimes) * as.numeric(bloat))/1e, digits = 2)
     message(paste0("Information: Expected memory use can be as large as ", memory_req," Gb."))
     message("Make sure your computer has this memory available.")
+
+    # apply the smoothing function, if required
+    if (smoothing) {
+        samples.tb <- sits_whittaker(samples.tb, lambda = lambda, bands_suffix = "")
+    }
 
     # set up the ML model
     if (purrr::is_null(ml_model))
@@ -148,6 +157,8 @@ sits_classify_raster <- function(file = NULL,
                                              bs$nrows[i],
                                              adj_fun = adj_fun,
                                              ml_model,
+                                             smoothing = smoothing,
+                                             lambda = lambda,
                                              multicores,
                                              verbose)
         if (!purrr::is_null(progress_bar))
@@ -218,6 +229,8 @@ sits_get_raster <- function(raster.tb, i = NULL) {
 #' @param  nrows           number of rows in the block extracted from the RasterBrick
 #' @param  adj_fun         sdjustment function to be applied to the data
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
+#' @param  smoothing       (boolean) apply whittaker smoothing?
+#' @param  lambda          smoothing factor
 #' @param  multicores      number of threads to process the time series.
 #' @param  verbose         run function in verbose mode? (useful for working with big data sets)
 #' @return layer.lst       list  of the classified raster layers
@@ -232,6 +245,8 @@ sits_get_raster <- function(raster.tb, i = NULL) {
                                     nrows,
                                     adj_fun,
                                     ml_model,
+                                    smoothing,
+                                    lambda,
                                     multicores,
                                     verbose) {
 
@@ -277,8 +292,9 @@ sits_get_raster <- function(raster.tb, i = NULL) {
             }
 
             values.mx[is.na(values.mx)] <- minimum_value
+            values.mx[values.mx == missing_value] <- minimum_value
 
-            values.mx <- preprocess_data(values.mx, missing_value, minimum_value, scale_factor)
+            values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
             values.mx <- adj_fun(values.mx)
             return(values.mx)
         })
