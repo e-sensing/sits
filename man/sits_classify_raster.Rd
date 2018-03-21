@@ -6,7 +6,8 @@
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
   ml_method = sits_svm(), adj_fun = sits_adjust(), interval = "12 month",
-  blocksize = 2000, multicores = 2, verbose = FALSE)
+  smoothing = FALSE, lambda = 0.5, differences = 3, blocksize = 2000,
+  multicores = 2, verbose = FALSE)
 }
 \arguments{
 \item{file}{vector of file names to store the output (one file per classified year)}
@@ -22,6 +23,12 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
 \item{adj_fun}{adjustment function to be applied to the data}
 
 \item{interval}{interval between two sucessive classifications, expressed in months}
+
+\item{smoothing}{(boolean) apply a Whittaker smoothing function?}
+
+\item{lambda}{degree of smoothing of the Whittaker smoother (default = 0.5)}
+
+\item{differences}{the order of differences of contiguous elements (default = 3)}
 
 \item{blocksize}{size of the block to be read to build a block for classification}
 
@@ -70,7 +77,7 @@ raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
 
 # classify the raster file
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-   ml_method = sits_svm(), blocksize = 250, multicores = 1)
+   ml_method = sits_svm(), smoothing = TRUE, blocksize = 250, multicores = 1)
 }
 
 }

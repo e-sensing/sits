@@ -30,7 +30,8 @@
 #' @param  adj_fun         adjustment function to be applied to the data
 #' @param  interval        interval between two sucessive classifications, expressed in months
 #' @param  smoothing       (boolean) apply a Whittaker smoothing function?
-#' @param  lambda          degree of smoothing of the Whittaker smoother
+#' @param  lambda          degree of smoothing of the Whittaker smoother (default = 0.5)
+#' @param  differences     the order of differences of contiguous elements (default = 3)
 #' @param  blocksize       size of the block to be read to build a block for classification
 #' @param  multicores      number of threads to process the time series.
 #' @param  verbose         logical: run function in verbose mode? (useful for working with big data sets)
@@ -54,7 +55,7 @@
 #'
 #' # classify the raster file
 #' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-#'    ml_method = sits_svm(), blocksize = 250, multicores = 1)
+#'    ml_method = sits_svm(), smoothing = TRUE, blocksize = 250, multicores = 1)
 #' }
 #'
 #' @export
@@ -67,6 +68,7 @@ sits_classify_raster <- function(file = NULL,
                                  interval   = "12 month",
                                  smoothing  = FALSE,
                                  lambda     = 0.5,
+                                 differences = 3.0,
                                  blocksize  = 2000,
                                  multicores = 2,
                                  verbose    = FALSE){
@@ -155,10 +157,11 @@ sits_classify_raster <- function(file = NULL,
                                              int_labels,
                                              bs$row[i],
                                              bs$nrows[i],
-                                             adj_fun = adj_fun,
+                                             adj_fun,
                                              ml_model,
-                                             smoothing = smoothing,
-                                             lambda = lambda,
+                                             smoothing,
+                                             lambda,
+                                             differences,
                                              multicores,
                                              verbose)
         if (!purrr::is_null(progress_bar))
@@ -230,7 +233,8 @@ sits_get_raster <- function(raster.tb, i = NULL) {
 #' @param  adj_fun         sdjustment function to be applied to the data
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  smoothing       (boolean) apply whittaker smoothing?
-#' @param  lambda          smoothing factor
+#' @param  lambda          smoothing factor (default = 1.0)
+#' @param  differences     the order of differences of contiguous elements (default = 3)
 #' @param  multicores      number of threads to process the time series.
 #' @param  verbose         run function in verbose mode? (useful for working with big data sets)
 #' @return layer.lst       list  of the classified raster layers
@@ -247,6 +251,7 @@ sits_get_raster <- function(raster.tb, i = NULL) {
                                     ml_model,
                                     smoothing,
                                     lambda,
+                                    differences,
                                     multicores,
                                     verbose) {
 
@@ -261,6 +266,15 @@ sits_get_raster <- function(raster.tb, i = NULL) {
     missing_values <- unlist(raster.tb$missing_values)
     minimum_values <- .sits_get_minimum_values("RASTER", bands)
     scale_factors  <- unlist(raster.tb$scale_factors)
+
+    # define the smoothing function
+    whit <- function(ts) {
+        E <- diag(length(ts))
+        D <- diff(E, lag = 1, differences)
+        B <- E + (lambda * crossprod(D))
+        tsf <- solve(B, ts)
+        return(tsf)
+    }
 
     # set the offset and region to be read by GDAL
     offset <- c(init_row - 1, 0)
@@ -295,7 +309,14 @@ sits_get_raster <- function(raster.tb, i = NULL) {
             values.mx[values.mx == missing_value] <- minimum_value
 
             values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
+
             values.mx <- adj_fun(values.mx)
+            if (smoothing) {
+                rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
+                    lapply(whit)
+                values.mx <- do.call(rbind, rows.lst)
+            }
+
             return(values.mx)
         })
 
@@ -306,6 +327,7 @@ sits_get_raster <- function(raster.tb, i = NULL) {
         .sits_log_debug(paste0("Memory used after binding bricks  - ", .sits_mem_used(), " GB"))
 
     rm(values.lst)
+    rm(rows.lst)
     gc()
     if (verbose)
         .sits_log_debug(paste0("Memory used after removing values - ", .sits_mem_used(), " GB"))

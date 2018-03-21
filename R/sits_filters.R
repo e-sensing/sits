@@ -257,7 +257,7 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
 #'
 #' @param data.tb      tibble with time series data and metadata
 #' @param lambda       (double) smoothing factor to be applied (default 1.0)
-#' @param differences  (innteger) the order of differences of contiguous elements (default 3)
+#' @param differences  (integer) the order of differences of contiguous elements (default 3)
 #' @param bands_suffix suffix to be appended to the smoothed filters (default "whit")
 #' @return output.tb   tibble with smoothed sits time series
 #'
@@ -282,7 +282,7 @@ sits_whittaker <- function(data.tb, lambda    = 1.0, differences = 3, bands_suff
                                 diff.mtx <- diff(id.mtx, lag = 1, differences = differences)
 
                                 # system of equations to be solved for band values
-                                smooth.mtx <- id.mtx + (lambda * t(diff.mtx) %*% diff.mtx)
+                                smooth.mtx <- id.mtx + (lambda * crossprod(diff.mtx))
 
                                 # compute solution and return
                                 return(solve(smooth.mtx, band))
@@ -291,7 +291,36 @@ sits_whittaker <- function(data.tb, lambda    = 1.0, differences = 3, bands_suff
                             bands_suffix = bands_suffix)
     return(result.tb)
 }
+#' @title Smooth the 1 x n matrix using Whittaker smoother
+#' @name .sits_whittaker_mat
+#'
+#' @param ts            A time series expressed as a 1D matrix
+#' @param lambda        (double) smoothing factor to be applied (default 1.0)
+#' @param diff          (integer) the order of differences of contiguous elements (default 3)
+#' @return tsf         A filtered time series
+#' @references          Whittaker (1923). On a new method of graduation. Proceedings of the Edinburgh Mathematical Society, 41, 63-73.
+#'
+.sits_whittaker_mat <- function(ts = NULL, lambda = 1.0, diff = 3){
 
+
+    # whit <- function (ts) {
+    #     id.mtx <- diag(length(ts))
+    #     diff.mtx <- diff(id.mtx, lag = 1, differences = differences)
+    #
+    #     # system of equations to be solved for time series values
+    #     smooth.mtx <- id.mtx + (lambda * crossprod(diff.mtx))
+    #
+    #     # compute solution and return
+    #     solve(smooth.mtx, ts)
+    # }
+        #   Smoothing with a finite difference penalty
+        #   y:      signal to be smoothed
+        #   lambda: smoothing parameter (rough 50..1e4 smooth)
+        #   d:      order of differences in penalty (generally 2)
+
+
+    return(whit)
+}
 #' @title Smooth the time series using Savitsky-Golay filter
 #'
 #' @name sits_sgolay

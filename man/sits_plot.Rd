@@ -19,24 +19,22 @@ data          input SITS table (useful for chaining functions)
 \description{
 Given a SITS tibble with a set of time series, plot them.
 
-The following types of plot are supported:
+The plot function produces different plots based on the input data:
 \itemize{
- \item{"all years" - }{Plot all samples from the same location together (default)}
+ \item{"all years" - }{Plot all samples from the same location together}
  \item{"patterns" - }{Plot the patterns for a given set of classes}
- \item{"classification" - }{Plot the results of a classification}
- \item{"dendrogram" - }{Plot a cluster object}
  \item{"together" - }{Plot all samples of the same band and label together}
- \item{"alignments" - }{Plot the alignments (used by TWDTW method)}
- \item{"matches" = }{Plot the matches produced by TWTDW matches}
+ \item{"classification" - }{Plot the results of a classification}
 }
-If the user does not specify the type of plot (parameter "type"),
-the sits_plot function makes an educated guess of what plot is required,
+The sits_plot function makes an educated guess of what plot is required,
 based on the input data. If the input data has less than 30 samples, it
 will default to "all years". If there is only one sample per class, it will
 default to "patterns". If there are more than 30 samples, it will default to
-"together". If there is a cluster object as a parameter, it will plot the dendrogram.
-If the input data has predicted values resulting from a classification, it will
+"together". If the input data has predicted values resulting from a classification, it will
 plot the classification.
+
+To plot the result of a dendrogram, please use \code{\link[sits]{sits_plot_dendrogram}}.
+To plot a classified raster image, please use \code{\link[sits]{sits_plot_raster}}.
 }
 \examples{
 \donttest{

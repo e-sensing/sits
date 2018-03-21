@@ -30,5 +30,5 @@ sits_plot_dendrogram (cerrado_2classes, dendro.obj)
 }
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

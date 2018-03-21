@@ -12,7 +12,7 @@ sits_whittaker(data.tb, lambda = 1, differences = 3,
 
 \item{lambda}{(double) smoothing factor to be applied (default 1.0)}
 
-\item{differences}{(innteger) the order of differences of contiguous elements (default 3)}
+\item{differences}{(integer) the order of differences of contiguous elements (default 3)}
 
 \item{bands_suffix}{suffix to be appended to the smoothed filters (default "whit")}
 }

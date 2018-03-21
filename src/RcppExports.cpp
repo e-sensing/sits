@@ -6,22 +6,21 @@
 using namespace Rcpp;
 
 // preprocess_data
-NumericMatrix preprocess_data(NumericMatrix data, const int& missing_value, const int& minimum_value, const double& scale_factor);
-RcppExport SEXP _sits_preprocess_data(SEXP dataSEXP, SEXP missing_valueSEXP, SEXP minimum_valueSEXP, SEXP scale_factorSEXP) {
+NumericMatrix preprocess_data(NumericMatrix data, const int& minimum_value, const double& scale_factor);
+RcppExport SEXP _sits_preprocess_data(SEXP dataSEXP, SEXP minimum_valueSEXP, SEXP scale_factorSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const int& >::type missing_value(missing_valueSEXP);
     Rcpp::traits::input_parameter< const int& >::type minimum_value(minimum_valueSEXP);
     Rcpp::traits::input_parameter< const double& >::type scale_factor(scale_factorSEXP);
-    rcpp_result_gen = Rcpp::wrap(preprocess_data(data, missing_value, minimum_value, scale_factor));
+    rcpp_result_gen = Rcpp::wrap(preprocess_data(data, minimum_value, scale_factor));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_sits_preprocess_data", (DL_FUNC) &_sits_preprocess_data, 4},
+    {"_sits_preprocess_data", (DL_FUNC) &_sits_preprocess_data, 3},
     {NULL, NULL, 0}
 };
 
