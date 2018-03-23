@@ -29,11 +29,15 @@
     # produce the breaks used to generate the output rasters
     subset_dates.lst <- .sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
 
+    scale_factors <- 1
+    missing_values <- -9999
+
+
     # loop through the list of dates and create list of raster layers to be created
     layer.lst <- subset_dates.lst %>%
         purrr::map(function(date_pair) {
             # create one raster layer per date pair
-            r_obj <- sits_get_raster(raster.tb, 1)
+            r_obj <- raster.tb$r_objs[[1]][[1]]
             r_out <- raster::raster(r_obj)
             raster::dataType(r_out) <- "INT1U"
 
@@ -42,50 +46,32 @@
             end_date   <- date_pair[2]
             timeline   <- c(start_date, end_date)
 
-            band   <-  paste0("class-", start_date, "-", end_date)
+            band   <-  "class"
 
             # define the filename for the classified image
             filename <- .sits_raster_filename(file, start_date, end_date)
             r_out@file@name <- filename
 
-            layer <- tibble::tibble(layer.obj = list(r_out),
-                                    band = band, filename = filename)
+            # get the name of the coverages
+            name   <-  paste0(raster.tb[1,]$name, "-class-", start_date, "-", end_date)
 
-            return(layer)
+            # create a new RasterLayer for a defined period and generate the associated metadata
+            coverage.tb <- .sits_create_raster_coverage(raster.lst     = list(r_out),
+                                                        service        = "RASTER",
+                                                        name           = name,
+                                                        timeline       = timeline,
+                                                        bands          = list(band),
+                                                        scale_factors  = scale_factors,
+                                                        missing_values = missing_values,
+                                                        files          = list(filename))
+
+            return(coverage.tb)
         })
 
     # join all rows in a single tibble
-    info_layers.tb <- dplyr::bind_rows(layer.lst)
+    raster_class.tb <- dplyr::bind_rows(layer.lst)
 
-    # get the name of the coverages
-    name   <-  paste0(raster.tb[1,]$name, "-class")
-
-    #define the bands, the scale factors and the missing values
-    bands <- info_layers.tb$band
-
-    scale_factors <- vector()
-    scale_factors[bands] <- 1
-    missing_values <- vector()
-    missing_values[bands] <- -9999
-
-    # get the filenames
-    files <- info_layers.tb$filename
-
-    # get the layer objects
-    layer.lst <- info_layers.tb$layer.obj
-
-    # create a new RasterLayer for a defined period and generate the associated metadata
-    coverage.tb <- .sits_create_raster_coverage(raster.lst = layer.lst,
-                                                service        = "RASTER",
-                                                name           = name,
-                                                timeline       = timeline,
-                                                bands          = list(bands),
-                                                scale_factors  = scale_factors,
-                                                missing_values = missing_values,
-                                                files          = files)
-
-
-    return(coverage.tb)
+    return(raster_class.tb)
 }
 #' @title Creates a tibble with information about a set of raster bricks
 #' @name .sits_create_raster_coverage

@@ -23,12 +23,14 @@ For example, one may want to put the raw and smoothed bands for the same set of 
 in the same table.
 }
 \examples{
-# Retrieve a time series with values of NDVI
+\donttest{
+#' # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the whittaker smoother
 point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0)
 # Plot the two points to see the smoothing effect
 sits_plot(sits_merge(point_ndvi, point_ws.tb))
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

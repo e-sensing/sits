@@ -110,12 +110,14 @@ sits_dates <- function(data.tb) {
 #' @param data2.tb      the second SITS table to be merged
 #' @return result.tb    a merged SITS tibble with a nested set of time series
 #' @examples
-#' # Retrieve a time series with values of NDVI
+#' \donttest{
+#' #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the whittaker smoother
 #' point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0)
 #' # Plot the two points to see the smoothing effect
 #' sits_plot(sits_merge(point_ndvi, point_ws.tb))
+#' }
 #' @export
 sits_merge <-  function(data1.tb, data2.tb) {
 

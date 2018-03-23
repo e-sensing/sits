@@ -72,8 +72,7 @@
     ll_sp <- sf::as_Spatial(ll_sfc)
 
     # An input raster brick contains several files, each corresponds to a band
-    bricks.lst <- sits_get_raster(raster.tb)
-    values.lst <- bricks.lst %>%
+    values.lst <- unlist(raster.tb$r_objs) %>%
         purrr::map(function(r_brick) {
             # eack brick is a band
             nband <<- nband + 1
@@ -146,7 +145,7 @@
     nband <- 0
 
     # An input raster brick contains several files, each corresponds to a band
-    bricks.lst <- sits_get_raster(raster.tb)
+    bricks.lst <- raster.tb$r_objs
     values.lst <- bricks.lst %>%
         purrr::map(function(r_brick) {
             # eack brick is a band

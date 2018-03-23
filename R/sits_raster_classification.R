@@ -123,7 +123,7 @@ sits_classify_raster <- function(file = NULL,
     names(int_labels) <- labels
 
     # create a list with the output raster layers
-    layers.lst <- sits_get_raster(raster_class.tb)
+    layers.lst <- unlist(raster_class.tb$r_objs)
 
     #initiate writing
     for (i in 1:length(layers.lst)) {
@@ -173,19 +173,21 @@ sits_classify_raster <- function(file = NULL,
     }
     if (!purrr::is_null(progress_bar)) close(progress_bar)
     # update the raster objects
-    raster_class.tb$r_objs <- list(layers.lst)
+    raster_class.tb$r_objs <- layers.lst
 
     return(raster_class.tb)
 }
-#' @title Get a raster object from a raster coverage
-#' @name sits_get_raster
-#' @description This function retrieves one or more raster objects stored in a raster coverage.
+#' @title Get a raster object from a raster classified coverage
+#' @name sits_get_robj
+#' @description This function retrieves one or more raster layer objects stored in a raster coverage.
 #'              It should be used to ensure that the raster objects are returned correctly.
 #'
-#' @param raster.tb  raster coverage
+#' @param raster.tb  raster coverage (classified)
 #' @param i          i-th element of the list to retrieve
+#' @return r_obj     a raster layer with classification
 #'
 #' @examples
+#' \donttest{
 #' # Define a raster Brick and retrieve the associated object
 #' # define the file that has the raster brick
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
@@ -194,19 +196,28 @@ sits_classify_raster <- function(file = NULL,
 #' # create a raster metadata file based on the information about the files
 #' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
 #'                             timeline = timeline_modis_392, bands = c("ndvi"))
-#' # retrieve the raster object associated to the coverage
-#' raster_object <- sits_get_raster(raster_cov, 1)
+#'
+#' # plot the first raster object with a selected color pallete
+#' # get the first classified object
+#' r.obj <- sits_get_robj(raster_class.tb,1)
+#'
+#' # make a title, define the colors and the labels)
+#' title <- paste0("Classified image of part of SINOP-MT - 2000/2001")
+#' colors <- c("#65AF72", "#d4d6ed", "#006400","#add8e6","#a0522d",
+#'             "#a52a2a","#d2b48c", "#cd853f", "#ff8c00")
+#' labels <- sits_labels(samples_MT_ndvi)$label
+#'
+#' sits_plot_raster(r.obj, title, labels, colors)
+#' }
+#'
 #' @export
 #
-sits_get_raster <- function(raster.tb, i = NULL) {
+sits_get_robj <- function(raster.tb, i) {
 
-    if (purrr::is_null(i))
-        return(raster.tb$r_objs[[1]])
-
-    ensurer::ensure_that(i, (.) <= length(raster.tb$r_objs[[1]]),
+    ensurer::ensure_that(i, (.) <= nrow(raster.tb),
                          err_desc = "sits_get_raster: index of raster object cannot be retrieved")
 
-    return(raster.tb$r_objs[[1]][[i]])
+    return(raster.tb[i,]$r_objs[[1]])
 }
 #' @title Classify a raster chunk using machine learning models
 #' @name .sits_classify_bigdata
@@ -327,7 +338,6 @@ sits_get_raster <- function(raster.tb, i = NULL) {
         .sits_log_debug(paste0("Memory used after binding bricks  - ", .sits_mem_used(), " GB"))
 
     rm(values.lst)
-    rm(rows.lst)
     gc()
     if (verbose)
         .sits_log_debug(paste0("Memory used after removing values - ", .sits_mem_used(), " GB"))
