@@ -252,7 +252,7 @@ sits_getdata <- function(coverage    = NULL,
     # for each row of the input, retrieve the time series
     purrr::pmap(list(csv.tb$longitude, csv.tb$latitude, csv.tb$start_date,
                 csv.tb$end_date, csv.tb$label),
-                function (longitude, latitude, start_date, end_date, label){
+                function(longitude, latitude, start_date, end_date, label){
 
                     row <- .sits_from_service(coverage, longitude, latitude,
                                               lubridate::as_date(start_date),
@@ -305,9 +305,9 @@ sits_getdata <- function(coverage    = NULL,
 #'
 #' @param shp_file        string  - name of a SHP file which provides the boundaries of a region of interest
 #' @param coverage        tibble  - metadata about the coverage
-#' @param bands           string vector - the names of the bands to be retrieved
 #' @param start_date      date - the start of the period
 #' @param end_date        date - the end of the period
+#' @param bands           string vector - the names of the bands to be retrieved
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
 #' @param label           string - the label to attach to the time series
 #' @return table          a SITS tibble
@@ -332,10 +332,9 @@ sits_getdata <- function(coverage    = NULL,
     sf_shape <- sf::read_sf(shp_file)
     # find out what is the projection of the shape file
     crs1 <- sf::st_crs(sf_shape)
-    # if the shapefile is not in EPSG:4326 and WGS84, exit gracefully
+    # if the shapefile is not in EPSG:4326 and WGS84, transform shape into WGS84
     if (crs1$epsg != 4326) {
-        message("Shapefile are only accepted in SITS if they are in EPSG:4326 and WGS84 coordinate system")
-        return(NULL)
+        sf_shape <- sf::st_transform(sf_shape, crs = 4326)
     }
     # get the bounding box
     bbox <- sf::st_bbox(sf_shape)

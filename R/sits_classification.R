@@ -230,7 +230,7 @@ sits_classify <- function(data.tb = NULL,
     ref_end_date <- lubridate::as_date(samples.tb[1,]$end_date)
 
     # obtain the reference dates that match the patterns in the full timeline
-    ref_dates.lst <- .sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
+    ref_dates.lst <- sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
 
     # obtain the indexes of the timeline that match the reference dates
     dates_index.lst <- .sits_match_indexes(timeline, ref_dates.lst)

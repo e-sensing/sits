@@ -351,7 +351,7 @@
                 # what is the reference end date?
                 ref_end_date <- lubridate::as_date(row_end_date)
                 # what are the reference dates to do the classification?
-                ref_dates.lst <- .sits_match_timeline(timeline_row, ref_start_date, ref_end_date, interval)
+                ref_dates.lst <- sits_match_timeline(timeline_row, ref_start_date, ref_end_date, interval)
             }
 
             # store the classification results

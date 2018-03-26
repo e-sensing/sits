@@ -22,7 +22,7 @@ utils::globalVariables(c(".", "%>%", "Index", "from", "value", "variable", "cond
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
                          "original_label", "n_members", "n_members.n", "count",
-                         "segr", "frac", "total", "n",
+                         "segr", "frac", "total", "n", "rows.lst", "whit",
                          "distance", "predicted", "new_values",
                          "Alig.N", "matches", "reference", "cluster", ".data"))
 #' @importFrom dtw symmetric1 symmetric2

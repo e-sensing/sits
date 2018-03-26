@@ -75,7 +75,7 @@
     return(FALSE)
 }
 #' @title Find dates in the input coverage that match those of the patterns
-#' @name .sits_match_timeline
+#' @name sits_match_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description For correct classification, the time series of the input data set
@@ -87,8 +87,15 @@
 #' @param ref_end_date          The day of the year to be taken as reference for end the classification
 #' @param interval              Period between two classification
 #' @return subset_dates.lst     A list of breaks that will be applied to the input data set
-#'
-.sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval = "12 month"){
+#' @examples
+#' # get a timeline for MODIS data
+#' data("timeline_2000_2017")
+#' # get a set of subsets for a period of 10 years
+#' ref_start_date <- lubridate::ymd("2000-08-28")
+#' ref_end_date <- lubridate::ymd("2000-08-13")
+#' subset_dates.lst <- sits_match_timeline (timeline_2000_2017, ref_start_date, ref_end_date)
+#' @export
+sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval = "12 month"){
 
     # make sure the timelines is a valid set of dates
     timeline <- lubridate::as_date(timeline)
@@ -110,7 +117,7 @@
 
     # is the start date a valid one?
     ensurer::ensure_that(start_date, .sits_is_valid_start_date(., timeline),
-                         err_desc = ".sits_match_timelines: expected start date in not inside timeline of observations")
+                         err_desc = "sits_match_timelines: expected start date in not inside timeline of observations")
 
     # obtain the subset dates to break the input data set
     # adjust the dates to match the timeline
@@ -137,10 +144,11 @@
     # is the end date a valid one?
     end_date   <- subset_dates.lst[[length(subset_dates.lst)]][2]
     ensurer::ensure_that(end_date, .sits_is_valid_end_date(., timeline),
-                         err_desc = ".sits_match_timelines: expected end date in not inside timeline of observations")
+                         err_desc = "sits_match_timelines: expected end date in not inside timeline of observations")
 
     return(subset_dates.lst)
 }
+
 
 #' @title Find indexes in a timeline that match the reference dates
 #' @name .sits_match_indexes

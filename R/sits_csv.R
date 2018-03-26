@@ -67,8 +67,6 @@ sits_data_toCSV <- function(data.tb, file){
 
     distances.tb <- sits_distances(data.tb, adj_fun = function(x) { identity(x)})
 
-    csv_columns <- names(distances.tb)
-
     tryCatch({utils::write.csv(distances.tb, file, row.names = FALSE, quote = FALSE)},
              error = function(e){
                  msg <- paste0("CSV - unable to save data in file ", file)
@@ -79,5 +77,100 @@ sits_data_toCSV <- function(data.tb, file){
     # write the CSV file
     return(invisible(TRUE))
 }
+#' @title Export a shapefile with points to a CSV file for later processing
+#' @name sits_shp_toCSV
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Converts points from a shapefile to a CSV file. The CSV file will not contain the actual time
+#'              series. Its columns will be the same as those of a CSV file used to retrieve data from
+#'              ground information ("latitude", "longitude", "start_date", "end_date", "coverage", "label").
+#'
+#' @param  shpfile    a POINT shapefile
+#' @param  csvfile    the name of the exported CSV file
+#' @param  label      label associated to the samples
+#' @param  timeline   the timeline of the data set
+#' @param  start_date starting date for which the samples are valid
+#' @param  end_date   end date for which the samples are valid
+#' @param  interval   interval between two samples of the same place
+#' @return status     the status of the operation
+#'
+#' @examples
+#' \donttest{
+#' # set the timeline
+#' data("timeline_2000_2017")
+#' # set the start and end dates
+#' start_date <- lubridate::ymd("2002-08-29")
+#' end_date   <- lubridate::ymd("2013-08-13")
+#' # define the input shapefile
+#' shpfile <- system.file ("extdata/shapefiles/cerrado_forested.shp", package = "sits")
+#' # define the output csv file
+#' csvfile <- paste0("./cerrado_forested.csv")
+#' # define the label
+#' label <- "Cerrado_Forested"
+#' # read the points in the shapefile and produce a CSV file
+#' sits_shp_toCSV(shpfile, csvfile, label, timeline_2000_2017, start_date, end_date)
+#' }
+#' @export
 
+sits_shp_toCSV <- function(shpfile, csvfile, label, timeline, start_date, end_date, interval = "12 month") {
+
+    # test parameters
+    ensurer::ensure_that(shpfile, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
+                         err_desc = "sits_fromSHP: please provide a valid SHP file")
+
+    # read the shapefile
+    sf_shape <- sf::read_sf(shpfile)
+
+    # find out what is the projection of the shape file
+    crs1 <- sf::st_crs(sf_shape)
+    # if the shapefile is not in EPSG:4326 and WGS84, transform shape into WGS84
+    if (crs1$epsg != 4326) {
+        sf_shape <- sf::st_transform(sf_shape, crs = 4326)
+    }
+
+    # extract the lat/long coords from the shapefile
+    coords <- do.call(rbind, sf::st_geometry(sf_shape)) %>%
+        tibble::as_tibble() %>%
+        stats::setNames(c("longitude","latitude"))
+
+    # create a tibble to store the samples
+    csv.tb <- tibble::tibble(
+        id         = integer(),
+        longitude  = double(),
+        latitude   = double(),
+        start_date = as.Date(character()),
+        end_date   = as.Date(character()),
+        label      = character())
+
+    id <- 0
+    # limit the timeline btw start and end_date
+    timeline <- timeline[timeline >= start_date]
+    timeline <- timeline[timeline <= end_date]
+
+    # obtain pairs of (start, end) dates for each interval
+    subset_dates.lst <- sits_match_timeline(timeline, start_date, end_date, interval)
+
+    # generate the output tibble
+    purrr::pmap(list(coords$longitude, coords$latitude), function(long, lat){
+        rows.lst <- subset_dates.lst %>%
+            purrr::map(function(date_pair) {
+                id <<- id + 1
+                tibble::tibble(
+                    id         = id,
+                    longitude  = long,
+                    latitude   = lat,
+                    start_date = date_pair[1],
+                    end_date   = date_pair[2],
+                    label      = label)
+            })
+        csv.tb <<- dplyr::bind_rows(csv.tb, rows.lst)
+    })
+    # write the CSV file
+    tryCatch({utils::write.csv(csv.tb, csvfile, row.names = FALSE, quote = FALSE)},
+             error = function(e){
+                 message(paste0("CSV - unable to save data in file ", csvfile))
+                 return(invisible(FALSE))})
+
+    return(invisible(TRUE))
+}
 

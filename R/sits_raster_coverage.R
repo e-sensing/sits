@@ -27,7 +27,7 @@
     ref_end_date  <- lubridate::as_date(samples.tb[1,]$end_date)
 
     # produce the breaks used to generate the output rasters
-    subset_dates.lst <- .sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
+    subset_dates.lst <- sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
 
     # loop through the list of dates and create list of raster layers to be created
     layer.lst <- subset_dates.lst %>%
