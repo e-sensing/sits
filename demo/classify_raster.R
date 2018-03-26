@@ -34,7 +34,7 @@ raster_class.tb <- sits_classify_raster(file = "./sinop-class", raster.tb, sampl
 colors <- c("#65AF72", "#d4d6ed", "#006400","#add8e6","#a0522d", "#a52a2a","#d2b48c", "#cd853f", "#ff8c00")
 labels <- sits_labels(samples.tb)$label
 title  <- "Classified image of SINOP MT - 2000/2001"
-r <- sits_get_raster(raster_class.tb, 1)
+r <- raster_class.tb[1,]$r_objs[[1]]
 
 # plot the first classified image
 sits_plot_raster(r, title, labels, colors)

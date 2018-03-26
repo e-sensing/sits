@@ -514,7 +514,7 @@ raster_class.tb <-
 
 # plot the first raster object with a selected color pallete
 # make a title, define the colors and the labels)
-r.obj <- sits_get_raster(raster_class.tb, 1)
+r.obj <- sits_get_robj(raster_class.tb,1)
 title <- paste0("Classified image of part of SINOP-MT - 2000/2001")
 colors <- c("#65AF72", "#d4d6ed", "#006400","#add8e6","#a0522d", "#a52a2a","#d2b48c", "#cd853f", "#ff8c00")
 labels <- sits_labels(samples_MT_ndvi)$label

@@ -443,7 +443,7 @@ sits_plot_raster <- function(r, title, labels, colors) {
     # define the column names for the data frame
     colnames(df) <- c("x", "y", "class")
 
-    nclasses <- length(unique(df$class))
+    nclasses <- length(labels)
     names(colors) <- as.character(c(1:nclasses))
     # create a mapping from classes to labels
     names(labels) = as.character(c(1:nclasses))

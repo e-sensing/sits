@@ -11,7 +11,7 @@ testthat::test_that("Working with raster coverages", {
                                bands = c("ndvi"),
                                files = files)
 
-    r_obj <- sits_get_raster(raster.tb, 1)
+    r_obj <- unlist(raster.tb[1,]$r_objs[[1]][[1]])
     testthat::expect_true(raster::nrow(r_obj) == raster.tb$nrows)
     testthat::expect_true(raster::xmin(r_obj) == raster.tb$xmin)
 
@@ -23,7 +23,7 @@ testthat::test_that("Working with raster coverages", {
                                             ml_method = sits_svm(), blocksize = 250, multicores = 2)
 
     testthat::expect_true(all(file.exists(unlist(raster_class.tb$files))))
-    rc_obj <- sits_get_raster(raster_class.tb, 1)
+    rc_obj <- sits_get_robj(raster_class.tb, 1)
     testthat::expect_true(raster::nrow(rc_obj) == raster_class.tb[1,]$nrows)
     testthat::expect_true(all(file.remove(unlist(raster_class.tb$files))))
 
