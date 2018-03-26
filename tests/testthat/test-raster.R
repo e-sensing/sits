@@ -1,3 +1,4 @@
+testthat::context("Raster classification")
 testthat::test_that("Working with raster coverages", {
     testthat::skip_on_cran()
     library(rgdal)
@@ -11,7 +12,7 @@ testthat::test_that("Working with raster coverages", {
                                bands = c("ndvi"),
                                files = files)
 
-    r_obj <- unlist(raster.tb[1,]$r_objs[[1]][[1]])
+    r_obj <- unlist(raster.tb$r_objs[[1]][[1]])
     testthat::expect_true(raster::nrow(r_obj) == raster.tb$nrows)
     testthat::expect_true(raster::xmin(r_obj) == raster.tb$xmin)
 
@@ -20,7 +21,7 @@ testthat::test_that("Working with raster coverages", {
     testthat::expect_true(length(point.tb$time_series[[1]]$Index) == length(timeline_modis_392))
 
     raster_class.tb <- sits_classify_raster(file = "./raster-class", raster.tb, samples_MT_ndvi,
-                                            ml_method = sits_svm(), blocksize = 250, multicores = 2)
+                                            ml_method = sits_svm(), blocksize = 250, multicores = 1)
 
     testthat::expect_true(all(file.exists(unlist(raster_class.tb$files))))
     rc_obj <- sits_get_robj(raster_class.tb, 1)

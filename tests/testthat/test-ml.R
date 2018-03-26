@@ -24,12 +24,6 @@ testthat::test_that("SVM, Random Forest, LDA, QDA, LASSO model",{
 
     testthat::expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_MT_ndvi)$label))
-
-    class.tb <- sits_classify(point_ndvi, samples_MT_ndvi,
-                              ml_method = sits_mlr())
-
-    testthat::expect_true(all(class.tb$predicted[[1]]$class %in%
-                                  sits_labels(samples_MT_ndvi)$label))
 })
 
 
