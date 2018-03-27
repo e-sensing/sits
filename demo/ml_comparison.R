@@ -6,7 +6,7 @@ library(sits)
 #  Download a data set with samples of 13 classes for the Cerrado biome in Brazil
 #  The time series comes from MOD13Q1 collection 6 images with six bands
 #  (ndvi, evi, blue, red, nir, mir)
-#  The tibble has 11,744 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
+#  The tibble has 54,128 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
 #  latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #  end_date (final date of the time series), label (the class label associated to the sample),
 #  coverage (the name of the coverage associated with the data),

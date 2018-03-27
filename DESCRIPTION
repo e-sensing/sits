@@ -52,6 +52,7 @@ Imports:
     log4r,
     lubridate,
     MASS,
+    mclust,
     methods,
     mgcv,
     nnet,

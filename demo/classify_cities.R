@@ -213,40 +213,14 @@ cat("\n")
 ## Step 5. Select the ground samples to be used for processing
 #
 
-message("Step 4. Select a ground sample data set")
-print(paste0("1. Samples (2,115) for 9 classes"))
-print(paste0("2. Samples (2,892) for 11 classes"))
-print(paste0("3. Samples (12,048) for 12 classes"))
-
-n <- 0
-while (!(n %in% c(1:3)))
-    n <- as.integer(readline(prompt="Enter an integer value (1-3): "))
-
 samples.tb <- sits_tibble()
-name_samples <- character()
 
-if (n == 1) {
-    data(samples_MT_9classes)
-    #select the bands for classification
-    samples.tb <- sits_select_bands(samples_MT_9classes, bands)
-    name_samples <-  c("9classes")
-} else if (n == 2) {
-    samples_dbox <- paste0("https://www.dropbox.com/s/voisuoc1fwqtaaw/samples_cerrado_11classes.rda?raw=1")
-    download.file(samples_dbox, destfile = "./cerrado_11classes.rda")
-    load(file = "./cerrado_11classes.rda")
-    samples.tb <- sits_select_bands(samples_Cerrado_11classes,  bands)
-    name_samples <-  c("11classes")
-} else if (n == 3){
-    #samples_dbox <- paste0("https://www.dropbox.com/s/addv5lxbpjm85jr/cerrado_13classes_modis_col6.rda?raw=1")
-    samples_dbox <- paste0("https://www.dropbox.com/s/md6qjas7hf7ksp2/samples_cerrado_12_classes.rda?raw=1")
-    download.file(samples_dbox, destfile = "./samples_cerrado_12_classes.rda")
-    load(file = "./samples_cerrado_12_classes.rda")
-    samples.tb <- sits_select_bands(samples_cerrado_12_classes.tb, bands)
-    name_samples <-  c("12classes")
-} else {
-    message("Invalid option")
-    stop()
-}
+samples_dbox <- paste0("https://www.dropbox.com/s/ajcze6hi86wi6r6/samples_Cerrado_26022018.rda?raw=1")
+download.file(samples_dbox, destfile = "./samples_Cerrado_26022018.rda")
+load(file = "./samples_Cerrado_26022018.rda")
+samples.tb <- sits_select_bands(samples_Cerrado_26022018.tb, bands)
+name_samples <-  c("Cerrado-26022018")
+
 cat("\n")
 message(paste0("Selected samples - ", name_samples))
 cat("\n")
