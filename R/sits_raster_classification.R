@@ -9,17 +9,9 @@
 #'              and produces a classified set of RasterLayers. This function is similar to
 #'               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
 #'               There are two parameters for optimizing processing of large data sets. These
-#'               parameters are "blocksize" and "multicores". The "multicores" parameter defines the
-#'               number of cores used for processing. The "blocksize" parameter  controls
-#'               the size of each image block to be read into memory.
-#'               The thumb rule to determine the blockisze is:
-#'
-#'               blocksize = (available memory for use) / (20 * bands * times).
-#'
-#'               For example, for a server with 60 GB available, and an image with
-#'               2 bands and 500 instances of time, the blocksize can be up to 3000000 (3e+06).
-#'               The factor of 20 is an estimate of how many bytes are used for each pixel,
-#'               since R stores everything in double precision and makes copies of data.
+#'               parameters are "memsize" and "multicores". The "multicores" parameter defines the
+#'               number of cores used for processing. The "memsize" parameter  controls
+#'               the amount of memory available for classification.
 #'
 #'
 #' @param  file            vector of file names to store the output (one file per classified year)
@@ -32,7 +24,7 @@
 #' @param  smoothing       (boolean) apply a Whittaker smoothing function?
 #' @param  lambda          degree of smoothing of the Whittaker smoother (default = 0.5)
 #' @param  differences     the order of differences of contiguous elements (default = 3)
-#' @param  blocksize       size of the block to be read to build a block for classification
+#' @param  memsize         memory available for classification (in GB)
 #' @param  multicores      number of threads to process the time series.
 #' @param  verbose         logical: run function in verbose mode? (useful for working with big data sets)
 #' @return raster_class.tb tibble with the metadata for the vector of classified RasterLayers
@@ -55,7 +47,7 @@
 #'
 #' # classify the raster file
 #' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-#'    ml_method = sits_svm(), smoothing = TRUE, blocksize = 250, multicores = 1)
+#'    ml_method = sits_svm(), smoothing = TRUE, memsize = 1, multicores = 1)
 #' }
 #'
 #' @export
@@ -95,10 +87,15 @@ sits_classify_raster <- function(file = NULL,
     # estimated memory bloat
     bloat <- 20
 
-    # estimated total memory used (in GB)
-    memory_req <- round((as.numeric(blocksize) * as.numeric(nbands) * as.numeric(ntimes) * as.numeric(bloat))/1e+09, digits = 2)
-    message(paste0("Information: Expected memory use can be as large as ", memory_req," Gb."))
-    message("Make sure your computer has this memory available.")
+    # calculate the blocksize as
+    # blocksize = (available memory for use) / (20 * bands * times).
+    # For example, for a server with 60 GB available, and an image with
+    # 2 bands and 500 instances of time, the blocksize can be up to 3000000 (3e+06).
+    # The factor of 20 is an estimate of how many bytes are used for each pixel,
+    # since R stores everything in double precision and makes copies of data.
+
+    roughsize <- (memsize*1e+09)/(as.numeric(nbands) * as.numeric(ntimes) * as.numeric(bloat))
+    blocksize <- as.integer(trunc(roughsize/10000)*10000)
 
     # apply the smoothing function, if required
     if (smoothing) {
