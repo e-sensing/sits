@@ -215,11 +215,11 @@ cat("\n")
 
 samples.tb <- sits_tibble()
 
-samples_dbox <- paste0("https://www.dropbox.com/s/ajcze6hi86wi6r6/samples_Cerrado_26022018.rda?raw=1")
-download.file(samples_dbox, destfile = "./samples_Cerrado_26022018.rda")
-load(file = "./samples_Cerrado_26022018.rda")
-samples.tb <- sits_select_bands(samples_Cerrado_26022018.tb, bands)
-name_samples <-  c("Cerrado-26022018")
+samples_dbox <- paste0("https://www.dropbox.com/s/8vyi0snhetokfb9/samples_27022018.rda?raw=1")
+download.file(samples_dbox, destfile = "./samples_Cerrado_27022018.rda")
+load(file = "./samples_Cerrado_27022018.rda")
+samples.tb <- sits_select_bands(samples_Cerrado_27022018.tb, bands)
+name_samples <-  c("Cerrado-27022018")
 
 cat("\n")
 message(paste0("Selected samples - ", name_samples))
