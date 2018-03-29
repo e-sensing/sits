@@ -396,6 +396,7 @@ sits_select_bands <- function(data.tb, bands) {
     # return the result
     return(result.tb)
 }
+
 #' @title Add new SITS bands and drops existing.
 #' @name sits_transmute
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}

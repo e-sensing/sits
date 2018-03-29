@@ -61,7 +61,7 @@ sits_classify_raster <- function(file = NULL,
                                  smoothing  = FALSE,
                                  lambda     = 0.5,
                                  differences = 3.0,
-                                 blocksize  = 2000,
+                                 memsize    = 4,
                                  multicores = 2,
                                  verbose    = FALSE){
 

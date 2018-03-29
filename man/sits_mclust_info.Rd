@@ -4,12 +4,12 @@
 \alias{sits_mclust_info}
 \title{Measure information content on model based clusterinbg}
 \usage{
-sits_mclust_info(data.tb, nclusters)
+sits_mclust_info(data.tb, nclusters = 9)
 }
 \arguments{
 \item{data.tb}{a SITS tibble with labelled samples}
 
-\item{ncluster}{the maximum number of clusters assumed to exist in the data}
+\item{nclusters}{the maximum number of clusters assumed to exist in the data}
 }
 \value{
 BIC              a `mclust` structure with the bayesian information criterion.

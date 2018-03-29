@@ -1,7 +1,7 @@
 default:
 
     # adjustment shift for function sits_adjust
-    adjustment_shift        : 1.0
+    adjustment_shift        : 3.0
     # estimated relative growth size of R memory relative to block size
     R_memory_bloat          : 2.5
 
@@ -139,6 +139,34 @@ default:
         MODIS               :
             xres            : 0.00208334
             yres            : 0.00208334
+
+    tasseled_cap_coef       :
+        MODIS               :
+            brightness      :
+                 red        : 0.4395
+                 nir        : 0.5495
+                 blue       : 0.2460
+                 green      : 0.3918
+                 nir2       : 0.3506
+                 mir1       : 0.3506
+                 mir        : 0.2678
+            greeness        :
+                 red        : -0.4064
+                 nir        :  0.5129
+                 blue       : -0.2744
+                 green      : -0.2893
+                 nir2       :  0.4882
+                 mir1       : -0.036
+                 mir        : -0.4169
+
+            wetness         :
+                 red        : -0.4064
+                 nir        :  0.5129
+                 blue       : -0.2744
+                 green      : -0.2893
+                 nir2       :  0.4882
+                 mir1       : -0.036
+                 mir        : -0.4169
 
     RASTER_timeline :
         MOD13Q1     : [ "2000-02-18", "2000-03-05", "2000-03-21", "2000-04-06", "2000-04-22", "2000-05-08", "2000-05-24", 2000-06-09",

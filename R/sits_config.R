@@ -445,6 +445,7 @@ sits_show_config <- function() {
 
     return(lubridate::as_date(timeline))
 }
+
 #' @title Check that the service is valid
 #' @name .sits_check_service
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

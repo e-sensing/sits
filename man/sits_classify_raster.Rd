@@ -6,7 +6,7 @@
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
   ml_method = sits_svm(), adj_fun = sits_adjust(), interval = "12 month",
-  smoothing = FALSE, lambda = 0.5, differences = 3, blocksize = 2000,
+  smoothing = FALSE, lambda = 0.5, differences = 3, memsize = 4,
   multicores = 2, verbose = FALSE)
 }
 \arguments{
@@ -30,7 +30,7 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
 
 \item{differences}{the order of differences of contiguous elements (default = 3)}
 
-\item{blocksize}{size of the block to be read to build a block for classification}
+\item{memsize}{memory available for classification (in GB)}
 
 \item{multicores}{number of threads to process the time series.}
 
@@ -47,17 +47,9 @@ Takes a set of spatio-temporal raster bricks, whose metadata is
              and produces a classified set of RasterLayers. This function is similar to
               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
               There are two parameters for optimizing processing of large data sets. These
-              parameters are "blocksize" and "multicores". The "multicores" parameter defines the
-              number of cores used for processing. The "blocksize" parameter  controls
-              the size of each image block to be read into memory.
-              The thumb rule to determine the blockisze is:
-
-              blocksize = (available memory for use) / (20 * bands * times).
-
-              For example, for a server with 60 GB available, and an image with
-              2 bands and 500 instances of time, the blocksize can be up to 3000000 (3e+06).
-              The factor of 20 is an estimate of how many bytes are used for each pixel,
-              since R stores everything in double precision and makes copies of data.
+              parameters are "memsize" and "multicores". The "multicores" parameter defines the
+              number of cores used for processing. The "memsize" parameter  controls
+              the amount of memory available for classification.
 }
 \examples{
 \donttest{
@@ -77,7 +69,7 @@ raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
 
 # classify the raster file
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-   ml_method = sits_svm(), smoothing = TRUE, blocksize = 250, multicores = 1)
+   ml_method = sits_svm(), smoothing = TRUE, memsize = 1, multicores = 1)
 }
 
 }

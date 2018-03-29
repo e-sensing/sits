@@ -269,11 +269,10 @@ message(paste0("Selected method - ", method_name))
 cat("\n")
 
 
-## Step 8. Select a blocksize and number of cores
+## Step 8. Select memory size and number of cores
 #
-message("Please select a blocksize (tipical values 10000 - 1000000)")
-message("blocksize = (free memory available)/20*nbands*ntimes")
-blocksize <- as.integer(readline(prompt = "Enter a blocksize value: "))
+message("Please select memory size avaliable for processing in GB (tipical values 1 - 100)")
+memsize <- as.integer(readline(prompt = "Enter a memsize value: "))
 
 message("Please select number of cores (tipical values 1 - 32)")
 multicores <- as.integer(readline(prompt = "Enter number of cores: "))
@@ -281,4 +280,4 @@ multicores <- as.integer(readline(prompt = "Enter number of cores: "))
 result_file <- paste0("./",code,"-class-",name_samples,"-",method_name)
 
 sits_classify_raster(file = result_file, raster.tb, samples.tb,
-                     ml_method = method,  adj_fun = afun, blocksize = blocksize, multicores = multicores)
+                     ml_method = method,  adj_fun = afun, memsize = memsize, multicores = multicores)

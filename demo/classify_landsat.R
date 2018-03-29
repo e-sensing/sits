@@ -28,9 +28,9 @@ load(file = "./cerrado_13classes_col6_adj.rda")
 #select the bands for classification
 samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi", "nir"))
 
-message("Please select a blocksize (tipical values 10000 - 1000000)")
-message("blocksize = (free memory available)/20*nbands*ntimes")
-blocksize <- as.integer(readline(prompt = "Enter a blocksize value: "))
+message("Please select memory size avaliable for processing in GB (tipical values 1 - 100)")
+memsize <- as.integer(readline(prompt = "Enter a memsize value: "))
+
 
 message("Please select number of cores (tipical values 1 - 32)")
 multicores <- as.integer(readline(prompt = "Enter number of cores: "))
@@ -39,6 +39,6 @@ multicores <- as.integer(readline(prompt = "Enter number of cores: "))
 # classify the raster image
 sits_classify_raster(file = "./L8_MOD_222-068-class", raster.tb, samples.tb,
                      ml_method = sits_svm(),
-                     blocksize = 20000000, multicores = 24)
+                     memsize = memsize, multicores = multicores)
 
 

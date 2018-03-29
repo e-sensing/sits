@@ -21,7 +21,7 @@ testthat::test_that("Working with raster coverages", {
     testthat::expect_true(length(point.tb$time_series[[1]]$Index) == length(timeline_modis_392))
 
     raster_class.tb <- sits_classify_raster(file = "./raster-class", raster.tb, samples_MT_ndvi,
-                                            ml_method = sits_svm(), blocksize = 250, multicores = 1)
+                                            ml_method = sits_svm(), memsize = 2, multicores = 1)
 
     testthat::expect_true(all(file.exists(unlist(raster_class.tb$files))))
     rc_obj <- sits_get_robj(raster_class.tb, 1)
