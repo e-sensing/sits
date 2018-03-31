@@ -289,8 +289,6 @@ sits_getdata <- function(coverage    = NULL,
         message("Some points could not be retrieved - see log file and csv_unread_file")
         .sits_log_CSV(csv_unread.tb, "unread_samples.csv")
     }
-    # check that all time series have the same number of samples
-    data.tb <- sits_prune(data.tb)
 
     return(data.tb)
 }

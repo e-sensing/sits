@@ -138,21 +138,24 @@
     subset.tb <- sits_tibble()
 
     # filter the time series by start and end dates
-    sub.ts <- row.tb$time_series[[1]] %>%
-        dplyr::filter (dplyr::between(.$Index, start_date, end_date))
+    ts <- row.tb$time_series[[1]]
+    indexes <- dplyr::between(ts$Index, start_date, end_date)
 
-    # store the subset of the time series in a list
-    ts.lst <- tibble::lst()
-    ts.lst[[1]] <- sub.ts
-    # create a new row of the output tibble
-    subset.tb <- tibble::add_row(subset.tb,
-                                 longitude    = row.tb$longitude,
-                                 latitude     = row.tb$latitude,
-                                 start_date   = as.Date(start_date),
-                                 end_date     = as.Date(end_date),
-                                 label        = row.tb$label,
-                                 coverage     = row.tb$coverage,
-                                 time_series  = ts.lst)
+    if (any(indexes)) {
+        sub.ts <- ts[indexes, ]
+        # store the subset of the time series in a list
+        ts.lst <- tibble::lst()
+        ts.lst[[1]] <- sub.ts
+        # create a new row of the output tibble
+        subset.tb <- tibble::add_row(subset.tb,
+                                     longitude    = row.tb$longitude,
+                                     latitude     = row.tb$latitude,
+                                     start_date   = as.Date(start_date),
+                                     end_date     = as.Date(end_date),
+                                     label        = row.tb$label,
+                                     coverage     = row.tb$coverage,
+                                     time_series  = ts.lst)
+    }
     return(subset.tb)
 }
 #' @title Apply a function over SITS bands.

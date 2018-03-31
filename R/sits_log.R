@@ -89,7 +89,7 @@ sits_log <- function() {
 #' @param csv.tb        Tibble containing CSV data
 #' @param file_name     Name of data to be saved
 #'
-.sits_log_CSV <- function(csv.tb, file_name = "csv.rda"){
+.sits_log_CSV <- function(csv.tb, file_name = "errors.csv"){
     # pre-conditions
     ensurer::ensure_that(csv.tb, !purrr::is_null(.),
                          err_desc = "Cannot save NULL CSV data")
@@ -105,4 +105,46 @@ sits_log <- function() {
 .sits_mem_used <- function() {
     gbyte <- 1024*1024*1024
     return(round(pryr::mem_used()/gbyte, digits = 3))
+}
+
+#' @title Prints the error log
+#' @name sits_show_errors
+#' @description Prints the errors log
+#'
+#' @export
+sits_show_errors <- function() {
+
+    file.show(sits.env$error_file)
+}
+
+#' @title Prints the warnings log
+#' @name sits_show_warnings
+#' @description Prints the warnings log
+#'
+#' @export
+sits_show_warnings <- function() {
+
+    file.show(sits.env$warn_file)
+}
+
+#' @title Prints the debug log
+#' @name sits_show_debug
+#' @description Prints the debug log
+#'
+#' @export
+sits_show_debug <- function() {
+
+    file.show(sits.env$debug_file)
+}
+
+
+#' @title Loads the CSV error file saved in the log directory
+#' @name sits_csv_error_file
+#' @description Loads the CSV error file saved in the log directory
+#' @param    file_name name of file to be retrieved
+#' @export
+sits_csv_error_file <- function(file_name = "errors.csv") {
+
+    csv.tb <- utils::read.csv(paste0(dirname(sits.env$debug_file),"/", file_name))
+    return(csv.tb)
 }

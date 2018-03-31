@@ -150,7 +150,7 @@ default:
                  nir2       : 0.3506
                  mir1       : 0.3506
                  mir        : 0.2678
-            greeness        :
+            greenness       :
                  red        : -0.4064
                  nir        :  0.5129
                  blue       : -0.2744
@@ -167,6 +167,31 @@ default:
                  nir2       :  0.4882
                  mir1       : -0.036
                  mir        : -0.4169
+
+        LANDSAT8            :
+            brightness      :
+                 blue       : 0.3029
+                 green      : 0.2786
+                 red        : 0.4733
+                 nir        : 0.5599
+                 swir1      : 0.508
+                 swir2      : 0.1872
+
+            greenness       :
+                 blue       : -0.2941
+                 green      : -0.243
+                 red        : -0.5424
+                 nir        :  0.7276
+                 swir1      :  0.0713
+                 swir2      : -0.1608
+
+            wetness         :
+                 blue       :  0.1511
+                 green      :  0.1973
+                 red        :  0.3283
+                 nir        :  0.3407
+                 swir1      : -0.7117
+                 swir2      : -0.4559
 
     RASTER_timeline :
         MOD13Q1     : [ "2000-02-18", "2000-03-05", "2000-03-21", "2000-04-06", "2000-04-22", "2000-05-08", "2000-05-24", 2000-06-09",

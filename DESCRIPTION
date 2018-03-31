@@ -100,6 +100,7 @@ Collate:
     'sits_factory.R'
     'sits_filters.R'
     'sits_getdata.R'
+    'sits_indexes.R'
     'sits_info.R'
     'sits_kohonen.R'
     'sits_labels.R'

@@ -77,7 +77,48 @@ sits_bands <- function(data.tb) {
         colnames() %>% .[2:length(.)]
     return(result.vec)
 }
+#' @title Breaks a set of time series into equal intervals
+#' @name sits_break
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function breaks a set of time series
+#' into equal time intervals. This function is useful to produce
+#' a set of time series with the same number of samples, which is
+#' required for building a set of samples for classification
+#'
+#' @param  data.tb    sits tibble
+#' @param  timeline   timeline associated with the coverage
+#' @param  start_date starting date within an interval
+#' @param  end_date   ending date within an interval
+#' @param  interval   interval for breaking the series
+#' @return data.tb    sits tibble broken into equal intervals
+#' @examples
+#' points.tb <- sits_break(point_ndvi, timeline_modis_392, "2000-08-28", "2016-08-12")
+#' @export
+#'
+sits_break <- function(data.tb, timeline, start_date, end_date, interval = "12 month"){
 
+    # create a tibble to store the results
+    newdata.tb <- sits_tibble()
+
+    # get the dates
+    subset_dates.lst <- sits_match_timeline(timeline, as.Date(start_date), as.Date(end_date), interval = interval)
+
+    # break the data into intervals
+    lapply(seq_len(nrow(data.tb)), function(i) {
+        subset_dates.lst %>%
+            purrr::map(function(date){
+                point.tb <- .sits_extract(data.tb[i,], as.Date(date[1]), as.Date(date[2]))
+                if (nrow(point.tb) > 0)
+                    newdata.tb <<- dplyr::bind_rows(newdata.tb, point.tb)
+            })
+
+    })
+    # prune the results to get the same number of samples
+    newdata.tb <- sits_prune(newdata.tb)
+
+    return(newdata.tb)
+}
 #' @title Return the dates of a sits table
 #' @name sits_dates
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -212,14 +253,14 @@ sits_prune <- function(data.tb) {
                 as the majority of the data - see log file")
 
         # save the wrong data in a log file
-        ind1 <- which (n_samples != stats::median(n_samples))
+        ind1 <- which(n_samples != stats::median(n_samples))
         msg_log <- paste0("Lines with wrong number of samples are ",ind1)
         .sits_log_error(msg_log)
         data_err.tb <- data.tb[ind1, ]
-        .sits_log_data(data_err.tb, file_name = "data_wrong_indices.rda")
+        .sits_log_CSV(data_err.tb)
 
         # return the time series that have the same number of samples
-        ind2 <- which (n_samples == stats::median(n_samples))
+        ind2 <- which(n_samples == stats::median(n_samples))
 
         return(data.tb[ind2, ])
     }

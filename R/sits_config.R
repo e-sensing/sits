@@ -446,6 +446,97 @@ sits_show_config <- function() {
     return(lubridate::as_date(timeline))
 }
 
+#' @title Retrieve the vector of coeficientes for brightness component of tasseled cap
+#' @name .sits_get_tcap_brightness
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param satellite      name of ssatellite (or sensor)
+#' @return coef        named vector of brightness coefficients
+#'
+.sits_get_tcap_brightness <- function(satellite = "MODIS"){
+
+    if (satellite == "MODIS")
+        bands <- c("blue", "green", "red", "nir", "nir2", "mir1", "mir")
+    else {
+        if (satellite == "LANDSAT8")
+            bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
+        else {
+            message("unable to retrieve tasseled cap coefficients")
+            return(invisible(FALSE))
+        }
+    }
+
+    coef <- vector()
+
+    for (i in 1:length(bands)) {
+        coef[length(coef) + 1] <- as.double(sits.env$config$tasseled_cap_coef[[satellite]]$brightness[[bands[i]]])
+    }
+
+
+    names(coef) <- bands
+    return(coef)
+}
+
+#' @title Retrieve the vector of coeficientes for brightness component of tasseled cap
+#' @name .sits_get_tcap_greenness
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param satellite      name of ssatellite (or sensor)
+#' @return coef          named vector of greenness coefficients
+#'
+.sits_get_tcap_greenness <- function(satellite = "MODIS"){
+
+    if (satellite == "MODIS")
+        bands <- c("blue", "green", "red", "nir", "nir2", "mir1", "mir")
+    else {
+        if (satellite == "LANDSAT8")
+            bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
+        else {
+            message("unable to retrieve tasseled cap coefficients")
+            return(invisible(FALSE))
+        }
+    }
+
+    coef <- vector()
+
+    for (i in 1:length(bands)) {
+        c <- as.double(sits.env$config$tasseled_cap_coef[[satellite]]$greenness[[bands[i]]])
+        coef[length(coef) + 1] <- c
+    }
+    names(coef) <- bands
+    return(coef)
+}
+
+#' @title Retrieve the vector of coeficientes for wetness component of tasseled cap
+#' @name .sits_get_tcap_wetness
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param satellite      name of ssatellite (or sensor)
+#' @return coef          named vector of greenness coefficients
+#'
+.sits_get_tcap_wetness <- function(satellite = "MODIS"){
+
+    if (satellite == "MODIS")
+        bands <- c("blue", "green", "red", "nir", "nir2", "mir1", "mir")
+    else {
+        if (satellite == "LANDSAT8")
+            bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
+        else {
+            message("unable to retrieve tasseled cap coefficients")
+            return(invisible(FALSE))
+        }
+    }
+
+    coef <- vector()
+
+    for (i in 1:length(bands)) {
+        c <- as.double(sits.env$config$tasseled_cap_coef[[satellite]]$wetness[[bands[i]]])
+        coef[length(coef) + 1] <- c
+    }
+    names(coef) <- bands
+    return(coef)
+}
+
 #' @title Check that the service is valid
 #' @name .sits_check_service
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
