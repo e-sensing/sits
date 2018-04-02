@@ -112,6 +112,8 @@ default:
             evi             : -9999
             red             : -9999
             nir             : -9999
+            swir1           : -9999
+            swir2           : -9999
 
     RASTER_minimum_value    :
         ndvi                : -3000
@@ -134,6 +136,9 @@ default:
             evi             : 0.0001
             red             : 0.0001
             nir             : 0.0001
+            mir             : 0.0001
+            swir1           : 0.0001
+            swir2           : 0.0001
 
     RASTER_resolution:
         MODIS               :
