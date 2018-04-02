@@ -314,7 +314,7 @@ sits_get_robj <- function(raster.tb, i) {
             }
 
             values.mx[is.na(values.mx)] <- minimum_value
-            values.mx[values.mx == missing_value] <- minimum_value
+            values.mx[values.mx <= minimum_value] <- minimum_value
 
             values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
 

@@ -203,6 +203,7 @@ sits_show_config <- function() {
     ensurer::ensure_that(minimum_values, length(.) == length(bands),
                          err_desc = paste0("Configuration file has failed to find minimum values for ", service))
 
+    names(minimum_values) <- bands
     return(minimum_values)
 }
 
@@ -228,6 +229,7 @@ sits_show_config <- function() {
     ensurer::ensure_that(missing_values, length(.) == length(bands),
                          err_desc = paste0("Configuration file has no missing values for service ", service))
 
+    names(missing_values) <- bands
     return(missing_values)
 }
 #' @title Retrieve the projection for the product available at service
