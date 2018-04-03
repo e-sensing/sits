@@ -399,7 +399,7 @@ sits_get_robj <- function(raster.tb, i) {
             # memory management
             if (verbose)
                 message(paste0("Memory used after building chunks  - ", .sits_mem_used(), " GB"))
-            #rm(dist1.tb)
+            rm(dist1.tb)
             gc()
             if (verbose)
                 message(paste0("Memory used before calling parallel processing - ", .sits_mem_used(), " GB"))
