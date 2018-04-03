@@ -24,9 +24,10 @@
 #' @param name              name of the coverage
 #' @param timeline          timeline of the coverage
 #' @param bands             bands (only for raster data)
-#' @param scale_factors     scale factor (only for raster data)
-#' @param missing_values    missing values (only for raster data)
-#' @param files             file names (only for raster data)
+#' @param scale_factors     scale factor for each band (only for raster data)
+#' @param missing_values    missing values for each band (only for raster data)
+#' @param minimum_values    minimum values for each band (only for raster data)
+#' @param files             file names for each band (only for raster data)
 #' @examples
 #' \donttest{
 #' # Example 1. Retrieve information about a WTSS coverage
@@ -51,6 +52,7 @@ sits_coverage <- function(service        = "RASTER",
                           bands          = NULL,
                           missing_values = NULL,
                           scale_factors  = NULL,
+                          minimum_values = NULL,
                           files          = NA) {
 
     # if no service is specified, but the names of files are provided,
@@ -101,6 +103,7 @@ sits_coverage <- function(service        = "RASTER",
                                              bands = bands,
                                              scale_factors = scale_factors,
                                              missing_values = missing_values,
+                                             minimum_values = minimum_values,
                                              files = files)
 
     return(coverage.tb)
@@ -124,11 +127,12 @@ sits_coverage <- function(service        = "RASTER",
 #' @param  bands             vector of bands contained in the Raster Brick set (in the same order as the files)
 #' @param  scale_factors     vector of scale factors (one per band)
 #' @param  missing_values    vector of missing values (one per band)
+#' @param  minimum_values    minimum values for each band (only for raster data)
 #' @param  files             vector with the file paths of the raster files
 #' @return raster.tb         tibble with metadata information about a raster data set
 #'
 .sits_coverage_raster <- function(name, timeline, bands,
-                                  scale_factors, missing_values, files) {
+                                  scale_factors, missing_values, minimum_values, files) {
 
     ensurer::ensure_that(bands, length(.) == length(files),
                          err_desc = "sits_coverageRaster: number of bands does not match number of files")
@@ -164,6 +168,7 @@ sits_coverage <- function(service        = "RASTER",
                                                 bands          = bands,
                                                 scale_factors  = scale_factors,
                                                 missing_values = missing_values,
+                                                minimum_values = minimum_values,
                                                 files          = files)
 
     return(coverage.tb)

@@ -272,7 +272,7 @@ sits_get_robj <- function(raster.tb, i) {
     # get the bands, scale factors and missing values
     bands <- unlist(raster.tb$bands)
     missing_values <- unlist(raster.tb$missing_values)
-    minimum_values <- .sits_get_minimum_values("RASTER", bands)
+    minimum_values <- unlist(raster.tb$minimum_values)
     scale_factors  <- unlist(raster.tb$scale_factors)
 
     # define the smoothing function
@@ -316,7 +316,8 @@ sits_get_robj <- function(raster.tb, i) {
             values.mx[is.na(values.mx)] <- minimum_value
             values.mx[values.mx <= minimum_value] <- minimum_value
 
-            values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
+            # values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
+            values.mx <- values.mx * scale_factor
 
             values.mx <- adj_fun(values.mx)
             if (smoothing) {

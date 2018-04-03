@@ -5,7 +5,8 @@
 \title{Provides information about one coverage used to retrieve data}
 \usage{
 sits_coverage(service = "RASTER", name, timeline = NULL, bands = NULL,
-  missing_values = NULL, scale_factors = NULL, files = NA)
+  missing_values = NULL, scale_factors = NULL, minimum_values = NULL,
+  files = NA)
 }
 \arguments{
 \item{service}{name of the time series service}
@@ -16,11 +17,13 @@ sits_coverage(service = "RASTER", name, timeline = NULL, bands = NULL,
 
 \item{bands}{bands (only for raster data)}
 
-\item{missing_values}{missing values (only for raster data)}
+\item{missing_values}{missing values for each band (only for raster data)}
 
-\item{scale_factors}{scale factor (only for raster data)}
+\item{scale_factors}{scale factor for each band (only for raster data)}
 
-\item{files}{file names (only for raster data)}
+\item{minimum_values}{minimum values for each band (only for raster data)}
+
+\item{files}{file names for each band (only for raster data)}
 }
 \description{
 uses the configuration file to print information and save metadata about a

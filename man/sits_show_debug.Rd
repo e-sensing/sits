@@ -2,10 +2,9 @@
 % Please edit documentation in R/sits_log.R
 \name{sits_show_debug}
 \alias{sits_show_debug}
-\alias{sits_show_warnings}
 \title{Prints the debug log}
 \usage{
-sits_show_warnings()
+sits_show_debug()
 }
 \description{
 Prints the debug log

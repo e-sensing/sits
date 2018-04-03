@@ -6,6 +6,9 @@
 \usage{
 sits_csv_error_file(file_name = "errors.csv")
 }
+\arguments{
+\item{file_name}{name of file to be retrieved}
+}
 \description{
 Loads the CSV error file saved in the log directory
 }

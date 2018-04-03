@@ -29,8 +29,9 @@
     # produce the breaks used to generate the output rasters
     subset_dates.lst <- sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
 
-    scale_factors <- 1
-    missing_values <- -9999
+    scale_factors <- c(1)
+    missing_values <- c(-9999)
+    minimum_values <- c(0.0)
 
 
     # loop through the list of dates and create list of raster layers to be created
@@ -63,6 +64,7 @@
                                                         bands          = list(band),
                                                         scale_factors  = scale_factors,
                                                         missing_values = missing_values,
+                                                        minimum_values = minimum_values,
                                                         files          = list(filename))
 
             return(coverage.tb)
@@ -85,6 +87,7 @@
 #' @param bands             vector - names of bands
 #' @param scale_factors     vector - scale factors
 #' @param missing_values    vector - missing values
+#' @param minimum_values    vector - minimum values
 #' @param files             vector - names of raster files where the data is stored
 #'
 .sits_create_raster_coverage <- function(raster.lst,
@@ -94,6 +97,7 @@
                                          bands,
                                          scale_factors,
                                          missing_values,
+                                         minimum_values,
                                          files) {
 
     # associate an R raster object to the first element of the list of bricks
@@ -127,8 +131,7 @@
         ensurer::ensure_that(yres, (.) == raster::yres(raster.lst[[i]]),
                              err_desc = "raster bricks/layers have different yres")
     }
-    # get the CRS projection
-    crs <- as.character(raster::crs(r_obj))
+
 
     # if timeline is not provided, try a best guess
     if (purrr::is_null(timeline))
@@ -136,41 +139,33 @@
 
     # if scale factors are not provided, try a best guess
     if (purrr::is_null(scale_factors)) {
-        msg <- paste0("Scale factors not provided - will use default values: please check they are valid")
-        .sits_log_warning(msg)
-        # if the projection is UTM, guess it's a LANDSAT data set
-        if (stringr::str_detect(crs, "utm")) {
-            msg <- paste0("Data in UTM projection - assuming LANDSAT-compatible images")
-            .sits_log_warning(msg)
-            scale_factors <- .sits_get_scale_factors("RASTER", "LANDSAT", bands)
-        }
-        # if the projection is sinusoidal, guess it's a MODIS data set
-        if (stringr::str_detect(crs, "sinu")) {
-            msg <-  paste0("Data in Sinusoidal projection - assuming MODIS-compatible images")
-            .sits_log_warning(msg)
-            scale_factors <- .sits_get_scale_factors("RASTER", "MODIS", bands)
-        }
+        message("Scale factors not provided - will use default values: please check they are valid")
+        # try to guess what is the satellite
+        satellite <- .sits_guess_satellite(r_obj)
+        # retrieve the scale factors
+        scale_factors <- .sits_get_scale_factors("RASTER", satellite, bands)
+        # are the scale factors valid?
         ensurer::ensure_that(scale_factors, !(purrr::is_null(.)),
                              err_desc = "Not able to obtain scale factors for raster data")
     }
+    else
+        names(scale_factors) <- bands
+
     # if missing_values are not provided, try a best guess
     if (purrr::is_null(missing_values)) {
-        msg <- paste0("Missing values not provided - will use default values: please check they are valid")
-        .sits_log_warning(msg)
-        # if the projection is UTM, guess it's a LANDSAT data set
-        if (stringr::str_detect(crs, "utm")) {
-            msg <- paste0("Data in UTM projection - assuming LANDSAT-compatible images")
-            .sits_log_warning(msg)
-            missing_values <- .sits_get_missing_values("RASTER", "LANDSAT", bands)
-        }
-        # if the projection is sinusoidal, guess it's a MODIS data set
-        if (stringr::str_detect(crs, "sinu")) {
-            msg <-  paste0("Data in Sinusoidal projection - assuming MODIS-compatible images")
-            .sits_log_warning(msg)
-            missing_values <- .sits_get_missing_values("RASTER", "MODIS", bands)
-        }
+        message("Missing values not provided - will use default values: please check they are valid")
+        # try to guess what is the satellite
+        satellite      <- .sits_guess_satellite(r_obj)
+        # try to retrieve the missing values
+        missing_values <- .sits_get_missing_values("RASTER", satellite, bands)
         ensurer::ensure_that(missing_values, !(purrr::is_null(.)),
                              err_desc = "Not able to obtain scale factors for raster data")
+    }
+    else
+        names(missing_values) <- bands
+
+    if (purrr::is_null(minimum_values)) {
+        minimum_values <- .sits_get_minimum_values("RASTER", bands)
     }
 
     # initiate writing
@@ -181,6 +176,7 @@
                                   bands          = list(bands),
                                   scale_factors  = list(scale_factors),
                                   missing_values = list(missing_values),
+                                  minimum_values = list(minimum_values),
                                   start_date     = as.Date(timeline[1]),
                                   end_date       = as.Date(timeline[length(timeline)]),
                                   timeline       = list(timeline),
@@ -192,7 +188,7 @@
                                   ymax           = ymax,
                                   xres           = xres,
                                   yres           = yres,
-                                  crs            = crs,
+                                  crs            = as.character(raster::crs(r_obj)),
                                   files          = list(files))
 
     return(coverage.tb)
@@ -222,4 +218,35 @@
     file_name <- paste0(file_base,"_",y1,"_",m1,"_",y2,"_",m2,".tif")
 
     return(file_name)
+}
+#' @title Try a best guess for the type of sensor/satellite
+#' @name .sits_guess_satellite
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description    Based on the projection, tries to guess what is the satellite
+#'
+#' @param r_obj         a raster object
+#' @return satellite    name of the satellite (or sensor)
+#'
+.sits_guess_satellite <- function(r_obj) {
+
+    # get the CRS projection
+    crs <- as.character(raster::crs(r_obj))
+
+    # if the projection is UTM, guess it's a LANDSAT data set
+    if (stringr::str_detect(crs, "utm")) {
+        message("Data in UTM projection - assuming LANDSAT-compatible images")
+        satellite <- "LANDSAT"
+    }
+    # if the projection is sinusoidal, guess it's a MODIS data set
+    else if (stringr::str_detect(crs, "sinu")) {
+        message("Data in Sinusoidal projection - assuming MODIS-compatible images")
+        satellite <- "MODIS"
+    }
+    else {
+        message("Cannot guess what is the satellite")
+        satellite <- "UNKNOWN"
+    }
+
+    return(satellite)
 }
