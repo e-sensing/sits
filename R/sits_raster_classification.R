@@ -309,7 +309,7 @@ sits_get_robj <- function(raster.tb, i) {
             scale_factor  <- scale_factors[band]
 
             if (verbose) {
-                .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
+                message(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
                 message(paste0("Read band ", band, " from rows ", init_row, "to ", (init_row + nrows - 1)))
             }
 
@@ -325,6 +325,9 @@ sits_get_robj <- function(raster.tb, i) {
                     lapply(whit)
                 values.mx <- do.call(rbind, rows.lst)
             }
+            if (verbose) {
+                message(paste0("Memory used after adj_fun - ", .sits_mem_used(), " GB"))
+            }
 
             return(values.mx)
         })
@@ -333,12 +336,12 @@ sits_get_robj <- function(raster.tb, i) {
 
     # memory cleanup
     if (verbose)
-        .sits_log_debug(paste0("Memory used after binding bricks  - ", .sits_mem_used(), " GB"))
+        message(paste0("Memory used after binding bricks  - ", .sits_mem_used(), " GB"))
 
     rm(values.lst)
     gc()
     if (verbose)
-        .sits_log_debug(paste0("Memory used after removing values - ", .sits_mem_used(), " GB"))
+        message(paste0("Memory used after removing values - ", .sits_mem_used(), " GB"))
 
     # create a data table for better memory management
     size <- nrows*ncols
@@ -349,7 +352,7 @@ sits_get_robj <- function(raster.tb, i) {
 
     # memory debug
     if (verbose)
-        .sits_log_debug(paste0("Memory used after adding two first cols - ", .sits_mem_used(), " GB"))
+        message(paste0("Memory used after adding two first cols - ", .sits_mem_used(), " GB"))
 
 
     # iterate through time intervals
@@ -371,7 +374,7 @@ sits_get_robj <- function(raster.tb, i) {
 
         # memory management
         if (verbose)
-            .sits_log_debug(paste0("Memory used after selecting data subset  - ", .sits_mem_used(), " GB"))
+            message(paste0("Memory used after selecting data subset  - ", .sits_mem_used(), " GB"))
 
         # classify a block of data
         classify_block <- function(block.tb) {
@@ -394,23 +397,23 @@ sits_get_robj <- function(raster.tb, i) {
             }
             # memory management
             if (verbose)
-                .sits_log_debug(paste0("Memory used after building chunks  - ", .sits_mem_used(), " GB"))
+                message(paste0("Memory used after building chunks  - ", .sits_mem_used(), " GB"))
             #rm(dist1.tb)
             gc()
             if (verbose)
-                .sits_log_debug(paste0("Memory used before calling parallel processing - ", .sits_mem_used(), " GB"))
+                message(paste0("Memory used before calling parallel processing - ", .sits_mem_used(), " GB"))
 
             # apply parallel processing to the split data and join the results
             pred.vec <- unlist(parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores))
 
             # memory management
             if (verbose)
-                .sits_log_debug(paste0("Memory used after calling parallel processing - ", .sits_mem_used(), " GB"))
+                message(paste0("Memory used after calling parallel processing - ", .sits_mem_used(), " GB"))
             rm(block_size.lst)
             rm(blocks.lst)
             gc()
             if (verbose)
-                .sits_log_debug(paste0("Memory used after removing blocks - ", .sits_mem_used(), " GB"))
+                message(paste0("Memory used after removing blocks - ", .sits_mem_used(), " GB"))
         }
         else {
             # estimate the prediction vector
@@ -420,7 +423,7 @@ sits_get_robj <- function(raster.tb, i) {
             rm(dist1.tb)
             gc()
             if (verbose)
-                .sits_log_debug(paste0("Memory used after classification in one core - ", .sits_mem_used(), " GB"))
+                message(paste0("Memory used after classification in one core - ", .sits_mem_used(), " GB"))
         }
 
         # check the result has the right dimension
@@ -439,13 +442,13 @@ sits_get_robj <- function(raster.tb, i) {
         #rm(values)
         gc()
         if (verbose)
-            .sits_log_debug(paste0("Memory used after classification of year ", t, " - ", .sits_mem_used(), " GB"))
+            message(paste0("Memory used after classification of year ", t, " - ", .sits_mem_used(), " GB"))
     }
     # memory management
     rm(dist.tb)
     gc()
     if (verbose) {
-        .sits_log_debug(paste0("Memory used after end of processing all years - ", .sits_mem_used(), " GB"))
+        message(paste0("Memory used after end of processing all years - ", .sits_mem_used(), " GB"))
         message(paste0("Processed block starting from ", init_row, " to ", (init_row + nrows - 1)))
     }
 
