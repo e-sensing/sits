@@ -4,12 +4,12 @@
 \alias{sits_distances}
 \title{Use time series values from a sits tibble as distances for training patterns}
 \usage{
-sits_distances(data.tb, adj_fun = sits_adjust())
+sits_distances(data.tb, adj_val = 3)
 }
 \arguments{
 \item{data.tb}{tibble with time series data and metadata}
 
-\item{adj_fun}{adjustment function to be applied to the data}
+\item{adj_val}{adjustment value to be applied to the data}
 }
 \value{
 distances.tb  data.table where columns have the reference label and the time series values as distances
@@ -19,7 +19,7 @@ This function allows using a set of labelled time series as
 input to the machine learning models. The attributes used to train the model
 are the series themselves. This function extracts the time series from a SITS tibble
 and "spreads" them in time to produce a tibble with distances. It needs an additional
-function that adjusts the values of the time series to meet the criteria of
+value that adjusts the values of the time series to meet the criteria of
 machine learning methods, since most ML methods do not allow for negative data.
 }
 \examples{

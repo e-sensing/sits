@@ -19,7 +19,7 @@
 #' @param  samples.tb      tibble with samples used for training the classification model
 #' @param  ml_model        an R model trained by \code{\link[sits]{sits_train}}
 #' @param  ml_method       an R machine learning method such as SVM, Random Forest or Deep Learning
-#' @param  adj_fun         adjustment function to be applied to the data
+#' @param  adj_val         adjustment value to be applied to the data
 #' @param  interval        interval between two sucessive classifications, expressed in months
 #' @param  smoothing       (boolean) apply a Whittaker smoothing function?
 #' @param  lambda          degree of smoothing of the Whittaker smoother (default = 0.5)
@@ -56,7 +56,7 @@ sits_classify_raster <- function(file = NULL,
                                  samples.tb,
                                  ml_model  = NULL,
                                  ml_method  = sits_svm(),
-                                 adj_fun    = sits_adjust(),
+                                 adj_val    = 3.0,
                                  interval   = "12 month",
                                  smoothing  = FALSE,
                                  lambda     = 0.5,
@@ -104,7 +104,7 @@ sits_classify_raster <- function(file = NULL,
 
     # set up the ML model
     if (purrr::is_null(ml_model))
-        ml_model <- sits_train(samples.tb, ml_method = ml_method, adj_fun = adj_fun)
+        ml_model <- sits_train(samples.tb, ml_method = ml_method, adj_val = adj_val)
 
     # create the raster objects and their respective filenames
     raster_class.tb <- .sits_create_classified_raster(raster.tb, samples.tb, file, interval)
@@ -154,7 +154,7 @@ sits_classify_raster <- function(file = NULL,
                                              int_labels,
                                              bs$row[i],
                                              bs$nrows[i],
-                                             adj_fun,
+                                             adj_val,
                                              ml_model,
                                              smoothing,
                                              lambda,
@@ -238,7 +238,7 @@ sits_get_robj <- function(raster.tb, i) {
 #' @param  int_labels      conversion vector from the labels to integer values
 #' @param  init_row        starting row from the RasterBrick
 #' @param  nrows           number of rows in the block extracted from the RasterBrick
-#' @param  adj_fun         sdjustment function to be applied to the data
+#' @param  adj_val         adjustment value to be applied to the data
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  smoothing       (boolean) apply whittaker smoothing?
 #' @param  lambda          smoothing factor (default = 1.0)
@@ -255,7 +255,7 @@ sits_get_robj <- function(raster.tb, i) {
                                     int_labels,
                                     init_row,
                                     nrows,
-                                    adj_fun,
+                                    adj_val,
                                     ml_model,
                                     smoothing,
                                     lambda,
@@ -317,19 +317,20 @@ sits_get_robj <- function(raster.tb, i) {
             values.mx[values.mx <= minimum_value] <- minimum_value
 
             # values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
-            values.mx <- values.mx * scale_factor
+            values2.mx <- scale_data(values.mx, scale_factor, adj_val)
 
-            values.mx <- adj_fun(values.mx)
             if (smoothing) {
-                rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
+                rows.lst <- lapply(seq_len(nrow(values2.mx)), function(i) values2.mx[i, ]) %>%
                     lapply(whit)
-                values.mx <- do.call(rbind, rows.lst)
+                values2.mx <- do.call(rbind, rows.lst)
             }
+            rm(values.mx)
+            gc()
             if (verbose) {
-                message(paste0("Memory used after adj_fun - ", .sits_mem_used(), " GB"))
+                message(paste0("Memory used after scaling data - ", .sits_mem_used(), " GB"))
             }
 
-            return(values.mx)
+            return(values2.mx)
         })
 
     dist.tb <- data.table::as.data.table(do.call(cbind, values.lst))

@@ -17,7 +17,7 @@ ml_model <-  sits_train(samples.tb,
                              epochs = 500,
                              batch_size = 128,
                              validation_split = 0.2),
-                        adj_fun  = function(x) {identity(x)}
+                             adj_val  = 0,
 )
 
 sits_keras_diagnostics()
@@ -29,7 +29,7 @@ data("point_MT_6bands")
 point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir", "mir"))
 
 # classify the point
-class.tb <- sits_classify(point.tb, samples.tb, ml_model, adj_fun = function(x) {identity(x)})
+class.tb <- sits_classify(point.tb, samples.tb, ml_model, adj_val = 0.0)
 
 # plot the classification
 sits_plot(class.tb)

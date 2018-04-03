@@ -23,10 +23,10 @@ After the Keras deeplearning model is compiled and fit, this
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(cerrado2classes)
 # create a vector of distances
-distances <- sits_distances(cerrado2classes, adj_fun  = function(x) {identity(x)})
+distances <- sits_distances(cerrado2classes, adj_val  = 0.0)
 # obtain a DL model
 ml_model = sits_deeplearning(distances.tb)
-# classify the point
+# run the keras diagnostics
 sits_keras_diagnostics()
 }
 }

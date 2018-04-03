@@ -7,11 +7,11 @@
 #' input to the machine learning models. The attributes used to train the model
 #' are the series themselves. This function extracts the time series from a SITS tibble
 #' and "spreads" them in time to produce a tibble with distances. It needs an additional
-#' function that adjusts the values of the time series to meet the criteria of
+#' value that adjusts the values of the time series to meet the criteria of
 #' machine learning methods, since most ML methods do not allow for negative data.
 #'
 #' @param  data.tb       tibble with time series data and metadata
-#' @param  adj_fun       adjustment function to be applied to the data
+#' @param  adj_val       adjustment value to be applied to the data
 #' @return distances.tb  data.table where columns have the reference label and the time series values as distances
 #'
 #' @examples
@@ -21,7 +21,7 @@
 #' distances.tb <- sits_distances(cerrado_2classes)
 #'
 #' @export
-sits_distances <- function(data.tb, adj_fun = sits_adjust()) {
+sits_distances <- function(data.tb, adj_val = 3.0) {
 
     # create a list with the time series transposed from columns to rows
     ts.lst <- data.tb$time_series %>%
@@ -30,8 +30,8 @@ sits_distances <- function(data.tb, adj_fun = sits_adjust()) {
         })
     # bind the lists of time series together
     dist.tb <- data.table::rbindlist(ts.lst)
-    # apply a function to the data
-    dist.tb <- adj_fun(dist.tb)
+    # apply an adjustment to the data
+    dist.tb <- dist.tb + adj_val
     # create a data frame with the first two columns for training
     distances.tb <- data.frame("original_row" = 1:nrow(data.tb), "reference" = data.tb$label)
     # join the two references columns with the data values
@@ -39,31 +39,6 @@ sits_distances <- function(data.tb, adj_fun = sits_adjust()) {
 
     return(distances.tb)
 
-}
-#' @title Function for adjust time series distances used as training sets for machine learning
-#' @name sits_adjust
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function provides the default adjustment of the values of the time series
-#' used to train ML methods. Since most ML methods do not allow for negative data, the default
-#' adjustment is to shift the data by a fixed value. The adjustment value is taken from
-#' the configuration file (config.yml). See \code{\link[sits]{sits_config}} for more details
-#' on how to change the configuration file.
-#' This function should always be used in combination with \code{\link[sits]{sits_distances}}.
-#'
-#' @return adj_fun       Adjustment function to be applied to the data
-#'
-#' @examples
-#' # get one time series
-#' data(cerrado_2classes)
-#' # compute the distance vector for the first time series
-#' distances.tb <- sits_distances(cerrado_2classes[1,], adj_fun = sits_adjust())
-#'
-#' @export
-sits_adjust <- function() {
-    f1 <- function(x) {x + .sits_get_adjustment_shift()}
-    return(f1)
 }
 
 #' @title Sample a percentage of a time series distance matrix

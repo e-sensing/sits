@@ -450,7 +450,7 @@ class.tb <-
                               epochs           = 300,
                               batch_size       = 128,
                               validation_split = 0.2),
-                  adj_fun = function (x) {identity(x)})
+                  adj_val = 0.0)
 sits_plot(class.tb)
 ```
 

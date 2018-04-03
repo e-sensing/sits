@@ -18,7 +18,7 @@
 #'
 #' @param  data.tb          time series with the training samples
 #' @param  ml_method        machine learning method that returns a model for prediction
-#' @param  adj_fun          adjustment function to be applied to the data
+#' @param  adj_val          adjustment value to be applied to the data
 #' @return result           model fitted to input data given by train_method parameter
 #'
 #' @examples
@@ -34,7 +34,7 @@
 #' sits_plot(class.tb)
 #' }
 #' @export
-sits_train <- function(data.tb, ml_method = sits_svm(), adj_fun = sits_adjust()) {
+sits_train <- function(data.tb, ml_method = sits_svm(), adj_val = 3.0) {
 
     # is the input data a valid SITS tibble?
     ensurer::ensure_that(data.tb, "label" %in% names(.),
@@ -44,12 +44,8 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_fun = sits_adjust())
     ensurer::ensure_that(ml_method, class(.) == "function",
                          err_desc = "sits_train: ml_method is not a valid function")
 
-    #is the distance method a function ?
-    ensurer::ensure_that(adj_fun, class(.) == "function",
-                         err_desc = "sits_train: adj_fun is not a valid function")
-
     # compute the distances
-    distances.tb <- sits_distances(data.tb, adj_fun)
+    distances.tb <- sits_distances(data.tb, adj_val)
 
     # compute the training method by the given data
     result <- ml_method(distances.tb)
@@ -91,8 +87,8 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_fun = sits_adjust())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_deeplearning(),
-#'                            adj_fun = function (x) {BBmisc::normalize(x, method = "range")})
+#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_deeplearning(),
+#'                            adj_val = 0.0)
 #' }
 #' @export
 sits_deeplearning <- function(distances.tb     = NULL,
@@ -601,10 +597,10 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(cerrado2classes)
 #' # create a vector of distances
-#' distances <- sits_distances(cerrado2classes, adj_fun  = function(x) {identity(x)})
+#' distances <- sits_distances(cerrado2classes, adj_val  = 0.0)
 #' # obtain a DL model
 #' ml_model = sits_deeplearning(distances.tb)
-#' # classify the point
+#' # run the keras diagnostics
 #' sits_keras_diagnostics()
 #' }
 #' @export

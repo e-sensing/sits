@@ -6,8 +6,8 @@
 \usage{
 sits_classify(data.tb = NULL, train_samples.tb = NULL, ml_model = NULL,
   ml_method = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance =
-  0.001, epsilon = 0.1, cross = 4), adj_fun = sits_adjust(),
-  interval = "12 month", multicores = 1)
+  0.001, epsilon = 0.1, cross = 4), adj_val = 3, interval = "12 month",
+  multicores = 1)
 }
 \arguments{
 \item{data.tb}{tibble with time series metadata and data}
@@ -18,7 +18,7 @@ sits_classify(data.tb = NULL, train_samples.tb = NULL, ml_model = NULL,
 
 \item{ml_method}{machine learning method (see \code{\link[sits]{sits_train}})}
 
-\item{adj_fun}{adjustment function to be applied to the data}
+\item{adj_val}{adjustment value to be applied to the data}
 
 \item{interval}{interval used for classification (in months)}
 

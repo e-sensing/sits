@@ -5,7 +5,7 @@
 \title{Classify a set of spatio-temporal raster bricks using machine learning models}
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
-  ml_method = sits_svm(), adj_fun = sits_adjust(), interval = "12 month",
+  ml_method = sits_svm(), adj_val = 3, interval = "12 month",
   smoothing = FALSE, lambda = 0.5, differences = 3, memsize = 4,
   multicores = 2, verbose = FALSE)
 }
@@ -20,7 +20,7 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
 
 \item{ml_method}{an R machine learning method such as SVM, Random Forest or Deep Learning}
 
-\item{adj_fun}{adjustment function to be applied to the data}
+\item{adj_val}{adjustment value to be applied to the data}
 
 \item{interval}{interval between two sucessive classifications, expressed in months}
 

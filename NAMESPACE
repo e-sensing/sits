@@ -3,7 +3,6 @@
 export("%>%")
 export(sits_TWDTW_classify)
 export(sits_accuracy_area)
-export(sits_adjust)
 export(sits_apply)
 export(sits_bands)
 export(sits_break)

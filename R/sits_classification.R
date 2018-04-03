@@ -27,7 +27,7 @@
 #' @param  train_samples.tb  tibble with samples used for training the classification model
 #' @param  ml_model          pre-built machine learning model (see \code{\link[sits]{sits_train}})
 #' @param  ml_method         machine learning method (see \code{\link[sits]{sits_train}})
-#' @param  adj_fun           adjustment function to be applied to the data
+#' @param  adj_val           adjustment value to be applied to the data
 #' @param  interval          interval used for classification (in months)
 #' @param  multicores        number of threads to process the time series.
 #' @return data.tb           tibble with the predicted labels for each input segment
@@ -60,12 +60,12 @@
 #' }
 #'
 #' @export
-sits_classify <- function(data.tb = NULL,
+sits_classify <- function(data.tb    = NULL,
                           train_samples.tb = NULL,
-                          ml_model     = NULL,
-                          ml_method = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance = 0.001, epsilon = 0.1, cross = 4) ,
-                          adj_fun   = sits_adjust(),
-                          interval  = "12 month",
+                          ml_model   = NULL,
+                          ml_method  = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance = 0.001, epsilon = 0.1, cross = 4) ,
+                          adj_val    = 3.0,
+                          interval   = "12 month",
                           multicores = 1) {
 
     .sits_test_tibble(data.tb)
@@ -73,7 +73,7 @@ sits_classify <- function(data.tb = NULL,
 
     # obtain the machine learning model based on the training samples
     if (purrr::is_null(ml_model))
-        ml_model = sits_train(train_samples.tb, ml_method = ml_method, adj_fun = adj_fun)
+        ml_model = sits_train(train_samples.tb, ml_method = ml_method, adj_val = adj_val)
 
     # define the parameters for breaking up a long time series
     class_info.tb <- .sits_class_info(data.tb, train_samples.tb, interval)
@@ -82,7 +82,7 @@ sits_classify <- function(data.tb = NULL,
     ref_dates.lst <- class_info.tb$ref_dates[[1]]
 
     # obtain the distances from the data
-    distances.tb <- sits_distances(data.tb, adj_fun)
+    distances.tb <- sits_distances(data.tb, adj_val)
 
     # create a vector to store the predicted results
     predict.vec <- .sits_classify_distances(distances.tb, class_info.tb, ml_model, multicores)

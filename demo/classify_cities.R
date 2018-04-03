@@ -242,12 +242,12 @@ if (n == 1) {
     method_name <- "svm"
     method <- sits_svm(kernel = "radial", degree = 3, coef0 = 0, cost = 10,
                       tolerance = 0.001, epsilon = 0.1)
-    afun <- sits_adjust()
+    aval <- 3.0
 
 } else if (n == 2) {
     method_name <- "rfor"
     method  <- sits_rfor(ntree = 5000)
-    afun <- sits_adjust()
+    aval <- 0.0
 } else if (n == 3) {
     method_name <- "dl-mlp"
     method <- sits_deeplearning(
@@ -258,7 +258,7 @@ if (n == 1) {
         epochs = 500,
         batch_size = 128,
         validation_split = 0.2)
-    afun <- function(x) {identity(x)}
+    aval <- 0.0
 } else {
     message("invalid value")
     stop()
@@ -280,4 +280,4 @@ multicores <- as.integer(readline(prompt = "Enter number of cores: "))
 result_file <- paste0("./",code,"-class-",name_samples,"-",method_name)
 
 sits_classify_raster(file = result_file, raster.tb, samples.tb,
-                     ml_method = method,  adj_fun = afun, memsize = memsize, multicores = multicores)
+                     ml_method = method,  adj_val = aval, memsize = memsize, multicores = multicores)

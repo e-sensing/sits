@@ -65,7 +65,7 @@ sits_data_toCSV <- function(data.tb, file){
 
     .sits_test_tibble(data.tb)
 
-    distances.tb <- sits_distances(data.tb, adj_fun = function(x) { identity(x)})
+    distances.tb <- sits_distances(data.tb, adj_val = 0.0)
 
     tryCatch({utils::write.csv(distances.tb, file, row.names = FALSE, quote = FALSE)},
              error = function(e){
