@@ -379,6 +379,7 @@ sits_get_robj <- function(raster.tb, i) {
         block_size.lst <- .sits_split_block_size(nrow(dist1.tb), multicores)
 
         # classify a block of data
+        # uses data table to speed up processing
         classify_block <- function(bs) {
             # predict the values for each time interval
             pred_block.vec <- .sits_predict(dist1.tb[bs[1]:bs[2],], ml_model)
