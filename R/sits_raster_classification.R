@@ -317,20 +317,18 @@ sits_get_robj <- function(raster.tb, i) {
             values.mx[values.mx <= minimum_value] <- minimum_value
 
             # values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
-            values2.mx <- scale_data(values.mx, scale_factor, adj_val)
+            values.mx <- scale_data(values.mx, scale_factor, adj_val)
 
             if (smoothing) {
-                rows.lst <- lapply(seq_len(nrow(values2.mx)), function(i) values2.mx[i, ]) %>%
+                rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
                     lapply(whit)
-                values2.mx <- do.call(rbind, rows.lst)
+                values.mx <- do.call(rbind, rows.lst)
             }
-            rm(values.mx)
-            gc()
             if (verbose) {
                 message(paste0("Memory used after scaling data - ", .sits_mem_used(), " GB"))
             }
 
-            return(values2.mx)
+            return(values.mx)
         })
 
     dist.tb <- data.table::as.data.table(do.call(cbind, values.lst))
@@ -377,55 +375,28 @@ sits_get_robj <- function(raster.tb, i) {
         if (verbose)
             message(paste0("Memory used after selecting data subset  - ", .sits_mem_used(), " GB"))
 
+        # estimate the list for breaking a block
+        block_size.lst <- .sits_split_block_size(nrow(dist1.tb), multicores)
+
         # classify a block of data
-        classify_block <- function(block.tb) {
+        # uses data table to speed up processing
+        classify_block <- function(bs) {
             # predict the values for each time interval
-            pred_block.vec <- .sits_predict(block.tb, ml_model)
+            pred_block.vec <- .sits_predict(dist1.tb[bs[1]:bs[2],], ml_model)
             return(pred_block.vec)
         }
 
         # set up multicore processing
-        if (multicores > 1) {
-            # estimate the list for breaking a block
-            block_size.lst <- .sits_split_block_size(nrow(dist1.tb), multicores)
-            # divide the input matrix into blocks for multicore processing
-            blocks.lst <- vector(mode = "list", length = multicores)
-            for (b in 1:length(block_size.lst)) {
-                bs <- block_size.lst[[b]]
-                    # select a chunk of data for each core
-                    block.tb <- dist1.tb[bs[1]:bs[2],]
-                    blocks.lst[[b]] <- block.tb
-            }
-            # memory management
-            if (verbose)
-                message(paste0("Memory used after building chunks  - ", .sits_mem_used(), " GB"))
-            rm(dist1.tb)
-            gc()
-            if (verbose)
-                message(paste0("Memory used before calling parallel processing - ", .sits_mem_used(), " GB"))
-
+        if (multicores > 1)
             # apply parallel processing to the split data and join the results
-            pred.vec <- unlist(parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores))
-
-            # memory management
-            if (verbose)
-                message(paste0("Memory used after calling parallel processing - ", .sits_mem_used(), " GB"))
-            rm(block_size.lst)
-            rm(blocks.lst)
-            gc()
-            if (verbose)
-                message(paste0("Memory used after removing blocks - ", .sits_mem_used(), " GB"))
-        }
-        else {
+            pred.vec <- unlist(parallel::mclapply(block_size.lst, classify_block, mc.cores = multicores))
+        # memory management
+        else
             # estimate the prediction vector
             pred.vec <- classify_block(dist1.tb)
 
-            # memory management
-            rm(dist1.tb)
-            gc()
-            if (verbose)
-                message(paste0("Memory used after classification in one core - ", .sits_mem_used(), " GB"))
-        }
+        if (verbose)
+            message(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
 
         # check the result has the right dimension
         ensurer::ensure_that(pred.vec, length(.) == nrow(dist.tb),
@@ -579,7 +550,7 @@ sits_get_robj <- function(raster.tb, i) {
     rem <- nrows %% ncores
     # c
     # create a list to store the result
-    block_size.lst <- list(length = ncores)
+    block_size.lst <- vector("list", ncores)
     block_size_end = 0
     for (i in 1:(ncores)) {
         block_size_start <- block_size_end + 1
