@@ -133,7 +133,7 @@ sits_classify_raster <- function(file = NULL,
     nblocks <- ceiling(full_data_size/mem_avail)
     lines_read <- ceiling(nrows/nblocks)
     if (verbose) {
-        message(paste0("mode is CPU-bound: will read", nblocks, "blocks of ", lines_read, " lines"))
+        message(paste0("mode is CPU-bound: will read ", nblocks, " blocks of ", lines_read, " lines"))
         message(paste0("mode is CPU-bound: will use ", multicores, " cores"))
     }
     # recover the input data by blocks for efficiency
@@ -313,7 +313,7 @@ sits_get_robj <- function(raster.tb, i) {
             scale_factor  <- scale_factors[band]
 
             if (verbose) {
-                message(paste0("Read band ", band, " from rows ", init_row, "to ", (init_row + nrows - 1)))
+                message(paste0("Read band ", band, " from rows ", init_row, " to ", (init_row + nrows - 1)))
                 message(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
             }
 
@@ -382,22 +382,27 @@ sits_get_robj <- function(raster.tb, i) {
         # estimate the list for breaking a block
         block_size.lst <- .sits_split_block_size(nrow(dist1.tb), multicores)
 
+
         # classify a block of data
         # uses data table to speed up processing
-        classify_block <- function(bs) {
-            # predict the values for each time interval
-            pred_block.vec <- .sits_predict(dist1.tb[bs[1]:bs[2],], ml_model)
+        classify_block <- function(dist) {
+            pred_block.vec <- ml_model(dist)
             return(pred_block.vec)
         }
 
         # set up multicore processing
-        if (multicores > 1)
+        if (multicores > 1) {
+            dist_share <- list()
+            i <- 1
+            block_size.lst %>%
+               purrr::map(function(bs) {dist_share[[i]] <<- dist1.tb[bs[1]:bs[2],] })
+
             # apply parallel processing to the split data and join the results
-            pred.vec <- unlist(parallel::mclapply(block_size.lst, classify_block, mc.cores = multicores))
-        # memory management
+            pred.vec <- unlist(parallel::mclapply(dist_share, classify_block, mc.cores = multicores))
+        }
         else
-            # estimate the prediction vector
-            pred.vec <- classify_block(block_size.lst[[1]])
+            # estimate the prediction vector using one core only
+            pred.vec <- ml_model(dist1.tb)
 
         if (verbose)
             message(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
