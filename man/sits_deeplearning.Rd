@@ -7,7 +7,7 @@
 sits_deeplearning(distances.tb = NULL, units = c(512, 512, 512),
   activation = "elu", dropout_rates = c(0.4, 0.4, 0.3),
   optimizer = keras::optimizer_adam(lr = 0.001), epochs = 500,
-  batch_size = 128, validation_split = 0.2)
+  batch_size = 128, validation_split = 0.2, binary_classification = FALSE)
 }
 \arguments{
 \item{distances.tb}{data.table object with a set of distance measures for each training sample}
@@ -31,6 +31,9 @@ The model will set apart this fraction of the training data, will not train on i
 and will evaluate the loss and any model metrics on this data at the end of each epoch.
 The validation data is selected from the last samples in the x and y data provided,
 before shuffling.}
+
+\item{binary_classification}{a lenght-one logical indicating if this is a binary classification. If it is so,
+the number of unique labels in the training data must be two as well.}
 }
 \value{
 result           either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
