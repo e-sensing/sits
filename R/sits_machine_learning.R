@@ -79,6 +79,8 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_val = 3.0) {
 #'                          and will evaluate the loss and any model metrics on this data at the end of each epoch.
 #'                          The validation data is selected from the last samples in the x and y data provided,
 #'                          before shuffling.
+#' @param binary_classification a lenght-one logical indicating if this is a binary classification. If it is so,
+#'                          the number of unique labels in the training data must be two as well.
 #' @return result           either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @examples
 #' \donttest{
@@ -98,7 +100,8 @@ sits_deeplearning <- function(distances.tb     = NULL,
                               optimizer        = keras::optimizer_adam(lr = 0.001),
                               epochs           = 500,
                               batch_size       = 128,
-                              validation_split = 0.2)
+                              validation_split = 0.2,
+                              binary_classification = FALSE)
 {
     # library(keras)
 
@@ -138,15 +141,11 @@ sits_deeplearning <- function(distances.tb     = NULL,
         train.x <- data.matrix(train_data.tb[, -(1:2)])
         train.y <- unname(int_labels[as.vector(train_data.tb[, 2])]) - 1
 
-        # keras requires categorical data to be put in a matrix
-        train.y <- keras::to_categorical(train.y, n_labels)
 
         # create the test data for keras
         test.x <- data.matrix(test_data.tb[, -(1:2)])
         test.y <- unname(int_labels[as.vector(test_data.tb[, 2])]) - 1
 
-        # keras requires categorical data to be put in a matrix
-        test.y <- keras::to_categorical(test.y, n_labels)
 
         # set the activation vector
         act_vec <- vector()
@@ -170,13 +169,22 @@ sits_deeplearning <- function(distances.tb     = NULL,
             output_tensor <- keras::layer_batch_normalization(output_tensor)
         }
         # create the final tensor
-        output_tensor <- keras::layer_dense(output_tensor, units = n_labels, activation = "softmax")
+        model_loss <- ""
+        if (binary_classification && n_labels == 2){
+            output_tensor <- keras::layer_dense(output_tensor, units = 1, activation = "sigmoid")
+            model_loss <- "binary_crossentropy"
+        }else{
+            output_tensor <- keras::layer_dense(output_tensor, units = n_labels, activation = "softmax")
+            model_loss <- "categorical_crossentropy"
+            # keras requires categorical data to be put in a matrix
+            train.y <- keras::to_categorical(train.y, n_labels)
+            test.y <- keras::to_categorical(test.y, n_labels)
+        }
         # create the model
         model.keras <- keras::keras_model(input_tensor, output_tensor)
-
         # compile the model
         model.keras %>% keras::compile(
-            loss = "categorical_crossentropy",
+            loss = model_loss,
             optimizer = optimizer,
             metrics = c("accuracy")
         )
@@ -209,7 +217,6 @@ sits_deeplearning <- function(distances.tb     = NULL,
     result <- .sits_factory_function(distances.tb, result_fun)
     return(result)
 }
-
 #' @title Train a SITS classification model with a gradient boosting machine
 #' @name sits_gbm
 #'
