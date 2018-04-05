@@ -76,27 +76,6 @@ sits_classify_raster <- function(file = NULL,
     ensurer::ensure_that(file, !purrr::is_null(.),
                          err_desc = "sits-classify-raster: please provide name of output file")
 
-    # estimate the amount of memory required
-    # get the bands
-    bands <-  raster.tb$bands[[1]]
-    nbands <-  length(bands)
-
-    # size of the timeline
-    ntimes <- length(raster.tb$timeline[[1]])
-
-    # estimated memory bloat
-    bloat <- 20
-
-    # calculate the blocksize as
-    # blocksize = (available memory for use) / (20 * bands * times).
-    # For example, for a server with 60 GB available, and an image with
-    # 2 bands and 500 instances of time, the blocksize can be up to 3000000 (3e+06).
-    # The factor of 20 is an estimate of how many bytes are used for each pixel,
-    # since R stores everything in double precision and makes copies of data.
-
-    roughsize <- (memsize*1e+09)/(as.numeric(nbands) * as.numeric(ntimes) * as.numeric(bloat))
-    blocksize <- as.integer(trunc(roughsize/10000)*10000)
-
     # apply the smoothing function, if required
     if (smoothing) {
         samples.tb <- sits_whittaker(samples.tb, lambda = lambda, bands_suffix = "")
@@ -112,6 +91,12 @@ sits_classify_raster <- function(file = NULL,
     # define the classification info parameters
     class_info.tb <- .sits_class_info(raster.tb, samples.tb, interval)
 
+    # prepare the data required for classification
+    time_index.lst <- .sits_get_time_index(class_info.tb)
+
+    # get attribute names
+    attr_names <- .sits_get_attr_names(class_info.tb)
+
     # get the labels of the data
     labels <- sits_labels(samples.tb)$label
 
@@ -126,14 +111,33 @@ sits_classify_raster <- function(file = NULL,
     for (i in 1:length(layers.lst)) {
         layers.lst[[i]] <- raster::writeStart(layers.lst[[i]], layers.lst[[i]]@file@name, overwrite = TRUE)
     }
+
+    # estimate the size of the blocks to be read
+
+    # estimate the full data size
+    # number of bands, rows and cols
+    bands <-  raster.tb$bands[[1]]
+    nbands <-  length(bands)
+    nrows <- raster.tb[1,]$nrows
+    ncols <- raster.tb[1,]$ncols
+    # size of the timeline
+    ntimes <- time_index.lst[[length(time_index.lst)]][2] - time_index.lst[[1]][1] + 1
+    # estimated memory bloat
+    bloat <- 10
+
+    # calculate the size of the data
+    full_data_size <- as.numeric(nrows*ncols*ntimes*nbands*bloat) + .sits_mem_used()
+
+    # memory available using all cores
+    mem_avail <- (memsize*1e+09)/as.numeric(multicores)
+    nblocks <- ceiling(full_data_size/mem_avail)
+    lines_read <- ceiling(nrows/nblocks)
+    if (verbose) {
+        message(paste0("mode is CPU-bound: will read", nblocks, "blocks of ", lines_read, " lines"))
+        message(paste0("mode is CPU-bound: will use ", multicores, " cores"))
+    }
     # recover the input data by blocks for efficiency
-    bs <- .sits_raster_block_size(raster_class.tb[1,], blocksize)
-
-    # prepare the data required for classification
-    time_index.lst <- .sits_get_time_index(class_info.tb)
-
-    # get attribute names
-    attr_names <- .sits_get_attr_names(class_info.tb)
+    bs <- .sits_raster_block_size(nrows, ncols, nblocks)
 
     progress_bar <- NULL
     # create a progress bar
@@ -309,8 +313,8 @@ sits_get_robj <- function(raster.tb, i) {
             scale_factor  <- scale_factors[band]
 
             if (verbose) {
-                message(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
                 message(paste0("Read band ", band, " from rows ", init_row, "to ", (init_row + nrows - 1)))
+                message(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
             }
 
             values.mx[is.na(values.mx)] <- minimum_value
@@ -371,7 +375,7 @@ sits_get_robj <- function(raster.tb, i) {
         # set the names of the columns of dist1.tb
         colnames(dist1.tb) <- attr_names
 
-        # memory management
+        # memory management and multicore adjustment
         if (verbose)
             message(paste0("Memory used after selecting data subset  - ", .sits_mem_used(), " GB"))
 
@@ -393,7 +397,7 @@ sits_get_robj <- function(raster.tb, i) {
         # memory management
         else
             # estimate the prediction vector
-            pred.vec <- classify_block(dist1.tb)
+            pred.vec <- classify_block(block_size.lst[[1]])
 
         if (verbose)
             message(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
@@ -492,42 +496,34 @@ sits_get_robj <- function(raster.tb, i) {
 #' The total pixels of a RasterBrick is given by combining the size of the timeline
 #' with the number of rows and columns of the Brick. For example, a Raster Brick
 #' with 500 rows and 500 columns and 400 time instances will have a total pixel size
-#' of 250 Mb if pixels are 16-bit (about a GigaByte). If there are 4 bands to be processed together, there will be 4 Raster Bricks.
-#' Thus, a block size of 250000 will use a 1 GB just to store the image data.
+#' of 800 Mb if pixels are 64-bit. I
 #'
-#' As a rule of thumb, consider that for a typical MODIS data set such as MOD13Q1 there will be
-#' about 23 time instances per year. In 20 years, this means about 460 instances.
-#' In a small desktop with 8 GBytes, a block size of 250000 will use 1Gb of memory.
-#' This is taken to be the default for small machines.
-#' In a larger server, users should increase the block size for improved processing.
-#'
-#' @param  brick.tb   metadata for a RasterBrick
-#' @param  blocksize  default size of the block (rows * cols)
+#' @param  nrows      number of rows in the image
+#' @param  ncols      number of collumns in the image
+#' @param  nblocks    number of blocks to be read
 #' @return block      list with three attributes: n (number of blocks), rows (list of rows to begin),
 #'                    nrows - number of rows to read at each iteration
 #'
-.sits_raster_block_size <- function(brick.tb, blocksize){
+.sits_raster_block_size <- function(nrows, ncols, nblocks){
 
 
     # number of rows per block
-    block_rows <- min(ceiling(blocksize/brick.tb$ncols), brick.tb$nrows)
-    # number of blocks to be read
-    nblocks <- ceiling(brick.tb$nrows/block_rows)
+    block_rows <- ceiling(nrows/nblocks)
 
-    row <- seq.int(from = 1, to = brick.tb$nrows, by = block_rows)
-    nrows <- rep.int(block_rows, length(row))
-    if (sum(nrows) != brick.tb$nrows )
-        nrows[length(nrows)] <- brick.tb$nrows - sum(nrows[1:(length(nrows) - 1)])
+    row.vec <- seq.int(from = 1, to = nrows, by = block_rows)
+    nrows.vec <- rep.int(block_rows, length(row.vec))
+    if (sum(nrows.vec) != nrows )
+        nrows.vec[length(nrows.vec)] <- nrows - sum(nrows.vec[1:(length(nrows.vec) - 1)])
 
     # find out the size of the block in pixels
-    size <- nrows * brick.tb$ncols
+    size.vec <- nrows.vec * ncols
 
     # elements of the block list
     # n          number of blocks
     # row        starting row from the RasterBrick
     # nrow       Number of rows in the block extracted from the RasterBrick
 
-    block <- list(n = nblocks, row = row, nrows = nrows, size = size)
+    block <- list(n = nblocks, row = row.vec, nrows = nrows.vec, size = size.vec)
 
     return(block)
 
