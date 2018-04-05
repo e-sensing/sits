@@ -123,7 +123,7 @@ sits_classify_raster <- function(file = NULL,
     # size of the timeline
     ntimes <- time_index.lst[[length(time_index.lst)]][2] - time_index.lst[[1]][1] + 1
     # estimated memory bloat
-    bloat <- 10
+    bloat <- 15
 
     # calculate the size of the data
     full_data_size <- as.numeric(nrows*ncols*ntimes*nbands*bloat) + .sits_mem_used()
@@ -382,24 +382,18 @@ sits_get_robj <- function(raster.tb, i) {
         # estimate the list for breaking a block
         block_size.lst <- .sits_split_block_size(nrow(dist1.tb), multicores)
 
-
         # classify a block of data
         # uses data table to speed up processing
-        classify_block <- function(dist) {
-            pred_block.vec <- ml_model(dist)
+        classify_block <- function(bs) {
+            # predict the values for each time interval
+            pred_block.vec <- ml_model(dist1.tb[bs[1]:bs[2],])
             return(pred_block.vec)
         }
 
         # set up multicore processing
-        if (multicores > 1) {
-            dist_share <- list()
-            i <- 1
-            block_size.lst %>%
-               purrr::map(function(bs) {dist_share[[i]] <<- dist1.tb[bs[1]:bs[2],] })
-
+        if (multicores > 1)
             # apply parallel processing to the split data and join the results
-            pred.vec <- unlist(parallel::mclapply(dist_share, classify_block, mc.cores = multicores))
-        }
+            pred.vec <- unlist(parallel::mclapply(block_size.lst, classify_block, mc.cores = multicores))
         else
             # estimate the prediction vector using one core only
             pred.vec <- ml_model(dist1.tb)
@@ -409,8 +403,7 @@ sits_get_robj <- function(raster.tb, i) {
 
         # check the result has the right dimension
         ensurer::ensure_that(pred.vec, length(.) == nrow(dist.tb),
-                             err_desc = "sits_classify_raster - number of classified pixels is different
-                                        from number of input pixels")
+                             err_desc = "not enough memory for classification - please increase memory or reduce number of cores")
 
         # for each layer, write the predicted values
 
