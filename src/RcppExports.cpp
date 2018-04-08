@@ -5,6 +5,19 @@
 
 using namespace Rcpp;
 
+// apply_transition_matrix
+NumericMatrix apply_transition_matrix(NumericMatrix data_before, NumericMatrix data, NumericMatrix transition_matrix);
+RcppExport SEXP _sits_apply_transition_matrix(SEXP data_beforeSEXP, SEXP dataSEXP, SEXP transition_matrixSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type data_before(data_beforeSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type transition_matrix(transition_matrixSEXP);
+    rcpp_result_gen = Rcpp::wrap(apply_transition_matrix(data_before, data, transition_matrix));
+    return rcpp_result_gen;
+END_RCPP
+}
 // preprocess_data
 NumericMatrix preprocess_data(NumericMatrix data, const int& minimum_value, const double& scale_factor);
 RcppExport SEXP _sits_preprocess_data(SEXP dataSEXP, SEXP minimum_valueSEXP, SEXP scale_factorSEXP) {
@@ -33,6 +46,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
     {"_sits_preprocess_data", (DL_FUNC) &_sits_preprocess_data, 3},
     {"_sits_scale_data", (DL_FUNC) &_sits_scale_data, 3},
     {NULL, NULL, 0}

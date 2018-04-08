@@ -1,3 +1,45 @@
+#' @title Get a raster object from a raster classified coverage
+#' @name sits_get_robj
+#' @description This function retrieves one or more raster layer objects stored in a raster coverage.
+#'              It should be used to ensure that the raster objects are returned correctly.
+#'
+#' @param raster.tb  raster coverage (classified)
+#' @param i          i-th element of the list to retrieve
+#' @return r_obj     a raster layer with classification
+#'
+#' @examples
+#' \donttest{
+#' # Define a raster Brick and retrieve the associated object
+#' # define the file that has the raster brick
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#' # define the timeline
+#' data(timeline_modis_392)
+#' # create a raster metadata file based on the information about the files
+#' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
+#'                             timeline = timeline_modis_392, bands = c("ndvi"))
+#'
+#' # plot the first raster object with a selected color pallete
+#' # get the first classified object
+#' r.obj <- sits_get_robj(raster_class.tb,1)
+#'
+#' # make a title, define the colors and the labels)
+#' title <- paste0("Classified image of part of SINOP-MT - 2000/2001")
+#' colors <- c("#65AF72", "#d4d6ed", "#006400","#add8e6","#a0522d",
+#'             "#a52a2a","#d2b48c", "#cd853f", "#ff8c00")
+#' labels <- sits_labels(samples_MT_ndvi)$label
+#'
+#' sits_plot_raster(r.obj, title, labels, colors)
+#' }
+#'
+#' @export
+#
+sits_get_robj <- function(raster.tb, i) {
+
+    ensurer::ensure_that(i, (.) <= nrow(raster.tb),
+                         err_desc = "sits_get_raster: index of raster object cannot be retrieved")
+
+    return(raster.tb[i,]$r_objs[[1]])
+}
 #' @title Create a set of RasterLayer objects to store time series classification results
 #' @name .sits_create_classified_raster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -194,30 +236,63 @@
     return(coverage.tb)
 }
 
-#' @title Define a filename associated to one classified raster layer
-#' @name .sits_raster_filename
+#' @title Find the time index of the blocks to be extracted for classification
+#' @name .sits_get_time_index
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description    Creates a filename for a raster layer with associated temporal information,
-#'                 given a basic filename
+#' @description Obtains the indexes of the blocks to be extract for each time interval
+#' associated with classification
 #'
-#' @param file          original file name (without temporal information)
-#' @param start_date    starting date of the time series classification
-#' @param end_date      end date of the time series classification
-#' @return file_name    name of the classification file for the required interval
+#' @param class_info.tb tibble with information required for classification
+#' @return time_index   list with indexes of the input data set associated to each time interval
+#'                      used for classification
 #'
-.sits_raster_filename <- function(file, start_date, end_date){
+.sits_get_time_index <- function(class_info.tb) {
+    # find the subsets of the input data
+    dates_index.lst <- class_info.tb$dates_index[[1]]
 
+    #retrieve the timeline of the data
+    timeline <- class_info.tb$timeline[[1]]
 
-    file_base <- tools::file_path_sans_ext(file)
-    y1 <- lubridate::year(start_date)
-    m1 <- lubridate::month(start_date)
-    y2 <- lubridate::year(end_date)
-    m2 <- lubridate::month(end_date)
+    # retrieve the bands
+    bands <- class_info.tb$bands[[1]]
 
-    file_name <- paste0(file_base,"_",y1,"_",m1,"_",y2,"_",m2,".tif")
+    #retrieve the time index
+    time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
 
-    return(file_name)
+    return(time_index.lst)
+
+}
+#' @title Obtain the names of the columns of the matrix to be classified
+#' @name .sits_get_attr_names
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Obtains the names of the columns of the matrix to be classified
+#'
+#' @param class_info.tb    tibble with information required for classification
+#' @return attr_names      vector with the names of the columns with the matrix to be classified
+#'
+.sits_get_attr_names <- function(class_info.tb){
+
+    # get information about the bands
+    bands <- class_info.tb$bands[[1]]
+
+    # find the subsets of the input data
+    dates_index.lst <- class_info.tb$dates_index[[1]]
+
+    # find the number of the samples
+    nsamples <- dates_index.lst[[1]][2] - dates_index.lst[[1]][1] + 1
+
+    # define the column names
+    attr_names.lst <- bands %>%
+        purrr::map(function(b){
+            attr_names_b <- c(paste(c(rep(b, nsamples)), as.character(c(1:nsamples)), sep = ""))
+            return(attr_names_b)
+        })
+    attr_names <- unlist(attr_names.lst)
+    attr_names <- c("original_row", "reference", attr_names)
+
+    return(attr_names)
 }
 #' @title Try a best guess for the type of sensor/satellite
 #' @name .sits_guess_satellite
@@ -249,4 +324,102 @@
     }
 
     return(satellite)
+}
+#' @title Define a reasonable block size to process a RasterBrick
+#' @name .sits_raster_block_size
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Defines the size of the block of a Raster Brick to be read into memory.
+#' The total pixels of a RasterBrick is given by combining the size of the timeline
+#' with the number of rows and columns of the Brick. For example, a Raster Brick
+#' with 500 rows and 500 columns and 400 time instances will have a total pixel size
+#' of 800 Mb if pixels are 64-bit. I
+#'
+#' @param  nrows      number of rows in the image
+#' @param  ncols      number of collumns in the image
+#' @param  nblocks    number of blocks to be read
+#' @return block      list with three attributes: n (number of blocks), rows (list of rows to begin),
+#'                    nrows - number of rows to read at each iteration
+#'
+.sits_raster_block_size <- function(nrows, ncols, nblocks){
+
+
+    # number of rows per block
+    block_rows <- ceiling(nrows/nblocks)
+
+    row.vec <- seq.int(from = 1, to = nrows, by = block_rows)
+    nrows.vec <- rep.int(block_rows, length(row.vec))
+    if (sum(nrows.vec) != nrows )
+        nrows.vec[length(nrows.vec)] <- nrows - sum(nrows.vec[1:(length(nrows.vec) - 1)])
+
+    # find out the size of the block in pixels
+    size.vec <- nrows.vec * ncols
+
+    # elements of the block list
+    # n          number of blocks
+    # row        starting row from the RasterBrick
+    # nrow       Number of rows in the block extracted from the RasterBrick
+
+    block <- list(n = nblocks, row = row.vec, nrows = nrows.vec, size = size.vec)
+
+    return(block)
+
+}
+#' @title Define a filename associated to one classified raster layer
+#' @name .sits_raster_filename
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description    Creates a filename for a raster layer with associated temporal information,
+#'                 given a basic filename
+#'
+#' @param file          original file name (without temporal information)
+#' @param start_date    starting date of the time series classification
+#' @param end_date      end date of the time series classification
+#' @return file_name    name of the classification file for the required interval
+#'
+.sits_raster_filename <- function(file, start_date, end_date){
+
+
+    file_base <- tools::file_path_sans_ext(file)
+    y1 <- lubridate::year(start_date)
+    m1 <- lubridate::month(start_date)
+    y2 <- lubridate::year(end_date)
+    m2 <- lubridate::month(end_date)
+
+    file_name <- paste0(file_base,"_",y1,"_",m1,"_",y2,"_",m2,".tif")
+
+    return(file_name)
+}
+#' @title Define the split of the data blocks for multicore processing
+#' @name .sits_split_block_size
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description this functions defines the rows of the input data that will be
+#' split to fit to be divided between the different cores
+#'
+#' @param init_row         initial row of the data to be read
+#' @param nrows            number of rows in the input data table
+#' @param ncores           number of cores for processing
+#' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
+#'
+.sits_split_block_size <- function(init_row, nrows, ncores){
+
+    # find the number of rows per core
+    step <- ceiling(nrows/ncores)
+
+    # create a vector with the initial rows per block
+    blocks <- seq(from = init_row, to = nrows, by = step)
+
+    # create a list to store the result
+    block_size.lst <- vector("list", ncores)
+
+    # fill the list with the initial and final row per block
+    for (i in 1:length(blocks)) {
+        block_size_start <- blocks[i]
+        block_size_end   <- block_size_start + step - 1
+        if (i == ncores )
+            block_size_end <- nrows
+        block_size.lst[[i]] <- c(block_size_start, block_size_end)
+    }
+    return(block_size.lst)
 }
