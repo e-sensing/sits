@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_raster_classification.R
 \name{sits_classify_raster}
 \alias{sits_classify_raster}
-\title{Classify a set of spatio-temporal raster bricks using machine learning models}
+\title{Classify a set of spatio-temporal raster bricks using multicore machines}
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
   ml_method = sits_svm(), adj_val = 3, interval = "12 month",
@@ -69,7 +69,7 @@ raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
 
 # classify the raster file
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-   ml_method = sits_svm(), smoothing = TRUE, memsize = 1, multicores = 1)
+   ml_method = sits_svm(), smoothing = TRUE, memsize = 2, multicores = 2)
 }
 
 }

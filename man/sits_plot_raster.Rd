@@ -4,14 +4,12 @@
 \alias{sits_plot_raster}
 \title{Plot a raster classified images}
 \usage{
-sits_plot_raster(r, title, labels, colors)
+sits_plot_raster(raster_class.tb, title, colors = NULL)
 }
 \arguments{
-\item{r}{a raster layer object with classification}
+\item{raster_class.tb}{a tibble with the metadata for a classified raster object}
 
 \item{title}{string}
-
-\item{labels}{names of the classes}
 
 \item{colors}{color pallete}
 }

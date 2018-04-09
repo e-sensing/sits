@@ -1,5 +1,5 @@
 #' @title Get a raster object from a raster classified coverage
-#' @name sits_get_robj
+#' @name .sits_get_robj
 #' @description This function retrieves one or more raster layer objects stored in a raster coverage.
 #'              It should be used to ensure that the raster objects are returned correctly.
 #'
@@ -7,33 +7,8 @@
 #' @param i          i-th element of the list to retrieve
 #' @return r_obj     a raster layer with classification
 #'
-#' @examples
-#' \donttest{
-#' # Define a raster Brick and retrieve the associated object
-#' # define the file that has the raster brick
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-#' # define the timeline
-#' data(timeline_modis_392)
-#' # create a raster metadata file based on the information about the files
-#' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-#'                             timeline = timeline_modis_392, bands = c("ndvi"))
-#'
-#' # plot the first raster object with a selected color pallete
-#' # get the first classified object
-#' r.obj <- sits_get_robj(raster_class.tb,1)
-#'
-#' # make a title, define the colors and the labels)
-#' title <- paste0("Classified image of part of SINOP-MT - 2000/2001")
-#' colors <- c("#65AF72", "#d4d6ed", "#006400","#add8e6","#a0522d",
-#'             "#a52a2a","#d2b48c", "#cd853f", "#ff8c00")
-#' labels <- sits_labels(samples_MT_ndvi)$label
-#'
-#' sits_plot_raster(r.obj, title, labels, colors)
-#' }
-#'
-#' @export
 #
-sits_get_robj <- function(raster.tb, i) {
+.sits_get_robj <- function(raster.tb, i) {
 
     ensurer::ensure_that(i, (.) <= nrow(raster.tb),
                          err_desc = "sits_get_raster: index of raster object cannot be retrieved")
@@ -75,6 +50,10 @@ sits_get_robj <- function(raster.tb, i) {
     missing_values <- c(-9999)
     minimum_values <- c(0.0)
 
+    # there is one band only
+    bands   <-  c("class")
+    # labels come from samples.tb
+    labels <- sits_labels(samples.tb)$label
 
     # loop through the list of dates and create list of raster layers to be created
     layer.lst <- subset_dates.lst %>%
@@ -89,8 +68,6 @@ sits_get_robj <- function(raster.tb, i) {
             end_date   <- date_pair[2]
             timeline   <- c(start_date, end_date)
 
-            band   <-  "class"
-
             # define the filename for the classified image
             filename <- .sits_raster_filename(file, start_date, end_date)
             r_out@file@name <- filename
@@ -103,7 +80,8 @@ sits_get_robj <- function(raster.tb, i) {
                                                         service        = "RASTER",
                                                         name           = name,
                                                         timeline       = timeline,
-                                                        bands          = list(band),
+                                                        bands          = bands,
+                                                        labels         = labels,
                                                         scale_factors  = scale_factors,
                                                         missing_values = missing_values,
                                                         minimum_values = minimum_values,
@@ -127,6 +105,7 @@ sits_get_robj <- function(raster.tb, i) {
 #' @param name              name of the coverage
 #' @param timeline          vector - coverage timeline
 #' @param bands             vector - names of bands
+#' @param labels            vector - labels for classified image
 #' @param scale_factors     vector - scale factors
 #' @param missing_values    vector - missing values
 #' @param minimum_values    vector - minimum values
@@ -137,6 +116,7 @@ sits_get_robj <- function(raster.tb, i) {
                                          name,
                                          timeline,
                                          bands,
+                                         labels = NULL,
                                          scale_factors,
                                          missing_values,
                                          minimum_values,
@@ -179,6 +159,9 @@ sits_get_robj <- function(raster.tb, i) {
     if (purrr::is_null(timeline))
         timeline <- .sits_get_timeline("RASTER", "MOD13Q1")
 
+    if (purrr::is_null(labels))
+        labels <- c("Unclassified")
+
     # if scale factors are not provided, try a best guess
     if (purrr::is_null(scale_factors)) {
         message("Scale factors not provided - will use default values: please check they are valid")
@@ -216,6 +199,7 @@ sits_get_robj <- function(raster.tb, i) {
                                   name           = name,
                                   service        = service,
                                   bands          = list(bands),
+                                  labels         = list(labels),
                                   scale_factors  = list(scale_factors),
                                   missing_values = list(missing_values),
                                   minimum_values = list(minimum_values),
@@ -389,6 +373,35 @@ sits_get_robj <- function(raster.tb, i) {
     file_name <- paste0(file_base,"_",y1,"_",m1,"_",y2,"_",m2,".tif")
 
     return(file_name)
+}
+#' @title Define the split of the data blocks for multicore processing
+#' @name .sits_split_block
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description this functions defines the rows of the input data table that will be
+#' split to fit to be divided between the different cores
+#'
+#' @param nrows            number of rows in the input data table
+#' @param ncores           number of cores for processing
+#' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
+#'
+.sits_split_block <- function(nrows, ncores){
+
+    # find the remainder and quotient
+    quo <- nrows %/% ncores
+    rem <- nrows %% ncores
+    # c
+    # create a list to store the result
+    block_size.lst <- vector("list", ncores)
+    block_size_end = 0
+    for (i in 1:(ncores)) {
+        block_size_start <- block_size_end + 1
+        block_size_end   <- block_size_start + quo - 1
+        if (i == ncores )
+            block_size_end <- block_size_end + rem
+        block_size.lst[[i]] <- c(block_size_start, block_size_end)
+    }
+    return(block_size.lst)
 }
 #' @title Define the split of the data blocks for multicore processing
 #' @name .sits_split_block_size

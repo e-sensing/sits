@@ -427,15 +427,15 @@ sits_plot_dendrogram <- function(data.tb,
 #' @description plots a raster using ggplot. This function is used
 #' for showing the same lat/long location in a series of time steps.
 #'
-#' @param r           a raster layer object with classification
+#' @param raster_class.tb   a tibble with the metadata for a classified raster object
 #' @param title       string
-#' @param labels      names of the classes
 #' @param colors      color pallete
 #' @export
 #'
-sits_plot_raster <- function(r, title, labels, colors) {
+sits_plot_raster <- function(raster_class.tb, title, colors = NULL) {
 
-
+    # get the raster object
+    r <- raster_class.tb[1,]$r_objs[[1]]
     # convert from raster to points
     map.p <- raster::rasterToPoints(r)
     # create a data frame
@@ -443,10 +443,21 @@ sits_plot_raster <- function(r, title, labels, colors) {
     # define the column names for the data frame
     colnames(df) <- c("x", "y", "class")
 
+    # get the labels
+    labels <- raster_class.tb[1,]$labels[[1]]
+
     nclasses <- length(labels)
-    names(colors) <- as.character(c(1:nclasses))
     # create a mapping from classes to labels
     names(labels) = as.character(c(1:nclasses))
+
+    # if colors are not specified, get them from the configuration file
+    if (purrr::is_null(colors)) {
+        colors <- vector(length = nclasses)
+        for (i in 1:nclasses)
+            colors[i] <- .sits_get_color(labels[i])
+    }
+    # set the names of the color vector
+    names(colors) <- as.character(c(1:nclasses))
 
     # plot the data with ggplot
     g <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +

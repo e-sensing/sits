@@ -111,7 +111,6 @@ Collate:
     'sits_pipe.R'
     'sits_plot.R'
     'sits_raster_classification.R'
-    'sits_raster_classification_multicores.R'
     'sits_raster_coverage.R'
     'sits_raster_time_series.R'
     'sits_services.R'

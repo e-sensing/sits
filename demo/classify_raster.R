@@ -30,13 +30,7 @@ raster_class.tb <- sits_classify_raster(file = "./sinop-class", raster.tb, sampl
                      ml_method = sits_svm(cost = 10, kernel = "radial", tolerance = 0.001, epsilon = 0.1),
                      smoothing = FALSE, verbose = FALSE, memsize = 4, multicores = 2)
 
-# prepare data for plotting
-colors <- c("#65AF72", "#d4d6ed", "#006400","#add8e6","#a0522d", "#a52a2a","#d2b48c", "#cd853f", "#ff8c00")
-labels <- sits_labels(samples.tb)$label
-title  <- "Classified image of SINOP MT - 2000/2001"
-r <- raster_class.tb[1,]$r_objs[[1]]
-
 # plot the first classified image
-sits_plot_raster(r, title, labels, colors)
+sits_plot_raster(raster_class.tb[1,], title = "SINOP MT - 2000/2001")
 
 

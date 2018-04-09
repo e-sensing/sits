@@ -163,12 +163,25 @@ sits_show_config <- function() {
         s <- paste0(service,"_bbox")
 
         names(bbox) %>%
-            purrr::map(function (c) {
+            purrr::map(function(c) {
                 bbox[c] <<- sits.env$config[[s]][[name]][[c]]
             })
     }
 
     return(bbox)
+}
+#' @title Retrieve the color associated to a class
+#' @name sits_get_color
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description retrieve the color associated a class label
+#' @param label  a class label
+.sits_get_color <- function(label) {
+
+    rgb <- as.character(sits.env$config$colors[[label]])
+    if (!(length(rgb) > 0))
+        rgb <- "#737373"
+
+    return(rgb)
 }
 #' @title Retrieve the estimated value of R memory bloat
 #' @name sits_get_memory_bloat
@@ -195,7 +208,7 @@ sits_show_config <- function() {
     minimum_values <- vector()
     mv <- paste0(service,"_minimum_value")
     bands %>%
-        purrr::map(function (b) {
+        purrr::map(function(b) {
             minimum_values[b] <<- as.numeric(sits.env$config[[mv]][[b]])
         })
 

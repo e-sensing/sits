@@ -24,7 +24,7 @@ testthat::test_that("Working with raster coverages", {
                                             ml_method = sits_svm(), memsize = 2, multicores = 1)
 
     testthat::expect_true(all(file.exists(unlist(raster_class.tb$files))))
-    rc_obj <- sits_get_robj(raster_class.tb, 1)
+    rc_obj <- raster_class.tb[1,]$r_objs[[1]]
     testthat::expect_true(raster::nrow(rc_obj) == raster_class.tb[1,]$nrows)
     testthat::expect_true(all(file.remove(unlist(raster_class.tb$files))))
 

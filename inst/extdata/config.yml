@@ -252,4 +252,31 @@ default:
                         "2017-07-12", "2017-07-28", "2017-08-13", "2017-08-29", "2017-08-14", "2017-09-30", "2017-10-16", "2017-11-01",
                         "2017-11-17", "2017-12-03" ]
 
+    colors:
+        Araguaia :          "#78c679"
+        Beans :             "#8c96c6"
+        Campo_Cerrado :     "#addd8e"
+        Cerradao     :      "#238443"
+        Cerrado :           "#41ab5d"
+        Cerrado_Rupestre :  "#d9f0a3"
+        Corn :              "#fcbba1"
+        Cotton:             "#fb6a4a"
+        Dunas :             "#fff7e6"
+        Fallow_Cotton :     "#fb6a4a"
+        Millet_Cotton :     "#fb6a4a"
+        Forest :            "#006837"
+        Pasture :           "#c6dbef"
+        Soy_Corn :          "#993404"
+        Soy_Cotton :        "#662506"
+        Soy_Fallow :        "#fec44f"
+        Soy_Sorghum:        "#ec7014"
+        Soy_Millet :        "#ec7014"
+        Soy_Sunflower :     "#fe9929"
+        Sugarcane :         "#8c6bb1"
+        Urban_Area :        "#969696"
+        Urban Area :        "#969696"
+        Water      :        "#00008b"
+
+
+
 
