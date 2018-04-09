@@ -540,3 +540,46 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
     }
     return(values.lst)
 }
+
+
+#' @title Normalize the time series in the given sits_tibble
+#' @name sits_normalize
+#' @author Alber Sánchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description this function normalizes the time series using the mean and
+#' standard deviation of all the time series.
+#'
+#' @param data.tb     a tibble in SITS format
+#' @return result.tb  a list of 2: A sits_tibble and a tibble with statistics
+#' @export
+#'
+#' @examples
+#' data(point_MT_6bands)
+#' (sits_tibble_normalized <- sits_normalize(point_MT_6bands)[[1]])
+#' (sits_tibble_stats <- sits_normalize(point_MT_6bands)[[2]])
+sits_normalize <- function(data.tb = NULL){
+    stopifnot(is.null(data.tb) == FALSE)
+
+    # merge all the time series and compute mean & sd
+    rbinded <- dplyr::bind_rows(data.tb$time_series)
+    var_mean <- colMeans(rbinded[,2:ncol(rbinded)], na.rm = T)
+    var_sd <- apply(rbinded[2:length(colnames(rbinded))], MARGIN = 2,
+                    FUN = function(x){sd(x, na.rm = T)})
+
+    # normalize each time series
+    data.tb$time_series <- lapply(data.tb$time_series, FUN = function(x, var_mean, var_sd){
+        res <- x
+        stopifnot(length(var_mean) == length(var_sd))
+        stopifnot(names(var_mean) == names(var_sd))
+        stopifnot(length(var_sd) == ncol(x) - 1)
+        for(cname in names(var_mean)){
+            res[,cname] <- scale(x[,cname], center = var_mean[cname], scale = var_sd[cname])
+        }
+        return(res)
+    }, var_mean = var_mean, var_sd = var_sd)
+
+    stats.tb <- dplyr::bind_cols(stats = c("mean", "sd"),
+                              dplyr::bind_rows(var_mean, var_sd))
+
+    return(list(data.tb, stats.tb))
+}
