@@ -78,7 +78,8 @@ sits_classify_raster <- function(file = NULL,
 
     # apply the smoothing function, if required
     if (smoothing) {
-        samples.tb <- sits_whittaker(samples.tb, lambda = lambda, bands_suffix = "")
+        ensurer::ensure_that(ml_model, !(purrr::is_null(.)),
+                             err_desc = "sits_classify_raster - smoothing requires a pre-trained model")
     }
 
     # set up the ML model

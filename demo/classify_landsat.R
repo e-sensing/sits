@@ -3,9 +3,9 @@
 
 message("Processing of a mixed Landsat 8 - MODIS data set")
 message("Please ensure that you have enough memory available")
-l8m_222068_evi_file <- paste0("/vsicurl/https://www.dropbox.com/s/oy0vyx2pfruqzz4/LC8MOD_222068_2015-08-29_evi.tif?raw=1")
-l8m_222068_ndvi_file <- paste0("/vsicurl/https://www.dropbox.com/s/40hoe5v5hbqcltd/LC8MOD_222068_2015-08-29_ndvi.tif?raw=1")
-l8m_222068_nir_file <- paste0("/vsicurl/https://www.dropbox.com/s/1196riyxlwds8hl/LC8MOD_222068_2015-08-29_nir.tif?raw=1")
+l8m_222068_evi_file <- paste0("/vsicurl/https://www.dropbox.com/s/51d20d1hci55brj/LC8MOD_evi.tif?raw=1")
+l8m_222068_ndvi_file <- paste0("/vsicurl/https://www.dropbox.com/s/wn6q55kvth5r3y3/LC8MOD_ndvi.tif?raw=1")
+l8m_222068_nir_file <- paste0("/vsicurl/https://www.dropbox.com/s/2r4od7s4zlh383r/LC8MOD_nir.tif?raw=1")
 
 files <- c(l8m_222068_ndvi_file, l8m_222068_evi_file, l8m_222068_nir_file)
 
@@ -20,13 +20,13 @@ raster.tb <- sits_coverage(service = "RASTER", name = "L8MOD-222_68_2015-2016",
 
 # retrieve the samples from EMBRAPA (used as training sets for classification)
 
-samples <- paste0("https://www.dropbox.com/s/p1fhzokfwdoum2m/cerrado_13_classes_col6_adj.rda?raw=1")
+samples <- paste0("https://www.dropbox.com/s/w5i40v8u564i0r3/samples_Cerrado_01042018.rda?raw=1")
 
-download.file(samples, destfile = "./cerrado_13classes_col6_adj.rda")
-load(file = "./cerrado_13classes_col6_adj.rda")
+download.file(samples, destfile = "./samples_Cerrado_01042018.rda")
+load(file = "./samples_Cerrado_01042018.rda")
 
 #select the bands for classification
-samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi", "nir"))
+samples.tb <- sits_select(samples_Cerrado_01042018.tb, bands = c("ndvi", "evi", "nir"))
 
 message("Please select memory size avaliable for processing in GB (tipical values 1 - 100)")
 memsize <- as.integer(readline(prompt = "Enter a memsize value: "))
