@@ -18,6 +18,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// normalize_data
+NumericMatrix normalize_data(const NumericMatrix& data, const double& mean, const double& std);
+RcppExport SEXP _sits_normalize_data(SEXP dataSEXP, SEXP meanSEXP, SEXP stdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const double& >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< const double& >::type std(stdSEXP);
+    rcpp_result_gen = Rcpp::wrap(normalize_data(data, mean, std));
+    return rcpp_result_gen;
+END_RCPP
+}
 // preprocess_data
 NumericMatrix preprocess_data(NumericMatrix data, const int& minimum_value, const double& scale_factor);
 RcppExport SEXP _sits_preprocess_data(SEXP dataSEXP, SEXP minimum_valueSEXP, SEXP scale_factorSEXP) {
@@ -47,6 +60,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
+    {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
     {"_sits_preprocess_data", (DL_FUNC) &_sits_preprocess_data, 3},
     {"_sits_scale_data", (DL_FUNC) &_sits_scale_data, 3},
     {NULL, NULL, 0}

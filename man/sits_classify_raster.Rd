@@ -6,8 +6,8 @@
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
   ml_method = sits_svm(), adj_val = 3, interval = "12 month",
-  smoothing = FALSE, lambda = 0.5, differences = 3, memsize = 4,
-  multicores = 2, verbose = FALSE)
+  smoothing = FALSE, normalize = FALSE, lambda = 0.5, differences = 3,
+  memsize = 4, multicores = 2, verbose = FALSE)
 }
 \arguments{
 \item{file}{vector of file names to store the output (one file per classified year)}
@@ -24,7 +24,9 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
 
 \item{interval}{interval between two sucessive classifications, expressed in months}
 
-\item{smoothing}{(boolean) apply a Whittaker smoothing function?}
+\item{smoothing}{(logical) apply a Whittaker smoothing function?}
+
+\item{normalize}{(logical) should the input data be normalized?}
 
 \item{lambda}{degree of smoothing of the Whittaker smoother (default = 0.5)}
 

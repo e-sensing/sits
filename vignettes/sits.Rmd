@@ -434,12 +434,7 @@ The dropout rates have a huge impact on the performance of deep learning classif
 In the following example, we classify the same data set using a simple example of the `deep learning` method, for fast processing: (a) Two layers with 512 neurons each; (b) Using the 'elu' activation function and 'optimizer_adam'; (c) dropout rates of 40% and 30% for the layers. 
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Deep learning classification of a $16$ year time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
-# Retrieve the set of samples (provided by EMBRAPA) from the 
-# Mato Grosso region for train the deep learning model.
-samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi"))
-# get a point to be classified
-point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi"))
-# Classify using Random Forest model
+# Classify using deep learning
 class.tb <- 
     sits_classify(point_ndvi,
                   samples_MT_ndvi,

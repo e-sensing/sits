@@ -98,6 +98,7 @@ Collate:
     'sits_csv.R'
     'sits_dendrogram.R'
     'sits_distances.R'
+    'sits_dt_reference.R'
     'sits_factory.R'
     'sits_filters.R'
     'sits_getdata.R'

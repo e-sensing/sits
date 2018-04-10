@@ -57,7 +57,7 @@ sits_distances <- function(data.tb, adj_val = 3.0) {
 
 
     # compute sampling
-    result.tb <- data.table::data.table()
+    result.tb <- tibble::tibble()
     references <- as.vector(unique(distances.tb$reference))
     references %>%
         purrr::map(function(r){
