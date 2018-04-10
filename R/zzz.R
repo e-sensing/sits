@@ -16,7 +16,7 @@
 sits.env <- new.env()
 
 # Include the following global variables in the SITS package
-utils::globalVariables(c(".", "%>%", "Index", "from", "value", "variable", "cond",
+utils::globalVariables(c(".", "%>%", ":=", ".SD", "Index", "from", "value", "variable", "cond",
                          "med", "qt25", "qt75", "cluster_id", "x", "y",
                          "longitude", "latitude", "label", "coverage", "service",
                          "year", "start_date", "end_date", "time_series",
@@ -24,7 +24,7 @@ utils::globalVariables(c(".", "%>%", "Index", "from", "value", "variable", "cond
                          "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n", "rows.lst", "whit",
                          "blue", "red", "green", "nir", "mir", "swir",
-                         "distance", "predicted", "new_values",
+                         "distance", "predicted", "new_values", "sum_area", "area_vec", "area",
                          "Alig.N", "matches", "reference", "cluster", ".data"))
 #' @importFrom dtw symmetric1 symmetric2
 #' @importFrom lubridate %within% %m+%

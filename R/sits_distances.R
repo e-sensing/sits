@@ -33,9 +33,9 @@ sits_distances <- function(data.tb, adj_val = 3.0) {
     # apply an adjustment to the data
     dist.tb <- dist.tb + adj_val
     # create a data frame with the first two columns for training
-    distances.tb <- data.frame("original_row" = 1:nrow(data.tb), "reference" = data.tb$label)
+    distances.tb <- data.table::data.table("original_row" = 1:nrow(data.tb), "reference" = data.tb$label)
     # join the two references columns with the data values
-    distances.tb <- cbind(distances.tb, dist.tb)
+    distances.tb <- data.table::as.data.table(cbind(distances.tb, dist.tb))
 
     return(distances.tb)
 

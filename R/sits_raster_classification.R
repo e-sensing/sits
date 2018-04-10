@@ -21,7 +21,8 @@
 #' @param  ml_method       an R machine learning method such as SVM, Random Forest or Deep Learning
 #' @param  adj_val         adjustment value to be applied to the data
 #' @param  interval        interval between two sucessive classifications, expressed in months
-#' @param  smoothing       (boolean) apply a Whittaker smoothing function?
+#' @param  smoothing       (logical) apply a Whittaker smoothing function?
+#' @param  normalize       (logical) should the input data be normalized?
 #' @param  lambda          degree of smoothing of the Whittaker smoother (default = 0.5)
 #' @param  differences     the order of differences of contiguous elements (default = 3)
 #' @param  memsize         memory available for classification (in GB)
@@ -59,6 +60,7 @@ sits_classify_raster <- function(file = NULL,
                                  adj_val    = 3.0,
                                  interval   = "12 month",
                                  smoothing  = FALSE,
+                                 normalize  = FALSE,
                                  lambda     = 0.5,
                                  differences = 3.0,
                                  memsize    = 4,
@@ -108,12 +110,14 @@ sits_classify_raster <- function(file = NULL,
     # classify the data
     raster_class.tb <- .sits_classify_multicores(raster.tb,
                                              raster_class.tb,
+                                             samples.tb,
                                              time_index.lst,
                                              attr_names,
                                              int_labels,
                                              adj_val,
                                              ml_model,
                                              smoothing,
+                                             normalize,
                                              lambda,
                                              differences,
                                              memsize,
@@ -139,12 +143,14 @@ sits_classify_raster <- function(file = NULL,
 #'
 #' @param  raster.tb       tibble with metadata for a RasterBrick
 #' @param  raster_class.tb raster layer objects to be written
+#' @param  samples.tb      tibble with samples used for training the classification model
 #' @param  time_index.lst  a list with the indexes to extract data for each time interval
 #' @param  attr_names      vector with the attribute names
 #' @param  int_labels      conversion vector from the labels to integer values
 #' @param  adj_val         adjustment value to be applied to the data
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
-#' @param  smoothing       (boolean) apply whittaker smoothing?
+#' @param  smoothing       (logical) apply whittaker smoothing?
+#' @param  normalize       (logical) should the input data be normalized?
 #' @param  lambda          smoothing factor (default = 1.0)
 #' @param  differences     the order of differences of contiguous elements (default = 3)
 #' @param  memsize         memory available for classification (in GB)
@@ -154,12 +160,14 @@ sits_classify_raster <- function(file = NULL,
 #'
 .sits_classify_multicores <-  function(raster.tb,
                                        raster_class.tb,
+                                       samples.tb,
                                        time_index.lst,
                                        attr_names,
                                        int_labels,
                                        adj_val,
                                        ml_model,
                                        smoothing,
+                                       normalize,
                                        lambda,
                                        differences,
                                        memsize,
@@ -217,6 +225,10 @@ sits_classify_raster <- function(file = NULL,
     # divide the input data in blocks
     bs <- .sits_raster_block_size(nrows, ncols, nblocks)
 
+    # if normalization is required, calculate normalization param
+    if (normalize)
+        stats.tb <- .sits_normalization_param(samples.tb)
+
     # function to process blocks
     process_block <- function(block_info) {
 
@@ -250,6 +262,12 @@ sits_classify_raster <- function(file = NULL,
                 # values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
                 # scale the data set
                 values.mx <- scale_data(values.mx, scale_factor, adj_val)
+
+                if (normalize) {
+                    mean <- stats.tb[1, band]
+                    std  <- stats.tb[2, band]
+                    values.mx <- normalize_data (values.mx, mean, std)
+                }
 
                 if (smoothing) {
                     rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
