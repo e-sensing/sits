@@ -540,3 +540,174 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
     }
     return(values.lst)
 }
+
+
+#' @title Normalize the time series in the given sits_tibble
+#' @name sits_normalize
+#' @author Alber Sánchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description this function normalizes the time series using the mean and
+#' standard deviation of all the time series.
+#'
+#' @param data.tb     a tibble in SITS format
+#' @return result.tb  a list of 2: A sits_tibble and a tibble with statistics
+#' @export
+#'
+#' @examples
+#' data(point_MT_6bands)
+#' (sits_tibble_normalized <- sits_normalize(point_MT_6bands)[[1]])
+#' (sits_tibble_stats <- sits_normalize(point_MT_6bands)[[2]])
+sits_normalize <- function(data.tb = NULL){
+    stopifnot(is.null(data.tb) == FALSE)
+
+    # merge all the time series and compute mean & sd
+    rbinded <- dplyr::bind_rows(data.tb$time_series)
+    var_mean <- colMeans(rbinded[,2:ncol(rbinded)], na.rm = T)
+    var_sd <- apply(rbinded[2:length(colnames(rbinded))], MARGIN = 2,
+                    FUN = function(x){sd(x, na.rm = T)})
+
+    # normalize each time series
+    data.tb$time_series <- lapply(data.tb$time_series, FUN = function(x, var_mean, var_sd){
+        res <- x
+        stopifnot(length(var_mean) == length(var_sd))
+        stopifnot(names(var_mean) == names(var_sd))
+        stopifnot(length(var_sd) == ncol(x) - 1)
+        for(cname in names(var_mean)){
+            res[,cname] <- scale(x[,cname], center = var_mean[cname], scale = var_sd[cname])
+        }
+        return(res)
+    }, var_mean = var_mean, var_sd = var_sd)
+
+    stats.tb <- dplyr::bind_cols(stats = c("mean", "sd"),
+                                 dplyr::bind_rows(var_mean, var_sd))
+
+    return(list(data.tb, stats.tb))
+}
+
+
+
+
+
+
+#' @title Get ramdom point samples from a polygon
+#' @name sits_normalize
+#' @author Alber Sánchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description this function normalizes the time series using the mean and
+#' standard deviation of all the time series.
+#'
+#' @param shp.sf        a polygon sf object.
+#' @param label_field   a length-one character. The name of the label field in shp.sf
+#' @param nsamples      a length-one numeric. The expected number of samples per class. If NULL, it returns the centroids.
+#' @param border_offset a length-one numeric. An offset distance to avoid sapling near the borders
+#' @param proj_crs      a length-one character. The name of an intermediary CRS used when the shp.sf is given in longitude and latitude.
+#' @param min_area      a length-one numeric. The minimum area of a polygon included during the sampling.
+#' @return shp_samples  a sits_tibble
+#' @export
+sits_sample_shp <- function(shp.sf,
+                            label_field,
+                            nsamples = NULL,
+                            border_offset = NULL,
+                            proj_crs = 29101,
+                            min_area = NULL
+){
+    #---- util ----
+    # cast SF to tibble
+    .sf2tb <- function(x){
+        x$geometry <- NULL
+        return(dplyr::as_tibble(x))
+    }
+    #---- validation ----
+    stopifnot("sfc_POLYGON" %in% attr(shp.sf$geometry, "class"))                # The given sf object is not polygon
+    if(sum(sf::st_is_valid(shp.sf)) != nrow(shp.sf)){
+        warning("Invalid geometries found")
+    }
+    if(sum(sf::st_is_simple(shp.sf))!= nrow(shp.sf)){
+        warning("Non-simple geometries found")
+    }
+    #---- start here ----
+    shp.sf["label"] <- as.vector(unlist(.sf2tb(shp.sf)[label_field]))           # add a label field
+    use_centroids <- F                                                          # Use polygons centroids instead of random samples.
+    if(is.null(nsamples))
+        use_centroids <- T
+    #--- -pre-format res ----
+    shp.sf$tmpid <- 1:nrow(shp.sf)
+    shp_samples <- .sf2tb(shp.sf)
+    #--- handle area ----
+    if("area" %in% colnames(shp.sf) == F){
+        shp.sf["area"] <- shp.sf %>% sf::st_area()
+    }
+    if(is.null(min_area) == F){
+        shp.sf <- shp.sf %>% dplyr::filter(as.vector(area_vec) > min_area)
+    }
+    #--- either centroids or not ----
+    pts.df <- NULL
+    if(use_centroids){
+        if(sf::st_is_longlat(shp.sf)){
+            # NOTE: Only compute centroids on projected CRSs
+            xy_tb <- shp.sf %>%
+                sf::st_transform(proj_crs) %>%
+                sf::st_centroid() %>%
+                sf::st_transform(sf::st_crs(shp.sf)) %>%
+                sf::st_coordinates() %>%
+                dplyr::as_tibble(stringsAsFactors = F)
+        }else{
+            xy_tb <- shp.sf %>%
+                sf::st_centroid() %>%
+                sf::st_coordinates() %>%
+                dplyr::as_tibble(stringsAsFactors = F)
+        }
+        stopifnot(nrow(xy_tb) == nrow(shp.sf)) # ERROR: Number of centroids  is different of the number of features!!!
+        xy_tb$tmpid <- 1:nrow(shp.sf)
+    }else{
+        #---- stimate number of samples per class & polygon ----
+        shp.df <- .sf2tb(dplyr::select(shp.sf, label, area))                    # cast sf to data.frame
+        # stats
+        shp_stat <- shp.df %>% dplyr::group_by(label) %>%
+            dplyr::summarise(
+                count = n(),
+                sum_area = sum(area, na.rm = T)
+            )
+        if(nsamples < nrow(shp_stat)){warning("Some classes could not be sampled. There are more classes than samples!")}
+        stopifnot(nrow(shp_stat) > 0)
+        samples_per_class <- nsamples / nrow(shp_stat)
+        #---- compute number of samples ----
+        shp.sf <- shp.sf %>%
+            dplyr::left_join(as.data.frame(shp_stat), by = "label") %>%
+            dplyr::mutate(
+                nsamples = round(samples_per_class * area / sum_area, 0)
+            )
+        #---- get the samples ----
+        #xy_mat <- sf::st_sample(prodes, size = nsamples) # FAIL!
+        xy_ls <- lapply(shp.sf$tmpid, function(tmpid, shp.sf, border_offset){
+            xy_mat <- matrix(data = NA, nrow = 0, ncol = 3)
+            g <- shp.sf$geometry[[tmpid]]
+            n <- shp.sf$nsamples[[tmpid]]
+            if(n < 1){return(xy_mat)}
+            if(is.numeric(border_offset)){
+                border_offset <- base::sqrt(border_offset^2) * (-1)
+                g <- sf::st_buffer(g, dist = border_offset)
+            }
+            if(sf::st_is_empty(g)){return(xy_mat)}
+            xy_mat <- g %>% sf::st_sample(size = n) %>% sf::st_coordinates()
+            xy_mat <- cbind(xy_mat, tmpid = rep(tmpid, nrow(xy_mat)))
+            return(xy_mat)
+        }, shp.sf = shp.sf, border_offset = border_offset)
+        xy_tb <- dplyr::as_tibble(do.call(rbind, xy_ls))
+    }
+    #---- join sample points to original data ----
+    xy_tb <- xy_tb %>% dplyr::rename("longitude" = !!names(.[1]),
+                                     "latitude" = !!names(.[2]),
+                                     "tmpid" = !!names(.[3]))
+    shp_samples <- dplyr::right_join(shp_samples, xy_tb, by = "tmpid")
+    #---- format answer as sits_tibble ----
+    shp_samples$start_date <- rep(as.Date("2000/01/01"), nrow(shp_samples))
+    shp_samples$end_date <- rep(as.Date(Sys.time()), nrow(shp_samples))
+    shp_samples$coverage <- NA
+    shp_samples$time_series <- NA
+    shp_samples <- shp_samples[, c("longitude", "latitude", "start_date",
+                                   "end_date", "label", "coverage",
+                                   "time_series")]
+    class(shp_samples) <- class(sits::sits_tibble())
+    return(shp_samples)
+}
