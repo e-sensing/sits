@@ -1,36 +1,31 @@
 devAskNewPage(ask = FALSE)
 
+
+# This demo shows different machine learning methods for clasification of time series
+
 #load the sits library
 library(sits)
 
-#  Download a data set with samples of 13 classes for the Cerrado biome in Brazil
-#  The time series comes from MOD13Q1 collection 6 images with six bands
-#  (ndvi, evi, blue, red, nir, mir)
-#  The tibble has 54,128 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
+#  A dataset containing a tibble with time series samples for the Mato Grosso state in Brasil.
+#  The time series come from MOD13Q1 collection 6 images. The data set has the following classes:
+#  Cerrado(400 samples), Fallow_Cotton (34 samples), Forest (138 samples), Pasture (370 samples),
+#  Soy-Corn (398 samples),  Soy-Cotton (399 samples), Soy_Fallow (88 samples),
+#  Soy_Millet (235 samples), and Soy_Sunflower (53 samples).
+#  The tibble has 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
 #  latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #  end_date (final date of the time series), label (the class label associated to the sample),
 #  coverage (the name of the coverage associated with the data),
 #  time_series (list containing a tibble with the values of the time series).
 
-samples <- paste0("https://www.dropbox.com/s/addv5lxbpjm85jr/cerrado_13classes_modis_col6.rda?raw=1")
+data("samples_MT_9classes")
+# the tibble contains 9 classes of the Cerrado biome in Brazil
+sits_labels(samples_MT_9classes)
 
-download.file(samples, destfile = "./cerrado_13classes_modis_col6.rda")
-load(file = "./cerrado_13classes_modis_col6.rda")
 
-# the loaded file is called "samples.tb"
-print(samples.tb)
-
-# the tibble contains 11,743 time series of 13 classes of the Cerrado biome in Brazil
-sits_labels(samples.tb)
-
-# This demo shows different machine learning methods for clasification of time series
 
 # select NDVI, EVI, NIR and MIR
-samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi", "nir", "mir"))
+samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
 
-#remove samples with labels
-
-samples.tb <- sits_select(samples.tb, !(label %in% c("Soy_Sunflower", "Corn_Cotton")))
 
 results <- list()
 
@@ -43,16 +38,6 @@ conf_svm.mx <- sits_conf_matrix(conf_svm.tb)
 conf_svm.mx$name <- "svm_10"
 
 results[[length(results) + 1]] <- conf_svm.mx
-
-conf_svm2.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
-                                   ml_method   = sits_svm(kernel = "radial", cost = 100))
-
-print("== Confusion Matrix = SVM =======================")
-conf_svm2.mx <- sits_conf_matrix(conf_svm2.tb)
-
-conf_svm2.mx$name <- "svm_100"
-
-results[[length(results) + 1]] <- conf_svm2.mx
 
 # Deep Learning
 
@@ -93,7 +78,7 @@ results[[length(results) + 1]] <- conf_rfor.mx
 conf_lda.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
                                    ml_method   = sits_lda())
 
-print ("== Confusion Matrix = LDA =======================")
+print("== Confusion Matrix = LDA =======================")
 conf_lda.mx <- sits_conf_matrix(conf_lda.tb)
 conf_lda.mx$name <- "lda"
 
@@ -117,7 +102,7 @@ conf_mlr.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
                                    ml_method   = sits_mlr())
 
 # print the accuracy of the Multinomial log-linear
-print ("== Confusion Matrix = MLR =======================")
+print("== Confusion Matrix = MLR =======================")
 conf_mlr.mx <- sits_conf_matrix(conf_mlr.tb)
 conf_mlr.mx$name <- "mlr"
 
@@ -129,7 +114,7 @@ conf_gbm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
                                    ml_method   = sits_gbm())
 
 # print the accuracy of the Gradient Boosting Machine
-print ("== Confusion Matrix = GBM =======================")
+print("== Confusion Matrix = GBM =======================")
 conf_gbm.mx <- sits_conf_matrix(conf_gbm.tb)
 conf_gbm.mx$name <- "gbm"
 
@@ -137,6 +122,6 @@ results[[length(results) + 1]] <- conf_gbm.mx
 
 WD = getwd()
 
-sits_toXLSX(results, file = paste0(WD, "/accuracy_cerrado_2.xlsx"))
+sits_toXLSX(results, file = paste0(WD, "/accuracy_cerrado.xlsx"))
 
 

@@ -23,6 +23,6 @@ sits_tibble <- function() {
                                 coverage    = character(),
                                 time_series = list()
     )
-    class(result.tb) <- append(class(result.tb), "sits")
+    class(result.tb) <- append(class(result.tb), "sits_tibble")
     return(result.tb)
 }

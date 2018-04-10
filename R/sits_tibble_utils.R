@@ -312,7 +312,7 @@
                                 crs            = character(),
                                 file           = character()
     )
-    class(result.tb) <- append(class(result.tb), "sits_tibble_coverage")
+    class(result.tb) <- append(class(result.tb), "sits_coverage")
     return(result.tb)
 }
 #' @title Create an empty tibble to store the results of predictions

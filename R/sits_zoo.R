@@ -43,7 +43,7 @@ sits_fromZOO <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoC
                                label        = label,
                                coverage     = name,
                                time_series  = ts.lst)
-    class(data.tb) <- append(class(data.tb), "sits")
+    class(data.tb) <- append(class(data.tb), "sits_tibble")
 
     return(data.tb)
 }

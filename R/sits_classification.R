@@ -213,7 +213,6 @@ sits_classify <- function(data.tb    = NULL,
 #' @param  samples.tb      samples used for training the classification model
 #' @param  interval        interval between two sucessive classifications
 #' @return class_info.tb   tibble with the classification information
-#'
 .sits_class_info <- function(data.tb, samples.tb, interval){
 
     # find the timeline

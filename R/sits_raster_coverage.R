@@ -255,7 +255,6 @@
 #'
 #' @param class_info.tb    tibble with information required for classification
 #' @return attr_names      vector with the names of the columns with the matrix to be classified
-#'
 .sits_get_attr_names <- function(class_info.tb){
 
     # get information about the bands
@@ -373,35 +372,6 @@
     file_name <- paste0(file_base,"_",y1,"_",m1,"_",y2,"_",m2,".tif")
 
     return(file_name)
-}
-#' @title Define the split of the data blocks for multicore processing
-#' @name .sits_split_block
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description this functions defines the rows of the input data table that will be
-#' split to fit to be divided between the different cores
-#'
-#' @param nrows            number of rows in the input data table
-#' @param ncores           number of cores for processing
-#' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
-#'
-.sits_split_block <- function(nrows, ncores){
-
-    # find the remainder and quotient
-    quo <- nrows %/% ncores
-    rem <- nrows %% ncores
-    # c
-    # create a list to store the result
-    block_size.lst <- vector("list", ncores)
-    block_size_end = 0
-    for (i in 1:(ncores)) {
-        block_size_start <- block_size_end + 1
-        block_size_end   <- block_size_start + quo - 1
-        if (i == ncores )
-            block_size_end <- block_size_end + rem
-        block_size.lst[[i]] <- c(block_size_start, block_size_end)
-    }
-    return(block_size.lst)
 }
 #' @title Define the split of the data blocks for multicore processing
 #' @name .sits_split_block_size

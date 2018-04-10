@@ -4,7 +4,6 @@
 
 # Read ndvi and evi data from dropbox
 # these are the symbolic links for the files at dropbox
-
 ndvi_file <- paste0("/vsicurl/https://www.dropbox.com/s/2ckisfw7s5oyncp/Sinop_ndvi.tif?raw=1")
 evi_file <- paste0("/vsicurl/https://www.dropbox.com/s/xo83mrn3jphkbmg/Sinop_evi.tif?raw=1")
 

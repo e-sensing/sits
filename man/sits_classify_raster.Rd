@@ -69,7 +69,7 @@ raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
 
 # classify the raster file
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-   ml_method = sits_svm(), smoothing = TRUE, memsize = 2, multicores = 2)
+   ml_method = sits_svm(), memsize = 2, multicores = 2)
 }
 
 }
