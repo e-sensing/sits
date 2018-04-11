@@ -4,12 +4,12 @@
 \alias{sits_gbm}
 \title{Train a SITS classification model with a gradient boosting machine}
 \usage{
-sits_gbm(distances.tb = NULL, formula = sits_formula_logref(),
+sits_gbm(distances_DT = NULL, formula = sits_formula_logref(),
   distribution = "multinomial", n.trees = 500, interaction.depth = 2,
   shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...)
 }
 \arguments{
-\item{distances.tb}{a time series with a set of distance measures for each training sample}
+\item{distances_DT}{a data table a set of distance measures for each training sample}
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 

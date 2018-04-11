@@ -178,15 +178,6 @@ sits_classify_raster <- function(file = NULL,
     ensurer::ensure_that(ml_model, !purrr::is_null(.),
                          err_desc = "sits-classify: please provide a machine learning model already trained")
 
-    # define the smoothing function
-    whit <- function(ts) {
-        E <- diag(length(ts))
-        D <- diff(E, lag = 1, differences)
-        B <- E + (lambda * crossprod(D))
-        tsf <- solve(B, ts)
-        return(tsf)
-    }
-
     # get the vector of bricks
     bricks.vec <- raster.tb$files[[1]]
     # get the bands, scale factors and missing values
@@ -251,33 +242,12 @@ sits_classify_raster <- function(file = NULL,
                 # get the associated band
                 i <<- i + 1
                 band <- bands[i]
-                missing_value <- missing_values[band]
-                minimum_value <- minimum_values[band]
-                scale_factor  <- scale_factors[band]
-
-                # correct minimum value
-                values.mx[is.na(values.mx)] <- minimum_value
-                values.mx[values.mx <= minimum_value] <- minimum_value
-
-                # values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
-                # scale the data set
-                values.mx <- scale_data(values.mx, scale_factor, adj_val)
-
-                if (normalize) {
-                    mean <- stats.tb[1, band]
-                    std  <- stats.tb[2, band]
-                    values.mx <- normalize_data (values.mx, mean, std)
-                }
-
-                if (smoothing) {
-                    rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
-                        lapply(whit)
-                    values.mx <- do.call(rbind, rows.lst)
-                }
+                values.mx <- .sits_preprocess_data(values.mx, missing_values[band], minimum_values[band], scale_factors[band], adj_val,
+                                                   smoothing, lambda, differences, normalize, stats.tb)
                 return(values.mx)
             })
         # create a data table with all the values from the bands
-        dist.tb <- data.table::as.data.table(do.call(cbind, values.lst))
+        dist_DT <- data.table::as.data.table(do.call(cbind, values.lst))
 
         # clean memory
         rm(values.lst)
@@ -285,40 +255,13 @@ sits_classify_raster <- function(file = NULL,
 
         # include two new columns in the data table
         size <- block_nrows*ncols
-        two_cols.tb <- data.table::data.table("original_row" = rep(1,size),
-                                              "reference" = rep("NoClass", size))
+        two_cols_DT <- data.table::data.table("original_row" = rep(1,size),
+                                     "reference" = rep("NoClass", size))
+        # create the data table for prediction
+        dist_DT <- data.table::as.data.table(cbind(two_cols_DT, dist_DT))
+        # predict the values of a block
+        pred_vec.lst <- .sits_predict_block(time_index.lst, attr_names, bands, dist_DT, ml_model)
 
-        dist.tb <- data.table::as.data.table(cbind(two_cols.tb, dist.tb))
-
-        pred_vec.lst <- vector("list",  length(time_index.lst))
-
-        # iterate through time intervals
-        for (t in 1:length(time_index.lst)) {
-            idx <- time_index.lst[[t]]
-            # for a given time index, build the data.table to be classified
-            # build the classification matrix extracting the relevant columns
-            selec <- logical(length = ncol(dist.tb))
-            selec[1:2] <- TRUE
-            for (b in 1:length(bands)) {
-                i1 <- idx[(2*b - 1)] + 2
-                i2 <- idx[2*b] + 2
-                selec[i1:i2] <- TRUE
-            }
-            # retrieve the values used for classification
-            dist1.tb <- dist.tb[,selec]
-            # set the names of the columns of dist1.tb
-            colnames(dist1.tb) <- attr_names
-
-            # estimate the prediction vector for the time instance
-            pred_vec.lst[[t]] <- ml_model(dist1.tb)
-
-            # check the result has the right dimension
-            ensurer::ensure_that(pred_vec.lst[[t]], length(.) == nrow(dist.tb),
-                                 err_desc = "not enough memory for classification - please increase memory or reduce number of cores")
-        }
-        # memory management
-        rm(dist1.tb)
-        gc()
         return(pred_vec.lst)
     }
 
@@ -329,7 +272,6 @@ sits_classify_raster <- function(file = NULL,
         if (multicores > 1) {
             # apply parallel processing to the split data and join the results
             pred.lst <- parallel::mclapply(block_size.lst, process_block, mc.cores = multicores)
-
             # create a list to gather the results
             pred_cls <- vector("list", length = length(time_index.lst))
 
@@ -374,6 +316,82 @@ sits_classify_raster <- function(file = NULL,
     return(raster_class.tb)
 }
 
+.sits_preprocess_data <- function(values.mx, missing_value, minimum_value, scale_factor, adj_val,
+                                  smoothing, lambda, differences, normalize, stats.tb){
 
+    # define the smoothing function
+    whit <- function(ts) {
+        E <- diag(length(ts))
+        D <- diff(E, lag = 1, differences)
+        B <- E + (lambda * crossprod(D))
+        tsf <- solve(B, ts)
+        return(tsf)
+    }
 
+    # correct minimum value
+    values.mx[is.na(values.mx)] <- minimum_value
+    values.mx[values.mx <= minimum_value] <- minimum_value
+
+    # values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
+    # scale the data set
+    values.mx <- scale_data(values.mx, scale_factor, adj_val)
+
+    if (normalize) {
+        mean <- stats.tb[1, band]
+        std  <- stats.tb[2, band]
+        values.mx <- normalize_data (values.mx, mean, std)
+    }
+
+    if (smoothing) {
+        rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
+            lapply(whit)
+        values.mx <- do.call(rbind, rows.lst)
+    }
+    return(values.mx)
+}
+
+.sits_predict_block <- function (time_index.lst, attr_names, bands, dist_DT, ml_model) {
+
+    select.lst <- .sits_select_indexes(time_index.lst, bands, dist_DT)
+
+    pred_vec.lst <- vector("list",  length(select.lst))
+
+    # iterate through time intervals
+    for (t in 1:length(select.lst)) {
+        # retrieve the values used for classification
+        dist1_DT <- dist_DT[, select.lst[[t]], with = FALSE]
+        # set the names of the columns of dist1.tb
+        colnames(dist1_DT) <- attr_names
+
+        # estimate the prediction vector for the time instance
+        pred_vec.lst[[t]] <- ml_model(dist1_DT)
+
+        # check the result has the right dimension
+        ensurer::ensure_that(pred_vec.lst[[t]], length(.) == nrow(dist1_DT),
+                             err_desc = "not enough memory for classification - please increase memory or reduce number of cores")
+    }
+
+    # memory management
+    rm(dist1_DT)
+    gc()
+    return(pred_vec.lst)
+}
+
+.sits_select_indexes <- function (time_index.lst, bands, dist_DT){
+    select.lst <- vector("list", length(time_index.lst))
+
+    for (t in 1:length(time_index.lst)) {
+        idx <- time_index.lst[[t]]
+        # for a given time index, build the data.table to be classified
+        # build the classification matrix extracting the relevant columns
+        select.lst[[t]] <- logical(length = ncol(dist_DT))
+        select.lst[[t]][1:2] <- TRUE
+        for (b in 1:length(bands)) {
+            i1 <- idx[(2*b - 1)] + 2
+            i2 <- idx[2*b] + 2
+            select.lst[[t]][i1:i2] <- TRUE
+        }
+    }
+    return(select.lst)
+}
 

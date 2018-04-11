@@ -12,7 +12,7 @@ sits_distances(data.tb, adj_val = 3)
 \item{adj_val}{adjustment value to be applied to the data}
 }
 \value{
-distances.tb  data.table where columns have the reference label and the time series values as distances
+distances_DT  data.table where columns have the reference label and the time series values as distances
 }
 \description{
 This function allows using a set of labelled time series as
@@ -26,7 +26,7 @@ machine learning methods, since most ML methods do not allow for negative data.
 # Retrieve the set of samples for the Cerrado and Pasture classes
 data(cerrado_2classes)
 # estimate distances from the data
-distances.tb <- sits_distances(cerrado_2classes)
+distances <- sits_distances(cerrado_2classes)
 
 }
 \author{

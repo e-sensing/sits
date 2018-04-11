@@ -4,10 +4,10 @@
 \alias{sits_lda}
 \title{Train a SITS classification model using linear discriminant analysis}
 \usage{
-sits_lda(distances.tb = NULL, formula = sits_formula_logref(), ...)
+sits_lda(distances_DT = NULL, formula = sits_formula_logref(), ...)
 }
 \arguments{
-\item{distances.tb}{set of distance measures for each training sample}
+\item{distances_DT}{set of distance measures for each training sample}
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 

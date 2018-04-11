@@ -25,7 +25,7 @@ data(cerrado2classes)
 # create a vector of distances
 distances <- sits_distances(cerrado2classes, adj_val  = 0.0)
 # obtain a DL model
-ml_model = sits_deeplearning(distances.tb)
+ml_model = sits_deeplearning(distances)
 # run the keras diagnostics
 sits_keras_diagnostics()
 }

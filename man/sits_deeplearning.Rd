@@ -4,13 +4,13 @@
 \alias{sits_deeplearning}
 \title{Train a SITS classifiction model using the keras deep learning}
 \usage{
-sits_deeplearning(distances.tb = NULL, units = c(512, 512, 512),
+sits_deeplearning(distances_DT = NULL, units = c(512, 512, 512),
   activation = "elu", dropout_rates = c(0.4, 0.4, 0.3),
   optimizer = keras::optimizer_adam(lr = 0.001), epochs = 500,
   batch_size = 128, validation_split = 0.2, binary_classification = FALSE)
 }
 \arguments{
-\item{distances.tb}{data.table object with a set of distance measures for each training sample}
+\item{distances_DT}{data.table object with a set of distance measures for each training sample}
 
 \item{units}{vector with the number of hidden nodes in each hidden layer}
 

@@ -45,10 +45,10 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_val = 3.0) {
                          err_desc = "sits_train: ml_method is not a valid function")
 
     # compute the distances
-    distances.tb <- sits_distances(data.tb, adj_val)
+    distances_DT <- sits_distances(data.tb, adj_val)
 
     # compute the training method by the given data
-    result <- ml_method(distances.tb)
+    result <- ml_method(distances_DT)
 
     # return a valid machine learning method
     return(result)
@@ -65,7 +65,7 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_val = 3.0) {
 #' This function is a front-end to the "keras" method R package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb      data.table object with a set of distance measures for each training sample
+#' @param distances_DT      data.table object with a set of distance measures for each training sample
 #' @param units             vector with the number of hidden nodes in each hidden layer
 #' @param activation        vector with the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}
 #' @param dropout_rates     vector with the dropout rates (0,1) for each layer to the next layer
@@ -93,7 +93,7 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_val = 3.0) {
 #'                            adj_val = 0.0)
 #' }
 #' @export
-sits_deeplearning <- function(distances.tb     = NULL,
+sits_deeplearning <- function(distances_DT     = NULL,
                               units            = c(512, 512, 512),
                               activation       = 'elu',
                               dropout_rates    = c(0.40, 0.40, 0.30),
@@ -109,7 +109,7 @@ sits_deeplearning <- function(distances.tb     = NULL,
     result_fun <- function(train_data_DT){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
+        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_deeplearning: input data does not contain distance")
 
         ensurer::ensure_that(units, length(.) == length(dropout_rates),
@@ -215,7 +215,7 @@ sits_deeplearning <- function(distances.tb     = NULL,
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances.tb, result_fun)
+    result <- .sits_factory_function(distances_DT, result_fun)
     return(result)
 }
 #' @title Train a SITS classification model with a gradient boosting machine
@@ -231,7 +231,7 @@ sits_deeplearning <- function(distances.tb     = NULL,
 #' This function is a front-end to the "gbm" method in the "gbm" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     a time series with a set of distance measures for each training sample
+#' @param distances_DT     a data table a set of distance measures for each training sample
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param distribution     name of the distribution - use "multinomial" for classification
 #' @param n.trees          Number of trees to fit. This should not be set to too small a number,
@@ -254,22 +254,22 @@ sits_deeplearning <- function(distances.tb     = NULL,
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_gbm())
 #' }
 #' @export
-sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distribution = "multinomial",
+sits_gbm <- function(distances_DT = NULL, formula = sits_formula_logref(), distribution = "multinomial",
                      n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...) {
 
     # function that returns glmnet::multinom model based on a sits sample tibble
-    result_fun <- function(train_data.tb){
+    result_fun <- function(train_data_DT){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
+        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_gbm: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
-            formula <- formula(train_data.tb)
+            formula <- formula(train_data_DT)
 
         # call gbm::gbm method and return the trained multinom model
-        df <- data.frame(train_data.tb[-1:0])
+        df <- data.frame(train_data_DT[-1:0])
         result_gbm <- gbm::gbm(formula = formula, data = df,
                                distribution = distribution, n.trees = n.trees, interaction.depth = interaction.depth,
                                shrinkage = shrinkage, cv.folds = cv.folds, n.cores = n.cores,...)
@@ -287,7 +287,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances.tb, result_fun)
+    result <- .sits_factory_function(distances_DT, result_fun)
     return(result)
 }
 
@@ -305,7 +305,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
 #' This function is a front-end to the "lda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     set of distance measures for each training sample
+#' @param distances_DT     set of distance measures for each training sample
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param ...              other parameters to be passed to MASS::lda function
 #' @return result          a model function to be passed in sits_predict
@@ -320,21 +320,21 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_lda())
 #' }
 #' @export
-sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
+sits_lda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
-    result_fun <- function(train_data.tb){
+    result_fun <- function(train_data_DT){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
+        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_lda: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
-            formula <- formula(train_data.tb)
+            formula <- formula(train_data_DT)
 
         # call MASS::lda method and return the trained lda model
-        result_lda <- MASS::lda(formula = formula, data = train_data.tb, ..., na.action = stats::na.fail)
+        result_lda <- MASS::lda(formula = formula, data = train_data_DT, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
@@ -343,7 +343,7 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances.tb, result_fun)
+    result <- .sits_factory_function(distances_DT, result_fun)
     return(result)
 }
 
@@ -361,7 +361,7 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' This function is a front-end to the "qda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     set of distance measures for each training sample
+#' @param distances_DT     set of distance measures for each training sample
 #' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param ...              other parameters to be passed to MASS::lda function
 #' @return result          a model function to be passed in sits_predict
@@ -376,21 +376,21 @@ sits_lda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_qda())
 #' }
 #' @export
-sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) {
+sits_qda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
-    result_fun <- function(train_data.tb){
+    result_fun <- function(train_data_DT){
 
         # is the input data the result of a matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
+        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_qda: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
-            formula <- formula(train_data.tb)
+            formula <- formula(train_data_DT)
 
         # call MASS::qda method and return the trained lda model
-        result_qda <- MASS::qda(formula = formula, data = train_data.tb, ..., na.action = stats::na.fail)
+        result_qda <- MASS::qda(formula = formula, data = train_data_DT, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
@@ -399,7 +399,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances.tb, result_fun)
+    result <- .sits_factory_function(distances_DT, result_fun)
     return(result)
 }
 
@@ -416,7 +416,7 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' This function is a front-end to the "multinom" method in the "nnet" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     set of distance measures for each training sample
+#' @param distances_DT     set of distance measures for each training sample
 #' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param n_weights        maximum number of weights (should be proportional to size of input data)
 #' @param maxit            maximum number of iterations (default 300)
@@ -432,24 +432,24 @@ sits_qda <- function(distances.tb = NULL, formula = sits_formula_logref(), ...) 
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_mlr())
 #' }
 #' @export
-sits_mlr <- function(distances.tb = NULL, formula = sits_formula_linear(),
+sits_mlr <- function(distances_DT = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
 
     # function that returns nnet::multinom model based on a sits sample tibble
-    result_fun <- function(train_data.tb){
+    result_fun <- function(train_data_DT){
 
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
+        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_mlr: input data does not contain distance")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
-            formula <- formula(train_data.tb)
+            formula <- formula(train_data_DT)
 
         # call nnet::multinom method and return the trained multinom model
         result_mlr <- nnet::multinom(formula = formula,
-                                     data = train_data.tb,
+                                     data = train_data_DT,
                                      maxit = maxit,
                                      MaxNWts = n_weights, ..., na.action = stats::na.fail)
 
@@ -461,7 +461,7 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_linear(),
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances.tb, result_fun)
+    result <- .sits_factory_function(distances_DT, result_fun)
     return(result)
 }
 
@@ -476,7 +476,7 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_linear(),
 #' This function is a front-end to the "randomForest" method in the "randomForest" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     set of distance measures for each training sample
+#' @param distances_DT    set of distance measures for each training sample
 #' @param ntree            number of trees to grow. This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted at least a few times. (default: 2000)
 #' @param nodesize         minimum size of terminal nodes (default 1 for classification)
@@ -492,21 +492,21 @@ sits_mlr <- function(distances.tb = NULL, formula = sits_formula_linear(),
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_rfor())
 #' }
 #' @export
-sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
+sits_rfor <- function(distances_DT = NULL, ntree = 2000, nodesize = 1, ...) {
 
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
-    result_fun <- function(train_data.tb){
+    result_fun <- function(train_data_DT){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names (.),
+        ensurer::ensure_that(train_data_DT, "reference" %in% names (.),
                              err_desc = "sits_rfor: input data does not contain distance")
 
         # call `randomForest::randomForest` method and return the trained multinom model
-        df <- data.frame(train_data.tb)
-        result_rfor <- randomForest::randomForest(x = df[-1:0],
+        df <- data.frame(train_data_DT)
+        result_rfor <- randomForest::randomForest(x = df[-2:0],
                                                   y = as.factor(df$reference),
                                                   data = NULL, ntree = ntree, nodesize = 1,
-                                                  norm.votes = FALSE, na.action = stats::na.fail)
+                                                  norm.votes = FALSE, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
@@ -515,7 +515,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances.tb, result_fun)
+    result <- .sits_factory_function(distances_DT, result_fun)
     return(result)
 }
 
@@ -535,7 +535,7 @@ sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 #' This function is a front-end to the "svm" method in the "e1071" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances.tb     set of distance measures for each training sample
+#' @param distances_DT     set of distance measures for each training sample
 #' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)
 #' @param kernel           kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
 #' @param degree           exponential of polynomial type kernel
@@ -558,22 +558,22 @@ sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 #'        ml_method = sits_svm(kernel = "radial", cost = 10))
 #'}
 #' @export
-sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kernel = "radial",
+sits_svm <- function(distances_DT = NULL, formula = sits_formula_logref(), kernel = "radial",
                      degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
-    result_fun <- function(train_data.tb){
+    result_fun <- function(train_data_DT){
 
         # is the input data the result of a matching function?
-        ensurer::ensure_that(train_data.tb, "reference" %in% names (.),
+        ensurer::ensure_that(train_data_DT, "reference" %in% names (.),
                              err_desc = "sits_svm: input data does not contain references information")
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
-            formula <- formula(train_data.tb)
+            formula <- formula(train_data_DT)
 
         # call e1071::svm method and return the trained svm model
-        result_svm <- e1071::svm(formula = formula, data = train_data.tb, kernel = kernel,
+        result_svm <- e1071::svm(formula = formula, data = train_data_DT, kernel = kernel,
                                  degree = degree, cost = cost, coef0 = coef0,
                                  tolerance = tolerance, epsilon = epsilon, cross = cross, ..., na.action = stats::na.fail)
 
@@ -584,7 +584,8 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances.tb, result_fun)
+    result <- .sits_factory_function(distances_DT, result_fun)
+    return(result)
 }
 
 #' @title Provides access to diagnostic information about a Keras deep learning model
@@ -607,7 +608,7 @@ sits_svm <- function(distances.tb = NULL, formula = sits_formula_logref(), kerne
 #' # create a vector of distances
 #' distances <- sits_distances(cerrado2classes, adj_val  = 0.0)
 #' # obtain a DL model
-#' ml_model = sits_deeplearning(distances.tb)
+#' ml_model = sits_deeplearning(distances)
 #' # run the keras diagnostics
 #' sits_keras_diagnostics()
 #' }
@@ -741,21 +742,21 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #'   and \code{\link[sits]{sits_classify_raster}}, so the user does not need
 #'   to explicitly use it. Please see the above-mentioned classification functions.
 #'
-#' @param distances.tb  set of distance metrics to each of the classes
+#' @param distances_DT  set of distance metrics to each of the classes
 #' @param ml_model      model trained by \code{\link[sits]{sits_train}}
 #' @param ...           other parameters to be passed to the model function
 #' @return predicted    vector of predicted labels
-.sits_predict <- function(distances.tb = NULL, ml_model, ...){
+.sits_predict <- function(distances_DT = NULL, ml_model, ...){
 
     # is the input data the result of a TWDTW matching function?
-    ensurer::ensure_that(distances.tb, "reference" %in% names(.),
+    ensurer::ensure_that(distances_DT, "reference" %in% names(.),
                          err_desc = "sits_predict: input data does not contain TWDTW matches")
 
     # is the input model a model function?
     ensurer::ensure_that(ml_model, class(.) == "function",
                          err_desc = "sits_predict: model parameter is not a function model returned by sits_train.")
 
-    predicted <- as.character(ml_model(distances.tb))
+    predicted <- as.character(ml_model(distances_DT))
 
     return(predicted)
 }

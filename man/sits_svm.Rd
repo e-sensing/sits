@@ -4,12 +4,12 @@
 \alias{sits_svm}
 \title{Train a SITS classification model using a support vector machine}
 \usage{
-sits_svm(distances.tb = NULL, formula = sits_formula_logref(),
+sits_svm(distances_DT = NULL, formula = sits_formula_logref(),
   kernel = "radial", degree = 3, coef0 = 0, cost = 10,
   tolerance = 0.001, epsilon = 0.1, cross = 4, ...)
 }
 \arguments{
-\item{distances.tb}{set of distance measures for each training sample}
+\item{distances_DT}{set of distance measures for each training sample}
 
 \item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)}
 

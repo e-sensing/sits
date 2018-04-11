@@ -82,10 +82,10 @@ sits_classify <- function(data.tb    = NULL,
     ref_dates.lst <- class_info.tb$ref_dates[[1]]
 
     # obtain the distances from the data
-    distances.tb <- sits_distances(data.tb, adj_val)
+    distances_DT <- sits_distances(data.tb, adj_val)
 
     # create a vector to store the predicted results
-    predict.vec <- .sits_classify_distances(distances.tb, class_info.tb, ml_model, multicores)
+    predict.vec <- .sits_classify_distances(distances_DT, class_info.tb, ml_model, multicores)
 
     # Store the result in the input data
     data.tb <- .sits_tibble_prediction(data.tb, class_info.tb, predict.vec, interval)
@@ -98,12 +98,12 @@ sits_classify <- function(data.tb    = NULL,
 #'
 #' @description Returns a sits table with the results of the ML classifier.
 #'
-#' @param  distances.tb    tibble with distances
+#' @param  distances_DT    data.table with distances
 #' @param  class_info.tb   tibble with the information on classification
 #' @param  ml_model        model trained by \code{\link[sits]{sits_train}}
 #' @param  multicores      number of threads to process the time series
 #' @return pred.vec        vector with the predicted labels
-.sits_classify_distances <- function(distances.tb, class_info.tb, ml_model = NULL, multicores = 1) {
+.sits_classify_distances <- function(distances_DT, class_info.tb, ml_model = NULL, multicores = 1) {
 
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
@@ -138,31 +138,28 @@ sits_classify <- function(data.tb    = NULL,
     attr_names <- c("original_row", "reference", attr_names)
 
     # create a data table to store the distances
-    dist.tb <- data.table::data.table(nrow = 0, ncol = length(attr_names))
+    dist_DT <- data.table::data.table(nrow = 0, ncol = length(attr_names))
+
+    tworows_DT <- data.table::data.table("original_row" = 1, "reference" = "NoClass")
 
     # classify a block of data
-    classify_block <- function(distances.tb) {
-        # create a list to get the predictions
+    classify_block <- function(distances_DT) {
+        # select the data table indexes for each time index
+        select.lst <- .sits_select_indexes(time_index.lst, bands, distances_DT)
+
+        # create a list to store the data tables to be used for prediction
         row.lst <- list()
-        # create a block of distances to be classified
-        for (r in 1:nrow(distances.tb)) {
-            # create a data table to store the values of the distances
-            time_index.lst %>%
-                purrr::map(function (idx) {
-                # create a data table to store the distances for each row
-                row.tb <- data.table::data.table("original_row" = 1, "reference" = "NoClass")
-                1:length(bands) %>%
-                    purrr::map(function(b) {
-                        # retrieve the values used for classification
-                        row.tb <<- cbind(row.tb, distances.tb[r, idx[(2*b - 1)]:idx[2*b]])
-                })
-                row.lst[[length(row.lst) + 1 ]] <<- row.tb
-            })
+
+        for (r in 1:nrow(distances_DT)) {
+            for (i in 1:length(select.lst)) {
+                row_DT <- distances_DT[r, select.lst[[i]], with = FALSE]
+                row.lst[[length(row.lst) + 1]] <- row_DT
+            }
         }
-        dist.tb <- data.table::rbindlist(row.lst)
-        colnames(dist.tb) <- attr_names
+        dist_DT <- data.table::rbindlist(row.lst)
+        colnames(dist_DT) <- attr_names
         # classify the subset data
-        pred_block.vec <- .sits_predict(dist.tb, ml_model)
+        pred_block.vec <- .sits_predict(dist_DT, ml_model)
         return(pred_block.vec)
     }
 
@@ -177,14 +174,14 @@ sits_classify <- function(data.tb    = NULL,
     }
 
     if (multicores > 1) {
-        blocks.lst <- split.data.frame(distances.tb, cut(1:nrow(distances.tb),multicores, labels = FALSE))
+        blocks.lst <- split.data.frame(distances_DT, cut(1:nrow(distances_DT), multicores, labels = FALSE))
         # apply parallel processing to the split dat
         results.lst <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
 
         pred.vec <- join_blocks(results.lst)
     }
     else
-        pred.vec <- classify_block(distances.tb)
+        pred.vec <- classify_block(distances_DT)
 
     return(pred.vec)
 }
@@ -248,4 +245,9 @@ sits_classify <- function(data.tb    = NULL,
     )
     return(class_info.tb)
 }
+
+
+
+
+
 

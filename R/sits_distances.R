@@ -12,13 +12,13 @@
 #'
 #' @param  data.tb       tibble with time series data and metadata
 #' @param  adj_val       adjustment value to be applied to the data
-#' @return distances.tb  data.table where columns have the reference label and the time series values as distances
+#' @return distances_DT  data.table where columns have the reference label and the time series values as distances
 #'
 #' @examples
 #' # Retrieve the set of samples for the Cerrado and Pasture classes
 #' data(cerrado_2classes)
 #' # estimate distances from the data
-#' distances.tb <- sits_distances(cerrado_2classes)
+#' distances <- sits_distances(cerrado_2classes)
 #'
 #' @export
 sits_distances <- function(data.tb, adj_val = 3.0) {
@@ -29,15 +29,15 @@ sits_distances <- function(data.tb, adj_val = 3.0) {
             as.data.frame(t(unlist(ts[-1])))
         })
     # bind the lists of time series together
-    dist.tb <- data.table::rbindlist(ts.lst)
+    dist_DT <- data.table::rbindlist(ts.lst)
     # apply an adjustment to the data
-    dist.tb <- dist.tb + adj_val
+    dist_DT <- dist_DT + adj_val
     # create a data frame with the first two columns for training
-    distances.tb <- data.table::data.table("original_row" = 1:nrow(data.tb), "reference" = data.tb$label)
+    distances_DT <- data.table::data.table("original_row" = 1:nrow(data.tb), "reference" = data.tb$label)
     # join the two references columns with the data values
-    distances.tb <- data.table::as.data.table(cbind(distances.tb, dist.tb))
+    distances_DT <- data.table::as.data.table(cbind(distances_DT, dist_DT))
 
-    return(distances.tb)
+    return(distances_DT)
 
 }
 
@@ -55,19 +55,8 @@ sits_distances <- function(data.tb, adj_val = 3.0) {
 #' @return result.tb       the new data.table with a fixed quantity of samples of informed labels and all other
 .sits_sample_distances <- function(distances_DT, frac){
 
-
     # compute sampling
-    result_DT <- data.table::data.table()
-    references <- as.vector(unique(distances_DT$reference))
-    result.lst <- references %>%
-        purrr::map(function(r){
-            r_DT <- distances_DT[reference == r]
-            size = as.integer(frac*nrow(r_DT))
-            s_DT <- data.table::as.data.table(sapply(r_DT[], sample, size))
-            return(s_DT)
-        })
-    result_DT <- data.table::rbindlist(result.lst)
-    result_DT[, original_row := as.integer(original_row)]
+    result_DT <- distances_DT[, .SD[sample(.N, round(frac*.N))], by = reference]
 
     return(result_DT)
 }
