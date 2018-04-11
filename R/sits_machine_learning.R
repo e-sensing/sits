@@ -105,8 +105,8 @@ sits_deeplearning <- function(distances.tb     = NULL,
 {
     # library(keras)
 
-    # function that returns keras model based on a sits sample tibble
-    result_fun <- function(train_data.tb){
+    # function that returns keras model based on a sits sample data.table
+    result_fun <- function(train_data_DT){
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data.tb, "reference" %in% names(.),
@@ -120,7 +120,7 @@ sits_deeplearning <- function(distances.tb     = NULL,
                              set of strings that match the number of units")
 
         # get the labels of the data
-        labels <- as.vector(unique(train_data.tb$reference))
+        labels <- as.vector(unique(train_data_DT$reference))
 
         # create a named vector with integers match the class labels
         int_labels <- c(1:length(labels))
@@ -129,22 +129,23 @@ sits_deeplearning <- function(distances.tb     = NULL,
 
         # split the data into training and validation
         # create partitions different splits of the input data
-        test_data.tb <- .sits_sample_distances(train_data.tb, frac = validation_split)
+        test_data_DT <- .sits_sample_distances(train_data_DT, frac = validation_split)
 
         # remove the lines used for validation
-        train_data.tb <- dplyr::anti_join(train_data.tb, test_data.tb, by = names(train_data.tb))
+        train_data_DT <- train_data_DT[!test_data_DT, on = "original_row"]
 
-        # shuflle the data
-        train_data.tb <- dplyr::sample_frac(train_data.tb, 1.0)
+        # shuffle the data
+        train_data_DT <- train_data_DT[sample(nrow(train_data_DT), nrow(train_data_DT)),]
+        test_data_DT  <- test_data_DT[sample(nrow(test_data_DT), nrow(test_data_DT)),]
 
         # organize data for model training
-        train.x <- data.matrix(train_data.tb[, -(1:2)])
-        train.y <- unname(int_labels[as.vector(train_data.tb[, 2])]) - 1
+        train.x <- data.matrix(train_data_DT[, -(1:2)])
+        train.y <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
 
 
         # create the test data for keras
-        test.x <- data.matrix(test_data.tb[, -(1:2)])
-        test.y <- unname(int_labels[as.vector(test_data.tb[, 2])]) - 1
+        test.x <- data.matrix(test_data_DT[, -(1:2)])
+        test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
 
 
         # set the activation vector
@@ -170,7 +171,7 @@ sits_deeplearning <- function(distances.tb     = NULL,
         }
         # create the final tensor
         model_loss <- ""
-        if (binary_classification && n_labels == 2){
+        if (binary_classification && n_labels == 2) {
             output_tensor <- keras::layer_dense(output_tensor, units = 1, activation = "sigmoid")
             model_loss <- "binary_crossentropy"
         }else{
@@ -268,7 +269,7 @@ sits_gbm <- function(distances.tb = NULL, formula = sits_formula_logref(), distr
             formula <- formula(train_data.tb)
 
         # call gbm::gbm method and return the trained multinom model
-        df <- data.frame (train_data.tb[-1:0])
+        df <- data.frame(train_data.tb[-1:0])
         result_gbm <- gbm::gbm(formula = formula, data = df,
                                distribution = distribution, n.trees = n.trees, interaction.depth = interaction.depth,
                                shrinkage = shrinkage, cv.folds = cv.folds, n.cores = n.cores,...)
@@ -501,11 +502,11 @@ sits_rfor <- function(distances.tb = NULL, ntree = 2000, nodesize = 1, ...) {
                              err_desc = "sits_rfor: input data does not contain distance")
 
         # call `randomForest::randomForest` method and return the trained multinom model
-        df <- data.frame(train_data.tb[-1:0])
+        df <- data.frame(train_data.tb)
         result_rfor <- randomForest::randomForest(x = df[-1:0],
                                                   y = as.factor(df$reference),
                                                   data = NULL, ntree = ntree, nodesize = 1,
-                                                  norm.votes = FALSE, ..., na.action = stats::na.fail)
+                                                  norm.votes = FALSE, na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){

@@ -50,21 +50,24 @@ sits_distances <- function(data.tb, adj_val = 3.0) {
 #'              of the total number of samples per group. Parameter n indicantes the number of random samples with reposition.
 #'              Parameter frac indicates a fraction of random samples without reposition. If frac > 1, no sampling is done.
 #'
-#' @param  distances.tb    data.table objects with the distances associated to a time series
-#' @param  frac            ercentage of samples to pick from a given group of data.
+#' @param  distances_DT    data.table objects with the distances associated to a time series
+#' @param  frac            percentage of samples to pick from a given group of data.
 #' @return result.tb       the new data.table with a fixed quantity of samples of informed labels and all other
-.sits_sample_distances <- function(distances.tb, frac){
+.sits_sample_distances <- function(distances_DT, frac){
 
 
     # compute sampling
-    result.tb <- tibble::tibble()
-    references <- as.vector(unique(distances.tb$reference))
-    references %>%
+    result_DT <- data.table::data.table()
+    references <- as.vector(unique(distances_DT$reference))
+    result.lst <- references %>%
         purrr::map(function(r){
-            tb_r <- dplyr::filter(distances.tb, reference == r)
-            tb_s <- dplyr::sample_frac(tb_r, size = frac, replace = FALSE)
-            result.tb <<- dplyr::bind_rows(result.tb, tb_s)
+            r_DT <- distances_DT[reference == r]
+            size = as.integer(frac*nrow(r_DT))
+            s_DT <- data.table::as.data.table(sapply(r_DT[], sample, size))
+            return(s_DT)
         })
+    result_DT <- data.table::rbindlist(result.lst)
+    result_DT[, original_row := as.integer(original_row)]
 
-    return(result.tb)
+    return(result_DT)
 }
