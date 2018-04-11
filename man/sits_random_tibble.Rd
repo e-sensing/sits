@@ -33,8 +33,7 @@ sits_random_tibble(n_samples, label = "label_A", lon_mean = -65,
 random_st    A sits_tibble
 }
 \description{
-this function normalizes the time series using the mean and
-standard deviation of all the time series.
+This function simulates a sits_tibble using random data. The time series are simulated using a cosine function.
 }
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}

@@ -4,10 +4,12 @@
 \alias{sits_normalize_ts}
 \title{Normalize the time series in the given sits_tibble}
 \usage{
-sits_normalize_ts(data.tb)
+sits_normalize_ts(data.tb, use_IQR = TRUE)
 }
 \arguments{
 \item{data.tb}{a tibble in SITS format}
+
+\item{use_IQR}{a length-one logical. Should the Interquartile Range be used instead of the Standard Deviation? The default is TRUE.}
 }
 \value{
 result.tb  a list of 2: A sits_tibble and a tibble with statistics
