@@ -287,7 +287,8 @@ sits_classify_raster <- function(file = NULL,
         size <- block_nrows*ncols
         two_cols.tb <- data.table::data.table("original_row" = rep(1,size),
                                               "reference" = rep("NoClass", size))
-        dist.tb <- cbind(two_cols.tb, dist.tb)
+
+        dist.tb <- data.table::as.data.table(cbind(two_cols.tb, dist.tb))
 
         pred_vec.lst <- vector("list",  length(time_index.lst))
 
