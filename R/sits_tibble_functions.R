@@ -782,7 +782,12 @@ sits_random_tibble <- function(n_samples, label = "label_A", lon_mean = -65,
 
 
 
-# Simulate a time series of a Vegetation Index (VI). Alber Sanchez
+
+# @title Simulate a time series of a Vegetation Index (VI). Alber Sanchez
+# @name .sits_simulate_ts
+# @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#
+# @description this function simulates a time series of vegetation indexes using a cosine function.
 #
 # @param t_vector    Numeric. A vector of time indexes.
 # @param m           A length-one numeric. The mean of the VI.
@@ -793,7 +798,7 @@ sits_random_tibble <- function(n_samples, label = "label_A", lon_mean = -65,
 # @param noise_sd    A length-one numeric. The stabndard deviation of the noise.
 # @return            A numeric vector
 # @examples
-# plot(.sits_simulate_ts(1:23), type = "l")
+# sits_plot(sits:::.sits_simulate_ts(1:23), type = "l")
 .sits_simulate_ts <- function(t_vector, m = 0.5, amplitude = 0.15,
                               freq = 16/365, phase_shift = 0,
                               noise_mean = 0, noise_sd = 0.2){

@@ -6,7 +6,7 @@
 \usage{
 sits_random_tibble(n_samples, label = "label_A", lon_mean = -65,
   lon_sd = 1, lat_mean = -5, lat_sd = 1, date_start = "2000/01/01",
-  date_end = "2000/12/31", obs_freq = 23)
+  date_end = "2000/12/31", obs_freq = 23, n_vi = 1)
 }
 \arguments{
 \item{label}{A character. The labels for returned tibble. The default is "label_A".}
@@ -22,6 +22,8 @@ sits_random_tibble(n_samples, label = "label_A", lon_mean = -65,
 \item{date_end}{A length-one character.The start date. The default is "2000/12/31".}
 
 \item{obs_freq}{A length-one numeric. The number of observations in the period. The default are 23.}
+
+\item{n_vi}{A length-one numeric. The number of vegetation indexes eacb sample. The default is 1.}
 
 \item{samples}{A length-one numeric. The number of samples per label.}
 

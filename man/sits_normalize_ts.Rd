@@ -4,7 +4,7 @@
 \alias{sits_normalize_ts}
 \title{Normalize the time series in the given sits_tibble}
 \usage{
-sits_normalize_ts(data.tb = NULL)
+sits_normalize_ts(data.tb)
 }
 \arguments{
 \item{data.tb}{a tibble in SITS format}
