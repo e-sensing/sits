@@ -221,6 +221,89 @@ sits_mutate <- function(data.tb, ...){
     return(data.tb)
 }
 
+
+
+#' @title Normalize the time series in the given sits_tibble
+#' @name .sits_normalization_param
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description this function normalizes the time series using both a tendency and
+#' a dispersion maurement, whic could be either the mean-sd or the median-IQR.
+#'
+#' @param data.tb     a tibble in SITS format
+#' @param use_IQR     a length-one logical. Should the Interquartile Range be used instead of the Standard Deviation? The default is TRUE.
+#' @return result.tb  a tibble with statistics
+#'
+.sits_normalization_param <- function(data.tb, use_IQR = TRUE) {
+    .sits_test_tibble(data.tb)
+
+    DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
+    DT[, Index := NULL]
+
+    if(use_IQR){
+        DT_tend <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
+        DT_disp <- DT[, lapply(.SD, stats::IQR, na.rm = TRUE)]
+    }else{
+        DT_tend <- DT[, lapply(.SD, mean, na.rm = TRUE)]
+        DT_disp   <- DT[, lapply(.SD, stats::sd, na.rm = TRUE)]
+    }
+
+    return(dplyr::bind_cols(stats = c("Tendency", "Dispersion"),
+                            dplyr::bind_rows(DT_tend, DT_disp)))
+}
+
+
+
+#' @title Normalize the time series in the given sits_tibble
+#' @name sits_normalize_ts
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description this function normalizes the time series using both a tendency and
+#' a dispersion maurement, whic could be either the mean-sd or the median-IQR.
+#'
+#' @param data.tb     a tibble in SITS format
+#' @param use_IQR     a length-one logical. Should the Interquartile Range be used instead of the Standard Deviation? The default is TRUE.
+#' @return result.tb  a list of 2: A sits_tibble and a tibble with statistics
+#' @export
+#'
+#' @examples
+#' sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
+#'
+sits_normalize_ts <- function(data.tb, use_IQR = TRUE){
+    .sits_test_tibble(data.tb)
+
+    DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
+    DT[,  Index := NULL ]
+
+    # compute statistics
+    if(use_IQR){
+        DT_tend <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
+        DT_disp <- DT[, lapply(.SD, stats::IQR, na.rm = TRUE)]
+    }else{
+        DT_tend <- DT[, lapply(.SD, mean, na.rm = TRUE)]
+        DT_disp   <- DT[, lapply(.SD, stats::sd, na.rm = TRUE)]
+    }
+    stats.tb <- dplyr::bind_cols(stats = c("Tendency", "Dispersion"),
+                                 dplyr::bind_rows(DT_tend, DT_disp))
+
+    # normalize time series
+    data.tb$time_series <- lapply(data.tb$time_series,
+                                  FUN = function(x, var_mean, var_sd){
+                                      res <- x
+                                      for(cname in names(var_mean)){
+                                          res[,cname] <- scale(x[,cname], center = var_mean[cname], scale = var_sd[cname])
+                                      }
+                                      return(res)
+                                  }, var_mean = as.matrix(DT_tend)[1,], var_sd = as.matrix(DT_disp)[1,])
+
+    stats.tb <- dplyr::bind_cols(stats = c("Tendency", "Dispersion"),
+                                 dplyr::as_tibble(rbind(as.matrix(DT_tend),
+                                                        as.matrix(DT_disp))))
+    return(list(data.tb, stats.tb))
+}
+
+
+
 #' @title Checks that the timeline of all time series of a data set are equal
 #' @name sits_prune
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -265,6 +348,65 @@ sits_prune <- function(data.tb) {
         return(data.tb[ind2, ])
     }
 }
+
+
+
+#' @title Simulate a sits_tibble made of random observations
+#' @name sits_random_tibble
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description This function simulates a sits_tibble using random data. The
+#' time series are simulated using a cosine function.
+#'
+#' @param n_samples     A length-one numeric. The number of samples per label.
+#' @param label         A character. The labels for returned tibble. The default is "label_A".
+#' @param lon_mean      A length-one numeric. The central longitude of the random samples. The default is 65 degrees est.
+#' @param lon_sd        A length-one numeric. The standard deviation of the longitude of the random samples. The default is 1.
+#' @param lat_mean      A length-one numeric. The central latitude of the random samples. The default is 5 degrees south.
+#' @param lat_sd        A length-one numeric. The standard deviation of the latitude of the random samples. The default is 1.
+#' @param date_start    A length-one character.The start date. The default is "2000/01/01".
+#' @param date_end      A length-one character.The start date. The default is "2000/12/31".
+#' @param obs_freq      A length-one numeric. The number of observations in the period. The default are 23.
+#' @param n_vi          A length-one numeric. The number of vegetation indexes eacb sample. The default is 1.
+#' @return random_st    A sits_tibble
+#' @export
+#'
+#' @examples
+#' my_st <- sits_random_tibble(10, label = c("A", "B"))
+#' sits_plot(my_st)
+sits_random_tibble <- function(n_samples, label = "label_A", lon_mean = -65,
+                               lon_sd = 1, lat_mean = -5, lat_sd = 1,
+                               date_start = "2000/01/01",
+                               date_end = "2000/12/31",
+                               obs_freq = 23,
+                               n_vi = 1){
+    # number if samples
+    n <- n_samples * length(label)
+
+    # simulate the time series
+    index = seq(from = as.Date(date_start), to = as.Date(date_end), length.out = obs_freq)
+    ts.lst <- lapply(1:n, FUN = function(x, obs_freq, index, n_vi){
+        tmp.lst <- list()
+        tmp.lst[["Index"]] <- index
+        for(i in 1:n_vi){
+            tmp.lst[[paste0("vi", i)]] <- .sits_simulate_ts(t_vector = 1:obs_freq)
+        }
+        return(tibble::as_tibble(tmp.lst))
+    }, obs_freq = obs_freq, index = index, n_vi = n_vi)
+
+    # build the sits_tibble
+    random_st <- tibble::tibble(longitude   = stats::rnorm(n, lon_mean, lon_sd),
+                                latitude    = stats::rnorm(n, lat_mean, lat_sd),
+                                start_date  = rep(as.Date(date_start), times = n),
+                                end_date    = rep(as.Date(date_end), times = n),
+                                label       = rep(label, each = n_samples),
+                                coverage    = rep("random_coverage", times = n),
+                                time_series = ts.lst)
+    class(random_st) <- class(sits_tibble())
+    .sits_test_tibble(random_st)
+    return(random_st)
+}
+
 
 
 #' @title names of the bands of a time series
@@ -356,6 +498,126 @@ sits_sample <- function(data.tb, n = NULL, frac = NULL){
 
     return(result.tb)
 }
+
+
+
+#' @title Get random samples from a polygon sf object
+#' @name sits_sample_shp
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description This function takes random samples points in the given polygons.
+#'
+#' @param shp.sf        a polygon sf object.
+#' @param label_field   a length-one character. The name of the label field in shp.sf
+#' @param nsamples      a length-one numeric. The expected number of samples per class.
+#' @param border_offset a length-one numeric. An offset distance (in meters) to avoid sapling near the borders
+#' @param proj_crs      a length-one character. The name of an intermediary CRS used when the shp.sf is given in longitude and latitude.
+#' @param min_area      a length-one numeric. The minimum area (in square meters) of a polygon included during the sampling.
+#' @return shp_samples  a sits_tibble
+#' @export
+#'
+sits_sample_shp <- function(shp.sf,
+                            label_field,
+                            nsamples = 500,
+                            border_offset = 50,
+                            proj_crs = 29101,
+                            min_area = 50000) {
+    # cast SF to tibble
+    .sf2tb <- function(x){
+        x$geometry <- NULL
+        return(dplyr::as_tibble(x))
+    }
+
+    # validation : The given sf is polygon
+    ensurer::ensure_that(grep("POLYGON", attr(shp.sf$geometry, "class")), . > 0,
+                         err_desc = "sits_sample_shp - shapefile is not a polygon")
+
+    if(sum(sf::st_is_valid(shp.sf)) != nrow(shp.sf)){
+        warning("Invalid geometries found")
+    }
+    if(sum(sf::st_is_simple(shp.sf))!= nrow(shp.sf)){
+        warning("Non-simple geometries found")
+    }
+
+    # add a label field
+    shp.sf["label"] <- as.vector(unlist(.sf2tb(shp.sf)[label_field]))
+
+    # pre-format response
+    shp.sf$tmpid <- 1:nrow(shp.sf)
+    shp_samples <- .sf2tb(shp.sf)
+
+    # handle areas
+    if("area" %in% colnames(shp.sf) == FALSE){
+        shp.sf["area"] <- shp.sf %>% sf::st_area()
+    }
+    if(!(purrr::is_null(min_area))) {
+        shp.sf <- shp.sf %>% dplyr::filter(as.vector(area) > min_area)
+    }
+
+    # estimate number of samples per class & polygon
+    shp.df <- .sf2tb(dplyr::select(shp.sf, label, area))
+
+    # compute label stats
+    shp_stat <- shp.df %>% dplyr::group_by(label) %>%
+        dplyr::summarise(
+            count = n(),
+            sum_area = sum(area, na.rm = TRUE)
+        )
+
+    if(nsamples < nrow(shp_stat))
+    { warning("Some classes could not be sampled. There are more classes than samples!") }
+
+    ensurer::ensure_that(shp_stat, nrow(.) > 0,
+                         err_desc = "sits_sample_shp - not enough samples to collect")
+
+    samples_per_class <- nsamples / nrow(shp_stat)
+
+    # compute number of samples
+    shp.sf <- shp.sf %>%
+        dplyr::left_join(as.data.frame(shp_stat), by = "label") %>%
+        dplyr::mutate(
+            nsamples = round(samples_per_class * area / sum_area, 0)
+        )
+
+    # get the samples
+    #xy_mat <- sf::st_sample(prodes, size = nsamples) # FAIL!
+    xy_ls <- lapply(shp.sf$tmpid, function(tmpid, shp.sf, border_offset){
+        xy_mat <- matrix(data = NA, nrow = 0, ncol = 3)
+        g <- shp.sf$geometry[[tmpid]]
+        n <- shp.sf$nsamples[[tmpid]]
+        if(n < 1){return(xy_mat)}
+        border_offset <- base::sqrt(border_offset^2) * (-1)
+        if(border_offset != 0){
+            g <- sf::st_buffer(g, dist = border_offset)
+        }
+        if(sf::st_is_empty(g)){return(xy_mat)}
+        xy_mat <- g %>% sf::st_sample(size = n) %>% sf::st_coordinates()
+        xy_mat <- cbind(xy_mat, tmpid = rep(tmpid, nrow(xy_mat)))
+        return(xy_mat)
+    }, shp.sf = shp.sf, border_offset = border_offset)
+    xy_tb <- dplyr::as_tibble(do.call(rbind, xy_ls))
+
+    # join sample points to original data
+    xy_tb <- xy_tb %>% dplyr::rename("longitude" = !!names(.[1]),
+                                     "latitude" = !!names(.[2]),
+                                     "tmpid" = !!names(.[3]))
+    shp_samples <- dplyr::right_join(shp_samples, xy_tb, by = "tmpid")
+
+    # format answer as sits_tibble
+    shp_samples$start_date <- rep(as.Date("2000/01/01"), nrow(shp_samples))
+    shp_samples$end_date <- rep(as.Date(Sys.time()), nrow(shp_samples))
+    shp_samples$coverage <- NA
+    shp_samples$time_series <- NA
+    shp_samples <- shp_samples[, c("longitude", "latitude", "start_date",
+                                   "end_date", "label", "coverage",
+                                   "time_series")]
+    class(shp_samples) <- class(sits_tibble())
+    .sits_test_tibble(shp_samples)
+    return(shp_samples)
+}
+
+
+
 #' @title General selection criteria for subsetting a SITS table
 #' @name sits_select
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -437,6 +699,33 @@ sits_select_bands <- function(data.tb, bands) {
     # return the result
     return(result.tb)
 }
+
+
+
+#' @title Simulate a time series of a Vegetation Index (VI). Alber Sanchez
+#' @name .sits_simulate_ts
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description this function simulates a time series of vegetation indexes using a cosine function.
+#'
+#' @param t_vector    Numeric. A vector of time indexes.
+#' @param m           A length-one numeric. The mean of the VI.
+#' @param amplitude   A length-one numeric. The amplitude of the VI wave.
+#' @param freq        A length-one numeric. The frequency of the VI wave.
+#' @param phase_shift A length-one numeric. The phase shift of the VI wave.
+#' @param noise_mean  A length-one numeric. The mean of the noise.
+#' @param noise_sd    A length-one numeric. The stabndard deviation of the noise.
+#' @return            A numeric vector
+#'
+.sits_simulate_ts <- function(t_vector, m = 0.5, amplitude = 0.15,
+                              freq = 16/365, phase_shift = 0,
+                              noise_mean = 0, noise_sd = 0.2){
+    angular_freq <- 2 * pi * freq
+    noise <- stats::rnorm(length(t_vector), noise_mean, noise_sd)
+    return(m + amplitude * cos((angular_freq * t_vector) + phase_shift) + noise)
+}
+
+
 
 #' @title Add new SITS bands and drops existing.
 #' @name sits_transmute
@@ -542,182 +831,36 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
 }
 
 
-#' @title Normalize the time series in the given sits_tibble
-#' @name sits_normalize_ts
+
+#' @title Export from sits_tibble to sf object.
+#' @name sits_to_shp
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#' @description Export the given sits_tibble to a sf object of points.
 #'
-#' @description this function normalizes the time series using the mean and
-#' standard deviation of all the time series.
-#'
-#' @param data.tb     a tibble in SITS format
-#' @return result.tb  a list of 2: A sits_tibble and a tibble with statistics
-#' @export
+#' @param data.tb       A sits table.
+#' @param crs           A length-one numeric. The Coordinate Reference System identificator. The default is WGS84.
+#' @return sf_obj       A sf object.
 #'
 #' @examples
-#' \donttest{
-#' #' sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
-#' }
+#' # get a random sits_tibble
+#' data.tb <- sits_random_tibble(n_samples = 10, n_vi = 3)
+#' # export to sf object
+#' sf_obj <- sits_to_shp(data.tb)
+#' # save as shapefile
+#' sf::st_write(sf_obj, dsn = file.path(tempdir(), "sf_obj.shp"), driver = "ESRI Shapefile")
 #'
-sits_normalize_ts <- function(data.tb = NULL){
-
-    .sits_test_tibble(data.tb)
-
-    DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
-
-    DT[,  Index := NULL ]
-
-    DT_mean <- DT[, lapply(.SD, mean)]
-    DT_sd   <- DT[, lapply(.SD, stats::sd)]
-
-    # normalize each time series
-    data.tb$time_series <- lapply(data.tb$time_series, FUN = function(x, var_mean, var_sd){
-        res <- x
-        for(cname in names(var_mean)){
-            res[,cname] <- scale(x[,cname], center = var_mean[cname], scale = var_sd[cname])
-        }
-        return(res)
-    }, var_mean = as.matrix(DT_mean)[1,], var_sd = as.matrix(DT_sd)[1,])
-
-    return(data.tb)
-}
-
-#' @title Normalize the time series in the given sits_tibble
-#' @name .sits_normalization_param
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description this function normalizes the time series using the mean and
-#' standard deviation of all the time series.
-#'
-#' @param data.tb     a tibble in SITS format
-#' @return result.tb  a tibble with statistics
-#'
-.sits_normalization_param <- function(data.tb) {
-
-    .sits_test_tibble(data.tb)
-
-    DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
-
-    DT[, Index := NULL]
-
-    DT_mean <- DT[, lapply(.SD, mean)]
-    DT_sd   <- DT[, lapply(.SD, stats::sd)]
-
-    stats.tb <- dplyr::bind_cols(stats = c("mean", "sd"),
-                                 dplyr::bind_rows(DT_mean, DT_sd))
-
-    return(stats.tb)
-}
-
-
-
-
-#' @title Get random point samples from a polygon
-#' @name sits_sample_shp
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description this function normalizes the time series using the mean and
-#' standard deviation of all the time series.
-#'
-#' @param shp.sf        a polygon sf object.
-#' @param label_field   a length-one character. The name of the label field in shp.sf
-#' @param nsamples      a length-one numeric. The expected number of samples per class.
-#' @param border_offset a length-one numeric. An offset distance (in meters) to avoid sapling near the borders
-#' @param proj_crs      a length-one character. The name of an intermediary CRS used when the shp.sf is given in longitude and latitude.
-#' @param min_area      a length-one numeric. The minimum area (in square meters) of a polygon included during the sampling.
-#' @return shp_samples  a sits_tibble
 #' @export
-sits_sample_shp <- function(shp.sf,
-                            label_field,
-                            nsamples = 500,
-                            border_offset = 50,
-                            proj_crs = 29101,
-                            min_area = 50000) {
-    #---- util ----
-    # cast SF to tibble
-    .sf2tb <- function(x){
-        x$geometry <- NULL
-        return(dplyr::as_tibble(x))
-    }
-    #---- validation ----
-    # The given sf object is not polygon
-    ensurer::ensure_that(shp.sf$geometry, "sfc_POLYGON" %in% attr((.), "class"),
-                         err_desc = "sits_sample_shp - shapefile is not a polygon")
-    if(sum(sf::st_is_valid(shp.sf)) != nrow(shp.sf)){
-        warning("Invalid geometries found")
-    }
-    if(sum(sf::st_is_simple(shp.sf))!= nrow(shp.sf)){
-        warning("Non-simple geometries found")
-    }
-    #---- start here ----
-    shp.sf["label"] <- as.vector(unlist(.sf2tb(shp.sf)[label_field]))           # add a label field
-    #--- -pre-format res ----
-    shp.sf$tmpid <- 1:nrow(shp.sf)
-    shp_samples <- .sf2tb(shp.sf)
-    #--- handle area ----
-    if("area" %in% colnames(shp.sf) == FALSE){
-        shp.sf["area"] <- shp.sf %>% sf::st_area()
-    }
-    if(!(purrr::is_null(min_area))) {
-        shp.sf <- shp.sf %>% dplyr::filter(as.vector(area_vec) > min_area)
-    }
-    pts.df <- NULL
+#'
+sits_to_shp <- function(data.tb, crs = 4326){
+    .sits_test_tibble(data.tb)
 
-    #---- estimate number of samples per class & polygon ----
-    shp.df <- .sf2tb(dplyr::select(shp.sf, label, area))                    # cast sf to data.frame
-    # stats
-    shp_stat <- shp.df %>% dplyr::group_by(label) %>%
-        dplyr::summarise(
-            count = n(),
-            sum_area = sum(area, na.rm = TRUE)
-        )
-
-    if(nsamples < nrow(shp_stat))
-        { warning("Some classes could not be sampled. There are more classes than samples!") }
-
-    ensurer::ensure_that(shp_stat, nrow(.) > 0,
-                         err_desc = "sits_sample_shp - not enough samples to collect")
-
-    samples_per_class <- nsamples / nrow(shp_stat)
-
-    #---- compute number of samples ----
-    shp.sf <- shp.sf %>%
-        dplyr::left_join(as.data.frame(shp_stat), by = "label") %>%
-        dplyr::mutate(
-            nsamples = round(samples_per_class * area / sum_area, 0)
-        )
-    #---- get the samples ----
-    #xy_mat <- sf::st_sample(prodes, size = nsamples) # FAIL!
-    xy_ls <- lapply(shp.sf$tmpid, function(tmpid, shp.sf, border_offset){
-        xy_mat <- matrix(data = NA, nrow = 0, ncol = 3)
-        g <- shp.sf$geometry[[tmpid]]
-        n <- shp.sf$nsamples[[tmpid]]
-        if(n < 1){return(xy_mat)}
-        if(is.numeric(border_offset)){
-            border_offset <- base::sqrt(border_offset^2) * (-1)
-            g <- sf::st_buffer(g, dist = border_offset)
-        }
-        if(sf::st_is_empty(g)){return(xy_mat)}
-        xy_mat <- g %>% sf::st_sample(size = n) %>% sf::st_coordinates()
-        xy_mat <- cbind(xy_mat, tmpid = rep(tmpid, nrow(xy_mat)))
-        return(xy_mat)
-    }, shp.sf = shp.sf, border_offset = border_offset)
-    xy_tb <- dplyr::as_tibble(do.call(rbind, xy_ls))
-
-    #---- join sample points to original data ----
-    xy_tb <- xy_tb %>% dplyr::rename("longitude" = !!names(.[1]),
-                                     "latitude" = !!names(.[2]),
-                                     "tmpid" = !!names(.[3]))
-    shp_samples <- dplyr::right_join(shp_samples, xy_tb, by = "tmpid")
-    #---- format answer as sits_tibble ----
-    shp_samples$start_date <- rep(as.Date("2000/01/01"), nrow(shp_samples))
-    shp_samples$end_date <- rep(as.Date(Sys.time()), nrow(shp_samples))
-    shp_samples$coverage <- NA
-    shp_samples$time_series <- NA
-    shp_samples <- shp_samples[, c("longitude", "latitude", "start_date",
-                                   "end_date", "label", "coverage",
-                                   "time_series")]
-    class(shp_samples) <- class(sits::sits_tibble())
-    return(shp_samples)
+    # build a sf object
+    xy.tb <- data.tb %>% dplyr::select(longitude, latitude)
+    point.lst <- lapply(1:nrow(xy.tb), function(x, xy.tb){
+        sf::st_point(unlist(xy.tb[x, ]), dim = "XY")
+    }, xy.tb = xy.tb)
+    geometry <- sf::st_sfc(point.lst)                                           # simple features list column
+    st_data.tb <- data.tb %>% dplyr::select(-longitude, -latitude, -time_series)# data
+    sf_obj <- sf::st_sf(geometry, st_data.tb, crs = crs)
+    return(sf_obj)
 }
-
-
