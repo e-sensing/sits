@@ -243,7 +243,7 @@ sits_classify_raster <- function(file = NULL,
                 i <<- i + 1
                 band <- bands[i]
                 values.mx <- .sits_preprocess_data(values.mx, missing_values[band], minimum_values[band], scale_factors[band], adj_val,
-                                                   smoothing, lambda, differences, normalize, stats.tb)
+                                                   smoothing, lambda, differences, normalize, stats.tb, band)
                 return(values.mx)
             })
         # create a data table with all the values from the bands
@@ -317,7 +317,7 @@ sits_classify_raster <- function(file = NULL,
 }
 
 .sits_preprocess_data <- function(values.mx, missing_value, minimum_value, scale_factor, adj_val,
-                                  smoothing, lambda, differences, normalize, stats.tb){
+                                  smoothing, lambda, differences, normalize, stats.tb, band){
 
     # define the smoothing function
     whit <- function(ts) {

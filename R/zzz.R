@@ -25,7 +25,7 @@ utils::globalVariables(c(".", "%>%", ":=", ".SD", "Index", "from", "value", "var
                          "segr", "frac", "total", "n", "rows.lst", "whit",
                          "blue", "red", "green", "nir", "mir", "swir",
                          "distance", "predicted", "new_values", "sum_area", "area_vec", "area",
-                         "Alig.N", "matches", "reference", "cluster", ".data"))
+                         "Alig.N", "matches", "reference", "cluster", ".data", ".N"))
 #' @importFrom dtw symmetric1 symmetric2
 #' @importFrom lubridate %within% %m+%
 #' @useDynLib sits, .registration = TRUE

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tibble_functions.R
 \name{sits_sample_shp}
 \alias{sits_sample_shp}
-\title{Get random point samples from a polygon}
+\title{Get random samples from a polygon sf object}
 \usage{
 sits_sample_shp(shp.sf, label_field, nsamples = 500, border_offset = 50,
   proj_crs = 29101, min_area = 50000)
@@ -24,8 +24,13 @@ sits_sample_shp(shp.sf, label_field, nsamples = 500, border_offset = 50,
 shp_samples  a sits_tibble
 }
 \description{
-this function normalizes the time series using the mean and
-standard deviation of all the time series.
+This function takes random samples points in the given polygons.
+}
+\examples{
+nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
+pnt_samples <- sits_sample_shp(shp.sf = nc, label_field = "NAME",
+                               nsamples = 500, border_offset = 0.01)
+
 }
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}
