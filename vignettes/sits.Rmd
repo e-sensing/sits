@@ -120,8 +120,8 @@ After finding out which coverages are available at the different time series ser
 ```{r}
 # get information about a specific coverage from WTSS
 coverage_wtss <- 
-    sits_coverage(service  = "WTSS-INPE-1",
-                  name     = "mod13q1_512")
+    sits_coverage(service  = "WTSS-INPE",
+                  name     = "MOD13Q1")
 coverage_wtss[, c("xmin","xmax","ymin","ymax",
                 "start_date", "end_date")]
 ```

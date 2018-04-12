@@ -48,7 +48,7 @@ chosen coverage:
 \examples{
 \donttest{
 # Example 1. Retrieve information about a WTSS coverage
-coverage.tb <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
+coverage.tb <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
 
 # Example 2. Create a raster coverage with metadata
 # read a raster file and put it into a vector

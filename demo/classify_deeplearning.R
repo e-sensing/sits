@@ -17,8 +17,7 @@ ml_model <-  sits_train(samples.tb,
                              epochs = 500,
                              batch_size = 128,
                              validation_split = 0.2),
-                             adj_val  = 0,
-)
+                             adj_val  = 0)
 
 sits_keras_diagnostics()
 
