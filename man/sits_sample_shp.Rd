@@ -27,9 +27,11 @@ shp_samples  a sits_tibble
 This function takes random samples points in the given polygons.
 }
 \examples{
+\dontrun{
 nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
 pnt_samples <- sits_sample_shp(shp.sf = nc, label_field = "NAME",
                                nsamples = 500, border_offset = 0.01)
+}
 
 }
 \author{
