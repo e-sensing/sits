@@ -4,17 +4,19 @@
 \alias{sits_normalize_ts}
 \title{Normalize the time series in the given sits_tibble}
 \usage{
-sits_normalize_ts(data.tb = NULL)
+sits_normalize_ts(data.tb, use_IQR = TRUE)
 }
 \arguments{
 \item{data.tb}{a tibble in SITS format}
+
+\item{use_IQR}{a length-one logical. Should the Interquartile Range be used instead of the Standard Deviation? The default is TRUE.}
 }
 \value{
 result.tb  a list of 2: A sits_tibble and a tibble with statistics
 }
 \description{
-this function normalizes the time series using the mean and
-standard deviation of all the time series.
+this function normalizes the time series using both a tendency and
+a dispersion maurement, whic could be either the mean-sd or the median-IQR.
 }
 \examples{
 sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
