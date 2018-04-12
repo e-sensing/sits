@@ -411,7 +411,8 @@ sits_prune <- function(data.tb) {
 #' @export
 #'
 #' #' @examples
-#' sits_random_tibble(10, label = c("A", "B"))
+#' my_st <- sits_random_tibble(10, label = c("A", "B"))
+#' sits::sits_plot(my_st)
 sits_random_tibble <- function(n_samples, label = "label_A", lon_mean = -65,
                                lon_sd = 1, lat_mean = -5, lat_sd = 1,
                                date_start = "2000/01/01",
