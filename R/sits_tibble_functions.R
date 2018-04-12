@@ -516,13 +516,6 @@ sits_sample <- function(data.tb, n = NULL, frac = NULL){
 #' @return shp_samples  a sits_tibble
 #' @export
 #'
-#' @examples
-#'\dontrun{
-#' nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
-#' pnt_samples <- sits_sample_shp(shp.sf = nc, label_field = "NAME",
-#'                                nsamples = 500, border_offset = 0.01)
-#'}
-#'
 sits_sample_shp <- function(shp.sf,
                             label_field,
                             nsamples = 500,
