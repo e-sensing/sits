@@ -263,11 +263,13 @@ sits_mutate <- function(data.tb, ...){
 #'
 #' @param data.tb     a tibble in SITS format
 #' @param use_IQR     a length-one logical. Should the Interquartile Range be used instead of the Standard Deviation? The default is TRUE.
-#' @return result.tb  a list of 2: A sits_tibble and a tibble with statistics
+#' @return result.tb  a normalized sits_tibble
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
+#' }
 #'
 sits_normalize_ts <- function(data.tb, use_IQR = TRUE){
     .sits_test_tibble(data.tb)
@@ -283,8 +285,6 @@ sits_normalize_ts <- function(data.tb, use_IQR = TRUE){
         DT_tend <- DT[, lapply(.SD, mean, na.rm = TRUE)]
         DT_disp   <- DT[, lapply(.SD, stats::sd, na.rm = TRUE)]
     }
-    stats.tb <- dplyr::bind_cols(stats = c("Tendency", "Dispersion"),
-                                 dplyr::bind_rows(DT_tend, DT_disp))
 
     # normalize time series
     data.tb$time_series <- lapply(data.tb$time_series,
@@ -296,10 +296,7 @@ sits_normalize_ts <- function(data.tb, use_IQR = TRUE){
                                       return(res)
                                   }, var_mean = as.matrix(DT_tend)[1,], var_sd = as.matrix(DT_disp)[1,])
 
-    stats.tb <- dplyr::bind_cols(stats = c("Tendency", "Dispersion"),
-                                 dplyr::as_tibble(rbind(as.matrix(DT_tend),
-                                                        as.matrix(DT_disp))))
-    return(list(data.tb, stats.tb))
+    return(data.tb)
 }
 
 
