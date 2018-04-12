@@ -242,7 +242,7 @@ sits_classify_raster <- function(file = NULL,
                 # get the associated band
                 i <<- i + 1
                 band <- bands[i]
-                values.mx <- .sits_preprocess_data(values.mx, missing_values[band], minimum_values[band], scale_factors[band], adj_val,
+                values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band], adj_val,
                                                    smoothing, lambda, differences, normalize, stats.tb)
                 return(values.mx)
             })
@@ -315,8 +315,23 @@ sits_classify_raster <- function(file = NULL,
 
     return(raster_class.tb)
 }
-
-.sits_preprocess_data <- function(values.mx, missing_value, minimum_value, scale_factor, adj_val,
+#' @title Preprocess a set of values retrived from a raster brick
+#' @name  .sits_preprocess_data
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  values.mx        matrix of values retrieved from a brick
+#' @param  band             band to be processed
+#' @param  missing_value    missing value for the band
+#' @param  minimum_value    minimum values for the band
+#' @param  scale_factor     scale factor for each band (only for raster data)
+#' @param  adj_val          adjustment value to be applied to the data
+#' @param  smoothing        (logical) apply a Whittaker smoothing function?
+#' @param  normalize        (logical) should the input data be normalized?
+#' @param  lambda           degree of smoothing of the Whittaker smoother (default = 0.5)
+#' @param  differences      the order of differences of contiguous elements (default = 3)
+#' @param  stats.tb         normalization parameters
+#' @return values.mx        matrix with pre-processed values
+.sits_preprocess_data <- function(values.mx, band, missing_value, minimum_value, scale_factor, adj_val,
                                   smoothing, lambda, differences, normalize, stats.tb){
 
     # define the smoothing function
@@ -339,7 +354,7 @@ sits_classify_raster <- function(file = NULL,
     if (normalize) {
         mean <- stats.tb[1, band]
         std  <- stats.tb[2, band]
-        values.mx <- normalize_data (values.mx, mean, std)
+        values.mx <- normalize_data(values.mx, mean, std)
     }
 
     if (smoothing) {
@@ -350,7 +365,18 @@ sits_classify_raster <- function(file = NULL,
     return(values.mx)
 }
 
-.sits_predict_block <- function (time_index.lst, attr_names, bands, dist_DT, ml_model) {
+#' @title Classify a block of raster values
+#' @name  .sits_predict_block
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  time_index.lst    list with valid time indexes per interval of classification
+#' @param  attr_names        vector with the attribute names
+#' @param  bands             bands to be classified
+#' @param  dist_DT           data.table with distance values
+#' @param  ml_model          machine learning model to be applied
+#' @return pred_vec.lst      list of vector of predicted values (one vector per time interval)
+
+.sits_predict_block <- function(time_index.lst, attr_names, bands, dist_DT, ml_model) {
 
     select.lst <- .sits_select_indexes(time_index.lst, bands, dist_DT)
 
@@ -376,22 +402,3 @@ sits_classify_raster <- function(file = NULL,
     gc()
     return(pred_vec.lst)
 }
-
-.sits_select_indexes <- function (time_index.lst, bands, dist_DT){
-    select.lst <- vector("list", length(time_index.lst))
-
-    for (t in 1:length(time_index.lst)) {
-        idx <- time_index.lst[[t]]
-        # for a given time index, build the data.table to be classified
-        # build the classification matrix extracting the relevant columns
-        select.lst[[t]] <- logical(length = ncol(dist_DT))
-        select.lst[[t]][1:2] <- TRUE
-        for (b in 1:length(bands)) {
-            i1 <- idx[(2*b - 1)] + 2
-            i2 <- idx[2*b] + 2
-            select.lst[[t]][i1:i2] <- TRUE
-        }
-    }
-    return(select.lst)
-}
-

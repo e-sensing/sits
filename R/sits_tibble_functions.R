@@ -554,7 +554,9 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
 #' @export
 #'
 #' @examples
-#' sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
+#' \donttest{
+#' #' sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
+#' }
 #'
 sits_normalize_ts <- function(data.tb = NULL){
 

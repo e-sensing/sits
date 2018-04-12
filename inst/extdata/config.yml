@@ -8,18 +8,16 @@ default:
     # Protocols accepted for data acess
     protocols               : ["WTSS", "SATVEG", "RASTER"]
     # Time series services known to SITS
-    ts_services             : ["WTSS-INPE-1", "WTSS-INPE-2", "SATVEG", "RASTER"]
+    ts_services             : ["WTSS-INPE", "SATVEG", "RASTER"]
     # Names of ts_services per protocols
-    WTSS_services           : ["WTSS-INPE-1", "WTSS-INPE-2"]
+    WTSS_services           : ["WTSS-INPE"]
     SATVEG_services         : ["SATVEG"]
     RASTER_protocol         : ["RASTER"]
 
     # URL to access each WTSS service
-    WTSS-INPE-1_protocol    : "WTSS"
-    WTSS-INPE-1_server      : "http://www.dpi.inpe.br/tws/wtss"
 
-    WTSS-INPE-2_protocol    : "WTSS"
-    WTSS-INPE-2_server      : "http://www.esensing.dpi.inpe.br/wtss/"
+    WTSS-INPE_protocol      : "WTSS"
+    WTSS-INPE_server        : "http://www.esensing.dpi.inpe.br/wtss/"
 
     # URL to access SATVEG
     SATVEG_protocol         : "SATVEG"

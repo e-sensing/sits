@@ -220,6 +220,37 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 
     return(which(timeline == end_date) - which(timeline == start_date) + 1)
 }
+
+#' @title Provide a list of indexes to extract data from a distance table for classification
+#' @name .sits_select_indexes
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a list of time indexes that indicate the start and end of the values to
+#' be extracted to classify each band, obtain a list of indexes that will be used to
+#' extract values from a combined distance table (with has all the bands put together)
+#'
+#' @param  time_indexes.lst   List with valid time indexes per interval of classification
+#' @param  bands              vector of
+#' @param  dist_DT            data.table containing all the values for all bands for all years
+#' @return select.lst         list of values to be extracted for each classification interval
+
+.sits_select_indexes <- function(time_index.lst, bands, dist_DT) {
+    select.lst <- vector("list", length(time_index.lst))
+
+    for (t in 1:length(time_index.lst)) {
+        idx <- time_index.lst[[t]]
+        # for a given time index, build the data.table to be classified
+        # build the classification matrix extracting the relevant columns
+        select.lst[[t]] <- logical(length = ncol(dist_DT))
+        select.lst[[t]][1:2] <- TRUE
+        for (b in 1:length(bands)) {
+            i1 <- idx[(2*b - 1)] + 2
+            i2 <- idx[2*b] + 2
+            select.lst[[t]][i1:i2] <- TRUE
+        }
+    }
+    return(select.lst)
+}
 #' @title Create a list of time indexes from the dates index
 #' @name  .sits_time_index
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

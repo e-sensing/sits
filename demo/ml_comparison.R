@@ -55,7 +55,7 @@ conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
 print("== Confusion Matrix = DL =======================")
 conf_dl.mx <- sits_conf_matrix(conf_dl.tb)
 
-conf_dl.mx$name <- "adam_300_200_100_040_020_020"
+conf_dl.mx$name <- "dl"
 
 results[[length(results) + 1]] <- conf_dl.mx
 
@@ -108,17 +108,6 @@ conf_mlr.mx$name <- "mlr"
 
 results[[length(results) + 1]] <- conf_mlr.mx
 
-# =============== GBM ==============================
-# Gradient Boosting Machine
-conf_gbm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
-                                   ml_method   = sits_gbm())
-
-# print the accuracy of the Gradient Boosting Machine
-print("== Confusion Matrix = GBM =======================")
-conf_gbm.mx <- sits_conf_matrix(conf_gbm.tb)
-conf_gbm.mx$name <- "gbm"
-
-results[[length(results) + 1]] <- conf_gbm.mx
 
 WD = getwd()
 

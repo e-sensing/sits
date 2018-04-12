@@ -17,7 +17,9 @@ this function normalizes the time series using the mean and
 standard deviation of all the time series.
 }
 \examples{
-sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
+\donttest{
+#' sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
+}
 
 }
 \author{

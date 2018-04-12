@@ -12,7 +12,7 @@ files <- c(l8m_222068_ndvi_file, l8m_222068_evi_file, l8m_222068_nir_file)
 # define the timeline
 
 timeline <- timeline_2000_2017 [timeline_2000_2017 >= lubridate::as_date("2015-08-29")]
-timeline <- timeline1[1:23]
+timeline <- timeline[1:23]
 
 # create a raster metadata file based on the information about the files
 raster.tb <- sits_coverage(service = "RASTER", name = "L8MOD-222_68_2015-2016",
@@ -37,8 +37,9 @@ multicores <- as.integer(readline(prompt = "Enter number of cores: "))
 
 
 # classify the raster image
-sits_classify_raster(file = "./L8_MOD_222-068-class", raster.tb, samples.tb,
+raster_class.tb <- sits_classify_raster(file = "./L8_MOD_222-068-class", raster.tb, samples.tb,
                      ml_method = sits_svm(),
                      memsize = memsize, multicores = multicores)
 
+sits_plot_raster(raster_class_tb[1,], title = "LANDSAT-MODIS-222-068-2015-2016")
 

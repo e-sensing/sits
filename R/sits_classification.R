@@ -122,12 +122,6 @@ sits_classify <- function(data.tb    = NULL,
     #retrieve the time index
     time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
 
-    # add a shift of two positions to the time index
-    time_index.lst  <- time_index.lst %>%
-        purrr::map(function(ti){
-            ti <- ti + 2
-        })
-
     # define the column names
     attr_names.lst <- bands %>%
         purrr::map(function(b){
@@ -139,8 +133,6 @@ sits_classify <- function(data.tb    = NULL,
 
     # create a data table to store the distances
     dist_DT <- data.table::data.table(nrow = 0, ncol = length(attr_names))
-
-    tworows_DT <- data.table::data.table("original_row" = 1, "reference" = "NoClass")
 
     # classify a block of data
     classify_block <- function(distances_DT) {
@@ -185,8 +177,6 @@ sits_classify <- function(data.tb    = NULL,
 
     return(pred.vec)
 }
-
-
 
 
 #' @title Define the information required for classifying time series
@@ -245,7 +235,6 @@ sits_classify <- function(data.tb    = NULL,
     )
     return(class_info.tb)
 }
-
 
 
 

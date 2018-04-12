@@ -1,8 +1,8 @@
 testthat::context("Data input")
 testthat::test_that("Creating a WTSS coverage", {
     testthat::skip_on_cran()
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
-    testthat::expect_true(coverage_wtss$service == "WTSS-INPE-2")
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+    testthat::expect_true(coverage_wtss$service == "WTSS-INPE")
 })
 testthat::test_that("Creating a SATVEG coverage", {
     testthat::skip_on_cran()
@@ -13,7 +13,7 @@ testthat::test_that("Creating a SATVEG coverage", {
 testthat::test_that("Reading a CSV file from WTSS", {
     testthat::skip_on_cran()
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
     points.tb <- sits_getdata(coverage = coverage_wtss, file = csv_file)
     df_csv <- utils::read.csv(system.file("extdata/samples/samples_matogrosso.csv", package = "sits"))
     testthat::expect_true(NROW(points.tb) == NROW(df_csv))
@@ -32,7 +32,7 @@ testthat::test_that("Reading a CSV file from RASTER", {
 
 testthat::test_that("Reading a point from WTSS ",{
     testthat::skip_on_cran()
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
     point.tb <- sits_getdata(coverage = coverage_wtss, longitude = -55.50563, latitude = -11.71557)
     timeline <- as.vector(point.tb$time_series[[1]]$Index)
 
@@ -65,7 +65,7 @@ testthat::test_that("Reading a ZOO time series", {
 
 testthat::test_that("Reading a shapefile", {
     testthat::skip_on_cran()
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE-2", name = "MOD13Q1")
+    coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
     shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
     munic.tb <- sits_getdata(coverage = coverage_wtss, file = shp_file)
 
