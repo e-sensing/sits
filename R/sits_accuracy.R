@@ -61,8 +61,11 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
         ref.vec  <- as.character(conv.lst[ref.vec])
     }
 
+    unique_ref <- unique(ref.vec)
+    pred.fac <- factor(pred.vec, levels = unique_ref)
+    ref.fac  <- factor(ref.vec, levels = unique_ref)
     # call caret package to the classification statistics
-    caret_assess <- caret::confusionMatrix(pred.vec, ref.vec)
+    caret_assess <- caret::confusionMatrix(pred.fac, ref.fac)
 
     # print the result
     .print_confusion_matrix(caret_assess)
