@@ -1,3 +1,61 @@
+#' @title Aligns dates of time series to a reference date
+#' @name sits_align
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description converts the time indexes of a set of sits tables to a single reference year.
+#' This function is useful to join many time series from different years to a single year,
+#' which is required by methods that combine many time series, such as clustering methods.
+#' The reference year is taken from the date of the start of the time series
+#' available in the coverage.
+#'
+#' @param  data.tb       tibble - input SITS table (useful for chaining functions)
+#' @param  ref_dates     the dates to align the time series
+#' @return data1.tb      tibble - the converted SITS table (useful for chaining functions)
+#' @export
+sits_align <- function(data.tb, ref_dates) {
+
+    # function to shift a time series in time
+    shift_ts <- function(d, k) dplyr::bind_rows(utils::tail(d,k), utils::head(d,-k))
+
+    # get the reference date
+    start_date <- lubridate::as_date(ref_dates[1])
+    # create an output table
+    data1.tb <- sits_tibble()
+
+    purrr::pmap(list(data.tb$longitude, data.tb$latitude,
+                     data.tb$label, data.tb$coverage, data.tb$time_series),
+                function(long, lat, lab, cov, ts) {
+
+                    # only rows that match the number of reference dates are kept
+                    if (length(ref_dates) == nrow(ts)) {
+                        # in what direction do we need to shift the time series?
+                        sense <- lubridate::yday(lubridate::as_date(ts[1,]$Index)) - lubridate::yday(lubridate::as_date(start_date))
+                        # find the date of minimum distance to the reference date
+                        idx <- which.min(abs((lubridate::as_date(ts$Index) - lubridate::as_date(start_date))/lubridate::ddays(1)))
+                        # do we shift time up or down?
+                        if (sense < 0) shift <- -(idx - 1) else shift <- (idx - 1)
+                        # shift the time series to match dates
+                        if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
+                        # convert the time index to a reference year
+                        first_date <- lubridate::as_date(ts[1,]$Index)
+                        # change the dates to the reference dates
+                        ts1 <- dplyr::mutate(ts, Index = ref_dates)
+
+                        # save the resulting row in the output table
+                        row <- tibble::tibble(longitude   = long,
+                                              latitude    = lat,
+                                              start_date  = lubridate::as_date(ref_dates[1]),
+                                              end_date    = ref_dates[length(ref_dates)],
+                                              label       = lab,
+                                              coverage    = cov,
+                                              time_series = list(ts1))
+
+
+                    }
+                    data1.tb <<- dplyr::bind_rows(data1.tb, row)
+                })
+    return(data1.tb)
+}
 #' @title Apply a function over SITS bands.
 #' @name sits_apply
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -220,7 +278,84 @@ sits_mutate <- function(data.tb, ...){
     data.tb$time_series <- proc_fun(...)
     return(data.tb)
 }
+#' @title Normalize the time series in the given sits_tibble
+#' @name sits_normalize_ts
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description this function normalizes the time series using the mean and
+#' standard deviation of all the time series.
+#'
+#' @param data.tb     a tibble in SITS format
+#' @param use_IQR     (logical): should we use inter-quartile ranges?
+#' @return data.tb    a normalized sits tibble
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' #' sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
+#' }
+#'
+sits_normalize_ts <- function(data.tb, use_IQR = TRUE){
+    .sits_test_tibble(data.tb)
 
+    DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
+    DT[,  Index := NULL ]
+
+    # compute statistics
+    if(use_IQR){
+        DT_tend <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
+        DT_disp <- DT[, lapply(.SD, stats::IQR, na.rm = TRUE)]
+    }else{
+        DT_tend <- DT[, lapply(.SD, mean, na.rm = TRUE)]
+        DT_disp <- DT[, lapply(.SD, stats::sd, na.rm = TRUE)]
+    }
+
+    # normalize time series
+    data.tb$time_series <- lapply(data.tb$time_series,
+                                  FUN = function(x, var_mean, var_sd){
+                                      res <- x
+                                      for (cname in names(var_mean)){
+                                          res[,cname] <- scale(x[,cname], center = var_mean[cname], scale = var_sd[cname])
+                                      }
+                                      return(res)
+                                  }, var_mean = as.matrix(DT_tend)[1,], var_sd = as.matrix(DT_disp)[1,])
+
+    return(data.tb)
+}
+
+#' @title Normalize the time series in the given sits_tibble
+#' @name sits_normalization_param
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description this function normalizes the time series using the mean and
+#' standard deviation of all the time series.
+#'
+#' @param data.tb     a tibble in SITS format
+#' @param use_IQR     (logical): should we use inter-quartile ranges?
+#' @return result.tb  a tibble with statistics
+#' @export
+sits_normalization_param <- function(data.tb, use_IQR = TRUE) {
+
+    .sits_test_tibble(data.tb)
+
+    DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
+
+    DT[, Index := NULL]
+
+    # compute statistics
+    if(use_IQR){
+        DT_tend <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
+        DT_disp <- DT[, lapply(.SD, stats::IQR, na.rm = TRUE)]
+    }else{
+        DT_tend <- DT[, lapply(.SD, mean, na.rm = TRUE)]
+        DT_disp <- DT[, lapply(.SD, stats::sd, na.rm = TRUE)]
+    }
+
+    stats.tb <- dplyr::bind_cols(stats = c("mean", "sd"),
+                                 dplyr::bind_rows(DT_tend, DT_disp))
+
+    return(stats.tb)
+}
 #' @title Checks that the timeline of all time series of a data set are equal
 #' @name sits_prune
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -542,82 +677,5 @@ sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
 }
 
 
-#' @title Normalize the time series in the given sits_tibble
-#' @name sits_normalize_ts
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description this function normalizes the time series using the mean and
-#' standard deviation of all the time series.
-#'
-#' @param data.tb     a tibble in SITS format
-#' @param use_IQR     (logical): should we use inter-quartile ranges?
-#' @return data.tb    a normalized sits tibble
-#' @export
-#'
-#' @examples
-#' \donttest{
-#' #' sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
-#' }
-#'
-sits_normalize_ts <- function(data.tb, use_IQR = TRUE){
-    .sits_test_tibble(data.tb)
 
-    DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
-    DT[,  Index := NULL ]
-
-    # compute statistics
-    if(use_IQR){
-        DT_tend <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
-        DT_disp <- DT[, lapply(.SD, stats::IQR, na.rm = TRUE)]
-    }else{
-        DT_tend <- DT[, lapply(.SD, mean, na.rm = TRUE)]
-        DT_disp <- DT[, lapply(.SD, stats::sd, na.rm = TRUE)]
-    }
-
-    # normalize time series
-    data.tb$time_series <- lapply(data.tb$time_series,
-                                  FUN = function(x, var_mean, var_sd){
-                                      res <- x
-                                      for(cname in names(var_mean)){
-                                          res[,cname] <- scale(x[,cname], center = var_mean[cname], scale = var_sd[cname])
-                                      }
-                                      return(res)
-                                  }, var_mean = as.matrix(DT_tend)[1,], var_sd = as.matrix(DT_disp)[1,])
-
-    return(data.tb)
-}
-
-#' @title Normalize the time series in the given sits_tibble
-#' @name .sits_normalization_param
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description this function normalizes the time series using the mean and
-#' standard deviation of all the time series.
-#'
-#' @param data.tb     a tibble in SITS format
-#' @param use_IQR     (logical): should we use inter-quartile ranges?
-#' @return result.tb  a tibble with statistics
-#'
-.sits_normalization_param <- function(data.tb, use_IQR = TRUE) {
-
-    .sits_test_tibble(data.tb)
-
-    DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
-
-    DT[, Index := NULL]
-
-    # compute statistics
-    if(use_IQR){
-        DT_tend <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
-        DT_disp <- DT[, lapply(.SD, stats::IQR, na.rm = TRUE)]
-    }else{
-        DT_tend <- DT[, lapply(.SD, mean, na.rm = TRUE)]
-        DT_disp <- DT[, lapply(.SD, stats::sd, na.rm = TRUE)]
-    }
-
-    stats.tb <- dplyr::bind_cols(stats = c("mean", "sd"),
-                                 dplyr::bind_rows(DT_tend, DT_disp))
-
-    return(stats.tb)
-}
 

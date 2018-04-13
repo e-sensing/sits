@@ -68,7 +68,7 @@ sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, en
 
         # align all samples to the same time series intervals
         sample_dates <- lubridate::as_date(tb[1,]$time_series[[1]]$Index)
-        tb           <- .sits_align(tb, sample_dates)
+        tb           <- sits_align(tb, sample_dates)
 
         # if "from" and "to" are not given, extract them from the data samples
         if (purrr::is_null(start_date) || purrr::is_null(end_date)) {

@@ -78,10 +78,22 @@ sits_classify_raster <- function(file = NULL,
     ensurer::ensure_that(file, !purrr::is_null(.),
                          err_desc = "sits-classify-raster: please provide name of output file")
 
-    # apply the smoothing function, if required
+    # smoothing requires a pre-trained model
     if (smoothing) {
         ensurer::ensure_that(ml_model, !(purrr::is_null(.)),
-                             err_desc = "sits_classify_raster - smoothing requires a pre-trained model")
+                             err_desc = "sits_classify_raster - smoothing requires a pre-built model \n
+                                         Please run the sits_train function first \n
+                                         Use the model produced by sits_train as an input parameter to sits_classify_raster")
+    }
+
+    # normalization requires a pre-trained model
+    if (normalize) {
+        message("Please ensure that the input samples (samples.tb) are **not** the normalized values  \n
+                SITS needs the **original** samples to compute the normalization parameters for the raster data")
+        ensurer::ensure_that(ml_model, !(purrr::is_null(.)),
+                             err_desc = "sits_classify_raster - normalization requires a pre-trained model \n
+                                         Please run the sits_train function first \n
+                                         Use the model produced by sits_train as an input parameter to sits_classify_raster")
     }
 
     # set up the ML model
@@ -218,7 +230,7 @@ sits_classify_raster <- function(file = NULL,
 
     # if normalization is required, calculate normalization param
     if (normalize)
-        stats.tb <- .sits_normalization_param(samples.tb)
+        stats.tb <- sits_normalization_param(samples.tb)
 
     # function to process blocks
     process_block <- function(block_info) {
