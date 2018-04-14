@@ -32,7 +32,7 @@
     }
 
     if (!purrr::is_null(longitude) && !purrr::is_null(latitude)) {
-        data.tb <- .sits_ts_fromRaster(coverage, longitude, latitude, label)
+        data.tb <- .sits_ts_fromRaster(coverage, longitude, latitude, start_date, end_date, label)
     }
     return(data.tb)
 }
@@ -48,15 +48,28 @@
 #' @param raster.tb        A tibble with metadata information about a raster data set
 #' @param longitude        Longitude of the chosen location
 #' @param latitude         Latitude of the chosen location
+#' @param start_date      date - the start of the period
+#' @param end_date        date - the end of the period
 #' @param label            Label to attach to the time series
 #' @return data.tb         SITS tibble with the time series
-.sits_ts_fromRaster <- function(raster.tb, longitude, latitude, label = "NoClass"){
+.sits_ts_fromRaster <- function(raster.tb, longitude, latitude, start_date, end_date, label = "NoClass"){
 
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) >= 1,
                          err_desc = "sits_ts_fromRasterXY: need a valid metadata for coverage")
 
     timeline <- raster.tb$timeline[[1]]
+
+    start_idx <- 1
+    end_idx   <- length(timeline)
+
+    if (!purrr::is_null(start_date)) {
+        start_idx <- which.min(abs(lubridate::as_date(start_date) - timeline))
+    }
+    if (!purrr::is_null(end_date)) {
+        end_idx <- which.min(abs(lubridate::as_date(end_date) - timeline))
+    }
+    timeline <- timeline[start_idx:end_idx]
 
     ts.tb <- tibble::tibble(Index = timeline)
 
@@ -84,7 +97,7 @@
                 return(NULL)
             }
             # create a tibble to store the values
-            values.tb <- tibble::tibble(values)
+            values.tb <- tibble::tibble(values[start_idx:end_idx])
             # find the names of the tibble column
             band <- bands[nband]
             names(values.tb) <- band

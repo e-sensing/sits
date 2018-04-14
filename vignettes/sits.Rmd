@@ -106,7 +106,7 @@ For a large number of samples, where the amount of individual plots would be sub
 
 ```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all 'Cerrado' samples from data set \\texttt{samples_MT_9classes}."}
 # plot all cerrado samples together (shows the distribution)
-#sits_plot(samples_cerrado.tb)
+sits_plot(samples_cerrado.tb)
 ```
 
 Usually, samples are provided by experts whose take *in-loco* field observations or recognises land classes through high resolution images. In any case, we need access to a data source to fetch time series data regarding a spatiotemporal location of interest. The process of importing data samples is discussed in the next section.

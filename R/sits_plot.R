@@ -114,7 +114,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
     # put the time series in the data frame
     purrr::pmap(list(data$latitude, data$longitude, data$label,
                      data$time_series, data$predicted),
-                function (row_latitude, row_longitude, row_label,
+                function(row_latitude, row_longitude, row_label,
                           row_time_series, row_predicted) {
                     lb = .sits_plot_title(row_latitude, row_longitude, row_label)
                     # extract the time series
@@ -234,57 +234,6 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' @param    colors     the color pallete to be used (default is "Set1")
 #' @return   data.tb    tibble - the input SITS table (useful for chaining functions)
 #'
-# .sits_plot_together <- function(data.tb, colors) {
-#      # this function plots all the values of all time series together (for one band)
-#      plot_samples <- function(ts, band, label, number) {
-#           series.tb <- ts %>%
-#                data.frame()                      %>%  # convert list to data frame
-#                tibble::as_tibble()                        %>%  # convert data fram to tibble
-#                dplyr::select(Index, dplyr::starts_with(band))       # select only the index and the chosen band
-#
-#           # compute the quantiles
-#           qts   = apply(series.tb[,2:ncol(series.tb)],1,stats::quantile, na.rm = TRUE)
-#           # create a data frame with the median, and 25% and 75% quantiles
-#           means.tb <- data.frame(Index = series.tb$Index,
-#                                  qt25  = qts[2,],
-#                                  med   = qts[3,],
-#                                  qt75  = qts[4,]) %>%
-#                tibble::as_tibble()
-#
-#           # melt the data into long format (required for ggplot to work)
-#           melted.tb <- series.tb %>%
-#                reshape2::melt(id.vars = "Index")
-#           # make the plot title
-#           title <- paste("Samples (", number, ") for class ", label, " in band = ", band, sep = "")
-#           # plot all data together
-#           g <- .sits_ggplot_together(melted.tb, means.tb, title)
-#           graphics::plot(g)
-#      }
-#
-#      # how many different labels are there?
-#      labels <- sits_labels(data.tb)$label
-#
-#      labels %>%
-#          purrr::map(function(l) {
-#              lb = as.character(l)
-#              # filter only those rows with the same label
-#              data2.tb <- dplyr::filter(data.tb, label == lb)
-#              # how many time series are to be plotted?
-#              number <- nrow(data2.tb)
-#              # what are the band names?
-#              bands  <- sits_bands(data2.tb)
-#              # what are the reference dates?
-#              ref_dates <- data2.tb[1,]$time_series[[1]]$Index
-#              # align all time series to the same dates
-#              data2.tb <- sits_align(data2.tb, ref_dates)
-#              # extract the time series
-#
-#              # plot all samples for the same label
-#              bands %>%
-#                  purrr::map(function(band) {plot_samples(ts, band, lb, number)})
-#      })
-# }
-
 .sits_plot_together <- function(data.tb, colors) {
 
     # create a data frame with the median, and 25% and 75% quantiles
@@ -299,12 +248,12 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
         DT_qts <- merge(DT_med, DT_qt25)
         DT_qts <- merge(DT_qts, DT_qt75)
         data.table::setnames(DT, "V1", band)
-        return (DT_qts)
+        return(DT_qts)
     }
     # this function plots all the values of all time series together (for one band)
-    plot_samples <- function(DT_b, DT_qts, band, label, number) {
+    plot_samples <- function(DT, DT_qts, band, label, number) {
         # melt the data into long format (required for ggplot to work)
-        DT_melted <- data.table::melt(DT_b, id.vars = "Index")
+        DT_melted <- data.table::melt(DT, id.vars = "Index")
         # make the plot title
         title <- paste("Samples (", number, ") for class ", label, " in band = ", band, sep = "")
         # plot all data together
@@ -333,21 +282,26 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 
             bands %>%
                 purrr::map(function(band) {
+                    # select the band to be shown
                     band.tb <- sits_select_bands(data2.tb, band)
-                    series.tb <- band.tb$time_series %>%
-                        data.frame()  %>%  # convert list to data frame
-                        tibble::as_tibble() %>%  # convert data frame to tibble
-                        dplyr::select(Index, dplyr::starts_with(band))
+                    # create a list with all time series for this band
+                    DT.lst <- purrr::map(band.tb$time_series, function(ts) {data.table::data.table(ts) })
+                    # set "Index" as the key for all data.tables in the list
+                    DT.lst <- purrr::map(DT.lst, function(dt) {data.table::setkey(dt, Index)})
+                    # rename the columns of the data table prior to merging
+                    for (i in 1:length(DT.lst))
+                        data.table::setnames(DT.lst[[i]],band,paste0(band, ".", as.character(i)))
+                    # merge the list of data.tables into a single table
+                    DT <- Reduce(function(...) merge(..., all = T), DT.lst)
 
-                    DT_samples <- data.table::data.table(series.tb)
-                    DT <- data.table::data.table(dplyr::bind_rows(data2.tb$time_series))
-                    DT_qts <- create_IQR(DT, band)
-                    data.table::setnames(DT, band, "V1")
-                    DT_b <- DT[, .(Index, V1)]
-                    data.table::setnames(DT_b, "V1", band)
-                    data.table::setnames(DT, "V1", band)
-                    plot_samples(DT_samples, DT_qts, band, lb, number)
-                    })
+                    # create another data.table with all the rows together
+                    # (required to compute the median and quartile values)
+                    DT_byrows <- data.table::data.table(dplyr::bind_rows(band.tb$time_series))
+                    # compute the median and quartile values
+                    DT_qts <- create_IQR(DT_byrows, band)
+                    # plot the time series together (highlighting the median and quartiles 25% and 75%)
+                    plot_samples(DT, DT_qts, band, lb, number)
+                })
         })
 }
 #' @title Plot one timeSeries using ggplot
