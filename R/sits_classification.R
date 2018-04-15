@@ -137,7 +137,7 @@ sits_classify <- function(data.tb    = NULL,
     # classify a block of data
     classify_block <- function(distances_DT) {
         # select the data table indexes for each time index
-        select.lst <- .sits_select_indexes(time_index.lst, bands, distances_DT)
+        select.lst <- .sits_select_indexes(time_index.lst, bands, ncol(distances_DT))
 
         # create a list to store the data tables to be used for prediction
         row.lst <- list()

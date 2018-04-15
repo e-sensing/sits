@@ -231,17 +231,17 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 #'
 #' @param  time_indexes.lst   List with valid time indexes per interval of classification
 #' @param  bands              vector of
-#' @param  dist_DT            data.table containing all the values for all bands for all years
+#' @param  ncols              number of columns of data
 #' @return select.lst         list of values to be extracted for each classification interval
 
-.sits_select_indexes <- function(time_index.lst, bands, dist_DT) {
+.sits_select_indexes <- function(time_index.lst, bands, ncols) {
     select.lst <- vector("list", length(time_index.lst))
 
     for (t in 1:length(time_index.lst)) {
         idx <- time_index.lst[[t]]
         # for a given time index, build the data.table to be classified
         # build the classification matrix extracting the relevant columns
-        select.lst[[t]] <- logical(length = ncol(dist_DT))
+        select.lst[[t]] <- logical(length = ncols)
         select.lst[[t]][1:2] <- TRUE
         for (b in 1:length(bands)) {
             i1 <- idx[(2*b - 1)] + 2
