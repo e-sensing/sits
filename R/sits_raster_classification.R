@@ -660,13 +660,13 @@ sits_classify_raster <- function(file = NULL,
 .sits_optimize_multicores <- function(totalsize, ncores, memsize) {
 
 
-    p1 <- sits.env$config$data_size_decrease_rate
-    p2 <- sits.env$config$disk_access_increase_rate
+    p1 <- sits.env$config$data_size_decrease_rate     # default 0.03
+    p2 <- sits.env$config$disk_access_increase_rate   # default 0.25
     estimated_time = vector(length = ncores)
 
     for (c in 1:ncores) {
         n_reads <- ceiling((c*totalsize)/memsize)
-        prop <- 0.1 - 0.03*sqrt(round(totalsize)) + 0.025*n_reads
+        prop <- 0.1 - p1*sqrt(round(totalsize/n_reads)) + p2*n_reads
         if ( prop < 0.0 ) prop <- 0.0
         estimated_time[c] <- (1 - prop)/c + prop*c
     }
