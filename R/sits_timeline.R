@@ -127,6 +127,12 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 
     end_date <- timeline[which(timeline == start_date) + (num_samples - 1)]
 
+    # is the start date a valid one?
+    ensurer::ensure_that(end_date, !(is.na(end_date)),
+                         err_desc = "sits_match_timelines: start and end date of samples do not match timeline /n
+                                     Please compare your timeline with your samples")
+
+
     # go through the timeline of the data and find the reference dates for the classification
     while (!is.na(end_date)) {
         # add the start and end date
