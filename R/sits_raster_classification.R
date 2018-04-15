@@ -492,12 +492,12 @@ sits_classify_raster <- function(file = NULL,
     ntimes   <- length(timeline)
     #ntimes <- time_index.lst[[length(time_index.lst)]][2] - time_index.lst[[1]][1] + 1
     # number of bytes por pixel
-    nbytes <-  as.numeric(8.0)
+    nbytes <-  8
     # estimated memory bloat
-    bloat <- as.numeric(2.0)
+    bloat <- as.numeric(2*nbytes)
 
     # calculate the estimated size of the data
-    full_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(ntimes)*as.numeric(nbands)*nbytes*bloat + as.numeric(pryr::mem_used())
+    full_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(ntimes)*as.numeric(nbands)*bloat + as.numeric(pryr::mem_used())
 
 
     # number of passes to read the full data sets
