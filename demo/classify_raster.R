@@ -27,7 +27,7 @@ sits_plot(point.tb)
 # classify the raster image
 raster_class.tb <- sits_classify_raster(file = "./sinop-class", raster.tb, samples.tb,
                      ml_method = sits_svm(cost = 10, kernel = "radial", tolerance = 0.001, epsilon = 0.1),
-                     smoothing = FALSE, verbose = FALSE, memsize = 4, multicores = 2)
+                     smoothing = FALSE, verbose = TRUE, memsize = 4, multicores = 2)
 
 # plot the first classified image
 sits_plot_raster(raster_class.tb[1,], title = "SINOP MT - 2000/2001")
