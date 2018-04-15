@@ -494,14 +494,18 @@ sits_classify_raster <- function(file = NULL,
     # number of bytes por pixel
     nbytes <-  8
     # estimated memory bloat
-    bloat <- as.numeric(2*nbytes)
+    bloat <- as.numeric(1.2*nbytes)
 
     # calculate the estimated size of the data
     full_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(ntimes)*as.numeric(nbands)*bloat + as.numeric(pryr::mem_used())
 
+    data_size_GB <- full_data_size/1e+09
+
+    ncores_opt <- .sits_optimize_multicores(data_size_GB, multicores, memsize)
+    message(paste0("Found optimal number of cores - ", ncores_opt))
 
     # number of passes to read the full data sets
-    nblocks <- ceiling(full_data_size/(memsize*1e+09))
+    nblocks <- ceiling(ncores_opt*full_data_size/(memsize*1e+09))
 
     # divide the input data in blocks
     bs <- .sits_raster_block_size(nrows, ncols, nblocks)
@@ -583,9 +587,9 @@ sits_classify_raster <- function(file = NULL,
             # set up multicore processing
             if (multicores > 1) {
                 # estimate the list for breaking a block
-                chunk_size.lst <- .sits_split_block_size(1, nrow(dist1_DT), multicores)
+                chunk_size.lst <- .sits_split_block_size(1, nrow(dist1_DT), ncores_opt)
                 # apply parallel processing to the split data and join the results
-                pred.vec <- unlist(parallel::mclapply(chunk_size.lst, classify_block, mc.cores = multicores))
+                pred.vec <- unlist(parallel::mclapply(chunk_size.lst, classify_block, mc.cores = ncores_opt))
             }
 
             # memory management
@@ -634,4 +638,37 @@ sits_classify_raster <- function(file = NULL,
     raster_class.tb$r_objs <- layers.lst
 
     return(raster_class.tb)
+}
+
+#
+#' @title Defines an ad-hoc optimization function for choosing the number of cores
+#' @name  .sits_optimize_multicores
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description The total processing time is the sum of the time required to read
+#' the data and the time needed for classification. For a reference machine,
+#' with 1 core, an image of about 1 GB is expected to take 10% in reading time
+#' and 90% in processing time. As the size of the data increases, the time required
+#' to read the data (relative to the time required for processing)
+#' decreases in proportion of the square root of the data and increases in proportion
+#' of the number of reads.
+#'
+#' @param  totalsize       totalsize of data (in GB)
+#' @param  ncores          number of cores available for processing
+#' @param  memsize         memory available for processing
+#' @return ncores_opt      optimal number of cores for processing
+.sits_optimize_multicores <- function(totalsize, ncores, memsize) {
+
+
+    p1 <- sits.env$config$data_size_decrease_rate
+    p2 <- sits.env$config$disk_access_increase_rate
+    estimated_time = vector(length = ncores)
+
+    for (c in 1:ncores) {
+        n_reads <- ceiling((c*totalsize)/memsize)
+        prop <- 0.1 - 0.03*sqrt(round(totalsize)) + 0.025*n_reads
+        if ( prop < 0.0 ) prop <- 0.0
+        estimated_time[c] <- (1 - prop)/c + prop*c
+    }
+    return(which.min(estimated_time))
 }
