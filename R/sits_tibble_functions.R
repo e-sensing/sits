@@ -288,6 +288,7 @@ sits_mutate <- function(data.tb, ...){
 #' @param data.tb     a tibble in SITS format
 #' @param use_IQR     (logical): should we use inter-quartile ranges?
 #' @return data.tb    a normalized sits tibble
+#' @param  multicores number of threads to process the time series.
 #' @export
 #'
 #' @examples
@@ -295,7 +296,7 @@ sits_mutate <- function(data.tb, ...){
 #' #' sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
 #' }
 #'
-sits_normalize_ts <- function(data.tb, use_IQR = TRUE){
+sits_normalize_ts <- function(data.tb, use_IQR = TRUE, multicores = 1){
     .sits_test_tibble(data.tb)
 
     DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
@@ -311,18 +312,18 @@ sits_normalize_ts <- function(data.tb, use_IQR = TRUE){
     }
 
     # normalize time series
-    data.tb$time_series <- lapply(data.tb$time_series,
-                                  FUN = function(x, var_mean, var_sd){
-                                      res <- x
-                                      for (cname in names(var_mean)){
-                                          res[,cname] <- scale(x[,cname], center = var_mean[cname], scale = var_sd[cname])
-                                      }
-                                      return(res)
-                                  }, var_mean = as.matrix(DT_tend)[1,], var_sd = as.matrix(DT_disp)[1,])
-
+    data.tb$time_series <-
+        parallel::mclapply(X = data.tb$time_series,
+                           mc.cores = multicores,
+                           FUN = function(x, var_mean, var_sd){
+                               norm.tb <- dplyr::as_tibble(scale(x[,2:ncol(x)],
+                                                                 center = var_mean,
+                                                                 scale = var_sd))
+                               return(dplyr::bind_cols(x["Index"], norm.tb))
+                           }, var_mean = as.matrix(DT_tend)[1,],
+                           var_sd = as.matrix(DT_disp)[1,])
     return(data.tb)
 }
-
 #' @title Normalize the time series in the given sits_tibble
 #' @name sits_normalization_param
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
