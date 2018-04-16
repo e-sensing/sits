@@ -501,8 +501,10 @@ sits_classify_raster <- function(file = NULL,
 
     data_size_GB <- full_data_size/1e+09
 
-    ncores_opt <- .sits_optimize_multicores(data_size_GB, multicores, memsize)
-    message(paste0("Found optimal number of cores - ", ncores_opt))
+    # ncores_opt <- .sits_optimize_multicores(data_size_GB, multicores, memsize)
+    # message(paste0("Found optimal number of cores - ", ncores_opt))
+
+    ncores_opt <- multicores
 
     # number of passes to read the full data sets
     nblocks <- ceiling(ncores_opt*full_data_size/(memsize*1e+09))
