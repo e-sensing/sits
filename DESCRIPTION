@@ -76,6 +76,7 @@ Imports:
     tibble (>= 1.4),
     tidyr,
     tools,
+    units,
     utils,
     wtss,
     zoo
