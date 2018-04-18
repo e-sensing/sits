@@ -5,14 +5,15 @@
 \title{Export a shapefile with points to a CSV file for later processing}
 \usage{
 sits_shp_toCSV(shpfile, csvfile, label, timeline, start_date, end_date,
-  interval = "12 month")
+  interval = "12 month", n_samples = 500, min_area = 100, min_dist = 50,
+  border_offset = 50, is_density = FALSE)
 }
 \arguments{
-\item{shpfile}{a POINT shapefile}
+\item{shpfile}{a POINT or POLYGON shapefile}
 
 \item{csvfile}{the name of the exported CSV file}
 
-\item{label}{label associated to the samples}
+\item{label}{it can be either the label associated to the samples (POINT) or the name of a field in the shapefile (POLYGON)}
 
 \item{timeline}{the timeline of the data set}
 
@@ -21,6 +22,16 @@ sits_shp_toCSV(shpfile, csvfile, label, timeline, start_date, end_date,
 \item{end_date}{end date for which the samples are valid}
 
 \item{interval}{interval between two samples of the same place}
+
+\item{n_samples}{A length-one numeric. The number of samples requested. If is_density = TRUE, nsamples is the number of samples per unit of area. The default is 500.}
+
+\item{min_area}{A length-one numeric. The minimum area of a sampled polygon. The default is 100.}
+
+\item{min_dist}{A length-one numeric. The minimum disatnces between samples. The default is 50.}
+
+\item{border_offset}{A length-one numeric. The minimum distance from the samples to the polygon's borders. The default is 50.}
+
+\item{is_density}{A length-one logical. Is this a density sampling? The dafault is FALSE}
 }
 \value{
 status     the status of the operation

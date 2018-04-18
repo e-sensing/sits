@@ -4,12 +4,14 @@
 \alias{sits_normalize_ts}
 \title{Normalize the time series in the given sits_tibble}
 \usage{
-sits_normalize_ts(data.tb, use_IQR = TRUE)
+sits_normalize_ts(data.tb, use_IQR = TRUE, multicores = 1)
 }
 \arguments{
 \item{data.tb}{a tibble in SITS format}
 
 \item{use_IQR}{(logical): should we use inter-quartile ranges?}
+
+\item{multicores}{number of threads to process the time series.}
 }
 \value{
 data.tb    a normalized sits tibble

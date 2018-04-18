@@ -85,13 +85,18 @@ sits_data_toCSV <- function(data.tb, file){
 #'              series. Its columns will be the same as those of a CSV file used to retrieve data from
 #'              ground information ("latitude", "longitude", "start_date", "end_date", "coverage", "label").
 #'
-#' @param  shpfile    a POINT shapefile
+#' @param  shpfile    a POINT or POLYGON shapefile
 #' @param  csvfile    the name of the exported CSV file
-#' @param  label      label associated to the samples
+#' @param  label      it can be either the label associated to the samples (POINT) or the name of a field in the shapefile (POLYGON)
 #' @param  timeline   the timeline of the data set
 #' @param  start_date starting date for which the samples are valid
 #' @param  end_date   end date for which the samples are valid
 #' @param  interval   interval between two samples of the same place
+#' @param  n_samples     A length-one numeric. The number of samples requested. If is_density = TRUE, nsamples is the number of samples per unit of area. The default is 500.
+#' @param  min_area      A length-one numeric. The minimum area of a sampled polygon. The default is 100.
+#' @param  min_dist      A length-one numeric. The minimum disatnces between samples. The default is 50.
+#' @param  border_offset A length-one numeric. The minimum distance from the samples to the polygon's borders. The default is 50.
+#' @param  is_density    A length-one logical. Is this a density sampling? The dafault is FALSE
 #' @return status     the status of the operation
 #'
 #' @examples
@@ -111,27 +116,34 @@ sits_data_toCSV <- function(data.tb, file){
 #' sits_shp_toCSV(shpfile, csvfile, label, timeline_2000_2017, start_date, end_date)
 #' }
 #' @export
-
-sits_shp_toCSV <- function(shpfile, csvfile, label, timeline, start_date, end_date, interval = "12 month") {
+sits_shp_toCSV <- function(shpfile, csvfile, label, timeline, start_date,
+                           end_date, interval = "12 month", n_samples = 500,
+                           min_area = 100, min_dist = 50, border_offset = 50,
+                           is_density = FALSE) {
 
     # test parameters
     ensurer::ensure_that(shpfile, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
-                         err_desc = "sits_fromSHP: please provide a valid SHP file")
+                         err_desc = "sits_shp_toCSV: please provide a valid SHP file")
 
     # read the shapefile
     sf_shape <- sf::read_sf(shpfile)
 
+    # assume WGS84 if crs is NA
+    if(is.na(sf::st_crs(sf_shape))){
+        bbox <- sf::st_bbox(sf_shape)
+        test_lon <- c(bbox$xmin, bbox$xmax) <= 180 && c(bbox$xmin, bbox$xmax) >= -180
+        test_lat <- c(bbox$ymin, bbox$ymax) <= 90 && c(bbox$ymin, bbox$ymax) >= -90
+        if(test_lon && test_lat){
+            warning("Assuming WGS84 coordinate reference system.")
+            sf::st_crs(sf_shape) <- 4326
+        }
+    }
     # find out what is the projection of the shape file
     crs1 <- sf::st_crs(sf_shape)
     # if the shapefile is not in EPSG:4326 and WGS84, transform shape into WGS84
-    if (crs1$epsg != 4326) {
+    if (is.na(crs1$epsg) || crs1$epsg != 4326) {
         sf_shape <- sf::st_transform(sf_shape, crs = 4326)
     }
-
-    # extract the lat/long coords from the shapefile
-    coords <- do.call(rbind, sf::st_geometry(sf_shape)) %>%
-        tibble::as_tibble() %>%
-        stats::setNames(c("longitude","latitude"))
 
     # create a tibble to store the samples
     csv.tb <- tibble::tibble(
@@ -142,35 +154,146 @@ sits_shp_toCSV <- function(shpfile, csvfile, label, timeline, start_date, end_da
         end_date   = as.Date(character()),
         label      = character())
 
-    id <- 0
     # limit the timeline btw start and end_date
-    timeline <- timeline[timeline >= start_date]
-    timeline <- timeline[timeline <= end_date]
+    timeline <- timeline[timeline >= start_date & timeline <= end_date]
 
     # obtain pairs of (start, end) dates for each interval
     subset_dates.lst <- sits_match_timeline(timeline, start_date, end_date, interval)
 
-    # generate the output tibble
-    purrr::pmap(list(coords$longitude, coords$latitude), function(long, lat){
-        rows.lst <- subset_dates.lst %>%
-            purrr::map(function(date_pair) {
-                id <<- id + 1
-                tibble::tibble(
-                    id         = id,
-                    longitude  = long,
-                    latitude   = lat,
-                    start_date = date_pair[1],
-                    end_date   = date_pair[2],
-                    label      = label)
-            })
-        csv.tb <<- dplyr::bind_rows(csv.tb, rows.lst)
-    })
+    if(length(grep("POINT", attr(sf_shape$geometry, "class"), value =T)) > 0){
+        # extract the lat/long coords from the shapefile
+        coords <- do.call(rbind, sf::st_geometry(sf_shape)) %>%
+            tibble::as_tibble() %>%
+            stats::setNames(c("longitude","latitude"))
+        id <- 0
+        # generate the output tibble
+        purrr::pmap(list(coords$longitude, coords$latitude), function(long, lat){
+            rows.lst <- subset_dates.lst %>%
+                purrr::map(function(date_pair) {
+                    id <<- id + 1
+                    tibble::tibble(
+                        id         = id,
+                        longitude  = long,
+                        latitude   = lat,
+                        start_date = date_pair[1],
+                        end_date   = date_pair[2],
+                        label      = label)
+                })
+            csv.tb <<- dplyr::bind_rows(csv.tb, rows.lst)
+        })
+    }else if(length(grep("POLYGON", attr(sf_shape$geometry, "class"), value =T)) > 0){
+        sf_samples <- .sample_polygons(sf_shape = sf_shape, label = label,
+                                       n_samples = n_samples, min_area = min_area,
+                                       min_dist = min_dist, border_offset = border_offset,
+                                       is_density = is_density)
+        sf_samples <- sf::st_set_geometry(sf_samples, NULL)
+        if(nrow(sf_samples) > 0){
+            csv.tb <- tibble::tibble(
+                id         = 1:nrow(sf_samples),
+                longitude  = sf_samples$X,
+                latitude   = sf_samples$Y,
+                start_date = start_date,
+                end_date   = end_date,
+                label      = as.vector(unlist(sf_samples[label])))
+        }
+    }
+
     # write the CSV file
     tryCatch({utils::write.csv(csv.tb, csvfile, row.names = FALSE, quote = FALSE)},
              error = function(e){
-                 message(paste0("CSV - unable to save data in file ", csvfile))
+                 message(paste0("sits_shp_toCSV - unable to save data in file ", csvfile))
                  return(invisible(FALSE))})
-
     return(invisible(TRUE))
 }
+
+
+
+
+#' @title Obtain random samples from polygons
+#' @name .sample_polygons
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description Get random samples from a polygon sf object. By default, this
+#' function returns approximately the same number of samples for each unique
+#' label. If is_density is true
+#'
+#' @param sf_shape      A POLYGON sf object.
+#' @param label         A length-one character. The name of a variable in sf_shape
+#' @param n_samples     A length-one numeric. The number of samples requested. If is_density = TRUE, n_samples is the number of samples per unit of area.
+#' @param min_area      A length-one numeric. The minimum area of a sampled polygon.
+#' @param min_dist      A length-one numeric. The minimum disatnces between samples.
+#' @param border_offset A length-one numeric. The minimum distance from the samples to the polygon's borders.
+#' @param is_density    A length-one logical. Is this a density sampling? The dafault is FALSE
+#' @return sf_samples   A point sf object with the structure of sf_shape, plues the X and Y coordinates. The number of rows is approximately n_samples.
+.sample_polygons <- function(sf_shape, label, n_samples, min_area,
+                             min_dist, border_offset,
+                             is_density = FALSE){
+
+    # filter out invalid geometries
+    sf_shape <- sf_shape[sf::st_is_valid(sf_shape),]
+    # buffer to ensure no samples near the polygons' borders
+    if(border_offset != 0){
+        suppressMessages(suppressWarnings(
+            sf_shape <- sf::st_buffer(sf_shape, dist = base::sqrt(border_offset^2) * (-1))
+        ))
+    }
+    # add temporal variables
+    sf_shape["tmp_label"] <- sf::st_set_geometry(sf_shape[label], NULL)
+    sf_shape["tmp_area"] <- sf::st_area(sf_shape)
+    # filter out small areas and empty geometries
+    units(min_area) <- units::as_units(units(sf_shape$tmp_area))
+    sf_shape <- sf_shape[sf_shape$tmp_area > min_area,]
+    sf_shape <- sf_shape[!sf::st_is_empty(sf_shape),]
+    #
+    if(nrow(sf_shape) == 0){return(sf_shape)}
+    #
+    if(is_density){
+        # get samples
+        n <- round(sum(units::drop_units(sf_shape$tmp_area)) * n_samples,
+                   digits = 0)
+        suppressMessages(
+            samples_sfc <- sf::st_sample(sf_shape, size = n)
+        )
+        # cast to sf
+        sf_samples <- data.frame(id = 1:length(samples_sfc))
+        sf::st_geometry(sf_samples) <- samples_sfc
+    }else{
+        label_vec <- unique(sf_shape$tmp_label)
+        samples_per_class <- round(n_samples / length(label_vec), digits = 0)
+        # get samples
+        samples_sf_ls <- lapply(label_vec, FUN = function(x, sf_obj, n){
+            #sf_obj <- sf_obj %>% dplyr::filter(tmp_label == x)
+            sf_obj <- sf_obj[sf_obj$tmp_label == x, ]
+            suppressMessages(
+                samples_sfc <- sf::st_sample(sf_obj, size = n)
+            )
+            sf_samples <- data.frame(id = seq(along.with = samples_sfc))
+            sf::st_geometry(sf_samples) <- samples_sfc
+            return(sf_samples)
+        }, sf_obj = sf_shape, n = samples_per_class)
+        # cast to sf
+        sf_samples <- do.call(rbind, samples_sf_ls)
+    }
+    # check minimum distance between points
+    if(min_dist > 0){
+        dist_mt <- sf::st_distance(sf_samples)
+        units(min_dist) <- units::as_units(units(dist_mt))
+        dist_lg <- dist_mt > min_dist
+        dist_lg[upper.tri(dist_lg, diag = TRUE)] <- NA
+        selected_samples <- apply(dist_lg, MARGIN = 1, all, na.rm = TRUE)
+        sf_samples <- sf_samples[selected_samples, ]
+    }
+    # add coords as attributes
+    sf_samples <- cbind(sf_samples, sf::st_coordinates(sf_samples))
+    # spatial-join to the original attributes
+    suppressMessages(
+        sf_samples <- sf::st_join(sf_samples, sf_shape)
+    )
+    # prepare
+    sf_samples["tmp_label"] <- NULL
+    sf_samples["tmp_area"] <- NULL
+    return(sf_samples)
+}
+
+
 
