@@ -65,36 +65,11 @@ sits_classify_raster <- function(file = NULL,
                                  differences = 3.0,
                                  memsize    = 4,
                                  multicores = 2,
-                                 verbose    = FALSE){
+                                 verbose    = FALSE) {
 
-    # ensure metadata tibble exists
-    ensurer::ensure_that(raster.tb, NROW(.) > 0,
-                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
 
-    # ensure patterns tibble exits
-    .sits_test_tibble(samples.tb)
-
-    # ensure that file name and prediction model are provided
-    ensurer::ensure_that(file, !purrr::is_null(.),
-                         err_desc = "sits-classify-raster: please provide name of output file")
-
-    # smoothing requires a pre-trained model
-    if (smoothing) {
-        ensurer::ensure_that(ml_model, !(purrr::is_null(.)),
-                             err_desc = "sits_classify_raster - smoothing requires a pre-built model \n
-                                         Please run the sits_train function first \n
-                                         Use the model produced by sits_train as an input parameter to sits_classify_raster")
-    }
-
-    # normalization requires a pre-trained model
-    if (normalize) {
-        message("Please ensure that the input samples (samples.tb) are **not** the normalized values  \n
-                SITS needs the **original** samples to compute the normalization parameters for the raster data")
-        ensurer::ensure_that(ml_model, !(purrr::is_null(.)),
-                             err_desc = "sits_classify_raster - normalization requires a pre-trained model \n
-                                         Please run the sits_train function first \n
-                                         Use the model produced by sits_train as an input parameter to sits_classify_raster")
-    }
+    # checks the classification params
+    .sits_check_classify_params(file, raster.tb, samples.tb, ml_model, smoothing, normalize)
 
     # set up the ML model
     if (purrr::is_null(ml_model))
@@ -103,31 +78,14 @@ sits_classify_raster <- function(file = NULL,
     # create the raster objects and their respective filenames
     raster_class.tb <- .sits_create_classified_raster(raster.tb, samples.tb, file, interval)
 
-    # define the classification info parameters
-    class_info.tb <- .sits_class_info(raster.tb, samples.tb, interval)
-
-    # define the time indexes required for classification
-    time_index.lst <- .sits_get_time_index(class_info.tb)
-
-    # set attribute names
-    attr_names <- .sits_get_attr_names(class_info.tb)
-
-    # get the labels of the data
-    labels <- sits_labels(samples.tb)$label
-
-    # create a named vector with integers to match the class labels
-    int_labels <- c(1:length(labels))
-    names(int_labels) <- labels
 
     # classify the data
-    raster_class.tb <- .sits_classify_multicores_parallel(raster.tb,
+    raster_class.tb <- .sits_classify_multicores(raster.tb,
                                              raster_class.tb,
                                              samples.tb,
-                                             time_index.lst,
-                                             attr_names,
-                                             int_labels,
-                                             adj_val,
                                              ml_model,
+                                             adj_val,
+                                             interval,
                                              smoothing,
                                              normalize,
                                              lambda,
@@ -138,7 +96,53 @@ sits_classify_raster <- function(file = NULL,
 
     return(raster_class.tb)
 }
-#' @title Classify a raster chunk using machine learning models
+
+#' @title Check clasification parameters
+#' @name .sits_check_classify_params
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Verify that required parameters are correct
+#'
+#' @param  file            vector of file names to store the output (one file per classified year)
+#' @param  raster.tb       tibble with information about a set of space-time raster bricks
+#' @param  samples.tb      tibble with samples used for training the classification model
+#' @param  ml_model        an R model trained by \code{\link[sits]{sits_train}}
+#' @param  smoothing       (logical) apply a Whittaker smoothing function?
+#' @param  normalize       (logical) should the input data be normalized?
+#' @return OK              (logical) tests succeeded?
+#'
+.sits_check_classify_params <- function(file, raster.tb, samples.tb, ml_model, smoothing, normalize){
+
+    # ensure metadata tibble exists
+    ensurer::ensure_that(raster.tb, NROW(.) > 0,
+                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
+
+    # ensure patterns tibble exits
+    .sits_test_tibble(samples.tb)
+
+    # ensure that file name is provided
+    ensurer::ensure_that(file, !purrr::is_null(.),
+                         err_desc = "sits-classify-raster: please provide name of output file")
+
+    # smoothing requires a pre-trained model
+    if (smoothing) {
+        ensurer::ensure_that(ml_model, !(purrr::is_null(.)),
+                             err_desc = "sits_classify_raster - smoothing requires a pre-built model \n
+                             Please run the sits_train function first \n
+                             Use the model produced by sits_train as an input parameter to sits_classify_raster")
+    }
+
+    # normalization requires a pre-trained model
+    if (normalize) {
+        message("Please ensure that the input samples (samples.tb) are **not** the normalized values  \n
+                SITS needs the **original** samples to compute the normalization parameters for the raster data")
+        ensurer::ensure_that(ml_model, !(purrr::is_null(.)),
+                             err_desc = "sits_classify_raster - normalization requires a pre-trained model \n
+                             Please run the sits_train function first \n
+                             Use the model produced by sits_train as an input parameter to sits_classify_raster")
+    }
+    return(invisible(TRUE))
+}
+#' @title Classify a raster chunk using multicores
 #' @name .sits_classify_multicores
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -156,49 +160,37 @@ sits_classify_raster <- function(file = NULL,
 #' @param  raster.tb       tibble with metadata for a RasterBrick
 #' @param  raster_class.tb raster layer objects to be written
 #' @param  samples.tb      tibble with samples used for training the classification model
-#' @param  time_index.lst  a list with the indexes to extract data for each time interval
-#' @param  attr_names      vector with the attribute names
-#' @param  int_labels      conversion vector from the labels to integer values
-#' @param  adj_val         adjustment value to be applied to the data
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
+#' @param  adj_val         adjustment value to be applied to the data
+#' @param  interval        classification interval
 #' @param  smoothing       (logical) apply whittaker smoothing?
 #' @param  normalize       (logical) should the input data be normalized?
 #' @param  lambda          smoothing factor (default = 1.0)
 #' @param  differences     the order of differences of contiguous elements (default = 3)
 #' @param  memsize         memory available for classification (in GB)
-#' @param  multicores      number of threads to process the time series.
+#' @param  multicores      number of cores to process the time series
 #' @param  verbose         run function in verbose mode? (useful for working with big data sets)
 #' @return layer.lst       list  of the classified raster layers
 #'
 .sits_classify_multicores <-  function(raster.tb,
-                                       raster_class.tb,
-                                       samples.tb,
-                                       time_index.lst,
-                                       attr_names,
-                                       int_labels,
-                                       adj_val,
-                                       ml_model,
-                                       smoothing,
-                                       normalize,
-                                       lambda,
-                                       differences,
-                                       memsize,
-                                       multicores,
-                                       verbose) {
+                                                raster_class.tb,
+                                                samples.tb,
+                                                ml_model,
+                                                adj_val,
+                                                interval,
+                                                smoothing,
+                                                normalize,
+                                                lambda,
+                                                differences,
+                                                memsize,
+                                                multicores,
+                                                verbose) {
 
-
+    # checks that machine learning model has been created
     ensurer::ensure_that(ml_model, !purrr::is_null(.),
                          err_desc = "sits-classify: please provide a machine learning model already trained")
 
-    # get the vector of bricks
-    bricks.vec <- raster.tb$files[[1]]
-    # get the bands, scale factors and missing values
-    bands <- unlist(raster.tb$bands)
-    missing_values <- unlist(raster.tb$missing_values)
-    minimum_values <- unlist(raster.tb$minimum_values)
-    scale_factors  <- unlist(raster.tb$scale_factors)
-
-    # create a list with the output raster layers
+    # retrieve the output raster layers
     layers.lst <- unlist(raster_class.tb$r_objs)
 
     #initiate writing
@@ -206,115 +198,27 @@ sits_classify_raster <- function(file = NULL,
         layers.lst[[i]] <- raster::writeStart(layers.lst[[i]], layers.lst[[i]]@file@name, overwrite = TRUE)
     }
 
-    # estimate the full data size - number of bands, rows and cols, time instances and bloat
-    nbands <-  length(bands)
-    nrows <- raster.tb[1,]$nrows
-    ncols <- raster.tb[1,]$ncols
-    # size of the timeline
-    timeline <- raster.tb[1,]$timeline[[1]]
-    ntimes   <- length(timeline)
-    #ntimes <- time_index.lst[[length(time_index.lst)]][2] - time_index.lst[[1]][1] + 1
-    # number of bytes por pixel
-    nbytes <-  8
-    # estimated memory bloat
-    bloat <- 2
-
-    # calculate the estimated size of the data
-    full_data_size <- as.numeric(nrows*ncols*ntimes*nbands*nbytes*bloat) + as.numeric(pryr::mem_used())
-
-    # number of passes to read the full data sets
-    nblocks <- ceiling(full_data_size/(memsize*1e+09))
-
     # divide the input data in blocks
-    bs <- .sits_raster_block_size(nrows, ncols, nblocks)
+    bs <- .sits_raster_blocks(raster.tb, memsize, multicores)
 
-    # if normalization is required, calculate normalization param
-    if (normalize)
-        stats.tb <- sits_normalization_param(samples.tb)
-
-    # function to process blocks
-    process_block <- function(block_info) {
-
-        # set the offset and region to be read by GDAL
-        offset <- c(block_info[1] - 1, 0)
-        block_nrows  <- block_info[2] - block_info[1] + 1
-        region.dim <- c(block_nrows, ncols)
-
-        # set a pointer to the bands
-        i <- 0
-
-        # read the values from the raster bricks
-        values.lst <- bricks.vec %>%
-            purrr::map(function(r_brick) {
-                # the readGDAL function returns a matrix
-                # the rows of the matrix are the pixels
-                # the cols of the matrix are the layers
-                values.mx    <- as.matrix(suppressWarnings(rgdal::readGDAL(r_brick, offset, region.dim, silent = TRUE))@data)
-
-                # get the associated band
-                i <<- i + 1
-                band <- bands[i]
-                values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band], adj_val,
-                                                   smoothing, lambda, differences, normalize, stats.tb)
-                return(values.mx)
-            })
-        # create a data table with all the values from the bands
-        dist_DT <- data.table::as.data.table(do.call(cbind, values.lst))
-
-        # clean memory
-        rm(values.lst)
-        gc()
-
-        # include two new columns in the data table
-        size <- block_nrows*ncols
-        two_cols_DT <- data.table::data.table("original_row" = rep(1,size),
-                                     "reference" = rep("NoClass", size))
-        # create the data table for prediction
-        dist_DT <- data.table::as.data.table(cbind(two_cols_DT, dist_DT))
-        # predict the values of a block
-        pred_vec.lst <- .sits_predict_block(time_index.lst, attr_names, bands, dist_DT, ml_model)
-
-        return(pred_vec.lst)
-    }
-
+    # read the blocks from disk
     for (i in 1:bs$n) {
-        # define the how data blocks are split for multicore processing
-        block_size.lst <- .sits_split_block_size(bs$row[i], bs$nrows[i], multicores)
 
-        if (multicores > 1) {
-            # apply parallel processing to the split data and join the results
-            pred.lst <- parallel::mclapply(block_size.lst, process_block, mc.cores = multicores)
-            # create a list to gather the results
-            pred_cls <- vector("list", length = length(time_index.lst))
+        # read the data
+        dist_DT <- .sits_read_data(raster.tb, samples.tb, bs$row[i], bs$nrows[i], adj_val,
+                                   smoothing, lambda, differences, normalize, verbose)
 
-            for (t in 1:length(time_index.lst))
-                for (c in 1:multicores)
-                    pred_cls[[t]] <- append(pred_cls[[t]], pred.lst[[c]][t])
-        }
+        # predict the classification values
+        layers.lst <- .sits_predict_block(raster.tb, samples.tb, interval, layers.lst, bs$row[i], dist_DT, ml_model, multicores, verbose)
 
-        else
-            # estimate the prediction vector using one core only
-            pred_cls <- process_block(block_size.lst[[1]])
-
-        ensurer::ensure_that(pred_cls[[1]],length(unlist(.)) == bs$nrows[i]*ncols,
-                             err_desc = "sits_classify_raster: not enough memory")
-
-        # for each time instance, get the prediction values to be written
-        for (t in 1:length(time_index.lst))
-            layers.lst[[t]] <- raster::writeValues(layers.lst[[t]], as.integer(int_labels[unlist(pred_cls[[t]])]), bs$row[i])
-
-        if (verbose)
-            message(paste0("Processed year ", t, " starting from row ", bs$row[i]))
-        # memory management
-        rm(pred_cls)
+        # remove distance data.table (trying to use as little memory as possible)
+        rm(dist_DT)
         gc()
-        if (verbose)
-            message(paste0("Memory used after classification of year ", t, " - ", .sits_mem_used(), " GB"))
-    }
 
-    if (verbose) {
-        message(paste0("Memory used after end of processing all years - ", .sits_mem_used(), " GB"))
-        message(paste0("Processed block starting from ", bs$row[i], " to ", (bs$row[i] + bs$nrows[i] - 1)))
+        if (verbose) {
+            message(paste0("Memory used after end of processing all years of block ", i, " - ", .sits_mem_used(), " GB"))
+            message(paste0("Processed block starting from ",  bs$row[i], "to ", (bs$row[i] + bs$nrows[i] - 1)))
+        }
     }
 
     # finish writing
@@ -327,6 +231,159 @@ sits_classify_raster <- function(file = NULL,
 
     return(raster_class.tb)
 }
+#' @title Define a reasonable block size to process a RasterBrick
+#' @name .sits_raster_blocks
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Defines the size of the block of a Raster Brick to be read into memory.
+#' The total pixels of a RasterBrick is given by combining the size of the timeline
+#' with the number of rows and columns of the Brick. For example, a Raster Brick
+#' with 500 rows and 500 columns and 400 time instances will have a total pixel size
+#' of 800 Mb if pixels are 64-bit. I
+#'
+#' @param  raster.tb       input raster coverage
+#' @param  memsize         memory available for classification (in GB)
+#' @param  multicores      number of threads to process the time series.
+#' @return bs              list with three attributes: n (number of blocks), rows (list of rows to begin),
+#'                    nrows - number of rows to read at each iteration
+#'
+.sits_raster_blocks <- function(raster.tb, memsize, multicores){
+
+    # number of bands
+    bands  <- raster.tb[1,]$bands[[1]]
+    nbands <-  length(bands)
+    # number of rows and cols
+    nrows <- raster.tb[1,]$nrows
+    ncols <- raster.tb[1,]$ncols
+    # size of the timeline
+    timeline <- raster.tb[1,]$timeline[[1]]
+    ntimes   <- length(timeline)
+    # number of bytes por pixel
+    nbytes <-  8
+    # estimated memory bloat
+    bloat <- sits.env$config$R_memory_bloat
+
+    # estimated size of the data
+    full_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(ntimes)*as.numeric(nbands)*as.numeric(nbytes)*bloat + as.numeric(pryr::mem_used())
+
+    # number of passes to read the full data sets
+    nblocks <- max(ceiling((2*full_data_size)/(memsize*1e+09)), ceiling(multicores*full_data_size/(memsize*1e+09)))
+
+    # number of rows per block
+    block_rows <- ceiling(nrows/nblocks)
+
+    # initial row of each block
+    row.vec <- seq.int(from = 1, to = nrows, by = block_rows)
+    # number of rows in each block
+    nrows.vec <- rep.int(block_rows, length(row.vec))
+    # check that total number of rows is the same as the sum of all blocks
+    # correct the last block for overflow
+    if (sum(nrows.vec) != nrows )
+        nrows.vec[length(nrows.vec)] <- nrows - sum(nrows.vec[1:(length(nrows.vec) - 1)])
+
+    # find out the size of the block in pixels
+    size.vec <- nrows.vec * ncols
+
+    # elements of the block list
+    # n          number of blocks
+    # row        starting row from the RasterBrick
+    # nrow       Number of rows in the block extracted from the RasterBrick
+    # size       size of each block in pixels
+
+    bs <- list(n = nblocks, row = row.vec, nrows = nrows.vec, size = size.vec)
+
+    return(bs)
+
+}
+#' @title Read a block of values retrived from a set of raster bricks
+#' @name  .sits_read_data
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  raster.tb       raster coverage
+#' @param  samples.tb      tibble with samples
+#' @param  first_row       first row to start reading
+#' @param  n_rows_block    number of rows in the block
+#' @param  adj_val         adjustment value to be added to values
+#' @param  smoothing       (logical) should smoothing be applied?
+#' @param  lambda          lambda value for whittaker smoother
+#' @param  differences     differences value for whittaker smoother
+#' @param  normalize       (logical) should normalization be applied?
+#' @param  verbose         (logical) print diagnostics?
+#' @return dist_DT          data.table with values for classification
+#'
+.sits_read_data <- function(raster.tb, samples.tb, first_row, n_rows_block, adj_val,
+                            smoothing, lambda, differences, normalize, verbose) {
+
+    # get the bands of the raster bricks
+    bands <- unlist(raster.tb$bands)
+
+    # get the missing values, minimum values and scale factors
+    missing_values <- unlist(raster.tb$missing_values)
+    minimum_values <- unlist(raster.tb$minimum_values)
+    scale_factors  <- unlist(raster.tb$scale_factors)
+
+    # set a pointer to the bands
+    b <- 0
+
+    # if normalization is required, calculate normalization param
+    if (normalize)
+        stats.tb <- sits_normalization_param(samples.tb)
+
+    # get the raster bricks to be read
+    bricks.vec <- raster.tb$files[[1]]
+
+    # set the offset and region to be read by GDAL
+    offset <- c(first_row - 1, 0)
+    region.dim <- c(n_rows_block, raster.tb[1,]$ncols)
+
+    # read the values from the raster bricks
+    values.lst <- bricks.vec %>%
+        purrr::map(function(r_brick) {
+            # the readGDAL function returns a matrix
+            # the rows of the matrix are the pixels
+            # the cols of the matrix are the layers
+            values.mx    <- as.matrix(suppressWarnings(rgdal::readGDAL(r_brick, offset, region.dim, silent = TRUE))@data)
+
+            # get the associated band
+            b <<- b + 1
+            band <- bands[b]
+            # proprocess the input data
+            values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band], adj_val,
+                                               smoothing, lambda, differences, normalize, stats.tb)
+
+            if (verbose) {
+                message(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
+                message(paste0("Read band ", band, " from rows ", first_row, "to ", (first_row + n_rows_block - 1)))
+            }
+            return(values.mx)
+        })
+
+    dist_DT <- data.table::as.data.table(do.call(cbind,values.lst))
+
+    # memory cleanup
+    if (verbose)
+        message(paste0("Memory used after binding bricks  - ", .sits_mem_used(), " GB"))
+
+    rm(values.lst)
+    gc()
+    if (verbose)
+        message(paste0("Memory used after removing values - ", .sits_mem_used(), " GB"))
+
+    # create two additional columns for prediction
+    #
+    size <- n_rows_block*raster.tb[1,]$ncols
+    two_cols_DT <- data.table::data.table("original_row" = rep(1,size),
+                                          "reference"    = rep("NoClass", size))
+
+    dist_DT <- data.table::as.data.table(cbind(two_cols_DT, dist_DT))
+
+    # memory debug
+    if (verbose)
+        message(paste0("Memory used after adding two first cols - ", .sits_mem_used(), " GB"))
+
+    return(dist_DT)
+}
+
 #' @title Preprocess a set of values retrived from a raster brick
 #' @name  .sits_preprocess_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -377,300 +434,186 @@ sits_classify_raster <- function(file = NULL,
     return(values.mx)
 }
 
+
 #' @title Classify a block of raster values
 #' @name  .sits_predict_block
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  time_index.lst    list with valid time indexes per interval of classification
-#' @param  attr_names        vector with the attribute names
-#' @param  bands             bands to be classified
+#' @param  raster.tb         input coverage
+#' @param  samples.tb        tibble with samples
+#' @param  interval          classification interval
+#' @param  layers.lst        list of layers with classification results
+#' @param  first_row         initial row of the output layer to write block
 #' @param  dist_DT           data.table with distance values
 #' @param  ml_model          machine learning model to be applied
-#' @return pred_vec.lst      list of vector of predicted values (one vector per time interval)
+#' @param  multicores        number of cores to process the time series
+#' @param  verbose           prints debugging information
+#' @return layers.lst        list of layers with classification results
 
-.sits_predict_block <- function(time_index.lst, attr_names, bands, dist_DT, ml_model) {
+.sits_predict_block <- function(raster.tb, samples.tb, interval, layers.lst, first_row,  dist_DT, ml_model, multicores, verbose) {
 
-    select.lst <- .sits_select_indexes(time_index.lst, bands, ncol(dist_DT))
+    # define the classification info parameters
+    class_info.tb <- .sits_class_info(raster.tb, samples.tb, interval)
 
-    pred_vec.lst <- vector("list",  length(select.lst))
+    # set attribute names
+    attr_names <- .sits_get_attr_names(class_info.tb)
+
+    # get the labels of the data
+    labels <- sits_labels(samples.tb)$label
+
+    # create a named vector with integers to match the class labels
+    int_labels <- c(1:length(labels))
+    names(int_labels) <- labels
+
+    # define the time indexes required for classification
+    time_index.lst <- .sits_get_time_index(class_info.tb)
+
+    # retrieve the timeline and the bands
+    timeline <- raster.tb[1,]$timeline[[1]]
+    bands    <- raster.tb[1,]$bands[[1]]
+
+    # build a list with columns of data table to be processed for each interval
+    select.lst <- .sits_select_indexes(time_index.lst, bands, length(timeline))
+
+    # if there is only one interval to be processed and
+    # if all columns of the data table will be used
+    # then process only one year (saves memory)
+    # else process multiple years
+
+    if (length(select.lst) == 1 && all(select.lst[[1]]))
+        layers.lst <- .sits_process_one_interval(dist_DT, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose)
+    else
+        layers.lst <- .sits_process_multi_intervals(dist_DT, select.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose)
+    return(layers.lst)
+}
+
+#' @title Classify one interval of data
+#' @name  .sits_process_one_interval
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  dist_DT           data.table with distance values
+#' @param  layers.lst        list of layers with classification results
+#' @param  ml_model          machine learning model to be applied
+#' @param  attr_names        attribute names for distance column
+#' @param  int_labels        integer values corresponding to labels
+#' @param  first_row         initial row of the output layer to write block
+#' @param  multicores        number of cores to process the time series
+#' @param  verbose           prints debugging information
+#' @return layers.lst        list of layers with classification results
+
+.sits_process_one_interval <- function(dist_DT, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose) {
+
+    # set the names of the columns of dist1.tb
+    colnames(dist_DT) <- attr_names
+
+    # classify a block of data
+    classify_block <- function(cs) {
+        # predict the values for each time interval
+        pred_block.vec <- ml_model(dist_DT[cs[1]:cs[2],])
+        return(pred_block.vec)
+    }
+
+    # set up multicore processing
+    if (multicores > 1) {
+        # estimate the list for breaking a block
+        chunk_size.lst <- .sits_split_block_size(1, nrow(dist_DT), multicores)
+        # apply parallel processing to the split data and join the results
+        pred.vec <- unlist(parallel::mclapply(chunk_size.lst, classify_block, mc.cores = multicores))
+    }
+
+    # memory management
+    else
+        # estimate the prediction vector
+        pred.vec <- ml_model(dist_DT)
+
+    if (verbose)
+        message(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
+
+    # check the result has the right dimension
+    ensurer::ensure_that(pred.vec, length(.) == nrow(dist_DT),
+                         err_desc = "sits_classify_raster - number of classified pixels is different
+                         from number of input pixels")
+
+    # for each layer, write the predicted values
+
+    layers.lst[[1]] <- raster::writeValues(layers.lst[[1]], as.integer(int_labels[pred.vec]), first_row)
+    if (verbose)
+        message(paste0("Processed year starting from row ", first_row))
+
+    # memory management
+    rm(pred.vec)
+    gc()
+    if (verbose)
+        message(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
+    return(layers.lst)
+}
+
+#' @title Classify multiple years of data
+#' @name  .sits_process_multi_intervals
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  dist_DT           data.table with distance values
+#' @param  select.lst        list with columns of data table to be processed for each interval
+#' @param  layers.lst        list of layers with classification results
+#' @param  ml_model          machine learning model to be applied
+#' @param  attr_names        attribute names for distance column
+#' @param  int_labels        integer values corresponding to labels
+#' @param  first_row         initial row of the output layer to write block
+#' @param  multicores        number of cores to process the time series
+#' @param  verbose           prints debugging information
+#' @return layers.lst        list of layers with classification results
+.sits_process_multi_intervals <- function(dist_DT, select.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose) {
 
     # iterate through time intervals
     for (t in 1:length(select.lst)) {
         # retrieve the values used for classification
         dist1_DT <- dist_DT[, select.lst[[t]], with = FALSE]
-        # set the names of the columns of dist1.tb
+        # set the names of the columns of the subset of data table
         colnames(dist1_DT) <- attr_names
 
-        # estimate the prediction vector for the time instance
-        pred_vec.lst[[t]] <- ml_model(dist1_DT)
+        # classify a block of data
+        classify_block <- function(cs) {
+            # predict the values for each time interval
+            pred_block.vec <- ml_model(dist1_DT[cs[1]:cs[2],])
+            return(pred_block.vec)
+        }
+
+        # set up multicore processing
+        if (multicores > 1) {
+            # estimate the list for breaking a block
+            chunk_size.lst <- .sits_split_block_size(1, nrow(dist1_DT), multicores)
+            # apply parallel processing to the split data and join the results
+            pred.vec <- unlist(parallel::mclapply(chunk_size.lst, classify_block, mc.cores = multicores))
+        }
+
+        # memory management
+        else
+            # estimate the prediction vector
+            pred.vec <- ml_model(dist1_DT)
+
+        if (verbose)
+            message(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
 
         # check the result has the right dimension
-        ensurer::ensure_that(pred_vec.lst[[t]], length(.) == nrow(dist1_DT),
-                             err_desc = "not enough memory for classification - please increase memory or reduce number of cores")
-    }
+        ensurer::ensure_that(pred.vec, length(.) == nrow(dist1_DT),
+                             err_desc = "sits_classify_raster - number of classified pixels is different
+                         from number of input pixels")
 
-    # memory management
-    rm(dist1_DT)
-    gc()
-    return(pred_vec.lst)
-}
+        # for each layer, write the predicted values
 
-#' @title Classify a raster chunk using machine learning models
-#' @name .sits_classify_multicores_parallel
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Classifies a block of data using multicores. It breaks
-#' the data into horizontal blocks and divides them between the available cores.
-#'
-#' Reads data from a file using Rgdal, then cleans the data for NAs and missing values. The clean
-#' data is stored in a data table that has all the time instances for all pixels of
-#' the block. The algorithm then classifies data on an year by year basis.
-#' For each year, it extracts the sub-blocks for each band.
-#'
-#' After all cores process their blocks, it joins the result and then writes it
-#' in the classified images for each corresponding year.
-#'
-#' @param  raster.tb       tibble with metadata for a RasterBrick
-#' @param  raster_class.tb raster layer objects to be written
-#' @param  samples.tb      tibble with samples used for training the classification model
-#' @param  time_index.lst  a list with the indexes to extract data for each time interval
-#' @param  attr_names      vector with the attribute names
-#' @param  int_labels      conversion vector from the labels to integer values
-#' @param  adj_val         adjustment value to be applied to the data
-#' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
-#' @param  smoothing       (logical) apply whittaker smoothing?
-#' @param  normalize       (logical) should the input data be normalized?
-#' @param  lambda          smoothing factor (default = 1.0)
-#' @param  differences     the order of differences of contiguous elements (default = 3)
-#' @param  memsize         memory available for classification (in GB)
-#' @param  multicores      number of threads to process the time series.
-#' @param  verbose         run function in verbose mode? (useful for working with big data sets)
-#' @return layer.lst       list  of the classified raster layers
-#'
-.sits_classify_multicores_parallel <-  function(raster.tb,
-                                       raster_class.tb,
-                                       samples.tb,
-                                       time_index.lst,
-                                       attr_names,
-                                       int_labels,
-                                       adj_val,
-                                       ml_model,
-                                       smoothing,
-                                       normalize,
-                                       lambda,
-                                       differences,
-                                       memsize,
-                                       multicores,
-                                       verbose) {
-
-
-    ensurer::ensure_that(ml_model, !purrr::is_null(.),
-                         err_desc = "sits-classify: please provide a machine learning model already trained")
-
-    # get the vector of bricks
-    bricks.vec <- raster.tb$files[[1]]
-    # get the bands, scale factors and missing values
-    bands <- unlist(raster.tb$bands)
-    missing_values <- unlist(raster.tb$missing_values)
-    minimum_values <- unlist(raster.tb$minimum_values)
-    scale_factors  <- unlist(raster.tb$scale_factors)
-
-    # create a list with the output raster layers
-    layers.lst <- unlist(raster_class.tb$r_objs)
-
-    #initiate writing
-    for (i in 1:length(layers.lst)) {
-        layers.lst[[i]] <- raster::writeStart(layers.lst[[i]], layers.lst[[i]]@file@name, overwrite = TRUE)
-    }
-
-    # estimate the full data size - number of bands, rows and cols, time instances and bloat
-    nbands <-  length(bands)
-    nrows <- raster.tb[1,]$nrows
-    ncols <- raster.tb[1,]$ncols
-    # size of the timeline
-    timeline <- raster.tb[1,]$timeline[[1]]
-    ntimes   <- length(timeline)
-    #ntimes <- time_index.lst[[length(time_index.lst)]][2] - time_index.lst[[1]][1] + 1
-    # number of bytes por pixel
-    nbytes <-  8
-    # estimated memory bloat
-    bloat <- as.numeric(1.2*nbytes)
-
-    # calculate the estimated size of the data
-    full_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(ntimes)*as.numeric(nbands)*bloat + as.numeric(pryr::mem_used())
-
-    data_size_GB <- full_data_size/1e+09
-
-    # ncores_opt <- .sits_optimize_multicores(data_size_GB, multicores, memsize)
-    # message(paste0("Found optimal number of cores - ", ncores_opt))
-
-    ncores_opt <- multicores
-
-    # number of passes to read the full data sets
-    nblocks <- ceiling(ncores_opt*full_data_size/(memsize*1e+09))
-
-    # divide the input data in blocks
-    bs <- .sits_raster_block_size(nrows, ncols, nblocks)
-
-    # if normalization is required, calculate normalization param
-    if (normalize)
-        stats.tb <- sits_normalization_param(samples.tb)
-
-    select.lst <- .sits_select_indexes(time_index.lst, bands, ncols)
-
-    # read the blocks from disk
-    for (i in 1:bs$n) {
-        # set the offset and region to be read by GDAL
-        offset <- c(bs$row[i] - 1, 0)
-        region.dim <- c(bs$nrows[i], ncols)
-
-        # set a pointer to the bands
-        b <- 0
-
-        # read the values from the raster bricks
-        values.lst <- bricks.vec %>%
-            purrr::map(function(r_brick) {
-                # the readGDAL function returns a matrix
-                # the rows of the matrix are the pixels
-                # the cols of the matrix are the layers
-                values.mx    <- as.matrix(suppressWarnings(rgdal::readGDAL(r_brick, offset, region.dim, silent = TRUE))@data)
-
-                # get the associated band
-                b <<- b + 1
-                band <- bands[b]
-                values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band], adj_val,
-                                                   smoothing, lambda, differences, normalize, stats.tb)
-
-                if (verbose) {
-                    message(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
-                    message(paste0("Read band ", band, " from rows ", bs$row[i], "to ", (bs$row[i] + bs$nrows[i] - 1)))
-                }
-                return(values.mx)
-            })
-
-        dist_DT <- data.table::as.data.table(do.call(cbind,values.lst))
-
-        # memory cleanup
+        layers.lst[[t]] <- raster::writeValues(layers.lst[[t]], as.integer(int_labels[pred.vec]), first_row)
         if (verbose)
-            message(paste0("Memory used after binding bricks  - ", .sits_mem_used(), " GB"))
+            message(paste0("Processed year ", t, " starting from row ", first_row))
 
-        rm(values.lst)
-        gc()
-        if (verbose)
-            message(paste0("Memory used after removing values - ", .sits_mem_used(), " GB"))
-
-
-        # create two additional columns for prediction
-        size <- nrows*ncols
-        two_cols_DT <- data.table::data.table("original_row" = rep(1,size),
-                                              "reference" = rep("NoClass", size))
-
-        dist_DT <- data.table::as.data.table(cbind(two_cols_DT, dist_DT))
-
-        # memory debug
-        if (verbose)
-            message(paste0("Memory used after adding two first cols - ", .sits_mem_used(), " GB"))
-
-
-        # iterate through time intervals
-        for (t in 1:length(select.lst)) {
-            # retrieve the values used for classification
-            dist1_DT <- dist_DT[, select.lst[[t]], with = FALSE]
-            # set the names of the columns of dist1.tb
-            colnames(dist1_DT) <- attr_names
-
-            # classify a block of data
-            classify_block <- function(cs) {
-                # predict the values for each time interval
-                pred_block.vec <- ml_model(dist1_DT[cs[1]:cs[2],])
-                return(pred_block.vec)
-            }
-
-            # set up multicore processing
-            if (multicores > 1) {
-                # estimate the list for breaking a block
-                chunk_size.lst <- .sits_split_block_size(1, nrow(dist1_DT), ncores_opt)
-                # apply parallel processing to the split data and join the results
-                pred.vec <- unlist(parallel::mclapply(chunk_size.lst, classify_block, mc.cores = ncores_opt))
-            }
-
-            # memory management
-            else
-                # estimate the prediction vector
-                pred.vec <- ml_model(dist1_DT)
-
-            if (verbose)
-                message(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
-
-            # check the result has the right dimension
-            ensurer::ensure_that(pred.vec, length(.) == nrow(dist1_DT),
-                                 err_desc = "sits_classify_raster - number of classified pixels is different
-                                 from number of input pixels")
-
-            # for each layer, write the predicted values
-
-            layers.lst[[t]] <- raster::writeValues(layers.lst[[t]], as.integer(int_labels[pred.vec]), bs$row[i])
-            if (verbose)
-                message(paste0("Processed year ", t, " starting from row ", bs$row[i]))
-
-            # memory management
-            rm(pred.vec)
-            #rm(values)
-            gc()
-            if (verbose)
-                message(paste0("Memory used after classification of year ", t, " - ", .sits_mem_used(), " GB"))
-        }
         # memory management
-        #rm(dist1_DT)
+        rm(dist1_DT)
+        rm(pred.vec)
+        #rm(values)
         gc()
-        if (verbose) {
-            message(paste0("Memory used after end of processing all years of block ", i, " - ", .sits_mem_used(), " GB"))
-            message(paste0("Processed block starting from ",  bs$row[i], "to ", (bs$row[i] + bs$nrows[i] - 1)))
-        }
-        rm(dist_DT)
-        gc()
+        if (verbose)
+            message(paste0("Memory used after classification of year ", t, " - ", .sits_mem_used(), " GB"))
     }
-
-    # finish writing
-    for (i in 1:length(layers.lst)) {
-        layers.lst[[i]] <- raster::writeStop(layers.lst[[i]])
-    }
-
-    # update the raster objects
-    raster_class.tb$r_objs <- layers.lst
-
-    return(raster_class.tb)
-}
-
-#
-#' @title Defines an ad-hoc optimization function for choosing the number of cores
-#' @name  .sits_optimize_multicores
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description The total processing time is the sum of the time required to read
-#' the data and the time needed for classification. For a reference machine,
-#' with 1 core, an image of about 1 GB is expected to take 10% in reading time
-#' and 90% in processing time. As the size of the data increases, the time required
-#' to read the data (relative to the time required for processing)
-#' decreases in proportion of the square root of the data and increases in proportion
-#' of the number of reads.
-#'
-#' @param  totalsize       totalsize of data (in GB)
-#' @param  ncores          number of cores available for processing
-#' @param  memsize         memory available for processing
-#' @return ncores_opt      optimal number of cores for processing
-.sits_optimize_multicores <- function(totalsize, ncores, memsize) {
-
-
-    p1 <- sits.env$config$data_size_decrease_rate     # default 0.03
-    p2 <- sits.env$config$disk_access_increase_rate   # default 0.25
-    estimated_time = vector(length = ncores)
-
-    for (c in 1:ncores) {
-        n_reads <- ceiling((c*totalsize)/memsize)
-        prop <- 0.1 - p1*sqrt(round(totalsize/n_reads)) + p2*n_reads
-        if ( prop < 0.0 ) prop <- 0.0
-        estimated_time[c] <- (1 - prop)/c + prop*c
-    }
-    return(which.min(estimated_time))
+    rm(dist_DT)
+    gc()
+    return(layers.lst)
 }

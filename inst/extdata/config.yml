@@ -3,11 +3,17 @@ default:
     # adjustment shift for function sits_adjust
     adjustment_shift        : 3.0
     # estimated relative growth size of R memory relative to block size
-    R_memory_bloat          : 2.0
-    # estimated decrease in processing time relative to increase in square root of data size
-    data_size_decrease_rate : 0.03
-    # estimate increasing in reading time because of number of reads
-    disk_access_increase_rate: 0.025
+    R_memory_bloat          : 1.5
+    # reference machine configuration
+    reference_machine       :
+        ncores              :  16
+        datasize            :   3
+        memsize             :  64
+        nsamples            :  2000
+        time_read           :  30
+        virtual_fs          :  2.5
+        time_process        :  7.0
+
 
     # estimated proportion of time used to process
 

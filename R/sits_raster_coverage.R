@@ -308,46 +308,7 @@
 
     return(satellite)
 }
-#' @title Define a reasonable block size to process a RasterBrick
-#' @name .sits_raster_block_size
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Defines the size of the block of a Raster Brick to be read into memory.
-#' The total pixels of a RasterBrick is given by combining the size of the timeline
-#' with the number of rows and columns of the Brick. For example, a Raster Brick
-#' with 500 rows and 500 columns and 400 time instances will have a total pixel size
-#' of 800 Mb if pixels are 64-bit. I
-#'
-#' @param  nrows      number of rows in the image
-#' @param  ncols      number of collumns in the image
-#' @param  nblocks    number of blocks to be read
-#' @return block      list with three attributes: n (number of blocks), rows (list of rows to begin),
-#'                    nrows - number of rows to read at each iteration
-#'
-.sits_raster_block_size <- function(nrows, ncols, nblocks){
 
-
-    # number of rows per block
-    block_rows <- ceiling(nrows/nblocks)
-
-    row.vec <- seq.int(from = 1, to = nrows, by = block_rows)
-    nrows.vec <- rep.int(block_rows, length(row.vec))
-    if (sum(nrows.vec) != nrows )
-        nrows.vec[length(nrows.vec)] <- nrows - sum(nrows.vec[1:(length(nrows.vec) - 1)])
-
-    # find out the size of the block in pixels
-    size.vec <- nrows.vec * ncols
-
-    # elements of the block list
-    # n          number of blocks
-    # row        starting row from the RasterBrick
-    # nrow       Number of rows in the block extracted from the RasterBrick
-
-    block <- list(n = nblocks, row = row.vec, nrows = nrows.vec, size = size.vec)
-
-    return(block)
-
-}
 #' @title Define a filename associated to one classified raster layer
 #' @name .sits_raster_filename
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
