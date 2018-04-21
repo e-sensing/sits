@@ -461,22 +461,15 @@ sits_classify_raster <- function(file = NULL,
     # define the time indexes required for classification
     time_index.lst <- .sits_get_time_index(class_info.tb)
 
-    # retrieve the timeline and the bands
-    timeline <- raster.tb[1,]$timeline[[1]]
-    bands    <- raster.tb[1,]$bands[[1]]
-
-    # build a list with columns of data table to be processed for each interval
-    select.lst <- .sits_select_indexes(time_index.lst, bands, length(timeline))
-
     # if there is only one interval to be processed and
     # if all columns of the data table will be used
     # then process only one year (saves memory)
     # else process multiple years
 
-    if (length(select.lst) == 1 && all(select.lst[[1]]))
+    if (length(time_index.lst) == 1)
         layers.lst <- .sits_process_one_interval(dist_DT, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose)
     else
-        layers.lst <- .sits_process_multi_intervals(dist_DT, select.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose)
+        layers.lst <- .sits_process_multi_intervals(dist_DT, raster.tb, time_index.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose)
     return(layers.lst)
 }
 
@@ -546,7 +539,8 @@ sits_classify_raster <- function(file = NULL,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  dist_DT           data.table with distance values
-#' @param  select.lst        list with columns of data table to be processed for each interval
+#' @param  raster.tb         raster coverage to be classified
+#' @param  time_index.lst    list of columns to be classified per classification interval
 #' @param  layers.lst        list of layers with classification results
 #' @param  ml_model          machine learning model to be applied
 #' @param  attr_names        attribute names for distance column
@@ -555,7 +549,13 @@ sits_classify_raster <- function(file = NULL,
 #' @param  multicores        number of cores to process the time series
 #' @param  verbose           prints debugging information
 #' @return layers.lst        list of layers with classification results
-.sits_process_multi_intervals <- function(dist_DT, select.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose) {
+.sits_process_multi_intervals <- function(dist_DT, raster.tb, time_index.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose) {
+
+    # retrieve the timeline and the bands
+    timeline <- raster.tb[1,]$timeline[[1]]
+    bands    <- raster.tb[1,]$bands[[1]]
+    # build a list with columns of data table to be processed for each interval
+    select.lst <- .sits_select_indexes(time_index.lst, bands, length(timeline))
 
     # iterate through time intervals
     for (t in 1:length(select.lst)) {
