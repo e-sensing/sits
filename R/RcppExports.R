@@ -13,7 +13,7 @@ preprocess_data <- function(data, minimum_value, scale_factor) {
     .Call(`_sits_preprocess_data`, data, minimum_value, scale_factor)
 }
 
-scale_data <- function(data, scale_factor, adj_val) {
+scale_data <- function(data, scale_factor, adj_val = 0.0) {
     .Call(`_sits_scale_data`, data, scale_factor, adj_val)
 }
 

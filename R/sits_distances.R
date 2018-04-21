@@ -11,7 +11,6 @@
 #' machine learning methods, since most ML methods do not allow for negative data.
 #'
 #' @param  data.tb       tibble with time series data and metadata
-#' @param  adj_val       adjustment value to be applied to the data
 #' @return distances_DT  data.table where columns have the reference label and the time series values as distances
 #'
 #' @examples
@@ -21,7 +20,7 @@
 #' distances <- sits_distances(cerrado_2classes)
 #'
 #' @export
-sits_distances <- function(data.tb, adj_val = 3.0) {
+sits_distances <- function(data.tb) {
 
     # create a list with the time series transposed from columns to rows
     ts.lst <- data.tb$time_series %>%
@@ -30,8 +29,6 @@ sits_distances <- function(data.tb, adj_val = 3.0) {
         })
     # bind the lists of time series together
     dist_DT <- data.table::rbindlist(ts.lst)
-    # apply an adjustment to the data
-    dist_DT <- dist_DT + adj_val
     # create a data frame with the first two columns for training
     distances_DT <- data.table::data.table("original_row" = 1:nrow(data.tb), "reference" = data.tb$label)
     # join the two references columns with the data values
@@ -59,4 +56,23 @@ sits_distances <- function(data.tb, adj_val = 3.0) {
     result_DT <- distances_DT[, .SD[sample(.N, round(frac*.N))], by = reference]
 
     return(result_DT)
+}
+
+#' @title Shift the values of a distance table by a fixed amount
+#' @name .sits_shift_DT
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description takes a data.tabel with distances and shifts by a fixed value.
+#'              This is required for machine learning models using log formulas.
+#'
+#' @param  DT              data.table objects with the distances associated to a time series
+#' @param  shift           amount to be shifted
+#' @return DT              data.table with the values updated by reference
+.sits_shift_DT <- function (DT, shift) {
+
+    DT <- data.table::as.data.table(cbind(DT[,.(original_row,reference)],
+                                          DT[, DT[,3:ncol(DT)] + shift]))
+
+    return(DT)
+
 }

@@ -4,12 +4,10 @@
 \alias{sits_distances}
 \title{Use time series values from a sits tibble as distances for training patterns}
 \usage{
-sits_distances(data.tb, adj_val = 3)
+sits_distances(data.tb)
 }
 \arguments{
 \item{data.tb}{tibble with time series data and metadata}
-
-\item{adj_val}{adjustment value to be applied to the data}
 }
 \value{
 distances_DT  data.table where columns have the reference label and the time series values as distances

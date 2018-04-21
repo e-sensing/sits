@@ -49,8 +49,7 @@ conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
                                       optimizer        = keras::optimizer_adam(),
                                       epochs           = 300,
                                       batch_size       = 128,
-                                      validation_split = 0.2),
-                                      adj_val          = 0)
+                                      validation_split = 0.2))
 
 print("== Confusion Matrix = DL =======================")
 conf_dl.mx <- sits_conf_matrix(conf_dl.tb)

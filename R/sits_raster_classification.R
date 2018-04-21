@@ -19,7 +19,6 @@
 #' @param  samples.tb      tibble with samples used for training the classification model
 #' @param  ml_model        an R model trained by \code{\link[sits]{sits_train}}
 #' @param  ml_method       an R machine learning method such as SVM, Random Forest or Deep Learning
-#' @param  adj_val         adjustment value to be applied to the data
 #' @param  interval        interval between two sucessive classifications, expressed in months
 #' @param  smoothing       (logical) apply a Whittaker smoothing function?
 #' @param  normalize       (logical) should the input data be normalized?
@@ -57,7 +56,6 @@ sits_classify_raster <- function(file = NULL,
                                  samples.tb,
                                  ml_model  = NULL,
                                  ml_method  = sits_svm(),
-                                 adj_val    = 3.0,
                                  interval   = "12 month",
                                  smoothing  = FALSE,
                                  normalize  = FALSE,
@@ -73,7 +71,7 @@ sits_classify_raster <- function(file = NULL,
 
     # set up the ML model
     if (purrr::is_null(ml_model))
-        ml_model <- sits_train(samples.tb, ml_method = ml_method, adj_val = adj_val)
+        ml_model <- sits_train(samples.tb, ml_method = ml_method)
 
     # create the raster objects and their respective filenames
     raster_class.tb <- .sits_create_classified_raster(raster.tb, samples.tb, file, interval)
@@ -84,7 +82,6 @@ sits_classify_raster <- function(file = NULL,
                                              raster_class.tb,
                                              samples.tb,
                                              ml_model,
-                                             adj_val,
                                              interval,
                                              smoothing,
                                              normalize,
@@ -161,7 +158,6 @@ sits_classify_raster <- function(file = NULL,
 #' @param  raster_class.tb raster layer objects to be written
 #' @param  samples.tb      tibble with samples used for training the classification model
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
-#' @param  adj_val         adjustment value to be applied to the data
 #' @param  interval        classification interval
 #' @param  smoothing       (logical) apply whittaker smoothing?
 #' @param  normalize       (logical) should the input data be normalized?
@@ -176,7 +172,6 @@ sits_classify_raster <- function(file = NULL,
                                                 raster_class.tb,
                                                 samples.tb,
                                                 ml_model,
-                                                adj_val,
                                                 interval,
                                                 smoothing,
                                                 normalize,
@@ -205,7 +200,7 @@ sits_classify_raster <- function(file = NULL,
     for (i in 1:bs$n) {
 
         # read the data
-        dist_DT <- .sits_read_data(raster.tb, samples.tb, bs$row[i], bs$nrows[i], adj_val,
+        dist_DT <- .sits_read_data(raster.tb, samples.tb, bs$row[i], bs$nrows[i],
                                    smoothing, lambda, differences, normalize, verbose)
 
         # predict the classification values
@@ -303,7 +298,6 @@ sits_classify_raster <- function(file = NULL,
 #' @param  samples.tb      tibble with samples
 #' @param  first_row       first row to start reading
 #' @param  n_rows_block    number of rows in the block
-#' @param  adj_val         adjustment value to be added to values
 #' @param  smoothing       (logical) should smoothing be applied?
 #' @param  lambda          lambda value for whittaker smoother
 #' @param  differences     differences value for whittaker smoother
@@ -311,7 +305,7 @@ sits_classify_raster <- function(file = NULL,
 #' @param  verbose         (logical) print diagnostics?
 #' @return dist_DT          data.table with values for classification
 #'
-.sits_read_data <- function(raster.tb, samples.tb, first_row, n_rows_block, adj_val,
+.sits_read_data <- function(raster.tb, samples.tb, first_row, n_rows_block,
                             smoothing, lambda, differences, normalize, verbose) {
 
     # get the bands of the raster bricks
@@ -348,7 +342,7 @@ sits_classify_raster <- function(file = NULL,
             b <<- b + 1
             band <- bands[b]
             # proprocess the input data
-            values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band], adj_val,
+            values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band],
                                                smoothing, lambda, differences, normalize, stats.tb)
 
             if (verbose) {
@@ -393,14 +387,13 @@ sits_classify_raster <- function(file = NULL,
 #' @param  missing_value    missing value for the band
 #' @param  minimum_value    minimum values for the band
 #' @param  scale_factor     scale factor for each band (only for raster data)
-#' @param  adj_val          adjustment value to be applied to the data
 #' @param  smoothing        (logical) apply a Whittaker smoothing function?
 #' @param  normalize        (logical) should the input data be normalized?
 #' @param  lambda           degree of smoothing of the Whittaker smoother (default = 0.5)
 #' @param  differences      the order of differences of contiguous elements (default = 3)
 #' @param  stats.tb         normalization parameters
 #' @return values.mx        matrix with pre-processed values
-.sits_preprocess_data <- function(values.mx, band, missing_value, minimum_value, scale_factor, adj_val,
+.sits_preprocess_data <- function(values.mx, band, missing_value, minimum_value, scale_factor,
                                   smoothing, lambda, differences, normalize, stats.tb){
 
     # define the smoothing function
@@ -418,7 +411,7 @@ sits_classify_raster <- function(file = NULL,
 
     # values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
     # scale the data set
-    values.mx <- scale_data(values.mx, scale_factor, adj_val)
+    values.mx <- scale_data(values.mx, scale_factor)
 
     if (normalize) {
         mean <- stats.tb[1, band]

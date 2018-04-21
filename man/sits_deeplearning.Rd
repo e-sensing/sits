@@ -50,8 +50,7 @@ data(samples_MT_ndvi)
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_deeplearning(),
-                           adj_val = 0.0)
+class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_deeplearning())
 }
 }
 \author{

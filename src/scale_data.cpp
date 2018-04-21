@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 
-NumericMatrix scale_data(NumericMatrix data, const double& scale_factor, const double& adj_val) {
+NumericMatrix scale_data(NumericMatrix data, const double& scale_factor, const double& adj_val = 0.0) {
 
     int nrows = data.nrow();
     int ncols = data.ncol();

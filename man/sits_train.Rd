@@ -4,14 +4,12 @@
 \alias{sits_train}
 \title{Train SITS classification models}
 \usage{
-sits_train(data.tb, ml_method = sits_svm(), adj_val = 3)
+sits_train(data.tb, ml_method = sits_svm())
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
 
 \item{ml_method}{machine learning method that returns a model for prediction}
-
-\item{adj_val}{adjustment value to be applied to the data}
 }
 \value{
 result           model fitted to input data given by train_method parameter

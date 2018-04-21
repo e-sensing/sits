@@ -5,9 +5,9 @@
 \title{Classify a set of spatio-temporal raster bricks using multicore machines}
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
-  ml_method = sits_svm(), adj_val = 3, interval = "12 month",
-  smoothing = FALSE, normalize = FALSE, lambda = 0.5, differences = 3,
-  memsize = 4, multicores = 2, verbose = FALSE)
+  ml_method = sits_svm(), interval = "12 month", smoothing = FALSE,
+  normalize = FALSE, lambda = 0.5, differences = 3, memsize = 4,
+  multicores = 2, verbose = FALSE)
 }
 \arguments{
 \item{file}{vector of file names to store the output (one file per classified year)}
@@ -19,8 +19,6 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
 \item{ml_model}{an R model trained by \code{\link[sits]{sits_train}}}
 
 \item{ml_method}{an R machine learning method such as SVM, Random Forest or Deep Learning}
-
-\item{adj_val}{adjustment value to be applied to the data}
 
 \item{interval}{interval between two sucessive classifications, expressed in months}
 

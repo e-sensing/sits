@@ -18,7 +18,6 @@
 #'
 #' @param  data.tb          time series with the training samples
 #' @param  ml_method        machine learning method that returns a model for prediction
-#' @param  adj_val          adjustment value to be applied to the data
 #' @return result           model fitted to input data given by train_method parameter
 #'
 #' @examples
@@ -34,7 +33,7 @@
 #' sits_plot(class.tb)
 #' }
 #' @export
-sits_train <- function(data.tb, ml_method = sits_svm(), adj_val = 3.0) {
+sits_train <- function(data.tb, ml_method = sits_svm()) {
 
     # is the input data a valid SITS tibble?
     ensurer::ensure_that(data.tb, "label" %in% names(.),
@@ -45,7 +44,7 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_val = 3.0) {
                          err_desc = "sits_train: ml_method is not a valid function")
 
     # compute the distances
-    distances_DT <- sits_distances(data.tb, adj_val)
+    distances_DT <- sits_distances(data.tb)
 
     # compute the training method by the given data
     result <- ml_method(distances_DT)
@@ -89,8 +88,7 @@ sits_train <- function(data.tb, ml_method = sits_svm(), adj_val = 3.0) {
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_deeplearning(),
-#'                            adj_val = 0.0)
+#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_deeplearning())
 #' }
 #' @export
 sits_deeplearning <- function(distances_DT     = NULL,
@@ -544,6 +542,7 @@ sits_rfor <- function(distances_DT = NULL, ntree = 2000, nodesize = 1, ...) {
 #' @param tolerance	       tolerance of termination criterion (default: 0.001)
 #' @param epsilon	       epsilon in the insensitive-loss function (default: 0.1)
 #' @param cross            number of cross validation folds applied on the training data to assess the quality of the model,
+#' @param shift            shift of values to avoid negative values for SVM classification
 #' @param ...              other parameters to be passed to e1071::svm function
 #' @return result          fitted model function to be passed to sits_predict
 #'
@@ -559,14 +558,19 @@ sits_rfor <- function(distances_DT = NULL, ntree = 2000, nodesize = 1, ...) {
 #'}
 #' @export
 sits_svm <- function(distances_DT = NULL, formula = sits_formula_logref(), kernel = "radial",
-                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4, ...) {
+                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4, shift = 3.0, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(train_data_DT){
-
-        # is the input data the result of a matching function?
+         # is the input data the result of a matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names (.),
                              err_desc = "sits_svm: input data does not contain references information")
+
+        message(paste0("Memory used before shift train_data - ", .sits_mem_used(), " GB"))
+        # shift the values by a fixed amount
+        train_data_DT <- .sits_shift_DT(train_data_DT, shift)
+
+        message(paste0("Memory used after shift train_data - ", .sits_mem_used(), " GB"))
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -578,8 +582,11 @@ sits_svm <- function(distances_DT = NULL, formula = sits_formula_logref(), kerne
                                  tolerance = tolerance, epsilon = epsilon, cross = cross, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(values.tb){
-            return(stats::predict(result_svm, newdata = values.tb))
+        model_predict <- function(values_DT){
+            message(paste0("Memory used before shift values_DT - ", .sits_mem_used(), " GB"))
+            values_DT<- .sits_shift_DT(values_DT, shift)
+            message(paste0("Memory used after shift values_DT - ", .sits_mem_used(), " GB"))
+            return(stats::predict(result_svm, newdata = values_DT))
         }
         return(model_predict)
     }
@@ -606,7 +613,7 @@ sits_svm <- function(distances_DT = NULL, formula = sits_formula_logref(), kerne
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(cerrado2classes)
 #' # create a vector of distances
-#' distances <- sits_distances(cerrado2classes, adj_val  = 0.0)
+#' distances <- sits_distances(cerrado2classes)
 #' # obtain a DL model
 #' ml_model = sits_deeplearning(distances)
 #' # run the keras diagnostics
