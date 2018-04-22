@@ -1,18 +1,28 @@
 library(sits)
 library(keras)
 
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data("samples_MT_9classes")
+message("Processing of a mixed Landsat 8 - MODIS data set")
+message("Please ensure that you have enough memory available")
 
-# select the bands "ndvi", "evi", "nir", and "mir"
-samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi", "nir", "mir"))
+# Retrieve the set of samples for the Cerrado region (provided by EMBRAPA)
 
+# select a file with 12,305 samples
+samples_file <- paste0("https://www.dropbox.com/s/l2kilyvzrtfw2yo/samples_Cerrado_01042018_frac.rda?raw=1")
+download.file(samples_file, destfile = "./samples_Cerrado_01042018_frac.rda")
+load(file = "./samples_Cerrado_01042018_frac.rda")
 
-ml_model <-  sits_train(samples.tb,
+# select only the ndvi and evi bands
+samples.tb <- sits_select_bands(samples_Cerrado_01042018_frac.tb, bands = c("ndvi", "evi", "nir", "mir"))
+
+# normalize the samples for better performance
+samples_n.tb <- sits_normalize_ts(samples.tb)
+
+# train the deep learning model
+dl_model <-  sits_train(samples_n.tb,
                         ml_method = sits_deeplearning(
-                             units            = c(512, 512, 512),
+                             units            = c(512, 512, 512, 512, 512),
                              activation       = 'elu',
-                             dropout_rates    = c(0.40, 0.40, 0.30),
+                             dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
                              optimizer = keras::optimizer_adam(),
                              epochs = 500,
                              batch_size = 128,
@@ -20,15 +30,31 @@ ml_model <-  sits_train(samples.tb,
 
 sits_keras_diagnostics()
 
-# Retrieve a time series
-data("point_MT_6bands")
+# select the bands "ndvi", "evi", "nir" and "mir"
 
-# select the bands "ndvi", "evi", "nir", and "mir"
-point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir", "mir"))
+l8m_222068_evi_file <- paste0("/vsicurl/https://www.dropbox.com/s/4tpuwb56pjjo12h/LCMOD_2015-08-29_evi_800.tif?raw=1")
+l8m_222068_ndvi_file <- paste0("/vsicurl/https://www.dropbox.com/s/s9n7vsaoos366vb/LCMOD_2015-08-29_ndvi_800.tif?raw=1")
+l8m_222068_nir_file <- paste0("/vsicurl/https://www.dropbox.com/s/d54f7gyjr575d6f/LCMOD_2015-08-29_nir_800.tif?raw=1")
+l8m_222068_mir_file <- paste0("/vsicurl/https://www.dropbox.com/s/zm6fpitk5opg6be/LCMOD_2015-08-29_swir2_800.tif?raw=1")
 
-# classify the point
-class.tb <- sits_classify(point.tb, samples.tb, ml_model)
+files <- c(l8m_222068_ndvi_file, l8m_222068_evi_file, l8m_222068_nir_file, l8m_222068_mir_file)
 
-# plot the classification
-sits_plot(class.tb)
+# define the timeline
 
+timeline <- timeline_2000_2017[timeline_2000_2017 >= lubridate::as_date("2015-08-29")]
+timeline <- timeline[1:23]
+
+# create a raster metadata file based on the information about the files
+raster.tb <- sits_coverage(service = "RASTER", name = "L8MOD-222-068_2015-2016",
+                           missing_values = c(0.0, 0.0, 0.0, 0.0),
+                           minimum_values = c(0.0, 0.0, 0.0, 0.0),
+                           scale_factors  = c(0.0001, 0.0001, 0.0001, 0.0001),
+                           timeline = timeline, bands = c("ndvi", "evi", "nir", "mir"), files = files)
+
+# classify the raster image
+# note: it is important to use the original samples and to select the normalization option
+raster_class.tb <- sits_classify_raster(file = "./L8_MOD_222-068-class", raster.tb, samples.tb,
+                                        ml_model = dl_model, normalize = TRUE,
+                                        memsize = 6, multicores = 1)
+
+sits_plot_raster(raster_class.tb[1,], title = "LANDSAT-MODIS-222-068-2015-2016")

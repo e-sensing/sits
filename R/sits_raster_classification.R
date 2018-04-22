@@ -127,8 +127,7 @@ sits_classify_raster <- function(file = NULL,
 
     # normalization requires a pre-trained model
     if (normalize) {
-        message("Please ensure that the input samples (samples.tb) are **not** the normalized values  \n
-                SITS needs the **original** samples to compute the normalization parameters for the raster data")
+        message("Please ensure that the input samples (samples.tb) are **not** the normalized values \n SITS needs the **original** samples to compute the normalization parameters for the raster data")
         ensurer::ensure_that(ml_model, !(purrr::is_null(.)),
                              err_desc = "sits_classify_raster - normalization requires a pre-trained model \n
                              Please run the sits_train function first \n
@@ -403,8 +402,8 @@ sits_classify_raster <- function(file = NULL,
     values.mx <- scale_data(values.mx, scale_factor)
 
     if (normalize) {
-        mean <- stats.tb[1, band]
-        std  <- stats.tb[2, band]
+        mean <- as.numeric(stats.tb[1, band])
+        std  <- as.numeric(stats.tb[2, band])
         values.mx <- normalize_data(values.mx, mean, std)
     }
 
