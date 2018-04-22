@@ -26,7 +26,6 @@
 #' @param  differences     the order of differences of contiguous elements (default = 3)
 #' @param  memsize         memory available for classification (in GB)
 #' @param  multicores      number of threads to process the time series.
-#' @param  verbose         logical: run function in verbose mode? (useful for working with big data sets)
 #' @return raster_class.tb tibble with the metadata for the vector of classified RasterLayers
 #'
 #' @examples
@@ -62,8 +61,7 @@ sits_classify_raster <- function(file = NULL,
                                  lambda     = 0.5,
                                  differences = 3.0,
                                  memsize    = 4,
-                                 multicores = 2,
-                                 verbose    = FALSE) {
+                                 multicores = 2) {
 
 
     # checks the classification params
@@ -88,8 +86,7 @@ sits_classify_raster <- function(file = NULL,
                                              lambda,
                                              differences,
                                              memsize,
-                                             multicores,
-                                             verbose)
+                                             multicores)
 
     return(raster_class.tb)
 }
@@ -165,7 +162,6 @@ sits_classify_raster <- function(file = NULL,
 #' @param  differences     the order of differences of contiguous elements (default = 3)
 #' @param  memsize         memory available for classification (in GB)
 #' @param  multicores      number of cores to process the time series
-#' @param  verbose         run function in verbose mode? (useful for working with big data sets)
 #' @return layer.lst       list  of the classified raster layers
 #'
 .sits_classify_multicores <-  function(raster.tb,
@@ -178,8 +174,7 @@ sits_classify_raster <- function(file = NULL,
                                                 lambda,
                                                 differences,
                                                 memsize,
-                                                multicores,
-                                                verbose) {
+                                                multicores) {
 
     # checks that machine learning model has been created
     ensurer::ensure_that(ml_model, !purrr::is_null(.),
@@ -201,19 +196,18 @@ sits_classify_raster <- function(file = NULL,
 
         # read the data
         dist_DT <- .sits_read_data(raster.tb, samples.tb, bs$row[i], bs$nrows[i],
-                                   smoothing, lambda, differences, normalize, verbose)
+                                   smoothing, lambda, differences, normalize)
 
         # predict the classification values
-        layers.lst <- .sits_predict_block(raster.tb, samples.tb, interval, layers.lst, bs$row[i], dist_DT, ml_model, multicores, verbose)
+        layers.lst <- .sits_predict_block(raster.tb, samples.tb, interval, layers.lst, bs$row[i], dist_DT, ml_model, multicores)
 
         # remove distance data.table (trying to use as little memory as possible)
         rm(dist_DT)
         gc()
 
-        if (verbose) {
-            message(paste0("Memory used after end of processing all years of block ", i, " - ", .sits_mem_used(), " GB"))
-            message(paste0("Processed block starting from ",  bs$row[i], "to ", (bs$row[i] + bs$nrows[i] - 1)))
-        }
+        # save information about memory use for debugging later
+        .sits_log_debug(paste0("Memory used after processing all years of block ", i, " - ", .sits_mem_used(), " GB"))
+        .sits_log_debug(paste0("Processed block starting from ",  bs$row[i], " to ", (bs$row[i] + bs$nrows[i] - 1)))
     }
 
     # finish writing
@@ -302,11 +296,10 @@ sits_classify_raster <- function(file = NULL,
 #' @param  lambda          lambda value for whittaker smoother
 #' @param  differences     differences value for whittaker smoother
 #' @param  normalize       (logical) should normalization be applied?
-#' @param  verbose         (logical) print diagnostics?
 #' @return dist_DT          data.table with values for classification
 #'
 .sits_read_data <- function(raster.tb, samples.tb, first_row, n_rows_block,
-                            smoothing, lambda, differences, normalize, verbose) {
+                            smoothing, lambda, differences, normalize) {
 
     # get the bands of the raster bricks
     bands <- unlist(raster.tb$bands)
@@ -345,35 +338,31 @@ sits_classify_raster <- function(file = NULL,
             values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band],
                                                smoothing, lambda, differences, normalize, stats.tb)
 
-            if (verbose) {
-                message(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
-                message(paste0("Read band ", band, " from rows ", first_row, "to ", (first_row + n_rows_block - 1)))
-            }
+            # save information about memory use for debugging later
+            .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
+            .sits_log_debug(paste0("Read band ", band, " from rows ", first_row, "to ", (first_row + n_rows_block - 1)))
+
             return(values.mx)
         })
-
+    # create a data.table joining the values
     dist_DT <- data.table::as.data.table(do.call(cbind,values.lst))
 
     # memory cleanup
-    if (verbose)
-        message(paste0("Memory used after binding bricks  - ", .sits_mem_used(), " GB"))
-
+    .sits_log_debug(paste0("Memory used after binding bricks  - ", .sits_mem_used(), " GB"))
     rm(values.lst)
     gc()
-    if (verbose)
-        message(paste0("Memory used after removing values - ", .sits_mem_used(), " GB"))
+    .sits_log_debug(paste0("Memory used after removing values - ", .sits_mem_used(), " GB"))
 
     # create two additional columns for prediction
-    #
     size <- n_rows_block*raster.tb[1,]$ncols
     two_cols_DT <- data.table::data.table("original_row" = rep(1,size),
                                           "reference"    = rep("NoClass", size))
 
+    # join the two columns with the data values
     dist_DT <- data.table::as.data.table(cbind(two_cols_DT, dist_DT))
 
     # memory debug
-    if (verbose)
-        message(paste0("Memory used after adding two first cols - ", .sits_mem_used(), " GB"))
+    .sits_log_debug(paste0("Memory used after adding two first cols - ", .sits_mem_used(), " GB"))
 
     return(dist_DT)
 }
@@ -440,10 +429,9 @@ sits_classify_raster <- function(file = NULL,
 #' @param  dist_DT           data.table with distance values
 #' @param  ml_model          machine learning model to be applied
 #' @param  multicores        number of cores to process the time series
-#' @param  verbose           prints debugging information
 #' @return layers.lst        list of layers with classification results
 
-.sits_predict_block <- function(raster.tb, samples.tb, interval, layers.lst, first_row,  dist_DT, ml_model, multicores, verbose) {
+.sits_predict_block <- function(raster.tb, samples.tb, interval, layers.lst, first_row,  dist_DT, ml_model, multicores) {
 
     # define the classification info parameters
     class_info.tb <- .sits_class_info(raster.tb, samples.tb, interval)
@@ -466,10 +454,10 @@ sits_classify_raster <- function(file = NULL,
     # then process only one year (saves memory)
     # else process multiple years
 
-    if (length(time_index.lst) == 1)
-        layers.lst <- .sits_process_one_interval(dist_DT, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose)
+    if (length(time_index.lst) == 1 && length(attr_names) == ncol(dist_DT))
+        layers.lst <- .sits_process_one_interval(dist_DT, layers.lst, ml_model, attr_names, int_labels, first_row, multicores)
     else
-        layers.lst <- .sits_process_multi_intervals(dist_DT, raster.tb, time_index.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose)
+        layers.lst <- .sits_process_multi_intervals(dist_DT, raster.tb, time_index.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores)
     return(layers.lst)
 }
 
@@ -484,10 +472,9 @@ sits_classify_raster <- function(file = NULL,
 #' @param  int_labels        integer values corresponding to labels
 #' @param  first_row         initial row of the output layer to write block
 #' @param  multicores        number of cores to process the time series
-#' @param  verbose           prints debugging information
 #' @return layers.lst        list of layers with classification results
 
-.sits_process_one_interval <- function(dist_DT, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose) {
+.sits_process_one_interval <- function(dist_DT, layers.lst, ml_model, attr_names, int_labels, first_row, multicores) {
 
     # set the names of the columns of dist1.tb
     colnames(dist_DT) <- attr_names
@@ -506,14 +493,12 @@ sits_classify_raster <- function(file = NULL,
         # apply parallel processing to the split data and join the results
         pred.vec <- unlist(parallel::mclapply(chunk_size.lst, classify_block, mc.cores = multicores))
     }
-
-    # memory management
-    else
+    else # one core only
         # estimate the prediction vector
         pred.vec <- ml_model(dist_DT)
 
-    if (verbose)
-        message(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
+    # memory management
+    .sits_log_debug(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
 
     # check the result has the right dimension
     ensurer::ensure_that(pred.vec, length(.) == nrow(dist_DT),
@@ -523,14 +508,13 @@ sits_classify_raster <- function(file = NULL,
     # for each layer, write the predicted values
 
     layers.lst[[1]] <- raster::writeValues(layers.lst[[1]], as.integer(int_labels[pred.vec]), first_row)
-    if (verbose)
-        message(paste0("Processed year starting from row ", first_row))
 
     # memory management
+    .sits_log_debug(paste0("Processed year starting from row ", first_row))
     rm(pred.vec)
     gc()
-    if (verbose)
-        message(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
+    .sits_log_debug(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
+
     return(layers.lst)
 }
 
@@ -547,9 +531,8 @@ sits_classify_raster <- function(file = NULL,
 #' @param  int_labels        integer values corresponding to labels
 #' @param  first_row         initial row of the output layer to write block
 #' @param  multicores        number of cores to process the time series
-#' @param  verbose           prints debugging information
 #' @return layers.lst        list of layers with classification results
-.sits_process_multi_intervals <- function(dist_DT, raster.tb, time_index.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores, verbose) {
+.sits_process_multi_intervals <- function(dist_DT, raster.tb, time_index.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores) {
 
     # retrieve the timeline and the bands
     timeline <- raster.tb[1,]$timeline[[1]]
@@ -578,14 +561,12 @@ sits_classify_raster <- function(file = NULL,
             # apply parallel processing to the split data and join the results
             pred.vec <- unlist(parallel::mclapply(chunk_size.lst, classify_block, mc.cores = multicores))
         }
-
-        # memory management
         else
             # estimate the prediction vector
             pred.vec <- ml_model(dist1_DT)
 
-        if (verbose)
-            message(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
+        # memory management
+        .sits_log_debug(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
 
         # check the result has the right dimension
         ensurer::ensure_that(pred.vec, length(.) == nrow(dist1_DT),
@@ -593,20 +574,20 @@ sits_classify_raster <- function(file = NULL,
                          from number of input pixels")
 
         # for each layer, write the predicted values
-
         layers.lst[[t]] <- raster::writeValues(layers.lst[[t]], as.integer(int_labels[pred.vec]), first_row)
-        if (verbose)
-            message(paste0("Processed year ", t, " starting from row ", first_row))
 
         # memory management
+        .sits_log_debug(paste0("Processed year ", t, " starting from row ", first_row))
         rm(dist1_DT)
         rm(pred.vec)
-        #rm(values)
         gc()
-        if (verbose)
-            message(paste0("Memory used after classification of year ", t, " - ", .sits_mem_used(), " GB"))
+        .sits_log_debug(paste0("Memory used after classification of year ", t, " - ", .sits_mem_used(), " GB"))
     }
+
+    # memory management
     rm(dist_DT)
     gc()
+    .sits_log_debug(paste0("Memory used after classification of all years - ", .sits_mem_used(), " GB"))
+
     return(layers.lst)
 }

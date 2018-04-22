@@ -14,18 +14,19 @@
 
 # Creates a package environment to store global variables
 sits.env <- new.env()
+sits.env$model_formula <- "log"
 
 # Include the following global variables in the SITS package
-utils::globalVariables(c(".", "%>%", ":=", ".SD", ".N", "V1", "Index", "from", "value", "variable", "cond",
+utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V1", "Index", "from", "value", "variable", "cond",
                          "med", "qt25", "qt75", "cluster_id", "x", "y",
                          "longitude", "latitude", "label", "coverage", "service",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
                          "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n", "rows.lst", "whit",
-                         "blue", "red", "green", "nir", "mir", "swir",
+                         "blue", "red", "green", "nir", "mir", "swir", "model_formula",
                          "distance", "predicted", "new_values", "sum_area", "area_vec", "area",
-                         "Alig.N", "matches", "reference", "cluster", ".data"))
+                         "Alig.N", "matches", "original_row", "reference", "cluster", ".data"))
 #' @importFrom dtw symmetric1 symmetric2
 #' @importFrom lubridate %within% %m+%
 #' @useDynLib sits, .registration = TRUE

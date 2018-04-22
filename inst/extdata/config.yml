@@ -1,7 +1,5 @@
 default:
 
-    # adjustment shift for function sits_adjust
-    adjustment_shift        : 3.0
     # estimated relative growth size of R memory relative to block size
     R_memory_bloat          : 1.5
     # reference machine configuration
@@ -14,6 +12,8 @@ default:
         virtual_fs          :  2.5
         time_process        :  7.0
 
+    # adjustment shift
+    default_adjustment_shift        : 3.0
 
     # estimated proportion of time used to process
 

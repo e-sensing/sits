@@ -20,17 +20,19 @@ raster.tb <- sits_coverage(service = "RASTER", name = "L8MOD-222_68_2015-2016",
 
 # retrieve the samples from EMBRAPA (used as training sets for classification)
 
-samples <- paste0("https://www.dropbox.com/s/w5i40v8u564i0r3/samples_Cerrado_01042018.rda?raw=1")
+samples_file <- paste0("https://www.dropbox.com/s/vo906wao5glwhmw/samples_Cerrado_small.rda?raw=1")
 
-download.file(samples, destfile = "./samples_Cerrado_01042018.rda")
-load(file = "./samples_Cerrado_01042018.rda")
+download.file(samples_file, destfile = "./samples_Cerrado_small.rda")
+load(file = "./samples_Cerrado_small.rda")
 
 #select the bands for classification
-samples.tb <- sits_select(samples_Cerrado_01042018.tb, bands = c("ndvi", "evi", "nir"))
+samples.tb <- sits_select(samples_Cerrado_small, bands = c("ndvi", "evi", "nir"))
+
+# create an SVM model
+svm_model <- sits_train(samples.tb, ml_method = sits_svm())
 
 message("Please select memory size avaliable for processing in GB (tipical values 1 - 100)")
 memsize <- as.integer(readline(prompt = "Enter a memsize value: "))
-
 
 message("Please select number of cores (tipical values 1 - 32)")
 multicores <- as.integer(readline(prompt = "Enter number of cores: "))
@@ -38,8 +40,8 @@ multicores <- as.integer(readline(prompt = "Enter number of cores: "))
 
 # classify the raster image
 raster_class.tb <- sits_classify_raster(file = "./L8_MOD_222-068-class", raster.tb, samples.tb,
-                     ml_method = sits_svm(),
+                     ml_model = svm_model,
                      memsize = memsize, multicores = multicores)
 
-sits_plot_raster(raster_class_tb[1,], title = "LANDSAT-MODIS-222-068-2015-2016")
+sits_plot_raster(raster_class.tb[1,], title = "LANDSAT-MODIS-222-068-2015-2016")
 

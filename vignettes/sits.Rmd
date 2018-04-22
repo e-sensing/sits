@@ -444,8 +444,7 @@ class.tb <-
                               optimizer        = keras::optimizer_adam(lr = 0.001),
                               epochs           = 300,
                               batch_size       = 128,
-                              validation_split = 0.2),
-                  adj_val = 0.0)
+                              validation_split = 0.2))
 sits_plot(class.tb)
 ```
 

@@ -15,10 +15,6 @@ sits_log <- function() {
     sits.env$logger_debug <- log4r::create.logger(logfile = sits.env$debug_file, level = "DEBUG")
     message(paste0("Created logger for SITS package - DEBUG level at ", sits.env$debug_file))
 
-    sits.env$warn_file <- tempfile(pattern = "sits_warn", fileext = ".log")
-    sits.env$logger_warn <- log4r::create.logger(logfile = sits.env$warn_file, level = "WARN")
-    message(paste0("Created logger for SITS package - WARN level at ", sits.env$warn_file))
-
     sits.env$error_file <- tempfile(pattern = "sits_error", fileext = ".log")
     sits.env$logger_error <- log4r::create.logger(logfile = sits.env$error_file, level = "ERROR")
     message(paste0("Created logger for SITS package - ERROR level at ", sits.env$error_file))
@@ -47,17 +43,6 @@ sits_log <- function() {
 #'
 .sits_log_debug <- function(message) {
     log4r::debug(sits.env$logger_debug, message)
-}
-#' @title Logs an error in the log file
-#' @name .sits_log_warning
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Logs an debug message in the log file
-#' @param message       Message to be logged
-#' @return boolean      TRUE if creation succeeds
-#'
-.sits_log_warning <- function(message) {
-    log4r::warn(sits.env$logger_warn, message)
 }
 #' @title Saves a data set for future use
 #' @name .sits_log_data
@@ -115,16 +100,6 @@ sits_log <- function() {
 sits_show_errors <- function() {
 
     file.show(sits.env$error_file)
-}
-
-#' @title Prints the warnings log
-#' @name sits_show_warnings
-#' @description Prints the warnings log
-#'
-#' @export
-sits_show_warnings <- function() {
-
-    file.show(sits.env$warn_file)
 }
 
 #' @title Prints the debug log

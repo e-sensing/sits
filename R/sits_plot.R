@@ -452,7 +452,7 @@ sits_plot_dendrogram <- function(data.tb,
 #' @param colors      color pallete
 #' @export
 #'
-sits_plot_raster <- function(raster_class.tb, title, colors = NULL) {
+sits_plot_raster <- function(raster_class.tb, title = "Classified Image", colors = NULL) {
 
     # get the raster object
     r <- raster_class.tb[1,]$r_objs[[1]]

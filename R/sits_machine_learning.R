@@ -266,20 +266,25 @@ sits_gbm <- function(distances_DT = NULL, formula = sits_formula_logref(), distr
         if (class(formula) == "function")
             formula <- formula(train_data_DT)
 
+        # adjust the values if the formula is log
+        train_data_DT <- .sits_formula_adjust(train_data_DT)
+
         # call gbm::gbm method and return the trained multinom model
-        df <- data.frame(train_data_DT[-1:0])
-        result_gbm <- gbm::gbm(formula = formula, data = df,
+
+        result_gbm <- gbm::gbm(formula = formula, data = train_data_DT[, original_row := NULL],
                                distribution = distribution, n.trees = n.trees, interaction.depth = interaction.depth,
                                shrinkage = shrinkage, cv.folds = cv.folds, n.cores = n.cores,...)
 
         # check performance using 5-fold cross-validation
-        best.iter <- gbm::gbm.perf(result_gbm, method="cv")
+        best.iter <- gbm::gbm.perf(result_gbm, method = "cv")
 
         # construct model predict enclosure function and returns
-        # construct model predict enclosure function and returns
-        model_predict <- function(values.tb){
-            result <- stats::predict(result_gbm, newdata = values.tb, best.iter)
-            #return (result)
+        model_predict <- function(values_DT){
+            # shift the values by a fixed amount if using a log formula
+            if (sits.env$model_formula == "log")
+                values_DT <- .sits_shift_DT(values_DT, shift = sits.env$adjustment_shift)
+
+            result <- stats::predict(result_gbm, newdata = values_DT, best.iter)
             return(colnames(result)[max.col(data.frame(result))])
         }
         return(model_predict)
@@ -331,12 +336,19 @@ sits_lda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) 
         if (class(formula) == "function")
             formula <- formula(train_data_DT)
 
+        # adjust the values if the formula is log
+        train_data_DT <- .sits_formula_adjust(train_data_DT)
+
         # call MASS::lda method and return the trained lda model
         result_lda <- MASS::lda(formula = formula, data = train_data_DT, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(values.tb){
-            return(stats::predict(result_lda, newdata = values.tb)$class)
+        model_predict <- function(values_DT){
+            # shift the values by a fixed amount if using a log formula
+            if (sits.env$model_formula == "log")
+                values_DT <- .sits_shift_DT(values_DT, shift = sits.env$adjustment_shift)
+
+            return(stats::predict(result_lda, newdata = values_DT)$class)
         }
         return(model_predict)
     }
@@ -387,12 +399,19 @@ sits_qda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) 
         if (class(formula) == "function")
             formula <- formula(train_data_DT)
 
+        # adjust the training values in the case of a logarithm model formula
+        train_data_DT <- .sits_formula_adjust(train_data_DT)
+
         # call MASS::qda method and return the trained lda model
         result_qda <- MASS::qda(formula = formula, data = train_data_DT, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(values.tb){
-            return(stats::predict(result_qda, newdata = values.tb)$class)
+        model_predict <- function(values_DT){
+            # shift the values by a fixed amount if using a log formula
+            if (sits.env$model_formula == "log")
+                values_DT <- .sits_shift_DT(values_DT, shift = sits.env$adjustment_shift)
+
+            return(stats::predict(result_qda, newdata = values_DT)$class)
         }
         return(model_predict)
     }
@@ -436,7 +455,6 @@ sits_mlr <- function(distances_DT = NULL, formula = sits_formula_linear(),
     # function that returns nnet::multinom model based on a sits sample tibble
     result_fun <- function(train_data_DT){
 
-
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_mlr: input data does not contain distance")
@@ -445,6 +463,9 @@ sits_mlr <- function(distances_DT = NULL, formula = sits_formula_linear(),
         if (class(formula) == "function")
             formula <- formula(train_data_DT)
 
+        # adjust the training values in the case of a logarithm model formula
+        train_data_DT <- .sits_formula_adjust(train_data_DT)
+
         # call nnet::multinom method and return the trained multinom model
         result_mlr <- nnet::multinom(formula = formula,
                                      data = train_data_DT,
@@ -452,8 +473,12 @@ sits_mlr <- function(distances_DT = NULL, formula = sits_formula_linear(),
                                      MaxNWts = n_weights, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(values.tb){
-            result <- stats::predict(result_mlr, newdata = values.tb)
+        model_predict <- function(values_DT){
+            # adjust the values in the case of a logarithm model formula
+            if (sits.env$model_formula == "log")
+                values_DT <- .sits_shift_DT(values_DT, shift = sits.env$adjustment_shift)
+
+            result <- stats::predict(result_mlr, newdata = values_DT)
             return(result)
         }
         return(model_predict)
@@ -496,19 +521,19 @@ sits_rfor <- function(distances_DT = NULL, ntree = 2000, nodesize = 1, ...) {
     result_fun <- function(train_data_DT){
 
         # is the input data the result of a TWDTW matching function?
-        ensurer::ensure_that(train_data_DT, "reference" %in% names (.),
+        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_rfor: input data does not contain distance")
 
-        # call `randomForest::randomForest` method and return the trained multinom model
-        df <- data.frame(train_data_DT)
-        result_rfor <- randomForest::randomForest(x = df[-2:0],
-                                                  y = as.factor(df$reference),
+        # call `randomForest::randomForest` method and return the trained model
+        reference <- train_data_DT[, reference]
+        result_rfor <- randomForest::randomForest(x = train_data_DT[, c("original_row", "reference") := NULL],
+                                                  y = as.factor(reference),
                                                   data = NULL, ntree = ntree, nodesize = 1,
                                                   norm.votes = FALSE, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
-        model_predict <- function(values.tb){
-            return(stats::predict(result_rfor, newdata = values.tb, type = "response"))
+        model_predict <- function(values_DT){
+            return(stats::predict(result_rfor, newdata = values_DT, type = "response"))
         }
         return(model_predict)
     }
@@ -542,7 +567,6 @@ sits_rfor <- function(distances_DT = NULL, ntree = 2000, nodesize = 1, ...) {
 #' @param tolerance	       tolerance of termination criterion (default: 0.001)
 #' @param epsilon	       epsilon in the insensitive-loss function (default: 0.1)
 #' @param cross            number of cross validation folds applied on the training data to assess the quality of the model,
-#' @param shift            shift of values to avoid negative values for SVM classification
 #' @param ...              other parameters to be passed to e1071::svm function
 #' @return result          fitted model function to be passed to sits_predict
 #'
@@ -558,23 +582,18 @@ sits_rfor <- function(distances_DT = NULL, ntree = 2000, nodesize = 1, ...) {
 #'}
 #' @export
 sits_svm <- function(distances_DT = NULL, formula = sits_formula_logref(), kernel = "radial",
-                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4, shift = 3.0, ...) {
+                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(train_data_DT){
-         # is the input data the result of a matching function?
-        ensurer::ensure_that(train_data_DT, "reference" %in% names (.),
-                             err_desc = "sits_svm: input data does not contain references information")
 
-        message(paste0("Memory used before shift train_data - ", .sits_mem_used(), " GB"))
-        # shift the values by a fixed amount
-        train_data_DT <- .sits_shift_DT(train_data_DT, shift)
-
-        message(paste0("Memory used after shift train_data - ", .sits_mem_used(), " GB"))
-
-        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        # if parameter formula is a function call it passing as argument the input data sample.
+        # The function must return a valid formula.
         if (class(formula) == "function")
             formula <- formula(train_data_DT)
+
+        # adjust the training values in the case of a logarithm model formula
+        train_data_DT <- .sits_formula_adjust(train_data_DT)
 
         # call e1071::svm method and return the trained svm model
         result_svm <- e1071::svm(formula = formula, data = train_data_DT, kernel = kernel,
@@ -583,9 +602,8 @@ sits_svm <- function(distances_DT = NULL, formula = sits_formula_logref(), kerne
 
         # construct model predict enclosure function and returns
         model_predict <- function(values_DT){
-            message(paste0("Memory used before shift values_DT - ", .sits_mem_used(), " GB"))
-            values_DT<- .sits_shift_DT(values_DT, shift)
-            message(paste0("Memory used after shift values_DT - ", .sits_mem_used(), " GB"))
+            if (sits.env$model_formula == "log")
+                values_DT <- .sits_shift_DT(values_DT, shift = sits.env$adjustment_shift)
             return(stats::predict(result_svm, newdata = values_DT))
         }
         return(model_predict)
@@ -651,6 +669,9 @@ sits_keras_diagnostics <- function(test.x = NULL, test.y = NULL) {
 #' @export
 sits_formula_logref <- function(predictors_index = -2:0){
 
+    # store configuration information about model formula
+    sits.env$model_formula <- "log"
+
     # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
     # respectivelly, the reference and predictors fields of tibble in `tb` parameter.
     result_fun <- function(tb){
@@ -686,6 +707,9 @@ sits_formula_logref <- function(predictors_index = -2:0){
 #' @export
 sits_formula_linear <- function(predictors_index = -2:0){
 
+    # store configuration information about model formula
+    sits.env$model_formula <- "linear"
+
     # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
     # respectivelly, the reference and predictors fields of tibble in `tb` parameter.
     result_fun <- function(tb){
@@ -718,6 +742,9 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #'
 #' @export
 sits_formula_smooth <- function(predictors_index = -2:0){
+
+    # store configuration information about model formula
+    sits.env$model_formula <-  "smooth"
 
     # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
     # respectivelly, the reference and predictors fields of tibble in `tb` parameter.
@@ -766,4 +793,30 @@ sits_formula_smooth <- function(predictors_index = -2:0){
     predicted <- as.character(ml_model(distances_DT))
 
     return(predicted)
+}
+
+#' @title Adjust training values if the model formula uses log
+#' @name .sits_formula_adjust
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description If the model formula is using logs, it is important to correct for negative values in the data
+#'
+#' @param train_data_DT     training data
+#' @return train_data_DT    adjusted training data
+#'
+
+.sits_formula_adjust <- function(train_data_DT){
+
+    # shift the values by a fixed amount if using a log formula
+    if (sits.env$model_formula == "log") {
+        # find the minimum value in the training data
+        min <- train_data_DT[, min(.SD), .SDcols = colnames(train_data_DT[,3:length(train_data_DT)]) ]
+        # estimate a shift
+        shift <- ceiling(sits.env$config$default_adjustment_shift - min)
+        # store the shift for later use
+        sits.env$adjustment_shift <- shift
+        # shift the training data
+        train_data_DT <- .sits_shift_DT(train_data_DT, shift)
+    }
+    return(train_data_DT)
 }

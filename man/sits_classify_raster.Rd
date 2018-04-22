@@ -7,7 +7,7 @@
 sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
   ml_method = sits_svm(), interval = "12 month", smoothing = FALSE,
   normalize = FALSE, lambda = 0.5, differences = 3, memsize = 4,
-  multicores = 2, verbose = FALSE)
+  multicores = 2)
 }
 \arguments{
 \item{file}{vector of file names to store the output (one file per classified year)}
@@ -33,8 +33,6 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
 \item{memsize}{memory available for classification (in GB)}
 
 \item{multicores}{number of threads to process the time series.}
-
-\item{verbose}{logical: run function in verbose mode? (useful for working with big data sets)}
 }
 \value{
 raster_class.tb tibble with the metadata for the vector of classified RasterLayers

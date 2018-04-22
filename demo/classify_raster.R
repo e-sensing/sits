@@ -19,6 +19,9 @@ raster.tb <- sits_coverage(service = "RASTER", name = "Sinop",
 #select the bands for classification
 samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi"))
 
+# build the classification model
+svm_model <- sits_train(samples.tb, ml_method = sits_svm(cost = 10, kernel = "radial", tolerance = 0.001, epsilon = 0.1))
+
 # get a point
 point.tb <- sits_getdata(coverage = raster.tb, longitude = -55.368, latitude = -11.694)
 # plot the point
@@ -26,8 +29,7 @@ sits_plot(point.tb)
 
 # classify the raster image
 raster_class.tb <- sits_classify_raster(file = "./sinop-class", raster.tb, samples.tb,
-                     ml_method = sits_svm(cost = 10, kernel = "radial", tolerance = 0.001, epsilon = 0.1),
-                     smoothing = FALSE, verbose = TRUE, memsize = 4, multicores = 2)
+                     ml_model = svm_model, memsize = 4, multicores = 2)
 
 # plot the first classified image
 sits_plot_raster(raster_class.tb[1,], title = "SINOP MT - 2000/2001")

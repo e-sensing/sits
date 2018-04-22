@@ -6,7 +6,7 @@
 \usage{
 sits_svm(distances_DT = NULL, formula = sits_formula_logref(),
   kernel = "radial", degree = 3, coef0 = 0, cost = 10,
-  tolerance = 0.001, epsilon = 0.1, cross = 4, shift = 3, ...)
+  tolerance = 0.001, epsilon = 0.1, cross = 4, ...)
 }
 \arguments{
 \item{distances_DT}{set of distance measures for each training sample}
@@ -26,8 +26,6 @@ sits_svm(distances_DT = NULL, formula = sits_formula_logref(),
 \item{epsilon}{epsilon in the insensitive-loss function (default: 0.1)}
 
 \item{cross}{number of cross validation folds applied on the training data to assess the quality of the model,}
-
-\item{shift}{shift of values to avoid negative values for SVM classification}
 
 \item{...}{other parameters to be passed to e1071::svm function}
 }
