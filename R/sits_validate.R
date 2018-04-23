@@ -24,7 +24,7 @@
 #'
 #' @param data.tb         sits tibble
 #' @param folds           number of partitions to create.
-#' @param ml_method       machine learning training method
+#' @param ml_model        pre-built machine learning model (see \code{\link[sits]{sits_train}})
 #' @param multicores      number of threads to process the validation (Linux and MacOS only)
 #' @return pred_ref.tb    tibble containing pairs of reference and predicted values
 #'
@@ -34,12 +34,13 @@
 #' data (cerrado_2classes)
 #'
 #' # perform a five fold validation with the SVM machine learning method
+#' ml_model <- sits_train(cerrado_2classes, sits_svm())
 #' conf_matrix1.mx <- sits_kfold_validate (cerrado_2classes)
 #' }
 #' @export
 
 sits_kfold_validate <- function(data.tb, folds = 5,
-                                ml_method   = sits_svm(),
+                                ml_model    = NULL,
                                 multicores  = 1){
 
     # does the input data exist?
@@ -48,6 +49,9 @@ sits_kfold_validate <- function(data.tb, folds = 5,
     # is the data labelled?
     ensurer::ensure_that(data.tb, !("NoClass" %in% sits_labels(.)),
                          err_desc = "sits_cross_validate: please provide a labelled set of time series")
+
+    # ensure the machine learning model has been built
+    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
     #is the bands are not provided, deduced them from the data
     bands <- sits_bands(data.tb)
@@ -68,14 +72,11 @@ sits_kfold_validate <- function(data.tb, folds = 5,
         # find the matches on the training data
         distances_train.tb <- sits_distances(data_train.tb)
 
-        # find a model on the training data set
-        model.ml <- ml_method(distances_train.tb)
-
         # find the distances in the test data
         distances_test.tb  <- sits_distances(data_test.tb)
 
         # classify the test data
-        predicted <- .sits_predict(distances_test.tb, model.ml)
+        predicted <- .sits_predict(distances_test.tb, ml_model)
 
         ref.vec  <- c(ref.vec,  data_test.tb$label)
         pred.vec <- c(pred.vec, predicted)

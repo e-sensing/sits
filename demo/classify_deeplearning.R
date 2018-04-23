@@ -1,18 +1,19 @@
 library(sits)
 library(keras)
+install_keras()
 
 message("Processing of a mixed Landsat 8 - MODIS data set")
 message("Please ensure that you have enough memory available")
 
 # Retrieve the set of samples for the Cerrado region (provided by EMBRAPA)
 
-# select a file with 12,305 samples
-samples_file <- paste0("https://www.dropbox.com/s/l2kilyvzrtfw2yo/samples_Cerrado_01042018_frac.rda?raw=1")
-download.file(samples_file, destfile = "./samples_Cerrado_01042018_frac.rda")
-load(file = "./samples_Cerrado_01042018_frac.rda")
+# select a file with 61,000 samples
+samples_file <- paste0("https://www.dropbox.com/s/5llfs8w371u6lng/samples_Cerrado_01042018.rda?raw=1")
+download.file(samples_file, destfile = "./samples_Cerrado_01042018.rda")
+load(file = "./samples_Cerrado_01042018.rda")
 
 # select only the ndvi and evi bands
-samples.tb <- sits_select_bands(samples_Cerrado_01042018_frac.tb, bands = c("ndvi", "evi", "nir", "mir"))
+samples.tb <- sits_select_bands(samples_Cerrado_01042018.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
 # normalize the samples for better performance
 samples_n.tb <- sits_normalize_ts(samples.tb)

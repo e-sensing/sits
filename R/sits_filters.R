@@ -31,17 +31,17 @@
 #' sits_plot (point_int.tb)
 #' }
 #' @export
-sits_linear_interp <- function(data.tb, n = 23) {
+sits_linear_interp <- function(data.tb = NULL, n = 23) {
 
-    # test if data.tb has data
-    .sits_test_tibble(data.tb)
-
-    # compute linear approximation
-    result.tb <- sits_apply(data.tb,
-                            fun = function(band) stats::approx(band, n = n, ties=mean)$y,
-                            fun_index = function(band) as.Date(stats::approx(band, n = n, ties=mean)$y,
-                                                               origin = "1970-01-01"))
-    return(result.tb)
+    filter_fun <- function(data.tb){
+        # compute linear approximation
+        result.tb <- sits_apply(data.tb,
+                                fun = function(band) stats::approx(band, n = n, ties = mean)$y,
+                                fun_index = function(band) as.Date(stats::approx(band, n = n, ties = mean)$y,
+                                                                   origin = "1970-01-01"))
+        return(result.tb)
+    }
+    result <- .sits_factory_function(data.tb, filter_fun)
 }
 
 #' @title Interpolation function of the time series of a sits_tibble
@@ -68,21 +68,21 @@ sits_linear_interp <- function(data.tb, n = 23) {
 #' sits_plot (point_int.tb)
 #' }
 #' @export
-sits_interp <- function(data.tb, fun = stats::approx, n = base::length, ...) {
+sits_interp <- function(data.tb = NULL, fun = stats::approx, n = base::length, ...) {
 
-    # test if data.tb has data
-    .sits_test_tibble(data.tb)
-
-    # compute linear approximation
-    result.tb <- sits_apply(data.tb,
-                            fun = function(band) {
-                                if (class(n) == "function")
-                                    return(fun(band, n = n(band), ...)$y)
-                                return(fun(band, n = n, ...)$y)
-                            },
-                            fun_index = function(band) as.Date(fun(band, n = n, ...)$y,
-                                                               origin = "1970-01-01"))
-    return(result.tb)
+    filter_fun <- function(data.tb) {
+        # compute linear approximation
+        result.tb <- sits_apply(data.tb,
+                                fun = function(band) {
+                                    if (class(n) == "function")
+                                        return(fun(band, n = n(band), ...)$y)
+                                    return(fun(band, n = n, ...)$y)
+                                },
+                                fun_index = function(band) as.Date(fun(band, n = n, ...)$y,
+                                                                   origin = "1970-01-01"))
+        return(result.tb)
+    }
+    result <- .sits_factory_function(data.tb, filter_fun)
 }
 #' @title Remove missing values
 #' @name sits_missing_values
@@ -127,35 +127,39 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' sits_plot (point2.tb)
 #' }
 #' @export
-sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
+sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "env"){
 
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
     }
 
-    # definitions of operations and the key returned by `dtwclust::compute_envelope`
-    def_op <- list("U" = "upper", "L" = "lower", "u" = "upper", "l" = "lower")
+    filter_fun <- function(data.tb) {
 
-    # split envelope operations
-    operations <- strsplit(operations, "")[[1]]
+        # definitions of operations and the key returned by `dtwclust::compute_envelope`
+        def_op <- list("U" = "upper", "L" = "lower", "u" = "upper", "l" = "lower")
 
-    # verify if operations are either "U" or "L"
-    ensurer::ensure_that(operations, all(. %in% names(def_op)),
-                         err_desc = "sits_envelope: invalid operation sequence")
+        # split envelope operations
+        operations <- strsplit(operations, "")[[1]]
 
-    # compute envelopes
-    result.tb <- sits_apply(data.tb,
-                            fun = function(band) {
-                                for (op in operations) {
-                                    upper_lower.lst <- dtwclust::compute_envelope(band, window.size = 1, error.check = FALSE)
-                                    band <- upper_lower.lst[[def_op[[op]]]]
-                                }
-                                return(band)
-                            },
-                            fun_index = function(band) band,
-                            bands_suffix = bands_suffix)
-    return(result.tb)
+        # verify if operations are either "U" or "L"
+        ensurer::ensure_that(operations, all(. %in% names(def_op)),
+                             err_desc = "sits_envelope: invalid operation sequence")
+
+        # compute envelopes
+        result.tb <- sits_apply(data.tb,
+                                fun = function(band) {
+                                    for (op in operations) {
+                                        upper_lower.lst <- dtwclust::compute_envelope(band, window.size = 1, error.check = FALSE)
+                                        band <- upper_lower.lst[[def_op[[op]]]]
+                                    }
+                                    return(band)
+                                },
+                                fun_index = function(band) band,
+                                bands_suffix = bands_suffix)
+        return(result.tb)
+    }
+    result <- .sits_factory_function(data.tb, filter_fun)
 }
 
 
@@ -196,49 +200,53 @@ sits_envelope <- function(data.tb, operations = "UULL", bands_suffix = "env"){
 #' }
 #'
 #' @export
-sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
+sits_cloud_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
                               bands_suffix = "cf", apply_whit = TRUE, lambda_whit = 1.0){
 
-    # find the bands of the data
-    bands <- sits_bands(data.tb)
-    ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
+    filter_fun <- function(data.tb) {
+        # find the bands of the data
+        bands <- sits_bands(data.tb)
+        ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
 
-    # predictive model for missing values
-    pred_arima <- function(x, p, d, q ) {
-        idx <- which(is.na(x))
-        for (i in idx) {
-               prev3 <- x[(i - q):(i - 1)]
-               ensurer::ensure_that(prev3, !anyNA(.),
-                                    err_desc = "Cannot remove clouds, please reduce filter order")
-               arima.ml <- stats::arima(prev3, c(p, d , q))
-               x[i] <- as.vector(stats::predict(arima.ml, n.ahead = 1)$pred)
+        # predictive model for missing values
+        pred_arima <- function(x, p, d, q ) {
+            idx <- which(is.na(x))
+            for (i in idx) {
+                prev3 <- x[(i - q):(i - 1)]
+                ensurer::ensure_that(prev3, !anyNA(.),
+                                     err_desc = "Cannot remove clouds, please reduce filter order")
+                arima.ml <- stats::arima(prev3, c(p, d , q))
+                x[i] <- as.vector(stats::predict(arima.ml, n.ahead = 1)$pred)
+            }
+            return(x)
         }
-        return(x)
+        # prepare result SITS tibble
+        result.tb <- data.tb
+
+        # select the chosen bands for the time series
+        result.tb$time_series <- data.tb$time_series %>%
+            purrr::map(function(ts) {
+                ndvi <- dplyr::pull(ts[, "ndvi"])
+                idx <- which(c(0, diff(ndvi)) < cutoff)
+                idx <- idx[!idx %in% 1:q]
+                ts[,bands][idx,] <- NA
+                # interpolate missing values
+                bands %>%
+                    purrr::map(function(b)
+                        ts[,b] <<- pred_arima(dplyr::pull(ts[,b]), p = p, d = d, q = q))
+                return(ts)
+            })
+        # rename the output bands
+        new_bands <- paste0(bands, ".", bands_suffix)
+        result.tb <- sits_rename(result.tb, new_bands)
+
+        if (apply_whit)
+            result.tb <- sits_whittaker(result.tb, lambda = lambda_whit)
+
+        return(result.tb)
+
     }
-    # prepare result SITS tibble
-    result.tb <- data.tb
-
-    # select the chosen bands for the time series
-    result.tb$time_series <- data.tb$time_series %>%
-        purrr::map(function(ts) {
-            ndvi <- dplyr::pull(ts[, "ndvi"])
-            idx <- which(c(0, diff(ndvi)) < cutoff)
-            idx <- idx[!idx %in% 1:q]
-            ts[,bands][idx,] <- NA
-            # interpolate missing values
-            bands %>%
-                purrr::map(function(b)
-                    ts[,b] <<- pred_arima(dplyr::pull(ts[,b]), p = p, d = d, q = q))
-            return(ts)
-        })
-    # rename the output bands
-    new_bands <- paste0(bands, ".", bands_suffix)
-    result.tb <- sits_rename(result.tb, new_bands)
-
-    if (apply_whit)
-        result.tb <- sits_whittaker(result.tb, lambda = lambda_whit)
-
-    return(result.tb)
+    result <- .sits_factory_function(data.tb, filter_fun)
 }
 
 #' @title Smooth the time series using Whittaker smoother
@@ -272,24 +280,28 @@ sits_cloud_filter <- function(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
 #' }
 #'
 #' @export
-sits_whittaker <- function(data.tb, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
+sits_whittaker <- function(data.tb = NULL, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
 
-    result.tb <- sits_apply(data.tb,
-                            fun = function(band){
-                                # According to: Whittaker (1923). On a new method of graduation.
-                                # Proceedings of the Edinburgh Mathematical Society, 41, 63-73.
-                                id.mtx <- diag(length(band))
-                                diff.mtx <- diff(id.mtx, lag = 1, differences = differences)
+    filter_fun <- function(data.tb) {
 
-                                # system of equations to be solved for band values
-                                smooth.mtx <- id.mtx + (lambda * crossprod(diff.mtx))
+        result.tb <- sits_apply(data.tb,
+                                fun = function(band){
+                                    # According to: Whittaker (1923). On a new method of graduation.
+                                    # Proceedings of the Edinburgh Mathematical Society, 41, 63-73.
+                                    id.mtx <- diag(length(band))
+                                    diff.mtx <- diff(id.mtx, lag = 1, differences = differences)
 
-                                # compute solution and return
-                                return(solve(smooth.mtx, band))
-                            },
-                            fun_index = function(band) band,
-                            bands_suffix = bands_suffix)
-    return(result.tb)
+                                    # system of equations to be solved for band values
+                                    smooth.mtx <- id.mtx + (lambda * crossprod(diff.mtx))
+
+                                    # compute solution and return
+                                    return(solve(smooth.mtx, band))
+                                },
+                                fun_index = function(band) band,
+                                bands_suffix = bands_suffix)
+        return(result.tb)
+    }
+    result <- .sits_factory_function(data.tb, filter_fun)
 }
 #' @title Smooth the time series using Savitsky-Golay filter
 #'
@@ -314,12 +326,17 @@ sits_whittaker <- function(data.tb, lambda    = 1.0, differences = 3, bands_suff
 #' }
 #'
 #' @export
-sits_sgolay <- function(data.tb, order = 3, scale = 1, bands_suffix = "sg") {
-    result.tb <- sits_apply(data.tb,
-                            fun = function(band) signal::sgolayfilt(band, p = order, ts = scale),
-                            fun_index = function(band) band,
-                            bands_suffix = bands_suffix)
-    return(result.tb)
+sits_sgolay <- function(data.tb = NULL, order = 3, scale = 1, bands_suffix = "sg") {
+
+    filter_fun <- function(data.tb) {
+        result.tb <- sits_apply(data.tb,
+                                fun = function(band) signal::sgolayfilt(band, p = order, ts = scale),
+                                fun_index = function(band) band,
+                                bands_suffix = bands_suffix)
+        return(result.tb)
+    }
+
+    result <- .sits_factory_function(data.tb, filter_fun)
 }
 
 #' @title Kalman filter
@@ -331,12 +348,16 @@ sits_sgolay <- function(data.tb, order = 3, scale = 1, bands_suffix = "sg") {
 #' @param bands_suffix The suffix to be appended to the smoothed filters
 #' @return output.tb   A tibble with smoothed sits time series
 #' @export
-sits_kf <- function(data.tb, bands_suffix = "kf"){
-    result.tb <- sits_apply(data.tb,
-                            fun = function(band) .kalmanfilter(band, NULL, NULL, NULL),
-                            fun_index = function(band) band,
-                            bands_suffix = bands_suffix)
-    return(result.tb)
+sits_kf <- function(data.tb = NULL, bands_suffix = "kf"){
+
+    filter_fun <- function(data.tb) {
+        result.tb <- sits_apply(data.tb,
+                                fun = function(band) .kalmanfilter(band, NULL, NULL, NULL),
+                                fun_index = function(band) band,
+                                bands_suffix = bands_suffix)
+        return(result.tb)
+    }
+    result <- .sits_factory_function(data.tb, filter_fun)
 }
 
 

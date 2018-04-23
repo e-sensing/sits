@@ -4,7 +4,7 @@
 \alias{sits_kf}
 \title{Kalman filter}
 \usage{
-sits_kf(data.tb, bands_suffix = "kf")
+sits_kf(data.tb = NULL, bands_suffix = "kf")
 }
 \arguments{
 \item{data.tb}{The SITS tibble containing the original time series}

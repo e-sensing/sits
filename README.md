@@ -141,13 +141,12 @@ sits_plot(sits_merge(point_whit.tb,
 We support a number of machine learning techniques, including SVM (support vector machines), Random Forests, generalised linear models, and gradient boosting machines, and deep learning. We show an example of using the SVM and Deep Learning classifiers below.
 
 ```{r}
-# Retrieve the set of samples for the Mato Grosso region 
-# (provided by EMBRAPA) (samples_MT_ndvi) and 
+# Build a machine learning model with a set of samples 
+# for the Mato Grosso region (provided by EMBRAPA) (samples_MT_ndvi)
+svm_model <- sits_train(samples_MT_ndvi, ml_method = sits_svm(kernel = "radial",  cost = 10))
 # get a point to be classified (point_ndvi)
-class.tb <- sits_classify(point_ndvi,
-                          samples_MT_ndvi,
-                          ml_method = sits_svm(kernel = "radial", 
-                                               cost = 10))
+
+class.tb <- sits_classify(point_ndvi, samples_MT_ndvi, svm_model)
 sits_plot(class.tb)
 ```
 

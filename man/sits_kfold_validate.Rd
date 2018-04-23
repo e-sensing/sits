@@ -4,15 +4,14 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate temporal patterns}
 \usage{
-sits_kfold_validate(data.tb, folds = 5, ml_method = sits_svm(),
-  multicores = 1)
+sits_kfold_validate(data.tb, folds = 5, ml_model = NULL, multicores = 1)
 }
 \arguments{
 \item{data.tb}{sits tibble}
 
 \item{folds}{number of partitions to create.}
 
-\item{ml_method}{machine learning training method}
+\item{ml_model}{pre-built machine learning model (see \code{\link[sits]{sits_train}})}
 
 \item{multicores}{number of threads to process the validation (Linux and MacOS only)}
 }
@@ -45,6 +44,7 @@ This function returns the confusion matrix, and Kappa values.
 data (cerrado_2classes)
 
 # perform a five fold validation with the SVM machine learning method
+ml_model <- sits_train(cerrado_2classes, sits_svm())
 conf_matrix1.mx <- sits_kfold_validate (cerrado_2classes)
 }
 }

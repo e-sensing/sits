@@ -4,7 +4,7 @@
 \alias{sits_interp}
 \title{Interpolation function of the time series of a sits_tibble}
 \usage{
-sits_interp(data.tb, fun = stats::approx, n = base::length, ...)
+sits_interp(data.tb = NULL, fun = stats::approx, n = base::length, ...)
 }
 \arguments{
 \item{data.tb}{tibble with time series data and metadata}

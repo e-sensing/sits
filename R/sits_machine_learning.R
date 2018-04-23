@@ -92,9 +92,9 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
 #' }
 #' @export
 sits_deeplearning <- function(distances_DT     = NULL,
-                              units            = c(512, 512, 512),
+                              units            = c(512, 512, 512, 512, 512),
                               activation       = 'elu',
-                              dropout_rates    = c(0.40, 0.40, 0.30),
+                              dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
                               optimizer        = keras::optimizer_adam(lr = 0.001),
                               epochs           = 500,
                               batch_size       = 128,
@@ -781,14 +781,6 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #' @param ...           other parameters to be passed to the model function
 #' @return predicted    vector of predicted labels
 .sits_predict <- function(distances_DT = NULL, ml_model, ...){
-
-    # is the input data the result of a TWDTW matching function?
-    ensurer::ensure_that(distances_DT, "reference" %in% names(.),
-                         err_desc = "sits_predict: input data does not contain TWDTW matches")
-
-    # is the input model a model function?
-    ensurer::ensure_that(ml_model, class(.) == "function",
-                         err_desc = "sits_predict: model parameter is not a function model returned by sits_train.")
 
     predicted <- as.character(ml_model(distances_DT))
 

@@ -20,8 +20,10 @@ testthat::test_that("Working with raster coverages", {
 
     testthat::expect_true(length(point.tb$time_series[[1]]$Index) == length(timeline_modis_392))
 
+    rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
+
     raster_class.tb <- sits_classify_raster(file = "./raster-class", raster.tb, samples_MT_ndvi,
-                                            ml_method = sits_svm(), memsize = 2, multicores = 1)
+                                            rfor_model, memsize = 2, multicores = 1)
 
     testthat::expect_true(all(file.exists(unlist(raster_class.tb$files))))
     rc_obj <- raster_class.tb[1,]$r_objs[[1]]

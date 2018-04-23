@@ -18,12 +18,9 @@
 #' @param  raster.tb       tibble with information about a set of space-time raster bricks
 #' @param  samples.tb      tibble with samples used for training the classification model
 #' @param  ml_model        an R model trained by \code{\link[sits]{sits_train}}
-#' @param  ml_method       an R machine learning method such as SVM, Random Forest or Deep Learning
 #' @param  interval        interval between two sucessive classifications, expressed in months
-#' @param  smoothing       (logical) apply a Whittaker smoothing function?
 #' @param  normalize       (logical) should the input data be normalized?
-#' @param  lambda          degree of smoothing of the Whittaker smoother (default = 0.5)
-#' @param  differences     the order of differences of contiguous elements (default = 3)
+#' @param  filter          smoothing filter to be applied (if desired)
 #' @param  memsize         memory available for classification (in GB)
 #' @param  multicores      number of threads to process the time series.
 #' @return raster_class.tb tibble with the metadata for the vector of classified RasterLayers
@@ -32,6 +29,9 @@
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
+#'
+#' # Build a machine learning model based on the samples
+#' svm_model <- sits_train(samples_MT_ndvi, sits_svm())
 #'
 #' # read a raster file and put it into a vector
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
@@ -44,9 +44,12 @@
 #' raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
 #'              timeline = timeline_modis_392, bands = c("ndvi"), files = files)
 #'
+#'
 #' # classify the raster file
 #' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-#'    ml_method = sits_svm(), memsize = 2, multicores = 2)
+#'    ml_model = svm_model, memsize = 2, multicores = 2)
+#' # plot the resulting classification
+#' sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
 #' }
 #'
 #' @export
@@ -54,26 +57,18 @@ sits_classify_raster <- function(file = NULL,
                                  raster.tb,
                                  samples.tb,
                                  ml_model  = NULL,
-                                 ml_method  = sits_svm(),
                                  interval   = "12 month",
-                                 smoothing  = FALSE,
                                  normalize  = FALSE,
-                                 lambda     = 0.5,
-                                 differences = 3.0,
+                                 filter     = NULL,
                                  memsize    = 4,
                                  multicores = 2) {
 
 
     # checks the classification params
-    .sits_check_classify_params(file, raster.tb, samples.tb, ml_model, smoothing, normalize)
-
-    # set up the ML model
-    if (purrr::is_null(ml_model))
-        ml_model <- sits_train(samples.tb, ml_method = ml_method)
+    .sits_check_classify_params(file, raster.tb, samples.tb, ml_model, normalize, filter)
 
     # create the raster objects and their respective filenames
     raster_class.tb <- .sits_create_classified_raster(raster.tb, samples.tb, file, interval)
-
 
     # classify the data
     raster_class.tb <- .sits_classify_multicores(raster.tb,
@@ -81,10 +76,8 @@ sits_classify_raster <- function(file = NULL,
                                              samples.tb,
                                              ml_model,
                                              interval,
-                                             smoothing,
                                              normalize,
-                                             lambda,
-                                             differences,
+                                             filter,
                                              memsize,
                                              multicores)
 
@@ -100,11 +93,11 @@ sits_classify_raster <- function(file = NULL,
 #' @param  raster.tb       tibble with information about a set of space-time raster bricks
 #' @param  samples.tb      tibble with samples used for training the classification model
 #' @param  ml_model        an R model trained by \code{\link[sits]{sits_train}}
-#' @param  smoothing       (logical) apply a Whittaker smoothing function?
 #' @param  normalize       (logical) should the input data be normalized?
+#' @param  filter          smoothing filter to be applied
 #' @return OK              (logical) tests succeeded?
 #'
-.sits_check_classify_params <- function(file, raster.tb, samples.tb, ml_model, smoothing, normalize){
+.sits_check_classify_params <- function(file, raster.tb, samples.tb, ml_model, normalize, filter){
 
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) > 0,
@@ -117,22 +110,9 @@ sits_classify_raster <- function(file = NULL,
     ensurer::ensure_that(file, !purrr::is_null(.),
                          err_desc = "sits-classify-raster: please provide name of output file")
 
-    # smoothing requires a pre-trained model
-    if (smoothing) {
-        ensurer::ensure_that(ml_model, !(purrr::is_null(.)),
-                             err_desc = "sits_classify_raster - smoothing requires a pre-built model \n
-                             Please run the sits_train function first \n
-                             Use the model produced by sits_train as an input parameter to sits_classify_raster")
-    }
+    # ensure the machine learning model has been built
+    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
-    # normalization requires a pre-trained model
-    if (normalize) {
-        message("Please ensure that the input samples (samples.tb) are **not** the normalized values \n SITS needs the **original** samples to compute the normalization parameters for the raster data")
-        ensurer::ensure_that(ml_model, !(purrr::is_null(.)),
-                             err_desc = "sits_classify_raster - normalization requires a pre-trained model \n
-                             Please run the sits_train function first \n
-                             Use the model produced by sits_train as an input parameter to sits_classify_raster")
-    }
     return(invisible(TRUE))
 }
 #' @title Classify a raster chunk using multicores
@@ -155,25 +135,21 @@ sits_classify_raster <- function(file = NULL,
 #' @param  samples.tb      tibble with samples used for training the classification model
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  interval        classification interval
-#' @param  smoothing       (logical) apply whittaker smoothing?
 #' @param  normalize       (logical) should the input data be normalized?
-#' @param  lambda          smoothing factor (default = 1.0)
-#' @param  differences     the order of differences of contiguous elements (default = 3)
+#' @param  filter          smoothing filter to be applied to the data
 #' @param  memsize         memory available for classification (in GB)
 #' @param  multicores      number of cores to process the time series
 #' @return layer.lst       list  of the classified raster layers
 #'
 .sits_classify_multicores <-  function(raster.tb,
-                                                raster_class.tb,
-                                                samples.tb,
-                                                ml_model,
-                                                interval,
-                                                smoothing,
-                                                normalize,
-                                                lambda,
-                                                differences,
-                                                memsize,
-                                                multicores) {
+                                       raster_class.tb,
+                                       samples.tb,
+                                       ml_model,
+                                       interval,
+                                       normalize,
+                                       filter,
+                                       memsize,
+                                       multicores) {
 
     # checks that machine learning model has been created
     ensurer::ensure_that(ml_model, !purrr::is_null(.),
@@ -194,8 +170,7 @@ sits_classify_raster <- function(file = NULL,
     for (i in 1:bs$n) {
 
         # read the data
-        dist_DT <- .sits_read_data(raster.tb, samples.tb, bs$row[i], bs$nrows[i],
-                                   smoothing, lambda, differences, normalize)
+        dist_DT <- .sits_read_data(raster.tb, samples.tb, bs$row[i], bs$nrows[i], normalize, filter)
 
         # predict the classification values
         layers.lst <- .sits_predict_block(raster.tb, samples.tb, interval, layers.lst, bs$row[i], dist_DT, ml_model, multicores)
@@ -291,14 +266,12 @@ sits_classify_raster <- function(file = NULL,
 #' @param  samples.tb      tibble with samples
 #' @param  first_row       first row to start reading
 #' @param  n_rows_block    number of rows in the block
-#' @param  smoothing       (logical) should smoothing be applied?
-#' @param  lambda          lambda value for whittaker smoother
-#' @param  differences     differences value for whittaker smoother
 #' @param  normalize       (logical) should normalization be applied?
+#' @param  filter          smoothing filter to be applied
 #' @return dist_DT          data.table with values for classification
 #'
 .sits_read_data <- function(raster.tb, samples.tb, first_row, n_rows_block,
-                            smoothing, lambda, differences, normalize) {
+                            normalize, filter) {
 
     # get the bands of the raster bricks
     bands <- unlist(raster.tb$bands)
@@ -335,7 +308,7 @@ sits_classify_raster <- function(file = NULL,
             band <- bands[b]
             # proprocess the input data
             values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band],
-                                               smoothing, lambda, differences, normalize, stats.tb)
+                                               normalize, stats.tb, filter)
 
             # save information about memory use for debugging later
             .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
@@ -375,23 +348,12 @@ sits_classify_raster <- function(file = NULL,
 #' @param  missing_value    missing value for the band
 #' @param  minimum_value    minimum values for the band
 #' @param  scale_factor     scale factor for each band (only for raster data)
-#' @param  smoothing        (logical) apply a Whittaker smoothing function?
 #' @param  normalize        (logical) should the input data be normalized?
-#' @param  lambda           degree of smoothing of the Whittaker smoother (default = 0.5)
-#' @param  differences      the order of differences of contiguous elements (default = 3)
 #' @param  stats.tb         normalization parameters
+#' @param  filter           smoothing filter to be applied
 #' @return values.mx        matrix with pre-processed values
 .sits_preprocess_data <- function(values.mx, band, missing_value, minimum_value, scale_factor,
-                                  smoothing, lambda, differences, normalize, stats.tb){
-
-    # define the smoothing function
-    whit <- function(ts) {
-        E <- diag(length(ts))
-        D <- diff(E, lag = 1, differences)
-        B <- E + (lambda * crossprod(D))
-        tsf <- solve(B, ts)
-        return(tsf)
-    }
+                                  normalize, stats.tb, filter){
 
     # correct minimum value
     values.mx[is.na(values.mx)] <- minimum_value
@@ -407,9 +369,9 @@ sits_classify_raster <- function(file = NULL,
         values.mx <- normalize_data(values.mx, mean, std)
     }
 
-    if (smoothing) {
+    if (!(purrr::is_null(filter))) {
         rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
-            lapply(whit)
+            lapply(filter)
         values.mx <- do.call(rbind, rows.lst)
     }
     return(values.mx)
@@ -481,7 +443,7 @@ sits_classify_raster <- function(file = NULL,
     # classify a block of data
     classify_block <- function(cs) {
         # predict the values for each time interval
-        pred_block.vec <- ml_model(dist_DT[cs[1]:cs[2],])
+        pred_block.vec <- as.character(ml_model(dist_DT[cs[1]:cs[2],]))
         return(pred_block.vec)
     }
 
@@ -494,7 +456,7 @@ sits_classify_raster <- function(file = NULL,
     }
     else # one core only
         # estimate the prediction vector
-        pred.vec <- ml_model(dist_DT)
+        pred.vec <- as.character(ml_model(dist_DT))
 
     # memory management
     .sits_log_debug(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
@@ -549,7 +511,7 @@ sits_classify_raster <- function(file = NULL,
         # classify a block of data
         classify_block <- function(cs) {
             # predict the values for each time interval
-            pred_block.vec <- ml_model(dist1_DT[cs[1]:cs[2],])
+            pred_block.vec <- as.character(ml_model(dist1_DT[cs[1]:cs[2],]))
             return(pred_block.vec)
         }
 
@@ -562,7 +524,7 @@ sits_classify_raster <- function(file = NULL,
         }
         else
             # estimate the prediction vector
-            pred.vec <- ml_model(dist1_DT)
+            pred.vec <- as.character(ml_model(dist1_DT))
 
         # memory management
         .sits_log_debug(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))

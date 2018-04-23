@@ -4,18 +4,15 @@
 \alias{sits_classify}
 \title{Classify a sits tibble using machine learning models}
 \usage{
-sits_classify(data.tb = NULL, train_samples.tb = NULL, ml_model = NULL,
-  ml_method = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance =
-  0.001, epsilon = 0.1, cross = 4), interval = "12 month", multicores = 1)
+sits_classify(data.tb = NULL, samples.tb = NULL, ml_model = NULL,
+  interval = "12 month", multicores = 1)
 }
 \arguments{
 \item{data.tb}{tibble with time series metadata and data}
 
-\item{train_samples.tb}{tibble with samples used for training the classification model}
+\item{samples.tb}{tibble with samples used for training the classification model}
 
 \item{ml_model}{pre-built machine learning model (see \code{\link[sits]{sits_train}})}
-
-\item{ml_method}{machine learning method (see \code{\link[sits]{sits_train}})}
 
 \item{interval}{interval used for classification (in months)}
 
@@ -38,28 +35,11 @@ Currenly, sits supports the following models:
 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 'lasso' (see \code{\link[sits]{sits_mlr}}), and 'ridge' (see \code{\link[sits]{sits_mlr}}).
 
-The model can be precomputed by the user, or built inside the function.
-In the case the user has already defined the model, this model should be
-passed to the function using the parameter "ml_model". Otherwise, users
-should pass the appropriate values to the "ml_method" and "adj_fun" parameters.
-
-The default is to use an SVM with a radial kernel, but users are encouraged to test
-alternatives.
+The model should be precomputed by the user. This model should be
+passed to the function using the parameter "ml_model".
 }
 \examples{
 \donttest{
-# Option 1. Use the SITS defaults for building a model
-# read a training data set
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_ndvi)
-# Retrieve a point
-data(point_ndvi)
-# classify the point
-class_ndvi.tb <-  sits_classify (point_ndvi, samples_MT_ndvi)
-# plot the classification
-sits_plot (class_ndvi.tb)
-
-# Option 2. Build a machine learning model first
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
 # select the bands "ndvi", "evi", "nir", and "mir"

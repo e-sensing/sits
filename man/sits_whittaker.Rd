@@ -4,7 +4,7 @@
 \alias{sits_whittaker}
 \title{Smooth the time series using Whittaker smoother}
 \usage{
-sits_whittaker(data.tb, lambda = 1, differences = 3,
+sits_whittaker(data.tb = NULL, lambda = 1, differences = 3,
   bands_suffix = "whit")
 }
 \arguments{

@@ -4,7 +4,7 @@
 \alias{sits_cloud_filter}
 \title{Cloud filter}
 \usage{
-sits_cloud_filter(data.tb, cutoff = -0.25, p = 0, d = 0, q = 3,
+sits_cloud_filter(data.tb = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
   bands_suffix = "cf", apply_whit = TRUE, lambda_whit = 1)
 }
 \arguments{

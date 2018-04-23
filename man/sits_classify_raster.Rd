@@ -5,8 +5,7 @@
 \title{Classify a set of spatio-temporal raster bricks using multicore machines}
 \usage{
 sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
-  ml_method = sits_svm(), interval = "12 month", smoothing = FALSE,
-  normalize = FALSE, lambda = 0.5, differences = 3, memsize = 4,
+  interval = "12 month", normalize = FALSE, filter = NULL, memsize = 4,
   multicores = 2)
 }
 \arguments{
@@ -18,17 +17,11 @@ sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
 
 \item{ml_model}{an R model trained by \code{\link[sits]{sits_train}}}
 
-\item{ml_method}{an R machine learning method such as SVM, Random Forest or Deep Learning}
-
 \item{interval}{interval between two sucessive classifications, expressed in months}
-
-\item{smoothing}{(logical) apply a Whittaker smoothing function?}
 
 \item{normalize}{(logical) should the input data be normalized?}
 
-\item{lambda}{degree of smoothing of the Whittaker smoother (default = 0.5)}
-
-\item{differences}{the order of differences of contiguous elements (default = 3)}
+\item{filter}{smoothing filter to be applied (if desired)}
 
 \item{memsize}{memory available for classification (in GB)}
 
@@ -54,6 +47,9 @@ Takes a set of spatio-temporal raster bricks, whose metadata is
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
 
+# Build a machine learning model based on the samples
+svm_model <- sits_train(samples_MT_ndvi, sits_svm())
+
 # read a raster file and put it into a vector
 files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 
@@ -65,9 +61,12 @@ data(timeline_modis_392)
 raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
              timeline = timeline_modis_392, bands = c("ndvi"), files = files)
 
+
 # classify the raster file
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
-   ml_method = sits_svm(), memsize = 2, multicores = 2)
+   ml_model = svm_model, memsize = 2, multicores = 2)
+# plot the resulting classification
+sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
 }
 
 }

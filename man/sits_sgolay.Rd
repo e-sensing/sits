@@ -4,7 +4,7 @@
 \alias{sits_sgolay}
 \title{Smooth the time series using Savitsky-Golay filter}
 \usage{
-sits_sgolay(data.tb, order = 3, scale = 1, bands_suffix = "sg")
+sits_sgolay(data.tb = NULL, order = 3, scale = 1, bands_suffix = "sg")
 }
 \arguments{
 \item{data.tb}{tibble with time series data and metadata}

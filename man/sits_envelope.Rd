@@ -4,7 +4,7 @@
 \alias{sits_envelope}
 \title{Envelope filter}
 \usage{
-sits_envelope(data.tb, operations = "UULL", bands_suffix = "env")
+sits_envelope(data.tb = NULL, operations = "UULL", bands_suffix = "env")
 }
 \arguments{
 \item{data.tb}{tibble with time series data and metadata}

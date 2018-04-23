@@ -383,14 +383,12 @@ In `sits`, SVM is the default machine learning model. As a wrapper of `e1071` R 
 # Retrieve the set of samples (provided by EMBRAPA) from the 
 # Mato Grosso region for train the SVM model
 data(samples_MT_ndvi)
+# train a machine learning model using SVM
+svm_model <- sits_train(samples_MT_ndvi, sits_svm(kernel = "radial", cost = 10))
 # get a point to be classified
 data(point_ndvi)
 # Classify using SVM model
-class.tb <- 
-    sits_classify(point_ndvi,
-                  samples_MT_ndvi,
-                  ml_method = sits_svm(kernel = "radial",
-                                       cost = 10))
+class.tb <- sits_classify(point_ndvi, samples_MT_ndvi, svm_model)
 sits_plot(class.tb)
 ```
 
@@ -410,13 +408,12 @@ Random forest provides better performances than *bagged trees*, a similar proced
 # Retrieve the set of samples (provided by EMBRAPA) from the 
 # Mato Grosso region for train the Random Forest model.
 data(samples_MT_ndvi)
+# train a machine learning model using random forest
+rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(ntree = 1000))
 # get a point to be classified
 data(point_ndvi)
 # Classify using Random Forest model
-class.tb <- 
-    sits_classify(point_ndvi,
-                  samples_MT_ndvi,
-                  ml_method = sits_rfor())
+class.tb <-  sits_classify(point_ndvi, samples_MT_ndvi, rfor_model)
 sits_plot(class.tb)
 ```
 
@@ -434,17 +431,20 @@ The dropout rates have a huge impact on the performance of deep learning classif
 In the following example, we classify the same data set using a simple example of the `deep learning` method, for fast processing: (a) Two layers with 512 neurons each; (b) Using the 'elu' activation function and 'optimizer_adam'; (c) dropout rates of 40% and 30% for the layers. 
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Deep learning classification of a $16$ year time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
-# Classify using deep learning
-class.tb <- 
-    sits_classify(point_ndvi,
-                  samples_MT_ndvi,
-                  ml_method = sits_deeplearning(units = c(512, 512),
+# Retrieve the set of samples (provided by EMBRAPA) from the 
+# Mato Grosso region for train the  model.
+data(samples_MT_ndvi)
+# train a machine learning model using deep learning
+dl_model <- sits_train(samples_MT_ndvi, sits_deeplearning(units = c(512, 512),
                               activation       = 'elu',
                               dropout_rates    = c(0.40, 0.30),
                               optimizer        = keras::optimizer_adam(lr = 0.001),
-                              epochs           = 300,
+                              epochs           = 200,
                               batch_size       = 128,
                               validation_split = 0.2))
+# get a point to be classified
+data(point_ndvi)
+class.tb <-  sits_classify(point_ndvi, samples_MT_ndvi, dl_model)
 sits_plot(class.tb)
 ```
 
@@ -467,9 +467,11 @@ data(cerrado_2classes)
 
 # perform a five fold validation with the 
 # SVM machine learning method using default parameters
+svm_model <- sits_train(cerrado_2classes, sits_svm())
 prediction.mx <- 
     sits_kfold_validate(cerrado_2classes, 
-                        folds = 5)
+                        folds = 5,
+                        svm_model)
 # prints the output confusion matrix and statistics 
 sits_conf_matrix(prediction.mx)
 ```
@@ -483,6 +485,9 @@ Our tested approach (see example illustrated bellow) is `GeoTIFF` bricks, where 
 ```{r, fig.align="center", fig.height=3.4, fig.width=4.1, fig.cap="Image (${11\\times14}$ pixels) classified using SVM. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
 # Retrieve the set of samples for the Mato Grosso region 
 data(samples_MT_ndvi)
+
+# build a machine learning model for this area
+rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
 
 # read a raster file and put it into a vector
 files  <- 
@@ -506,7 +511,7 @@ raster_class.tb <-
     sits_classify_raster(file = "./raster-class", 
                          raster.tb, 
                          samples_MT_ndvi,
-                         ml_method  = sits_svm(), 
+                         ml_model  = rfor_model, 
                          memsize = 2, 
                          multicores = 1)
 

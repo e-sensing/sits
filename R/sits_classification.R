@@ -15,35 +15,18 @@
 #' 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 #' 'lasso' (see \code{\link[sits]{sits_mlr}}), and 'ridge' (see \code{\link[sits]{sits_mlr}}).
 #'
-#' The model can be precomputed by the user, or built inside the function.
-#' In the case the user has already defined the model, this model should be
-#' passed to the function using the parameter "ml_model". Otherwise, users
-#' should pass the appropriate values to the "ml_method" and "adj_fun" parameters.
+#' The model should be precomputed by the user. This model should be
+#' passed to the function using the parameter "ml_model".
 #'
-#' The default is to use an SVM with a radial kernel, but users are encouraged to test
-#' alternatives.
 #'
 #' @param  data.tb           tibble with time series metadata and data
-#' @param  train_samples.tb  tibble with samples used for training the classification model
+#' @param  samples.tb        tibble with samples used for training the classification model
 #' @param  ml_model          pre-built machine learning model (see \code{\link[sits]{sits_train}})
-#' @param  ml_method         machine learning method (see \code{\link[sits]{sits_train}})
 #' @param  interval          interval used for classification (in months)
 #' @param  multicores        number of threads to process the time series.
 #' @return data.tb           tibble with the predicted labels for each input segment
 #' @examples
 #' \donttest{
-#' # Option 1. Use the SITS defaults for building a model
-#' # read a training data set
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
-#' # Retrieve a point
-#' data(point_ndvi)
-#' # classify the point
-#' class_ndvi.tb <-  sits_classify (point_ndvi, samples_MT_ndvi)
-#' # plot the classification
-#' sits_plot (class_ndvi.tb)
-#'
-#' # Option 2. Build a machine learning model first
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
 #' # select the bands "ndvi", "evi", "nir", and "mir"
@@ -60,24 +43,19 @@
 #'
 #' @export
 sits_classify <- function(data.tb    = NULL,
-                          train_samples.tb = NULL,
+                          samples.tb = NULL,
                           ml_model   = NULL,
-                          ml_method  = sits_svm(kernel = "radial", cost = 10, coef0 = 0, tolerance = 0.001, epsilon = 0.1, cross = 4) ,
                           interval   = "12 month",
                           multicores = 1) {
 
     .sits_test_tibble(data.tb)
-    .sits_test_tibble(train_samples.tb)
+    .sits_test_tibble(samples.tb)
 
-    # obtain the machine learning model based on the training samples
-    if (purrr::is_null(ml_model))
-        ml_model = sits_train(train_samples.tb, ml_method = ml_method)
+    # ensure the machine learning model has been built
+    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
     # define the parameters for breaking up a long time series
-    class_info.tb <- .sits_class_info(data.tb, train_samples.tb, interval)
-
-    # find the subsets of the input data
-    ref_dates.lst <- class_info.tb$ref_dates[[1]]
+    class_info.tb <- .sits_class_info(data.tb, samples.tb, interval)
 
     # obtain the distances from the data
     distances_DT <- sits_distances(data.tb)
@@ -101,9 +79,8 @@ sits_classify <- function(data.tb    = NULL,
 #' @param  ml_model        model trained by \code{\link[sits]{sits_train}}
 #' @param  multicores      number of threads to process the time series
 #' @return pred.vec        vector with the predicted labels
-.sits_classify_distances <- function(distances_DT, class_info.tb, ml_model = NULL, multicores = 1) {
+.sits_classify_distances <- function(distances_DT, class_info.tb, ml_model, multicores) {
 
-    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
     # find the subsets of the input data
     dates_index.lst <- class_info.tb$dates_index[[1]]

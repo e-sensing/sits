@@ -21,16 +21,18 @@ data("samples_MT_9classes")
 # the tibble contains 9 classes of the Cerrado biome in Brazil
 sits_labels(samples_MT_9classes)
 
-
+# remove classes with low number of samples
+samples.tb <- sits_select(samples_MT_9classes, !(label %in% c("Fallow_Cotton", "Soy_Sunflower")))
 
 # select NDVI, EVI, NIR and MIR
-samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
+samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
-
+# create a list to store the results
 results <- list()
 
-conf_svm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
-                                    ml_method   = sits_svm(kernel = "radial", cost = 10))
+## SVM model
+svm_model <- sits_train(samples.tb, sits_svm(kernel = "radial", cost = 10))
+conf_svm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2, svm_model)
 
 print("== Confusion Matrix = SVM =======================")
 conf_svm.mx <- sits_conf_matrix(conf_svm.tb)
@@ -40,16 +42,16 @@ conf_svm.mx$name <- "svm_10"
 results[[length(results) + 1]] <- conf_svm.mx
 
 # Deep Learning
+dl_model <- sits_train(samples.tb, sits_deeplearning( units = c(512, 512, 512, 512, 512),
+                                                      activation       = 'elu',
+                                                      dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
+                                                      optimizer        = keras::optimizer_adam(lr = 0.001),
+                                                      epochs           = 500,
+                                                      batch_size       = 128,
+                                                      validation_split = 0.2,
+                                                      binary_classification = FALSE))
 
-conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
-                                  ml_method   = sits_deeplearning(
-                                      units            = c(512, 512, 512, 512),
-                                      activation       = 'selu',
-                                      dropout_rates    = c(0.4, 0.35, 0.3, 0.2),
-                                      optimizer        = keras::optimizer_adam(),
-                                      epochs           = 300,
-                                      batch_size       = 128,
-                                      validation_split = 0.2))
+conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1, dl_model)
 
 print("== Confusion Matrix = DL =======================")
 conf_dl.mx <- sits_conf_matrix(conf_dl.tb)
@@ -59,10 +61,9 @@ conf_dl.mx$name <- "dl"
 results[[length(results) + 1]] <- conf_dl.mx
 
 # =============== RFOR ==============================
+rfor_model <- sits_train(samples.tb, sits_rfor(ntree = 5000))
 
-# test accuracy of TWDTW to measure distances
-conf_rfor.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
-                                    ml_method   = sits_rfor(ntree = 2000))
+conf_rfor.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1, rfor_model)
 print("== Confusion Matrix = RFOR =======================")
 conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
 conf_rfor.mx$name <- "rfor"
@@ -72,10 +73,9 @@ results[[length(results) + 1]] <- conf_rfor.mx
 
 
 # =============== LDA ==============================
-
+lda_model <- sits_train(samples.tb, sits_lda())
 # test accuracy of TWDTW to measure distances
-conf_lda.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
-                                   ml_method   = sits_lda())
+conf_lda.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1, lda_model)
 
 print("== Confusion Matrix = LDA =======================")
 conf_lda.mx <- sits_conf_matrix(conf_lda.tb)
@@ -83,22 +83,11 @@ conf_lda.mx$name <- "lda"
 
 results[[length(results) + 1]] <- conf_lda.mx
 
-# =============== QDA ==============================
-
-# test accuracy of TWDTW to measure distances
-conf_qda.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
-                                   ml_method   = sits_qda())
-
-print("== Confusion Matrix = QDA =======================")
-conf_qda.mx <- sits_conf_matrix(conf_qda.tb)
-conf_qda.mx$name <- "qda"
-
-results[[length(results) + 1]] <- conf_qda.mx
 
 # =============== MLR ==============================
 # "multinomial log-linear (mlr)
-conf_mlr.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
-                                   ml_method   = sits_mlr())
+mlr_model <- sits_train(samples.tb, sits_mlr())
+conf_mlr.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1, mlr_model)
 
 # print the accuracy of the Multinomial log-linear
 print("== Confusion Matrix = MLR =======================")

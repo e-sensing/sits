@@ -1,26 +1,26 @@
 testthat::context("Machine Learning")
 testthat::test_that("SVM, Random Forest, LDA, QDA, LASSO model",{
     testthat::skip_on_cran()
-    class.tb <- sits_classify(point_ndvi, samples_MT_ndvi,
-        ml_method = sits_svm(kernel = "radial", cost = 10))
+    svm_model <- sits_train(samples_MT_ndvi, sits_svm(kernel = "radial", cost = 10))
+    class.tb <- sits_classify(point_ndvi, samples_MT_ndvi, svm_model)
 
     testthat::expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_MT_ndvi)$label))
 
-    class.tb <- sits_classify(point_ndvi, samples_MT_ndvi,
-                              ml_method = sits_rfor(ntree = 200))
+    rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(ntree = 200))
+    class.tb <- sits_classify(point_ndvi, samples_MT_ndvi, rfor_model)
 
     testthat::expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_MT_ndvi)$label))
 
-    class.tb <- sits_classify(point_ndvi, samples_MT_ndvi,
-                              ml_method = sits_lda())
+    lda_model <- sits_train(samples_MT_ndvi, sits_lda())
+    class.tb <- sits_classify(point_ndvi, samples_MT_ndvi, lda_model)
 
     testthat::expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_MT_ndvi)$label))
 
-    class.tb <- sits_classify(point_ndvi, samples_MT_ndvi,
-                              ml_method = sits_qda())
+    qda_model <- sits_train(samples_MT_ndvi, sits_qda())
+    class.tb <- sits_classify(point_ndvi, samples_MT_ndvi, qda_model)
 
     testthat::expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_MT_ndvi)$label))
