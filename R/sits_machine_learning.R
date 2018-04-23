@@ -84,7 +84,7 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_MT_ndvi, sits_deeplearning(epochs = 200))
+#' dl_model <- sits_train (samples_MT_ndvi, sits_deeplearning(epochs = 50))
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
@@ -409,7 +409,7 @@ sits_lda <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_l
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, qda_model)
 #' }
 #' @export
-sits_qda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) {
+sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::qda model based on a sits sample tibble
     result_fun <- function(data.tb){

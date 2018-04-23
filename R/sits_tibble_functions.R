@@ -309,7 +309,7 @@ sits_mutate <- function(data.tb, ...){
                 purrr::map(function(b){
                     med   <- as.numeric(stats.tb[1, b])
                     iqr   <- as.numeric(stats.tb[2, b])
-                    values <- as.numeric(normalize_data(as.matrix(ts[,b]), med, iqr))
+                    values <- tibble::as.tibble(normalize_data(as.matrix(ts[,b]), med, iqr))
                     return (values)
                 })
             ts.tb <- dplyr::bind_cols(norm.lst)
@@ -328,9 +328,8 @@ sits_mutate <- function(data.tb, ...){
 #' standard deviation of all the time series.
 #'
 #' @param data.tb     a tibble in SITS format
-#' @param use_IQR     (logical): should we use inter-quartile ranges?
 #' @return result.tb  a tibble with statistics
-.sits_normalization_param <- function(data.tb, use_IQR = TRUE) {
+.sits_normalization_param <- function(data.tb) {
 
     .sits_test_tibble(data.tb)
 
@@ -339,15 +338,10 @@ sits_mutate <- function(data.tb, ...){
     DT[, Index := NULL]
 
     # compute statistics
-    if(use_IQR){
-        DT_tend <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
-        DT_disp <- DT[, lapply(.SD, stats::IQR, na.rm = TRUE)]
-    }else{
-        DT_tend <- DT[, lapply(.SD, mean, na.rm = TRUE)]
-        DT_disp <- DT[, lapply(.SD, stats::sd, na.rm = TRUE)]
-    }
+    DT_tend <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
+    DT_disp <- DT[, lapply(.SD, function(x) diff(stats::quantile(x, c(0.02, 0.98), na.rm = TRUE)))]
 
-    stats.tb <- dplyr::bind_cols(stats = c("mean", "sd"),
+    stats.tb <- dplyr::bind_cols(stats = c("tend", "disp"),
                                  dplyr::bind_rows(DT_tend, DT_disp))
 
     return(stats.tb)
