@@ -4,11 +4,11 @@
 \alias{sits_mlr}
 \title{Train a SITS classifiaction model using multinomial log-linear regions via neural networks}
 \usage{
-sits_mlr(distances_DT = NULL, formula = sits_formula_linear(),
+sits_mlr(data.tb = NULL, formula = sits_formula_linear(),
   n_weights = 20000, maxit = 2000, ...)
 }
 \arguments{
-\item{distances_DT}{set of distance measures for each training sample}
+\item{data.tb}{time series with the training samples}
 
 \item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
@@ -32,10 +32,12 @@ Please refer to the documentation in that package for more details.
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
+# Build an MLR model
+mlr_model <- sits_train(samples_MT_ndvi, sits_mlr())
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_mlr())
+class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, mlr_model)
 }
 }
 \author{

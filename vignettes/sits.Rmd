@@ -388,7 +388,7 @@ svm_model <- sits_train(samples_MT_ndvi, sits_svm(kernel = "radial", cost = 10))
 # get a point to be classified
 data(point_ndvi)
 # Classify using SVM model
-class.tb <- sits_classify(point_ndvi, samples_MT_ndvi, svm_model)
+class.tb <- sits_classify(point_ndvi, svm_model)
 sits_plot(class.tb)
 ```
 
@@ -413,7 +413,7 @@ rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(ntree = 1000))
 # get a point to be classified
 data(point_ndvi)
 # Classify using Random Forest model
-class.tb <-  sits_classify(point_ndvi, samples_MT_ndvi, rfor_model)
+class.tb <-  sits_classify(point_ndvi, rfor_model)
 sits_plot(class.tb)
 ```
 
@@ -444,13 +444,9 @@ dl_model <- sits_train(samples_MT_ndvi, sits_deeplearning(units = c(512, 512),
                               validation_split = 0.2))
 # get a point to be classified
 data(point_ndvi)
-class.tb <-  sits_classify(point_ndvi, samples_MT_ndvi, dl_model)
+class.tb <-  sits_classify(point_ndvi, dl_model)
 sits_plot(class.tb)
 ```
-
-
-
-
 # Validation techniques
 
 Validation is a process undertaken on models to estimate some error associated with them, and hence has been used widely in different scientific disciplines. Here, we are interested in estimating the prediction error associated to some model. For this purpose, we concentrate on the *cross-validation* approach, probably the most used validation technique [@Hastie2009].
@@ -467,11 +463,10 @@ data(cerrado_2classes)
 
 # perform a five fold validation with the 
 # SVM machine learning method using default parameters
-svm_model <- sits_train(cerrado_2classes, sits_svm())
 prediction.mx <- 
     sits_kfold_validate(cerrado_2classes, 
                         folds = 5,
-                        svm_model)
+                        ml_method = sits_svm())
 # prints the output confusion matrix and statistics 
 sits_conf_matrix(prediction.mx)
 ```
@@ -510,7 +505,6 @@ raster.tb <-
 raster_class.tb <- 
     sits_classify_raster(file = "./raster-class", 
                          raster.tb, 
-                         samples_MT_ndvi,
                          ml_model  = rfor_model, 
                          memsize = 2, 
                          multicores = 1)

@@ -5,8 +5,8 @@ apply_transition_matrix <- function(data_before, data, transition_matrix) {
     .Call(`_sits_apply_transition_matrix`, data_before, data, transition_matrix)
 }
 
-normalize_data <- function(data, mean, std) {
-    .Call(`_sits_normalize_data`, data, mean, std)
+normalize_data <- function(data, med, iqr) {
+    .Call(`_sits_normalize_data`, data, med, iqr)
 }
 
 preprocess_data <- function(data, minimum_value, scale_factor) {

@@ -43,11 +43,8 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
     ensurer::ensure_that(ml_method, class(.) == "function",
                          err_desc = "sits_train: ml_method is not a valid function")
 
-    # compute the distances
-    distances_DT <- sits_distances(data.tb)
-
     # compute the training method by the given data
-    result <- ml_method(distances_DT)
+    result <- ml_method(data.tb)
 
     # return a valid machine learning method
     return(result)
@@ -64,7 +61,8 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
 #' This function is a front-end to the "keras" method R package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances_DT      data.table object with a set of distance measures for each training sample
+#' @param data.tb           time series with the training samples
+#' @param normalize         should the data be normalized?
 #' @param units             vector with the number of hidden nodes in each hidden layer
 #' @param activation        vector with the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}
 #' @param dropout_rates     vector with the dropout rates (0,1) for each layer to the next layer
@@ -85,13 +83,16 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
+#' # Build a machine learning model based on deep learning
+#' dl_model <- sits_train (samples_MT_ndvi, sits_deeplearning(epochs = 200))
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_deeplearning())
+#' class.tb <- sits_classify (point_ndvi, dl_model)
 #' }
 #' @export
-sits_deeplearning <- function(distances_DT     = NULL,
+sits_deeplearning <- function(data.tb          = NULL,
+                              normalize        = TRUE,
                               units            = c(512, 512, 512, 512, 512),
                               activation       = 'elu',
                               dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
@@ -104,8 +105,16 @@ sits_deeplearning <- function(distances_DT     = NULL,
     # library(keras)
 
     # function that returns keras model based on a sits sample data.table
-    result_fun <- function(train_data_DT){
+    result_fun <- function(data.tb){
 
+        if (normalize) {
+            stats.tb <- .sits_normalization_param(data.tb)
+            train_data_DT <- sits_distances(.sits_normalize(data.tb, stats.tb))
+        }
+        else {
+            train_data_DT <- sits_distances(data.tb)
+            stats.tb <- NULL
+        }
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_deeplearning: input data does not contain distance")
@@ -213,7 +222,7 @@ sits_deeplearning <- function(distances_DT     = NULL,
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances_DT, result_fun)
+    result <- .sits_factory_function(data.tb, result_fun)
     return(result)
 }
 #' @title Train a SITS classification model with a gradient boosting machine
@@ -229,7 +238,8 @@ sits_deeplearning <- function(distances_DT     = NULL,
 #' This function is a front-end to the "gbm" method in the "gbm" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances_DT     a data table a set of distance measures for each training sample
+#' @param data.tb          time series with the training samples
+#' @param normalize         should the data be normalized?
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param distribution     name of the distribution - use "multinomial" for classification
 #' @param n.trees          Number of trees to fit. This should not be set to too small a number,
@@ -246,17 +256,22 @@ sits_deeplearning <- function(distances_DT     = NULL,
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
+#' # Build a GBM model
+#' gbm_model <- sits_train(data.tb, sits_gbm())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_gbm())
+#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, gbm_model)
 #' }
 #' @export
-sits_gbm <- function(distances_DT = NULL, formula = sits_formula_logref(), distribution = "multinomial",
+sits_gbm <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_logref(), distribution = "multinomial",
                      n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...) {
 
     # function that returns glmnet::multinom model based on a sits sample tibble
-    result_fun <- function(train_data_DT){
+    result_fun <- function(data.tb){
+
+        # obtain the distances from the data samples
+        train_data_DT <- sits_distances(data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
@@ -290,7 +305,7 @@ sits_gbm <- function(distances_DT = NULL, formula = sits_formula_logref(), distr
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances_DT, result_fun)
+    result <- .sits_factory_function(data.tb, result_fun)
     return(result)
 }
 
@@ -308,7 +323,8 @@ sits_gbm <- function(distances_DT = NULL, formula = sits_formula_logref(), distr
 #' This function is a front-end to the "lda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances_DT     set of distance measures for each training sample
+#' @param data.tb          time series with the training samples
+#' @param normalize         should the data be normalized?
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param ...              other parameters to be passed to MASS::lda function
 #' @return result          a model function to be passed in sits_predict
@@ -317,16 +333,21 @@ sits_gbm <- function(distances_DT = NULL, formula = sits_formula_logref(), distr
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
+#' # Build an LDA model
+#' lda_model <- sits_train(samples_MT_ndvi, sits_lda())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_lda())
+#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, lda_model)
 #' }
 #' @export
-sits_lda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) {
+sits_lda <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
-    result_fun <- function(train_data_DT){
+    result_fun <- function(data.tb){
+
+        # obtain the distances from the data samples
+        train_data_DT <- sits_distances(data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
@@ -353,7 +374,7 @@ sits_lda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) 
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances_DT, result_fun)
+    result <- .sits_factory_function(data.tb, result_fun)
     return(result)
 }
 
@@ -371,7 +392,7 @@ sits_lda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) 
 #' This function is a front-end to the "qda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances_DT     set of distance measures for each training sample
+#' @param data.tb          time series with the training samples
 #' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param ...              other parameters to be passed to MASS::lda function
 #' @return result          a model function to be passed in sits_predict
@@ -380,16 +401,21 @@ sits_lda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) 
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
+#' # Build a QDA model
+#' qda_model <- sits_train(samples_MT_ndvi, sits_qda())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_qda())
+#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, qda_model)
 #' }
 #' @export
 sits_qda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) {
 
-    # function that returns MASS::lda model based on a sits sample tibble
-    result_fun <- function(train_data_DT){
+    # function that returns MASS::qda model based on a sits sample tibble
+    result_fun <- function(data.tb){
+
+        # obtain the distances from the data samples
+        train_data_DT <- sits_distances(data.tb)
 
         # is the input data the result of a matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
@@ -433,7 +459,7 @@ sits_qda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) 
 #' This function is a front-end to the "multinom" method in the "nnet" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances_DT     set of distance measures for each training sample
+#' @param data.tb          time series with the training samples
 #' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param n_weights        maximum number of weights (should be proportional to size of input data)
 #' @param maxit            maximum number of iterations (default 300)
@@ -443,18 +469,22 @@ sits_qda <- function(distances_DT = NULL, formula = sits_formula_logref(), ...) 
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
+#' # Build an MLR model
+#' mlr_model <- sits_train(samples_MT_ndvi, sits_mlr())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_mlr())
+#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, mlr_model)
 #' }
 #' @export
-sits_mlr <- function(distances_DT = NULL, formula = sits_formula_linear(),
+sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
 
     # function that returns nnet::multinom model based on a sits sample tibble
-    result_fun <- function(train_data_DT){
+    result_fun <- function(data.tb){
 
+        # obtain the distances from the data sample
+        train_data_DT <- sits_distances(data.tb)
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_mlr: input data does not contain distance")
@@ -484,7 +514,7 @@ sits_mlr <- function(distances_DT = NULL, formula = sits_formula_linear(),
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances_DT, result_fun)
+    result <- .sits_factory_function(data.tb, result_fun)
     return(result)
 }
 
@@ -499,7 +529,7 @@ sits_mlr <- function(distances_DT = NULL, formula = sits_formula_linear(),
 #' This function is a front-end to the "randomForest" method in the "randomForest" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances_DT    set of distance measures for each training sample
+#' @param data.tb          time series with the training samples
 #' @param ntree            number of trees to grow. This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted at least a few times. (default: 2000)
 #' @param nodesize         minimum size of terminal nodes (default 1 for classification)
@@ -509,16 +539,21 @@ sits_mlr <- function(distances_DT = NULL, formula = sits_formula_linear(),
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
+#' # Build a random forest model
+#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_rfor())
+#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, rfor_model)
 #' }
 #' @export
-sits_rfor <- function(distances_DT = NULL, ntree = 2000, nodesize = 1, ...) {
+sits_rfor <- function(data.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
-    result_fun <- function(train_data_DT){
+    result_fun <- function(data.tb){
+
+        # obtain the distances from the data sample
+        train_data_DT <- sits_distances(data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
@@ -538,7 +573,7 @@ sits_rfor <- function(distances_DT = NULL, ntree = 2000, nodesize = 1, ...) {
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances_DT, result_fun)
+    result <- .sits_factory_function(data.tb, result_fun)
     return(result)
 }
 
@@ -558,7 +593,7 @@ sits_rfor <- function(distances_DT = NULL, ntree = 2000, nodesize = 1, ...) {
 #' This function is a front-end to the "svm" method in the "e1071" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param distances_DT     set of distance measures for each training sample
+#' @param data.tb          time series with the training samples
 #' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)
 #' @param kernel           kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
 #' @param degree           exponential of polynomial type kernel
@@ -574,18 +609,22 @@ sits_rfor <- function(distances_DT = NULL, ntree = 2000, nodesize = 1, ...) {
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
+#' # Build an SVM model
+#' svm_model <- sits_train(samples_MT_ndvi, sits_svm())
 #' # get a point
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi,
-#'        ml_method = sits_svm(kernel = "radial", cost = 10))
+#' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, svm_model)
 #'}
 #' @export
-sits_svm <- function(distances_DT = NULL, formula = sits_formula_logref(), kernel = "radial",
+sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), kernel = "radial",
                      degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
-    result_fun <- function(train_data_DT){
+    result_fun <- function(data.tb){
+
+        # obtain the distances from the data sample
+        train_data_DT <- sits_distances(data.tb)
 
         # if parameter formula is a function call it passing as argument the input data sample.
         # The function must return a valid formula.
@@ -609,7 +648,7 @@ sits_svm <- function(distances_DT = NULL, formula = sits_formula_logref(), kerne
         return(model_predict)
     }
 
-    result <- .sits_factory_function(distances_DT, result_fun)
+    result <- .sits_factory_function(data.tb, result_fun)
     return(result)
 }
 

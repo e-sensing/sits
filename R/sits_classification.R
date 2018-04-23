@@ -20,7 +20,6 @@
 #'
 #'
 #' @param  data.tb           tibble with time series metadata and data
-#' @param  samples.tb        tibble with samples used for training the classification model
 #' @param  ml_model          pre-built machine learning model (see \code{\link[sits]{sits_train}})
 #' @param  interval          interval used for classification (in months)
 #' @param  multicores        number of threads to process the time series.
@@ -36,23 +35,28 @@
 #' # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
 #' point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir","mir"))
 #' # classify the point
-#' class.tb <-  sits_classify(point.tb, samples.tb, ml_model = model_rfor)
+#' class.tb <-  sits_classify(point.tb, ml_model = model_rfor)
 #' # plot the classification
 #' sits_plot(class.tb)
 #' }
 #'
 #' @export
 sits_classify <- function(data.tb    = NULL,
-                          samples.tb = NULL,
                           ml_model   = NULL,
                           interval   = "12 month",
                           multicores = 1) {
 
     .sits_test_tibble(data.tb)
-    .sits_test_tibble(samples.tb)
 
     # ensure the machine learning model has been built
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
+
+    samples.tb <- environment(ml_model)$data.tb
+
+    if(!(purrr::is_null(environment(ml_model)$stats.tb))){
+        stats.tb <- environment(ml_model)$stats.tb
+        data.tb <- .sits_normalize(data.tb, stats.tb)
+    }
 
     # define the parameters for breaking up a long time series
     class_info.tb <- .sits_class_info(data.tb, samples.tb, interval)

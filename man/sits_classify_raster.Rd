@@ -4,22 +4,17 @@
 \alias{sits_classify_raster}
 \title{Classify a set of spatio-temporal raster bricks using multicore machines}
 \usage{
-sits_classify_raster(file = NULL, raster.tb, samples.tb, ml_model = NULL,
-  interval = "12 month", normalize = FALSE, filter = NULL, memsize = 4,
-  multicores = 2)
+sits_classify_raster(file = NULL, raster.tb, ml_model = NULL,
+  interval = "12 month", filter = NULL, memsize = 4, multicores = 2)
 }
 \arguments{
 \item{file}{vector of file names to store the output (one file per classified year)}
 
 \item{raster.tb}{tibble with information about a set of space-time raster bricks}
 
-\item{samples.tb}{tibble with samples used for training the classification model}
-
 \item{ml_model}{an R model trained by \code{\link[sits]{sits_train}}}
 
 \item{interval}{interval between two sucessive classifications, expressed in months}
-
-\item{normalize}{(logical) should the input data be normalized?}
 
 \item{filter}{smoothing filter to be applied (if desired)}
 
@@ -63,7 +58,7 @@ raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
 
 
 # classify the raster file
-raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
+raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb,
    ml_model = svm_model, memsize = 2, multicores = 2)
 # plot the resulting classification
 sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")

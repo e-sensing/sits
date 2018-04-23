@@ -15,9 +15,6 @@ load(file = "./samples_Cerrado_01042018.rda")
 # select only the ndvi and evi bands
 samples.tb <- sits_select_bands(samples_Cerrado_01042018.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
-# normalize the samples for better performance
-samples_n.tb <- sits_normalize_ts(samples.tb)
-
 # train the deep learning model
 dl_model <-  sits_train(samples_n.tb,
                         ml_method = sits_deeplearning(

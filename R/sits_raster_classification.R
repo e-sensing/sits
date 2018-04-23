@@ -16,10 +16,8 @@
 #'
 #' @param  file            vector of file names to store the output (one file per classified year)
 #' @param  raster.tb       tibble with information about a set of space-time raster bricks
-#' @param  samples.tb      tibble with samples used for training the classification model
 #' @param  ml_model        an R model trained by \code{\link[sits]{sits_train}}
 #' @param  interval        interval between two sucessive classifications, expressed in months
-#' @param  normalize       (logical) should the input data be normalized?
 #' @param  filter          smoothing filter to be applied (if desired)
 #' @param  memsize         memory available for classification (in GB)
 #' @param  multicores      number of threads to process the time series.
@@ -46,7 +44,7 @@
 #'
 #'
 #' # classify the raster file
-#' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb, samples_MT_ndvi,
+#' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb,
 #'    ml_model = svm_model, memsize = 2, multicores = 2)
 #' # plot the resulting classification
 #' sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
@@ -55,17 +53,18 @@
 #' @export
 sits_classify_raster <- function(file = NULL,
                                  raster.tb,
-                                 samples.tb,
                                  ml_model  = NULL,
                                  interval   = "12 month",
-                                 normalize  = FALSE,
                                  filter     = NULL,
                                  memsize    = 4,
                                  multicores = 2) {
 
 
     # checks the classification params
-    .sits_check_classify_params(file, raster.tb, samples.tb, ml_model, normalize, filter)
+    .sits_check_classify_params(file, raster.tb, ml_model)
+
+    # retrieve the samples from the model
+    samples.tb <- environment(ml_model)$data.tb
 
     # create the raster objects and their respective filenames
     raster_class.tb <- .sits_create_classified_raster(raster.tb, samples.tb, file, interval)
@@ -76,7 +75,6 @@ sits_classify_raster <- function(file = NULL,
                                              samples.tb,
                                              ml_model,
                                              interval,
-                                             normalize,
                                              filter,
                                              memsize,
                                              multicores)
@@ -91,20 +89,14 @@ sits_classify_raster <- function(file = NULL,
 #'
 #' @param  file            vector of file names to store the output (one file per classified year)
 #' @param  raster.tb       tibble with information about a set of space-time raster bricks
-#' @param  samples.tb      tibble with samples used for training the classification model
 #' @param  ml_model        an R model trained by \code{\link[sits]{sits_train}}
-#' @param  normalize       (logical) should the input data be normalized?
-#' @param  filter          smoothing filter to be applied
 #' @return OK              (logical) tests succeeded?
 #'
-.sits_check_classify_params <- function(file, raster.tb, samples.tb, ml_model, normalize, filter){
+.sits_check_classify_params <- function(file, raster.tb, ml_model){
 
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) > 0,
                          err_desc = "sits_classify_raster: need a valid metadata for coverage")
-
-    # ensure patterns tibble exits
-    .sits_test_tibble(samples.tb)
 
     # ensure that file name is provided
     ensurer::ensure_that(file, !purrr::is_null(.),
@@ -135,7 +127,6 @@ sits_classify_raster <- function(file = NULL,
 #' @param  samples.tb      tibble with samples used for training the classification model
 #' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
 #' @param  interval        classification interval
-#' @param  normalize       (logical) should the input data be normalized?
 #' @param  filter          smoothing filter to be applied to the data
 #' @param  memsize         memory available for classification (in GB)
 #' @param  multicores      number of cores to process the time series
@@ -146,14 +137,9 @@ sits_classify_raster <- function(file = NULL,
                                        samples.tb,
                                        ml_model,
                                        interval,
-                                       normalize,
                                        filter,
                                        memsize,
                                        multicores) {
-
-    # checks that machine learning model has been created
-    ensurer::ensure_that(ml_model, !purrr::is_null(.),
-                         err_desc = "sits-classify: please provide a machine learning model already trained")
 
     # retrieve the output raster layers
     layers.lst <- unlist(raster_class.tb$r_objs)
@@ -170,7 +156,7 @@ sits_classify_raster <- function(file = NULL,
     for (i in 1:bs$n) {
 
         # read the data
-        dist_DT <- .sits_read_data(raster.tb, samples.tb, bs$row[i], bs$nrows[i], normalize, filter)
+        dist_DT <- .sits_read_data(raster.tb, ml_model, bs$row[i], bs$nrows[i], filter)
 
         # predict the classification values
         layers.lst <- .sits_predict_block(raster.tb, samples.tb, interval, layers.lst, bs$row[i], dist_DT, ml_model, multicores)
@@ -263,15 +249,13 @@ sits_classify_raster <- function(file = NULL,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  raster.tb       raster coverage
-#' @param  samples.tb      tibble with samples
+#' @param  ml_model        machine learning model
 #' @param  first_row       first row to start reading
 #' @param  n_rows_block    number of rows in the block
-#' @param  normalize       (logical) should normalization be applied?
 #' @param  filter          smoothing filter to be applied
 #' @return dist_DT          data.table with values for classification
 #'
-.sits_read_data <- function(raster.tb, samples.tb, first_row, n_rows_block,
-                            normalize, filter) {
+.sits_read_data <- function(raster.tb, ml_model, first_row, n_rows_block, filter) {
 
     # get the bands of the raster bricks
     bands <- unlist(raster.tb$bands)
@@ -284,9 +268,12 @@ sits_classify_raster <- function(file = NULL,
     # set a pointer to the bands
     b <- 0
 
+    normalize <- FALSE
     # if normalization is required, calculate normalization param
-    if (normalize)
-        stats.tb <- sits_normalization_param(samples.tb)
+    if(!(purrr::is_null(environment(ml_model)$stats.tb))){
+        stats.tb <- environment(ml_model)$stats.tb
+        normalize <- TRUE
+    }
 
     # get the raster bricks to be read
     bricks.vec <- raster.tb$files[[1]]
@@ -363,10 +350,10 @@ sits_classify_raster <- function(file = NULL,
     # scale the data set
     values.mx <- scale_data(values.mx, scale_factor)
 
-    if (normalize) {
-        mean <- as.numeric(stats.tb[1, band])
-        std  <- as.numeric(stats.tb[2, band])
-        values.mx <- normalize_data(values.mx, mean, std)
+    if (normalize && !purrr::is_null(stats.tb)) {
+        med   <- as.numeric(stats.tb[1, band])
+        iqr   <- as.numeric(stats.tb[2, band])
+        values.mx <- normalize_data(values.mx, med, iqr)
     }
 
     if (!(purrr::is_null(filter))) {

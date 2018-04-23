@@ -4,12 +4,12 @@
 \alias{sits_svm}
 \title{Train a SITS classification model using a support vector machine}
 \usage{
-sits_svm(distances_DT = NULL, formula = sits_formula_logref(),
+sits_svm(data.tb = NULL, formula = sits_formula_logref(),
   kernel = "radial", degree = 3, coef0 = 0, cost = 10,
   tolerance = 0.001, epsilon = 0.1, cross = 4, ...)
 }
 \arguments{
-\item{distances_DT}{set of distance measures for each training sample}
+\item{data.tb}{time series with the training samples}
 
 \item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)}
 
@@ -46,11 +46,12 @@ Please refer to the documentation in that package for more details.
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
+# Build an SVM model
+svm_model <- sits_train(samples_MT_ndvi, sits_svm())
 # get a point
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, samples_MT_ndvi,
-       ml_method = sits_svm(kernel = "radial", cost = 10))
+class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, svm_model)
 }
 }
 \author{

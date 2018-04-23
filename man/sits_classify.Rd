@@ -4,13 +4,11 @@
 \alias{sits_classify}
 \title{Classify a sits tibble using machine learning models}
 \usage{
-sits_classify(data.tb = NULL, samples.tb = NULL, ml_model = NULL,
-  interval = "12 month", multicores = 1)
+sits_classify(data.tb = NULL, ml_model = NULL, interval = "12 month",
+  multicores = 1)
 }
 \arguments{
 \item{data.tb}{tibble with time series metadata and data}
-
-\item{samples.tb}{tibble with samples used for training the classification model}
 
 \item{ml_model}{pre-built machine learning model (see \code{\link[sits]{sits_train}})}
 
@@ -49,7 +47,7 @@ model_rfor <- sits_train(samples.tb, ml_method = sits_rfor (ntree = 2000))
 # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
 point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir","mir"))
 # classify the point
-class.tb <-  sits_classify(point.tb, samples.tb, ml_model = model_rfor)
+class.tb <-  sits_classify(point.tb, ml_model = model_rfor)
 # plot the classification
 sits_plot(class.tb)
 }

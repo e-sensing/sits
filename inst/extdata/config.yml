@@ -13,7 +13,7 @@ default:
         time_process        :  7.0
 
     # adjustment shift
-    default_adjustment_shift        : 3.0
+    default_adjustment_shift        : 100.0
 
     # estimated proportion of time used to process
 

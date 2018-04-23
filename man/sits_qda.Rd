@@ -7,11 +7,11 @@
 sits_qda(distances_DT = NULL, formula = sits_formula_logref(), ...)
 }
 \arguments{
-\item{distances_DT}{set of distance measures for each training sample}
-
 \item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
 \item{...}{other parameters to be passed to MASS::lda function}
+
+\item{data.tb}{time series with the training samples}
 }
 \value{
 result          a model function to be passed in sits_predict
@@ -28,10 +28,12 @@ Please refer to the documentation in that package for more details.
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
+# Build a QDA model
+qda_model <- sits_train(samples_MT_ndvi, sits_qda())
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, ml_method = sits_qda())
+class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, qda_model)
 }
 }
 \author{

@@ -279,53 +279,49 @@ sits_mutate <- function(data.tb, ...){
     return(data.tb)
 }
 #' @title Normalize the time series in the given sits_tibble
-#' @name sits_normalize_ts
+#' @name .sits_normalize
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description this function normalizes the time series using the mean and
 #' standard deviation of all the time series.
 #'
 #' @param data.tb     a tibble in SITS format
-#' @param use_IQR     (logical): should we use inter-quartile ranges?
-#' @return data.tb    a normalized sits tibble
+#' @param stats.tb    statistics for normalization
 #' @param  multicores number of threads to process the time series.
-#' @export
+#' @return data.tb    a normalized sits tibble
 #'
-#' @examples
-#' \donttest{
-#' #' sits_tibble_normalized <- sits_normalize_ts(samples_MT_9classes)
-#' }
-#'
-sits_normalize_ts <- function(data.tb, use_IQR = TRUE, multicores = 1){
+.sits_normalize <- function(data.tb, stats.tb, multicores = 1){
     .sits_test_tibble(data.tb)
 
-    DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
-    DT[,  Index := NULL ]
+    # get the bands of the input data
+    bands <- sits_bands(data.tb)
+    # check that the bands in the input are include in the statistics already calculated
+    ensurer::ensure_that(bands, all((.) %in% colnames(stats.tb[,-1])),
+                         err_desc = "sits_normalize: bands in the data do not match bands in the model")
 
-    # compute statistics
-    if(use_IQR){
-        DT_tend <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
-        DT_disp <- DT[, lapply(.SD, stats::IQR, na.rm = TRUE)]
-    }else{
-        DT_tend <- DT[, lapply(.SD, mean, na.rm = TRUE)]
-        DT_disp <- DT[, lapply(.SD, stats::sd, na.rm = TRUE)]
-    }
+    # extract the values of the time series to a list of tibbles
+    values.lst <- data.tb$time_series
 
-    # normalize time series
-    data.tb$time_series <-
-        parallel::mclapply(X = data.tb$time_series,
-                           mc.cores = multicores,
-                           FUN = function(x, var_mean, var_sd){
-                               norm.tb <- dplyr::as_tibble(scale(x[,2:ncol(x)],
-                                                                 center = var_mean,
-                                                                 scale = var_sd))
-                               return(dplyr::bind_cols(x["Index"], norm.tb))
-                           }, var_mean = as.matrix(DT_tend)[1,],
-                           var_sd = as.matrix(DT_disp)[1,])
+    # normalize each band of each tibble
+    norm.lst <- values.lst %>%
+        purrr::map(function(ts) {
+           norm.lst <- bands %>%
+                purrr::map(function(b){
+                    med   <- as.numeric(stats.tb[1, b])
+                    iqr   <- as.numeric(stats.tb[2, b])
+                    values <- as.numeric(normalize_data(as.matrix(ts[,b]), med, iqr))
+                    return (values)
+                })
+            ts.tb <- dplyr::bind_cols(norm.lst)
+            ts.tb <- dplyr::bind_cols(list(ts[,1], ts.tb))
+            colnames(ts.tb) <- colnames(ts)
+            return(ts.tb)
+        })
+    data.tb$time_series <- norm.lst
     return(data.tb)
 }
 #' @title Normalize the time series in the given sits_tibble
-#' @name sits_normalization_param
+#' @name .sits_normalization_param
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description this function normalizes the time series using the mean and
@@ -334,8 +330,7 @@ sits_normalize_ts <- function(data.tb, use_IQR = TRUE, multicores = 1){
 #' @param data.tb     a tibble in SITS format
 #' @param use_IQR     (logical): should we use inter-quartile ranges?
 #' @return result.tb  a tibble with statistics
-#' @export
-sits_normalization_param <- function(data.tb, use_IQR = TRUE) {
+.sits_normalization_param <- function(data.tb, use_IQR = TRUE) {
 
     .sits_test_tibble(data.tb)
 

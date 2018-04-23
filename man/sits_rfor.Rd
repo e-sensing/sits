@@ -4,10 +4,10 @@
 \alias{sits_rfor}
 \title{Train a SITS classifiction model using random forest algorithm}
 \usage{
-sits_rfor(distances_DT = NULL, ntree = 2000, nodesize = 1, ...)
+sits_rfor(data.tb = NULL, ntree = 2000, nodesize = 1, ...)
 }
 \arguments{
-\item{distances_DT}{set of distance measures for each training sample}
+\item{data.tb}{time series with the training samples}
 
 \item{ntree}{number of trees to grow. This should not be set to too small a number,
 to ensure that every input row gets predicted at least a few times. (default: 2000)}
@@ -28,10 +28,12 @@ Please refer to the documentation in that package for more details.
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
+# Build a random forest model
+rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, sits_rfor())
+class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, rfor_model)
 }
 }
 \author{
