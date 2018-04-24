@@ -19,15 +19,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // normalize_data
-NumericMatrix normalize_data(const NumericMatrix& data, const double& med, const double& iqr);
-RcppExport SEXP _sits_normalize_data(SEXP dataSEXP, SEXP medSEXP, SEXP iqrSEXP) {
+NumericMatrix normalize_data(const NumericMatrix& data, const double& quant_2, const double& quant_98);
+RcppExport SEXP _sits_normalize_data(SEXP dataSEXP, SEXP quant_2SEXP, SEXP quant_98SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const double& >::type med(medSEXP);
-    Rcpp::traits::input_parameter< const double& >::type iqr(iqrSEXP);
-    rcpp_result_gen = Rcpp::wrap(normalize_data(data, med, iqr));
+    Rcpp::traits::input_parameter< const double& >::type quant_2(quant_2SEXP);
+    Rcpp::traits::input_parameter< const double& >::type quant_98(quant_98SEXP);
+    rcpp_result_gen = Rcpp::wrap(normalize_data(data, quant_2, quant_98));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -4,12 +4,17 @@
 \alias{sits_lda}
 \title{Train a SITS classification model using linear discriminant analysis}
 \usage{
-sits_lda(data.tb = NULL, formula = sits_formula_logref(), ...)
+sits_lda(data.tb = NULL, normalize = FALSE,
+  formula = sits_formula_logref(), multicores = 2, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
 
+\item{normalize}{should the data be normalized?}
+
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
+
+\item{multicores}{number of cores (for parallel processing)}
 
 \item{...}{other parameters to be passed to MASS::lda function}
 }

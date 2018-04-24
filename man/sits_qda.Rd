@@ -4,14 +4,19 @@
 \alias{sits_qda}
 \title{Train a SITS classification model using quadratic discriminant analysis}
 \usage{
-sits_qda(distances_DT = NULL, formula = sits_formula_logref(), ...)
+sits_qda(data.tb = NULL, normalize = FALSE,
+  formula = sits_formula_logref(), multicores = 2, ...)
 }
 \arguments{
+\item{data.tb}{time series with the training samples}
+
+\item{normalize}{should the data be normalized?}
+
 \item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
-\item{...}{other parameters to be passed to MASS::lda function}
+\item{multicores}{number of cores (for parallel processing)}
 
-\item{data.tb}{time series with the training samples}
+\item{...}{other parameters to be passed to MASS::qda function}
 }
 \value{
 result          a model function to be passed in sits_predict
@@ -33,7 +38,7 @@ qda_model <- sits_train(samples_MT_ndvi, sits_qda())
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, qda_model)
+class.tb <- sits_classify (point_ndvi, qda_model)
 }
 }
 \author{

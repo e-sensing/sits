@@ -4,15 +4,20 @@
 \alias{sits_rfor}
 \title{Train a SITS classifiction model using random forest algorithm}
 \usage{
-sits_rfor(data.tb = NULL, ntree = 2000, nodesize = 1, ...)
+sits_rfor(data.tb = NULL, normalize = FALSE, ntree = 2000, nodesize = 1,
+  multicores = 2, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
+
+\item{normalize}{should the data be normalized?}
 
 \item{ntree}{number of trees to grow. This should not be set to too small a number,
 to ensure that every input row gets predicted at least a few times. (default: 2000)}
 
 \item{nodesize}{minimum size of terminal nodes (default 1 for classification)}
+
+\item{multicores}{number of cores (for parallel processing)}
 
 \item{...}{other parameters to be passed to `randomForest::randomForest` function}
 }
@@ -33,7 +38,7 @@ rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, rfor_model)
+class.tb <- sits_classify (point_ndvi, rfor_model)
 }
 }
 \author{

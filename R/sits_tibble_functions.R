@@ -290,7 +290,7 @@ sits_mutate <- function(data.tb, ...){
 #' @param  multicores number of threads to process the time series.
 #' @return data.tb    a normalized sits tibble
 #'
-.sits_normalize <- function(data.tb, stats.tb, multicores = 1){
+.sits_normalize <- function(data.tb, stats.tb, multicores = 2){
     .sits_test_tibble(data.tb)
 
     # get the bands of the input data
@@ -302,21 +302,32 @@ sits_mutate <- function(data.tb, ...){
     # extract the values of the time series to a list of tibbles
     values.lst <- data.tb$time_series
 
-    # normalize each band of each tibble
-    norm.lst <- values.lst %>%
-        purrr::map(function(ts) {
-           norm.lst <- bands %>%
-                purrr::map(function(b){
-                    med   <- as.numeric(stats.tb[1, b])
-                    iqr   <- as.numeric(stats.tb[2, b])
-                    values <- tibble::as.tibble(normalize_data(as.matrix(ts[,b]), med, iqr))
-                    return (values)
-                })
-            ts.tb <- dplyr::bind_cols(norm.lst)
-            ts.tb <- dplyr::bind_cols(list(ts[,1], ts.tb))
-            colnames(ts.tb) <- colnames(ts)
-            return(ts.tb)
-        })
+    normalize_list <- function(chunk.lst) {
+        norm_chunk.lst <- chunk.lst %>%
+            purrr::map(function(ts) {
+                norm.lst <- bands %>%
+                    purrr::map(function(b){
+                        med      <- as.numeric(stats.tb[1, b])
+                        quant_2  <- as.numeric(stats.tb[2, b])
+                        quant_98 <- as.numeric(stats.tb[3, b])
+                        values <- tibble::as.tibble(normalize_data(as.matrix(ts[,b]), quant_2, quant_98))
+                        return(values)
+                    })
+                ts.tb <- dplyr::bind_cols(norm.lst)
+                ts.tb <- dplyr::bind_cols(list(ts[,1], ts.tb))
+                colnames(ts.tb) <- colnames(ts)
+                return(ts.tb)
+            })
+        return(norm_chunk.lst)
+    }
+
+    if (multicores > 1) {
+        parts.lst <- split(values.lst, cut(1:length(values.lst), 2, labels = FALSE))
+        norm.lst <- dplyr::combine(parallel::mclapply(parts.lst, normalize_list, mc.cores = multicores))
+    }
+    else
+        norm.lst <- normalize_list(values.lst)
+
     data.tb$time_series <- norm.lst
     return(data.tb)
 }
@@ -338,11 +349,12 @@ sits_mutate <- function(data.tb, ...){
     DT[, Index := NULL]
 
     # compute statistics
-    DT_tend <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
-    DT_disp <- DT[, lapply(.SD, function(x) diff(stats::quantile(x, c(0.02, 0.98), na.rm = TRUE)))]
+    DT_med      <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
+    DT_quant_2  <- DT[, lapply(.SD, function(x) stats::quantile(x, 0.02, na.rm = TRUE))]
+    DT_quant_98 <- DT[, lapply(.SD, function(x) stats::quantile(x, 0.98, na.rm = TRUE))]
 
-    stats.tb <- dplyr::bind_cols(stats = c("tend", "disp"),
-                                 dplyr::bind_rows(DT_tend, DT_disp))
+    stats.tb <- dplyr::bind_cols(stats = c("med", "quant_2", "quant_98"),
+                                 dplyr::bind_rows(DT_med, DT_quant_2, DT_quant_98))
 
     return(stats.tb)
 }

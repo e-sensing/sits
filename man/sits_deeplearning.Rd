@@ -7,7 +7,8 @@
 sits_deeplearning(data.tb = NULL, normalize = TRUE, units = c(512, 512,
   512, 512, 512), activation = "elu", dropout_rates = c(0.5, 0.4, 0.35, 0.3,
   0.2), optimizer = keras::optimizer_adam(lr = 0.001), epochs = 500,
-  batch_size = 128, validation_split = 0.2, binary_classification = FALSE)
+  batch_size = 128, validation_split = 0.2, binary_classification = FALSE,
+  multicores = 2)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
@@ -36,6 +37,8 @@ before shuffling.}
 
 \item{binary_classification}{a lenght-one logical indicating if this is a binary classification. If it is so,
 the number of unique labels in the training data must be two as well.}
+
+\item{multicores}{number of cores (for parallel processing)}
 }
 \value{
 result           either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
@@ -50,11 +53,11 @@ Please refer to the documentation in that package for more details.
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
 # Build a machine learning model based on deep learning
-dl_model <- sits_train (samples_MT_ndvi, sits_deeplearning(epochs = 200))
+dl_model <- sits_train (samples_MT_ndvi, sits_deeplearning(epochs = 50))
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, dl_model)
+class.tb <- sits_classify (point_ndvi, dl_model)
 }
 }
 \author{

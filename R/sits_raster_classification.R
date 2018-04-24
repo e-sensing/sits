@@ -156,7 +156,12 @@ sits_classify_raster <- function(file = NULL,
     for (i in 1:bs$n) {
 
         # read the data
-        dist_DT <- .sits_read_data(raster.tb, ml_model, bs$row[i], bs$nrows[i], filter)
+        dist_DT <- .sits_read_data(raster.tb, ml_model, bs$row[i], bs$nrows[i], filter, multicores)
+
+        if (!(purrr::is_null(environment(ml_model)$model.keras))) {
+            multicores <- 1
+            message(paste0("keras already runs on multiple CPU - setting multicores to 1"))
+        }
 
         # predict the classification values
         layers.lst <- .sits_predict_block(raster.tb, samples.tb, interval, layers.lst, bs$row[i], dist_DT, ml_model, multicores)
@@ -253,9 +258,10 @@ sits_classify_raster <- function(file = NULL,
 #' @param  first_row       first row to start reading
 #' @param  n_rows_block    number of rows in the block
 #' @param  filter          smoothing filter to be applied
+#' @param  multicores      number of cores to process the time series
 #' @return dist_DT          data.table with values for classification
 #'
-.sits_read_data <- function(raster.tb, ml_model, first_row, n_rows_block, filter) {
+.sits_read_data <- function(raster.tb, ml_model, first_row, n_rows_block, filter, multicores) {
 
     # get the bands of the raster bricks
     bands <- unlist(raster.tb$bands)
@@ -270,7 +276,7 @@ sits_classify_raster <- function(file = NULL,
 
     normalize <- FALSE
     # if normalization is required, calculate normalization param
-    if(!(purrr::is_null(environment(ml_model)$stats.tb))){
+    if (!(purrr::is_null(environment(ml_model)$stats.tb))) {
         stats.tb <- environment(ml_model)$stats.tb
         normalize <- TRUE
     }
@@ -295,7 +301,7 @@ sits_classify_raster <- function(file = NULL,
             band <- bands[b]
             # proprocess the input data
             values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band],
-                                               normalize, stats.tb, filter)
+                                               normalize, stats.tb, filter, multicores)
 
             # save information about memory use for debugging later
             .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
@@ -338,9 +344,10 @@ sits_classify_raster <- function(file = NULL,
 #' @param  normalize        (logical) should the input data be normalized?
 #' @param  stats.tb         normalization parameters
 #' @param  filter           smoothing filter to be applied
+#' @param  multicores      number of cores to process the time series
 #' @return values.mx        matrix with pre-processed values
 .sits_preprocess_data <- function(values.mx, band, missing_value, minimum_value, scale_factor,
-                                  normalize, stats.tb, filter){
+                                  normalize, stats.tb, filter, multicores){
 
     # correct minimum value
     values.mx[is.na(values.mx)] <- minimum_value
@@ -351,9 +358,7 @@ sits_classify_raster <- function(file = NULL,
     values.mx <- scale_data(values.mx, scale_factor)
 
     if (normalize && !purrr::is_null(stats.tb)) {
-        med   <- as.numeric(stats.tb[1, band])
-        iqr   <- as.numeric(stats.tb[2, band])
-        values.mx <- normalize_data(values.mx, med, iqr)
+        values.mx <- .sits_normalize_block(values.mx, stats.tb, band, multicores)
     }
 
     if (!(purrr::is_null(filter))) {
@@ -364,6 +369,40 @@ sits_classify_raster <- function(file = NULL,
     return(values.mx)
 }
 
+#' @title Normalize values (uses parallel processing)
+#' @name  .sits_normalize_block
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param  values.mx        matrix of values retrieved from a brick
+#' @param  stats.tb         normalization parameters
+#' @param  band             band to be processed
+#' @param  multicores       number of cores to process the time series
+#' @return values.mx        matrix with pre-processed values
+.sits_normalize_block <- function(values.mx, stats.tb, band, multicores) {
+
+    # select the 2% and 98% quantiles
+    quant_2   <- as.numeric(stats.tb[2, band])
+    quant_98  <- as.numeric(stats.tb[3, band])
+
+    # normalize a block of data
+    normalize_block <- function(cs) {
+        # normalize a block of data
+        values_block.mx <- normalize_data(values.mx[cs[1]:cs[2],], quant_2, quant_98)
+    }
+    # parallel processing for normalization
+    if (multicores > 1) {
+        # estimate the list for breaking a block
+        chunk_size.lst <- .sits_split_block_size(1, nrow(values.mx), multicores)
+        # apply parallel processing to the split data and join the result
+        rows.lst  <- parallel::mclapply(chunk_size.lst, normalize_block, mc.cores = multicores)
+        values.mx <- do.call(rbind, rows.lst)
+    }
+    else
+        values.mx <- normalize_data(values.mx, quant_2, quant_98)
+
+    .sits_log_debug(paste0("Data has been normalized between ", quant_2 , " (2%) and ", quant_98, "(98%)"))
+
+    return(values.mx)
+}
 
 #' @title Classify a block of raster values
 #' @name  .sits_predict_block
@@ -434,6 +473,7 @@ sits_classify_raster <- function(file = NULL,
         return(pred_block.vec)
     }
 
+    # keras already
     # set up multicore processing
     if (multicores > 1) {
         # estimate the list for breaking a block

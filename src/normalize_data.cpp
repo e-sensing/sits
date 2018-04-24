@@ -7,25 +7,20 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 
-NumericMatrix normalize_data(const NumericMatrix& data, const double& med, const double& iqr) {
+NumericMatrix normalize_data(const NumericMatrix& data, const double& quant_2, const double& quant_98) {
 
     int nrows = data.nrow();
     int ncols = data.ncol();
 
-    double max = med + iqr;
-    double min = med - iqr;
-
     NumericMatrix new_data(nrows, ncols);
 
-    new_data = data;
+    new_data = (data - quant_2) / (quant_98 - quant_2);
 
     for (int i = 0; i < ncols; i++)
         for (int j = 0; j < nrows; j++){
-            if (new_data(j,i) > max) new_data(j,i) = max;
-            if (new_data(j,i) < min) new_data(j,i) = min;
+            if (new_data(j,i) >= 1.0) new_data(j,i) = 1.0;
+            if (new_data(j,i) <= 0.0) new_data(j,i) = 0.001;
         }
-
-    new_data = (data - med) / iqr;
 
     return new_data;
 }

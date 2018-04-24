@@ -1,6 +1,6 @@
 library(sits)
 library(keras)
-install_keras()
+# install_keras()
 
 message("Processing of a mixed Landsat 8 - MODIS data set")
 message("Please ensure that you have enough memory available")
@@ -16,7 +16,7 @@ load(file = "./samples_Cerrado_01042018.rda")
 samples.tb <- sits_select_bands(samples_Cerrado_01042018.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
 # train the deep learning model
-dl_model <-  sits_train(samples_n.tb,
+dl_model <-  sits_train(samples.tb,
                         ml_method = sits_deeplearning(
                              units            = c(512, 512, 512, 512, 512),
                              activation       = 'elu',
@@ -51,8 +51,7 @@ raster.tb <- sits_coverage(service = "RASTER", name = "L8MOD-222-068_2015-2016",
 
 # classify the raster image
 # note: it is important to use the original samples and to select the normalization option
-raster_class.tb <- sits_classify_raster(file = "./L8_MOD_222-068-class", raster.tb, samples.tb,
-                                        ml_model = dl_model, normalize = TRUE,
-                                        memsize = 6, multicores = 1)
+raster_class.tb <- sits_classify_raster(file = "./L8_MOD_222-068-class", raster.tb,
+                                        ml_model = dl_model, memsize = 6, multicores = 1)
 
 sits_plot_raster(raster_class.tb[1,], title = "LANDSAT-MODIS-222-068-2015-2016")

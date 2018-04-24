@@ -4,12 +4,15 @@
 \alias{sits_gbm}
 \title{Train a SITS classification model with a gradient boosting machine}
 \usage{
-sits_gbm(data.tb = NULL, formula = sits_formula_logref(),
-  distribution = "multinomial", n.trees = 500, interaction.depth = 2,
-  shrinkage = 0.001, cv.folds = 5, n.cores = 1, ...)
+sits_gbm(data.tb = NULL, normalize = FALSE,
+  formula = sits_formula_logref(), distribution = "multinomial",
+  n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5,
+  n.cores = 2, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
+
+\item{normalize}{should the data be normalized?}
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
