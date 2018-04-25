@@ -31,8 +31,8 @@ samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi", "nir", "mir"))
 results <- list()
 
 ## SVM model
-svm_model <- sits_train(samples.tb, sits_svm(kernel = "radial", cost = 10))
-conf_svm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2, svm_model)
+conf_svm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
+                                   ml_method = sits_svm(kernel = "radial", cost = 10))
 
 print("== Confusion Matrix = SVM =======================")
 conf_svm.mx <- sits_conf_matrix(conf_svm.tb)
@@ -42,16 +42,15 @@ conf_svm.mx$name <- "svm_10"
 results[[length(results) + 1]] <- conf_svm.mx
 
 # Deep Learning
-dl_model <- sits_train(samples.tb, sits_deeplearning( units = c(512, 512, 512, 512, 512),
-                                                      activation       = 'elu',
-                                                      dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
-                                                      optimizer        = keras::optimizer_adam(lr = 0.001),
-                                                      epochs           = 500,
-                                                      batch_size       = 128,
-                                                      validation_split = 0.2,
-                                                      binary_classification = FALSE))
-
-conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1, dl_model)
+conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
+                                  ml_method = sits_deeplearning( units = c(512, 512, 512, 512, 512),
+                                                                 activation       = 'elu',
+                                                                 dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
+                                                                 optimizer        = keras::optimizer_adam(lr = 0.001),
+                                                                 epochs           = 500,
+                                                                 batch_size       = 128,
+                                                                 validation_split = 0.2,
+                                                                 binary_classification = FALSE))
 
 print("== Confusion Matrix = DL =======================")
 conf_dl.mx <- sits_conf_matrix(conf_dl.tb)
@@ -61,9 +60,9 @@ conf_dl.mx$name <- "dl"
 results[[length(results) + 1]] <- conf_dl.mx
 
 # =============== RFOR ==============================
-rfor_model <- sits_train(samples.tb, sits_rfor(ntree = 5000))
 
-conf_rfor.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1, rfor_model)
+conf_rfor.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
+                                    ml_method = sits_train(samples.tb, sits_rfor(ntree = 5000)))
 print("== Confusion Matrix = RFOR =======================")
 conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
 conf_rfor.mx$name <- "rfor"
@@ -73,9 +72,8 @@ results[[length(results) + 1]] <- conf_rfor.mx
 
 
 # =============== LDA ==============================
-lda_model <- sits_train(samples.tb, sits_lda())
-# test accuracy of TWDTW to measure distances
-conf_lda.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1, lda_model)
+conf_lda.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
+                                   ml_method = sits_lda())
 
 print("== Confusion Matrix = LDA =======================")
 conf_lda.mx <- sits_conf_matrix(conf_lda.tb)
@@ -86,8 +84,8 @@ results[[length(results) + 1]] <- conf_lda.mx
 
 # =============== MLR ==============================
 # "multinomial log-linear (mlr)
-mlr_model <- sits_train(samples.tb, sits_mlr())
-conf_mlr.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1, mlr_model)
+conf_mlr.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
+                                   ml_method = sits_mlr())
 
 # print the accuracy of the Multinomial log-linear
 print("== Confusion Matrix = MLR =======================")

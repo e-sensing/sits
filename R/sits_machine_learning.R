@@ -203,15 +203,6 @@ sits_deeplearning <- function(data.tb          = NULL,
             epochs = epochs, batch_size = batch_size,
             validation_data = list(test.x, test.y)
         )
-        graphics::plot(history)
-        # evaluate the model
-        sits.env$config$keras_history <- history
-
-        # evaluate the model
-        sits.env$config$keras_eval <- keras::evaluate(model.keras, test.x, test.y, verbose = 0)
-
-        # save the model as a global variable
-        sits.env$config$keras_model <- model.keras
 
         # construct model predict enclosure function and returns
         model_predict <- function(values.tb){
@@ -702,8 +693,7 @@ sits_svm <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_l
 #' @description After the Keras deeplearning model is compiled and fit, this
 #'              function provides access to the history plot and the evaluation results
 #'
-#' @param test.x  Test data to be run with the model (X variables)
-#' @param test.y  Test data to be run with the model (Y variables)
+#' @param dl_model  A valid keras model
 #'
 #' @return NULL   Prints the model diagnostics
 #'
@@ -711,26 +701,29 @@ sits_svm <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_l
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(cerrado2classes)
-#' # create a vector of distances
-#' distances <- sits_distances(cerrado2classes)
-#' # obtain a DL model
-#' ml_model = sits_deeplearning(distances)
+#'  # obtain a DL model
+#' dl_model <- sits_train(cerrado2classes,
+#'      sits_deeplearning(units = c(512, 512),
+#'      dropout_rates = c(0.45, 0.25)))
 #' # run the keras diagnostics
-#' sits_keras_diagnostics()
+#' sits_keras_diagnostics(dl_model)
 #' }
 #' @export
-sits_keras_diagnostics <- function(test.x = NULL, test.y = NULL) {
-    if (purrr::is_null(sits.env$config$keras_model))
+sits_keras_diagnostics <- function(dl_model) {
+
+    if (purrr::is_null(environment(dl_model)$model.keras)) {
         message("Please configure a keras model before running this function")
-    else {
-        message("Plotting history and evaluation of the model fit")
-        if (purrr::is_null(test.x) || purrr::is_null(test.y)) {
-            print(sits.env$config$keras_eval)
-        }
-        else
-            keras::evaluate(sits.env$config$keras_model, test.x, test.y, verbose = 0)
+        return(FALSE)
     }
-    return(NULL)
+
+    message("Plotting history of the model fit")
+    graphics::plot(environment(dl_model)$history)
+
+    test_eval <- keras::evaluate(environment(dl_model)$model.keras, environment(dl_model)$test.x, environment(dl_model)$test.y, verbose = 0)
+    message("Estimated loss and accuracy based on test data")
+    message(paste0("Estimated accuracy: ", round(test_eval$acc, digits = 3),
+                   " estimated loss: ", round(test_eval$loss, digits = 3)))
+    return(TRUE)
 }
 
 #' @title Define a loglinear formula for classification models

@@ -353,12 +353,47 @@ sits_classify_raster <- function(file = NULL,
     values.mx[is.na(values.mx)] <- minimum_value
     values.mx[values.mx <= minimum_value] <- minimum_value
 
-    # values.mx <- preprocess_data(values.mx, minimum_value, scale_factor)
-    # scale the data set
-    values.mx <- scale_data(values.mx, scale_factor)
+    # estimate the list for breaking a block
+    chunk_size.lst <- .sits_split_block_size(1, nrow(values.mx), multicores)
 
+
+    # scale the data set
+
+    # auxiliary function to scale a block of data
+    scale_block <- function(cs) {
+        scale_block.mx <- scale_data(values.mx[cs[1]:cs[2],], scale_factor)
+    }
+    # use multicores to speed up scaling
+    if (multicores > 1) {
+        # apply parallel processing to the split data and join the result
+        rows.lst  <- parallel::mclapply(chunk_size.lst, scale_block, mc.cores = multicores)
+        values.mx <- do.call(rbind, rows.lst)
+    }
+    else
+        values.mx <- scale_data(values.mx, scale_factor)
+
+    # normalize the data set
     if (normalize && !purrr::is_null(stats.tb)) {
-        values.mx <- .sits_normalize_block(values.mx, stats.tb, band, multicores)
+        # select the 2% and 98% quantiles
+        quant_2   <- as.numeric(stats.tb[2, band])
+        quant_98  <- as.numeric(stats.tb[3, band])
+
+        # auxiliary function to normalize a block of data
+        normalize_block <- function(cs) {
+            # normalize a block of data
+            values_block.mx <- normalize_data(values.mx[cs[1]:cs[2],], quant_2, quant_98)
+        }
+        # parallel processing for normalization
+        if (multicores > 1) {
+            # apply parallel processing to the split data and join the result
+            rows.lst  <- parallel::mclapply(chunk_size.lst, normalize_block, mc.cores = multicores)
+            values.mx <- do.call(rbind, rows.lst)
+        }
+        else
+            values.mx <- normalize_data(values.mx, quant_2, quant_98)
+
+        .sits_log_debug(paste0("Data has been normalized between ", quant_2 , " (2%) and ", quant_98, "(98%)"))
+
     }
 
     if (!(purrr::is_null(filter))) {
@@ -366,41 +401,6 @@ sits_classify_raster <- function(file = NULL,
             lapply(filter)
         values.mx <- do.call(rbind, rows.lst)
     }
-    return(values.mx)
-}
-
-#' @title Normalize values (uses parallel processing)
-#' @name  .sits_normalize_block
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param  values.mx        matrix of values retrieved from a brick
-#' @param  stats.tb         normalization parameters
-#' @param  band             band to be processed
-#' @param  multicores       number of cores to process the time series
-#' @return values.mx        matrix with pre-processed values
-.sits_normalize_block <- function(values.mx, stats.tb, band, multicores) {
-
-    # select the 2% and 98% quantiles
-    quant_2   <- as.numeric(stats.tb[2, band])
-    quant_98  <- as.numeric(stats.tb[3, band])
-
-    # normalize a block of data
-    normalize_block <- function(cs) {
-        # normalize a block of data
-        values_block.mx <- normalize_data(values.mx[cs[1]:cs[2],], quant_2, quant_98)
-    }
-    # parallel processing for normalization
-    if (multicores > 1) {
-        # estimate the list for breaking a block
-        chunk_size.lst <- .sits_split_block_size(1, nrow(values.mx), multicores)
-        # apply parallel processing to the split data and join the result
-        rows.lst  <- parallel::mclapply(chunk_size.lst, normalize_block, mc.cores = multicores)
-        values.mx <- do.call(rbind, rows.lst)
-    }
-    else
-        values.mx <- normalize_data(values.mx, quant_2, quant_98)
-
-    .sits_log_debug(paste0("Data has been normalized between ", quant_2 , " (2%) and ", quant_98, "(98%)"))
-
     return(values.mx)
 }
 

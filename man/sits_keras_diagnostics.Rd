@@ -4,12 +4,10 @@
 \alias{sits_keras_diagnostics}
 \title{Provides access to diagnostic information about a Keras deep learning model}
 \usage{
-sits_keras_diagnostics(test.x = NULL, test.y = NULL)
+sits_keras_diagnostics(dl_model)
 }
 \arguments{
-\item{test.x}{Test data to be run with the model (X variables)}
-
-\item{test.y}{Test data to be run with the model (Y variables)}
+\item{dl_model}{A valid keras model}
 }
 \value{
 NULL   Prints the model diagnostics
@@ -22,12 +20,12 @@ After the Keras deeplearning model is compiled and fit, this
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(cerrado2classes)
-# create a vector of distances
-distances <- sits_distances(cerrado2classes)
-# obtain a DL model
-ml_model = sits_deeplearning(distances)
+ # obtain a DL model
+dl_model <- sits_train(cerrado2classes,
+     sits_deeplearning(units = c(512, 512),
+     dropout_rates = c(0.45, 0.25)))
 # run the keras diagnostics
-sits_keras_diagnostics()
+sits_keras_diagnostics(dl_model)
 }
 }
 \author{
