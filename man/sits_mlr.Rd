@@ -4,14 +4,13 @@
 \alias{sits_mlr}
 \title{Train a SITS classifiaction model using multinomial log-linear regions via neural networks}
 \usage{
-sits_mlr(data.tb = NULL, normalize = FALSE,
-  formula = sits_formula_linear(), n_weights = 20000, maxit = 2000,
-  multicores = 2, ...)
+sits_mlr(data.tb = NULL, normalize = 1, formula = sits_formula_linear(),
+  n_weights = 20000, maxit = 2000, multicores = 2, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
 
-\item{normalize}{should the data be normalized?}
+\item{normalize}{(integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension}
 
 \item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 

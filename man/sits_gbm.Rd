@@ -4,15 +4,14 @@
 \alias{sits_gbm}
 \title{Train a SITS classification model with a gradient boosting machine}
 \usage{
-sits_gbm(data.tb = NULL, normalize = FALSE,
-  formula = sits_formula_logref(), distribution = "multinomial",
-  n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5,
-  n.cores = 2, ...)
+sits_gbm(data.tb = NULL, normalize = 1, formula = sits_formula_logref(),
+  distribution = "multinomial", n.trees = 500, interaction.depth = 2,
+  shrinkage = 0.001, cv.folds = 5, multicores = 2, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
 
-\item{normalize}{should the data be normalized?}
+\item{normalize}{(integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension}
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
@@ -28,7 +27,7 @@ Also known as the learning rate or step-size reduction.}
 
 \item{cv.folds}{number of cross-validations to run}
 
-\item{n.cores}{number of cores to run}
+\item{multicores}{number of cores to run}
 
 \item{...}{other parameters to be passed to `gbm::gbm` function}
 }

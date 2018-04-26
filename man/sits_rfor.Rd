@@ -4,13 +4,11 @@
 \alias{sits_rfor}
 \title{Train a SITS classifiction model using random forest algorithm}
 \usage{
-sits_rfor(data.tb = NULL, normalize = FALSE, ntree = 2000, nodesize = 1,
-  multicores = 2, ...)
+sits_rfor(data.tb = NULL, ntree = 2000, nodesize = 1, multicores = 2,
+  ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
-
-\item{normalize}{should the data be normalized?}
 
 \item{ntree}{number of trees to grow. This should not be set to too small a number,
 to ensure that every input row gets predicted at least a few times. (default: 2000)}

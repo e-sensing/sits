@@ -5,7 +5,7 @@
 \title{Classify a sits tibble using machine learning models}
 \usage{
 sits_classify(data.tb = NULL, ml_model = NULL, interval = "12 month",
-  multicores = 1)
+  multicores = 2)
 }
 \arguments{
 \item{data.tb}{tibble with time series metadata and data}

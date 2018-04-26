@@ -12,7 +12,7 @@ sits_svm(data.tb = NULL, normalize = FALSE,
 \arguments{
 \item{data.tb}{time series with the training samples}
 
-\item{normalize}{should the data be normalized?}
+\item{normalize}{(integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension}
 
 \item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)}
 

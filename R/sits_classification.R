@@ -44,7 +44,7 @@
 sits_classify <- function(data.tb    = NULL,
                           ml_model   = NULL,
                           interval   = "12 month",
-                          multicores = 1) {
+                          multicores = 2) {
 
     .sits_test_tibble(data.tb)
 
@@ -55,7 +55,7 @@ sits_classify <- function(data.tb    = NULL,
 
     if(!(purrr::is_null(environment(ml_model)$stats.tb))){
         stats.tb <- environment(ml_model)$stats.tb
-        data.tb <- .sits_normalize(data.tb, stats.tb)
+        data.tb <- .sits_normalize(data.tb, stats.tb, multicores = multicores)
     }
 
     # define the parameters for breaking up a long time series
