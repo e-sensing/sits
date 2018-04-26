@@ -4,16 +4,15 @@
 \alias{sits_deeplearning}
 \title{Train a SITS classifiction model using the keras deep learning}
 \usage{
-sits_deeplearning(data.tb = NULL, normalize = 1, units = c(512, 512, 512,
-  512, 512), activation = "elu", dropout_rates = c(0.5, 0.4, 0.35, 0.3,
+sits_deeplearning(data.tb = NULL, normalize = TRUE, units = c(512, 512,
+  512, 512, 512), activation = "elu", dropout_rates = c(0.5, 0.4, 0.35, 0.3,
   0.2), optimizer = keras::optimizer_adam(lr = 0.001), epochs = 500,
-  batch_size = 128, validation_split = 0.2, binary_classification = FALSE,
-  multicores = 2)
+  batch_size = 128, validation_split = 0.2, binary_classification = FALSE)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
 
-\item{normalize}{(integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension}
+\item{normalize}{FALSE = no normalization, TRUE = normalize per band}
 
 \item{units}{vector with the number of hidden nodes in each hidden layer}
 
@@ -37,8 +36,6 @@ before shuffling.}
 
 \item{binary_classification}{a lenght-one logical indicating if this is a binary classification. If it is so,
 the number of unique labels in the training data must be two as well.}
-
-\item{multicores}{number of cores (for parallel processing)}
 }
 \value{
 result           either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model

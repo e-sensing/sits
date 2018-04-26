@@ -7,12 +7,12 @@
 sits_svm(data.tb = NULL, normalize = FALSE,
   formula = sits_formula_logref(), kernel = "radial", degree = 3,
   coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4,
-  multicores = 2, ...)
+  ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
 
-\item{normalize}{(integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension}
+\item{normalize}{(boolean) 0 = no normalization, 1 = normalize per band}
 
 \item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)}
 
@@ -29,8 +29,6 @@ sits_svm(data.tb = NULL, normalize = FALSE,
 \item{epsilon}{epsilon in the insensitive-loss function (default: 0.1)}
 
 \item{cross}{number of cross validation folds applied on the training data to assess the quality of the model,}
-
-\item{multicores}{number of cores (for parallel processing)}
 
 \item{...}{other parameters to be passed to e1071::svm function}
 }
@@ -52,11 +50,13 @@ Please refer to the documentation in that package for more details.
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
 # Build an SVM model
-svm_model <- sits_train(samples_MT_ndvi, sits_svm())
+svm_model <- sits_train(samples_MT_ndvi, sits_svm(normalize = 0))
 # get a point
 data(point_ndvi)
 # classify the point
 class.tb <- sits_classify (point_ndvi, svm_model)
+# plot the classification
+sits_plot(class.tb)
 }
 }
 \author{

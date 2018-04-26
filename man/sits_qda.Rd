@@ -4,8 +4,8 @@
 \alias{sits_qda}
 \title{Train a SITS classification model using quadratic discriminant analysis}
 \usage{
-sits_qda(data.tb = NULL, normalize = 1, formula = sits_formula_logref(),
-  multicores = 2, ...)
+sits_qda(data.tb = NULL, normalize = FALSE,
+  formula = sits_formula_logref(), ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
@@ -13,8 +13,6 @@ sits_qda(data.tb = NULL, normalize = 1, formula = sits_formula_logref(),
 \item{normalize}{(integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension}
 
 \item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
-
-\item{multicores}{number of cores (for parallel processing)}
 
 \item{...}{other parameters to be passed to MASS::qda function}
 }

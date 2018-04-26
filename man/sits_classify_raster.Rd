@@ -5,7 +5,7 @@
 \title{Classify a set of spatio-temporal raster bricks using multicore machines}
 \usage{
 sits_classify_raster(file = NULL, raster.tb, ml_model = NULL,
-  interval = "12 month", filter = NULL, memsize = 4, multicores = 2)
+  interval = "12 month", filter = NULL, memsize = 4)
 }
 \arguments{
 \item{file}{vector of file names to store the output (one file per classified year)}
@@ -19,8 +19,6 @@ sits_classify_raster(file = NULL, raster.tb, ml_model = NULL,
 \item{filter}{smoothing filter to be applied (if desired)}
 
 \item{memsize}{memory available for classification (in GB)}
-
-\item{multicores}{number of threads to process the time series.}
 }
 \value{
 raster_class.tb tibble with the metadata for the vector of classified RasterLayers
@@ -59,7 +57,7 @@ raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
 
 # classify the raster file
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb,
-   ml_model = svm_model, memsize = 2, multicores = 2)
+   ml_model = svm_model, memsize = 4, multicores = 2)
 # plot the resulting classification
 sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
 }

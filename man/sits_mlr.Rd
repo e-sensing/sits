@@ -4,8 +4,8 @@
 \alias{sits_mlr}
 \title{Train a SITS classifiaction model using multinomial log-linear regions via neural networks}
 \usage{
-sits_mlr(data.tb = NULL, normalize = 1, formula = sits_formula_linear(),
-  n_weights = 20000, maxit = 2000, multicores = 2, ...)
+sits_mlr(data.tb = NULL, normalize = FALSE,
+  formula = sits_formula_linear(), n_weights = 20000, maxit = 2000, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
@@ -17,8 +17,6 @@ sits_mlr(data.tb = NULL, normalize = 1, formula = sits_formula_linear(),
 \item{n_weights}{maximum number of weights (should be proportional to size of input data)}
 
 \item{maxit}{maximum number of iterations (default 300)}
-
-\item{multicores}{number of cores (for parallel processing)}
 
 \item{...}{other parameters to be passed to nnet::multinom function}
 }

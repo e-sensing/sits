@@ -20,7 +20,6 @@
 #' @param  interval        interval between two sucessive classifications, expressed in months
 #' @param  filter          smoothing filter to be applied (if desired)
 #' @param  memsize         memory available for classification (in GB)
-#' @param  multicores      number of threads to process the time series.
 #' @return raster_class.tb tibble with the metadata for the vector of classified RasterLayers
 #'
 #' @examples
@@ -45,7 +44,7 @@
 #'
 #' # classify the raster file
 #' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb,
-#'    ml_model = svm_model, memsize = 2, multicores = 2)
+#'    ml_model = svm_model, memsize = 4, multicores = 2)
 #' # plot the resulting classification
 #' sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
 #' }
@@ -56,12 +55,14 @@ sits_classify_raster <- function(file = NULL,
                                  ml_model  = NULL,
                                  interval   = "12 month",
                                  filter     = NULL,
-                                 memsize    = 4,
-                                 multicores = 2) {
+                                 memsize    = 4) {
 
 
     # checks the classification params
     .sits_check_classify_params(file, raster.tb, ml_model)
+
+    # find the number of cores
+    multicores <- parallel::detectCores(logical = FALSE)
 
     # retrieve the samples from the model
     samples.tb <- environment(ml_model)$data.tb
@@ -129,7 +130,7 @@ sits_classify_raster <- function(file = NULL,
 #' @param  interval        classification interval
 #' @param  filter          smoothing filter to be applied to the data
 #' @param  memsize         memory available for classification (in GB)
-#' @param  multicores      number of cores to process the time series
+#' @param  multicores      number of cores
 #' @return layer.lst       list  of the classified raster layers
 #'
 .sits_classify_multicores <-  function(raster.tb,
@@ -141,6 +142,7 @@ sits_classify_raster <- function(file = NULL,
                                        memsize,
                                        multicores) {
 
+
     # retrieve the output raster layers
     layers.lst <- unlist(raster_class.tb$r_objs)
 
@@ -150,15 +152,8 @@ sits_classify_raster <- function(file = NULL,
     }
 
     # has normalization has been appplied to the data?
-    if (purrr::is_null(environment(ml_model)$stats.tb))
-        normalize <- 0
-    else {
-        stats.tb <- environment(ml_model)$stats.tb
-        if (ncol(stats.tb) == (length(sits_bands(raster.tb)) + 1)) # normalize by bands
-            normalize <- 1
-        else   # normalize by dimension
-            normalize <- 2
-    }
+    normalize <- .sits_normalization_choice(ml_model)
+    stats.tb <- environment(ml_model)$stats.tb
 
     # divide the input data in blocks
     bs <- .sits_raster_blocks(raster.tb, memsize, multicores)
@@ -379,7 +374,7 @@ sits_classify_raster <- function(file = NULL,
 
     # normalize the data by bands
     if (normalize == 1 && !purrr::is_null(stats.tb))
-        .sits_normalize(values.mx, stats.tb, band, multicores)
+        .sits_normalize_matrix(values.mx, stats.tb, band, multicores)
 
     if (!(purrr::is_null(filter))) {
         rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
@@ -455,18 +450,12 @@ sits_classify_raster <- function(file = NULL,
     # set the names of the columns of dist1.tb
     colnames(dist_DT) <- attr_names
 
-    # normalize by cols (if so desired)
-    if (normalize == 2 && !purrr::is_null(stats.tb))
-        dist_DT <- .sits_normalize(dist_DT, stats.tb)
-
     # classify a block of data
     classify_block <- function(cs) {
         # predict the values for each time interval
         pred_block.vec <- as.character(ml_model(dist_DT[cs[1]:cs[2],]))
         return(pred_block.vec)
     }
-
-    # keras already
     # set up multicore processing
     if (multicores > 1) {
         # estimate the list for breaking a block
@@ -529,10 +518,6 @@ sits_classify_raster <- function(file = NULL,
         dist1_DT <- dist_DT[, select.lst[[t]], with = FALSE]
         # set the names of the columns of the subset of data table
         colnames(dist1_DT) <- attr_names
-
-        # normalize by cols (if so desired)
-        if (normalize == 2 && !purrr::is_null(stats.tb))
-            dist1_DT <- .sits_normalize(dist1_DT, stats.tb)
 
         # classify a block of data
         classify_block <- function(cs) {

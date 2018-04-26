@@ -1,55 +1,3 @@
-#' @title Normalize the time series and produce a data.table with distances
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Takes a SITS tibble with time series as input and produces a normalized data.table with
-#' distances to be used to train a machine learning model. The statistics used to derive the
-#' normalization is also returned for later use
-#'
-#' @param data.tb       A SITS tibble with the time series
-#' @param normalize     (integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension
-#' @param multicores    number of cores for parallel processing
-#' @return (train_data_DT, stats.tb)   A list with the distances for traning and the statistics for normalization
-
-.sits_distances_normalized <- function(data.tb, normalize, multicores) {
-    if (normalize == 1) {
-        stats.tb            <- .sits_normalization_param(data.tb, 1)
-        train_data_DT       <- sits_distances(.sits_normalize(data.tb, stats.tb, multicores = multicores))
-    }
-    else if (normalize == 2) {
-        stats.tb            <- .sits_normalization_param(data.tb, 2)
-        train_data_DT       <- .sits_normalize(sits_distances(data.tb), stats.tb)
-    }
-    else {
-        stats.tb <- NULL
-        train_data_DT <- sits_distances(data.tb)
-    }
-    return(list("train_data" = train_data_DT, "stats" = stats.tb))
-}
-
-
-#' @title Normalize the time series data
-#' @name .sits_normalize
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description this function normalizes the time series using the mean and
-#' standard deviation of all the time series.
-#'
-#' @param data        a tibble in SITS format, a data.table with distances or a matrix of values
-#' @param stats.tb    statistics for normalization
-#' @param band        band to be normalized
-#' @param  multicores number of threads to process the time series.
-#' @return data.tb    a normalized data set
-.sits_normalize <- function(data, stats.tb, band = NULL, multicores = 2) {
-    if ("tbl" %in% class(data)) # data is a tibble
-        data <- .sits_normalize_data(data, stats.tb, multicores = multicores)
-    else if ("data.table" %in% class(data)) # data is a data.table
-        data <- .sits_normalize_DT(data, stats.tb)
-    else if ("matrix" %in% class(data)) # data is a matrix
-        data <- .sits_normalize_matrix(data, stats.tb, band, multicores)
-
-    return(data)
-}
-
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_normalize_data
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
@@ -59,12 +7,12 @@
 #'
 #' @param data.tb     a tibble in SITS format
 #' @param stats.tb    statistics for normalization
-#' @param  multicores number of threads to process the time series.
 #' @return data.tb    a normalized sits tibble
 #'
-.sits_normalize_data <- function(data.tb, stats.tb, multicores = 2){
+.sits_normalize_data <- function(data.tb, stats.tb){
     .sits_test_tibble(data.tb)
-
+    # find the number of cores
+    multicores <- parallel::detectCores(logical = FALSE)
     # get the bands of the input data
     bands <- sits_bands(data.tb)
     # check that the bands in the input are include in the statistics already calculated
@@ -103,35 +51,16 @@
     data.tb$time_series <- norm.lst
     return(data.tb)
 }
-#' @title Normalize the time series in the given distance table
-#' @name .sits_normalize_DT
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description this function normalizes all dimensions of the distance table
-#'
-#' @param  DT             data.table with distances
-#' @param  stats.tb       statistics for normalization
-#' @return DT             a normalized data.table
-#'
-.sits_normalize_DT <- function(DT, stats.tb){
-
-    for (col in colnames(3:ncol(DT))) {
-        quant_2  <- as.numeric(stats.tb[2, col])
-        quant_98 <- as.numeric(stats.tb[3, col])
-        DT[,c(col) := normalize_data(as.matrix(DT[,get(col)]), quant_2, quant_98)]
-    }
-    return(DT)
-}
 #' @title Normalize the time series values in the case of a matrix
 #' @name .sits_normalize_matrix
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description this function normalizes one band of the values read from a raster brick
 #'
 #' @param  data.mx        matrix of values
 #' @param  stats.tb       statistics for normalization
 #' @param  band           band to be normalized
-#' @param  multicores     number of threads to process the time series.
+#' @param  multicores     number of cores
 #' @return data.mx        a normalized matrix
 #'
 .sits_normalize_matrix <- function(data.mx, stats.tb, band, multicores) {
@@ -172,20 +101,12 @@
 #' @param data.tb     a tibble in SITS format
 #' @param normalize   (integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension
 #' @return result.tb  a tibble with statistics
-.sits_normalization_param <- function(data.tb, normalize = 1) {
+.sits_normalization_param <- function(data.tb) {
 
     .sits_test_tibble(data.tb)
 
-    if (normalize == 1) {
-        DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
-        DT[, Index := NULL]
-    }
-    else if (normalize == 2) {
-        DT <- sits_distances(data.tb)
-        DT[, c("original_row", "reference") := NULL]
-    }
-    else
-        return(NULL)
+    DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
+    DT[, Index := NULL]
 
     # compute statistics
     DT_med      <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
@@ -196,4 +117,26 @@
                                  dplyr::bind_rows(DT_med, DT_quant_2, DT_quant_98))
 
     return(stats.tb)
+}
+
+#' @title .sits_normalization_choice
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description  Finds out the normalization, based on the model
+#'
+#' @param ml_model Trained machine learning model
+#' @return normalize choice of normalization (0 = no; 1 = by band)
+
+.sits_normalization_choice <- function (ml_model) {
+
+    # retrieve the samples and statistics from the model
+    samples.tb <- environment(ml_model)$data.tb
+    stats.tb   <- environment(ml_model)$stats.tb
+
+    # find out the normalization choice
+    if( !(purrr::is_null(stats.tb)) )
+        normalize <- TRUE # normalize by bands
+    else
+        normalize <- FALSE # no normalization
+
+    return(normalize)
 }

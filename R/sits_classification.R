@@ -31,11 +31,11 @@
 #' # select the bands "ndvi", "evi", "nir", and "mir"
 #' samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
 #' # build a classification model using random forest
-#' model_rfor <- sits_train(samples.tb, ml_method = sits_rfor (ntree = 2000))
+#' model_svm <- sits_train(samples.tb, ml_method = sits_svm ())
 #' # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
 #' point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir","mir"))
 #' # classify the point
-#' class.tb <-  sits_classify(point.tb, ml_model = model_rfor)
+#' class.tb <-  sits_classify(point.tb, ml_model = model_svm)
 #' # plot the classification
 #' sits_plot(class.tb)
 #' }
@@ -44,28 +44,30 @@
 sits_classify <- function(data.tb    = NULL,
                           ml_model   = NULL,
                           interval   = "12 month",
-                          multicores = 2) {
+                          multicores = 1) {
 
     .sits_test_tibble(data.tb)
 
     # ensure the machine learning model has been built
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
-    samples.tb <- environment(ml_model)$data.tb
+    # has normalization been applied to the data?
+    normalize <- .sits_normalization_choice(ml_model)
+    stats.tb   <- environment(ml_model)$stats.tb
 
-    if(!(purrr::is_null(environment(ml_model)$stats.tb))){
-        stats.tb <- environment(ml_model)$stats.tb
-        data.tb <- .sits_normalize(data.tb, stats.tb, multicores = multicores)
-    }
+    # obtain the distances after normalizing data by band
+    if( normalize == TRUE)
+        distances_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb))
+    else
+        # no normalization or normalization by distance
+        distances_DT <- sits_distances(data.tb)
 
     # define the parameters for breaking up a long time series
+    samples.tb <- environment(ml_model)$data.tb
     class_info.tb <- .sits_class_info(data.tb, samples.tb, interval)
 
-    # obtain the distances from the data
-    distances_DT <- sits_distances(data.tb)
-
     # create a vector to store the predicted results
-    predict.vec <- .sits_classify_distances(distances_DT, class_info.tb, ml_model, multicores)
+    predict.vec <- .sits_classify_distances(distances_DT, class_info.tb,  ml_model,  multicores)
 
     # Store the result in the input data
     data.tb <- .sits_tibble_prediction(data.tb, class_info.tb, predict.vec, interval)
@@ -79,12 +81,11 @@ sits_classify <- function(data.tb    = NULL,
 #' @description Returns a sits table with the results of the ML classifier.
 #'
 #' @param  distances_DT    data.table with distances
-#' @param  class_info.tb   tibble with the information on classification
+#' @param  class_info.tb   classification information
 #' @param  ml_model        model trained by \code{\link[sits]{sits_train}}
 #' @param  multicores      number of threads to process the time series
 #' @return pred.vec        vector with the predicted labels
 .sits_classify_distances <- function(distances_DT, class_info.tb, ml_model, multicores) {
-
 
     # find the subsets of the input data
     dates_index.lst <- class_info.tb$dates_index[[1]]
@@ -127,8 +128,11 @@ sits_classify <- function(data.tb    = NULL,
                 row.lst[[length(row.lst) + 1]] <- row_DT
             }
         }
+        # create a set of distances to be classified
         dist_DT <- data.table::rbindlist(row.lst)
+        # set the attribute names of the columns
         colnames(dist_DT) <- attr_names
+
         # classify the subset data
         pred_block.vec <- .sits_predict(dist_DT, ml_model)
         return(pred_block.vec)
@@ -145,7 +149,7 @@ sits_classify <- function(data.tb    = NULL,
     }
 
     if (multicores > 1) {
-        blocks.lst <- split.data.frame(distances_DT, cut(1:nrow(distances_DT), multicores, labels = FALSE))
+         blocks.lst <- split.data.frame(distances_DT, cut(1:nrow(distances_DT), multicores, labels = FALSE))
         # apply parallel processing to the split dat
         results.lst <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
 

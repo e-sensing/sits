@@ -26,10 +26,10 @@
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # find a training model based on the distances and default values (SVM model)
 #' samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
-#' ml_model <- sits_train (samples.tb)
+#' ml_model <- sits_train (samples.tb, sits_rfor())
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi", "nir", "mir"))
-#' class.tb <- sits_classify(point_MT_6bands, samples_MT_9classes, ml_model)
+#' class.tb <- sits_classify(point_MT_6bands, ml_model)
 #' sits_plot(class.tb)
 #' }
 #' @export
@@ -62,7 +62,7 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param data.tb           time series with the training samples
-#' @param normalize         (integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension
+#' @param normalize         FALSE = no normalization, TRUE = normalize per band
 #' @param units             vector with the number of hidden nodes in each hidden layer
 #' @param activation        vector with the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}
 #' @param dropout_rates     vector with the dropout rates (0,1) for each layer to the next layer
@@ -78,7 +78,6 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
 #'                          before shuffling.
 #' @param binary_classification a lenght-one logical indicating if this is a binary classification. If it is so,
 #'                          the number of unique labels in the training data must be two as well.
-#' @param multicores        number of cores (for parallel processing)
 #' @return result           either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @examples
 #' \donttest{
@@ -93,7 +92,7 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
 #' }
 #' @export
 sits_deeplearning <- function(data.tb          = NULL,
-                              normalize        = 1,
+                              normalize        = TRUE,
                               units            = c(512, 512, 512, 512, 512),
                               activation       = 'elu',
                               dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
@@ -101,18 +100,20 @@ sits_deeplearning <- function(data.tb          = NULL,
                               epochs           = 500,
                               batch_size       = 128,
                               validation_split = 0.2,
-                              binary_classification = FALSE,
-                              multicores       = 2)
+                              binary_classification = FALSE)
 {
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data.tb){
 
-        norm.lst <- .sits_distances_normalized(data.tb, normalize, multicores)
-        train_data_DT <- norm.lst$train_data
-        stats.tb      <- norm.lst$stats
+        if (normalize) {
+            stats.tb <- .sits_normalization_param(data.tb)
+            train_data_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        }
+        else
+            train_data_DT <- sits_distances(data.tb)
 
-        # is the input data the result of a TWDTW matching function?
+        # is the train data correct?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_deeplearning: input data does not contain distance")
 
@@ -236,7 +237,6 @@ sits_deeplearning <- function(data.tb          = NULL,
 #' @param shrinkage        a shrinkage parameter applied to each tree in the expansion.
 #'                         Also known as the learning rate or step-size reduction.
 #' @param cv.folds         number of cross-validations to run
-#' @param multicores       number of cores to run
 #' @param ...              other parameters to be passed to `gbm::gbm` function
 #' @return result          a model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #'
@@ -252,16 +252,18 @@ sits_deeplearning <- function(data.tb          = NULL,
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, gbm_model)
 #' }
 #' @export
-sits_gbm <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logref(), distribution = "multinomial",
-                     n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5, multicores = 2, ...) {
+sits_gbm <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_logref(), distribution = "multinomial",
+                     n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5, ...) {
 
     # function that returns glmnet::multinom model based on a sits sample tibble
     result_fun <- function(data.tb){
 
-        # data normalization
-        norm.lst <- .sits_distances_normalized(data.tb, normalize, multicores)
-        train_data_DT <- norm.lst$train_data
-        stats.tb      <- norm.lst$stats
+        if (normalize) {
+            stats.tb <- .sits_normalization_param(data.tb)
+            train_data_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        }
+        else
+            train_data_DT <- sits_distances(data.tb)
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -269,8 +271,11 @@ sits_gbm <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logre
 
         # if the formula is log and data has not been normalized, adjust the values to avoid invalid logs
         sits.env$adjust <- FALSE
-        if ( normalize == 0 )
+        if ( normalize == FALSE )
             train_data_DT <- .sits_formula_adjust(train_data_DT)
+
+        # find the number of cores
+        multicores <- parallel::detectCores(logical = FALSE)
 
         # call gbm::gbm method and return the trained multinom model
 
@@ -312,9 +317,8 @@ sits_gbm <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logre
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param data.tb          time series with the training samples
-#' @param normalize        (integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension
+#' @param normalize        (boolean) 0 = no normalization, 1 = normalize per band,
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
-#' @param multicores       number of cores (for parallel processing)
 #' @param ...              other parameters to be passed to MASS::lda function
 #' @return result          a model function to be passed in sits_predict
 #'
@@ -330,15 +334,18 @@ sits_gbm <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logre
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, lda_model)
 #' }
 #' @export
-sits_lda <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logref(), multicores = 2, ...) {
+sits_lda <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(data.tb){
 
         # data normalization
-        norm.lst      <- .sits_distances_normalized(data.tb, normalize, multicores)
-        train_data_DT <- norm.lst$train_data
-        stats.tb      <- norm.lst$stats
+        if (normalize) {
+            stats.tb <- .sits_normalization_param(data.tb)
+            train_data_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        }
+        else
+            train_data_DT <- sits_distances(data.tb)
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
@@ -350,7 +357,7 @@ sits_lda <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logre
 
         # if the formula is log and data has not been normalized, adjust the values to avoid invalid logs
         sits.env$adjust <- FALSE
-        if (normalize == 0)
+        if (normalize == FALSE)
             train_data_DT <- .sits_formula_adjust(train_data_DT)
 
         # call MASS::lda method and return the trained lda model
@@ -388,7 +395,6 @@ sits_lda <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logre
 #' @param data.tb          time series with the training samples
 #' @param normalize        (integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension
 #' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
-#' @param multicores       number of cores (for parallel processing)
 #' @param ...              other parameters to be passed to MASS::qda function
 #' @return result          a model function to be passed in sits_predict
 #'
@@ -404,15 +410,18 @@ sits_lda <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logre
 #' class.tb <- sits_classify (point_ndvi, qda_model)
 #' }
 #' @export
-sits_qda <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logref(), multicores = 2, ...) {
+sits_qda <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::qda model based on a sits sample tibble
     result_fun <- function(data.tb){
 
         # data normalization
-        norm.lst      <- .sits_distances_normalized(data.tb, normalize, multicores)
-        train_data_DT <- norm.lst$train_data
-        stats.tb      <- norm.lst$stats
+        if (normalize) {
+            stats.tb <- .sits_normalization_param(data.tb)
+            train_data_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        }
+        else
+            train_data_DT <- sits_distances(data.tb)
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -420,7 +429,7 @@ sits_qda <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logre
 
         # if the formula is log and data has not been normalized, adjust the values to avoid invalid logs
         sits.env$adjust <- FALSE
-        if (!normalize)
+        if (normalize == 0)
             train_data_DT <- .sits_formula_adjust(train_data_DT)
 
         # call MASS::qda method and return the trained lda model
@@ -459,7 +468,6 @@ sits_qda <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logre
 #' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param n_weights        maximum number of weights (should be proportional to size of input data)
 #' @param maxit            maximum number of iterations (default 300)
-#' @param multicores       number of cores (for parallel processing)
 #' @param ...              other parameters to be passed to nnet::multinom function
 #' @return result          a model function to be passed in sits_predict
 #' @examples
@@ -474,16 +482,19 @@ sits_qda <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logre
 #' class.tb <- sits_classify (point_ndvi, mlr_model)
 #' }
 #' @export
-sits_mlr <- function(data.tb = NULL, normalize = 0, formula = sits_formula_linear(),
-                     n_weights = 20000, maxit = 2000, multicores = 2, ...) {
+sits_mlr <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_linear(),
+                     n_weights = 20000, maxit = 2000, ...) {
 
     # function that returns nnet::multinom model based on a sits sample tibble
     result_fun <- function(data.tb) {
 
         # data normalization
-        norm.lst <- .sits_distances_normalized(data.tb, normalize, multicores)
-        train_data_DT <- norm.lst$train_data
-        stats.tb      <- norm.lst$stats
+        if (normalize) {
+            stats.tb <- .sits_normalization_param(data.tb)
+            train_data_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        }
+        else
+            train_data_DT <- sits_distances(data.tb)
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -491,7 +502,7 @@ sits_mlr <- function(data.tb = NULL, normalize = 0, formula = sits_formula_linea
 
         # if the formula is log and data has not been normalized, adjust the values to avoid invalid logs
         sits.env$adjust <- FALSE
-        if (!normalize)
+        if (normalize == FALSE)
             train_data_DT <- .sits_formula_adjust(train_data_DT)
 
         # call nnet::multinom method and return the trained multinom model
@@ -531,7 +542,6 @@ sits_mlr <- function(data.tb = NULL, normalize = 0, formula = sits_formula_linea
 #' @param ntree            number of trees to grow. This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted at least a few times. (default: 2000)
 #' @param nodesize         minimum size of terminal nodes (default 1 for classification)
-#' @param multicores       number of cores (for parallel processing)
 #' @param ...              other parameters to be passed to `randomForest::randomForest` function
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 #' @examples
@@ -546,7 +556,7 @@ sits_mlr <- function(data.tb = NULL, normalize = 0, formula = sits_formula_linea
 #' class.tb <- sits_classify (point_ndvi, rfor_model)
 #' }
 #' @export
-sits_rfor <- function(data.tb = NULL, ntree = 2000, nodesize = 1, multicores = 2, ...) {
+sits_rfor <- function(data.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
     result_fun <- function(data.tb){
@@ -588,7 +598,7 @@ sits_rfor <- function(data.tb = NULL, ntree = 2000, nodesize = 1, multicores = 2
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param data.tb          time series with the training samples
-#' @param normalize        (integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension
+#' @param normalize        (boolean) 0 = no normalization, 1 = normalize per band
 #' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)
 #' @param kernel           kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
 #' @param degree           exponential of polynomial type kernel
@@ -597,7 +607,6 @@ sits_rfor <- function(data.tb = NULL, ntree = 2000, nodesize = 1, multicores = 2
 #' @param tolerance	       tolerance of termination criterion (default: 0.001)
 #' @param epsilon	       epsilon in the insensitive-loss function (default: 0.1)
 #' @param cross            number of cross validation folds applied on the training data to assess the quality of the model,
-#' @param multicores       number of cores (for parallel processing)
 #' @param ...              other parameters to be passed to e1071::svm function
 #' @return result          fitted model function to be passed to sits_predict
 #'
@@ -606,24 +615,28 @@ sits_rfor <- function(data.tb = NULL, ntree = 2000, nodesize = 1, multicores = 2
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
 #' # Build an SVM model
-#' svm_model <- sits_train(samples_MT_ndvi, sits_svm())
+#' svm_model <- sits_train(samples_MT_ndvi, sits_svm(normalize = 0))
 #' # get a point
 #' data(point_ndvi)
 #' # classify the point
 #' class.tb <- sits_classify (point_ndvi, svm_model)
+#' # plot the classification
+#' sits_plot(class.tb)
 #'}
 #' @export
-sits_svm <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logref(), kernel = "radial",
-                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4,
-                     multicores = 2, ...) {
+sits_svm <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_logref(), kernel = "radial",
+                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(data.tb){
 
         # data normalization
-        norm.lst <- .sits_distances_normalized(data.tb, normalize, multicores)
-        train_data_DT <- norm.lst$train_data
-        stats.tb      <- norm.lst$stats
+        if (normalize) {
+            stats.tb <- .sits_normalization_param(data.tb)
+            train_data_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        }
+        else
+            train_data_DT <- sits_distances(data.tb)
 
         # if parameter formula is a function call it passing as argument the input data sample.
         # The function must return a valid formula.
@@ -632,7 +645,7 @@ sits_svm <- function(data.tb = NULL, normalize = 0, formula = sits_formula_logre
 
         # if the formula is log and data has not been normalized, adjust the values to avoid invalid logs
         sits.env$adjust <- FALSE
-        if (!normalize)
+        if (normalize == FALSE)
             train_data_DT <- .sits_formula_adjust(train_data_DT)
 
         # call e1071::svm method and return the trained svm model

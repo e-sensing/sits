@@ -25,7 +25,6 @@
 #' @param data.tb         sits tibble
 #' @param folds           number of partitions to create.
 #' @param ml_method       machine learning method
-#' @param multicores      number of threads to process the validation (Linux and MacOS only)
 #' @return pred_ref.tb    tibble containing pairs of reference and predicted values
 #'
 #' @examples
@@ -39,8 +38,11 @@
 #' @export
 
 sits_kfold_validate <- function(data.tb, folds = 5,
-                                ml_method    = sits_svm(),
-                                multicores  = 1){
+                                ml_method    = sits_svm()){
+
+
+    # find the number of cores
+    multicores <- parallel::detectCores(logical = FALSE)
 
     # does the input data exist?
     .sits_test_tibble(data.tb)

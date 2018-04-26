@@ -4,8 +4,7 @@
 \alias{sits_rfor}
 \title{Train a SITS classifiction model using random forest algorithm}
 \usage{
-sits_rfor(data.tb = NULL, ntree = 2000, nodesize = 1, multicores = 2,
-  ...)
+sits_rfor(data.tb = NULL, ntree = 2000, nodesize = 1, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
@@ -14,8 +13,6 @@ sits_rfor(data.tb = NULL, ntree = 2000, nodesize = 1, multicores = 2,
 to ensure that every input row gets predicted at least a few times. (default: 2000)}
 
 \item{nodesize}{minimum size of terminal nodes (default 1 for classification)}
-
-\item{multicores}{number of cores (for parallel processing)}
 
 \item{...}{other parameters to be passed to `randomForest::randomForest` function}
 }

@@ -4,9 +4,10 @@
 \alias{sits_gbm}
 \title{Train a SITS classification model with a gradient boosting machine}
 \usage{
-sits_gbm(data.tb = NULL, normalize = 1, formula = sits_formula_logref(),
-  distribution = "multinomial", n.trees = 500, interaction.depth = 2,
-  shrinkage = 0.001, cv.folds = 5, multicores = 2, ...)
+sits_gbm(data.tb = NULL, normalize = FALSE,
+  formula = sits_formula_logref(), distribution = "multinomial",
+  n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5,
+  ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
@@ -26,8 +27,6 @@ to ensure that every input row gets predicted at least a few times. (default: 50
 Also known as the learning rate or step-size reduction.}
 
 \item{cv.folds}{number of cross-validations to run}
-
-\item{multicores}{number of cores to run}
 
 \item{...}{other parameters to be passed to `gbm::gbm` function}
 }

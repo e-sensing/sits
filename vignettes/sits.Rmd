@@ -439,7 +439,7 @@ dl_model <- sits_train(samples_MT_ndvi, sits_deeplearning(units = c(512, 512),
                               activation       = 'elu',
                               dropout_rates    = c(0.40, 0.30),
                               optimizer        = keras::optimizer_adam(lr = 0.001),
-                              epochs           = 200,
+                              epochs           = 100,
                               batch_size       = 128,
                               validation_split = 0.2))
 # get a point to be classified
@@ -482,7 +482,7 @@ Our tested approach (see example illustrated bellow) is `GeoTIFF` bricks, where 
 data(samples_MT_ndvi)
 
 # build a machine learning model for this area
-rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
+svm_model <- sits_train(samples_MT_ndvi, sits_svm())
 
 # read a raster file and put it into a vector
 files  <- 
@@ -503,11 +503,10 @@ raster.tb <-
 
 # classify the raster file
 raster_class.tb <- 
-    sits_classify_raster(file = "./raster-class", 
+    sits_classify_raster(file = paste0(tempdir(), "/raster-class"), 
                          raster.tb, 
-                         ml_model  = rfor_model, 
-                         memsize = 2, 
-                         multicores = 1)
+                         ml_model  = svm_model, 
+                         memsize = 2)
 
 # plot the first raster object with a selected color pallete
 # make a title, define the colors and the labels)
@@ -523,10 +522,7 @@ file.remove(unlist(raster_class.tb$files))
 ```
 # Processing of large raster data files
 
-One of the challenges in land use classification is being able to process large data files. To reduce processing time, the `sits_classify_raster` function has two parameters that can be adjusted according to the capabilities of the server. The package tries to keep memory use to a minimum, and performs garbage collection to free memory as often as possible. Nevertheless, there is an inevitable trade-off between computing time, memory use and I/O operations. The best trade-off has to be determined by the user, considering issues such disk read spead, number of cores in the server, and CPU performance. 
-
-The first parameter is "memsize". It controls the size of the main memory (in GBytes) to be used for classification. The user should specify how much free memory will be available.
-The second factor controlling performance of raster classification is "multicores". Once a block of data is read from disk into main memory, it is split into different cores, as specified by the user. In general, the more cores are assigned to classification, the faster the result will be. However, there are overheads in switching time, especially of the server is shared with other processes. 
+One of the challenges in land use classification is being able to process large data files. To reduce processing time, users should adjuste the `sits_classify_raster` function according to the capabilities of the server. The package tries to keep memory use to a minimum, and performs garbage collection to free memory as often as possible. Nevertheless, there is an inevitable trade-off between computing time, memory use and I/O operations. The user should specify how much free memory will be available by using the "memsize" parameter. SITS tries to maximize the number of cores available for processing, given the available memory.
 
 Based on current experience, the classification of a MODIS tile (4800 x 4800), with 4 bands and 400 time instances, using a SVM with a training data set of about 10,000 samples, takes about 24 hours using 20 cores and a memory size of 60 GB, in a server with 2.4GHz Xeon CPU and 96 GB memory.
 
