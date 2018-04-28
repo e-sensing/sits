@@ -4,13 +4,13 @@
 \alias{sits_classify_raster}
 \title{Classify a set of spatio-temporal raster bricks using multicore machines}
 \usage{
-sits_classify_raster(file = NULL, raster.tb, ml_model = NULL,
+sits_classify_raster(file = NULL, coverage = NULL, ml_model = NULL,
   interval = "12 month", filter = NULL, memsize = 4)
 }
 \arguments{
 \item{file}{vector of file names to store the output (one file per classified year)}
 
-\item{raster.tb}{tibble with information about a set of space-time raster bricks}
+\item{coverage}{tibble with information about a coverage of space-time raster bricks}
 
 \item{ml_model}{an R model trained by \code{\link[sits]{sits_train}}}
 
