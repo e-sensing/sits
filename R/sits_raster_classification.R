@@ -20,6 +20,7 @@
 #' @param  interval        interval between two sucessive classifications, expressed in months
 #' @param  filter          smoothing filter to be applied (if desired)
 #' @param  memsize         memory available for classification (in GB)
+#' @param  multicores      number of cores to be used for classification
 #' @return raster_class.tb tibble with the metadata for the vector of classified RasterLayers
 #'
 #' @examples
@@ -55,14 +56,16 @@ sits_classify_raster <- function(file       = NULL,
                                  ml_model   = NULL,
                                  interval   = "12 month",
                                  filter     = NULL,
-                                 memsize    = 4) {
+                                 memsize    = 4,
+                                 multicores = NULL) {
 
 
     # checks the classification params
     .sits_check_classify_params(file, coverage, ml_model)
 
     # find the number of cores
-    multicores <- parallel::detectCores(logical = FALSE)
+    if (purrr::is_null(multicores))
+        multicores <- parallel::detectCores(logical = FALSE)
 
     # retrieve the samples from the model
     samples  <- environment(ml_model)$data.tb
