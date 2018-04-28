@@ -376,8 +376,11 @@ sits_classify_raster <- function(file       = NULL,
         values.mx <- scale_data(values.mx, scale_factor)
 
     # normalize the data by bands
-    if (normalize == 1 && !purrr::is_null(stats))
+    if (normalize == 1 && !purrr::is_null(stats)) {
         .sits_normalize_matrix(values.mx, stats, band, multicores)
+        .sits_log_debug(paste0("Model has been normalized"))
+    }
+
 
     if (!(purrr::is_null(filter))) {
         rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
@@ -462,6 +465,9 @@ sits_classify_raster <- function(file       = NULL,
     classify_block <- function(cs) {
         # predict the values for each time interval
         pred_block.vec <- as.character(ml_model(dist_DT[cs[1]:cs[2],]))
+        .sits_log_debug(message(paste0("chunk ", cs[1], " to ", cs[2])))
+        .sits_log_debug(message(paste0("predicted first ", pred_block.vec[1],
+                                       " last ", pred_block.vec[length(pred_block.vec)])))
         return(pred_block.vec)
     }
     # set up multicore processing
@@ -477,6 +483,11 @@ sits_classify_raster <- function(file       = NULL,
 
     # memory management
     .sits_log_debug(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
+
+    if (length(pred.vec) != nrow(dist_DT)) {
+        .sits_log_debug(message(paste0("length of pred.vec ", length(pred.vec))))
+        .sits_log_debug(message(paste0("nrow dist_DT ", nrow(dist_DT))))
+    }
 
     # check the result has the right dimension
     ensurer::ensure_that(pred.vec, length(.) == nrow(dist_DT),
