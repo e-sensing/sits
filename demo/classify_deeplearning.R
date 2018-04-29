@@ -8,12 +8,12 @@ message("Please ensure that you have enough memory available")
 # Retrieve the set of samples for the Cerrado region (provided by EMBRAPA)
 
 # select a file with 61,000 samples
-samples_file <- paste0("https://www.dropbox.com/s/5llfs8w371u6lng/samples_Cerrado_01042018.rda?raw=1")
-download.file(samples_file, destfile = "./samples_Cerrado_01042018.rda")
-load(file = "./samples_Cerrado_01042018.rda")
+samples_file <- paste0("https://www.dropbox.com/s/uwp7d2m7n71ur2p/samples_25042018.rda?raw=1")
+download.file(samples_file, destfile = paste0(tempdir(),"/samples_Cerrado_25042018.rda"))
+load(file = paste0(tempdir(),"/samples_Cerrado_25042018.rda"))
 
 # select only the ndvi and evi bands
-samples.tb <- sits_select_bands(samples_Cerrado_01042018.tb, bands = c("ndvi", "evi", "nir", "mir"))
+samples.tb <- sits_select_bands(samples_Cerrado_25042018.tb, bands = c("ndvi", "evi", "nir", "mir"))
 
 # train the deep learning model
 dl_model <-  sits_train(samples.tb,
@@ -26,16 +26,16 @@ dl_model <-  sits_train(samples.tb,
                              batch_size = 128,
                              validation_split = 0.2))
 
-sits_keras_diagnostics()
+sits_keras_diagnostics(dl_model)
 
 # select the bands "ndvi", "evi", "nir" and "mir"
 
-l8m_222068_evi_file <- paste0("/vsicurl/https://www.dropbox.com/s/4tpuwb56pjjo12h/LCMOD_2015-08-29_evi_800.tif?raw=1")
-l8m_222068_ndvi_file <- paste0("/vsicurl/https://www.dropbox.com/s/s9n7vsaoos366vb/LCMOD_2015-08-29_ndvi_800.tif?raw=1")
-l8m_222068_nir_file <- paste0("/vsicurl/https://www.dropbox.com/s/d54f7gyjr575d6f/LCMOD_2015-08-29_nir_800.tif?raw=1")
-l8m_222068_mir_file <- paste0("/vsicurl/https://www.dropbox.com/s/zm6fpitk5opg6be/LCMOD_2015-08-29_swir2_800.tif?raw=1")
+evi_file <- paste0("/vsicurl/https://www.dropbox.com/s/dykv1o4ut1d09ok/LC8MODIS_222_068_2015_evi.tif?raw=1")
+ndvi_file <- paste0("/vsicurl/https://www.dropbox.com/s/p7z69cjo87xgveu/LC8MODIS_222_068_2015_ndvi.tif?raw=1")
+nir_file <- paste0("/vsicurl/https://www.dropbox.com/s/e8lonfuxn6a205d/LC8MODIS_222_068_2015_nir.tif?raw=1")
+mir_file <- paste0("/vsicurl/https://www.dropbox.com/s/wvp7y95gy2y1e4n/LC8MODIS_222_068_2015_swir2.tif?raw=1")
 
-files <- c(l8m_222068_ndvi_file, l8m_222068_evi_file, l8m_222068_nir_file, l8m_222068_mir_file)
+files <- c(ndvi_file, evi_file, nir_file, mir_file)
 
 # define the timeline
 

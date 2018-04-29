@@ -252,7 +252,7 @@ sits_deeplearning <- function(data.tb          = NULL,
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, gbm_model)
 #' }
 #' @export
-sits_gbm <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_logref(), distribution = "multinomial",
+sits_gbm <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_logref(), distribution = "multinomial",
                      n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5, ...) {
 
     # function that returns glmnet::multinom model based on a sits sample tibble
@@ -334,7 +334,7 @@ sits_gbm <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_l
 #' class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, lda_model)
 #' }
 #' @export
-sits_lda <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_logref(), ...) {
+sits_lda <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(data.tb){
@@ -410,7 +410,7 @@ sits_lda <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_l
 #' class.tb <- sits_classify (point_ndvi, qda_model)
 #' }
 #' @export
-sits_qda <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_logref(), ...) {
+sits_qda <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_logref(), ...) {
 
     # function that returns MASS::qda model based on a sits sample tibble
     result_fun <- function(data.tb){
@@ -482,7 +482,7 @@ sits_qda <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_l
 #' class.tb <- sits_classify (point_ndvi, mlr_model)
 #' }
 #' @export
-sits_mlr <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_linear(),
+sits_mlr <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
 
     # function that returns nnet::multinom model based on a sits sample tibble
@@ -624,7 +624,7 @@ sits_rfor <- function(data.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 #' sits_plot(class.tb)
 #'}
 #' @export
-sits_svm <- function(data.tb = NULL, normalize = FALSE, formula = sits_formula_logref(), kernel = "radial",
+sits_svm <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_logref(), kernel = "radial",
                      degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
