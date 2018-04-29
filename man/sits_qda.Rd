@@ -4,7 +4,7 @@
 \alias{sits_qda}
 \title{Train a SITS classification model using quadratic discriminant analysis}
 \usage{
-sits_qda(data.tb = NULL, normalize = FALSE,
+sits_qda(data.tb = NULL, normalize = TRUE,
   formula = sits_formula_logref(), ...)
 }
 \arguments{

@@ -5,7 +5,7 @@
 \title{Classify a set of spatio-temporal raster bricks using multicore machines}
 \usage{
 sits_classify_raster(file = NULL, coverage = NULL, ml_model = NULL,
-  interval = "12 month", filter = NULL, memsize = 4)
+  interval = "12 month", filter = NULL, memsize = 4, multicores = NULL)
 }
 \arguments{
 \item{file}{vector of file names to store the output (one file per classified year)}
@@ -19,6 +19,8 @@ sits_classify_raster(file = NULL, coverage = NULL, ml_model = NULL,
 \item{filter}{smoothing filter to be applied (if desired)}
 
 \item{memsize}{memory available for classification (in GB)}
+
+\item{multicores}{number of cores to be used for classification}
 }
 \value{
 raster_class.tb tibble with the metadata for the vector of classified RasterLayers

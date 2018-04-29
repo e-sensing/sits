@@ -4,7 +4,7 @@
 \alias{sits_gbm}
 \title{Train a SITS classification model with a gradient boosting machine}
 \usage{
-sits_gbm(data.tb = NULL, normalize = FALSE,
+sits_gbm(data.tb = NULL, normalize = TRUE,
   formula = sits_formula_logref(), distribution = "multinomial",
   n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5,
   ...)

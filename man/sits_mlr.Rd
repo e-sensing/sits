@@ -4,7 +4,7 @@
 \alias{sits_mlr}
 \title{Train a SITS classifiaction model using multinomial log-linear regions via neural networks}
 \usage{
-sits_mlr(data.tb = NULL, normalize = FALSE,
+sits_mlr(data.tb = NULL, normalize = TRUE,
   formula = sits_formula_linear(), n_weights = 20000, maxit = 2000, ...)
 }
 \arguments{

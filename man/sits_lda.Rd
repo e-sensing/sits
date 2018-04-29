@@ -4,7 +4,7 @@
 \alias{sits_lda}
 \title{Train a SITS classification model using linear discriminant analysis}
 \usage{
-sits_lda(data.tb = NULL, normalize = FALSE,
+sits_lda(data.tb = NULL, normalize = TRUE,
   formula = sits_formula_logref(), ...)
 }
 \arguments{

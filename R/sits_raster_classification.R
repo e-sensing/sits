@@ -156,7 +156,7 @@ sits_classify_raster <- function(file       = NULL,
 
     # has normalization has been appplied to the data?
     normalize <- .sits_normalization_choice(ml_model)
-    stats     <- environment(ml_model)$stats
+    stats     <- environment(ml_model)$stats.tb
 
     # divide the input data in blocks
     bs <- .sits_raster_blocks(coverage, memsize, multicores)

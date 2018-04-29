@@ -80,7 +80,7 @@
     if (multicores > 1) {
         # apply parallel processing to the split data and join the result
         rows.lst  <- parallel::mclapply(chunk_size.lst, normalize_block, mc.cores = multicores)
-        data <- do.call(rbind, rows.lst)
+        data.mx <- do.call(rbind, rows.lst)
     }
     else
         data.mx <- normalize_data(data.mx, quant_2, quant_98)
