@@ -56,7 +56,7 @@ sits_classify <- function(data.tb    = NULL,
     stats.tb   <- environment(ml_model)$stats.tb
 
     # obtain the distances after normalizing data by band
-    if( normalize == TRUE)
+    if ( normalize == TRUE)
         distances_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb))
     else
         # no normalization or normalization by distance
@@ -117,7 +117,7 @@ sits_classify <- function(data.tb    = NULL,
     # classify a block of data
     classify_block <- function(distances_DT) {
         # select the data table indexes for each time index
-        select.lst <- .sits_select_indexes(time_index.lst, bands, ncol(distances_DT))
+        select.lst <- .sits_select_indexes(time_index.lst, length(bands), ncol(distances_DT))
 
         # create a list to store the data tables to be used for prediction
         row.lst <- list()

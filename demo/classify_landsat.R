@@ -24,7 +24,7 @@ raster.tb <- sits_coverage(service = "RASTER", name = "L8MOD-222_068_2015-2016",
                            scale_factors  = c(0.0001, 0.0001, 0.0001, 0.001, 0.0001),
                            timeline = timeline, bands = bands, files = files)
 
-# retrieve a pre-built SMV model
+# retrieve a pre-built SVM model
 model_file <- paste0("https://www.dropbox.com/s/n4ps99ilmngaqgf/ml_model_Cerrado_25042018_5bands.rda?raw=1")
 dest_file  <- paste0(tempdir(),"/ml_model_Cerrado_25042018_5bands.rda")
 download.file(model_file, destfile = dest_file)
@@ -34,7 +34,8 @@ message("Please select memory size avaliable for processing in GB (tipical value
 memsize <- as.integer(readline(prompt = "Enter a memsize value: "))
 
 # classify the raster image
-raster_class.tb <- sits_classify_raster(file = paste0(tempdir(),"/L8_MOD_222-068-class"), raster.tb, ml_model = svm_model, memsize = memsize)
+raster_class.tb <- sits_classify_raster(file = paste0(tempdir(),"/L8_MOD_222-068-class"), raster.tb,
+                                        ml_model = svm_model, memsize = memsize)
 
 sits_plot_raster(raster_class.tb[1,], title = "LANDSAT-MODIS-222-068-2015-2016")
 

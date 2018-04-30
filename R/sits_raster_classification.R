@@ -165,7 +165,7 @@ sits_classify_raster <- function(file       = NULL,
     for (i in 1:bs$n) {
 
         # read the data
-        dist_DT <- .sits_read_data(coverage, ml_model, bs$row[i], bs$nrows[i], normalize, stats, filter, multicores)
+        dist_DT <- .sits_read_data(coverage, samples, ml_model, bs$row[i], bs$nrows[i], normalize, stats, filter, multicores)
 
         if (!(purrr::is_null(environment(ml_model)$model.keras))) {
             multicores <- 1
@@ -173,7 +173,7 @@ sits_classify_raster <- function(file       = NULL,
         }
 
         # predict the classification values
-        layers.lst <- .sits_predict_block(coverage, samples, interval, layers.lst, bs$row[i], dist_DT, ml_model, normalize, stats, multicores)
+        layers.lst <- .sits_predict_block(coverage, samples, interval, layers.lst, bs$row[i], dist_DT, ml_model, multicores)
 
         # remove distance data.table (trying to use as little memory as possible)
         rm(dist_DT)
@@ -263,6 +263,7 @@ sits_classify_raster <- function(file       = NULL,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  coverage        input raster coverage
+#' @param  samples         tibble with samples
 #' @param  ml_model        machine learning model
 #' @param  first_row       first row to start reading
 #' @param  n_rows_block    number of rows in the block
@@ -272,44 +273,50 @@ sits_classify_raster <- function(file       = NULL,
 #' @param  multicores      number of cores to process the time series
 #' @return dist_DT         data.table with values for classification
 #'
-.sits_read_data <- function(coverage, ml_model, first_row, n_rows_block, normalize, stats, filter, multicores) {
+.sits_read_data <- function(coverage, samples, ml_model, first_row, n_rows_block, normalize, stats, filter, multicores) {
 
-    # get the bands of the raster bricks
-    bands <- unlist(coverage$bands)
+    # get the bands in the same order as the samples
+    bands <- sits_bands(samples)
 
     # get the missing values, minimum values and scale factors
     missing_values <- unlist(coverage$missing_values)
     minimum_values <- unlist(coverage$minimum_values)
     scale_factors  <- unlist(coverage$scale_factors)
 
-    # set a pointer to the bands
-    b <- 0
-
     # get the raster bricks to be read
-    bricks.vec <- coverage$files[[1]]
+    bricks.lst <- coverage$files[[1]]
 
     # set the offset and region to be read by GDAL
     offset     <- c(first_row - 1, 0)
     region.dim <- c(n_rows_block, coverage[1,]$ncols)
 
-    # read the values from the raster bricks
-    values.lst <- bricks.vec %>%
+    ordered_bricks.lst <- vector(mode = "list", length = length(bands))
+
+    for (i in 1:length(bands))
+        ordered_bricks.lst[[i]] <- bricks.lst[[bands[i]]]
+
+    names(ordered_bricks.lst) <- bands
+
+    # index to go through the bands vector
+    b <- 0
+
+    # read the values from the raster bricks ordered by bands
+    values.lst <- ordered_bricks.lst %>%
         purrr::map(function(r_brick) {
             # the readGDAL function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
             values.mx    <- as.matrix(suppressWarnings(rgdal::readGDAL(r_brick, offset, region.dim, silent = TRUE))@data)
 
-            # get the associated band
+            # proprocess the input data
             b <<- b + 1
             band <- bands[b]
-            # proprocess the input data
             values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band],
                                                normalize, stats, filter, multicores)
 
             # save information about memory use for debugging later
             .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
-            .sits_log_debug(paste0("Read band ", band, " from rows ", first_row, "to ", (first_row + n_rows_block - 1)))
+            .sits_log_debug(paste0("Read band ", b, " from rows ", first_row, "to ", (first_row + n_rows_block - 1)))
 
             return(values.mx)
         })
@@ -377,10 +384,9 @@ sits_classify_raster <- function(file       = NULL,
 
     # normalize the data by bands
     if (normalize == 1 && !purrr::is_null(stats)) {
-        .sits_normalize_matrix(values.mx, stats, band, multicores)
+        values.mx <- .sits_normalize_matrix(values.mx, stats, band, multicores)
         .sits_log_debug(paste0("Model has been normalized"))
     }
-
 
     if (!(purrr::is_null(filter))) {
         rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
@@ -401,18 +407,16 @@ sits_classify_raster <- function(file       = NULL,
 #' @param  first_row         initial row of the output layer to write block
 #' @param  dist_DT           data.table with distance values
 #' @param  ml_model          machine learning model to be applied
-#' @param  normalize         (integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension
-#' @param  stats             normalization parameters
 #' @param  multicores        number of cores to process the time series
 #' @return layers.lst        list of layers with classification results
 
-.sits_predict_block <- function(coverage, samples, interval, layers.lst, first_row,  dist_DT, ml_model, normalize, stats, multicores) {
+.sits_predict_block <- function(coverage, samples, interval, layers.lst, first_row,  dist_DT, ml_model, multicores) {
 
     # define the classification info parameters
     class_info <- .sits_class_info(coverage, samples, interval)
 
     # set attribute names
-    attr_names <- .sits_get_attr_names(class_info)
+    attr_names <- names(environment(ml_model)$train_data_DT)
 
     # get the labels of the data
     labels <- sits_labels(samples)$label
@@ -432,11 +436,12 @@ sits_classify_raster <- function(file       = NULL,
     if (length(time_index.lst) == 1 && length(attr_names) == ncol(dist_DT))
         layers.lst <- .sits_process_one_interval(dist_DT, layers.lst, ml_model, attr_names, int_labels, first_row, multicores)
     else {
-        # retrieve the timeline and the bands
+        # retrieve the timeline
         timeline <- coverage$timeline[[1]]
-        bands    <- coverage$bands[[1]]
+        # get the bands in the same order as the samples
+        bands <- sits_bands(samples)
         # build a list with columns of data table to be processed for each interval
-        select.lst <- .sits_select_indexes(time_index.lst, bands, length(timeline))
+        select.lst <- .sits_select_indexes(time_index.lst, length(bands), length(timeline))
         layers.lst <- .sits_process_multi_intervals(dist_DT, select.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores)
     }
 

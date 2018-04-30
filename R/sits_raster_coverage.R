@@ -192,6 +192,9 @@
     if (purrr::is_null(minimum_values)) {
         minimum_values <- .sits_get_minimum_values("RASTER", bands)
     }
+    # preserve the names of the bands on the list of raster objects and in the files
+    names(raster.lst) <- bands
+    names(files) <- bands
 
     # initiate writing
     # create a tibble to store the metadata
