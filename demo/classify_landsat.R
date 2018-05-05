@@ -1,6 +1,8 @@
 # Classification of LANDSAT data
 # these are the symbolic links for the files at dropbox
 
+library(sits)
+
 message("Processing of a mixed Landsat 8 - MODIS data set")
 message("Processing takes a while, please be patient")
 evi_file <- paste0("/vsicurl/https://www.dropbox.com/s/dykv1o4ut1d09ok/LC8MODIS_222_068_2015_evi.tif?raw=1")

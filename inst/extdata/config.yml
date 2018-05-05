@@ -1,7 +1,7 @@
 default:
 
     # estimated relative growth size of R memory relative to block size
-    R_memory_bloat          : 1.5
+    R_memory_bloat          : 1.2
     # reference machine configuration
     reference_machine       :
         ncores              :  16
