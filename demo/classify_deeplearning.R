@@ -18,11 +18,11 @@ samples.tb <- sits_select_bands(samples_Cerrado_25042018.tb, bands = c("ndvi", "
 # train the deep learning model
 dl_model <-  sits_train(samples.tb,
                         ml_method = sits_deeplearning(
-                             units            = c(512, 512, 512, 512, 512),
+                             units            = c(512, 512, 512),
                              activation       = 'elu',
-                             dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
+                             dropout_rates    = c(0.50, 0.40, 0.35),
                              optimizer = keras::optimizer_adam(),
-                             epochs = 500,
+                             epochs = 300,
                              batch_size = 128,
                              validation_split = 0.2))
 
@@ -52,6 +52,6 @@ raster.tb <- sits_coverage(service = "RASTER", name = "L8MOD-222-068_2015-2016",
 # classify the raster image
 # note: it is important to use the original samples and to select the normalization option
 raster_class.tb <- sits_classify_raster(file = "./L8_MOD_222-068-class", raster.tb,
-                                        ml_model = dl_model, memsize = 6, multicores = 1)
+                                        ml_model = dl_model, memsize = 5, multicores = 2)
 
 sits_plot_raster(raster_class.tb[1,], title = "LANDSAT-MODIS-222-068-2015-2016")

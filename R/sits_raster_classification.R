@@ -271,8 +271,9 @@ sits_classify_raster <- function(file       = "./raster-class",
     full_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(ntimes)*as.numeric(nbands)*as.numeric(nbytes)*bloat + as.numeric(pryr::mem_used())
 
     # number of passes to read the full data sets
-    nblocks <- max(ceiling((2*full_data_size)/(memsize*1e+09)), ceiling(multicores*full_data_size/(memsize*1e+09)))
-
+    #nblocks <- max(ceiling((2*full_data_size)/(memsize*1e+09)), ceiling(multicores*full_data_size/(memsize*1e+09)))
+    nblocks <- ceiling((2*full_data_size)/(memsize*1e+09))
+    .sits_log_debug(paste0("number of blocs to be read - ", nblocks))
     # number of rows per block
     block_rows <- ceiling(nrows/nblocks)
 
@@ -455,7 +456,7 @@ sits_classify_raster <- function(file       = "./raster-class",
     # classify a block of data
     classify_block <- function(cs) {
         # predict the values for each time interval
-        pred_block.vec <- as.character(ml_model(dist_DT[cs[1]:cs[2],]))
+        pred_block.vec <- ml_model(dist_DT[cs[1]:cs[2],], ml_model)
         return(pred_block.vec)
     }
     # set up multicore processing
@@ -467,7 +468,7 @@ sits_classify_raster <- function(file       = "./raster-class",
     }
     else # one core only
         # estimate the prediction vector
-        pred.vec <- as.character(ml_model(dist_DT))
+        pred.vec <- ml_model(dist_DT)
 
     # memory management
     .sits_log_debug(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))

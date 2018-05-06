@@ -837,7 +837,14 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #' @return predicted    vector of predicted labels
 .sits_predict <- function(distances_DT = NULL, ml_model, ...){
 
-    predicted <- as.character(ml_model(distances_DT))
+    # is this a deep learning model?
+    if (!purrr::is_null(environment(ml_model)$model.keras)) {
+        values.x    <- data.matrix(distances_DT[, -(1:2)])
+        preds       <- stats::predict(environment(ml_model)$model.keras, values.x)
+        predicted   <- as.character(names(environment(ml_model)$int_labels[max.col(preds)]))
+    }
+    else
+        predicted <- as.character(ml_model(distances_DT))
 
     return(predicted)
 }

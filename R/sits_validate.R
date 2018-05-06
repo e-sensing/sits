@@ -38,11 +38,12 @@
 #' @export
 
 sits_kfold_validate <- function(data.tb, folds = 5,
-                                ml_method    = sits_svm()){
+                                ml_method    = sits_svm(), multicores = NULL){
 
 
     # find the number of cores
-    multicores <- parallel::detectCores(logical = FALSE)
+    if (purrr::is_null(multicores))
+        multicores <- parallel::detectCores(logical = FALSE)
 
     # does the input data exist?
     .sits_test_tibble(data.tb)
@@ -70,11 +71,19 @@ sits_kfold_validate <- function(data.tb, folds = 5,
         # create a machine learning model
         ml_model <- sits_train(data_train.tb, ml_method)
 
-        # find the distances in the test data
-        distances_test.tb  <- sits_distances(data_test.tb)
+        # has normalization been applied to the data?
+        normalize <- .sits_normalization_choice(ml_model)
+        stats.tb   <- environment(ml_model)$stats.tb
+
+        # obtain the distances after normalizing data by band
+        if ( normalize == TRUE)
+            distances_DT <- sits_distances(.sits_normalize_data(data_test.tb, stats.tb))
+        else
+            # no normalization or normalization by distance
+            distances_DT <- sits_distances(data_test.tb)
 
         # classify the test data
-        predicted <- .sits_predict(distances_test.tb, ml_model)
+        predicted <- .sits_predict(distances_DT, ml_model)
 
         ref.vec  <- c(ref.vec,  data_test.tb$label)
         pred.vec <- c(pred.vec, predicted)

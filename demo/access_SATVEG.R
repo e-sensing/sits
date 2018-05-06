@@ -21,7 +21,8 @@ sits_plot(point_aqua.tb)
 sits_plot(point_comb.tb)
 
 # retrieve a set of points based on a CSV file
-csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
-points.tb <- sits_getdata (comb, file = csv_file)
+csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
+points.tb <- sits_getdata(comb, file = csv_file)
 # show the points retrieved for the SATVEG server
-sits_plot (points.tb)
+sits_plot(points.tb)
+
