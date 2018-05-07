@@ -198,10 +198,10 @@ sits_classify_raster <- function(file       = "./raster-class",
     # divide the input data in blocks
     bs <- .sits_raster_blocks(coverage, dates_index.lst, memsize, multicores)
 
-    # read the blocks from disk
-    for (i in 1:bs$n) {
-        # process each year for each block
-        for (t in 1:length(dates_index.lst)) {
+    # process each year
+    for (t in 1:length(dates_index.lst)) {
+        # read the blocks from disk
+        for (i in 1:bs$n) {
 
             # read the data and obtain a data.table with the distance matrix
             dist_DT <- .sits_read_data(ordered_bricks.lst, bands, attr_names,
@@ -349,8 +349,8 @@ sits_classify_raster <- function(file       = "./raster-class",
                                                scale_factors[band], normalize, stats, filter, multicores)
 
             # save information about memory use for debugging later
-            .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
             .sits_log_debug(paste0("Read band ", b, " from rows ", first_row, "to ", (first_row + nrows_block - 1)))
+            .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
 
             return(values.mx)
         })
@@ -456,7 +456,7 @@ sits_classify_raster <- function(file       = "./raster-class",
     # classify a block of data
     classify_block <- function(cs) {
         # predict the values for each time interval
-        pred_block.vec <- ml_model(dist_DT[cs[1]:cs[2],], ml_model)
+        pred_block.vec <- as.character(ml_model(dist_DT[cs[1]:cs[2],]))
         return(pred_block.vec)
     }
     # set up multicore processing
@@ -468,7 +468,7 @@ sits_classify_raster <- function(file       = "./raster-class",
     }
     else # one core only
         # estimate the prediction vector
-        pred.vec <- ml_model(dist_DT)
+        pred.vec <- as.character(ml_model(dist_DT))
 
     # memory management
     .sits_log_debug(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))

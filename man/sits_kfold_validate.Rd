@@ -4,7 +4,8 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate temporal patterns}
 \usage{
-sits_kfold_validate(data.tb, folds = 5, ml_method = sits_svm())
+sits_kfold_validate(data.tb, folds = 5, ml_method = sits_svm(),
+  multicores = NULL)
 }
 \arguments{
 \item{data.tb}{sits tibble}
@@ -12,6 +13,8 @@ sits_kfold_validate(data.tb, folds = 5, ml_method = sits_svm())
 \item{folds}{number of partitions to create.}
 
 \item{ml_method}{machine learning method}
+
+\item{multicores}{number of cores for processing}
 }
 \value{
 pred_ref.tb    tibble containing pairs of reference and predicted values
