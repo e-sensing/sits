@@ -2,17 +2,18 @@
 # these are the symbolic links for the files at dropbox
 
 library(sits)
-library(e1071)
+library(keras)
 
 message("Processing of a mixed Landsat 8 - MODIS data set")
 message("Processing takes a while, please be patient")
-evi_file <- paste0("/vsicurl/https://www.dropbox.com/s/dykv1o4ut1d09ok/LC8MODIS_222_068_2015_evi.tif?raw=1")
-ndvi_file <- paste0("/vsicurl/https://www.dropbox.com/s/p7z69cjo87xgveu/LC8MODIS_222_068_2015_ndvi.tif?raw=1")
-nir_file <- paste0("/vsicurl/https://www.dropbox.com/s/e8lonfuxn6a205d/LC8MODIS_222_068_2015_nir.tif?raw=1")
-mir_file <- paste0("/vsicurl/https://www.dropbox.com/s/wvp7y95gy2y1e4n/LC8MODIS_222_068_2015_swir2.tif?raw=1")
 
-files <- c(ndvi_file, evi_file, nir_file, mir_file)
-bands <- c("ndvi", "evi", "nir", "mir")
+
+evi_file <- paste0("/vsicurl/https://s3-sa-east-1.amazonaws.com/landsat-modis/LC8MOD_evi.tif")
+ndvi_file <- paste0("/vsicurl/https://s3-sa-east-1.amazonaws.com/landsat-modis/LC8MOD_ndvi.tif")
+nir_file <- paste0("/vsicurl/https://s3-sa-east-1.amazonaws.com/landsat-modis/LC8MOD_nir.tif")
+
+files <- c(ndvi_file, evi_file, nir_file)
+bands <- c("ndvi", "evi", "nir")
 
 # define the timeline
 
@@ -21,9 +22,9 @@ timeline <- timeline[1:23]
 
 # create a raster metadata file based on the information about the files
 raster.tb <- sits_coverage(service = "RASTER", name = "L8MOD-222_068_2015-2016",
-                           missing_values = c(0.0, 0.0, 0.0, 0.0),
-                           minimum_values = c(0.0, 0.0, 0.0, 0.0),
-                           scale_factors  = c(0.0001, 0.0001, 0.0001, 0.001),
+                           missing_values = c(0.0, 0.0, 0.0),
+                           minimum_values = c(0.0, 0.0, 0.0),
+                           scale_factors  = c(0.0001, 0.0001, 0.0001),
                            timeline = timeline, bands = bands, files = files)
 
 # retrieve a sample set with 64,500 samples
@@ -34,20 +35,18 @@ download.file(samples_file, destfile = dest_file)
 load(dest_file)
 
 # build an SVM model using a fraction of the samples
-samples.tb <- sits_select(samples_Cerrado_64545series_13classes, bands = c("ndvi", "evi", "nir", "mir"))
-samples.tb <- sits_sample(samples.tb, frac = 0.5)
+samples.tb <- sits_select(samples_Cerrado_64545series_13classes, bands = c("ndvi", "evi", "nir"))
 
-svm_model <- sits_train(samples.tb, ml_method = sits_svm(normalize = FALSE))
-
-message("Please select memory size avaliable for processing in GB (tipical values 1 - 100)")
-memsize <- as.integer(readline(prompt = "Enter a memsize value: "))
-
-message("Please select number of cores for processing")
-multicores <- as.integer(readline(prompt = "Enter a value: "))
+dl_model <- sits_train(samples.tb,
+                       ml_method = sits_deeplearning(
+                           units = c(512,512,512),
+                           dropout_rates = c(0.50,0.40, 0.30),
+                           epochs = 300,
+                           batch_size = 128))
 
 # classify the raster image
 raster_class.tb <- sits_classify_raster(file = paste0(tempdir(),"/L8_MOD_222-068-class"), raster.tb,
-                                        ml_model = svm_model, memsize = memsize, multicores = multicores)
+                                        ml_model = dl_model, memsize = 160, multicores = 40)
 
 sits_plot_raster(raster_class.tb[1,], title = "LANDSAT-MODIS-222-068-2015-2016")
 
