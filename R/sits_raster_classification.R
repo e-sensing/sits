@@ -159,7 +159,7 @@ sits_classify_raster <- function(file       = NULL,
     stats     <- environment(ml_model)$stats.tb
 
     # divide the input data in blocks
-    bs <- .sits_raster_blocks(coverage, memsize, multicores)
+    bs <- .sits_raster_blocks(coverage, interval, memsize, multicores)
 
     # read the blocks from disk
     for (i in 1:bs$n) {
@@ -200,12 +200,13 @@ sits_classify_raster <- function(file       = NULL,
 #' of 800 Mb if pixels are 64-bit. I
 #'
 #' @param  coverage        input raster coverage
+#' @param  interval        classification interval
 #' @param  memsize         memory available for classification (in GB)
 #' @param  multicores      number of threads to process the time series.
 #' @return bs              list with three attributes: n (number of blocks), rows (list of rows to begin),
 #'                    nrows - number of rows to read at each iteration
 #'
-.sits_raster_blocks <- function(coverage, memsize, multicores){
+.sits_raster_blocks <- function(coverage, interval, memsize, multicores){
 
     # number of bands
     bands  <- coverage[1,]$bands[[1]]
@@ -222,10 +223,13 @@ sits_classify_raster <- function(file       = NULL,
     bloat <- sits.env$config$R_memory_bloat
 
     # estimated size of the data
-    full_data_size <- bloat*as.numeric(nbands)*as.numeric(nrows)*as.numeric(ncols)*as.numeric(ntimes)*as.numeric(nbytes) + as.numeric(pryr::mem_used())
+    full_data_size <- bloat*as.numeric(ntimes)*as.numeric(nbands)*as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes) + as.numeric(pryr::mem_used())
+
+    # classification data size
+    classification_size <- bloat*23*as.numeric(nbands)*as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes) + as.numeric(pryr::mem_used())
 
     # number of passes to read the full data sets
-    nblocks <- max(ceiling((2*full_data_size)/(memsize*1e+09)), ceiling(multicores*full_data_size/(memsize*1e+09)))
+    nblocks <- max(ceiling((2*full_data_size)/(memsize*1e+09)), ceiling(multicores*classification_size/(memsize*1e+09)))
     #nblocks <- ceiling(full_data_size/(memsize*1e+09))
 
     # number of rows per block
