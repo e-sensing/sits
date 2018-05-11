@@ -344,18 +344,19 @@
 #' @description this functions defines the rows of the input data that will be
 #' split to fit to be divided between the different cores
 #'
-#' @param init_row         initial row of the data to be read
-#' @param nrows            number of rows in the input data table
+#' @param data             data (data.table or matrix)
 #' @param ncores           number of cores for processing
 #' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
 #'
-.sits_split_block_size <- function(init_row, nrows, ncores){
+.sits_split_block_size <- function(data, ncores){
 
+    # number of rows in the data
+    nrows <- nrow(data)
     # find the number of rows per core
     step <- ceiling(nrows/ncores)
 
     # create a vector with the initial rows per block
-    blocks <- seq(from = init_row, to = nrows, by = step)
+    blocks <- seq(from = 1, to = nrows, by = step)
 
     # create a list to store the result
     block_size.lst <- vector("list", ncores)
@@ -370,3 +371,39 @@
     }
     return(block_size.lst)
 }
+
+#' @title Split a data.table or a matrix for multicore processing
+#' @name .sits_split_data
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description this functions splits a data.table into a list of chunks for multicore processing
+#'
+#' @param data             data (data.table or matrix)
+#' @param ncores           number of cores for processing
+#' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
+#'
+.sits_split_data <- function(data, ncores){
+
+    # number of rows in the data
+    nrows <- nrow(data)
+    # find the number of rows per core
+    step <- ceiling(nrows/ncores)
+
+    # create a vector with the initial rows per block
+    blocks <- seq(from = 1, to = nrows, by = step)
+
+    # create a list to store the result
+    block.lst <- vector("list", ncores)
+
+    # fill the list with the initial and final row per block
+    for (i in 1:length(blocks)) {
+        start <- blocks[i]
+        end   <- start + step - 1
+        if (i == ncores )
+            end <- nrows
+        block.lst[[i]] <- data[start:end,]
+    }
+    return(block.lst)
+}
+
+

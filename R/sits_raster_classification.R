@@ -159,18 +159,13 @@ sits_classify_raster <- function(file       = NULL,
     stats     <- environment(ml_model)$stats.tb
 
     # divide the input data in blocks
-    bs <- .sits_raster_blocks(coverage, memsize, multicores)
+    bs <- .sits_raster_blocks(coverage, interval, memsize, multicores)
 
     # read the blocks from disk
     for (i in 1:bs$n) {
 
         # read the data
         dist_DT <- .sits_read_data(coverage, samples, ml_model, bs$row[i], bs$nrows[i], normalize, stats, filter, multicores)
-
-        if (!(purrr::is_null(environment(ml_model)$model.keras))) {
-            multicores <- 1
-            .sits_log_debug(paste0("keras already runs on multiple CPU - setting multicores to 1"))
-        }
 
         # predict the classification values
         layers.lst <- .sits_predict_block(coverage, samples, interval, layers.lst, bs$row[i], dist_DT, ml_model, multicores)
@@ -205,12 +200,13 @@ sits_classify_raster <- function(file       = NULL,
 #' of 800 Mb if pixels are 64-bit. I
 #'
 #' @param  coverage        input raster coverage
+#' @param  interval        classification interval
 #' @param  memsize         memory available for classification (in GB)
 #' @param  multicores      number of threads to process the time series.
 #' @return bs              list with three attributes: n (number of blocks), rows (list of rows to begin),
 #'                    nrows - number of rows to read at each iteration
 #'
-.sits_raster_blocks <- function(coverage, memsize, multicores){
+.sits_raster_blocks <- function(coverage, interval, memsize, multicores){
 
     # number of bands
     bands  <- coverage[1,]$bands[[1]]
@@ -227,10 +223,13 @@ sits_classify_raster <- function(file       = NULL,
     bloat <- sits.env$config$R_memory_bloat
 
     # estimated size of the data
-    full_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(ntimes)*as.numeric(nbands)*as.numeric(nbytes)*bloat + as.numeric(pryr::mem_used())
+    full_data_size <- bloat*as.numeric(ntimes)*as.numeric(nbands)*as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes) + as.numeric(pryr::mem_used())
+
+    # classification data size
+    classification_size <- bloat*23*as.numeric(nbands)*as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes) + as.numeric(pryr::mem_used())
 
     # number of passes to read the full data sets
-    nblocks <- max(ceiling((2*full_data_size)/(memsize*1e+09)), ceiling(multicores*full_data_size/(memsize*1e+09)))
+    nblocks <- max(ceiling((2*full_data_size)/(memsize*1e+09)), ceiling(multicores*classification_size/(memsize*1e+09)))
     #nblocks <- ceiling(full_data_size/(memsize*1e+09))
 
     # number of rows per block
@@ -363,34 +362,39 @@ sits_classify_raster <- function(file       = NULL,
                                   normalize, stats, filter, multicores){
 
     # correct minimum value
-    #values.mx[is.na(values.mx)] <- minimum_value
-    #values.mx[values.mx <= minimum_value] <- minimum_value
+    values.mx[is.na(values.mx)] <- minimum_value
+    values.mx[values.mx <= minimum_value] <- minimum_value
 
-    # estimate the list for breaking a block
-    chunk_size.lst <- .sits_split_block_size(1, nrow(values.mx), multicores)
+    # memory management
+    .sits_log_debug(paste0("Memory used before scaling - ", .sits_mem_used(), " GB"))
 
     # scale the data set
     # auxiliary function to scale a block of data
-    scale_block <- function(cs, values.mx) {
-        scale_block.mx <- scale_data(values.mx[cs[1]:cs[2],], scale_factor)
+    scale_block <- function(chunk, scale_factor) {
+        scaled_block.mx <- scale_data(chunk, scale_factor)
     }
     # use multicores to speed up scaling
     if (multicores > 1) {
-        # apply parallel processing to the split data and join the result
-        rows.lst  <- parallel::mclapply(chunk_size.lst, scale_block, values.mx, mc.cores = multicores)
+        chunk.lst <- .sits_split_data(values.mx, multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, scale_block, scale_factor, mc.cores = multicores)
         values.mx <- do.call(rbind, rows.lst)
+        rm(chunk.lst)
+        rm(rows.lst)
+        gc()
     }
     else
         values.mx <- scale_data(values.mx, scale_factor)
 
+    .sits_log_debug(paste0("Memory used after scaling ", .sits_mem_used(), " GB"))
+
     # normalize the data by bands
-    if (normalize == 1 && !purrr::is_null(stats)) {
+    if (normalize && !purrr::is_null(stats)) {
         values.mx <- .sits_normalize_matrix(values.mx, stats, band, multicores)
         .sits_log_debug(paste0("Model has been normalized"))
     }
 
     if (!(purrr::is_null(filter))) {
-        rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
+        rows.lst <- lapply(seq_len(nrow(new_values.mx)), function(i) values.mx[i, ]) %>%
             lapply(filter)
         values.mx <- do.call(rbind, rows.lst)
     }
@@ -429,21 +433,31 @@ sits_classify_raster <- function(file       = NULL,
     # define the time indexes required for classification
     time_index.lst <- .sits_get_time_index(class_info)
 
+    # retrieve the timeline
+    timeline <- coverage$timeline[[1]]
+    # get the bands in the same order as the samples
+    bands <- sits_bands(samples)
+    # build a list with columns of data table to be processed for each interval
+    select.lst <- .sits_select_indexes(time_index.lst, length(bands), length(timeline))
+
     # if there is only one interval to be processed and
     # if all columns of the data table will be used
     # then process only one year (saves memory)
     # else process multiple years
 
-    if (length(time_index.lst) == 1 && length(attr_names) == ncol(dist_DT))
-        layers.lst <- .sits_process_one_interval(dist_DT, layers.lst, ml_model, attr_names, int_labels, first_row, multicores)
+    if (length(time_index.lst) == 1 && length(attr_names) == ncol(dist_DT)) {
+        interval <- 1
+        colnames(dist_DT) <- attr_names
+        layers.lst <- .sits_process_one_interval(dist_DT, interval, layers.lst, ml_model, int_labels, first_row, multicores)
+    }
     else {
-        # retrieve the timeline
-        timeline <- coverage$timeline[[1]]
-        # get the bands in the same order as the samples
-        bands <- sits_bands(samples)
-        # build a list with columns of data table to be processed for each interval
-        select.lst <- .sits_select_indexes(time_index.lst, length(bands), length(timeline))
-        layers.lst <- .sits_process_multi_intervals(dist_DT, select.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores)
+        for (t in 1:length(select.lst)) {
+            # retrieve the values used for classification
+            dist1_DT <- dist_DT[, select.lst[[t]], with = FALSE]
+            # set the names of the columns of the subset of data table
+            colnames(dist1_DT) <- attr_names
+            layers.lst <- .sits_process_one_interval(dist1_DT, t, layers.lst, ml_model, int_labels, first_row, multicores)
+        }
     }
 
     return(layers.lst)
@@ -453,121 +467,139 @@ sits_classify_raster <- function(file       = NULL,
 #' @name  .sits_process_one_interval
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  dist_DT           data.table with distance values
+#' @param  DT                data.table with distance values
+#' @param  interval          interval to be processed
 #' @param  layers.lst        list of layers with classification results
 #' @param  ml_model          machine learning model to be applied
-#' @param  attr_names        attribute names for distance column
 #' @param  int_labels        integer values corresponding to labels
 #' @param  first_row         initial row of the output layer to write block
 #' @param  multicores        number of cores to process the time series
 #' @return layers.lst        list of layers with classification results
 
-.sits_process_one_interval <- function(dist_DT, layers.lst, ml_model, attr_names, int_labels, first_row, multicores) {
+.sits_process_one_interval <- function(DT, interval, layers.lst, ml_model, int_labels, first_row, multicores) {
 
-    # set the names of the columns of dist1.tb
-    colnames(dist_DT) <- attr_names
 
+    if (!(purrr::is_null(environment(ml_model)$model.keras))) {
+        multicores <- 1
+        .sits_log_debug(paste0("keras already runs on multiple CPU - setting multicores to 1"))
+    }
     # classify a block of data
-    classify_block <- function(cs, dist_DT) {
+    classify_block <- function(cs) {
         # predict the values for each time interval
-        pred_block.vec <- as.character(ml_model(dist_DT[cs[1]:cs[2],]))
+        pred_block.vec <- ml_model(DT[cs[1]:cs[2],])
         return(pred_block.vec)
     }
     # set up multicore processing
     if (multicores > 1) {
+        # memory management
+        .sits_log_debug(paste0("Memory used before split_data - ", .sits_mem_used(), " GB"))
+
         # estimate the list for breaking a block
-        chunk_size.lst <- .sits_split_block_size(1, nrow(dist_DT), multicores)
+        block.lst <- .sits_split_block_size(DT, multicores)
+        .sits_log_debug(paste0("Memory used after split_data - ", .sits_mem_used(), " GB"))
+
         # apply parallel processing to the split data and join the results
-        pred.vec <- unlist(parallel::mclapply(chunk_size.lst, classify_block, dist_DT, mc.cores = multicores))
+        pred.vec <- unlist(parallel::mclapply(block.lst, classify_block,  mc.cores = multicores))
+
+        # memory management
+        .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
+        rm(block.lst)
+        gc()
+        .sits_log_debug(paste0("Memory used after removing blocks - ", .sits_mem_used(), " GB"))
     }
     else # one core only
         # estimate the prediction vector
-        pred.vec <- as.character(ml_model(dist_DT))
-
-    # memory management
-    .sits_log_debug(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
+        pred.vec <- as.character(ml_model(DT))
 
     # check the result has the right dimension
-    ensurer::ensure_that(pred.vec, length(.) == nrow(dist_DT),
+    ensurer::ensure_that(pred.vec, length(.) == nrow(DT),
                          err_desc = "sits_classify_raster - number of classified pixels is different
                          from number of input pixels")
 
+    # memory management
+    rm(DT)
+    gc()
+    .sits_log_debug(paste0("Memory used after removing DT - ", .sits_mem_used(), " GB"))
+
     # for each layer, write the predicted values
 
-    layers.lst[[1]] <- raster::writeValues(layers.lst[[1]], as.integer(int_labels[pred.vec]), first_row)
+    layers.lst[[interval]] <- raster::writeValues(layers.lst[[interval]], as.integer(int_labels[pred.vec]), first_row)
 
     # memory management
-    .sits_log_debug(paste0("Processed year starting from row ", first_row))
+    .sits_log_debug(paste0("Processed year ", interval, " starting from row ", first_row))
     rm(pred.vec)
     gc()
-    .sits_log_debug(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
+    .sits_log_debug(paste0("Memory used after writing values (interval ", interval, " ) - ", .sits_mem_used(), " GB"))
 
     return(layers.lst)
 }
-
-#' @title Classify multiple years of data
-#' @name  .sits_process_multi_intervals
+#' @title Normalize the time series values in the case of a matrix
+#' @name .sits_normalize_matrix
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  dist_DT           data.table with distance values
-#' @param  select.lst        list of columns to be classified per classification interval
-#' @param  layers.lst        list of layers with classification results
-#' @param  ml_model          machine learning model to be applied
-#' @param  attr_names        attribute names for distance column
-#' @param  int_labels        integer values corresponding to labels
-#' @param  first_row         initial row of the output layer to write block
-#' @param  multicores        number of cores to process the time series
-#' @return layers.lst        list of layers with classification results
-.sits_process_multi_intervals <- function(dist_DT, select.lst, layers.lst, ml_model, attr_names, int_labels, first_row, multicores) {
+#' @description this function normalizes one band of the values read from a raster brick
+#'
+#' @param  data.mx        matrix of values
+#' @param  stats.tb       statistics for normalization
+#' @param  band           band to be normalized
+#' @param  multicores     number of cores
+#' @return data.mx        a normalized matrix
+#'
+.sits_normalize_matrix <- function(data.mx, stats.tb, band, multicores) {
+    # select the 2% and 98% quantiles
+    quant_2   <- as.numeric(stats.tb[2, band])
+    quant_98  <- as.numeric(stats.tb[3, band])
 
-    # iterate through time intervals
-    for (t in 1:length(select.lst)) {
-        # retrieve the values used for classification
-        dist1_DT <- dist_DT[, select.lst[[t]], with = FALSE]
-        # set the names of the columns of the subset of data table
-        colnames(dist1_DT) <- attr_names
-
-        # classify a block of data
-        classify_block <- function(cs, dist1_DT) {
-            # predict the values for each time interval
-            pred_block.vec <- as.character(ml_model(dist1_DT[cs[1]:cs[2],]))
-            return(pred_block.vec)
-        }
-
-        # set up multicore processing
-        if (multicores > 1) {
-            # estimate the list for breaking a block
-            chunk_size.lst <- .sits_split_block_size(1, nrow(dist1_DT), multicores)
-            # apply parallel processing to the split data and join the results
-            pred.vec <- unlist(parallel::mclapply(chunk_size.lst, classify_block, dist1_DT, mc.cores = multicores))
-        }
-        else
-            # estimate the prediction vector
-            pred.vec <- as.character(ml_model(dist1_DT))
-
-        # memory management
-        .sits_log_debug(paste0("Memory used after classification - ", .sits_mem_used(), " GB"))
-
-        # check the result has the right dimension
-        ensurer::ensure_that(pred.vec, length(.) == nrow(dist1_DT),
-                             err_desc = "sits_classify_raster - number of classified pixels is different
-                             from number of input pixels")
-
-        # for each layer, write the predicted values
-        layers.lst[[t]] <- raster::writeValues(layers.lst[[t]], as.integer(int_labels[pred.vec]), first_row)
-
-        # memory management
-        .sits_log_debug(paste0("Processed year ", t, " starting from row ", first_row))
-        rm(dist1_DT)
-        rm(pred.vec)
-        gc()
-        .sits_log_debug(paste0("Memory used after classification of year ", t, " - ", .sits_mem_used(), " GB"))
+    # auxiliary function to normalize a block of data
+    normalize_block <- function(chunk, quant_2, quant_98) {
+        # normalize a block of data
+        values_block.mx <- normalize_data(chunk, quant_2, quant_98)
     }
 
     # memory management
-    rm(dist_DT)
-    gc()
-    .sits_log_debug(paste0("Memory used after classification of all years - ", .sits_mem_used(), " GB"))
+    .sits_log_debug(paste0("Memory used before normalization - ", .sits_mem_used(), " GB"))
 
-    return(layers.lst)
+    # parallel processing for normalization
+    if (multicores > 1) {
+        chunk.lst <- .sits_split_data(data.mx, multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, normalize_block, quant_2, quant_98, mc.cores = multicores)
+        data.mx <- do.call(rbind, rows.lst)
+        rm(chunk.lst)
+        rm(rows.lst)
+        gc()
+    }
+    else
+       data.mx <- normalize_data(data.mx, quant_2, quant_98)
+
+    .sits_log_debug(paste0("Data has been normalized between ", quant_2 , " (2%) and ", quant_98, "(98%)"))
+    .sits_log_debug(paste0("Memory used after normalization - ", .sits_mem_used(), " GB"))
+
+    return(data.mx)
+}
+
+.sits_mclapply <- function(data, multicores, fun, ...){
+    # memory management
+    .sits_log_debug(paste0("Memory used before split_data - ", .sits_mem_used(), " GB"))
+
+
+    # estimate the list for breaking data in blocks
+    block.lst <- .sits_split_data(data, multicores)
+
+    # memory management
+    .sits_log_debug(paste0("Memory used after split_data - ", .sits_mem_used(), " GB"))
+
+    # apply parallel processing to the split data and join the results
+    result <- parallel::mclapply(block.lst, fun, ..., mc.cores = multicores)
+
+    # memory management
+    .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
+    rm(block.lst)
+    gc()
+    .sits_log_debug(paste0("Memory used after removing blocks - ", .sits_mem_used(), " GB"))
+    rm(data)
+    gc()
+    .sits_log_debug(paste0("Memory used after removing data - ", .sits_mem_used(), " GB"))
+
+    return(result)
+
 }

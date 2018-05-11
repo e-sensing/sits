@@ -34,7 +34,7 @@ dest_file  <- paste0(tempdir(),"/samples_Cerrado_64545series_13classes.rda")
 download.file(samples_file, destfile = dest_file)
 load(dest_file)
 
-# build an SVM model using a fraction of the samples
+# build an DL model using a fraction of the samples
 samples.tb <- sits_select(samples_Cerrado_64545series_13classes, bands = c("ndvi", "evi", "nir"))
 
 dl_model <- sits_train(samples.tb,
