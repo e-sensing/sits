@@ -506,7 +506,8 @@ raster_class.tb <-
     sits_classify_raster(file = paste0(tempdir(), "/raster-class"), 
                          raster.tb, 
                          ml_model  = svm_model, 
-                         memsize = 2)
+                         memsize = 2, 
+                         multicores = 1)
 
 # plot the first raster object with a selected color pallete
 # make a title, define the colors and the labels)

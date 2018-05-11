@@ -23,7 +23,7 @@ testthat::test_that("Working with raster coverages", {
     svm_model <- sits_train(samples_MT_ndvi, sits_svm())
 
     raster_class.tb <- sits_classify_raster(file = paste0(tempdir(),"/raster-class"), raster.tb,
-                                            svm_model, memsize = 4)
+                                            svm_model, memsize = 4, multicores = 2)
 
     testthat::expect_true(all(file.exists(unlist(raster_class.tb$files))))
     rc_obj <- raster_class.tb[1,]$r_objs[[1]]

@@ -51,44 +51,7 @@
     data.tb$time_series <- norm.lst
     return(data.tb)
 }
-#' @title Normalize the time series values in the case of a matrix
-#' @name .sits_normalize_matrix
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description this function normalizes one band of the values read from a raster brick
-#'
-#' @param  data.mx        matrix of values
-#' @param  stats.tb       statistics for normalization
-#' @param  band           band to be normalized
-#' @param  multicores     number of cores
-#' @return data.mx        a normalized matrix
-#'
-.sits_normalize_matrix <- function(data.mx, stats.tb, band, multicores) {
-    # select the 2% and 98% quantiles
-    quant_2   <- as.numeric(stats.tb[2, band])
-    quant_98  <- as.numeric(stats.tb[3, band])
 
-    # estimate the list for breaking a block
-    chunk_size.lst <- .sits_split_block_size(1, nrow(data.mx), multicores)
-
-    # auxiliary function to normalize a block of data
-    normalize_block <- function(cs) {
-        # normalize a block of data
-        values_block.mx <- normalize_data(data.mx[cs[1]:cs[2],], quant_2, quant_98)
-    }
-    # parallel processing for normalization
-    if (multicores > 1) {
-        # apply parallel processing to the split data and join the result
-        rows.lst  <- parallel::mclapply(chunk_size.lst, normalize_block, mc.cores = multicores)
-        data.mx <- do.call(rbind, rows.lst)
-    }
-    else
-        data.mx <- normalize_data(data.mx, quant_2, quant_98)
-
-    .sits_log_debug(paste0("Data has been normalized between ", quant_2 , " (2%) and ", quant_98, "(98%)"))
-
-    return(data.mx)
-}
 
 
 #' @title Normalize the time series in the given sits_tibble
