@@ -132,6 +132,8 @@ default:
         blue                : 0
         nir                 : 0
         mir                 : 0
+        swir1               : 0
+        swir2               : 0
 
     RASTER_scale_factor:
         MODIS               :

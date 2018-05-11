@@ -4,12 +4,12 @@
     packageStartupMessage(
         sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.
                 See demo(package = 'sits') for examples.", utils::packageDescription("sits")$Version) )
+    sits_log()
 }
 .onLoad = function(lib, pkg) {
     Sys.setenv(R_CONFIG_ACTIVE = "default")
     Sys.setenv(R_CONFIG_FILE = "config.yml")
     sits_config()
-    sits_log()
 }
 
 # Creates a package environment to store global variables
