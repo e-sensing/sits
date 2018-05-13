@@ -235,13 +235,27 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 #' be extracted to classify each band, obtain a list of indexes that will be used to
 #' extract values from a combined distance table (with has all the bands put together)
 #'
-#' @param  time_indexes.lst   List with valid time indexes per interval of classification
-#' @param  nbands             number of bands
-#' @param  ntimes             number of time instances
+#' @param  coverage           Coverage with input data set
+#' @param  samples            tibble with samples used for classification
+#' @param  interval           classification interval
 #' @return select.lst         list of values to be extracted for each classification interval
 
-.sits_select_indexes <- function(time_index.lst, nbands, ntimes) {
+.sits_select_indexes <- function(coverage, samples, interval) {
+
+    # define the classification info parameters
+    class_info <- .sits_class_info(coverage, samples, interval)
+
+    # define the time indexes required for classification
+    time_index.lst <- .sits_get_time_index(class_info)
+
+    # create a vector with selection interval
     select.lst <- vector("list", length(time_index.lst))
+
+    # find the length of the timeline
+    ntimes <- length(coverage$timeline[[1]])
+
+    # get the bands in the same order as the samples
+    nbands <- length(sits_bands(samples))
 
     size_lst = nbands*ntimes + 2
 
