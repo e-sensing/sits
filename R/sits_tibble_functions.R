@@ -118,12 +118,14 @@ sits_apply <- function(data, fun, fun_index = function(index){ return(index) }, 
         multicores <- parallel::detectCores(logical = FALSE)
         # auxiliary function to filter a block of data
         filter_block <- function(mat) {
-            rows.lst <- lapply(seq_along(mat), function(i) fun(mat[i,]))
-            mat_block.mx <- do.call(rbind, rows.lst)
+            rows_block.lst <- lapply(seq_along(mat), function(i) fun(mat[i,]))
+            mat_block.mx <- do.call(rbind, rows_block.lst)
         }
         chunk.lst <- .sits_split_data(data, multicores)
         rows.lst  <- parallel::mclapply(chunk.lst, filter_block, mc.cores = multicores)
-        data.mx <- do.call(rbind, rows.lst)
+        data <- do.call(rbind, rows.lst)
+
+        return(data)
     }
 
 }
