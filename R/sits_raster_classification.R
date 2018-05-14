@@ -267,7 +267,7 @@ sits_classify_raster <- function(file       = NULL,
         multicores <- 1
         .sits_log_debug(paste0("keras and liquidSVM already runs on multiple CPUs - setting multicores to 1"))
     }
-    mem_required_processing <- multicores*class_data_size
+    mem_required_processing <- multicores*as.numeric(pryr::mem_used()) + class_data_size*bloat + full_data_size
 
     # number of passes to read the full data sets
     nblocks <- max(ceiling(mem_required_scaling/(memsize*1e+09)), ceiling(mem_required_processing/(memsize*1e+09)))
@@ -555,31 +555,4 @@ sits_classify_raster <- function(file       = NULL,
     .sits_log_debug(paste0("Memory used after normalization - ", .sits_mem_used(), " GB"))
 
     return(data.mx)
-}
-
-.sits_mclapply <- function(data, multicores, fun, ...){
-    # memory management
-    .sits_log_debug(paste0("Memory used before split_data - ", .sits_mem_used(), " GB"))
-
-
-    # estimate the list for breaking data in blocks
-    block.lst <- .sits_split_data(data, multicores)
-
-    # memory management
-    .sits_log_debug(paste0("Memory used after split_data - ", .sits_mem_used(), " GB"))
-
-    # apply parallel processing to the split data and join the results
-    result <- parallel::mclapply(block.lst, fun, ..., mc.cores = multicores)
-
-    # memory management
-    .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
-    rm(block.lst)
-    gc()
-    .sits_log_debug(paste0("Memory used after removing blocks - ", .sits_mem_used(), " GB"))
-    rm(data)
-    gc()
-    .sits_log_debug(paste0("Memory used after removing data - ", .sits_mem_used(), " GB"))
-
-    return(result)
-
 }
