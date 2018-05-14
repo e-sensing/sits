@@ -11,20 +11,23 @@ library(sits)
 data(samples_MT_9classes)
 
 # print the bands available
-sits_bands (samples_MT_9classes)
+sits_bands(samples_MT_9classes)
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-samples.tb <- sits_select (samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
+samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
+
+#select a random forest model
+rfor_model <- sits_train(samples.tb, ml_method = sits_rfor())
 
 # Retrieve a time series
-data ("point_MT_6bands")
+data("point_MT_6bands")
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-point.tb <- sits_select (point_MT_6bands, bands = c("ndvi", "evi", "nir", "mir"))
+point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi", "nir", "mir"))
 
 # classify the point
-class.tb <- sits_classify(point.tb, samples.tb)
+class.tb <- sits_classify(point.tb, rfor_model)
 
 # plot the classification
-sits_plot (class.tb)
+sits_plot(class.tb)
 

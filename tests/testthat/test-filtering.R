@@ -1,6 +1,7 @@
 testthat::context("Filtering")
 testthat::test_that("Envelope filter", {
     testthat::skip_on_cran()
+    library(dtwclust)
     data(prodes_226_064)
     point_ndvi.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
     point_env.tb  <- sits_envelope(point_ndvi.tb)

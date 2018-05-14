@@ -49,6 +49,7 @@ Imports:
     keras,
     kohonen,
     jsonlite,
+    liquidSVM,
     log4r,
     lubridate,
     MASS,

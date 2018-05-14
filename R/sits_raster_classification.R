@@ -159,10 +159,10 @@ sits_classify_raster <- function(file       = NULL,
     stats     <- environment(ml_model)$stats.tb
 
     # divide the input data in blocks
-    bs <- .sits_raster_blocks(coverage, interval, memsize, multicores)
+    bs <- .sits_raster_blocks(coverage, ml_model, interval, memsize, multicores)
 
     # build a list with columns of data table to be processed for each interval
-    select.lst <- .sits_select_indexes(coverage, samples, interval)
+    select.lst <- .sits_select_raster_indexes(coverage, samples, interval)
 
     # get the labels of the data
     labels <- sits_labels(samples)$label
@@ -227,13 +227,14 @@ sits_classify_raster <- function(file       = NULL,
 #' of 800 Mb if pixels are 64-bit. I
 #'
 #' @param  coverage        input raster coverage
+#' @param  ml_model        machine learning model
 #' @param  interval        classification interval
 #' @param  memsize         memory available for classification (in GB)
 #' @param  multicores      number of threads to process the time series.
 #' @return bs              list with three attributes: n (number of blocks), rows (list of rows to begin),
 #'                    nrows - number of rows to read at each iteration
 #'
-.sits_raster_blocks <- function(coverage, interval, memsize, multicores){
+.sits_raster_blocks <- function(coverage, ml_model, interval, memsize, multicores){
 
     # number of bands
     bands  <- coverage[1,]$bands[[1]]
@@ -243,21 +244,33 @@ sits_classify_raster <- function(file       = NULL,
     ncols <- coverage[1,]$ncols
     # recover the timeline
     timeline <- coverage[1,]$timeline[[1]]
-    # number of instance per classification interval
+    # total number of instances
     ninstances <- length(timeline)
+    # number of instances per classification interval
+    ninterval <- which(lubridate::as.duration(lubridate::as_date(timeline) - lubridate::as_date(timeline[1])) > lubridate::as.duration(interval))[1] - 1
     # number of bytes por pixel
     nbytes <-  8
     # estimated memory bloat
     bloat <- sits.env$config$R_memory_bloat
 
-    # estimated size of each band per classification interval
+    # estimated full size of the data
     full_data_size <- as.numeric(ninstances)*as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)*as.numeric(nbands)
 
     # estimated size of memory required for scaling and normalization
-    mem_required <- (full_data_size + as.numeric(pryr::mem_used()))*bloat
+    mem_required_scaling <- (full_data_size + as.numeric(pryr::mem_used()))*bloat
+
+    # estimated size of the data for classification
+    class_data_size <- as.numeric(ninterval)*as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)*as.numeric(nbands)
+
+    # memory required for processing
+    if ( !(purrr::is_null(environment(ml_model)$model.keras)) || !(purrr::is_null(environment(ml_model)$attr_names_X)))  {
+        multicores <- 1
+        .sits_log_debug(paste0("keras and liquidSVM already runs on multiple CPUs - setting multicores to 1"))
+    }
+    mem_required_processing <- multicores*class_data_size
 
     # number of passes to read the full data sets
-    nblocks <- ceiling(mem_required/(memsize*1e+09))
+    nblocks <- max(ceiling(mem_required_scaling/(memsize*1e+09)), ceiling(mem_required_processing/(memsize*1e+09)))
 
     # number of rows per block
     block_rows <- ceiling(nrows/nblocks)
@@ -445,12 +458,16 @@ sits_classify_raster <- function(file       = NULL,
 
     if (!(purrr::is_null(environment(ml_model)$model.keras))) {
         multicores <- 1
-        .sits_log_debug(paste0("keras already runs on multiple CPU - setting multicores to 1"))
+        .sits_log_debug(paste0("keras already runs on multiple CPUs - setting multicores to 1"))
+    }
+    if (!(purrr::is_null(environment(ml_model)$attr_names_X))) {
+        multicores <- 1
+        .sits_log_debug(paste0("liquidSVM already runs on multiple CPUs - setting multicores to 1"))
     }
     # classify a block of data
-    classify_block <- function(cs) {
+    classify_block <- function(block) {
         # predict the values for each time interval
-        pred_block.vec <- ml_model(DT[cs[1]:cs[2],])
+        pred_block.vec <- ml_model(block)
         return(pred_block.vec)
     }
     # set up multicore processing
@@ -459,7 +476,7 @@ sits_classify_raster <- function(file       = NULL,
         .sits_log_debug(paste0("Memory used before split_data - ", .sits_mem_used(), " GB"))
 
         # estimate the list for breaking a block
-        block.lst <- .sits_split_block_size(DT, multicores)
+        block.lst <- .sits_split_data(DT, multicores)
 
         .sits_log_debug(paste0("Memory used after split_data - ", .sits_mem_used(), " GB"))
 

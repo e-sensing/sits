@@ -377,6 +377,125 @@ sits_lda <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_lo
     result <- .sits_factory_function(data.tb, result_fun)
     return(result)
 }
+#' @title Train a SITS classification model using a liquidSVM package
+#' @name sits_liquid_svm
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function receives a tibble with a set of attributes X for each observation Y
+#' These attributes are distance metrics between patterns and observations, obtained by a distance
+#' function in SITS (see \code{\link[sits]{sits_distances}}).
+#' The SVM algorithm is used for multiclass-classification.
+#' For this purpose, it uses the "one-against-one" approach, in which k(k-1)/2 binary
+#' classifiers are trained; the appropriate class is found by a voting scheme.
+#' This function is a front-end to the "svm" method in the "liquidSVM" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' The grid_choice parameter is the most important one, since it controls the choice of hyperparameters
+#' gamma (bandwidth of the kernel) and lambda (regularization).
+#'
+#' grid_choice   0         1        2
+#' gamma_steps   10       15       20
+#' lambda_steps  10       15       20
+#' min_gamma     0.2     0.1     0.05
+#' max_gamma     5.0     10.0    20.0
+#' min_lambda    0.001   0.0001  0.00001
+#' max_lambda    0.01    0.01    0.01
+#'
+#' Multiclass classification has to be reduced to binary classification.
+#' There are two strategies for this:
+#' all-vs-all (AvA): for every pairing of classes a binary SVM is trained
+#' one-vs-all (OvA): for every class a binary SVM is trained with that class as one label
+#'                   and all other classes are clumped together to another label
+#' different combinations of AvA and OvA can be used with decision functions "hinge" and "ls" (least squares)
+
+#'
+#' @param data.tb          time series with the training samples
+#' @param normalize        (boolean) 0 = no normalization, 1 = normalize per band
+#' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)
+#' @param threads          number of cores for computing the kernel matrices (0 = uses all cores)
+#' @param partition_choice determines the way the input space is partitioned (0 = disables, 5 = usually best)
+#' @param grid_choice      size of hyper-parameter grid used during training (0 = 10 x 10 grid, 1 = 15 x 15; 2 = 20 x 20)
+#' @param mc_type          strategy for multiclass classification ("OvA_ls", "AvA_ls", "AvA_hinge")
+#' @param predict.prob     if TRUE a LS-svm will be trained and conditional probs will be estimated
+#' @param adaptivity_control  use adaptive search heuristic (default 0 - disables heuristic)
+#' @param random_seed      seed for the random generator (default -1 uses the internal timer)
+#' @param do.select        if TRUE also does the whole selection for this model
+#' @param ...              other parameters to be passed to liquidSVM::svmMulticlass function
+#' @return result          fitted model function to be passed to sits_predict
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' data(samples_MT_ndvi)
+#' # Build an SVM model
+#' svm_model <- sits_train(samples_MT_ndvi, sits_liquid_svm())
+#' # get a point
+#' data(point_ndvi)
+#' # classify the point
+#' class.tb <- sits_classify (point_ndvi, svm_model)
+#' # plot the classification
+#' sits_plot(class.tb)
+#'}
+#' @export
+sits_liquid_svm <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_logref(),
+                            threads = 0, partition_choice = 0, grid_choice = 2, mc_type = "AvA_hinge",
+                            predict_prob = FALSE, adaptivity_control = 0, random_seed = -1, do.select = TRUE, ...) {
+
+    # function that returns liquidSVM::svm model based on a sits sample tibble
+    result_fun <- function(data.tb){
+
+        # data normalization
+        if (normalize) {
+            stats.tb <- .sits_normalization_param(data.tb)
+            train_data_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        }
+        else
+            train_data_DT <- sits_distances(data.tb)
+
+        # if parameter formula is a function call it passing as argument the input data sample.
+        # The function must return a valid formula.
+        if (class(formula) == "function")
+            formula <- formula(train_data_DT)
+
+        # liquidSVM requires cols to be labelled as Y, X1, X2,...Xn
+        ncols_X <- ncol(train_data_DT) - 2
+        attr_names_X <- c(paste0("X", as.character(c(1:ncols_X))))
+        attr_names <- c("original_row", "Y", attr_names_X)
+        colnames(train_data_DT) <- attr_names
+
+        # we need to adjust the formula to account for liquidSVM's format
+        if (sits.env$model_formula == "log")
+            formula_svm <- stats::as.formula(paste0("factor(Y)~", paste0(paste0('log(`', attr_names_X, '`)'), collapse = "+")))
+        else if (sits.env$model_formula == "linear")
+            formula_svm <- stats::as.formula(paste0("factor(Y)~", paste0(paste0(attr_names_X), collapse = "+")))
+        else
+            formula_svm <- stats::as.formula(paste0("factor(Y)~", paste0(paste0('s(`', attr_names_X, '`)'), collapse = "+")))
+
+        # if the formula is log and data has not been normalized, adjust the values to avoid invalid logs
+        sits.env$adjust <- FALSE
+        if (normalize == FALSE)
+            train_data_DT <- .sits_formula_adjust(train_data_DT)
+
+        # call liquidSVM::svmMulticlass method and return the trained svm model
+        result_svm <- liquidSVM::svmMulticlass(x = formula_svm, y = train_data_DT[,2:ncol(train_data_DT)],
+                                               threads = threads, partition_choice = partition_choice,
+                                               grid_choice = grid_choice, mc_type = mc_type,
+                                               predict_prob = predict_prob, adaptivity_control = adaptivity_control,
+                                               random_seed =  random_seed, do.select = do.select, useCells = FALSE)
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(values_DT){
+            if (sits.env$adjust == TRUE)
+                values_DT <- .sits_shift_DT(values_DT, shift = sits.env$adjustment_shift)
+            return(stats::predict(result_svm, values_DT))
+        }
+        return(model_predict)
+    }
+
+    result <- .sits_factory_function(data.tb, result_fun)
+    return(result)
+}
 
 #' @title Train a SITS classification model using quadratic discriminant analysis
 #' @name sits_qda
@@ -565,7 +684,7 @@ sits_rfor <- function(data.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 
         # call `randomForest::randomForest` method and return the trained model
         reference <- train_data_DT[, reference]
-        result_rfor <- randomForest::randomForest(x = train_data_DT[, c("original_row", "reference") := NULL],
+        result_rfor <- randomForest::randomForest(x = train_data_DT[,3:ncol(train_data_DT)],
                                                   y = as.factor(reference),
                                                   data = NULL, ntree = ntree, nodesize = 1,
                                                   norm.votes = FALSE, ..., na.action = stats::na.fail)
@@ -665,6 +784,7 @@ sits_svm <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_lo
     result <- .sits_factory_function(data.tb, result_fun)
     return(result)
 }
+
 
 #' @title Provides access to diagnostic information about a Keras deep learning model
 #' @name sits_keras_diagnostics
@@ -837,15 +957,7 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #' @return predicted    vector of predicted labels
 .sits_predict <- function(distances_DT = NULL, ml_model, ...){
 
-    # is this a deep learning model?
-    if (!purrr::is_null(environment(ml_model)$model.keras)) {
-        values.x    <- data.matrix(distances_DT[, -(1:2)])
-        preds       <- stats::predict(environment(ml_model)$model.keras, values.x)
-        predicted   <- as.character(names(environment(ml_model)$int_labels[max.col(preds)]))
-    }
-    else
-        predicted <- as.character(ml_model(distances_DT))
-
+    predicted <- as.character(ml_model(distances_DT))
     return(predicted)
 }
 
