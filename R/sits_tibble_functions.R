@@ -70,7 +70,7 @@ sits_align <- function(data.tb, ref_dates) {
 #'
 #' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
 #'
-#' @param data.tb       valid sits table
+#' @param data          valid sits table or matrix
 #' @param fun           function with one parameter as input and a vector or list of vectors as output.
 #' @param fun_index     function with one parameter as input and a Date vector as output.
 #' @param bands_suffix  string informing the suffix of the resulting bands.
@@ -82,35 +82,50 @@ sits_align <- function(data.tb, ref_dates) {
 #' point2 <- sits_apply (point_ndvi, fun = function (x) { (x - min (x))/(max(x) - min(x))} )
 #'
 #' @export
-sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
+sits_apply <- function(data, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
 
-    # verify if data.tb has values
-    .sits_test_tibble(data.tb)
 
-    # computes fun and fun_index for all time series and substitutes the original time series data
-    data.tb$time_series <- data.tb$time_series %>%
-        purrr::map(function(ts.tb) {
-            ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
-                purrr::map(fun)
+    if ("tbl" %in% class(data)) {
+        # verify if data.tb has values
+        .sits_test_tibble(data)
 
-            # append bands names' suffixes
-            if (nchar(bands_suffix) != 0)
-                names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
+        # computes fun and fun_index for all time series and substitutes the original time series data
+        data$time_series <- data$time_series %>%
+            purrr::map(function(ts.tb) {
+                ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
+                    purrr::map(fun)
 
-            # unlist if there are more than one result from `fun`
-            if (is.recursive(ts_computed.lst[[1]]))
-                ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
+                # append bands names' suffixes
+                if (nchar(bands_suffix) != 0)
+                    names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
 
-            # convert to tibble
-            ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
+                # unlist if there are more than one result from `fun`
+                if (is.recursive(ts_computed.lst[[1]]))
+                    ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
 
-            # compute Index column
-            ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
+                # convert to tibble
+                ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
 
-            # reorganizes time series tibble
-            return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
-        })
-    return(data.tb)
+                # compute Index column
+                ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
+
+                # reorganizes time series tibble
+                return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
+            })
+        return(data)
+    }
+    else if ("matrix" %in% class(data)) {
+        multicores <- parallel::detectCores(logical = FALSE)
+        # auxiliary function to filter a block of data
+        filter_block <- function(mat) {
+            rows.lst <- lapply(seq_along(mat), function(i) fun(mat[i,]))
+            mat_block.mx <- do.call(rbind, rows.lst)
+        }
+        chunk.lst <- .sits_split_data(data, multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, filter_block, mc.cores = multicores)
+        data.mx <- do.call(rbind, rows.lst)
+    }
+
 }
 #' @title Informs the names of the bands of a time series
 #' @name sits_bands
