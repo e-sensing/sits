@@ -226,7 +226,6 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 
     return(which(timeline == end_date) - which(timeline == start_date) + 1)
 }
-
 #' @title Provide a list of indexes to extract data from a distance table for classification
 #' @name .sits_select_indexes
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -235,13 +234,75 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 #' be extracted to classify each band, obtain a list of indexes that will be used to
 #' extract values from a combined distance table (with has all the bands put together)
 #'
-#' @param  time_indexes.lst   List with valid time indexes per interval of classification
-#' @param  nbands             number of bands
+#' @param  class_info.tb      tibble with classification information
 #' @param  ntimes             number of time instances
 #' @return select.lst         list of values to be extracted for each classification interval
 
-.sits_select_indexes <- function(time_index.lst, nbands, ntimes) {
+.sits_select_indexes <- function(class_info.tb, ntimes) {
+
+    # find the subsets of the input data
+    dates_index.lst <- class_info.tb$dates_index[[1]]
+
+    # find the number of the samples
+    nsamples <- class_info.tb$num_samples
+
+    #retrieve the timeline of the data
+    timeline <- class_info.tb$timeline[[1]]
+
+    # retrieve the bands
+    bands <- class_info.tb$bands[[1]]
+    nbands <- length(bands)
+
+    #retrieve the time index
+    time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
+
     select.lst <- vector("list", length(time_index.lst))
+
+    size_lst = nbands*ntimes + 2
+
+    for (t in 1:length(time_index.lst)) {
+        idx <- time_index.lst[[t]]
+        # for a given time index, build the data.table to be classified
+        # build the classification matrix extracting the relevant columns
+        select.lst[[t]] <- logical(length = size_lst)
+        select.lst[[t]][1:2] <- TRUE
+        for (b in 1:nbands) {
+            i1 <- idx[(2*b - 1)] + 2
+            i2 <- idx[2*b] + 2
+            select.lst[[t]][i1:i2] <- TRUE
+        }
+    }
+    return(select.lst)
+}
+#' @title Provide a list of indexes to extract data from a raster-derived data table for classification
+#' @name .sits_select_raster_indexes
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a list of time indexes that indicate the start and end of the values to
+#' be extracted to classify each band, obtain a list of indexes that will be used to
+#' extract values from a combined distance table (with has all the bands put together)
+#'
+#' @param  coverage           Coverage with input data set
+#' @param  samples            tibble with samples used for classification
+#' @param  interval           classification interval
+#' @return select.lst         list of values to be extracted for each classification interval
+
+.sits_select_raster_indexes <- function(coverage, samples, interval) {
+
+    # define the classification info parameters
+    class_info <- .sits_class_info(coverage, samples, interval)
+
+    # define the time indexes required for classification
+    time_index.lst <- .sits_get_time_index(class_info)
+
+    # create a vector with selection interval
+    select.lst <- vector("list", length(time_index.lst))
+
+    # find the length of the timeline
+    ntimes <- length(coverage$timeline[[1]])
+
+    # get the bands in the same order as the samples
+    nbands <- length(sits_bands(samples))
 
     size_lst = nbands*ntimes + 2
 

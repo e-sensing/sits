@@ -1,6 +1,7 @@
 testthat::context("Clustering")
 testthat::test_that("Creating a dendogram and clustering the results",{
     testthat::skip_on_cran()
+    library(flexclust)
     library(dtwclust)
     data(cerrado_2classes)
     dendro.obj   <- sits_dendrogram(cerrado_2classes, bands = c("ndvi", "evi"))

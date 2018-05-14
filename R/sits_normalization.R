@@ -7,12 +7,17 @@
 #'
 #' @param data.tb     a tibble in SITS format
 #' @param stats.tb    statistics for normalization
+#' @param multicores  number of cores to process
 #' @return data.tb    a normalized sits tibble
 #'
-.sits_normalize_data <- function(data.tb, stats.tb){
+.sits_normalize_data <- function(data.tb, stats.tb, multicores = NULL){
     .sits_test_tibble(data.tb)
     # find the number of cores
-    multicores <- parallel::detectCores(logical = FALSE)
+    if (purrr::is_null(multicores))
+        multicores <- parallel::detectCores(logical = FALSE)
+    # avoid overhead on multicore processing
+    if (nrow(data.tb) < sits.env$config$minimum_number_samples)
+        multicores <- 1
     # get the bands of the input data
     bands <- sits_bands(data.tb)
     # check that the bands in the input are include in the statistics already calculated

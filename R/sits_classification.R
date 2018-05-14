@@ -57,7 +57,7 @@ sits_classify <- function(data.tb    = NULL,
 
     # obtain the distances after normalizing data by band
     if ( normalize == TRUE)
-        distances_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        distances_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb, multicores))
     else
         # no normalization or normalization by distance
         distances_DT <- sits_distances(data.tb)
@@ -87,46 +87,22 @@ sits_classify <- function(data.tb    = NULL,
 #' @return pred.vec        vector with the predicted labels
 .sits_classify_distances <- function(distances_DT, class_info.tb, ml_model, multicores) {
 
-    # find the subsets of the input data
-    dates_index.lst <- class_info.tb$dates_index[[1]]
-
-    # find the number of the samples
-    nsamples <- class_info.tb$num_samples
-
-    #retrieve the timeline of the data
-    timeline <- class_info.tb$timeline[[1]]
-
-    # retrieve the bands
-    bands <- class_info.tb$bands[[1]]
-
-    #retrieve the time index
-    time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
-
     # define the column names
-    attr_names.lst <- bands %>%
-        purrr::map(function(b){
-            attr_names_b <- c(paste(c(rep(b, nsamples)), as.character(c(1:nsamples)), sep = ""))
-            return(attr_names_b)
-        })
-    attr_names <- unlist(attr_names.lst)
-    attr_names <- c("original_row", "reference", attr_names)
+    attr_names <- names(environment(ml_model)$train_data_DT)
 
     # create a data table to store the distances
     dist_DT <- data.table::data.table(nrow = 0, ncol = length(attr_names))
 
-    # classify a block of data
-    classify_block <- function(distances_DT) {
-        # select the data table indexes for each time index
-        select.lst <- .sits_select_indexes(time_index.lst, length(bands), ncol(distances_DT))
+    # select the data table indexes for each time index
+    select.lst <- .sits_select_indexes(class_info.tb, ncol(distances_DT))
 
+    # classify a block of data
+    classify_block <- function(block_DT) {
         # create a list to store the data tables to be used for prediction
         row.lst <- list()
-
-        for (r in 1:nrow(distances_DT)) {
-            for (i in 1:length(select.lst)) {
-                row_DT <- distances_DT[r, select.lst[[i]], with = FALSE]
-                row.lst[[length(row.lst) + 1]] <- row_DT
-            }
+        for (i in 1:length(select.lst)) {
+                rows_DT <- block_DT[, select.lst[[i]], with = FALSE]
+                row.lst[[length(row.lst) + 1]] <- rows_DT
         }
         # create a set of distances to be classified
         dist_DT <- data.table::rbindlist(row.lst)
@@ -149,7 +125,7 @@ sits_classify <- function(data.tb    = NULL,
     }
 
     if (multicores > 1) {
-         blocks.lst <- split.data.frame(distances_DT, cut(1:nrow(distances_DT), multicores, labels = FALSE))
+        blocks.lst <- split.data.frame(distances_DT, cut(1:nrow(distances_DT), multicores, labels = FALSE))
         # apply parallel processing to the split dat
         results.lst <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
 

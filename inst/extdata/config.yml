@@ -1,16 +1,10 @@
 default:
 
     # estimated relative growth size of R memory relative to block size
-    R_memory_bloat          : 1.2
-    # reference machine configuration
-    reference_machine       :
-        ncores              :  16
-        datasize            :   3
-        memsize             :  64
-        nsamples            :  2000
-        time_read           :  30
-        virtual_fs          :  2.5
-        time_process        :  7.0
+    R_memory_bloat           : 2.5
+
+    # minimum number of samples for multicore processing
+    minimum_number_samples   : 1000
 
     # adjustment shift
     default_adjustment_shift        : 1.0
