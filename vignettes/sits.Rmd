@@ -439,7 +439,7 @@ dl_model <- sits_train(samples_MT_ndvi, sits_deeplearning(units = c(512, 512),
                               activation       = 'elu',
                               dropout_rates    = c(0.40, 0.30),
                               optimizer        = keras::optimizer_adam(lr = 0.001),
-                              epochs           = 100,
+                              epochs           = 50,
                               batch_size       = 128,
                               validation_split = 0.2))
 # get a point to be classified
