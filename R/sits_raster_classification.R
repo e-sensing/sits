@@ -247,7 +247,11 @@ sits_classify_raster <- function(file       = NULL,
     # total number of instances
     ninstances <- length(timeline)
     # number of instances per classification interval
-    ninterval <- which(lubridate::as.duration(lubridate::as_date(timeline) - lubridate::as_date(timeline[1])) > lubridate::as.duration(interval))[1] - 1
+    interval_dates <- lubridate::as.duration(lubridate::as_date(timeline) - lubridate::as_date(timeline[1])) > lubridate::as.duration(interval)
+    if (any(interval_dates))
+        ninterval <- which(interval_dates)[1] - 1
+    else
+        ninterval <- ninstances
     # number of bytes por pixel
     nbytes <-  8
     # estimated memory bloat
