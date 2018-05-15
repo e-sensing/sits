@@ -439,8 +439,9 @@ sits_lda <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_lo
 #'}
 #' @export
 sits_liquid_svm <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_logref(),
-                            threads = 0, partition_choice = 0, grid_choice = 2, mc_type = "AvA_hinge",
-                            predict_prob = FALSE, adaptivity_control = 0, random_seed = -1, do.select = TRUE, ...) {
+                            threads = 0, partition_choice = 0, grid_choice = 2,
+                            adaptivity_control = 0, random_seed = -1,
+                            mc_type = "AvA_hinge", predict.prob = FALSE, do.select = TRUE, ...) {
 
     # function that returns liquidSVM::svm model based on a sits sample tibble
     result_fun <- function(data.tb){
@@ -481,8 +482,8 @@ sits_liquid_svm <- function(data.tb = NULL, normalize = TRUE, formula = sits_for
         result_svm <- liquidSVM::svmMulticlass(x = formula_svm, y = train_data_DT[,2:ncol(train_data_DT)],
                                                threads = threads, partition_choice = partition_choice,
                                                grid_choice = grid_choice, mc_type = mc_type,
-                                               predict_prob = predict_prob, adaptivity_control = adaptivity_control,
-                                               random_seed =  random_seed, do.select = do.select, useCells = FALSE)
+                                               adaptivity_control = adaptivity_control, random_seed =  random_seed,
+                                               predict.prob = predict.prob, do.select = do.select, useCells = FALSE)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values_DT){

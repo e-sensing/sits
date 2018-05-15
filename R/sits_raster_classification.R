@@ -438,9 +438,7 @@ sits_classify_raster <- function(file       = NULL,
     }
 
     if (!(purrr::is_null(filter))) {
-        rows.lst <- lapply(seq_len(nrow(values.mx)), function(i) values.mx[i, ]) %>%
-            lapply(filter)
-        values.mx <- do.call(rbind, rows.lst)
+        values.mx <- filter(values.mx)
     }
     return(values.mx)
 }

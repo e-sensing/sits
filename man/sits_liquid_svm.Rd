@@ -5,9 +5,9 @@
 \title{Train a SITS classification model using a liquidSVM package}
 \usage{
 sits_liquid_svm(data.tb = NULL, normalize = TRUE,
-  formula = sits_formula_logref(), threads = 0, partition_choice = 5,
-  grid_choice = 2, mc_type = "OvA_ls", predict_prob = FALSE,
-  adaptivity_control = 0, random_seed = -1, do.select = TRUE, ...)
+  formula = sits_formula_logref(), threads = 0, partition_choice = 0,
+  grid_choice = 2, adaptivity_control = 0, random_seed = -1,
+  mc_type = "AvA_hinge", predict.prob = FALSE, do.select = TRUE, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
@@ -22,17 +22,17 @@ sits_liquid_svm(data.tb = NULL, normalize = TRUE,
 
 \item{grid_choice}{size of hyper-parameter grid used during training (0 = 10 x 10 grid, 1 = 15 x 15; 2 = 20 x 20)}
 
-\item{mc_type}{strategy for multiclass classification ("OvA_ls", "AvA_ls", "AvA_hinge")}
-
 \item{adaptivity_control}{use adaptive search heuristic (default 0 - disables heuristic)}
 
 \item{random_seed}{seed for the random generator (default -1 uses the internal timer)}
 
+\item{mc_type}{strategy for multiclass classification ("OvA_ls", "AvA_ls", "AvA_hinge")}
+
+\item{predict.prob}{if TRUE a LS-svm will be trained and conditional probs will be estimated}
+
 \item{do.select}{if TRUE also does the whole selection for this model}
 
 \item{...}{other parameters to be passed to liquidSVM::svmMulticlass function}
-
-\item{predict.prob}{if TRUE a LS-svm will be trained and conditional probs will be estimated}
 }
 \value{
 result          fitted model function to be passed to sits_predict
@@ -80,9 +80,5 @@ sits_plot(class.tb)
 }
 }
 \author{
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
-
-Rolf Simoes, \email{rolf.simoes@inpe.br}
-
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

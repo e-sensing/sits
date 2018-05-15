@@ -34,7 +34,7 @@ sits_infoWTSS <- function() {
     services <- .sits_get_services(protocol = "WTSS")
 
     services %>%
-        purrr::pmap(function (service) {
+        purrr::map(function (service) {
             URL       <- .sits_get_server(service)
             tryCatch({
                 wtss.obj  <- wtss::WTSS(URL)

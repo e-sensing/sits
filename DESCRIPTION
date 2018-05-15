@@ -105,6 +105,7 @@ Collate:
     'sits_getdata.R'
     'sits_indexes.R'
     'sits_info.R'
+    'sits_keras.R'
     'sits_kohonen.R'
     'sits_labels.R'
     'sits_log.R'
