@@ -174,6 +174,10 @@ sits_classify_raster <- function(file       = NULL,
     # get the attribute names
     attr_names <- names(environment(ml_model)$train_data_DT)
 
+    # get initial time
+    start_time <- lubridate::now()
+    message(sprintf("Starting classification at %s", start_time))
+
     # read the blocks
     for (i in 1:bs$n) {
         # read the data
@@ -195,6 +199,20 @@ sits_classify_raster <- function(file       = NULL,
             gc()
             .sits_log_debug(paste0("Memory used after processing block ", i, " of year ", t, " - ", .sits_mem_used(), " GB"))
 
+            # compute current time
+            current_time <- lubridate::now()
+
+            # compute elapsed time and estimates remaining time
+            if (((i - 1) * length(select.lst) + t) < (bs$n * length(select.lst))){
+                message(sprintf("Elapsed time %s minute(s). Estimated remaining process time %s minute(s)...",
+                                round(as.numeric((lubridate::time_length(current_time - start_time, unit = "minute"))), 1),
+                                round(as.numeric((lubridate::time_length(current_time - start_time, unit = "minute")) / ((i - 1) *
+                                                                    length(select.lst) + t)) * (bs$n * length(select.lst)), 1)))
+            } else {
+                message(sprintf("Classification finished at %s. Total elapsed time: %s minute(s).",
+                                current_time,
+                                round(as.numeric((lubridate::time_length(current_time - start_time, unit = "minute"))), 1)))
+            }
         }
         # remove distance data.table (trying to use as little memory as possible)
         rm(data_DT)
@@ -205,6 +223,7 @@ sits_classify_raster <- function(file       = NULL,
         .sits_log_debug(paste0("Memory used after processing block ", i,  " - ", .sits_mem_used(), " GB"))
 
     }
+
     # finish writing
     for (i in 1:length(layers.lst)) {
         layers.lst[[i]] <- raster::writeStop(layers.lst[[i]])
