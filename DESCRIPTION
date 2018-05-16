@@ -62,6 +62,7 @@ Imports:
     pryr,
     purrr,
     randomForest,
+    ranger,
     raster (>= 2.6),
     readr,
     reshape2,

@@ -646,7 +646,61 @@ sits_mlr <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_li
     result <- .sits_factory_function(data.tb, result_fun)
     return(result)
 }
+#' @title Train a SITS classifiction model using fast random forest algorithm
+#' @name sits_ranger
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Use Fast Random Forest algorithm to classify data.
+#' This function is a front-end to the "ranger" method in the "ranger" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param data.tb          time series with the training samples
+#' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
+#' @param num.trees            number of trees to grow. This should not be set to too small a number,
+#'                         to ensure that every input row gets predicted at least a few times. (default: 2000)
+#' @param ...              other parameters to be passed to `ranger::ranger` function
+#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' data(samples_MT_ndvi)
+#' # Build a random forest model
+#' rfor_model <- sits_train(samples_MT_ndvi, sits_ranger())
+#' # get a point with a 16 year time series
+#' data(point_ndvi)
+#' # classify the point
+#' class.tb <- sits_classify (point_ndvi, rfor_model)
+#' }
+#' @export
+sits_ranger <- function(data.tb = NULL, num.trees = 2000, ...) {
 
+    # function that returns `randomForest::randomForest` model based on a sits sample tibble
+    result_fun <- function(data.tb){
+
+        # calculate the distances
+        train_data_DT <- sits_distances(data.tb)
+
+        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        formula <- sits_formula_linear()(train_data_DT)
+
+        # call `ranger::ranger` method and return the trained model
+        result_rfor <- ranger::ranger(formula = formula,
+                                      data = train_data_DT[,2:ncol(train_data_DT)],
+                                      num.trees = num.trees, min.node.size = 1, ...)
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(values_DT){
+            return(stats::predict(result_rfor, data = values_DT, type = "response")$predictions)
+        }
+        return(model_predict)
+    }
+
+    result <- .sits_factory_function(data.tb, result_fun)
+    return(result)
+}
 #' @title Train a SITS classifiction model using random forest algorithm
 #' @name sits_rfor
 #'
