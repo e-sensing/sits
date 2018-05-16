@@ -687,13 +687,13 @@ sits_ranger <- function(data.tb = NULL, num.trees = 2000, ...) {
         formula <- sits_formula_linear()(train_data_DT)
 
         # call `ranger::ranger` method and return the trained model
-        result_rfor <- ranger::ranger(formula = formula,
+        result_ranger <- ranger::ranger(formula = formula,
                                       data = train_data_DT[,2:ncol(train_data_DT)],
                                       num.trees = num.trees, min.node.size = 1, ...)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values_DT){
-            return(stats::predict(result_rfor, data = values_DT, type = "response")$predictions)
+            return(stats::predict(result_ranger, data = values_DT, type = "response")$predictions)
         }
         return(model_predict)
     }
