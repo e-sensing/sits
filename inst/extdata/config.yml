@@ -1,7 +1,7 @@
 default:
 
     # estimated relative growth size of R memory relative to block size
-    R_memory_bloat           : 4
+    R_memory_bloat           : 2.5
 
     # minimum number of samples for multicore processing
     minimum_number_samples   : 1000

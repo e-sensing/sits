@@ -263,11 +263,12 @@ sits_classify_raster <- function(file       = NULL,
     class_data_size <- as.numeric(ninterval)*as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)*as.numeric(nbands)
 
     # memory required for processing
-    if ( !(purrr::is_null(environment(ml_model)$model.keras)) || !(purrr::is_null(environment(ml_model)$attr_names_X)))  {
+    if ( !(purrr::is_null(environment(ml_model)$model.keras)) || !(purrr::is_null(environment(ml_model)$attr_names_X))
+         || !(purrr::is_null(environment(ml_model)$result_ranger)))  {
         multicores <- 1
-        .sits_log_debug(paste0("keras and liquidSVM already runs on multiple CPUs - setting multicores to 1"))
+        .sits_log_debug(paste0("keras, ranger and liquidSVM already run on multiple CPUs - setting multicores to 1"))
     }
-    mem_required_processing <- multicores*as.numeric(pryr::mem_used()) + class_data_size*bloat + full_data_size
+    mem_required_processing <- bloat*(as.numeric(pryr::mem_used()) + class_data_size) + full_data_size
 
     # number of passes to read the full data sets
     nblocks <- max(ceiling(mem_required_scaling/(memsize*1e+09)), ceiling(mem_required_processing/(memsize*1e+09)))
@@ -461,6 +462,10 @@ sits_classify_raster <- function(file       = NULL,
     if (!(purrr::is_null(environment(ml_model)$attr_names_X))) {
         multicores <- 1
         .sits_log_debug(paste0("liquidSVM already runs on multiple CPUs - setting multicores to 1"))
+    }
+    if (!(purrr::is_null(environment(ml_model)$result_ranger))) {
+        multicores <- 1
+        .sits_log_debug(paste0("ranger already runs on multiple CPUs - setting multicores to 1"))
     }
     # classify a block of data
     classify_block <- function(block) {
