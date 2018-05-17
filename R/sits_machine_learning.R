@@ -719,8 +719,9 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param data.tb          time series with the training samples
-#' @param normalize        (boolean) 0 = no normalization, 1 = normalize per band
 #' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)
+#' @param normalize        (boolean) FALSE = no normalization, TRUE = normalize per band
+#' @param scale            A logical vector indicating the variables to be scaled.
 #' @param kernel           kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)
 #' @param degree           exponential of polynomial type kernel
 #' @param coef0	           parameter needed for kernels of type polynomial and sigmoid (default: 0)
@@ -736,7 +737,7 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
 #' # Build an SVM model
-#' svm_model <- sits_train(samples_MT_ndvi, sits_svm(normalize = 0))
+#' svm_model <- sits_train(samples_MT_ndvi, sits_svm())
 #' # get a point
 #' data(point_ndvi)
 #' # classify the point
@@ -745,8 +746,8 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' sits_plot(class.tb)
 #'}
 #' @export
-sits_svm <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_logref(), kernel = "radial",
-                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0, ...) {
+sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), normalize = TRUE, scale = FALSE,
+                     kernel = "radial", degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(data.tb){
