@@ -84,14 +84,17 @@ sits_coverage <- function(service        = "RASTER",
             URL  <- .sits_get_server(service)
             # obtains information about the available coverages
             wtss.obj   <- wtss::WTSS(URL)
-            # create a coverage
-            coverage.tb <- .sits_coverageWTSS(wtss.obj, service, name)
 
         }, error = function(e){
             msg <- paste0("WTSS service not available at URL ", URL)
             .sits_log_error(msg)
             message(msg)
         })
+
+        # create a coverage
+        coverage.tb <- .sits_coverageWTSS(wtss.obj, service, name)
+
+
     }
 
     else if (protocol == "SATVEG") {
