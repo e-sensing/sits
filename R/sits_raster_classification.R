@@ -237,45 +237,14 @@ sits_classify_raster <- function(file       = NULL,
 .sits_raster_blocks <- function(coverage, ml_model, interval, memsize, multicores){
 
     # number of bands
-    bands  <- coverage[1,]$bands[[1]]
-    nbands <-  length(bands)
+    nbands <-  length(coverage[1,]$bands[[1]])
     # number of rows and cols
     nrows <- coverage[1,]$nrows
     ncols <- coverage[1,]$ncols
-    # recover the timeline
+    # timeline
     timeline <- coverage[1,]$timeline[[1]]
-    # total number of instances
-    ninstances <- length(timeline)
-    # number of instances per classification interval
-    interval_dates <- lubridate::as.duration(lubridate::as_date(timeline) - lubridate::as_date(timeline[1])) > lubridate::as.duration(interval)
-    if (any(interval_dates))
-        ninterval <- which(interval_dates)[1] - 1
-    else
-        ninterval <- ninstances
-    # number of bytes por pixel
-    nbytes <-  8
-    # estimated memory bloat
-    bloat <- sits.env$config$R_memory_bloat
 
-    # estimated full size of the data
-    full_data_size <- as.numeric(ninstances)*as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)*as.numeric(nbands)
-
-    # estimated size of memory required for scaling and normalization
-    mem_required_scaling <- (full_data_size + as.numeric(pryr::mem_used()))*bloat
-
-    # estimated size of the data for classification
-    class_data_size <- as.numeric(ninterval)*as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)*as.numeric(nbands)
-
-    # memory required for processing
-    if ( !(purrr::is_null(environment(ml_model)$model.keras)) || !(purrr::is_null(environment(ml_model)$attr_names_X))
-         || !(purrr::is_null(environment(ml_model)$result_ranger)))  {
-        multicores <- 1
-        .sits_log_debug(paste0("keras, ranger and liquidSVM already run on multiple CPUs - setting multicores to 1"))
-    }
-    mem_required_processing <- multicores*(as.numeric(pryr::mem_used()) + class_data_size) + full_data_size*bloat
-
-    # number of passes to read the full data sets
-    nblocks <- max(ceiling(mem_required_scaling/(memsize*1e+09)), ceiling(mem_required_processing/(memsize*1e+09)))
+    nblocks <- .sits_estimate_nblocks(ml_model, nbands, nrows, ncols, timeline, interval, memsize, multicores)
 
     # number of rows per block
     block_rows <- ceiling(nrows/nblocks)
@@ -303,6 +272,78 @@ sits_classify_raster <- function(file       = NULL,
     return(bs)
 
 }
+#' @title Estimate the
+#' @name .sits_estimate_nblocks
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Defines the number of blocks of a Raster Brick to be read into memory.
+#'
+#' @param  ml_model        machine learning model
+#' @param  nbands          number of bands
+#' @param  nrows           number of rows per brick
+#' @param  ncols           number of cols per brick
+#' @param  timeline        timeline of the brick
+#' @param  interval        classification interval
+#' @param  memsize         memory available for classification (in GB)
+#' @param  multicores      number of threads to process the time series.
+#' @return nblocks         number of blocks to read
+
+.sits_estimate_nblocks <- function(ml_model, nbands, nrows, ncols, timeline, interval, memsize, multicores) {
+
+    # total number of instances
+    ninstances <- length(timeline)
+    # number of instances per classification interval
+    interval_dates <- lubridate::as.duration(lubridate::as_date(timeline) - lubridate::as_date(timeline[1])) > lubridate::as.duration(interval)
+    if (any(interval_dates))
+        ninterval <- which(interval_dates)[1] - 1
+    else
+        ninterval <- ninstances
+    # number of bytes por pixel
+    nbytes <-  8
+    # estimated memory bloat
+    bloat <- as.numeric(sits.env$config$R_memory_bloat)
+    # estimated processing bloat
+    proc_bloat <- as.numeric(sits.env$config$R_processing_bloat)
+    if (proc_bloat == 0) proc_bloat <- multicores
+
+    # single instance size
+    single_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)*as.numeric(nbands)
+
+    # estimated full size of the data
+    full_data_size <- as.numeric(ninstances)*single_data_size
+
+    # estimated size of memory required for scaling and normalization
+    mem_required_scaling <- (full_data_size + as.numeric(pryr::mem_used()))*bloat
+
+    .sits_log_debug(paste0("max memory required for scaling (GB)", round(mem_required_scaling/1e+09, digits = 3)))
+
+    # estimated size of the data for classification
+    class_data_size <- as.numeric(ninterval)*single_data_size
+
+    # memory required for processing depends on the model
+    if ( !(purrr::is_null(environment(ml_model)$model.keras)) || !(purrr::is_null(environment(ml_model)$result_ranger)))  {
+        .sits_log_debug(paste0("keras and ranger run on multiple threads - no processing bloat"))
+        mem_required_processing <- mem_required_scaling
+    }
+    else if (!(purrr::is_null(environment(ml_model)$attr_names_X))) { # liquid SVM
+        .sits_log_debug(paste0("liquidSVM run on multiple threads - estimating additional bloat"))
+        # test two different cases
+        if (ninstances == ninterval) # one interval only
+            mem_required_processing <- proc_bloat*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size))
+        else
+            mem_required_processing <- proc_bloat*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size) + full_data_size)
+    }
+    else
+        mem_required_processing <- multicores*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size) + full_data_size)
+
+    .sits_log_debug(paste0("max memory required for processing (GB)", round(mem_required_processing/1e+09, digits = 3)))
+
+    # number of passes to read the full data sets
+    nblocks <- max(ceiling(mem_required_scaling/(memsize*1e+09)), ceiling(mem_required_processing/(memsize*1e+09)))
+
+    return(nblocks)
+}
+
 #' @title Read a block of values retrived from a set of raster bricks
 #' @name  .sits_read_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

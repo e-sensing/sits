@@ -6,8 +6,9 @@
 \usage{
 sits_liquid_svm(data.tb = NULL, normalize = TRUE,
   formula = sits_formula_logref(), threads = 0, partition_choice = 0,
-  grid_choice = 2, adaptivity_control = 0, random_seed = -1,
-  mc_type = "AvA_hinge", predict.prob = FALSE, do.select = TRUE, ...)
+  grid_choice = 0, folds = 5, adaptivity_control = 0, random_seed = -1,
+  mc_type = "OvA_ls", predict.prob = FALSE, useCells = TRUE,
+  do.select = TRUE, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
@@ -21,6 +22,8 @@ sits_liquid_svm(data.tb = NULL, normalize = TRUE,
 \item{partition_choice}{determines the way the input space is partitioned (0 = disables, 5 = usually best)}
 
 \item{grid_choice}{size of hyper-parameter grid used during training (0 = 10 x 10 grid, 1 = 15 x 15; 2 = 20 x 20)}
+
+\item{folds}{number of folds for model validation (default = 5)}
 
 \item{adaptivity_control}{use adaptive search heuristic (default 0 - disables heuristic)}
 
