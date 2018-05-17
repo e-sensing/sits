@@ -409,7 +409,7 @@ Random forest provides better performances than *bagged trees*, a similar proced
 # Mato Grosso region for train the Random Forest model.
 data(samples_MT_ndvi)
 # train a machine learning model using random forest
-rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(ntree = 1000))
+rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num.trees = 1000))
 # get a point to be classified
 data(point_ndvi)
 # Classify using Random Forest model

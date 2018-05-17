@@ -6,7 +6,7 @@
 \usage{
 sits_svm(data.tb = NULL, normalize = TRUE,
   formula = sits_formula_logref(), kernel = "radial", degree = 3,
-  coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4,
+  coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0,
   ...)
 }
 \arguments{

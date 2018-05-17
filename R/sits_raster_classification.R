@@ -272,7 +272,7 @@ sits_classify_raster <- function(file       = NULL,
         multicores <- 1
         .sits_log_debug(paste0("keras, ranger and liquidSVM already run on multiple CPUs - setting multicores to 1"))
     }
-    mem_required_processing <- bloat*(as.numeric(pryr::mem_used()) + class_data_size) + full_data_size
+    mem_required_processing <- multicores*(as.numeric(pryr::mem_used()) + class_data_size) + full_data_size*bloat
 
     # number of passes to read the full data sets
     nblocks <- max(ceiling(mem_required_scaling/(memsize*1e+09)), ceiling(mem_required_processing/(memsize*1e+09)))

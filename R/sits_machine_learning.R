@@ -418,6 +418,7 @@ sits_lda <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_lo
 #' @param grid_choice      size of hyper-parameter grid used during training (0 = 10 x 10 grid, 1 = 15 x 15; 2 = 20 x 20)
 #' @param mc_type          strategy for multiclass classification ("OvA_ls", "AvA_ls", "AvA_hinge")
 #' @param predict.prob     if TRUE a LS-svm will be trained and conditional probs will be estimated
+#' @param folds            number of folds for model validation (default = 5)
 #' @param adaptivity_control  use adaptive search heuristic (default 0 - disables heuristic)
 #' @param random_seed      seed for the random generator (default -1 uses the internal timer)
 #' @param do.select        if TRUE also does the whole selection for this model
@@ -439,9 +440,9 @@ sits_lda <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_lo
 #'}
 #' @export
 sits_liquid_svm <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_logref(),
-                            threads = 0, partition_choice = 0, grid_choice = 2,
+                            threads = 0, partition_choice = 0, grid_choice = 0, folds = 5,
                             adaptivity_control = 0, random_seed = -1,
-                            mc_type = "AvA_hinge", predict.prob = FALSE, do.select = TRUE, ...) {
+                            mc_type = "OvA_ls", predict.prob = FALSE, useCells = TRUE, do.select = TRUE, ...) {
 
     # function that returns liquidSVM::svm model based on a sits sample tibble
     result_fun <- function(data.tb){
@@ -481,9 +482,9 @@ sits_liquid_svm <- function(data.tb = NULL, normalize = TRUE, formula = sits_for
         # call liquidSVM::svmMulticlass method and return the trained svm model
         result_svm <- liquidSVM::svmMulticlass(x = formula_svm, y = train_data_DT[,2:ncol(train_data_DT)],
                                                threads = threads, partition_choice = partition_choice,
-                                               grid_choice = grid_choice, mc_type = mc_type,
+                                               grid_choice = grid_choice, folds = folds, mc_type = mc_type,
                                                adaptivity_control = adaptivity_control, random_seed =  random_seed,
-                                               predict.prob = predict.prob, do.select = do.select, useCells = FALSE)
+                                               predict.prob = predict.prob, do.select = do.select, useCells = useCells)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values_DT){
@@ -647,7 +648,7 @@ sits_mlr <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_li
     return(result)
 }
 #' @title Train a SITS classifiction model using fast random forest algorithm
-#' @name sits_ranger
+#' @name sits_rfor
 #'
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -658,8 +659,7 @@ sits_mlr <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_li
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param data.tb          time series with the training samples
-#' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
-#' @param num.trees            number of trees to grow. This should not be set to too small a number,
+#' @param num.trees        number of trees to grow. This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted at least a few times. (default: 2000)
 #' @param ...              other parameters to be passed to `ranger::ranger` function
 #' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
@@ -668,14 +668,14 @@ sits_mlr <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_li
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
 #' # Build a random forest model
-#' rfor_model <- sits_train(samples_MT_ndvi, sits_ranger())
+#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
 #' class.tb <- sits_classify (point_ndvi, rfor_model)
 #' }
 #' @export
-sits_ranger <- function(data.tb = NULL, num.trees = 2000, ...) {
+sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
     result_fun <- function(data.tb){
@@ -694,59 +694,6 @@ sits_ranger <- function(data.tb = NULL, num.trees = 2000, ...) {
         # construct model predict enclosure function and returns
         model_predict <- function(values_DT){
             return(stats::predict(result_ranger, data = values_DT, type = "response")$predictions)
-        }
-        return(model_predict)
-    }
-
-    result <- .sits_factory_function(data.tb, result_fun)
-    return(result)
-}
-#' @title Train a SITS classifiction model using random forest algorithm
-#' @name sits_rfor
-#'
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Use Random Forest algorithm to classify data.
-#' This function is a front-end to the "randomForest" method in the "randomForest" package.
-#' Please refer to the documentation in that package for more details.
-#'
-#' @param data.tb          time series with the training samples
-#' @param ntree            number of trees to grow. This should not be set to too small a number,
-#'                         to ensure that every input row gets predicted at least a few times. (default: 2000)
-#' @param nodesize         minimum size of terminal nodes (default 1 for classification)
-#' @param ...              other parameters to be passed to `randomForest::randomForest` function
-#' @return result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
-#' @examples
-#' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
-#' # Build a random forest model
-#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
-#' # get a point with a 16 year time series
-#' data(point_ndvi)
-#' # classify the point
-#' class.tb <- sits_classify (point_ndvi, rfor_model)
-#' }
-#' @export
-sits_rfor <- function(data.tb = NULL, ntree = 2000, nodesize = 1, ...) {
-
-    # function that returns `randomForest::randomForest` model based on a sits sample tibble
-    result_fun <- function(data.tb){
-
-        train_data_DT <- sits_distances(data.tb)
-
-        # call `randomForest::randomForest` method and return the trained model
-        reference <- train_data_DT[, reference]
-        result_rfor <- randomForest::randomForest(x = train_data_DT[,3:ncol(train_data_DT)],
-                                                  y = as.factor(reference),
-                                                  data = NULL, ntree = ntree, nodesize = 1,
-                                                  norm.votes = FALSE, ..., na.action = stats::na.fail)
-
-        # construct model predict enclosure function and returns
-        model_predict <- function(values_DT){
-            return(stats::predict(result_rfor, newdata = values_DT, type = "response"))
         }
         return(model_predict)
     }
@@ -799,7 +746,7 @@ sits_rfor <- function(data.tb = NULL, ntree = 2000, nodesize = 1, ...) {
 #'}
 #' @export
 sits_svm <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_logref(), kernel = "radial",
-                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 4, ...) {
+                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(data.tb){
