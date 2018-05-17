@@ -412,6 +412,7 @@ sits_lda <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_lo
 #'
 #' @param data.tb          time series with the training samples
 #' @param normalize        (boolean) 0 = no normalization, 1 = normalize per band
+#' @param scale            A logical vector indicating the variables to be scaled.
 #' @param formula          symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)
 #' @param threads          number of cores for computing the kernel matrices (0 = uses all cores)
 #' @param partition_choice determines the way the input space is partitioned (0 = disables, 5 = usually best)
@@ -440,7 +441,8 @@ sits_lda <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_lo
 #' sits_plot(class.tb)
 #'}
 #' @export
-sits_liquid_svm <- function(data.tb = NULL, normalize = TRUE, formula = sits_formula_logref(),
+sits_liquid_svm <- function(data.tb = NULL, normalize = TRUE, scale = FALSE,
+                            formula = sits_formula_logref(),
                             threads = 0, partition_choice = 0,
                             gammas = c(1, 0.04, 0.02, 0.01, 0.005, 0.0025),
                             c_values = c(1, 10, 100, 200, 500, 1000),
@@ -484,7 +486,7 @@ sits_liquid_svm <- function(data.tb = NULL, normalize = TRUE, formula = sits_for
 
         # call liquidSVM::svmMulticlass method and return the trained svm model
         result_svm <- liquidSVM::svmMulticlass(x = formula_svm, y = train_data_DT[,2:ncol(train_data_DT)],
-                                               threads = threads, partition_choice = partition_choice,
+                                               threads = threads, partition_choice = partition_choice, scale = scale,
                                                gammas = gammas, c_values = c_values,
                                                folds = folds, mc_type = mc_type,
                                                adaptivity_control = adaptivity_control, random_seed =  random_seed,
@@ -776,7 +778,7 @@ sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), normalize 
 
         # call e1071::svm method and return the trained svm model
         result_svm <- e1071::svm(formula = formula, data = train_data_DT, scale = scale, kernel = kernel,
-                                 degree = degree, cost = cost, coef0 = coef0,
+                                 degree = degree, cost = cost, coef0 = coef0, cachesize = 1000,
                                  tolerance = tolerance, epsilon = epsilon, cross = cross, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
