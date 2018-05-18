@@ -344,17 +344,13 @@ sits_classify_raster <- function(file       = NULL,
         .sits_log_debug(paste0("keras and ranger run on multiple threads - no processing bloat"))
         mem_required_processing <- mem_required_scaling
     }
-    else if (!(purrr::is_null(environment(ml_model)$attr_names_X))) { # liquid SVM
-        .sits_log_debug(paste0("liquidSVM run on multiple threads - estimating additional bloat"))
+    else {
         # test two different cases
         if (ninstances == ninterval) # one interval only
             mem_required_processing <- proc_bloat*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size))
         else
             mem_required_processing <- proc_bloat*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size) + full_data_size)
     }
-    else
-        mem_required_processing <- multicores*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size) + full_data_size)
-
     .sits_log_debug(paste0("max memory required for processing (GB)", round(mem_required_processing/1e+09, digits = 3)))
 
     # number of passes to read the full data sets
@@ -531,10 +527,17 @@ sits_classify_raster <- function(file       = NULL,
         multicores <- 1
         .sits_log_debug(paste0("ranger already runs on multiple CPUs - setting multicores to 1"))
     }
+
     # classify a block of data
     classify_block <- function(block) {
         # predict the values for each time interval
         pred_block.vec <- ml_model(block)
+        return(pred_block.vec)
+    }
+    # classify a block of data (without data split)
+    classify_block_list <- function(block) {
+        # predict the values for each time interval
+        pred_block.vec <- ml_model(DT[block[1]:block[2],])
         return(pred_block.vec)
     }
     # set up multicore processing
@@ -543,12 +546,12 @@ sits_classify_raster <- function(file       = NULL,
         .sits_log_debug(paste0("Memory used before split_data - ", .sits_mem_used(), " GB"))
 
         # estimate the list for breaking a block
-        block.lst <- .sits_split_data(DT, multicores)
+        block.lst <- .sits_split_block_size(DT, multicores)
 
         .sits_log_debug(paste0("Memory used after split_data - ", .sits_mem_used(), " GB"))
 
         # apply parallel processing to the split data and join the results
-        pred.vec <- unlist(parallel::mclapply(block.lst, classify_block,  mc.cores = multicores))
+        pred.vec <- unlist(parallel::mclapply(block.lst, classify_block_list,  mc.cores = multicores))
 
         # memory management
         .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
