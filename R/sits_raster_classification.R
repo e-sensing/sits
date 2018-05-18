@@ -344,17 +344,13 @@ sits_classify_raster <- function(file       = NULL,
         .sits_log_debug(paste0("keras and ranger run on multiple threads - no processing bloat"))
         mem_required_processing <- mem_required_scaling
     }
-    else if (!(purrr::is_null(environment(ml_model)$attr_names_X))) { # liquid SVM
-        .sits_log_debug(paste0("liquidSVM run on multiple threads - estimating additional bloat"))
+    else {
         # test two different cases
         if (ninstances == ninterval) # one interval only
             mem_required_processing <- proc_bloat*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size))
         else
             mem_required_processing <- proc_bloat*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size) + full_data_size)
     }
-    else
-        mem_required_processing <- multicores*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size) + full_data_size)
-
     .sits_log_debug(paste0("max memory required for processing (GB)", round(mem_required_processing/1e+09, digits = 3)))
 
     # number of passes to read the full data sets
