@@ -110,7 +110,7 @@ sits_classify <- function(data.tb    = NULL,
         colnames(dist_DT) <- attr_names
 
         # classify the subset data
-        pred_block.vec <- .sits_predict(dist_DT, ml_model)
+        pred_block.vec <- ml_model(dist_DT)
         return(pred_block.vec)
     }
 
