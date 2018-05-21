@@ -1,22 +1,68 @@
-#' @title Get a raster object from a raster classified coverage
-#' @name .sits_get_robj
-#' @description This function retrieves one or more raster layer objects stored in a raster coverage.
-#'              It should be used to ensure that the raster objects are returned correctly.
+#' @title Create a metadata tibble to store the description of a spatio-temporal raster dataset
+#' @name .sits_coverage_raster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param raster.tb  raster coverage (classified)
-#' @param i          i-th element of the list to retrieve
-#' @return r_obj     a raster layer with classification
+#' @description  This function creates a tibble containing the metadata for
+#'               a set of spatio-temporal raster files, organized as a set of "Raster Bricks".
+#'               These files should be of the same size and
+#'               projection. Each raster brick file should contain one band
+#'               per time step. Different bands are archived in different raster files.
 #'
-#
-.sits_get_robj <- function(raster.tb, i) {
+#' @param  name                  name of the coverage file
+#' @param  timeline.vec          vector of dates with the timeline of the bands
+#' @param  bands.vec             vector of bands contained in the Raster Brick set (in the same order as the files)
+#' @param  scale_factors.vec     vector of scale factors (one per band)
+#' @param  missing_values.vec    vector of missing values (one per band)
+#' @param  minimum_values.vec    minimum values for each band (only for raster data)
+#' @param  files.vec             vector with the file paths of the raster files
+#' @return raster.tb         tibble with metadata information about a raster data set
+#'
+.sits_coverage_raster <- function(name, timeline.vec, bands.vec,
+                                  scale_factors.vec, missing_values.vec, minimum_values.vec,
+                                  files.vec) {
 
-    ensurer::ensure_that(i, (.) <= nrow(raster.tb),
-                         err_desc = "sits_get_raster: index of raster object cannot be retrieved")
+    ensurer::ensure_that(bands.vec, length(.) == length(files.vec),
+                         err_desc = "sits_coverageRaster: number of bands does not match number of files")
+    ensurer::ensure_that(name, !purrr::is_null(.),
+                         err_desc = "sits_coverageRaster: name of the coverega must be provided")
+    ensurer::ensure_that(bands.vec, !purrr::is_null(.),
+                         err_desc = "sits_coverageRaster - bands must be provided")
+    ensurer::ensure_that(files.vec, !purrr::is_null(.),
+                         err_desc = "sits_coverageRaster - files must be provided")
 
-    return(raster.tb[i,]$r_objs[[1]])
+    # get the timeline
+    if (purrr::is_null(timeline))
+        timeline <- lubridate::as_date(.sits_get_timeline(service = "RASTER", name = name))
+
+    # create a list to store the raster objects
+    brick.lst <- purrr::pmap(list(files.vec, bands.vec),
+                             function(file, band) {
+                                 # create a raster object associated to the file
+                                 raster.obj <- raster::brick(file)
+                                 # find out how many layers the object has
+                                 n_layers   <-  raster.obj@file@nbands
+                                 # check that there are as many layers as the length of the timeline
+                                 ensurer::ensure_that(n_layers, (.) == length(timeline),
+                                                      err_desc = "duration of timeline is not matched by number of layers in raster")
+                                 # add the object to the raster object list
+                                 return(raster.obj)
+                             })
+
+    coverage.tb <- .sits_create_raster_coverage(raster.lst         = brick.lst,
+                                                service            = "RASTER",
+                                                name               = name,
+                                                timeline.lst       = list(timeline),
+                                                bands.vec          = bands,
+                                                scale_factors.vec  = scale_factors,
+                                                missing_values.vec = missing_values,
+                                                minimum_values.vec = minimum_values,
+                                                files.vec          = files)
+
+    return(coverage.tb)
 }
+
 #' @title Create a set of RasterLayer objects to store time series classification results
-#' @name .sits_create_classified_raster
+#' @name .sits_coverage_raster_classified
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Takes a tibble containing metadata about a set of RasterBrick objects
@@ -30,7 +76,7 @@
 #' @param  interval          classification interval
 #' @return raster_layers.tb  tibble with metadata about the output RasterLayer objects
 #'
-.sits_create_classified_raster <- function(raster.tb, samples.tb, file, interval){
+.sits_coverage_raster_classified <- function(raster.tb, samples.tb, file, interval){
 
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) > 0,
@@ -110,27 +156,28 @@
     # get the name of the coverage
     name   <-  paste0(raster.tb[1,]$name, "-class")
     # create a new RasterLayer for a defined period and generate the associated metadata
-    coverage.tb <- .sits_create_raster_coverage(raster.lst     = rasters_class,
-                                                service        = "RASTER",
-                                                name           = name,
-                                                timeline.lst   = timeline_rasters,
-                                                bands          = bands_class,
-                                                labels         = labels,
-                                                scale_factors  = scale_factors_class,
-                                                missing_values = missing_values_class,
-                                                minimum_values = minimum_values_class,
-                                                files          = files_class)
+    coverage.tb <- .sits_create_raster_coverage(raster.lst         = rasters_class,
+                                                service            = "RASTER",
+                                                name               = name,
+                                                timeline.lst       = timeline_rasters,
+                                                bands.vec          = bands_class,
+                                                labels.vec         = labels,
+                                                scale_factors.vec  = scale_factors_class,
+                                                missing_values.vec = missing_values_class,
+                                                minimum_values.vec = minimum_values_class,
+                                                files.vec          = files_class)
 
-    coverage_probs.tb <- .sits_create_raster_coverage(raster.lst     = rasters_probs,
-                                                      service        = "RASTER",
-                                                      name           = name,
-                                                      timeline.lst   = timeline_rasters,
-                                                      bands          = bands_probs,
-                                                      labels         = labels,
-                                                      scale_factors  = scale_factors_probs,
-                                                      missing_values = missing_values_probs,
-                                                      minimum_values = minimum_values_probs,
-                                                      files          = files_probs)
+    coverage_probs.tb <- .sits_create_raster_coverage(raster.lst         = rasters_probs,
+                                                      service            = "RASTER",
+                                                      name               = name,
+                                                      timeline.lst       = timeline_rasters,
+                                                      bands.vec          = bands_probs,
+                                                      labels.vec         = labels,
+                                                      scale_factors.vec  = scale_factors_probs,
+                                                      missing_values.vec = missing_values_probs,
+                                                      minimum_values.vec = minimum_values_probs,
+                                                      files.vec          = files_probs)
+
     coverage.tb <- dplyr::bind_rows(coverage.tb, coverage_probs.tb)
 
     return(coverage.tb)
@@ -140,27 +187,27 @@
 #'
 #' @description creates a tibble with metadata about a given coverage
 #'
-#' @param raster.lst        list of Raster objects associated with the raster coverages
-#' @param service           time series service
-#' @param name              name of the coverage
-#' @param timeline.lst      list - coverage timeline
-#' @param bands             vector - names of bands
-#' @param labels            vector - labels for classified image
-#' @param scale_factors     vector - scale factors
-#' @param missing_values    vector - missing values
-#' @param minimum_values    vector - minimum values
-#' @param files             vector - names of raster files where the data is stored
+#' @param raster.lst               list of Raster objects associated with the raster coverages
+#' @param service                  time series service
+#' @param name                     name of the coverage
+#' @param timeline.lst             list - coverage timelines
+#' @param bands.vec                vector - names of bands
+#' @param labels.vec               vector - labels for classified image
+#' @param scale_factors.vec        vector - scale factors
+#' @param missing_values.vec       vector - missing values
+#' @param minimum_values.vec       vector - minimum values
+#' @param files.vec                vector - names of raster files where the data is stored
 #'
 .sits_create_raster_coverage <- function(raster.lst,
                                          service,
                                          name,
                                          timeline.lst,
-                                         bands,
-                                         labels = NULL,
-                                         scale_factors,
-                                         missing_values,
-                                         minimum_values,
-                                         files) {
+                                         bands.vec,
+                                         labels.vec,
+                                         scale_factors.vec,
+                                         missing_values.vec,
+                                         minimum_values.vec,
+                                         files.vec) {
 
     # associate an R raster object to the first element of the list of bricks
     r_obj <- raster.lst[[1]]
@@ -195,63 +242,51 @@
     }
 
     if (purrr::is_null(labels))
-        labels <- c("Unclassified")
+        labels.vec <- c("NoClass")
 
     # if scale factors are not provided, try a best guess
-    if (purrr::is_null(scale_factors)) {
+    if (purrr::is_null(scale_factors.vec)) {
         message("Scale factors not provided - will use default values: please check they are valid")
         # try to guess what is the satellite
         satellite <- .sits_guess_satellite(r_obj)
         # retrieve the scale factors
-        scale_factors <- .sits_get_scale_factors("RASTER", satellite, bands)
+        scale_factors.vec <- .sits_get_scale_factors("RASTER", satellite, bands.vec)
         # are the scale factors valid?
-        ensurer::ensure_that(scale_factors, !(purrr::is_null(.)),
+        ensurer::ensure_that(scale_factors.vec, !(purrr::is_null(.)),
                              err_desc = "Not able to obtain scale factors for raster data")
     }
     else
-        names(scale_factors) <- bands
+        names(scale_factors.vec) <- bands.vec
 
     # if missing_values are not provided, try a best guess
-    if (purrr::is_null(missing_values)) {
+    if (purrr::is_null(missing_values.vec)) {
         message("Missing values not provided - will use default values: please check they are valid")
         # try to guess what is the satellite
         satellite      <- .sits_guess_satellite(r_obj)
         # try to retrieve the missing values
-        missing_values <- .sits_get_missing_values("RASTER", satellite, bands)
-        ensurer::ensure_that(missing_values, !(purrr::is_null(.)),
+        missing_values.vec <- .sits_get_missing_values("RASTER", satellite, bands.vec)
+        ensurer::ensure_that(missing_values.vec, !(purrr::is_null(.)),
                              err_desc = "Not able to obtain scale factors for raster data")
     }
     else
-        names(missing_values) <- bands
+        names(missing_values.vec) <- bands.vec
 
-    if (purrr::is_null(minimum_values)) {
-        minimum_values <- .sits_get_minimum_values("RASTER", bands)
+    if (purrr::is_null(minimum_values.vec)) {
+        minimum_values.vec <- .sits_get_minimum_values("RASTER", bands.vec)
     }
     # preserve the names of the bands on the list of raster objects and in the files
-    names(raster.lst) <- bands
-    names(files) <- bands
+    names(raster.lst) <- bands.vec
+    names(files.vec)  <- bands.vec
 
-    # initiate writing
+    # get CRS
+    crs = as.character(raster::crs(r_obj))
+
     # create a tibble to store the metadata
-    coverage.tb <- tibble::tibble(r_objs         = list(raster.lst),
-                                  name           = name,
-                                  service        = service,
-                                  bands          = list(bands),
-                                  labels         = list(labels),
-                                  scale_factors  = list(scale_factors),
-                                  missing_values = list(missing_values),
-                                  minimum_values = list(minimum_values),
-                                  timeline       = list(timeline.lst),
-                                  nrows          = nrows,
-                                  ncols          = ncols,
-                                  xmin           = xmin,
-                                  xmax           = xmax,
-                                  ymin           = ymin,
-                                  ymax           = ymax,
-                                  xres           = xres,
-                                  yres           = yres,
-                                  crs            = as.character(raster::crs(r_obj)),
-                                  files          = list(files))
+    coverage.tb <- .sits_create_coverage (raster.lst, name, service,
+                                          bands.vec, labels.vec, scale_factors.vec,
+                                          missing_values.vec, minimum_values.vec, timeline.lst,
+                                          nrows, ncols, xmin, xmax, ymin, ymax,
+                                          xres, yres, crs, files.vec)
 
     return(coverage.tb)
 }

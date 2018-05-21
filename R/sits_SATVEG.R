@@ -10,43 +10,52 @@
 
     service <- "SATVEG"
     # get the bands
-    bands <- .sits_get_bands(service, name)
+    bands.vec <- .sits_get_bands(service, name)
+    # the data in unlabelled
+    labels.vec <- c("NoClass")
 
     # get the timeline
     if (purrr::is_null(timeline))
-        timeline <- .sits_SATVEG_timeline()
+        timeline.lst <- list(.sits_SATVEG_timeline())
+    else
+        timeline.lst <- list(timeline)
 
     # get the size of the coverage
     size <- .sits_get_size(service, name)
+    nrows <- as.integer(size["nrows"])
+    ncols <- as.integer(size["ncols"])
+
     # get the bounding box of the coverage
     bbox <- .sits_get_bbox(service, name)
+    xmin <-  as.numeric(bbox["xmin"])
+    xmax <-  as.numeric(bbox["xmax"])
+    ymin <-  as.numeric(bbox["ymin"])
+    ymax <-  as.numeric(bbox["ymax"])
+
     # get the resolution of the product
-    res <- .sits_get_resolution(service, name)
+    res  <- .sits_get_resolution(service, name)
+    xres <-  as.numeric(res["xres"])
+    yres <-  as.numeric(res["yres"])
+
     # get the CRS projection
     crs <- .sits_get_projection(service, name)
+    # get scale factors, missing values and minimum values
+    scale_factors.vec  <- .sits_get_scale_factors(service, name, bands.vec)
+    names(scale_factors.vec) <- bands.vec
+    missing_values.vec <- .sits_get_missing_values(service, name, bands.vec)
+    names(missing_values.vec) <- bands.vec
+    minimum_values.vec <- .sits_get_minimum_values(service, bands.vec)
+    names(minimum_values.vec) <- bands.vec
 
-    scale_factors <- .sits_get_scale_factors(service, name, bands)
-
-    missing_values <- .sits_get_missing_values(service, name, bands)
 
     # create a tibble to store the metadata
-    coverage.tb <- tibble::tibble(r_objs         = NA,
-                                  name           = name,
-                                  service        = service,
-                                  bands          = list(bands),
-                                  scale_factors  = list(scale_factors),
-                                  missing_values = list(missing_values),
-                                  timeline       = list(timeline),
-                                  nrows          = as.integer(size["nrows"]),
-                                  ncols          = as.integer(size["ncols"]),
-                                  xmin           = as.numeric(bbox["xmin"]),
-                                  xmax           = as.numeric(bbox["xmax"]),
-                                  ymin           = as.numeric(bbox["ymin"]),
-                                  ymax           = as.numeric(bbox["ymax"]),
-                                  xres           = as.numeric(res["xres"]),
-                                  yres           = as.numeric(res["yres"]),
-                                  crs            = crs,
-                                  files          = NA)
+    coverage.tb <- .sits_create_coverage (r_objs.lst = NA,
+                                          name, service,
+                                          bands.vec, labels.vec, scale_factors.vec,
+                                          missing_values.vec, minimum_values.vec, timeline.lst,
+                                          nrows, ncols, xmin, xmax, ymin, ymax,
+                                          xres, yres, crs,
+                                          files.vec = NA)
 
 
     return(coverage.tb)

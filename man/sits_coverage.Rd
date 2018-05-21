@@ -13,17 +13,17 @@ sits_coverage(service = "RASTER", name, timeline = NULL, bands = NULL,
 
 \item{name}{name of the coverage}
 
-\item{timeline}{timeline of the coverage}
+\item{timeline}{vector - timeline of the coverage}
 
-\item{bands}{bands (only for raster data)}
+\item{bands}{vector - bands}
 
-\item{missing_values}{missing values for each band (only for raster data)}
+\item{missing_values}{vector - missing values for each band}
 
-\item{scale_factors}{scale factor for each band (only for raster data)}
+\item{scale_factors}{vector - scale factor for each band}
 
-\item{minimum_values}{minimum values for each band (only for raster data)}
+\item{minimum_values}{vector - minimum values for each band}
 
-\item{files}{file names for each band (only for raster data)}
+\item{files}{vector - file names for each band (only for raster data)}
 }
 \description{
 uses the configuration file to print information and save metadata about a

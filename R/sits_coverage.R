@@ -22,12 +22,12 @@
 #'
 #' @param service           name of the time series service
 #' @param name              name of the coverage
-#' @param timeline          timeline of the coverage
-#' @param bands             bands (only for raster data)
-#' @param scale_factors     scale factor for each band (only for raster data)
-#' @param missing_values    missing values for each band (only for raster data)
-#' @param minimum_values    minimum values for each band (only for raster data)
-#' @param files             file names for each band (only for raster data)
+#' @param timeline          vector - timeline of the coverage
+#' @param bands             vector - bands
+#' @param scale_factors     vector - scale factor for each band
+#' @param missing_values    vector - missing values for each band
+#' @param minimum_values    vector - minimum values for each band
+#' @param files             vector - file names for each band (only for raster data)
 #' @examples
 #' \donttest{
 #' # Example 1. Retrieve information about a WTSS coverage
@@ -93,8 +93,6 @@ sits_coverage <- function(service        = "RASTER",
 
         # create a coverage
         coverage.tb <- .sits_coverageWTSS(wtss.obj, service, name)
-
-
     }
 
     else if (protocol == "SATVEG") {
@@ -102,79 +100,81 @@ sits_coverage <- function(service        = "RASTER",
     }
     else
         coverage.tb <- .sits_coverage_raster(name = name,
-                                             timeline = timeline,
-                                             bands = bands,
-                                             scale_factors = scale_factors,
-                                             missing_values = missing_values,
-                                             minimum_values = minimum_values,
-                                             files = files)
+                                             timeline.vec       = timeline,
+                                             bands.vec          = bands,
+                                             scale_factors.vec  = scale_factors,
+                                             missing_values.vec = missing_values,
+                                             minimum_values.vec = minimum_values,
+                                             files.vec          = files)
 
     return(coverage.tb)
 
 }
 
-
-
-#' @title Create a metadata tibble to store the description of a spatio-temporal raster dataset
-#' @name .sits_coverage_raster
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @title Creates a coverage metadata
+#' @name .sits_create_coverage
 #'
-#' @description  This function creates a tibble containing the metadata for
-#'               a set of spatio-temporal raster files, organized as a set of "Raster Bricks".
-#'               These files should be of the same size and
-#'               projection. Each raster brick file should contain one band
-#'               per time step. Different bands are archived in different raster files.
+#' @description uses the configuration file to print information and save metadata about a
+#' chosen coverage
 #'
-#' @param  name              name of the coverage file
-#' @param  timeline          vector of dates with the timeline of the bands
-#' @param  bands             vector of bands contained in the Raster Brick set (in the same order as the files)
-#' @param  scale_factors     vector of scale factors (one per band)
-#' @param  missing_values    vector of missing values (one per band)
-#' @param  minimum_values    minimum values for each band (only for raster data)
-#' @param  files             vector with the file paths of the raster files
-#' @return raster.tb         tibble with metadata information about a raster data set
+#'  service        - name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER")
+#'  name           - name of the coverage (must be unique)
+#'  bands          - vector of bands
+#'  scale_factor   - vector of scale factors
+#'  missing_values - vector of missing values
+#'  start_date     - the start date for the time series data in the coverage
+#'  end_date       - the end date for the time series data in the coverage
+#'  timeline       - the timeline of the coverage
 #'
-.sits_coverage_raster <- function(name, timeline, bands,
-                                  scale_factors, missing_values, minimum_values, files) {
+#'  crs            - Projection crs
+#'  files          - Files associated with the coverage (in the case of service == "RASTER")
+#'
+#' @param r_obs.lst          list of raster objects contained in the coverage
+#' @param name               name of the coverage
+#' @param service            name of the time series service
+#' @param bands.vec          vector with the names of the bands
+#' @param labels.vec         vector with labels (only valid for classified data)
+#' @param scale_factors.vec  vector with scale factor for each band
+#' @param missing_values.vec vector with missing values for each band
+#' @param minimum_values.vec vector with minimum values for each band
+#' @param timeline.lst       list with vectors of valid timelines for each band
+#' @param nrows              number of rows in the coverage
+#' @param ncols              number of columns in the coverage
+#' @param xmin               spatial extent (xmin)
+#' @param ymin               spatial extent (ymin)
+#' @param xmax               spatial extent (xmax)
+#' @param ymax               spatial extent (ymin)
+#' @param xres               spatial resolution (x dimension)
+#' @param yres               spatial resolution (y dimension)
+#' @param crs                CRS for coverage
+#' @param files.vec          vector with associated files
+.sits_create_coverage <- function (r_objs.lst, name, service,
+                                   bands.vec, labels.vec, scale_factors.vec,
+                                   missing_values.vec, minimum_values.vec, timeline.lst,
+                                   nrows, ncols, xmin, xmax, ymin, ymax,
+                                   xres, yres, crs, files.vec) {
 
-    ensurer::ensure_that(bands, length(.) == length(files),
-                         err_desc = "sits_coverageRaster: number of bands does not match number of files")
-    ensurer::ensure_that(name, !purrr::is_null(.),
-                         err_desc = "sits_coverageRaster: name of the coverega must be provided")
-    ensurer::ensure_that(bands, !purrr::is_null(.),
-                         err_desc = "sits_coverageRaster - bands must be provided")
-    ensurer::ensure_that(files, !purrr::is_null(.),
-                         err_desc = "sits_coverageRaster - files must be provided")
+    # create a tibble to store the metadata
+    coverage.tb <- tibble::tibble(r_objs         = list(r_objs.lst),
+                                  name           = name,
+                                  service        = service,
+                                  bands          = list(bands.vec),
+                                  labels         = list(labels.vec),
+                                  scale_factors  = list(scale_factors.vec),
+                                  missing_values = list(missing_values.vec),
+                                  minimum_values = list(minimum_values.vec),
+                                  timeline       = list(timeline.lst),
+                                  nrows          = nrows,
+                                  ncols          = ncols,
+                                  xmin           = xmin,
+                                  xmax           = xmax,
+                                  ymin           = ymin,
+                                  ymax           = ymax,
+                                  xres           = xres,
+                                  yres           = yres,
+                                  crs            = crs,
+                                  files          = list(files.vec))
 
-    # get the timeline
-    if (purrr::is_null(timeline))
-        timeline <- .sits_get_timeline(service = "RASTER", name = name)
-
-    # create a list to store the raster objects
-    brick.lst <- purrr::pmap(list(files, bands),
-                             function(file, band) {
-                                 # create a raster object associated to the file
-                                 raster.obj <- raster::brick(file)
-                                 # find out how many layers the object has
-                                 n_layers   <-  raster.obj@file@nbands
-                                 # check that there are as many layers as the length of the timeline
-                                 ensurer::ensure_that(n_layers, (.) == length(timeline),
-                                                      err_desc = "duration of timeline is not matched by number of layers in raster")
-                                 # add the object to the raster object list
-                                 return(raster.obj)
-                             })
-
-    coverage.tb <- .sits_create_raster_coverage(raster.lst     = brick.lst,
-                                                service        = "RASTER",
-                                                name           = name,
-                                                timeline.lst   = list(timeline),
-                                                bands          = bands,
-                                                scale_factors  = scale_factors,
-                                                missing_values = missing_values,
-                                                minimum_values = minimum_values,
-                                                files          = files)
 
     return(coverage.tb)
 }
-
-

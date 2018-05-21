@@ -71,7 +71,7 @@ sits_classify_raster <- function(file        = NULL,
     samples  <- environment(ml_model)$data.tb
 
     # create the raster objects and their respective filenames
-    coverage_class <- .sits_create_classified_raster(coverage, samples, file, interval)
+    coverage_class <- .sits_coverage_raster_classified(coverage, samples, file, interval)
 
     # classify the data
     raster_class.tb <- .sits_classify_multicores(coverage,

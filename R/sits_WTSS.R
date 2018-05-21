@@ -83,17 +83,19 @@ sits_infoWTSS <- function() {
     cov        <- cov.lst[[name]]
 
     # temporal extent
-    timeline <- cov$timeline
+    timeline.lst <- list(cov$timeline)
 
     # retrieve information about the bands
     band_info <- cov$attributes
 
     attr <- as.data.frame(band_info)
-    bands <- as.vector(attr[,"name"])
-    missing_values <- as.vector(attr[,"missing_value"])
-    names(missing_values) <- bands
-    scale_factors  <- as.vector(attr[,"scale_factor"])
-    names(scale_factors) <- bands
+    bands.vec <- as.vector(attr[,"name"])
+    missing_values.vec <- as.vector(attr[,"missing_value"])
+    names(missing_values.vec) <- bands.vec
+    scale_factors.vec  <- as.vector(attr[,"scale_factor"])
+    names(scale_factors.vec) <- bands.vec
+    minimum_values.vec <- .sits_get_minimum_values(service, bands.vec)
+    names(minimum_values.vec) <- bands.vec
 
     # Spatial extent
     xmin <- cov$spatial_extent$xmin
@@ -112,24 +114,15 @@ sits_infoWTSS <- function() {
     # Projection CRS
     crs <- cov$crs$proj4
 
+    #labels
+    labels.vec <- c("NoClass")
+
     # create a tibble to store the metadata
-    coverage.tb <- tibble::tibble(r_objs         = list(wtss.obj),
-                                  name           = name,
-                                  service        = service,
-                                  bands          = list(bands),
-                                  scale_factors  = list(scale_factors),
-                                  missing_values = list(missing_values),
-                                  timeline       = list(timeline),
-                                  nrows          = nrows,
-                                  ncols          = ncols,
-                                  xmin           = xmin,
-                                  xmax           = xmax,
-                                  ymin           = ymin,
-                                  ymax           = ymax,
-                                  xres           = xres,
-                                  yres           = yres,
-                                  crs            = crs,
-                                  files          = NA)
+    coverage.tb <- .sits_create_coverage (list(wtss.obj), name, service,
+                                          bands.vec, labels.vec, scale_factors.vec,
+                                          missing_values.vec, minimum_values.vec, timeline.lst,
+                                          nrows, ncols, xmin, xmax, ymin, ymax,
+                                          xres, yres, crs, files = NA)
 
     # return the tibble with coverage info
     return(coverage.tb)
@@ -176,7 +169,7 @@ sits_infoWTSS <- function() {
                              err_desc = "sits_fromWTSS: requested bands are not available in the coverage")
 
     # check start and end dates
-    timeline <- coverage$timeline[[1]]
+    timeline <- coverage$timeline[[1]][[1]]
     if (purrr::is_null(start_date))
         start_date <- lubridate::as_date(timeline[1])
     if (purrr::is_null(end_date))

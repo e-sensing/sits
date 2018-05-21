@@ -299,7 +299,7 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
     select.lst <- vector("list", length(time_index.lst))
 
     # find the length of the timeline
-    ntimes <- length(coverage$timeline[[1]])
+    ntimes <- length(coverage$timeline[[1]][[1]])
 
     # get the bands in the same order as the samples
     nbands <- length(sits_bands(samples))
