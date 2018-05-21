@@ -34,6 +34,8 @@ lda_model <- sits_train(samples_MT_ndvi, sits_lda())
 data(point_ndvi)
 # classify the point
 class.tb <- sits_classify (point_ndvi, lda_model)
+# plot the classification
+sits_plot(class.tb)
 }
 }
 \author{

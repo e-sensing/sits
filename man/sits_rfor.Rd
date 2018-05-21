@@ -32,12 +32,14 @@ rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
 data(point_ndvi)
 # classify the point
 class.tb <- sits_classify (point_ndvi, rfor_model)
+# plot the classification
+sits_plot(class.tb)
 }
 }
 \author{
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
 Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

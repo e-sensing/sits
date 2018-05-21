@@ -178,53 +178,40 @@ sits_classify_raster <- function(file        = NULL,
     # get the attribute names
     attr_names <- names(environment(ml_model)$train_data_DT)
 
-    # get initial time
+    # get initial time for classification
     start_time <- lubridate::now()
     message(sprintf("Starting classification at %s", start_time))
 
     # read the blocks
-    for (i in 1:bs$n) {
+    for (block in 1:bs$n) {
         # read the data
-        data_DT <- .sits_read_data(coverage, samples, ml_model, bs$row[i], bs$nrows[i], stats, filter, multicores)
+        data_DT <- .sits_read_data(coverage, samples, ml_model, bs$row[block], bs$nrows[block], stats, filter, multicores)
         # process one temporal instance at a time
 
-        for (t in 1:length(select.lst)) {
+        for (time in 1:length(select.lst)) {
             # retrieve the values used for classification
-            dist_DT <- data_DT[, select.lst[[t]], with = FALSE]
+            dist_DT <- data_DT[, select.lst[[time]], with = FALSE]
 
             # set column names for DT
             colnames(dist_DT) <- attr_names
 
             # predict the classification values
-            output.lst <- .sits_predict_interval(dist_DT, t, output.lst, ml_model, int_labels, bs$row[i], multicores)
+            output.lst <- .sits_predict_interval(dist_DT, time, output.lst, ml_model, int_labels, bs$row[block], multicores)
 
             # garbage collection
             rm(dist_DT)
             gc()
-            .sits_log_debug(paste0("Memory used after processing block ", i, " of year ", t, " - ", .sits_mem_used(), " GB"))
+            .sits_log_debug(paste0("Memory used after processing block ", block, " of year ", time, " - ", .sits_mem_used(), " GB"))
 
-            # compute current time
-            current_time <- lubridate::now()
-
-            # compute elapsed time and estimates remaining time
-            if (((i - 1) * length(select.lst) + t) < (bs$n * length(select.lst))) {
-                message(sprintf("Elapsed time %s minute(s). Estimated remaining process time %s minute(s)...",
-                                round(as.numeric((lubridate::time_length(current_time - start_time, unit = "minute"))), 1),
-                                round(as.numeric((lubridate::time_length(current_time - start_time, unit = "minute")) / ((i - 1) *
-                                                                    length(select.lst) + t)) * (bs$n * length(select.lst)), 1)))
-            } else {
-                message(sprintf("Classification finished at %s. Total elapsed time: %s minute(s).",
-                                current_time,
-                                round(as.numeric((lubridate::time_length(current_time - start_time, unit = "minute"))), 1)))
-            }
+            .sits_estimate_processing_time(start_time, select.lst, bs, block, time)
         }
         # remove distance data.table (trying to use as little memory as possible)
         rm(data_DT)
         gc()
 
         # save information about memory use for debugging later
-        .sits_log_debug(paste0("Processed block starting from ",  bs$row[i], " to ", (bs$row[i] + bs$nrows[i] - 1)))
-        .sits_log_debug(paste0("Memory used after processing block ", i,  " - ", .sits_mem_used(), " GB"))
+        .sits_log_debug(paste0("Processed block starting from ",  bs$row[block], " to ", (bs$row[block] + bs$nrows[block] - 1)))
+        .sits_log_debug(paste0("Memory used after processing block ", block,  " - ", .sits_mem_used(), " GB"))
 
     }
     # finish writing
@@ -553,24 +540,34 @@ sits_classify_raster <- function(file        = NULL,
         # apply parallel processing to the split data and join the results
         pred.lst <- parallel::mclapply(block.lst, classify_block,  mc.cores = multicores)
 
+        # compose result based on output from different cores
+        pred_class.vec <- unlist(lapply(pred.lst, function (x) x$values))
+        pred_probs.mx  <- do.call(rbind,lapply(pred.lst, function (x) x$probs))
+
         # memory management
         .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
         rm(block.lst)
         gc()
         .sits_log_debug(paste0("Memory used after removing blocks - ", .sits_mem_used(), " GB"))
     }
-    else # one core only
+    else { # one core only
         # estimate the prediction vector
         pred.lst <- ml_model(DT)
+        pred_class.vec <- pred.lst[[1]]
+        pred_probs.mx  <- pred.lst[[2]]
+    }
 
-    pred_class.vec <- pred.lst[[1]]
-    pred_probs.mx  <- pred.lst[[2]]
+
+
 
     # check the result has the right dimension
     ensurer::ensure_that(pred_class.vec, length(.) == nrow(DT),
                          err_desc = "sits_classify_raster - number of classified pixels is different
                          from number of input pixels")
 
+    ensurer::ensure_that(pred_probs.mx, nrow(.) == nrow(DT),
+                         err_desc = "sits_classify_raster - number of rows of probability matrix is different
+                         from number of input pixels")
     # memory management
     rm(DT)
     gc()
@@ -637,3 +634,22 @@ sits_classify_raster <- function(file        = NULL,
 
     return(data.mx)
 }
+
+.sits_estimate_processing_time <- function(start_time, select.lst, bs, block, time) {
+    # compute current time
+    current_time <- lubridate::now()
+
+    # compute elapsed time and estimates remaining time
+    if (((block - 1) * length(select.lst) + time) < (bs$n * length(select.lst))) {
+        message(sprintf("Elapsed time %s minute(s). Estimated total process time %s minute(s)...",
+                        round(as.numeric((lubridate::time_length(current_time - start_time, unit = "minute"))), 1),
+                        round(as.numeric((lubridate::time_length(current_time - start_time, unit = "minute")) / ((block - 1) *
+                                                                                                                     length(select.lst) + time)) * (bs$n * length(select.lst)), 1)))
+    } else {
+        message(sprintf("Classification finished at %s. Total elapsed time: %s minute(s).",
+                        current_time,
+                        round(as.numeric((lubridate::time_length(current_time - start_time, unit = "minute"))), 1)))
+    }
+    return(invisible(TRUE))
+}
+

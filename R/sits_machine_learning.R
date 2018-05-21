@@ -231,7 +231,6 @@ sits_deeplearning <- function(data.tb          = NULL,
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param data.tb          time series with the training samples
-#' @param normalize        (integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension
 #' @param formula          a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)
 #' @param distribution     name of the distribution - use "multinomial" for classification
 #' @param n.trees          Number of trees to fit. This should not be set to too small a number,

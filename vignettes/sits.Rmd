@@ -122,8 +122,7 @@ After finding out which coverages are available at the different time series ser
 coverage_wtss <- 
     sits_coverage(service  = "WTSS-INPE",
                   name     = "MOD13Q1")
-coverage_wtss[, c("xmin","xmax","ymin","ymax",
-                "start_date", "end_date")]
+coverage_wtss[, c("xmin","xmax","ymin","ymax", "timeline")]
 ```
 
 The user can request one or more time series points using `sits_getdata()`. This function provides a general means of access to image time series. In its simplest fashion, the user provides the latitude and longitude of the desired location, the product and coverage names, the bands, and the start date and end date of the time series. If the start and end dates are not provided, all available period is retrived. The result is a tibble that can be visualised using `sits_plot()`.

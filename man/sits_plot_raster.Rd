@@ -4,10 +4,13 @@
 \alias{sits_plot_raster}
 \title{Plot a raster classified images}
 \usage{
-sits_plot_raster(raster_class.tb, title = "Classified Image", colors = NULL)
+sits_plot_raster(raster_class.tb, time = 1, title = "Classified Image",
+  colors = NULL)
 }
 \arguments{
 \item{raster_class.tb}{a tibble with the metadata for a classified raster object}
+
+\item{time}{temporal reference for plot}
 
 \item{title}{string}
 

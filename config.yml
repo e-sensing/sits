@@ -1,9 +1,0 @@
-default:
-
-    # estimated relative growth size of R memory relative to block size
-    R_memory_bloat           : 2.5
-    R_processing_bloat       : 4
-
-
-
-

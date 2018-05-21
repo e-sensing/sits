@@ -26,8 +26,6 @@ Also known as the learning rate or step-size reduction.}
 \item{cv.folds}{number of cross-validations to run}
 
 \item{...}{other parameters to be passed to `gbm::gbm` function}
-
-\item{normalize}{(integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension}
 }
 \value{
 result          a model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
