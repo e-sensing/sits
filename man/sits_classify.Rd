@@ -42,7 +42,7 @@ passed to the function using the parameter "ml_model".
 data(samples_MT_ndvi)
 # select the bands "ndvi", "evi", "nir", and "mir"
 samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
-# build a classification model using random forest
+# build a classification model using SVM
 model_svm <- sits_train(samples.tb, ml_method = sits_svm ())
 # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
 point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir","mir"))

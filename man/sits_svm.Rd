@@ -4,17 +4,18 @@
 \alias{sits_svm}
 \title{Train a SITS classification model using a support vector machine}
 \usage{
-sits_svm(data.tb = NULL, normalize = TRUE,
-  formula = sits_formula_logref(), kernel = "radial", degree = 3,
-  coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0,
-  ...)
+sits_svm(data.tb = NULL, formula = sits_formula_logref(), scale = TRUE,
+  cachesize = 1000, kernel = "radial", degree = 3, coef0 = 0,
+  cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
 
-\item{normalize}{(boolean) 0 = no normalization, 1 = normalize per band}
-
 \item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)}
+
+\item{scale}{logical vector indicating the variables to be scaled.}
+
+\item{cachesize}{cache memory in MB (default = 1000)}
 
 \item{kernel}{kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)}
 
@@ -28,7 +29,7 @@ sits_svm(data.tb = NULL, normalize = TRUE,
 
 \item{epsilon}{epsilon in the insensitive-loss function (default: 0.1)}
 
-\item{cross}{number of cross validation folds applied on the training data to assess the quality of the model,}
+\item{cross}{number of cross validation folds applied on the training data to assess the quality of the model}
 
 \item{...}{other parameters to be passed to e1071::svm function}
 }
@@ -50,7 +51,7 @@ Please refer to the documentation in that package for more details.
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
 # Build an SVM model
-svm_model <- sits_train(samples_MT_ndvi, sits_svm(normalize = 0))
+svm_model <- sits_train(samples_MT_ndvi, sits_svm())
 # get a point
 data(point_ndvi)
 # classify the point

@@ -24,27 +24,26 @@
 #'
 sits_config <- function() {
 
-    if (purrr::is_null(sits.env$config)) {
-        # run the default configuration file
-        yml_file <- system.file("extdata", "config.yml", package = "sits")
+    # run the default configuration file
+    yml_file <- system.file("extdata", "config.yml", package = "sits")
 
-        # check that the file is valid
-        ensurer::ensure_that(yml_file, !purrr::is_null(.),
-                             err_desc = "sits_config : Please provide a valid configuration file")
+    # check that the file is valid
+    ensurer::ensure_that(yml_file, !purrr::is_null(.),
+                         err_desc = "sits_config : Please provide a valid configuration file")
 
-        # read the configuration parameters
-        sits.env$config <- config::get(file = yml_file)
+    # read the configuration parameters
+    sits.env$config <- config::get(file = yml_file)
 
-        # try to find a valid user configuration file
-        WD <- getwd()
-        if (file.exists(paste0(WD, "/config.yml"))) {
-            user_yml_file <- paste0(WD, "/config.yml")
-            config_user <- config::get(file = user_yml_file)
-            sits.env$config <- config::merge(sits.env$config, config_user)
-        }
-        sits.env$config$coverages <- .sits_tibble_coverage()
+    # try to find a valid user configuration file
+    WD <- getwd()
+    if (file.exists(paste0(WD, "/config.yml"))) {
+        user_yml_file <- paste0(WD, "/config.yml")
+        config_user <- config::get(file = user_yml_file)
+        sits.env$config <- config::merge(sits.env$config, config_user)
     }
-    return(TRUE)
+    sits.env$config$coverages <- .sits_tibble_coverage()
+
+    return(invisible(sits.env$config))
 }
 
 #' @title Shows the contents of the SITS configuration file
@@ -61,18 +60,25 @@ sits_config <- function() {
 #'
 sits_show_config <- function() {
 
-    # try to find a valid configuration file
+    # retrieve the basic configuration file
+    yml_file <- system.file("extdata", "config.yml", package = "sits")
+    # check that the file is valid
+    ensurer::ensure_that(yml_file, !purrr::is_null(.),
+                         err_desc = "sits_config : Please provide a valid configuration file")
+    # try to find a valid user configuration file
         WD <- getwd()
         if (file.exists(paste0(WD, "/config.yml")))
-            yml_file <- paste0(WD, "/config.yml")
+            yml_user_file <- paste0(WD, "/config.yml")
         else
-            yml_file <- system.file("extdata", "config.yml", package = "sits")
+            yml_user_file <- NULL
 
-        # check that the file is valid
-        ensurer::ensure_that(yml_file, !purrr::is_null(.),
-                             err_desc = "sits_config : Please provide a valid configuration file")
     # read the configuration parameters
+    message("Default system configuration file")
     cat(readLines(yml_file), sep = "\n")
+    if (!purrr::is_null(yml_user_file)) {
+        message("User configuration file - overrides default config")
+        cat(readLines(yml_user_file), sep = "\n")
+    }
 
     return(invisible())
 }

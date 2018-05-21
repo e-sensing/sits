@@ -119,8 +119,6 @@ sits_infoWTSS <- function() {
                                   bands          = list(bands),
                                   scale_factors  = list(scale_factors),
                                   missing_values = list(missing_values),
-                                  start_date     = as.Date(timeline[1]),
-                                  end_date       = as.Date(timeline[length(timeline)]),
                                   timeline       = list(timeline),
                                   nrows          = nrows,
                                   ncols          = ncols,
@@ -178,10 +176,11 @@ sits_infoWTSS <- function() {
                              err_desc = "sits_fromWTSS: requested bands are not available in the coverage")
 
     # check start and end dates
+    timeline <- coverage$timeline[[1]]
     if (purrr::is_null(start_date))
-        start_date <- coverage$start_date
+        start_date <- lubridate::as_date(timeline[1])
     if (purrr::is_null(end_date))
-        end_date <- coverage$end_date
+        end_date  <- lubridate::as_date(timeline[length(timeline)])
 
     # try to get a time series from the WTSS server
     tryCatch({

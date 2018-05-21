@@ -58,7 +58,7 @@
     ensurer::ensure_that(raster.tb, NROW(.) >= 1,
                          err_desc = "sits_ts_fromRasterXY: need a valid metadata for coverage")
 
-    timeline <- raster.tb$timeline[[1]]
+    timeline <- raster.tb$timeline[[1]][[1]]
 
     start_idx <- 1
     end_idx   <- length(timeline)
@@ -85,7 +85,7 @@
     ll_sp <- sf::as_Spatial(ll_sfc)
 
     # An input raster brick contains several files, each corresponds to a band
-    values.lst <- unlist(raster.tb$r_objs) %>%
+    values.lst <- raster.tb$r_objs[[1]] %>%
         purrr::map(function(r_brick) {
             # eack brick is a band
             nband <<- nband + 1
@@ -147,7 +147,7 @@
     ensurer::ensure_that(raster.tb, NROW(.) >= 1,
                          err_desc = "sits_ts_fromRasterXY: need a valid metadata for coverage")
 
-    timeline <- raster.tb$timeline[[1]]
+    timeline <- raster.tb$timeline[[1]][[1]]
 
     ts.tb <- tibble::tibble(Index = timeline)
 
@@ -158,7 +158,7 @@
     nband <- 0
 
     # An input raster brick contains several files, each corresponds to a band
-    bricks.lst <- raster.tb$r_objs
+    bricks.lst <- raster.tb$r_objs[[1]]
     values.lst <- bricks.lst %>%
         purrr::map(function(r_brick) {
             # eack brick is a band

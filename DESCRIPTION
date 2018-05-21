@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 1.4.2.1
-Date: 2018-04-24
+Version: 1.5.1
+Date: 2018-05-25
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
@@ -30,7 +30,6 @@ ByteCompile: true
 LazyData: true
 Imports:
     magrittr,
-    BBmisc,
     caret,
     config,
     data.table (>= 1.10),
@@ -48,8 +47,6 @@ Imports:
     grDevices,
     keras,
     kohonen,
-    jsonlite,
-    liquidSVM,
     log4r,
     lubridate,
     MASS,

@@ -7,7 +7,7 @@ testthat::test_that("SVM, Random Forest, LDA, QDA, LASSO model",{
     testthat::expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_MT_ndvi)$label))
 
-    rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(ntree = 200))
+    rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num.trees = 200))
     class.tb <- sits_classify(point_ndvi, rfor_model)
 
     testthat::expect_true(all(class.tb$predicted[[1]]$class %in%

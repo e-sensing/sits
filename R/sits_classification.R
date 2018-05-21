@@ -30,7 +30,7 @@
 #' data(samples_MT_ndvi)
 #' # select the bands "ndvi", "evi", "nir", and "mir"
 #' samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
-#' # build a classification model using random forest
+#' # build a classification model using SVM
 #' model_svm <- sits_train(samples.tb, ml_method = sits_svm ())
 #' # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
 #' point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir","mir"))
@@ -52,14 +52,12 @@ sits_classify <- function(data.tb    = NULL,
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
 
     # has normalization been applied to the data?
-    normalize <- .sits_normalization_choice(ml_model)
     stats.tb   <- environment(ml_model)$stats.tb
 
     # obtain the distances after normalizing data by band
-    if ( normalize == TRUE)
+    if (!purrr::is_null(stats.tb))
         distances_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb, multicores))
     else
-        # no normalization or normalization by distance
         distances_DT <- sits_distances(data.tb)
 
     # define the parameters for breaking up a long time series
@@ -110,8 +108,9 @@ sits_classify <- function(data.tb    = NULL,
         colnames(dist_DT) <- attr_names
 
         # classify the subset data
-        pred_block.vec <- ml_model(dist_DT)
-        return(pred_block.vec)
+        pred_block.lst <- ml_model(dist_DT)
+
+        return(pred_block.lst$values)
     }
 
     join_blocks <- function(blocks.lst) {

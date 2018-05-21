@@ -36,8 +36,6 @@
                                   bands          = list(bands),
                                   scale_factors  = list(scale_factors),
                                   missing_values = list(missing_values),
-                                  start_date     = as.Date(timeline[1]),
-                                  end_date       = as.Date(timeline[length(timeline)]),
                                   timeline       = list(timeline),
                                   nrows          = as.integer(size["nrows"]),
                                   ncols          = as.integer(size["ncols"]),

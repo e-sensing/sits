@@ -4,15 +4,12 @@
 \alias{sits_gbm}
 \title{Train a SITS classification model with a gradient boosting machine}
 \usage{
-sits_gbm(data.tb = NULL, normalize = TRUE,
-  formula = sits_formula_logref(), distribution = "multinomial",
-  n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5,
-  ...)
+sits_gbm(data.tb = NULL, formula = sits_formula_logref(),
+  distribution = "multinomial", n.trees = 500, interaction.depth = 2,
+  shrinkage = 0.001, cv.folds = 5, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
-
-\item{normalize}{(integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension}
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
@@ -29,6 +26,8 @@ Also known as the learning rate or step-size reduction.}
 \item{cv.folds}{number of cross-validations to run}
 
 \item{...}{other parameters to be passed to `gbm::gbm` function}
+
+\item{normalize}{(integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension}
 }
 \value{
 result          a model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
@@ -45,11 +44,13 @@ Please refer to the documentation in that package for more details.
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 data(samples_MT_ndvi)
 # Build a GBM model
-gbm_model <- sits_train(data.tb, sits_gbm())
+gbm_model <- sits_train(samples_MT_ndvi, sits_gbm(n.trees = 200, cv.folds = 2))
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, gbm_model)
+class.tb <- sits_classify (point_ndvi, gbm_model)
+# plot the classification
+sits_plot(class.tb)
 }
 }
 \author{

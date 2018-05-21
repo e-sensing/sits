@@ -241,8 +241,6 @@
                                 service        = character(),
                                 product        = character(),
                                 bands          = list(),
-                                start_date     = as.Date(character()),
-                                end_date       = as.Date(character()),
                                 timeline       = list(),
                                 nrows          = integer(),
                                 ncols          = integer(),

@@ -10,7 +10,7 @@
     timeline <-  NULL
     # is this a coverage metadata?
     if ("timeline" %in% names(data.tb))
-        timeline <- as.Date(data.tb[1,]$timeline[[1]])
+        timeline <- as.Date(data.tb[1,]$timeline[[1]][[1]])
 
     # is this a SITS tibble with the time series?
     if ("time_series" %in% names(data.tb))

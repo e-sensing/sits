@@ -73,15 +73,13 @@ sits_kfold_validate <- function(data.tb, folds = 5,
         ml_model <- sits_train(data_train.tb, ml_method)
 
         # has normalization been applied to the data?
-        normalize <- .sits_normalization_choice(ml_model)
         stats.tb   <- environment(ml_model)$stats.tb
 
         # obtain the distances after normalizing data by band
-        if ( normalize == TRUE)
-            distances_DT <- sits_distances(.sits_normalize_data(data_test.tb, stats.tb))
+        if (!purrr::is_null(stats.tb))
+            distances_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb, multicores))
         else
-            # no normalization or normalization by distance
-            distances_DT <- sits_distances(data_test.tb)
+            distances_DT <- sits_distances(data.tb)
 
         # classify the test data
         predicted <- .sits_predict(distances_DT, ml_model)

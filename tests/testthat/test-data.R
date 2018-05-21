@@ -7,7 +7,7 @@ testthat::test_that("Creating a WTSS coverage", {
 testthat::test_that("Creating a SATVEG coverage", {
     testthat::skip_on_cran()
     coverage_satveg <- sits_coverage(service = "SATVEG",  name = "terra")
-    testthat::expect_true(length(coverage_satveg$timeline[[1]]) >  1)
+    testthat::expect_true(length(coverage_satveg$timeline[[1]][[1]]) >  1)
 })
 
 testthat::test_that("Reading a CSV file from WTSS", {

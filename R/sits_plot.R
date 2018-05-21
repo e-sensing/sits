@@ -448,14 +448,15 @@ sits_plot_dendrogram <- function(data.tb,
 #' for showing the same lat/long location in a series of time steps.
 #'
 #' @param raster_class.tb   a tibble with the metadata for a classified raster object
+#' @param time        temporal reference for plot
 #' @param title       string
 #' @param colors      color pallete
 #' @export
 #'
-sits_plot_raster <- function(raster_class.tb, title = "Classified Image", colors = NULL) {
+sits_plot_raster <- function(raster_class.tb, time = 1, title = "Classified Image", colors = NULL) {
 
     # get the raster object
-    r <- raster_class.tb[1,]$r_objs[[1]]
+    r <- raster_class.tb[1,]$r_objs[[1]][[time]]
     # convert from raster to points
     map.p <- raster::rasterToPoints(r)
     # create a data frame

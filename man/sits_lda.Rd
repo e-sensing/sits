@@ -4,13 +4,10 @@
 \alias{sits_lda}
 \title{Train a SITS classification model using linear discriminant analysis}
 \usage{
-sits_lda(data.tb = NULL, normalize = TRUE,
-  formula = sits_formula_logref(), ...)
+sits_lda(data.tb = NULL, formula = sits_formula_logref(), ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
-
-\item{normalize}{(boolean) 0 = no normalization, 1 = normalize per band,}
 
 \item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
 
@@ -36,7 +33,7 @@ lda_model <- sits_train(samples_MT_ndvi, sits_lda())
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, samples_MT_ndvi, lda_model)
+class.tb <- sits_classify (point_ndvi, lda_model)
 }
 }
 \author{
