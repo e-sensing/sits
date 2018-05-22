@@ -43,9 +43,10 @@ This function returns the confusion matrix, and Kappa values.
 \donttest{
 # read a set of samples
 data (cerrado_2classes)
-
 # perform a five fold validation with the SVM machine learning method
-conf_matrix1.mx <- sits_kfold_validate (cerrado_2classes, ml_method = sits_svm())
+conf_matrix1.mx <- sits_kfold_validate (cerrado_2classes, ml_method = sits_rfor())
+# print the confidence matrix
+sits_conf_matrix(conf_matrix1.mx)
 }
 }
 \author{

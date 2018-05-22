@@ -225,37 +225,6 @@
     )
     return(result.tb)
 }
-
-#' @title Create an empty tibble to store the metadata of a coverage
-#' @name .sits_tibble_coverage
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Create an empty tibble to store the metadata about a coverage
-#'
-#' @return coverage.tb   a tibble to store the metadata
-#'
-.sits_tibble_coverage <- function() {
-    result.tb <- tibble::tibble(r_objs          = list(),
-                                name           = character(),
-                                service        = character(),
-                                product        = character(),
-                                bands          = list(),
-                                timeline       = list(),
-                                nrows          = integer(),
-                                ncols          = integer(),
-                                xmin           = double(),
-                                xmax           = double(),
-                                ymin           = double(),
-                                ymax           = double(),
-                                xres           = double(),
-                                yres           = double(),
-                                crs            = character(),
-                                file           = character()
-    )
-    class(result.tb) <- append(class(result.tb), "sits_coverage")
-    return(result.tb)
-}
 #' @title Create an empty tibble to store the results of predictions
 #' @name .sits_tibble_prediction
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

@@ -33,9 +33,8 @@ chosen coverage:
  bands          - vector of bands
  scale_factor   - vector of scale factors
  missing_values - vector of missing values
- start_date     - the start date for the time series data in the coverage
- end_date       - the end date for the time series data in the coverage
- timeline       - the timeline of the coverage
+ minimum_values - vector of minimum values
+ timeline       - the timelines of the coverage (more than one if data has been classified)
  xmin           - spatial extent (xmin)
  ymin           - spatial extent (ymin)
  xmax           - spatial extent (xmax)
@@ -43,7 +42,7 @@ chosen coverage:
  xres           - spatial resolution (x dimension)
  yres           - spatial resolution (y dimension)
  crs            - Projection crs
- files          - Files associated with the coverage (in the case of service == "RASTER")
+ files          - Files associated with the coverage (in case of raster data)
 }
 \examples{
 \donttest{
@@ -53,9 +52,6 @@ coverage.tb <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
 # Example 2. Create a raster coverage with metadata
 # read a raster file and put it into a vector
 files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-
-# define the timeline
-data(timeline_modis_392)
 
 # create a raster coverage file based on the information about the files
 raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
