@@ -148,9 +148,15 @@ sits_coverage <- function(service        = "RASTER",
 #' @param yres               spatial resolution (y dimension)
 #' @param crs                CRS for coverage
 #' @param files.vec          vector with associated files
-.sits_create_coverage <- function (r_objs.lst, name, service,
-                                   bands.vec, labels.vec, scale_factors.vec,
-                                   missing_values.vec, minimum_values.vec, timeline.lst,
+.sits_create_coverage <- function (r_objs.lst,
+                                   name,
+                                   service,
+                                   bands.vec,
+                                   labels.vec,
+                                   scale_factors.vec,
+                                   missing_values.vec,
+                                   minimum_values.vec,
+                                   timeline.lst,
                                    nrows, ncols, xmin, xmax, ymin, ymax,
                                    xres, yres, crs, files.vec) {
 

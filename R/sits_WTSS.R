@@ -178,7 +178,7 @@ sits_infoWTSS <- function() {
     # try to get a time series from the WTSS server
     tryCatch({
         # get the WTSS object associated to the URL
-        wtss.obj <- coverage$r_objs[[1]]
+        wtss.obj <- coverage$r_objs[[1]][[1]]
         # retrieve the time series from the service
         ts <- wtss::timeSeries(object     = wtss.obj,
                                coverages  = coverage$name,

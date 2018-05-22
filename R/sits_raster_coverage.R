@@ -17,8 +17,12 @@
 #' @param  files.vec             vector with the file paths of the raster files
 #' @return raster.tb         tibble with metadata information about a raster data set
 #'
-.sits_coverage_raster <- function(name, timeline.vec, bands.vec,
-                                  scale_factors.vec, missing_values.vec, minimum_values.vec,
+.sits_coverage_raster <- function(name,
+                                  timeline.vec,
+                                  bands.vec,
+                                  scale_factors.vec,
+                                  missing_values.vec,
+                                  minimum_values.vec,
                                   files.vec) {
 
     ensurer::ensure_that(bands.vec, length(.) == length(files.vec),
@@ -31,8 +35,12 @@
                          err_desc = "sits_coverageRaster - files must be provided")
 
     # get the timeline
-    if (purrr::is_null(timeline))
-        timeline <- lubridate::as_date(.sits_get_timeline(service = "RASTER", name = name))
+    if (purrr::is_null(timeline.vec))
+        timeline.vec <- lubridate::as_date(.sits_get_timeline(service = "RASTER", name = name))
+
+    # set the labels
+    labels.vec <- c("NoClass")
+
 
     # create a list to store the raster objects
     brick.lst <- purrr::pmap(list(files.vec, bands.vec),
@@ -42,7 +50,7 @@
                                  # find out how many layers the object has
                                  n_layers   <-  raster.obj@file@nbands
                                  # check that there are as many layers as the length of the timeline
-                                 ensurer::ensure_that(n_layers, (.) == length(timeline),
+                                 ensurer::ensure_that(n_layers, (.) == length(timeline.vec),
                                                       err_desc = "duration of timeline is not matched by number of layers in raster")
                                  # add the object to the raster object list
                                  return(raster.obj)
@@ -51,12 +59,13 @@
     coverage.tb <- .sits_create_raster_coverage(raster.lst         = brick.lst,
                                                 service            = "RASTER",
                                                 name               = name,
-                                                timeline.lst       = list(timeline),
-                                                bands.vec          = bands,
-                                                scale_factors.vec  = scale_factors,
-                                                missing_values.vec = missing_values,
-                                                minimum_values.vec = minimum_values,
-                                                files.vec          = files)
+                                                timeline.lst       = list(timeline.vec),
+                                                bands.vec          = bands.vec,
+                                                labels.vec         = labels.vec,
+                                                scale_factors.vec  = scale_factors.vec,
+                                                missing_values.vec = missing_values.vec,
+                                                minimum_values.vec = minimum_values.vec,
+                                                files.vec          = files.vec)
 
     return(coverage.tb)
 }
@@ -95,7 +104,7 @@
 
     scale_factors_class   <- rep(1, length(subset_dates.lst))
     missing_values_class  <- rep(-9999, length(subset_dates.lst))
-    minimum_values_class  <- rep(0.0, length(subset_dates.lst))
+    minimum_values_class  <- rep(0, length(subset_dates.lst))
 
     # labels come from samples.tb
     labels <- sits_labels(samples.tb)$label
@@ -111,9 +120,9 @@
     files_probs     <- vector(length = length(subset_dates.lst))
     n_layers_probs  <- length(labels)
 
-    scale_factors_probs   <- rep(1,  length(subset_dates.lst))
+    scale_factors_probs   <- rep(0.001,  length(subset_dates.lst))
     missing_values_probs  <- rep(-9999,  length(subset_dates.lst))
-    minimum_values_probs  <- rep(-32767, length(subset_dates.lst))
+    minimum_values_probs  <- rep(0, length(subset_dates.lst))
 
     timeline_rasters <- vector("list", length = length(subset_dates.lst))
 
@@ -141,7 +150,7 @@
 
         # creation of raster bricks
         rasters_probs[[i]] <- raster::brick(r_obj, nl = n_layers_probs )
-        raster::dataType(rasters_probs[[i]]) <- "FLT8S"
+        raster::dataType(rasters_probs[[i]]) <- "INT2U"
 
         # define the filename for the classified image
         file_probs <- paste0(file, "_probs_")
@@ -240,10 +249,6 @@
         ensurer::ensure_that(yres, (.) == raster::yres(raster.lst[[i]]),
                              err_desc = "raster bricks/layers have different yres")
     }
-
-    if (purrr::is_null(labels))
-        labels.vec <- c("NoClass")
-
     # if scale factors are not provided, try a best guess
     if (purrr::is_null(scale_factors.vec)) {
         message("Scale factors not provided - will use default values: please check they are valid")
@@ -282,11 +287,19 @@
     crs = as.character(raster::crs(r_obj))
 
     # create a tibble to store the metadata
-    coverage.tb <- .sits_create_coverage (raster.lst, name, service,
-                                          bands.vec, labels.vec, scale_factors.vec,
-                                          missing_values.vec, minimum_values.vec, timeline.lst,
-                                          nrows, ncols, xmin, xmax, ymin, ymax,
-                                          xres, yres, crs, files.vec)
+    coverage.tb <- .sits_create_coverage (raster.lst,
+                                          name = name,
+                                          service = service,
+                                          bands.vec = bands.vec,
+                                          labels.vec = labels.vec,
+                                          scale_factors.vec = scale_factors.vec,
+                                          missing_values.vec = missing_values.vec,
+                                          minimum_values.vec = minimum_values.vec,
+                                          timeline.lst = timeline.lst,
+                                          nrows = nrows, ncols = ncols,
+                                          xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
+                                          xres = xres, yres = yres, crs = crs,
+                                          files.vec = files.vec)
 
     return(coverage.tb)
 }

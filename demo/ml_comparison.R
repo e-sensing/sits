@@ -31,7 +31,7 @@ samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi", "nir", "mir"))
 results <- list()
 
 ## SVM model
-conf_svm.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 2,
+conf_svm.tb <- sits_kfold_validate(samples.tb, folds = 4, multicores = 2,
                                    ml_method = sits_svm(kernel = "radial", cost = 10))
 
 print("== Confusion Matrix = SVM =======================")
@@ -42,12 +42,12 @@ conf_svm.mx$name <- "svm_10"
 results[[length(results) + 1]] <- conf_svm.mx
 
 # Deep Learning
-conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
+conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 4, multicores = 2,
                                   ml_method = sits_deeplearning( units = c(512, 512, 512, 512, 512),
                                                                  activation       = 'elu',
                                                                  dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
                                                                  optimizer        = keras::optimizer_adam(lr = 0.001),
-                                                                 epochs           = 500,
+                                                                 epochs           = 200,
                                                                  batch_size       = 128,
                                                                  validation_split = 0.2,
                                                                  binary_classification = FALSE))
@@ -61,8 +61,8 @@ results[[length(results) + 1]] <- conf_dl.mx
 
 # =============== RFOR ==============================
 
-conf_rfor.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
-                                    ml_method = sits_train(samples.tb, sits_rfor(ntree = 5000)))
+conf_rfor.tb <- sits_kfold_validate(samples.tb, folds = 4, multicores = 2,
+                                    ml_method = sits_train(samples.tb, sits_rfor(num.trees = 5000)))
 print("== Confusion Matrix = RFOR =======================")
 conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
 conf_rfor.mx$name <- "rfor"
@@ -72,7 +72,7 @@ results[[length(results) + 1]] <- conf_rfor.mx
 
 
 # =============== LDA ==============================
-conf_lda.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
+conf_lda.tb <- sits_kfold_validate(samples.tb, folds = 4, multicores = 2,
                                    ml_method = sits_lda())
 
 print("== Confusion Matrix = LDA =======================")
@@ -84,7 +84,7 @@ results[[length(results) + 1]] <- conf_lda.mx
 
 # =============== MLR ==============================
 # "multinomial log-linear (mlr)
-conf_mlr.tb <- sits_kfold_validate(samples.tb, folds = 5, multicores = 1,
+conf_mlr.tb <- sits_kfold_validate(samples.tb, folds = 4, multicores = 2,
                                    ml_method = sits_mlr())
 
 # print the accuracy of the Multinomial log-linear

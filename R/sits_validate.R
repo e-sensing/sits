@@ -32,15 +32,15 @@
 #' \donttest{
 #' # read a set of samples
 #' data (cerrado_2classes)
-#'
 #' # perform a five fold validation with the SVM machine learning method
-#' conf_matrix1.mx <- sits_kfold_validate (cerrado_2classes, ml_method = sits_svm())
+#' conf_matrix1.mx <- sits_kfold_validate (cerrado_2classes, ml_method = sits_rfor())
+#' # print the confidence matrix
+#' sits_conf_matrix(conf_matrix1.mx)
 #' }
 #' @export
 
 sits_kfold_validate <- function(data.tb, folds = 5,
                                 ml_method    = sits_svm(), multicores = NULL){
-
 
     # find the number of cores
     if (purrr::is_null(multicores))
@@ -52,9 +52,6 @@ sits_kfold_validate <- function(data.tb, folds = 5,
     # is the data labelled?
     ensurer::ensure_that(data.tb, !("NoClass" %in% sits_labels(.)),
                          err_desc = "sits_cross_validate: please provide a labelled set of time series")
-
-    #is the bands are not provided, deduced them from the data
-    bands <- sits_bands(data.tb)
 
     # create partitions different splits of the input data
     data.tb <- .sits_create_folds(data.tb, folds = folds)
@@ -77,24 +74,21 @@ sits_kfold_validate <- function(data.tb, folds = 5,
 
         # obtain the distances after normalizing data by band
         if (!purrr::is_null(stats.tb))
-            distances_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb, multicores))
+            distances_DT <- sits_distances(.sits_normalize_data(data_test.tb, stats.tb, multicores))
         else
-            distances_DT <- sits_distances(data.tb)
+            distances_DT <- sits_distances(data_test.tb)
 
         # classify the test data
-        predicted <- .sits_predict(distances_DT, ml_model)
+        predicted <- ml_model(distances_DT)$values
 
         ref.vec  <- c(ref.vec,  data_test.tb$label)
         pred.vec <- c(pred.vec, predicted)
 
-        return(c(pred.vec, ref.vec))
+        return(list(pred = pred.vec, ref = ref.vec))
     }, mc.cores = multicores)
 
-    purrr::map(conf.lst, function(e) {
-        mid <- length(e)/2
-        pred.vec <<- c(pred.vec, e[1:mid])
-        ref.vec  <<-  c(ref.vec, e[(mid + 1):length(e)])
-    })
+    pred.vec <- unlist(lapply(conf.lst, function(x) x$pred))
+    ref.vec  <- unlist(lapply(conf.lst, function(x) x$ref))
 
     pred_ref.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
 

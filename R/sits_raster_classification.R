@@ -196,7 +196,7 @@ sits_classify_raster <- function(file        = NULL,
             colnames(dist_DT) <- attr_names
 
             # predict the classification values
-            output.lst <- .sits_predict_interval(dist_DT, time, output.lst, ml_model, int_labels, bs$row[block], multicores)
+            output.lst <- .sits_predict_interval(dist_DT, time, output.lst, ml_model, labels, int_labels, bs$row[block], multicores)
 
             # garbage collection
             rm(dist_DT)
@@ -328,7 +328,7 @@ sits_classify_raster <- function(file        = NULL,
     # estimated size of memory required for scaling and normalization
     mem_required_scaling <- (full_data_size + as.numeric(pryr::mem_used()))*bloat
 
-    .sits_log_debug(paste0("max memory required for scaling (GB)", round(mem_required_scaling/1e+09, digits = 3)))
+    .sits_log_debug(paste0("max memory required for scaling (GB) - ", round(mem_required_scaling/1e+09, digits = 3)))
 
     # estimated size of the data for classification
     class_data_size <- as.numeric(ninterval)*single_data_size
@@ -345,7 +345,7 @@ sits_classify_raster <- function(file        = NULL,
         else
             mem_required_processing <- multicores*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size) + full_data_size)
     }
-    .sits_log_debug(paste0("max memory required for processing (GB)", round(mem_required_processing/1e+09, digits = 3)))
+    .sits_log_debug(paste0("max memory required for processing (GB) - ", round(mem_required_processing/1e+09, digits = 3)))
 
     # number of passes to read the full data sets
     nblocks <- max(ceiling(mem_required_scaling/(memsize*1e+09)), ceiling(mem_required_processing/(memsize*1e+09)))
@@ -418,11 +418,8 @@ sits_classify_raster <- function(file        = NULL,
     data_DT <- data.table::as.data.table(do.call(cbind,values.lst))
 
     # memory cleanup
-    .sits_log_debug(paste0("Memory used after binding bricks  - ", .sits_mem_used(), " GB"))
     rm(values.lst)
     gc()
-    .sits_log_debug(paste0("Memory used after removing values - ", .sits_mem_used(), " GB"))
-
 
     # create two additional columns for prediction
     size <- n_rows_block*coverage[1,]$ncols
@@ -433,7 +430,7 @@ sits_classify_raster <- function(file        = NULL,
     data_DT <- data.table::as.data.table(cbind(two_cols_DT, data_DT))
 
     # memory debug
-    .sits_log_debug(paste0("Memory used after adding two first cols - ", .sits_mem_used(), " GB"))
+    .sits_log_debug(paste0("Memory used after reading block - ", .sits_mem_used(), " GB"))
 
     return(data_DT)
 }
@@ -458,32 +455,12 @@ sits_classify_raster <- function(file        = NULL,
     values.mx[is.na(values.mx)] <- minimum_value
     values.mx[values.mx <= minimum_value] <- minimum_value
 
-    # memory management
-    .sits_log_debug(paste0("Memory used before scaling - ", .sits_mem_used(), " GB"))
-
     # scale the data set
-    # auxiliary function to scale a block of data
-    scale_block <- function(chunk, scale_factor) {
-        scaled_block.mx <- scale_data(chunk, scale_factor)
-    }
-    # use multicores to speed up scaling
-    if (multicores > 1) {
-        chunk.lst <- .sits_split_data(values.mx, multicores)
-        rows.lst  <- parallel::mclapply(chunk.lst, scale_block, scale_factor, mc.cores = multicores)
-        values.mx <- do.call(rbind, rows.lst)
-        rm(chunk.lst)
-        rm(rows.lst)
-        gc()
-    }
-    else
-        values.mx <- scale_data(values.mx, scale_factor)
+    values.mx <- .sits_scale_data(values.mx, scale_factor, multicores)
 
-    .sits_log_debug(paste0("Memory used after scaling ", .sits_mem_used(), " GB"))
-
-    # normalize the data by bands
+    # normalize the data
     if (!purrr::is_null(stats)) {
         values.mx <- .sits_normalize_matrix(values.mx, stats, band, multicores)
-        .sits_log_debug(paste0("Model has been normalized"))
     }
 
     if (!(purrr::is_null(filter))) {
@@ -499,28 +476,20 @@ sits_classify_raster <- function(file        = NULL,
 #' @param  time              time interval to be processed
 #' @param  output.lst        list with the raster objects for classification (values and probs)
 #' @param  ml_model          machine learning model to be applied
+#' @param  labels            class labels
 #' @param  int_labels        integer values corresponding to labels
 #' @param  first_row         initial row of the output layer to write block
 #' @param  multicores        number of cores to process the time series
 #' @return layers.lst        list of layers with classification results
 
-.sits_predict_interval <- function(DT, time, output.lst, ml_model, int_labels, first_row, multicores) {
+.sits_predict_interval <- function(DT, time, output.lst, ml_model, labels, int_labels, first_row, multicores) {
 
-    if (!(purrr::is_null(environment(ml_model)$model.keras))) {
+    if (!(purrr::is_null(environment(ml_model)$model.keras)) ||
+        !(purrr::is_null(environment(ml_model)$result_ranger)) ) {
         multicores <- 1
-        .sits_log_debug(paste0("keras already runs on multiple CPUs - setting multicores to 1"))
-    }
-    if (!(purrr::is_null(environment(ml_model)$result_ranger))) {
-        multicores <- 1
-        .sits_log_debug(paste0("ranger already runs on multiple CPUs - setting multicores to 1"))
+        .sits_log_debug(paste0("keras and ranger already run on multiple CPUs - setting multicores to 1"))
     }
 
-    # # classify a block of data (with data split)
-    # classify_block <- function(block) {
-    #     # predict the values for each time interval
-    #     pred_block.lst <- ml_model(block)
-    #     return(pred_block.lst)
-    # }
     # classify a block of data (without data split)
     classify_block <- function(block) {
         # predict the values for each time interval
@@ -529,62 +498,43 @@ sits_classify_raster <- function(file        = NULL,
     }
     # set up multicore processing
     if (multicores > 1) {
-        # memory management
-        .sits_log_debug(paste0("Memory used before split_data - ", .sits_mem_used(), " GB"))
-
         # estimate the list for breaking a block
         block.lst <- .sits_split_block_size(DT, multicores)
-
-        .sits_log_debug(paste0("Memory used after split_data - ", .sits_mem_used(), " GB"))
 
         # apply parallel processing to the split data and join the results
         pred.lst <- parallel::mclapply(block.lst, classify_block,  mc.cores = multicores)
 
         # compose result based on output from different cores
-        pred_class.vec <- unlist(lapply(pred.lst, function (x) x$values))
-        pred_probs.mx  <- do.call(rbind,lapply(pred.lst, function (x) x$probs))
+        pred_class.vec <- unlist(lapply(pred.lst, function(x) x$values))
+        pred_probs.mx  <- do.call(rbind,lapply(pred.lst, function(x) x$probs))
 
         # memory management
         .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
         rm(block.lst)
         gc()
-        .sits_log_debug(paste0("Memory used after removing blocks - ", .sits_mem_used(), " GB"))
     }
-    else { # one core only
+    else {
         # estimate the prediction vector
         pred.lst <- ml_model(DT)
         pred_class.vec <- pred.lst[[1]]
         pred_probs.mx  <- pred.lst[[2]]
     }
 
-    # check the result has the right dimension
-    ensurer::ensure_that(pred_class.vec, length(.) == nrow(DT),
-                         err_desc = "sits_classify_raster - number of classified pixels is different
-                         from number of input pixels")
-
-    ensurer::ensure_that(pred_probs.mx, nrow(.) == nrow(DT),
-                         err_desc = "sits_classify_raster - number of rows of probability matrix is different
-                         from number of input pixels")
+    # are the results consistent with the data input?
+    .sits_check_results(pred_class.vec, pred_probs.mx, DT)
     # memory management
     rm(DT)
     gc()
-    .sits_log_debug(paste0("Memory used after removing DT - ", .sits_mem_used(), " GB"))
 
-    # for each layer, write the predicted values
-    layers.lst <- output.lst$layers
-    layers.lst[[time]] <- raster::writeValues(layers.lst[[time]], as.integer(int_labels[pred_class.vec]), first_row)
-
-    # for each brick, write the probability values
-    bricks.lst <- output.lst$bricks
-    bricks.lst[[time]] <- raster::writeValues(bricks.lst[[time]], pred_probs.mx, first_row)
+    output.lst <- .sits_write_raster_values(output.lst, first_row,
+                                            pred_class.vec, pred_probs.mx,
+                                            labels, int_labels,
+                                            time, multicores)
 
     # memory management
     rm(pred_class.vec)
     rm(pred_probs.mx)
     gc()
-
-    # update the joint list of layers (values) and bricks (probs)
-    output.lst <- list(layers = layers.lst, bricks = bricks.lst)
 
     return(output.lst)
 }
@@ -611,9 +561,6 @@ sits_classify_raster <- function(file        = NULL,
         values_block.mx <- normalize_data(chunk, quant_2, quant_98)
     }
 
-    # memory management
-    .sits_log_debug(paste0("Memory used before normalization - ", .sits_mem_used(), " GB"))
-
     # parallel processing for normalization
     if (multicores > 1) {
         chunk.lst <- .sits_split_data(data.mx, multicores)
@@ -626,11 +573,54 @@ sits_classify_raster <- function(file        = NULL,
     else
         data.mx <- normalize_data(data.mx, quant_2, quant_98)
 
-    .sits_log_debug(paste0("Data has been normalized between ", quant_2 , " (2%) and ", quant_98, "(98%)"))
-    .sits_log_debug(paste0("Memory used after normalization - ", .sits_mem_used(), " GB"))
-
     return(data.mx)
 }
+
+#' @title Scale the time series values in the case of a matrix
+#' @name .sits_scale_data
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description this function normalizes one band of the values read from a raster brick
+#'
+#' @param  values.mx      matrix of values
+#' @param  scale_factor   scaling factor
+#' @param  multicores     number of cores
+#' @return values.mx      scaled matrix
+#'
+.sits_scale_data <- function(values.mx, scale_factor, multicores) {
+
+    # scale the data set
+    # auxiliary function to scale a block of data
+    scale_block <- function(chunk, scale_factor) {
+        scaled_block.mx <- scale_data(chunk, scale_factor)
+    }
+    # use multicores to speed up scaling
+    if (multicores > 1) {
+        chunk.lst <- .sits_split_data(values.mx, multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, scale_block, scale_factor, mc.cores = multicores)
+        values.mx <- do.call(rbind, rows.lst)
+        rm(chunk.lst)
+        rm(rows.lst)
+        gc()
+    }
+    else
+        values.mx <- scale_data(values.mx, scale_factor)
+
+    return(values.mx)
+}
+
+#' @title Estimate the processing time
+#' @name .sits_estimate_processing_time
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description this function normalizes one band of the values read from a raster brick
+#'
+#' @param  start_time     initial processing time
+#' @param  select.lst     list of time intervals
+#' @param  bs             raster block parameters
+#' @param  block          current block
+#' @param  time           current interval
+#' @return values.mx      scaled matrix
 
 .sits_estimate_processing_time <- function(start_time, select.lst, bs, block, time) {
     # compute current time
@@ -649,4 +639,64 @@ sits_classify_raster <- function(file        = NULL,
     }
     return(invisible(TRUE))
 }
+#' @name .sits_check_results
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description verify that classification results have the right size
+#'
+#' @param  pred_class.vec  vector of predicted categorical values
+#' @param  pred_probs.mx   matrix of predicted probabilities for each class
+#' @param  DT              distance matrix
+#' @return check           TRUE if check is OK
+.sits_check_results <- function(pred_class.vec, pred_probs.mx, DT) {
+    # check the result has the right dimension
+    ensurer::ensure_that(pred_class.vec, length(.) == nrow(DT),
+                         err_desc = "sits_classify_raster - number of classified pixels is different
+                         from number of input pixels")
+
+    ensurer::ensure_that(pred_probs.mx, nrow(.) == nrow(DT),
+                         err_desc = "sits_classify_raster - number of rows of probability matrix is different
+                         from number of input pixels")
+    return(invisible(TRUE))
+}
+
+#' @name .sits_write_raster_values
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description write the raster values to the outout files
+#'
+#' @param  output.lst         list with value layers and probability bricks
+#' @param  first_row         initial row to be written to
+#' @param  pred_class.vec    vector of predicted categorical values
+#' @param  pred_probs.mx     matrix of predicted probabilities for each class
+#' @param  labels            class labels
+#' @param  int_labels        integer values corresponding to labels
+#' @param  first_row         initial row of the output layer to write block
+#' @param  multicores        number of cores to process the time series
+#' @return output.lst       updated list with value layers and probability bricks
+.sits_write_raster_values <- function(output.lst, first_row,
+                                        pred_class.vec, pred_probs.mx,
+                                        labels, int_labels,
+                                        time, multicores) {
+
+    # convert probabilities matrix to INT2U
+    scale_factor_save <- as.numeric(10000)
+    pred_probs.mx     <- apply(.sits_scale_data(pred_probs.mx, scale_factor_save, multicores),
+                               c(1,2), function(x) {as.integer(x)})
+    colnames(pred_probs.mx) <- labels
+
+    # for each layer, write the predicted values
+    layers.lst <- output.lst$layers
+    layers.lst[[time]] <- raster::writeValues(layers.lst[[time]], as.integer(int_labels[pred_class.vec]), first_row)
+
+    # for each brick, write the probability values
+    bricks.lst <- output.lst$bricks
+    bricks.lst[[time]] <- raster::writeValues(bricks.lst[[time]], pred_probs.mx, first_row)
+
+    # update the joint list of layers (values) and bricks (probs)
+    output.lst <- list(layers = layers.lst, bricks = bricks.lst)
+
+    return(output.lst)
+}
+
 
