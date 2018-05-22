@@ -56,7 +56,43 @@
     data.tb$time_series <- norm.lst
     return(data.tb)
 }
+#' @title Normalize the time series values in the case of a matrix
+#' @name .sits_normalize_matrix
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description this function normalizes one band of the values read from a raster brick
+#'
+#' @param  data.mx        matrix of values
+#' @param  stats.tb       statistics for normalization
+#' @param  band           band to be normalized
+#' @param  multicores     number of cores
+#' @return data.mx        a normalized matrix
+#'
+.sits_normalize_matrix <- function(data.mx, stats.tb, band, multicores) {
+    # select the 2% and 98% quantiles
+    quant_2   <- as.numeric(stats.tb[2, band])
+    quant_98  <- as.numeric(stats.tb[3, band])
 
+    # auxiliary function to normalize a block of data
+    normalize_block <- function(chunk, quant_2, quant_98) {
+        # normalize a block of data
+        values_block.mx <- normalize_data(chunk, quant_2, quant_98)
+    }
+
+    # parallel processing for normalization
+    if (multicores > 1) {
+        chunk.lst <- .sits_split_data(data.mx, multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, normalize_block, quant_2, quant_98, mc.cores = multicores)
+        data.mx <- do.call(rbind, rows.lst)
+        rm(chunk.lst)
+        rm(rows.lst)
+        gc()
+    }
+    else
+        data.mx <- normalize_data(data.mx, quant_2, quant_98)
+
+    return(data.mx)
+}
 
 
 #' @title Normalize the time series in the given sits_tibble
@@ -87,24 +123,4 @@
     return(stats.tb)
 }
 
-#' @title .sits_normalization_choice
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description  Finds out the normalization, based on the model
-#'
-#' @param ml_model Trained machine learning model
-#' @return normalize choice of normalization (0 = no; 1 = by band)
 
-.sits_normalization_choice <- function (ml_model) {
-
-    # retrieve the samples and statistics from the model
-    samples.tb <- environment(ml_model)$data.tb
-    stats.tb   <- environment(ml_model)$stats.tb
-
-    # find out the normalization choice
-    if( !(purrr::is_null(stats.tb)) )
-        normalize <- TRUE # normalize by bands
-    else
-        normalize <- FALSE # no normalization
-
-    return(normalize)
-}

@@ -57,22 +57,3 @@ sits_distances <- function(data.tb) {
 
     return(result_DT)
 }
-
-#' @title Shift the values of a distance table by a fixed amount
-#' @name .sits_shift_DT
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description takes a data.tabel with distances and shifts by a fixed value.
-#'              This is required for machine learning models using log formulas.
-#'
-#' @param  DT              data.table objects with the distances associated to a time series
-#' @param  shift           amount to be shifted
-#' @return DT              data.table with the values updated by reference
-.sits_shift_DT <- function (DT, shift) {
-
-    DT <- data.table::as.data.table(cbind(DT[,.(original_row,reference)],
-                                          DT[, DT[,3:ncol(DT)] + shift]))
-
-    return(DT)
-
-}

@@ -41,7 +41,6 @@ sits_config <- function() {
         config_user <- config::get(file = user_yml_file)
         sits.env$config <- config::merge(sits.env$config, config_user)
     }
-    sits.env$config$coverages <- .sits_tibble_coverage()
 
     return(invisible(sits.env$config))
 }

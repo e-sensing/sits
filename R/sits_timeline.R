@@ -1,24 +1,29 @@
-#' @title Obtains the timeline for a coverage
-#' @name .sits_timeline
+#' @title Find the time index of the blocks to be extracted for classification
+#' @name .sits_get_time_index
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function returns the timeline for a given coverage
+#' @description Obtains the indexes of the blocks to be extract for each time interval
+#' associated with classification
 #'
-#' @param  data.tb  A sits tibble (either a SITS tibble or a raster metadata)
-.sits_timeline <- function(data.tb){
+#' @param class_info.tb tibble with information required for classification
+#' @return time_index   list with indexes of the input data set associated to each time interval
+#'                      used for classification
+#'
+.sits_get_time_index <- function(class_info.tb) {
+    # find the subsets of the input data
+    dates_index.lst <- class_info.tb$dates_index[[1]]
 
-    timeline <-  NULL
-    # is this a coverage metadata?
-    if ("timeline" %in% names(data.tb))
-        timeline <- as.Date(data.tb[1,]$timeline[[1]][[1]])
+    #retrieve the timeline of the data
+    timeline <- class_info.tb$timeline[[1]]
 
-    # is this a SITS tibble with the time series?
-    if ("time_series" %in% names(data.tb))
-        timeline <- lubridate::as_date(data.tb[1,]$time_series[[1]]$Index)
+    # retrieve the bands
+    bands <- class_info.tb$bands[[1]]
 
-    ensurer::ensure_that(timeline, !purrr::is_null(.), err_desc = "sits_timeline: input does not contain a valid timeline")
+    #retrieve the time index
+    time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
 
-    return(timeline)
+    return(time_index.lst)
+
 }
 
 #' @title Test if starting date fits with the timeline
@@ -181,31 +186,6 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 
     return(dates_index.lst)
 }
-#' @title Find the nearest date to a set of reference dates in a sorted input
-#' @name .sits_nearest_date
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function takes a date (typically coming from a set of patterns)
-#'              and a timeline (typically coming from a time series) and
-#'              finds the date in the timeline that is nearest to the reference date.
-#'
-#' @param date        a dates
-#' @param timeline    a vector of reference dates
-#' @return n_date     nearest date
-#'
-.sits_nearest_date <- function(date, timeline){
-
-    # convert all dates to julian
-    first_date    <- lubridate::as_date(paste0(lubridate::year(timeline[1]), "-01-01"))
-    timeline_jul  <- as.integer(timeline - first_date)
-    julian_date   <- as.integer(date - first_date)
-
-    # find the closest julian day in the interval
-    julian_ref  <- .sits_binary_search(timeline_jul, julian_date)
-    nearest_date <- lubridate::as_date(first_date + julian_ref)
-
-    return(nearest_date)
-}
 #' @title Find number of samples, given a timeline and an interval
 #' @name .sits_num_samples
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -344,4 +324,26 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
             return(index_ts)
         })
     return(time_index.lst)
+}
+#' @title Obtains the timeline for a coverage
+#' @name .sits_timeline
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function returns the timeline for a given coverage
+#'
+#' @param  data.tb  A sits tibble (either a SITS tibble or a raster metadata)
+.sits_timeline <- function(data.tb){
+
+    timeline <-  NULL
+    # is this a coverage metadata?
+    if ("timeline" %in% names(data.tb))
+        timeline <- as.Date(data.tb[1,]$timeline[[1]][[1]])
+
+    # is this a SITS tibble with the time series?
+    if ("time_series" %in% names(data.tb))
+        timeline <- lubridate::as_date(data.tb[1,]$time_series[[1]]$Index)
+
+    ensurer::ensure_that(timeline, !purrr::is_null(.), err_desc = "sits_timeline: input does not contain a valid timeline")
+
+    return(timeline)
 }

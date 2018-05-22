@@ -55,8 +55,6 @@ data(timeline_modis_392)
 #' # create a raster coverage file based on the information about the files
 raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
              timeline = timeline_modis_392, bands = c("ndvi"), files = files)
-
-
 # classify the raster file
 raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb,
    ml_model = svm_model, memsize = 4, multicores = 2)
