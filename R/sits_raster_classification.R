@@ -341,9 +341,9 @@ sits_classify_raster <- function(file        = NULL,
     else {
         # test two different cases
         if (ninstances == ninterval) # one interval only
-            mem_required_processing <- proc_bloat*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size))
+            mem_required_processing <- multicores*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size))
         else
-            mem_required_processing <- proc_bloat*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size) + full_data_size)
+            mem_required_processing <- multicores*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size) + full_data_size)
     }
     .sits_log_debug(paste0("max memory required for processing (GB)", round(mem_required_processing/1e+09, digits = 3)))
 
@@ -556,9 +556,6 @@ sits_classify_raster <- function(file        = NULL,
         pred_class.vec <- pred.lst[[1]]
         pred_probs.mx  <- pred.lst[[2]]
     }
-
-
-
 
     # check the result has the right dimension
     ensurer::ensure_that(pred_class.vec, length(.) == nrow(DT),
