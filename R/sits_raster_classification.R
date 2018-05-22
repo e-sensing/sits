@@ -315,9 +315,6 @@ sits_classify_raster <- function(file        = NULL,
     nbytes <-  8
     # estimated memory bloat
     bloat <- as.numeric(sits.env$config$R_memory_bloat)
-    # estimated processing bloat
-    proc_bloat <- as.numeric(sits.env$config$R_processing_bloat)
-    if (proc_bloat == 0) proc_bloat <- multicores
 
     # single instance size
     single_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)*as.numeric(nbands)
