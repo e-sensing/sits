@@ -3,6 +3,7 @@ testthat::test_that("Creating a WTSS coverage", {
     testthat::skip_on_cran()
     coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
     testthat::expect_true(coverage_wtss$service == "WTSS-INPE")
+    testthat::expect_true(length(coverage_wtss$timeline[[1]][[1]]) >  1)
 })
 testthat::test_that("Creating a SATVEG coverage", {
     testthat::skip_on_cran()

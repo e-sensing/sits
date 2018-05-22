@@ -20,3 +20,4 @@ sits_plot (patterns.tb)
 # (uses the dtwSat R package)
 matches <- sits_TWDTW_classify(point_MT_6bands, patterns.tb, bands = c("ndvi", "evi"),
                                alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
+
