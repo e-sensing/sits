@@ -1,5 +1,5 @@
 #' @title Normalize the time series in the given sits_tibble
-#' @name .sits_normalize_data
+#' @name sits_normalize_data
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description this function normalizes the time series using the mean and
@@ -9,8 +9,8 @@
 #' @param stats.tb    statistics for normalization
 #' @param multicores  number of cores to process
 #' @return data.tb    a normalized sits tibble
-#'
-.sits_normalize_data <- function(data.tb, stats.tb, multicores = NULL){
+#' @export
+sits_normalize_data <- function(data.tb, stats.tb, multicores = NULL){
     .sits_test_tibble(data.tb)
     # find the number of cores
     if (purrr::is_null(multicores))

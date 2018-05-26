@@ -104,8 +104,8 @@
 
     # memory required for processing depends on the model
     if ( !(purrr::is_null(environment(ml_model)$model.keras)) || !(purrr::is_null(environment(ml_model)$result_ranger)))  {
-        .sits_log_debug(paste0("keras and ranger run on multiple threads - no processing bloat"))
-        mem_required_processing <- mem_required_scaling
+        .sits_log_debug(paste0("keras and ranger run on multiple threads"))
+        mem_required_processing <- (class_data_size + as.numeric(pryr::mem_used()))*proc_bloat
     }
     else {
         # test two different cases
@@ -163,9 +163,10 @@
 #'
 #' @param data             data (data.table or matrix)
 #' @param ncores           number of cores for processing
+#' @param ml_model         machine learning model which is part of the object
 #' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
 #'
-.sits_split_data <- function(data, ncores){
+.sits_split_data <- function(data, ncores, ml_model){
 
     # number of rows in the data
     nrows <- nrow(data)

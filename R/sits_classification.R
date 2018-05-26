@@ -56,7 +56,7 @@ sits_classify <- function(data.tb    = NULL,
 
     # obtain the distances after normalizing data by band
     if (!purrr::is_null(stats.tb))
-        distances_DT <- sits_distances(.sits_normalize_data(data.tb, stats.tb, multicores))
+        distances_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb, multicores))
     else
         distances_DT <- sits_distances(data.tb)
 
@@ -108,9 +108,9 @@ sits_classify <- function(data.tb    = NULL,
         colnames(dist_DT) <- attr_names
 
         # classify the subset data
-        pred_block.lst <- ml_model(dist_DT)
+        prediction  <- ml_model(dist_DT)
 
-        return(pred_block.lst$values)
+        return(prediction$values)
     }
 
     join_blocks <- function(blocks.lst) {

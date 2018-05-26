@@ -1,15 +1,11 @@
 default:
 
     # estimated relative growth size of R memory relative to block size
-    R_memory_bloat           : 4
+    R_memory_bloat           : 2.5
+    R_processing_bloat       : 4
 
     # minimum number of samples for multicore processing
     minimum_number_samples   : 1000
-
-    # adjustment shift
-    default_adjustment_shift        : 1.0
-
-    # estimated proportion of time used to process
 
     # Protocols accepted for data acess
     protocols               : ["WTSS", "SATVEG", "RASTER"]
@@ -294,7 +290,6 @@ default:
         Soy_Sunflower :     "#fe9929"
         Sugarcane :         "#8c6bb1"
         Urban_Area :        "#969696"
-        Urban Area :        "#969696"
         Water      :        "#00008b"
 
 
