@@ -145,6 +145,39 @@
 
     return(values.mx)
 }
+#' @title Scale the time series values in the case of a matrix
+#' @name .sits_scale_matrix_integer
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description this function transforms a numerical matrix into an integer one
+#'
+#' @param  values.mx      matrix of values
+#' @param  scale_factor   scaling factor
+#' @param  multicores     number of cores
+#' @return values.mx      scaled integer matrix
+#'
+.sits_scale_matrix_integer <- function(values.mx, scale_factor, multicores) {
+
+    # scale the data set
+    # auxiliary function to scale a block of data
+    scale_matrix_block <- function(chunk, scale_factor) {
+        scaled_block.mx <- scale_matrix_integer(chunk, scale_factor)
+    }
+    # use multicores to speed up scaling
+    if (multicores > 1) {
+        chunk.lst <- .sits_split_data(values.mx, multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, scale_matrix_block, scale_factor, mc.cores = multicores)
+        values.mx <- do.call(rbind, rows.lst)
+        rm(chunk.lst)
+        rm(rows.lst)
+        gc()
+    }
+    else
+        values.mx <- scale_data(values.mx, scale_factor)
+
+    return(values.mx)
+}
+
 #' @name .sits_write_raster_values
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -173,8 +206,8 @@
 
     # convert probabilities matrix to INT2U
     scale_factor_save <- as.numeric(10000)
-    prediction$probs     <- apply(.sits_scale_data(prediction$probs, scale_factor_save, multicores),
-                               c(1,2), function(x) {as.integer(x)})
+    prediction$probs     <- .sits_scale_matrix_integer(prediction$probs, scale_factor_save, multicores)
+
     # write the probabilities
     bricks.lst <- output.lst$bricks
     bricks.lst[[time]] <- raster::writeValues(bricks.lst[[time]], as.matrix(prediction$probs), first_row)

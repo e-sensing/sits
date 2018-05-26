@@ -269,10 +269,6 @@ sits_classify_raster <- function(file        = NULL,
     # are the results consistent with the data input?
     .sits_check_results(prediction, nrows_DT)
 
-    # convert probabilities matrix to INT2U
-    scale_factor_save  <- as.numeric(10000)
-    prediction$probs <- prediction$probs*scale_factor_save
-
     # colnames(prediction$probs) <- labels
 
     # write the raster values
