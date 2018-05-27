@@ -173,7 +173,7 @@
         gc()
     }
     else
-        values.mx <- scale_data(values.mx, scale_factor)
+        values.mx <- scale_matrix_integer(values.mx, scale_factor)
 
     return(values.mx)
 }

@@ -14,7 +14,9 @@ IntegerMatrix scale_matrix_integer(NumericMatrix data, const double& scale_facto
 
     IntegerMatrix new_data(nrows, ncols);
 
-    new_data = data * scale_factor;
+    for (int i = 0; i < ncols; i++)
+        for (int j = 0; j < nrows; j++)
+            new_data(i,j) = static_cast<int> (data(i,j) * scale_factor);
 
     return new_data;
 }
