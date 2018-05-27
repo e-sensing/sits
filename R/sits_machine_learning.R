@@ -656,6 +656,8 @@ sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), scale = TR
             values <- as.character(preds)
             # retrieve the probabilities
             probs <- attr(preds, "probabilities")
+            # reorder the matrix according to the column names
+            probs[, sort(colnames(probs))]
             # build a list with the prediction and the probabilities
             prediction <- proto::proto(values = values, probs = probs)
 
