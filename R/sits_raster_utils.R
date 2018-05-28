@@ -23,6 +23,7 @@
 
     return(invisible(TRUE))
 }
+#' @title  Check the results of the classification with the input data
 #' @name .sits_check_results
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'

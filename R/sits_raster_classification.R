@@ -169,16 +169,10 @@ sits_classify_raster <- function(file        = NULL,
             # predict the classification values
             output.lst <- .sits_predict_interval(dist_DT, time, output.lst, ml_model, labels, int_labels, bs$row[block], multicores)
 
-            # garbage collection
-            rm(dist_DT)
-            gc()
             .sits_log_debug(paste0("Memory used after processing block ", block, " of year ", time, " - ", .sits_mem_used(), " GB"))
             # estimate processing time
             .sits_estimate_processing_time(start_time, select.lst, bs, block, time)
         }
-        # remove distance data.table (trying to use as little memory as possible)
-        rm(data_DT)
-        gc()
 
         # save information about memory use for debugging later
         .sits_log_debug(paste0("Processed block starting from ",  bs$row[block], " to ", (bs$row[block] + bs$nrows[block] - 1)))
@@ -276,8 +270,8 @@ sits_classify_raster <- function(file        = NULL,
                                             time, first_row, multicores)
 
     # memory management
-    rm(prediction)
-    gc()
+    # rm(prediction)
+    # gc()
 
     return(output.lst)
 }

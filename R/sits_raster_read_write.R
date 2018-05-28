@@ -167,17 +167,18 @@
     if (multicores > 1) {
         chunk.lst <- .sits_split_data(values.mx, multicores)
         rows.lst  <- parallel::mclapply(chunk.lst, scale_matrix_block, scale_factor, mc.cores = multicores)
-        values.mx <- do.call(rbind, rows.lst)
+        int_values.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
         rm(rows.lst)
         gc()
     }
     else
-        values.mx <- scale_matrix_integer(values.mx, scale_factor)
+        int_values.mx <- scale_matrix_integer(values.mx, scale_factor)
 
-    return(values.mx)
+    return(int_values.mx)
 }
 
+#' @title Write the values and probs into raster files
 #' @name .sits_write_raster_values
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -205,12 +206,12 @@
     layers.lst[[time]] <- raster::writeValues(layers.lst[[time]], as.integer(int_labels[prediction$values]), first_row)
 
     # convert probabilities matrix to INT2U
-    scale_factor_save <- as.numeric(10000)
-    prediction$probs     <- .sits_scale_matrix_integer(prediction$probs, scale_factor_save, multicores)
+    scale_factor_save <- 10000
+    probs  <- .sits_scale_matrix_integer(prediction$probs, scale_factor_save, multicores)
 
     # write the probabilities
     bricks.lst <- output.lst$bricks
-    bricks.lst[[time]] <- raster::writeValues(bricks.lst[[time]], as.matrix(prediction$probs), first_row)
+    bricks.lst[[time]] <- raster::writeValues(bricks.lst[[time]], probs, first_row)
 
     # update the joint list of layers (values) and bricks (probs)
     output.lst <- list(layers = layers.lst, bricks = bricks.lst)

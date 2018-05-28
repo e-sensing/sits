@@ -2,8 +2,7 @@
 #include <stdio.h>
 using namespace Rcpp;
 
-// This function preprocesses the raster brick data, by removing missing values and those
-// smaller than the minimum value
+// This function scales a numeric matrix and saves the result as integer
 
 // [[Rcpp::export]]
 
@@ -14,9 +13,9 @@ IntegerMatrix scale_matrix_integer(NumericMatrix data, const double& scale_facto
 
     IntegerMatrix new_data(nrows, ncols);
 
-    for (int i = 0; i < ncols; i++)
-        for (int j = 0; j < nrows; j++)
-            new_data(i,j) = static_cast<int> (data(i,j) * scale_factor);
+    for (int i = 0; i < nrows; i++)
+        for (int j = 0; j < ncols; j++)
+            new_data(i,j) = (int)(data(i,j) * scale_factor);
 
     return new_data;
 }

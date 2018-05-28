@@ -88,8 +88,8 @@ sits_log <- function() {
 #' @return memory used in GB
 #'
 .sits_mem_used <- function() {
-    gbyte <- 1024*1024*1024
-    return(round(pryr::mem_used()/gbyte, digits = 3))
+    dt <- gc()
+    return(sum(dt[,2]/1000))
 }
 
 #' @title Prints the error log
