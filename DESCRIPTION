@@ -59,7 +59,6 @@ Imports:
     proto,
     pryr,
     purrr,
-    randomForest,
     ranger,
     raster (>= 2.6),
     readr,

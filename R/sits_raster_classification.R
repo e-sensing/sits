@@ -247,7 +247,7 @@ sits_classify_raster <- function(file        = NULL,
         gc()
 
         # compose result based on output from different cores
-        prediction <- proto::proto(values = unlist(lapply(predictions.lst, function(x) x$values)),
+        prediction <- list(values = unlist(lapply(predictions.lst, function(x) x$values)),
                                    probs = do.call(rbind,lapply(predictions.lst, function(x) x$probs)))
         # memory management
         rm(predictions.lst)
@@ -260,7 +260,6 @@ sits_classify_raster <- function(file        = NULL,
 
         # estimate the prediction vector
         prediction <- ml_model(DT)
-
         # memory management
         rm(DT)
         gc()
