@@ -161,11 +161,13 @@ sits_classify_raster <- function(file        = NULL,
 
         for (time in 1:length(select.lst)) {
             # retrieve the values used for classification
-            dist_DT <- data_DT[, select.lst[[time]], with = FALSE]
-
-            # set column names for DT
-            colnames(dist_DT) <- attr_names
-
+            if (all(select.lst[[time]]))
+                dist_DT <- data_DT
+            else {
+                dist_DT <- data_DT[, select.lst[[time]], with = FALSE]
+                # set column names for DT
+                colnames(dist_DT) <- attr_names
+            }
             # predict the classification values
             output.lst <- .sits_predict_interval(dist_DT, time, output.lst, ml_model, labels, int_labels, bs$row[block], multicores)
 

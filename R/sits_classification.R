@@ -137,62 +137,6 @@ sits_classify <- function(data.tb    = NULL,
 }
 
 
-#' @title Define the information required for classifying time series
-#' @name .sits_class_info
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Time series classification requires that users do a series of steps:
-#' (a) Provide labelled samples that will be used as training data.
-#' (b) Provide information on how the classification will be performed, including data timeline,
-#' temporal interval, and start and end dates per interval.
-#' (c) Clean the training data to ensure it meets the specifications of the classification info.
-#' (d) Use the clean data to train a machine learning classifier.
-#' (e) Classify non-labelled data sets
-#'
-#' In this set of steps, this function provides support for step (b). It requires the user
-#' to provide a timeline, the classification interval, and the start and end dates of
-#' the reference period. The results is a tibble with information that allows the user
-#' to perform steps (c) to (e)
-#'
-#' @param  data.tb         description on the data being classified
-#' @param  samples.tb      samples used for training the classification model
-#' @param  interval        interval between two sucessive classifications
-#' @return class_info.tb   tibble with the classification information
-.sits_class_info <- function(data.tb, samples.tb, interval){
-
-    # find the timeline
-    timeline <- .sits_timeline(data.tb)
-
-    # find the labels
-    labels <- sits_labels(samples.tb)$label
-    # find the bands
-    bands <- sits_bands(samples.tb)
-
-    # what is the reference start date?
-    ref_start_date <- lubridate::as_date(samples.tb[1,]$start_date)
-    # what is the reference end date?
-    ref_end_date <- lubridate::as_date(samples.tb[1,]$end_date)
-
-    # obtain the reference dates that match the patterns in the full timeline
-    ref_dates.lst <- sits_match_timeline(timeline, ref_start_date, ref_end_date, interval)
-
-    # obtain the indexes of the timeline that match the reference dates
-    dates_index.lst <- .sits_match_indexes(timeline, ref_dates.lst)
-
-    # find the number of the samples
-    nsamples <- dates_index.lst[[1]][2] - dates_index.lst[[1]][1] + 1
-
-    class_info.tb <- tibble::tibble(
-        bands          = list(bands),
-        labels         = list(labels),
-        interval       = interval,
-        timeline       = list(timeline),
-        num_samples    = nsamples,
-        ref_dates      = list(ref_dates.lst),
-        dates_index    = list(dates_index.lst)
-    )
-    return(class_info.tb)
-}
 
 
 

@@ -95,7 +95,7 @@
     full_data_size <- as.numeric(ninstances)*single_data_size
 
     # estimated size of memory required for scaling and normalization
-    mem_required_scaling <- (full_data_size + as.numeric(pryr::mem_used()))*bloat
+    mem_required_scaling <- (full_data_size + as.numeric(.sits_mem_used()))*bloat
 
     .sits_log_debug(paste0("max memory required for scaling (GB) - ", round(mem_required_scaling/1e+09, digits = 3)))
 
@@ -105,14 +105,14 @@
     # memory required for processing depends on the model
     if ( !(purrr::is_null(environment(ml_model)$model.keras)) || !(purrr::is_null(environment(ml_model)$result_ranger)))  {
         .sits_log_debug(paste0("keras and ranger run on multiple threads"))
-        mem_required_processing <- (class_data_size + as.numeric(pryr::mem_used()))*proc_bloat
+        mem_required_processing <- (class_data_size + as.numeric(.sits_mem_used()))*proc_bloat
     }
     else {
         # test two different cases
         if (ninstances == ninterval) # one interval only
-            mem_required_processing <- multicores*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size))
+            mem_required_processing <- multicores*(as.numeric(.sits_mem_used()) + as.numeric(class_data_size))
         else
-            mem_required_processing <- multicores*(as.numeric(pryr::mem_used()) + as.numeric(class_data_size) + full_data_size)
+            mem_required_processing <- multicores*(as.numeric(.sits_mem_used()) + as.numeric(class_data_size) + full_data_size)
     }
     .sits_log_debug(paste0("max memory required for processing (GB) - ", round(mem_required_processing/1e+09, digits = 3)))
 

@@ -84,7 +84,7 @@ sits_log <- function() {
 
 #' @title Shows the memory used in GB
 #' @name .sits_mem_used
-#' @description Calls the mem_used function from the pryr package and rounds the result in GB
+#' @description Calls the gc() and rounds the result in GB
 #' @return memory used in GB
 #'
 .sits_mem_used <- function() {
