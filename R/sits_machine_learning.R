@@ -208,7 +208,7 @@ sits_deeplearning <- function(data.tb          = NULL,
             # retrieve the prediction probabilities
             preds <- stats::predict(model.keras, values.x)
             # build a list with the prediction and the probabilities
-            prediction <- list(values = names(int_labels[max.col(preds)]),
+            prediction <- proto::proto(values = names(int_labels[max.col(preds)]),
                                probs  = preds)
             # adjust the names of the columns of the probs
             #colnames(prediction$probs) <- labels
@@ -298,7 +298,7 @@ sits_gbm <- function(data.tb = NULL, formula = sits_formula_logref(), distributi
             preds      <- stats::predict(result_gbm, newdata = values_DT, best.iter)
             # get the prediction values
             values    <-  names(int_labels[max.col(preds)])
-            prediction <- list(values = values, probs  = preds)
+            prediction <- proto::proto(values = values, probs  = preds)
             return(prediction)
         }
         return(model_predict)
@@ -370,7 +370,7 @@ sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
             # get the probabilities
             probs <- preds$posterior
             # return values and probabilities
-            prediction <- list(values = values, probs = probs)
+            prediction <- proto::proto(values = values, probs = probs)
 
             return(prediction)
         }
@@ -439,7 +439,7 @@ sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
             # get the probabilities
             probs <- preds$posterior
             # return values and probabilities
-            prediction <- list(values = values, probs = probs)
+            prediction <- proto::proto(values = values, probs = probs)
 
             return(prediction)
         }
@@ -509,7 +509,7 @@ sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
             # get the probabilities
             probs <- stats::predict(result_mlr, newdata = values_DT, type = "probs")
             # return values and probabilities
-            prediction <- list(values = values, probs = probs)
+            prediction <- proto::proto(values = values, probs = probs)
 
             return(prediction)
         }
@@ -582,7 +582,7 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
             # extract the probabilities
             probs  <-  preds$predictions
             # return the prediction values and their probabilities
-            prediction <- list(values = values, probs = probs)
+            prediction <- proto::proto(values = values, probs = probs)
 
             return(prediction)
         }
@@ -667,7 +667,7 @@ sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), scale = FA
             # retrieve the predicted probabilities
             probs  <-  attr(preds, "probabilities")
             # create a list with the resulting values and probabilities
-            prediction <- list(values = values, probs = probs)
+            prediction <- proto::proto(values = values, probs = probs)
             # reorder the matrix according to the column names
             prediction$probs <- prediction$probs[, sort(colnames(prediction$probs))]
 
