@@ -40,7 +40,7 @@
 #' @export
 
 sits_kfold_validate <- function(data.tb, folds = 5,
-                                ml_method    = sits_svm(), multicores = NULL){
+                                ml_method = sits_rfor(), multicores = NULL){
 
     # find the number of cores
     if (purrr::is_null(multicores))
@@ -74,15 +74,15 @@ sits_kfold_validate <- function(data.tb, folds = 5,
 
         # obtain the distances after normalizing data by band
         if (!purrr::is_null(stats.tb))
-            distances_DT <- sits_distances(.sits_normalize_data(data_test.tb, stats.tb, multicores))
+            distances_DT <- sits_distances(sits_normalize_data(data_test.tb, stats.tb, multicores))
         else
             distances_DT <- sits_distances(data_test.tb)
 
         # classify the test data
-        predicted <- ml_model(distances_DT)$values
+        prediction <- ml_model(distances_DT)
 
         ref.vec  <- c(ref.vec,  data_test.tb$label)
-        pred.vec <- c(pred.vec, predicted)
+        pred.vec <- c(pred.vec, prediction$values)
 
         return(list(pred = pred.vec, ref = ref.vec))
     }, mc.cores = multicores)

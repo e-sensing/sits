@@ -145,38 +145,73 @@
 
     return(values.mx)
 }
+#' @title Scale the time series values in the case of a matrix
+#' @name .sits_scale_matrix_integer
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description this function transforms a numerical matrix into an integer one
+#'
+#' @param  values.mx      matrix of values
+#' @param  scale_factor   scaling factor
+#' @param  multicores     number of cores
+#' @return values.mx      scaled integer matrix
+#'
+.sits_scale_matrix_integer <- function(values.mx, scale_factor, multicores) {
+
+    # scale the data set
+    # auxiliary function to scale a block of data
+    scale_matrix_block <- function(chunk, scale_factor) {
+        scaled_block.mx <- scale_matrix_integer(chunk, scale_factor)
+    }
+    # use multicores to speed up scaling
+    if (multicores > 1) {
+        chunk.lst <- .sits_split_data(values.mx, multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, scale_matrix_block, scale_factor, mc.cores = multicores)
+        int_values.mx <- do.call(rbind, rows.lst)
+        rm(chunk.lst)
+        rm(rows.lst)
+        gc()
+    }
+    else
+        int_values.mx <- scale_matrix_integer(values.mx, scale_factor)
+
+    return(int_values.mx)
+}
+
+#' @title Write the values and probs into raster files
 #' @name .sits_write_raster_values
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description write the raster values to the outout files
 #'
 #' @param  output.lst         list with value layers and probability bricks
-#' @param  first_row         initial row to be written to
-#' @param  pred_class.vec    vector of predicted categorical values
-#' @param  pred_probs.mx     matrix of predicted probabilities for each class
+#' @param  prediction        prototype with values and predicted probabilities for each class (INT2U)
 #' @param  labels            class labels
 #' @param  int_labels        integer values corresponding to labels
+#' @param  time              interval to be written to file
 #' @param  first_row         initial row of the output layer to write block
 #' @param  multicores        number of cores to process the time series
 #' @return output.lst       updated list with value layers and probability bricks
-.sits_write_raster_values <- function(output.lst, first_row,
-                                      pred_class.vec, pred_probs.mx,
-                                      labels, int_labels,
-                                      time, multicores) {
+.sits_write_raster_values <- function(output.lst,
+                                      prediction,
+                                      labels,
+                                      int_labels,
+                                      time,
+                                      first_row,
+                                      multicores) {
 
-    # convert probabilities matrix to INT2U
-    scale_factor_save <- as.numeric(10000)
-    pred_probs.mx     <- apply(.sits_scale_data(pred_probs.mx, scale_factor_save, multicores),
-                               c(1,2), function(x) {as.integer(x)})
-    colnames(pred_probs.mx) <- labels
 
     # for each layer, write the predicted values
     layers.lst <- output.lst$layers
-    layers.lst[[time]] <- raster::writeValues(layers.lst[[time]], as.integer(int_labels[pred_class.vec]), first_row)
+    layers.lst[[time]] <- raster::writeValues(layers.lst[[time]], as.integer(int_labels[prediction$values]), first_row)
 
-    # for each brick, write the probability values
+    # convert probabilities matrix to INT2U
+    scale_factor_save <- 10000
+    probs  <- .sits_scale_matrix_integer(prediction$probs, scale_factor_save, multicores)
+
+    # write the probabilities
     bricks.lst <- output.lst$bricks
-    bricks.lst[[time]] <- raster::writeValues(bricks.lst[[time]], pred_probs.mx, first_row)
+    bricks.lst[[time]] <- raster::writeValues(bricks.lst[[time]], probs, first_row)
 
     # update the joint list of layers (values) and bricks (probs)
     output.lst <- list(layers = layers.lst, bricks = bricks.lst)

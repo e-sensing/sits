@@ -161,24 +161,20 @@ sits_classify_raster <- function(file        = NULL,
 
         for (time in 1:length(select.lst)) {
             # retrieve the values used for classification
-            dist_DT <- data_DT[, select.lst[[time]], with = FALSE]
-
-            # set column names for DT
-            colnames(dist_DT) <- attr_names
-
+            if (all(select.lst[[time]]))
+                dist_DT <- data_DT
+            else {
+                dist_DT <- data_DT[, select.lst[[time]], with = FALSE]
+                # set column names for DT
+                colnames(dist_DT) <- attr_names
+            }
             # predict the classification values
             output.lst <- .sits_predict_interval(dist_DT, time, output.lst, ml_model, labels, int_labels, bs$row[block], multicores)
 
-            # garbage collection
-            rm(dist_DT)
-            gc()
             .sits_log_debug(paste0("Memory used after processing block ", block, " of year ", time, " - ", .sits_mem_used(), " GB"))
             # estimate processing time
             .sits_estimate_processing_time(start_time, select.lst, bs, block, time)
         }
-        # remove distance data.table (trying to use as little memory as possible)
-        rm(data_DT)
-        gc()
 
         # save information about memory use for debugging later
         .sits_log_debug(paste0("Processed block starting from ",  bs$row[block], " to ", (bs$row[block] + bs$nrows[block] - 1)))
@@ -217,57 +213,67 @@ sits_classify_raster <- function(file        = NULL,
 
 .sits_predict_interval <- function(DT, time, output.lst, ml_model, labels, int_labels, first_row, multicores) {
 
+    nrows_DT <- nrow(DT)
+    proc_cores <- multicores
     if (!(purrr::is_null(environment(ml_model)$model.keras)) ||
         !(purrr::is_null(environment(ml_model)$result_ranger)) ) {
-        multicores <- 1
+        proc_cores <- 1
         .sits_log_debug(paste0("keras and ranger already run on multiple CPUs - setting multicores to 1"))
     }
 
-    # classify a block of data (without data split)
+    # classify a block of data (with data split)
     classify_block <- function(block) {
         # predict the values for each time interval
-        pred_block.lst <- ml_model(DT[block[1]:block[2],])
-        return(pred_block.lst)
+        pred_block <- ml_model(block)
+        return(pred_block)
     }
     # set up multicore processing
-    if (multicores > 1) {
+    if (proc_cores > 1) {
         # estimate the list for breaking a block
-        block.lst <- .sits_split_block_size(DT, multicores)
-
-        # apply parallel processing to the split data and join the results
-        pred.lst <- parallel::mclapply(block.lst, classify_block,  mc.cores = multicores)
-
-        # compose result based on output from different cores
-        pred_class.vec <- unlist(lapply(pred.lst, function(x) x$values))
-        pred_probs.mx  <- do.call(rbind,lapply(pred.lst, function(x) x$probs))
-
+        block.lst <- .sits_split_data(DT, proc_cores)
         # memory management
-        .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
+        rm(DT)
+        gc()
+
+        # apply parallel processing to the split data (return the results in a list inside a prototype)
+        predictions.lst <- parallel::mclapply(block.lst, classify_block,  mc.cores = proc_cores)
+
+        #memory management
         rm(block.lst)
         gc()
+
+        # compose result based on output from different cores
+        prediction <- list(values = unlist(lapply(predictions.lst, function(x) x$values)),
+                                   probs = do.call(rbind,lapply(predictions.lst, function(x) x$probs)))
+        # memory management
+        rm(predictions.lst)
+        gc()
+        .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
     }
     else {
+        # memory management
+        .sits_log_debug(paste0("Memory used before prediction - ", .sits_mem_used(), " GB"))
+
         # estimate the prediction vector
-        pred.lst <- ml_model(DT)
-        pred_class.vec <- pred.lst[[1]]
-        pred_probs.mx  <- pred.lst[[2]]
+        prediction <- ml_model(DT)
+        # memory management
+        rm(DT)
+        gc()
     }
 
     # are the results consistent with the data input?
-    .sits_check_results(pred_class.vec, pred_probs.mx, DT)
-    # memory management
-    rm(DT)
-    gc()
+    .sits_check_results(prediction, nrows_DT)
 
-    output.lst <- .sits_write_raster_values(output.lst, first_row,
-                                            pred_class.vec, pred_probs.mx,
+    # colnames(prediction$probs) <- labels
+
+    # write the raster values
+    output.lst <- .sits_write_raster_values(output.lst, prediction,
                                             labels, int_labels,
-                                            time, multicores)
+                                            time, first_row, multicores)
 
     # memory management
-    rm(pred_class.vec)
-    rm(pred_probs.mx)
-    gc()
+    # rm(prediction)
+    # gc()
 
     return(output.lst)
 }

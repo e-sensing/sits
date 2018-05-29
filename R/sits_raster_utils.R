@@ -23,22 +23,22 @@
 
     return(invisible(TRUE))
 }
+#' @title  Check the results of the classification with the input data
 #' @name .sits_check_results
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description verify that classification results have the right size
 #'
-#' @param  pred_class.vec  vector of predicted categorical values
-#' @param  pred_probs.mx   matrix of predicted probabilities for each class
-#' @param  DT              distance matrix
+#' @param  prediction      prototype with predictions
+#' @param  nrows_DT        number of rows of distance matrix
 #' @return check           TRUE if check is OK
-.sits_check_results <- function(pred_class.vec, pred_probs.mx, DT) {
+.sits_check_results <- function(prediction, nrows_DT) {
     # check the result has the right dimension
-    ensurer::ensure_that(pred_class.vec, length(.) == nrow(DT),
+    ensurer::ensure_that(prediction$values, length(.) == nrows_DT,
                          err_desc = "sits_classify_raster - number of classified pixels is different
                          from number of input pixels")
 
-    ensurer::ensure_that(pred_probs.mx, nrow(.) == nrow(DT),
+    ensurer::ensure_that(prediction$probs, nrow(.) == nrows_DT,
                          err_desc = "sits_classify_raster - number of rows of probability matrix is different
                          from number of input pixels")
     return(invisible(TRUE))

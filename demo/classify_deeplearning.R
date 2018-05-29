@@ -24,7 +24,7 @@ dl_model <-  sits_train(samples.tb,
                              activation       = 'elu',
                              dropout_rates    = c(0.50, 0.40, 0.35),
                              optimizer = keras::optimizer_adam(),
-                             epochs = 300,
+                             epochs = 200,
                              batch_size = 128,
                              validation_split = 0.2))
 
@@ -52,6 +52,6 @@ raster.tb <- sits_coverage(service = "RASTER", name = "L8MOD-222-068_2015-2016",
 
 # classify the raster image
 raster_class.tb <- sits_classify_raster(file = "./L8_MOD_222-068-class", raster.tb,
-                                        ml_model = dl_model, memsize = 5, multicores = 2)
+                                        ml_model = dl_model, memsize = 4, multicores = 2)
 
 sits_plot_raster(raster_class.tb[1,], title = "LANDSAT-MODIS-222-068-2015-2016")

@@ -4,7 +4,7 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate temporal patterns}
 \usage{
-sits_kfold_validate(data.tb, folds = 5, ml_method = sits_svm(),
+sits_kfold_validate(data.tb, folds = 5, ml_method = sits_rfor(),
   multicores = NULL)
 }
 \arguments{
