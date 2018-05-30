@@ -1,7 +1,7 @@
 sits
 ======
 
-[![Build Status](https://travis-ci.org/rolfsimoes/sits.svg?branch=master)](https://travis-ci.org/rolfsimoes/) [![License](http://img.shields.io/badge/license-GPL%20%28%3E=%202%29-brightgreen.svg?style=flat)](http://www.gnu.org/licenses/gpl-2.0.html) 
+[![License](http://img.shields.io/badge/license-GPL%20%28%3E=%202%29-brightgreen.svg?style=flat)](http://www.gnu.org/licenses/gpl-2.0.html) 
 
 # Satellite Image Time Series Analysis.
 A set of tools for working with satellite image time series. Includes data retrieval from a WTSS (web time series service), different visualisation methods for image time series, smoothing methods for noisy time series, different clustering methods, including dendrograms and SOM. Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition and provides machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
@@ -44,7 +44,6 @@ Please install the SITS package from github, making sure you have the latest ver
 ```{r, eval = FALSE}
 devtools::install_github("e-sensing/sits")
 ```
- 
 
 ### Basic data structure
 
@@ -55,7 +54,6 @@ library(sits)
 library(tibble)
 library(dtwclust)
 ```
-
 
 ```{r}
 samples_MT_9classes[1:3,]
@@ -150,6 +148,13 @@ class.tb <- sits_classify(point_ndvi, samples_MT_ndvi, svm_model)
 sits_plot(class.tb)
 ```
 
+#### Code status
+
+|Job|Status|
+|---|---|
+|Build | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-ci-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-ci-build-ubuntu-16.04/lastBuild/consoleFull)|
+|Check |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-ci-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-ci-check-ubuntu-16.04/lastBuild/consoleFull)|
+|Documentation |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-ci-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-ci-documentation-ubuntu-16.04/lastBuild/consoleFull)|
 
 #### License
 
