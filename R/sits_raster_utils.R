@@ -34,10 +34,6 @@
 #' @return check           TRUE if check is OK
 .sits_check_results <- function(prediction, nrows_DT) {
     # check the result has the right dimension
-    ensurer::ensure_that(prediction$values, length(.) == nrows_DT,
-                         err_desc = "sits_classify_raster - number of classified pixels is different
-                         from number of input pixels")
-
     ensurer::ensure_that(prediction$probs, nrow(.) == nrows_DT,
                          err_desc = "sits_classify_raster - number of rows of probability matrix is different
                          from number of input pixels")

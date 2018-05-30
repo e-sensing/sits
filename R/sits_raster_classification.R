@@ -243,8 +243,7 @@ sits_classify_raster <- function(file        = NULL,
         gc()
 
         # compose result based on output from different cores
-        prediction <- list(values = unlist(lapply(predictions.lst, function(x) x$values)),
-                                   probs = do.call(rbind,lapply(predictions.lst, function(x) x$probs)))
+        prediction_DT <- data.table::as.data.table(do.call(rbind,predictions.lst))
         # memory management
         rm(predictions.lst)
         gc()
@@ -255,25 +254,25 @@ sits_classify_raster <- function(file        = NULL,
         .sits_log_debug(paste0("Memory used before prediction - ", .sits_mem_used(), " GB"))
 
         # estimate the prediction vector
-        prediction <- ml_model(DT)
+        prediction_DT <- ml_model(DT)
         # memory management
         rm(DT)
         gc()
     }
 
     # are the results consistent with the data input?
-    .sits_check_results(prediction, nrows_DT)
-
-    # colnames(prediction$probs) <- labels
+    ensurer::ensure_that(prediction_DT, nrow(.) == nrows_DT,
+                         err_desc = "sits_classify_raster - number of rows of probability matrix is different
+                         from number of input pixels")
 
     # write the raster values
-    output.lst <- .sits_write_raster_values(output.lst, prediction,
+    output.lst <- .sits_write_raster_values(output.lst, prediction_DT,
                                             labels, int_labels,
                                             time, first_row, multicores)
 
     # memory management
-    # rm(prediction)
-    # gc()
+    rm(prediction_DT)
+    gc()
 
     return(output.lst)
 }

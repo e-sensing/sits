@@ -184,8 +184,8 @@
 #'
 #' @description write the raster values to the outout files
 #'
-#' @param  output.lst         list with value layers and probability bricks
-#' @param  prediction        prototype with values and predicted probabilities for each class (INT2U)
+#' @param  output.lst        list with value layers and probability bricks
+#' @param  prediction_DT     data.table with predicted probabilities for each class
 #' @param  labels            class labels
 #' @param  int_labels        integer values corresponding to labels
 #' @param  time              interval to be written to file
@@ -193,7 +193,7 @@
 #' @param  multicores        number of cores to process the time series
 #' @return output.lst       updated list with value layers and probability bricks
 .sits_write_raster_values <- function(output.lst,
-                                      prediction,
+                                      prediction_DT,
                                       labels,
                                       int_labels,
                                       time,
@@ -202,12 +202,15 @@
 
 
     # for each layer, write the predicted values
+    # extract the values
+    values <-  int_labels[max.col(prediction_DT)]
+
     layers.lst <- output.lst$layers
-    layers.lst[[time]] <- raster::writeValues(layers.lst[[time]], as.integer(int_labels[prediction$values]), first_row)
+    layers.lst[[time]] <- raster::writeValues(layers.lst[[time]], values, first_row)
 
     # convert probabilities matrix to INT2U
     scale_factor_save <- 10000
-    probs  <- .sits_scale_matrix_integer(prediction$probs, scale_factor_save, multicores)
+    probs  <- .sits_scale_matrix_integer(as.matrix(prediction_DT), scale_factor_save, multicores)
 
     # write the probabilities
     bricks.lst <- output.lst$bricks

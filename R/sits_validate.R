@@ -49,8 +49,16 @@ sits_kfold_validate <- function(data.tb, folds = 5,
     # does the input data exist?
     .sits_test_tibble(data.tb)
 
+    # get the labels of the data
+    labels <- sits_labels(data.tb)$label
+
+    # create a named vector with integers match the class labels
+    n_labels <- length(labels)
+    int_labels <- c(1:n_labels)
+    names(int_labels) <- labels
+
     # is the data labelled?
-    ensurer::ensure_that(data.tb, !("NoClass" %in% sits_labels(.)),
+    ensurer::ensure_that(data.tb, !("NoClass" %in% sits_labels(.)$label),
                          err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
     # create partitions different splits of the input data
@@ -79,10 +87,12 @@ sits_kfold_validate <- function(data.tb, folds = 5,
             distances_DT <- sits_distances(data_test.tb)
 
         # classify the test data
-        prediction <- ml_model(distances_DT)
+        prediction_DT <- ml_model(distances_DT)
+        # extract the values
+        values <-  names(int_labels[max.col(prediction_DT)])
 
         ref.vec  <- c(ref.vec,  data_test.tb$label)
-        pred.vec <- c(pred.vec, prediction$values)
+        pred.vec <- c(pred.vec, values)
 
         return(list(pred = pred.vec, ref = ref.vec))
     }, mc.cores = multicores)
