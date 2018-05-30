@@ -166,8 +166,8 @@ sits_classify_raster <- function(file        = NULL,
             else {
                 dist_DT <- data_DT[, select.lst[[time]], with = FALSE]
                 # set column names for DT
-                colnames(dist_DT) <- attr_names
             }
+            colnames(dist_DT) <- attr_names
             # predict the classification values
             output.lst <- .sits_predict_interval(dist_DT, time, output.lst, ml_model, labels, int_labels, bs$row[block], multicores)
 

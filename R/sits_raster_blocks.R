@@ -105,7 +105,7 @@
     nlabels <- length(sits_labels(environment(ml_model)$data.tb)$label)
     # estimated size of the data for classification
     input_class_data_size <- as.numeric(ninterval)*bricks_data_size
-    output_class_data_size <- as.numeric(labels)*single_data_size
+    output_class_data_size <- as.numeric(nlabels)*single_data_size
     class_data_size <- input_class_data_size + output_class_data_size
 
     # memory required for processing depends on the model

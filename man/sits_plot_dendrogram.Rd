@@ -24,7 +24,6 @@ Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendro
 # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
 data ("cerrado_2classes")
 # Generate and plot a dendrogram
-library (dtwclust)
 dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
 sits_plot_dendrogram (cerrado_2classes, dendro.obj)
 }
