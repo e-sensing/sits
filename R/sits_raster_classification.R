@@ -230,24 +230,26 @@ sits_classify_raster <- function(file        = NULL,
     # set up multicore processing
     if (proc_cores > 1) {
         # estimate the list for breaking a block
+        .sits_log_debug(paste0("Memory used before split data - ", .sits_mem_used(), " GB"))
         block.lst <- .sits_split_data(DT, proc_cores)
         # memory management
         rm(DT)
         gc()
 
+        .sits_log_debug(paste0("Memory used before mcapply - ", .sits_mem_used(), " GB"))
         # apply parallel processing to the split data (return the results in a list inside a prototype)
         predictions.lst <- parallel::mclapply(block.lst, classify_block,  mc.cores = proc_cores)
 
         #memory management
         rm(block.lst)
         gc()
-
+        .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
         # compose result based on output from different cores
         prediction_DT <- data.table::as.data.table(do.call(rbind,predictions.lst))
         # memory management
         rm(predictions.lst)
         gc()
-        .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
+        .sits_log_debug(paste0("Memory used after removing predictions.lst - ", .sits_mem_used(), " GB"))
     }
     else {
         # memory management

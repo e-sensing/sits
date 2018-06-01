@@ -116,7 +116,7 @@
     else {
         # test two different cases
         if (ninstances == ninterval) # one interval only
-            mem_required_processing <- as.numeric(multicores)*(.sits_mem_used() + class_data_size)
+           mem_required_processing <- as.numeric(multicores)*(class_data_size + as.numeric(.sits_mem_used()))
         else
             mem_required_processing <- as.numeric(multicores)*(.sits_mem_used() + class_data_size + full_data_size)
     }

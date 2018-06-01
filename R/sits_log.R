@@ -86,7 +86,7 @@ sits_log <- function() {
 #' @name .sits_mem_used
 #' @description Calls the gc() and rounds the result in GB
 #' @return memory used in GB
-#'
+#' @export
 .sits_mem_used <- function() {
     dt <- gc()
     return(sum(dt[,2]/1000))
