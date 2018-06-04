@@ -152,9 +152,9 @@ sits_plot(class.tb)
 
 |Job|Status|
 |---|---|
-|Build | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-ci-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-ci-build-ubuntu-16.04/lastBuild/consoleFull)|
-|Check |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-ci-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-ci-check-ubuntu-16.04/lastBuild/consoleFull)|
-|Documentation |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-ci-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-ci-documentation-ubuntu-16.04/lastBuild/consoleFull)|
+|Build | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)|
+|Check |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)|
+|Documentation |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull)|
 
 #### License
 
