@@ -94,7 +94,7 @@
     bricks_data_size <- single_data_size*as.numeric(nbands)
 
     # estimated full size of the data
-    full_data_size <- as.numeric(ninstances)*single_data_size
+    full_data_size <- as.numeric(ninstances)*bricks_data_size
 
     # estimated size of memory required for scaling and normalization
     mem_required_scaling <- (full_data_size + as.numeric(.sits_mem_used()))*bloat
