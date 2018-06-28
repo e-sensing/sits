@@ -85,6 +85,13 @@ sits_classify <- function(data.tb    = NULL,
 #' @return pred.vec        vector with the predicted labels
 .sits_classify_distances <- function(distances_DT, class_info.tb, ml_model, multicores) {
 
+    # get the labels of the data
+    labels <- class_info.tb$labels[[1]]
+
+    # create a named vector with integers match the class labels
+    int_labels <- c(1:length(labels))
+    names(int_labels) <- labels
+
     # define the column names
     attr_names <- names(environment(ml_model)$train_data_DT)
 
@@ -108,9 +115,12 @@ sits_classify <- function(data.tb    = NULL,
         colnames(dist_DT) <- attr_names
 
         # classify the subset data
-        prediction  <- ml_model(dist_DT)
+        prediction_DT <- ml_model(dist_DT)
 
-        return(prediction$values)
+        # extract the values
+        values <-  names(int_labels[max.col(prediction_DT)])
+
+        return(values)
     }
 
     join_blocks <- function(blocks.lst) {

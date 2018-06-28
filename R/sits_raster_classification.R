@@ -166,8 +166,8 @@ sits_classify_raster <- function(file        = NULL,
             else {
                 dist_DT <- data_DT[, select.lst[[time]], with = FALSE]
                 # set column names for DT
-                colnames(dist_DT) <- attr_names
             }
+            colnames(dist_DT) <- attr_names
             # predict the classification values
             output.lst <- .sits_predict_interval(dist_DT, time, output.lst, ml_model, labels, int_labels, bs$row[block], multicores)
 
@@ -230,50 +230,51 @@ sits_classify_raster <- function(file        = NULL,
     # set up multicore processing
     if (proc_cores > 1) {
         # estimate the list for breaking a block
+        .sits_log_debug(paste0("Memory used before split data - ", .sits_mem_used(), " GB"))
         block.lst <- .sits_split_data(DT, proc_cores)
         # memory management
         rm(DT)
         gc()
 
+        .sits_log_debug(paste0("Memory used before mcapply - ", .sits_mem_used(), " GB"))
         # apply parallel processing to the split data (return the results in a list inside a prototype)
         predictions.lst <- parallel::mclapply(block.lst, classify_block,  mc.cores = proc_cores)
 
         #memory management
         rm(block.lst)
         gc()
-
+        .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
         # compose result based on output from different cores
-        prediction <- list(values = unlist(lapply(predictions.lst, function(x) x$values)),
-                                   probs = do.call(rbind,lapply(predictions.lst, function(x) x$probs)))
+        prediction_DT <- data.table::as.data.table(do.call(rbind,predictions.lst))
         # memory management
         rm(predictions.lst)
         gc()
-        .sits_log_debug(paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
+        .sits_log_debug(paste0("Memory used after removing predictions.lst - ", .sits_mem_used(), " GB"))
     }
     else {
         # memory management
         .sits_log_debug(paste0("Memory used before prediction - ", .sits_mem_used(), " GB"))
 
         # estimate the prediction vector
-        prediction <- ml_model(DT)
+        prediction_DT <- ml_model(DT)
         # memory management
         rm(DT)
         gc()
     }
 
     # are the results consistent with the data input?
-    .sits_check_results(prediction, nrows_DT)
-
-    # colnames(prediction$probs) <- labels
+    ensurer::ensure_that(prediction_DT, nrow(.) == nrows_DT,
+                         err_desc = "sits_classify_raster - number of rows of probability matrix is different
+                         from number of input pixels")
 
     # write the raster values
-    output.lst <- .sits_write_raster_values(output.lst, prediction,
+    output.lst <- .sits_write_raster_values(output.lst, prediction_DT,
                                             labels, int_labels,
                                             time, first_row, multicores)
 
     # memory management
-    # rm(prediction)
-    # gc()
+    rm(prediction_DT)
+    gc()
 
     return(output.lst)
 }

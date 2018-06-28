@@ -89,18 +89,24 @@
     if (proc_bloat == 0) proc_bloat <- multicores
 
     # single instance size
-    single_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)*as.numeric(nbands)
+    single_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)
+    # total size including all bricks
+    bricks_data_size <- single_data_size*as.numeric(nbands)
 
     # estimated full size of the data
-    full_data_size <- as.numeric(ninstances)*single_data_size
+    full_data_size <- as.numeric(ninstances)*bricks_data_size
 
     # estimated size of memory required for scaling and normalization
     mem_required_scaling <- (full_data_size + as.numeric(.sits_mem_used()))*bloat
 
     .sits_log_debug(paste0("max memory required for scaling (GB) - ", round(mem_required_scaling/1e+09, digits = 3)))
 
+    # number of labels
+    nlabels <- length(sits_labels(environment(ml_model)$data.tb)$label)
     # estimated size of the data for classification
-    class_data_size <- as.numeric(ninterval)*single_data_size
+    input_class_data_size <- as.numeric(ninterval)*bricks_data_size
+    output_class_data_size <- as.numeric(nlabels)*single_data_size
+    class_data_size <- input_class_data_size + output_class_data_size
 
     # memory required for processing depends on the model
     if ( !(purrr::is_null(environment(ml_model)$model.keras)) || !(purrr::is_null(environment(ml_model)$result_ranger)))  {
@@ -110,9 +116,9 @@
     else {
         # test two different cases
         if (ninstances == ninterval) # one interval only
-            mem_required_processing <- multicores*(as.numeric(.sits_mem_used()) + as.numeric(class_data_size))
+           mem_required_processing <- as.numeric(multicores)*(class_data_size + as.numeric(.sits_mem_used()))
         else
-            mem_required_processing <- multicores*(as.numeric(.sits_mem_used()) + as.numeric(class_data_size) + full_data_size)
+            mem_required_processing <- as.numeric(multicores)*(.sits_mem_used() + class_data_size + full_data_size)
     }
     .sits_log_debug(paste0("max memory required for processing (GB) - ", round(mem_required_processing/1e+09, digits = 3)))
 

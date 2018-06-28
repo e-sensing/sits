@@ -31,9 +31,9 @@
 #' sits_plot_dendrogram (cerrado_2classes, dendro)
 #' }
 #' @export
-sits_dendrogram <- function (data.tb, bands = NULL,
-                             dist_method = "dtw_basic",
-                             linkage = "ward.D2", ...){
+sits_dendrogram <- function(data.tb, bands = NULL,
+                            dist_method = "dtw_basic",
+                            linkage = "ward.D2", ...){
 
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
@@ -48,17 +48,17 @@ sits_dendrogram <- function (data.tb, bands = NULL,
         bands <- sits_bands(data.tb)
 
     # get the values of the time series
-    values.tb <- sits_values (data.tb, bands, format = "cases_dates_bands")
+    values.tb <- sits_values(data.tb, bands, format = "cases_dates_bands")
 
     # call dtwclust and get the resulting dendrogram
-    dendro.obj  <- dtwclust::tsclust (values.tb,
-                                      type     = "hierarchical",
-                                      k        = NROW (data.tb),
-                                      distance = dist_method,
-                                      control  = dtwclust::hierarchical_control(method = linkage), ...)
+    dendro.obj  <- dtwclust::tsclust(values.tb,
+                                     type     = "hierarchical",
+                                     k        = NROW(data.tb),
+                                     distance = dist_method,
+                                     control  = dtwclust::hierarchical_control(method = linkage), ...)
 
     # return the dendrogram
-    return (dendro.obj)
+    return(dendro.obj)
 }
 
 #' @title Compute validity indexes to a range of cut height
