@@ -64,11 +64,11 @@ sits_classify <- function(data.tb    = NULL,
     samples.tb <- environment(ml_model)$data.tb
     class_info.tb <- .sits_class_info(data.tb, samples.tb, interval)
 
-    # create a vector to store the predicted results
-    predict.vec <- .sits_classify_distances(distances_DT, class_info.tb,  ml_model,  multicores)
+    # create a matrix to store the predicted results
+    predict.mtx <- .sits_classify_distances(distances_DT, class_info.tb,  ml_model,  multicores)
 
     # Store the result in the input data
-    data.tb <- .sits_tibble_prediction(data.tb, class_info.tb, predict.vec, interval)
+    data.tb <- .sits_tibble_prediction(data.tb, class_info.tb, predict.mtx, interval)
 
     return(data.tb)
 }
@@ -84,13 +84,6 @@ sits_classify <- function(data.tb    = NULL,
 #' @param  multicores      number of threads to process the time series
 #' @return pred.vec        vector with the predicted labels
 .sits_classify_distances <- function(distances_DT, class_info.tb, ml_model, multicores) {
-
-    # get the labels of the data
-    labels <- class_info.tb$labels[[1]]
-
-    # create a named vector with integers match the class labels
-    int_labels <- c(1:length(labels))
-    names(int_labels) <- labels
 
     # define the column names
     attr_names <- names(environment(ml_model)$train_data_DT)
@@ -117,33 +110,26 @@ sits_classify <- function(data.tb    = NULL,
         # classify the subset data
         prediction_DT <- ml_model(dist_DT)
 
-        # extract the values
-        values <-  names(int_labels[max.col(prediction_DT)])
-
-        return(values)
+        return(prediction_DT)
     }
 
     join_blocks <- function(blocks.lst) {
-
-        pred.vec <- vector()
-        blocks.lst %>%
-            purrr::map(function(block){
-                pred.vec <<- c(pred.vec, block )
-            })
-        return(pred.vec)
+        pred.mtx <-
+            blocks.lst %>%
+            dplyr::bind_rows()
+        return(pred.mtx)
     }
 
     if (multicores > 1) {
         blocks.lst <- split.data.frame(distances_DT, cut(1:nrow(distances_DT), multicores, labels = FALSE))
         # apply parallel processing to the split dat
         results.lst <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
-
-        pred.vec <- join_blocks(results.lst)
+        pred.mtx <- join_blocks(results.lst)
     }
     else
-        pred.vec <- classify_block(distances_DT)
+        pred.mtx <- classify_block(distances_DT)
 
-    return(pred.vec)
+    return(pred.mtx)
 }
 
 

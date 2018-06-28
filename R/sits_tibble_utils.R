@@ -233,11 +233,11 @@
 #' @description Create a tibble to store the results of predictions
 #' @param  data.tb         a tibble with the input data
 #' @param  class_info.tb   a tibble with the information on classification
-#' @param  pred.vec        the result of the classification (one class per row per interval)
+#' @param  pred.mtx        the result of the classification (one class per column and one row per interval)
 #' @param  interval        the time interval between two classifications
 #' @return predic.tb       a tibble to store the predictions
 #'
-.sits_tibble_prediction <- function(data.tb, class_info.tb, pred.vec, interval) {
+.sits_tibble_prediction <- function(data.tb, class_info.tb, pred.mtx, interval) {
 
     # retrieve the list of reference dates
     # this list is a global one and it is created based on the samples
@@ -248,6 +248,16 @@
 
     # size of prediction table
     nrows <- length(ref_dates.lst)
+
+    # get the labels of the data
+    labels <- class_info.tb$labels[[1]]
+
+    # create a named vector with integers match the class labels
+    int_labels <- c(1:length(labels))
+    names(int_labels) <- labels
+
+    # compute pred.vec
+    pred.vec <-  names(int_labels[max.col(pred.mtx)])
 
     class_idx <-  1
 
@@ -274,7 +284,8 @@
                         from      = as.Date(rd[1]),
                         to        = as.Date(rd[2]),
                         distance  =  0.0,
-                        class     = pred.vec[class_idx]
+                        class     = pred.vec[class_idx],
+                        probs     = list(pred.mtx[class_idx,])
                     )
                     class_idx  <<- class_idx + 1
                     return(pred_row)

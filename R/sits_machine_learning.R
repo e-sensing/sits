@@ -639,6 +639,9 @@ sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), scale = FA
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
+            # try load e1071 dependency
+            ensurer::ensure_that("e1071", require(., quietly = TRUE, warn.conflicts = FALSE, character.only = TRUE),
+                                 err_desc = "sits_svm: library 'e1071' load failed.")
             # get the prediction
             preds <- stats::predict(result_svm, newdata = values_DT, probability = TRUE)
             # retrieve the predicted probabilities
