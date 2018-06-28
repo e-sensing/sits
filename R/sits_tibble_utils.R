@@ -233,7 +233,7 @@
 #' @description Create a tibble to store the results of predictions
 #' @param  data.tb         a tibble with the input data
 #' @param  class_info.tb   a tibble with the information on classification
-#' @param  pred.mtx        the result of the classification (one class per row per interval)
+#' @param  pred.mtx        the result of the classification (one class per column and one row per interval)
 #' @param  interval        the time interval between two classifications
 #' @return predic.tb       a tibble to store the predictions
 #'
