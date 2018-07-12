@@ -24,8 +24,7 @@ Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
 \item{...}{additional parameters to be passed to kohonen::supersom function}
 }
 \value{
-clusters.tb   a tibble with the clusters time series or cluster' members time series according to return_member parameter.
-If return_members are FALSE, the returning tibble will contain a new collumn called `n_members` informing how many members has each cluster.
+kohonen.obj   a full kohonen object for data analysis
 }
 \description{
 This function uses package "kohonen" (self-organized maps) to find clusters in

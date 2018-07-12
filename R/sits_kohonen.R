@@ -32,7 +32,7 @@ sits_kohonen <- function (data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5, r
     message("Clustering using SOM...")
 
     # get the values of the various time series for this band group
-    values.tb <- sits_values(label.tb, bands, format = "bands_cases_dates")
+    values.tb <- sits_values(data.tb, bands, format = "bands_cases_dates")
 
     grid <- kohonen::somgrid(xdim = grid_xdim, ydim = grid_ydim, topo = "rectangular")
     kohonen.obj  <- kohonen::supersom (values.tb, grid=grid,
@@ -65,7 +65,7 @@ sits_kohonen_cluster <- function (data.tb, kohonen.obj) {
                          err_desc = "sits_kohonen_cluster: you must provide the same data set used to cluster data.")
 
     # create a "cluster" column
-    data.tb$cluster <- kohonen.obj$unit.classif
+    data.tb$cluster <- as.integer(kohonen.obj$unit.classif)
 
     # return kohonen object
     return (data.tb)
