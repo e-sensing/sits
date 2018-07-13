@@ -18,6 +18,19 @@ data.tb       tibble with the clusters or clusters' members
 This function uses package "kohonen" (self-organized maps) to find clusters in
 satellite image time series.
 }
+\examples{
+\donttest{
+
+# Retrieve a time series to be clusterized
+data("samples_MT_9classes")
+# compute a kohonen object
+koh_obj <- sits_kohonen(samples_MT_9classes)
+# generate a dataset
+cluster.tb <- sits_kohonen_cluster(samples_MT_9classes, koh_obj)
+# plot the result
+sits_cluster_frequency(cluster.tb)
+}
+}
 \references{
 `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 }

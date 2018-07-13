@@ -17,6 +17,18 @@
 #'                       Default is to decline linearly from 0.05 to 0.01 over rlen updates.
 #' @param  ...           additional parameters to be passed to kohonen::supersom function
 #' @return kohonen.obj   a full kohonen object for data analysis
+#' @examples
+#' \donttest{
+#'
+#' # Retrieve a time series to be clusterized
+#' data("samples_MT_9classes")
+#' # compute a kohonen object
+#' koh_obj <- sits_kohonen(samples_MT_9classes)
+#' # generate a dataset
+#' cluster.tb <- sits_kohonen_cluster(samples_MT_9classes, koh_obj)
+#' # plot the result
+#' sits_cluster_frequency(cluster.tb)
+#' }
 #' @export
 sits_kohonen <- function (data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5, rlen = 100,
                           alpha = c(0.05, 0.01), ...) {
@@ -54,6 +66,18 @@ sits_kohonen <- function (data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5, r
 #' @param data.tb        a tibble with time series to be clustered
 #' @param kohonen.obj    a full kohonen object for data analysis
 #' @return data.tb       tibble with the clusters or clusters' members
+#' @examples
+#' \donttest{
+#'
+#' # Retrieve a time series to be clusterized
+#' data("samples_MT_9classes")
+#' # compute a kohonen object
+#' koh_obj <- sits_kohonen(samples_MT_9classes)
+#' # generate a dataset
+#' cluster.tb <- sits_kohonen_cluster(samples_MT_9classes, koh_obj)
+#' # plot the result
+#' sits_cluster_frequency(cluster.tb)
+#' }
 #' @export
 sits_kohonen_cluster <- function (data.tb, kohonen.obj) {
 
