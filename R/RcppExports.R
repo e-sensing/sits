@@ -13,6 +13,10 @@ preprocess_data <- function(data, minimum_value, scale_factor) {
     .Call(`_sits_preprocess_data`, data, minimum_value, scale_factor)
 }
 
+prob_prior_neigh <- function(probs) {
+    .Call(`_sits_prob_prior_neigh`, probs)
+}
+
 scale_data <- function(data, scale_factor, adj_val = 0.0) {
     .Call(`_sits_scale_data`, data, scale_factor, adj_val)
 }

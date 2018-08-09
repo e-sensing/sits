@@ -44,6 +44,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// prob_prior_neigh
+double prob_prior_neigh(const NumericVector& probs);
+RcppExport SEXP _sits_prob_prior_neigh(SEXP probsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type probs(probsSEXP);
+    rcpp_result_gen = Rcpp::wrap(prob_prior_neigh(probs));
+    return rcpp_result_gen;
+END_RCPP
+}
 // scale_data
 NumericMatrix scale_data(NumericMatrix data, const double& scale_factor, const double& adj_val);
 RcppExport SEXP _sits_scale_data(SEXP dataSEXP, SEXP scale_factorSEXP, SEXP adj_valSEXP) {
@@ -74,6 +85,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
     {"_sits_preprocess_data", (DL_FUNC) &_sits_preprocess_data, 3},
+    {"_sits_prob_prior_neigh", (DL_FUNC) &_sits_prob_prior_neigh, 1},
     {"_sits_scale_data", (DL_FUNC) &_sits_scale_data, 3},
     {"_sits_scale_matrix_integer", (DL_FUNC) &_sits_scale_matrix_integer, 2},
     {NULL, NULL, 0}
