@@ -279,7 +279,7 @@ sits_gbm <- function(data.tb = NULL, formula = sits_formula_logref(), distributi
             formula <- formula(train_data_DT)
 
         # find the number of cores
-        multicores <- parallel::detectCores(logical = FALSE)
+        multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
 
         # call gbm::gbm method and return the trained multinom model
         result_gbm <- gbm::gbm(formula = formula, data = train_data_DT[, 2:length(train_data_DT)],
@@ -294,6 +294,7 @@ sits_gbm <- function(data.tb = NULL, formula = sits_formula_logref(), distributi
             # retrieve the prediction results
             preds      <- stats::predict(result_gbm, newdata = values_DT, best.iter)
             # get the prediction probabilties
+            # 2-do: normalize the probabilities vectors
             prediction_DT <- data.table::as.data.table(preds[,,1])
             return(prediction_DT)
         }

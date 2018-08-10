@@ -115,7 +115,7 @@ sits_apply <- function(data, fun, fun_index = function(index){ return(index) }, 
         return(data)
     }
     else if ("matrix" %in% class(data)) {
-        multicores <- parallel::detectCores(logical = FALSE)
+        multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
         # auxiliary function to filter a block of data
         filter_block <- function(mat) {
             rows_block.lst <- lapply(seq_along(mat), function(i) fun(mat[i,]))

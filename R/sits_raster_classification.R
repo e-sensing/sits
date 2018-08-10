@@ -63,7 +63,7 @@ sits_classify_raster <- function(file        = NULL,
 
     # find the number of cores
     if (purrr::is_null(multicores))
-        multicores <- parallel::detectCores(logical = FALSE)
+        multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
 
     # retrieve the samples from the model
     samples  <- environment(ml_model)$data.tb
