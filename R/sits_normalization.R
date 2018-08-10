@@ -10,11 +10,11 @@
 #' @param multicores  number of cores to process
 #' @return data.tb    a normalized sits tibble
 #' @export
-sits_normalize_data <- function(data.tb, stats.tb, multicores = NULL){
+sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
     .sits_test_tibble(data.tb)
     # find the number of cores
     if (purrr::is_null(multicores))
-        multicores <- parallel::detectCores(logical = FALSE)
+        multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
     # avoid overhead on multicore processing
     if (nrow(data.tb) < sits.env$config$minimum_number_samples)
         multicores <- 1

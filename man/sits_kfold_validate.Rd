@@ -5,7 +5,7 @@
 \title{Cross-validate temporal patterns}
 \usage{
 sits_kfold_validate(data.tb, folds = 5, ml_method = sits_rfor(),
-  multicores = NULL)
+  multicores = 1)
 }
 \arguments{
 \item{data.tb}{sits tibble}

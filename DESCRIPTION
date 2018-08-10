@@ -89,6 +89,7 @@ Collate:
     'sits_WTSS.R'
     'sits_accuracy.R'
     'sits_apply_transition_matrix.R'
+    'sits_bayes_postprocess.R'
     'sits_classification.R'
     'sits_cluster.R'
     'sits_colors.R'
