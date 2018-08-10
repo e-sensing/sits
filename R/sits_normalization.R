@@ -10,7 +10,7 @@
 #' @param multicores  number of cores to process
 #' @return data.tb    a normalized sits tibble
 #' @export
-sits_normalize_data <- function(data.tb, stats.tb, multicores = NULL){
+sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
     .sits_test_tibble(data.tb)
     # find the number of cores
     if (purrr::is_null(multicores))

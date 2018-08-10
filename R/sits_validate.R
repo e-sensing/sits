@@ -40,7 +40,7 @@
 #' @export
 
 sits_kfold_validate <- function(data.tb, folds = 5,
-                                ml_method = sits_rfor(), multicores = NULL){
+                                ml_method = sits_rfor(), multicores = 1){
 
     # find the number of cores
     if (purrr::is_null(multicores))
