@@ -44,14 +44,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// prob_prior_neigh
-double prob_prior_neigh(const NumericVector& probs);
-RcppExport SEXP _sits_prob_prior_neigh(SEXP probsSEXP) {
+// smooth_estimator_class
+NumericVector smooth_estimator_class(const NumericMatrix& data, const double& noise);
+RcppExport SEXP _sits_smooth_estimator_class(SEXP dataSEXP, SEXP noiseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type probs(probsSEXP);
-    rcpp_result_gen = Rcpp::wrap(prob_prior_neigh(probs));
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const double& >::type noise(noiseSEXP);
+    rcpp_result_gen = Rcpp::wrap(smooth_estimator_class(data, noise));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -85,7 +86,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
     {"_sits_preprocess_data", (DL_FUNC) &_sits_preprocess_data, 3},
-    {"_sits_prob_prior_neigh", (DL_FUNC) &_sits_prob_prior_neigh, 1},
+    {"_sits_smooth_estimator_class", (DL_FUNC) &_sits_smooth_estimator_class, 2},
     {"_sits_scale_data", (DL_FUNC) &_sits_scale_data, 3},
     {"_sits_scale_matrix_integer", (DL_FUNC) &_sits_scale_matrix_integer, 2},
     {NULL, NULL, 0}
