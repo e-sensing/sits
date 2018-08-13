@@ -10,99 +10,78 @@
 #
 # ---------------------------------------------------------------
 
-#' @title Interpolation function of the time series in a sits tibble
-#' @name sits_linear_interp
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Computes the linearly interpolated bands for a given resolution
-#'               using the R base function approx
-#' @param data.tb       tibble with time series data and metadata
-#' @param n             number of time series elements to be created between start date and end date
-#' @return result.tb    a sits tibble with same samples and the new bands
-#' @examples
-#' \donttest{
+#' @title cloud filter
+#' @name sits_cloud_filter
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description  This function tries to remove clouds in the ndvi band of
+#' a satellite image time series. It looks for points where the value of the NDVI
+#' band goes down abruptly. These points are taken as those whose difference is more
+#' than a cutoff value which is set by the user. Then it applies an spline interploation.
+#' Finally, the function applies a whitakker smoother.
 #'
-#' # Retrieve a time series with values of NDVI
-#' data(point_ndvi)
-#' # find out how many time instances are there
-#' n_times <- NROW (point_ndvi$time_series[[1]])
-#' # interpolate three times more points
-#' point_int.tb <- sits_linear_interp(point_ndvi, n = 3*n_times)
-#' # plot the result
-#' sits_plot (point_int.tb)
-#' }
-#' @export
-sits_linear_interp <- function(data.tb = NULL, n = 23) {
-
-    filter_fun <- function(data.tb){
-        # compute linear approximation
-        result.tb <- sits_apply(data.tb,
-                                fun = function(band) stats::approx(band, n = n, ties = mean)$y,
-                                fun_index = function(band) as.Date(stats::approx(band, n = n, ties = mean)$y,
-                                                                   origin = "1970-01-01"))
-        return(result.tb)
-    }
-    result <- .sits_factory_function(data.tb, filter_fun)
-}
-
-#' @title Interpolation function of the time series of a sits_tibble
-#' @name sits_interp
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Computes the linearly interpolated bands for a given resolution
-#'               using the R base function approx
-#' @param data.tb       tibble with time series data and metadata
-#' @param fun           interpolation function
-#' @param n             number of time series elements to be created between start date and end date.
-#'                      When a class function is passed to `n`, is is evaluated with each band time series as
-#'                      an argument, e.g. n(band) (default: `length` function)
-#' @param ...           additional parameters to be used by the fun function
-#' @return result.tb    tibble with same samples and the new bands
+#' @param data.tb       tibble with time series data and metadata with only the "ndvi" band
+#' @param cutoff        numeric value for the maximum acceptable value of a NDVI difference
+#' @param bands_suffix  uffix to rename the filtered bands
+#' @param apply_whit    (logical) apply the whittaker smoother after filtering?
+#' @param lambda_whit   lambda parameter of the whittaker smoother
+#' @return result.tb    a sits tibble with same samples and the new bands
+#'
 #' @examples
 #' \donttest{
-#' # Retrieve a time series with values of NDVI
-#' data(point_ndvi)
-#' # find out how many time instances are there
-#' n_times <- NROW (point_ndvi$time_series[[1]])
-#' # interpolate three times more points
-#' point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3*n_times)
-#' # plot the result
-#' sits_plot (point_int.tb)
+#' # Read a set of samples of forest/non-forest in Amazonia
+#' # This is an area full of clouds
+#' data(prodes_226_064)
+#' # Select the NDVI band of the first point
+#' point_ndvi.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
+#' # Apply the cloud filter
+#' point_cld.tb <- sits_cloud_filter(point_ndvi.tb)
+#' # Merge the filtered with the raw data
+#' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
+#' # Plot the result
+#' sits_plot (point2.tb)
 #' }
+#'
 #' @export
-sits_interp <- function(data.tb = NULL, fun = stats::approx, n = base::length, ...) {
+sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
+                              bands_suffix = "cf", apply_whit = FALSE, lambda_whit = 1.0){
 
     filter_fun <- function(data.tb) {
-        # compute linear approximation
-        result.tb <- sits_apply(data.tb,
-                                fun = function(band) {
-                                    if (class(n) == "function")
-                                        return(fun(band, n = n(band), ...)$y)
-                                    return(fun(band, n = n, ...)$y)
-                                },
-                                fun_index = function(band) as.Date(fun(band, n = n, ...)$y,
-                                                                   origin = "1970-01-01"))
+        # find the bands of the data
+        bands <- sits_bands(data.tb)
+        ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
+
+        # prepare result SITS tibble
+        result.tb <- data.tb
+        env.tb <- sits_envelope(sits_select_bands(data.tb, bands = "ndvi"), operations = "UU")
+
+        # select the chosen bands for the time series
+        result.tb$time_series <- purrr::pmap(list(data.tb$time_series, env.tb$time_series, result.tb$time_series),
+                    function (ts_data, ts_env, ts_res) {
+                        ndvi <- dplyr::pull(ts_data[, "ndvi"])
+                        env  <- dplyr::pull(ts_env[, "ndvi.env"])
+                        idx <- which(abs(env - ndvi) > cutoff)
+
+                        # interpolate missing values
+                        bands %>%
+                            purrr::map(function(b) {
+                                    ts <- dplyr::pull(ts_res[, b])
+                                    ts[idx] <- NA
+                                    ts_res[,b] <<- imputeTS::na.interpolation(ts, option = "spline")
+                                })
+                        return(ts_res)
+                    })
+        # rename the output bands
+        new_bands <- paste0(bands, ".", bands_suffix)
+        result.tb <- sits_rename(result.tb, new_bands)
+
+        if (apply_whit)
+            result.tb <- sits_whittaker(result.tb, lambda = lambda_whit)
+
         return(result.tb)
+
     }
     result <- .sits_factory_function(data.tb, filter_fun)
 }
-#' @title Remove missing values
-#' @name sits_missing_values
-#' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
-#' @description  This function removes the missing values from an image time series by substituting them by NA
-#' @param data.tb     tibble with time series data and metadata
-#' @param miss_value  number indicating missing values in a time series.
-#' @return result.tb  tibble with time series data and metadata (with missing values removed)
-#' @export
-#'
-sits_missing_values <-  function(data.tb, miss_value) {
-
-    # test if data.tb has data
-    .sits_test_tibble(data.tb)
-
-    # remove missing values by NAs
-    result.tb <- sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
-    return(result.tb)
-}
-
 #' @title Envelope filter
 #' @name sits_envelope
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -161,18 +140,129 @@ sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "e
     }
     result <- .sits_factory_function(data.tb, filter_fun)
 }
+#' @title Interpolation function of the time series of a sits_tibble
+#' @name sits_interp
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Computes the linearly interpolated bands for a given resolution
+#'               using the R base function approx
+#' @param data.tb       tibble with time series data and metadata
+#' @param fun           interpolation function
+#' @param n             number of time series elements to be created between start date and end date.
+#'                      When a class function is passed to `n`, is is evaluated with each band time series as
+#'                      an argument, e.g. n(band) (default: `length` function)
+#' @param ...           additional parameters to be used by the fun function
+#' @return result.tb    tibble with same samples and the new bands
+#' @examples
+#' \donttest{
+#' # Retrieve a time series with values of NDVI
+#' data(point_ndvi)
+#' # find out how many time instances are there
+#' n_times <- NROW (point_ndvi$time_series[[1]])
+#' # interpolate three times more points
+#' point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3*n_times)
+#' # plot the result
+#' sits_plot (point_int.tb)
+#' }
+#' @export
+sits_interp <- function(data.tb = NULL, fun = stats::approx, n = base::length, ...) {
+
+    filter_fun <- function(data.tb) {
+        # compute linear approximation
+        result.tb <- sits_apply(data.tb,
+                                fun = function(band) {
+                                    if (class(n) == "function")
+                                        return(fun(band, n = n(band), ...)$y)
+                                    return(fun(band, n = n, ...)$y)
+                                },
+                                fun_index = function(band) as.Date(fun(band, n = n, ...)$y,
+                                                                   origin = "1970-01-01"))
+        return(result.tb)
+    }
+    result <- .sits_factory_function(data.tb, filter_fun)
+}
+#' @title Kalman filter
+#'
+#' @name sits_kalman
+#' @description  A simple Kalman filter implementation
+#'
+#' @param data.tb      The SITS tibble containing the original time series
+#' @param bands_suffix The suffix to be appended to the smoothed filters
+#' @return output.tb   A tibble with smoothed sits time series
+#' @export
+sits_kalman <- function(data.tb = NULL, bands_suffix = "kf"){
+
+    filter_fun <- function(data.tb) {
+        result.tb <- sits_apply(data.tb,
+                                fun = function(band) .kalmanfilter(band, NULL, NULL, NULL),
+                                fun_index = function(band) band,
+                                bands_suffix = bands_suffix)
+        return(result.tb)
+    }
+    result <- .sits_factory_function(data.tb, filter_fun)
+    return(result)
+}
+#' @title Interpolation function of the time series in a sits tibble
+#' @name sits_linear_interp
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Computes the linearly interpolated bands for a given resolution
+#'               using the R base function approx
+#' @param data.tb       tibble with time series data and metadata
+#' @param n             number of time series elements to be created between start date and end date
+#' @return result.tb    a sits tibble with same samples and the new bands
+#' @examples
+#' \donttest{
+#'
+#' # Retrieve a time series with values of NDVI
+#' data(point_ndvi)
+#' # find out how many time instances are there
+#' n_times <- NROW (point_ndvi$time_series[[1]])
+#' # interpolate three times more points
+#' point_int.tb <- sits_linear_interp(point_ndvi, n = 3*n_times)
+#' # plot the result
+#' sits_plot (point_int.tb)
+#' }
+#' @export
+sits_linear_interp <- function(data.tb = NULL, n = 23) {
+
+    filter_fun <- function(data.tb){
+        # compute linear approximation
+        result.tb <- sits_apply(data.tb,
+                                fun = function(band) stats::approx(band, n = n, ties = mean)$y,
+                                fun_index = function(band) as.Date(stats::approx(band, n = n, ties = mean)$y,
+                                                                   origin = "1970-01-01"))
+        return(result.tb)
+    }
+    result <- .sits_factory_function(data.tb, filter_fun)
+}
 
 
-#' @title Cloud filter
-#' @name sits_cloud_filter
+#' @title Remove missing values
+#' @name sits_missing_values
+#' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
+#' @description  This function removes the missing values from an image time series by substituting them by NA
+#' @param data.tb     tibble with time series data and metadata
+#' @param miss_value  number indicating missing values in a time series.
+#' @return result.tb  tibble with time series data and metadata (with missing values removed)
+#' @export
+#'
+sits_missing_values <-  function(data.tb, miss_value) {
+
+    # test if data.tb has data
+    .sits_test_tibble(data.tb)
+
+    # remove missing values by NAs
+    result.tb <- sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
+    return(result.tb)
+}
+
+#' @title NDVI filter with ARIMA model
+#' @name sits_ndvi_arima_filter
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description  This function tries to remove clouds in the ndvi band of
 #' a satellite image time series. It looks for points where the value of the NDVI
 #' band goes down abruptly. These points are taken as those whose difference is more
-#' than a cutoff value which is set by thw user. Then it applies an ARIMA model
-#' to predict the missing value. Finally, the function applies a whitakker smoother.
-#' The parameters of the ARIMA model can be set by the user. Please see \code{\link[stats]{arima}}
-#' for the detailed description of parameters p, d, and q.
+#' than a cutoff value which is set by the user. Then it applies an spline interploation.
+#' Finally, the function applies a whitakker smoother.
 #'
 #' @param data.tb       tibble with time series data and metadata with only the "ndvi" band
 #' @param cutoff        numeric value for the maximum acceptable value of a NDVI difference
@@ -192,7 +282,7 @@ sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "e
 #' # Select the NDVI band of the first point
 #' point_ndvi.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 #' # Apply the cloud filter
-#' point_cld.tb <- sits_cloud_filter(point_ndvi.tb)
+#' point_cld.tb <- sits_ndvi_arima_filter(point_ndvi.tb)
 #' # Merge the filtered with the raw data
 #' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 #' # Plot the result
@@ -200,8 +290,8 @@ sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "e
 #' }
 #'
 #' @export
-sits_cloud_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
-                              bands_suffix = "cf", apply_whit = TRUE, lambda_whit = 1.0){
+sits_ndvi_arima_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
+                              bands_suffix = "ar", apply_whit = TRUE, lambda_whit = 1.0){
 
     filter_fun <- function(data.tb) {
         # find the bands of the data
@@ -222,6 +312,7 @@ sits_cloud_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0, q = 
         }
         # prepare result SITS tibble
         result.tb <- data.tb
+        env.tb <- sits_envelope(data.tb, operations = "U")
 
         # select the chosen bands for the time series
         result.tb$time_series <- data.tb$time_series %>%
@@ -339,26 +430,7 @@ sits_sgolay <- function(data.tb = NULL, order = 3, scale = 1, bands_suffix = "sg
     result <- .sits_factory_function(data.tb, filter_fun)
 }
 
-#' @title Kalman filter
-#'
-#' @name sits_kf
-#' @description  A simple Kalman filter implementation
-#'
-#' @param data.tb      The SITS tibble containing the original time series
-#' @param bands_suffix The suffix to be appended to the smoothed filters
-#' @return output.tb   A tibble with smoothed sits time series
-#' @export
-sits_kf <- function(data.tb = NULL, bands_suffix = "kf"){
 
-    filter_fun <- function(data.tb) {
-        result.tb <- sits_apply(data.tb,
-                                fun = function(band) .kalmanfilter(band, NULL, NULL, NULL),
-                                fun_index = function(band) band,
-                                bands_suffix = bands_suffix)
-        return(result.tb)
-    }
-    result <- .sits_factory_function(data.tb, filter_fun)
-}
 
 
 # Compute the Kalman filter

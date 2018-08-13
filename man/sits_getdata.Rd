@@ -5,9 +5,9 @@
 \title{Obtain time series from different sources}
 \usage{
 sits_getdata(coverage = NULL, file = NULL, longitude = NULL,
-  latitude = NULL, start_date = NULL, end_date = NULL, bands = NULL,
-  prefilter = "1", label = "NoClass", .n_start = 1, .n_max = Inf,
-  .n_save = 0)
+  latitude = NULL, start_date = NULL, end_date = NULL,
+  bands = NULL, prefilter = "1", label = "NoClass", .n_start = 1,
+  .n_max = Inf, .n_save = 0)
 }
 \arguments{
 \item{coverage}{(mandatory) tibble with information about the coverage.}

@@ -4,9 +4,9 @@
 \alias{sits_coverage}
 \title{Provides information about one coverage used to retrieve data}
 \usage{
-sits_coverage(service = "RASTER", name, timeline = NULL, bands = NULL,
-  missing_values = NULL, scale_factors = NULL, minimum_values = NULL,
-  files = NA)
+sits_coverage(service = "RASTER", name, timeline = NULL,
+  bands = NULL, missing_values = NULL, scale_factors = NULL,
+  minimum_values = NULL, files = NA)
 }
 \arguments{
 \item{service}{name of the time series service}
