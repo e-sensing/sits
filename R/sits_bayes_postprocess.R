@@ -7,12 +7,16 @@
 #'              and a noise value, to do a bayesian smoothing process.
 #'
 #' @param  raster_class      output raster coverage
+#' @param  window            (matrix) neighborhood window to compute bayesian smooth.
+#'                           The central element index (i, j) is given by
+#'                           i = floor(nrows(window)/2)+1 and j = floor(ncols(window)/2)+1.
+#'                           Elements '0' are excluded from window.
 #' @param  noise             bayesian smoothing parameter
 #' @param  file              file to save the post processed raster
 #' @return raster_layers.tb  tibble with metadata about the output RasterLayer objects
 #'
 #' @export
-sits_bayes_postprocess <- function(raster_class, noise, file) {
+sits_bayes_postprocess <- function(raster_class, window = matrix(1, nrow = 3, ncol = 3, byrow = TRUE), noise = 100, file) {
 
     # allocate matrix of each class
     smooth_values <- matrix(NA,
@@ -43,7 +47,8 @@ sits_bayes_postprocess <- function(raster_class, noise, file) {
                 values[values > 9999] <- 9999
 
                 # apply bayes smooth estimator
-                smooth_values[, band] <- smooth_estimator_class(values, noise)
+                new_values <- smooth_estimator_class(data = values, window = window, noise = noise)
+                smooth_values[, band] <- new_values
             }
 
             # generate an output raster layer based on the input first layer
