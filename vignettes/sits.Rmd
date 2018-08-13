@@ -75,6 +75,7 @@ The "`sits` tibble" contains data and metadata. The first six columns contain th
 ```{r}
 # print the first 10 time series records of the first sample
 samples_MT_9classes$time_series[[1]][1:3,]
+www = ggg + ttt
 ```
 
 The `sits` package provides functions for data manipulation and displaying information of a "`sits` tibble". For example, the command `sits_labels()` that shows the labels of the sample set and their frequencies.
