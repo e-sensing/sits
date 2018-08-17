@@ -53,7 +53,7 @@ sits_dendrogram <- function(data.tb, bands = NULL,
     # call dtwclust and get the resulting dendrogram
     dendro.obj  <- dtwclust::tsclust(values.tb,
                                      type     = "hierarchical",
-                                     k        = NROW(data.tb),
+                                     k        = max(NROW(data.tb) - 1, 2),
                                      distance = dist_method,
                                      control  = dtwclust::hierarchical_control(method = linkage), ...)
 
