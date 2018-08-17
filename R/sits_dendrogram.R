@@ -92,7 +92,7 @@ sits_dendrogram <- function(data.tb, bands = NULL,
 sits_dendro_bestcut <-  function (data.tb, dendro.obj) {
 
     # compute range
-    k_range <- seq(1, length(dendro.obj$height))
+    k_range <- seq(2, max(length(dendro.obj$height) - 1, 2))
 
     # compute ARI for each k
     ari.vec <-
