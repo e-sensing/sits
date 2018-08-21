@@ -147,6 +147,7 @@ default:
             nir             : 0.0001
             blue            : 0.0001
             mir             : 0.0001
+            class           : 1.0
         LANDSAT             :
             ndvi            : 0.0001
             evi             : 0.0001
@@ -155,6 +156,7 @@ default:
             mir             : 0.0001
             swir1           : 0.0001
             swir2           : 0.0001
+            class           : 1.0
 
     RASTER_resolution:
         MODIS               :

@@ -423,7 +423,6 @@ sits_show_config <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        name of the time series service
-#' @param product        name of the product
 #' @param name           name of the coverage
 #' @return size          vector of (nrows, ncols)
 .sits_get_timeline <- function(service, name){

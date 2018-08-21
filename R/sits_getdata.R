@@ -153,8 +153,7 @@ sits_getdata <- function(coverage    = NULL,
 #' @param start_date      (optional) date - the start of the period
 #' @param end_date        (optional) date - the end of the period
 #' @param bands           (optional) string vector - the names of the bands to be retrieved
-#' @param satellite       (optional) - the same of the satellite (options - "terra", "aqua", "comb")
-#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
+#' @param prefilter       string (only for SATVEG) ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
 #' @param label           string - the label to attach to the time series
 #' @return table          a SITS tibble
 #'

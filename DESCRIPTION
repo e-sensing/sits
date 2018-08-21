@@ -48,6 +48,7 @@ Imports:
     grDevices,
     keras,
     kohonen,
+    imputeTS,
     log4r,
     lubridate,
     MASS,
@@ -80,7 +81,7 @@ Imports:
     zoo
 LinkingTo:
     Rcpp
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Collate: 
     'RcppExports.R'
     'data.R'
