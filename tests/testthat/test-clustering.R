@@ -10,10 +10,10 @@ testthat::test_that("Creating a dendogram and clustering the results",{
     result.mtx   <- sits_cluster_frequency(clustered.tb)
     clean.tb     <- sits_cluster_remove(clustered.tb, min_perc = 0.90)
 
-    testthat::expect_true(NROW(dendro.obj@clusinfo) == NROW(cerrado_2classes))
+    testthat::expect_true(sum(dendro.obj@clusinfo[,1]) == NROW(cerrado_2classes))
     testthat::expect_true(dendro.obj$height[length(dendro.obj$height) - results.vec["k"] + 1] ==
                                as.numeric(results.vec["height"]))
-    testthat::expect_true(NROW(clustered.tb$cluster) == NROW(dendro.obj@clusinfo))
+    testthat::expect_true(NROW(clustered.tb$cluster) == sum(dendro.obj@clusinfo[, 1]))
     testthat::expect_true(NROW(result.mtx)  ==
                               (length(sits_labels(cerrado_2classes)$label) + 1))
     testthat::expect_true(all(unique(clean.tb$cluster) %in%
