@@ -1,6 +1,6 @@
-#' @title Read a block of values retrived from a set of raster bricks
+#' @title Post-process a classified data raster with bayesian filter
 #' @name  sits_bayes_postprocess
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Takes a set of classified raster layers, whose metadata is
 #'              described by tibble (created by \code{\link[sits]{sits_coverage}}),
