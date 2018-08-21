@@ -13,8 +13,8 @@ preprocess_data <- function(data, minimum_value, scale_factor) {
     .Call(`_sits_preprocess_data`, data, minimum_value, scale_factor)
 }
 
-smooth_estimator_class <- function(data, noise) {
-    .Call(`_sits_smooth_estimator_class`, data, noise)
+smooth_estimator_class <- function(data, window, noise) {
+    .Call(`_sits_smooth_estimator_class`, data, window, noise)
 }
 
 scale_data <- function(data, scale_factor, adj_val = 0.0) {
