@@ -53,6 +53,7 @@ sits_dendrogram <- function(data.tb, bands = NULL,
     # call dtwclust and get the resulting dendrogram
     dendro.obj  <- dtwclust::tsclust(values.tb,
                                      type     = "hierarchical",
+                                     k        = max(NROW(data.tb) - 1, 2),
                                      distance = dist_method,
                                      control  = dtwclust::hierarchical_control(method = linkage), ...)
 
@@ -91,7 +92,7 @@ sits_dendrogram <- function(data.tb, bands = NULL,
 sits_dendro_bestcut <-  function (data.tb, dendro.obj) {
 
     # compute range
-    k_range <- seq(1, length(dendro.obj$height))
+    k_range <- seq(2, max(length(dendro.obj$height) - 1, 2))
 
     # compute ARI for each k
     ari.vec <-
