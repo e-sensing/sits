@@ -22,7 +22,6 @@ Description: A set of tools for working with satellite image time series.
     Enables different clustering methods, including dendrograms and SOM.
     Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition.
     Provide machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
-Encoding: UTF-8
 Depends: R (>= 3.4)
 URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/e-sensing/sits/issues
