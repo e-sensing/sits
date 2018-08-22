@@ -341,7 +341,7 @@ sits_plot(
         point.tb))
 ```
 
-## Cloud filter
+## ARIMA filter for cloud removal
 
 The cloud filter makes use of the well known autoregressive integrated moving average (ARIMA) model. The algorithm looks to the first order difference time series for points where the value is above a certain threshold. This procedure selects only those points with large variations in the original time series, probably associated with noise. Finally, these points are replaced by the ARIMA correspondent values.
 
@@ -351,7 +351,7 @@ The parameters of the ARIMA model can be set by the user. Please see arima for t
 # Take the NDVI band of the first sample data set
 point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
 # apply ARIMA filter
-point_cf.tb <- sits_cloud_filter(point.tb, apply_whit = FALSE)
+point_cf.tb <- sits_ndvi_arima_filter(point.tb, apply_whit = FALSE)
 # plot the series
 sits_plot(sits_merge(point_cf.tb, point.tb))
 ```

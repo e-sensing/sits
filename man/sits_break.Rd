@@ -4,7 +4,8 @@
 \alias{sits_break}
 \title{Breaks a set of time series into equal intervals}
 \usage{
-sits_break(data.tb, timeline, start_date, end_date, interval = "12 month")
+sits_break(data.tb, timeline, start_date, end_date,
+  interval = "12 month")
 }
 \arguments{
 \item{data.tb}{sits tibble}

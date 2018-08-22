@@ -5,7 +5,8 @@
 \title{Classify a set of spatio-temporal raster bricks using multicore machines}
 \usage{
 sits_classify_raster(file = NULL, coverage = NULL, ml_model = NULL,
-  interval = "12 month", filter = NULL, memsize = 4, multicores = NULL)
+  interval = "12 month", filter = NULL, memsize = 4,
+  multicores = NULL)
 }
 \arguments{
 \item{file}{vector of file names to store the output (one file per classified year)}

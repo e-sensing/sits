@@ -2,21 +2,15 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_cloud_filter}
 \alias{sits_cloud_filter}
-\title{Cloud filter}
+\title{cloud filter}
 \usage{
-sits_cloud_filter(data.tb = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
-  bands_suffix = "cf", apply_whit = TRUE, lambda_whit = 1)
+sits_cloud_filter(data.tb = NULL, cutoff = 0.25, bands_suffix = "cf",
+  apply_whit = FALSE, lambda_whit = 1)
 }
 \arguments{
 \item{data.tb}{tibble with time series data and metadata with only the "ndvi" band}
 
 \item{cutoff}{numeric value for the maximum acceptable value of a NDVI difference}
-
-\item{p}{order (number of time lags) of the autoregressive model,}
-
-\item{d}{degree of differencing (the number of times the data have had past values subtracted),}
-
-\item{q}{order of the moving-average model.}
 
 \item{bands_suffix}{uffix to rename the filtered bands}
 
@@ -31,10 +25,8 @@ result.tb    a sits tibble with same samples and the new bands
 This function tries to remove clouds in the ndvi band of
 a satellite image time series. It looks for points where the value of the NDVI
 band goes down abruptly. These points are taken as those whose difference is more
-than a cutoff value which is set by thw user. Then it applies an ARIMA model
-to predict the missing value. Finally, the function applies a whitakker smoother.
-The parameters of the ARIMA model can be set by the user. Please see \code{\link[stats]{arima}}
-for the detailed description of parameters p, d, and q.
+than a cutoff value which is set by the user. Then it applies an spline interploation.
+Finally, the function applies a whitakker smoother.
 }
 \examples{
 \donttest{

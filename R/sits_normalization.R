@@ -103,7 +103,6 @@ sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
 #' standard deviation of all the time series.
 #'
 #' @param data.tb     a tibble in SITS format
-#' @param normalize   (integer) 0 = no normalization, 1 = normalize per band, 2 = normalize per dimension
 #' @return result.tb  a tibble with statistics
 .sits_normalization_param <- function(data.tb) {
 

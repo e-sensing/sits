@@ -113,7 +113,7 @@ sits_coverage <- function(service        = "RASTER",
 #' @description uses the configuration file to print information and save metadata about a
 #' chosen coverage
 #'
-#' @param r_obs.lst          list of raster objects contained in the coverage
+#' @param r_objs.lst          list of raster objects contained in the coverage
 #' @param name               name of the coverage
 #' @param service            name of the time series service
 #' @param bands.vec          vector with the names of the bands

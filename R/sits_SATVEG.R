@@ -72,7 +72,6 @@
 #' @param latitude        double - the latitude of the chosen location
 #' @param name            name of the desired coverage in SATVEG (see configuration file)
 #' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @param product         the SATVEG product we are using
 #' @return status         TRUE if no problems are detected
 #'
 .sits_ts_from_SATVEG <- function(longitude, latitude, name, prefilter){

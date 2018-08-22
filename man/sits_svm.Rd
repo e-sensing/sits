@@ -4,9 +4,10 @@
 \alias{sits_svm}
 \title{Train a SITS classification model using a support vector machine}
 \usage{
-sits_svm(data.tb = NULL, formula = sits_formula_logref(), scale = FALSE,
-  cachesize = 1000, kernel = "radial", degree = 3, coef0 = 0,
-  cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0, ...)
+sits_svm(data.tb = NULL, formula = sits_formula_logref(),
+  scale = FALSE, cachesize = 1000, kernel = "radial", degree = 3,
+  coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1,
+  cross = 0, ...)
 }
 \arguments{
 \item{data.tb}{time series with the training samples}
