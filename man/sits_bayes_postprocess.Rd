@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_bayes_postprocess.R
 \name{sits_bayes_postprocess}
 \alias{sits_bayes_postprocess}
-\title{Read a block of values retrived from a set of raster bricks}
+\title{Post-process a classified data raster with bayesian filter}
 \usage{
 sits_bayes_postprocess(raster_class, window = matrix(1, nrow = 3, ncol =
   3, byrow = TRUE), noise = 100, file)
@@ -28,5 +28,5 @@ Takes a set of classified raster layers, whose metadata is
              and a noise value, to do a bayesian smoothing process.
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
