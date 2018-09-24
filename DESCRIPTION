@@ -47,13 +47,13 @@ Imports:
     graphics,
     grDevices,
     keras,
-    kohonen,
     log4r,
     lubridate,
     MASS,
     mclust,
     methods,
     mgcv,
+    NbClust,
     nnet,
     openxlsx,
     parallel,
@@ -78,6 +78,8 @@ Imports:
     utils,
     wtss,
     zoo
+Remotes:
+    e-sensing/kohonenDTW
 LinkingTo:
     Rcpp
 RoxygenNote: 6.0.1
@@ -112,6 +114,7 @@ Collate:
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
+    'sits_plot_cluster.R'
     'sits_raster_classification.R'
     'sits_raster_blocks.R'
     'sits_raster_read_write.R'

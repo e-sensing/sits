@@ -4,8 +4,8 @@
 \alias{sits_kohonen}
 \title{Cluster a set of satellite image time series using SOM}
 \usage{
-sits_kohonen(data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5,
-  rlen = 100, alpha = c(0.05, 0.01), ...)
+sits_kohonen(data.tb, ts.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25,
+  rlen = 100, alpha = 1, ...)
 }
 \arguments{
 \item{data.tb}{a tibble with time series to be clustered}
@@ -35,9 +35,5 @@ satellite image time series.
 `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Rolf Simoes, \email{rolf.simoes@inpe.br}
-
 Lorena Alves, \email{lorena.santos@inpe.br}
 }
