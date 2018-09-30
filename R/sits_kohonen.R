@@ -17,7 +17,7 @@
 #' @return clusters.tb   a tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning tibble will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
-sits_kohonen <- function (data.tb, ts.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100,
+sits_kohonen <- function (data.tb, ts.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100,dist.fcts="euclidean",
                           alpha = 1, ...) {
 
     #estimate the number of neurons from data.tb size
@@ -42,7 +42,7 @@ sits_kohonen <- function (data.tb, ts.tb, bands = NULL, grid_xdim = 25, grid_ydi
     grid <- kohonen::somgrid(xdim = grid_xdim, ydim = grid_ydim, topo = "rectangular")
     kohonen_obj  <- kohonen::supersom (ts.tb, grid=grid,
                                        rlen = rlen, alpha = alpha,
-                                       dist.fcts="euclidean",
+                                       dist.fcts=dist.fcts,
                                        keep.data = TRUE, ...)
 
 
@@ -189,7 +189,8 @@ sits_evaluate_samples<-function(data.tb,
                                 alpha = c(1),
                                 radius = 6,
                                 distance = "euclidean",
-                                iterations = 1)
+                                iterations = 1,
+                                mode="online")
 {
     #create an id for each sample
     data.tb$id_sample<- rep(1:dim(data.tb)[1])
@@ -269,6 +270,11 @@ sits_evaluate_samples<-function(data.tb,
         #end of loop
     }
 
+    sample_t<-samples_info_t.tb
+    neuron_t<-neurons_info_t.tb
+    table_sample_neuron<- sample_t%>% dplyr::inner_join(neuron_t)
+
+
     samples_iteration.tb<-samples_info_t.tb
     j = 1
     i=1
@@ -347,9 +353,99 @@ sits_evaluate_samples<-function(data.tb,
     #here sample must have an id (SITS tibble)
     samples_new_label<-info_samples_id_cluster %>% dplyr::inner_join(data.tb)
 
+
+    #Analyse samples
+
+    #confusion
+
+    confusion_between_samples.temp <-
+        dplyr::filter(
+            info_sample_cluster.tb,
+            info_sample_cluster.tb$original_label != info_sample_cluster.tb$cluster_label
+        )
+
+    confusion_between_samples.tb<-
+        confusion_between_samples.temp %>%
+        dplyr::select(id_sample,
+               original_label,
+               percentage,
+               cluster_label)%>%
+        dplyr::group_by(id_sample) %>%
+        dplyr::filter(percentage == max(percentage)) %>%
+        arrange(desc(percentage))
+
+    matching_between_samples.temp <-
+        dplyr::filter(
+            info_sample_cluster.tb,
+            info_sample_cluster.tb$original_label == info_sample_cluster.tb$cluster_label
+        )
+
+    matching_between_samples.tb<-
+        matching_between_samples.temp %>%
+        dplyr::select(id_sample,
+                      original_label,
+                      percentage,
+                      cluster_label)%>%
+        dplyr::group_by(id_sample) %>%
+        dplyr::filter(percentage == max(percentage)) %>%
+        arrange(desc(percentage))
+
+    #grouping the samples and neuron by id_sample and iteration.
+    #The result is a table with the samples in all iterations e the majority
+    #vincinity of neuron  where the sample was allocated in each iteration.
+    sample_neuron_t<-table_sample_neuron %>%
+        dplyr::group_by(id_sample, iteration) %>%
+        dplyr::filter(P_Neighbor == max(P_Neighbor)) %>%
+        arrange(id_sample)
+
+    #grouping the result of sample_neuron_t and summary the
+    #number of neighbor in general and extract the percentage by label.
+    count_all_neighbor<-sample_neuron_t %>%
+        dplyr::group_by(id_sample, label_neighbor_neuron) %>%
+        dplyr::summarise (n = n()) %>%
+        dplyr::mutate(freq = (n / sum(n))*100)
+
+    #select the id_sample and the most frequent label neighbor neuron during all
+    #iterations. In general_vinicity the percentage of the most frequent neighbor
+    #is extracted.
+
+    general_vinicity<-dplyr::select(count_all_neighbor, id_sample,label_neighbor_neuron, freq)%>%
+        dplyr::group_by(id_sample) %>%
+        dplyr::filter(freq == max(freq)) %>%
+        arrange(id_sample)
+
+    Confusion_and_neighboor <-
+        general_vinicity %>% dplyr::inner_join(confusion_between_samples.tb)
+
+    confusion.tb<- dplyr::select(
+        Confusion_and_neighboor,
+        id_sample,
+        original_label,
+        cluster_label,
+        P_sample=percentage,
+        label_neighbor_neuron,
+        P_Neighbor=(freq)
+    )%>%dplyr::arrange(desc(P_sample))
+
+
+    Matching_and_neighboor <-
+        general_vinicity %>% dplyr::inner_join(matching_between_samples.tb)
+
+    matching.tb<- dplyr::select(
+        Matching_and_neighboor,
+        id_sample,
+        original_label,
+        cluster_label,
+        P_sample=percentage,
+        label_neighbor_neuron,
+        P_Neighbor=(freq)
+    )%>%dplyr::arrange(desc(P_sample))
+
+
     evaluated_sample <-  structure(list(
+        table_sample_neuron= table_sample_neuron,
         metrics_by_samples = info_sample_cluster.tb,
-        samples = samples_new_label
+        samples.tb = samples_new_label
     ),
     class = "sits")
 }
@@ -678,6 +774,34 @@ sits_metrics_by_cluster<-function(info_sample_cluster.tb)
 
 }
 
+
+#' @title Mixed samples
+#' @name sits_confusion_by_samples
+#' @author Lorena Santos, \email{lorena.santos@@inpe.br}
+#'
+#' @description Extract metrics about confusion between the samples
+#'
+#' @param data.tb info_samples_cluster.tb
+#' @param size_grid the size of kohonen map
+#' @return returns TRUE if data.tb has data.
+#' @export
+
+sits_confusion_by_samples<-function(info_samples.tb)
+{
+
+    metrics_samples<-info_samples$metrics_by_samples
+    confusion <-
+        dplyr::filter(
+            metrics_samples,
+            metrics_samples$original_label != metrics_samples$cluster_label
+        )
+
+    Confusion_desc<-confusionok %>% select(id_sample, original_label,percentage, cluster_label)%>%
+        group_by(id_sample) %>%
+        filter(percentage == max(percentage)) %>%
+        arrange(desc(percentage))
+
+}
 #
 # sits_plot_kohonen <-function (data.tb)
 # {
