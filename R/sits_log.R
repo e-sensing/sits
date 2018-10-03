@@ -13,11 +13,11 @@ sits_log <- function() {
 
     sits.env$debug_file <- tempfile(pattern = "sits_debug", fileext = ".log")
     sits.env$logger_debug <- log4r::create.logger(logfile = sits.env$debug_file, level = "DEBUG")
-    message(paste0("Created logger for SITS package - debug level at ", sits.env$debug_file))
+    message(paste0("Created logger for SITS package - DEBUG level at ", sits.env$debug_file))
 
     sits.env$error_file <- tempfile(pattern = "sits_error", fileext = ".log")
     sits.env$logger_error <- log4r::create.logger(logfile = sits.env$error_file, level = "ERROR")
-    message(paste0("Created logger for SITS package - error level at ", sits.env$error_file))
+    message(paste0("Created logger for SITS package - ERROR level at ", sits.env$error_file))
 
 
     return(TRUE)
