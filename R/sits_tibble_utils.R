@@ -101,66 +101,6 @@
     }
     return(subset.tb)
 }
-#' @title Apply a function over SITS bands.
-#' @name .sits_fast_apply
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description Apply a 1D generic function to a time series and specific methods for
-#' common tasks such as missing values removal and smoothing.
-#' `sits_apply` returns a sits tibble with the same samples points and new bands computed by `fun`,
-#' `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
-#' whose vector values is passed as the function argument.
-#' The `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
-#' of the corresponding band. In the second case, the returned list must have names, and each element vector will
-#' generate a new band which name composed by concatenating original band name and the corresponding list element name.
-#'
-#' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
-#'
-#' Differently from `sits_apply` function, this function merge all time series before applying `fun` function.
-#' Functions that depend on time sequence must use `sits_apply` function.
-#'
-#' @param data.tb       sits tibble
-#' @param fun           function with one parameter as input and a vector or list of vectors as output.
-#' @param fun_index     function with one parameter as input and a Date vector as output.
-#' @param bands_suffix  string informing the resulting bands name's suffix.
-#' @return data.tb      sits tibble with same samples and the new bands
-.sits_fast_apply <- function(data.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
-
-    # verify if data.tb has values
-    .sits_test_tibble (data.tb)
-
-    # save columns name from the first time series tibble
-    ts_cols <- names(data.tb$time_series[[1]])
-
-    # unnest tibble
-    data.tb <-
-        data.tb %>%
-        tidyr::unnest()
-
-    # computes fun for all time series fields and substitutes the original time series data
-    data.tb[,ts_cols] <-
-        data.tb[,ts_cols[-1:0]] %>%
-        purrr::map(fun) %>%
-        dplyr::bind_cols()
-
-    # computes fun_index for all time series fields and substitutes the original time series data
-    data.tb[,ts_cols[1]] <-
-        data.tb[,ts_cols[1]] %>%
-        purrr::map(fun_index) %>%
-        dplyr::bind_cols()
-
-    # verifies if there is a suffix and updates the columns names
-    if (nchar(bands_suffix) != 0)
-        ts_cols[-1:0] <- paste0(ts_cols[-1:0], ".", bands_suffix)
-
-    # append bands names' suffixes
-    names(data.tb) <- c(names(data.tb)[1:(length(names(data.tb))-length(ts_cols))], ts_cols)
-
-    # nest result and return
-    data.tb <-
-        data.tb %>%
-        tidyr::nest(ts_cols, .key = "time_series")
-    return(data.tb)
-}
 
 #' @title Group the contents of a sits tibble by different criteria
 #' @name .sits_group_by
