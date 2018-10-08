@@ -1,9 +1,9 @@
-#' @title Cluster a set of satellite image time series using SOM
+#' @title Clustering a set of satellite image time series using SOM
 #' @name sits_kohonen
 #' @author Lorena Alves, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function uses package "kohonen" (self-organized maps) to find clusters in
-#' satellite image time series.
+#' satellite image time series to cluster samples.
 #' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 #'
 #' @param data.tb        a tibble with time series to be clustered
@@ -22,7 +22,6 @@ sits_kohonen <- function (data.tb, ts.tb, bands = NULL, grid_xdim = 25, grid_ydi
 
     #estimate the number of neurons from data.tb size
 
-    #paletteVizin<-rainbow(20)
     paletteVizin <- colors()[c(8, 5,12,26,31,30,33,37,43,47,51,52, 56,76,84,118,142,419,625,404,656, 72)] #
 
     # does the input data exist?
@@ -100,15 +99,13 @@ sits_kohonen <- function (data.tb, ts.tb, bands = NULL, grid_xdim = 25, grid_ydi
     kohonen_obj$neurons_labelled<- neurons_labelled
 
     info_samples_tables <-  structure(list(
-          kohonen_obj = kohonen_obj,
-          info_samples = result.tb
-         ),
-        class = "sits")
+        kohonen_obj = kohonen_obj,
+        info_samples = result.tb
+    ),
+    class = "sits")
 
 
-    #confusion matrix
-
-   return (info_samples_tables)
+    return (info_samples_tables)
 }
 
 #' @title Labelling neurons using majority voting
@@ -132,12 +129,10 @@ sits_kohonen <- function (data.tb, ts.tb, bands = NULL, grid_xdim = 25, grid_ydi
         neuron_i <- dplyr::filter(data.tb, data.tb$id_neuron == i)$id_sample
         vb = neuron_i
 
-        #o neuronio ? vazio?
-        # vb <- is.null(neuron_i)
+        #Check if the neuron is empty or full
         if (length(vb) != 0)
         {
             alloc_neurons_i <- data.tb[neuron_i,]
-            #count_i<- as.matrix(sits_labels(alloc_neurons_i))
 
             data.vec <- table(alloc_neurons_i$label)
             result.tb <- tibble::as_tibble(list(
@@ -152,23 +147,21 @@ sits_kohonen <- function (data.tb, ts.tb, bands = NULL, grid_xdim = 25, grid_ydi
         } else if (length(vb) == 0)
         {
             neuron_class <- 'Noclass'
-
         }
         #this vector contains the label of each neuron
         class_vector[i] <- neuron_class
-
-
     }
 
     return (class_vector)
-
 }
+
 #' @title Evaluate samples
 #' @name sits_evaluate_samples
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function evaluate the samples and extract metrics from SOM cluster.
 #' The user can choose the amount of time that the kohonen process will be run.
+#' This function allows check if the sample reliable or not
 #'
 #' @param data.tb        a SITS tibble with info of samples
 #' @param time_series    the time series extracted from SITS tibble
@@ -216,7 +209,6 @@ sits_evaluate_samples<-function(data.tb,
                 normalizeDataLayers = TRUE
             )
 
-
         # create a tibble to store the results
         result.tb <- data.tb
 
@@ -237,7 +229,6 @@ sits_evaluate_samples<-function(data.tb,
         class_matrix <- cbind(neurons_labelled, class_vector_int)
         table_class_matrix_id <- (unique(class_matrix))
 
-
         #Add at the sample the label of neuron
         Neurons_ <- result.tb$id_neuron
 
@@ -246,7 +237,6 @@ sits_evaluate_samples<-function(data.tb,
         result.tb$neuron_label <- Cluster_sample
 
         #until here is common sits_kohonen (improve this function)
-
 
         table_samples<-tibble::as_tibble(list(
             id_sample= as.integer(result.tb$id_sample),
@@ -267,7 +257,6 @@ sits_evaluate_samples<-function(data.tb,
         samples_info_t.tb <- rbind(samples_info_t.tb,table_samples)
         neurons_info_t.tb <- rbind(neurons_info_t.tb,table_neurons)
 
-        #end of loop
     }
 
     sample_t<-samples_info_t.tb
@@ -295,7 +284,7 @@ sits_evaluate_samples<-function(data.tb,
         count_sample$cluster_label <- name_majority_label
 
         #create table with all samples and de majority label
-         samples_cluster_t.tb <- rbind(samples_cluster_t.tb, count_sample)
+        samples_cluster_t.tb <- rbind(samples_cluster_t.tb, count_sample)
     }
 
     #summary samples_cluster_t.tb
@@ -346,18 +335,13 @@ sits_evaluate_samples<-function(data.tb,
                       percentage,
                       cluster_label)
 
-
     #join samples with new cluster
     info_samples_id_cluster<-unique(dplyr::select(info_sample_cluster.tb, id_sample, cluster_label))
 
     #here sample must have an id (SITS tibble)
     samples_new_label<-info_samples_id_cluster %>% dplyr::inner_join(data.tb)
 
-
-    #Analyse samples
-
     #confusion
-
     confusion_between_samples.temp <-
         dplyr::filter(
             info_sample_cluster.tb,
@@ -367,9 +351,9 @@ sits_evaluate_samples<-function(data.tb,
     confusion_between_samples.tb<-
         confusion_between_samples.temp %>%
         dplyr::select(id_sample,
-               original_label,
-               percentage,
-               cluster_label)%>%
+                      original_label,
+                      percentage,
+                      cluster_label)%>%
         dplyr::group_by(id_sample) %>%
         dplyr::filter(percentage == max(percentage)) %>%
         arrange(desc(percentage))
@@ -495,7 +479,7 @@ sits_evaluate_samples<-function(data.tb,
 #'
 #' @description Create new groups to identify variations in a same group
 #'
-#' @param data.tb  a SITS tibble with info of samples and kohonen.obj
+#' @param koh  An object with informations about kohonen clustering and samples.
 #' @return returns a SITS tibble with subgroups generated by hierarchical clustering.
 #' @export
 sits_subgroup<-function(koh)
@@ -547,16 +531,8 @@ sits_subgroup<-function(koh)
             max_group<-10
         }
 
-        # indice <- pmatch(index, c("kl", "ch", "hartigan", "ccc",
-        #                           "scott", "marriot", "trcovw", "tracew", "friedman",
-        #                           "rubin", "cindex", "db", "silhouette", "duda", "pseudot2",
-        #                           "beale", "ratkowsky", "ball", "ptbiserial", "gap", "frey",
-        #                           "mcclain", "gamma", "gplus", "tau", "dunn", "hubert",
-        #                           "sdindex", "dindex", "sdbw", "all", "alllong"))
-        # #estimates the number of groups ward.D2 weight_ndvi.ts  codes_ndvi_evi.ts
         nb_all <- NbClust::NbClust(weight_evi.ts, distance = "euclidean", min.nc = min_group,
                                    max.nc = max_group, method = "ward.D2" , index=c("dunn","sdbw","sdindex"))
-
 
         number_of_cluster<- nb_all$Best.nc[1]
         number_of_cluster
@@ -580,7 +556,6 @@ sits_subgroup<-function(koh)
 
             if (length(neuron_id_int)==1)
             {
-
                 ts_ndvi.ts<-as.matrix(ts[1:23])
                 colnames(ts_ndvi.ts)<- paste ("V",neuron_id_int, sep = "", collapse = NULL)
                 #get only evi
@@ -600,9 +575,6 @@ sits_subgroup<-function(koh)
                 ts_group_ndvi.ts <- zoo::zoo(t(ts_ndvi.ts))
                 ts_group_evi.ts <- zoo(t(ts_evi.ts))
             }
-
-
-
 
             groupts_ndvi.df <- data.frame(value = as.vector(ts_group_ndvi.ts),
                                           time = time(ts_group_ndvi.ts),
@@ -641,10 +613,8 @@ sits_subgroup<-function(koh)
                 device = "png"
             )
 
-
             #-------------------------------------------------------------------------------
             #get samples of current group
-            #s_group_cluster<-.sits_get_samples (neuron_id_int,j)
             s = 1
             s_group <- as_tibble()
             for (s in 1:length(neuron_id_int))
@@ -666,10 +636,9 @@ sits_subgroup<-function(koh)
 #' @title Metrics by cluster
 #' @name sits_metrics_by_cluster
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
+#' @description Create subgroups to identify variations in a same group
 #'
-#' @description Create new groups to identify variations in a same group
-#'
-#' @param data.tb info_samples_cluster.tb
+#' @param data.tb obj contained the clusterized samples
 #' @param size_grid the size of kohonen map
 #' @return returns TRUE if data.tb has data.
 #' @export
@@ -758,66 +727,19 @@ sits_metrics_by_cluster<-function(info_sample_cluster.tb)
             dplyr::filter(current_class_ambiguity,
                           current_class_ambiguity$mixture_percentage > 0)
 
-
         Mix_class<-rbind(Mix_class,current_class_ambiguity)
 
     }
-
-
-    palette <- colors()[c(8, 5,12,26,31,30,33,37,43,47,51,52, 56,76,84,118,142,419,625,404,656, 72)]
-
     info_confusion_matrix <-
         caret::confusionMatrix(confusion.matrix.tb[1:dim_row,1:dim_col])
 
+    metrics_by_cluster <-  structure(list(
+        mixture_cluster= Mix_class,
+        confusion_matrix = info_confusion_matrix
+    ),
+    class = "sits")
 
-    return (Mix_class)
-
-}
-
-
-#' @title Mixed samples
-#' @name sits_confusion_by_samples
-#' @author Lorena Santos, \email{lorena.santos@@inpe.br}
-#'
-#' @description Extract metrics about confusion between the samples
-#'
-#' @param data.tb info_samples_cluster.tb
-#' @param size_grid the size of kohonen map
-#' @return returns TRUE if data.tb has data.
-#' @export
-
-sits_confusion_by_samples<-function(info_samples.tb)
-{
-
-    metrics_samples<-info_samples$metrics_by_samples
-    confusion <-
-        dplyr::filter(
-            metrics_samples,
-            metrics_samples$original_label != metrics_samples$cluster_label
-        )
-
-    Confusion_desc<-confusionok %>% select(id_sample, original_label,percentage, cluster_label)%>%
-        group_by(id_sample) %>%
-        filter(percentage == max(percentage)) %>%
-        arrange(desc(percentage))
+    return (metrics_by_cluster)
 
 }
-#
-# sits_plot_kohonen <-function (data.tb)
-# {
-#
-#     p <-
-#         ggplot2::ggplot() + geom_bar(
-#             aes(
-#                 y = Mix_class$mixture_percentage,
-#                 x = Mix_class$cluster,
-#                 fill = Mix_class$original_class
-#             ),
-#             data = Mix_class,
-#             stat = "identity",
-#             position = position_dodge()
-#         ) + theme_minimal() + theme(axis.text.x = element_text(angle = 60, hjust = 1)) +  labs(x = "Clusters", y="Percentage of Mixture", colour="cluster")
-#     p + scale_fill_manual("Labels", values = palette)
-#
-#
-# }
+

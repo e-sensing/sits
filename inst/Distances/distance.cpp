@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+
 typedef double (*DistanceFunctionPtr)(double *, double *, int, int);
 
 double EuclideanDTW(double x, double y)
