@@ -1,4 +1,4 @@
-#' @title  Plot a set of satellite image time series
+#' @title  Plot the SOM grid with neurons labeled
 #' @name   sits_plot_kohonen
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #' @description Given a kohonen object with a set of time neurons, plot them.
@@ -40,18 +40,26 @@ sits_plot_kohonen <- function(data, type="codes") {
         xpd = TRUE,
         ncol =1
 
-
-
     )
     # return the original SITS table - useful for chaining
     return(invisible(data))
 }
 
+#' @title  Plot information about clusters
+#' @name   sits_plot_clusterInfo
+#' @author Lorena Santos \email{lorena.santos@@inpe.br}
+#'
+#' @description Plot a bar graph with informations about each cluster.
+#' The percentage of mixture between the clusters.
+#'
+#' @param  data  Table containing the percentage of mixture between the clusters
+#' @export
 sits_plot_clusterInfo <- function(data)
 {
     data<-data$mixture_cluster
     Labels=data$original_class
     palette <- .sits_kohonen_pallete()
+
     #this plot correspond to metrics by cluster
      p <-
         ggplot2::ggplot() + geom_bar(
