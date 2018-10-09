@@ -2,10 +2,10 @@
 % Please edit documentation in R/sits_kohonen.R
 \name{sits_kohonen}
 \alias{sits_kohonen}
-\title{Cluster a set of satellite image time series using SOM}
+\title{Clustering a set of satellite image time series using SOM}
 \usage{
 sits_kohonen(data.tb, ts.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25,
-  rlen = 100, alpha = 1, ...)
+  rlen = 100, dist.fcts = "euclidean", alpha = 1, ...)
 }
 \arguments{
 \item{data.tb}{a tibble with time series to be clustered}
@@ -29,7 +29,7 @@ If return_members are FALSE, the returning tibble will contain a new collumn cal
 }
 \description{
 This function uses package "kohonen" (self-organized maps) to find clusters in
-satellite image time series.
+satellite image time series to cluster samples.
 }
 \references{
 `kohonen` package (https://CRAN.R-project.org/package=kohonen)
