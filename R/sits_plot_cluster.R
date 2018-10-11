@@ -76,8 +76,7 @@ sits_plot_clusterInfo <- function(data)
         theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
         labs(x = "Clusters", y="Percentage of Mixture", colour="cluster")
 
-
-    return(p)
+         return(p)
 }
 
 
