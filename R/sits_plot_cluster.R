@@ -14,12 +14,7 @@
 #' @param  data  data to be plotted (must be a kohonen object)
 #'
 #' @export
-sits_plot_kohonen <- function(data, type="codes") {
-
-    koh=data
-
-    #create a legend
-    leg <- cbind(koh$kohonen_obj$neurons_labelled, koh$kohonen_obj$paint_map)
+sits_plot_kohonen <- function(koh, type="codes") {
 
     if (type =="mapping"){
         plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping")
@@ -27,7 +22,10 @@ sits_plot_kohonen <- function(data, type="codes") {
         plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes")
     }
 
-   legend(
+    #create a legend
+    leg <- cbind(koh$kohonen_obj$neurons_labelled, koh$kohonen_obj$paint_map)
+
+    legend(
         "bottomright",
         legend = unique(leg[, 1]),
         col = unique(leg[, 2]),
@@ -61,7 +59,7 @@ sits_plot_clusterInfo <- function(data)
     palette <- .sits_kohonen_pallete()
 
     #this plot correspond to metrics by cluster
-     p <-
+    p <-
         ggplot2::ggplot() + geom_bar(
             aes(
                 y = data$mixture_percentage,
@@ -76,5 +74,5 @@ sits_plot_clusterInfo <- function(data)
         theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
         labs(x = "Clusters", y="Percentage of Mixture", colour="cluster")
 
-         return(p)
+    return(p)
 }
