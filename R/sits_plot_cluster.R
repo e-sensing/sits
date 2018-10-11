@@ -78,8 +78,3 @@ sits_plot_clusterInfo <- function(data)
 
          return(p)
 }
-
-
-
-
-
