@@ -39,8 +39,8 @@ sits_plot_kohonen <- function(data, type="codes") {
         inset = c(0.0350, 0.05),
         xpd = TRUE,
         ncol =1
-
     )
+
     # return the original SITS table - useful for chaining
     return(invisible(data))
 }
