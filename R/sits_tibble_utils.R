@@ -142,7 +142,7 @@
                "label", "coverage", "time_series")
 
     ensurer::ensure_that(data.tb, all(names %in% colnames(.)),
-                         err_desc = "data input is not a valid SITS tibble")
+                         err_desc = "data input is not a valid sits tibble")
 
     return(TRUE)
 }
