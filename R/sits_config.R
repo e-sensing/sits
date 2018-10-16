@@ -156,8 +156,8 @@ sits_show_config <- function() {
     names(bbox)  <- c("xmin", "xmax", "ymin", "ymax")
 
     if (service == "RASTER") {
-        ensurer::ensure_that(r_obj, length(.) > 0,
-                             err_desc = "raster objects have not been created")
+        ensurer::ensure_that(r_obj, class(.) %in% c("RasterLayer", "RasterBrick", "RasterStack"),
+                             err_desc = "r_obj is mandatory when using a RASTER service")
         bbox["xmin"] <- raster::xmin(r_obj)
         bbox["xmax"] <- raster::xmax(r_obj)
         bbox["ymin"] <- raster::ymin(r_obj)
