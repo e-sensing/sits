@@ -13,6 +13,6 @@ test_that("All",{
 
     wtss_coverage <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
 
-    .sits_convert_resolution(wtss_coverage)
+    #.sits_convert_resolution(wtss_coverage)
 })
 
