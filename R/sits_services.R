@@ -2,7 +2,7 @@
 #' @title Provides information about the time series services available
 #' @name sits_services
 #'
-#' @description uses the configuration file to print information about the services, products and coverages
+#' @description Uses the configuration file to print information about the services, products and coverages.
 #' @export
 sits_services <- function() {
     services <- sits.env$config$ts_services

@@ -2,18 +2,17 @@
 #' @name  .sits_preprocess_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  values.mx        matrix of values retrieved from a brick
-#' @param  band             band to be processed
-#' @param  missing_value    missing value for the band
-#' @param  minimum_value    minimum values for the band
-#' @param  scale_factor     scale factor for each band (only for raster data)
-#' @param  stats            normalization parameters
-#' @param  filter           smoothing filter to be applied
-#' @param  multicores       number of cores to process the time series
-#' @return values.mx        matrix with pre-processed values
+#' @param  values.mx        Matrix of values retrieved from a brick.
+#' @param  band             Band to be processed.
+#' @param  missing_value    Missing value for the band.
+#' @param  minimum_value    Minimum values for the band.
+#' @param  scale_factor     Scale factor for each band (only for raster data).
+#' @param  stats            Normalization parameters.
+#' @param  filter           Smoothing filter to be applied.
+#' @param  multicores       Number of cores to process the time series.
+#' @return Matrix with pre-processed values.
 .sits_preprocess_data <- function(values.mx, band, missing_value, minimum_value, scale_factor,
                                   stats, filter, multicores){
-
     # correct minimum value
     values.mx[is.na(values.mx)] <- minimum_value
     values.mx[values.mx <= minimum_value] <- minimum_value
@@ -31,22 +30,21 @@
     }
     return(values.mx)
 }
+
 #' @title Read a block of values retrived from a set of raster bricks
 #' @name  .sits_read_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  coverage        input raster coverage
-#' @param  samples         tibble with samples
-#' @param  ml_model        machine learning model
-#' @param  first_row       first row to start reading
-#' @param  n_rows_block    number of rows in the block
-#' @param  stats           normalization parameters
-#' @param  filter          smoothing filter to be applied
-#' @param  multicores      number of cores to process the time series
-#' @return dist_DT         data.table with values for classification
-#'
+#' @param  coverage        Input raster coverage.
+#' @param  samples         Tibble with samples.
+#' @param  ml_model        Machine learning model.
+#' @param  first_row       First row to start reading.
+#' @param  n_rows_block    Number of rows in the block.
+#' @param  stats           Normalization parameters.
+#' @param  filter          Smoothing filter to be applied.
+#' @param  multicores      Number of cores to process the time series.
+#' @return A data.table with values for classification.
 .sits_read_data <- function(coverage, samples, ml_model, first_row, n_rows_block, stats, filter, multicores) {
-
     # get the bands in the same order as the samples
     bands <- sits_bands(samples)
 
@@ -117,15 +115,13 @@
 #' @name .sits_scale_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description this function normalizes one band of the values read from a raster brick
+#' @description This function normalizes one band of the values read from a raster brick.
 #'
-#' @param  values.mx      matrix of values
-#' @param  scale_factor   scaling factor
-#' @param  multicores     number of cores
-#' @return values.mx      scaled matrix
-#'
+#' @param  values.mx      Matrix of values.
+#' @param  scale_factor   Scaling factor.
+#' @param  multicores     Number of cores.
+#' @return A scaled matrix.
 .sits_scale_data <- function(values.mx, scale_factor, multicores) {
-
     # scale the data set
     # auxiliary function to scale a block of data
     scale_block <- function(chunk, scale_factor) {
@@ -145,19 +141,18 @@
 
     return(values.mx)
 }
+
 #' @title Scale the time series values in the case of a matrix
 #' @name .sits_scale_matrix_integer
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description this function transforms a numerical matrix into an integer one
+#' @description This function transforms a numerical matrix into an integer one.
 #'
-#' @param  values.mx      matrix of values
-#' @param  scale_factor   scaling factor
-#' @param  multicores     number of cores
-#' @return values.mx      scaled integer matrix
-#'
+#' @param  values.mx      Matrix of values.
+#' @param  scale_factor   Scaling factor.
+#' @param  multicores     Number of cores.
+#' @return Scaled integer matrix.
 .sits_scale_matrix_integer <- function(values.mx, scale_factor, multicores) {
-
     # scale the data set
     # auxiliary function to scale a block of data
     scale_matrix_block <- function(chunk, scale_factor) {
@@ -182,16 +177,16 @@
 #' @name .sits_write_raster_values
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description write the raster values to the outout files
+#' @description Write the raster values to the outout files.
 #'
-#' @param  output.lst        list with value layers and probability bricks
-#' @param  prediction_DT     data.table with predicted probabilities for each class
-#' @param  labels            class labels
-#' @param  int_labels        integer values corresponding to labels
-#' @param  time              interval to be written to file
-#' @param  first_row         initial row of the output layer to write block
-#' @param  multicores        number of cores to process the time series
-#' @return output.lst       updated list with value layers and probability bricks
+#' @param  output.lst        List with value layers and probability bricks.
+#' @param  prediction_DT     A data.table with predicted probabilities for each class.
+#' @param  labels            Class labels.
+#' @param  int_labels        Integer values corresponding to labels.
+#' @param  time              Interval to be written to file.
+#' @param  first_row         Initial row of the output layer to write block.
+#' @param  multicores        Number of cores to process the time series.
+#' @return Updated list with value layers and probability bricks.
 .sits_write_raster_values <- function(output.lst,
                                       prediction_DT,
                                       labels,
@@ -199,8 +194,6 @@
                                       time,
                                       first_row,
                                       multicores) {
-
-
     # for each layer, write the predicted values
     # extract the values
     values <-  int_labels[max.col(prediction_DT)]

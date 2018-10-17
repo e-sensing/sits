@@ -1,7 +1,7 @@
 #' @title Provides information about one coverage used to retrieve data
 #' @name sits_coverage
 #'
-#' @description uses the configuration file to print information and save metadata about a
+#' @description Uses the configuration file to print information and save metadata about a
 #' chosen coverage:
 #'  service        - name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER")
 #'  name           - name of the coverage (must be unique)
@@ -19,14 +19,15 @@
 #'  crs            - Projection crs
 #'  files          - Files associated with the coverage (in case of raster data)
 #'
-#' @param service           name of the time series service
-#' @param name              name of the coverage
-#' @param timeline          vector - timeline of the coverage
-#' @param bands             vector - bands
-#' @param scale_factors     vector - scale factor for each band
-#' @param missing_values    vector - missing values for each band
-#' @param minimum_values    vector - minimum values for each band
-#' @param files             vector - file names for each band (only for raster data)
+#' @param service           Name of the time series service.
+#' @param name              Name of the coverage.
+#' @param timeline          Vector with the timeline of the coverage.
+#' @param bands             Vector of bands.
+#' @param scale_factors     Vector with the scale factor for each band.
+#' @param missing_values    Vector of missing values for each band.
+#' @param minimum_values    Vector of minimum values for each band.
+#' @param files             Vector of file names for each band (only for raster data).
+#' @seealso To see the available values for the parameters above use \code{\link{sits_config}} or \code{\link{sit_show_config}}.
 #' @examples
 #' \donttest{
 #' # Example 1. Retrieve information about a WTSS coverage
@@ -34,14 +35,13 @@
 #'
 #' # Example 2. Create a raster coverage with metadata
 #' # read a raster file and put it into a vector
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #'
 #' # create a raster coverage file based on the information about the files
 #' raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
 #'              timeline = timeline_modis_392, bands = c("ndvi"), files = files)
 #' }
 #' @export
-#'
 sits_coverage <- function(service        = "RASTER",
                           name,
                           timeline       = NULL,
@@ -50,7 +50,6 @@ sits_coverage <- function(service        = "RASTER",
                           scale_factors  = NULL,
                           minimum_values = NULL,
                           files          = NA) {
-
     # if no service is specified, but the names of files are provided,
     # assume we are dealing with raster data
     if (service == "RASTER") {
@@ -102,36 +101,34 @@ sits_coverage <- function(service        = "RASTER",
                                              missing_values.vec = missing_values,
                                              minimum_values.vec = minimum_values,
                                              files.vec          = files)
-
     return(coverage.tb)
-
 }
 
 #' @title Creates a coverage metadata
 #' @name .sits_create_coverage
 #'
-#' @description uses the configuration file to print information and save metadata about a
-#' chosen coverage
+#' @description Uses the configuration file to print information and save metadata about a
+#' chosen coverage.
 #'
-#' @param r_objs.lst          list of raster objects contained in the coverage
-#' @param name               name of the coverage
-#' @param service            name of the time series service
-#' @param bands.vec          vector with the names of the bands
-#' @param labels.vec         vector with labels (only valid for classified data)
-#' @param scale_factors.vec  vector with scale factor for each band
-#' @param missing_values.vec vector with missing values for each band
-#' @param minimum_values.vec vector with minimum values for each band
-#' @param timeline.lst       list with vectors of valid timelines for each band
-#' @param nrows              number of rows in the coverage
-#' @param ncols              number of columns in the coverage
-#' @param xmin               spatial extent (xmin)
-#' @param ymin               spatial extent (ymin)
-#' @param xmax               spatial extent (xmax)
-#' @param ymax               spatial extent (ymin)
-#' @param xres               spatial resolution (x dimension)
-#' @param yres               spatial resolution (y dimension)
-#' @param crs                CRS for coverage
-#' @param files.vec          vector with associated files
+#' @param r_objs.lst         List of raster objects contained in the coverage.
+#' @param name               Name of the coverage.
+#' @param service            Name of the time series service.
+#' @param bands.vec          Vector with the names of the bands.
+#' @param labels.vec         Vector with labels (only valid for classified data).
+#' @param scale_factors.vec  Vector with scale factor for each band.
+#' @param missing_values.vec Vector with missing values for each band.
+#' @param minimum_values.vec Vector with minimum values for each band.
+#' @param timeline.lst       List with vectors of valid timelines for each band.
+#' @param nrows              Number of rows in the coverage.
+#' @param ncols              Number of columns in the coverage.
+#' @param xmin               Spatial extent (xmin).
+#' @param ymin               Spatial extent (ymin).
+#' @param xmax               Spatial extent (xmax).
+#' @param ymax               Spatial extent (ymin).
+#' @param xres               Spatial resolution (x dimension).
+#' @param yres               Spatial resolution (y dimension).
+#' @param crs                CRS for coverage.
+#' @param files.vec          Vector with associated files.
 .sits_create_coverage <- function(r_objs.lst,
                                   name,
                                   service,
@@ -143,7 +140,6 @@ sits_coverage <- function(service        = "RASTER",
                                   timeline.lst,
                                   nrows, ncols, xmin, xmax, ymin, ymax,
                                   xres, yres, crs, files.vec) {
-
     # create a tibble to store the metadata
     coverage.tb <- tibble::tibble(r_objs         = list(r_objs.lst),
                                   name           = name,
@@ -165,21 +161,19 @@ sits_coverage <- function(service        = "RASTER",
                                   crs            = crs,
                                   files          = list(files.vec))
 
-
     return(coverage.tb)
 }
+
 #' @title Provides information about one coverage of the WTSS service
 #' @name .sits_coverageWTSS
 #'
-#' @description uses the WTSS services to print information and save metadata about a
-#' chosen coverage
+#' @description Uses the WTSS services to print information and save metadata about a
+#' chosen coverage.
 #'
-#' @param wtss.obj   R WTSS object associated to the service
-#' @param service    name of the service
-#' @param name       name of the coverage
-#'
+#' @param wtss.obj   R WTSS object associated to the service.
+#' @param service    Name of the service.
+#' @param name       Name of the coverage.
 .sits_coverageWTSS <- function(wtss.obj, service, name) {
-
     # obtains information about the available coverages
     coverages.vec    <- wtss::listCoverages(wtss.obj)
 
@@ -236,16 +230,15 @@ sits_coverage <- function(service        = "RASTER",
     # return the tibble with coverage info
     return(coverage.tb)
 }
+
 #' @title Provides information about one coverage of the SATVEG time series service
 #' @name .sits_coverage_SATVEG
 #'
-#' @description creates a tibble with metadata about a given coverage
+#' @description Creates a tibble with metadata about a given coverage.
 #'
-#' @param name       name of the coverage
-#' @param timeline   timeline of the coverage
-#'
+#' @param name       Name of the coverage.
+#' @param timeline   Timeline of the coverage.
 .sits_coverage_SATVEG <- function(name, timeline) {
-
     service <- "SATVEG"
     # get the bands
     bands.vec <- .sits_get_bands(service, name)
@@ -285,7 +278,6 @@ sits_coverage <- function(service        = "RASTER",
     minimum_values.vec <- .sits_get_minimum_values(service, bands.vec)
     names(minimum_values.vec) <- bands.vec
 
-
     # create a tibble to store the metadata
     coverage.tb <- .sits_create_coverage(r_objs.lst = NA,
                                          name, service,
@@ -295,9 +287,9 @@ sits_coverage <- function(service        = "RASTER",
                                          xres, yres, crs,
                                          files.vec = NA)
 
-
     return(coverage.tb)
 }
+
 #' @title Create a metadata tibble to store the description of a spatio-temporal raster dataset
 #' @name .sits_coverage_raster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -308,15 +300,14 @@ sits_coverage <- function(service        = "RASTER",
 #'               projection. Each raster brick file should contain one band
 #'               per time step. Different bands are archived in different raster files.
 #'
-#' @param  name                  name of the coverage file
-#' @param  timeline.vec          vector of dates with the timeline of the bands
-#' @param  bands.vec             vector of bands contained in the Raster Brick set (in the same order as the files)
-#' @param  scale_factors.vec     vector of scale factors (one per band)
-#' @param  missing_values.vec    vector of missing values (one per band)
-#' @param  minimum_values.vec    minimum values for each band (only for raster data)
-#' @param  files.vec             vector with the file paths of the raster files
-#' @return raster.tb         tibble with metadata information about a raster data set
-#'
+#' @param  name                  Name of the coverage file.
+#' @param  timeline.vec          Vector of dates with the timeline of the bands.
+#' @param  bands.vec             Vector of bands contained in the Raster Brick set (in the same order as the files).
+#' @param  scale_factors.vec     Vector of scale factors (one per band).
+#' @param  missing_values.vec    Vector of missing values (one per band).
+#' @param  minimum_values.vec    Minimum values for each band (only for raster data).
+#' @param  files.vec             vector with the file paths of the raster files.
+#' @return A tibble with metadata information about a raster data set.
 .sits_coverage_raster <- function(name,
                                   timeline.vec,
                                   bands.vec,
@@ -324,7 +315,6 @@ sits_coverage <- function(service        = "RASTER",
                                   missing_values.vec,
                                   minimum_values.vec,
                                   files.vec) {
-
     ensurer::ensure_that(bands.vec, length(.) == length(files.vec),
                          err_desc = "sits_coverageRaster: number of bands does not match number of files")
     ensurer::ensure_that(name, !purrr::is_null(.),
@@ -340,7 +330,6 @@ sits_coverage <- function(service        = "RASTER",
 
     # set the labels
     labels.vec <- c("NoClass")
-
 
     # create a list to store the raster objects
     brick.lst <- purrr::pmap(list(files.vec, bands.vec),
@@ -369,6 +358,7 @@ sits_coverage <- function(service        = "RASTER",
 
     return(coverage.tb)
 }
+
 #' @title Create a set of RasterLayer objects to store time series classification results
 #' @name .sits_coverage_raster_classified
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -378,14 +368,12 @@ sits_coverage <- function(service        = "RASTER",
 #' set of RasterLayers to store the classification result. Each RasterLayer corresponds
 #' to one time step. The time steps are specified in a list of dates.
 #'
-#' @param  raster.tb         tibble with metadata about the input RasterBrick objects
-#' @param  samples.tb        samples used for training the classification model
-#' @param  file              generic name of the files that will contain the RasterLayers
-#' @param  interval          classification interval
-#' @return raster_layers.tb  tibble with metadata about the output RasterLayer objects
-#'
+#' @param  raster.tb         Tibble with metadata about the input RasterBrick objects.
+#' @param  samples.tb        Samples used for training the classification model.
+#' @param  file              Generic name of the files that will contain the RasterLayers.
+#' @param  interval          Classification interval.
+#' @return A tibble with metadata about the output RasterLayer objects.
 .sits_coverage_raster_classified <- function(raster.tb, samples.tb, file, interval){
-
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) > 0,
                          err_desc = "sits_classify_raster: need a valid metadata for coverage")
@@ -458,7 +446,6 @@ sits_coverage <- function(service        = "RASTER",
         files_probs[i] <- filename
         bands_probs[i] <- paste0("probs_",lubridate::year(start_date),"_",lubridate::month(start_date),
                                  "_",lubridate::year(start_date),"_",lubridate::month(end_date))
-
     }
 
     # get the name of the coverage
@@ -490,22 +477,22 @@ sits_coverage <- function(service        = "RASTER",
 
     return(coverage.tb)
 }
+
 #' @title Creates a tibble with information about a set of raster bricks
 #' @name .sits_create_raster_coverage
 #'
-#' @description creates a tibble with metadata about a given coverage
+#' @description Creates a tibble with metadata about a given coverage.
 #'
-#' @param raster.lst               list of Raster objects associated with the raster coverages
-#' @param service                  time series service
-#' @param name                     name of the coverage
-#' @param timeline.lst             list - coverage timelines
-#' @param bands.vec                vector - names of bands
-#' @param labels.vec               vector - labels for classified image
-#' @param scale_factors.vec        vector - scale factors
-#' @param missing_values.vec       vector - missing values
-#' @param minimum_values.vec       vector - minimum values
-#' @param files.vec                vector - names of raster files where the data is stored
-#'
+#' @param raster.lst               List of Raster objects associated with the raster coverages.
+#' @param service                  Time series service.
+#' @param name                     Name of the coverage.
+#' @param timeline.lst             List of coverage timelines.
+#' @param bands.vec                Vector with names of bands.
+#' @param labels.vec               Vector of labels for classified image.
+#' @param scale_factors.vec        Vector of scale factors.
+#' @param missing_values.vec       Vector of missing values.
+#' @param minimum_values.vec       Vector of minimum values.
+#' @param files.vec                Vector of names of raster files where the data is stored.
 .sits_create_raster_coverage <- function(raster.lst,
                                          service,
                                          name,
@@ -516,7 +503,6 @@ sits_coverage <- function(service        = "RASTER",
                                          missing_values.vec,
                                          minimum_values.vec,
                                          files.vec) {
-
     # associate an R raster object to the first element of the list of bricks
     r_obj <- raster.lst[[1]]
     # get the size of the coverage
@@ -602,17 +588,16 @@ sits_coverage <- function(service        = "RASTER",
 
     return(coverage.tb)
 }
+
 #' @title Try a best guess for the type of sensor/satellite
 #' @name .sits_guess_satellite
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description    Based on the projection, tries to guess what is the satellite
+#' @description    Based on the projection, tries to guess what is the satellite.
 #'
-#' @param r_obj         a raster object
-#' @return satellite    name of the satellite (or sensor)
-#'
+#' @param r_obj         A raster object.
+#' @return Name of the satellite (or sensor).
 .sits_guess_satellite <- function(r_obj) {
-
     # get the CRS projection
     crs <- as.character(raster::crs(r_obj))
 
@@ -633,21 +618,19 @@ sits_coverage <- function(service        = "RASTER",
 
     return(satellite)
 }
+
 #' @title Define a filename associated to one classified raster layer
 #' @name .sits_raster_filename
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Creates a filename for a raster layer with associated temporal information,
-#'                 given a basic filename
+#'                 given a basic filename.
 #'
-#' @param file          original file name (without temporal information)
-#' @param start_date    starting date of the time series classification
-#' @param end_date      end date of the time series classification
-#' @return file_name    name of the classification file for the required interval
-#'
+#' @param file          Original file name (without temporal information).
+#' @param start_date    Starting date of the time series classification.
+#' @param end_date      End date of the time series classification.
+#' @return Name of the classification file for the required interval.
 .sits_raster_filename <- function(file, start_date, end_date){
-
-
     file_base <- tools::file_path_sans_ext(file)
     y1 <- lubridate::year(start_date)
     m1 <- lubridate::month(start_date)
@@ -658,4 +641,3 @@ sits_coverage <- function(service        = "RASTER",
 
     return(file_name)
 }
-

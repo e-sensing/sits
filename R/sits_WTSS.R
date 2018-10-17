@@ -26,9 +26,7 @@
 #' sits_infoWTSS()
 #' }
 #' @export
-
 sits_infoWTSS <- function() {
-
     wtss.obj <- NULL
     # obtains information about the WTSS service
     services <- .sits_get_services(protocol = "WTSS")
@@ -73,15 +71,14 @@ sits_infoWTSS <- function() {
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177
 #'
-#' @param coverage        metadata about the coverage where the data is to be retrived
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location
-#' @param start_date      date - the start of the period
-#' @param end_date        date - the end of the period
-#' @param bands           list of string - a list of the names of the bands of the coverage
-#' @param label           string - the label to attach to the time series (optional)
-#' @return data.tb        a SITS tibble
-#'
+#' @param coverage        metadata about the coverage where the data is to be retrived.
+#' @param longitude       double - the longitude of the chosen location.
+#' @param latitude        double - the latitude of the chosen location.
+#' @param start_date      date - the start of the period.
+#' @param end_date        date - the end of the period.
+#' @param bands           list of string - a list of the names of the bands of the coverage.
+#' @param label           string - the label to attach to the time series (optional).
+#' @return A sits tibble.
 .sits_fromWTSS <- function(coverage,
                            longitude,
                            latitude,
@@ -169,4 +166,3 @@ sits_infoWTSS <- function() {
         return(NULL)
     })
 }
-

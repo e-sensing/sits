@@ -22,10 +22,10 @@
 #'
 #' This function returns the confusion matrix, and Kappa values.
 #'
-#' @param data.tb         sits tibble
+#' @param data.tb         sits tibble.
 #' @param folds           number of partitions to create.
-#' @param ml_method       machine learning method
-#' @param multicores      number of cores for processing
+#' @param ml_method       machine learning method.
+#' @param multicores      number of cores for processing.
 #' @return A tibble containing pairs of reference and predicted values.
 #'
 #' @examples

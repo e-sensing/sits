@@ -1,15 +1,13 @@
 #' @title Check clasification parameters
 #' @name .sits_check_classify_params
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Verify that required parameters are correct
+#' @description Verify that required parameters are correct.
 #'
-#' @param  file            vector of file names to store the output (one file per classified year)
-#' @param  coverage        tibble with information about a set of space-time raster bricks
-#' @param  ml_model        an R model trained by \code{\link[sits]{sits_train}}
-#' @return OK              (logical) tests succeeded?
-#'
+#' @param  file            Vector of file names to store the output (one file per classified year).
+#' @param  coverage        Tibble with information about a set of space-time raster bricks.
+#' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
+#' @return Tests succeeded?
 .sits_check_classify_params <- function(file, coverage, ml_model){
-
     # ensure metadata tibble exists
     ensurer::ensure_that(coverage, NROW(.) > 0,
                          err_desc = "sits_classify_raster: need a valid metadata for coverage")
@@ -23,15 +21,16 @@
 
     return(invisible(TRUE))
 }
+
 #' @title  Check the results of the classification with the input data
 #' @name .sits_check_results
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description verify that classification results have the right size
+#' @description Verify that classification results have the right size.
 #'
-#' @param  prediction      prototype with predictions
-#' @param  nrows_DT        number of rows of distance matrix
-#' @return check           TRUE if check is OK
+#' @param  prediction      Prototype with predictions.
+#' @param  nrows_DT        Number of rows of distance matrix.
+#' @return TRUE if check is OK.
 .sits_check_results <- function(prediction, nrows_DT) {
     # check the result has the right dimension
     ensurer::ensure_that(prediction$probs, nrow(.) == nrows_DT,
@@ -39,19 +38,19 @@
                          from number of input pixels")
     return(invisible(TRUE))
 }
+
 #' @title Estimate the processing time
 #' @name .sits_estimate_processing_time
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description this function normalizes one band of the values read from a raster brick
+#' @description This function normalizes one band of the values read from a raster brick.
 #'
-#' @param  start_time     initial processing time
-#' @param  select.lst     list of time intervals
-#' @param  bs             raster block parameters
-#' @param  block          current block
-#' @param  time           current interval
-#' @return values.mx      scaled matrix
-
+#' @param  start_time     Initial processing time.
+#' @param  select.lst     List of time intervals.
+#' @param  bs             Raster block parameters.
+#' @param  block          Current block.
+#' @param  time           Current interval.
+#' @return Scaled matrix.
 .sits_estimate_processing_time <- function(start_time, select.lst, bs, block, time) {
     # compute current time
     current_time <- lubridate::now()

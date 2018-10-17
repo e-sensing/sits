@@ -4,33 +4,30 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Evaluates the confusion matrix based on "reference" and "predicted" values
-#' provided in a SITS tibble that has been classified. This function takes two kinds of input:
+#' provided in a sits tibble that has been classified. This function takes two kinds of input:
 #' (a) The output of the \code{\link[sits]{sits_classify}} function (a tibble with a list of predicted values)
 #' (b) The output of the \code{\link[sits]{sits_kfold_validate}} function (a tibble with two columns - predicted and reference)
 #' This function returns the Overall Accuracy, User's Accuracy,
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 #'
-#'
-#' @param  class.tb        tibble containing a set of classified samples whose labels are known
-#' @param  conv.lst        list with labels to be converted. If NULL no conversion is done.
-#' @param  pred_sans_ext   logical: remove all label extension? (i.e. every string after last '.' character) from predictors before compute assesment.
-#' @return caret_assess    confusion matrix assessment produced by the caret package
+#' @param  class.tb        A tibble containing a set of classified samples whose labels are known.
+#' @param  conv.lst        List with labels to be converted. If NULL no conversion is done.
+#' @param  pred_sans_ext   A logical value: remove all label extension? (i.e. every string after last '.' character) from predictors before compute assesment.
+#' @return A confusion matrix assessment produced by the caret package.
 #'
 #' @examples
 #' \donttest{
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # perform a 2 fold validation of this sample file
-#' pred_ref.tb <-  sits_kfold_validate(cerrado_2classes, folds = 2)
+#' pred_ref.tb <- sits_kfold_validate(cerrado_2classes, folds = 2)
 #' # calculate and print the confusion matrix
 #' conf.mx <- sits_conf_matrix(pred_ref.tb)
 #' }
 #' @export
 sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
-
     # does the input data contain a set of predicted values?
     ensurer::ensure_that(class.tb, "predicted" %in% names(.), err_desc = "sits_conf_matrix: input data does not contain predicted values")
-
 
     # recover predicted and reference vectors from input
     # is the input the result of a sits_classify?
@@ -73,6 +70,7 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
     # return invisible
     return(invisible(caret_assess))
 }
+
 #' @title Area-weighted post-classification accuracy assessment of classified maps
 #' @name sits_accuracy_area
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
@@ -82,7 +80,7 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
 #' both the label assigned by the user and the classification result.
 #' Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
 #' This function uses an area-weighted technique proposed by Olofsson et al. to
-#' produce accuracy estimates that are more reliable
+#' produce accuracy estimates that are more reliable.
 #'
 #' This function calls \code{\link[dtwSat]{twdtwAssess}} from \pkg{dtwSat}.
 #' \code{\link[dtwSat]{twdtwAssess}} performs an accuracy assessment of the classified, including
@@ -100,15 +98,14 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
 #' Good practices for estimating area and assessing accuracy of land change. Remote Sensing of
 #' Environment, 148, pp. 42-57.
 #'
-#' @param class.tb a sits table with a set of lat/long/time locations  with known and trusted labels and
-#' with the result of classification method
-#' @param area a list with the area of each label
-#' @param conf.int specifies the confidence level (0-1).
-#' @param rm.nosample if sum of columns and sum of rows of the error matrix are zero
+#' @param class.tb A sits tibble with a set of lat/long/time locations with known and trusted labels and
+#' with the result of classification method.
+#' @param area A list with the area of each label.
+#' @param conf.int Specifies the confidence level (0-1).
+#' @param rm.nosample If sum of columns and sum of rows of the error matrix are zero
 #' then remove class. Default is TRUE.
 #' @export
 sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosample = FALSE){
-
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
         stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
@@ -145,7 +142,6 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
     )
 
     return(assessment)
-
 }
 
 #' @title Print the values of a confusion matrix
@@ -153,19 +149,16 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description This is an adaptation of the print.confusionMatrix method by the "caret" package
-#' with some of the descriptions adapted for the more common usage in Earth Observation
+#' with some of the descriptions adapted for the more common usage in Earth Observation.
 #'
-#'
-#' @param x an object of class \code{confusionMatrix}
-#' @param mode a single character string either "sens_spec", "prec_recall", or
-#' "everything"
-#' @param digits number of significant digits when printed
-#' @param \dots optional arguments to pass to \code{print.table}
-#' @return \code{x} is invisibly returned
+#' @param x An object of class \code{confusionMatrix}.
+#' @param mode A single character string either "sens_spec", "prec_recall", or
+#' "everything".
+#' @param digits Mumber of significant digits when printed.
+#' @param \dots Optional arguments to pass to \code{print.table}.
+#' @return \code{x} is invisibly returned.
 #' @seealso \code{\link{confusionMatrix}}
-
 .print_confusion_matrix <- function(x, mode = "sens_spec", digits = max(3, getOption("digits") - 3), ...){
-
     cat("Confusion Matrix and Statistics\n\n")
     print(x$table, ...)
 
@@ -222,7 +215,6 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
         ua2 <- paste("User Acc ", c2)
         names(x$byClass) <- c(pa1, pa2, ua1, ua2)
 
-
         overallText <- c(overallText,
                          "",
                          format(x$byClass, digits = digits))
@@ -245,12 +237,11 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
 #' @name .sits_pred_ref
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
-#' @description Obtains a tibble of predicted and reference values from a classified data set
+#' @description Obtains a tibble of predicted and reference values from a classified data set.
 #'
-#' @param  class.tb       A sits tibble containing a set of classified samples whose labels are known
-#' @return pred_ref.tb    A tibble with predicted and reference values
+#' @param  class.tb       A sits tibble containing a set of classified samples whose labels are known.
+#' @return A tibble with predicted and reference values.
 .sits_pred_ref <- function(class.tb) {
-
     # retrieve the predicted values
     pred.vec <- unlist(purrr::map(class.tb$predicted, function(r) r$class))
 
@@ -274,8 +265,8 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
 #' takes the a list of confusion matrices generated by the \code{\link[sits]{sits_conf_matrix}}
 #' function and save them in an Excel spreadsheet.
 #'
-#' @param acc.lst        A list of confusion matrices
-#' @param file           The file where the XLSX data is to be saved
+#' @param acc.lst        A list of confusion matrices.
+#' @param file           The file where the XLSX data is to be saved.
 #'
 #' @examples
 #' \donttest{
@@ -292,12 +283,10 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
 #' # add the confusion matrix to the results
 #' results[[length(results) + 1]] <- conf.mx
 #' # save the results to an XLSX file
-#' sits_toXLSX(results, file = paste0(getwd(),"/confusion_matrix.xlsx"))
+#' sits_toXLSX(results, file = "confusion_matrix.xlsx")
 #' }
-#'
 #' @export
 sits_toXLSX <- function(acc.lst, file = NULL){
-
     ensurer::ensure_that(file, !purrr::is_null(.),
                          err_desc = "sits_toXLSX: please provide the file name")
 

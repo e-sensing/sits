@@ -22,7 +22,7 @@
 #' \item The source is a SHP file - retrives all points inside the shapefile from the WTSS service.
 #' \item The source is a RasterBrick - retrieves the point based on lat/long from the RasterBrick.
 #' }
-#'  The results is a SITS tibble, which  has the metadata and data for each time series
+#'  The results is a sits tibble, which  has the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, coverage, time_series>
 #'
 #' @references
@@ -31,19 +31,19 @@
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177.
 #'
-#' @param coverage        (mandatory) tibble with information about the coverage.
-#' @param file            (optional) name of a file with information on the data to be retrieved (options - CSV, SHP).
-#' @param longitude       longitude of the chosen location.
-#' @param latitude        latitude of the chosen location.
-#' @param start_date      (optional) start of the interval for the time series in Date format ("YYYY-MM-DD")
-#' @param end_date        (optional) end of the interval for the time series in Date format ("YYYY-MM-DD")
-#' @param bands           (optional) vector - the names of the bands to be retrieved.
-#' @param prefilter       (optional) string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
-#' @param label           (optional) string - the label to be assigned to the time series
-#' @param .n_start        (optional) integer - row on the CSV file to start reading
-#' @param .n_max          (optional) integer - maximum number of CSV samples to be read (set to Inf to read all)
-#' @param .n_save         (optional) number of samples to save as intermediate files (used for long reads)
-#' @return data.tb        a tibble with time series data and metadata
+#' @param coverage        A mandatory tibble with information about the coverage.
+#' @param file            An optional name of a file with information on the data to be retrieved (options - CSV, SHP).
+#' @param longitude       Longitude of the chosen location.
+#' @param latitude        Latitude of the chosen location.
+#' @param start_date      An optional start of the interval for the time series in Date format ("YYYY-MM-DD").
+#' @param end_date        An optional end of the interval for the time series in Date format ("YYYY-MM-DD").
+#' @param bands           An optional vector with the names of the bands to be retrieved.
+#' @param prefilter       An optional string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
+#' @param label           An optional string with the label to be assigned to the time series.
+#' @param .n_start        An optional integer with the row on the CSV file to start reading.
+#' @param .n_max          An optional integer with the maximum number of CSV samples to be read (set to Inf to read all).
+#' @param .n_save         An optional number of samples to save as intermediate files (used for long reads).
+#' @return A tibble with time series data and metadata.
 #'
 #' @examples
 #' \donttest{
@@ -105,7 +105,6 @@ sits_getdata <- function(coverage    = NULL,
                          .n_start    = 1,
                          .n_max      = Inf,
                          .n_save     = 0) {
-
     # Ensure that the service is available
     .sits_check_service(coverage[1,]$service)
 
@@ -145,18 +144,17 @@ sits_getdata <- function(coverage    = NULL,
 #' @title Obtain timeSeries from time series service
 #' @name .sits_from_service
 #'
-#' @description obtains a time series from a time series service
+#' @description Obtains a time series from a time series service.
 #'
-#' @param coverage        coverage metadata
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location)
-#' @param start_date      (optional) date - the start of the period
-#' @param end_date        (optional) date - the end of the period
-#' @param bands           (optional) string vector - the names of the bands to be retrieved
-#' @param prefilter       string (only for SATVEG) ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @param label           string - the label to attach to the time series
-#' @return table          a SITS tibble
-#'
+#' @param coverage        Coverage metadata.
+#' @param longitude       Longitude of the chosen location.
+#' @param latitude        Latitude of the chosen location).
+#' @param start_date      Optional start date of the period.
+#' @param end_date        Optional end date of the period.
+#' @param bands           Optional string vector with the names of the bands to be retrieved.
+#' @param prefilter       String (only for SATVEG) ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
+#' @param label           String with the label to attach to the time series.
+#' @return A sits tibble.
 .sits_from_service <- function(coverage,
                                longitude,
                                latitude,
@@ -165,8 +163,6 @@ sits_getdata <- function(coverage    = NULL,
                                bands,
                                prefilter  = "1",
                                label = "NoClass") {
-
-
     protocol <- .sits_get_protocol(coverage[1,]$service)
 
     if (protocol == "WTSS") {
@@ -203,27 +199,24 @@ sits_getdata <- function(coverage    = NULL,
     return(NULL)
 }
 
-
 #' @title Obtain timeSeries from time series server, based on a CSV file.
 #' @name .sits_fromCSV
 #'
 #' @description reads descriptive information about a set of
 #' spatio-temporal locations from a CSV file. Then, it uses the WTSS time series service
-#' to retrieve the time series, and stores the time series on a SITS tibble for later use.
+#' to retrieve the time series, and stores the time series on a sits tibble for later use.
 #' The CSV file should have the following column names:
 #' "longitude", "latitude", "start_date", "end_date", "label"
 #'
-#' @param csv_file        string  - name of a CSV file with information <id, latitude, longitude, from, end, label>
-#' @param coverage        tibble - metadata about coverage which contains data to be retrieved
-#' @param bands           string vector - the names of the bands to be retrieved
-#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @param .n_start        (optional) integer - Row on the CSV file to start reading
-#' @param .n_max          the maximum number of samples to be read
-#' @param .n_save         number of samples to save as intermediate files (used for long reads)
-#' @return data.tb        a SITS tibble
-#'
+#' @param csv_file        Name of a CSV file with information <id, latitude, longitude, from, end, label>.
+#' @param coverage        A tibble with metadata about coverage which contains data to be retrieved.
+#' @param bands           A string vector with the names of the bands to be retrieved.
+#' @param prefilter       String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
+#' @param .n_start        Row on the CSV file to start reading (optional).
+#' @param .n_max          Maximum number of samples to be read.
+#' @param .n_save         Number of samples to save as intermediate files (used for long reads).
+#' @return A sits tibble.
 .sits_fromCSV <-  function(csv_file, coverage, bands, prefilter, .n_start, .n_max, .n_save) {
-
     # configure the format of the CSV file to be read
     cols_csv <- readr::cols(id          = readr::col_integer(),
                             longitude   = readr::col_double(),
@@ -238,7 +231,6 @@ sits_getdata <- function(coverage    = NULL,
     if (.n_max == Inf)
         .n_max = NROW(csv.tb)
     csv.tb <- csv.tb[.n_start:.n_max, ]
-
 
     # find how many samples are to be read
     n_rows_csv <- NROW(csv.tb)
@@ -261,7 +253,7 @@ sits_getdata <- function(coverage    = NULL,
                     if (!purrr::is_null(row)) {
                         nrow <<-  nrow + 1
 
-                        # add the new point to the SITS tibble
+                        # add the new point to the sits tibble
                         data.tb <<- dplyr::bind_rows(data.tb, row)
 
                         # optional - save the results to an intermediate file
@@ -291,24 +283,23 @@ sits_getdata <- function(coverage    = NULL,
 
     return(data.tb)
 }
+
 #' @title Obtain timeSeries from WTSS server, based on a SHP file.
 #' @name .sits_fromSHP
 #'
-#' @description reads a shapefile and retrieves a SITS tibble
+#' @description reads a shapefile and retrieves a sits tibble
 #' containing time series from a coverage that are inside the SHP file.
 #' The script uses the WTSS service, taking information about coverage, spatial and
 #' temporal resolution from the WTSS configuration.
 #'
-#'
-#' @param shp_file        string  - name of a SHP file which provides the boundaries of a region of interest
-#' @param coverage        tibble  - metadata about the coverage
-#' @param start_date      date - the start of the period
-#' @param end_date        date - the end of the period
-#' @param bands           string vector - the names of the bands to be retrieved
-#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @param label           string - the label to attach to the time series
-#' @return table          a SITS tibble
-#'
+#' @param shp_file        Name of a SHP file which provides the boundaries of a region of interest.
+#' @param coverage        A tibble with metadata about the coverage.
+#' @param start_date      The start date of the period.
+#' @param end_date        The end date of the period.
+#' @param bands           A string vector with the names of the bands to be retrieved.
+#' @param prefilter       A string related to data correction ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
+#' @param label           A string with the label to attach to the time series.
+#' @return A sits tibble.
 .sits_fromSHP <- function(shp_file,
                           coverage,
                           start_date = NULL,
@@ -316,14 +307,11 @@ sits_getdata <- function(coverage    = NULL,
                           bands      = NULL,
                           prefilter  = "1",
                           label      = "NoClass") {
-
-
     # test parameters
     ensurer::ensure_that(shp_file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
                          err_desc = "sits_fromSHP: please provide a valid SHP file")
     # Ensure that the service is available
     .sits_check_service(coverage$service)
-
 
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
@@ -367,4 +355,3 @@ sits_getdata <- function(coverage    = NULL,
         })
     return(shape.tb)
 }
-

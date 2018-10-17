@@ -6,18 +6,16 @@
 #'              described by tibble (created by \code{\link[sits]{sits_coverage}}),
 #'              and a noise value, to do a bayesian smoothing process.
 #'
-#' @param  raster_class      output raster coverage
-#' @param  window            (matrix) neighborhood window to compute bayesian smooth.
+#' @param  raster_class      Output raster coverage.
+#' @param  window            A matrix with the neighborhood window to compute bayesian smooth.
 #'                           The central element index (i, j) is given by
 #'                           i = floor(nrows(window)/2)+1 and j = floor(ncols(window)/2)+1.
 #'                           Elements '0' are excluded from window.
-#' @param  noise             bayesian smoothing parameter
-#' @param  file              file to save the post processed raster
-#' @return raster_layers.tb  tibble with metadata about the output RasterLayer objects
-#'
+#' @param  noise             Bayesian smoothing parameter.
+#' @param  file              File to save the post processed raster.
+#' @return A tibble with metadata about the output RasterLayer objects.
 #' @export
 sits_bayes_postprocess <- function(raster_class, window = matrix(1, nrow = 3, ncol = 3, byrow = TRUE), noise = 100, file) {
-
     # allocate matrix of each class
     smooth_values <- matrix(NA,
                             nrow = length(raster_class$r_objs[[2]][[1]][[1]]),
@@ -68,7 +66,6 @@ sits_bayes_postprocess <- function(raster_class, window = matrix(1, nrow = 3, nc
             return(smooth_raster)
         })
 
-
     # populate coverage_class to be returned
     raster_layers.tb <-
         .sits_create_raster_coverage(raster.lst         = smoothed_raster.lst,
@@ -82,6 +79,5 @@ sits_bayes_postprocess <- function(raster_class, window = matrix(1, nrow = 3, nc
                                      minimum_values.vec = raster_class$minimum_values[[1]],
                                      files.vec          = files.vec)
 
-    # return
     return(raster_layers.tb)
 }

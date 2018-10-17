@@ -1,11 +1,12 @@
 # On load
 .onAttach = function(lib, pkg){
-    packageStartupMessage("SITS - A package for satellite image time series analysis.")
+    packageStartupMessage("sits - A package for satellite image time series analysis.")
     packageStartupMessage(
         sprintf("Loaded sits v%s. See ?sits for help, citation(\"sits\") for use in publication.
                 See demo(package = 'sits') for examples.", utils::packageDescription("sits")$Version) )
     sits_log()
 }
+
 .onLoad = function(lib, pkg) {
     Sys.setenv(R_CONFIG_ACTIVE = "default")
     Sys.setenv(R_CONFIG_FILE = "config.yml")
@@ -16,7 +17,7 @@
 sits.env <- new.env()
 sits.env$model_formula <- "log"
 
-# Include the following global variables in the SITS package
+# Include the following global variables in the sits package
 utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V1", "Index", "from", "value", "variable", "cond",
                          "med", "qt25", "qt75", "cluster_id", "x", "y",
                          "longitude", "latitude", "label", "coverage", "service",

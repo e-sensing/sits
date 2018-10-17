@@ -6,18 +6,16 @@
 #' The total pixels of a RasterBrick is given by combining the size of the timeline
 #' with the number of rows and columns of the Brick. For example, a Raster Brick
 #' with 500 rows and 500 columns and 400 time instances will have a total pixel size
-#' of 800 Mb if pixels are 64-bit. I
+#' of 800 Mb if pixels are 64-bit.
 #'
-#' @param  coverage        input raster coverage
-#' @param  ml_model        machine learning model
-#' @param  interval        classification interval
-#' @param  memsize         memory available for classification (in GB)
-#' @param  multicores      number of threads to process the time series.
-#' @return bs              list with three attributes: n (number of blocks), rows (list of rows to begin),
-#'                    nrows - number of rows to read at each iteration
-#'
+#' @param  coverage        Input raster coverage.
+#' @param  ml_model        Machine learning model.
+#' @param  interval        Classification interval.
+#' @param  memsize         Memory available for classification (in GB).
+#' @param  multicores      Number of threads to process the time series.
+#' @return List with three attributes: n (number of blocks), rows (list of rows to begin),
+#'                    nrows - number of rows to read at each iteration.
 .sits_raster_blocks <- function(coverage, ml_model, interval, memsize, multicores){
-
     # number of bands
     nbands <-  length(coverage[1,]$bands[[1]])
     # number of rows and cols
@@ -52,26 +50,24 @@
     bs <- list(n = nblocks, row = row.vec, nrows = nrows.vec, size = size.vec)
 
     return(bs)
-
 }
-#' @title Estimate the
+
+#' @title Estimate the number of blocks
 #' @name .sits_estimate_nblocks
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Defines the number of blocks of a Raster Brick to be read into memory.
 #'
-#' @param  ml_model        machine learning model
-#' @param  nbands          number of bands
-#' @param  nrows           number of rows per brick
-#' @param  ncols           number of cols per brick
-#' @param  timeline        timeline of the brick
-#' @param  interval        classification interval
-#' @param  memsize         memory available for classification (in GB)
-#' @param  multicores      number of threads to process the time series.
-#' @return nblocks         number of blocks to read
-
+#' @param  ml_model        Machine learning model.
+#' @param  nbands          Number of bands.
+#' @param  nrows           Number of rows per brick.
+#' @param  ncols           Number of cols per brick.
+#' @param  timeline        Timeline of the brick.
+#' @param  interval        Classification interval.
+#' @param  memsize         Memory available for classification (in GB).
+#' @param  multicores      Number of threads to process the time series.
+#' @return Number of blocks to be read.
 .sits_estimate_nblocks <- function(ml_model, nbands, nrows, ncols, timeline, interval, memsize, multicores) {
-
     # total number of instances
     ninstances <- length(timeline)
     # number of instances per classification interval
@@ -127,19 +123,18 @@
 
     return(nblocks)
 }
+
 #' @title Define the split of the data blocks for multicore processing
 #' @name .sits_split_block_size
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description this functions defines the rows of the input data that will be
-#' split to fit to be divided between the different cores
+#' @description This function defines the rows of the input data that will be
+#' split to be divided between the different cores.
 #'
-#' @param data             data (data.table or matrix)
-#' @param ncores           number of cores for processing
-#' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
-#'
+#' @param data             Data (data.table or matrix).
+#' @param ncores           Number of cores for processing.
+#' @return List of pairs of positions (first row, last row) to be assigned to each core.
 .sits_split_block_size <- function(data, ncores){
-
     # number of rows in the data
     nrows <- nrow(data)
     # find the number of rows per core
@@ -161,19 +156,18 @@
     }
     return(block_size.lst)
 }
+
 #' @title Split a data.table or a matrix for multicore processing
 #' @name .sits_split_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description this functions splits a data.table into a list of chunks for multicore processing
+#' @description This function splits a data.table into a list of chunks for multicore processing.
 #'
-#' @param data             data (data.table or matrix)
-#' @param ncores           number of cores for processing
-#' @param ml_model         machine learning model which is part of the object
-#' @return block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
-#'
+#' @param data             Data (data.table or matrix).
+#' @param ncores           Number of cores for processing.
+#' @param ml_model         Machine learning model which is part of the object.
+#' @return List of pairs of positions (first row, last row) to be assigned to each core.
 .sits_split_data <- function(data, ncores, ml_model){
-
     # number of rows in the data
     nrows <- nrow(data)
     # find the number of rows per core

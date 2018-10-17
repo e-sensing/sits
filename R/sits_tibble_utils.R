@@ -1,5 +1,3 @@
-
-
 #' @title Apply a function over a set of time series.
 #' @name .sits_apply_ts
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -14,14 +12,12 @@
 #'
 #' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
 #'
-#' @param ts.tb         tibble with a time series (one or more bands)
+#' @param ts.tb         tibble with a time series (one or more bands).
 #' @param fun           function with one parameter as input and a vector or list of vectors as output.
 #' @param fun_index     function with one parameter as input and a Date vector as output.
 #' @param bands_suffix  string informing the resulting bands name's suffix.
-#' @return data.tb      sits tibble with same samples and the new bands
+#' @return A sits tibble with same samples and the new bands.
 .sits_apply_ts <- function(ts.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
-
-
     # computes fun and fun_index for all time series and substitutes the original time series data
     ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
         purrr::map(fun)
@@ -45,18 +41,18 @@
 
     return(ts.tb)
 }
+
 #' @title Create partitions of a data set
 #' @name  .sits_create_folds
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alexandre Ywata, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Split a SITS table into k groups, based on the label
+#' @description Split a sits table into k groups, based on the label.
 #'
-#' @param data.tb   SITS tibble to be partitioned
-#' @param folds     number of folds
+#' @param data.tb   A sits tibble to be partitioned.
+#' @param folds     number of folds.
 .sits_create_folds <- function(data.tb, folds = 5) {
-
     # verify if data.tb exists
     .sits_test_tibble(data.tb)
 
@@ -65,18 +61,18 @@
 
     return(data.tb)
 }
+
 #' @title Extract a subset of the data based on dates
 #' @name .sits_extract
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description returns a vector containing the dates of a sits table
+#' @description Returns a vector containing the dates of a sits table.
 #'
-#' @param  row.tb     SITS tibble
-#' @param  start_date starting date of the time series segment
-#' @param  end_date   end date of the time series segment
-#' @return subset.tb  tibble in SITS format with the chosen subset
+#' @param  row.tb     A sits tibble.
+#' @param  start_date Starting date of the time series segment.
+#' @param  end_date   End date of the time series segment.
+#' @return A tibble in sits format with the chosen subset.
 .sits_extract <- function(row.tb, start_date, end_date) {
-
     # create a tibble to store the results
     subset.tb <- sits_tibble()
 
@@ -106,14 +102,13 @@
 #' @name .sits_group_by
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description returns a sits table by compound the sits tables apply a function to a grouped SITS table
+#' @description Returns a sits table by compound the sits tables apply a function to a grouped sits table.
 #'
-#' @param data.tb      sits tibble
-#' @param ...          one or more sits table field separated by commas that are used to group the data.
+#' @param data.tb      A sits tibble.
+#' @param ...          One or more sits table field separated by commas that are used to group the data.
 #'                     See `dplyr::group_by` help for more details.
-#' @return result.tb   sits tibble with the selected bands
+#' @return A sits tibble with the selected bands.
 .sits_group_by <- function(data.tb, ...){
-
     # execute the group by function from dplyr
     result.tb <- data.tb %>%
         dplyr::group_by(...)
@@ -122,16 +117,16 @@
     result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
     return(result.tb)
 }
+
 #' @title Tests if a sits tibble is valid
 #' @name .sits_test_tibble
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Tests if a SITS tibble exists or has data inside
+#' @description Tests if a sits tibble exists or has data inside.
 #'
-#' @param data.tb  a SITS tibble
-#' @return returns TRUE if data.tb has data.
-#'
+#' @param data.tb  A sits tibble.
+#' @return Returns TRUE if data.tb has data.
 .sits_test_tibble <- function(data.tb) {
     ensurer::ensure_that(data.tb, !purrr::is_null(.),
                          err_desc = "input data not provided")
@@ -152,10 +147,9 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Create an empty tibble to store the results of classification
+#' @description Create an empty tibble to store the results of classification.
 #'
-#' @return result.tb   a tibble to store the result of classifications
-#'
+#' @return A tibble to store the result of classifications.
 .sits_tibble_csv <- function() {
     result.tb <- tibble::tibble(longitude   = double(),
                                 latitude    = double(),
@@ -165,20 +159,19 @@
     )
     return(result.tb)
 }
+
 #' @title Create an empty tibble to store the results of predictions
 #' @name .sits_tibble_prediction
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Create a tibble to store the results of predictions
-#' @param  data.tb         a tibble with the input data
-#' @param  class_info.tb   a tibble with the information on classification
-#' @param  pred.mtx        the result of the classification (one class per column and one row per interval)
-#' @param  interval        the time interval between two classifications
-#' @return predic.tb       a tibble to store the predictions
-#'
+#' @description Create a tibble to store the results of predictions.
+#' @param  data.tb         A tibble with the input data.
+#' @param  class_info.tb   A tibble with the information on classification.
+#' @param  pred.mtx        The result of the classification (one class per column and one row per interval).
+#' @param  interval        The time interval between two classifications.
+#' @return A tibble storing the predictions.
 .sits_tibble_prediction <- function(data.tb, class_info.tb, pred.mtx, interval) {
-
     # retrieve the list of reference dates
     # this list is a global one and it is created based on the samples
     ref_dates.lst   <- class_info.tb$ref_dates[[1]]

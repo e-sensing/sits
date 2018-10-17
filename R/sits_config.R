@@ -4,7 +4,7 @@
 #'
 #' @description Reads a user-specified configuration file, located in a "config.yml" file
 #' in the working directory. If this file is not found, reads a default package configuration file.
-#' By default, the SITS configuration file "config.yml" is located at the directory "extdata" of the
+#' By default, the sits configuration file "config.yml" is located at the directory "extdata" of the
 #' package. The configuration file is an YAML file that should provide at least the following parameters:
 #'
 #' default:
@@ -17,13 +17,11 @@
 #'
 #' To see the contents of the configuration file, please use \code{\link[sits]{sits_show_config}}.
 #'
-#' @return config_sits  A list with the configuration parameters used by SITS
+#' @return A list with the configuration parameters used by sits.
 #' @examples
 #' config_sits <- sits_config()
 #' @export
-#'
 sits_config <- function() {
-
     # run the default configuration file
     yml_file <- system.file("extdata", "config.yml", package = "sits")
 
@@ -45,20 +43,18 @@ sits_config <- function() {
     return(invisible(sits.env$config))
 }
 
-#' @title Shows the contents of the SITS configuration file
+#' @title Shows the contents of the sits configuration file
 #' @name sits_show_config
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Displays the contents of SITS configuration file. For more details
+#' @description Displays the contents of sits configuration file. For more details
 #' on how to set the configuration file, please use \code{\link[sits]{sits_config}}.
 #'
-#' @return config_sits  list with the configuration parameters used by SITS
+#' @return config_sits  List with the configuration parameters used by sits.
 #' @examples
 #' sits_show_config()
 #' @export
-#'
 sits_show_config <- function() {
-
     # retrieve the basic configuration file
     yml_file <- system.file("extdata", "config.yml", package = "sits")
     # check that the file is valid
@@ -82,15 +78,13 @@ sits_show_config <- function() {
     return(invisible())
 }
 
-
 #' @title Get an account to access a time series service
 #' @name .sits_get_account
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        the name of the time series service
-#' @param name           the name of the coverage
-#' @return accountURL    the account for service access
-#'
+#' @param service        Name of the time series service.
+#' @param name           Name of the coverage.
+#' @return The account for service access.
 .sits_get_account <- function(service, name) {
     # pre-condition
     ensurer::ensure_that(service, (.) == "SATVEG",
@@ -111,23 +105,22 @@ sits_show_config <- function() {
 
     return(accountURL)
 }
+
 #' @title Retrieve the value of the adjustment shift
 #' @name sits_get_adjustment_shift
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description retrieves the value of the shift to adjust entries to have only positive values
+#' @description retrieves the value of the shift to adjust entries to have only positive values.
 .sits_get_adjustment_shift <- function() {
-
     return(sits.env$config$adjustment_shift)
-
 }
+
 #' @title Retrieve the bands avaliable for the product in the time series service
 #' @name .sits_get_bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        name of the time series service
-#' @param name           name of the product
-#' @return bands         bands available
-#'
+#' @param service        Name of the time series service.
+#' @param name           Name of the product.
+#' @return The available bands.
 .sits_get_bands <- function(service, name){
     # pre-condition
     ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
@@ -141,19 +134,18 @@ sits_show_config <- function() {
                          err_desc = paste0("bands not available for coverage ", name, " in service ", service))
     return(bands)
 }
+
 #' @title Retrieve the bounding box for the product available at service
 #' @name .sits_get_bbox
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        name of the time series service
-#' @param name           name of the coverage
-#' @param r_obj          R object associated with the coverage
-#' @return bbox          bounding box
-#'
+#' @param service        Name of the time series service.
+#' @param name           Name of the coverage.
+#' @param r_obj          R object associated with the coverage.
+#' @return The bounding box.
 .sits_get_bbox <- function(service, name, r_obj = NA){
-
-    bbox         <- vector(length = 4)
-    names(bbox)  <- c("xmin", "xmax", "ymin", "ymax")
+    bbox        <- vector(length = 4)
+    names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
 
     if (service == "RASTER") {
         ensurer::ensure_that(r_obj, class(.) %in% c("RasterLayer", "RasterBrick", "RasterStack"),
@@ -165,7 +157,7 @@ sits_show_config <- function() {
     }
     else {
         # pre-condition
-        s <- paste0(service,"_bbox")
+        s <- paste0(service, "_bbox")
 
         names(bbox) %>%
             purrr::map(function(c) {
@@ -175,40 +167,36 @@ sits_show_config <- function() {
 
     return(bbox)
 }
+
 #' @title Retrieve the color associated to a class
 #' @name sits_get_color
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description retrieve the color associated a class label
-#' @param label  a class label
+#' @description Retrieve the color associated a class label.
+#' @param label  A class label.
 .sits_get_color <- function(label) {
-
     rgb <- as.character(sits.env$config$colors[[label]])
-    if (!(length(rgb) > 0))
+    if(!(length(rgb) > 0))
         rgb <- "#737373"
 
     return(rgb)
 }
+
 #' @title Retrieve the estimated value of R memory bloat
 #' @name sits_get_memory_bloat
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description retrieve the expected memory bloat associated to R
+#' @description Retrieve the expected memory bloat associated to R.
 .sits_get_memory_bloat <- function() {
-
     return(sits.env$config$R_memory_bloat)
-
 }
-
 
 #' @title Retrieve the minimum values for a given band
 #' @name .sits_get_minimum_values
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service          name of the product
-#' @param bands            vector of bands
-#' @return missing_values
-#'
+#' @param service          Name of the product.
+#' @param bands            Vector of bands.
+#' @return The minimum values.
 .sits_get_minimum_values <- function(service, bands) {
-
     # create a string to query for the missing values
     minimum_values <- vector()
     mv <- paste0(service,"_minimum_value")
@@ -229,13 +217,11 @@ sits_show_config <- function() {
 #' @name .sits_get_missing_values
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service          name of the product
-#' @param name             name of the coverage
-#' @param bands            vector of bands
-#' @return missing_values
-#'
+#' @param service          Name of the product.
+#' @param name             Name of the coverage.
+#' @param bands            Vector of bands.
+#' @return The missing values.
 .sits_get_missing_values <- function(service, name, bands) {
-
     # create a string to query for the missing values
     missing_values <- vector()
     mv <- paste0(service,"_missing_value")
@@ -250,16 +236,15 @@ sits_show_config <- function() {
     names(missing_values) <- bands
     return(missing_values)
 }
+
 #' @title Retrieve the projection for the product available at service
 #' @name .sits_get_projection
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        name of the time series service
-#' @param name           name of the coverage
-#' @return crs           CRS PROJ4 infomation
-
+#' @param service        Name of the time series service.
+#' @param name           Name of the coverage.
+#' @return CRS PROJ4 infomation.
 .sits_get_projection <- function(service, name) {
-
     # pre-condition
     ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
                          err_desc = "Service not available - check configuration file")
@@ -272,14 +257,13 @@ sits_show_config <- function() {
                          err_desc = paste0("Projection information for coverage ", name, " of service ", service, " not available"))
     return(crs)
 }
+
 #' @title Retrieve the protocol associated to the time series service
 #' @name .sits_get_protocol
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#'
-#' @param service         The name of the service
-#' @return protocol       The protocol associated to the service
-#'
+#' @param service         The name of the service.
+#' @return The protocol associated to the service.
 .sits_get_protocol <- function(service) {
     # pre-condition
     ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
@@ -291,13 +275,14 @@ sits_show_config <- function() {
 
     return(protocol)
 }
+
 #' @title Retrieve the pixel resolution for an image product
 #' @name .sits_get_resolution
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service         The name of the service
-#' @param name        the name of the coverage
-#' @return res           vector of (xres, yres)
+#' @param service        Name of the service.
+#' @param name           Name of the coverage.
+#' @return Vector of (xres, yres).
 .sits_get_resolution <- function(service, name) {
     # create a string to query for the resolution
     s <- paste0(service,"_resolution")
@@ -317,18 +302,16 @@ sits_show_config <- function() {
 
     return(res)
 }
+
 #' @title Retrieve the scale factor for a given band for an image product
 #' @name .sits_get_scale_factors
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        name of the service
-#' @param name           name of the coverage
-#' @param bands          vector of bands
-#' @return sf            vector of scale factors
-#'
-#'
+#' @param service        Name of the service.
+#' @param name           Name of the coverage.
+#' @param bands          Vector of bands.
+#' @return Vector of scale factors.
 .sits_get_scale_factors <- function(service, name, bands) {
-
     scale_factors <- vector()
     # create a string to query for the scale factors
     sfq <- paste0(service,"_scale_factor")
@@ -343,14 +326,13 @@ sits_show_config <- function() {
                          err_desc = paste0("Configuration file has no scale factors for ", name, " of ", service))
     return(scale_factors)
 }
+
 #' @title Retrieve the time series server for the product
 #' @name .sits_get_server
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#'
-#' @param service         name of the service
-#' @return serverURL      string with the server URL that provides the service
-#'
+#' @param service         Name of the service.
+#' @return A string with the server URL that provides the service.
 .sits_get_server <- function(service) {
     # pre-condition
     ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
@@ -362,12 +344,13 @@ sits_show_config <- function() {
 
     return(serverURL)
 }
+
 #' @title List the time series services available
 #' @name .sits_get_services
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param protocol  (string) protocol used to assess the time series service
-#' @return size     vector of (nrows, ncols)
+#' @param protocol  A string with the protocol used to assess the time series service.
+#' @return Vector of (nrows, ncols).
 .sits_get_services <- function(protocol = NULL) {
     if (purrr::is_null(protocol))
         return(sits.env$config$ts_services)
@@ -382,12 +365,11 @@ sits_show_config <- function() {
 #' @name .sits_get_size
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        name of the time series service
-#' @param name           name of the coverage
-#' @param r_obj          R object associated with the coverage
-#' @return size          vector of (nrows, ncols)
+#' @param service        Name of the time series service.
+#' @param name           Name of the coverage.
+#' @param r_obj          R object associated with the coverage.
+#' @return Vector of (nrows, ncols).
 .sits_get_size <- function(service, name, r_obj = NA) {
-
     size         <- vector(length = 2)
     names(size)  <- c("nrows", "ncols")
 
@@ -417,16 +399,14 @@ sits_show_config <- function() {
     return(size)
 }
 
-
 #' @title Retrieve the default timeline for a product for a given time series service
 #' @name .sits_get_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        name of the time series service
-#' @param name           name of the coverage
-#' @return size          vector of (nrows, ncols)
+#' @param service        Name of the time series service.
+#' @param name           Name of the coverage.
+#' @return Vector of (nrows, ncols).
 .sits_get_timeline <- function(service, name){
-
     if (service == "RASTER") {
         message("Please provide timeline for raster data: will use default timeline")
         s <- paste0("RASTER_timeline")
@@ -469,11 +449,9 @@ sits_show_config <- function() {
 #' @name .sits_get_tcap_brightness
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param satellite      name of ssatellite (or sensor)
-#' @return coef        named vector of brightness coefficients
-#'
+#' @param satellite      Name of satellite (or sensor).
+#' @return Named vector of brightness coefficients.
 .sits_get_tcap_brightness <- function(satellite = "MODIS"){
-
     if (satellite == "MODIS")
         bands <- c("blue", "green", "red", "nir", "nir2", "mir1", "mir")
     else {
@@ -500,11 +478,9 @@ sits_show_config <- function() {
 #' @name .sits_get_tcap_greenness
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param satellite      name of ssatellite (or sensor)
-#' @return coef          named vector of greenness coefficients
-#'
+#' @param satellite      Name of ssatellite (or sensor).
+#' @return Named vector of greenness coefficients.
 .sits_get_tcap_greenness <- function(satellite = "MODIS"){
-
     if (satellite == "MODIS")
         bands <- c("blue", "green", "red", "nir", "nir2", "mir1", "mir")
     else {
@@ -530,11 +506,9 @@ sits_show_config <- function() {
 #' @name .sits_get_tcap_wetness
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param satellite      name of ssatellite (or sensor)
-#' @return coef          named vector of greenness coefficients
-#'
+#' @param satellite      Name of ssatellite (or sensor).
+#' @return Named vector of greenness coefficients.
 .sits_get_tcap_wetness <- function(satellite = "MODIS"){
-
     if (satellite == "MODIS")
         bands <- c("blue", "green", "red", "nir", "nir2", "mir1", "mir")
     else {
@@ -560,11 +534,10 @@ sits_show_config <- function() {
 #' @name .sits_check_service
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        name of the time series service
+#' @param service        Name of the time series service.
 .sits_check_service <- function(service){
     # Ensure that the service is available
     ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
                          err_desc = "sits_getdata: Invalid time series service")
     return(TRUE)
 }
-

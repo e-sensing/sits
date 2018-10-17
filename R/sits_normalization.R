@@ -2,13 +2,13 @@
 #' @name sits_normalize_data
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
-#' @description this function normalizes the time series using the mean and
+#' @description This function normalizes the time series using the mean and
 #' standard deviation of all the time series.
 #'
-#' @param data.tb     a tibble in SITS format
-#' @param stats.tb    statistics for normalization
-#' @param multicores  number of cores to process
-#' @return data.tb    a normalized sits tibble
+#' @param data.tb     A sits tibble.
+#' @param stats.tb    Statistics for normalization.
+#' @param multicores  Number of cores to process.
+#' @return A normalized sits tibble.
 #' @export
 sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
     .sits_test_tibble(data.tb)
@@ -22,7 +22,10 @@ sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
     bands <- sits_bands(data.tb)
     # check that the bands in the input are include in the statistics already calculated
     ensurer::ensure_that(bands, all((.) %in% colnames(stats.tb[,-1])),
-                         err_desc = "sits_normalize: bands in the data do not match bands in the model")
+                         err_desc = paste0("sits_normalize: bands in the data (",
+                                           paste(bands, collapse = ", "),
+                                           ") do not match bands in the model (",
+                                           paste(colnames(stats.tb[,-1]), collapse = ", "), ")"))
 
     # extract the values of the time series to a list of tibbles
     values.lst <- data.tb$time_series
@@ -56,18 +59,18 @@ sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
     data.tb$time_series <- norm.lst
     return(data.tb)
 }
+
 #' @title Normalize the time series values in the case of a matrix
 #' @name .sits_normalize_matrix
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description this function normalizes one band of the values read from a raster brick
 #'
-#' @param  data.mx        matrix of values
-#' @param  stats.tb       statistics for normalization
-#' @param  band           band to be normalized
-#' @param  multicores     number of cores
-#' @return data.mx        a normalized matrix
-#'
+#' @param  data.mx        Matrix of values.
+#' @param  stats.tb       Statistics for normalization.
+#' @param  band           Band to be normalized.
+#' @param  multicores     number of cores.
+#' @return A normalized matrix.
 .sits_normalize_matrix <- function(data.mx, stats.tb, band, multicores) {
     # select the 2% and 98% quantiles
     quant_2   <- as.numeric(stats.tb[2, band])
@@ -94,7 +97,6 @@ sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
     return(data.mx)
 }
 
-
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_normalization_param
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
@@ -102,10 +104,9 @@ sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
 #' @description this function normalizes the time series using the mean and
 #' standard deviation of all the time series.
 #'
-#' @param data.tb     a tibble in SITS format
-#' @return result.tb  a tibble with statistics
+#' @param data.tb     A sits tibble.
+#' @return A tibble with statistics.
 .sits_normalization_param <- function(data.tb) {
-
     .sits_test_tibble(data.tb)
 
     DT <- data.table::data.table(dplyr::bind_rows(data.tb$time_series))
@@ -121,5 +122,3 @@ sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
 
     return(stats.tb)
 }
-
-
