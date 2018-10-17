@@ -657,7 +657,6 @@ sits_metrics_by_cluster<-function(info_sample_cluster.tb)
     #get only id, label and neuron_label
     temp.data.tb<-unique(dplyr::select(info_sample_cluster.tb, id_sample, label, neuron_label))
 
-
     #get label that no have cluster
     no_cluster<-dplyr::setdiff(temp.data.tb$label, temp.data.tb$neuron_label)
 
@@ -689,14 +688,12 @@ sits_metrics_by_cluster<-function(info_sample_cluster.tb)
             confusion.matrix<-as.table(as.matrix(cf))
 
         }
-
     }
 
     #Add the total number of samples in table
     confusion.matrix.tb <- addmargins(confusion.matrix, FUN = list(Total = sum), quiet = TRUE)
 
     #get dimensions (rows and col)
-
     #represents the original classes of samples
     dim_row <-dim(confusion.matrix.tb)[1]
 
@@ -727,6 +724,7 @@ sits_metrics_by_cluster<-function(info_sample_cluster.tb)
                 mixture_percentage = as.numeric((current_col / current_col_Total) *
                                                     100)
             ))
+
         #sort the table in decending order
         current_class_ambiguity<- dplyr::arrange(current_class_ambiguity,
                                                  desc(current_class_ambiguity$mixture_percentage))
