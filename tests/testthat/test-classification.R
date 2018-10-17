@@ -26,12 +26,6 @@ test_that("Classify time series with an svm model",{
     samples.tb <- sits_select(samples_MT_9classes,
                               bands = c("ndvi", "evi"))
     model <- sits_train(samples.tb, sits_svm())
-    point.tb <- sits_select(point_MT_6bands, bands = c("ndvi"))
-
-    sits_classify(point.tb, model)
-
-    expect_error(sits_classify(point.tb, model), "abc")
-
     point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi"))
 
     class.tb <- sits_classify(point.tb, model)
