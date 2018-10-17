@@ -686,7 +686,6 @@ sits_metrics_by_cluster<-function(info_sample_cluster.tb)
             #rename de column to name of cluster
             names(cf)[positon_to_add]<-no_cluster[sv]
             confusion.matrix<-as.table(as.matrix(cf))
-
         }
     }
 
@@ -735,16 +734,15 @@ sits_metrics_by_cluster<-function(info_sample_cluster.tb)
                           current_class_ambiguity$mixture_percentage > 0)
 
         Mix_class<-rbind(Mix_class,current_class_ambiguity)
-
     }
+
     info_confusion_matrix <-
         caret::confusionMatrix(confusion.matrix.tb[1:dim_row-1,1:dim_col-1])
 
     metrics_by_cluster <-  structure(list(
         mixture_cluster= Mix_class,
-        confusion_matrix = info_confusion_matrix
-    ),
-    class = "sits")
+        confusion_matrix = info_confusion_matrix),
+        class = "sits")
 
     return (metrics_by_cluster)
 

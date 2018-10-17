@@ -54,8 +54,8 @@ sits_plot_kohonen <- function(koh, type="codes") {
 #' @export
 sits_plot_clusterInfo <- function(data,text_title = " Cluster ")
 {
-    data<-data$mixture_cluster
-    Labels=data$original_class
+    data <- data$mixture_cluster
+    Labels = data$original_class
     palette <- .sits_kohonen_pallete()
 
     #this plot correspond to metrics by cluster
