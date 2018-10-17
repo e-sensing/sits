@@ -19,7 +19,7 @@
 #' If return_members are FALSE, the returning tibble will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
 sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100,dist.fcts="euclidean",
-                          alpha = 1, ...) {
+                          alpha = 1,decay.fcts="exponential",neighbourhood.fct ="bubble", ...) {
 
     #paletteVizin <- colors()[c(8, 5,12,26,31,30,33,37,43,47,51,52, 56,76,84,118,142,419,625,404,656, 72)] #
     palleteVizin<-.sits_kohonen_pallete()
@@ -37,13 +37,14 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
     #values.tb <- sits_values (data.tb, format = "bands_cases_dates")
 
 
-    grid <-kohonenDTW::somgrid(xdim = grid_xdim, ydim = grid_ydim, topo = "rectangular")
-    kohonen_obj  <- kohonenDTW::supersom (
+    grid <-kohonen::somgrid(xdim = grid_xdim, ydim = grid_ydim, topo = "rectangular",neighbourhood.fct=neighbourhood.fct)
+    kohonen_obj  <- kohonen::supersom (
         time_series,
         grid = grid,
         rlen = rlen,
         alpha = alpha,
         dist.fcts = dist.fcts,
+        decay.fcts = decay.fcts,
         keep.data = TRUE,
         ...
     )
@@ -202,7 +203,7 @@ sits_evaluate_samples<-function(data.tb,
     for (k in 1:iterations)
     {
         kohonen_obj <-
-            kohonenDTW::supersom(
+            kohonen::supersom(
                 time_series,
                 grid = somgrid(grid_xdim, grid_ydim , "rectangular", "gaussian", toroidal = FALSE),
                 rlen = rlen,
@@ -492,7 +493,8 @@ sits_subgroup<-function(koh)
     cluster_label_analysis<-koh$info_samples$neuron_label
     class_neurons <- (unique(cluster_label_analysis))
 
-    Class_group <- as_tibble()
+
+    Class_group <- tibble::as_tibble()
     k = 1
     for (k in 1:length(unique(class_neurons)))
     {
@@ -578,7 +580,7 @@ sits_subgroup<-function(koh)
                 ts_evi.ts<-ts[,24:46]
 
                 ts_group_ndvi.ts <- zoo::zoo(t(ts_ndvi.ts))
-                ts_group_evi.ts <- zoo(t(ts_evi.ts))
+                ts_group_evi.ts  <- zoo::zoo(t(ts_evi.ts))
             }
 
             groupts_ndvi.df <- data.frame(value = as.vector(ts_group_ndvi.ts),
@@ -737,7 +739,7 @@ sits_metrics_by_cluster<-function(info_sample_cluster.tb)
 
     }
     info_confusion_matrix <-
-        caret::confusionMatrix(confusion.matrix.tb[1:dim_row,1:dim_col])
+        caret::confusionMatrix(confusion.matrix.tb[1:dim_row-1,1:dim_col-1])
 
     metrics_by_cluster <-  structure(list(
         mixture_cluster= Mix_class,

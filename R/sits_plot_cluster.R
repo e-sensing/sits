@@ -52,7 +52,7 @@ sits_plot_kohonen <- function(koh, type="codes") {
 #'
 #' @param  data  Table containing the percentage of mixture between the clusters
 #' @export
-sits_plot_clusterInfo <- function(data)
+sits_plot_clusterInfo <- function(data,text_title="Cluster")
 {
     data<-data$mixture_cluster
     Labels=data$original_class
@@ -72,7 +72,8 @@ sits_plot_clusterInfo <- function(data)
         )  +
         theme_minimal() +
         theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
-        labs(x = "Clusters", y="Percentage of Mixture", colour="cluster")
+        labs(x = "Clusters", y="Percentage of Mixture", colour="cluster")+
+        ggtitle(text_title)
 
     return(p)
 }
