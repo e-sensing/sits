@@ -713,19 +713,20 @@ sits_metrics_by_cluster<-function(info_sample_cluster.tb)
         #sum the samples of label "d" by cluster.
         #each column represents the cluster where the sample was allocated
         current_row <- confusion.matrix.tb[d, 1:dim_col-1]
+        current_col <- confusion.matrix.tb[1:dim_row-1,d]
 
         #get the value total
         current_row_Total <- confusion.matrix.tb[d, dim_col]
+        current_col_Total <- confusion.matrix.tb[dim_row, d]
 
         current_class_ambiguity <-
             tibble::as.tibble(list(
                 id_class= as.integer(d),
-                cluster=  Label_table[d],
-                original_class = names(current_row),
-                mixture_percentage = as.numeric((current_row / current_row_Total) *
+                cluster= Label_table[d],
+                original_class = names(current_col),
+                mixture_percentage = as.numeric((current_col / current_col_Total) *
                                                     100)
             ))
-
         #sort the table in decending order
         current_class_ambiguity<- dplyr::arrange(current_class_ambiguity,
                                                  desc(current_class_ambiguity$mixture_percentage))
