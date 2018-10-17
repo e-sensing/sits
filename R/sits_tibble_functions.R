@@ -474,7 +474,7 @@ sits_select <- function(data.tb, ...) {
 #' @description Returns a sits table with the selected bands.
 #'
 #' @param data.tb      A sits tibble metadata and data on time series.
-#' @param bands        vector of bands.
+#' @param bands        Vector of bands.
 #' @return A tibble in sits format with the selected bands.
 #' @examples
 #' # Retrieve a set of time series with 2 classes

@@ -2,7 +2,7 @@
 #' @name sits_infoWTSS
 #' @author Gilberto Camara
 #'
-#' @description obtains information about the WTSS server
+#' @description Obtains information about the WTSS server
 #' and about the coverages.
 #'
 #' The Web Time Series Service is a lightweight web service the allow remote access to satellite
@@ -18,7 +18,7 @@
 #'  3. time series: this operation requests the time series of values of a coverage attribute
 #'    at a given location.
 #'
-#' @return wtss.obj       an R object containing the information about the WTSS server
+#' @return An R object containing the information about the WTSS server.
 #'
 #' @examples
 #' \donttest{
@@ -71,13 +71,13 @@ sits_infoWTSS <- function() {
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177
 #'
-#' @param coverage        metadata about the coverage where the data is to be retrived.
-#' @param longitude       double - the longitude of the chosen location.
-#' @param latitude        double - the latitude of the chosen location.
-#' @param start_date      date - the start of the period.
-#' @param end_date        date - the end of the period.
-#' @param bands           list of string - a list of the names of the bands of the coverage.
-#' @param label           string - the label to attach to the time series (optional).
+#' @param coverage        Metadata about the coverage where the data is to be retrived.
+#' @param longitude       The longitude of the chosen location.
+#' @param latitude        The latitude of the chosen location.
+#' @param start_date      Date with the start of the period.
+#' @param end_date        Date with the end of the period.
+#' @param bands           A list of string with the names of the bands of the coverage.
+#' @param label           A string with the label to attach to the time series (optional).
 #' @return A sits tibble.
 .sits_fromWTSS <- function(coverage,
                            longitude,
@@ -86,7 +86,6 @@ sits_infoWTSS <- function() {
                            end_date   = NULL,
                            bands      = NULL,
                            label      = "NoClass") {
-
     # if bands are not provided, use all bands available in the coverage
     # check the bands are available
     cov_bands <- coverage$bands[[1]]

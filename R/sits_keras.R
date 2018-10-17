@@ -7,7 +7,7 @@
 #' to work with the model.
 #'
 #' @param  model           An R Keras model trained by \code{\link[sits]{sits_deeplearning}}.
-#' @param  hdffile         A hdf5 file where the keras model is to be saved.
+#' @param  hdffile         An hdf5 file where the keras model is to be saved.
 #' @param  rdsfile         A rds file where the R environment is to be saved.
 #'
 #' @export

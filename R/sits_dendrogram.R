@@ -12,11 +12,11 @@
 #'
 #' @references `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param data.tb         tibble with time series data and metadata to be used to generate the dendrogram.
-#' @param bands           vector of bands to be clustered.
-#' @param dist_method     (string) one of the supported distance from proxy's dist, e.g. \code{TWDTW}.
-#' @param linkage         (string) agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'.
-#' @param  ...            any additional parameters to be passed to dtwclust::tsclust() function.
+#' @param data.tb         Tibble with time series data and metadata to be used to generate the dendrogram.
+#' @param bands           Vector of bands to be clustered.
+#' @param dist_method     String with one of the supported distance from proxy's dist, e.g. \code{TWDTW}.
+#' @param linkage         String with agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'.
+#' @param  ...            Any additional parameters to be passed to dtwclust::tsclust() function.
 #' @return A full dendrogram tree for data analysis.
 #'
 #' @examples
@@ -64,7 +64,7 @@ sits_dendrogram <- function(data.tb, bands = NULL,
 #' @name sits_dendro_bestcut
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description reads a dendrogram object and its corresponding sits tibble and
+#' @description Reads a dendrogram object and its corresponding sits tibble and
 #' computes the best number of clusters that maximizes the adjusted Rand index.
 #'
 #' @references
@@ -73,8 +73,8 @@ sits_dendrogram <- function(data.tb, bands = NULL,
 #'
 #' See \link[flexclust]{randIndex} for implementation details.
 #'
-#' @param data.tb          tibble used to generate `dendro.obj`.
-#' @param dendro.obj       a dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.
+#' @param data.tb          Tibble used to generate `dendro.obj`.
+#' @param dendro.obj       Dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.
 #' @return Vector with the best number of clusters (k) and its respective heigh.
 #'
 #' @examples

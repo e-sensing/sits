@@ -18,10 +18,10 @@
 #' The model should be precomputed by the user. This model should be
 #' passed to the function using the parameter "ml_model".
 #'
-#' @param  data.tb           tibble with time series metadata and data.
-#' @param  ml_model          pre-built machine learning model (see \code{\link[sits]{sits_train}}).
-#' @param  interval          interval used for classification (in months).
-#' @param  multicores        number of threads to process the time series.
+#' @param  data.tb           Tibble with time series metadata and data.
+#' @param  ml_model          Pre-built machine learning model (see \code{\link[sits]{sits_train}}).
+#' @param  interval          Interval used for classification (in months).
+#' @param  multicores        Number of threads to process the time series.
 #' @return A tibble with the predicted labels for each input segment.
 #' @examples
 #' \donttest{

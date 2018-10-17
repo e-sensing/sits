@@ -22,8 +22,8 @@
 #'
 #'
 #' @param  data          Data to be plotted (can be a sits tibble, clusters, or TWDTW matches).
-#' @param  band          (optional) The band used for visualisation (optional for sits_plot_classification).
-#' @param  colors        (optional) Color pallete to be used (based on Color Brewer - default is "Dark2").
+#' @param  band          The band used for visualisation (optional for sits_plot_classification).
+#' @param  colors        Color pallete to be used (based on Color Brewer - default is "Dark2").
 #' @return Input sits table (useful for chaining functions).
 #'
 #' @examples
@@ -79,7 +79,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' @name .sits_plot_allyears
 #'
 #' @description For each lat/long location in the data, join temporal
-#' instances of the same place together for plotting
+#' instances of the same place together for plotting.
 #' @param data    One or more time series (stored in a sits tibble).
 #' @param colors  The color pallete to be used (default is "Set2").
 .sits_plot_allyears <- function(data, colors) {
@@ -216,7 +216,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #'
 #' @name .sits_plot_together
 #'
-#' @description Plots all time series for the same label together
+#' @description Plots all time series for the same label together.
 #' This function is useful to find out the spread of the values of the time serie
 #' for a given label.
 #'

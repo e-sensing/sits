@@ -27,7 +27,7 @@ sits_log <- function() {
 #'
 #' @description Logs an error message in the log file.
 #' @param message       Message to be logged.
-#' @return TRUE if creation succeeds
+#' @return TRUE if creation succeeds.
 .sits_log_error <- function(message) {
     log4r::error(sits.env$logger_error, message)
 }

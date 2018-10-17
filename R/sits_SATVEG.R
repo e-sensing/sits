@@ -65,13 +65,13 @@
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Retrieves a time series from the SATVEG service
+#' @description Retrieves a time series from the SATVEG service.
 #'
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location
-#' @param name            name of the desired coverage in SATVEG (see configuration file)
-#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @return status         TRUE if no problems are detected.
+#' @param longitude       The longitude of the chosen location.
+#' @param latitude        The latitude of the chosen location.
+#' @param name            Name of the desired coverage in SATVEG (see configuration file).
+#' @param prefilter       String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
+#' @return TRUE if no problems are detected.
 .sits_ts_from_SATVEG <- function(longitude, latitude, name, prefilter){
     # the parameter filter is not used
     filter <- ""

@@ -15,9 +15,9 @@
 #' the reference period. The results is a tibble with information that allows the user
 #' to perform steps (c) to (e).
 #'
-#' @param  data.tb         description on the data being classified.
-#' @param  samples.tb      samples used for training the classification model.
-#' @param  interval        interval between two sucessive classifications.
+#' @param  data.tb         Description on the data being classified.
+#' @param  samples.tb      Samples used for training the classification model.
+#' @param  interval        Interval between two sucessive classifications.
 #' @return A tibble with the classification information.
 .sits_class_info <- function(data.tb, samples.tb, interval){
     # find the timeline
@@ -61,7 +61,7 @@
 #' @description Obtains the indexes of the blocks to be extract for each time interval
 #' associated with classification.
 #'
-#' @param class_info.tb tibble with information required for classification.
+#' @param class_info.tb Tibble with information required for classification.
 #' @return List with indexes of the input data set associated to each time interval
 #' used for classification.
 .sits_get_time_index <- function(class_info.tb) {
@@ -89,8 +89,8 @@
 #' is not inside the timeline and the difference between the date and the first date of timeline is
 #' greater than the acquisition interval of the timeline, then we conclude the date is not valid.
 #'
-#' @param date        a dates.
-#' @param timeline    a vector of reference dates.
+#' @param date        A date.
+#' @param timeline    A vector of reference dates.
 #' @return Is this is valid starting date?
 .sits_is_valid_start_date <- function(date, timeline){
     # is the date inside the timeline?
@@ -114,8 +114,8 @@
 #' is not inside the timeline and the difference between the date and the last date of timeline is
 #' greater than the acquisition interval of the timeline, then we conclude the date is not valid.
 #'
-#' @param date        a dates.
-#' @param timeline    a vector of reference dates.
+#' @param date        A Date.
+#' @param timeline    A vector of reference dates.
 #' @return Nearest date.
 .sits_is_valid_end_date <- function(date, timeline){
     # is the date inside the timeline?
@@ -261,8 +261,8 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 #' be extracted to classify each band, obtain a list of indexes that will be used to
 #' extract values from a combined distance table (with has all the bands put together)
 #'
-#' @param  class_info.tb      tibble with classification information.
-#' @param  ntimes             number of time instances.
+#' @param  class_info.tb      Tibble with classification information.
+#' @param  ntimes             Number of time instances.
 #' @return List of values to be extracted for each classification interval.
 .sits_select_indexes <- function(class_info.tb, ntimes) {
     # find the subsets of the input data
@@ -309,8 +309,8 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 #' extract values from a combined distance table (with has all the bands put together)
 #'
 #' @param  coverage           Coverage with input data set.
-#' @param  samples            tibble with samples used for classification.
-#' @param  interval           classification interval.
+#' @param  samples            Tibble with samples used for classification.
+#' @param  interval           Classification interval.
 #' @return List of values to be extracted for each classification interval.
 .sits_select_raster_indexes <- function(coverage, samples, interval) {
     # define the classification info parameters

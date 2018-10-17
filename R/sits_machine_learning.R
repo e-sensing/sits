@@ -587,10 +587,10 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' @param cachesize        Cache memory in MB (default = 1000).
 #' @param kernel           Kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid).
 #' @param degree           Exponential of polynomial type kernel.
-#' @param coef0	           Parameter needed for kernels of type polynomial and sigmoid (default: 0).
+#' @param coef0            Parameter needed for kernels of type polynomial and sigmoid (default: 0).
 #' @param cost             Cost of constraints violation.
-#' @param tolerance	       Tolerance of termination criterion (default: 0.001).
-#' @param epsilon	       Epsilon in the insensitive-loss function (default: 0.1).
+#' @param tolerance        Tolerance of termination criterion (default: 0.001).
+#' @param epsilon          Epsilon in the insensitive-loss function (default: 0.1).
 #' @param cross            Number of cross validation folds applied on the training data to assess the quality of the model.
 #' @param ...              Other parameters to be passed to e1071::svm function.
 #'

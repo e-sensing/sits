@@ -4,9 +4,9 @@
 #'
 #' @description Transform a latitude and longitude coordinate to a XY projection coordinate
 #'
-#' @param longitude       double - the longitude of the chosen location.
-#' @param latitude        double - the latitude of the chosen location.
-#' @param crs             projection definition to be converted to.
+#' @param longitude       The longitude of the chosen location.
+#' @param latitude        The latitude of the chosen location.
+#' @param crs             Projection definition to be converted to.
 #' @return Matrix with (x, y) coordinates.
 .sits_latlong_to_proj <- function(longitude, latitude, crs) {
     sf::st_point(c(longitude, latitude)) %>%

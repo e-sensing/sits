@@ -12,10 +12,10 @@
 #'
 #' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
 #'
-#' @param ts.tb         tibble with a time series (one or more bands).
-#' @param fun           function with one parameter as input and a vector or list of vectors as output.
-#' @param fun_index     function with one parameter as input and a Date vector as output.
-#' @param bands_suffix  string informing the resulting bands name's suffix.
+#' @param ts.tb         Tibble with a time series (one or more bands).
+#' @param fun           Function with one parameter as input and a vector or list of vectors as output.
+#' @param fun_index     Function with one parameter as input and a Date vector as output.
+#' @param bands_suffix  String informing the resulting bands name's suffix.
 #' @return A sits tibble with same samples and the new bands.
 .sits_apply_ts <- function(ts.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
     # computes fun and fun_index for all time series and substitutes the original time series data
@@ -51,7 +51,7 @@
 #' @description Split a sits table into k groups, based on the label.
 #'
 #' @param data.tb   A sits tibble to be partitioned.
-#' @param folds     number of folds.
+#' @param folds     Number of folds.
 .sits_create_folds <- function(data.tb, folds = 5) {
     # verify if data.tb exists
     .sits_test_tibble(data.tb)

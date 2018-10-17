@@ -69,7 +69,7 @@ sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
 #' @param  data.mx        Matrix of values.
 #' @param  stats.tb       Statistics for normalization.
 #' @param  band           Band to be normalized.
-#' @param  multicores     number of cores.
+#' @param  multicores     Number of cores.
 #' @return A normalized matrix.
 .sits_normalize_matrix <- function(data.mx, stats.tb, band, multicores) {
     # select the 2% and 98% quantiles

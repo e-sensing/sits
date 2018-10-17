@@ -50,7 +50,7 @@ sits_config <- function() {
 #' @description Displays the contents of sits configuration file. For more details
 #' on how to set the configuration file, please use \code{\link[sits]{sits_config}}.
 #'
-#' @return config_sits  List with the configuration parameters used by sits.
+#' @return List with the configuration parameters used by sits.
 #' @examples
 #' sits_show_config()
 #' @export
@@ -109,7 +109,7 @@ sits_show_config <- function() {
 #' @title Retrieve the value of the adjustment shift
 #' @name sits_get_adjustment_shift
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description retrieves the value of the shift to adjust entries to have only positive values.
+#' @description Retrieves the value of the shift to adjust entries to have only positive values.
 .sits_get_adjustment_shift <- function() {
     return(sits.env$config$adjustment_shift)
 }

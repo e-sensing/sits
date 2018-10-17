@@ -14,7 +14,7 @@
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of threads to process the time series.
 #' @return List with three attributes: n (number of blocks), rows (list of rows to begin),
-#'                    nrows - number of rows to read at each iteration.
+#' nrows (number of rows to read at each iteration).
 .sits_raster_blocks <- function(coverage, ml_model, interval, memsize, multicores){
     # number of bands
     nbands <-  length(coverage[1,]$bands[[1]])
