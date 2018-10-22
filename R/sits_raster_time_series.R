@@ -5,15 +5,14 @@
 #' @description Reads metadata about a raster data set to retrieve a set of
 #' time series.
 #'
-#' @param coverage        A tibble with metadata describing a raster coverage
-#' @param file            A CSV file with lat/long locations to be retrieve
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location
-#' @param start_date      date - the start of the period
-#' @param end_date        date - the end of the period
-#' @param label           string - the label to attach to the time series
-#' @return data.tb        a SITS tibble with the time series
-#'
+#' @param coverage        A tibble with metadata describing a raster coverage.
+#' @param file            A CSV file with lat/long locations to be retrieve.
+#' @param longitude       A double with the longitude of the chosen location.
+#' @param latitude        A double with the latitude of the chosen location.
+#' @param start_date      A date with the start of the period.
+#' @param end_date        A date with the end of the period.
+#' @param label           A string with the label to attach to the time series.
+#' @return A sits tibble with the time series.
 .sits_fromRaster <- function(coverage,
                              file = NULL,
                              longitude = NULL,
@@ -41,19 +40,18 @@
 #' @name .sits_ts_fromRaster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description  This function extracts a SITS time series from a set of
+#' @description  This function extracts a sits time series from a set of
 #'               Raster Layers whose metadata is stored in a tibble
-#'               created by the sits_STraster function
+#'               created by the sits_STraster function.
 #'
-#' @param raster.tb        A tibble with metadata information about a raster data set
-#' @param longitude        Longitude of the chosen location
-#' @param latitude         Latitude of the chosen location
-#' @param start_date      date - the start of the period
-#' @param end_date        date - the end of the period
-#' @param label            Label to attach to the time series
-#' @return data.tb         SITS tibble with the time series
+#' @param raster.tb        A tibble with metadata information about a raster data set.
+#' @param longitude        Longitude of the chosen location.
+#' @param latitude         Latitude of the chosen location.
+#' @param start_date       The start date of the period.
+#' @param end_date         The end date of the period.
+#' @param label            Label to attach to the time series.
+#' @return A sits tibble with the time series.
 .sits_ts_fromRaster <- function(raster.tb, longitude, latitude, start_date, end_date, label = "NoClass"){
-
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) >= 1,
                          err_desc = "sits_ts_fromRasterXY: need a valid metadata for coverage")
@@ -127,22 +125,22 @@
     )
     return(data.tb)
 }
+
 #' @title Extract a time series for a set of Raster Layers
 #' @name .sits_ts_fromRasterXY
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description  This function extracts a SITS time series from a set of
+#' @description  This function extracts a sits time series from a set of
 #'               Raster Layers whose metadata is stored in a tibble
-#'               created by the sits_STraster function
+#'               created by the sits_STraster function.
 #'
-#' @param raster.tb        A tibble with metadata information about a raster data set
-#' @param xy               A matrix with X/Y coordinates
-#' @param longitude        Longitude of the chosen location
-#' @param latitude         Latitude of the chosen location
-#' @param label            Label to attach to the time series
-#' @return data.tb         SITS tibble with the time series
+#' @param raster.tb        A tibble with metadata information about a raster data set.
+#' @param xy               A matrix with X/Y coordinates.
+#' @param longitude        Longitude of the chosen location.
+#' @param latitude         Latitude of the chosen location.
+#' @param label            Label to attach to the time series.
+#' @return A sits tibble with the time series.
 .sits_ts_fromRasterXY <- function(raster.tb, xy, longitude, latitude, label = "NoClass"){
-
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) >= 1,
                          err_desc = "sits_ts_fromRasterXY: need a valid metadata for coverage")
@@ -204,16 +202,14 @@
 #' @name .sits_ts_fromRasterCSV
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description  This function extracts a SITS time series from a set of
+#' @description  This function extracts a sits time series from a set of
 #'               Raster Layers whose metadata is stored in a tibble
-#'               created by the sits_STraster function
+#'               created by the sits_STraster function.
 #'
-#' @param raster.tb       A tibble with metadata describing a spatio-temporal data set
-#' @param file            A CSV file with lat/long locations to be retrieved
-#' @return data.tb         SITS tibble with the time series
-
+#' @param raster.tb       A tibble with metadata describing a spatio-temporal data set.
+#' @param file            A CSV file with lat/long locations to be retrieved.
+#' @return A sits tibble with the time series.
 .sits_ts_fromRasterCSV <- function(raster.tb, file) {
-
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) == 1,
                          err_desc = "sits_classify_raster: need a valid metadata for coverage")
@@ -260,8 +256,6 @@
         message("Some points could not be retrieved - see log file and csv_unread_file")
         .sits_log_CSV(csv_unread.tb, "unread_samples.csv")
     }
-
-
 
     return(data.tb)
 }

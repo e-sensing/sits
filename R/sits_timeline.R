@@ -8,19 +8,18 @@
 #' temporal interval, and start and end dates per interval.
 #' (c) Clean the training data to ensure it meets the specifications of the classification info.
 #' (d) Use the clean data to train a machine learning classifier.
-#' (e) Classify non-labelled data sets
+#' (e) Classify non-labelled data sets.
 #'
 #' In this set of steps, this function provides support for step (b). It requires the user
 #' to provide a timeline, the classification interval, and the start and end dates of
 #' the reference period. The results is a tibble with information that allows the user
-#' to perform steps (c) to (e)
+#' to perform steps (c) to (e).
 #'
-#' @param  data.tb         description on the data being classified
-#' @param  samples.tb      samples used for training the classification model
-#' @param  interval        interval between two sucessive classifications
-#' @return class_info.tb   tibble with the classification information
+#' @param  data.tb         Description on the data being classified.
+#' @param  samples.tb      Samples used for training the classification model.
+#' @param  interval        Interval between two sucessive classifications.
+#' @return A tibble with the classification information.
 .sits_class_info <- function(data.tb, samples.tb, interval){
-
     # find the timeline
     timeline <- .sits_timeline(data.tb)
 
@@ -60,12 +59,11 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Obtains the indexes of the blocks to be extract for each time interval
-#' associated with classification
+#' associated with classification.
 #'
-#' @param class_info.tb tibble with information required for classification
-#' @return time_index   list with indexes of the input data set associated to each time interval
-#'                      used for classification
-#'
+#' @param class_info.tb Tibble with information required for classification.
+#' @return List with indexes of the input data set associated to each time interval
+#' used for classification.
 .sits_get_time_index <- function(class_info.tb) {
     # find the subsets of the input data
     dates_index.lst <- class_info.tb$dates_index[[1]]
@@ -80,7 +78,6 @@
     time_index.lst  <- .sits_time_index(dates_index.lst, timeline, bands)
 
     return(time_index.lst)
-
 }
 
 #' @title Test if starting date fits with the timeline
@@ -92,12 +89,10 @@
 #' is not inside the timeline and the difference between the date and the first date of timeline is
 #' greater than the acquisition interval of the timeline, then we conclude the date is not valid.
 #'
-#' @param date        a dates
-#' @param timeline    a vector of reference dates
-#' @return bool       is this is valid starting date?
-#'
+#' @param date        A date.
+#' @param timeline    A vector of reference dates.
+#' @return Is this is valid starting date?
 .sits_is_valid_start_date <- function(date, timeline){
-
     # is the date inside the timeline?
     if (date %within% lubridate::interval(timeline[1], timeline[length(timeline)])) return(TRUE)
     # what is the difference in days between the last two days of the timeline?
@@ -109,6 +104,7 @@
 
     return(FALSE)
 }
+
 #' @title Test if end date fits inside the timeline
 #' @name .sits_is_valid_end_date
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -118,12 +114,10 @@
 #' is not inside the timeline and the difference between the date and the last date of timeline is
 #' greater than the acquisition interval of the timeline, then we conclude the date is not valid.
 #'
-#' @param date        a dates
-#' @param timeline    a vector of reference dates
-#' @return n_date     nearest date
-#'
+#' @param date        A Date.
+#' @param timeline    A vector of reference dates.
+#' @return Nearest date.
 .sits_is_valid_end_date <- function(date, timeline){
-
     # is the date inside the timeline?
 
     if (date %within% lubridate::interval(timeline[1], timeline[length(timeline)])) return(TRUE)
@@ -136,6 +130,7 @@
 
     return(FALSE)
 }
+
 #' @title Find dates in the input coverage that match those of the patterns
 #' @name sits_match_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -144,11 +139,11 @@
 #'              should be aligned to that of the reference data set (usually a set of patterns).
 #'              This function aligns these data sets so that shape matching works correctly
 #'
-#' @param timeline              Timeline of input observations (vector)
-#' @param ref_start_date        The day of the year to be taken as reference for starting the classification
-#' @param ref_end_date          The day of the year to be taken as reference for end the classification
-#' @param interval              Period between two classification
-#' @return subset_dates.lst     A list of breaks that will be applied to the input data set
+#' @param timeline              Timeline of input observations (vector).
+#' @param ref_start_date        The day of the year to be taken as reference for starting the classification.
+#' @param ref_end_date          The day of the year to be taken as reference for end the classification.
+#' @param interval              Period between two classification.
+#' @return A list of breaks that will be applied to the input data set.
 #' @examples
 #' # get a timeline for MODIS data
 #' data("timeline_2000_2017")
@@ -158,7 +153,6 @@
 #' subset_dates.lst <- sits_match_timeline (timeline_2000_2017, ref_start_date, ref_end_date)
 #' @export
 sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval = "12 month"){
-
     # make sure the timelines is a valid set of dates
     timeline <- lubridate::as_date(timeline)
 
@@ -194,7 +188,6 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
                          err_desc = "sits_match_timelines: start and end date of samples do not match timeline /n
                                      Please compare your timeline with your samples")
 
-
     # go through the timeline of the data and find the reference dates for the classification
     while (!is.na(end_date)) {
         # add the start and end date
@@ -217,7 +210,6 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
     return(subset_dates.lst)
 }
 
-
 #' @title Find indexes in a timeline that match the reference dates
 #' @name .sits_match_indexes
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -226,12 +218,10 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 #'              should be aligned to that of the reference data set (usually a set of patterns).
 #'              This function aligns these data sets so that shape matching works correctly
 #'
-#' @param timeline              Timeline of input observations (vector)
-#' @param ref_dates.lst         A list of breaks that will be applied to the input data set
-#' @return dates_index.lst     A list of indexes that match the reference dates to the timelines
-#'
+#' @param timeline              Timeline of input observations (vector).
+#' @param ref_dates.lst         A list of breaks that will be applied to the input data set.
+#' @return A list of indexes that match the reference dates to the timelines.
 .sits_match_indexes <- function(timeline, ref_dates.lst){
-
     dates_index.lst <- ref_dates.lst %>%
         purrr::map(function(date_pair) {
             start_index <- which(timeline == date_pair[1])
@@ -243,18 +233,17 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 
     return(dates_index.lst)
 }
+
 #' @title Find number of samples, given a timeline and an interval
 #' @name .sits_num_samples
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function retrieves the number of samples
 #'
-#' @param timeline              Timeline of input observations (vector)
-#' @param interval              Period to match the data to the patterns
-#' @return num_samples          The number of measures during the chosen interval
-#'
+#' @param timeline              Timeline of input observations (vector).
+#' @param interval              Period to match the data to the patterns.
+#' @return The number of measures during the chosen interval.
 .sits_num_samples <- function(timeline, interval = "12 month"){
-
     start_date <- timeline[1]
     next_interval_date <- lubridate::as_date(lubridate::as_date(start_date) + lubridate::as.duration(interval))
 
@@ -263,6 +252,7 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 
     return(which(timeline == end_date) - which(timeline == start_date) + 1)
 }
+
 #' @title Provide a list of indexes to extract data from a distance table for classification
 #' @name .sits_select_indexes
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -271,12 +261,10 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 #' be extracted to classify each band, obtain a list of indexes that will be used to
 #' extract values from a combined distance table (with has all the bands put together)
 #'
-#' @param  class_info.tb      tibble with classification information
-#' @param  ntimes             number of time instances
-#' @return select.lst         list of values to be extracted for each classification interval
-
+#' @param  class_info.tb      Tibble with classification information.
+#' @param  ntimes             Number of time instances.
+#' @return List of values to be extracted for each classification interval.
 .sits_select_indexes <- function(class_info.tb, ntimes) {
-
     # find the subsets of the input data
     dates_index.lst <- class_info.tb$dates_index[[1]]
 
@@ -311,6 +299,7 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
     }
     return(select.lst)
 }
+
 #' @title Provide a list of indexes to extract data from a raster-derived data table for classification
 #' @name .sits_select_raster_indexes
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -319,13 +308,11 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 #' be extracted to classify each band, obtain a list of indexes that will be used to
 #' extract values from a combined distance table (with has all the bands put together)
 #'
-#' @param  coverage           Coverage with input data set
-#' @param  samples            tibble with samples used for classification
-#' @param  interval           classification interval
-#' @return select.lst         list of values to be extracted for each classification interval
-
+#' @param  coverage           Coverage with input data set.
+#' @param  samples            Tibble with samples used for classification.
+#' @param  interval           Classification interval.
+#' @return List of values to be extracted for each classification interval.
 .sits_select_raster_indexes <- function(coverage, samples, interval) {
-
     # define the classification info parameters
     class_info <- .sits_class_info(coverage, samples, interval)
 
@@ -357,16 +344,16 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
     }
     return(select.lst)
 }
+
 #' @title Create a list of time indexes from the dates index
 #' @name  .sits_time_index
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  dates_index.lst  A list of dates with the subsets of the input data
-#' @param  timeline        The timeline of the data set
-#' @param  bands           Bands used for classification
-#' @return  time_index.lst  The subsets of the timeline
+#' @param  dates_index.lst  A list of dates with the subsets of the input data.
+#' @param  timeline         The timeline of the data set.
+#' @param  bands            Bands used for classification.
+#' @return The subsets of the timeline.
 .sits_time_index <- function(dates_index.lst, timeline, bands) {
-
     # transform the dates index (a list of dates) to a list of indexes
     # this speeds up extracting the distances for classification
     time_index.lst <- dates_index.lst %>%
@@ -382,21 +369,21 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
         })
     return(time_index.lst)
 }
+
 #' @title Obtains the timeline for a coverage
 #' @name .sits_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function returns the timeline for a given coverage
+#' @description This function returns the timeline for a given coverage.
 #'
-#' @param  data.tb  A sits tibble (either a SITS tibble or a raster metadata)
+#' @param  data.tb  A sits tibble (either a sits tibble or a raster metadata).
 .sits_timeline <- function(data.tb){
-
     timeline <-  NULL
     # is this a coverage metadata?
     if ("timeline" %in% names(data.tb))
         timeline <- as.Date(data.tb[1,]$timeline[[1]][[1]])
 
-    # is this a SITS tibble with the time series?
+    # is this a sits tibble with the time series?
     if ("time_series" %in% names(data.tb))
         timeline <- lubridate::as_date(data.tb[1,]$time_series[[1]]$Index)
 

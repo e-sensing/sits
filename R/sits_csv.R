@@ -1,14 +1,14 @@
-#' @title Export a SITS tibble metadata to the CSV format
+#' @title Export a sits tibble metadata to the CSV format
 #' @name sits_metadata_toCSV
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Converts metadata from a SITS tibble to a CSV file. The CSV file will not contain the actual time
+#' @description Converts metadata from a sits tibble to a CSV file. The CSV file will not contain the actual time
 #'              series. Its columns will be the same as those of a CSV file used to retrieve data from
 #'              ground information ("latitude", "longitude", "start_date", "end_date", "coverage", "label").
 #'
-#' @param  data.tb    a SITS time series
-#' @param  file       the name of the exported CSV file
-#' @return status     the status of the operation
+#' @param  data.tb    A sits time series.
+#' @param  file       Name of the exported CSV file.
+#' @return The status of the operation.
 #' @examples
 #' \donttest{
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
@@ -18,8 +18,6 @@
 #' }
 #' @export
 sits_metadata_toCSV <- function(data.tb, file){
-
-
     csv_columns <- c("longitude", "latitude", "start_date", "end_date", "label")
 
     #select the parts of the tibble to be saved
@@ -42,27 +40,26 @@ sits_metadata_toCSV <- function(data.tb, file){
     return(invisible(TRUE))
 }
 
-#' @title Export a SITS tibble data to the CSV format
+#' @title Export a sits tibble data to the CSV format
 #' @name sits_data_toCSV
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Converts time series data from a SITS tibble to a CSV file. The CSV file will not contain the metadata,
+#' @description Converts time series data from a sits tibble to a CSV file. The CSV file will not contain the metadata,
 #' but will have the actual time series, with a reference value. This function is useful to
 #' export the data for external applications
 #'
-#' @param  data.tb    a tibble with time series data and metadata
-#' @param  file       name of the exported CSV file
-#' @return status     status of the operation
+#' @param  data.tb    A tibble with time series data and metadata.
+#' @param  file       Name of the exported CSV file.
+#' @return Status of the operation.
 #' @examples
 #' \donttest{
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # export a time series to zoo
-#' sits_data_toCSV (cerrado_2classes, file = "./cerrado_2classes.csv")
+#' sits_data_toCSV(cerrado_2classes, file = "cerrado_2classes.csv")
 #' }
 #' @export
 sits_data_toCSV <- function(data.tb, file){
-
     .sits_test_tibble(data.tb)
 
     distances_DT <- sits_distances(data.tb)
@@ -77,6 +74,7 @@ sits_data_toCSV <- function(data.tb, file){
     # write the CSV file
     return(invisible(TRUE))
 }
+
 #' @title Export a shapefile with points to a CSV file for later processing
 #' @name sits_shp_toCSV
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -85,14 +83,14 @@ sits_data_toCSV <- function(data.tb, file){
 #'              series. Its columns will be the same as those of a CSV file used to retrieve data from
 #'              ground information ("latitude", "longitude", "start_date", "end_date", "coverage", "label").
 #'
-#' @param  shpfile    a POINT shapefile
-#' @param  csvfile    the name of the exported CSV file
-#' @param  label      label associated to the samples
-#' @param  timeline   the timeline of the data set
-#' @param  start_date starting date for which the samples are valid
-#' @param  end_date   end date for which the samples are valid
-#' @param  interval   interval between two samples of the same place
-#' @return status     the status of the operation
+#' @param  shpfile    A point shapefile.
+#' @param  csvfile    The name of the exported CSV file.
+#' @param  label      Label associated to the samples.
+#' @param  timeline   The timeline of the data set.
+#' @param  start_date Starting date for which the samples are valid.
+#' @param  end_date   End date for which the samples are valid.
+#' @param  interval   Interval between two samples of the same place.
+#' @return Status of the operation.
 #'
 #' @examples
 #' \donttest{
@@ -104,16 +102,14 @@ sits_data_toCSV <- function(data.tb, file){
 #' # define the input shapefile
 #' shpfile <- system.file ("extdata/shapefiles/cerrado_forested.shp", package = "sits")
 #' # define the output csv file
-#' csvfile <- paste0("./cerrado_forested.csv")
+#' csvfile <- paste0("cerrado_forested.csv")
 #' # define the label
 #' label <- "Cerrado_Forested"
 #' # read the points in the shapefile and produce a CSV file
 #' sits_shp_toCSV(shpfile, csvfile, label, timeline_2000_2017, start_date, end_date)
 #' }
 #' @export
-
 sits_shp_toCSV <- function(shpfile, csvfile, label, timeline, start_date, end_date, interval = "12 month") {
-
     # test parameters
     ensurer::ensure_that(shpfile, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
                          err_desc = "sits_fromSHP: please provide a valid SHP file")
@@ -173,4 +169,3 @@ sits_shp_toCSV <- function(shpfile, csvfile, label, timeline, start_date, end_da
 
     return(invisible(TRUE))
 }
-

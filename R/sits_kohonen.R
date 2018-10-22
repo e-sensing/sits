@@ -8,18 +8,17 @@
 #' satellite image time series.
 #' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 #'
-#' @param data.tb        a tibble with time series to be clustered
-#' @param bands          bands to be clustered.
-#' @param grid_xdim      x dimension of the SOM grid (default = 5)
-#' @param grid_ydim      y dimension of the SOM grid
-#' @param rlen           number of times the complete data set will be presented to the SOM grid
-#' @param alpha          learning rate, a vector of two numbers indicating the amount of change.
+#' @param data.tb        A tibble with time series to be clustered.
+#' @param bands          Bands to be clustered.
+#' @param grid_xdim      X dimension of the SOM grid (default = 5).
+#' @param grid_ydim      Y dimension of the SOM grid.
+#' @param rlen           Number of times the complete data set will be presented to the SOM grid.
+#' @param alpha          Learning rate, a vector of two numbers indicating the amount of change.
 #'                       Default is to decline linearly from 0.05 to 0.01 over rlen updates.
-#' @param  ...           additional parameters to be passed to kohonen::supersom function
-#' @return kohonen.obj   a full kohonen object for data analysis
+#' @param  ...           Additional parameters to be passed to kohonen::supersom function.
+#' @return A full kohonen object for data analysis.
 #' @examples
 #' \donttest{
-#'
 #' # Retrieve a time series to be clusterized
 #' data("samples_MT_9classes")
 #' # compute a kohonen object
@@ -32,11 +31,10 @@
 #' @export
 sits_kohonen <- function (data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5, rlen = 100,
                           alpha = c(0.05, 0.01), ...) {
-
     # does the input data exist?
     .sits_test_tibble(data.tb)
 
-    # if no bands informed, get all bands available in SITS tibble
+    # if no bands informed, get all bands available in sits tibble
     if (purrr::is_null(bands))
         bands <- sits_bands(data.tb)
 
@@ -63,12 +61,11 @@ sits_kohonen <- function (data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5, r
 #' satellite image time series.
 #' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 #'
-#' @param data.tb        a tibble with time series to be clustered
-#' @param kohonen.obj    a full kohonen object for data analysis
-#' @return data.tb       tibble with the clusters or clusters' members
+#' @param data.tb        A tibble with time series to be clustered.
+#' @param kohonen.obj    A full kohonen object for data analysis.
+#' @return A tibble with the clusters or clusters' members.
 #' @examples
 #' \donttest{
-#'
 #' # Retrieve a time series to be clusterized
 #' data("samples_MT_9classes")
 #' # compute a kohonen object
@@ -80,7 +77,6 @@ sits_kohonen <- function (data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5, r
 #' }
 #' @export
 sits_kohonen_cluster <- function (data.tb, kohonen.obj) {
-
     # does the input data exist?
     .sits_test_tibble(data.tb)
 
@@ -94,4 +90,3 @@ sits_kohonen_cluster <- function (data.tb, kohonen.obj) {
     # return kohonen object
     return (data.tb)
 }
-

@@ -1,10 +1,10 @@
 #' @title Brewer color schemes
 #' @name .sits_color_name
 #'
-#' @description brewer color schemes names to be used with `sits_plot_dendrogram`
+#' @description brewer color schemes names to be used with `sits_plot_dendrogram`.
 #'
-#' @param name      name of the brewer color set
-#' @return name     string - a common color set name
+#' @param name      name of the brewer color set.
+#' @return A string with the common color set name.
 .sits_color_name <- function(name = NULL){
      # approximate equivalent names in ISCC-NBS system
      # see http://en.wikipedia.or"g/wiki/ISCC-NBS_system
@@ -130,10 +130,10 @@
 #' @title Brewer color schemes
 #' @name .sits_max_colors
 #'
-#' @description Number of colors available in brewer color schemes
+#' @description Number of colors available in brewer color schemes.
 #'
-#' @param brewer    name of the brewer color set
-#' @return numeric  number of available colors
+#' @param brewer    name of the brewer color set.
+#' @return The number of available colors.
 .sits_max_colors <- function(brewer = NULL){
      if (is.null(brewer))
           return(.sits_brewerRGB %>% purrr::map(function(sch){
@@ -145,8 +145,6 @@
                       purrr::map(function(n) length(n)) %>%
                       as.numeric()) > 1))
 }
-
-
 
 # Brewer color set constant
 # based on http://colorbrewer2.org colors' schemes
@@ -5021,5 +5019,3 @@
           "type" = "sequential"
      )
 )
-
-

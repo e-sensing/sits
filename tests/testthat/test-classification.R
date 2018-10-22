@@ -28,10 +28,6 @@ test_that("Classify time series with an svm model",{
     model <- sits_train(samples.tb, sits_svm())
     point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi"))
 
-    # TODO: shouldn´t the line below replace the line above to allow
-    # sits_classify working without needing to select the bands?
-    # point.tb <- sits_select(point_MT_6bands)
-
     class.tb <- sits_classify(point.tb, model)
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
