@@ -46,16 +46,17 @@ sits_classify <- function(data.tb    = NULL,
     .sits_test_tibble(data.tb)
 
     # ensure the machine learning model has been built
-    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
+    ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits_classify: please provide a machine learning model already trained")
 
     # has normalization been applied to the data?
     stats.tb   <- environment(ml_model)$stats.tb
 
     # obtain the distances after normalizing data by band
-    if (!purrr::is_null(stats.tb))
-        distances_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb, multicores))
-    else
+    if (purrr::is_null(stats.tb))
         distances_DT <- sits_distances(data.tb)
+    else
+        distances_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb, multicores))
+
 
     # define the parameters for breaking up a long time series
     samples.tb <- environment(ml_model)$data.tb

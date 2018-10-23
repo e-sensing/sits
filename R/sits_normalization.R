@@ -21,7 +21,7 @@ sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
     # get the bands of the input data
     bands <- sits_bands(data.tb)
     # check that the bands in the input are include in the statistics already calculated
-    ensurer::ensure_that(bands, all((.) %in% colnames(stats.tb[,-1])),
+    ensurer::ensure_that(bands, all(sort(.) == sort(colnames(stats.tb[,-1]))),
                          err_desc = paste0("sits_normalize: bands in the data (",
                                            paste(bands, collapse = ", "),
                                            ") do not match bands in the model (",
