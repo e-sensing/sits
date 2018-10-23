@@ -33,7 +33,7 @@ test_that("Classify time series with an svm model",{
                                   sits_labels(samples_MT_9classes)$label))
 })
 
-test_that("Classify time series with TWDTW method",{
+test_that("Classify time series with TWDTW method", {
     #skip_on_cran()
     patterns.tb <- sits_patterns(samples_MT_ndvi)
     point_MT_ndvi <- sits_select_bands(point_MT_6bands, ndvi)
@@ -42,4 +42,12 @@ test_that("Classify time series with TWDTW method",{
 
     expect_true(all(unique(matches$predicted[[1]]$predicted) %in%
                                   sits_labels(samples_MT_ndvi)$label))
+})
+
+test_that("Classify error bands", {
+    samples.tb <- sits_select_bands(samples_MT_9classes, evi)
+    model <- sits_train(samples.tb, sits_svm())
+    point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi)
+
+    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi, evi) do not match bands in the model (evi)", fixed = TRUE)
 })
