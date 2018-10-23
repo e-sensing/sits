@@ -505,7 +505,7 @@ sits_select_bands <- function(data.tb, ...) {
 }
 
 #' @title Filter bands on a sits tibble
-#' @name sits_select_bands
+#' @name sits_select_bands_
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Returns a sits table with the selected bands.

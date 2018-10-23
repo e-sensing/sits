@@ -52,7 +52,7 @@ test_that("Classify error bands", {
     model <- sits_train(samples.tb, sits_svm())
     point.tb <- sits_select_bands(point_MT_6bands, ndvi)
 
-    expect_error(sits_classify(point.tb1, model1), "sits_normalize: bands in the data (ndvi) do not match bands in the model (ndvi, evi)", fixed = TRUE)
+    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi) do not match bands in the model (ndvi, evi)", fixed = TRUE)
 
     samples.tb <- sits_select_bands(samples_MT_9classes, evi)
     model <- sits_train(samples.tb, sits_svm())
