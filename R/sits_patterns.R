@@ -99,7 +99,7 @@ sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, en
                 fit.lst <- bds %>%
                     purrr::map(function(bd) {
                         # retrieve the time series for each band
-                        label_b.tb <- sits_select_bands(label.tb, bd)
+                        label_b.tb <- sits_select_bands_(label.tb, bd)
                         ts <- label_b.tb$time_series
 
                         # melt the time series for each band into a long table

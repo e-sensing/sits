@@ -12,10 +12,8 @@ download.file(samples_file, destfile = paste0(tempdir(),"/samples_Cerrado_250420
 load(file = paste0(tempdir(),"/samples_Cerrado_25042018.rda"))
 
 # reduce the number of samples to 30% of total (speeds up demo)
-samples.tb <- sits_sample(samples_Cerrado_25042018.tb, frac = 0.3)
-
-# select only the ndvi and evi bands
-samples.tb <- sits_select_bands(samples.tb, bands = c("ndvi", "evi", "nir"))
+samples.tb <- sits_sample(samples_Cerrado_25042018.tb, frac = 0.3) %>%
+    sits_select_bands(ndvi, evi, nir)
 
 # train the deep learning model
 dl_model <-  sits_train(samples.tb,

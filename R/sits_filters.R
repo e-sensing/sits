@@ -32,7 +32,7 @@
 #' # This is an area full of clouds
 #' data(prodes_226_064)
 #' # Select the NDVI band of the first point
-#' point_ndvi.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
+#' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the cloud filter
 #' point_cld.tb <- sits_cloud_filter(point_ndvi.tb)
 #' # Merge the filtered with the raw data
@@ -50,7 +50,7 @@ sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
 
         # prepare result sits tibble
         result.tb <- data.tb
-        env.tb <- sits_envelope(sits_select_bands(data.tb, bands = "ndvi"), operations = "UU")
+        env.tb <- sits_select_bands(data.tb, ndvi) %>% sits_envelope(operations = "UU")
 
         # select the chosen bands for the time series
         result.tb$time_series <- purrr::pmap(list(data.tb$time_series, env.tb$time_series, result.tb$time_series),
@@ -96,7 +96,7 @@ sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
 #' # This is an area full of clouds
 #' data(prodes_226_064)
 #' # Select the NDVI band of the first point
-#' point_ndvi.tb <- sits_select (prodes_226_064[1,], bands = c("ndvi"))
+#' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the envelope filter
 #' point_env.tb <- sits_envelope(point_ndvi.tb)
 #' # Merge the filtered with the raw data
@@ -273,7 +273,7 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' # This is an area full of clouds
 #' data(prodes_226_064)
 #' # Select the NDVI band of the first point
-#' point_ndvi.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
+#' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the cloud filter
 #' point_cld.tb <- sits_ndvi_arima_filter(point_ndvi.tb)
 #' # Merge the filtered with the raw data

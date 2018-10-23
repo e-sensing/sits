@@ -25,7 +25,7 @@ sits_labels(samples_MT_9classes)
 samples.tb <- sits_select(samples_MT_9classes, !(label %in% c("Fallow_Cotton", "Soy_Sunflower")))
 
 # select NDVI, EVI, NIR and MIR
-samples.tb <- sits_select(samples.tb, bands = c("ndvi", "evi", "nir", "mir"))
+samples.tb <- sits_select_bands(samples.tb, ndvi, evi, nir, mir)
 
 # create a list to store the results
 results <- list()

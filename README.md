@@ -63,7 +63,7 @@ To display the time series, we provide `sits_plot()` function to display the tim
 
 ``` r
 # select the "ndvi" band
-samples_ndvi.tb <- sits_select(samples_MT_9classes, bands = c("ndvi"))
+samples_ndvi.tb <- sits_select_bands(samples_MT_9classes, ndvi)
 # select only the samples with the cerrado label
 samples_cerrado.tb <- dplyr::filter(samples_ndvi.tb, 
                   label == "Cerrado")
@@ -146,8 +146,7 @@ Satellite image time series are contaminated by atmospheric influence and direct
 
 ``` r
 # Take the NDVI band of the first sample data set
-point.tb <- sits_select(prodes_226_064[1,], 
-                bands = c("ndvi"))
+point.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # apply Whitaker filter
 point_whit.tb <- sits_whittaker(point.tb)
 # plot the series

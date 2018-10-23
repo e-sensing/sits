@@ -37,11 +37,11 @@
 #' @examples
 #' \donttest{
 #' # Get a set of samples for the Mato Grosso state in Brazil
-#' samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
+#' samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
 #' # obtain a set of patterns for these samples
 #' patterns.tb <- sits_patterns(samples.tb)
 #' # Get a point to classify
-#' point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi", "nir", "mir"))
+#' point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
 #' # find the matches between the patterns and the time series using the TWDTW algorithm
 #' matches <- sits_TWDTW_classify(point.tb, patterns.tb, bands = c("ndvi", "evi", "nir", "mir"),
 #'                                alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
@@ -75,7 +75,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 
     # select the bands for patterns time series and convert to TWDTW format
     twdtw_patterns <- patterns.tb %>%
-        sits_select_bands (bands = bands) %>%
+        sits_select_bands_(bands = bands) %>%
         .sits_toTWDTW()
 
     # Define the logistic function
@@ -85,7 +85,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
         row.tb <- data.tb[r, ]
         # select the bands for the samples time series and convert to TWDTW format
         twdtw_series <- row.tb %>%
-            sits_select_bands (bands = bands) %>%
+            sits_select_bands_(bands = bands) %>%
             .sits_toTWDTW()
 
         #classify the data using TWDTW
