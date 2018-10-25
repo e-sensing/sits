@@ -33,7 +33,7 @@ test_that("QDA",{
 })
 
 test_that("DL",{
-    dl_model <- sits_train(samples_MT_ndvi, sits_deeplearning(epochs = 20))
+    invisible(capture.output(dl_model <- sits_train(samples_MT_ndvi, sits_deeplearning(epochs = 20))))
     class.tb <- sits_classify(point_ndvi, dl_model)
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
