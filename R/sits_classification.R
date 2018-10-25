@@ -75,7 +75,7 @@ sits_classify <- function(data.tb    = NULL,
 #' @name .sits_classify_distances
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Returns a sits table with the results of the ML classifier.
+#' @description Returns a sits tibble with the results of the ML classifier.
 #'
 #' @param  distances_DT    data.table with distances.
 #' @param  class_info.tb   classification information.

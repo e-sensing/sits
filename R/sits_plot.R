@@ -24,7 +24,7 @@
 #' @param  data          Data to be plotted (can be a sits tibble, clusters, or TWDTW matches).
 #' @param  band          The band used for visualisation (optional for sits_plot_classification).
 #' @param  colors        Color pallete to be used (based on Color Brewer - default is "Dark2").
-#' @return Input sits table (useful for chaining functions).
+#' @return Input sits tibble (useful for chaining functions).
 #'
 #' @examples
 #' \donttest{
@@ -71,7 +71,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
         else
             .sits_plot_allyears(data, colors)
     }
-    # return the original sits table - useful for chaining
+    # return the original sits tibble - useful for chaining
     return(invisible(data))
 }
 
@@ -222,7 +222,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #'
 #' @param    data.tb    A sits tibble with the list of time series to be plotted.
 #' @param    colors     The color pallete to be used (default is "Set1").
-#' @return The input sits table (useful for chaining functions).
+#' @return The input sits tibble (useful for chaining functions).
 .sits_plot_together <- function(data.tb, colors) {
     # create a data frame with the median, and 25% and 75% quantiles
     create_IQR <- function(DT, band) {
@@ -300,7 +300,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' @description Plots a set of time series using ggplot. This function is used
 #' for showing the same lat/long location in a series of time steps.
 #'
-#' @param row         A row of a sits table with the time series to be plotted.
+#' @param row         A row of a sits tibble with the time series to be plotted.
 #' @param colors      A string with the set of Brewer colors to be used for plotting.
 .sits_ggplot_series <- function(row, colors = "Dark2") {
     # create the plot title

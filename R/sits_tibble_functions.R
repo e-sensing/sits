@@ -2,15 +2,15 @@
 #' @name sits_align
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description converts the time indexes of a set of sits tables to a single reference year.
+#' @description Converts the time indexes of a set of sits tibble to a single reference year.
 #' This function is useful to join many time series from different years to a single year,
 #' which is required by methods that combine many time series, such as clustering methods.
 #' The reference year is taken from the date of the start of the time series
 #' available in the coverage.
 #'
-#' @param  data.tb       Input sits table (useful for chaining functions).
+#' @param  data.tb       Input sits tibble (useful for chaining functions).
 #' @param  ref_dates     Dates to align the time series.
-#' @return A tibble with the converted sits table (useful for chaining functions).
+#' @return A tibble with the converted sits tibble (useful for chaining functions).
 #' @export
 sits_align <- function(data.tb, ref_dates) {
     # function to shift a time series in time
@@ -18,7 +18,7 @@ sits_align <- function(data.tb, ref_dates) {
 
     # get the reference date
     start_date <- lubridate::as_date(ref_dates[1])
-    # create an output table
+    # create an output tibble
     data1.tb <- sits_tibble()
 
     purrr::pmap(list(data.tb$longitude, data.tb$latitude,
@@ -40,7 +40,7 @@ sits_align <- function(data.tb, ref_dates) {
                         # change the dates to the reference dates
                         ts1 <- dplyr::mutate(ts, Index = ref_dates)
 
-                        # save the resulting row in the output table
+                        # save the resulting row in the output tibble
                         row <- tibble::tibble(longitude   = long,
                                               latitude    = lat,
                                               start_date  = lubridate::as_date(ref_dates[1]),
@@ -68,10 +68,10 @@ sits_align <- function(data.tb, ref_dates) {
 #'
 #' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
 #'
-#' @param data          valid sits table or matrix.
-#' @param fun           function with one parameter as input and a vector or list of vectors as output.
-#' @param fun_index     function with one parameter as input and a Date vector as output.
-#' @param bands_suffix  string informing the suffix of the resulting bands.
+#' @param data          Valid sits tibble or matrix.
+#' @param fun           Function with one parameter as input and a vector or list of vectors as output.
+#' @param fun_index     Function with one parameter as input and a Date vector as output.
+#' @param bands_suffix  String informing the suffix of the resulting bands.
 #' @return A sits tibble with same samples and the new bands.
 #' @examples
 #' # Get a time series
@@ -129,10 +129,10 @@ sits_apply <- function(data, fun, fun_index = function(index){ return(index) }, 
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description  finds the names of the bands of time series in a sits table
-#'               or sets the names of the bands if a set of values is given
+#' @description  Finds the names of the bands of time series in a sits tibble
+#'               or sets the names of the bands if a set of values is given.
 #'
-#' @param data.tb      valid sits table
+#' @param data.tb      Valid sits tibble.
 #' @return A string vector with the names of the bands.
 #'
 #' @examples
@@ -156,7 +156,7 @@ sits_bands <- function(data.tb) {
 #' a set of time series with the same number of samples, which is
 #' required for building a set of samples for classification.
 #'
-#' @param  data.tb    A sits tibble
+#' @param  data.tb    A sits tibble.
 #' @param  timeline   Timeline associated with the coverage.
 #' @param  start_date Starting date within an interval.
 #' @param  end_date   Ending date within an interval.
@@ -188,11 +188,11 @@ sits_break <- function(data.tb, timeline, start_date, end_date, interval = "12 m
     return(newdata.tb)
 }
 
-#' @title Return the dates of a sits table
+#' @title Return the dates of a sits tibble
 #' @name sits_dates
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Returns a vector containing the dates of a sits table.
+#' @description Returns a vector containing the dates of a sits tibble.
 #'
 #' @param  data.tb  A tibble in sits format with time series for different bands.
 #' @return A tibble with values of time indexes.
@@ -209,15 +209,15 @@ sits_dates <- function(data.tb) {
 #' @name sits_merge
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function merges the time series of two STIS tables.
+#' @description This function merges the time series of two STIS tibbles.
 #' To merge two series, we consider that they contain different
 #' attributes but refer to the same coverage, and spatio-temporal location.
 #' This function is useful to merge different bands of the same spatio-temporal locations.
 #' For example, one may want to put the raw and smoothed bands for the same set of locations
-#' in the same table.
+#' in the same tibble.
 #'
-#' @param data1.tb      The first sits table to be merged.
-#' @param data2.tb      The second sits table to be merged.
+#' @param data1.tb      The first sits tibble to be merged.
+#' @param data2.tb      The second sits tibble to be merged.
 #' @return A merged sits tibble with a nested set of time series.
 #' @examples
 #' \donttest{
@@ -232,7 +232,7 @@ sits_dates <- function(data.tb) {
 sits_merge <-  function(data1.tb, data2.tb) {
     # are the names of the bands different?
     ensurer::ensure_that(data1.tb, !(any(sits_bands(.) %in% sits_bands(data2.tb)) | any(sits_bands(data2.tb) %in% sits_bands(.))),
-                         err_desc = "sits_merge: cannot merge two sits tables with bands with the same names")
+                         err_desc = "sits_merge: cannot merge two sits tibbles with bands with the same names")
 
     # if some parameter is empty returns the another one
     if (NROW(data1.tb) == 0)
@@ -242,7 +242,7 @@ sits_merge <-  function(data1.tb, data2.tb) {
 
     # verify if data1.tb and data2.tb has the same number of rows
     ensurer::ensure_that(data1.tb, NROW(.) == NROW(data2.tb),
-                         err_desc = "sits_merge: cannot merge two sits tables with different numbers of rows")
+                         err_desc = "sits_merge: cannot merge two sits tibbles with different numbers of rows")
 
     # prepare result
     result.tb <- data1.tb
@@ -258,7 +258,7 @@ sits_merge <-  function(data1.tb, data2.tb) {
 #' @title Add new sits bands.
 #' @name sits_mutate
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Adds new bands and preserves existing in the time series of a sits tibble using \code{dplyr::mutate} function.
+#' @description Adds new bands and preserves existing in the time series of a sits tibble using \code{dplyr::mutate} function.
 #' @param data.tb       Valid sits tibble.
 #' @param ...           Expressions written as `name = value`. See \code{dplyr::mutate()} help for more details.
 #' @examples
@@ -339,7 +339,7 @@ sits_prune <- function(data.tb) {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Set the names of the bands of time series in a sits table.
+#' @description Set the names of the bands of time series in a sits tibble.
 #'
 #' @param data.tb      Valid sits tibble.
 #' @param names        String vector with the names of the new bands.
@@ -370,23 +370,23 @@ sits_rename <- function(data.tb, names){
 #' @name sits_sample
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Takes a sits table with different labels and
-#'              returns a new table. For a given field as a group criterion, this new table contains a given number or percentage
+#' @description Takes a sits tibble with different labels and
+#'              returns a new tibble. For a given field as a group criterion, this new tibble contains a given number or percentage
 #'              of the total number of samples per group. Parameter n indicantes the number of random samples with reposition.
 #'              Parameter frac indicates a fraction of random samples without reposition. If frac > 1, no sampling is done.
 #'
-#' @param  data.tb    Input sits table.
+#' @param  data.tb    Input sits tibble.
 #' @param  n          Number of samples to pick from each group of data.
 #' @param  frac       Percentage of samples to pick from each group of data.
 #' @return A sits tibble with a fixed quantity of samples of informed labels and all other.
 #' @examples
 #' # Retrieve a set of time series with 2 classes
 #' data(cerrado_2classes)
-#' # Print the labels of the resulting table
+#' # Print the labels of the resulting tibble
 #' sits_labels(cerrado_2classes)
 #' # Samples the data set
 #' data.tb <- sits_sample(cerrado_2classes, n = 10)
-#' # Print the labels of the resulting table
+#' # Print the labels of the resulting tibble
 #' sits_labels(data.tb)
 #' @export
 sits_sample <- function(data.tb, n = NULL, frac = NULL){
@@ -421,7 +421,7 @@ sits_sample <- function(data.tb, n = NULL, frac = NULL){
     return(result.tb)
 }
 
-#' @title General selection criteria for subsetting a sits table
+#' @title General selection criteria for subsetting a sits tibble
 #' @name sits_select
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -440,7 +440,7 @@ sits_sample <- function(data.tb, n = NULL, frac = NULL){
 #' data(cerrado_2classes)
 #' # Select only the time series with the "Cerrado" label
 #' data.tb <- sits_select(cerrado_2classes, label == "Cerrado")
-#' # Print the labels of the resulting table
+#' # Print the labels of the resulting tibble
 #' sits_labels(data.tb)
 #' @export
 sits_select <- function(data.tb, ...) {
@@ -471,7 +471,7 @@ sits_select <- function(data.tb, ...) {
 #' @name sits_select_bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Returns a sits table with the selected bands.
+#' @description Returns a sits tibble with the selected bands.
 #'
 #' @param data.tb      A sits tibble metadata and data on time series.
 #' @param ...          Names of the selcted bands.
@@ -483,7 +483,7 @@ sits_select <- function(data.tb, ...) {
 #' sits_bands(cerrado_2classes)
 #' # Select only the "ndvi" band
 #' data.tb <- sits_select_bands(cerrado_2classes, ndvi)
-#' # Print the labels of the resulting table
+#' # Print the labels of the resulting tibble
 #' sits_bands(data.tb)
 #' @export
 sits_select_bands <- function(data.tb, ...) {
@@ -493,7 +493,7 @@ sits_select_bands <- function(data.tb, ...) {
     ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
                          err_desc = "sits_select: some band(s) not found in input data")
 
-    # prepare result sits table
+    # prepare result sits tibble
     result.tb <- data.tb
 
     # select the chosen bands for the time series
@@ -508,7 +508,7 @@ sits_select_bands <- function(data.tb, ...) {
 #' @name sits_select_bands_
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Returns a sits table with the selected bands.
+#' @description Returns a sits tibble with the selected bands.
 #'
 #' @param data.tb      A sits tibble metadata and data on time series.
 #' @param bands        The selcted bands.
@@ -520,7 +520,7 @@ sits_select_bands <- function(data.tb, ...) {
 #' sits_bands(cerrado_2classes)
 #' # Select only the "ndvi" band
 #' data.tb <- sits_select_bands_(cerrado_2classes, "ndvi")
-#' # Print the labels of the resulting table
+#' # Print the labels of the resulting tibble
 #' sits_bands(data.tb)
 #' @export
 sits_select_bands_ <- function(data.tb, bands) {
@@ -528,7 +528,7 @@ sits_select_bands_ <- function(data.tb, bands) {
     ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
                          err_desc = "sits_select: some band(s) not found in input data")
 
-    # prepare result sits table
+    # prepare result sits tibble
     result.tb <- data.tb
 
     # select the chosen bands for the time series
@@ -571,12 +571,12 @@ sits_transmute <- function(data.tb, ...){
     return(data.tb)
 }
 
-#' @title Return the values of a given sits table as a list of matrices according to a specified format.
+#' @title Return the values of a given sits tibble as a list of matrices according to a specified format.
 #' @name sits_values
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description this function returns only the values of a sits table (according a specified format).
+#' @description This function returns only the values of a sits tibble (according a specified format).
 #' This function is useful to use packages such as ggplot2, dtwclust, or kohonen that
 #' require values that are rowwise or colwise organised.
 #'

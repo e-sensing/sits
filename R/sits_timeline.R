@@ -259,7 +259,7 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 #'
 #' @description Given a list of time indexes that indicate the start and end of the values to
 #' be extracted to classify each band, obtain a list of indexes that will be used to
-#' extract values from a combined distance table (with has all the bands put together)
+#' extract values from a combined distance tibble (with has all the bands put together).
 #'
 #' @param  class_info.tb      Tibble with classification information.
 #' @param  ntimes             Number of time instances.
@@ -306,7 +306,7 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 #'
 #' @description Given a list of time indexes that indicate the start and end of the values to
 #' be extracted to classify each band, obtain a list of indexes that will be used to
-#' extract values from a combined distance table (with has all the bands put together)
+#' extract values from a combined distance tibble (with has all the bands put together)
 #'
 #' @param  coverage           Coverage with input data set.
 #' @param  samples            Tibble with samples used for classification.

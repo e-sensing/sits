@@ -48,7 +48,7 @@
 #' @author Alexandre Ywata, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Split a sits table into k groups, based on the label.
+#' @description Split a sits tibble into k groups, based on the label.
 #'
 #' @param data.tb   A sits tibble to be partitioned.
 #' @param folds     Number of folds.
@@ -66,7 +66,7 @@
 #' @name .sits_extract
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Returns a vector containing the dates of a sits table.
+#' @description Returns a vector containing the dates of a sits tibble.
 #'
 #' @param  row.tb     A sits tibble.
 #' @param  start_date Starting date of the time series segment.
@@ -102,10 +102,10 @@
 #' @name .sits_group_by
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Returns a sits table by compound the sits tables apply a function to a grouped sits table.
+#' @description Returns a sits tibble by compound the sits tibble apply a function to a grouped sits tibble.
 #'
 #' @param data.tb      A sits tibble.
-#' @param ...          One or more sits table field separated by commas that are used to group the data.
+#' @param ...          One or more sits tibble field separated by commas that are used to group the data.
 #'                     See `dplyr::group_by` help for more details.
 #' @return A sits tibble with the selected bands.
 .sits_group_by <- function(data.tb, ...){
@@ -113,7 +113,7 @@
     result.tb <- data.tb %>%
         dplyr::group_by(...)
 
-    # comply result with sits table format and return
+    # comply result with sits tibble format and return
     result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
     return(result.tb)
 }
@@ -179,7 +179,7 @@
     # retrieve the global timeline
     timeline_global <- class_info.tb$timeline[[1]]
 
-    # size of prediction table
+    # size of prediction tibble
     nrows <- length(ref_dates.lst)
 
     # get the labels of the data
