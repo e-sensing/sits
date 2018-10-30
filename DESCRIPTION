@@ -47,13 +47,13 @@ Imports:
     graphics,
     grDevices,
     keras,
-    kohonen,
     imputeTS,
     log4r,
     lubridate,
     MASS,
     methods,
     mgcv,
+    NbClust,
     nnet,
     openxlsx,
     parallel,
@@ -77,6 +77,8 @@ Imports:
     zoo
 LinkingTo:
     Rcpp
+Remotes:
+    lorenalves/kohonen
 RoxygenNote: 6.1.0
 Collate: 
     'RcppExports.R'
@@ -110,6 +112,7 @@ Collate:
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
+    'sits_plot_cluster.R'
     'sits_raster_classification.R'
     'sits_raster_blocks.R'
     'sits_raster_read_write.R'
