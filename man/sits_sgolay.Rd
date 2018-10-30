@@ -4,25 +4,24 @@
 \alias{sits_sgolay}
 \title{Smooth the time series using Savitsky-Golay filter}
 \usage{
-sits_sgolay(data.tb = NULL, order = 3, scale = 1,
-  bands_suffix = "sg")
+sits_sgolay(data.tb = NULL, order = 3, scale = 1, bands_suffix = "sg")
 }
 \arguments{
-\item{data.tb}{tibble with time series data and metadata}
+\item{data.tb}{A tibble with time series data and metadata.}
 
-\item{order}{(integer) filter order}
+\item{order}{Filter order (integer).}
 
-\item{scale}{(integer) time scaling}
+\item{scale}{Time scaling (integer).}
 
-\item{bands_suffix}{suffix to be appended to the smoothed filters}
+\item{bands_suffix}{Suffix to be appended to the smoothed filters.}
 }
 \value{
-output.tb   tibble with smoothed sits time series
+A tibble with smoothed sits time series.
 }
 \description{
 The algorithm searches for an optimal polynomial describing the warping.
-The degree of smoothing depends on the filter order (usually 3.0)
-Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
+The degree of smoothing depends on the filter order (usually 3.0).
+Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing.
 }
 \examples{
 \donttest{
@@ -33,5 +32,4 @@ point_sg.tb <- sits_sgolay (point_ndvi, order = 3, scale = 2)
 # Plot the two points to see the smoothing effect
 sits_plot(sits_merge(point_ndvi, point_sg.tb))
 }
-
 }

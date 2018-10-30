@@ -7,17 +7,17 @@
 sits_normalize_data(data.tb, stats.tb, multicores = 1)
 }
 \arguments{
-\item{data.tb}{a tibble in SITS format}
+\item{data.tb}{A sits tibble.}
 
-\item{stats.tb}{statistics for normalization}
+\item{stats.tb}{Statistics for normalization.}
 
-\item{multicores}{number of cores to process}
+\item{multicores}{Number of cores to process.}
 }
 \value{
-data.tb    a normalized sits tibble
+A normalized sits tibble.
 }
 \description{
-this function normalizes the time series using the mean and
+This function normalizes the time series using the mean and
 standard deviation of all the time series.
 }
 \author{

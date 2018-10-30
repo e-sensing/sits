@@ -2,23 +2,23 @@
 % Please edit documentation in R/sits_keras.R
 \name{sits_load_keras}
 \alias{sits_load_keras}
-\title{Load a Keras model for processing in SITS}
+\title{Load a Keras model for processing in sits}
 \usage{
 sits_load_keras(hdffile, rdsfile)
 }
 \arguments{
-\item{hdffile}{hdf5 file where the keras model is to be saved}
+\item{hdffile}{An hdf5 file where the keras model is to be saved.}
 
-\item{rdsfile}{rds file where the R environment is to be saved}
+\item{rdsfile}{A rds file where the R environment is to be saved.}
 }
 \value{
-model           an R Keras model trained by \code{\link[sits]{sits_deeplearning}}
+An R Keras model trained by \code{\link[sits]{sits_deeplearning}}.
 }
 \description{
 Takes a save Keras model trained by \code{\link[sits]{sits_deeplearning}}, which has
 been saved in two files and loads it in memory for further processing.
-One file is the keras model itself (saved as hdf5) and the other is the R enviroment required for SITS
-to work with the model
+One file is the keras model itself (saved as hdf5) and the other is the R enviroment required for sits
+to work with the model.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

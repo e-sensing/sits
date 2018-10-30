@@ -2,20 +2,20 @@
 % Please edit documentation in R/sits_tibble_functions.R
 \name{sits_select_bands}
 \alias{sits_select_bands}
-\title{Filter bands on a SITS table}
+\title{Filter bands on a sits table}
 \usage{
 sits_select_bands(data.tb, bands)
 }
 \arguments{
-\item{data.tb}{sits tibble metadata and data on time series}
+\item{data.tb}{A sits tibble metadata and data on time series.}
 
-\item{bands}{vector of bands}
+\item{bands}{Vector of bands.}
 }
 \value{
-result.tb   tibble in SITS format with the selected bands
+A tibble in sits format with the selected bands.
 }
 \description{
-returns a sits table with the selected bands
+Returns a sits table with the selected bands.
 }
 \examples{
 # Retrieve a set of time series with 2 classes
@@ -23,7 +23,7 @@ data (cerrado_2classes)
 # Print the original bands
 sits_bands (cerrado_2classes)
 # Select only the "ndvi" band
-data.tb <- sits_select_bands (cerrado_2classes, bands = c("ndvi"))
+data.tb <- sits_select_bands (cerrado_2classes, bands = "ndvi")
 # Print the labels of the resulting table
 sits_bands (data.tb)
 }

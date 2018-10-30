@@ -4,29 +4,29 @@
 \alias{sits_coverage}
 \title{Provides information about one coverage used to retrieve data}
 \usage{
-sits_coverage(service = "RASTER", name, timeline = NULL,
-  bands = NULL, missing_values = NULL, scale_factors = NULL,
-  minimum_values = NULL, files = NA)
+sits_coverage(service = "RASTER", name, timeline = NULL, bands = NULL,
+  missing_values = NULL, scale_factors = NULL, minimum_values = NULL,
+  files = NA)
 }
 \arguments{
-\item{service}{name of the time series service}
+\item{service}{Name of the time series service.}
 
-\item{name}{name of the coverage}
+\item{name}{Name of the coverage.}
 
-\item{timeline}{vector - timeline of the coverage}
+\item{timeline}{Vector with the timeline of the coverage.}
 
-\item{bands}{vector - bands}
+\item{bands}{Vector of bands.}
 
-\item{missing_values}{vector - missing values for each band}
+\item{missing_values}{Vector of missing values for each band.}
 
-\item{scale_factors}{vector - scale factor for each band}
+\item{scale_factors}{Vector with the scale factor for each band.}
 
-\item{minimum_values}{vector - minimum values for each band}
+\item{minimum_values}{Vector of minimum values for each band.}
 
-\item{files}{vector - file names for each band (only for raster data)}
+\item{files}{Vector of file names for each band (only for raster data).}
 }
 \description{
-uses the configuration file to print information and save metadata about a
+Uses the configuration file to print information and save metadata about a
 chosen coverage:
  service        - name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER")
  name           - name of the coverage (must be unique)
@@ -51,10 +51,13 @@ coverage.tb <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
 
 # Example 2. Create a raster coverage with metadata
 # read a raster file and put it into a vector
-files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 
 # create a raster coverage file based on the information about the files
 raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
              timeline = timeline_modis_392, bands = c("ndvi"), files = files)
 }
+}
+\seealso{
+To see the available values for the parameters above use \code{\link{sits_config}} or \code{\link{sits_show_config}}.
 }

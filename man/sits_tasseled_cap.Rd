@@ -7,15 +7,15 @@
 sits_tasseled_cap(data.tb, satellite = "MODIS")
 }
 \arguments{
-\item{data.tb}{valid sits tibble}
+\item{data.tb}{Valid sits tibble.}
 
-\item{satellite}{satellite name}
+\item{satellite}{Satellite name.}
 }
 \value{
-data.tb      sits tibble with same samples and the new bands
+A sits tibble with same samples and the new bands.
 }
 \description{
-Adds new tasseled cap bands
+Adds new tasseled cap bands.
 }
 \examples{
 \donttest{

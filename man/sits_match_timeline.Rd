@@ -8,16 +8,16 @@ sits_match_timeline(timeline, ref_start_date, ref_end_date,
   interval = "12 month")
 }
 \arguments{
-\item{timeline}{Timeline of input observations (vector)}
+\item{timeline}{Timeline of input observations (vector).}
 
-\item{ref_start_date}{The day of the year to be taken as reference for starting the classification}
+\item{ref_start_date}{The day of the year to be taken as reference for starting the classification.}
 
-\item{ref_end_date}{The day of the year to be taken as reference for end the classification}
+\item{ref_end_date}{The day of the year to be taken as reference for end the classification.}
 
-\item{interval}{Period between two classification}
+\item{interval}{Period between two classification.}
 }
 \value{
-subset_dates.lst     A list of breaks that will be applied to the input data set
+A list of breaks that will be applied to the input data set.
 }
 \description{
 For correct classification, the time series of the input data set

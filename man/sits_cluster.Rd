@@ -7,16 +7,16 @@
 sits_cluster(data.tb, dendro.obj, k = NULL, height = NULL)
 }
 \arguments{
-\item{data.tb}{tibble with input data of dtwclust.}
+\item{data.tb}{A tibble with input data of dtwclust.}
 
-\item{dendro.obj}{dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.}
+\item{dendro.obj}{Dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.}
 
-\item{k}{(integer): desired number of clusters}
+\item{k}{Desired number of clusters (integer).}
 
-\item{height}{(double) desired height to cut the dendrogram. At least one of k or height must be specified, k overrides height if both are given.}
+\item{height}{Desired height to cut the dendrogram (double). At least one of k or height must be specified, k overrides height if both are given.}
 }
 \value{
-result.tb       tibble with the clusters or clusters' members
+A tibble with the clusters or clusters' members.
 }
 \description{
 reads a list of clusters provided by the dtwclust
@@ -30,10 +30,9 @@ library(dtwclust)
 data(cerrado_2classes)
 # calculate the dendrogram
 dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
-# include the cluster info in the SITS tibble
+# include the cluster info in the sits tibble
 clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
 }
-
 }
 \references{
 "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)

@@ -8,18 +8,18 @@ sits_dendrogram(data.tb, bands = NULL, dist_method = "dtw_basic",
   linkage = "ward.D2", ...)
 }
 \arguments{
-\item{data.tb}{tibble with time series data and metadata to be used to generate the dendrogram.}
+\item{data.tb}{Tibble with time series data and metadata to be used to generate the dendrogram.}
 
-\item{bands}{vector of bands to be clustered.}
+\item{bands}{Vector of bands to be clustered.}
 
-\item{dist_method}{(string) one of the supported distance from proxy's dist, e.g. \code{TWDTW}.}
+\item{dist_method}{String with one of the supported distance from proxy's dist, e.g. \code{TWDTW}.}
 
-\item{linkage}{(string) agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'}
+\item{linkage}{String with agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'.}
 
-\item{...}{any additional parameters to be passed to dtwclust::tsclust() function}
+\item{...}{Any additional parameters to be passed to dtwclust::tsclust() function.}
 }
 \value{
-dendro.obj     a full dendrogram tree for data analysis
+A full dendrogram tree for data analysis.
 }
 \description{
 Cluster time series in hierarchical mode. Hierarchical clustering, as its name suggests,

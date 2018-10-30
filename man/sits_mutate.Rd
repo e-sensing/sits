@@ -2,27 +2,27 @@
 % Please edit documentation in R/sits_tibble_functions.R
 \name{sits_mutate}
 \alias{sits_mutate}
-\title{Add new SITS bands.}
+\title{Add new sits bands.}
 \usage{
 sits_mutate(data.tb, ...)
 }
 \arguments{
-\item{data.tb}{valid sits tibble}
+\item{data.tb}{Valid sits tibble.}
 
-\item{...}{`name=value` pairs expressions. See `dplyr::mutate` help for more details.}
+\item{...}{Expressions written as `name = value`. See \code{dplyr::mutate()} help for more details.}
 }
 \value{
-data.tb      a sits tibble with same samples and the new bands
+A sits tibble with same samples and the selected bands.
 }
 \description{
-Adds new bands and preserves existing in the time series of a sits tibble using dplyr::mutate function
+Adds new bands and preserves existing in the time series of a sits tibble using \code{dplyr::mutate} function.
 }
 \examples{
 \donttest{
 # Retrieve data for time series with label samples in Mato Grosso in Brazil
 data (samples_MT_9classes)
 # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-savi.tb <- sits_mutate (samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+savi.tb <- sits_mutate(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 }
 }
 \author{

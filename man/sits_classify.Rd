@@ -8,16 +8,16 @@ sits_classify(data.tb = NULL, ml_model = NULL, interval = "12 month",
   multicores = 1)
 }
 \arguments{
-\item{data.tb}{tibble with time series metadata and data}
+\item{data.tb}{Tibble with time series metadata and data.}
 
-\item{ml_model}{pre-built machine learning model (see \code{\link[sits]{sits_train}})}
+\item{ml_model}{Pre-built machine learning model (see \code{\link[sits]{sits_train}}).}
 
-\item{interval}{interval used for classification (in months)}
+\item{interval}{Interval used for classification (in months).}
 
-\item{multicores}{number of threads to process the time series.}
+\item{multicores}{Number of threads to process the time series.}
 }
 \value{
-data.tb           tibble with the predicted labels for each input segment
+A tibble with the predicted labels for each input segment.
 }
 \description{
 This function classifies a set of time series, given
@@ -43,15 +43,14 @@ data(samples_MT_ndvi)
 # select the bands "ndvi", "evi", "nir", and "mir"
 samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
 # build a classification model using SVM
-model_svm <- sits_train(samples.tb, ml_method = sits_svm ())
+model_svm <- sits_train(samples.tb, ml_method = sits_svm())
 # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
 point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir","mir"))
 # classify the point
-class.tb <-  sits_classify(point.tb, ml_model = model_svm)
+class.tb <- sits_classify(point.tb, ml_model = model_svm)
 # plot the classification
 sits_plot(class.tb)
 }
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

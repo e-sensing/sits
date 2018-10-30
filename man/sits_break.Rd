@@ -4,28 +4,27 @@
 \alias{sits_break}
 \title{Breaks a set of time series into equal intervals}
 \usage{
-sits_break(data.tb, timeline, start_date, end_date,
-  interval = "12 month")
+sits_break(data.tb, timeline, start_date, end_date, interval = "12 month")
 }
 \arguments{
-\item{data.tb}{sits tibble}
+\item{data.tb}{A sits tibble}
 
-\item{timeline}{timeline associated with the coverage}
+\item{timeline}{Timeline associated with the coverage.}
 
-\item{start_date}{starting date within an interval}
+\item{start_date}{Starting date within an interval.}
 
-\item{end_date}{ending date within an interval}
+\item{end_date}{Ending date within an interval.}
 
-\item{interval}{interval for breaking the series}
+\item{interval}{Interval for breaking the series.}
 }
 \value{
-data.tb    sits tibble broken into equal intervals
+A sits tibble broken into equal intervals.
 }
 \description{
 This function breaks a set of time series
 into equal time intervals. This function is useful to produce
 a set of time series with the same number of samples, which is
-required for building a set of samples for classification
+required for building a set of samples for classification.
 }
 \examples{
 points.tb <- sits_break(point_ndvi, timeline_modis_392, "2000-08-28", "2016-08-12")

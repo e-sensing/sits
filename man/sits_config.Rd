@@ -7,12 +7,12 @@
 sits_config()
 }
 \value{
-config_sits  A list with the configuration parameters used by SITS
+A list with the configuration parameters used by sits.
 }
 \description{
 Reads a user-specified configuration file, located in a "config.yml" file
 in the working directory. If this file is not found, reads a default package configuration file.
-By default, the SITS configuration file "config.yml" is located at the directory "extdata" of the
+By default, the sits configuration file "config.yml" is located at the directory "extdata" of the
 package. The configuration file is an YAML file that should provide at least the following parameters:
 
 default:

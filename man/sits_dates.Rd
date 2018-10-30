@@ -7,17 +7,17 @@
 sits_dates(data.tb)
 }
 \arguments{
-\item{data.tb}{tibble in SITS format with time series for different bands}
+\item{data.tb}{A tibble in sits format with time series for different bands.}
 }
 \value{
-table    tibble  with values of time indexes
+A tibble with values of time indexes.
 }
 \description{
-returns a vector containing the dates of a sits table
+Returns a vector containing the dates of a sits table.
 }
 \examples{
 # get a point and print its dates
-sits_dates (point_MT_6bands)
+sits_dates(point_MT_6bands)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

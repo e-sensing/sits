@@ -2,15 +2,15 @@
 % Please edit documentation in R/sits_config.R
 \name{sits_show_config}
 \alias{sits_show_config}
-\title{Shows the contents of the SITS configuration file}
+\title{Shows the contents of the sits configuration file}
 \usage{
 sits_show_config()
 }
 \value{
-config_sits  list with the configuration parameters used by SITS
+List with the configuration parameters used by sits.
 }
 \description{
-Displays the contents of SITS configuration file. For more details
+Displays the contents of sits configuration file. For more details
 on how to set the configuration file, please use \code{\link[sits]{sits_config}}.
 }
 \examples{

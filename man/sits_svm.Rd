@@ -2,45 +2,41 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_svm}
 \alias{sits_svm}
-\title{Train a SITS classification model using a support vector machine}
+\title{Train a sits classification model using a support vector machine}
 \usage{
-sits_svm(data.tb = NULL, formula = sits_formula_logref(),
-  scale = FALSE, cachesize = 1000, kernel = "radial", degree = 3,
-  coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1,
-  cross = 0, ...)
+sits_svm(data.tb = NULL, formula = sits_formula_logref(), scale = FALSE,
+  cachesize = 1000, kernel = "radial", degree = 3, coef0 = 0,
+  cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0, ...)
 }
 \arguments{
-\item{data.tb}{time series with the training samples}
+\item{data.tb}{Time series with the training samples.}
 
-\item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_svm)}
+\item{formula}{Symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_svm).}
 
-\item{scale}{logical vector indicating the variables to be scaled.}
+\item{scale}{Logical vector indicating the variables to be scaled.}
 
-\item{cachesize}{cache memory in MB (default = 1000)}
+\item{cachesize}{Cache memory in MB (default = 1000).}
 
-\item{kernel}{kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid)}
+\item{kernel}{Kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid).}
 
-\item{degree}{exponential of polynomial type kernel}
+\item{degree}{Exponential of polynomial type kernel.}
 
-\item{coef0}{parameter needed for kernels of type polynomial and sigmoid (default: 0)}
+\item{coef0}{Parameter needed for kernels of type polynomial and sigmoid (default: 0).}
 
-\item{cost}{cost of constraints violation}
+\item{cost}{Cost of constraints violation.}
 
-\item{tolerance}{tolerance of termination criterion (default: 0.001)}
+\item{tolerance}{Tolerance of termination criterion (default: 0.001).}
 
-\item{epsilon}{epsilon in the insensitive-loss function (default: 0.1)}
+\item{epsilon}{Epsilon in the insensitive-loss function (default: 0.1).}
 
-\item{cross}{number of cross validation folds applied on the training data to assess the quality of the model}
+\item{cross}{Number of cross validation folds applied on the training data to assess the quality of the model.}
 
-\item{...}{other parameters to be passed to e1071::svm function}
-}
-\value{
-result          fitted model function to be passed to sits_predict
+\item{...}{Other parameters to be passed to e1071::svm function.}
 }
 \description{
 This function receives a tibble with a set of attributes X for each observation Y
 These attributes are distance metrics between patterns and observations, obtained by a distance
-function in SITS (see \code{\link[sits]{sits_distances}}).
+function in sits (see \code{\link[sits]{sits_distances}}).
 The SVM algorithm is used for multiclass-classification.
 For this purpose, it uses the "one-against-one" approach, in which k(k-1)/2 binary
 classifiers are trained; the appropriate class is found by a voting scheme.

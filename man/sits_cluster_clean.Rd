@@ -7,17 +7,17 @@
 sits_cluster_clean(data.tb, min_perc = 0.05, method = "intracluster")
 }
 \arguments{
-\item{data.tb}{tibble with `cluster` column.}
+\item{data.tb}{Tibble with `cluster` column.}
 
-\item{min_perc}{minimum percentage of label inside a cluster for the label to remain in cluster.}
+\item{min_perc}{Minimum percentage of label inside a cluster for the label to remain in cluster.}
 
-\item{method}{string with "intracluster" or "intercluster" or both}
+\item{method}{String with "intracluster" or "intercluster" or both}
 }
 \value{
-result.tb        tibble with all selected samples
+A tibble with all selected samples.
 }
 \description{
-Removes SITS tibble samples of labels that are minority in each cluster.
+Removes sits tibble samples of labels that are minority in each cluster.
 The function removes samples according to a percentage threshold "min_perc".
 If the method "intracluster" is chosen, the "min_perc" parameter
 controls the relative percentage of labels inside each cluster. If the number of samples

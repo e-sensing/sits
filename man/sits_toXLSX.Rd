@@ -7,9 +7,9 @@
 sits_toXLSX(acc.lst, file = NULL)
 }
 \arguments{
-\item{acc.lst}{A list of confusion matrices}
+\item{acc.lst}{A list of confusion matrices.}
 
-\item{file}{The file where the XLSX data is to be saved}
+\item{file}{The file where the XLSX data is to be saved.}
 }
 \description{
 Saves confusion matrices as Excel spreadsheets. This function
@@ -31,9 +31,8 @@ conf.mx$name <- "confusion_matrix"
 # add the confusion matrix to the results
 results[[length(results) + 1]] <- conf.mx
 # save the results to an XLSX file
-sits_toXLSX(results, file = paste0(getwd(),"/confusion_matrix.xlsx"))
+sits_toXLSX(results, file = "confusion_matrix.xlsx")
 }
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

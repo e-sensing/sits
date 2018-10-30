@@ -4,37 +4,36 @@
 \alias{sits_interp}
 \title{Interpolation function of the time series of a sits_tibble}
 \usage{
-sits_interp(data.tb = NULL, fun = stats::approx, n = base::length,
-  ...)
+sits_interp(data.tb = NULL, fun = stats::approx, n = base::length, ...)
 }
 \arguments{
-\item{data.tb}{tibble with time series data and metadata}
+\item{data.tb}{A tibble with time series data and metadata.}
 
-\item{fun}{interpolation function}
+\item{fun}{Interpolation function.}
 
-\item{n}{number of time series elements to be created between start date and end date.
+\item{n}{Number of time series elements to be created between start date and end date.
 When a class function is passed to `n`, is is evaluated with each band time series as
-an argument, e.g. n(band) (default: `length` function)}
+an argument, e.g. n(band) (default: `length` function).}
 
-\item{...}{additional parameters to be used by the fun function}
+\item{...}{Additional parameters to be used by the fun function.}
 }
 \value{
-result.tb    tibble with same samples and the new bands
+A tibble with same samples and the new bands.
 }
 \description{
 Computes the linearly interpolated bands for a given resolution
-              using the R base function approx
+              using the R base function approx.
 }
 \examples{
 \donttest{
 # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # find out how many time instances are there
-n_times <- NROW (point_ndvi$time_series[[1]])
+n_times <- NROW(point_ndvi$time_series[[1]])
 # interpolate three times more points
-point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3*n_times)
+point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
 # plot the result
-sits_plot (point_int.tb)
+sits_plot(point_int.tb)
 }
 }
 \author{

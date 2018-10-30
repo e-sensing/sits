@@ -7,12 +7,12 @@
 sits_align(data.tb, ref_dates)
 }
 \arguments{
-\item{data.tb}{tibble - input SITS table (useful for chaining functions)}
+\item{data.tb}{Input sits table (useful for chaining functions).}
 
-\item{ref_dates}{the dates to align the time series}
+\item{ref_dates}{Dates to align the time series.}
 }
 \value{
-data1.tb      tibble - the converted SITS table (useful for chaining functions)
+A tibble with the converted sits table (useful for chaining functions).
 }
 \description{
 converts the time indexes of a set of sits tables to a single reference year.

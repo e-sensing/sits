@@ -7,10 +7,10 @@
 sits_infoWTSS()
 }
 \value{
-wtss.obj       an R object containing the information about the WTSS server
+An R object containing the information about the WTSS server.
 }
 \description{
-obtains information about the WTSS server
+Obtains information about the WTSS server
 and about the coverages.
 
 The Web Time Series Service is a lightweight web service the allow remote access to satellite

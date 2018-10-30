@@ -7,5 +7,5 @@
 sits_show_debug()
 }
 \description{
-Prints the debug log
+Prints the debug log.
 }

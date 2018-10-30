@@ -2,7 +2,7 @@ library(sits)
 library(ggplot2)
 library(tibble)
 library(zoo)
-
+library(Rcpp)
 
 data.tb <- data("samples_MT_9classes")
 data.tb <- samples_MT_9classes

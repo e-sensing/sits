@@ -5,26 +5,25 @@
 \title{Classify a set of spatio-temporal raster bricks using multicore machines}
 \usage{
 sits_classify_raster(file = NULL, coverage = NULL, ml_model = NULL,
-  interval = "12 month", filter = NULL, memsize = 4,
-  multicores = NULL)
+  interval = "12 month", filter = NULL, memsize = 4, multicores = NULL)
 }
 \arguments{
-\item{file}{vector of file names to store the output (one file per classified year)}
+\item{file}{Vector of file names to store the output (one file per classified year).}
 
-\item{coverage}{tibble with information about a coverage of space-time raster bricks}
+\item{coverage}{Tibble with information about a coverage of space-time raster bricks.}
 
-\item{ml_model}{an R model trained by \code{\link[sits]{sits_train}}}
+\item{ml_model}{An R model trained by \code{\link[sits]{sits_train}}.}
 
-\item{interval}{interval between two sucessive classifications, expressed in months}
+\item{interval}{Interval between two sucessive classifications, expressed in months.}
 
-\item{filter}{smoothing filter to be applied (if desired)}
+\item{filter}{Smoothing filter to be applied (if desired).}
 
-\item{memsize}{memory available for classification (in GB)}
+\item{memsize}{Memory available for classification (in GB).}
 
-\item{multicores}{number of cores to be used for classification}
+\item{multicores}{Number of cores to be used for classification.}
 }
 \value{
-raster_class.tb tibble with the metadata for the vector of classified RasterLayers
+A tibble with the metadata for the vector of classified RasterLayers.
 }
 \description{
 Takes a set of spatio-temporal raster bricks, whose metadata is
@@ -32,7 +31,7 @@ Takes a set of spatio-temporal raster bricks, whose metadata is
              a set of samples used for training a classification model,
              a prediction model (created by \code{\link[sits]{sits_train}}),
              and produces a classified set of RasterLayers. This function is similar to
-              \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
+              \code{\link[sits]{sits_classify}} which is applied to time series stored in a sits tibble.
               There are two parameters for optimizing processing of large data sets. These
               parameters are "memsize" and "multicores". The "multicores" parameter defines the
               number of cores used for processing. The "memsize" parameter  controls
@@ -62,7 +61,6 @@ raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb,
 # plot the resulting classification
 sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
 }
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
