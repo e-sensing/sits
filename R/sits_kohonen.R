@@ -451,7 +451,6 @@ sits_evaluate_samples<-function(data.tb,
 #' @param radius radius of neigbourhood of each neuron
 #'
 #' @return returns a SITS tibble with informations about the vinicity of each neuron
-#' @export
 
 .sits_neighbor_neurons <- function (class_vector,koh,radius=1)
 {
@@ -756,7 +755,6 @@ sits_metrics_by_cluster<-function(info_sample_cluster.tb)
 #' @description configure a pallete with 21 colors.
 #'
 #' @return rreturn a pallete of colors
-#' @export
 
 .sits_kohonen_pallete <- function()
 {
