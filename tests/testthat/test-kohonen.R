@@ -3,6 +3,9 @@ context("Clustering - Kohonen")
 test_that("Creating clustering using Self-organizing Maps",{
     #skip_on_cran()
     library(kohonen)
+    library(ggplot2)
+    library(tibble)
+    library(zoo)
 
     data.tb<-data("samples_MT_9classes")
     data.tb<-samples_MT_9classes
@@ -17,7 +20,7 @@ test_that("Creating clustering using Self-organizing Maps",{
             grid_xdim = 25,
             grid_ydim = 25,
             rlen = 100,
-            dist.fcts="euclidean"
+            dist.fcts = "euclidean"
         )
 
     expect_true(NROW(data.tb) == NROW(koh$info_samples))
