@@ -73,6 +73,7 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
 #'                          and will evaluate the loss and any model metrics on this data at the end of each epoch.
 #'                          The validation data is selected from the last samples in the x and y data provided,
 #'                          before shuffling.
+#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
 #' @param binary_classification A lenght-one logical indicating if this is a binary classification. If it is so,
 #'                          the number of unique labels in the training data must be two as well.
 #' @return Either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model.
@@ -101,13 +102,13 @@ sits_deeplearning <- function(data.tb          = NULL,
                               epochs           = 500,
                               batch_size       = 128,
                               validation_split = 0.2,
+                              verbose          = 1,
                               binary_classification = FALSE) {
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data.tb){
         # data normalization
         stats.tb <- .sits_normalization_param(data.tb)
         train_data_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb))
-
 
         # is the train data correct?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
@@ -187,14 +188,20 @@ sits_deeplearning <- function(data.tb          = NULL,
         model.keras %>% keras::compile(
             loss = model_loss,
             optimizer = optimizer,
-            metrics = c("accuracy")
+            metrics = "accuracy"
         )
+
+        prev.fit_verbose <- getOption("keras.fit_verbose")
+        options(keras.fit_verbose = verbose)
+
         # fit the model
         history <- model.keras %>% keras::fit(
             train.x, train.y,
             epochs = epochs, batch_size = batch_size,
             validation_data = list(test.x, test.y)
         )
+
+        options(keras.fit_verbose = prev.fit_verbose)
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
@@ -207,6 +214,7 @@ sits_deeplearning <- function(data.tb          = NULL,
 
             return(prediction_DT)
         }
+
         return(model_predict)
     }
 
@@ -572,7 +580,7 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function receives a tibble with a set of attributes X for each observation Y
+#' @description This function receives a tibble with a set of attributes X for each observation Y.
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
 #' function in sits (see \code{\link[sits]{sits_distances}}).
 #' The SVM algorithm is used for multiclass-classification.
@@ -585,8 +593,8 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' @param formula          Symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_svm).
 #' @param scale            Logical vector indicating the variables to be scaled.
 #' @param cachesize        Cache memory in MB (default = 1000).
-#' @param kernel           Kernel used in training and predicting (options = linear, polynomial, radial basis, sigmoid).
-#' @param degree           Exponential of polynomial type kernel.
+#' @param kernel           Kernel used in training and predicting. Available options are "linear", "polynomial", "radial", "sigmoid" (default: "radial").
+#' @param degree           Exponential of polynomial type kernel (default: 3).
 #' @param coef0            Parameter needed for kernels of type polynomial and sigmoid (default: 0).
 #' @param cost             Cost of constraints violation.
 #' @param tolerance        Tolerance of termination criterion (default: 0.001).

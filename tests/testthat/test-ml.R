@@ -33,11 +33,16 @@ test_that("QDA",{
 })
 
 test_that("DL",{
-    invisible(capture.output(dl_model <- sits_train(samples_MT_ndvi, sits_deeplearning(epochs = 20))))
+    options(keras.fit_verbose = 2)
+
+    invisible(capture.output(dl_model <- sits_train(samples_MT_ndvi, sits_deeplearning(epochs = 3, verbose = 0))))
     class.tb <- sits_classify(point_ndvi, dl_model)
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
                         sits_labels(samples_MT_ndvi)$label))
+
+    expect_equal(getOption("keras.fit_verbose"), 2)
+    options(keras.fit_verbose = NULL)
 })
 
 test_that("GBM",{
@@ -49,7 +54,7 @@ test_that("GBM",{
 })
 
 test_that("MLR",{
-    mlr_model <- sits_train(samples_MT_ndvi, sits_mlr(maxit = 30))
+    invisible(capture.output(mlr_model <- sits_train(samples_MT_ndvi, sits_mlr(maxit = 30))))
     class.tb <- sits_classify(point_ndvi, mlr_model)
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
@@ -61,7 +66,8 @@ test_that("Keras diagnostics",{
     dl_model <- sits_train(cerrado_2classes,
                            sits_deeplearning(units = c(512, 512),
                                              epochs = 20,
-                                             dropout_rates = c(0.45, 0.25)))
+                                             dropout_rates = c(0.45, 0.25),
+                                             verbose = 0))
 
-    expect_true(sits_keras_diagnostics(dl_model))
+    suppressMessages(expect_true(sits_keras_diagnostics(dl_model)))
 })

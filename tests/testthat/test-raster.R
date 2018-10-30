@@ -22,7 +22,7 @@ test_that("Working with raster coverages", {
 
     rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
 
-    raster_class.tb <- sits_classify_raster(file = paste0(tempdir(),"/raster-class"), raster.tb,
+    raster_class.tb <- sits_classify_raster(file = "raster-class", raster.tb,
                                             rfor_model, memsize = 4, multicores = 1)
 
     expect_true(all(file.exists(unlist(raster_class.tb$files))))

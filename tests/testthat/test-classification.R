@@ -44,19 +44,39 @@ test_that("Classify time series with TWDTW method", {
                                   sits_labels(samples_MT_ndvi)$label))
 })
 
-test_that("Classify error bands", {
+test_that("Classify error bands 1", {
     data(point_MT_6bands)
     data(samples_MT_9classes)
 
-    samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi)
+    samples.tb <- sits_select_bands(samples_MT_9classes[1:400,], ndvi, evi, red)
     model <- sits_train(samples.tb, sits_svm())
     point.tb <- sits_select_bands(point_MT_6bands, ndvi)
 
-    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi) do not match bands in the model (ndvi, evi)", fixed = TRUE)
+    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi) do not match bands in the model (ndvi, evi, red)", fixed = TRUE)
+})
 
-    samples.tb <- sits_select_bands(samples_MT_9classes, evi)
+test_that("Classify error bands 2", {
+    data(point_MT_6bands)
+    data(samples_MT_9classes)
+
+    samples.tb <- sits_select_bands(samples_MT_9classes[1:400,], ndvi, evi, red)
+
+    # Model is empty
+    #system.time({model <- sits_train(samples.tb, sits_svm(tolerance = 10))})
+
+    model <- sits_train(samples.tb, sits_svm())
+    point.tb <- sits_select_bands(point_MT_6bands, ndvi, red)
+
+    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi, red) do not match bands in the model (ndvi, evi, red)", fixed = TRUE)
+})
+
+test_that("Classify error bands 3", {
+    data(point_MT_6bands)
+    data(samples_MT_9classes)
+
+    samples.tb <- sits_select_bands(samples_MT_9classes[1:400,], ndvi, evi, red)
     model <- sits_train(samples.tb, sits_svm())
     point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi)
 
-    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi, evi) do not match bands in the model (evi)", fixed = TRUE)
+    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi, evi) do not match bands in the model (ndvi, evi, red)", fixed = TRUE)
 })
