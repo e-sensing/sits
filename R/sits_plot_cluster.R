@@ -17,7 +17,7 @@
 #' @export
 sits_plot_kohonen <- function(koh, type = "codes") {
 
-    if (type =="mapping"){
+    if (type == "mapping"){
         graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping")
     } else{
         graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes")
