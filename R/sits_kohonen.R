@@ -97,10 +97,8 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
         neighborhood[paint_neurons] <- pallete_neighbors [j]
 
     }
-    Empty_neuron <- which(neurons_labelled == "Noclass")
-    neighborhood[Empty_neuron] <- " White"
-
-
+    empty_neuron <- which(neurons_labelled == "Noclass")
+    neighborhood[empty_neuron] <- " White"
     kohonen_obj$paint_map <- neighborhood
     kohonen_obj$neurons_labelled <- neurons_labelled
 
@@ -127,7 +125,6 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
 {
     i=1
     class_vector <- vector()
-    class_vector2 <- vector()
     for (i in 1:grid_size)
     {
         #Get the id of samples that were allocated in neuron i
@@ -138,7 +135,6 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
         if (length(vb) != 0)
         {
             alloc_neurons_i <- data.tb[neuron_i, ]
-
             data.vec <- table(alloc_neurons_i$label)
             result.tb <- tibble::as_tibble(list(
                 label = names(data.vec),
@@ -199,7 +195,7 @@ sits_evaluate_samples <- function(data.tb,
     }
 
     #create an id for each sample
-    data.tb$id_sample <- rep(1:dim(data.tb)[1])
+    #data.tb$id_sample <- rep(1:dim(data.tb)[1])
 
     #initialize tibbles
     neurons_info_t.tb <- tibble::as_tibble()
@@ -224,9 +220,12 @@ sits_evaluate_samples <- function(data.tb,
         # create a tibble to store the results
         result.tb <- data.tb
 
+        #put id in samples here, because the labell needs
+        result.tb$id_sample <- 1:(dim(result.tb)[1])
+
         #add the in sample the id of neuron that the sample was allocated
         result.tb$id_neuron <- kohonen_obj$unit.classif
-        result.tb$neuron_label <- "neuron_label"
+        #result.tb$neuron_label <- "neuron_label"
 
         #get the size grid
         grid_size <- dim(kohonen_obj$grid$pts)[1]
@@ -250,7 +249,7 @@ sits_evaluate_samples <- function(data.tb,
 
         #until here is common sits_kohonen (improve this function)
         table_samples <- tibble::as_tibble(list(
-            id_sample= as.integer(result.tb$id_sample),
+            id_sample = as.integer(result.tb$id_sample),
             original_label = as.character(result.tb$label),
             neuron_label = as.character(result.tb$neuron_label),
             id_neuron = as.integer(result.tb$id_neuron),
@@ -295,6 +294,8 @@ sits_evaluate_samples <- function(data.tb,
         samples_cluster_t.tb <- rbind(samples_cluster_t.tb, count_sample)
     }
 
+    frequency <- 0
+    percentage <- 0
     #summary samples_cluster_t.tb
     for (i in 1:max(samples_iteration.tb$id_sample))
     {
@@ -305,8 +306,8 @@ sits_evaluate_samples <- function(data.tb,
         count_labels_id <- sort(table(filter_samples$neuron_label), decreasing = TRUE)
 
         summarized_samples.tb <- tibble::as_tibble(list(
-            id_sample= as.integer(i),
-            original_label= as.character(unique(filter_samples$original_label)),
+            id_sample = as.integer(i),
+            original_label = as.character(unique(filter_samples$original_label)),
             neuron_label = names(count_labels_id),
             frequency = as.integer(count_labels_id),
             percentage = as.numeric(prop.table(count_labels_id) * 100)
