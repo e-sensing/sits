@@ -2,7 +2,7 @@ context("Clustering - Kohonen")
 
 test_that("Creating clustering using Self-organizing Maps",{
     #skip_on_cran()
-    library(kohonen)
+    library(kohonenDTW)
     library(ggplot2)
     library(tibble)
     library(zoo)
@@ -29,6 +29,9 @@ test_that("Creating clustering using Self-organizing Maps",{
 
     confusion_by_cluster <- sits_metrics_by_cluster(koh$info_samples)
     expect_equal(length(names(confusion_by_cluster$confusion_matrix)), 6)
+
+    subgroups <- sits_subgroup(koh)
+    expect_true("label_subgroup" %in% names(subgroups$samples_subgroup.tb))
 
 })
 
