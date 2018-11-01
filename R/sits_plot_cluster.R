@@ -56,7 +56,7 @@ sits_plot_kohonen <- function(koh, type = "codes") {
 sits_plot_cluster_info <- function(data, text_title = " Cluster ")
 {
     data <- data$mixture_cluster
-    labels = data$original_class
+    labels <- data$original_class
     palette <- randomcoloR::distinctColorPalette(30)
 
     #this plot correspond to metrics by cluster
