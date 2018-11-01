@@ -15,7 +15,7 @@
 #' @param  type Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.
 #'
 #' @export
-sits_plot_kohonen <- function(koh, type="codes") {
+sits_plot_kohonen <- function(koh, type = "codes") {
 
     if (type =="mapping"){
         graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping")
