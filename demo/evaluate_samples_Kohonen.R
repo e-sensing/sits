@@ -11,7 +11,7 @@ data.tb <- samples_MT_9classes
 time_series.ts <- sits_values (data.tb, format = "bands_cases_dates")
 
 ##To use the DTW distance
-sourceCpp(paste(path.package("sits"), "Distances/distance.cpp", sep = "/"))
+#sourceCpp(paste(path.package("sits"), "inst/Distances/distance.cpp", sep = "/"))
 
 #Create cluster with Self-organizing maps (kohonen)
 koh <-
@@ -27,9 +27,21 @@ koh <-
 #Analyze the mixture between groups and extract informations about confusion matrix
 confusion_by_cluster <- sits_metrics_by_cluster(koh$info_samples)
 confusion_matrix <- confusion_by_cluster$confusion_matrix
-
-sits_plot_clusterInfo(confusion_by_cluster, "Confusion by Cluster")
+sits_plot_cluster_info(confusion_by_cluster, "Confusion by Cluster")
 
 #Divide groups according to variations
 subgroups <- sits_subgroup(koh)
+
+#Get samples tibble with subgroups
+samples_subgroup <- subgroups$samples_subgroup.tb
+
+#Get neurons and their patterns
+neurons_subgroup <- subgroups$neurons_subgroup.lst
+
+#Number of subgroups for each class
+number_of_subgroup <- lengths(neurons_subgroup)
+
+#Plot subgroups
+sits_plot_subgroups(neurons_subgroup)
+
 

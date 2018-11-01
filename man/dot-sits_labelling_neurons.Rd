@@ -7,12 +7,12 @@
 .sits_labelling_neurons(data.tb, grid_size)
 }
 \arguments{
-\item{data.tb}{a SITS tibble with info of samples and kohonen.obj}
+\item{data.tb}{A SITS tibble with info of samples and kohonen.obj.}
 
-\item{size_grid}{the size of kohonen map}
+\item{size_grid}{The size of kohonen map.}
 }
 \value{
-returns the labels of each neuron
+returns the labels of each neuron.
 }
 \description{
 Labelling all neurons using the majority voting.

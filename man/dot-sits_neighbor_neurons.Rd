@@ -7,18 +7,18 @@
 .sits_neighbor_neurons(class_vector, koh, radius = 1)
 }
 \arguments{
-\item{class_vector}{a vector contained the labels of each neuron}
+\item{class_vector}{A vector contained the labels of each neuron.}
 
-\item{koh}{an object kohonen}
+\item{koh}{An object kohonen.}
 
-\item{radius}{radius of neigbourhood of each neuron}
+\item{radius}{Radius of neigbourhood of each neuron.}
 }
 \value{
-returns a SITS tibble with informations about the vinicity of each neuron
+returns a SITS tibble with informations about the vinicity of each neuron.
 }
 \description{
 This function create a table contained the information about all
-neighbor of one neuron of radius 1
+neighbor of one neuron of radius 1.
 }
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}

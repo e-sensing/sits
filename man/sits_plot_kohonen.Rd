@@ -7,7 +7,9 @@
 sits_plot_kohonen(koh, type = "codes")
 }
 \arguments{
-\item{data}{data to be plotted (must be a kohonen object)}
+\item{koh}{Data to be plotted (must be a kohonen object).}
+
+\item{type}{Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.}
 }
 \description{
 Given a kohonen object with a set of time neurons, plot them.

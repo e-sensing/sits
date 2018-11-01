@@ -78,7 +78,7 @@ Imports:
 LinkingTo:
     Rcpp
 Remotes:
-    lorenalves/kohonen
+    lorenalves/kohonenDTW
 RoxygenNote: 6.1.0
 Collate: 
     'RcppExports.R'
