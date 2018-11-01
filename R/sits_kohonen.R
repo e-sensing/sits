@@ -90,7 +90,7 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
     cluster_sample <- class_matrix[neurons_]
     result.tb$neuron_label <- cluster_sample
 
-    j=1
+    j = 1
     for (j in 1:length(unique(neurons_labelled)))
     {
         paint_neurons <- which(class_matrix[, 2] == j)
@@ -340,7 +340,7 @@ sits_evaluate_samples <- function(data.tb,
                       cluster_label)
 
     #join samples with new cluster
-    info_samples_id_cluster<-unique(dplyr::select(info_sample_cluster.tb, id_sample, cluster_label))
+    info_samples_id_cluster <- unique(dplyr::select(info_sample_cluster.tb, id_sample, cluster_label))
 
     #here sample must have an id (SITS tibble)
     samples_new_label<-info_samples_id_cluster %>% dplyr::inner_join(data.tb)

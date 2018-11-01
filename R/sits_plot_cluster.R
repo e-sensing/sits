@@ -15,9 +15,9 @@
 #' @param  type Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.
 #'
 #' @export
-sits_plot_kohonen <- function(koh, type="codes") {
+sits_plot_kohonen <- function(koh, type = "codes") {
 
-    if (type =="mapping"){
+    if (type == "mapping"){
         graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping")
     } else{
         graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes")
@@ -36,7 +36,7 @@ sits_plot_kohonen <- function(koh, type="codes") {
         #horiz = T ,
         inset = c(0.0350, 0.05),
         xpd = TRUE,
-        ncol =1
+        ncol = 1
     )
 
     # return the original SITS table - useful for chaining
@@ -56,7 +56,7 @@ sits_plot_kohonen <- function(koh, type="codes") {
 sits_plot_cluster_info <- function(data, text_title = " Cluster ")
 {
     data <- data$mixture_cluster
-    labels = data$original_class
+    labels <- data$original_class
     palette <- randomcoloR::distinctColorPalette(30)
 
     #this plot correspond to metrics by cluster
