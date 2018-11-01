@@ -36,7 +36,7 @@ sits_plot_kohonen <- function(koh, type="codes") {
         #horiz = T ,
         inset = c(0.0350, 0.05),
         xpd = TRUE,
-        ncol =1
+        ncol = 1
     )
 
     # return the original SITS table - useful for chaining
