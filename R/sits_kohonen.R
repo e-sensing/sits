@@ -20,11 +20,11 @@
 #' @return  A tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning tibble will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
-sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100, dist.fcts="euclidean",
+sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100, dist.fcts = "euclidean",
                           alpha = 1, decay.fcts = "linear", neighbourhood.fct = "bubble", ...) {
 
     # verifies if dtwSat package is installed
-    if (!requireNamespace("kohonenDTW", quietly = TRUE)) {
+    if (!base::requireNamespace("kohonenDTW", quietly = TRUE)) {
         stop("kohonenDTW needed for this function to work. Please install it.", call. = FALSE)
     }
 
@@ -103,9 +103,9 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
     kohonen_obj$neurons_labelled <- neurons_labelled
 
 
-    info_samples_tables <- structure(list(kohonen_obj = kohonen_obj,
-                                          info_samples = result.tb),
-                                     class = "sits")
+    info_samples_tables <-
+        structure(list(kohonen_obj = kohonen_obj, info_samples = result.tb),
+                  class = "sits")
 
     return (info_samples_tables)
 }
@@ -123,7 +123,7 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
 #'
 .sits_labelling_neurons <- function (data.tb, grid_size)
 {
-    i=1
+    i = 1
     class_vector <- vector()
     for (i in 1:grid_size)
     {
@@ -136,6 +136,7 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
         {
             alloc_neurons_i <- data.tb[neuron_i, ]
             data.vec <- table(alloc_neurons_i$label)
+
             result.tb <- tibble::as_tibble(list(
                 label = names(data.vec),
                 count = as.integer(data.vec),
@@ -149,11 +150,9 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
         {
             neuron_class <- 'Noclass'
         }
-
         #this vector contains the label of each neuron
         class_vector[i] <- neuron_class[1]
     }
-
     return (class_vector)
 }
 
@@ -190,7 +189,7 @@ sits_evaluate_samples <- function(data.tb,
                                   mode = "online")
 {
     # verifies if dtwSat package is installed
-    if (!requireNamespace("kohonenDTW", quietly = TRUE)) {
+    if (!base::requireNamespace("kohonenDTW", quietly = TRUE)) {
         stop("kohonenDTW needed for this function to work. Please install it.", call. = FALSE)
     }
 
@@ -270,7 +269,6 @@ sits_evaluate_samples <- function(data.tb,
     sample_t <- samples_info_t.tb
     neuron_t <- neurons_info_t.tb
     table_sample_neuron <- sample_t %>% dplyr::inner_join(neuron_t)
-
     samples_iteration.tb <- samples_info_t.tb
     j = 1
     i = 1
@@ -294,8 +292,12 @@ sits_evaluate_samples <- function(data.tb,
         samples_cluster_t.tb <- rbind(samples_cluster_t.tb, count_sample)
     }
 
+    #initialize variables
+    id_sample <- 0
     frequency <- 0
     percentage <- 0
+    neuron_label <- as.character()
+    cluster_label <- as.character()
     #summary samples_cluster_t.tb
     for (i in 1:max(samples_iteration.tb$id_sample))
     {
@@ -343,14 +345,16 @@ sits_evaluate_samples <- function(data.tb,
     info_samples_id_cluster <- unique(dplyr::select(info_sample_cluster.tb, id_sample, cluster_label))
 
     #here sample must have an id (SITS tibble)
-    samples_new_label<-info_samples_id_cluster %>% dplyr::inner_join(data.tb)
+    samples_new_label<-info_samples_id_cluster %>% dplyr::inner_join(result.tb [,1:8])
 
-    evaluated_sample <-  structure(list(
-        table_sample_neuron= table_sample_neuron,
-        metrics_by_samples = info_sample_cluster.tb,
-        samples.tb = samples_new_label
-    ),
-    class = "sits")
+    evaluated_sample <-  structure(
+        list(
+            table_sample_neuron = table_sample_neuron,
+            metrics_by_samples = info_sample_cluster.tb,
+            samples.tb = samples_new_label
+        ),
+        class = "sits"
+    )
 }
 
 #' @title Get the neighbor of neurons
@@ -366,7 +370,7 @@ sits_evaluate_samples <- function(data.tb,
 #'
 #' @return returns a SITS tibble with informations about the vinicity of each neuron.
 
-.sits_neighbor_neurons <- function (class_vector,koh,radius=1)
+.sits_neighbor_neurons <- function (class_vector, koh, radius = 1)
 {
     neuron_vicinity.tb <- tibble::as_tibble()
     grid_size <- dim(koh$grid$pts)[1]
@@ -408,7 +412,6 @@ sits_subgroup <- function(koh)
     subgroup.lst <- list()
     cluster_label_analysis <- koh$info_samples$neuron_label
     class_neurons <- (unique(cluster_label_analysis))
-
     class_group <- tibble::as_tibble()
     k = 1
     for (k in 1:length(unique(class_neurons)))
@@ -436,7 +439,6 @@ sits_subgroup <- function(koh)
         #get the evi weight
         weight_evi <- koh$kohonen_obj$codes$evi
         weight_evi.ts <- weight_evi[neurons_class, ]
-
         codes_ndvi_evi <- cbind(weight_ndvi, weight_evi)
         codes_ndvi_evi.ts <- codes_ndvi_evi[neurons_class, ]
 
@@ -444,7 +446,6 @@ sits_subgroup <- function(koh)
         {
             min_group <- 1
             max_group <- length(neurons_class) - 1
-
         } else {
             min_group <- 2
             max_group <- 10
@@ -463,10 +464,7 @@ sits_subgroup <- function(koh)
             )
 
         number_of_cluster <- nb_all$Best.nc[1]
-
-        distance_atrributes <-
-            proxy::dist(codes_ndvi_evi.ts,  distance = "euclidean")
-
+        distance_atrributes <- proxy::dist(codes_ndvi_evi.ts,  distance = "euclidean")
         hc <- stats::hclust(distance_atrributes, "ward.D2")
         cut_hc <- stats::cutree(hc, k = number_of_cluster)
         id_neurons <- names(cut_hc)
@@ -498,9 +496,7 @@ sits_subgroup <- function(koh)
                 s_group <- rbind(s_group, temporary_samples)
             }
             s_group_cluster <- s_group
-            s_group_cluster$label_subgroup <-
-                paste(class_neurons[k], "_", j,  sep = '')
-
+            s_group_cluster$label_subgroup <- paste(class_neurons[k], "_", j,  sep = '')
             class_group <- rbind(class_group, s_group_cluster)
         }
         subgroup.lst[[k]] <- temp.lst
@@ -518,14 +514,18 @@ sits_subgroup <- function(koh)
 #' @description This function extracts metrics about the clusters calculating
 #' the percentage of mixture between a cluster and others.
 #'
-#' @param info_sample_cluster.tb Tibble containg information about evaluation of samples.
+#' @param data.tb Tibble containg information about evaluation of samples.
 #' @return Returns the confusion matrix and a table with percentage of mixture between the clusters.
 #' @export
 
-sits_metrics_by_cluster <- function(info_sample_cluster.tb)
+sits_metrics_by_cluster <- function(data.tb)
 {
+    #Initialize variables
+    id_sample <- NULL
+    neuron_label <- NULL
+
     #get only id, label and neuron_label
-    temp.data.tb <- unique(dplyr::select(info_sample_cluster.tb, id_sample, label, neuron_label))
+    temp.data.tb <- unique(dplyr::select(data.tb, id_sample, label, neuron_label))
 
     #get label that no have cluster
     no_cluster <- dplyr::setdiff(temp.data.tb$label, temp.data.tb$neuron_label)
