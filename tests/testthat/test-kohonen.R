@@ -1,17 +1,13 @@
 context("Clustering - Kohonen")
 
-test_that("Creating clustering using Self-organizing Maps",{
+test_that("Creating clustering using Self-organizing Maps", {
     #skip_on_cran()
-    library(kohonenDTW)
-    library(ggplot2)
-    library(tibble)
-    library(zoo)
 
-    data.tb<-data("samples_MT_9classes")
-    data.tb<-samples_MT_9classes
+    data.tb <- data("samples_MT_9classes")
+    data.tb <- samples_MT_9classes
 
     time_series.ts <- sits_values (data.tb, format = "bands_cases_dates")
-    expect_equal(length(names(time_series.ts)), (dim(data.tb$time_series[[1]])[2])-1)
+    expect_equal(length(names(time_series.ts)), (dim(data.tb$time_series[[1]])[2] - 1))
 
     koh <-
         sits::sits_kohonen(
@@ -32,7 +28,4 @@ test_that("Creating clustering using Self-organizing Maps",{
 
     subgroups <- sits_subgroup(koh)
     expect_true("label_subgroup" %in% names(subgroups$samples_subgroup.tb))
-
 })
-
-
