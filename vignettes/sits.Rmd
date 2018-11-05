@@ -85,15 +85,12 @@ sits_labels(samples_MT_9classes)
 
 In many cases, it is useful to relabel the data set. For example, there may be situations when one wants to use a smaller set of labels, since samples in one label on the original set may not be distinguishable from samples with other labels. We then should use `sits_relabel()`, which requires a conversion list (for details, see `?sits_relabel`).
 
-Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions of the `dplyr`, `tidyr` and `purrr` packages of the `tidyverse` [@Wickham2017] to process the data. For example, the following code uses the `sits_select()` function to get a subset of the sample data set with two bands (NDVI and EVI) and then uses the `dplyr::filter()` function to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot()` function to display the time series. Given a small number of samples to display, the `sits_plot()` function tries to group as many spatial locations together. In the following example, the first 15 samples of the "Cerrado" class all refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together.
-
-
+Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions of the `dplyr`, `tidyr` and `purrr` packages of the `tidyverse` [@Wickham2017] to process the data. For example, the following code uses `sits_select_bands()` to get a subset of the sample data set with two bands (NDVI and EVI) and then uses the `dplyr::filter()` to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot()` to display the time series. Given a small number of samples to display, the `sits_plot()` tries to group as many spatial locations together. In the following example, the first 15 samples of the "Cerrado" class all refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together.
 
 ```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 15 'Cerrado' samples from data set \\texttt{samples_MT_9classes} (different dates for the same point location)."}
 # select the "ndvi" bands
 samples_ndvi.tb <- 
-    sits_select(samples_MT_9classes, 
-                bands = c("ndvi"))
+    sits_select_bands(samples_MT_9classes, ndvi)
 # select only the samples with the cerrado label
 samples_cerrado.tb <- 
     dplyr::filter(samples_ndvi.tb, 
@@ -242,8 +239,7 @@ In general, the Savitzky-Golay filter produces smoother results for a larger val
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Savitzky-Golay filter applied on a one-year NDVI time series."}
 # Take the NDVI band of the first sample data set
 point.tb <- 
-    sits_select(prodes_226_064[1,], 
-                bands = c("ndvi"))
+    sits_select_bands(prodes_226_064[1,], ndvi)
 # apply Savitzky–Golay filter
 point_sg.tb <- sits_sgolay(point.tb)
 # plot the series
@@ -292,8 +288,7 @@ The fact that it has only one parameter ($\lambda{}$) facilitates its calibratio
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=1$ parameter."}
 # Take the NDVI band of the first sample data set
 point.tb <- 
-    sits_select(prodes_226_064[1,], 
-                bands = c("evi"))
+    sits_select_bands(prodes_226_064[1,], evi)
 # apply Whitaker filter
 point_whit.tb <- sits_whittaker(point.tb)
 # plot the series
@@ -322,8 +317,7 @@ In the following example we can see an application of `sits_envelope()` function
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Envelope filter applied on one-year NDVI time series. The examples uses two morfological filters: opening filtration (~.OF) and closing filtration (~.CF)."}
 # Take the NDVI band of the first sample data set
 point.tb <- 
-    sits_select(prodes_226_064[1,], 
-                bands = c("ndvi"))
+    sits_select_bands(prodes_226_064[1,], ndvi)
 # apply envelope filter (remove downward and upward noises)
 point_env1.tb <- 
     sits_envelope(point.tb,
@@ -349,7 +343,7 @@ The parameters of the ARIMA model can be set by the user. Please see arima for t
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5}
 # Take the NDVI band of the first sample data set
-point.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
+point.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # apply ARIMA filter
 point_cf.tb <- sits_ndvi_arima_filter(point.tb, apply_whit = FALSE)
 # plot the series

@@ -28,11 +28,11 @@
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
 #' # select the bands "ndvi", "evi", "nir", and "mir"
-#' samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
+#' samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
 #' # build a classification model using SVM
 #' model_svm <- sits_train(samples.tb, ml_method = sits_svm())
 #' # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
-#' point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir","mir"))
+#' point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
 #' # classify the point
 #' class.tb <- sits_classify(point.tb, ml_model = model_svm)
 #' # plot the classification
@@ -46,16 +46,17 @@ sits_classify <- function(data.tb    = NULL,
     .sits_test_tibble(data.tb)
 
     # ensure the machine learning model has been built
-    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
+    ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits_classify: please provide a machine learning model already trained")
 
     # has normalization been applied to the data?
     stats.tb   <- environment(ml_model)$stats.tb
 
     # obtain the distances after normalizing data by band
-    if (!purrr::is_null(stats.tb))
-        distances_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb, multicores))
-    else
+    if (purrr::is_null(stats.tb))
         distances_DT <- sits_distances(data.tb)
+    else
+        distances_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb, multicores))
+
 
     # define the parameters for breaking up a long time series
     samples.tb <- environment(ml_model)$data.tb

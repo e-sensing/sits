@@ -23,23 +23,40 @@ test_that("Classify time series with an svm model",{
     data(point_MT_6bands)
     data(samples_MT_9classes)
 
-    samples.tb <- sits_select(samples_MT_9classes,
-                              bands = c("ndvi", "evi"))
+    samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi)
     model <- sits_train(samples.tb, sits_svm())
-    point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi"))
 
-    class.tb <- sits_classify(point.tb, model)
+    class.tb <- sits_select_bands(point_MT_6bands, ndvi, evi) %>%
+        sits_classify(model)
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_MT_9classes)$label))
 })
 
-test_that("Classify time series with TWDTW method",{
+test_that("Classify time series with TWDTW method", {
     #skip_on_cran()
     patterns.tb <- sits_patterns(samples_MT_ndvi)
-    matches <- sits_TWDTW_classify(point_MT_6bands, patterns.tb, bands = "ndvi",
+    point_MT_ndvi <- sits_select_bands(point_MT_6bands, ndvi)
+    matches <- sits_TWDTW_classify(point_MT_ndvi, patterns.tb, bands = "ndvi",
                                    alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE)
 
     expect_true(all(unique(matches$predicted[[1]]$predicted) %in%
                                   sits_labels(samples_MT_ndvi)$label))
+})
+
+test_that("Classify error bands", {
+    data(point_MT_6bands)
+    data(samples_MT_9classes)
+
+    samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi)
+    model <- sits_train(samples.tb, sits_svm())
+    point.tb <- sits_select_bands(point_MT_6bands, ndvi)
+
+    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi) do not match bands in the model (ndvi, evi)", fixed = TRUE)
+
+    samples.tb <- sits_select_bands(samples_MT_9classes, evi)
+    model <- sits_train(samples.tb, sits_svm())
+    point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi)
+
+    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi, evi) do not match bands in the model (evi)", fixed = TRUE)
 })

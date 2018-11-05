@@ -72,3 +72,15 @@ test_that("Values", {
 
     expect_equal(names(savi.tb$time_series[[1]])[2], "savi")
 })
+
+test_that("Select",{
+    bands <- sits_bands(samples_MT_9classes)
+
+    samplesMir <- sits_select(samples_MT_9classes, bands = c("mir"))
+
+    expect_equal(length(sits_bands(samplesMir)), 1)
+
+    samplesPasture <- samples_MT_9classes %>% dplyr::filter(label == "Pasture")
+
+    expect_equal(dim(samplesPasture)[1], 370)
+})

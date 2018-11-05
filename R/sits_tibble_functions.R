@@ -350,7 +350,7 @@ sits_prune <- function(data.tb) {
 #' # Rename the band
 #' ndvi1.tb <- sits_rename (point_ndvi, names = c("veg_index"))
 #' # print the names of the new band
-#' sits_bands (ndvi1.tb)
+#' sits_bands(ndvi1.tb)
 #' @export
 sits_rename <- function(data.tb, names){
     # verify if the number of bands informed is the same as the actual number of bands in input data
@@ -461,32 +461,70 @@ sits_select <- function(data.tb, ...) {
     # retrieve only the chosen bands (if the bands argument is used)
     if (!purrr::is_null(bands)) {
         b1 <- as.character(bands)
-        data.tb <- sits_select_bands(data.tb, b1[-1])
+        data.tb <- sits_select_bands_(data.tb, b1[-1])
     }
 
     return(data.tb)
 }
 
-#' @title Filter bands on a sits table
+#' @title Filter bands on a sits tibble
 #' @name sits_select_bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Returns a sits table with the selected bands.
 #'
 #' @param data.tb      A sits tibble metadata and data on time series.
-#' @param bands        Vector of bands.
+#' @param ...          Names of the selected bands.
 #' @return A tibble in sits format with the selected bands.
 #' @examples
 #' # Retrieve a set of time series with 2 classes
-#' data (cerrado_2classes)
+#' data(cerrado_2classes)
 #' # Print the original bands
-#' sits_bands (cerrado_2classes)
+#' sits_bands(cerrado_2classes)
 #' # Select only the "ndvi" band
-#' data.tb <- sits_select_bands (cerrado_2classes, bands = "ndvi")
+#' data.tb <- sits_select_bands(cerrado_2classes, ndvi)
 #' # Print the labels of the resulting table
-#' sits_bands (data.tb)
+#' sits_bands(data.tb)
 #' @export
-sits_select_bands <- function(data.tb, bands) {
+sits_select_bands <- function(data.tb, ...) {
+    bands <-  paste(substitute(list(...)))[-1]
+
+    # verify if bands exists in data.tb
+    ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
+                         err_desc = "sits_select: some band(s) not found in input data")
+
+    # prepare result sits table
+    result.tb <- data.tb
+
+    # select the chosen bands for the time series
+    result.tb$time_series <- data.tb$time_series %>%
+        purrr::map(function(ts) ts[, c("Index", bands)])
+
+    # return the result
+    return(result.tb)
+}
+
+#' @title Filter bands on a sits tibble
+#' @name sits_select_bands_
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a sits table with the selected bands.
+#'
+#' @param data.tb      A sits tibble metadata and data on time series.
+#' @param bands        The selcted bands.
+#' @return A tibble in sits format with the selected bands.
+#' @examples
+#' # Retrieve a set of time series with 2 classes
+#' data(cerrado_2classes)
+#' # Print the original bands
+#' sits_bands(cerrado_2classes)
+#' # Select only the "ndvi" band
+band_ndvi <- "ndvi"
+#' data.tb <- sits_select_bands_(cerrado_2classes, bands = band_ndvi)
+#' # Print the labels of the resulting table
+#' sits_bands(data.tb)
+#' @export
+sits_select_bands_ <- function(data.tb, bands) {
     # verify if bands exists in data.tb
     ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
                          err_desc = "sits_select: some band(s) not found in input data")
