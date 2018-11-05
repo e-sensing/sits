@@ -519,7 +519,8 @@ sits_select_bands <- function(data.tb, ...) {
 #' # Print the original bands
 #' sits_bands(cerrado_2classes)
 #' # Select only the "ndvi" band
-#' data.tb <- sits_select_bands_(cerrado_2classes, "ndvi")
+band_ndvi <- "ndvi"
+#' data.tb <- sits_select_bands_(cerrado_2classes, bands = band_ndvi)
 #' # Print the labels of the resulting table
 #' sits_bands(data.tb)
 #' @export
