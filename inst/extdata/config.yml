@@ -20,6 +20,10 @@ default:
 
     WTSS-INPE_protocol      : "WTSS"
     WTSS-INPE_server        : "http://www.esensing.dpi.inpe.br/wtss/"
+    WTSS-INPE_coverages     : ["MOD13Q1"]
+
+    WTSS-INPE_bands         :
+        MOD13Q1             : ["mir", "blue", "nir", "red", "evi", "ndvi"]
 
     WTSS-INPE_minimum_value :
         ndvi                : -3000
