@@ -60,7 +60,7 @@ w1 %>%
     sits_select_bands(ndvi, ndvi.whit) %>%
     sits_plot()
 
-conf_whit.tb <- sits_kfold_validate (prodes_whit.tb, folds = 2)
+conf_whit.tb <- sits_kfold_validate(prodes_whit.tb, folds = 2)
 
 #evaluate the accuracy of the classification
 sits_conf_matrix(conf_whit.tb)
