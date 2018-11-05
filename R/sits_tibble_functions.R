@@ -474,7 +474,7 @@ sits_select <- function(data.tb, ...) {
 #' @description Returns a sits tibble with the selected bands.
 #'
 #' @param data.tb      A sits tibble metadata and data on time series.
-#' @param ...          Names of the selcted bands.
+#' @param ...          Names of the selected bands.
 #' @return A tibble in sits format with the selected bands.
 #' @examples
 #' # Retrieve a set of time series with 2 classes
@@ -519,8 +519,9 @@ sits_select_bands <- function(data.tb, ...) {
 #' # Print the original bands
 #' sits_bands(cerrado_2classes)
 #' # Select only the "ndvi" band
-#' data.tb <- sits_select_bands_(cerrado_2classes, "ndvi")
-#' # Print the labels of the resulting tibble
+#' band_ndvi <- "ndvi"
+#' data.tb <- sits_select_bands_(cerrado_2classes, bands = band_ndvi)
+#' # Print the labels of the resulting table
 #' sits_bands(data.tb)
 #' @export
 sits_select_bands_ <- function(data.tb, bands) {

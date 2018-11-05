@@ -35,7 +35,7 @@ prodes_sg.tb <- sits_sgolay(prodes_226_064, order = 2, scale = 1)
 sg1 <- sits_sgolay(prodes_226_064[1,], order = 2, scale = 1)
 
 sg1 %>%
-     sits_merge (prodes_226_064[1,]) %>%
+     sits_merge(prodes_226_064[1,]) %>%
      sits_select_bands(ndvi, ndvi.sg) %>%
      sits_plot()
 
@@ -56,11 +56,11 @@ prodes_whit.tb <- sits_whittaker(prodes_226_064, lambda = 2.0)
 w1 <- sits_whittaker(prodes_226_064[1,], lambda = 2.0)
 
 w1 %>%
-    sits_merge (prodes_226_064[1,]) %>%
+    sits_merge(prodes_226_064[1,]) %>%
     sits_select_bands(ndvi, ndvi.whit) %>%
     sits_plot()
 
-conf_whit.tb <- sits_kfold_validate (prodes_whit.tb, folds = 2)
+conf_whit.tb <- sits_kfold_validate(prodes_whit.tb, folds = 2)
 
 #evaluate the accuracy of the classification
 sits_conf_matrix(conf_whit.tb)
@@ -81,11 +81,11 @@ prodes_env.tb <- sits_envelope(prodes_ndvi.tb)
 w1 <- sits_envelope(prodes_ndvi.tb[1,])
 
 w1 %>%
-    sits_merge (prodes_ndvi.tb[1,]) %>%
+    sits_merge(prodes_ndvi.tb[1,]) %>%
     sits_select_bands(ndvi, ndvi.env) %>%
     sits_plot()
 
-conf_env.tb <- sits_kfold_validate (prodes_env.tb, folds = 2)
+conf_env.tb <- sits_kfold_validate(prodes_env.tb, folds = 2)
 
 #evaluate the accuracy of the classification
 sits_conf_matrix(conf_env.tb)
@@ -105,11 +105,11 @@ prodes_cf.tb <- sits_cloud_filter(prodes_ndvi.tb)
 w1 <- sits_cloud_filter(prodes_ndvi.tb[1,])
 
 w1 %>%
-    sits_merge (prodes_ndvi.tb[1,]) %>%
+    sits_merge(prodes_ndvi.tb[1,]) %>%
     sits_select_bands(ndvi, ndvi.cf.whit) %>%
     sits_plot()
 
-conf_cf.tb <- sits_kfold_validate (prodes_cf.tb, folds = 2)
+conf_cf.tb <- sits_kfold_validate(prodes_cf.tb, folds = 2)
 
 #evaluate the accuracy of the classification
 sits_conf_matrix(conf_cf.tb)
