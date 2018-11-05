@@ -35,7 +35,7 @@ prodes_sg.tb <- sits_sgolay(prodes_226_064, order = 2, scale = 1)
 sg1 <- sits_sgolay(prodes_226_064[1,], order = 2, scale = 1)
 
 sg1 %>%
-     sits_merge (prodes_226_064[1,]) %>%
+     sits_merge(prodes_226_064[1,]) %>%
      sits_select_bands(ndvi, ndvi.sg) %>%
      sits_plot()
 
