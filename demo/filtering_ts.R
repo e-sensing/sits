@@ -81,7 +81,7 @@ prodes_env.tb <- sits_envelope(prodes_ndvi.tb)
 w1 <- sits_envelope(prodes_ndvi.tb[1,])
 
 w1 %>%
-    sits_merge (prodes_ndvi.tb[1,]) %>%
+    sits_merge(prodes_ndvi.tb[1,]) %>%
     sits_select_bands(ndvi, ndvi.env) %>%
     sits_plot()
 
