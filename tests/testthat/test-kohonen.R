@@ -1,5 +1,6 @@
 context("Evaluate samples")
-test_that("Creating clustering using Self organizing Maps",{
+test_that("Creating clustering using Self-organizing Maps", {
+
     #skip_on_cran()
     data.tb <- data("samples_MT_9classes")
     data.tb <- samples_MT_9classes
