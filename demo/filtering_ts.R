@@ -105,7 +105,7 @@ prodes_cf.tb <- sits_cloud_filter(prodes_ndvi.tb)
 w1 <- sits_cloud_filter(prodes_ndvi.tb[1,])
 
 w1 %>%
-    sits_merge (prodes_ndvi.tb[1,]) %>%
+    sits_merge(prodes_ndvi.tb[1,]) %>%
     sits_select_bands(ndvi, ndvi.cf.whit) %>%
     sits_plot()
 
