@@ -109,7 +109,7 @@ w1 %>%
     sits_select_bands(ndvi, ndvi.cf.whit) %>%
     sits_plot()
 
-conf_cf.tb <- sits_kfold_validate (prodes_cf.tb, folds = 2)
+conf_cf.tb <- sits_kfold_validate(prodes_cf.tb, folds = 2)
 
 #evaluate the accuracy of the classification
 sits_conf_matrix(conf_cf.tb)
