@@ -2,30 +2,30 @@
 % Please edit documentation in R/sits_raster_blocks.R
 \name{.sits_estimate_nblocks}
 \alias{.sits_estimate_nblocks}
-\title{Estimate the}
+\title{Estimate the number of blocks}
 \usage{
 .sits_estimate_nblocks(ml_model, nbands, nrows, ncols, timeline, interval,
   memsize, multicores)
 }
 \arguments{
-\item{ml_model}{machine learning model}
+\item{ml_model}{Machine learning model.}
 
-\item{nbands}{number of bands}
+\item{nbands}{Number of bands.}
 
-\item{nrows}{number of rows per brick}
+\item{nrows}{Number of rows per brick.}
 
-\item{ncols}{number of cols per brick}
+\item{ncols}{Number of cols per brick.}
 
-\item{timeline}{timeline of the brick}
+\item{timeline}{Timeline of the brick.}
 
-\item{interval}{classification interval}
+\item{interval}{Classification interval.}
 
-\item{memsize}{memory available for classification (in GB)}
+\item{memsize}{Memory available for classification (in GB).}
 
-\item{multicores}{number of threads to process the time series.}
+\item{multicores}{Number of threads to process the time series.}
 }
 \value{
-nblocks         number of blocks to read
+Number of blocks to be read.
 }
 \description{
 Defines the number of blocks of a Raster Brick to be read into memory.

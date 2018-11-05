@@ -7,23 +7,21 @@
 sits_toZOO(data.tb, band = NULL)
 }
 \arguments{
-\item{data.tb}{sits tibble with time series}
+\item{data.tb}{A sits tibble with time series.}
 
-\item{band}{name of the band to be exported (if NULL all bands are exported)}
+\item{band}{Name of the band to be exported (if NULL all bands are exported).}
 }
 \value{
-zoo.lst    list of time series in zoo format
+List of time series in zoo format.
 }
 \description{
-Converts data from a SITS tibble to a list of a zoo series.
+Converts data from a sits tibble to a list of a zoo series.
 }
 \examples{
-
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 data(cerrado_2classes)
 # export a time series to zoo
 zoo.lst <- sits_toZOO (cerrado_2classes[1:5,])
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

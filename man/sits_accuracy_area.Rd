@@ -8,14 +8,14 @@ sits_accuracy_area(class.tb, area = NULL, conf.int = 0.95,
   rm.nosample = FALSE)
 }
 \arguments{
-\item{class.tb}{a sits table with a set of lat/long/time locations  with known and trusted labels and
-with the result of classification method}
+\item{class.tb}{A sits tibble with a set of lat/long/time locations with known and trusted labels and
+with the result of classification method.}
 
-\item{area}{a list with the area of each label}
+\item{area}{A list with the area of each label.}
 
-\item{conf.int}{specifies the confidence level (0-1).}
+\item{conf.int}{Specifies the confidence level (0-1).}
 
-\item{rm.nosample}{if sum of columns and sum of rows of the error matrix are zero
+\item{rm.nosample}{If sum of columns and sum of rows of the error matrix are zero
 then remove class. Default is TRUE.}
 }
 \description{
@@ -23,7 +23,7 @@ To use this function, the input table should be a set of results containing
 both the label assigned by the user and the classification result.
 Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
 This function uses an area-weighted technique proposed by Olofsson et al. to
-produce accuracy estimates that are more reliable
+produce accuracy estimates that are more reliable.
 
 This function calls \code{\link[dtwSat]{twdtwAssess}} from \pkg{dtwSat}.
 \code{\link[dtwSat]{twdtwAssess}} performs an accuracy assessment of the classified, including

@@ -7,15 +7,15 @@
 sits_prune(data.tb)
 }
 \arguments{
-\item{data.tb}{sits tibble (either a SITS tibble or a raster metadata)}
+\item{data.tb}{Either a sits tibble or a raster metadata.}
 }
 \value{
-data.tb  pruned sits tibble
+A pruned sits tibble.
 }
 \description{
-This function tests if all time series in a SITS tibble
+This function tests if all time series in a sits tibble
 have the same number of samples, and returns a time series whose indices
-match the majority of the samples
+match the majority of the samples.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

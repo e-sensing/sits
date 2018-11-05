@@ -7,19 +7,19 @@
 sits_keras_diagnostics(dl_model)
 }
 \arguments{
-\item{dl_model}{A valid keras model}
+\item{dl_model}{A valid keras model.}
 }
 \value{
-NULL   Prints the model diagnostics
+This function returns NULL. It only prints the model diagnostics.
 }
 \description{
 After the Keras deeplearning model is compiled and fit, this
-             function provides access to the history plot and the evaluation results
+             function provides access to the history plot and the evaluation results.
 }
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(cerrado2classes)
+data(cerrado_2classes)
  # obtain a DL model
 dl_model <- sits_train(cerrado2classes,
      sits_deeplearning(units = c(512, 512),

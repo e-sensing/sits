@@ -8,22 +8,22 @@
   missing_values.vec, minimum_values.vec, files.vec)
 }
 \arguments{
-\item{name}{name of the coverage file}
+\item{name}{Name of the coverage file.}
 
-\item{timeline.vec}{vector of dates with the timeline of the bands}
+\item{timeline.vec}{Vector of dates with the timeline of the bands.}
 
-\item{bands.vec}{vector of bands contained in the Raster Brick set (in the same order as the files)}
+\item{bands.vec}{Vector of bands contained in the Raster Brick set (in the same order as the files).}
 
-\item{scale_factors.vec}{vector of scale factors (one per band)}
+\item{scale_factors.vec}{Vector of scale factors (one per band).}
 
-\item{missing_values.vec}{vector of missing values (one per band)}
+\item{missing_values.vec}{Vector of missing values (one per band).}
 
-\item{minimum_values.vec}{minimum values for each band (only for raster data)}
+\item{minimum_values.vec}{Minimum values for each band (only for raster data).}
 
-\item{files.vec}{vector with the file paths of the raster files}
+\item{files.vec}{vector with the file paths of the raster files.}
 }
 \value{
-raster.tb         tibble with metadata information about a raster data set
+A tibble with metadata information about a raster data set.
 }
 \description{
 This function creates a tibble containing the metadata for

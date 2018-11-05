@@ -7,10 +7,10 @@
 .sits_get_tcap_wetness(satellite = "MODIS")
 }
 \arguments{
-\item{satellite}{name of ssatellite (or sensor)}
+\item{satellite}{Name of ssatellite (or sensor).}
 }
 \value{
-coef          named vector of greenness coefficients
+Named vector of greenness coefficients.
 }
 \description{
 Retrieve the vector of coeficientes for wetness component of tasseled cap

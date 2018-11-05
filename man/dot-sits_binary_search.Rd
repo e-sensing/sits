@@ -7,16 +7,16 @@
 .sits_binary_search(values, val)
 }
 \arguments{
-\item{values}{a vector of ordered integers}
+\item{values}{A vector of ordered integers.}
 
-\item{val}{a reference value}
+\item{val}{A reference value.}
 }
 \value{
-nearest   the input value closest to the reference one
+The input value closest to the reference one.
 }
 \description{
 Performs a binary search in a ordered set of integer values and
-             returns the values closest to a reference
+             returns the values closest to a reference.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

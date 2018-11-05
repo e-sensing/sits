@@ -7,14 +7,14 @@
 .sits_get_bbox(service, name, r_obj = NA)
 }
 \arguments{
-\item{service}{name of the time series service}
+\item{service}{Name of the time series service.}
 
-\item{name}{name of the coverage}
+\item{name}{Name of the coverage.}
 
-\item{r_obj}{R object associated with the coverage}
+\item{r_obj}{R object associated with the coverage.}
 }
 \value{
-bbox          bounding box
+The bounding box.
 }
 \description{
 Retrieve the bounding box for the product available at service

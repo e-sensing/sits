@@ -8,23 +8,23 @@ sits_kohonen(data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5,
   rlen = 100, alpha = c(0.05, 0.01), ...)
 }
 \arguments{
-\item{data.tb}{a tibble with time series to be clustered}
+\item{data.tb}{A tibble with time series to be clustered.}
 
-\item{bands}{bands to be clustered.}
+\item{bands}{Bands to be clustered.}
 
-\item{grid_xdim}{x dimension of the SOM grid (default = 5)}
+\item{grid_xdim}{X dimension of the SOM grid (default = 5).}
 
-\item{grid_ydim}{y dimension of the SOM grid}
+\item{grid_ydim}{Y dimension of the SOM grid.}
 
-\item{rlen}{number of times the complete data set will be presented to the SOM grid}
+\item{rlen}{Number of times the complete data set will be presented to the SOM grid.}
 
-\item{alpha}{learning rate, a vector of two numbers indicating the amount of change.
+\item{alpha}{Learning rate, a vector of two numbers indicating the amount of change.
 Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
 
-\item{...}{additional parameters to be passed to kohonen::supersom function}
+\item{...}{Additional parameters to be passed to kohonen::supersom function.}
 }
 \value{
-kohonen.obj   a full kohonen object for data analysis
+A full kohonen object for data analysis.
 }
 \description{
 This function uses package "kohonen" (self-organized maps) to find clusters in
@@ -32,7 +32,6 @@ satellite image time series.
 }
 \examples{
 \donttest{
-
 # Retrieve a time series to be clusterized
 data("samples_MT_9classes")
 # compute a kohonen object

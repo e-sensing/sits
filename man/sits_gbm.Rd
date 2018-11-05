@@ -2,33 +2,33 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_gbm}
 \alias{sits_gbm}
-\title{Train a SITS classification model with a gradient boosting machine}
+\title{Train a sits classification model with a gradient boosting machine}
 \usage{
 sits_gbm(data.tb = NULL, formula = sits_formula_logref(),
   distribution = "multinomial", n.trees = 500, interaction.depth = 2,
   shrinkage = 0.001, cv.folds = 5, ...)
 }
 \arguments{
-\item{data.tb}{time series with the training samples}
+\item{data.tb}{Time series with the training samples.}
 
-\item{formula}{a symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
+\item{formula}{A symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_formula_logref).}
 
-\item{distribution}{name of the distribution - use "multinomial" for classification}
+\item{distribution}{Name of the distribution - use "multinomial" for classification.}
 
 \item{n.trees}{Number of trees to fit. This should not be set to too small a number,
-to ensure that every input row gets predicted at least a few times. (default: 5000)}
+to ensure that every input row gets predicted at least a few times. (default: 5000).}
 
 \item{interaction.depth}{The maximum depth of variable interactions. 1 implies an additive model, 2 implies a model with up to 2-way interactions.}
 
-\item{shrinkage}{a shrinkage parameter applied to each tree in the expansion.
+\item{shrinkage}{A shrinkage parameter applied to each tree in the expansion.
 Also known as the learning rate or step-size reduction.}
 
-\item{cv.folds}{number of cross-validations to run}
+\item{cv.folds}{Number of cross-validations to run.}
 
-\item{...}{other parameters to be passed to `gbm::gbm` function}
+\item{...}{Other parameters to be passed to `gbm::gbm` function.}
 }
 \value{
-result          a model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+A model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
 }
 \description{
 This function implements the generalized boosted modeling framework.

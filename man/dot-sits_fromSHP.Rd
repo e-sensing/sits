@@ -8,25 +8,25 @@
   bands = NULL, prefilter = "1", label = "NoClass")
 }
 \arguments{
-\item{shp_file}{string  - name of a SHP file which provides the boundaries of a region of interest}
+\item{shp_file}{Name of a SHP file which provides the boundaries of a region of interest.}
 
-\item{coverage}{tibble  - metadata about the coverage}
+\item{coverage}{A tibble with metadata about the coverage.}
 
-\item{start_date}{date - the start of the period}
+\item{start_date}{The start date of the period.}
 
-\item{end_date}{date - the end of the period}
+\item{end_date}{The end date of the period.}
 
-\item{bands}{string vector - the names of the bands to be retrieved}
+\item{bands}{A string vector with the names of the bands to be retrieved.}
 
-\item{prefilter}{string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
+\item{prefilter}{A string related to data correction ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 
-\item{label}{string - the label to attach to the time series}
+\item{label}{A string with the label to attach to the time series.}
 }
 \value{
-table          a SITS tibble
+A sits tibble.
 }
 \description{
-reads a shapefile and retrieves a SITS tibble
+reads a shapefile and retrieves a sits tibble
 containing time series from a coverage that are inside the SHP file.
 The script uses the WTSS service, taking information about coverage, spatial and
 temporal resolution from the WTSS configuration.

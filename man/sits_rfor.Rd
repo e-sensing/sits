@@ -2,20 +2,20 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_rfor}
 \alias{sits_rfor}
-\title{Train a SITS classifiction model using fast random forest algorithm}
+\title{Train a sits classifiction model using fast random forest algorithm}
 \usage{
 sits_rfor(data.tb = NULL, num.trees = 2000, ...)
 }
 \arguments{
-\item{data.tb}{time series with the training samples}
+\item{data.tb}{Time series with the training samples.}
 
-\item{num.trees}{number of trees to grow. This should not be set to too small a number,
-to ensure that every input row gets predicted at least a few times. (default: 2000)}
+\item{num.trees}{Number of trees to grow. This should not be set to too small a number,
+to ensure that every input row gets predicted at least a few times. (default: 2000).}
 
-\item{...}{other parameters to be passed to `ranger::ranger` function}
+\item{...}{Other parameters to be passed to \code{\link[ranger]{ranger}} function.}
 }
 \value{
-result          either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
+Either a model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model.
 }
 \description{
 Use Fast Random Forest algorithm to classify data.

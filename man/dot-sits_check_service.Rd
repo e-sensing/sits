@@ -7,7 +7,7 @@
 .sits_check_service(service)
 }
 \arguments{
-\item{service}{name of the time series service}
+\item{service}{Name of the time series service.}
 }
 \description{
 Check that the service is valid

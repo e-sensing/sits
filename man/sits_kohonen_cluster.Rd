@@ -7,12 +7,12 @@
 sits_kohonen_cluster(data.tb, kohonen.obj)
 }
 \arguments{
-\item{data.tb}{a tibble with time series to be clustered}
+\item{data.tb}{A tibble with time series to be clustered.}
 
-\item{kohonen.obj}{a full kohonen object for data analysis}
+\item{kohonen.obj}{A full kohonen object for data analysis.}
 }
 \value{
-data.tb       tibble with the clusters or clusters' members
+A tibble with the clusters or clusters' members.
 }
 \description{
 This function uses package "kohonen" (self-organized maps) to find clusters in
@@ -20,7 +20,6 @@ satellite image time series.
 }
 \examples{
 \donttest{
-
 # Retrieve a time series to be clusterized
 data("samples_MT_9classes")
 # compute a kohonen object

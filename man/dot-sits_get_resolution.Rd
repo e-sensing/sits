@@ -7,12 +7,12 @@
 .sits_get_resolution(service, name)
 }
 \arguments{
-\item{service}{The name of the service}
+\item{service}{Name of the service.}
 
-\item{name}{the name of the coverage}
+\item{name}{Name of the coverage.}
 }
 \value{
-res           vector of (xres, yres)
+Vector of (xres, yres).
 }
 \description{
 Retrieve the pixel resolution for an image product

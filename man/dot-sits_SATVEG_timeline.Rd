@@ -7,7 +7,7 @@
 .sits_SATVEG_timeline()
 }
 \description{
-Retrieves a time series from the SATVEG service
+Retrieves a time series from the SATVEG service.
 }
 \author{
 Julio Esquerdo, \email{julio.esquerdo@embrapa.br}

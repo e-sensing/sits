@@ -7,12 +7,12 @@
 .sits_is_valid_start_date(date, timeline)
 }
 \arguments{
-\item{date}{a dates}
+\item{date}{A date.}
 
-\item{timeline}{a vector of reference dates}
+\item{timeline}{A vector of reference dates.}
 }
 \value{
-bool       is this is valid starting date?
+Is this is valid starting date?
 }
 \description{
 A timeline is a list of dates where observations are available. This

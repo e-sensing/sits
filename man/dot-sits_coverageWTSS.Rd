@@ -7,13 +7,13 @@
 .sits_coverageWTSS(wtss.obj, service, name)
 }
 \arguments{
-\item{wtss.obj}{R WTSS object associated to the service}
+\item{wtss.obj}{R WTSS object associated to the service.}
 
-\item{service}{name of the service}
+\item{service}{Name of the service.}
 
-\item{name}{name of the coverage}
+\item{name}{Name of the coverage.}
 }
 \description{
-uses the WTSS services to print information and save metadata about a
-chosen coverage
+Uses the WTSS services to print information and save metadata about a
+chosen coverage.
 }

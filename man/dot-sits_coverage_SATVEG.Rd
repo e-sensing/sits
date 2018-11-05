@@ -7,10 +7,10 @@
 .sits_coverage_SATVEG(name, timeline)
 }
 \arguments{
-\item{name}{name of the coverage}
+\item{name}{Name of the coverage.}
 
-\item{timeline}{timeline of the coverage}
+\item{timeline}{Timeline of the coverage.}
 }
 \description{
-creates a tibble with metadata about a given coverage
+Creates a tibble with metadata about a given coverage.
 }

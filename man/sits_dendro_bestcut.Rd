@@ -7,15 +7,15 @@
 sits_dendro_bestcut(data.tb, dendro.obj)
 }
 \arguments{
-\item{data.tb}{tibble used to generate `dendro.obj`.}
+\item{data.tb}{Tibble used to generate `dendro.obj`.}
 
-\item{dendro.obj}{a dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.}
+\item{dendro.obj}{Dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.}
 }
 \value{
-vector with the best number of clusters (k) and its respective heigh.
+Vector with the best number of clusters (k) and its respective heigh.
 }
 \description{
-reads a dendrogram object and its corresponding SITS tibble and
+Reads a dendrogram object and its corresponding sits tibble and
 computes the best number of clusters that maximizes the adjusted Rand index.
 }
 \examples{
@@ -24,10 +24,9 @@ computes the best number of clusters that maximizes the adjusted Rand index.
 data(cerrado_2classes)
 # calculate the dendrogram
 dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi", "evi"))
-# include the cluster info in the SITS tibble
+# include the cluster info in the sits tibble
 sits_dendro_bestcut (cerrado_2classes, dendro.obj)
 }
-
 }
 \references{
 Lawrence Hubert and Phipps Arabie. Comparing partitions.

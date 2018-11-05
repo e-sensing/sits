@@ -7,18 +7,18 @@
 sits_conf_matrix(class.tb, conv.lst = NULL, pred_sans_ext = FALSE)
 }
 \arguments{
-\item{class.tb}{tibble containing a set of classified samples whose labels are known}
+\item{class.tb}{A tibble containing a set of classified samples whose labels are known.}
 
-\item{conv.lst}{list with labels to be converted. If NULL no conversion is done.}
+\item{conv.lst}{List with labels to be converted. If NULL no conversion is done.}
 
-\item{pred_sans_ext}{logical: remove all label extension? (i.e. every string after last '.' character) from predictors before compute assesment.}
+\item{pred_sans_ext}{A logical value: remove all label extension? (i.e. every string after last '.' character) from predictors before compute assesment.}
 }
 \value{
-caret_assess    confusion matrix assessment produced by the caret package
+A confusion matrix assessment produced by the caret package.
 }
 \description{
 Evaluates the confusion matrix based on "reference" and "predicted" values
-provided in a SITS tibble that has been classified. This function takes two kinds of input:
+provided in a sits tibble that has been classified. This function takes two kinds of input:
 (a) The output of the \code{\link[sits]{sits_classify}} function (a tibble with a list of predicted values)
 (b) The output of the \code{\link[sits]{sits_kfold_validate}} function (a tibble with two columns - predicted and reference)
 This function returns the Overall Accuracy, User's Accuracy,
@@ -29,7 +29,7 @@ Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 data(cerrado_2classes)
 # perform a 2 fold validation of this sample file
-pred_ref.tb <-  sits_kfold_validate(cerrado_2classes, folds = 2)
+pred_ref.tb <- sits_kfold_validate(cerrado_2classes, folds = 2)
 # calculate and print the confusion matrix
 conf.mx <- sits_conf_matrix(pred_ref.tb)
 }

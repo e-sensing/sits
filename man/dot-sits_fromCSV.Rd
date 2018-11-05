@@ -8,27 +8,27 @@
   .n_save)
 }
 \arguments{
-\item{csv_file}{string  - name of a CSV file with information <id, latitude, longitude, from, end, label>}
+\item{csv_file}{Name of a CSV file with information <id, latitude, longitude, from, end, label>.}
 
-\item{coverage}{tibble - metadata about coverage which contains data to be retrieved}
+\item{coverage}{A tibble with metadata about coverage which contains data to be retrieved.}
 
-\item{bands}{string vector - the names of the bands to be retrieved}
+\item{bands}{A string vector with the names of the bands to be retrieved.}
 
-\item{prefilter}{string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
+\item{prefilter}{String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 
-\item{.n_start}{(optional) integer - Row on the CSV file to start reading}
+\item{.n_start}{Row on the CSV file to start reading (optional).}
 
-\item{.n_max}{the maximum number of samples to be read}
+\item{.n_max}{Maximum number of samples to be read.}
 
-\item{.n_save}{number of samples to save as intermediate files (used for long reads)}
+\item{.n_save}{Number of samples to save as intermediate files (used for long reads).}
 }
 \value{
-data.tb        a SITS tibble
+A sits tibble.
 }
 \description{
 reads descriptive information about a set of
 spatio-temporal locations from a CSV file. Then, it uses the WTSS time series service
-to retrieve the time series, and stores the time series on a SITS tibble for later use.
+to retrieve the time series, and stores the time series on a sits tibble for later use.
 The CSV file should have the following column names:
 "longitude", "latitude", "start_date", "end_date", "label"
 }

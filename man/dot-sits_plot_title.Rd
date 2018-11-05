@@ -7,15 +7,15 @@
 .sits_plot_title(latitude, longitude, label)
 }
 \arguments{
-\item{latitude}{latitude of the location to be plotted}
+\item{latitude}{Latitude of the location to be plotted.}
 
-\item{longitude}{longitude of the location to be plotted}
+\item{longitude}{Longitude of the location to be plotted.}
 
-\item{label}{lable of the location to be plotted}
+\item{label}{Lable of the location to be plotted.}
 }
 \value{
-title   string - the title to be used in the plot
+A string with the title to be used in the plot.
 }
 \description{
-creates a plot title from row information
+Creates a plot title from row information.
 }

@@ -7,10 +7,10 @@
 .sits_get_server(service)
 }
 \arguments{
-\item{service}{name of the service}
+\item{service}{Name of the service.}
 }
 \value{
-serverURL      string with the server URL that provides the service
+A string with the server URL that provides the service.
 }
 \description{
 Retrieve the time series server for the product

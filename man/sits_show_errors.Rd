@@ -7,5 +7,5 @@
 sits_show_errors()
 }
 \description{
-Prints the errors log
+Prints the errors log.
 }

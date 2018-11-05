@@ -7,16 +7,16 @@
 .sits_coverage_raster_classified(raster.tb, samples.tb, file, interval)
 }
 \arguments{
-\item{raster.tb}{tibble with metadata about the input RasterBrick objects}
+\item{raster.tb}{Tibble with metadata about the input RasterBrick objects.}
 
-\item{samples.tb}{samples used for training the classification model}
+\item{samples.tb}{Samples used for training the classification model.}
 
-\item{file}{generic name of the files that will contain the RasterLayers}
+\item{file}{Generic name of the files that will contain the RasterLayers.}
 
-\item{interval}{classification interval}
+\item{interval}{Classification interval.}
 }
 \value{
-raster_layers.tb  tibble with metadata about the output RasterLayer objects
+A tibble with metadata about the output RasterLayer objects.
 }
 \description{
 Takes a tibble containing metadata about a set of RasterBrick objects

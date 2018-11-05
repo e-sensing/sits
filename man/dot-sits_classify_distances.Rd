@@ -7,19 +7,19 @@
 .sits_classify_distances(distances_DT, class_info.tb, ml_model, multicores)
 }
 \arguments{
-\item{distances_DT}{data.table with distances}
+\item{distances_DT}{data.table with distances.}
 
-\item{class_info.tb}{classification information}
+\item{class_info.tb}{classification information.}
 
-\item{ml_model}{model trained by \code{\link[sits]{sits_train}}}
+\item{ml_model}{model trained by \code{\link[sits]{sits_train}}.}
 
-\item{multicores}{number of threads to process the time series}
+\item{multicores}{number of threads to process the time series.}
 }
 \value{
-pred.vec        vector with the predicted labels
+A vector with the predicted labels.
 }
 \description{
-Returns a sits table with the results of the ML classifier.
+Returns a sits tibble with the results of the ML classifier.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

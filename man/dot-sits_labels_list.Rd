@@ -2,25 +2,25 @@
 % Please edit documentation in R/sits_labels.R
 \name{.sits_labels_list}
 \alias{.sits_labels_list}
-\title{SITS labels processing function}
+\title{Sits labels processing function}
 \usage{
 .sits_labels_list(data.tb, list.lst = list(), fun_label = function(lb)
   lb)
 }
 \arguments{
-\item{data.tb}{a SITS tibble}
+\item{data.tb}{A sits tibble.}
 
-\item{list.lst}{any named list whose names are unique labels from data input. Non-informed labels will be completed
+\item{list.lst}{Any named list whose names are unique labels from data input. Non-informed labels will be completed
 according to fun_label function.}
 
-\item{fun_label}{a function that will be executed for each label non listed in list.lst parameter. The result of
+\item{fun_label}{A function that will be executed for each label non listed in list.lst parameter. The result of
 the function is used as list.lst value for the respective label.}
 }
 \value{
-result.lst  a list whose values non informed in list.lst is filled by fun_label for each unique label in data.tb.
+A list whose values non informed in list.lst is filled by fun_label for each unique label in data.tb.
 }
 \description{
-completes list.lst list as a named list (names are unique labels from data.tb) according
+Completes list.lst list as a named list (names are unique labels from data.tb) according
              to a given function that receives each label as an argument.
 }
 \author{

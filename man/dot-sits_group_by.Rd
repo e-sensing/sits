@@ -7,16 +7,16 @@
 .sits_group_by(data.tb, ...)
 }
 \arguments{
-\item{data.tb}{sits tibble}
+\item{data.tb}{A sits tibble.}
 
-\item{...}{one or more sits table field separated by commas that are used to group the data.
+\item{...}{One or more sits tibble field separated by commas that are used to group the data.
 See `dplyr::group_by` help for more details.}
 }
 \value{
-result.tb   sits tibble with the selected bands
+A sits tibble with the selected bands.
 }
 \description{
-returns a sits table by compound the sits tables apply a function to a grouped SITS table
+Returns a sits tibble by compound the sits tibble apply a function to a grouped sits tibble.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

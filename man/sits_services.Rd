@@ -7,5 +7,5 @@
 sits_services()
 }
 \description{
-uses the configuration file to print information about the services, products and coverages
+Uses the configuration file to print information about the services, products and coverages.
 }

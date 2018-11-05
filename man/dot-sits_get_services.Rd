@@ -7,10 +7,10 @@
 .sits_get_services(protocol = NULL)
 }
 \arguments{
-\item{protocol}{(string) protocol used to assess the time series service}
+\item{protocol}{A string with the protocol used to assess the time series service.}
 }
 \value{
-size     vector of (nrows, ncols)
+Vector of (nrows, ncols).
 }
 \description{
 List the time series services available

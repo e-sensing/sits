@@ -7,17 +7,17 @@
 .sits_ts_fromRasterCSV(raster.tb, file)
 }
 \arguments{
-\item{raster.tb}{A tibble with metadata describing a spatio-temporal data set}
+\item{raster.tb}{A tibble with metadata describing a spatio-temporal data set.}
 
-\item{file}{A CSV file with lat/long locations to be retrieved}
+\item{file}{A CSV file with lat/long locations to be retrieved.}
 }
 \value{
-data.tb         SITS tibble with the time series
+A sits tibble with the time series.
 }
 \description{
-This function extracts a SITS time series from a set of
+This function extracts a sits time series from a set of
               Raster Layers whose metadata is stored in a tibble
-              created by the sits_STraster function
+              created by the sits_STraster function.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -7,10 +7,10 @@
 sits_formula_smooth(predictors_index = -2:0)
 }
 \arguments{
-\item{predictors_index}{index of the valid columns whose names are used to compose formula (default: NULL)}
+\item{predictors_index}{Index of the valid columns whose names are used to compose formula (default: NULL).}
 }
 \value{
-result_fun       a function that computes a valid formula
+A function that computes a valid formula.
 }
 \description{
 A function to be used as a symbolic description of some fitting models such as gam.

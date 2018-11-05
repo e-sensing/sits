@@ -8,16 +8,16 @@
   return(index) }, bands_suffix = "")
 }
 \arguments{
-\item{ts.tb}{tibble with a time series (one or more bands)}
+\item{ts.tb}{Tibble with a time series (one or more bands).}
 
-\item{fun}{function with one parameter as input and a vector or list of vectors as output.}
+\item{fun}{Function with one parameter as input and a vector or list of vectors as output.}
 
-\item{fun_index}{function with one parameter as input and a Date vector as output.}
+\item{fun_index}{Function with one parameter as input and a Date vector as output.}
 
-\item{bands_suffix}{string informing the resulting bands name's suffix.}
+\item{bands_suffix}{String informing the resulting bands name's suffix.}
 }
 \value{
-data.tb      sits tibble with same samples and the new bands
+A sits tibble with same samples and the new bands.
 }
 \description{
 Apply a 1D generic function to a time series and specific methods for

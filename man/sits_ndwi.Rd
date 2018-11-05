@@ -7,13 +7,13 @@
 sits_ndwi(data.tb)
 }
 \arguments{
-\item{data.tb}{valid sits tibble}
+\item{data.tb}{A valid sits tibble.}
 }
 \value{
-data.tb      sits tibble with the SAVI index
+A sits tibble with the SAVI index.
 }
 \description{
-Adds new tasseled cap bands
+Adds new tasseled cap bands.
 }
 \examples{
 \donttest{
