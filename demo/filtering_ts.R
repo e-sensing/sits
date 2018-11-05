@@ -56,7 +56,7 @@ prodes_whit.tb <- sits_whittaker(prodes_226_064, lambda = 2.0)
 w1 <- sits_whittaker(prodes_226_064[1,], lambda = 2.0)
 
 w1 %>%
-    sits_merge (prodes_226_064[1,]) %>%
+    sits_merge(prodes_226_064[1,]) %>%
     sits_select_bands(ndvi, ndvi.whit) %>%
     sits_plot()
 
