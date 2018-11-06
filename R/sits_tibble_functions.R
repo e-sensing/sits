@@ -209,7 +209,7 @@ sits_dates <- function(data.tb) {
 #' @name sits_merge
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function merges the time series of two STIS tibbles.
+#' @description This function merges the time series of two sits tibbles.
 #' To merge two series, we consider that they contain different
 #' attributes but refer to the same coverage, and spatio-temporal location.
 #' This function is useful to merge different bands of the same spatio-temporal locations.

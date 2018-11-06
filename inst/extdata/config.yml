@@ -9,7 +9,7 @@ default:
 
     # Protocols accepted for data acess
     protocols               : ["WTSS", "SATVEG", "RASTER"]
-    # Time series services known to SITS
+    # Time series services known to sits
     ts_services             : ["WTSS-INPE", "SATVEG", "RASTER"]
     # Names of ts_services per protocols
     WTSS_services           : ["WTSS-INPE"]

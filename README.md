@@ -1,7 +1,7 @@
 SITS - Satellite Image Time Series Analysis
 ================
 
-The SITS package is a set of tools for working with satellite image time series. Includes data retrieval from a WTSS (web time series service), different visualisation methods for image time series, smoothing methods for noisy time series, different clustering methods, including dendrograms and SOM. Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition and provides machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
+Package sits is a set of tools for working with satellite image time series. Includes data retrieval from a WTSS (web time series service), different visualisation methods for image time series, smoothing methods for noisy time series, different clustering methods, including dendrograms and SOM. Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition and provides machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
 
 ### Overview
 
@@ -36,7 +36,7 @@ The **sits** package is a set of tools for working with satellite image time ser
 
 ### Installation
 
-Please install the SITS package from github, making sure you have the latest version of the other packages it requires:
+Please install sits package from github, making sure you have the latest version of the other packages it requires:
 
 ``` r
 devtools::install_github("e-sensing/sits")
