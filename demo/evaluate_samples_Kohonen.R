@@ -1,8 +1,6 @@
+# satellite image time series package (SITS)
+# example of clustering using self-organizin maps
 library(sits)
-library(ggplot2)
-library(tibble)
-library(zoo)
-library(Rcpp)
 
 data.tb <- data("samples_MT_9classes")
 data.tb <- samples_MT_9classes
@@ -21,7 +19,9 @@ koh <-
         grid_xdim = 25,
         grid_ydim = 25,
         rlen = 100,
-        dist.fcts = "euclidean"
+        dist.fcts = "euclidean",
+        decay.fcts = "linear",
+        neighbourhood.fct = "gaussian"
     )
 
 #Analyze the mixture between groups and extract informations about confusion matrix
@@ -43,5 +43,4 @@ number_of_subgroup <- lengths(neurons_subgroup)
 
 #Plot subgroups
 sits_plot_subgroups(neurons_subgroup)
-
 

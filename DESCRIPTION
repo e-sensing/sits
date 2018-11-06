@@ -61,7 +61,6 @@ Imports:
     proxy,
     purrr,
     ranger,
-    randomcoloR,
     raster (>= 2.6),
     readr,
     reshape2,

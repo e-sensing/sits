@@ -7,7 +7,6 @@
 #' \itemize{
 #'  \item{"codes" - }{Plot in each neuron the vector weight which corresponds to it }
 #'  \item{"mapping" - }{shows where samples are mapped.}
-#'
 #' }
 #' The sits_plot_kohonen function plots a classified kohonen map.A set of neuron
 #' with same category corresponds to a same cluster.
@@ -18,9 +17,9 @@
 sits_plot_kohonen <- function(koh, type = "codes")
 {
     if (type == "mapping"){
-        graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping")
+        kohonenDTW:::plot.kohonenDTW(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping")
     } else{
-        graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes")
+        kohonenDTW:::plot.kohonenDTW(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes")
     }
 
     #create a legend
@@ -54,9 +53,7 @@ sits_plot_cluster_info <- function(data, text_title = " Cluster ")
 {
     data <- data$mixture_cluster
     labels <- data$original_class
-    palette <- randomcoloR::distinctColorPalette(30)
 
-    #this plot correspond to metrics by cluster
     p <-
         ggplot2::ggplot() + ggplot2::geom_bar(
             ggplot2::aes(

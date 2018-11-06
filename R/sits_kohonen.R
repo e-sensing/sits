@@ -29,7 +29,16 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
     }
 
     #set colors to paint neurons
-    pallete_neighbors <- randomcoloR::distinctColorPalette(30)
+    pallete1 <- sits:::.sits_brewerRGB[[sits:::.sits_color_name("Set1")]]
+    set1 <- head(unique(unlist(pallete1, use.names = FALSE)), -1)
+
+    pallete2 <- sits:::.sits_brewerRGB[[sits:::.sits_color_name("Accent")]]
+    accent <- head(unique(unlist(pallete2, use.names = FALSE)), -1)
+
+    pallete3 <- sits:::.sits_brewerRGB[[sits:::.sits_color_name("Pastel1")]]
+    pastel1 <- head (unique(unlist(pallete3, use.names = FALSE)), -1)
+
+    pallete_neighbors <- c(set1, pastel1, accent)
 
     # does the input data exist?
     .sits_test_tibble (data.tb)
@@ -95,13 +104,11 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
     {
         paint_neurons <- which(class_matrix[, 2] == j)
         neighborhood[paint_neurons] <- pallete_neighbors [j]
-
     }
     empty_neuron <- which(neurons_labelled == "Noclass")
     neighborhood[empty_neuron] <- " White"
     kohonen_obj$paint_map <- neighborhood
     kohonen_obj$neurons_labelled <- neurons_labelled
-
 
     info_samples_tables <-
         structure(list(kohonen_obj = kohonen_obj, info_samples = result.tb),
