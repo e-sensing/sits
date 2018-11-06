@@ -8,24 +8,24 @@
   stats, filter, multicores)
 }
 \arguments{
-\item{coverage}{input raster coverage}
+\item{coverage}{Input raster coverage.}
 
-\item{samples}{tibble with samples}
+\item{samples}{Tibble with samples.}
 
-\item{ml_model}{machine learning model}
+\item{ml_model}{Machine learning model.}
 
-\item{first_row}{first row to start reading}
+\item{first_row}{First row to start reading.}
 
-\item{n_rows_block}{number of rows in the block}
+\item{n_rows_block}{Number of rows in the block.}
 
-\item{stats}{normalization parameters}
+\item{stats}{Normalization parameters.}
 
-\item{filter}{smoothing filter to be applied}
+\item{filter}{Smoothing filter to be applied.}
 
-\item{multicores}{number of cores to process the time series}
+\item{multicores}{Number of cores to process the time series.}
 }
 \value{
-dist_DT         data.table with values for classification
+A data.table with values for classification.
 }
 \description{
 Read a block of values retrived from a set of raster bricks

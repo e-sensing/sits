@@ -1,7 +1,7 @@
 context("Services")
 
 test_that("Info", {
-    sits_services()
+    invisible(capture.output(sits_services()))
     expect_true(TRUE)
 })
 

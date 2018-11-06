@@ -1,15 +1,15 @@
-#' @title Create a sits table to store the time series information
+#' @title Create a sits tibble to store the time series information
 #' @name sits_tibble
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description this function returns an empty sits table.
-#' These tibbles are the main structures of the "sits" package.
+#' @description This function returns an empty sits tibble.
+#' Sits tibbles are the main structures of sits package.
 #' They contain both the satellite image time series and its metadata.
 #' A sits tibble is a tibble with pre-defined columns that
 #' has the metadata and data for each time series. The columns are
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
-#' Most functions on the sits package use a sits tibble as input (with additional parameters)
-#' and a sits tibble as output. This allows for chaining of operation on time series.
+#' <longitude, latitude, start_date, end_date, label, coverage, time_series>.
+#' Most functions of sits package get a sits tibble as input (with additional parameters)
+#' and return another sits tibble as output. This allows chaining functions over sits tibbles.
 #'
 #' @return A sits tibble.
 #' @export

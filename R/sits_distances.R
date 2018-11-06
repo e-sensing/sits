@@ -39,8 +39,8 @@ sits_distances <- function(data.tb) {
 #' @name .sits_sample_distances
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Takes a sits table with different labels and
-#'              returns a new table. For a given field as a group criterion, this new table contains a given number or percentage
+#' @description Takes a sits tibble with different labels and
+#'              returns a new tibble. For a given field as a group criterion, this new table contains a given number or percentage
 #'              of the total number of samples per group. Parameter n indicantes the number of random samples with reposition.
 #'              Parameter frac indicates a fraction of random samples without reposition. If frac > 1, no sampling is done.
 #'

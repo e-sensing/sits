@@ -7,11 +7,11 @@
 .sits_ggplot_series(row, colors = "Dark2")
 }
 \arguments{
-\item{row}{a row of a SITS table with the time series to be plotted}
+\item{row}{A row of a sits tibble with the time series to be plotted.}
 
-\item{colors}{string - the set of Brewer colors to be used for plotting}
+\item{colors}{A string with the set of Brewer colors to be used for plotting.}
 }
 \description{
-plots a set of time series using ggplot. This function is used
+Plots a set of time series using ggplot. This function is used
 for showing the same lat/long location in a series of time steps.
 }

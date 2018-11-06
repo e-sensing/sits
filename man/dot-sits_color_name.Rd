@@ -7,11 +7,11 @@
 .sits_color_name(name = NULL)
 }
 \arguments{
-\item{name}{name of the brewer color set}
+\item{name}{name of the brewer color set.}
 }
 \value{
-name     string - a common color set name
+A string with the common color set name.
 }
 \description{
-brewer color schemes names to be used with `sits_plot_dendrogram`
+brewer color schemes names to be used with `sits_plot_dendrogram`.
 }

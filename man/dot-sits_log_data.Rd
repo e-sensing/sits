@@ -7,12 +7,12 @@
 .sits_log_data(data, file_name = "data_save.rda")
 }
 \arguments{
-\item{data}{Data set to be saved}
+\item{data}{Data set to be saved.}
 
-\item{file_name}{Name of data to be saved}
+\item{file_name}{Name of data to be saved.}
 }
 \description{
-Save a data set in the log directory
+Save a data set in the log directory.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

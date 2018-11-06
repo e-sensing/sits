@@ -9,18 +9,16 @@ sits_services <- function() {
 
     for (s in services) {
         if (s != "RASTER") {
-            cat(paste0("Service - ", s,"\n"))
-            q <- paste0(s,"_products")
-            products <- sits.env$config[[q]]
+            cat(paste0("Service: \"", s,"\"\n"))
+            q <- paste0(s,"_coverages")
+            coverages <- sits.env$config[[q]]
 
-            for (p in products) {
-                cat(paste0("   Product - ", p,"\n"))
-                q1 <- paste0(s,"_coverages")
-                coverages <- sits.env$config[[q1]][[p]]
-                    cat(paste0("      Coverages - ", paste0(coverages),"\n"))
-
+            for (cov in coverages) {
+                cat(paste0("   Coverage: \"", cov, "\"\n"))
+                q1 <- paste0(s, "_bands")
+                bands <- sits.env$config[[q1]][[cov]]
+                cat(paste0("      Bands: \"", paste(bands, collapse = "\", \""), "\"\n"))
             }
-            cat("------------------\n")
         }
     }
 }

@@ -7,15 +7,15 @@
 sits_distances(data.tb)
 }
 \arguments{
-\item{data.tb}{tibble with time series data and metadata}
+\item{data.tb}{A tibble with time series data and metadata.}
 }
 \value{
-distances_DT  data.table where columns have the reference label and the time series values as distances
+A data.table where columns have the reference label and the time series values as distances.
 }
 \description{
 This function allows using a set of labelled time series as
 input to the machine learning models. The attributes used to train the model
-are the series themselves. This function extracts the time series from a SITS tibble
+are the series themselves. This function extracts the time series from a sits tibble
 and "spreads" them in time to produce a tibble with distances. It needs an additional
 value that adjusts the values of the time series to meet the criteria of
 machine learning methods, since most ML methods do not allow for negative data.
@@ -25,7 +25,6 @@ machine learning methods, since most ML methods do not allow for negative data.
 data(cerrado_2classes)
 # estimate distances from the data
 distances <- sits_distances(cerrado_2classes)
-
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

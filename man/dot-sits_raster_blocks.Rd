@@ -7,26 +7,26 @@
 .sits_raster_blocks(coverage, ml_model, interval, memsize, multicores)
 }
 \arguments{
-\item{coverage}{input raster coverage}
+\item{coverage}{Input raster coverage.}
 
-\item{ml_model}{machine learning model}
+\item{ml_model}{Machine learning model.}
 
-\item{interval}{classification interval}
+\item{interval}{Classification interval.}
 
-\item{memsize}{memory available for classification (in GB)}
+\item{memsize}{Memory available for classification (in GB).}
 
-\item{multicores}{number of threads to process the time series.}
+\item{multicores}{Number of threads to process the time series.}
 }
 \value{
-bs              list with three attributes: n (number of blocks), rows (list of rows to begin),
-                   nrows - number of rows to read at each iteration
+List with three attributes: n (number of blocks), rows (list of rows to begin),
+nrows (number of rows to read at each iteration).
 }
 \description{
 Defines the size of the block of a Raster Brick to be read into memory.
 The total pixels of a RasterBrick is given by combining the size of the timeline
 with the number of rows and columns of the Brick. For example, a Raster Brick
 with 500 rows and 500 columns and 400 time instances will have a total pixel size
-of 800 Mb if pixels are 64-bit. I
+of 800 Mb if pixels are 64-bit.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

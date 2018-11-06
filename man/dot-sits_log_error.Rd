@@ -7,13 +7,13 @@
 .sits_log_error(message)
 }
 \arguments{
-\item{message}{Message to be logged}
+\item{message}{Message to be logged.}
 }
 \value{
-boolean      TRUE if creation succeeds
+TRUE if creation succeeds.
 }
 \description{
-Logs an error message in the log file
+Logs an error message in the log file.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

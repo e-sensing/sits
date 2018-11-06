@@ -7,16 +7,16 @@
 .sits_normalize_matrix(data.mx, stats.tb, band, multicores)
 }
 \arguments{
-\item{data.mx}{matrix of values}
+\item{data.mx}{Matrix of values.}
 
-\item{stats.tb}{statistics for normalization}
+\item{stats.tb}{Statistics for normalization.}
 
-\item{band}{band to be normalized}
+\item{band}{Band to be normalized.}
 
-\item{multicores}{number of cores}
+\item{multicores}{Number of cores.}
 }
 \value{
-data.mx        a normalized matrix
+A normalized matrix.
 }
 \description{
 this function normalizes one band of the values read from a raster brick

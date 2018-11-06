@@ -9,45 +9,45 @@
   nrows, ncols, xmin, xmax, ymin, ymax, xres, yres, crs, files.vec)
 }
 \arguments{
-\item{r_objs.lst}{list of raster objects contained in the coverage}
+\item{r_objs.lst}{List of raster objects contained in the coverage.}
 
-\item{name}{name of the coverage}
+\item{name}{Name of the coverage.}
 
-\item{service}{name of the time series service}
+\item{service}{Name of the time series service.}
 
-\item{bands.vec}{vector with the names of the bands}
+\item{bands.vec}{Vector with the names of the bands.}
 
-\item{labels.vec}{vector with labels (only valid for classified data)}
+\item{labels.vec}{Vector with labels (only valid for classified data).}
 
-\item{scale_factors.vec}{vector with scale factor for each band}
+\item{scale_factors.vec}{Vector with scale factor for each band.}
 
-\item{missing_values.vec}{vector with missing values for each band}
+\item{missing_values.vec}{Vector with missing values for each band.}
 
-\item{minimum_values.vec}{vector with minimum values for each band}
+\item{minimum_values.vec}{Vector with minimum values for each band.}
 
-\item{timeline.lst}{list with vectors of valid timelines for each band}
+\item{timeline.lst}{List with vectors of valid timelines for each band.}
 
-\item{nrows}{number of rows in the coverage}
+\item{nrows}{Number of rows in the coverage.}
 
-\item{ncols}{number of columns in the coverage}
+\item{ncols}{Number of columns in the coverage.}
 
-\item{xmin}{spatial extent (xmin)}
+\item{xmin}{Spatial extent (xmin).}
 
-\item{xmax}{spatial extent (xmax)}
+\item{xmax}{Spatial extent (xmax).}
 
-\item{ymin}{spatial extent (ymin)}
+\item{ymin}{Spatial extent (ymin).}
 
-\item{ymax}{spatial extent (ymin)}
+\item{ymax}{Spatial extent (ymin).}
 
-\item{xres}{spatial resolution (x dimension)}
+\item{xres}{Spatial resolution (x dimension).}
 
-\item{yres}{spatial resolution (y dimension)}
+\item{yres}{Spatial resolution (y dimension).}
 
-\item{crs}{CRS for coverage}
+\item{crs}{CRS for coverage.}
 
-\item{files.vec}{vector with associated files}
+\item{files.vec}{Vector with associated files.}
 }
 \description{
-uses the configuration file to print information and save metadata about a
-chosen coverage
+Uses the configuration file to print information and save metadata about a
+chosen coverage.
 }

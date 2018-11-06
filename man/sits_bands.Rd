@@ -7,14 +7,14 @@
 sits_bands(data.tb)
 }
 \arguments{
-\item{data.tb}{valid sits table}
+\item{data.tb}{Valid sits tibble.}
 }
 \value{
-result.vec  string vector with the names of the bands
+A string vector with the names of the bands.
 }
 \description{
-finds the names of the bands of time series in a sits table
-              or sets the names of the bands if a set of values is given
+Finds the names of the bands of time series in a sits tibble
+              or sets the names of the bands if a set of values is given.
 }
 \examples{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)

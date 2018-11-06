@@ -7,17 +7,17 @@
 .sits_select_indexes(class_info.tb, ntimes)
 }
 \arguments{
-\item{class_info.tb}{tibble with classification information}
+\item{class_info.tb}{Tibble with classification information.}
 
-\item{ntimes}{number of time instances}
+\item{ntimes}{Number of time instances.}
 }
 \value{
-select.lst         list of values to be extracted for each classification interval
+List of values to be extracted for each classification interval.
 }
 \description{
 Given a list of time indexes that indicate the start and end of the values to
 be extracted to classify each band, obtain a list of indexes that will be used to
-extract values from a combined distance table (with has all the bands put together)
+extract values from a combined distance tibble (with has all the bands put together).
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

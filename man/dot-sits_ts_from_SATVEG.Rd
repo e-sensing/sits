@@ -7,19 +7,19 @@
 .sits_ts_from_SATVEG(longitude, latitude, name, prefilter)
 }
 \arguments{
-\item{longitude}{double - the longitude of the chosen location}
+\item{longitude}{The longitude of the chosen location.}
 
-\item{latitude}{double - the latitude of the chosen location}
+\item{latitude}{The latitude of the chosen location.}
 
-\item{name}{name of the desired coverage in SATVEG (see configuration file)}
+\item{name}{Name of the desired coverage in SATVEG (see configuration file).}
 
-\item{prefilter}{string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
+\item{prefilter}{String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
 }
 \value{
-status         TRUE if no problems are detected
+TRUE if no problems are detected.
 }
 \description{
-Retrieves a time series from the SATVEG service
+Retrieves a time series from the SATVEG service.
 }
 \author{
 Julio Esquerdo, \email{julio.esquerdo@embrapa.br}

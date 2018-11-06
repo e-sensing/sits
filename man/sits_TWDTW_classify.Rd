@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_TWDTW.R
 \name{sits_TWDTW_classify}
 \alias{sits_TWDTW_classify}
-\title{Find matches between a set of SITS patterns and segments of sits tibble using TWDTW}
+\title{Find matches between a set of sits patterns and segments of sits tibble using TWDTW}
 \usage{
 sits_TWDTW_classify(data.tb = NULL, patterns.tb = NULL, bands = NULL,
   dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
@@ -10,34 +10,34 @@ sits_TWDTW_classify(data.tb = NULL, patterns.tb = NULL, bands = NULL,
   interval = "12 month", overlap = 0.5)
 }
 \arguments{
-\item{data.tb}{sits tibble  to be classified using TWTDW}
+\item{data.tb}{A sits tibble to be classified using TWTDW.}
 
-\item{patterns.tb}{tibble with known temporal signatures for the chosen classes}
+\item{patterns.tb}{A tibble with known temporal signatures for the chosen classes.}
 
-\item{bands}{(string) bands to be used for classification}
+\item{bands}{Names of the bands to be used for classification.}
 
-\item{dist.method}{(string) method to derive the local cost matrix.}
+\item{dist.method}{Name of the method to derive the local cost matrix.}
 
-\item{alpha}{(double) steepness of the logistic function used for temporal weighting}
+\item{alpha}{Steepness of the logistic function used for temporal weighting (a double value).}
 
-\item{beta}{(integer) midpoint (in days) of the logistic function}
+\item{beta}{Midpoint (in days) of the logistic function (an integer).}
 
-\item{theta}{(double)  relative weight of the time distance compared to the dtw distance}
+\item{theta}{Relative weight of the time distance compared to the dtw distance (a double value).}
 
-\item{span}{minimum number of days between two matches of the same pattern in the time series (approximate)}
+\item{span}{Minimum number of days between two matches of the same pattern in the time series (approximate).}
 
-\item{keep}{(logical) keep internal values for plotting matches}
+\item{keep}{Keep internal values for plotting matches? (A logical value).}
 
-\item{start_date}{(date) start of the classification period}
+\item{start_date}{Start date of the classification period.}
 
-\item{end_date}{(date) the end of the classification period}
+\item{end_date}{End date of the classification period.}
 
-\item{interval}{(months) period between two classifications}
+\item{interval}{Period between two classifications in months.}
 
-\item{overlap}{minimum overlapping between one match and the interval of classification}
+\item{overlap}{Minimum overlapping between one match and the interval of classification.}
 }
 \value{
-matches       a dtwSat S4 object with the matches
+A dtwSat S4 object with the matches.
 }
 \description{
 Returns  the results of the TWDTW matching function.
@@ -55,11 +55,11 @@ seasonal variability.
 \examples{
 \donttest{
 # Get a set of samples for the Mato Grosso state in Brazil
-samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
+samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
 # obtain a set of patterns for these samples
 patterns.tb <- sits_patterns(samples.tb)
 # Get a point to classify
-point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi", "nir", "mir"))
+point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
 # find the matches between the patterns and the time series using the TWDTW algorithm
 matches <- sits_TWDTW_classify(point.tb, patterns.tb, bands = c("ndvi", "evi", "nir", "mir"),
                                alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)

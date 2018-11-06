@@ -27,7 +27,7 @@
 #' @param missing_values    Vector of missing values for each band.
 #' @param minimum_values    Vector of minimum values for each band.
 #' @param files             Vector of file names for each band (only for raster data).
-#' @seealso To see the available values for the parameters above use \code{\link{sits_config}} or \code{\link{sits_show_config}}.
+#' @seealso To see the available values for the parameters above use \code{\link{sits_services}}, \code{\link{sits_config}} or \code{\link{sits_show_config}}.
 #' @examples
 #' \donttest{
 #' # Example 1. Retrieve information about a WTSS coverage
@@ -39,7 +39,7 @@
 #'
 #' # create a raster coverage file based on the information about the files
 #' raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
-#'              timeline = timeline_modis_392, bands = c("ndvi"), files = files)
+#'              timeline = timeline_modis_392, bands = "ndvi", files = files)
 #' }
 #' @export
 sits_coverage <- function(service        = "RASTER",

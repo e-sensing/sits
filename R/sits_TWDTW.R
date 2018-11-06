@@ -126,7 +126,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Returns a sits table with the results of the TWDTW classifier.
+#' @description Returns a sits tibble with the results of the TWDTW classifier.
 #' The TWDTW classifier uses the result of the sits_TWDTW_matches function to
 #' find the best alignments of these matches in intervals chosen by the user
 #' @references Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
@@ -140,7 +140,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 #' @param  end_date      The end date of the classification period.
 #' @param  interval      The period between two classifications.
 #' @param  overlap       Minimum overlapping between one match and the interval of classification.
-#' @return A sits table with the information on matches for the data.
+#' @return A sits tibble with the information on matches for the data.
 .sits_TWDTW_breaks <- function (matches, data.tb, start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
     # verifies if dtwSat package is installed
@@ -185,10 +185,9 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Converts data from a sits table to an instance of a TWDTW time series class,
-#' Returns a twdtwTimeSeries object (S4).
+#' @description Converts data from a sits tibble to an instance of a TWDTW time series class.
 #'
-#' @param  data.tb       A table in sits format with time series to be converted to TWTDW time series.
+#' @param  data.tb       A tibble in sits format with time series to be converted to TWTDW time series.
 #' @return A time series in TWDTW format (an object of the twdtwTimeSeries class).
 .sits_toTWDTW <- function (data.tb){
     # transform each sits time series into a list of zoo
@@ -204,7 +203,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 #' @title Transform patterns from TWDTW format to sits format
 #' @name .sits_fromTWDTW_matches
 #'
-#' @description Reads one TWDTW matches object and transforms it into a tibble ready to be stored into a sits table column.
+#' @description Reads one TWDTW matches object and transforms it into a tibble ready to be stored into a sits tibble column.
 #'
 #' @param  match.twdtw  A TWDTW Matches object of class dtwSat::twdtwMatches (S4).
 #' @return A tibble containing the matches information.

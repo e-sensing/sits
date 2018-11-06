@@ -7,17 +7,17 @@
 .sits_scale_matrix_integer(values.mx, scale_factor, multicores)
 }
 \arguments{
-\item{values.mx}{matrix of values}
+\item{values.mx}{Matrix of values.}
 
-\item{scale_factor}{scaling factor}
+\item{scale_factor}{Scaling factor.}
 
-\item{multicores}{number of cores}
+\item{multicores}{Number of cores.}
 }
 \value{
-values.mx      scaled integer matrix
+Scaled integer matrix.
 }
 \description{
-this function transforms a numerical matrix into an integer one
+This function transforms a numerical matrix into an integer one.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

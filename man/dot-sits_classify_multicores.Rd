@@ -8,24 +8,24 @@
   interval, filter, memsize, multicores)
 }
 \arguments{
-\item{coverage}{tibble with metadata for a RasterBrick}
+\item{coverage}{Tibble with metadata for a RasterBrick.}
 
-\item{coverage_class}{raster layer objects to be written}
+\item{coverage_class}{Taster layer objects to be written.}
 
-\item{samples}{tibble with samples used for training the classification model}
+\item{samples}{Tibble with samples used for training the classification model.}
 
-\item{ml_model}{a model trained by \code{\link[sits]{sits_train}}}
+\item{ml_model}{A model trained by \code{\link[sits]{sits_train}}.}
 
-\item{interval}{classification interval}
+\item{interval}{Classification interval.}
 
-\item{filter}{smoothing filter to be applied to the data}
+\item{filter}{Smoothing filter to be applied to the data.}
 
-\item{memsize}{memory available for classification (in GB)}
+\item{memsize}{Memory available for classification (in GB).}
 
-\item{multicores}{number of cores}
+\item{multicores}{Number of cores.}
 }
 \value{
-layer.lst       list  of the classified raster layers
+List of the classified raster layers.
 }
 \description{
 Classifies a block of data using multicores. It breaks

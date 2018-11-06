@@ -8,22 +8,22 @@
   end_date = NULL, bands = NULL, label = "NoClass")
 }
 \arguments{
-\item{coverage}{metadata about the coverage where the data is to be retrived}
+\item{coverage}{Metadata about the coverage where the data is to be retrived.}
 
-\item{longitude}{double - the longitude of the chosen location}
+\item{longitude}{The longitude of the chosen location.}
 
-\item{latitude}{double - the latitude of the chosen location}
+\item{latitude}{The latitude of the chosen location.}
 
-\item{start_date}{date - the start of the period}
+\item{start_date}{Date with the start of the period.}
 
-\item{end_date}{date - the end of the period}
+\item{end_date}{Date with the end of the period.}
 
-\item{bands}{list of string - a list of the names of the bands of the coverage}
+\item{bands}{A list of string with the names of the bands of the coverage.}
 
-\item{label}{string - the label to attach to the time series (optional)}
+\item{label}{A string with the label to attach to the time series (optional).}
 }
 \value{
-data.tb        a SITS tibble
+A sits tibble.
 }
 \description{
 Returns one set of time series provided by a WTSS server

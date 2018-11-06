@@ -8,16 +8,16 @@ sits_kfold_validate(data.tb, folds = 5, ml_method = sits_rfor(),
   multicores = 1)
 }
 \arguments{
-\item{data.tb}{sits tibble}
+\item{data.tb}{A sits tibble.}
 
-\item{folds}{number of partitions to create.}
+\item{folds}{Number of partitions to create.}
 
-\item{ml_method}{machine learning method}
+\item{ml_method}{Machine learning method.}
 
-\item{multicores}{number of cores for processing}
+\item{multicores}{Number of cores for processing.}
 }
 \value{
-pred_ref.tb    tibble containing pairs of reference and predicted values
+A tibble containing pairs of reference and predicted values.
 }
 \description{
 Splits the set of time series into training and validation and
@@ -42,9 +42,9 @@ This function returns the confusion matrix, and Kappa values.
 \examples{
 \donttest{
 # read a set of samples
-data (cerrado_2classes)
+data(cerrado_2classes)
 # perform a five fold validation with the SVM machine learning method
-conf_matrix1.mx <- sits_kfold_validate (cerrado_2classes, ml_method = sits_rfor())
+conf_matrix1.mx <- sits_kfold_validate(cerrado_2classes)
 # print the confidence matrix
 sits_conf_matrix(conf_matrix1.mx)
 }

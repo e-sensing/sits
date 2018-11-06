@@ -7,10 +7,10 @@
 .sits_normalization_param(data.tb)
 }
 \arguments{
-\item{data.tb}{a tibble in SITS format}
+\item{data.tb}{A sits tibble.}
 }
 \value{
-result.tb  a tibble with statistics
+A tibble with statistics.
 }
 \description{
 this function normalizes the time series using the mean and

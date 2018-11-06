@@ -8,21 +8,21 @@
   getOption("digits") - 3), ...)
 }
 \arguments{
-\item{x}{an object of class \code{confusionMatrix}}
+\item{x}{An object of class \code{confusionMatrix}.}
 
-\item{mode}{a single character string either "sens_spec", "prec_recall", or
-"everything"}
+\item{mode}{A single character string either "sens_spec", "prec_recall", or
+"everything".}
 
-\item{digits}{number of significant digits when printed}
+\item{digits}{Mumber of significant digits when printed.}
 
-\item{\dots}{optional arguments to pass to \code{print.table}}
+\item{\dots}{Optional arguments to pass to \code{print.table}.}
 }
 \value{
-\code{x} is invisibly returned
+\code{x} is invisibly returned.
 }
 \description{
 This is an adaptation of the print.confusionMatrix method by the "caret" package
-with some of the descriptions adapted for the more common usage in Earth Observation
+with some of the descriptions adapted for the more common usage in Earth Observation.
 }
 \seealso{
 \code{\link{confusionMatrix}}

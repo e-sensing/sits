@@ -7,17 +7,17 @@
 .sits_scale_data(values.mx, scale_factor, multicores)
 }
 \arguments{
-\item{values.mx}{matrix of values}
+\item{values.mx}{Matrix of values.}
 
-\item{scale_factor}{scaling factor}
+\item{scale_factor}{Scaling factor.}
 
-\item{multicores}{number of cores}
+\item{multicores}{Number of cores.}
 }
 \value{
-values.mx      scaled matrix
+A scaled matrix.
 }
 \description{
-this function normalizes one band of the values read from a raster brick
+This function normalizes one band of the values read from a raster brick.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -8,24 +8,24 @@
   scale_factor, stats, filter, multicores)
 }
 \arguments{
-\item{values.mx}{matrix of values retrieved from a brick}
+\item{values.mx}{Matrix of values retrieved from a brick.}
 
-\item{band}{band to be processed}
+\item{band}{Band to be processed.}
 
-\item{missing_value}{missing value for the band}
+\item{missing_value}{Missing value for the band.}
 
-\item{minimum_value}{minimum values for the band}
+\item{minimum_value}{Minimum values for the band.}
 
-\item{scale_factor}{scale factor for each band (only for raster data)}
+\item{scale_factor}{Scale factor for each band (only for raster data).}
 
-\item{stats}{normalization parameters}
+\item{stats}{Normalization parameters.}
 
-\item{filter}{smoothing filter to be applied}
+\item{filter}{Smoothing filter to be applied.}
 
-\item{multicores}{number of cores to process the time series}
+\item{multicores}{Number of cores to process the time series.}
 }
 \value{
-values.mx        matrix with pre-processed values
+Matrix with pre-processed values.
 }
 \description{
 Preprocess a set of values retrived from a raster brick

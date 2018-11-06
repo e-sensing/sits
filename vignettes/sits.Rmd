@@ -112,6 +112,10 @@ Usually, samples are provided by experts whose take *in-loco* field observations
 
 The `sits` package allows different methods of data input, including: (a) obtain data from a WTSS (Web Series Time Service); (b) obtain data from the SATVEG service developed by EMBRAPA (Brazil's Agriculture Research Agency). (c) read data stored in a time series in the ZOO format [@Zeileis2005]; (d) read a time series from a RasterBrick [@Hijmans2015]. Option (d) will be described in the section were we describe raster processing. The WTSS service is a light-weight service, designed to retrieve time series for selected locations and periods [@Vinhas2016], been implemented by the research team of the National Institute for Space Research to allow remote access to time series data. The SATVEG service provides NDVI and EVI time series vegetation indices from MODIS image from whole Brazilian territory [@Embrapa2014]. To view service details, the user needs to call `sits_services()` that provides information on the coverages available on the server.
 
+```{r}
+sits_services()
+```
+
 After finding out which coverages are available at the different time series services, one may request specific information on each coverage by using  `sits_coverage()`. This lists the contents of the data set, including source, bands, spatial extent and resolution, time range, and temporal resolution. This information is then stored in a tibble for later use.
 
 ```{r}

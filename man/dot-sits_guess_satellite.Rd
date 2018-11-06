@@ -7,13 +7,13 @@
 .sits_guess_satellite(r_obj)
 }
 \arguments{
-\item{r_obj}{a raster object}
+\item{r_obj}{A raster object.}
 }
 \value{
-satellite    name of the satellite (or sensor)
+Name of the satellite (or sensor).
 }
 \description{
-Based on the projection, tries to guess what is the satellite
+Based on the projection, tries to guess what is the satellite.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

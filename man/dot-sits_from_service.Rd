@@ -8,25 +8,25 @@
   bands, prefilter = "1", label = "NoClass")
 }
 \arguments{
-\item{coverage}{coverage metadata}
+\item{coverage}{Coverage metadata.}
 
-\item{longitude}{double - the longitude of the chosen location}
+\item{longitude}{Longitude of the chosen location.}
 
-\item{latitude}{double - the latitude of the chosen location)}
+\item{latitude}{Latitude of the chosen location).}
 
-\item{start_date}{(optional) date - the start of the period}
+\item{start_date}{Optional start date of the period.}
 
-\item{end_date}{(optional) date - the end of the period}
+\item{end_date}{Optional end date of the period.}
 
-\item{bands}{(optional) string vector - the names of the bands to be retrieved}
+\item{bands}{Optional string vector with the names of the bands to be retrieved.}
 
-\item{prefilter}{string (only for SATVEG) ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
+\item{prefilter}{String (only for SATVEG) ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 
-\item{label}{string - the label to attach to the time series}
+\item{label}{String with the label to attach to the time series.}
 }
 \value{
-table          a SITS tibble
+A sits tibble.
 }
 \description{
-obtains a time series from a time series service
+Obtains a time series from a time series service.
 }

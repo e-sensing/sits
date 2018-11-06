@@ -7,21 +7,21 @@
 .sits_estimate_processing_time(start_time, select.lst, bs, block, time)
 }
 \arguments{
-\item{start_time}{initial processing time}
+\item{start_time}{Initial processing time.}
 
-\item{select.lst}{list of time intervals}
+\item{select.lst}{List of time intervals.}
 
-\item{bs}{raster block parameters}
+\item{bs}{Raster block parameters.}
 
-\item{block}{current block}
+\item{block}{Current block.}
 
-\item{time}{current interval}
+\item{time}{Current interval.}
 }
 \value{
-values.mx      scaled matrix
+Scaled matrix.
 }
 \description{
-this function normalizes one band of the values read from a raster brick
+This function normalizes one band of the values read from a raster brick.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

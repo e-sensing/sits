@@ -7,15 +7,15 @@
 .sits_get_time_index(class_info.tb)
 }
 \arguments{
-\item{class_info.tb}{tibble with information required for classification}
+\item{class_info.tb}{Tibble with information required for classification.}
 }
 \value{
-time_index   list with indexes of the input data set associated to each time interval
-                     used for classification
+List with indexes of the input data set associated to each time interval
+used for classification.
 }
 \description{
 Obtains the indexes of the blocks to be extract for each time interval
-associated with classification
+associated with classification.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

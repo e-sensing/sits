@@ -8,18 +8,18 @@ sits_cloud_filter(data.tb = NULL, cutoff = 0.25, bands_suffix = "cf",
   apply_whit = FALSE, lambda_whit = 1)
 }
 \arguments{
-\item{data.tb}{tibble with time series data and metadata with only the "ndvi" band}
+\item{data.tb}{A tibble with time series data and metadata with only the "ndvi" band.}
 
-\item{cutoff}{numeric value for the maximum acceptable value of a NDVI difference}
+\item{cutoff}{A numeric value for the maximum acceptable value of a NDVI difference.}
 
-\item{bands_suffix}{uffix to rename the filtered bands}
+\item{bands_suffix}{Suffix to rename the filtered bands.}
 
-\item{apply_whit}{(logical) apply the whittaker smoother after filtering?}
+\item{apply_whit}{Apply the whittaker smoother after filtering? The default value is FALSE.}
 
-\item{lambda_whit}{lambda parameter of the whittaker smoother}
+\item{lambda_whit}{Lambda parameter of the whittaker smoother.}
 }
 \value{
-result.tb    a sits tibble with same samples and the new bands
+A sits tibble with same samples and the new bands.
 }
 \description{
 This function tries to remove clouds in the ndvi band of
@@ -34,7 +34,7 @@ Finally, the function applies a whitakker smoother.
 # This is an area full of clouds
 data(prodes_226_064)
 # Select the NDVI band of the first point
-point_ndvi.tb <- sits_select(prodes_226_064[1,], bands = c("ndvi"))
+point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # Apply the cloud filter
 point_cld.tb <- sits_cloud_filter(point_ndvi.tb)
 # Merge the filtered with the raw data
@@ -42,7 +42,6 @@ point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 # Plot the result
 sits_plot (point2.tb)
 }
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

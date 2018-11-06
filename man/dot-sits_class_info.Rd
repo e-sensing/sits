@@ -7,14 +7,14 @@
 .sits_class_info(data.tb, samples.tb, interval)
 }
 \arguments{
-\item{data.tb}{description on the data being classified}
+\item{data.tb}{Description on the data being classified.}
 
-\item{samples.tb}{samples used for training the classification model}
+\item{samples.tb}{Samples used for training the classification model.}
 
-\item{interval}{interval between two sucessive classifications}
+\item{interval}{Interval between two sucessive classifications.}
 }
 \value{
-class_info.tb   tibble with the classification information
+A tibble with the classification information.
 }
 \description{
 Time series classification requires that users do a series of steps:
@@ -23,12 +23,12 @@ Time series classification requires that users do a series of steps:
 temporal interval, and start and end dates per interval.
 (c) Clean the training data to ensure it meets the specifications of the classification info.
 (d) Use the clean data to train a machine learning classifier.
-(e) Classify non-labelled data sets
+(e) Classify non-labelled data sets.
 
 In this set of steps, this function provides support for step (b). It requires the user
 to provide a timeline, the classification interval, and the start and end dates of
 the reference period. The results is a tibble with information that allows the user
-to perform steps (c) to (e)
+to perform steps (c) to (e).
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -8,25 +8,25 @@
   label = "NoClass")
 }
 \arguments{
-\item{raster.tb}{A tibble with metadata information about a raster data set}
+\item{raster.tb}{A tibble with metadata information about a raster data set.}
 
-\item{longitude}{Longitude of the chosen location}
+\item{longitude}{Longitude of the chosen location.}
 
-\item{latitude}{Latitude of the chosen location}
+\item{latitude}{Latitude of the chosen location.}
 
-\item{start_date}{date - the start of the period}
+\item{start_date}{The start date of the period.}
 
-\item{end_date}{date - the end of the period}
+\item{end_date}{The end date of the period.}
 
-\item{label}{Label to attach to the time series}
+\item{label}{Label to attach to the time series.}
 }
 \value{
-data.tb         SITS tibble with the time series
+A sits tibble with the time series.
 }
 \description{
-This function extracts a SITS time series from a set of
+This function extracts a sits time series from a set of
               Raster Layers whose metadata is stored in a tibble
-              created by the sits_STraster function
+              created by the sits_STraster function.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

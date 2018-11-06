@@ -7,17 +7,17 @@
 .sits_split_data(data, ncores, ml_model)
 }
 \arguments{
-\item{data}{data (data.table or matrix)}
+\item{data}{Data (data.table or matrix).}
 
-\item{ncores}{number of cores for processing}
+\item{ncores}{Number of cores for processing.}
 
-\item{ml_model}{machine learning model which is part of the object}
+\item{ml_model}{Machine learning model which is part of the object.}
 }
 \value{
-block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
+List of pairs of positions (first row, last row) to be assigned to each core.
 }
 \description{
-this functions splits a data.table into a list of chunks for multicore processing
+This function splits a data.table into a list of chunks for multicore processing.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

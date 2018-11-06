@@ -7,12 +7,12 @@
 .sits_create_folds(data.tb, folds = 5)
 }
 \arguments{
-\item{data.tb}{SITS tibble to be partitioned}
+\item{data.tb}{A sits tibble to be partitioned.}
 
-\item{folds}{number of folds}
+\item{folds}{Number of folds.}
 }
 \description{
-Split a SITS table into k groups, based on the label
+Split a sits tibble into k groups, based on the label.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

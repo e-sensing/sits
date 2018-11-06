@@ -7,13 +7,13 @@
 sits_kalman(data.tb = NULL, bands_suffix = "kf")
 }
 \arguments{
-\item{data.tb}{The SITS tibble containing the original time series}
+\item{data.tb}{A sits tibble containing the original time series.}
 
-\item{bands_suffix}{The suffix to be appended to the smoothed filters}
+\item{bands_suffix}{The suffix to be appended to the smoothed filters.}
 }
 \value{
-output.tb   A tibble with smoothed sits time series
+A tibble with smoothed sits time series.
 }
 \description{
-A simple Kalman filter implementation
+A simple Kalman filter implementation.
 }

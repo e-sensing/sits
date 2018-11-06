@@ -7,14 +7,14 @@
 .sits_time_index(dates_index.lst, timeline, bands)
 }
 \arguments{
-\item{dates_index.lst}{A list of dates with the subsets of the input data}
+\item{dates_index.lst}{A list of dates with the subsets of the input data.}
 
-\item{timeline}{The timeline of the data set}
+\item{timeline}{The timeline of the data set.}
 
-\item{bands}{Bands used for classification}
+\item{bands}{Bands used for classification.}
 }
 \value{
-time_index.lst  The subsets of the timeline
+The subsets of the timeline.
 }
 \description{
 Create a list of time indexes from the dates index

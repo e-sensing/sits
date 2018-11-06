@@ -7,12 +7,12 @@
 .sits_get_timeline(service, name)
 }
 \arguments{
-\item{service}{name of the time series service}
+\item{service}{Name of the time series service.}
 
-\item{name}{name of the coverage}
+\item{name}{Name of the coverage.}
 }
 \value{
-size          vector of (nrows, ncols)
+Vector of (nrows, ncols).
 }
 \description{
 Retrieve the default timeline for a product for a given time series service

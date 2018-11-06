@@ -2,7 +2,7 @@ context("Config")
 
 test_that("All", {
     sits_config()
-    sits_show_config()
+    invisible(capture.output(sits_show_config()))
 })
 
 test_that("Internal", {

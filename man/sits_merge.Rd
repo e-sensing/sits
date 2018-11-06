@@ -7,27 +7,27 @@
 sits_merge(data1.tb, data2.tb)
 }
 \arguments{
-\item{data1.tb}{the first SITS table to be merged}
+\item{data1.tb}{The first sits tibble to be merged.}
 
-\item{data2.tb}{the second SITS table to be merged}
+\item{data2.tb}{The second sits tibble to be merged.}
 }
 \value{
-result.tb    a merged SITS tibble with a nested set of time series
+A merged sits tibble with a nested set of time series.
 }
 \description{
-This function merges the time series of two STIS tables.
+This function merges the time series of two STIS tibbles.
 To merge two series, we consider that they contain different
 attributes but refer to the same coverage, and spatio-temporal location.
 This function is useful to merge different bands of the same spatio-temporal locations.
 For example, one may want to put the raw and smoothed bands for the same set of locations
-in the same table.
+in the same tibble.
 }
 \examples{
 \donttest{
 #' # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the whittaker smoother
-point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0)
+point_ws.tb <- sits_whittaker(point_ndvi, lambda = 3.0)
 # Plot the two points to see the smoothing effect
 sits_plot(sits_merge(point_ndvi, point_ws.tb))
 }

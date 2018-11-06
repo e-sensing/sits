@@ -7,10 +7,10 @@
 .sits_timeline(data.tb)
 }
 \arguments{
-\item{data.tb}{A sits tibble (either a SITS tibble or a raster metadata)}
+\item{data.tb}{A sits tibble (either a sits tibble or a raster metadata).}
 }
 \description{
-This function returns the timeline for a given coverage
+This function returns the timeline for a given coverage.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

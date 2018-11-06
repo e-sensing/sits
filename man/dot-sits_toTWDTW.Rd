@@ -7,14 +7,13 @@
 .sits_toTWDTW(data.tb)
 }
 \arguments{
-\item{data.tb}{a table in SITS format with time series to be converted to TWTDW time series}
+\item{data.tb}{A tibble in sits format with time series to be converted to TWTDW time series.}
 }
 \value{
-ts.twdtw      a time series in TWDTW format (an object of the twdtwTimeSeries class)
+A time series in TWDTW format (an object of the twdtwTimeSeries class).
 }
 \description{
-Converts data from a SITS table to an instance of a TWDTW time series class,
-Returns a twdtwTimeSeries object (S4)
+Converts data from a sits tibble to an instance of a TWDTW time series class.
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}

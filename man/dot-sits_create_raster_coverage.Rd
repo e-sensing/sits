@@ -9,26 +9,26 @@
   minimum_values.vec, files.vec)
 }
 \arguments{
-\item{raster.lst}{list of Raster objects associated with the raster coverages}
+\item{raster.lst}{List of Raster objects associated with the raster coverages.}
 
-\item{service}{time series service}
+\item{service}{Time series service.}
 
-\item{name}{name of the coverage}
+\item{name}{Name of the coverage.}
 
-\item{timeline.lst}{list - coverage timelines}
+\item{timeline.lst}{List of coverage timelines.}
 
-\item{bands.vec}{vector - names of bands}
+\item{bands.vec}{Vector with names of bands.}
 
-\item{labels.vec}{vector - labels for classified image}
+\item{labels.vec}{Vector of labels for classified image.}
 
-\item{scale_factors.vec}{vector - scale factors}
+\item{scale_factors.vec}{Vector of scale factors.}
 
-\item{missing_values.vec}{vector - missing values}
+\item{missing_values.vec}{Vector of missing values.}
 
-\item{minimum_values.vec}{vector - minimum values}
+\item{minimum_values.vec}{Vector of minimum values.}
 
-\item{files.vec}{vector - names of raster files where the data is stored}
+\item{files.vec}{Vector of names of raster files where the data is stored.}
 }
 \description{
-creates a tibble with metadata about a given coverage
+Creates a tibble with metadata about a given coverage.
 }

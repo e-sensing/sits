@@ -8,25 +8,25 @@
   time, first_row, multicores)
 }
 \arguments{
-\item{output.lst}{list with value layers and probability bricks}
+\item{output.lst}{List with value layers and probability bricks.}
 
-\item{prediction_DT}{data.table with predicted probabilities for each class}
+\item{prediction_DT}{A data.table with predicted probabilities for each class.}
 
-\item{labels}{class labels}
+\item{labels}{Class labels.}
 
-\item{int_labels}{integer values corresponding to labels}
+\item{int_labels}{Integer values corresponding to labels.}
 
-\item{time}{interval to be written to file}
+\item{time}{Interval to be written to file.}
 
-\item{first_row}{initial row of the output layer to write block}
+\item{first_row}{Initial row of the output layer to write block.}
 
-\item{multicores}{number of cores to process the time series}
+\item{multicores}{Number of cores to process the time series.}
 }
 \value{
-output.lst       updated list with value layers and probability bricks
+Updated list with value layers and probability bricks.
 }
 \description{
-write the raster values to the outout files
+Write the raster values to the outout files.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

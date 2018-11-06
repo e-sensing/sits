@@ -99,7 +99,7 @@ sits_classify_raster <- function(file        = NULL,
 #' @param  coverage_class  Taster layer objects to be written.
 #' @param  samples         Tibble with samples used for training the classification model.
 #' @param  ml_model        A model trained by \code{\link[sits]{sits_train}}.
-#' @param  interval        classification interval.
+#' @param  interval        Classification interval.
 #' @param  filter          Smoothing filter to be applied to the data.
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of cores.

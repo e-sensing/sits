@@ -77,7 +77,7 @@ Imports:
     zoo
 LinkingTo:
     Rcpp
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.0.9000
 Collate: 
     'RcppExports.R'
     'data.R'

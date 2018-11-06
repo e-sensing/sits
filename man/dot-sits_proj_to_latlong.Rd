@@ -7,17 +7,17 @@
 .sits_proj_to_latlong(x, y, crs)
 }
 \arguments{
-\item{x}{double - x coordinate of the chosen location}
+\item{x}{X coordinate of the chosen location.}
 
-\item{y}{double - y coordinateof the chosen location}
+\item{y}{Y coordinateof the chosen location.}
 
-\item{crs}{projection definition to be converted from}
+\item{crs}{Projection definition to be converted from.}
 }
 \value{
-xy             matrix with latlong coordinates
+Matrix with latlong coordinates.
 }
 \description{
-Transform a latitude and longitude coordinate to a XY projection coordinate
+Transform a latitude and longitude coordinate to a XY projection coordinate.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

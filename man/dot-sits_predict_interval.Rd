@@ -8,24 +8,24 @@
   first_row, multicores)
 }
 \arguments{
-\item{DT}{data.table with distance values}
+\item{DT}{A data.table with distance values.}
 
-\item{time}{time interval to be processed}
+\item{time}{Time interval to be processed.}
 
-\item{output.lst}{list with the raster objects for classification (values and probs)}
+\item{output.lst}{List with the raster objects for classification (values and probs).}
 
-\item{ml_model}{machine learning model to be applied}
+\item{ml_model}{Machine learning model to be applied.}
 
-\item{labels}{class labels}
+\item{labels}{Class labels.}
 
-\item{int_labels}{integer values corresponding to labels}
+\item{int_labels}{Integer values corresponding to labels.}
 
-\item{first_row}{initial row of the output layer to write block}
+\item{first_row}{Initial row of the output layer to write block.}
 
-\item{multicores}{number of cores to process the time series}
+\item{multicores}{Number of cores to process the time series.}
 }
 \value{
-layers.lst        list of layers with classification results
+List of layers with classification results.
 }
 \description{
 Classify one interval of data

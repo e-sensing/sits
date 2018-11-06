@@ -7,12 +7,12 @@
 .sits_match_indexes(timeline, ref_dates.lst)
 }
 \arguments{
-\item{timeline}{Timeline of input observations (vector)}
+\item{timeline}{Timeline of input observations (vector).}
 
-\item{ref_dates.lst}{A list of breaks that will be applied to the input data set}
+\item{ref_dates.lst}{A list of breaks that will be applied to the input data set.}
 }
 \value{
-dates_index.lst     A list of indexes that match the reference dates to the timelines
+A list of indexes that match the reference dates to the timelines.
 }
 \description{
 For correct classification, the time series of the input data set

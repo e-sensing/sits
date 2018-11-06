@@ -2,20 +2,20 @@
 % Please edit documentation in R/sits_tibble_functions.R
 \name{sits_transmute}
 \alias{sits_transmute}
-\title{Add new SITS bands and drops existing.}
+\title{Add new sits bands and drops existing.}
 \usage{
 sits_transmute(data.tb, ...)
 }
 \arguments{
-\item{data.tb}{valid sits tibble}
+\item{data.tb}{A sits tibble.}
 
-\item{...}{`name=value` pairs expressions. See `dplyr::transmute` help for more details.}
+\item{...}{Pair expressions in the format `name = value`. See \code{\link[dplyr]{transmute}} help for more details.}
 }
 \value{
-data.tb      sits tibble with same samples and the new bands
+A sits tibble with same samples and the new bands.
 }
 \description{
-Adds new bands and drops existing in the time series of a sits tibble using dplyr::transmute function
+Adds new bands and drops existing in the time series of a sits tibble using dplyr::transmute function.
 }
 \examples{
 \donttest{

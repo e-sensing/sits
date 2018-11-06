@@ -8,13 +8,13 @@ sits_plot_raster(raster_class.tb, time = 1, title = "Classified Image",
   colors = NULL)
 }
 \arguments{
-\item{raster_class.tb}{a tibble with the metadata for a classified raster object}
+\item{raster_class.tb}{A tibble with the metadata for a classified raster object.}
 
-\item{time}{temporal reference for plot}
+\item{time}{Temporal reference for plot.}
 
-\item{title}{string}
+\item{title}{A string.}
 
-\item{colors}{color pallete}
+\item{colors}{Color pallete.}
 }
 \description{
 plots a raster using ggplot. This function is used

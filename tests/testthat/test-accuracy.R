@@ -1,8 +1,8 @@
 context("Accuracy")
 test_that("XLS", {
     data(cerrado_2classes)
-    pred_ref.tb <-  sits_kfold_validate(cerrado_2classes, folds = 2)
-    conf.mx <- sits_conf_matrix(pred_ref.tb)
+    pred_ref.tb <- sits_kfold_validate(cerrado_2classes, folds = 2)
+    invisible(capture.output(conf.mx <- sits_conf_matrix(pred_ref.tb)))
     results <- list()
     conf.mx$name <- "confusion_matrix"
     results[[length(results) + 1]] <- conf.mx
@@ -25,7 +25,7 @@ test_that("Accuracy", {
 
     names(class.tb)
 
-    conf.mx <- sits_conf_matrix(class.tb)
+    invisible(capture.output(conf.mx <- sits_conf_matrix(class.tb)))
 
     expect_equal(length(names(conf.mx)), 6)
 

@@ -8,22 +8,22 @@
   end_date = NULL, prefilter = "1", label = "NoClass")
 }
 \arguments{
-\item{coverage}{the coverage metadata with the SATVEG information}
+\item{coverage}{The coverage metadata with the SATVEG information.}
 
-\item{longitude}{double - the longitude of the chosen location}
+\item{longitude}{A double value with the longitude of the chosen location.}
 
-\item{latitude}{double - the latitude of the chosen location}
+\item{latitude}{A double value with the latitude of the chosen location.}
 
-\item{start_date}{date - the start of the period}
+\item{start_date}{The start date of the period.}
 
-\item{end_date}{date - the end of the period}
+\item{end_date}{The end date of the period.}
 
-\item{prefilter}{string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
+\item{prefilter}{A string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 
-\item{label}{string - the label to attach to the time series (optional)}
+\item{label}{A string with the label to attach to the time series (optional).}
 }
 \value{
-data.tb        a SITS tibble
+A sits tibble.
 }
 \description{
 Returns one set of MODIS time series provided by the EMBRAPA server (SATVEG)

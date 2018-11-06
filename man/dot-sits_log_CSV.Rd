@@ -7,12 +7,12 @@
 .sits_log_CSV(csv.tb, file_name = "errors.csv")
 }
 \arguments{
-\item{csv.tb}{Tibble containing CSV data}
+\item{csv.tb}{Tibble containing CSV data.}
 
-\item{file_name}{Name of data to be saved}
+\item{file_name}{Name of data to be saved.}
 }
 \description{
-Save a CSV data set in the log directory
+Save a CSV data set in the log directory.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

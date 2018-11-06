@@ -8,22 +8,22 @@
 .sits_factory_function2(data.tb, data2.tb, fun)
 }
 \arguments{
-\item{data.tb}{tibble with time series with the first data input to the function}
+\item{data.tb}{Tibble with time series with the first data input to the function.}
 
-\item{data2.tb}{tibble with time series with the second data input to the function}
+\item{data2.tb}{Tibble with time series with the second data input to the function.}
 
-\item{fun}{function that performs some calculation on the input data}
+\item{fun}{Function that performs some calculation on the input data.}
 }
 \description{
-This internal function implements the factory method pattern for the SITS package
+This internal function implements the factory method pattern for the sits package
 in the case of two data inputs
 Its role is to create a generic interface to closures in R so that the functions
-in the SITS package can be called in two different ways:
+in the sits package can be called in two different ways:
 1. They can be called directly, passing input data and parameters.
 2. They can be called as second-order values (parameters of another function).
    In the second case, the call will pass no data values and only pass the parameters for execution
 
-The factory pattern is used in many situations in the SITS package, to allow different alternatives
+The factory pattern is used in many situations in the sits package, to allow different alternatives
 for filtering, pattern creation, training, and cross-validation
 }
 \author{

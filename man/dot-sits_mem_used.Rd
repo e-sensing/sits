@@ -7,8 +7,8 @@
 .sits_mem_used()
 }
 \value{
-memory used in GB
+Memory used in GB.
 }
 \description{
-Calls the gc() and rounds the result in GB
+Calls the gc() and rounds the result in GB.
 }

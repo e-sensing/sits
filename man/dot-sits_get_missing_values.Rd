@@ -7,14 +7,14 @@
 .sits_get_missing_values(service, name, bands)
 }
 \arguments{
-\item{service}{name of the product}
+\item{service}{Name of the product.}
 
-\item{name}{name of the coverage}
+\item{name}{Name of the coverage.}
 
-\item{bands}{vector of bands}
+\item{bands}{Vector of bands.}
 }
 \value{
-missing_values
+The missing values.
 }
 \description{
 Retrieve the missing values for a given band for an image product

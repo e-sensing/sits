@@ -7,15 +7,15 @@
 .sits_check_results(prediction, nrows_DT)
 }
 \arguments{
-\item{prediction}{prototype with predictions}
+\item{prediction}{Prototype with predictions.}
 
-\item{nrows_DT}{number of rows of distance matrix}
+\item{nrows_DT}{Number of rows of distance matrix.}
 }
 \value{
-check           TRUE if check is OK
+TRUE if check is OK.
 }
 \description{
-verify that classification results have the right size
+Verify that classification results have the right size.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
