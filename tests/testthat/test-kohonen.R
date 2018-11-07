@@ -36,11 +36,11 @@ test_that("Creating clustering using Self-organizing Maps", {
     expect_true(all(file.remove(list.files(path = ".", pattern = ".png", full.names = TRUE))))
 
     evaluate_samples <- sits_evaluate_samples(
-        samples_MT_9classes,
+        data.tb,
         time_series.ts,
-        grid_xdim = 25,
-        grid_ydim = 25,
-        rlen = 100,
+        grid_xdim = 5,
+        grid_ydim = 5,
+        rlen = 20,
         distance = "euclidean",
         iterations = 1
     )
