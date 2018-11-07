@@ -17,9 +17,9 @@
 sits_plot_kohonen <- function(koh, type = "codes")
 {
     if (type == "mapping"){
-        kohonenDTW:::plot.kohonenDTW(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping")
+        plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping")
     } else{
-        kohonenDTW:::plot.kohonenDTW(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes")
+        plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes")
     }
 
     #create a legend

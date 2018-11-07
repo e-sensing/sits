@@ -1,6 +1,7 @@
 # satellite image time series package (SITS)
 # example of clustering using self-organizin maps
 library(sits)
+library(kohonenDTW)
 
 data.tb <- data("samples_MT_9classes")
 data.tb <- samples_MT_9classes
