@@ -14,18 +14,17 @@
 #' @param rlen           Number of times the complete data set will be presented to the SOM grid
 #' @param dist.fcts      The similiraty measure (distance).
 #' @param alpha          Learning rate, a vector of two numbers indicating the amount of change.
-#' @param decay.fcts     Type of learning rate and neighbourhood decay (linear or exponential).
 #' @param neighbourhood.fct Type of neighbourhood function (bubble or gaussian).
 #' @param  ...           Additional parameters to be passed to kohonen::supersom function.
 #' @return  A tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning tibble will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
 sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100, dist.fcts = "euclidean",
-                          alpha = 1, decay.fcts = "linear", neighbourhood.fct = "bubble", ...) {
+                          alpha = 1, neighbourhood.fct = "bubble", ...) {
 
     # verifies if dtwSat package is installed
-    if (!base::requireNamespace("kohonenDTW", quietly = TRUE)) {
-        stop("kohonenDTW needed for this function to work. Please install it.", call. = FALSE)
+    if (!base::requireNamespace("kohonen", quietly = TRUE)) {
+        stop("kohonen needed for this function to work. Please install it.", call. = FALSE)
     }
 
     #set colors to paint neurons
@@ -50,14 +49,13 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
     # creates the resulting tibble
     cluster.tb <- sits_tibble()
 
-    grid <- kohonenDTW::somgrid(xdim = grid_xdim, ydim = grid_ydim, topo = "rectangular", neighbourhood.fct = neighbourhood.fct)
-    kohonen_obj  <- kohonenDTW::supersom (
+    grid <- kohonen::somgrid(xdim = grid_xdim, ydim = grid_ydim, topo = "rectangular", neighbourhood.fct = neighbourhood.fct)
+    kohonen_obj  <- kohonen::supersom (
         time_series,
         grid = grid,
         rlen = rlen,
         alpha = alpha,
         dist.fcts = dist.fcts,
-        decay.fcts = decay.fcts,
         keep.data = TRUE,
         ...
     )
@@ -197,8 +195,8 @@ sits_evaluate_samples <- function(data.tb,
                                   mode = "online")
 {
     # verifies if dtwSat package is installed
-    if (!base::requireNamespace("kohonenDTW", quietly = TRUE)) {
-        stop("kohonenDTW needed for this function to work. Please install it.", call. = FALSE)
+    if (!base::requireNamespace("kohonen", quietly = TRUE)) {
+        stop("kohonen needed for this function to work. Please install it.", call. = FALSE)
     }
 
     #create an id for each sample
@@ -213,9 +211,9 @@ sits_evaluate_samples <- function(data.tb,
     for (k in 1:iterations)
     {
         kohonen_obj <-
-            kohonenDTW::supersom(
+            kohonen::supersom(
                 time_series,
-                grid = kohonenDTW::somgrid(grid_xdim, grid_ydim , "rectangular", "gaussian", toroidal = FALSE),
+                grid = kohonen::somgrid(grid_xdim, grid_ydim , "rectangular", "gaussian", toroidal = FALSE),
                 rlen = rlen,
                 alpha = alpha,
                 radius = radius,
@@ -383,7 +381,7 @@ sits_evaluate_samples <- function(data.tb,
     for (neuron in 1:grid_size)
     {
         neurons_neighbors <-
-            which(kohonenDTW::unit.distances(koh$grid)[, neuron] == radius)
+            which(kohonen::unit.distances(koh$grid)[, neuron] == radius)
         class_neighbors <- class_vector[neurons_neighbors]
 
         count_neighbors <- table(class_neighbors)

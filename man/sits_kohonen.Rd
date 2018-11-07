@@ -6,7 +6,7 @@
 \usage{
 sits_kohonen(data.tb, time_series, bands = NULL, grid_xdim = 25,
   grid_ydim = 25, rlen = 100, dist.fcts = "euclidean", alpha = 1,
-  decay.fcts = "linear", neighbourhood.fct = "bubble", ...)
+  neighbourhood.fct = "bubble", ...)
 }
 \arguments{
 \item{data.tb}{A tibble with samples to be clustered.}
@@ -24,8 +24,6 @@ sits_kohonen(data.tb, time_series, bands = NULL, grid_xdim = 25,
 \item{dist.fcts}{The similiraty measure (distance).}
 
 \item{alpha}{Learning rate, a vector of two numbers indicating the amount of change.}
-
-\item{decay.fcts}{Type of learning rate and neighbourhood decay (linear or exponential).}
 
 \item{neighbourhood.fct}{Type of neighbourhood function (bubble or gaussian).}
 

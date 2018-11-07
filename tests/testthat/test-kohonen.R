@@ -1,7 +1,7 @@
 context("Evaluate samples")
 test_that("Creating clustering using Self-organizing Maps", {
 
-    library(kohonenDTW)
+    library(kohonen)
     #skip_on_cran()
     data("samples_MT_9classes")
     data.tb <- samples_MT_9classes[1:500,]
