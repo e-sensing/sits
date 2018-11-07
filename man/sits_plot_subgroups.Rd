@@ -11,8 +11,9 @@ sits_plot_subgroups(neurons_subgroup)
 }
 \description{
 Plot the average pattern of subgroups from  weights of neurons labelled.
-Each neuron has a weight which can be represent a set of time series samples. The neurons of same
-category or label form a cluster, however this cluster can have different patterns.
+Each neuron has a weight which can be represent a set of time series samples. Neurons of same
+category or label form a cluster, but the neurons within a cluster can have different patterns.
+The plots are also saved into files named "class_neurons<class_neuron>_plot_EVI<subgroup>.png".
 }
 \author{
 Lorena Santos \email{lorena.santos@inpe.br}

@@ -5,10 +5,10 @@
 #'
 #' The plot function produces different plots based on the input data:
 #' \itemize{
-#'  \item{"codes" - }{Plot in each neuron the vector weight which corresponds to it }
+#'  \item{"codes" - }{Plot in each neuron the vector weight which corresponds to it.}
 #'  \item{"mapping" - }{shows where samples are mapped.}
 #' }
-#' The sits_plot_kohonen function plots a classified kohonen map.A set of neuron
+#' Function sits_plot_kohonen plots a classified kohonen map. A set of neurons
 #' with same category corresponds to a same cluster.
 #' @param  koh  Data to be plotted (must be a kohonen object).
 #' @param  type Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.
@@ -17,9 +17,9 @@
 sits_plot_kohonen <- function(koh, type = "codes")
 {
     if (type == "mapping"){
-        plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping")
+        graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping")
     } else{
-        plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes")
+        graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes")
     }
 
     #create a legend
@@ -46,7 +46,7 @@ sits_plot_kohonen <- function(koh, type = "codes")
 #' @description Plot a bar graph with informations about each cluster.
 #' The percentage of mixture between the clusters.
 #'
-#' @param  data      Table containing the percentage of mixture between the clusters.
+#' @param data       Table containing the percentage of mixture between the clusters.
 #' @param text_title Title of plot. Default is "Cluster".
 #' @export
 sits_plot_cluster_info <- function(data, text_title = " Cluster ")
@@ -78,25 +78,22 @@ sits_plot_cluster_info <- function(data, text_title = " Cluster ")
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
 #' @description Plot the average pattern of subgroups from  weights of neurons labelled.
-#' Each neuron has a weight which can be represent a set of time series samples. The neurons of same
-#' category or label form a cluster, however this cluster can have different patterns.
-#'
+#' Each neuron has a weight which can be represent a set of time series samples. Neurons of same
+#' category or label form a cluster, but the neurons within a cluster can have different patterns.
+#' The plots are also saved into files named "class_neurons<class_neuron>_plot_EVI<subgroup>.png".
 #' @param  neurons_subgroup  The list contain the EVI and NDVI time series (weight of each neuron) by class.
 #' @export
-sits_plot_subgroups <- function (neurons_subgroup)
+sits_plot_subgroups <- function(neurons_subgroup)
 {
     #get the name of class_neurons from list neurons_subgroup
     class_neurons <- names(neurons_subgroup)
 
-    i=1
     for (i in 1:length(class_neurons))
     {
         #get the current group
         group <- neurons_subgroup[i]
 
-        print (class_neurons[i])
         #acess each list inside the list of group
-        j=1
         index_time <- vector()
         for (j in 1:length(group[[1]]))
         {
@@ -152,16 +149,16 @@ sits_plot_subgroups <- function (neurons_subgroup)
                                                                            "EVI") + ggplot2::ggtitle(paste(class_neurons[i], " Group ", j , sep = ''))
             #save plots in a set folder
             ggplot2::ggsave(
-                paste(class_neurons[i], "_plot.EVI", j, ".png" , sep = ''),
+                paste(class_neurons[i], "_plot_EVI", j, ".png" , sep = ''),
                 plot = p.evi,
                 device = "png"
             )
 
             ggplot2::ggsave(
-                paste(class_neurons[i], "_plot.NDVI", j, ".png" , sep = ''),
+                paste(class_neurons[i], "_plot_NDVI", j, ".png" , sep = ''),
                 plot = p.ndvi,
                 device = "png"
             )
-        }#end loop for subgroups
-    }#end loop for class_neurons
+        }
+    }
 }

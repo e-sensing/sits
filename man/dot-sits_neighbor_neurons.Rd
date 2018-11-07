@@ -14,7 +14,7 @@
 \item{radius}{Radius of neigbourhood of each neuron.}
 }
 \value{
-returns a SITS tibble with informations about the vinicity of each neuron.
+Returns a sits tibble with informations about the vinicity of each neuron.
 }
 \description{
 This function create a table contained the information about all

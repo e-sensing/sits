@@ -9,14 +9,14 @@
 \arguments{
 \item{data.tb}{A SITS tibble with info of samples and kohonen.obj.}
 
-\item{size_grid}{The size of kohonen map.}
+\item{grid_size}{The size of kohonen map.}
 }
 \value{
-returns the labels of each neuron.
+Returns the labels of each neuron.
 }
 \description{
 Labelling all neurons using the majority voting.
-If the neuron is empty, It will labeled as "NoClass".
+If the neuron is empty, it will labeled as "NoClass".
 }
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}

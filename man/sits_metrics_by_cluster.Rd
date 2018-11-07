@@ -4,13 +4,13 @@
 \alias{sits_metrics_by_cluster}
 \title{Metrics by cluster}
 \usage{
-sits_metrics_by_cluster(info_sample_cluster.tb)
+sits_metrics_by_cluster(data.tb)
 }
 \arguments{
-\item{info_sample_cluster.tb}{tibble containg information about evaluation of samples}
+\item{data.tb}{Tibble containg information about evaluation of samples.}
 }
 \value{
-returns the confusion matrix and a table with percentage of mixture between the clusters
+Returns the confusion matrix and a table with percentage of mixture between the clusters.
 }
 \description{
 This function extracts metrics about the clusters calculating

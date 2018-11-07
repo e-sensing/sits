@@ -9,27 +9,29 @@ sits_evaluate_samples(data.tb, time_series, grid_xdim = 5,
   distance = "euclidean", iterations = 1, mode = "online")
 }
 \arguments{
-\item{data.tb}{a SITS tibble with info of samples}
+\item{data.tb}{A sits tibble with info of samples.}
 
-\item{time_series}{the time series extracted from SITS tibble}
+\item{time_series}{The time series extracted from sits tibble.}
 
-\item{grid_xdim}{x dimension of the SOM grid (default = 5)}
+\item{grid_xdim}{X dimension of the SOM grid (default = 5).}
 
-\item{grid_ydim}{y dimension of the SOM grid}
+\item{grid_ydim}{Y dimension of the SOM grid.}
 
-\item{rlen}{number of times the complete data set will be presented to the SOM grid}
+\item{rlen}{Number of times the complete data set will be presented to the SOM grid}
 
-\item{alpha}{learning rate, a vector of two numbers indicating the amount of change.}
+\item{alpha}{Learning rate, a vector of two numbers indicating the amount of change.}
 
-\item{radius}{the radius of kohonen map.}
+\item{radius}{The radius of kohonen map.}
 
-\item{distance}{the similiraty measure (Euclidean or DTW)}
+\item{distance}{The similiraty measure.}
 
-\item{iterations}{the number of time to run the SOM cluster}
+\item{iterations}{The number of time to run the SOM cluster.}
+
+\item{mode}{Type of learning algorithm (online or batch).}
 }
 \value{
-returns a SITS tibble with a new column of label and a table with information about the
-confiability of each samples
+Returns a sits tibble with a new column of label and a table with information about the
+confiability of each samples.
 }
 \description{
 This function evaluate the samples and extract metrics from SOM cluster.
