@@ -2,13 +2,16 @@
 % Please edit documentation in R/sits_kohonen.R
 \name{sits_kohonen}
 \alias{sits_kohonen}
-\title{Cluster a set of satellite image time series using SOM}
+\title{Clustering a set of satellite image time series using SOM}
 \usage{
-sits_kohonen(data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5,
-  rlen = 100, alpha = c(0.05, 0.01), ...)
+sits_kohonen(data.tb, time_series, bands = NULL, grid_xdim = 25,
+  grid_ydim = 25, rlen = 100, dist.fcts = "euclidean", alpha = 1,
+  neighbourhood.fct = "bubble", ...)
 }
 \arguments{
-\item{data.tb}{A tibble with time series to be clustered.}
+\item{data.tb}{A tibble with samples to be clustered.}
+
+\item{time_series}{Time series extracted from tibble data.}
 
 \item{bands}{Bands to be clustered.}
 
@@ -16,39 +19,27 @@ sits_kohonen(data.tb, bands = NULL, grid_xdim = 5, grid_ydim = 5,
 
 \item{grid_ydim}{Y dimension of the SOM grid.}
 
-\item{rlen}{Number of times the complete data set will be presented to the SOM grid.}
+\item{rlen}{Number of times the complete data set will be presented to the SOM grid}
 
-\item{alpha}{Learning rate, a vector of two numbers indicating the amount of change.
-Default is to decline linearly from 0.05 to 0.01 over rlen updates.}
+\item{dist.fcts}{The similiraty measure (distance).}
+
+\item{alpha}{Learning rate, a vector of two numbers indicating the amount of change.}
+
+\item{neighbourhood.fct}{Type of neighbourhood function (bubble or gaussian).}
 
 \item{...}{Additional parameters to be passed to kohonen::supersom function.}
 }
 \value{
-A full kohonen object for data analysis.
+A tibble with the clusters time series or cluster' members time series according to return_member parameter.
+If return_members are FALSE, the returning tibble will contain a new collumn called `n_members` informing how many members has each cluster.
 }
 \description{
-This function uses package "kohonen" (self-organized maps) to find clusters in
-satellite image time series.
-}
-\examples{
-\donttest{
-# Retrieve a time series to be clusterized
-data("samples_MT_9classes")
-# compute a kohonen object
-koh_obj <- sits_kohonen(samples_MT_9classes)
-# generate a dataset
-cluster.tb <- sits_kohonen_cluster(samples_MT_9classes, koh_obj)
-# plot the result
-sits_cluster_frequency(cluster.tb)
-}
+This function uses package self-organized maps to find clusters in
+satellite image time series to cluster samples.
 }
 \references{
 `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Rolf Simoes, \email{rolf.simoes@inpe.br}
-
 Lorena Alves, \email{lorena.santos@inpe.br}
 }
