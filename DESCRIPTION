@@ -54,9 +54,11 @@ Imports:
     MASS,
     methods,
     mgcv,
+    NbClust,
     nnet,
     openxlsx,
     parallel,
+    proxy,
     purrr,
     ranger,
     raster (>= 2.6),
@@ -110,6 +112,7 @@ Collate:
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
+    'sits_plot_cluster.R'
     'sits_raster_classification.R'
     'sits_raster_blocks.R'
     'sits_raster_read_write.R'

@@ -79,17 +79,17 @@ test_that("Reading a point from SATVEG ", {
     point_terra.tb <- sits_getdata(coverage_1, longitude = -55.50563, latitude = -11.71557)
 
     expect_equal(length(point_terra.tb$time_series[[1]]), 3)
-    expect_equal(sum(point_terra.tb$time_series[[1]]$evi), 158.32, tolerance = 1e-3)
+    expect_equal(sum(point_terra.tb$time_series[[1]]$evi), 158.11, tolerance = 2)
 
     point_aqua.tb <- sits_getdata(coverage_2, longitude = -55.50563, latitude = -11.71557)
 
     expect_equal(length(point_aqua.tb$time_series[[1]]), 3)
-    expect_equal(sum(point_aqua.tb$time_series[[1]]$evi), 132.5906, tolerance = 1e-3)
+    expect_equal(sum(point_aqua.tb$time_series[[1]]$evi), 132.3852, tolerance = 2)
 
     point_comb.tb <- sits_getdata(coverage_3, longitude = -55.50563, latitude = -11.71557)
 
     expect_equal(length(point_comb.tb$time_series[[1]]), 3)
-    expect_equal(sum(point_comb.tb$time_series[[1]]$evi), 290.7543, tolerance = 1e-3)
+    expect_equal(sum(point_comb.tb$time_series[[1]]$evi), 290.3342, tolerance = 2)
 
     expect_true(length(point_comb.tb$time_series[[1]]$Index) >=
                               length(point_terra.tb$time_series[[1]]$Index))
