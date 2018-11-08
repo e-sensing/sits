@@ -29,13 +29,13 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
 
     #set colors to paint neurons
     pallete1 <- .sits_brewerRGB[[.sits_color_name("Set1")]]
-    set1 <- head(unique(unlist(pallete1, use.names = FALSE)), -1)
+    set1 <- utils::head(unique(unlist(pallete1, use.names = FALSE)), -1)
 
     pallete2 <- .sits_brewerRGB[[.sits_color_name("Accent")]]
-    accent <- head(unique(unlist(pallete2, use.names = FALSE)), -1)
+    accent <- utils::head(unique(unlist(pallete2, use.names = FALSE)), -1)
 
     pallete3 <- .sits_brewerRGB[[.sits_color_name("Pastel1")]]
-    pastel1 <- head (unique(unlist(pallete3, use.names = FALSE)), -1)
+    pastel1 <- utils::head(unique(unlist(pallete3, use.names = FALSE)), -1)
 
     pallete_neighbors <- c(set1, pastel1, accent)
 
