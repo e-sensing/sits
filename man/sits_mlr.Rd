@@ -2,29 +2,29 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_mlr}
 \alias{sits_mlr}
-\title{Train a SITS classifiaction model using multinomial log-linear regions via neural networks}
+\title{Train a sits classifiaction model using multinomial log-linear regions via neural networks}
 \usage{
 sits_mlr(data.tb = NULL, formula = sits_formula_linear(),
   n_weights = 20000, maxit = 2000, ...)
 }
 \arguments{
-\item{data.tb}{time series with the training samples}
+\item{data.tb}{Time series with the training samples.}
 
-\item{formula}{symbolic description of the model to be fit. SITS offers a set of such formulas (default: sits_formula_logref)}
+\item{formula}{Symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_formula_logref).}
 
-\item{n_weights}{maximum number of weights (should be proportional to size of input data)}
+\item{n_weights}{Maximum number of weights (should be proportional to size of input data).}
 
-\item{maxit}{maximum number of iterations (default 300)}
+\item{maxit}{Maximum number of iterations (default 300).}
 
-\item{...}{other parameters to be passed to nnet::multinom function}
+\item{...}{Other parameters to be passed to nnet::multinom function.}
 }
 \value{
-result          a model function to be passed in sits_predict
+A model function to be passed in sits_predict.
 }
 \description{
 Use multinomial log-linear (mlr) fitting model via neural networks to classify data.
 These attributes are distance metrics between patterns and observations, obtained by a distance
-function in SITS (see \code{\link[sits]{sits_distances}}).
+function in sits (see \code{\link[sits]{sits_distances}}).
 This function is a front-end to the "multinom" method in the "nnet" package.
 Please refer to the documentation in that package for more details.
 }

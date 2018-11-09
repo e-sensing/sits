@@ -10,7 +10,7 @@
 #' reference and y if the value of the signal. For each time, there will be as many predictions
 #' as there are sample values. The GAM model predicts a suitable
 #' approximation that fits the assumptions of the statistical model.
-#' By default, the gam methods  produces an approximation based on a smooth function.
+#' By default, the GAM method produces an approximation based on a smooth function.
 #'
 #' This method is based on the "createPatterns" method of the dtwSat package, which is also
 #' described in the reference paper.
@@ -20,40 +20,36 @@
 #' IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  data.tb       tibble in SITS format with time series
-#' @param  timeline      vector - timeline with the all dates for the coverage
-#' @param  start_date    starting date of the estimate (month-day)
-#' @param  end_date      end data of the estimated (month-day)
-#' @param  freq          interval in days for the estimates to be generated
-#' @param  formula       formula to be applied in the estimate
-#' @param  ...           any additional parameters
-#' @return patterns.tb   SITS tibble with the patterns
+#' @param  data.tb       A tibble in sits format with time series.
+#' @param  timeline      A timeline vector with the all dates for the coverage.
+#' @param  start_date    Starting date (month-day).
+#' @param  end_date      End date (month-day).
+#' @param  freq          Interval in days for the estimates to be generated.
+#' @param  formula       Formula to be applied in the estimate.
+#' @param  ...           Any additional parameters.
+#' @return A sits tibble with the patterns.
 #'
 #' @examples
 #' \donttest{
 #' # Read a set of samples for two classes
 #' data(cerrado_2classes)
 #' # Estimate a set of patterns (one for each label)
-#' patterns.tb <- sits_patterns (cerrado_2classes)
+#' patterns.tb <- sits_patterns(cerrado_2classes)
 #' # Show the patterns
-#' sits_plot (patterns.tb)
+#' sits_plot(patterns.tb)
 #'
 #' # Read a set of samples for the state of Mato Grosso, Brazil, provided by EMBRAPA
 #' data(samples_MT_9classes)
 #' # Estimate a set of patterns (one for each label)
-#' patterns.tb <- sits_patterns (samples_MT_9classes)
+#' patterns.tb <- sits_patterns(samples_MT_9classes)
 #' # Show the patterns
-#' sits_plot (patterns.tb)
+#' sits_plot(patterns.tb)
 #' }
 #' @export
-#'
 sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, end_date = NULL,
                       freq = 8, formula = y ~ s(x), ...){
-
-
     # function that is used to be called as a value from another function
     result_fun <- function(tb){
-
         # does the input data exist?
         .sits_test_tibble(tb)
 
@@ -64,7 +60,7 @@ sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, en
         patterns.tb <- sits_tibble()
 
         # what are the variables in the formula?
-        vars <-  all.vars(formula)
+        vars <- all.vars(formula)
 
         # align all samples to the same time series intervals
         sample_dates <- lubridate::as_date(tb[1,]$time_series[[1]]$Index)
@@ -87,7 +83,6 @@ sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, en
         # traverse labels
         patterns.lst <- labels %>%
             purrr::map(function(lb) {
-
                 # filter only those rows with the same label
                 label.tb <- dplyr::filter(tb, label == lb)
 
@@ -103,9 +98,8 @@ sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, en
                 # calculate the fit for each band
                 fit.lst <- bds %>%
                     purrr::map(function(bd) {
-
                         # retrieve the time series for each band
-                        label_b.tb <- sits_select_bands(label.tb, bd)
+                        label_b.tb <- sits_select_bands_(label.tb, bd)
                         ts <- label_b.tb$time_series
 
                         # melt the time series for each band into a long table
@@ -129,7 +123,6 @@ sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, en
                         names(res.tb)[names(res.tb) == "b"] <- bd
                         # return the tibble column to the list
                         return(res.tb)
-
                     }) # for each band
 
                 res.tb <- dplyr::bind_cols(fit.lst)
@@ -157,4 +150,3 @@ sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, en
 
     result <- .sits_factory_function(data.tb, result_fun)
 }
-

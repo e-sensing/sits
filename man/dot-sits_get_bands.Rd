@@ -7,12 +7,12 @@
 .sits_get_bands(service, name)
 }
 \arguments{
-\item{service}{name of the time series service}
+\item{service}{Name of the time series service.}
 
-\item{name}{name of the product}
+\item{name}{Name of the product.}
 }
 \value{
-bands         bands available
+The available bands.
 }
 \description{
 Retrieve the bands avaliable for the product in the time series service

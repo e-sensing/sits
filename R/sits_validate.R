@@ -22,26 +22,24 @@
 #'
 #' This function returns the confusion matrix, and Kappa values.
 #'
-#' @param data.tb         sits tibble
-#' @param folds           number of partitions to create.
-#' @param ml_method       machine learning method
-#' @param multicores      number of cores for processing
-#' @return pred_ref.tb    tibble containing pairs of reference and predicted values
+#' @param data.tb         A sits tibble.
+#' @param folds           Number of partitions to create.
+#' @param ml_method       Machine learning method.
+#' @param multicores      Number of cores for processing.
+#' @return A tibble containing pairs of reference and predicted values.
 #'
 #' @examples
 #' \donttest{
 #' # read a set of samples
-#' data (cerrado_2classes)
+#' data(cerrado_2classes)
 #' # perform a five fold validation with the SVM machine learning method
-#' conf_matrix1.mx <- sits_kfold_validate (cerrado_2classes, ml_method = sits_rfor())
+#' conf_matrix1.mx <- sits_kfold_validate(cerrado_2classes)
 #' # print the confidence matrix
 #' sits_conf_matrix(conf_matrix1.mx)
 #' }
 #' @export
-
 sits_kfold_validate <- function(data.tb, folds = 5,
                                 ml_method = sits_rfor(), multicores = 1){
-
     # find the number of cores
     if (purrr::is_null(multicores))
         multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)

@@ -8,10 +8,10 @@
 .sits_getSATVEG_timeline_from_txt(satveg.txt)
 }
 \arguments{
-\item{satveg.txt}{Information retrieved from SATVEG (in text format)}
+\item{satveg.txt}{Information retrieved from SATVEG (in text format).}
 }
 \description{
-Retrieves a time series from the SATVEG service
+Retrieves a time series from the SATVEG service.
 }
 \author{
 Julio Esquerdo, \email{julio.esquerdo@embrapa.br}

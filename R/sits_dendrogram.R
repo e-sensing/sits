@@ -12,12 +12,12 @@
 #'
 #' @references `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param data.tb         tibble with time series data and metadata to be used to generate the dendrogram.
-#' @param bands           vector of bands to be clustered.
-#' @param dist_method     (string) one of the supported distance from proxy's dist, e.g. \code{TWDTW}.
-#' @param linkage         (string) agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'
-#' @param  ...            any additional parameters to be passed to dtwclust::tsclust() function
-#' @return dendro.obj     a full dendrogram tree for data analysis
+#' @param data.tb         Tibble with time series data and metadata to be used to generate the dendrogram.
+#' @param bands           Vector of bands to be clustered.
+#' @param dist_method     String with one of the supported distance from proxy's dist, e.g. \code{TWDTW}.
+#' @param linkage         String with agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'.
+#' @param  ...            Any additional parameters to be passed to dtwclust::tsclust() function.
+#' @return A full dendrogram tree for data analysis.
 #'
 #' @examples
 #' \donttest{
@@ -34,7 +34,6 @@
 sits_dendrogram <- function(data.tb, bands = NULL,
                             dist_method = "dtw_basic",
                             linkage = "ward.D2", ...){
-
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
@@ -43,7 +42,7 @@ sits_dendrogram <- function(data.tb, bands = NULL,
     # does the input data exist?
     .sits_test_tibble(data.tb)
 
-    # if no bands informed, get all bands available in SITS tibble
+    # if no bands informed, get all bands available in sits tibble
     if (purrr::is_null(bands))
         bands <- sits_bands(data.tb)
 
@@ -65,7 +64,7 @@ sits_dendrogram <- function(data.tb, bands = NULL,
 #' @name sits_dendro_bestcut
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description reads a dendrogram object and its corresponding SITS tibble and
+#' @description Reads a dendrogram object and its corresponding sits tibble and
 #' computes the best number of clusters that maximizes the adjusted Rand index.
 #'
 #' @references
@@ -74,9 +73,9 @@ sits_dendrogram <- function(data.tb, bands = NULL,
 #'
 #' See \link[flexclust]{randIndex} for implementation details.
 #'
-#' @param data.tb          tibble used to generate `dendro.obj`.
-#' @param dendro.obj       a dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.
-#' @return                 vector with the best number of clusters (k) and its respective heigh.
+#' @param data.tb          Tibble used to generate `dendro.obj`.
+#' @param dendro.obj       Dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.
+#' @return Vector with the best number of clusters (k) and its respective heigh.
 #'
 #' @examples
 #' \donttest{
@@ -84,13 +83,11 @@ sits_dendrogram <- function(data.tb, bands = NULL,
 #' data(cerrado_2classes)
 #' # calculate the dendrogram
 #' dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi", "evi"))
-#' # include the cluster info in the SITS tibble
+#' # include the cluster info in the sits tibble
 #' sits_dendro_bestcut (cerrado_2classes, dendro.obj)
 #' }
-#'
 #' @export
 sits_dendro_bestcut <-  function (data.tb, dendro.obj) {
-
     # compute range
     k_range <- seq(2, max(length(dendro.obj$height) - 1, 2))
 

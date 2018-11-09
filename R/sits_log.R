@@ -2,23 +2,21 @@
 #' @name sits_log
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Creates a logger file for debugging and information (uses log4r package)
+#' @description Creates a logger file for debugging and information (uses log4r package).
 #'
-#' @return boolean      TRUE if creation succeeds
+#' @return TRUE if creation succeeds.
 #' @examples
 #' # Creates a sits logger using the default location
 #' logger <- sits_log()
 #' @export
 sits_log <- function() {
-
     sits.env$debug_file <- tempfile(pattern = "sits_debug", fileext = ".log")
     sits.env$logger_debug <- log4r::create.logger(logfile = sits.env$debug_file, level = "DEBUG")
-    message(paste0("Created logger for SITS package - DEBUG level at ", sits.env$debug_file))
+    message(paste0("Created logger for sits package - DEBUG level at ", sits.env$debug_file))
 
     sits.env$error_file <- tempfile(pattern = "sits_error", fileext = ".log")
     sits.env$logger_error <- log4r::create.logger(logfile = sits.env$error_file, level = "ERROR")
-    message(paste0("Created logger for SITS package - ERROR level at ", sits.env$error_file))
-
+    message(paste0("Created logger for sits package - ERROR level at ", sits.env$error_file))
 
     return(TRUE)
 }
@@ -27,31 +25,31 @@ sits_log <- function() {
 #' @name .sits_log_error
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Logs an error message in the log file
-#' @param message       Message to be logged
-#' @return boolean      TRUE if creation succeeds
+#' @description Logs an error message in the log file.
+#' @param message       Message to be logged.
+#' @return TRUE if creation succeeds.
 .sits_log_error <- function(message) {
     log4r::error(sits.env$logger_error, message)
 }
+
 #' @title Logs an error in the log file
 #' @name .sits_log_debug
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Logs an debug message in the log file
-#' @param message       Message to be logged
-#' @return boolean      TRUE if creation succeeds
-#'
+#' @description Logs an debug message in the log file.
+#' @param message       Message to be logged.
+#' @return TRUE if creation succeeds.
 .sits_log_debug <- function(message) {
     log4r::debug(sits.env$logger_debug, message)
 }
+
 #' @title Saves a data set for future use
 #' @name .sits_log_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Save a data set in the log directory
-#' @param data          Data set to be saved
-#' @param file_name     Name of data to be saved
-#'
+#' @description Save a data set in the log directory.
+#' @param data          Data set to be saved.
+#' @param file_name     Name of data to be saved.
 .sits_log_data <- function(data, file_name = "data_save.rda") {
     # pre-conditions
     ensurer::ensure_that(data, !purrr::is_null(.),
@@ -66,14 +64,14 @@ sits_log <- function() {
                 message("WTSS - unable to retrieve point - see log file for details" )
                 return(NULL)})
 }
+
 #' @title Saves a CSV data set
 #' @name .sits_log_CSV
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Save a CSV data set in the log directory
-#' @param csv.tb        Tibble containing CSV data
-#' @param file_name     Name of data to be saved
-#'
+#' @description Save a CSV data set in the log directory.
+#' @param csv.tb        Tibble containing CSV data.
+#' @param file_name     Name of data to be saved.
 .sits_log_CSV <- function(csv.tb, file_name = "errors.csv"){
     # pre-conditions
     ensurer::ensure_that(csv.tb, !purrr::is_null(.),
@@ -84,8 +82,8 @@ sits_log <- function() {
 
 #' @title Shows the memory used in GB
 #' @name .sits_mem_used
-#' @description Calls the gc() and rounds the result in GB
-#' @return memory used in GB
+#' @description Calls the gc() and rounds the result in GB.
+#' @return Memory used in GB.
 #' @export
 .sits_mem_used <- function() {
     dt <- gc()
@@ -94,32 +92,28 @@ sits_log <- function() {
 
 #' @title Prints the error log
 #' @name sits_show_errors
-#' @description Prints the errors log
+#' @description Prints the errors log.
 #'
 #' @export
 sits_show_errors <- function() {
-
     file.show(sits.env$error_file)
 }
 
 #' @title Prints the debug log
 #' @name sits_show_debug
-#' @description Prints the debug log
+#' @description Prints the debug log.
 #'
 #' @export
 sits_show_debug <- function() {
-
     file.show(sits.env$debug_file)
 }
 
-
 #' @title Loads the CSV error file saved in the log directory
 #' @name sits_csv_error_file
-#' @description Loads the CSV error file saved in the log directory
-#' @param    file_name name of file to be retrieved
+#' @description Loads the CSV error file saved in the log directory.
+#' @param    file_name Name of file to be retrieved.
 #' @export
 sits_csv_error_file <- function(file_name = "errors.csv") {
-
     csv.tb <- utils::read.csv(paste0(dirname(sits.env$debug_file),"/", file_name))
     return(csv.tb)
 }

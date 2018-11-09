@@ -7,13 +7,13 @@
 .sits_test_tibble(data.tb)
 }
 \arguments{
-\item{data.tb}{a SITS tibble}
+\item{data.tb}{A sits tibble.}
 }
 \value{
-returns TRUE if data.tb has data.
+Returns TRUE if data.tb has data.
 }
 \description{
-Tests if a SITS tibble exists or has data inside
+Tests if a sits tibble exists or has data inside.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

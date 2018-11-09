@@ -1,26 +1,25 @@
-#' @title Import time series in the zoo format to a SITS tibble
+#' @title Import time series in the zoo format to a sits tibble
 #' @name sits_fromZOO
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Converts data from an instance of a zoo series to a SITS tibble
+#' @description Converts data from an instance of a zoo series to a sits tibble.
 #'
-#' @param ts.zoo        zoo time series
-#' @param longitude     longitude of the chosen location
-#' @param latitude      latitude of the chosen location
-#' @param label         label to attach to the time series (optional)
-#' @param name          name of the coverage where data comes from
-#' @return data.tb      time series in SITS tibble format
+#' @param ts.zoo        Zoo time series.
+#' @param longitude     Longitude of the chosen location.
+#' @param latitude      Latitude of the chosen location.
+#' @param label         Label to attach to the time series (optional).
+#' @param name          Name of the coverage where data comes from.
+#' @return Time series in sits tibble format.
 #'
 #' @examples
 #' # Read a time series in ZOO format
 #' data(ts_zoo)
-#' # Convert the zoo series into a SITS tibble
+#' # Convert the zoo series into a sits tibble
 #' data.tb <- sits_fromZOO (ts_zoo, longitude = -54.2313, latitude = -14.0482,
 #'            label = "Cerrado", name = "mod13q1")
 #' @export
 sits_fromZOO <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoClass", name  = "unknown"){
-
-    # convert the data from the zoo format to a tibble used by SITS
+    # convert the data from the zoo format to a tibble used by sits
     ts.tb <- tibble::as_tibble(zoo::fortify.zoo(ts.zoo))
     # create a list to store the zoo time series
     ts.lst <- list()
@@ -52,21 +51,18 @@ sits_fromZOO <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoC
 #' @name sits_toZOO
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Converts data from a SITS tibble to a list of a zoo series.
+#' @description Converts data from a sits tibble to a list of a zoo series.
 #'
-#' @param  data.tb    sits tibble with time series
-#' @param  band       name of the band to be exported (if NULL all bands are exported)
-#' @return zoo.lst    list of time series in zoo format
+#' @param  data.tb    A sits tibble with time series.
+#' @param  band       Name of the band to be exported (if NULL all bands are exported).
+#' @return List of time series in zoo format.
 #' @examples
-#'
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # export a time series to zoo
 #' zoo.lst <- sits_toZOO (cerrado_2classes[1:5,])
-#'
 #' @export
 sits_toZOO <- function(data.tb, band = NULL){
-
     zoo.lst <- data.tb$time_series %>%
         purrr::map(function(ts) {
             if (purrr::is_null(band))
@@ -78,5 +74,3 @@ sits_toZOO <- function(data.tb, band = NULL){
 
     return(zoo.lst)
 }
-
-

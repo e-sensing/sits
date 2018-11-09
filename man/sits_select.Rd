@@ -2,32 +2,32 @@
 % Please edit documentation in R/sits_tibble_functions.R
 \name{sits_select}
 \alias{sits_select}
-\title{General selection criteria for subsetting a SITS table}
+\title{General selection criteria for subsetting a sits tibble}
 \usage{
 sits_select(data.tb, ...)
 }
 \arguments{
-\item{data.tb}{sits tibble with the time series}
+\item{data.tb}{A sits tibble with the time series.}
 
-\item{...}{`name == value` logical expressions, where `name` is any SITS column name
-or 'bands = c(band names)' for selection of a subset of bands
-See `dplyr::filter` help for more details..}
+\item{...}{Logical expressions in the format `name == value`, where `name` is any sits column name
+or `bands = c(band names)` for selection of a subset of bands.
+See `dplyr::filter()` help for more details.}
 }
 \value{
-data.tb     a tibble in SITS format with the selected bands
+A tibble in sits format with the selected bands.
 }
 \description{
 This is a general selection function for extracting any subset of a sits tibble
              It supports spatial selection by lat/long bounding boxes, names of labels,
-             start and end dates, and subset of bands
+             start and end dates, and subset of bands.
 }
 \examples{
-#' # Retrieve a set of time series with 2 classes
-data (cerrado_2classes)
+# Retrieve a set of time series with 2 classes
+data(cerrado_2classes)
 # Select only the time series with the "Cerrado" label
-data.tb <- sits_select (cerrado_2classes, label == "Cerrado")
-# Print the labels of the resulting table
-sits_labels (data.tb)
+data.tb <- sits_select(cerrado_2classes, label == "Cerrado")
+# Print the labels of the resulting tibble
+sits_labels(data.tb)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

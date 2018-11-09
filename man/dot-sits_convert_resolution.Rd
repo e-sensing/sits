@@ -7,10 +7,10 @@
 .sits_convert_resolution(coverage)
 }
 \arguments{
-\item{coverage}{metadata about a coverage}
+\item{coverage}{Metadata about a coverage.}
 }
 \value{
-res            matrix with resolution in WGS84 coordinates
+A matrix with resolution in WGS84 coordinates.
 }
 \description{
 Transform a latitude and longitude coordinate to a XY projection coordinate

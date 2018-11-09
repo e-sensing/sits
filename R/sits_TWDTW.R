@@ -1,4 +1,4 @@
-#' @title Find matches between a set of SITS patterns and segments of sits tibble using TWDTW
+#' @title Find matches between a set of sits patterns and segments of sits tibble using TWDTW
 #' @name sits_TWDTW_classify
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -20,28 +20,28 @@
 #'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  data.tb       sits tibble  to be classified using TWTDW
-#' @param  patterns.tb   tibble with known temporal signatures for the chosen classes
-#' @param  bands         (string) bands to be used for classification
-#' @param  dist.method   (string) method to derive the local cost matrix.
-#' @param  alpha         (double) steepness of the logistic function used for temporal weighting
-#' @param  beta          (integer) midpoint (in days) of the logistic function
-#' @param  theta         (double)  relative weight of the time distance compared to the dtw distance
-#' @param  span          minimum number of days between two matches of the same pattern in the time series (approximate)
-#' @param  keep          (logical) keep internal values for plotting matches
-#' @param  start_date    (date) start of the classification period
-#' @param  end_date      (date) the end of the classification period
-#' @param  interval      (months) period between two classifications
-#' @param  overlap       minimum overlapping between one match and the interval of classification
-#' @return matches       a dtwSat S4 object with the matches
+#' @param  data.tb       A sits tibble to be classified using TWTDW.
+#' @param  patterns.tb   A tibble with known temporal signatures for the chosen classes.
+#' @param  bands         Names of the bands to be used for classification.
+#' @param  dist.method   Name of the method to derive the local cost matrix.
+#' @param  alpha         Steepness of the logistic function used for temporal weighting (a double value).
+#' @param  beta          Midpoint (in days) of the logistic function (an integer).
+#' @param  theta         Relative weight of the time distance compared to the dtw distance (a double value).
+#' @param  span          Minimum number of days between two matches of the same pattern in the time series (approximate).
+#' @param  keep          Keep internal values for plotting matches? (A logical value).
+#' @param  start_date    Start date of the classification period.
+#' @param  end_date      End date of the classification period.
+#' @param  interval      Period between two classifications in months.
+#' @param  overlap       Minimum overlapping between one match and the interval of classification.
+#' @return A dtwSat S4 object with the matches.
 #' @examples
 #' \donttest{
 #' # Get a set of samples for the Mato Grosso state in Brazil
-#' samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
+#' samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
 #' # obtain a set of patterns for these samples
 #' patterns.tb <- sits_patterns(samples.tb)
 #' # Get a point to classify
-#' point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi", "nir", "mir"))
+#' point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
 #' # find the matches between the patterns and the time series using the TWDTW algorithm
 #' matches <- sits_TWDTW_classify(point.tb, patterns.tb, bands = c("ndvi", "evi", "nir", "mir"),
 #'                                alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
@@ -51,7 +51,6 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
                         alpha = -0.1, beta = 100, theta = 0.5, span  = 0, keep  = FALSE,
                         start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
-
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
         stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
@@ -76,7 +75,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 
     # select the bands for patterns time series and convert to TWDTW format
     twdtw_patterns <- patterns.tb %>%
-        sits_select_bands (bands = bands) %>%
+        sits_select_bands_(bands = bands) %>%
         .sits_toTWDTW()
 
     # Define the logistic function
@@ -86,7 +85,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
         row.tb <- data.tb[r, ]
         # select the bands for the samples time series and convert to TWDTW format
         twdtw_series <- row.tb %>%
-            sits_select_bands (bands = bands) %>%
+            sits_select_bands_(bands = bands) %>%
             .sits_toTWDTW()
 
         #classify the data using TWDTW
@@ -127,7 +126,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Returns a sits table with the results of the TWDTW classifier.
+#' @description Returns a sits tibble with the results of the TWDTW classifier.
 #' The TWDTW classifier uses the result of the sits_TWDTW_matches function to
 #' find the best alignments of these matches in intervals chosen by the user
 #' @references Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
@@ -135,18 +134,15 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 #'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  matches       a dtwSat S4 object with the matches that have been produced by the sits_TWTDW_matches function
-#' @param  data.tb       the SITS tibble used as input for the TWDTW matching function
-#' @param  start_date    date - the start of the classification period
-#' @param  end_date      date - the end of the classification period
-#' @param  interval      the period between two classifications
-#' @param  overlap       minimum overlapping between one match and the interval of classification
-#' @return class.tb      a SITS table with the information on matches for the data
-#'
-#'
+#' @param  matches       A dtwSat S4 object with the matches that have been produced by the sits_TWTDW_matches function.
+#' @param  data.tb       A sits tibble used as input for the TWDTW matching function.
+#' @param  start_date    The start date of the classification period.
+#' @param  end_date      The end date of the classification period.
+#' @param  interval      The period between two classifications.
+#' @param  overlap       Minimum overlapping between one match and the interval of classification.
+#' @return A sits tibble with the information on matches for the data.
 .sits_TWDTW_breaks <- function (matches, data.tb, start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
-
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
         stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
@@ -183,17 +179,16 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 
     return(data.tb)
 }
+
 #' @title Export data to be used by the dtwSat package
 #' @name .sits_toTWDTW
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Converts data from a SITS table to an instance of a TWDTW time series class,
-#' Returns a twdtwTimeSeries object (S4)
+#' @description Converts data from a sits tibble to an instance of a TWDTW time series class.
 #'
-#'
-#' @param  data.tb       a table in SITS format with time series to be converted to TWTDW time series
-#' @return ts.twdtw      a time series in TWDTW format (an object of the twdtwTimeSeries class)
+#' @param  data.tb       A tibble in sits format with time series to be converted to TWTDW time series.
+#' @return A time series in TWDTW format (an object of the twdtwTimeSeries class).
 .sits_toTWDTW <- function (data.tb){
     # transform each sits time series into a list of zoo
     ts <- data.tb$time_series %>%
@@ -204,14 +199,14 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
                              labels = as.character(data.tb$label))
     return (ts.twdtw)
 }
-#' @title Transform patterns from TWDTW format to SITS format
+
+#' @title Transform patterns from TWDTW format to sits format
 #' @name .sits_fromTWDTW_matches
 #'
-#' @description reads one TWDTW matches object and transforms it into a tibble ready to be stored into a SITS table column.
+#' @description Reads one TWDTW matches object and transforms it into a tibble ready to be stored into a sits tibble column.
 #'
-#' @param  match.twdtw  a TWDTW Matches object of class dtwSat::twdtwMatches (S4)
-#' @return result.tb    a tibble containing the matches information
-#'
+#' @param  match.twdtw  A TWDTW Matches object of class dtwSat::twdtwMatches (S4).
+#' @return A tibble containing the matches information.
 .sits_fromTWDTW_matches <- function(match.twdtw){
     result.lst <- tibble::as_tibble(match.twdtw[[1]]) %>%
         dplyr::mutate(predicted = as.character(label)) %>%
@@ -219,4 +214,3 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
         list()
     return(result.lst[[1]])
 }
-

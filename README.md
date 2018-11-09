@@ -1,7 +1,7 @@
 SITS - Satellite Image Time Series Analysis
 ================
 
-The SITS package is a set of tools for working with satellite image time series. Includes data retrieval from a WTSS (web time series service), different visualisation methods for image time series, smoothing methods for noisy time series, different clustering methods, including dendrograms and SOM. Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition and provides machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
+Package sits is a set of tools for working with satellite image time series. Includes data retrieval from a WTSS (web time series service), different visualisation methods for image time series, smoothing methods for noisy time series, different clustering methods, including dendrograms and SOM. Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition and provides machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
 
 ### Overview
 
@@ -36,7 +36,7 @@ The **sits** package is a set of tools for working with satellite image time ser
 
 ### Installation
 
-Please install the SITS package from github, making sure you have the latest version of the other packages it requires:
+Please install sits package from github, making sure you have the latest version of the other packages it requires:
 
 ``` r
 devtools::install_github("e-sensing/sits")
@@ -63,7 +63,7 @@ To display the time series, we provide `sits_plot()` function to display the tim
 
 ``` r
 # select the "ndvi" band
-samples_ndvi.tb <- sits_select(samples_MT_9classes, bands = c("ndvi"))
+samples_ndvi.tb <- sits_select_bands(samples_MT_9classes, ndvi)
 # select only the samples with the cerrado label
 samples_cerrado.tb <- dplyr::filter(samples_ndvi.tb, 
                   label == "Cerrado")
@@ -146,8 +146,7 @@ Satellite image time series are contaminated by atmospheric influence and direct
 
 ``` r
 # Take the NDVI band of the first sample data set
-point.tb <- sits_select(prodes_226_064[1,], 
-                bands = c("ndvi"))
+point.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # apply Whitaker filter
 point_whit.tb <- sits_whittaker(point.tb)
 # plot the series
@@ -182,7 +181,7 @@ sits_plot(class.tb)
 | Build         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Check         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Documentation | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull) |
-
+| Coverage      | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master) |
 #### License
 
 The **sits** package is licensed under the GPLv3 (<http://www.gnu.org/licenses/gpl.html>).

@@ -7,20 +7,19 @@
 sits_linear_interp(data.tb = NULL, n = 23)
 }
 \arguments{
-\item{data.tb}{tibble with time series data and metadata}
+\item{data.tb}{A tibble with time series data and metadata.}
 
-\item{n}{number of time series elements to be created between start date and end date}
+\item{n}{Number of time series elements to be created between start date and end date.}
 }
 \value{
-result.tb    a sits tibble with same samples and the new bands
+A sits tibble with same samples and the new bands.
 }
 \description{
 Computes the linearly interpolated bands for a given resolution
-              using the R base function approx
+              using the R base function approx.
 }
 \examples{
 \donttest{
-
 # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # find out how many time instances are there

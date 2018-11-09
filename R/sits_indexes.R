@@ -1,10 +1,10 @@
 #' @title Builds tasseled cap bands
 #' @name sits_tasseled_cap
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description  Adds new tasseled cap bands
-#' @param data.tb       valid sits tibble
-#' @param satellite     satellite name
-#' @return data.tb      sits tibble with same samples and the new bands
+#' @description  Adds new tasseled cap bands.
+#' @param data.tb       Valid sits tibble.
+#' @param satellite     Satellite name.
+#' @return A sits tibble with same samples and the new bands.
 #' @examples
 #' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
@@ -14,7 +14,6 @@
 #' }
 #' @export
 sits_tasseled_cap <- function(data.tb, satellite = "MODIS"){
-
     bands <- sits_bands(data.tb)
     bands_mod13q1 <- c("mir", "blue", "nir", "red")
     ensurer::ensure_that(bands, all(bands_mod13q1 %in% (.)),
@@ -38,9 +37,9 @@ sits_tasseled_cap <- function(data.tb, satellite = "MODIS"){
 #' @title Builds soil-adjusted vegetation index
 #' @name sits_savi
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description  Adds new tasseled cap bands
-#' @param data.tb       valid sits tibble
-#' @return data.tb      sits tibble with the SAVI index
+#' @description  Adds new tasseled cap bands.
+#' @param data.tb       Valid sits tibble.
+#' @return A sits tibble with the SAVI index.
 #' @examples
 #' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
@@ -50,7 +49,6 @@ sits_tasseled_cap <- function(data.tb, satellite = "MODIS"){
 #' }
 #' @export
 sits_savi <- function(data.tb){
-
     bands <- sits_bands(data.tb)
     bands_savi <- c("nir", "red")
     ensurer::ensure_that(bands, all(bands_savi %in% (.)),
@@ -64,9 +62,9 @@ sits_savi <- function(data.tb){
 #' @title Builds normalized difference water index
 #' @name sits_ndwi
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description  Adds new tasseled cap bands
-#' @param data.tb       valid sits tibble
-#' @return data.tb      sits tibble with the SAVI index
+#' @description  Adds new tasseled cap bands.
+#' @param data.tb       A valid sits tibble.
+#' @return A sits tibble with the SAVI index.
 #' @examples
 #' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
@@ -76,13 +74,12 @@ sits_savi <- function(data.tb){
 #' }
 #' @export
 sits_ndwi <- function(data.tb){
-
     bands <- sits_bands(data.tb)
     bands_ndwi <- c("nir", "mir")
     ensurer::ensure_that(bands, all(bands_ndwi %in% (.)),
                          err_desc = "sits_ndwi: not enough bands to compute")
 
-    data.tb <- sits_mutate(data.tb, ndwi = (1.5)*(nir - mir)/(nir + mir))
+    data.tb <- sits_mutate(data.tb, ndwi = (1.5) * (nir - mir)/(nir + mir))
 
     return(data.tb)
 }

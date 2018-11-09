@@ -8,19 +8,19 @@ sits_bayes_postprocess(raster_class, window = matrix(1, nrow = 3, ncol =
   3, byrow = TRUE), noise = 100, file)
 }
 \arguments{
-\item{raster_class}{output raster coverage}
+\item{raster_class}{Output raster coverage.}
 
-\item{window}{(matrix) neighborhood window to compute bayesian smooth.
+\item{window}{A matrix with the neighborhood window to compute bayesian smooth.
 The central element index (i, j) is given by
 i = floor(nrows(window)/2)+1 and j = floor(ncols(window)/2)+1.
 Elements '0' are excluded from window.}
 
-\item{noise}{bayesian smoothing parameter}
+\item{noise}{Bayesian smoothing parameter.}
 
-\item{file}{file to save the post processed raster}
+\item{file}{File to save the post processed raster.}
 }
 \value{
-raster_layers.tb  tibble with metadata about the output RasterLayer objects
+A tibble with metadata about the output RasterLayer objects.
 }
 \description{
 Takes a set of classified raster layers, whose metadata is

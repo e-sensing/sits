@@ -9,7 +9,7 @@ default:
 
     # Protocols accepted for data acess
     protocols               : ["WTSS", "SATVEG", "RASTER"]
-    # Time series services known to SITS
+    # Time series services known to sits
     ts_services             : ["WTSS-INPE", "SATVEG", "RASTER"]
     # Names of ts_services per protocols
     WTSS_services           : ["WTSS-INPE"]
@@ -20,6 +20,10 @@ default:
 
     WTSS-INPE_protocol      : "WTSS"
     WTSS-INPE_server        : "http://www.esensing.dpi.inpe.br/wtss/"
+    WTSS-INPE_coverages     : ["MOD13Q1"]
+
+    WTSS-INPE_bands         :
+        MOD13Q1             : ["mir", "blue", "nir", "red", "evi", "ndvi"]
 
     WTSS-INPE_minimum_value :
         ndvi                : -3000

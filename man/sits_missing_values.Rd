@@ -7,15 +7,15 @@
 sits_missing_values(data.tb, miss_value)
 }
 \arguments{
-\item{data.tb}{tibble with time series data and metadata}
+\item{data.tb}{A tibble with time series data and metadata.}
 
-\item{miss_value}{number indicating missing values in a time series.}
+\item{miss_value}{Number indicating missing values in a time series.}
 }
 \value{
-result.tb  tibble with time series data and metadata (with missing values removed)
+A tibble with time series data and metadata (with missing values removed).
 }
 \description{
-This function removes the missing values from an image time series by substituting them by NA
+This function removes the missing values from an image time series by substituting them by NA.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

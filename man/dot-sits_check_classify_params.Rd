@@ -7,17 +7,17 @@
 .sits_check_classify_params(file, coverage, ml_model)
 }
 \arguments{
-\item{file}{vector of file names to store the output (one file per classified year)}
+\item{file}{Vector of file names to store the output (one file per classified year).}
 
-\item{coverage}{tibble with information about a set of space-time raster bricks}
+\item{coverage}{Tibble with information about a set of space-time raster bricks.}
 
-\item{ml_model}{an R model trained by \code{\link[sits]{sits_train}}}
+\item{ml_model}{An R model trained by \code{\link[sits]{sits_train}}.}
 }
 \value{
-OK              (logical) tests succeeded?
+Tests succeeded?
 }
 \description{
-Verify that required parameters are correct
+Verify that required parameters are correct.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

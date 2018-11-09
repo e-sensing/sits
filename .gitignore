@@ -10,3 +10,7 @@ src/*.o
 src/*.dll
 src/*.so
 R/.Rapp.history
+vignettes/sits_cache/*
+vignettes/sits_files/*
+tests/testthat/Rplots.pdf
+vignettes/sits.R

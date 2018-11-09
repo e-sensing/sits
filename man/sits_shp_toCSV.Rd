@@ -8,22 +8,22 @@ sits_shp_toCSV(shpfile, csvfile, label, timeline, start_date, end_date,
   interval = "12 month")
 }
 \arguments{
-\item{shpfile}{a POINT shapefile}
+\item{shpfile}{A point shapefile.}
 
-\item{csvfile}{the name of the exported CSV file}
+\item{csvfile}{The name of the exported CSV file.}
 
-\item{label}{label associated to the samples}
+\item{label}{Label associated to the samples.}
 
-\item{timeline}{the timeline of the data set}
+\item{timeline}{The timeline of the data set.}
 
-\item{start_date}{starting date for which the samples are valid}
+\item{start_date}{Starting date for which the samples are valid.}
 
-\item{end_date}{end date for which the samples are valid}
+\item{end_date}{End date for which the samples are valid.}
 
-\item{interval}{interval between two samples of the same place}
+\item{interval}{Interval between two samples of the same place.}
 }
 \value{
-status     the status of the operation
+Status of the operation.
 }
 \description{
 Converts points from a shapefile to a CSV file. The CSV file will not contain the actual time
@@ -40,7 +40,7 @@ end_date   <- lubridate::ymd("2013-08-13")
 # define the input shapefile
 shpfile <- system.file ("extdata/shapefiles/cerrado_forested.shp", package = "sits")
 # define the output csv file
-csvfile <- paste0("./cerrado_forested.csv")
+csvfile <- paste0("cerrado_forested.csv")
 # define the label
 label <- "Cerrado_Forested"
 # read the points in the shapefile and produce a CSV file

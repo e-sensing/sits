@@ -7,20 +7,19 @@
 sits_labels(data.tb)
 }
 \arguments{
-\item{data.tb}{tibble with time series data and metadata}
+\item{data.tb}{A tibble with time series data and metadata.}
 }
 \value{
-result.tb  tibble with the names of the labels and their absolute and relative frequency
+A tibble with the names of the labels and their absolute and relative frequency.
 }
 \description{
-returns the labels and its respective counting and frequency.
+Returns the labels and its respective counting and frequency.
 }
 \examples{
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 data(cerrado_2classes)
 # print the labels
-sits_labels (cerrado_2classes)
-
+sits_labels(cerrado_2classes)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

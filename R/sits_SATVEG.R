@@ -8,15 +8,14 @@
 #' and inclues the data on a stis tibble. If start and end date are given, the function
 #' filter the data to limit the temporal interval.
 #'
-#' @param coverage        the coverage metadata with the SATVEG information
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location
-#' @param start_date      date - the start of the period
-#' @param end_date        date - the end of the period
-#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @param label           string - the label to attach to the time series (optional)
-#' @return data.tb        a SITS tibble
-#'
+#' @param coverage        The coverage metadata with the SATVEG information.
+#' @param longitude       A double value with the longitude of the chosen location.
+#' @param latitude        A double value with the latitude of the chosen location.
+#' @param start_date      The start date of the period.
+#' @param end_date        The end date of the period.
+#' @param prefilter       A string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
+#' @param label           A string with the label to attach to the time series (optional).
+#' @return A sits tibble.
 .sits_fromSATVEG <- function(coverage,
                              longitude,
                              latitude,
@@ -66,16 +65,14 @@
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Retrieves a time series from the SATVEG service
+#' @description Retrieves a time series from the SATVEG service.
 #'
-#' @param longitude       double - the longitude of the chosen location
-#' @param latitude        double - the latitude of the chosen location
-#' @param name            name of the desired coverage in SATVEG (see configuration file)
-#' @param prefilter       string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
-#' @return status         TRUE if no problems are detected
-#'
+#' @param longitude       The longitude of the chosen location.
+#' @param latitude        The latitude of the chosen location.
+#' @param name            Name of the desired coverage in SATVEG (see configuration file).
+#' @param prefilter       String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
+#' @return TRUE if no problems are detected.
 .sits_ts_from_SATVEG <- function(longitude, latitude, name, prefilter){
-
     # the parameter filter is not used
     filter <- ""
     filter_par <- ""
@@ -121,16 +118,16 @@
     }
     return(ts.tb)
 }
+
 #' @title Retrieve a timeline from the SATVEG service based on text expression
 #' @name .sits_get_SATVEG_timeline_from_txt
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Retrieves a time series from the SATVEG service
+#' @description Retrieves a time series from the SATVEG service.
 #'
-#' @param satveg.txt   Information retrieved from SATVEG (in text format)
+#' @param satveg.txt   Information retrieved from SATVEG (in text format).
 .sits_getSATVEG_timeline_from_txt <- function(satveg.txt){
-
     # Retrieve the time series
     # find the place where the series ends and the dates start
     pos1 <- regexpr("listaDatas", satveg.txt)
@@ -156,11 +153,8 @@
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Retrieves a time series from the SATVEG service
-#'
-#'
+#' @description Retrieves a time series from the SATVEG service.
 .sits_SATVEG_timeline <- function() {
-
     # set a dummy longitude and latitude
     longitude <-  -55.50563
     latitude  <-  -11.71557
@@ -187,4 +181,3 @@
 
     return (timeline)
 }
-

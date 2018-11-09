@@ -7,17 +7,17 @@
 .sits_extract(row.tb, start_date, end_date)
 }
 \arguments{
-\item{row.tb}{SITS tibble}
+\item{row.tb}{A sits tibble.}
 
-\item{start_date}{starting date of the time series segment}
+\item{start_date}{Starting date of the time series segment.}
 
-\item{end_date}{end date of the time series segment}
+\item{end_date}{End date of the time series segment.}
 }
 \value{
-subset.tb  tibble in SITS format with the chosen subset
+A tibble in sits format with the chosen subset.
 }
 \description{
-returns a vector containing the dates of a sits table
+Returns a vector containing the dates of a sits tibble.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

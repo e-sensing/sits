@@ -7,12 +7,12 @@
 .sits_get_account(service, name)
 }
 \arguments{
-\item{service}{the name of the time series service}
+\item{service}{Name of the time series service.}
 
-\item{name}{the name of the coverage}
+\item{name}{Name of the coverage.}
 }
 \value{
-accountURL    the account for service access
+The account for service access.
 }
 \description{
 Get an account to access a time series service

@@ -2,17 +2,17 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_train}
 \alias{sits_train}
-\title{Train SITS classification models}
+\title{Train sits classification models}
 \usage{
 sits_train(data.tb, ml_method = sits_svm())
 }
 \arguments{
-\item{data.tb}{time series with the training samples}
+\item{data.tb}{Time series with the training samples.}
 
-\item{ml_method}{machine learning method that returns a model for prediction}
+\item{ml_method}{Machine learning method that returns a model for prediction.}
 }
 \value{
-result           model fitted to input data given by train_method parameter
+A model fitted to input data given by train_method parameter.
 }
 \description{
 Given a tibble with a set of distance measures,
@@ -21,20 +21,19 @@ Given a tibble with a set of distance measures,
 'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 'lasso' (see \code{\link[sits]{sits_mlr}}), 'ridge' (see \code{\link[sits]{sits_mlr}}),
-and "deep learning" (see \code{\link[sits]{sits_deeplearning}})
+and 'deep learning' (see \code{\link[sits]{sits_deeplearning}}).
 The sits_train function is called inside \code{\link[sits]{sits_classify}}
 and \code{\link[sits]{sits_classify_raster}}, so the user does not need
 to explicitly use this function. Please see the above-mention classification functions.
 }
 \examples{
-
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 # find a training model based on the distances and default values (SVM model)
-samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi", "evi", "nir", "mir"))
+samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
 ml_model <- sits_train (samples.tb, sits_rfor())
 # get a point and classify the point with the ml_model
-point.tb <- sits_select(point_MT_6bands, bands = c("ndvi", "evi", "nir", "mir"))
+point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
 class.tb <- sits_classify(point_MT_6bands, ml_model)
 sits_plot(class.tb)
 }

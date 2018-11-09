@@ -7,17 +7,17 @@
 sits_plot(data, band = "ndvi", colors = "Dark2")
 }
 \arguments{
-\item{data}{data to be plotted (can be a SITS tibble, clusters, or TWDTW matches)}
+\item{data}{Data to be plotted (can be a sits tibble, clusters, or TWDTW matches).}
 
-\item{band}{(optional) The band used for visualisation (optional for sits_plot_classification)}
+\item{band}{The band used for visualisation (optional for sits_plot_classification).}
 
-\item{colors}{(optional) Color pallete to be used (based on Color Brewer - default is "Dark2")}
+\item{colors}{Color pallete to be used (based on Color Brewer - default is "Dark2").}
 }
 \value{
-data          input SITS table (useful for chaining functions)
+Input sits tibble (useful for chaining functions).
 }
 \description{
-Given a SITS tibble with a set of time series, plot them.
+Given a sits tibble with a set of time series, plot them.
 
 The plot function produces different plots based on the input data:
 \itemize{
@@ -51,10 +51,10 @@ data(samples_MT_ndvi)
 # Retrieve a point
 data(point_ndvi)
 # classify the point
-class_ndvi.tb <-  sits_classify (point_ndvi, samples_MT_ndvi)
+model_svm <- sits_train(samples_MT_ndvi, ml_method = sits_svm())
+class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
 # plot the classification
 sits_plot (class_ndvi.tb)
-
 }
 }
 \author{

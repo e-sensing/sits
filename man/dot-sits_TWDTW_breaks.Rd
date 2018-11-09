@@ -8,23 +8,23 @@
   end_date = NULL, interval = "12 month", overlap = 0.5)
 }
 \arguments{
-\item{matches}{a dtwSat S4 object with the matches that have been produced by the sits_TWTDW_matches function}
+\item{matches}{A dtwSat S4 object with the matches that have been produced by the sits_TWTDW_matches function.}
 
-\item{data.tb}{the SITS tibble used as input for the TWDTW matching function}
+\item{data.tb}{A sits tibble used as input for the TWDTW matching function.}
 
-\item{start_date}{date - the start of the classification period}
+\item{start_date}{The start date of the classification period.}
 
-\item{end_date}{date - the end of the classification period}
+\item{end_date}{The end date of the classification period.}
 
-\item{interval}{the period between two classifications}
+\item{interval}{The period between two classifications.}
 
-\item{overlap}{minimum overlapping between one match and the interval of classification}
+\item{overlap}{Minimum overlapping between one match and the interval of classification.}
 }
 \value{
-class.tb      a SITS table with the information on matches for the data
+A sits tibble with the information on matches for the data.
 }
 \description{
-Returns a sits table with the results of the TWDTW classifier.
+Returns a sits tibble with the results of the TWDTW classifier.
 The TWDTW classifier uses the result of the sits_TWDTW_matches function to
 find the best alignments of these matches in intervals chosen by the user
 }

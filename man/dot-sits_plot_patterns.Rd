@@ -7,11 +7,11 @@
 .sits_plot_patterns(data.tb)
 }
 \arguments{
-\item{data.tb}{one or more time series containing patterns (stored in a SITS tibble)}
+\item{data.tb}{One or more time series containing patterns (stored in a sits tibble).}
 }
 \description{
-plots the patterns to be used for classification
-             this code is reused from the dtwSat package by Victor Maus
+Plots the patterns to be used for classification
+             this code is reused from the dtwSat package by Victor Maus.
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}

@@ -7,14 +7,14 @@
 .sits_get_scale_factors(service, name, bands)
 }
 \arguments{
-\item{service}{name of the service}
+\item{service}{Name of the service.}
 
-\item{name}{name of the coverage}
+\item{name}{Name of the coverage.}
 
-\item{bands}{vector of bands}
+\item{bands}{Vector of bands.}
 }
 \value{
-sf            vector of scale factors
+Vector of scale factors.
 }
 \description{
 Retrieve the scale factor for a given band for an image product

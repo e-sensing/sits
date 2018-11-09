@@ -18,47 +18,45 @@
 #' The model should be precomputed by the user. This model should be
 #' passed to the function using the parameter "ml_model".
 #'
-#'
-#' @param  data.tb           tibble with time series metadata and data
-#' @param  ml_model          pre-built machine learning model (see \code{\link[sits]{sits_train}})
-#' @param  interval          interval used for classification (in months)
-#' @param  multicores        number of threads to process the time series.
-#' @return data.tb           tibble with the predicted labels for each input segment
+#' @param  data.tb           Tibble with time series metadata and data.
+#' @param  ml_model          Pre-built machine learning model (see \code{\link[sits]{sits_train}}).
+#' @param  interval          Interval used for classification (in months).
+#' @param  multicores        Number of threads to process the time series.
+#' @return A tibble with the predicted labels for each input segment.
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(samples_MT_ndvi)
 #' # select the bands "ndvi", "evi", "nir", and "mir"
-#' samples.tb <- sits_select(samples_MT_9classes, bands = c("ndvi","evi","nir","mir"))
+#' samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
 #' # build a classification model using SVM
-#' model_svm <- sits_train(samples.tb, ml_method = sits_svm ())
+#' model_svm <- sits_train(samples.tb, ml_method = sits_svm())
 #' # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
-#' point.tb <- sits_select(point_MT_6bands, bands = c("ndvi","evi","nir","mir"))
+#' point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
 #' # classify the point
-#' class.tb <-  sits_classify(point.tb, ml_model = model_svm)
+#' class.tb <- sits_classify(point.tb, ml_model = model_svm)
 #' # plot the classification
 #' sits_plot(class.tb)
 #' }
-#'
 #' @export
 sits_classify <- function(data.tb    = NULL,
                           ml_model   = NULL,
                           interval   = "12 month",
                           multicores = 1) {
-
     .sits_test_tibble(data.tb)
 
     # ensure the machine learning model has been built
-    ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
+    ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits_classify: please provide a machine learning model already trained")
 
     # has normalization been applied to the data?
     stats.tb   <- environment(ml_model)$stats.tb
 
     # obtain the distances after normalizing data by band
-    if (!purrr::is_null(stats.tb))
-        distances_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb, multicores))
-    else
+    if (purrr::is_null(stats.tb))
         distances_DT <- sits_distances(data.tb)
+    else
+        distances_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb, multicores))
+
 
     # define the parameters for breaking up a long time series
     samples.tb <- environment(ml_model)$data.tb
@@ -72,19 +70,19 @@ sits_classify <- function(data.tb    = NULL,
 
     return(data.tb)
 }
+
 #' @title Classify a distances tibble using machine learning models
 #' @name .sits_classify_distances
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Returns a sits table with the results of the ML classifier.
+#' @description Returns a sits tibble with the results of the ML classifier.
 #'
-#' @param  distances_DT    data.table with distances
-#' @param  class_info.tb   classification information
-#' @param  ml_model        model trained by \code{\link[sits]{sits_train}}
-#' @param  multicores      number of threads to process the time series
-#' @return pred.vec        vector with the predicted labels
+#' @param  distances_DT    data.table with distances.
+#' @param  class_info.tb   classification information.
+#' @param  ml_model        model trained by \code{\link[sits]{sits_train}}.
+#' @param  multicores      number of threads to process the time series.
+#' @return A vector with the predicted labels.
 .sits_classify_distances <- function(distances_DT, class_info.tb, ml_model, multicores) {
-
     # define the column names
     attr_names <- names(environment(ml_model)$train_data_DT)
 
@@ -131,10 +129,3 @@ sits_classify <- function(data.tb    = NULL,
 
     return(pred.mtx)
 }
-
-
-
-
-
-
-

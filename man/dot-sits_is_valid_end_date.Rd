@@ -7,12 +7,12 @@
 .sits_is_valid_end_date(date, timeline)
 }
 \arguments{
-\item{date}{a dates}
+\item{date}{A Date.}
 
-\item{timeline}{a vector of reference dates}
+\item{timeline}{A vector of reference dates.}
 }
 \value{
-n_date     nearest date
+Nearest date.
 }
 \description{
 A timeline is a list of dates where observations are available. This

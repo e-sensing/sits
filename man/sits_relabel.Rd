@@ -7,33 +7,33 @@
 sits_relabel(data.tb, conv.lst = list())
 }
 \arguments{
-\item{data.tb}{a SITS tibble}
+\item{data.tb}{A sits tibble.}
 
-\item{conv.lst}{a named list used to convert labels to a new value. Actual labels must be the names of the conv.lst elements.
+\item{conv.lst}{A named list used to convert labels to a new value. Actual labels must be the names of the conv.lst elements.
 an empty list produces no difference.}
 }
 \value{
-result.tb      a new SITS tibble with modified labels
+A new sits tibble with modified labels.
 }
 \description{
-Given a SITS tibble with a set of labels, and a conversion list
-between the original labels and new labels, returns a new SITS tibble whose labels are changed.
+Given a sits tibble with a set of labels, and a conversion list
+between the original labels and new labels, returns a new sits tibble whose labels are changed.
 }
 \examples{
 \donttest{
 # Read a set of time series with information on deforestation
 data(prodes_226_064)
 # Print the labels
-sits_labels (prodes_226_064)
-# Create a conversion list
-conv.lst = list("Deforestation_2014" = "NonForest",
-             "Deforestation_2015" = "NonForest",
-             "Forest" = "Forest",
-             "Pasture" = "NonForest")
+sits_labels(prodes_226_064)
+# Create a conversion list.
+# Three classes will be converted to "NonForest".
+conv.lst = list(Deforestation_2014 = "NonForest",
+                Deforestation_2015 = "NonForest",
+                Pasture = "NonForest")
 # relabel the data
-new_data.tb <- sits_relabel (prodes_226_064, conv.lst)
+new_data.tb <- sits_relabel(prodes_226_064, conv.lst)
 # show the new labels
-sits_labels (new_data.tb)
+sits_labels(new_data.tb)
 }
 }
 \author{

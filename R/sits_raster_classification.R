@@ -7,21 +7,20 @@
 #'              a set of samples used for training a classification model,
 #'              a prediction model (created by \code{\link[sits]{sits_train}}),
 #'              and produces a classified set of RasterLayers. This function is similar to
-#'               \code{\link[sits]{sits_classify}} which is applied to time series stored in a SITS tibble.
+#'               \code{\link[sits]{sits_classify}} which is applied to time series stored in a sits tibble.
 #'               There are two parameters for optimizing processing of large data sets. These
 #'               parameters are "memsize" and "multicores". The "multicores" parameter defines the
 #'               number of cores used for processing. The "memsize" parameter  controls
 #'               the amount of memory available for classification.
 #'
-#'
-#' @param  file            vector of file names to store the output (one file per classified year)
-#' @param  coverage        tibble with information about a coverage of space-time raster bricks
-#' @param  ml_model        an R model trained by \code{\link[sits]{sits_train}}
-#' @param  interval        interval between two sucessive classifications, expressed in months
-#' @param  filter          smoothing filter to be applied (if desired)
-#' @param  memsize         memory available for classification (in GB)
-#' @param  multicores      number of cores to be used for classification
-#' @return raster_class.tb tibble with the metadata for the vector of classified RasterLayers
+#' @param  file            Vector of file names to store the output (one file per classified year).
+#' @param  coverage        Tibble with information about a coverage of space-time raster bricks.
+#' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
+#' @param  interval        Interval between two sucessive classifications, expressed in months.
+#' @param  filter          Smoothing filter to be applied (if desired).
+#' @param  memsize         Memory available for classification (in GB).
+#' @param  multicores      Number of cores to be used for classification.
+#' @return A tibble with the metadata for the vector of classified RasterLayers.
 #'
 #' @examples
 #' \donttest{
@@ -47,7 +46,6 @@
 #' # plot the resulting classification
 #' sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
 #' }
-#'
 #' @export
 sits_classify_raster <- function(file        = NULL,
                                  coverage    = NULL,
@@ -56,8 +54,6 @@ sits_classify_raster <- function(file        = NULL,
                                  filter      = NULL,
                                  memsize     = 4,
                                  multicores  = NULL) {
-
-
     # checks the classification params
     .sits_check_classify_params(file, coverage, ml_model)
 
@@ -71,7 +67,7 @@ sits_classify_raster <- function(file        = NULL,
     # create the raster objects and their respective filenames
     coverage_class <- .sits_coverage_raster_classified(coverage, samples, file, interval)
 
-    # classify the data
+# classify the data
     raster_class.tb <- .sits_classify_multicores(coverage,
                                                  coverage_class,
                                                  samples,
@@ -83,6 +79,7 @@ sits_classify_raster <- function(file        = NULL,
 
     return(raster_class.tb)
 }
+
 #' @title Classify a raster chunk using multicores
 #' @name .sits_classify_multicores
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -98,16 +95,15 @@ sits_classify_raster <- function(file        = NULL,
 #' After all cores process their blocks, it joins the result and then writes it
 #' in the classified images for each corresponding year.
 #'
-#' @param  coverage        tibble with metadata for a RasterBrick
-#' @param  coverage_class  raster layer objects to be written
-#' @param  samples         tibble with samples used for training the classification model
-#' @param  ml_model        a model trained by \code{\link[sits]{sits_train}}
-#' @param  interval        classification interval
-#' @param  filter          smoothing filter to be applied to the data
-#' @param  memsize         memory available for classification (in GB)
-#' @param  multicores      number of cores
-#' @return layer.lst       list  of the classified raster layers
-#'
+#' @param  coverage        Tibble with metadata for a RasterBrick.
+#' @param  coverage_class  Taster layer objects to be written.
+#' @param  samples         Tibble with samples used for training the classification model.
+#' @param  ml_model        A model trained by \code{\link[sits]{sits_train}}.
+#' @param  interval        Classification interval.
+#' @param  filter          Smoothing filter to be applied to the data.
+#' @param  memsize         Memory available for classification (in GB).
+#' @param  multicores      Number of cores.
+#' @return List of the classified raster layers.
 .sits_classify_multicores <-  function(coverage,
                                        coverage_class,
                                        samples,
@@ -116,7 +112,6 @@ sits_classify_raster <- function(file        = NULL,
                                        filter,
                                        memsize,
                                        multicores) {
-
     # retrieve the output raster layers
     layers_class.lst <- coverage_class[1,]$r_objs[[1]]
     bricks_probs.lst <- coverage_class[2,]$r_objs[[1]]
@@ -201,18 +196,16 @@ sits_classify_raster <- function(file        = NULL,
 #' @name  .sits_predict_interval
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  DT                data.table with distance values
-#' @param  time              time interval to be processed
-#' @param  output.lst        list with the raster objects for classification (values and probs)
-#' @param  ml_model          machine learning model to be applied
-#' @param  labels            class labels
-#' @param  int_labels        integer values corresponding to labels
-#' @param  first_row         initial row of the output layer to write block
-#' @param  multicores        number of cores to process the time series
-#' @return layers.lst        list of layers with classification results
-
+#' @param  DT                A data.table with distance values.
+#' @param  time              Time interval to be processed.
+#' @param  output.lst        List with the raster objects for classification (values and probs).
+#' @param  ml_model          Machine learning model to be applied.
+#' @param  labels            Class labels.
+#' @param  int_labels        Integer values corresponding to labels.
+#' @param  first_row         Initial row of the output layer to write block.
+#' @param  multicores        Number of cores to process the time series.
+#' @return List of layers with classification results.
 .sits_predict_interval <- function(DT, time, output.lst, ml_model, labels, int_labels, first_row, multicores) {
-
     nrows_DT <- nrow(DT)
     proc_cores <- multicores
     if (!(purrr::is_null(environment(ml_model)$model.keras)) ||
@@ -278,10 +271,3 @@ sits_classify_raster <- function(file        = NULL,
 
     return(output.lst)
 }
-
-
-
-
-
-
-

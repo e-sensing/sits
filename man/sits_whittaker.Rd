@@ -8,16 +8,16 @@ sits_whittaker(data.tb = NULL, lambda = 1, differences = 3,
   bands_suffix = "whit")
 }
 \arguments{
-\item{data.tb}{tibble with time series data and metadata}
+\item{data.tb}{A tibble with time series data and metadata.}
 
-\item{lambda}{(double) smoothing factor to be applied (default 1.0)}
+\item{lambda}{Smoothing factor to be applied (default 1.0).}
 
-\item{differences}{(integer) the order of differences of contiguous elements (default 3)}
+\item{differences}{The order of differences of contiguous elements (default 3).}
 
-\item{bands_suffix}{suffix to be appended to the smoothed filters (default "whit")}
+\item{bands_suffix}{Suffix to be appended to the smoothed filters (default "whit").}
 }
 \value{
-output.tb   tibble with smoothed sits time series
+A tibble with smoothed sits time series.
 }
 \description{
 The algorithm searches for an optimal polynomial describing the warping.
@@ -35,7 +35,6 @@ point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0)
 # Plot the two points to see the smoothing effect
 sits_plot(sits_merge(point_ndvi, point_ws.tb))
 }
-
 }
 \references{
 Francesco Vuolo, Wai-Tim Ng, Clement Atzberger,

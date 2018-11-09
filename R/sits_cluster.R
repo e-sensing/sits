@@ -7,11 +7,11 @@
 #' package,  and produces a sits tibble with an added "cluster" column
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param data.tb          tibble with input data of dtwclust.
-#' @param dendro.obj       dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.
-#' @param k                (integer): desired number of clusters
-#' @param height           (double) desired height to cut the dendrogram. At least one of k or height must be specified, k overrides height if both are given.
-#' @return result.tb       tibble with the clusters or clusters' members
+#' @param data.tb          A tibble with input data of dtwclust.
+#' @param dendro.obj       Dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.
+#' @param k                Desired number of clusters (integer).
+#' @param height           Desired height to cut the dendrogram (double). At least one of k or height must be specified, k overrides height if both are given.
+#' @return A tibble with the clusters or clusters' members.
 #'
 #' @examples
 #' \donttest{
@@ -21,13 +21,11 @@
 #' data(cerrado_2classes)
 #' # calculate the dendrogram
 #' dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
-#' # include the cluster info in the SITS tibble
+#' # include the cluster info in the sits tibble
 #' clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
 #' }
-#'
 #' @export
 sits_cluster <-  function(data.tb, dendro.obj, k = NULL, height = NULL) {
-
     #verifies if either k or height has length one
     ensurer::ensure_that(k, (length(.) == 1 || length(height) == 1),
                          err_desc = "sits_cluster: you must provide at least k or height.")
@@ -46,16 +44,16 @@ sits_cluster <-  function(data.tb, dendro.obj, k = NULL, height = NULL) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Compute different cluster validity indices. This function needs
-#' as input a SITS tibble with `cluster` column.
+#' as input a sits tibble with `cluster` column.
 #' It is a front-end to `dtwclust::cvi` function. That function computes five indices:
 #' 1) adjusted Rand index; 2) Rand index; 3) Jaccard index; 4) Fowlkes-Mallows; and 5) Variation of Information index
 #' Please refer to the documentation in that package for more details.
 #'
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param data.tb   tibble with `cluster` column.
+#' @param data.tb   A tibble with `cluster` column.
 #'
-#' @return          vector with four external validity indices
+#' @return A vector with four external validity indices.
 #'
 #' @examples
 #' \donttest{
@@ -65,15 +63,13 @@ sits_cluster <-  function(data.tb, dendro.obj, k = NULL, height = NULL) {
 #' data(cerrado_2classes)
 #' # calculate the dendrogram
 #' dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
-#' # include the cluster info in the SITS tibble
+#' # include the cluster info in the sits tibble
 #' clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
 #' # computes its external validity indexes
 #' sits_cluster_validity(clustered.tb)
 #' }
-#'
 #' @export
 sits_cluster_validity <-  function(data.tb) {
-
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
@@ -96,10 +92,10 @@ sits_cluster_validity <-  function(data.tb) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Computes the contingency table between labels and clusters.
-#' This function needs as input a SITS tibble with `cluster` column.
+#' This function needs as input a sits tibble with `cluster` column.
 #'
-#' @param data.tb          tibble with `cluster` column.
-#' @return result.mtx      matrix containing all frequencies of labels in clusters
+#' @param data.tb          A tibble with `cluster` column.
+#' @return A matrix containing all frequencies of labels in clusters.
 #' @examples
 #' \donttest{
 #' # Load the "dtwclust" package
@@ -108,7 +104,7 @@ sits_cluster_validity <-  function(data.tb) {
 #' data(cerrado_2classes)
 #' # calculate the dendrogram
 #' dendro <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
-#' # include the cluster info in the SITS tibble
+#' # include the cluster info in the sits tibble
 #' # create 6 clusters by cutting the dendrogram
 #' clusters.tb <- sits_cluster(cerrado_2classes, dendro, k = 6)
 #' # show clusters samples frequency
@@ -116,7 +112,6 @@ sits_cluster_validity <-  function(data.tb) {
 #' }
 #' @export
 sits_cluster_frequency <-  function(data.tb) {
-
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names(.),
                          err_desc = "sits_cluster_contigency: input data does not contain cluster column")
@@ -133,7 +128,7 @@ sits_cluster_frequency <-  function(data.tb) {
 #' @name sits_cluster_clean
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Removes SITS tibble samples of labels that are minority in each cluster.
+#' @description Removes sits tibble samples of labels that are minority in each cluster.
 #' The function removes samples according to a percentage threshold "min_perc".
 #' If the method "intracluster" is chosen, the "min_perc" parameter
 #' controls the relative percentage of labels inside each cluster. If the number of samples
@@ -143,10 +138,10 @@ sits_cluster_frequency <-  function(data.tb) {
 #' percentage of each label in all clusters. If the percentage of samples of a label in a cluster
 #' is less than this "min_perc", all thise label samples are removed from that cluster.
 #'
-#' @param data.tb           tibble with `cluster` column.
-#' @param min_perc          minimum percentage of label inside a cluster for the label to remain in cluster.
-#' @param method            string with "intracluster" or "intercluster" or both
-#' @return result.tb        tibble with all selected samples
+#' @param data.tb           Tibble with `cluster` column.
+#' @param min_perc          Minimum percentage of label inside a cluster for the label to remain in cluster.
+#' @param method            String with "intracluster" or "intercluster" or both
+#' @return A tibble with all selected samples.
 #' @examples
 #' \donttest{
 #' # Load the "dtwclust" package
@@ -165,8 +160,7 @@ sits_cluster_frequency <-  function(data.tb) {
 #' sits_cluster_frequency(cleaned.tb)
 #' }
 #' @export
-sits_cluster_clean <-  function(data.tb, min_perc = 0.05, method = "intracluster") {
-
+sits_cluster_clean <- function(data.tb, min_perc = 0.05, method = "intracluster") {
     # verify if data.tb has data
     .sits_test_tibble(data.tb)
 
@@ -209,9 +203,9 @@ sits_cluster_clean <-  function(data.tb, min_perc = 0.05, method = "intracluster
 #' A cluster is considered good when the most frequent class has a percentage
 #' of samples greater than the "min_perc" threshold.
 #'
-#' @param data.tb           tibble with `cluster` column.
-#' @param min_perc          minimum percentage of the most frequent label inside a cluster for the cluster not to be deleted.
-#' @return result.tb        tibble with all selected samples
+#' @param data.tb           A tibble with `cluster` column.
+#' @param min_perc          Minimum percentage of the most frequent label inside a cluster for the cluster not to be deleted.
+#' @return A tibble with all selected samples.
 #' @examples
 #' \donttest{
 #' # Load the "dtwclust" package
@@ -230,8 +224,7 @@ sits_cluster_clean <-  function(data.tb, min_perc = 0.05, method = "intracluster
 #' sits_cluster_frequency(cleaned.tb)
 #' }
 #' @export
-sits_cluster_remove <-  function(data.tb, min_perc = 0.90) {
-
+sits_cluster_remove <- function(data.tb, min_perc = 0.90) {
     # verify if data.tb has data
     .sits_test_tibble(data.tb)
 

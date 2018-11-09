@@ -9,7 +9,7 @@
 data(timeline_modis_392)
 }
 \description{
-The timeline for the time series used in the examples of the SITS package
+The timeline for the time series used in the examples of the sits package
    that use data from MODIS collection 5.
    There are 392 instances from 2000-02-18 until 2017-02-18.
 }

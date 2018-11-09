@@ -7,7 +7,7 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Alexandre', 'Carvalho', role = c('aut', 'ctb'), email= 'alexandre.ywata@ipea.gov.br'),
-             person('Pedro', 'Andrade', role = c('aut', 'ctb'), email = 'pedro.andrade@inpe.br'),
+             person('Pedro', 'R. Andrade', role = c('aut', 'ctb'), email = 'pedro.andrade@inpe.br'),
              person('Gilberto', 'Queiroz', role = c('aut', 'ctb'), email = 'gilberto.queiroz@inpe.br'),
              person('Alber', 'Sanchez', role = c('ctb')),
              person('Luiz', 'Assis', role = c('ctb')),
@@ -54,9 +54,11 @@ Imports:
     MASS,
     methods,
     mgcv,
+    NbClust,
     nnet,
     openxlsx,
     parallel,
+    proxy,
     purrr,
     ranger,
     raster (>= 2.6),
@@ -77,7 +79,7 @@ Imports:
     zoo
 LinkingTo:
     Rcpp
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.0.9000
 Collate: 
     'RcppExports.R'
     'data.R'
@@ -110,6 +112,7 @@ Collate:
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
+    'sits_plot_cluster.R'
     'sits_raster_classification.R'
     'sits_raster_blocks.R'
     'sits_raster_read_write.R'

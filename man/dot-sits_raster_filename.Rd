@@ -7,18 +7,18 @@
 .sits_raster_filename(file, start_date, end_date)
 }
 \arguments{
-\item{file}{original file name (without temporal information)}
+\item{file}{Original file name (without temporal information).}
 
-\item{start_date}{starting date of the time series classification}
+\item{start_date}{Starting date of the time series classification.}
 
-\item{end_date}{end date of the time series classification}
+\item{end_date}{End date of the time series classification.}
 }
 \value{
-file_name    name of the classification file for the required interval
+Name of the classification file for the required interval.
 }
 \description{
 Creates a filename for a raster layer with associated temporal information,
-                given a basic filename
+                given a basic filename.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

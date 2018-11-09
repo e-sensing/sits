@@ -2,27 +2,27 @@
 % Please edit documentation in R/sits_tibble_functions.R
 \name{sits_apply}
 \alias{sits_apply}
-\title{Apply a function over SITS bands.}
+\title{Apply a function over sits bands.}
 \usage{
 sits_apply(data, fun, fun_index = function(index) {     return(index) },
   bands_suffix = "")
 }
 \arguments{
-\item{data}{valid sits table or matrix}
+\item{data}{Valid sits tibble or matrix.}
 
-\item{fun}{function with one parameter as input and a vector or list of vectors as output.}
+\item{fun}{Function with one parameter as input and a vector or list of vectors as output.}
 
-\item{fun_index}{function with one parameter as input and a Date vector as output.}
+\item{fun_index}{Function with one parameter as input and a Date vector as output.}
 
-\item{bands_suffix}{string informing the suffix of the resulting bands.}
+\item{bands_suffix}{String informing the suffix of the resulting bands.}
 }
 \value{
-data.tb      sits tibble with same samples and the new bands
+A sits tibble with same samples and the new bands.
 }
 \description{
 Apply a 1D generic function to a time series and specific methods for
 common tasks such as missing values removal and smoothing.
-`sits_apply` returns a sits tibble with the same samples points and new bands computed by `fun`,
+`sits_apply()` returns a sits tibble with the same samples points and new bands computed by `fun`,
 `fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
 whose vector values is passed as the function argument.
 The `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
@@ -36,7 +36,6 @@ If a suffix is provided in `bands_suffix`, all resulting bands names will end wi
 data(point_ndvi)
 # apply a normalization function
 point2 <- sits_apply (point_ndvi, fun = function (x) { (x - min (x))/(max(x) - min(x))} )
-
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

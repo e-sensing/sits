@@ -7,12 +7,12 @@
 .sits_num_samples(timeline, interval = "12 month")
 }
 \arguments{
-\item{timeline}{Timeline of input observations (vector)}
+\item{timeline}{Timeline of input observations (vector).}
 
-\item{interval}{Period to match the data to the patterns}
+\item{interval}{Period to match the data to the patterns.}
 }
 \value{
-num_samples          The number of measures during the chosen interval
+The number of measures during the chosen interval.
 }
 \description{
 This function retrieves the number of samples

@@ -7,10 +7,10 @@
 .sits_get_protocol(service)
 }
 \arguments{
-\item{service}{The name of the service}
+\item{service}{The name of the service.}
 }
 \value{
-protocol       The protocol associated to the service
+The protocol associated to the service.
 }
 \description{
 Retrieve the protocol associated to the time series service

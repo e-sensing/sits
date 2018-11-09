@@ -7,17 +7,17 @@
 .sits_predict(distances_DT = NULL, ml_model, ...)
 }
 \arguments{
-\item{distances_DT}{set of distance metrics to each of the classes}
+\item{distances_DT}{Set of distance metrics to each of the classes.}
 
-\item{ml_model}{model trained by \code{\link[sits]{sits_train}}}
+\item{ml_model}{Model trained by \code{\link[sits]{sits_train}}.}
 
-\item{...}{other parameters to be passed to the model function}
+\item{...}{Other parameters to be passed to the model function.}
 }
 \value{
-predicted    vector of predicted labels
+A vector of predicted labels.
 }
 \description{
-Given a SITS tibble time series and a model trained by \code{\link[sits]{sits_train}},
+Given a sits tibble time series and a model trained by \code{\link[sits]{sits_train}},
   returns a predicted label. Note that the \code{\link[sits]{.sits_predict}} function is
   called inside \code{\link[sits]{sits_classify}},
   and \code{\link[sits]{sits_classify_raster}}, so the user does not need

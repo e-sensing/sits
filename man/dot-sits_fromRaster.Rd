@@ -9,22 +9,22 @@
   label = "NoClass")
 }
 \arguments{
-\item{coverage}{A tibble with metadata describing a raster coverage}
+\item{coverage}{A tibble with metadata describing a raster coverage.}
 
-\item{file}{A CSV file with lat/long locations to be retrieve}
+\item{file}{A CSV file with lat/long locations to be retrieve.}
 
-\item{longitude}{double - the longitude of the chosen location}
+\item{longitude}{A double with the longitude of the chosen location.}
 
-\item{latitude}{double - the latitude of the chosen location}
+\item{latitude}{A double with the latitude of the chosen location.}
 
-\item{start_date}{date - the start of the period}
+\item{start_date}{A date with the start of the period.}
 
-\item{end_date}{date - the end of the period}
+\item{end_date}{A date with the end of the period.}
 
-\item{label}{string - the label to attach to the time series}
+\item{label}{A string with the label to attach to the time series.}
 }
 \value{
-data.tb        a SITS tibble with the time series
+A sits tibble with the time series.
 }
 \description{
 Reads metadata about a raster data set to retrieve a set of

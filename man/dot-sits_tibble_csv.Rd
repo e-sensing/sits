@@ -7,10 +7,10 @@
 .sits_tibble_csv()
 }
 \value{
-result.tb   a tibble to store the result of classifications
+A tibble to store the result of classifications.
 }
 \description{
-Create an empty tibble to store the results of classification
+Create an empty tibble to store the results of classification.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

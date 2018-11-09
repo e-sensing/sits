@@ -1,10 +1,11 @@
-access_WTSS             Access time series using the WTSS service
-access_SATVEG           Access time series using the SATVEG service
-classify_csv            Classify a set of labelled samples in the CSV format
-classify_ts             Classify a time series using SVM
-classify_raster_rfor    Classify RasterBricks in TIFF format using SVM (only NDVI, EVI bands)
-classify_raster_svm     Classify RasterBricks in TIFF format using SVM (only NDVI, EVI bands)
-classify_TWDTW          Classify a time series using TWDTW
-classify_deeplearning   Classify a mixed LANDSAT8-MODIS data brick deep learning
-filtering_ts            Comparison of different methods for filtering a time series
-ml_comparison           Comparison of different machine learning methods for classifying time series
+access_WTSS              Access time series using the WTSS service
+access_SATVEG            Access time series using the SATVEG service
+classify_csv             Classify a set of labelled samples in the CSV format
+classify_ts              Classify a time series using SVM
+classify_raster_rfor     Classify RasterBricks in TIFF format using SVM (only NDVI, EVI bands)
+classify_raster_svm      Classify RasterBricks in TIFF format using SVM (only NDVI, EVI bands)
+classify_TWDTW           Classify a time series using TWDTW
+classify_deeplearning    Classify a mixed LANDSAT8-MODIS data brick deep learning
+evaluate_samples_Kohonen Clustering and evaluation of samples using self-organizing maps
+filtering_ts             Comparison of different methods for filtering a time series
+ml_comparison            Comparison of different machine learning methods for classifying time series

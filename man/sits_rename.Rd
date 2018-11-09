@@ -2,20 +2,20 @@
 % Please edit documentation in R/sits_tibble_functions.R
 \name{sits_rename}
 \alias{sits_rename}
-\title{names of the bands of a time series}
+\title{Names of the bands of a time series}
 \usage{
 sits_rename(data.tb, names)
 }
 \arguments{
-\item{data.tb}{valid sits tibble}
+\item{data.tb}{Valid sits tibble.}
 
-\item{names}{string vector with the names of the new bands}
+\item{names}{String vector with the names of the new bands.}
 }
 \value{
-data.tb     sits tibble with the new names for the bands
+A sits tibble with the new names for the bands.
 }
 \description{
-set the names of the bands of time series in a sits table
+Set the names of the bands of time series in a sits tibble.
 }
 \examples{
 # Retrieve a time series with one band
@@ -23,7 +23,7 @@ data(point_ndvi)
 # Rename the band
 ndvi1.tb <- sits_rename (point_ndvi, names = c("veg_index"))
 # print the names of the new band
-sits_bands (ndvi1.tb)
+sits_bands(ndvi1.tb)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

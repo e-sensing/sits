@@ -7,12 +7,12 @@
 .sits_get_minimum_values(service, bands)
 }
 \arguments{
-\item{service}{name of the product}
+\item{service}{Name of the product.}
 
-\item{bands}{vector of bands}
+\item{bands}{Vector of bands.}
 }
 \value{
-missing_values
+The minimum values.
 }
 \description{
 Retrieve the minimum values for a given band

@@ -7,19 +7,19 @@
 .sits_tibble_prediction(data.tb, class_info.tb, pred.mtx, interval)
 }
 \arguments{
-\item{data.tb}{a tibble with the input data}
+\item{data.tb}{A tibble with the input data.}
 
-\item{class_info.tb}{a tibble with the information on classification}
+\item{class_info.tb}{A tibble with the information on classification.}
 
-\item{pred.mtx}{the result of the classification (one class per column and one row per interval)}
+\item{pred.mtx}{The result of the classification (one class per column and one row per interval).}
 
-\item{interval}{the time interval between two classifications}
+\item{interval}{The time interval between two classifications.}
 }
 \value{
-predic.tb       a tibble to store the predictions
+A tibble storing the predictions.
 }
 \description{
-Create a tibble to store the results of predictions
+Create a tibble to store the results of predictions.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

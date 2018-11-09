@@ -8,22 +8,22 @@ sits_patterns(data.tb = NULL, timeline = NULL, start_date = NULL,
   end_date = NULL, freq = 8, formula = y ~ s(x), ...)
 }
 \arguments{
-\item{data.tb}{tibble in SITS format with time series}
+\item{data.tb}{A tibble in sits format with time series.}
 
-\item{timeline}{vector - timeline with the all dates for the coverage}
+\item{timeline}{A timeline vector with the all dates for the coverage.}
 
-\item{start_date}{starting date of the estimate (month-day)}
+\item{start_date}{Starting date (month-day).}
 
-\item{end_date}{end data of the estimated (month-day)}
+\item{end_date}{End date (month-day).}
 
-\item{freq}{interval in days for the estimates to be generated}
+\item{freq}{Interval in days for the estimates to be generated.}
 
-\item{formula}{formula to be applied in the estimate}
+\item{formula}{Formula to be applied in the estimate.}
 
-\item{...}{any additional parameters}
+\item{...}{Any additional parameters.}
 }
 \value{
-patterns.tb   SITS tibble with the patterns
+A sits tibble with the patterns.
 }
 \description{
 This function takes a set of time series samples as input
@@ -32,7 +32,7 @@ The idea is to use a formula of type y ~ s(x), where x is a temporal
 reference and y if the value of the signal. For each time, there will be as many predictions
 as there are sample values. The GAM model predicts a suitable
 approximation that fits the assumptions of the statistical model.
-By default, the gam methods  produces an approximation based on a smooth function.
+By default, the GAM method produces an approximation based on a smooth function.
 
 This method is based on the "createPatterns" method of the dtwSat package, which is also
 described in the reference paper.
@@ -42,16 +42,16 @@ described in the reference paper.
 # Read a set of samples for two classes
 data(cerrado_2classes)
 # Estimate a set of patterns (one for each label)
-patterns.tb <- sits_patterns (cerrado_2classes)
+patterns.tb <- sits_patterns(cerrado_2classes)
 # Show the patterns
-sits_plot (patterns.tb)
+sits_plot(patterns.tb)
 
 # Read a set of samples for the state of Mato Grosso, Brazil, provided by EMBRAPA
 data(samples_MT_9classes)
 # Estimate a set of patterns (one for each label)
-patterns.tb <- sits_patterns (samples_MT_9classes)
+patterns.tb <- sits_patterns(samples_MT_9classes)
 # Show the patterns
-sits_plot (patterns.tb)
+sits_plot(patterns.tb)
 }
 }
 \references{

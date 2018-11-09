@@ -8,14 +8,14 @@ sits_envelope(data.tb = NULL, operations = "UULL",
   bands_suffix = "env")
 }
 \arguments{
-\item{data.tb}{tibble with time series data and metadata}
+\item{data.tb}{A tibble with time series data and metadata.}
 
-\item{operations}{character sequence indicating which operations must be taken. "U" for upper filter, "L" for down filter.}
+\item{operations}{A character sequence indicating which operations must be taken. "U" for upper filter, "L" for down filter.}
 
-\item{bands_suffix}{suffix to be appended to the resulting data (default "env")}
+\item{bands_suffix}{Suffix to be appended to the resulting data (default "env").}
 }
 \value{
-result.tb   tibble with filtered time series values
+A tibble with filtered time series values.
 }
 \description{
 This function computes the envelope of a time series using the
@@ -27,7 +27,7 @@ streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::c
 # This is an area full of clouds
 data(prodes_226_064)
 # Select the NDVI band of the first point
-point_ndvi.tb <- sits_select (prodes_226_064[1,], bands = c("ndvi"))
+point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # Apply the envelope filter
 point_env.tb <- sits_envelope(point_ndvi.tb)
 # Merge the filtered with the raw data

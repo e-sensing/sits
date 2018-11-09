@@ -7,11 +7,11 @@
 .sits_plot_allyears(data, colors)
 }
 \arguments{
-\item{data}{one or more time series (stored in a SITS tibble)}
+\item{data}{One or more time series (stored in a sits tibble).}
 
-\item{colors}{the color pallete to be used (default is "Set2")}
+\item{colors}{The color pallete to be used (default is "Set2").}
 }
 \description{
-for each lat/long location in the data, join temporal
-instances of the same place together for plotting
+For each lat/long location in the data, join temporal
+instances of the same place together for plotting.
 }

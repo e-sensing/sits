@@ -2,20 +2,18 @@
 #' @name sits_labels
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description  returns the labels and its respective counting and frequency.
+#' @description Returns the labels and its respective counting and frequency.
 #'
-#' @param data.tb     tibble with time series data and metadata
-#' @return result.tb  tibble with the names of the labels and their absolute and relative frequency
+#' @param data.tb     A tibble with time series data and metadata.
+#' @return A tibble with the names of the labels and their absolute and relative frequency.
 #'
 #' @examples
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # print the labels
-#' sits_labels (cerrado_2classes)
-#'
+#' sits_labels(cerrado_2classes)
 #' @export
 sits_labels <- function (data.tb) {
-
     # get frequency table
     data.vec <- table(data.tb$label)
 
@@ -25,38 +23,38 @@ sits_labels <- function (data.tb) {
                                         freq  = as.numeric(prop.table(data.vec))))
     return (result.tb)
 }
+
 #' @title Relabels a sits tibble
 #' @name sits_relabel
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Given a SITS tibble with a set of labels, and a conversion list
-#' between the original labels and new labels, returns a new SITS tibble whose labels are changed.
+#' @description Given a sits tibble with a set of labels, and a conversion list
+#' between the original labels and new labels, returns a new sits tibble whose labels are changed.
 #'
-#' @param  data.tb        a SITS tibble
-#' @param  conv.lst       a named list used to convert labels to a new value. Actual labels must be the names of the conv.lst elements.
+#' @param  data.tb        A sits tibble.
+#' @param  conv.lst       A named list used to convert labels to a new value. Actual labels must be the names of the conv.lst elements.
 #'                        an empty list produces no difference.
-#' @return result.tb      a new SITS tibble with modified labels
+#' @return A new sits tibble with modified labels.
 #'
 #' @examples
 #' \donttest{
 #' # Read a set of time series with information on deforestation
 #' data(prodes_226_064)
 #' # Print the labels
-#' sits_labels (prodes_226_064)
-#' # Create a conversion list
-#' conv.lst = list("Deforestation_2014" = "NonForest",
-#'              "Deforestation_2015" = "NonForest",
-#'              "Forest" = "Forest",
-#'              "Pasture" = "NonForest")
+#' sits_labels(prodes_226_064)
+#' # Create a conversion list.
+#' # Three classes will be converted to "NonForest".
+#' conv.lst = list(Deforestation_2014 = "NonForest",
+#'                 Deforestation_2015 = "NonForest",
+#'                 Pasture = "NonForest")
 #' # relabel the data
-#' new_data.tb <- sits_relabel (prodes_226_064, conv.lst)
+#' new_data.tb <- sits_relabel(prodes_226_064, conv.lst)
 #' # show the new labels
-#' sits_labels (new_data.tb)
+#' sits_labels(new_data.tb)
 #' }
 #' @export
-sits_relabel <- function (data.tb, conv.lst = list()){
-
+sits_relabel <- function(data.tb, conv.lst = list()){
     #does the input data exist?
     .sits_test_tibble (data.tb)
 
@@ -67,7 +65,6 @@ sits_relabel <- function (data.tb, conv.lst = list()){
     result.tb <- data.tb
 
     if (length(conv.lst) > 0){
-
         # get those labels not in conv.lst names
         conv.lst <- .sits_labels_list(data.tb, conv.lst)
 
@@ -76,21 +73,21 @@ sits_relabel <- function (data.tb, conv.lst = list()){
     }
     return (result.tb)
 }
-#' @title SITS labels processing function
+
+#' @title Sits labels processing function
 #' @name .sits_labels_list
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description completes list.lst list as a named list (names are unique labels from data.tb) according
+#' @description Completes list.lst list as a named list (names are unique labels from data.tb) according
 #'              to a given function that receives each label as an argument.
 #'
-#' @param  data.tb     a SITS tibble
-#' @param  list.lst    any named list whose names are unique labels from data input. Non-informed labels will be completed
+#' @param  data.tb     A sits tibble.
+#' @param  list.lst    Any named list whose names are unique labels from data input. Non-informed labels will be completed
 #'                     according to fun_label function.
-#' @param  fun_label   a function that will be executed for each label non listed in list.lst parameter. The result of
+#' @param  fun_label   A function that will be executed for each label non listed in list.lst parameter. The result of
 #'                     the function is used as list.lst value for the respective label.
-#' @return result.lst  a list whose values non informed in list.lst is filled by fun_label for each unique label in data.tb.
+#' @return A list whose values non informed in list.lst is filled by fun_label for each unique label in data.tb.
 .sits_labels_list <- function(data.tb, list.lst = list(), fun_label = function(lb) lb) {
-
     # verify if data.tb has data
     .sits_test_tibble (data.tb)
 
@@ -105,7 +102,6 @@ sits_relabel <- function (data.tb, conv.lst = list()){
 
     # generate entries to those labels not listed in list.lst
     if (any(non_listed_values)){
-
         # call fun_label for each label as an argument
         identity.lst <- u_labels[non_listed_values] %>%
             purrr::map(fun_label)

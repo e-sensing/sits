@@ -10,7 +10,7 @@
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),
 #'   coverage (the name of the coverage associated with the data),
-#'   time_series ( list containing a tibble with the values of the time series).
+#'   time_series (list containing a tibble with the values of the time series).
 NULL
 
 #' @title A time series sample with data from 2000 to 2016
@@ -99,7 +99,6 @@ NULL
 #' @description A dataset containing a one ZOO time series samples in the Mato Grosso state of Brazil.
 #'    The time series comes from MOD13Q1 collection 5 images.
 #'
-#'
 #' @docType data
 #' @keywords datasets
 #' @name ts_zoo
@@ -109,7 +108,7 @@ NULL
 
 #' @title The timeline for the sequence of images for MOD13Q1 collection 5
 #'
-#' @description The timeline for the time series used in the examples of the SITS package
+#' @description The timeline for the time series used in the examples of the sits package
 #'    that use data from MODIS collection 5.
 #'    There are 392 instances from 2000-02-18 until 2017-02-18.
 #' @docType data
@@ -121,7 +120,7 @@ NULL
 
 #' @title The timeline for the sequence of images for MOD13Q1 collection 6
 #'
-#' @description The timeline for the time series used in the examples of the SITS package
+#' @description The timeline for the time series used in the examples of the sits package
 #'    that use data from MODIS collection 6.
 #'    There are 407 instances from 2000-02-18 until 2017-10-16.
 #' @docType data

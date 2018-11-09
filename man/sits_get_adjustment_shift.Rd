@@ -8,7 +8,7 @@
 .sits_get_adjustment_shift()
 }
 \description{
-retrieves the value of the shift to adjust entries to have only positive values
+Retrieves the value of the shift to adjust entries to have only positive values.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

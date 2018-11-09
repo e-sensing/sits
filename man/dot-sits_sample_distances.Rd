@@ -7,16 +7,16 @@
 .sits_sample_distances(distances_DT, frac)
 }
 \arguments{
-\item{distances_DT}{data.table objects with the distances associated to a time series}
+\item{distances_DT}{A data.table object with the distances associated to a time series.}
 
-\item{frac}{percentage of samples to pick from a given group of data.}
+\item{frac}{Percentage of samples to pick from a given group of data.}
 }
 \value{
-result.tb       the new data.table with a fixed quantity of samples of informed labels and all other
+A data.table with a fixed quantity of samples of informed labels and all other.
 }
 \description{
-takes a sits table with different labels and
-             returns a new table. For a given field as a group criterion, this new table contains a given number or percentage
+Takes a sits tibble with different labels and
+             returns a new tibble. For a given field as a group criterion, this new table contains a given number or percentage
              of the total number of samples per group. Parameter n indicantes the number of random samples with reposition.
              Parameter frac indicates a fraction of random samples without reposition. If frac > 1, no sampling is done.
 }

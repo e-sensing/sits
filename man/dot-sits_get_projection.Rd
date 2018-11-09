@@ -7,12 +7,12 @@
 .sits_get_projection(service, name)
 }
 \arguments{
-\item{service}{name of the time series service}
+\item{service}{Name of the time series service.}
 
-\item{name}{name of the coverage}
+\item{name}{Name of the coverage.}
 }
 \value{
-crs           CRS PROJ4 infomation
+CRS PROJ4 infomation.
 }
 \description{
 Retrieve the projection for the product available at service

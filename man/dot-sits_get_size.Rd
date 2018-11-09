@@ -7,14 +7,14 @@
 .sits_get_size(service, name, r_obj = NA)
 }
 \arguments{
-\item{service}{name of the time series service}
+\item{service}{Name of the time series service.}
 
-\item{name}{name of the coverage}
+\item{name}{Name of the coverage.}
 
-\item{r_obj}{R object associated with the coverage}
+\item{r_obj}{R object associated with the coverage.}
 }
 \value{
-size          vector of (nrows, ncols)
+Vector of (nrows, ncols).
 }
 \description{
 Retrieve the size of the product for a given time series service

@@ -7,15 +7,15 @@
 .sits_plot_together(data.tb, colors)
 }
 \arguments{
-\item{data.tb}{tibble - a SITS table with the list of time series to be plotted}
+\item{data.tb}{A sits tibble with the list of time series to be plotted.}
 
-\item{colors}{the color pallete to be used (default is "Set1")}
+\item{colors}{The color pallete to be used (default is "Set1").}
 }
 \value{
-data.tb    tibble - the input SITS table (useful for chaining functions)
+The input sits tibble (useful for chaining functions).
 }
 \description{
-plots all time series for the same label together
+Plots all time series for the same label together.
 This function is useful to find out the spread of the values of the time serie
-for a given label
+for a given label.
 }

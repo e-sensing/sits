@@ -7,16 +7,16 @@
 .sits_split_block_size(data, ncores)
 }
 \arguments{
-\item{data}{data (data.table or matrix)}
+\item{data}{Data (data.table or matrix).}
 
-\item{ncores}{number of cores for processing}
+\item{ncores}{Number of cores for processing.}
 }
 \value{
-block_size.lst  list of pairs of positions (first row, last row) to be assigned to each core
+List of pairs of positions (first row, last row) to be assigned to each core.
 }
 \description{
-this functions defines the rows of the input data that will be
-split to fit to be divided between the different cores
+This function defines the rows of the input data that will be
+split to be divided between the different cores.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

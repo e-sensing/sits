@@ -7,10 +7,10 @@
 sits_info_services()
 }
 \value{
-bool    boolean value indicating success of failure
+A boolean value indicating success of failure.
 }
 \description{
-obtains information about the time series servers, their products and their coverages
+Obtains information about the time series servers, their products and their coverages.
 }
 \author{
 Gilberto Camara

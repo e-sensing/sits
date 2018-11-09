@@ -8,16 +8,16 @@ sits_plot_dendrogram(data.tb, dendro.obj, cutree_height = NULL,
   colors = "RdYlGn")
 }
 \arguments{
-\item{data.tb}{SITS tibble with data used to extract the dendrogram}
+\item{data.tb}{A sits tibble with data used to extract the dendrogram.}
 
-\item{dendro.obj}{cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`}
+\item{dendro.obj}{Cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`.}
 
 \item{cutree_height}{A dashed horizontal line to be drawed indicating the height of dendrogram cutting.}
 
-\item{colors}{a color scheme as showed in `sits_color_name` function}
+\item{colors}{A color scheme as showed in `sits_color_name` function.}
 }
 \description{
-Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendrogram}}
+Plot an enhanced dendrogram based on the result of \code{\link[sits]{sits_dendrogram}}.
 }
 \examples{
 \donttest{

@@ -7,12 +7,12 @@
 .sits_XY_inside_raster(xy, raster.tb)
 }
 \arguments{
-\item{xy}{XY extent compatible with the R raster package}
+\item{xy}{XY extent compatible with the R raster package.}
 
-\item{raster.tb}{Tibble with metadata information about a raster data set}
+\item{raster.tb}{Tibble with metadata information about a raster data set.}
 }
 \value{
-bool      TRUE if XY is inside the raster extent, FALSE otherwise
+TRUE if XY is inside the raster extent, FALSE otherwise.
 }
 \description{
 This function compares an XY position to the extent of a RasterBrick

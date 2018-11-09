@@ -3,20 +3,19 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This internal function implements the factory method pattern for the SITS package
+#' @description This internal function implements the factory method pattern for the sits package
 #' Its role is to create a generic interface to closures in R so that the functions
-#' in the SITS package can be called in two different ways:
+#' in the sits package can be called in two different ways:
 #' 1. They can be called directly, passing input data and parameters.
 #' 2. They can be called as second-order values (parameters of another function).
 #'    In the second case, the call will pass no data values and only pass the parameters for execution
 #'
-#' The factory pattern is used in many situations in the SITS package, to allow different alternatives
+#' The factory pattern is used in many situations in the sits package, to allow different alternatives
 #' for filtering, pattern creation, training, and cross-validation
 #'
-#' @param data.tb   tibble with time series data and metadata
-#' @param fun       the function that performs some calculation on the input data
+#' @param data.tb   Tibble with time series data and metadata.
+#' @param fun       The function that performs some calculation on the input data.
 .sits_factory_function <- function(data.tb, fun) {
-
     # if no data is given, we prepare a function to be called as a parameter of other functions
     if (is.null(data.tb))
         result <- fun
@@ -31,22 +30,21 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This internal function implements the factory method pattern for the SITS package
+#' @description This internal function implements the factory method pattern for the sits package
 #' in the case of two data inputs
 #' Its role is to create a generic interface to closures in R so that the functions
-#' in the SITS package can be called in two different ways:
+#' in the sits package can be called in two different ways:
 #' 1. They can be called directly, passing input data and parameters.
 #' 2. They can be called as second-order values (parameters of another function).
 #'    In the second case, the call will pass no data values and only pass the parameters for execution
 #'
-#' The factory pattern is used in many situations in the SITS package, to allow different alternatives
+#' The factory pattern is used in many situations in the sits package, to allow different alternatives
 #' for filtering, pattern creation, training, and cross-validation
 #'
-#' @param data.tb   tibble with time series with the first data input to the function
-#' @param data2.tb  tibble with time series with the second data input to the function
-#' @param fun       function that performs some calculation on the input data
+#' @param data.tb   Tibble with time series with the first data input to the function.
+#' @param data2.tb  Tibble with time series with the second data input to the function.
+#' @param fun       Function that performs some calculation on the input data.
 .sits_factory_function2 <- function(data.tb, data2.tb, fun) {
-
     # if no data is given, we prepare a function to be called as a parameter of other functions
     if (purrr::is_null(data.tb) && purrr::is_null(data2.tb))
         result <- fun
@@ -64,12 +62,11 @@
 #' @description Given a function and a list of arguments,
 #' returns the function with new default parameters
 #'
-#' @param fun a function
-#' @param args a list of arguments
-#' @param ... arguments
+#' @param fun A function.
+#' @param args A list of arguments.
+#' @param ... Arguments.
 #'
 #' @noRd
-#'
 .set_fun_args = function(fun, ..., args = list(...)){
     base_formals = formals(fun)
     base_formals_names = names(base_formals)

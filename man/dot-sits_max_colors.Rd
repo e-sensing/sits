@@ -7,11 +7,11 @@
 .sits_max_colors(brewer = NULL)
 }
 \arguments{
-\item{brewer}{name of the brewer color set}
+\item{brewer}{name of the brewer color set.}
 }
 \value{
-numeric  number of available colors
+The number of available colors.
 }
 \description{
-Number of colors available in brewer color schemes
+Number of colors available in brewer color schemes.
 }

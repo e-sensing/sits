@@ -7,19 +7,19 @@
 .sits_select_raster_indexes(coverage, samples, interval)
 }
 \arguments{
-\item{coverage}{Coverage with input data set}
+\item{coverage}{Coverage with input data set.}
 
-\item{samples}{tibble with samples used for classification}
+\item{samples}{Tibble with samples used for classification.}
 
-\item{interval}{classification interval}
+\item{interval}{Classification interval.}
 }
 \value{
-select.lst         list of values to be extracted for each classification interval
+List of values to be extracted for each classification interval.
 }
 \description{
 Given a list of time indexes that indicate the start and end of the values to
 be extracted to classify each band, obtain a list of indexes that will be used to
-extract values from a combined distance table (with has all the bands put together)
+extract values from a combined distance tibble (with has all the bands put together)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -2,16 +2,16 @@
 % Please edit documentation in R/sits_TWDTW.R
 \name{.sits_fromTWDTW_matches}
 \alias{.sits_fromTWDTW_matches}
-\title{Transform patterns from TWDTW format to SITS format}
+\title{Transform patterns from TWDTW format to sits format}
 \usage{
 .sits_fromTWDTW_matches(match.twdtw)
 }
 \arguments{
-\item{match.twdtw}{a TWDTW Matches object of class dtwSat::twdtwMatches (S4)}
+\item{match.twdtw}{A TWDTW Matches object of class dtwSat::twdtwMatches (S4).}
 }
 \value{
-result.tb    a tibble containing the matches information
+A tibble containing the matches information.
 }
 \description{
-reads one TWDTW matches object and transforms it into a tibble ready to be stored into a SITS table column.
+Reads one TWDTW matches object and transforms it into a tibble ready to be stored into a sits tibble column.
 }
