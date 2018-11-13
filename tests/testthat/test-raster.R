@@ -28,5 +28,15 @@ test_that("Working with raster coverages", {
     expect_true(all(file.exists(unlist(raster_class.tb$files))))
     rc_obj <- raster_class.tb[1,]$r_objs[[1]][[1]]
     expect_true(raster::nrow(rc_obj) == raster_class.tb[1,]$nrows)
+
+    raster_class_bayes.tb <- sits::sits_bayes_postprocess(raster_class.tb,
+                                                          file = "raster-class-bayes")
+
+    expect_true(all(file.exists(unlist(raster_class_bayes.tb$files))))
+    rc_obj2 <- raster_class_bayes.tb[1,]$r_objs[[1]][[1]]
+    expect_true(raster::nrow(rc_obj2) == raster_class_bayes.tb[1,]$nrows)
+    expect_true(raster::nrow(rc_obj2) == raster::nrow(rc_obj))
+
     expect_true(all(file.remove(unlist(raster_class.tb$files))))
+    expect_true(all(file.remove(unlist(raster_class_bayes.tb$files))))
 })
