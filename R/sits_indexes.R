@@ -20,15 +20,15 @@ sits_tasseled_cap <- function(data.tb, satellite = "MODIS"){
                          err_desc = "sits_tasseled_cap: not enough bands to compute")
 
     b_coef <- .sits_get_tcap_brightness(satellite)
-    data.tb <- sits_mutate(data.tb, tcb = b_coef["blue"]*blue + b_coef["red"]*red
+    data.tb <- sits_mutate_bands(data.tb, tcb = b_coef["blue"]*blue + b_coef["red"]*red
                            + b_coef["nir"]*nir + b_coef["mir"]*mir)
 
     g_coef <- .sits_get_tcap_greenness(satellite)
-    data.tb <- sits_mutate(data.tb, tcg = g_coef["blue"]*blue + g_coef["red"]*red
+    data.tb <- sits_mutate_bands(data.tb, tcg = g_coef["blue"]*blue + g_coef["red"]*red
                            + g_coef["nir"]*nir + g_coef["mir"]*mir)
 
     w_coef <- .sits_get_tcap_wetness(satellite)
-    data.tb <- sits_mutate(data.tb, tcw = w_coef["blue"]*blue + w_coef["red"]*red
+    data.tb <- sits_mutate_bands(data.tb, tcw = w_coef["blue"]*blue + w_coef["red"]*red
                            + w_coef["nir"]*nir + w_coef["mir"]*mir)
 
     return(data.tb)
@@ -54,7 +54,7 @@ sits_savi <- function(data.tb){
     ensurer::ensure_that(bands, all(bands_savi %in% (.)),
                          err_desc = "sits_savi: not enough bands to compute")
 
-    data.tb <- sits_mutate(data.tb, savi = (1.5)*(nir - red)/(nir + red + 0.5))
+    data.tb <- sits_mutate_bands(data.tb, savi = (1.5)*(nir - red)/(nir + red + 0.5))
 
     return(data.tb)
 }
@@ -79,7 +79,7 @@ sits_ndwi <- function(data.tb){
     ensurer::ensure_that(bands, all(bands_ndwi %in% (.)),
                          err_desc = "sits_ndwi: not enough bands to compute")
 
-    data.tb <- sits_mutate(data.tb, ndwi = (1.5) * (nir - mir)/(nir + mir))
+    data.tb <- sits_mutate_bands(data.tb, ndwi = (1.5) * (nir - mir)/(nir + mir))
 
     return(data.tb)
 }

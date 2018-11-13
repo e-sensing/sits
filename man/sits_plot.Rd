@@ -21,10 +21,10 @@ Given a sits tibble with a set of time series, plot them.
 
 The plot function produces different plots based on the input data:
 \itemize{
- \item{"all years" - }{Plot all samples from the same location together}
- \item{"patterns" - }{Plot the patterns for a given set of classes}
- \item{"together" - }{Plot all samples of the same band and label together}
- \item{"classification" - }{Plot the results of a classification}
+ \item{"all years": }{Plot all samples from the same location together}
+ \item{"patterns": }{Plot the patterns for a given set of classes}
+ \item{"together": }{Plot all samples of the same band and label together}
+ \item{"classification": }{Plot the results of a classification}
 }
 The sits_plot function makes an educated guess of what plot is required,
 based on the input data. If the input data has less than 30 samples, it

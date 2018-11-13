@@ -1,23 +1,25 @@
 #' @title Provides information about one coverage used to retrieve data
 #' @name sits_coverage
 #'
-#' @description Uses the configuration file to print information and save metadata about a
-#' chosen coverage:
-#'  service        - name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER")
-#'  name           - name of the coverage (must be unique)
-#'  bands          - vector of bands
-#'  scale_factor   - vector of scale factors
-#'  missing_values - vector of missing values
-#'  minimum_values - vector of minimum values
-#'  timeline       - the timelines of the coverage (more than one if data has been classified)
-#'  xmin           - spatial extent (xmin)
-#'  ymin           - spatial extent (ymin)
-#'  xmax           - spatial extent (xmax)
-#'  ymax           - spatial extent (ymin)
-#'  xres           - spatial resolution (x dimension)
-#'  yres           - spatial resolution (y dimension)
-#'  crs            - Projection crs
-#'  files          - Files associated with the coverage (in case of raster data)
+#' @description Defines a coverage to retrieve data. As default, it uses the metadata about a
+#' chosen coverage stored in an yml configuration file.
+#' \itemize{
+#' \item{service: }{Name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER").}
+#' \item{name: }{Name of the coverage (must be unique).}
+#' \item{bands: }{Vector of bands.}
+#' \item{scale_factor: }{Vector of scale factors.}
+#' \item{missing_values: }{Vector of missing values.}
+#' \item{minimum_values: }{Vector of minimum values.}
+#' \item{timeline: }{The timelines of the coverage (more than one if data has been classified).}
+#' \item{xmin: }{Spatial extent (xmin).}
+#' \item{ymin: }{Spatial extent (ymin).}
+#' \item{xmax: }{Spatial extent (xmax).}
+#' \item{ymax: }{Spatial extent (ymin).}
+#' \item{xres: }{Spatial resolution (x dimension).}
+#' \item{yres: }{Spatial resolution (y dimension).}
+#' \item{crs: }{Projection CRS.}
+#' \item{files: }{Files associated with the coverage (in case of raster data).}
+#' }
 #'
 #' @param service           Name of the time series service.
 #' @param name              Name of the coverage.
@@ -89,7 +91,6 @@ sits_coverage <- function(service        = "RASTER",
         # create a coverage
         coverage.tb <- .sits_coverage_WTSS(wtss.obj, service, name)
     }
-
     else if (protocol == "SATVEG") {
         coverage.tb <- .sits_coverage_SATVEG(name, timeline)
     }
@@ -441,7 +442,7 @@ sits_coverage <- function(service        = "RASTER",
         raster::dataType(rasters_probs[[i]]) <- "INT2U"
 
         # define the filename for the classified image
-        file_probs <- paste0(file, "_probs_")
+        file_probs <- paste0(file, "_probs")
         filename <- .sits_raster_filename(file_probs, start_date, end_date)
         rasters_probs[[i]]@file@name <- filename
         files_probs[i] <- filename
@@ -638,7 +639,7 @@ sits_coverage <- function(service        = "RASTER",
     y2 <- lubridate::year(end_date)
     m2 <- lubridate::month(end_date)
 
-    file_name <- paste0(file_base,"_",y1,"_",m1,"_",y2,"_",m2,".tif")
+    file_name <- paste0(file_base, "_", y1, "_", m1, "_", y2, "_", m2, ".tif")
 
     return(file_name)
 }

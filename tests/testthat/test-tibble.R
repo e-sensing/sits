@@ -40,7 +40,7 @@ test_that("Merge", {
 })
 
 test_that("Mutate", {
-    savi.tb <- sits_mutate(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+    savi.tb <- sits_mutate_bands(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 
     expect_equal(sum(savi.tb$time_series[[1]]$savi), 9.0234, tolerance = 0.001)
 })
@@ -68,7 +68,7 @@ test_that("Values", {
 
 test_that("Values", {
     data (samples_MT_9classes)
-    savi.tb <- sits_transmute (samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+    savi.tb <- sits_transmute_bands(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 
     expect_equal(names(savi.tb$time_series[[1]])[2], "savi")
 })
