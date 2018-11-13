@@ -9,7 +9,7 @@ sits_classify_raster(file = NULL, coverage = NULL, ml_model = NULL,
   multicores = NULL)
 }
 \arguments{
-\item{file}{File name prefix to store the output. For each time interval, one file will be created.}
+\item{file}{Vector of file names to store the output (one file per classified year).}
 
 \item{coverage}{Tibble with information about a coverage of space-time raster bricks.}
 

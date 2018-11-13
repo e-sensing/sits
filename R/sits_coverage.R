@@ -87,7 +87,7 @@ sits_coverage <- function(service        = "RASTER",
         })
 
         # create a coverage
-        coverage.tb <- .sits_coverageWTSS(wtss.obj, service, name)
+        coverage.tb <- .sits_coverage_WTSS(wtss.obj, service, name)
     }
 
     else if (protocol == "SATVEG") {
@@ -165,15 +165,16 @@ sits_coverage <- function(service        = "RASTER",
 }
 
 #' @title Provides information about one coverage of the WTSS service
-#' @name .sits_coverageWTSS
+#' @name .sits_coverage_WTSS
 #'
 #' @description Uses the WTSS services to print information and save metadata about a
 #' chosen coverage.
 #'
 #' @param wtss.obj   R WTSS object associated to the service.
 #' @param service    Name of the service.
-#' @param name       Name of the coverage.
-.sits_coverageWTSS <- function(wtss.obj, service, name) {
+#' @param name       Name of the coverage
+#' @param bands      Names of the bands
+.sits_coverage_WTSS <- function(wtss.obj, service, name) {
     # obtains information about the available coverages
     coverages.vec    <- wtss::listCoverages(wtss.obj)
 

@@ -26,25 +26,23 @@ sits_coverage(service = "RASTER", name, timeline = NULL,
 \item{files}{Vector of file names for each band (only for raster data).}
 }
 \description{
-Defines a coverage to retrieve data. As default, it uses the metadata about a
-chosen coverage stored in an yml configuration file.
-\itemize{
-\item{service: }{Name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER").}
-\item{name: }{Name of the coverage (must be unique).}
-\item{bands: }{Vector of bands.}
-\item{scale_factor: }{Vector of scale factors.}
-\item{missing_values: }{Vector of missing values.}
-\item{minimum_values: }{Vector of minimum values.}
-\item{timeline: }{The timelines of the coverage (more than one if data has been classified).}
-\item{xmin: }{Spatial extent (xmin).}
-\item{ymin: }{Spatial extent (ymin).}
-\item{xmax: }{Spatial extent (xmax).}
-\item{ymax: }{Spatial extent (ymin).}
-\item{xres: }{Spatial resolution (x dimension).}
-\item{yres: }{Spatial resolution (y dimension).}
-\item{crs: }{Projection CRS.}
-\item{files: }{Files associated with the coverage (in case of raster data).}
-}
+Uses the configuration file to print information and save metadata about a
+chosen coverage:
+ service        - name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER")
+ name           - name of the coverage (must be unique)
+ bands          - vector of bands
+ scale_factor   - vector of scale factors
+ missing_values - vector of missing values
+ minimum_values - vector of minimum values
+ timeline       - the timelines of the coverage (more than one if data has been classified)
+ xmin           - spatial extent (xmin)
+ ymin           - spatial extent (ymin)
+ xmax           - spatial extent (xmax)
+ ymax           - spatial extent (ymin)
+ xres           - spatial resolution (x dimension)
+ yres           - spatial resolution (y dimension)
+ crs            - Projection crs
+ files          - Files associated with the coverage (in case of raster data)
 }
 \examples{
 \donttest{
