@@ -22,9 +22,9 @@ test_that("All", {
     files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
     data(timeline_modis_392)
     raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
-                               timeline = timeline_modis_392, bands = c("ndvi"), files = files)
-    raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb,
-                                             ml_model = svm_model, memsize = 1, multicores = 1)
+                               timeline = timeline_modis_392, bands = "ndvi", files = files)
+    raster_class.tb <- sits_classify_raster(file = "raster-class", raster.tb,
+                                            ml_model = svm_model, memsize = 1, multicores = 1)
     sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
 
     expect_true(TRUE)

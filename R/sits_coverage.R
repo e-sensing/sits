@@ -173,8 +173,7 @@ sits_coverage <- function(service        = "RASTER",
 #'
 #' @param wtss.obj   R WTSS object associated to the service.
 #' @param service    Name of the service.
-#' @param name       Name of the coverage
-#' @param bands      Names of the bands
+#' @param name       Name of the coverage.
 .sits_coverage_WTSS <- function(wtss.obj, service, name) {
     # obtains information about the available coverages
     coverages.vec    <- wtss::listCoverages(wtss.obj)
