@@ -256,7 +256,7 @@ sits_merge <-  function(data1.tb, data2.tb) {
 }
 
 #' @title Add new sits bands.
-#' @name sits_mutate
+#' @name sits_mutate_bands
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description Adds new bands and preserves existing in the time series of a sits tibble using \code{dplyr::mutate} function.
 #' @param data.tb       Valid sits tibble.
@@ -266,11 +266,11 @@ sits_merge <-  function(data1.tb, data2.tb) {
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
 #' data (samples_MT_9classes)
 #' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-#' savi.tb <- sits_mutate(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#' savi.tb <- sits_mutate_bands(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 #' }
 #' @return A sits tibble with same samples and the selected bands.
 #' @export
-sits_mutate <- function(data.tb, ...){
+sits_mutate_bands <- function(data.tb, ...){
     # verify if data.tb has values
     .sits_test_tibble(data.tb)
 
@@ -541,7 +541,7 @@ sits_select_bands_ <- function(data.tb, bands) {
 }
 
 #' @title Add new sits bands and drops existing.
-#' @name sits_transmute
+#' @name sits_transmute_bands
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Adds new bands and drops existing in the time series of a sits tibble using dplyr::transmute function.
 #' @param data.tb       A sits tibble.
@@ -550,12 +550,12 @@ sits_select_bands_ <- function(data.tb, bands) {
 #' @examples
 #' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
-#' data (samples_MT_9classes)
+#' data(samples_MT_9classes)
 #' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-#' savi.tb <- sits_transmute (samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#' savi.tb <- sits_transmute_bands(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 #' }
 #' @export
-sits_transmute <- function(data.tb, ...){
+sits_transmute_bands <- function(data.tb, ...){
     # verify if data.tb has values
     .sits_test_tibble(data.tb)
 
