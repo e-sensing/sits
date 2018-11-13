@@ -19,14 +19,8 @@
 #' @return  A tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning tibble will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
-sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100, dist.fcts = "euclidean",
-                          alpha = 1, neighbourhood.fct = "bubble", ...) {
-
-    # verifies if dtwSat package is installed
-    if (!base::requireNamespace("kohonen", quietly = TRUE)) {
-        stop("kohonen needed for this function to work. Please install it.", call. = FALSE)
-    }
-
+sits_kohonen <- function(data.tb, time_series, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100, dist.fcts = "euclidean",
+                         alpha = 1, neighbourhood.fct = "bubble", ...) {
     #set colors to paint neurons
     pallete1 <- .sits_brewerRGB[[.sits_color_name("Set1")]]
     set1 <- utils::head(unique(unlist(pallete1, use.names = FALSE)), -1)
@@ -183,25 +177,8 @@ sits_kohonen <- function (data.tb, time_series, bands = NULL, grid_xdim = 25, gr
 #' @return Returns a sits tibble with a new column of label and a table with information about the
 #' confiability of each samples.
 #' @export
-sits_evaluate_samples <- function(data.tb,
-                                  time_series,
-                                  grid_xdim = 5,
-                                  grid_ydim = 5,
-                                  rlen = 100,
-                                  alpha = c(1),
-                                  radius = 6,
-                                  distance = "euclidean",
-                                  iterations = 1,
-                                  mode = "online")
-{
-    # verifies if dtwSat package is installed
-    if (!base::requireNamespace("kohonen", quietly = TRUE)) {
-        stop("kohonen needed for this function to work. Please install it.", call. = FALSE)
-    }
-
-    #create an id for each sample
-    #data.tb$id_sample <- rep(1:dim(data.tb)[1])
-
+sits_evaluate_samples <- function(data.tb, time_series, grid_xdim = 5, grid_ydim = 5, rlen = 100,
+                                  alpha = 1, radius = 6, distance = "euclidean", iterations = 1, mode = "online") {
     #initialize tibbles
     neurons_info_t.tb <- tibble::as_tibble()
     samples_info_t.tb <- tibble::as_tibble()

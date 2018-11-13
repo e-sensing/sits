@@ -11,9 +11,7 @@
 
 \item{service}{Name of the service.}
 
-\item{name}{Name of the coverage}
-
-\item{bands}{Names of the bands}
+\item{name}{Name of the coverage.}
 }
 \description{
 Uses the WTSS services to print information and save metadata about a
