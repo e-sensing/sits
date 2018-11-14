@@ -339,7 +339,7 @@ sits_show_config <- function() {
     # create a string to query for the scale factors
     sfq <- paste0(service,"_scale_factor")
     bands %>%
-        purrr::map(function (b) {
+        purrr::map(function(b) {
 
             scale_factors[b] <<- as.numeric(sits.env$config[[sfq]][[name]][[b]])
     })
