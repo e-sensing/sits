@@ -218,7 +218,8 @@ sits_evaluate_samples <- function(data.tb,
                 alpha = alpha,
                 radius = radius,
                 dist.fcts = distance,
-                normalizeDataLayers = TRUE
+                normalizeDataLayers = TRUE,
+                mode = mode
             )
 
         # create a tibble to store the results
