@@ -222,7 +222,7 @@ sits_show_config <- function() {
 .sits_get_maximum_values <- function(service, bands) {
     # create a string to query for the maximum values
     maximum_values <- vector()
-    mv <- paste0(service,"_maximum_value")
+    mv <- paste0(service, "_maximum_value")
     bands %>%
         purrr::map(function(b) {
             maximum_values[b] <<- as.numeric(sits.env$config[[mv]][[b]])
