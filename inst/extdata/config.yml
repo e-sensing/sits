@@ -17,23 +17,8 @@ default:
     RASTER_protocol         : ["RASTER"]
 
     # URL to access each WTSS service
-
     WTSS-INPE_protocol      : "WTSS"
     WTSS-INPE_server        : "http://www.esensing.dpi.inpe.br/wtss/"
-    WTSS-INPE_coverages     : ["MOD13Q1"]
-
-    WTSS-INPE_bands         :
-        MOD13Q1             : ["mir", "blue", "nir", "red", "evi", "ndvi"]
-
-    WTSS-INPE_minimum_value :
-        ndvi                : -3000
-        evi                 : -3000
-        red                 : 0
-        blue                : 0
-        nir                 : 0
-        mir                 : 0
-        swir1               : 0
-        swir2               : 0
 
     # URL to access SATVEG
     SATVEG_protocol         : "SATVEG"
@@ -86,7 +71,6 @@ default:
         aqua                :
             xres            : *mod13q1-x
             yres            : *mod13q1-y
-
         comb                :
             xres            : *mod13q1-x
             yres            : *mod13q1-y
@@ -105,6 +89,10 @@ default:
     SATVEG_minimum_value:
         ndvi                : &ndvi-mv  -3000
         evi                 : &evi-mv   -3000
+
+    SATVEG_maximum_value:
+        ndvi                : &ndvi-mv  10000
+        evi                 : &evi-mv   10000
 
     SATVEG_scale_factor:
         terra               :
@@ -142,6 +130,16 @@ default:
         mir                 : 0
         swir1               : 0
         swir2               : 0
+
+    RASTER_maximum_value    :
+        ndvi                : 10000
+        evi                 : 10000
+        red                 : 10000
+        blue                : 10000
+        nir                 : 10000
+        mir                 : 10000
+        swir1               : 10000
+        swir2               : 10000
 
     RASTER_scale_factor:
         MODIS               :
