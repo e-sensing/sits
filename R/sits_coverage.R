@@ -60,7 +60,7 @@ sits_coverage <- function(service        = "RASTER",
     if (service == "RASTER") {
         r <- suppressWarnings(rgdal::GDALinfo(files, silent = FALSE))
         ensurer::ensure_that(r, all(!purrr::is_null(.)),
-                                        err_desc = "sits_coverage: raster files cannot be accessed")
+                             err_desc = "sits_coverage: raster files cannot be accessed")
     }
 
     # pre-condition
