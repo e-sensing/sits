@@ -5,7 +5,7 @@
 #' @description Retrieve a set of time series. There are two main ways of retrieving time series:
 #' using a time series service and from a Raster Brick. Two time series services are available:
 #' (a) the Web Time Series Service (WTSS) by INPE; (b) the SATVEG service from EMBRAPA.
-#' Please see \code{\link[sits]{sits_infoWTSS}} for more information on thw WTSS service.
+#' Please see \code{\link[sits]{sits_info_wtss}} for more information on thw WTSS service.
 #' The URL and other parameters for access to the time series services are defined in the package
 #' configuration file. This file is called "config.yml". Please see the \code{\link[sits]{sits_config}} for
 #' more information.
@@ -123,7 +123,7 @@ sits_getdata <- function(coverage    = NULL,
     }
     # get data based on CSV file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv") {
-        data.tb <- .sits_fromCSV(csv_file  = file,
+        data.tb <- .sits_from_csv(csv_file  = file,
                                  coverage  = coverage,
                                  bands     = bands,
                                  prefilter = prefilter,
@@ -134,7 +134,7 @@ sits_getdata <- function(coverage    = NULL,
     }
     # get data based on SHP file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "shp") {
-        data.tb <- .sits_fromSHP(file, coverage, start_date, end_date, bands, prefilter, label)
+        data.tb <- .sits_from_shp(file, coverage, start_date, end_date, bands, prefilter, label)
         return(data.tb)
     }
     message(paste("No valid input to retrieve time series data!!", "\n", sep = ""))
@@ -166,7 +166,7 @@ sits_getdata <- function(coverage    = NULL,
     protocol <- .sits_get_protocol(coverage[1,]$service)
 
     if (protocol == "WTSS") {
-        data.tb <- .sits_fromWTSS(coverage = coverage,
+        data.tb <- .sits_from_wtss(coverage = coverage,
                                   longitude = longitude,
                                   latitude = latitude,
                                   start_date = start_date,
@@ -176,7 +176,7 @@ sits_getdata <- function(coverage    = NULL,
         return(data.tb)
     }
     if (protocol == "SATVEG") {
-        data.tb <- .sits_fromSATVEG(coverage = coverage,
+        data.tb <- .sits_from_satveg(coverage = coverage,
                                    longitude = longitude,
                                    latitude = latitude,
                                    start_date = start_date,
@@ -187,7 +187,7 @@ sits_getdata <- function(coverage    = NULL,
         return(data.tb)
     }
     if (protocol == "RASTER") {
-        data.tb <- .sits_fromRaster(coverage = coverage,
+        data.tb <- .sits_from_raster(coverage = coverage,
                                     longitude = longitude,
                                     latitude = latitude,
                                     start_date = start_date,
@@ -200,7 +200,7 @@ sits_getdata <- function(coverage    = NULL,
 }
 
 #' @title Obtain timeSeries from time series server, based on a CSV file.
-#' @name .sits_fromCSV
+#' @name .sits_from_csv
 #'
 #' @description reads descriptive information about a set of
 #' spatio-temporal locations from a CSV file. Then, it uses the WTSS time series service
@@ -216,7 +216,7 @@ sits_getdata <- function(coverage    = NULL,
 #' @param .n_max          Maximum number of samples to be read.
 #' @param .n_save         Number of samples to save as intermediate files (used for long reads).
 #' @return A sits tibble.
-.sits_fromCSV <-  function(csv_file, coverage, bands, prefilter, .n_start, .n_max, .n_save) {
+.sits_from_csv <-  function(csv_file, coverage, bands, prefilter, .n_start, .n_max, .n_save) {
     # configure the format of the CSV file to be read
     cols_csv <- readr::cols(id          = readr::col_integer(),
                             longitude   = readr::col_double(),
@@ -285,7 +285,7 @@ sits_getdata <- function(coverage    = NULL,
 }
 
 #' @title Obtain timeSeries from WTSS server, based on a SHP file.
-#' @name .sits_fromSHP
+#' @name .sits_from_shp
 #'
 #' @description reads a shapefile and retrieves a sits tibble
 #' containing time series from a coverage that are inside the SHP file.
@@ -300,7 +300,7 @@ sits_getdata <- function(coverage    = NULL,
 #' @param prefilter       A string related to data correction ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @param label           A string with the label to attach to the time series.
 #' @return A sits tibble.
-.sits_fromSHP <- function(shp_file,
+.sits_from_shp <- function(shp_file,
                           coverage,
                           start_date = NULL,
                           end_date   = NULL,
@@ -309,7 +309,7 @@ sits_getdata <- function(coverage    = NULL,
                           label      = "NoClass") {
     # test parameters
     ensurer::ensure_that(shp_file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
-                         err_desc = "sits_fromSHP: please provide a valid SHP file")
+                         err_desc = "sits_from_shp: please provide a valid SHP file")
     # Ensure that the service is available
     .sits_check_service(coverage$service)
 

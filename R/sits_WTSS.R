@@ -1,5 +1,5 @@
 #' @title Provides information about WTSS service
-#' @name sits_infoWTSS
+#' @name sits_info_wtss
 #' @author Gilberto Camara
 #'
 #' @description Obtains information about the WTSS server
@@ -23,10 +23,10 @@
 #' @examples
 #' \donttest{
 #' # Obtain information about the coverages available
-#' sits_infoWTSS()
+#' sits_info_wtss()
 #' }
 #' @export
-sits_infoWTSS <- function() {
+sits_info_wtss <- function() {
     wtss.obj <- NULL
     # obtains information about the WTSS service
     services <- .sits_get_services(protocol = "WTSS")
@@ -58,7 +58,7 @@ sits_infoWTSS <- function() {
 }
 
 #' @title Obtain one timeSeries from WTSS server and load it on a sits tibble
-#' @name .sits_fromWTSS
+#' @name .sits_from_wtss
 #'
 #' @description Returns one set of time series provided by a WTSS server
 #' Given a location (lat/long), and start/end period, and the WTSS server information
@@ -79,7 +79,7 @@ sits_infoWTSS <- function() {
 #' @param bands           A list of string with the names of the bands of the coverage.
 #' @param label           A string with the label to attach to the time series (optional).
 #' @return A sits tibble.
-.sits_fromWTSS <- function(coverage,
+.sits_from_wtss <- function(coverage,
                            longitude,
                            latitude,
                            start_date = NULL,
@@ -93,7 +93,7 @@ sits_infoWTSS <- function() {
         bands <- cov_bands
     else
         ensurer::ensure_that(bands, all((.) %in% cov_bands),
-                             err_desc = "sits_fromWTSS: requested bands are not available in the coverage")
+                             err_desc = "sits_from_wtss: requested bands are not available in the coverage")
 
     # check start and end dates
     timeline <- coverage$timeline[[1]][[1]]

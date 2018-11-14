@@ -1,5 +1,5 @@
 #' @title Extract a time series from a ST raster data set
-#' @name .sits_fromRaster
+#' @name .sits_from_raster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Reads metadata about a raster data set to retrieve a set of
@@ -13,7 +13,7 @@
 #' @param end_date        A date with the end of the period.
 #' @param label           A string with the label to attach to the time series.
 #' @return A sits tibble with the time series.
-.sits_fromRaster <- function(coverage,
+.sits_from_raster <- function(coverage,
                              file = NULL,
                              longitude = NULL,
                              latitude = NULL,
@@ -27,17 +27,17 @@
 
     # get data based on CSV file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv") {
-        data.tb <- .sits_ts_fromRasterCSV(coverage, file)
+        data.tb <- .sits_ts_from_raster_csv(coverage, file)
     }
 
     if (!purrr::is_null(longitude) && !purrr::is_null(latitude)) {
-        data.tb <- .sits_ts_fromRaster(coverage, longitude, latitude, start_date, end_date, label)
+        data.tb <- .sits_ts_from_raster(coverage, longitude, latitude, start_date, end_date, label)
     }
     return(data.tb)
 }
 
 #' @title Extract a time series for a set of Raster Layers
-#' @name .sits_ts_fromRaster
+#' @name .sits_ts_from_raster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  This function extracts a sits time series from a set of
@@ -51,10 +51,10 @@
 #' @param end_date         The end date of the period.
 #' @param label            Label to attach to the time series.
 #' @return A sits tibble with the time series.
-.sits_ts_fromRaster <- function(raster.tb, longitude, latitude, start_date, end_date, label = "NoClass"){
+.sits_ts_from_raster <- function(raster.tb, longitude, latitude, start_date, end_date, label = "NoClass"){
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) >= 1,
-                         err_desc = "sits_ts_fromRasterXY: need a valid metadata for coverage")
+                         err_desc = "sits_ts_from_raster: need a valid metadata for coverage")
 
     timeline <- raster.tb$timeline[[1]][[1]]
 
@@ -127,7 +127,7 @@
 }
 
 #' @title Extract a time series for a set of Raster Layers
-#' @name .sits_ts_fromRasterXY
+#' @name .sits_ts_from_raster_xy
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  This function extracts a sits time series from a set of
@@ -140,10 +140,10 @@
 #' @param latitude         Latitude of the chosen location.
 #' @param label            Label to attach to the time series.
 #' @return A sits tibble with the time series.
-.sits_ts_fromRasterXY <- function(raster.tb, xy, longitude, latitude, label = "NoClass"){
+.sits_ts_from_raster_xy <- function(raster.tb, xy, longitude, latitude, label = "NoClass"){
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) >= 1,
-                         err_desc = "sits_ts_fromRasterXY: need a valid metadata for coverage")
+                         err_desc = "sits_ts_from_raster_xy: need a valid metadata for coverage")
 
     timeline <- raster.tb$timeline[[1]][[1]]
 
@@ -199,7 +199,7 @@
 }
 
 #' @title Extract a time series for a set of Raster Layers
-#' @name .sits_ts_fromRasterCSV
+#' @name .sits_ts_from_raster_csv
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  This function extracts a sits time series from a set of
@@ -209,7 +209,7 @@
 #' @param raster.tb       A tibble with metadata describing a spatio-temporal data set.
 #' @param file            A CSV file with lat/long locations to be retrieved.
 #' @return A sits tibble with the time series.
-.sits_ts_fromRasterCSV <- function(raster.tb, file) {
+.sits_ts_from_raster_csv <- function(raster.tb, file) {
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) == 1,
                          err_desc = "sits_classify_raster: need a valid metadata for coverage")
@@ -236,7 +236,7 @@
                           r_label){
                     xy <- .sits_latlong_to_proj(r_longitude, r_latitude, raster.tb$crs)
 
-                    if (!.sits_XY_inside_raster(xy, raster.tb)) {
+                    if (!.sits_xy_inside_raster(xy, raster.tb)) {
                         csv_unread_row.tb <- tibble::tibble(
                             longitude  = r_longitude,
                             latitude   = r_latitude,
@@ -246,7 +246,7 @@
                         csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
                     }
                     # read the time series
-                    row.tb <- .sits_ts_fromRasterXY(raster.tb, xy, r_longitude, r_latitude, r_label)
+                    row.tb <- .sits_ts_from_raster_xy(raster.tb, xy, r_longitude, r_latitude, r_label)
                     # extract the time interval
                     row.tb <- .sits_extract(row.tb, lubridate::as_date(r_start_date), lubridate::as_date(r_end_date))
                     # put one more row in the output tibble

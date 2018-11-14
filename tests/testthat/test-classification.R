@@ -37,7 +37,7 @@ test_that("Classify time series with TWDTW method", {
     #skip_on_cran()
     patterns.tb <- sits_patterns(samples_MT_ndvi)
     point_MT_ndvi <- sits_select_bands(point_MT_6bands, ndvi)
-    matches <- sits_TWDTW_classify(point_MT_ndvi, patterns.tb, bands = "ndvi",
+    matches <- sits_twdtw_classify(point_MT_ndvi, patterns.tb, bands = "ndvi",
                                    alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE)
 
     expect_true(all(unique(matches$predicted[[1]]$predicted) %in%

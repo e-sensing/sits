@@ -76,7 +76,7 @@ sits_data_toCSV <- function(data.tb, file){
 }
 
 #' @title Export a shapefile with points to a CSV file for later processing
-#' @name sits_shp_toCSV
+#' @name sits_shp_to_csv
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Converts points from a shapefile to a CSV file. The CSV file will not contain the actual time
@@ -106,13 +106,13 @@ sits_data_toCSV <- function(data.tb, file){
 #' # define the label
 #' label <- "Cerrado_Forested"
 #' # read the points in the shapefile and produce a CSV file
-#' sits_shp_toCSV(shpfile, csvfile, label, timeline_2000_2017, start_date, end_date)
+#' sits_shp_to_csv(shpfile, csvfile, label, timeline_2000_2017, start_date, end_date)
 #' }
 #' @export
-sits_shp_toCSV <- function(shpfile, csvfile, label, timeline, start_date, end_date, interval = "12 month") {
+sits_shp_to_csv <- function(shpfile, csvfile, label, timeline, start_date, end_date, interval = "12 month") {
     # test parameters
     ensurer::ensure_that(shpfile, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
-                         err_desc = "sits_fromSHP: please provide a valid SHP file")
+                         err_desc = "sits_from_shp: please provide a valid SHP file")
 
     # read the shapefile
     sf_shape <- sf::read_sf(shpfile)
