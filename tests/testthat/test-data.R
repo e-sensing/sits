@@ -3,7 +3,7 @@ test_that("Creating a WTSS coverage", {
     #skip_on_cran()
     coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
 
-    expect_equal(length(names(coverage_wtss)), 19)
+    expect_equal(length(names(coverage_wtss)), 20)
     expect_true(coverage_wtss$service == "WTSS-INPE")
     expect_true(length(coverage_wtss$timeline[[1]][[1]]) > 1)
 })
@@ -12,7 +12,7 @@ test_that("Creating a SATVEG coverage", {
     #skip_on_cran()
     coverage_satveg <- sits_coverage(service = "SATVEG", name = "terra")
 
-    expect_equal(length(names(coverage_satveg)), 19)
+    expect_equal(length(names(coverage_satveg)), 20)
     expect_true(length(coverage_satveg$timeline[[1]][[1]]) > 1)
 })
 
@@ -20,7 +20,7 @@ test_that("Reading a CSV file from WTSS", {
     #skip_on_cran()
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
     coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
-    expect_equal(length(names(coverage_wtss)), 19)
+    expect_equal(length(names(coverage_wtss)), 20)
 
     points.tb <- sits_getdata(coverage = coverage_wtss, file = csv_file)
 
