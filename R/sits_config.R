@@ -61,11 +61,11 @@ sits_show_config <- function() {
     ensurer::ensure_that(yml_file, !purrr::is_null(.),
                          err_desc = "sits_config : Please provide a valid configuration file")
     # try to find a valid user configuration file
-        WD <- getwd()
-        if (file.exists(paste0(WD, "/config.yml")))
-            yml_user_file <- paste0(WD, "/config.yml")
-        else
-            yml_user_file <- NULL
+    WD <- getwd()
+    if (file.exists(paste0(WD, "/config.yml")))
+        yml_user_file <- paste0(WD, "/config.yml")
+    else
+        yml_user_file <- NULL
 
     # read the configuration parameters
     message("Default system configuration file")

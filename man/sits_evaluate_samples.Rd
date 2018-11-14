@@ -5,7 +5,7 @@
 \title{Evaluate samples}
 \usage{
 sits_evaluate_samples(data.tb, time_series, grid_xdim = 5,
-  grid_ydim = 5, rlen = 100, alpha = c(1), radius = 6,
+  grid_ydim = 5, rlen = 100, alpha = 1, radius = 6,
   distance = "euclidean", iterations = 1, mode = "online")
 }
 \arguments{

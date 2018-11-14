@@ -47,18 +47,18 @@ data(samples_MT_ndvi)
 svm_model <- sits_train(samples_MT_ndvi, sits_svm())
 
 # read a raster file and put it into a vector
-files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits")
 
 # define the timeline
 data(timeline_modis_392)
 
-# create a raster metadata file based on the information about the files
-#' # create a raster coverage file based on the information about the files
+# create a raster coverage file based on the information about the files
 raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
-             timeline = timeline_modis_392, bands = c("ndvi"), files = files)
+  timeline = timeline_modis_392, bands = "ndvi", files = file)
+
 # classify the raster file
-raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb,
-   ml_model = svm_model, memsize = 4, multicores = 2)
+raster_class.tb <- sits_classify_raster("raster-class", raster.tb,
+  ml_model = svm_model, memsize = 4, multicores = 1)
 # plot the resulting classification
 sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
 }

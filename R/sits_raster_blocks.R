@@ -124,39 +124,6 @@
     return(nblocks)
 }
 
-#' @title Define the split of the data blocks for multicore processing
-#' @name .sits_split_block_size
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function defines the rows of the input data that will be
-#' split to be divided between the different cores.
-#'
-#' @param data             Data (data.table or matrix).
-#' @param ncores           Number of cores for processing.
-#' @return List of pairs of positions (first row, last row) to be assigned to each core.
-.sits_split_block_size <- function(data, ncores){
-    # number of rows in the data
-    nrows <- nrow(data)
-    # find the number of rows per core
-    step <- ceiling(nrows/ncores)
-
-    # create a vector with the initial rows per block
-    blocks <- seq(from = 1, to = nrows, by = step)
-
-    # create a list to store the result
-    block_size.lst <- vector("list", ncores)
-
-    # fill the list with the initial and final row per block
-    for (i in 1:length(blocks)) {
-        block_size_start <- blocks[i]
-        block_size_end   <- block_size_start + step - 1
-        if (i == ncores )
-            block_size_end <- nrows
-        block_size.lst[[i]] <- c(block_size_start, block_size_end)
-    }
-    return(block_size.lst)
-}
-
 #' @title Split a data.table or a matrix for multicore processing
 #' @name .sits_split_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
