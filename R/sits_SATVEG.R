@@ -13,6 +13,7 @@
 #' @param latitude        A double value with the latitude of the chosen location.
 #' @param start_date      The start date of the period.
 #' @param end_date        The end date of the period.
+#' @param bands           The bands to be retrieved.
 #' @param prefilter       A string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @param label           A string with the label to attach to the time series (optional).
 #' @return A sits tibble.
@@ -21,6 +22,7 @@
                              latitude,
                              start_date  = NULL,
                              end_date    = NULL,
+                             bands       = NULL,
                              prefilter   = "1",
                              label       = "NoClass") {
 
@@ -40,6 +42,16 @@
         start_date <- as.Date(ts.tb$Index[1])
         end_date   <- as.Date(ts.tb$Index[NROW(ts.tb)])
     }
+
+    # filter bands
+    bands.vec <- coverage$bands[[1]]
+
+    # check if requested bands are in provided bands
+    if (!purrr::is_null(bands)) {
+        ensurer::ensure_that(bands.vec, all(bands %in% bands.vec),
+                             err_desc = "sits_fromSATVEG: band not provided by coverage.")
+    } else bands <- coverage$bands[[1]]
+    ts.tb <- ts.tb[, c("Index", bands)]
 
     # use a list to store the time series
     ts.lst <- list()

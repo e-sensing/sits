@@ -181,6 +181,7 @@ sits_getdata <- function(coverage    = NULL,
                                    latitude = latitude,
                                    start_date = start_date,
                                    end_date = end_date,
+                                   bands = bands,
                                    prefilter = prefilter,
                                    label = label)
 
