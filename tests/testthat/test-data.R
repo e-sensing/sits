@@ -43,9 +43,9 @@ test_that("Reading a CSV file from WTSS", {
 
 test_that("Reading a CSV file from RASTER", {
     #skip_on_cran()
-    file <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+    file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
     raster_cov <- sits_coverage(files = file, name = "Sinop-crop",
-                                timeline = timeline_modis_392, bands = c("ndvi"))
+                                timeline = sits::timeline_modis_392, bands = c("ndvi"))
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
     points.tb <- sits_getdata(raster_cov, file = csv_raster_file)
     df_csv <- utils::read.csv(system.file("extdata/samples/samples_sinop_crop.csv", package = "sits"))
@@ -121,35 +121,35 @@ test_that("Reading a shapefile", {
 
 test_that("getdata", {
     wtss_coverage <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
-    point.tb <- sits_getdata (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
+    point.tb <- sits_getdata(wtss_coverage, longitude = -55.50563, latitude = -11.71557)
     sits_plot(point.tb)
 
-    csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
-    points.tb <- sits_getdata (wtss_coverage, file = csv_file)
-    sits_plot (points.tb[1:3,])
+    csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
+    points.tb <- sits_getdata(wtss_coverage, file = csv_file)
+    sits_plot(points.tb[1:3,])
 
     satveg_coverage <- sits_coverage(service = "SATVEG", name = "terra")
-    point_satveg.tb <- sits_getdata (satveg_coverage, longitude = -55.50563, latitude = -11.71557)
+    point_satveg.tb <- sits_getdata(satveg_coverage, longitude = -55.50563, latitude = -11.71557)
     sits_plot(point_satveg.tb)
 
     shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
     munic.tb <- sits_getdata(coverage = wtss_coverage, file = shp_file)
 
-    files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-    data(timeline_modis_392)
+    files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+    data("timeline_modis_392")
     raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-                               timeline = timeline_modis_392, bands = c("ndvi"))
+                               timeline = sits::timeline_modis_392, bands = c("ndvi"))
 
     point_raster.tb <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
     sits_plot(point_raster.tb)
 
-    files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-    data(timeline_modis_392)
+    files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+    data("timeline_modis_392")
     raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-                               timeline = timeline_modis_392, bands = c("ndvi"))
-    csv_raster_file <- system.file ("extdata/samples/samples_sinop_crop.csv", package = "sits")
-    points.tb <- sits_getdata (raster_cov, file = csv_raster_file)
-    sits_plot (points.tb)
+                               timeline = sits::timeline_modis_392, bands = c("ndvi"))
+    csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
+    points.tb <- sits_getdata(raster_cov, file = csv_raster_file)
+    sits_plot(points.tb)
 })
 
 test_that("Labels and re-label", {
