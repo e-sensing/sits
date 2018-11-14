@@ -212,6 +212,29 @@ sits_show_config <- function() {
     names(minimum_values) <- bands
     return(minimum_values)
 }
+#' @title Retrieve the maximum values for a given band
+#' @name .sits_get_maximum_values
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param service          Name of the product.
+#' @param bands            Vector of bands.
+#' @return The minimum values.
+.sits_get_maximum_values <- function(service, bands) {
+    # create a string to query for the maximum values
+    maximum_values <- vector()
+    mv <- paste0(service,"_maximum_value")
+    bands %>%
+        purrr::map(function(b) {
+            maximum_values[b] <<- as.numeric(sits.env$config[[mv]][[b]])
+        })
+
+    #post-condition
+    ensurer::ensure_that(maximum_values, length(.) == length(bands),
+                         err_desc = paste0("Configuration file has failed to find maximum values for ", service))
+
+    names(maximum_values) <- bands
+    return(maximum_values)
+}
 
 #' @title Retrieve the missing values for a given band for an image product
 #' @name .sits_get_missing_values

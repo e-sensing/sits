@@ -9,6 +9,7 @@
 #'  scale_factor   - vector of scale factors
 #'  missing_values - vector of missing values
 #'  minimum_values - vector of minimum values
+#'  maximum_values - vector of maximum values
 #'  timeline       - the timelines of the coverage (more than one if data has been classified)
 #'  xmin           - spatial extent (xmin)
 #'  ymin           - spatial extent (ymin)
@@ -26,6 +27,7 @@
 #' @param scale_factors     Vector with the scale factor for each band.
 #' @param missing_values    Vector of missing values for each band.
 #' @param minimum_values    Vector of minimum values for each band.
+#' @param maximum_values    Vector of maximum values for each band.
 #' @param files             Vector of file names for each band (only for raster data).
 #' @seealso To see the available values for the parameters above use \code{\link{sits_services}}, \code{\link{sits_config}} or \code{\link{sits_show_config}}.
 #' @examples
@@ -49,6 +51,7 @@ sits_coverage <- function(service        = "RASTER",
                           missing_values = NULL,
                           scale_factors  = NULL,
                           minimum_values = NULL,
+                          maximum_values = NULL,
                           files          = NA) {
     # if no service is specified, but the names of files are provided,
     # assume we are dealing with raster data
@@ -100,6 +103,7 @@ sits_coverage <- function(service        = "RASTER",
                                              scale_factors.vec  = scale_factors,
                                              missing_values.vec = missing_values,
                                              minimum_values.vec = minimum_values,
+                                             maximum_values.vec = maximum_values,
                                              files.vec          = files)
     return(coverage.tb)
 }
@@ -118,6 +122,7 @@ sits_coverage <- function(service        = "RASTER",
 #' @param scale_factors.vec  Vector with scale factor for each band.
 #' @param missing_values.vec Vector with missing values for each band.
 #' @param minimum_values.vec Vector with minimum values for each band.
+#' @param maximum_values.vec Vector with maximum values for each band.
 #' @param timeline.lst       List with vectors of valid timelines for each band.
 #' @param nrows              Number of rows in the coverage.
 #' @param ncols              Number of columns in the coverage.
@@ -137,6 +142,7 @@ sits_coverage <- function(service        = "RASTER",
                                   scale_factors.vec,
                                   missing_values.vec,
                                   minimum_values.vec,
+                                  maximum_values.vec,
                                   timeline.lst,
                                   nrows, ncols, xmin, xmax, ymin, ymax,
                                   xres, yres, crs, files.vec) {
@@ -149,6 +155,7 @@ sits_coverage <- function(service        = "RASTER",
                                   scale_factors  = list(scale_factors.vec),
                                   missing_values = list(missing_values.vec),
                                   minimum_values = list(minimum_values.vec),
+                                  maximum_values = list(maximum_values.vec),
                                   timeline       = list(timeline.lst),
                                   nrows          = nrows,
                                   ncols          = ncols,
@@ -197,8 +204,10 @@ sits_coverage <- function(service        = "RASTER",
     names(missing_values.vec) <- bands.vec
     scale_factors.vec  <- as.vector(attr[,"scale_factor"])
     names(scale_factors.vec) <- bands.vec
-    minimum_values.vec <- .sits_get_minimum_values(service, bands.vec)
+    minimum_values.vec <- as.vector(attr[,"valid_range"][["min"]])
     names(minimum_values.vec) <- bands.vec
+    maximum_values.vec <- as.vector(attr[,"valid_range"][["max"]])
+    names(maximum_values.vec) <- bands.vec
 
     # Spatial extent
     xmin <- cov$spatial_extent$xmin
@@ -223,7 +232,8 @@ sits_coverage <- function(service        = "RASTER",
     # create a tibble to store the metadata
     coverage.tb <- .sits_create_coverage(list(wtss.obj), name, service,
                                          bands.vec, labels.vec, scale_factors.vec,
-                                         missing_values.vec, minimum_values.vec, timeline.lst,
+                                         missing_values.vec, minimum_values.vec,
+                                         maximum_values.vec, timeline.lst,
                                          nrows, ncols, xmin, xmax, ymin, ymax,
                                          xres, yres, crs, files.vec = NA)
 
@@ -277,13 +287,15 @@ sits_coverage <- function(service        = "RASTER",
     names(missing_values.vec) <- bands.vec
     minimum_values.vec <- .sits_get_minimum_values(service, bands.vec)
     names(minimum_values.vec) <- bands.vec
+    maximum_values.vec <- .sits_get_maximum_values(service, bands.vec)
+    names(maximum_values.vec) <- bands.vec
 
     # create a tibble to store the metadata
     coverage.tb <- .sits_create_coverage(r_objs.lst = NA,
                                          name, service,
                                          bands.vec, labels.vec, scale_factors.vec,
-                                         missing_values.vec, minimum_values.vec, timeline.lst,
-                                         nrows, ncols, xmin, xmax, ymin, ymax,
+                                         missing_values.vec, minimum_values.vec, maximum_values.vec,
+                                         timeline.lst, nrows, ncols, xmin, xmax, ymin, ymax,
                                          xres, yres, crs,
                                          files.vec = NA)
 
@@ -306,6 +318,7 @@ sits_coverage <- function(service        = "RASTER",
 #' @param  scale_factors.vec     Vector of scale factors (one per band).
 #' @param  missing_values.vec    Vector of missing values (one per band).
 #' @param  minimum_values.vec    Minimum values for each band (only for raster data).
+#' @param  maximum_values.vec    Maximum values for each band (only for raster data).
 #' @param  files.vec             vector with the file paths of the raster files.
 #' @return A tibble with metadata information about a raster data set.
 .sits_coverage_raster <- function(name,
@@ -314,6 +327,7 @@ sits_coverage <- function(service        = "RASTER",
                                   scale_factors.vec,
                                   missing_values.vec,
                                   minimum_values.vec,
+                                  maximum_values.vec,
                                   files.vec) {
     ensurer::ensure_that(bands.vec, length(.) == length(files.vec),
                          err_desc = "sits_coverageRaster: number of bands does not match number of files")
@@ -354,6 +368,7 @@ sits_coverage <- function(service        = "RASTER",
                                                 scale_factors.vec  = scale_factors.vec,
                                                 missing_values.vec = missing_values.vec,
                                                 minimum_values.vec = minimum_values.vec,
+                                                maximum_values.vec = maximum_values.vec,
                                                 files.vec          = files.vec)
 
     return(coverage.tb)
@@ -392,13 +407,14 @@ sits_coverage <- function(service        = "RASTER",
     scale_factors_class   <- rep(1, length(subset_dates.lst))
     missing_values_class  <- rep(-9999, length(subset_dates.lst))
     minimum_values_class  <- rep(0, length(subset_dates.lst))
+    maximum_values_class  <- rep(length(unique(samples.tb$label)), length(subset_dates.lst))
 
     # labels come from samples.tb
     labels <- sits_labels(samples.tb)$label
 
     # lists that store the content of the raster layers (classified values)
     rasters_class   <- vector("list", length = length(subset_dates.lst))
-    bands_class     <- vector( length = length(subset_dates.lst))
+    bands_class     <- vector(length = length(subset_dates.lst))
     files_class     <- vector(length = length(subset_dates.lst))
 
     # lists that store the content of the raster bricks
@@ -410,6 +426,7 @@ sits_coverage <- function(service        = "RASTER",
     scale_factors_probs   <- rep(0.001,  length(subset_dates.lst))
     missing_values_probs  <- rep(-9999,  length(subset_dates.lst))
     minimum_values_probs  <- rep(0, length(subset_dates.lst))
+    maximum_values_probs  <- rep(1, length(subset_dates.lst))
 
     timeline_rasters <- vector("list", length = length(subset_dates.lst))
 
@@ -460,6 +477,7 @@ sits_coverage <- function(service        = "RASTER",
                                                 scale_factors.vec  = scale_factors_class,
                                                 missing_values.vec = missing_values_class,
                                                 minimum_values.vec = minimum_values_class,
+                                                maximum_values.vec = maximum_values_class,
                                                 files.vec          = files_class)
 
     coverage_probs.tb <- .sits_create_raster_coverage(raster.lst         = rasters_probs,
@@ -471,6 +489,7 @@ sits_coverage <- function(service        = "RASTER",
                                                       scale_factors.vec  = scale_factors_probs,
                                                       missing_values.vec = missing_values_probs,
                                                       minimum_values.vec = minimum_values_probs,
+                                                      maximum_values.vec = maximum_values_probs,
                                                       files.vec          = files_probs)
 
     coverage.tb <- dplyr::bind_rows(coverage.tb, coverage_probs.tb)
@@ -492,6 +511,7 @@ sits_coverage <- function(service        = "RASTER",
 #' @param scale_factors.vec        Vector of scale factors.
 #' @param missing_values.vec       Vector of missing values.
 #' @param minimum_values.vec       Vector of minimum values.
+#' @param maximum_values.vec       Vector of maximum values.
 #' @param files.vec                Vector of names of raster files where the data is stored.
 .sits_create_raster_coverage <- function(raster.lst,
                                          service,
@@ -502,6 +522,7 @@ sits_coverage <- function(service        = "RASTER",
                                          scale_factors.vec,
                                          missing_values.vec,
                                          minimum_values.vec,
+                                         maximum_values.vec,
                                          files.vec) {
     # associate an R raster object to the first element of the list of bricks
     r_obj <- raster.lst[[1]]
@@ -564,6 +585,11 @@ sits_coverage <- function(service        = "RASTER",
     if (purrr::is_null(minimum_values.vec)) {
         minimum_values.vec <- .sits_get_minimum_values("RASTER", bands.vec)
     }
+
+    if (purrr::is_null(maximum_values.vec)) {
+        maximum_values.vec <- .sits_get_maximum_values("RASTER", bands.vec)
+    }
+
     # preserve the names of the bands on the list of raster objects and in the files
     names(raster.lst) <- bands.vec
     names(files.vec)  <- bands.vec
@@ -580,6 +606,7 @@ sits_coverage <- function(service        = "RASTER",
                                          scale_factors.vec = scale_factors.vec,
                                          missing_values.vec = missing_values.vec,
                                          minimum_values.vec = minimum_values.vec,
+                                         maximum_values.vec = maximum_values.vec,
                                          timeline.lst = timeline.lst,
                                          nrows = nrows, ncols = ncols,
                                          xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
