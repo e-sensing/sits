@@ -173,7 +173,7 @@ sits_coverage <- function(service        = "RASTER",
 }
 
 #' @title Provides information about one coverage of the WTSS service
-#' @name .sits_coverage_WTSS
+#' @name .sits_coverage_wtss
 #'
 #' @description Uses the WTSS services to print information and save metadata about a
 #' chosen coverage.
@@ -188,7 +188,7 @@ sits_coverage <- function(service        = "RASTER",
 
     # is the coverage in the list of coverages?
     ensurer::ensure_that(name, (.) %in% coverages.vec,
-                         err_desc = ".sits_coverageWTSS: coverage is not available in the WTSS server")
+                         err_desc = ".sits_coverage_wtss: coverage is not available in the WTSS server")
 
     # describe the coverage
     cov.lst    <- wtss::describeCoverage(wtss.obj, name)
@@ -254,7 +254,7 @@ sits_coverage <- function(service        = "RASTER",
 }
 
 #' @title Provides information about one coverage of the SATVEG time series service
-#' @name .sits_coverage_SATVEG
+#' @name .sits_coverage_satveg
 #'
 #' @description Creates a tibble with metadata about a given coverage.
 #'
@@ -282,7 +282,7 @@ sits_coverage <- function(service        = "RASTER",
 
     # get the timeline
     if (purrr::is_null(timeline))
-        timeline.lst <- list(.sits_SATVEG_timeline())
+        timeline.lst <- list(.sits_satveg_timeline())
     else
         timeline.lst <- list(timeline)
 

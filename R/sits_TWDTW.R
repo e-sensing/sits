@@ -1,5 +1,5 @@
 #' @title Find matches between a set of sits patterns and segments of sits tibble using TWDTW
-#' @name sits_TWDTW_classify
+#' @name sits_twdtw_classify
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -43,11 +43,11 @@
 #' # Get a point to classify
 #' point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
 #' # find the matches between the patterns and the time series using the TWDTW algorithm
-#' matches <- sits_TWDTW_classify(point.tb, patterns.tb, bands = c("ndvi", "evi", "nir", "mir"),
+#' matches <- sits_twdtw_classify(point.tb, patterns.tb, bands = c("ndvi", "evi", "nir", "mir"),
 #'                                alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 #' }
 #' @export
-sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
+sits_twdtw_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
                         alpha = -0.1, beta = 100, theta = 0.5, span  = 0, keep  = FALSE,
                         start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
@@ -76,7 +76,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
     # select the bands for patterns time series and convert to TWDTW format
     twdtw_patterns <- patterns.tb %>%
         sits_select_bands_(bands = bands) %>%
-        .sits_toTWDTW()
+        .sits_to_twdtw()
 
     # Define the logistic function
     log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
@@ -86,7 +86,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
         # select the bands for the samples time series and convert to TWDTW format
         twdtw_series <- row.tb %>%
             sits_select_bands_(bands = bands) %>%
-            .sits_toTWDTW()
+            .sits_to_twdtw()
 
         #classify the data using TWDTW
         matches = dtwSat::twdtwApply(x          = twdtw_series,
@@ -109,20 +109,20 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
     }
     if (!purrr::is_null(progress_bar)) close(progress_bar)
 
-    .sits_plot_TWDTW_alignments (matches.lst)
+    .sits_plot_twdtw_alignments (matches.lst)
 
     # Classify a sits tibble using the matches found by the TWDTW methods
-    data.tb <- .sits_TWDTW_breaks (matches.lst, data.tb,
+    data.tb <- .sits_twdtw_breaks (matches.lst, data.tb,
                                    start_date = start_date, end_date = end_date,
                                    interval, overlap)
-    .sits_plot_TWDTW_classification(matches.lst,
+    .sits_plot_twdtw_classification(matches.lst,
                                     start_date = start_date, end_date = end_date,
                                     interval = interval, overlap = overlap)
     return (data.tb)
 }
 
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
-#' @name .sits_TWDTW_breaks
+#' @name .sits_twdtw_breaks
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -141,7 +141,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 #' @param  interval      The period between two classifications.
 #' @param  overlap       Minimum overlapping between one match and the interval of classification.
 #' @return A sits tibble with the information on matches for the data.
-.sits_TWDTW_breaks <- function (matches, data.tb, start_date = NULL, end_date = NULL,
+.sits_twdtw_breaks <- function (matches, data.tb, start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
@@ -167,7 +167,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
                                                           to = as.Date(end_date),
                                                           by = interval,
                                                           overlap = overlap)
-                        predicted.tb <- .sits_fromTWDTW_matches(matches[[i]])
+                        predicted.tb <- .sits_from_twdtw_matches(matches[[i]])
 
                         i <<- i + 1
                         # add the classification results to the input row
@@ -181,7 +181,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 }
 
 #' @title Export data to be used by the dtwSat package
-#' @name .sits_toTWDTW
+#' @name .sits_to_twdtw
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -189,7 +189,7 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 #'
 #' @param  data.tb       A tibble in sits format with time series to be converted to TWTDW time series.
 #' @return A time series in TWDTW format (an object of the twdtwTimeSeries class).
-.sits_toTWDTW <- function (data.tb){
+.sits_to_twdtw <- function (data.tb){
     # transform each sits time series into a list of zoo
     ts <- data.tb$time_series %>%
         purrr::map(function (ts) zoo::zoo(ts[,2:ncol(ts), drop=FALSE], ts$Index))
@@ -201,13 +201,13 @@ sits_TWDTW_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
 }
 
 #' @title Transform patterns from TWDTW format to sits format
-#' @name .sits_fromTWDTW_matches
+#' @name .sits_from_twdtw_matches
 #'
 #' @description Reads one TWDTW matches object and transforms it into a tibble ready to be stored into a sits tibble column.
 #'
 #' @param  match.twdtw  A TWDTW Matches object of class dtwSat::twdtwMatches (S4).
 #' @return A tibble containing the matches information.
-.sits_fromTWDTW_matches <- function(match.twdtw){
+.sits_from_twdtw_matches <- function(match.twdtw){
     result.lst <- tibble::as_tibble(match.twdtw[[1]]) %>%
         dplyr::mutate(predicted = as.character(label)) %>%
         dplyr::select(-Alig.N, -label) %>%

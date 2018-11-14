@@ -5,8 +5,9 @@
 \title{Creates a coverage metadata}
 \usage{
 .sits_create_coverage(r_objs.lst, name, service, bands.vec, labels.vec,
-  scale_factors.vec, missing_values.vec, minimum_values.vec, timeline.lst,
-  nrows, ncols, xmin, xmax, ymin, ymax, xres, yres, crs, files.vec)
+  scale_factors.vec, missing_values.vec, minimum_values.vec,
+  maximum_values.vec, timeline.lst, nrows, ncols, xmin, xmax, ymin, ymax,
+  xres, yres, crs, files.vec)
 }
 \arguments{
 \item{r_objs.lst}{List of raster objects contained in the coverage.}
@@ -24,6 +25,8 @@
 \item{missing_values.vec}{Vector with missing values for each band.}
 
 \item{minimum_values.vec}{Vector with minimum values for each band.}
+
+\item{maximum_values.vec}{Vector with maximum values for each band.}
 
 \item{timeline.lst}{List with vectors of valid timelines for each band.}
 

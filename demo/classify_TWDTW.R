@@ -18,6 +18,6 @@ sits_plot (patterns.tb)
 
 # find the matches between the patterns and the time series using the TWDTW algorithm
 # (uses the dtwSat R package)
-matches <- sits_TWDTW_classify(point_MT_6bands, patterns.tb, bands = c("ndvi", "evi"),
+matches <- sits_twdtw_classify(point_MT_6bands, patterns.tb, bands = c("ndvi", "evi"),
                                alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 

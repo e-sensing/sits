@@ -98,7 +98,7 @@ test_that("Reading a point from SATVEG ", {
 test_that("Reading a ZOO time series", {
     #skip_on_cran()
     data(ts_zoo)
-    data.tb <- sits_fromZOO(ts_zoo, longitude = -54.2313, latitude = -14.0482,
+    data.tb <- sits_from_zoo(ts_zoo, longitude = -54.2313, latitude = -14.0482,
                             label = "Cerrado", name = "mod13q1")
 
     expect_equal(sum(data.tb$time_series[[1]]$ndvi), 13.6291, tolerance = 1e-3)

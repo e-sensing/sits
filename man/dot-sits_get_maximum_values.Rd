@@ -12,7 +12,7 @@
 \item{bands}{Vector of bands.}
 }
 \value{
-The minimum values.
+The maximum values.
 }
 \description{
 Retrieve the maximum values for a given band

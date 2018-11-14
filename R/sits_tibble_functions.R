@@ -325,7 +325,7 @@ sits_prune <- function(data.tb) {
         msg_log <- paste0("Lines with wrong number of samples are ",ind1)
         .sits_log_error(msg_log)
         data_err.tb <- data.tb[ind1, ]
-        .sits_log_CSV(data_err.tb)
+        .sits_log_csv(data_err.tb)
 
         # return the time series that have the same number of samples
         ind2 <- which(n_samples == stats::median(n_samples))
