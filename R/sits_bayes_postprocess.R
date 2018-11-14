@@ -77,6 +77,7 @@ sits_bayes_postprocess <- function(raster_class, window = matrix(1, nrow = 3, nc
                                      scale_factors.vec  = raster_class$scale_factors[[1]],
                                      missing_values.vec = raster_class$missing_values[[1]],
                                      minimum_values.vec = raster_class$minimum_values[[1]],
+                                     maximum_values.vec = raster_class$maximum_values[[1]],
                                      files.vec          = files.vec)
 
     return(raster_layers.tb)
