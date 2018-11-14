@@ -5,7 +5,7 @@
 \title{Create a metadata tibble to store the description of a spatio-temporal raster dataset}
 \usage{
 .sits_coverage_raster(name, timeline.vec, bands.vec, scale_factors.vec,
-  missing_values.vec, minimum_values.vec, files.vec)
+  missing_values.vec, minimum_values.vec, maximum_values.vec, files.vec)
 }
 \arguments{
 \item{name}{Name of the coverage file.}
@@ -19,6 +19,8 @@
 \item{missing_values.vec}{Vector of missing values (one per band).}
 
 \item{minimum_values.vec}{Minimum values for each band (only for raster data).}
+
+\item{maximum_values.vec}{Maximum values for each band (only for raster data).}
 
 \item{files.vec}{vector with the file paths of the raster files.}
 }

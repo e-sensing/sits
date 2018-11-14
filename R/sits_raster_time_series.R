@@ -254,7 +254,7 @@
                 })
     if (NROW(csv_unread.tb) > 0) {
         message("Some points could not be retrieved - see log file and csv_unread_file")
-        .sits_log_CSV(csv_unread.tb, "unread_samples.csv")
+        .sits_log_csv(csv_unread.tb, "unread_samples.csv")
     }
 
     return(data.tb)

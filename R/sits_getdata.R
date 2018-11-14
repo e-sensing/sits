@@ -278,7 +278,7 @@ sits_getdata <- function(coverage    = NULL,
     # Have all input rows being read?
     if (nrow != n_rows_csv) {
         message("Some points could not be retrieved - see log file and csv_unread_file")
-        .sits_log_CSV(csv_unread.tb, "unread_samples.csv")
+        .sits_log_csv(csv_unread.tb, "unread_samples.csv")
     }
 
     return(data.tb)

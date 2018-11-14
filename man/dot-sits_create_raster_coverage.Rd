@@ -6,7 +6,7 @@
 \usage{
 .sits_create_raster_coverage(raster.lst, service, name, timeline.lst,
   bands.vec, labels.vec, scale_factors.vec, missing_values.vec,
-  minimum_values.vec, files.vec)
+  minimum_values.vec, maximum_values.vec, files.vec)
 }
 \arguments{
 \item{raster.lst}{List of Raster objects associated with the raster coverages.}
@@ -26,6 +26,8 @@
 \item{missing_values.vec}{Vector of missing values.}
 
 \item{minimum_values.vec}{Vector of minimum values.}
+
+\item{maximum_values.vec}{Vector of maximum values.}
 
 \item{files.vec}{Vector of names of raster files where the data is stored.}
 }
