@@ -218,7 +218,7 @@ sits_show_config <- function() {
 #'
 #' @param service          Name of the product.
 #' @param bands            Vector of bands.
-#' @return The minimum values.
+#' @return The maximum values.
 .sits_get_maximum_values <- function(service, bands) {
     # create a string to query for the maximum values
     maximum_values <- vector()
