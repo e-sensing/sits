@@ -6,7 +6,7 @@ test_that("XLS", {
     results <- list()
     conf.mx$name <- "confusion_matrix"
     results[[length(results) + 1]] <- conf.mx
-    sits_toXLSX(results, file = "confusion_matrix.xlsx")
+    sits_to_xlsx(results, file = "confusion_matrix.xlsx")
 
     expect_true(file.remove("confusion_matrix.xlsx"))
 })

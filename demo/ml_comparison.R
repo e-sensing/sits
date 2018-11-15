@@ -97,6 +97,6 @@ results[[length(results) + 1]] <- conf_mlr.mx
 
 WD = getwd()
 
-sits_toXLSX(results, file = paste0(WD, "/accuracy_cerrado.xlsx"))
+sits_to_xlsx(results, file = paste0(WD, "/accuracy_cerrado.xlsx"))
 
 

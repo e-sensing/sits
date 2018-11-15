@@ -258,7 +258,7 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
 }
 
 #' @title Saves the results of accuracy assessments as Excel files
-#' @name sits_toXLSX
+#' @name sits_to_xlsx
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Saves confusion matrices as Excel spreadsheets. This function
@@ -283,12 +283,12 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
 #' # add the confusion matrix to the results
 #' results[[length(results) + 1]] <- conf.mx
 #' # save the results to an XLSX file
-#' sits_toXLSX(results, file = "confusion_matrix.xlsx")
+#' sits_to_xlsx(results, file = "confusion_matrix.xlsx")
 #' }
 #' @export
-sits_toXLSX <- function(acc.lst, file = NULL){
+sits_to_xlsx <- function(acc.lst, file = NULL){
     ensurer::ensure_that(file, !purrr::is_null(.),
-                         err_desc = "sits_toXLSX: please provide the file name")
+                         err_desc = "sits_to_xlsx: please provide the file name")
 
     # create a workbook to save the results
     wb <- openxlsx::createWorkbook("accuracy")
