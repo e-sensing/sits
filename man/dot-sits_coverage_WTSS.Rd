@@ -2,9 +2,10 @@
 % Please edit documentation in R/sits_coverage.R
 \name{.sits_coverage_wtss}
 \alias{.sits_coverage_wtss}
+\alias{.sits_coverage_WTSS}
 \title{Provides information about one coverage of the WTSS service}
 \usage{
-.sits_coverage_wtss(wtss.obj, service, name)
+.sits_coverage_WTSS(wtss.obj, service, name, bands)
 }
 \arguments{
 \item{wtss.obj}{R WTSS object associated to the service.}
@@ -12,6 +13,8 @@
 \item{service}{Name of the service.}
 
 \item{name}{Name of the coverage.}
+
+\item{bands}{Name of the bands.}
 }
 \description{
 Uses the WTSS services to print information and save metadata about a

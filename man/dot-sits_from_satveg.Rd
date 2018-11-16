@@ -5,7 +5,8 @@
 \title{Obtain one timeSeries from the EMBRAPA SATVEG server and load it on a sits tibble}
 \usage{
 .sits_from_satveg(coverage, longitude, latitude, start_date = NULL,
-  end_date = NULL, prefilter = "1", label = "NoClass")
+  end_date = NULL, bands = NULL, prefilter = "1",
+  label = "NoClass")
 }
 \arguments{
 \item{coverage}{The coverage metadata with the SATVEG information.}
@@ -17,6 +18,8 @@
 \item{start_date}{The start date of the period.}
 
 \item{end_date}{The end date of the period.}
+
+\item{bands}{The bands to be retrieved.}
 
 \item{prefilter}{A string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 
