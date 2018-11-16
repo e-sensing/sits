@@ -92,10 +92,10 @@ sits_coverage <- function(service        = "RASTER",
         })
 
         # create a coverage
-        coverage.tb <- .sits_coverage_wtss(wtss.obj, service, name)
+        coverage.tb <- .sits_coverage_WTSS(wtss.obj, service, name, bands)
     }
     else if (protocol == "SATVEG") {
-        coverage.tb <- .sits_coverage_satveg(name, timeline)
+        coverage.tb <- .sits_coverage_SATVEG(name, timeline, bands)
     }
     else
         coverage.tb <- .sits_coverage_raster(name = name,
@@ -181,7 +181,8 @@ sits_coverage <- function(service        = "RASTER",
 #' @param wtss.obj   R WTSS object associated to the service.
 #' @param service    Name of the service.
 #' @param name       Name of the coverage.
-.sits_coverage_wtss <- function(wtss.obj, service, name) {
+#' @param bands      Name of the bands.
+.sits_coverage_WTSS <- function(wtss.obj, service, name, bands) {
     # obtains information about the available coverages
     coverages.vec    <- wtss::listCoverages(wtss.obj)
 
@@ -201,13 +202,23 @@ sits_coverage <- function(service        = "RASTER",
 
     attr <- as.data.frame(band_info)
     bands.vec <- as.vector(attr[,"name"])
-    missing_values.vec <- as.vector(attr[,"missing_value"])
+
+    # verify if requested bands is in provided bands
+    if (!purrr::is_null(bands)) {
+        ensurer::ensure_that(bands.vec, all(bands %in% .),
+                             err_desc = ".sits_coverage_WTSS: requested band not provided by WTSS service.")
+    } else bands <- bands.vec
+
+    b <- bands.vec %in% bands
+    bands.vec <- bands.vec[b]
+
+    missing_values.vec <- as.vector(attr[,"missing_value"])[b]
     names(missing_values.vec) <- bands.vec
-    scale_factors.vec  <- as.vector(attr[,"scale_factor"])
+    scale_factors.vec  <- as.vector(attr[,"scale_factor"])[b]
     names(scale_factors.vec) <- bands.vec
-    minimum_values.vec <- as.vector(attr[,"valid_range"][["min"]])
+    minimum_values.vec <- as.vector(attr[,"valid_range"][["min"]])[b]
     names(minimum_values.vec) <- bands.vec
-    maximum_values.vec <- as.vector(attr[,"valid_range"][["max"]])
+    maximum_values.vec <- as.vector(attr[,"valid_range"][["max"]])[b]
     names(maximum_values.vec) <- bands.vec
 
     # Spatial extent
@@ -249,10 +260,23 @@ sits_coverage <- function(service        = "RASTER",
 #'
 #' @param name       Name of the coverage.
 #' @param timeline   Timeline of the coverage.
-.sits_coverage_satveg <- function(name, timeline) {
+#' @param bands      Bands of the coverage.
+.sits_coverage_SATVEG <- function(name, timeline, bands) {
+
     service <- "SATVEG"
     # get the bands
     bands.vec <- .sits_get_bands(service, name)
+
+    # check if requested bands are in provided bands
+    if (!purrr::is_null(bands)) {
+        ensurer::ensure_that(bands.vec, all(bands %in% .),
+                             err_desc = ".sits_coverage_SATVEG: requested band not provided by WTSS service.")
+    } else bands <- bands.vec
+
+    # select requested bands
+    b <- bands.vec %in% bands
+    bands.vec <- bands.vec[b]
+
     # the data in unlabelled
     labels.vec <- c("NoClass")
 

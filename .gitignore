@@ -14,3 +14,5 @@ vignettes/sits_cache/*
 vignettes/sits_files/*
 tests/testthat/Rplots.pdf
 vignettes/sits.R
+README_cache/*
+README_files/*
