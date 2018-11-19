@@ -1,20 +1,20 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 1.8.0
-Date: 2018-08-22
+Version: 1.11.0
+Date: 2018-11-10
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
-             person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'), 
+             person('Pedro', 'Andrade', role = c('aut', 'cre'), email = 'pedro.andrade@inpe.br'),
+             person('Gilberto', 'Camara', role = c('aut'), email = 'gilberto.camara@inpe.br'), 
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
-             person('Alexandre', 'Carvalho', role = c('aut', 'ctb'), email= 'alexandre.ywata@ipea.gov.br'),
-             person('Pedro', 'R. Andrade', role = c('aut', 'ctb'), email = 'pedro.andrade@inpe.br'),
-             person('Gilberto', 'Queiroz', role = c('aut', 'ctb'), email = 'gilberto.queiroz@inpe.br'),
+             person('Alexandre', 'Carvalho', role = c('aut'), email= 'alexandre.ywata@ipea.gov.br'),
+             person('Lorena', 'Santos', role = c('aut'), email = 'lorena.santos@inpe.br'),
+             person('Gilberto', 'Queiroz', role = c('aut'), email = 'gilberto.queiroz@inpe.br'),
              person('Alber', 'Sanchez', role = c('ctb')),
              person('Luiz', 'Assis', role = c('ctb')),
-             person('Adeline', 'Marinho', role = c('ctb')),
-             person('Lorena', 'Santos', role = c('ctb'))
+             person('Adeline', 'Marinho', role = c('ctb'))
              )
-Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
+Maintainer: Pedro Andrade <pedro.andrade@inpe.br>
 Description: A set of tools for working with satellite image time series.
     Supports data retrieval from a WTSS (web time series service) and other data sets.
     Provides different visualisation methods for image time series.
@@ -79,7 +79,7 @@ Imports:
     zoo
 LinkingTo:
     Rcpp
-RoxygenNote: 6.1.0.9000
+RoxygenNote: 6.1.1
 Collate: 
     'RcppExports.R'
     'data.R'

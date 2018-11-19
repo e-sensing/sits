@@ -48,7 +48,7 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
 }
 
 #' @title Export data to be used to the zoo format
-#' @name sits_toZOO
+#' @name sits_to_zoo
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Converts data from a sits tibble to a list of a zoo series.
@@ -60,9 +60,9 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # export a time series to zoo
-#' zoo.lst <- sits_toZOO (cerrado_2classes[1:5,])
+#' zoo.lst <- sits_to_zoo (cerrado_2classes[1:5,])
 #' @export
-sits_toZOO <- function(data.tb, band = NULL){
+sits_to_zoo <- function(data.tb, band = NULL){
     zoo.lst <- data.tb$time_series %>%
         purrr::map(function(ts) {
             if (purrr::is_null(band))

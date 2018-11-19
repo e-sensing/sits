@@ -1,7 +1,7 @@
 SITS - Satellite Image Time Series Analysis
 ================
 
-Package sits is a set of tools for working with satellite image time series. Includes data retrieval from a WTSS (web time series service), different visualisation methods for image time series, smoothing methods for noisy time series, different clustering methods, including dendrograms and SOM. Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition and provides machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
+The SITS package is a set of tools for working with satellite image time series. Includes data retrieval from a WTSS (web time series service), different visualisation methods for image time series, smoothing methods for noisy time series, different clustering methods, including dendrograms and SOM. Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition and provides machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
 
 ### Overview
 
@@ -26,7 +26,7 @@ The **sits** package is a set of tools for working with satellite image time ser
 -   **nnet** for multinomial log-linear models.
 -   **glmnet** for generalized linear models.
 -   **gbm** for gradient boosting methods.
--   **randomForest** for random forest methods.
+-   **ranger** for random forest methods.
 -   **dtwclust** for time series clustering.
 -   **kohonen** for clustering based on SOM.
 -   **dtwSat** for access to the time-weigthed dynamic time warping algorithm.
@@ -36,7 +36,7 @@ The **sits** package is a set of tools for working with satellite image time ser
 
 ### Installation
 
-Please install sits package from github, making sure you have the latest version of the other packages it requires:
+Please install the SITS package from github, making sure you have the latest version of the other packages it requires:
 
 ``` r
 devtools::install_github("e-sensing/sits")
@@ -48,14 +48,13 @@ After loading the library, users can print a **sits** tibble to see how the pack
 
 ``` r
 samples_MT_9classes[1:3,]
+#> # A tibble: 3 x 7
+#>   longitude latitude start_date end_date   label   coverage time_series   
+#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>    <list>        
+#> 1     -55.2   -10.8  2013-09-14 2014-08-29 Pasture MOD13Q1  <tibble [23 ×…
+#> 2     -57.8    -9.76 2006-09-14 2007-08-29 Pasture MOD13Q1  <tibble [23 ×…
+#> 3     -51.9   -13.4  2014-09-14 2015-08-29 Pasture MOD13Q1  <tibble [23 ×…
 ```
-
-    ## # A tibble: 3 x 7
-    ##   longitude latitude start_date end_date   label   coverage time_series   
-    ##       <dbl>    <dbl> <date>     <date>     <chr>   <chr>    <list>        
-    ## 1     -55.2   -10.8  2013-09-14 2014-08-29 Pasture MOD13Q1  <tibble [23 ×…
-    ## 2     -57.8    -9.76 2006-09-14 2007-08-29 Pasture MOD13Q1  <tibble [23 ×…
-    ## 3     -51.9   -13.4  2014-09-14 2015-08-29 Pasture MOD13Q1  <tibble [23 ×…
 
 The **sits** tibble contains data and metadata. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location (-55.1852, -10.8387), and is considered valid for the period (2013-09-14, 2014-08-29).
 
@@ -71,7 +70,7 @@ samples_cerrado.tb <- dplyr::filter(samples_ndvi.tb,
 sits_plot(samples_cerrado.tb[1:15,])
 ```
 
-<img src="README_files/figure-markdown_github/cerrado-15-1.png" style="display: block; margin: auto;" />
+<img src="man/figures/README-cerrado-15-1.png" style="display: block; margin: auto;" />
 
 For a large number of samples, where the amount of individual plots would be substantial, the default visualisation combines all samples together in a single temporal interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, and the two orange lines are the first and third interquartile ranges.
 
@@ -80,7 +79,7 @@ For a large number of samples, where the amount of individual plots would be sub
 sits_plot(samples_cerrado.tb)
 ```
 
-<img src="README_files/figure-markdown_github/cerrado-all-1.png" style="display: block; margin: auto;" />
+<img src="man/figures/README-cerrado-all-1.png" style="display: block; margin: auto;" />
 
 ### Importing Data into `sits`
 
@@ -98,16 +97,15 @@ dendro <- sits_dendrogram(cerrado_2classes)
 sits_plot_dendrogram(cerrado_2classes, dendro)
 ```
 
-<img src="README_files/figure-markdown_github/dendrogram-1.png" style="display: block; margin: auto;" /> After creating a dendrogram, we provide `sits_dendro_bestcut()`, a function that computes a validity index and returns the height where the cut of the dendrogram maximizes this index.
+<img src="man/figures/README-dendrogram-1.png" style="display: block; margin: auto;" /> After creating a dendrogram, we provide `sits_dendro_bestcut()`, a function that computes a validity index and returns the height where the cut of the dendrogram maximizes this index.
 
 ``` r
 # search for the best height to cut the dendrogram
 sits_dendro_bestcut(cerrado_2classes, 
                     dendro)
+#>        k   height 
+#>  6.00000 20.39655
 ```
-
-    ##        k   height 
-    ##  6.00000 20.39655
 
 This height optimises the ARI and generates 6 clusters, which are then created by function `sits_cluster`. We can then see the cluster frequency using `sits_cluster_frequency`. In the example, we note that cluster 3, unlike other clusters, includes a mix of two classes. Users can then remove this cluster with `sits_cluster_remove`to reduce the number of mixed-class samples.
 
@@ -118,27 +116,22 @@ clusters.tb <-
     sits_cluster(cerrado_2classes, dendro, k = 6)
 # show clusters samples frequency
 sits_cluster_frequency(clusters.tb)
-```
-
-    ##          
-    ##             1   2   3   4   5   6 Total
-    ##   Cerrado 203  13  23  80   1  80   400
-    ##   Pasture   2 176  28   0 140   0   346
-    ##   Total   205 189  51  80 141  80   746
-
-``` r
+#>          
+#>             1   2   3   4   5   6 Total
+#>   Cerrado 203  13  23  80   1  80   400
+#>   Pasture   2 176  28   0 140   0   346
+#>   Total   205 189  51  80 141  80   746
 # clear those samples with a high confusion rate in a cluster 
 clean.tb <- sits_cluster_remove(clusters.tb, 
                         min_perc = 0.9)
 # show clean clusters samples frequency
 sits_cluster_frequency(clean.tb)
+#>          
+#>             1   2   4   5   6 Total
+#>   Cerrado 203  13  80   1  80   377
+#>   Pasture   2 176   0 140   0   318
+#>   Total   205 189  80 141  80   695
 ```
-
-    ##          
-    ##             1   2   4   5   6 Total
-    ##   Cerrado 203  13  80   1  80   377
-    ##   Pasture   2 176   0 140   0   318
-    ##   Total   205 189  80 141  80   695
 
 ### Filtering
 
@@ -154,7 +147,7 @@ sits_plot(sits_merge(point_whit.tb,
                      point.tb))
 ```
 
-<img src="README_files/figure-markdown_github/unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
 
 ### Machine Learning and Deep Learning
 
@@ -172,7 +165,7 @@ class.tb <- sits_classify(point_ndvi, svm_model)
 sits_plot(class.tb)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-7-1.png)
+![](man/figures/README-unnamed-chunk-8-1.png)
 
 #### Code status
 
@@ -181,7 +174,7 @@ sits_plot(class.tb)
 | Build         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Check         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Documentation | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull) |
-| Coverage      | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master) |
+
 #### License
 
 The **sits** package is licensed under the GPLv3 (<http://www.gnu.org/licenses/gpl.html>).
