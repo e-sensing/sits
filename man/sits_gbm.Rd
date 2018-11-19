@@ -40,9 +40,9 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_ndvi)
+data(samples_mt_ndvi)
 # Build a GBM model
-gbm_model <- sits_train(samples_MT_ndvi, sits_gbm(n.trees = 200, cv.folds = 2))
+gbm_model <- sits_train(samples_mt_ndvi, sits_gbm(n.trees = 200, cv.folds = 2))
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point

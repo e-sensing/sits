@@ -1,10 +1,8 @@
 context("Evaluate samples")
 test_that("Creating clustering using Self-organizing Maps", {
-
-    library(kohonen)
     #skip_on_cran()
-    data("samples_MT_9classes")
-    data.tb <- samples_MT_9classes[1:500,]
+    data("samples_mt_9classes")
+    data.tb <- samples_mt_9classes[1:500,]
 
     time_series.ts <- sits_values(data.tb, format = "bands_cases_dates")
     expect_equal(length(names(time_series.ts)), (dim(data.tb$time_series[[1]])[2] - 1))

@@ -39,13 +39,13 @@ passed to the function using the parameter "ml_model".
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_ndvi)
+data(samples_mt_ndvi)
 # select the bands "ndvi", "evi", "nir", and "mir"
-samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
+samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
 # build a classification model using SVM
 model_svm <- sits_train(samples.tb, ml_method = sits_svm())
 # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
-point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 # classify the point
 class.tb <- sits_classify(point.tb, ml_model = model_svm)
 # plot the classification

@@ -49,9 +49,9 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_ndvi)
+data(samples_mt_ndvi)
 # Build a machine learning model based on deep learning
-dl_model <- sits_train (samples_MT_ndvi,
+dl_model <- sits_train (samples_mt_ndvi,
                         sits_deeplearning(units = c(512, 512, 512),
                                           dropout_rates = c(0.50, 0.40, 0.35),
                                           epochs = 50))

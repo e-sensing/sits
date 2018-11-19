@@ -18,7 +18,7 @@ raster.tb <- sits_coverage(service = "RASTER", name = "Sinop",
                            files = c(ndvi_file, evi_file))
 
 #select the bands for classification
-samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi)
+samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi)
 
 # build the classification model
 rfor_model <- sits_train(samples.tb, ml_method = sits_rfor(num.trees = 2000))

@@ -31,9 +31,9 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_ndvi)
+data(samples_mt_ndvi)
 # Build an MLR model
-mlr_model <- sits_train(samples_MT_ndvi, sits_mlr())
+mlr_model <- sits_train(samples_mt_ndvi, sits_mlr())
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point

@@ -1,5 +1,5 @@
 #' @title Obtain time series from different sources
-#' @name sits_getdata
+#' @name sits_get_data
 #' @author Gilberto Camara
 #'
 #' @description Retrieve a set of time series. There are two main ways of retrieving time series:
@@ -49,23 +49,23 @@
 #' \donttest{
 #' # Read a single lat long point from a WTSS server
 #' wtss_coverage <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
-#' point.tb <- sits_getdata (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
+#' point.tb <- sits_get_data (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
 #' sits_plot(point.tb)
 #'
 #' # Read a set of points defined in a CSV file from a WTSS server
 #' csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
-#' points.tb <- sits_getdata (wtss_coverage, file = csv_file)
+#' points.tb <- sits_get_data (wtss_coverage, file = csv_file)
 #' # show the points retrieved for the WTSS server
 #' sits_plot (points.tb[1:3,])
 #'
 #' # Read a single lat long point from the SATVEG server
 #' satveg_coverage <- sits_coverage(service = "SATVEG", name = "terra")
-#' point_satveg.tb <- sits_getdata (satveg_coverage, longitude = -55.50563, latitude = -11.71557)
+#' point_satveg.tb <- sits_get_data (satveg_coverage, longitude = -55.50563, latitude = -11.71557)
 #' sits_plot(point_satveg.tb)
 #'
 #' # define a shapefile and read from the points inside it from the WTSS service
 #' shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
-#' munic.tb <- sits_getdata(coverage = wtss_coverage, file = shp_file)
+#' munic.tb <- sits_get_data(coverage = wtss_coverage, file = shp_file)
 #'
 #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
@@ -76,7 +76,7 @@
 #' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
 #'                             timeline = timeline_modis_392, bands = c("ndvi"))
 #' # read the point from the raster
-#' point_raster.tb <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
+#' point_raster.tb <- sits_get_data(raster_cov, longitude = -55.554, latitude = -11.525)
 #' sits_plot(point_raster.tb)
 #'
 #' #' # Read a CSV file in a Raster Brick
@@ -88,12 +88,12 @@
 #' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
 #'                             timeline = timeline_modis_392, bands = c("ndvi"))
 #' csv_raster_file <- system.file ("extdata/samples/samples_sinop_crop.csv", package = "sits")
-#' points.tb <- sits_getdata (raster_cov, file = csv_raster_file)
+#' points.tb <- sits_get_data (raster_cov, file = csv_raster_file)
 #' # show the points retrieved for the RASTER images
 #' sits_plot (points.tb)
 #' }
 #' @export
-sits_getdata <- function(coverage    = NULL,
+sits_get_data <- function(coverage    = NULL,
                          file        = NULL,
                          longitude   = NULL,
                          latitude    = NULL,

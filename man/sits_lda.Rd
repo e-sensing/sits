@@ -27,9 +27,9 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_ndvi)
+data(samples_mt_ndvi)
 # Build an LDA model
-lda_model <- sits_train(samples_MT_ndvi, sits_lda())
+lda_model <- sits_train(samples_mt_ndvi, sits_lda())
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point

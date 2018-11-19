@@ -17,7 +17,7 @@ Returns a vector containing the dates of a sits tibble.
 }
 \examples{
 # get a point and print its dates
-sits_dates(point_MT_6bands)
+sits_dates(point_mt_6bands)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -561,6 +561,6 @@ sits_show_config <- function() {
 .sits_check_service <- function(service){
     # Ensure that the service is available
     ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
-                         err_desc = "sits_getdata: Invalid time series service")
+                         err_desc = "sits_get_data: Invalid time series service")
     return(TRUE)
 }

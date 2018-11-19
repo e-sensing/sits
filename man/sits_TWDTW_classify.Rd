@@ -55,11 +55,11 @@ seasonal variability.
 \examples{
 \donttest{
 # Get a set of samples for the Mato Grosso state in Brazil
-samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
+samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
 # obtain a set of patterns for these samples
 patterns.tb <- sits_patterns(samples.tb)
 # Get a point to classify
-point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 # find the matches between the patterns and the time series using the TWDTW algorithm
 matches <- sits_twdtw_classify(point.tb, patterns.tb, bands = c("ndvi", "evi", "nir", "mir"),
                                alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
