@@ -54,21 +54,10 @@
     scale_factors  <- unlist(coverage$scale_factors)
 
     # get the raster bricks to be read
-    bricks.lst <- coverage$files[[1]]
-
-    ordered_bricks.lst <- vector(mode = "list", length = length(bands))
-
-    for (i in 1:length(bands))
-        ordered_bricks.lst[[i]] <- bricks.lst[[bands[i]]]
-
-    names(ordered_bricks.lst) <- bands
+    ordered_bricks.lst <- coverage$r_objs[[1]][bands]
 
     # index to go through the bands vector
     b <- 0
-
-    # set the offset and region to be read by GDAL
-    offset     <- c(first_row - 1, 0)
-    region.dim <- c(n_rows_block, coverage[1,]$ncols)
 
     # read the values from the raster bricks ordered by bands
     values.lst <- ordered_bricks.lst %>%
@@ -76,7 +65,7 @@
             # the readGDAL function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            values.mx    <- as.matrix(suppressWarnings(rgdal::readGDAL(r_brick, offset, region.dim, silent = TRUE))@data)
+            values.mx    <- as.matrix(suppressWarnings(raster::getValues(r_brick, first_row, n_rows_block)))
 
             # proprocess the input data
             b <<- b + 1
