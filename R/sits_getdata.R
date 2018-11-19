@@ -319,7 +319,7 @@ sits_getdata <- function(coverage    = NULL,
     # find out what is the projection of the shape file
     crs1 <- sf::st_crs(sf_shape)
     # if the shapefile is not in EPSG:4326 and WGS84, transform shape into WGS84
-    if (crs1$epsg != 4326) {
+    if (is.na(crs1$epsg) || crs1$epsg != 4326) {
         sf_shape <- sf::st_transform(sf_shape, crs = 4326)
     }
     # get the bounding box
