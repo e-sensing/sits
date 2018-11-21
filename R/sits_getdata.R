@@ -76,8 +76,8 @@
 #' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
 #'                             timeline = timeline_modis_392, bands = c("ndvi"))
 #' # read the point from the raster
-#' point_raster.tb <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
-#' sits_plot(point_raster.tb)
+#' point_coverage <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
+#' sits_plot(point_coverage)
 #'
 #' #' # Read a CSV file in a Raster Brick
 #' # define the file that has the raster brick
@@ -141,64 +141,7 @@ sits_getdata <- function(coverage    = NULL,
     stop()
 }
 
-#' @title Obtain timeSeries from time series service
-#' @name .sits_from_service
-#'
-#' @description Obtains a time series from a time series service.
-#'
-#' @param coverage        Coverage metadata.
-#' @param longitude       Longitude of the chosen location.
-#' @param latitude        Latitude of the chosen location).
-#' @param start_date      Optional start date of the period.
-#' @param end_date        Optional end date of the period.
-#' @param bands           Optional string vector with the names of the bands to be retrieved.
-#' @param prefilter       String (only for SATVEG) ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
-#' @param label           String with the label to attach to the time series.
-#' @return A sits tibble.
-.sits_from_service <- function(coverage,
-                               longitude,
-                               latitude,
-                               start_date,
-                               end_date,
-                               bands,
-                               prefilter  = "1",
-                               label = "NoClass") {
-    protocol <- .sits_get_protocol(coverage[1,]$service)
 
-    if (protocol == "WTSS") {
-        data.tb <- .sits_from_wtss(coverage = coverage,
-                                  longitude = longitude,
-                                  latitude = latitude,
-                                  start_date = start_date,
-                                  end_date = end_date,
-                                  bands = bands,
-                                  label = label)
-        return(data.tb)
-    }
-    if (protocol == "SATVEG") {
-        data.tb <- .sits_from_satveg(coverage = coverage,
-                                   longitude = longitude,
-                                   latitude = latitude,
-                                   start_date = start_date,
-                                   end_date = end_date,
-                                   bands = bands,
-                                   prefilter = prefilter,
-                                   label = label)
-
-        return(data.tb)
-    }
-    if (protocol == "RASTER") {
-        data.tb <- .sits_from_raster(coverage = coverage,
-                                    longitude = longitude,
-                                    latitude = latitude,
-                                    start_date = start_date,
-                                    end_date = end_date,
-                                    label = label)
-
-        return(data.tb)
-    }
-    return(NULL)
-}
 
 #' @title Obtain timeSeries from time series server, based on a CSV file.
 #' @name .sits_from_csv
@@ -285,6 +228,158 @@ sits_getdata <- function(coverage    = NULL,
     return(data.tb)
 }
 
+#' @title Extract a time series from a ST raster data set
+#' @name .sits_from_raster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Reads metadata about a raster data set to retrieve a set of
+#' time series.
+#'
+#' @param coverage        A tibble with metadata describing a raster coverage.
+#' @param longitude       A double with the longitude of the chosen location.
+#' @param latitude        A double with the latitude of the chosen location.
+#' @param start_date      A date with the start of the period.
+#' @param end_date        A date with the end of the period.
+#' @param label           A string with the label to attach to the time series.
+#' @return A sits tibble with the time series.
+.sits_from_raster <- function(coverage,
+                              longitude,
+                              latitude,
+                              start_date = NULL,
+                              end_date  = NULL,
+                              label = "NoClass"){
+
+    # ensure metadata tibble exists
+    ensurer::ensure_that(coverage, NROW(.) >= 1,
+                         err_desc = "sits_from_raster: need a valid metadata for coverage")
+
+    timeline <- coverage$timeline[[1]][[1]]
+
+    start_idx <- 1
+    end_idx   <- length(timeline)
+
+    if (!purrr::is_null(start_date)) {
+        start_idx <- which.min(abs(lubridate::as_date(start_date) - timeline))
+    }
+    if (!purrr::is_null(end_date)) {
+        end_idx <- which.min(abs(lubridate::as_date(end_date) - timeline))
+    }
+    timeline <- timeline[start_idx:end_idx]
+
+    ts.tb <- tibble::tibble(Index = timeline)
+
+    # get the bands, scale factors and missing values
+    bands <- unlist(coverage$bands)
+    missing_values <- unlist(coverage$missing_values)
+    scale_factors  <- unlist(coverage$scale_factors)
+    nband <- 0
+
+    # transform longitude and latitude to an sp Spatial Points* (understood by raster)
+    st_point <- sf::st_point(c(longitude, latitude))
+    ll_sfc <- sf::st_sfc(st_point, crs = "+init=epsg:4326")
+    ll_sp <- sf::as_Spatial(ll_sfc)
+
+    # An input raster brick contains several files, each corresponds to a band
+    values.lst <- coverage$r_objs[[1]] %>%
+        purrr::map(function(r_brick) {
+            # eack brick is a band
+            nband <<- nband + 1
+            # get the values of the time series
+            values <- suppressWarnings(as.vector(raster::extract(r_brick, ll_sp)))
+            # is the data valid?
+            if (all(is.na(values))) {
+                message("point outside the raster extent - NULL returned")
+                return(NULL)
+            }
+            # create a tibble to store the values
+            values.tb <- tibble::tibble(values[start_idx:end_idx])
+            # find the names of the tibble column
+            band <- bands[nband]
+            names(values.tb) <- band
+            # correct the values using the scale factor
+            values.tb <- values.tb[,1]*scale_factors[band]
+            return(values.tb)
+        })
+
+    ts.tb <- dplyr::bind_cols(ts.tb, values.lst)
+
+    # create a list to store the time series coming from the set of Raster Layers
+    ts.lst <- list()
+    # transform the list into a tibble to store in memory
+    ts.lst[[1]] <- ts.tb
+
+    # create a tibble to store the WTSS data
+    data.tb <- sits_tibble()
+    # add one row to the tibble
+    data.tb <- tibble::add_row(data.tb,
+                               longitude    = longitude,
+                               latitude     = latitude,
+                               start_date   = as.Date(timeline[1]),
+                               end_date     = as.Date(timeline[length(timeline)]),
+                               label        = label,
+                               coverage     = coverage$name,
+                               time_series  = ts.lst
+    )
+    return(data.tb)
+}
+#' @title Obtain timeSeries from time series service
+#' @name .sits_from_service
+#'
+#' @description Obtains a time series from a time series service.
+#'
+#' @param coverage        Coverage metadata.
+#' @param longitude       Longitude of the chosen location.
+#' @param latitude        Latitude of the chosen location).
+#' @param start_date      Optional start date of the period.
+#' @param end_date        Optional end date of the period.
+#' @param bands           Optional string vector with the names of the bands to be retrieved.
+#' @param prefilter       String (only for SATVEG) ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
+#' @param label           String with the label to attach to the time series.
+#' @return A sits tibble.
+.sits_from_service <- function(coverage,
+                               longitude,
+                               latitude,
+                               start_date,
+                               end_date,
+                               bands,
+                               prefilter  = "1",
+                               label = "NoClass") {
+    protocol <- .sits_get_protocol(coverage[1,]$service)
+
+    if (protocol == "WTSS") {
+        data.tb <- .sits_from_wtss(coverage = coverage,
+                                   longitude = longitude,
+                                   latitude = latitude,
+                                   start_date = start_date,
+                                   end_date = end_date,
+                                   bands = bands,
+                                   label = label)
+        return(data.tb)
+    }
+    if (protocol == "SATVEG") {
+        data.tb <- .sits_from_satveg(coverage = coverage,
+                                     longitude = longitude,
+                                     latitude = latitude,
+                                     start_date = start_date,
+                                     end_date = end_date,
+                                     bands = bands,
+                                     prefilter = prefilter,
+                                     label = label)
+
+        return(data.tb)
+    }
+    if (protocol == "RASTER") {
+        data.tb <- .sits_from_raster(coverage = coverage,
+                                     longitude = longitude,
+                                     latitude = latitude,
+                                     start_date = start_date,
+                                     end_date = end_date,
+                                     label = label)
+
+        return(data.tb)
+    }
+    return(NULL)
+}
 #' @title Obtain timeSeries from WTSS server, based on a SHP file.
 #' @name .sits_from_shp
 #'
