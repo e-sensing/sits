@@ -92,8 +92,8 @@ data(timeline_modis_392)
 raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
                             timeline = timeline_modis_392, bands = c("ndvi"))
 # read the point from the raster
-point_raster.tb <- sits_get_data(raster_cov, longitude = -55.554, latitude = -11.525)
-sits_plot(point_raster.tb)
+point_coverage <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
+sits_plot(point_coverage)
 
 #' # Read a CSV file in a Raster Brick
 # define the file that has the raster brick

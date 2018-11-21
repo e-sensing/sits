@@ -116,7 +116,6 @@ Collate:
     'sits_raster_classification.R'
     'sits_raster_blocks.R'
     'sits_raster_read_write.R'
-    'sits_raster_time_series.R'
     'sits_raster_utils.R'
     'sits_services.R'
     'sits_space_time_operations.R'
