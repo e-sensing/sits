@@ -140,7 +140,7 @@ A useful case is when a set of labelled samples are available to be used as a tr
 
 After importing the samples time series, it is useful to explore the data to see how it is structured and look for its inter-class separability. For example, we can note in the figure above the variability of 400 time series collected from different years and locations. The scattering behavior is intrinsic to remote sensing data. Atmospheric noise, sun angle, interferences on observations or different equipment specifications, as well as the very nature of the climate-land dynamics can be sources of such variability [@Atkinson2012]. One helpful technique to explore such properties is *cluster analysis*. In the following section we present a clustering technique supported by `sits`.
 
-# Clustering in satellite image time series
+# Clustering satellite image time series
 
 Cluster analysis has been used for many purposes in satellite image time series literature ranging from unsupervised classification [@Petitjean2011], and pattern detection [@Romani2011]. Here, we are interested in the second use of clustering, using it as a way to improve training data to feed machine learning classification models. In this regard, cluster analysis can assist the identification of structural *time series patterns* and anomalous samples [@Romani2011], [@Chandola2009]. `sits` provides support for the Agglomerative Hierarchical Clustering (AHC). 
 

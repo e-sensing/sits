@@ -22,7 +22,7 @@
 
 \item{maximum_values.vec}{Maximum values for each band (only for raster data).}
 
-\item{files.vec}{vector with the file paths of the raster files.}
+\item{files.vec}{Vector with the file paths of the raster files.}
 }
 \value{
 A tibble with metadata information about a raster data set.
