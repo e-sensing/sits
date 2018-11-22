@@ -216,7 +216,6 @@
                     pred_row <- tibble::tibble(
                         from      = as.Date(rd[1]),
                         to        = as.Date(rd[2]),
-                        distance  =  0.0,
                         class     = pred.vec[class_idx],
                         probs     = list(pred.mtx[class_idx,])
                     )
