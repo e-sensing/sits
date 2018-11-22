@@ -499,7 +499,7 @@ raster_class.tb <-
 sits_plot_raster(raster_class.tb[1,], title = "SINOP-MT - 2000/2001")
 ```
 
-The classified files can also be visualized with applications such as QGIS. Note that we create two coverage `tibbles` with metadata information, one for the input data and other for the output.  To create the input data, we need a `timeline` that matches the input images of the raster brick. Once created, the coverage can be used either to retrieve time series data from the raster bricks using `sits_getdata()` or to do the raster classification by calling the function `sits_classify_raster()`. The machine learning model and the training data to be used are passed by the arguments `sits_svm()` (default) and `samples_mt_ndvi` parameters. The classification result is stored as a set of files beginning with `file` prefix.
+The classified files can also be visualized with applications such as QGIS. Note that we create two coverage `tibbles` with metadata information, one for the input data and other for the output.  To create the input data, we need a `timeline` that matches the input images of the raster brick. Once created, the coverage can be used either to retrieve time series data from the raster bricks using `sits_get_data()` or to do the raster classification by calling the function `sits_classify_raster()`. The machine learning model and the training data to be used are passed by the arguments `sits_svm()` (default) and `samples_mt_ndvi` parameters. The classification result is stored as a set of files beginning with `file` prefix.
 
 ```{r, include=FALSE}
 # remove all files
