@@ -66,30 +66,30 @@ The basic data unit of `sits` package is the "`sits` tibble", which is a way of 
 
 ```{r}
 # data set of samples
-data(samples_MT_9classes)
-samples_MT_9classes[1:3,]
+data(samples_mt_9classes)
+samples_mt_9classes[1:3,]
 ```
 
 A `sits` tibble contains data and metadata. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location ($-55.1852$, $-10.8387$), and is considered valid for the period (2013-09-14, 2014-08-29). Informing the dates where the label is valid is crucial for correct classification. In this case, the researchers involved in labeling the samples chose to use the agricultural calendar in Brazil, where the spring crop is planted in the months of September and October, and the autumn crop is planted in the months of February and March. For other applications and other countries, the relevant dates will most likely be different from those used in the example. The `time_series` column contains the time series data for each spatiotemporal location. This data is also organized as a tibble, with a column with the dates and the other columns with the values for each spectral band. 
 
 ```{r}
 # print the first time series records of the first sample
-samples_MT_9classes$time_series[[1]][1:3,]
+samples_mt_9classes$time_series[[1]][1:3,]
 ```
 
 The `sits` package provides functions for data manipulation and displaying information for `sits` tibbles. For example, `sits_labels()` shows the labels of the sample set and their frequencies.
 
 ```{r}
-sits_labels(samples_MT_9classes)
+sits_labels(samples_mt_9classes)
 ```
 
 In many cases, it is useful to relabel the data set. For example, there may be situations when one wants to use a smaller set of labels, since samples in one label on the original set may not be distinguishable from samples with other labels. We then could use `sits_relabel()`, which requires a conversion list (for details, see `?sits_relabel`).
 
 Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions from `dplyr`, `tidyr` and `purrr` packages of the `tidyverse` [@Wickham2017] to process the data. For example, the following code uses `sits_select_bands()` to get a subset of the sample data set with two bands (NDVI and EVI) and then uses the `dplyr::filter()` to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot()` to display the time series. Given a small number of samples to display, `sits_plot()` tries to group as many spatial locations together. In the following example, the first 15 samples of  "Cerrado" class refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together.
 
-```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 15 'Cerrado' samples from data set \\texttt{samples_MT_9classes} (different dates for the same point location)."}
+```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 15 'Cerrado' samples from data set \\texttt{samples_mt_9classes} (different dates for the same point location)."}
 # select NDVI band
-samples_ndvi.tb <- sits_select_bands(samples_MT_9classes, ndvi)
+samples_ndvi.tb <- sits_select_bands(samples_mt_9classes, ndvi)
 # select only samples with Cerrado label
 samples_cerrado.tb <-
     dplyr::filter(samples_ndvi.tb, label == "Cerrado")
@@ -99,7 +99,7 @@ sits_plot(samples_cerrado.tb[1:15,])
 
 For a large number of samples, where the amount of individual plots would be substantial, the default visualization combines all samples together in a single temporal interval (even if they belong to different years). All samples with the same band and label are aligned to a common time interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, while the two orange lines are the first and third interquartile ranges. The documentation of `sits_plot()` has more details about the different ways it can display data.
 
-```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all Cerrado samples from data set \\texttt{samples_MT_9classes}."}
+```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all Cerrado samples from data set \\texttt{samples_mt_9classes}."}
 # plot all cerrado samples together
 sits_plot(samples_cerrado.tb)
 ```
@@ -124,23 +124,23 @@ coverage_wtss <- sits_coverage(service = "WTSS-INPE",
 coverage_wtss %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
 ```
 
-The user can request one or more time series points from a coverage by using `sits_getdata()`. This function provides a general means of access to image time series. In its simplest fashion, the user provides the latitude and longitude of the desired location, the product and coverage names, the bands, and the start date and end date of the time series. If the start and end dates are not provided, it retrieves all the available period. The result is a tibble that can be visualized using `sits_plot()`.
+The user can request one or more time series points from a coverage by using `sits_get_data()`. This function provides a general means of access to image time series. In its simplest fashion, the user provides the latitude and longitude of the desired location, the product and coverage names, the bands, and the start date and end date of the time series. If the start and end dates are not provided, it retrieves all the available period. The result is a tibble that can be visualized using `sits_plot()`.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI and EVI time series fetched from WTSS service."}
 # a point in the transition forest to pasture in Northern MT
 # obtain a time series from the WTSS server for this point
-series.tb <- sits_getdata(longitude = -55.57320, 
-                          latitude  = -11.50566,
-                          coverage  = coverage_wtss,
-                          bands     = c("ndvi", "evi"))
+series.tb <- sits_get_data(longitude = -55.57320, 
+                           latitude  = -11.50566,
+                           coverage  = coverage_wtss,
+                           bands     = c("ndvi", "evi"))
 sits_plot(series.tb)
 ```
 
-A useful case is when a set of labelled samples are available to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. Function `sits_getdata()` can get a CSV file path as an argument. The CSV file must provide, for each time series, its latitude and longitude, the start and end dates, and a label associated to a ground sample. 
+A useful case is when a set of labelled samples are available to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. Function `sits_get_data()` can get a CSV file path as an argument. The CSV file must provide, for each time series, its latitude and longitude, the start and end dates, and a label associated to a ground sample. 
 
 After importing the samples time series, it is useful to explore the data to see how it is structured and look for its inter-class separability. For example, we can note in the figure above the variability of 400 time series collected from different years and locations. The scattering behavior is intrinsic to remote sensing data. Atmospheric noise, sun angle, interferences on observations or different equipment specifications, as well as the very nature of the climate-land dynamics can be sources of such variability [@Atkinson2012]. One helpful technique to explore such properties is *cluster analysis*. In the following section we present a clustering technique supported by `sits`.
 
-# Clustering in satellite image time series
+# Clustering satellite image time series
 
 Cluster analysis has been used for many purposes in satellite image time series literature ranging from unsupervised classification [@Petitjean2011], and pattern detection [@Romani2011]. Here, we are interested in the second use of clustering, using it as a way to improve training data to feed machine learning classification models. In this regard, cluster analysis can assist the identification of structural *time series patterns* and anomalous samples [@Romani2011], [@Chandola2009]. `sits` provides support for the Agglomerative Hierarchical Clustering (AHC). 
 
@@ -363,9 +363,9 @@ In `sits`, SVM is the default machine learning model. As a wrapper of `e1071` R 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="SVM classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
 # Mato Grosso region for train the SVM model
-data(samples_MT_ndvi)
+data(samples_mt_ndvi)
 # train a machine learning model using SVM
-svm_model <- sits_train(samples_MT_ndvi,
+svm_model <- sits_train(samples_mt_ndvi,
                         sits_svm(kernel = "radial",
                                  cost = 10))
 # get a point to be classified
@@ -390,9 +390,9 @@ Random forest provides better performances than *bagged trees*, a similar proced
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
 # Mato Grosso region for train the Random Forest model.
-data(samples_MT_ndvi)
+data(samples_mt_ndvi)
 # train a machine learning model using random forest
-rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num.trees = 1000))
+rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num.trees = 1000))
 # get a point to be classified
 data(point_ndvi)
 # Classify using Random Forest model
@@ -415,7 +415,7 @@ In the following example, we classify the same data set using a simple example o
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Deep learning classification of a $16$ year time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
 # Mato Grosso region for train the  model.
-data(samples_MT_ndvi)
+data(samples_mt_ndvi)
 # train a machine learning model using deep learning
 train_dl <- sits_deeplearning(
     units            = c(512, 512),
@@ -426,7 +426,7 @@ train_dl <- sits_deeplearning(
     batch_size       = 128,
     validation_split = 0.2)
 
-dl_model <- sits_train(samples_MT_ndvi, train_dl)
+dl_model <- sits_train(samples_mt_ndvi, train_dl)
 # get a point to be classified
 data(point_ndvi)
 class.tb <- sits_classify(point_ndvi, dl_model)
@@ -465,10 +465,10 @@ Our tested approach (see example illustrated bellow) is `GeoTIFF` bricks, where 
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=4.1, fig.cap="Image (${11\\times14}$ pixels) classified using SVM. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
 # Retrieve the set of samples for the Mato Grosso region 
-data(samples_MT_ndvi)
+data(samples_mt_ndvi)
 
 # build a machine learning model for this area
-svm_model <- sits_train(samples_MT_ndvi, sits_svm())
+svm_model <- sits_train(samples_mt_ndvi, sits_svm())
 
 # read a raster file and put it into a vector
 file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", 
@@ -499,7 +499,7 @@ raster_class.tb <-
 sits_plot_raster(raster_class.tb[1,], title = "SINOP-MT - 2000/2001")
 ```
 
-The classified files can also be visualized with applications such as QGIS. Note that we create two coverage `tibbles` with metadata information, one for the input data and other for the output.  To create the input data, we need a `timeline` that matches the input images of the raster brick. Once created, the coverage can be used either to retrieve time series data from the raster bricks using `sits_getdata()` or to do the raster classification by calling the function `sits_classify_raster()`. The machine learning model and the training data to be used are passed by the arguments `sits_svm()` (default) and `samples_MT_ndvi` parameters. The classification result is stored as a set of files beginning with `file` prefix.
+The classified files can also be visualized with applications such as QGIS. Note that we create two coverage `tibbles` with metadata information, one for the input data and other for the output.  To create the input data, we need a `timeline` that matches the input images of the raster brick. Once created, the coverage can be used either to retrieve time series data from the raster bricks using `sits_get_data()` or to do the raster classification by calling the function `sits_classify_raster()`. The machine learning model and the training data to be used are passed by the arguments `sits_svm()` (default) and `samples_mt_ndvi` parameters. The classification result is stored as a set of files beginning with `file` prefix.
 
 ```{r, include=FALSE}
 # remove all files

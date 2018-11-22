@@ -24,11 +24,11 @@
 #'\donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # find a training model based on the distances and default values (SVM model)
-#' samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
-#' ml_model <- sits_train (samples.tb, sits_rfor())
+#' samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
+#' ml_model <- sits_train(samples.tb, sits_rfor())
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
-#' class.tb <- sits_classify(point_MT_6bands, ml_model)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' class.tb <- sits_classify(point_mt_6bands, ml_model)
 #' sits_plot(class.tb)
 #' }
 #' @export
@@ -80,9 +80,9 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_MT_ndvi,
+#' dl_model <- sits_train (samples_mt_ndvi,
 #'                         sits_deeplearning(units = c(512, 512, 512),
 #'                                           dropout_rates = c(0.50, 0.40, 0.35),
 #'                                           epochs = 50))
@@ -250,9 +250,9 @@ sits_deeplearning <- function(data.tb          = NULL,
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build a GBM model
-#' gbm_model <- sits_train(samples_MT_ndvi, sits_gbm(n.trees = 200, cv.folds = 2))
+#' gbm_model <- sits_train(samples_mt_ndvi, sits_gbm(n.trees = 200, cv.folds = 2))
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
@@ -330,9 +330,9 @@ sits_gbm <- function(data.tb = NULL, formula = sits_formula_logref(), distributi
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build an LDA model
-#' lda_model <- sits_train(samples_MT_ndvi, sits_lda())
+#' lda_model <- sits_train(samples_mt_ndvi, sits_lda())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
@@ -398,9 +398,9 @@ sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build a QDA model
-#' qda_model <- sits_train(samples_MT_ndvi, sits_qda())
+#' qda_model <- sits_train(samples_mt_ndvi, sits_qda())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
@@ -461,9 +461,9 @@ sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build an MLR model
-#' mlr_model <- sits_train(samples_MT_ndvi, sits_mlr())
+#' mlr_model <- sits_train(samples_mt_ndvi, sits_mlr())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
@@ -523,9 +523,9 @@ sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build a random forest model
-#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
+#' rfor_model <- sits_train(samples_mt_ndvi, sits_rfor())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
@@ -605,9 +605,9 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build an SVM model
-#' svm_model <- sits_train(samples_MT_ndvi, sits_svm())
+#' svm_model <- sits_train(samples_mt_ndvi, sits_svm())
 #' # get a point
 #' data(point_ndvi)
 #' # classify the point

@@ -8,22 +8,22 @@ library(sits)
 # we will show how to set the classification info
 
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_9classes)
+data(samples_mt_9classes)
 
 # print the bands available
-sits_bands(samples_MT_9classes)
+sits_bands(samples_mt_9classes)
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
+samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
 
 #select a random forest model
 rfor_model <- sits_train(samples.tb, ml_method = sits_rfor())
 
 # Retrieve a time series
-data("point_MT_6bands")
+data("point_mt_6bands")
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 
 # classify the point
 class.tb <- sits_classify(point.tb, rfor_model)

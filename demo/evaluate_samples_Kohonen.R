@@ -3,11 +3,11 @@
 library(sits)
 library(kohonen)
 
-data.tb <- data("samples_MT_9classes")
-data.tb <- samples_MT_9classes
+data.tb <- data("samples_mt_9classes")
+data.tb <- samples_mt_9classes
 
 #Get time series
-time_series.ts <- sits_values (data.tb, format = "bands_cases_dates")
+time_series.ts <- sits_values(data.tb, format = "bands_cases_dates")
 
 ##To use the DTW distance
 #sourceCpp(paste(path.package("sits"), "inst/Distances/distance.cpp", sep = "/"))

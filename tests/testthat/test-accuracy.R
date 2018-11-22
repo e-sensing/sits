@@ -14,7 +14,7 @@ test_that("XLS", {
 test_that("Accuracy", {
     coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
 
-    data.tb <- sits_getdata(file = system.file("extdata/samples/samples_matogrosso.csv", package = "sits"),
+    data.tb <- sits_get_data(file = system.file("extdata/samples/samples_matogrosso.csv", package = "sits"),
                         coverage = coverage_wtss,
                         bands = c("ndvi", "evi"),
                         .n_save = 0)

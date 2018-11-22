@@ -20,9 +20,9 @@ Adds new bands and preserves existing in the time series of a sits tibble using 
 \examples{
 \donttest{
 # Retrieve data for time series with label samples in Mato Grosso in Brazil
-data (samples_MT_9classes)
+data (samples_mt_9classes)
 # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-savi.tb <- sits_mutate_bands(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+savi.tb <- sits_mutate_bands(samples_mt_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 }
 }
 \author{

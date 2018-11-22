@@ -41,10 +41,10 @@ Takes a set of spatio-temporal raster bricks, whose metadata is
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_ndvi)
+data(samples_mt_ndvi)
 
 # Build a machine learning model based on the samples
-svm_model <- sits_train(samples_MT_ndvi, sits_svm())
+svm_model <- sits_train(samples_mt_ndvi, sits_svm())
 
 # read a raster file and put it into a vector
 file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits")
