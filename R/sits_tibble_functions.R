@@ -545,7 +545,7 @@ sits_select_bands_ <- function(data.tb, bands) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Adds new bands and drops existing in the time series of a sits tibble using dplyr::transmute function.
 #' @param data.tb       A sits tibble.
-#' @param ...           Pair expressions in the format `name = value`. See \code{\link[dplyr]{transmute}} help for more details.
+#' @param ...           Pair expressions in the format `name = value`. See \code{\link[dplyr]{mutate}} help for more details.
 #' @return A sits tibble with same samples and the new bands.
 #' @examples
 #' \donttest{

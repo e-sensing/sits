@@ -106,14 +106,6 @@ sits_show_config <- function() {
     return(accountURL)
 }
 
-#' @title Retrieve the value of the adjustment shift
-#' @name sits_get_adjustment_shift
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieves the value of the shift to adjust entries to have only positive values.
-.sits_get_adjustment_shift <- function() {
-    return(sits.env$config$adjustment_shift)
-}
-
 #' @title Retrieve the bands avaliable for the product in the time series service
 #' @name .sits_get_bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -396,8 +388,13 @@ sits_show_config <- function() {
     size         <- vector(length = 2)
     names(size)  <- c("nrows", "ncols")
 
-    if (service != "RASTER") {
-
+    if(service == "RASTER") {
+        ensurer::ensure_that(r_obj, length(.) > 0,
+                             err_desc = "raster objects have not been created")
+        size["nrows"] <- raster::nrow(r_obj)
+        size["ncols"] <- raster::ncol(r_obj)
+    }
+    else {
         # get the size from the configuration file
         i1  <- paste0(service,"_size")
 
@@ -405,12 +402,6 @@ sits_show_config <- function() {
             purrr::map(function (c){
                 size[c] <<- sits.env$config[[i1]][[name]][[c]]
             })
-    }
-    else {
-        ensurer::ensure_that(r_obj, length(.) > 0,
-                             err_desc = "raster objects have not been created")
-        size["nrows"] <- raster::nrow(r_obj)
-        size["ncols"] <- raster::ncol(r_obj)
     }
 
     #post-condition
@@ -481,8 +472,7 @@ sits_show_config <- function() {
         if (satellite == "LANDSAT8")
             bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
         else {
-            message("unable to retrieve tasseled cap coefficients")
-            return(invisible(FALSE))
+            stop("Unable to retrieve tasseled cap coefficients")
         }
     }
 
@@ -510,8 +500,7 @@ sits_show_config <- function() {
         if (satellite == "LANDSAT8")
             bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
         else {
-            message("unable to retrieve tasseled cap coefficients")
-            return(invisible(FALSE))
+            stop("Unable to retrieve tasseled cap coefficients")
         }
     }
 
@@ -538,8 +527,7 @@ sits_show_config <- function() {
         if (satellite == "LANDSAT8")
             bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
         else {
-            message("unable to retrieve tasseled cap coefficients")
-            return(invisible(FALSE))
+            stop("Unable to retrieve tasseled cap coefficients")
         }
     }
 

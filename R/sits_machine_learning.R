@@ -809,7 +809,7 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Given a sits tibble time series and a model trained by \code{\link[sits]{sits_train}},
-#'   returns a predicted label. Note that the \code{\link[sits]{.sits_predict}} function is
+#'   returns a predicted label. Note that this function is
 #'   called inside \code{\link[sits]{sits_classify}},
 #'   and \code{\link[sits]{sits_classify_raster}}, so the user does not need
 #'   to explicitly use it. Please see the above-mentioned classification functions.

@@ -56,8 +56,8 @@
     llmin <- sf::st_coordinates(sf::st_transform(xymin, crs = "+init=epsg:4326"))
     llmax <- sf::st_coordinates(sf::st_transform(xymax, crs = "+init=epsg:4326"))
 
-    res["xres"] <- (llmax["x"] - llmin["x"])/coverage$ncols
-    res["yres"] <- (llmax["y"] - llmin["y"])/coverage$nrows
+    res["xres"] <- (llmax[1, "X"] - llmin[1, "X"]) / coverage$ncols
+    res["yres"] <- (llmax[1, "Y"] - llmin[1, "Y"]) / coverage$nrows
 
     return(res)
 }
@@ -74,9 +74,9 @@
 #' @param raster.tb  Tibble with metadata information about a raster data set.
 #' @return TRUE if XY is inside the raster extent, FALSE otherwise.
 .sits_xy_inside_raster <- function(xy, raster.tb){
-    if (xy[1,"X"] < raster.tb[1,]$xmin) return(FALSE)
-    if (xy[1,"X"] > raster.tb[1,]$xmax) return(FALSE)
-    if (xy[1,"Y"] < raster.tb[1,]$ymin) return(FALSE)
-    if (xy[1,"Y"] > raster.tb[1,]$ymax) return(FALSE)
+    if(xy[1, "X"] < raster.tb[1, ]$xmin) return(FALSE)
+    if(xy[1, "X"] > raster.tb[1, ]$xmax) return(FALSE)
+    if(xy[1, "Y"] < raster.tb[1, ]$ymin) return(FALSE)
+    if(xy[1, "Y"] > raster.tb[1, ]$ymax) return(FALSE)
     return(TRUE)
 }

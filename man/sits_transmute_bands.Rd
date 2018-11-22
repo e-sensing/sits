@@ -9,7 +9,7 @@ sits_transmute_bands(data.tb, ...)
 \arguments{
 \item{data.tb}{A sits tibble.}
 
-\item{...}{Pair expressions in the format `name = value`. See \code{\link[dplyr]{transmute}} help for more details.}
+\item{...}{Pair expressions in the format `name = value`. See \code{\link[dplyr]{mutate}} help for more details.}
 }
 \value{
 A sits tibble with same samples and the new bands.
