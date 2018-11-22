@@ -25,6 +25,8 @@ test_that("Creating clustering using Self-organizing Maps", {
     confusion_by_cluster <- sits_metrics_by_cluster(koh$info_samples)
     expect_equal(length(names(confusion_by_cluster$confusion_matrix)), 6)
 
+    sits_plot_cluster_info (confusion_by_cluster)
+
     subgroups <- sits_subgroup(koh)
     neurons_subgroup <- subgroups$neurons_subgroup.lst
 

@@ -188,7 +188,6 @@ sits_get_data <- function(coverage    = NULL,
     purrr::pmap(list(csv.tb$longitude, csv.tb$latitude, csv.tb$start_date,
                 csv.tb$end_date, csv.tb$label),
                 function(longitude, latitude, start_date, end_date, label){
-
                     row <- .sits_from_service(coverage, longitude, latitude,
                                               lubridate::as_date(start_date),
                                               lubridate::as_date(end_date),
