@@ -9,7 +9,7 @@ sits_transmute_bands(data.tb, ...)
 \arguments{
 \item{data.tb}{A sits tibble.}
 
-\item{...}{Pair expressions in the format `name = value`. See \code{\link[dplyr]{transmute}} help for more details.}
+\item{...}{Pair expressions in the format `name = value`. See \code{\link[dplyr]{mutate}} help for more details.}
 }
 \value{
 A sits tibble with same samples and the new bands.
@@ -20,9 +20,9 @@ Adds new bands and drops existing in the time series of a sits tibble using dply
 \examples{
 \donttest{
 # Retrieve data for time series with label samples in Mato Grosso in Brazil
-data(samples_MT_9classes)
+data(samples_mt_9classes)
 # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-savi.tb <- sits_transmute_bands(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+savi.tb <- sits_transmute_bands(samples_mt_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 }
 }
 \author{

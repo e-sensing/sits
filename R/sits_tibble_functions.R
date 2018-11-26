@@ -137,9 +137,9 @@ sits_apply <- function(data, fun, fun_index = function(index){ return(index) }, 
 #'
 #' @examples
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_9classes)
+#' data(samples_mt_9classes)
 #' # print the bands
-#' sits_bands(samples_MT_9classes)
+#' sits_bands(samples_mt_9classes)
 #' @export
 sits_bands <- function(data.tb) {
     result.vec <- data.tb[1,]$time_series[[1]] %>%
@@ -198,7 +198,7 @@ sits_break <- function(data.tb, timeline, start_date, end_date, interval = "12 m
 #' @return A tibble with values of time indexes.
 #' @examples
 #' # get a point and print its dates
-#' sits_dates(point_MT_6bands)
+#' sits_dates(point_mt_6bands)
 #' @export
 sits_dates <- function(data.tb) {
     values <- data.tb$time_series[[1]]$Index
@@ -264,9 +264,9 @@ sits_merge <-  function(data1.tb, data2.tb) {
 #' @examples
 #' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
-#' data (samples_MT_9classes)
+#' data (samples_mt_9classes)
 #' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-#' savi.tb <- sits_mutate_bands(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#' savi.tb <- sits_mutate_bands(samples_mt_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 #' }
 #' @return A sits tibble with same samples and the selected bands.
 #' @export
@@ -545,14 +545,14 @@ sits_select_bands_ <- function(data.tb, bands) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Adds new bands and drops existing in the time series of a sits tibble using dplyr::transmute function.
 #' @param data.tb       A sits tibble.
-#' @param ...           Pair expressions in the format `name = value`. See \code{\link[dplyr]{transmute}} help for more details.
+#' @param ...           Pair expressions in the format `name = value`. See \code{\link[dplyr]{mutate}} help for more details.
 #' @return A sits tibble with same samples and the new bands.
 #' @examples
 #' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
-#' data(samples_MT_9classes)
+#' data(samples_mt_9classes)
 #' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-#' savi.tb <- sits_transmute_bands(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#' savi.tb <- sits_transmute_bands(samples_mt_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 #' }
 #' @export
 sits_transmute_bands <- function(data.tb, ...){

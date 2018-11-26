@@ -47,13 +47,13 @@ devtools::install_github("e-sensing/sits")
 After loading the library, users can print a **sits** tibble to see how the package organizes the data.
 
 ``` r
-samples_MT_9classes[1:3,]
+samples_mt_9classes[1:3,]
 #> # A tibble: 3 x 7
 #>   longitude latitude start_date end_date   label   coverage time_series   
 #>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>    <list>        
-#> 1     -55.2   -10.8  2013-09-14 2014-08-29 Pasture MOD13Q1  <tibble [23 ×…
-#> 2     -57.8    -9.76 2006-09-14 2007-08-29 Pasture MOD13Q1  <tibble [23 ×…
-#> 3     -51.9   -13.4  2014-09-14 2015-08-29 Pasture MOD13Q1  <tibble [23 ×…
+#> 1     -55.2   -10.8  2013-09-14 2014-08-29 Pasture MOD13Q1  <tibble [23 x~
+#> 2     -57.8    -9.76 2006-09-14 2007-08-29 Pasture MOD13Q1  <tibble [23 x~
+#> 3     -51.9   -13.4  2014-09-14 2015-08-29 Pasture MOD13Q1  <tibble [23 x~
 ```
 
 The **sits** tibble contains data and metadata. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location (-55.1852, -10.8387), and is considered valid for the period (2013-09-14, 2014-08-29).
@@ -62,7 +62,7 @@ To display the time series, we provide `sits_plot()` function to display the tim
 
 ``` r
 # select the "ndvi" band
-samples_ndvi.tb <- sits_select_bands(samples_MT_9classes, ndvi)
+samples_ndvi.tb <- sits_select_bands(samples_mt_9classes, ndvi)
 # select only the samples with the cerrado label
 samples_cerrado.tb <- dplyr::filter(samples_ndvi.tb, 
                   label == "Cerrado")
@@ -157,8 +157,8 @@ We support a number of machine learning techniques, including SVM (support vecto
 
 ``` r
 # Build a machine learning model with a set of samples 
-# for the Mato Grosso region (provided by EMBRAPA) (samples_MT_ndvi)
-svm_model <- sits_train(samples_MT_ndvi, ml_method = sits_svm(kernel = "radial",  cost = 10))
+# for the Mato Grosso region (provided by EMBRAPA) (samples_mt_ndvi)
+svm_model <- sits_train(samples_mt_ndvi, ml_method = sits_svm(kernel = "radial",  cost = 10))
 # get a point to be classified (point_ndvi)
 
 class.tb <- sits_classify(point_ndvi, svm_model)
@@ -174,6 +174,7 @@ sits_plot(class.tb)
 | Build         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Check         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Documentation | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull) |
+| Coverage      | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master)                                                    |
 
 #### License
 

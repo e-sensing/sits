@@ -11,14 +11,14 @@ test_that("All", {
     sits_plot (cerrado_2classes)
     sits_plot (cerrado_2classes[1:20,])
     sits_plot (sits_patterns(cerrado_2classes))
-    data(samples_MT_ndvi)
+    data(samples_mt_ndvi)
     data(point_ndvi)
-    model_svm <- sits_train(samples_MT_ndvi, ml_method = sits_svm())
+    model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
     class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
     sits_plot (class_ndvi.tb)
 
-    data(samples_MT_ndvi)
-    svm_model <- sits_train(samples_MT_ndvi, sits_svm())
+    data(samples_mt_ndvi)
+    svm_model <- sits_train(samples_mt_ndvi, sits_svm())
     files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
     data(timeline_modis_392)
     raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",

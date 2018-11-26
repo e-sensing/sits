@@ -16,11 +16,11 @@ test_that("Working with raster coverages", {
     expect_true(raster::nrow(r_obj) == raster.tb$nrows)
     expect_true(raster::xmin(r_obj) == raster.tb$xmin)
 
-    point.tb <- sits_getdata(coverage = raster.tb, longitude = -55.55502, latitude = -11.52774)
+    point.tb <- sits_get_data(coverage = raster.tb, longitude = -55.55502, latitude = -11.52774)
 
     expect_true(length(point.tb$time_series[[1]]$Index) == length(timeline_modis_392))
 
-    rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
+    rfor_model <- sits_train(samples_mt_ndvi, sits_rfor())
 
     raster_class.tb <- sits_classify_raster(file = "raster-class", raster.tb,
                                             rfor_model, memsize = 4, multicores = 1)

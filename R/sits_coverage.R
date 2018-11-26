@@ -345,7 +345,7 @@ sits_coverage <- function(service        = "RASTER",
 #' @param  missing_values.vec    Vector of missing values (one per band).
 #' @param  minimum_values.vec    Minimum values for each band (only for raster data).
 #' @param  maximum_values.vec    Maximum values for each band (only for raster data).
-#' @param  files.vec             vector with the file paths of the raster files.
+#' @param  files.vec             Vector with the file paths of the raster files.
 #' @return A tibble with metadata information about a raster data set.
 .sits_coverage_raster <- function(name,
                                   timeline.vec,

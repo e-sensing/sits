@@ -18,9 +18,9 @@ Finds the names of the bands of time series in a sits tibble
 }
 \examples{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_MT_9classes)
+data(samples_mt_9classes)
 # print the bands
-sits_bands(samples_MT_9classes)
+sits_bands(samples_mt_9classes)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
