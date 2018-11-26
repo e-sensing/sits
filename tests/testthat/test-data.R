@@ -168,5 +168,5 @@ test_that("Labels and re-label", {
 
     expect_equal(length(labels$label), 2)
     expect_equal(labels$label[1], "Forest")
-    expect_equal(sum(labels$freq), 1)
+    expect_equal(sum(labels$prop), 1)
 })
