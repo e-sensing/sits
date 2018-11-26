@@ -57,16 +57,15 @@ sits_coverage <- function(service        = "RASTER",
                           files          = NA) {
     # if no service is specified, but the names of files are provided,
     # assume we are dealing with raster data
-    allfiles <- unlist(files)
     if (service == "RASTER") {
-        r <- suppressWarnings(rgdal::GDALinfo(allfiles, silent = FALSE))
+        r <- suppressWarnings(rgdal::GDALinfo(files, silent = FALSE))
         ensurer::ensure_that(r, all(!purrr::is_null(.)),
                              err_desc = "sits_coverage: raster files cannot be accessed")
     }
 
     # pre-condition
-    if (any(!is.na(allfiles))) {
-        if (all(file.exists(allfiles)) && service != "RASTER") {
+    if (any(!is.na(files))) {
+        if (all(file.exists(files)) && service != "RASTER") {
             msg <- paste0("inconsistent specification of coverage parameters - files should
                           be provided only when service is RASTER")
             .sits_log_error(msg)
@@ -99,7 +98,7 @@ sits_coverage <- function(service        = "RASTER",
         coverage.tb <- .sits_coverage_SATVEG(name, timeline, bands)
     }
     else
-        coverage.tb <- .sits_coverage_raster(name               = name,
+        coverage.tb <- .sits_coverage_raster(name = name,
                                              timeline.vec       = timeline,
                                              bands.vec          = bands,
                                              scale_factors.vec  = scale_factors,
@@ -375,13 +374,9 @@ sits_coverage <- function(service        = "RASTER",
     brick.lst <- purrr::pmap(list(files.vec, bands.vec),
                              function(file, band) {
                                  # create a raster object associated to the file
-                                 if (length(file) == 1) {
-                                     raster.obj <- raster::brick(file)
-                                 } else {
-                                     raster.obj <- raster::stack(file)
-                                 }
+                                 raster.obj <- raster::brick(file)
                                  # find out how many layers the object has
-                                 n_layers   <-  raster::nlayers(raster.obj)
+                                 n_layers   <-  raster.obj@file@nbands
                                  # check that there are as many layers as the length of the timeline
                                  ensurer::ensure_that(n_layers, (.) == length(timeline.vec),
                                                       err_desc = "duration of timeline is not matched by number of layers in raster")
