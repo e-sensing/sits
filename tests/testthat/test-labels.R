@@ -6,5 +6,5 @@ test_that("Labels", {
 
     expect_equal(sum(labels$count), 2115)
     expect_equal(labels$label[1], "Cerrado")
-    expect_equal(sum(labels$freq), 1) # update to prop
+    expect_equal(sum(labels$prop), 1) # update to prop
 })

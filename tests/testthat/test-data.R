@@ -43,9 +43,9 @@ test_that("Reading a CSV file from WTSS", {
 
 test_that("Reading a CSV file from RASTER", {
     #skip_on_cran()
-    file <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+    file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
     raster_cov <- sits_coverage(files = file, name = "Sinop-crop",
-                                timeline = timeline_modis_392, bands = c("ndvi"))
+                                timeline = sits::timeline_modis_392, bands = c("ndvi"))
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
     points.tb <- sits_get_data(raster_cov, file = csv_raster_file)
     df_csv <- utils::read.csv(system.file("extdata/samples/samples_sinop_crop.csv", package = "sits"))
@@ -92,14 +92,14 @@ test_that("Reading a point from SATVEG ", {
     expect_equal(sum(point_comb.tb$time_series[[1]]$evi), 290.3342, tolerance = 2)
 
     expect_true(length(point_comb.tb$time_series[[1]]$Index) >=
-                              length(point_terra.tb$time_series[[1]]$Index))
+                    length(point_terra.tb$time_series[[1]]$Index))
 })
 
 test_that("Reading a ZOO time series", {
     #skip_on_cran()
     data(ts_zoo)
     data.tb <- sits_from_zoo(ts_zoo, longitude = -54.2313, latitude = -14.0482,
-                            label = "Cerrado", name = "mod13q1")
+                             label = "Cerrado", name = "mod13q1")
 
     expect_equal(sum(data.tb$time_series[[1]]$ndvi), 13.6291, tolerance = 1e-3)
     expect_true(NROW(ts_zoo) == NROW(data.tb$time_series[[1]]))
@@ -136,20 +136,23 @@ test_that("get_data", {
     munic.tb <- sits_get_data(coverage = wtss_coverage, file = shp_file)
 
     files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-    data(timeline_modis_392)
+
+    data("timeline_modis_392")
+
     raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-                               timeline = timeline_modis_392, bands = c("ndvi"))
+                                timeline = sits::timeline_modis_392, bands = c("ndvi"))
 
     point_raster.tb <- sits_get_data(raster_cov, longitude = -55.554, latitude = -11.525)
     sits_plot(point_raster.tb)
 
     files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-    data(timeline_modis_392)
+
+    data("timeline_modis_392")
     raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-                               timeline = timeline_modis_392, bands = c("ndvi"))
-    csv_raster_file <- system.file ("extdata/samples/samples_sinop_crop.csv", package = "sits")
+                                timeline = sits::timeline_modis_392, bands = c("ndvi"))
+    csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
     points.tb <- sits_get_data(raster_cov, file = csv_raster_file)
-    sits_plot (points.tb)
+    sits_plot(points.tb)
 })
 
 test_that("Labels and re-label", {
@@ -165,5 +168,5 @@ test_that("Labels and re-label", {
 
     expect_equal(length(labels$label), 2)
     expect_equal(labels$label[1], "Forest")
-    expect_equal(sum(labels$freq), 1)
+    expect_equal(sum(labels$prop), 1)
 })
