@@ -45,17 +45,6 @@ test_that("DL",{
     options(keras.fit_verbose = NULL)
 })
 
-test_that("GBM",{
-# THE TESTS BELOW DO NOT RUN IN THE CONTINUOUS INTEGRATION SERVER
-# FIX THE SERVER TO ROLL IT BACK
-#    gbm_model <- sits_train(samples_mt_ndvi, sits_gbm(n.trees = 20))
-#    class.tb <- sits_classify(point_ndvi, gbm_model)
-
-#    expect_true(all(class.tb$predicted[[1]]$class %in%
-#                        sits_labels(samples_mt_ndvi)$label))
-    expect_true(TRUE)
-})
-
 test_that("MLR",{
     invisible(capture.output(mlr_model <- sits_train(samples_mt_ndvi, sits_mlr(maxit = 30))))
     class.tb <- sits_classify(point_ndvi, mlr_model)
