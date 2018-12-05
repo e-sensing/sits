@@ -25,7 +25,6 @@ The **sits** package is a set of tools for working with satellite image time ser
 -   **MASS** for LDA and QDA models.
 -   **nnet** for multinomial log-linear models.
 -   **glmnet** for generalized linear models.
--   **gbm** for gradient boosting methods.
 -   **ranger** for random forest methods.
 -   **dtwclust** for time series clustering.
 -   **kohonen** for clustering based on SOM.
@@ -51,9 +50,9 @@ samples_mt_9classes[1:3,]
 #> # A tibble: 3 x 7
 #>   longitude latitude start_date end_date   label   coverage time_series   
 #>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>    <list>        
-#> 1     -55.2   -10.8  2013-09-14 2014-08-29 Pasture MOD13Q1  <tibble [23 x~
-#> 2     -57.8    -9.76 2006-09-14 2007-08-29 Pasture MOD13Q1  <tibble [23 x~
-#> 3     -51.9   -13.4  2014-09-14 2015-08-29 Pasture MOD13Q1  <tibble [23 x~
+#> 1     -55.2   -10.8  2013-09-14 2014-08-29 Pasture MOD13Q1  <tibble [23 ×…
+#> 2     -57.8    -9.76 2006-09-14 2007-08-29 Pasture MOD13Q1  <tibble [23 ×…
+#> 3     -51.9   -13.4  2014-09-14 2015-08-29 Pasture MOD13Q1  <tibble [23 ×…
 ```
 
 The **sits** tibble contains data and metadata. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location (-55.1852, -10.8387), and is considered valid for the period (2013-09-14, 2014-08-29).

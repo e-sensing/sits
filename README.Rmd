@@ -35,7 +35,6 @@ The **sits** package is a set of tools for working with satellite image time ser
 - **MASS** for LDA and QDA models.
 - **nnet** for multinomial log-linear models.
 - **glmnet** for generalized linear models.
-- **gbm** for gradient boosting methods.
 - **ranger** for random forest methods.
 - **dtwclust** for time series clustering.
 - **kohonen** for clustering based on SOM.
