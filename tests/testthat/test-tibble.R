@@ -84,3 +84,9 @@ test_that("Select",{
 
     expect_equal(dim(samplesPasture)[1], 370)
 })
+
+test_that("Select error",{
+    expect_error(sits_select_bands(samples_mt_9classes, fake_bands), "sits_select_bands: the following bands do not exist in the input data: fake_bands")
+
+    expect_error(sits_select_bands_(samples_mt_9classes, "fake_bands"), "sits_select_bands_: the following bands do not exist in the input data: fake_bands")
+})
