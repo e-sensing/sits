@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis
-Version: 1.12.0
-Date: 2018-12-5
+Version: 1.12.6
+Date: 2019-01-07
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Pedro', 'Andrade', role = c('aut', 'cre'), email = 'pedro.andrade@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut'), email = 'gilberto.camara@inpe.br'), 
