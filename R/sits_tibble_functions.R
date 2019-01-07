@@ -489,9 +489,9 @@ sits_select <- function(data.tb, ...) {
 sits_select_bands <- function(data.tb, ...) {
     bands <-  paste(substitute(list(...)))[-1]
 
-    # verify if bands exists in data.tb
     ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
-                         err_desc = "sits_select: some band(s) not found in input data")
+                         err_desc = paste0("sits_select_bands: the following bands do not exist in the input data: ",
+                                           paste(bands[!bands %in% sits_bands(data.tb)], collapse = ", ")))
 
     # prepare result sits tibble
     result.tb <- data.tb
@@ -527,7 +527,8 @@ sits_select_bands <- function(data.tb, ...) {
 sits_select_bands_ <- function(data.tb, bands) {
     # verify if bands exists in data.tb
     ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
-                         err_desc = "sits_select: some band(s) not found in input data")
+                         err_desc = paste0("sits_select_bands_: the following bands do not exist in the input data: ",
+                            paste(bands[!bands %in% sits_bands(data.tb)], collapse = ", ")))
 
     # prepare result sits tibble
     result.tb <- data.tb
