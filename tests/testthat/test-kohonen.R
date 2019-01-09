@@ -4,13 +4,9 @@ test_that("Creating clustering using Self-organizing Maps", {
     data("samples_mt_9classes")
     data.tb <- samples_mt_9classes[1:500,]
 
-    time_series.ts <- sits_values(data.tb, format = "bands_cases_dates")
-    expect_equal(length(names(time_series.ts)), (dim(data.tb$time_series[[1]])[2] - 1))
-
     koh <-
         sits_kohonen(
             data.tb,
-            time_series.ts,
             grid_xdim = 5,
             grid_ydim = 5,
             rlen = 20,
@@ -37,7 +33,6 @@ test_that("Creating clustering using Self-organizing Maps", {
 
     evaluate_samples <- sits_evaluate_samples(
         data.tb,
-        time_series.ts,
         grid_xdim = 5,
         grid_ydim = 5,
         rlen = 20,

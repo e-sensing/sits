@@ -4,24 +4,22 @@
 \alias{sits_kohonen}
 \title{Clustering a set of satellite image time series using SOM}
 \usage{
-sits_kohonen(data.tb, time_series, bands = NULL, grid_xdim = 25,
-  grid_ydim = 25, rlen = 100, dist.fcts = "euclidean", alpha = 1,
+sits_kohonen(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25,
+  rlen = 100, dist.fcts = "euclidean", alpha = 1,
   neighbourhood.fct = "bubble", ...)
 }
 \arguments{
 \item{data.tb}{A tibble with samples to be clustered.}
 
-\item{time_series}{Time series extracted from tibble data.}
-
 \item{bands}{Bands to be clustered.}
 
-\item{grid_xdim}{X dimension of the SOM grid (default = 5).}
+\item{grid_xdim}{X dimension of the SOM grid (default = 25).}
 
 \item{grid_ydim}{Y dimension of the SOM grid.}
 
 \item{rlen}{Number of times the complete data set will be presented to the SOM grid}
 
-\item{dist.fcts}{The similiraty measure (distance).}
+\item{dist.fcts}{The similarity measure (distance).}
 
 \item{alpha}{Learning rate, a vector of two numbers indicating the amount of change.}
 

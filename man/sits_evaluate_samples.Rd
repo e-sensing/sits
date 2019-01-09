@@ -4,14 +4,12 @@
 \alias{sits_evaluate_samples}
 \title{Evaluate samples}
 \usage{
-sits_evaluate_samples(data.tb, time_series, grid_xdim = 5,
-  grid_ydim = 5, rlen = 100, alpha = 1, radius = 6,
-  distance = "euclidean", iterations = 1, mode = "online")
+sits_evaluate_samples(data.tb, grid_xdim = 5, grid_ydim = 5,
+  rlen = 100, alpha = 1, radius = 6, distance = "euclidean",
+  iterations = 1, mode = "online")
 }
 \arguments{
 \item{data.tb}{A sits tibble with info of samples.}
-
-\item{time_series}{The time series extracted from sits tibble.}
 
 \item{grid_xdim}{X dimension of the SOM grid (default = 5).}
 

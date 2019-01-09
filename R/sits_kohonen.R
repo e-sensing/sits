@@ -7,19 +7,18 @@
 #' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 #'
 #' @param data.tb        A tibble with samples to be clustered.
-#' @param time_series    Time series extracted from tibble data.
 #' @param bands          Bands to be clustered.
-#' @param grid_xdim      X dimension of the SOM grid (default = 5).
+#' @param grid_xdim      X dimension of the SOM grid (default = 25).
 #' @param grid_ydim      Y dimension of the SOM grid.
 #' @param rlen           Number of times the complete data set will be presented to the SOM grid
-#' @param dist.fcts      The similiraty measure (distance).
+#' @param dist.fcts      The similarity measure (distance).
 #' @param alpha          Learning rate, a vector of two numbers indicating the amount of change.
 #' @param neighbourhood.fct Type of neighbourhood function (bubble or gaussian).
 #' @param  ...           Additional parameters to be passed to kohonen::supersom function.
 #' @return  A tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning tibble will contain a new collumn called `n_members` informing how many members has each cluster.
 #' @export
-sits_kohonen <- function(data.tb, time_series, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100, dist.fcts = "euclidean",
+sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100, dist.fcts = "euclidean",
                          alpha = 1, neighbourhood.fct = "bubble", ...) {
     #set colors to paint neurons
     pallete1 <- .sits_brewerRGB[[.sits_color_name("Set1")]]
@@ -34,17 +33,20 @@ sits_kohonen <- function(data.tb, time_series, bands = NULL, grid_xdim = 25, gri
     pallete_neighbors <- c(set1, pastel1, accent)
 
     # does the input data exist?
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble(data.tb)
 
     # if no bands informed, get all bands available in SITS tibble
     if (purrr::is_null(bands))
         bands <- sits_bands(data.tb)
 
+    # get the time series
+    time_series <- sits_values(data.tb, format = "bands_cases_dates")
+
     # creates the resulting tibble
     cluster.tb <- sits_tibble()
 
     grid <- kohonen::somgrid(xdim = grid_xdim, ydim = grid_ydim, topo = "rectangular", neighbourhood.fct = neighbourhood.fct)
-    kohonen_obj  <- kohonen::supersom (
+    kohonen_obj  <- kohonen::supersom(
         time_series,
         grid = grid,
         rlen = rlen,
@@ -106,7 +108,7 @@ sits_kohonen <- function(data.tb, time_series, bands = NULL, grid_xdim = 25, gri
         structure(list(kohonen_obj = kohonen_obj, info_samples = result.tb),
                   class = "sits")
 
-    return (info_samples_tables)
+    return(info_samples_tables)
 }
 
 #' @title Labelling neurons using majority voting
@@ -120,7 +122,7 @@ sits_kohonen <- function(data.tb, time_series, bands = NULL, grid_xdim = 25, gri
 #' @param grid_size  The size of kohonen map.
 #' @return Returns the labels of each neuron.
 #'
-.sits_labelling_neurons <- function (data.tb, grid_size)
+.sits_labelling_neurons <- function(data.tb, grid_size)
 {
     class_vector <- vector()
     for (i in 1:grid_size)
@@ -153,7 +155,7 @@ sits_kohonen <- function(data.tb, time_series, bands = NULL, grid_xdim = 25, gri
         class_vector[i] <- neuron_class[1]
     }
 
-    return (class_vector)
+    return(class_vector)
 }
 
 #' @title Evaluate samples
@@ -165,7 +167,6 @@ sits_kohonen <- function(data.tb, time_series, bands = NULL, grid_xdim = 25, gri
 #' This function allows check if the sample reliable or not
 #'
 #' @param data.tb        A sits tibble with info of samples.
-#' @param time_series    The time series extracted from sits tibble.
 #' @param grid_xdim      X dimension of the SOM grid (default = 5).
 #' @param grid_ydim      Y dimension of the SOM grid.
 #' @param rlen           Number of times the complete data set will be presented to the SOM grid
@@ -177,8 +178,15 @@ sits_kohonen <- function(data.tb, time_series, bands = NULL, grid_xdim = 25, gri
 #' @return Returns a sits tibble with a new column of label and a table with information about the
 #' confiability of each samples.
 #' @export
-sits_evaluate_samples <- function(data.tb, time_series, grid_xdim = 5, grid_ydim = 5, rlen = 100,
+sits_evaluate_samples <- function(data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 100,
                                   alpha = 1, radius = 6, distance = "euclidean", iterations = 1, mode = "online") {
+
+
+    # does the input data exist?
+    .sits_test_tibble(data.tb)
+    # get the time series
+    time_series <- sits_values(data.tb, format = "bands_cases_dates")
+
     #initialize tibbles
     neurons_info_t.tb <- tibble::as_tibble()
     samples_info_t.tb <- tibble::as_tibble()
@@ -212,7 +220,7 @@ sits_evaluate_samples <- function(data.tb, time_series, grid_xdim = 5, grid_ydim
         grid_size <- dim(kohonen_obj$grid$pts)[1]
 
         #get label
-        neurons_labelled <- .sits_labelling_neurons (result.tb, grid_size)
+        neurons_labelled <- .sits_labelling_neurons(result.tb, grid_size)
 
         #create an integer to correspond a class
         class_vector_int <- as.integer(factor(neurons_labelled))
@@ -326,7 +334,7 @@ sits_evaluate_samples <- function(data.tb, time_series, grid_xdim = 5, grid_ydim
     info_samples_id_cluster <- unique(dplyr::select(info_sample_cluster.tb, id_sample, cluster_label))
 
     #here sample must have an id (SITS tibble)
-    samples_new_label<-info_samples_id_cluster %>% dplyr::inner_join(result.tb [,1:8])
+    samples_new_label <- info_samples_id_cluster %>% dplyr::inner_join(result.tb [,1:8])
 
     evaluated_sample <-  structure(
         list(
@@ -585,10 +593,10 @@ sits_metrics_by_cluster <- function(data.tb)
     }
 
     #Remove the row and column toal and get the confusion matrix from caret,
-    info_confusion_matrix <- caret::confusionMatrix(confusion.matrix.tb [1:dim_row - 1, 1:dim_col - 1])
+    info_confusion_matrix <- caret::confusionMatrix(confusion.matrix.tb[1:dim_row - 1, 1:dim_col - 1])
 
     metrics_by_cluster <-  structure(list(mixture_cluster = mix_class,
                                           confusion_matrix = info_confusion_matrix),
                                      class = "sits")
-    return (metrics_by_cluster)
+    return(metrics_by_cluster)
 }
