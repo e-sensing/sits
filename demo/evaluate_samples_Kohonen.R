@@ -2,6 +2,7 @@
 # example of clustering using self-organizin maps
 library(sits)
 library(kohonen)
+library(Hmisc)
 
 data("samples_mt_9classes")
 data.tb <- samples_mt_9classes

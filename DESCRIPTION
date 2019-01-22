@@ -45,6 +45,7 @@ Imports:
     ggplot2,
     graphics,
     grDevices,
+    Hmisc,
     keras,
     kohonen,
     imputeTS,
