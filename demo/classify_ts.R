@@ -20,7 +20,7 @@ samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
 rfor_model <- sits_train(samples.tb, ml_method = sits_rfor())
 
 # Retrieve a time series
-data("point_mt_6bands")
+data(point_mt_6bands)
 
 # select the bands "ndvi", "evi", "nir", and "mir"
 point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
