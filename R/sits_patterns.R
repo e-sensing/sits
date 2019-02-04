@@ -39,9 +39,9 @@
 #' sits_plot(patterns.tb)
 #'
 #' # Read a set of samples for the state of Mato Grosso, Brazil, provided by EMBRAPA
-#' data(samples_MT_9classes)
+#' data(samples_mt_9classes)
 #' # Estimate a set of patterns (one for each label)
-#' patterns.tb <- sits_patterns(samples_MT_9classes)
+#' patterns.tb <- sits_patterns(samples_mt_9classes)
 #' # Show the patterns
 #' sits_plot(patterns.tb)
 #' }

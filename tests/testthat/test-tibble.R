@@ -7,7 +7,7 @@ test_that("Apply",{
 })
 
 test_that("Bands",{
-    bands <- sits_bands(samples_MT_9classes)
+    bands <- sits_bands(samples_mt_9classes)
 
     expect_equal(length(bands), 6)
     expect_equal(bands[1], "mir")
@@ -23,7 +23,7 @@ test_that("Break",{
 })
 
 test_that("Dates",{
-    dates <- sits_dates(point_MT_6bands)
+    dates <- sits_dates(point_mt_6bands)
 
     expect_equal(length(dates), 412)
     expect_equal(dates[1], lubridate::ymd("2000-02-18"))
@@ -40,7 +40,7 @@ test_that("Merge", {
 })
 
 test_that("Mutate", {
-    savi.tb <- sits_mutate(samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+    savi.tb <- sits_mutate_bands(samples_mt_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 
     expect_equal(sum(savi.tb$time_series[[1]]$savi), 9.0234, tolerance = 0.001)
 })
@@ -67,20 +67,26 @@ test_that("Values", {
 })
 
 test_that("Values", {
-    data (samples_MT_9classes)
-    savi.tb <- sits_transmute (samples_MT_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+    data (samples_mt_9classes)
+    savi.tb <- sits_transmute_bands(samples_mt_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 
     expect_equal(names(savi.tb$time_series[[1]])[2], "savi")
 })
 
 test_that("Select",{
-    bands <- sits_bands(samples_MT_9classes)
+    bands <- sits_bands(samples_mt_9classes)
 
-    samplesMir <- sits_select(samples_MT_9classes, bands = c("mir"))
+    samplesMir <- sits_select(samples_mt_9classes, bands = c("mir"))
 
     expect_equal(length(sits_bands(samplesMir)), 1)
 
-    samplesPasture <- samples_MT_9classes %>% dplyr::filter(label == "Pasture")
+    samplesPasture <- samples_mt_9classes %>% dplyr::filter(label == "Pasture")
 
     expect_equal(dim(samplesPasture)[1], 370)
+})
+
+test_that("Select error",{
+    expect_error(sits_select_bands(samples_mt_9classes, fake_bands), "sits_select_bands: the following bands do not exist in the input data: fake_bands")
+
+    expect_error(sits_select_bands_(samples_mt_9classes, "fake_bands"), "sits_select_bands_: the following bands do not exist in the input data: fake_bands")
 })

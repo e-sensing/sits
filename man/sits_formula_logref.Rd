@@ -13,7 +13,7 @@ sits_formula_logref(predictors_index = -2:0)
 A function that computes a valid formula.
 }
 \description{
-A function to be used as a symbolic description of some fitting models such as svm, lda, qda, and gbm.
+A function to be used as a symbolic description of some fitting models such as svm and random forest.
 This function instructs the model to do a logarithm transformation of the input values.
 The `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
 If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.

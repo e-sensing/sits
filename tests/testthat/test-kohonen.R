@@ -1,18 +1,12 @@
 context("Evaluate samples")
 test_that("Creating clustering using Self-organizing Maps", {
-
-    library(kohonen)
     #skip_on_cran()
-    data("samples_MT_9classes")
-    data.tb <- samples_MT_9classes[1:500,]
-
-    time_series.ts <- sits_values(data.tb, format = "bands_cases_dates")
-    expect_equal(length(names(time_series.ts)), (dim(data.tb$time_series[[1]])[2] - 1))
+    data("samples_mt_9classes")
+    data.tb <- samples_mt_9classes[1:500,]
 
     koh <-
         sits_kohonen(
             data.tb,
-            time_series.ts,
             grid_xdim = 5,
             grid_ydim = 5,
             rlen = 20,
@@ -27,6 +21,8 @@ test_that("Creating clustering using Self-organizing Maps", {
     confusion_by_cluster <- sits_metrics_by_cluster(koh$info_samples)
     expect_equal(length(names(confusion_by_cluster$confusion_matrix)), 6)
 
+    sits_plot_cluster_info(confusion_by_cluster)
+
     subgroups <- sits_subgroup(koh)
     neurons_subgroup <- subgroups$neurons_subgroup.lst
 
@@ -37,7 +33,6 @@ test_that("Creating clustering using Self-organizing Maps", {
 
     evaluate_samples <- sits_evaluate_samples(
         data.tb,
-        time_series.ts,
         grid_xdim = 5,
         grid_ydim = 5,
         rlen = 20,

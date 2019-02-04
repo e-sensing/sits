@@ -13,15 +13,15 @@
 #' # print the labels
 #' sits_labels(cerrado_2classes)
 #' @export
-sits_labels <- function (data.tb) {
+sits_labels <- function(data.tb) {
     # get frequency table
     data.vec <- table(data.tb$label)
 
     # compose output tibble containing labels, count and relative frequency columns
     result.tb <- tibble::as_tibble(list(label = names(data.vec),
                                         count = as.integer(data.vec),
-                                        freq  = as.numeric(prop.table(data.vec))))
-    return (result.tb)
+                                        prop  = as.numeric(prop.table(data.vec))))
+    return(result.tb)
 }
 
 #' @title Relabels a sits tibble

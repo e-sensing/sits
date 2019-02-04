@@ -66,18 +66,18 @@ sits_log <- function() {
 }
 
 #' @title Saves a CSV data set
-#' @name .sits_log_CSV
+#' @name .sits_log_csv
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Save a CSV data set in the log directory.
 #' @param csv.tb        Tibble containing CSV data.
 #' @param file_name     Name of data to be saved.
-.sits_log_CSV <- function(csv.tb, file_name = "errors.csv"){
+.sits_log_csv <- function(csv.tb, file_name = "errors.csv"){
     # pre-conditions
     ensurer::ensure_that(csv.tb, !purrr::is_null(.),
                          err_desc = "Cannot save NULL CSV data")
 
-    sits_metadata_toCSV(csv.tb, file = paste0(dirname(sits.env$debug_file),"/", file_name))
+    sits_metadata_to_csv(csv.tb, file = paste0(dirname(sits.env$debug_file),"/", file_name))
 }
 
 #' @title Shows the memory used in GB

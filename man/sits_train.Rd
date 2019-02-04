@@ -18,7 +18,7 @@ A model fitted to input data given by train_method parameter.
 Given a tibble with a set of distance measures,
    returns trained models. Currenly, sits supports the following models:
 'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
-'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
+'lda' (see \code{\link[sits]{sits_lda}}),
 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 'lasso' (see \code{\link[sits]{sits_mlr}}), 'ridge' (see \code{\link[sits]{sits_mlr}}),
 and 'deep learning' (see \code{\link[sits]{sits_deeplearning}}).
@@ -30,11 +30,11 @@ to explicitly use this function. Please see the above-mention classification fun
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 # find a training model based on the distances and default values (SVM model)
-samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
-ml_model <- sits_train (samples.tb, sits_rfor())
+samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
+ml_model <- sits_train(samples.tb, sits_rfor())
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
-class.tb <- sits_classify(point_MT_6bands, ml_model)
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+class.tb <- sits_classify(point_mt_6bands, ml_model)
 sits_plot(class.tb)
 }
 }

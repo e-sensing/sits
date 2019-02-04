@@ -6,7 +6,7 @@
 \usage{
 sits_coverage(service = "RASTER", name, timeline = NULL,
   bands = NULL, missing_values = NULL, scale_factors = NULL,
-  minimum_values = NULL, files = NA)
+  minimum_values = NULL, maximum_values = NULL, files = NA)
 }
 \arguments{
 \item{service}{Name of the time series service.}
@@ -23,6 +23,8 @@ sits_coverage(service = "RASTER", name, timeline = NULL,
 
 \item{minimum_values}{Vector of minimum values for each band.}
 
+\item{maximum_values}{Vector of maximum values for each band.}
+
 \item{files}{Vector of file names for each band (only for raster data).}
 }
 \description{
@@ -35,6 +37,7 @@ chosen coverage stored in an yml configuration file.
 \item{scale_factor: }{Vector of scale factors.}
 \item{missing_values: }{Vector of missing values.}
 \item{minimum_values: }{Vector of minimum values.}
+\item{maximum_values: }{Vector of maximum values.}
 \item{timeline: }{The timelines of the coverage (more than one if data has been classified).}
 \item{xmin: }{Spatial extent (xmin).}
 \item{ymin: }{Spatial extent (ymin).}

@@ -8,7 +8,7 @@
 #' @description Given a tibble with a set of distance measures,
 #'    returns trained models. Currenly, sits supports the following models:
 #' 'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
-#' 'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
+#' 'lda' (see \code{\link[sits]{sits_lda}}),
 #' 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 #' 'lasso' (see \code{\link[sits]{sits_mlr}}), 'ridge' (see \code{\link[sits]{sits_mlr}}),
 #' and 'deep learning' (see \code{\link[sits]{sits_deeplearning}}).
@@ -24,11 +24,11 @@
 #'\donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # find a training model based on the distances and default values (SVM model)
-#' samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
-#' ml_model <- sits_train (samples.tb, sits_rfor())
+#' samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
+#' ml_model <- sits_train(samples.tb, sits_rfor())
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
-#' class.tb <- sits_classify(point_MT_6bands, ml_model)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' class.tb <- sits_classify(point_mt_6bands, ml_model)
 #' sits_plot(class.tb)
 #' }
 #' @export
@@ -80,9 +80,9 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_MT_ndvi,
+#' dl_model <- sits_train (samples_mt_ndvi,
 #'                         sits_deeplearning(units = c(512, 512, 512),
 #'                                           dropout_rates = c(0.50, 0.40, 0.35),
 #'                                           epochs = 50))
@@ -222,92 +222,6 @@ sits_deeplearning <- function(data.tb          = NULL,
     return(result)
 }
 
-#' @title Train a sits classification model with a gradient boosting machine
-#' @name sits_gbm
-#'
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function implements the generalized boosted modeling framework.
-#' Boosting is the process of iteratively adding basis functions in a greedy fashion
-#' so that each additional basis function further reduces the selected loss function.
-#' This function is a front-end to the "gbm" method in the "gbm" package.
-#' Please refer to the documentation in that package for more details.
-#'
-#' @param data.tb          Time series with the training samples.
-#' @param formula          A symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_formula_logref).
-#' @param distribution     Name of the distribution - use "multinomial" for classification.
-#' @param n.trees          Number of trees to fit. This should not be set to too small a number,
-#'                         to ensure that every input row gets predicted at least a few times. (default: 5000).
-#' @param interaction.depth  The maximum depth of variable interactions. 1 implies an additive model, 2 implies a model with up to 2-way interactions.
-#' @param shrinkage        A shrinkage parameter applied to each tree in the expansion.
-#'                         Also known as the learning rate or step-size reduction.
-#' @param cv.folds         Number of cross-validations to run.
-#' @param ...              Other parameters to be passed to `gbm::gbm` function.
-#' @return A model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model
-#'
-#' @examples
-#' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
-#' # Build a GBM model
-#' gbm_model <- sits_train(samples_MT_ndvi, sits_gbm(n.trees = 200, cv.folds = 2))
-#' # get a point with a 16 year time series
-#' data(point_ndvi)
-#' # classify the point
-#' class.tb <- sits_classify (point_ndvi, gbm_model)
-#' # plot the classification
-#' sits_plot(class.tb)
-#' }
-#' @export
-sits_gbm <- function(data.tb = NULL, formula = sits_formula_logref(), distribution = "multinomial",
-                     n.trees = 500, interaction.depth = 2, shrinkage = 0.001, cv.folds = 5, ...) {
-    # function that returns glmnet::multinom model based on a sits sample tibble
-    result_fun <- function(data.tb){
-
-        # data normalization
-        stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb))
-
-        # get the labels of the data
-        labels <- sits_labels(data.tb)$label
-
-        # create a named vector with integers match the class labels
-        int_labels <- c(1:length(labels))
-        names(int_labels) <- labels
-
-        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
-        if (class(formula) == "function")
-            formula <- formula(train_data_DT)
-
-        # find the number of cores
-        multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
-
-        # call gbm::gbm method and return the trained multinom model
-        result_gbm <- gbm::gbm(formula = formula, data = train_data_DT[, 2:length(train_data_DT)],
-                               distribution = distribution, n.trees = n.trees, interaction.depth = interaction.depth,
-                               shrinkage = shrinkage, cv.folds = cv.folds, n.cores = multicores,...)
-
-        # check performance using n-fold cross-validation
-        best.iter <- gbm::gbm.perf(result_gbm, method = "cv")
-
-        # construct model predict closure function and returns
-        model_predict <- function(values_DT){
-            # retrieve the prediction results
-            preds      <- stats::predict(result_gbm, newdata = values_DT, best.iter)
-            # get the prediction probabilties
-            # 2-do: normalize the probabilities vectors
-            prediction_DT <- data.table::as.data.table(preds[,,1])
-            return(prediction_DT)
-        }
-        return(model_predict)
-    }
-
-    result <- .sits_factory_function(data.tb, result_fun)
-    return(result)
-}
-
 #' @title Train a sits classification model using linear discriminant analysis
 #' @name sits_lda
 #'
@@ -330,9 +244,9 @@ sits_gbm <- function(data.tb = NULL, formula = sits_formula_logref(), distributi
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build an LDA model
-#' lda_model <- sits_train(samples_MT_ndvi, sits_lda())
+#' lda_model <- sits_train(samples_mt_ndvi, sits_lda())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
@@ -398,9 +312,9 @@ sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build a QDA model
-#' qda_model <- sits_train(samples_MT_ndvi, sits_qda())
+#' qda_model <- sits_train(samples_mt_ndvi, sits_qda())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
@@ -461,9 +375,9 @@ sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build an MLR model
-#' mlr_model <- sits_train(samples_MT_ndvi, sits_mlr())
+#' mlr_model <- sits_train(samples_mt_ndvi, sits_mlr())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
@@ -523,9 +437,9 @@ sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build a random forest model
-#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
+#' rfor_model <- sits_train(samples_mt_ndvi, sits_rfor())
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
@@ -605,9 +519,9 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # Build an SVM model
-#' svm_model <- sits_train(samples_MT_ndvi, sits_svm())
+#' svm_model <- sits_train(samples_mt_ndvi, sits_svm())
 #' # get a point
 #' data(point_ndvi)
 #' # classify the point
@@ -702,7 +616,7 @@ sits_keras_diagnostics <- function(dl_model) {
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description A function to be used as a symbolic description of some fitting models such as svm, lda, qda, and gbm.
+#' @description A function to be used as a symbolic description of some fitting models such as svm and random forest.
 #' This function instructs the model to do a logarithm transformation of the input values.
 #' The `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
 #' If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
@@ -809,7 +723,7 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Given a sits tibble time series and a model trained by \code{\link[sits]{sits_train}},
-#'   returns a predicted label. Note that the \code{\link[sits]{.sits_predict}} function is
+#'   returns a predicted label. Note that this function is
 #'   called inside \code{\link[sits]{sits_classify}},
 #'   and \code{\link[sits]{sits_classify_raster}}, so the user does not need
 #'   to explicitly use it. Please see the above-mentioned classification functions.

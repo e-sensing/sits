@@ -11,7 +11,7 @@ test_that("Does k-fold validate and build confusion matrix", {
     expect_true(NROW(pred_ref.tb) == NROW(cerrado_2classes))
     expect_true(all(names(pred_ref.tb) == c("predicted", "reference")))
     expect_true(dim(pred_ref.tb)[1] == 746)
-    expect_equal(conf_matrix$overall[[1]], 0.9745308, tolerance = 1e-5) # Accuracy
+    expect_equal(conf_matrix$overall[[1]], 0.9745308, tolerance = 1e-2) # Accuracy
 
     pred_ref.tb <- sits_kfold_validate(cerrado_2classes, folds = 2)
     invisible(capture.output(conf_matrix <- sits_conf_matrix(pred_ref.tb)))
@@ -19,7 +19,7 @@ test_that("Does k-fold validate and build confusion matrix", {
     expect_true(NROW(pred_ref.tb) == NROW(cerrado_2classes))
     expect_true(all(names(pred_ref.tb) == c("predicted", "reference")))
     expect_true(dim(pred_ref.tb)[1] == 746)
-    expect_equal(conf_matrix$overall[[1]], 0.963807, tolerance = 1e-5) # Accuracy
+    expect_equal(conf_matrix$overall[[1]], 0.963807, tolerance = 1e-2) # Accuracy
 
     cerrado_2classes$label = "NoClass"
 

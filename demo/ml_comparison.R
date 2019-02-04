@@ -17,12 +17,12 @@ library(sits)
 #  coverage (the name of the coverage associated with the data),
 #  time_series (list containing a tibble with the values of the time series).
 
-data("samples_MT_9classes")
+data("samples_mt_9classes")
 # the tibble contains 9 classes of the Cerrado biome in Brazil
-sits_labels(samples_MT_9classes)
+sits_labels(samples_mt_9classes)
 
 # remove classes with low number of samples
-samples.tb <- sits_select(samples_MT_9classes, !(label %in% c("Fallow_Cotton", "Soy_Sunflower")))
+samples.tb <- sits_select(samples_mt_9classes, !(label %in% c("Fallow_Cotton", "Soy_Sunflower")))
 
 # select NDVI, EVI, NIR and MIR
 samples.tb <- sits_select_bands(samples.tb, ndvi, evi, nir, mir)
@@ -97,6 +97,6 @@ results[[length(results) + 1]] <- conf_mlr.mx
 
 WD = getwd()
 
-sits_toXLSX(results, file = paste0(WD, "/accuracy_cerrado.xlsx"))
+sits_to_xlsx(results, file = paste0(WD, "/accuracy_cerrado.xlsx"))
 
 

@@ -18,8 +18,8 @@ NULL
 #'    The time series comes from MOD13Q1 collection 6 images.
 #' @docType data
 #' @keywords datasets
-#' @name point_MT_6bands
-#' @usage data(point_MT_6bands)
+#' @name point_mt_6bands
+#' @usage data(point_mt_6bands)
 #' @format A tibble with 1 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),
@@ -53,8 +53,8 @@ NULL
 #'
 #' @docType data
 #' @keywords datasets
-#' @name samples_MT_9classes
-#' @usage data(samples_MT_9classes)
+#' @name samples_mt_9classes
+#' @usage data(samples_mt_9classes)
 #' @format A tibble with 2115 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),
@@ -70,8 +70,8 @@ NULL
 #'   Soy_Millet (235 samples), and Soy_Sunflower (53 samples).
 #' @docType data
 #' @keywords datasets
-#' @name samples_MT_ndvi
-#' @usage data(samples_MT_ndvi)
+#' @name samples_mt_ndvi
+#' @usage data(samples_mt_ndvi)
 #' @format A tibble with 2115 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),

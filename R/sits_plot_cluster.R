@@ -5,8 +5,8 @@
 #'
 #' The plot function produces different plots based on the input data:
 #' \itemize{
-#'  \item{"codes" - }{Plot in each neuron the vector weight which corresponds to it.}
-#'  \item{"mapping" - }{shows where samples are mapped.}
+#'  \item{"codes": }{Plot in each neuron the vector weight which corresponds to it.}
+#'  \item{"mapping": }{Shows where samples are mapped.}
 #' }
 #' Function sits_plot_kohonen plots a classified kohonen map. A set of neurons
 #' with same category corresponds to a same cluster.

@@ -13,7 +13,7 @@
 #'               number of cores used for processing. The "memsize" parameter  controls
 #'               the amount of memory available for classification.
 #'
-#' @param  file            Vector of file names to store the output (one file per classified year).
+#' @param  file            File name prefix to store the output. For each time interval, one file will be created.
 #' @param  coverage        Tibble with information about a coverage of space-time raster bricks.
 #' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
 #' @param  interval        Interval between two sucessive classifications, expressed in months.
@@ -25,24 +25,24 @@
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #'
 #' # Build a machine learning model based on the samples
-#' svm_model <- sits_train(samples_MT_ndvi, sits_svm())
+#' svm_model <- sits_train(samples_mt_ndvi, sits_svm())
 #'
 #' # read a raster file and put it into a vector
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#' file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits")
 #'
 #' # define the timeline
 #' data(timeline_modis_392)
 #'
-#' # create a raster metadata file based on the information about the files
-#' #' # create a raster coverage file based on the information about the files
+#' # create a raster coverage file based on the information about the files
 #' raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
-#'              timeline = timeline_modis_392, bands = c("ndvi"), files = files)
+#'   timeline = timeline_modis_392, bands = "ndvi", files = file)
+#'
 #' # classify the raster file
-#' raster_class.tb <- sits_classify_raster (file = "./raster-class", raster.tb,
-#'    ml_model = svm_model, memsize = 4, multicores = 2)
+#' raster_class.tb <- sits_classify_raster("raster-class", raster.tb,
+#'   ml_model = svm_model, memsize = 4, multicores = 1)
 #' # plot the resulting classification
 #' sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
 #' }
@@ -67,7 +67,7 @@ sits_classify_raster <- function(file        = NULL,
     # create the raster objects and their respective filenames
     coverage_class <- .sits_coverage_raster_classified(coverage, samples, file, interval)
 
-# classify the data
+    # classify the data
     raster_class.tb <- .sits_classify_multicores(coverage,
                                                  coverage_class,
                                                  samples,

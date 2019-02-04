@@ -3,7 +3,7 @@ test_that("Creating a WTSS coverage", {
     #skip_on_cran()
     coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
 
-    expect_equal(length(names(coverage_wtss)), 19)
+    expect_equal(length(names(coverage_wtss)), 20)
     expect_true(coverage_wtss$service == "WTSS-INPE")
     expect_true(length(coverage_wtss$timeline[[1]][[1]]) > 1)
 })
@@ -12,7 +12,7 @@ test_that("Creating a SATVEG coverage", {
     #skip_on_cran()
     coverage_satveg <- sits_coverage(service = "SATVEG", name = "terra")
 
-    expect_equal(length(names(coverage_satveg)), 19)
+    expect_equal(length(names(coverage_satveg)), 20)
     expect_true(length(coverage_satveg$timeline[[1]][[1]]) > 1)
 })
 
@@ -20,9 +20,9 @@ test_that("Reading a CSV file from WTSS", {
     #skip_on_cran()
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
     coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
-    expect_equal(length(names(coverage_wtss)), 19)
+    expect_equal(length(names(coverage_wtss)), 20)
 
-    points.tb <- sits_getdata(coverage = coverage_wtss, file = csv_file)
+    points.tb <- sits_get_data(coverage = coverage_wtss, file = csv_file)
 
     expect_true(all(unique(points.tb$label) == c("Pasture", "Cerrado")))
     expect_true(unique(points.tb$coverage) == "MOD13Q1")
@@ -43,11 +43,11 @@ test_that("Reading a CSV file from WTSS", {
 
 test_that("Reading a CSV file from RASTER", {
     #skip_on_cran()
-    file <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+    file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
     raster_cov <- sits_coverage(files = file, name = "Sinop-crop",
-                                timeline = timeline_modis_392, bands = c("ndvi"))
+                                timeline = sits::timeline_modis_392, bands = c("ndvi"))
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
-    points.tb <- sits_getdata(raster_cov, file = csv_raster_file)
+    points.tb <- sits_get_data(raster_cov, file = csv_raster_file)
     df_csv <- utils::read.csv(system.file("extdata/samples/samples_sinop_crop.csv", package = "sits"))
     expect_true(NROW(points.tb) == NROW(df_csv))
 
@@ -61,7 +61,7 @@ test_that("Reading a CSV file from RASTER", {
 test_that("Reading a point from WTSS ", {
     #skip_on_cran()
     coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
-    point.tb <- sits_getdata(coverage = coverage_wtss, longitude = -55.50563, latitude = -11.71557)
+    point.tb <- sits_get_data(coverage = coverage_wtss, longitude = -55.50563, latitude = -11.71557)
     timeline <- as.vector(point.tb$time_series[[1]]$Index)
 
     expect_equal(length(point.tb$time_series[[1]]), 7)
@@ -76,30 +76,30 @@ test_that("Reading a point from SATVEG ", {
     coverage_2 <- sits_coverage(service = "SATVEG", name = "aqua")
     coverage_3 <- sits_coverage(service = "SATVEG", name = "comb")
 
-    point_terra.tb <- sits_getdata(coverage_1, longitude = -55.50563, latitude = -11.71557)
+    point_terra.tb <- sits_get_data(coverage_1, longitude = -55.50563, latitude = -11.71557)
 
     expect_equal(length(point_terra.tb$time_series[[1]]), 3)
     expect_equal(sum(point_terra.tb$time_series[[1]]$evi), 158.11, tolerance = 2)
 
-    point_aqua.tb <- sits_getdata(coverage_2, longitude = -55.50563, latitude = -11.71557)
+    point_aqua.tb <- sits_get_data(coverage_2, longitude = -55.50563, latitude = -11.71557)
 
     expect_equal(length(point_aqua.tb$time_series[[1]]), 3)
     expect_equal(sum(point_aqua.tb$time_series[[1]]$evi), 132.3852, tolerance = 2)
 
-    point_comb.tb <- sits_getdata(coverage_3, longitude = -55.50563, latitude = -11.71557)
+    point_comb.tb <- sits_get_data(coverage_3, longitude = -55.50563, latitude = -11.71557)
 
     expect_equal(length(point_comb.tb$time_series[[1]]), 3)
     expect_equal(sum(point_comb.tb$time_series[[1]]$evi), 290.3342, tolerance = 2)
 
     expect_true(length(point_comb.tb$time_series[[1]]$Index) >=
-                              length(point_terra.tb$time_series[[1]]$Index))
+                    length(point_terra.tb$time_series[[1]]$Index))
 })
 
 test_that("Reading a ZOO time series", {
     #skip_on_cran()
     data(ts_zoo)
-    data.tb <- sits_fromZOO(ts_zoo, longitude = -54.2313, latitude = -14.0482,
-                            label = "Cerrado", name = "mod13q1")
+    data.tb <- sits_from_zoo(ts_zoo, longitude = -54.2313, latitude = -14.0482,
+                             label = "Cerrado", name = "mod13q1")
 
     expect_equal(sum(data.tb$time_series[[1]]$ndvi), 13.6291, tolerance = 1e-3)
     expect_true(NROW(ts_zoo) == NROW(data.tb$time_series[[1]]))
@@ -109,7 +109,7 @@ test_that("Reading a shapefile", {
     #skip_on_cran()
     coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
     shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
-    munic.tb <- sits_getdata(coverage = coverage_wtss, file = shp_file)
+    munic.tb <- sits_get_data(coverage = coverage_wtss, file = shp_file)
 
     sf_shape <- sf::read_sf(shp_file)
     bbox <- sf::st_bbox(sf_shape)
@@ -119,37 +119,40 @@ test_that("Reading a shapefile", {
     expect_true(all(unique(longitudes_shp) < bbox["xmax"]))
 })
 
-test_that("getdata", {
+test_that("get_data", {
     wtss_coverage <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
-    point.tb <- sits_getdata (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
+    point.tb <- sits_get_data(wtss_coverage, longitude = -55.50563, latitude = -11.71557)
     sits_plot(point.tb)
 
-    csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
-    points.tb <- sits_getdata (wtss_coverage, file = csv_file)
+    csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
+    points.tb <- sits_get_data(wtss_coverage, file = csv_file)
     sits_plot (points.tb[1:3,])
 
     satveg_coverage <- sits_coverage(service = "SATVEG", name = "terra")
-    point_satveg.tb <- sits_getdata (satveg_coverage, longitude = -55.50563, latitude = -11.71557)
+    point_satveg.tb <- sits_get_data(satveg_coverage, longitude = -55.50563, latitude = -11.71557)
     sits_plot(point_satveg.tb)
 
     shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
-    munic.tb <- sits_getdata(coverage = wtss_coverage, file = shp_file)
+    munic.tb <- sits_get_data(coverage = wtss_coverage, file = shp_file)
 
-    files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-    data(timeline_modis_392)
+    files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+
+    data("timeline_modis_392")
+
     raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-                               timeline = timeline_modis_392, bands = c("ndvi"))
+                                timeline = sits::timeline_modis_392, bands = c("ndvi"))
 
-    point_raster.tb <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
+    point_raster.tb <- sits_get_data(raster_cov, longitude = -55.554, latitude = -11.525)
     sits_plot(point_raster.tb)
 
-    files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-    data(timeline_modis_392)
+    files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+
+    data("timeline_modis_392")
     raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-                               timeline = timeline_modis_392, bands = c("ndvi"))
-    csv_raster_file <- system.file ("extdata/samples/samples_sinop_crop.csv", package = "sits")
-    points.tb <- sits_getdata (raster_cov, file = csv_raster_file)
-    sits_plot (points.tb)
+                                timeline = sits::timeline_modis_392, bands = c("ndvi"))
+    csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
+    points.tb <- sits_get_data(raster_cov, file = csv_raster_file)
+    sits_plot(points.tb)
 })
 
 test_that("Labels and re-label", {
@@ -165,5 +168,5 @@ test_that("Labels and re-label", {
 
     expect_equal(length(labels$label), 2)
     expect_equal(labels$label[1], "Forest")
-    expect_equal(sum(labels$freq), 1)
+    expect_equal(sum(labels$prop), 1)
 })

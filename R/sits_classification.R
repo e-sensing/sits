@@ -11,7 +11,7 @@
 #' After defining the training samples, the users need to provide a machine learning model.
 #' Currenly, sits supports the following models:
 #' 'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
-#' 'boosting' (see \code{\link[sits]{sits_gbm}}), 'lda' (see \code{\link[sits]{sits_lda}}),
+#' 'lda' (see \code{\link[sits]{sits_lda}}),
 #' 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 #' 'lasso' (see \code{\link[sits]{sits_mlr}}), and 'ridge' (see \code{\link[sits]{sits_mlr}}).
 #'
@@ -26,13 +26,13 @@
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' data(samples_mt_ndvi)
 #' # select the bands "ndvi", "evi", "nir", and "mir"
-#' samples.tb <- sits_select_bands(samples_MT_9classes, ndvi, evi, nir, mir)
+#' samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
 #' # build a classification model using SVM
 #' model_svm <- sits_train(samples.tb, ml_method = sits_svm())
 #' # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
-#' point.tb <- sits_select_bands(point_MT_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 #' # classify the point
 #' class.tb <- sits_classify(point.tb, ml_model = model_svm)
 #' # plot the classification

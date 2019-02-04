@@ -50,7 +50,7 @@ sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
 
         # prepare result sits tibble
         result.tb <- data.tb
-        env.tb <- sits_select_bands(data.tb, ndvi) %>% sits_envelope(operations = "UU")
+        env.tb <- sits_select_bands_(data.tb, "ndvi") %>% sits_envelope(operations = "UU")
 
         # select the chosen bands for the time series
         result.tb$time_series <- purrr::pmap(list(data.tb$time_series, env.tb$time_series, result.tb$time_series),
@@ -190,7 +190,7 @@ sits_interp <- function(data.tb = NULL, fun = stats::approx, n = base::length, .
 sits_kalman <- function(data.tb = NULL, bands_suffix = "kf"){
     filter_fun <- function(data.tb) {
         result.tb <- sits_apply(data.tb,
-                                fun = function(band) .kalmanfilter(band, NULL, NULL, NULL),
+                                fun = function(band) .sits_kalman_filter(band, NULL, NULL, NULL),
                                 fun_index = function(band) band,
                                 bands_suffix = bands_suffix)
         return(result.tb)
@@ -424,7 +424,7 @@ sits_sgolay <- function(data.tb = NULL, order = 3, scale = 1, bands_suffix = "sg
 #' @param initial_estimate               A first estimation of the measurement.
 #' @param initial_error_in_estimate      A first error in the estimation.
 #' @return                               A matrix of 3 columns estimate, error_in_estimate, and kalman_gain.
-.kalmanfilter <- function(measurement,
+.sits_kalman_filter <- function(measurement,
                           error_in_measurement = NULL,
                           initial_estimate = NULL,
                           initial_error_in_estimate = NULL){

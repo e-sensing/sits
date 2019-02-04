@@ -2,12 +2,11 @@
 # example of clustering using self-organizin maps
 library(sits)
 library(kohonen)
+library(Hmisc)
 
-data.tb <- data("samples_MT_9classes")
-data.tb <- samples_MT_9classes
+data("samples_mt_9classes")
+data.tb <- samples_mt_9classes
 
-#Get time series
-time_series.ts <- sits_values (data.tb, format = "bands_cases_dates")
 
 ##To use the DTW distance
 #sourceCpp(paste(path.package("sits"), "inst/Distances/distance.cpp", sep = "/"))
@@ -16,7 +15,6 @@ time_series.ts <- sits_values (data.tb, format = "bands_cases_dates")
 koh <-
     sits::sits_kohonen(
         data.tb,
-        time_series.ts,
         grid_xdim = 25,
         grid_ydim = 25,
         rlen = 100,

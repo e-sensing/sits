@@ -61,11 +61,11 @@ sits_show_config <- function() {
     ensurer::ensure_that(yml_file, !purrr::is_null(.),
                          err_desc = "sits_config : Please provide a valid configuration file")
     # try to find a valid user configuration file
-        WD <- getwd()
-        if (file.exists(paste0(WD, "/config.yml")))
-            yml_user_file <- paste0(WD, "/config.yml")
-        else
-            yml_user_file <- NULL
+    WD <- getwd()
+    if (file.exists(paste0(WD, "/config.yml")))
+        yml_user_file <- paste0(WD, "/config.yml")
+    else
+        yml_user_file <- NULL
 
     # read the configuration parameters
     message("Default system configuration file")
@@ -104,14 +104,6 @@ sits_show_config <- function() {
                          err_desc = paste0("accountURL not available for service ", service))
 
     return(accountURL)
-}
-
-#' @title Retrieve the value of the adjustment shift
-#' @name sits_get_adjustment_shift
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieves the value of the shift to adjust entries to have only positive values.
-.sits_get_adjustment_shift <- function() {
-    return(sits.env$config$adjustment_shift)
 }
 
 #' @title Retrieve the bands avaliable for the product in the time series service
@@ -211,6 +203,29 @@ sits_show_config <- function() {
 
     names(minimum_values) <- bands
     return(minimum_values)
+}
+#' @title Retrieve the maximum values for a given band
+#' @name .sits_get_maximum_values
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param service          Name of the product.
+#' @param bands            Vector of bands.
+#' @return The maximum values.
+.sits_get_maximum_values <- function(service, bands) {
+    # create a string to query for the maximum values
+    maximum_values <- vector()
+    mv <- paste0(service, "_maximum_value")
+    bands %>%
+        purrr::map(function(b) {
+            maximum_values[b] <<- as.numeric(sits.env$config[[mv]][[b]])
+        })
+
+    #post-condition
+    ensurer::ensure_that(maximum_values, length(.) == length(bands),
+                         err_desc = paste0("Configuration file has failed to find maximum values for ", service))
+
+    names(maximum_values) <- bands
+    return(maximum_values)
 }
 
 #' @title Retrieve the missing values for a given band for an image product
@@ -316,7 +331,7 @@ sits_show_config <- function() {
     # create a string to query for the scale factors
     sfq <- paste0(service,"_scale_factor")
     bands %>%
-        purrr::map(function (b) {
+        purrr::map(function(b) {
 
             scale_factors[b] <<- as.numeric(sits.env$config[[sfq]][[name]][[b]])
     })
@@ -373,8 +388,13 @@ sits_show_config <- function() {
     size         <- vector(length = 2)
     names(size)  <- c("nrows", "ncols")
 
-    if (service != "RASTER") {
-
+    if(service == "RASTER") {
+        ensurer::ensure_that(r_obj, length(.) > 0,
+                             err_desc = "raster objects have not been created")
+        size["nrows"] <- raster::nrow(r_obj)
+        size["ncols"] <- raster::ncol(r_obj)
+    }
+    else {
         # get the size from the configuration file
         i1  <- paste0(service,"_size")
 
@@ -382,12 +402,6 @@ sits_show_config <- function() {
             purrr::map(function (c){
                 size[c] <<- sits.env$config[[i1]][[name]][[c]]
             })
-    }
-    else {
-        ensurer::ensure_that(r_obj, length(.) > 0,
-                             err_desc = "raster objects have not been created")
-        size["nrows"] <- raster::nrow(r_obj)
-        size["ncols"] <- raster::ncol(r_obj)
     }
 
     #post-condition
@@ -458,8 +472,7 @@ sits_show_config <- function() {
         if (satellite == "LANDSAT8")
             bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
         else {
-            message("unable to retrieve tasseled cap coefficients")
-            return(invisible(FALSE))
+            stop("Unable to retrieve tasseled cap coefficients")
         }
     }
 
@@ -487,8 +500,7 @@ sits_show_config <- function() {
         if (satellite == "LANDSAT8")
             bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
         else {
-            message("unable to retrieve tasseled cap coefficients")
-            return(invisible(FALSE))
+            stop("Unable to retrieve tasseled cap coefficients")
         }
     }
 
@@ -515,8 +527,7 @@ sits_show_config <- function() {
         if (satellite == "LANDSAT8")
             bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
         else {
-            message("unable to retrieve tasseled cap coefficients")
-            return(invisible(FALSE))
+            stop("Unable to retrieve tasseled cap coefficients")
         }
     }
 
@@ -538,6 +549,6 @@ sits_show_config <- function() {
 .sits_check_service <- function(service){
     # Ensure that the service is available
     ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
-                         err_desc = "sits_getdata: Invalid time series service")
+                         err_desc = "sits_get_data: Invalid time series service")
     return(TRUE)
 }
