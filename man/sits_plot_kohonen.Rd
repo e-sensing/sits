@@ -4,12 +4,14 @@
 \alias{sits_plot_kohonen}
 \title{Plot the SOM grid with neurons labeled}
 \usage{
-sits_plot_kohonen(koh, type = "codes")
+sits_plot_kohonen(koh, type = "codes", whatmap = 1)
 }
 \arguments{
 \item{koh}{Data to be plotted (must be a kohonen object).}
 
 \item{type}{Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.}
+
+\item{whatmap}{What data layer will be plotted.}
 }
 \description{
 Given a kohonen object with a set of time neurons, plot them.
@@ -21,6 +23,15 @@ The plot function produces different plots based on the input data:
 }
 Function sits_plot_kohonen plots a classified kohonen map. A set of neurons
 with same category corresponds to a same cluster.
+}
+\examples{
+\donttest{
+# Plot kohonen map with vector of weight
+sits_plot_kohonen(koh, type = "codes")
+# Plot kohonen map showing where the samples were allocated
+sits_plot_kohonen(koh, type = "mapping")
+}
+
 }
 \author{
 Lorena Santos \email{lorena.santos@inpe.br}

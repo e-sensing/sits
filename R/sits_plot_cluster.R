@@ -12,14 +12,22 @@
 #' with same category corresponds to a same cluster.
 #' @param  koh  Data to be plotted (must be a kohonen object).
 #' @param  type Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.
+#' @param  whatmap What data layer will be plotted.
+#' @examples
+#' \donttest{
+#' # Plot kohonen map with vector of weight
+#' sits_plot_kohonen(koh, type = "codes")
+#' # Plot kohonen map showing where the samples were allocated
+#' sits_plot_kohonen(koh, type = "mapping")
+#' }
 #'
 #' @export
-sits_plot_kohonen <- function(koh, type = "codes")
+sits_plot_kohonen <- function(koh, type = "codes", whatmap = 1)
 {
     if (type == "mapping"){
-        graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping")
+        graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping", whatmap = whatmap)
     } else{
-        graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes")
+        graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes", whatmap = whatmap)
     }
 
     #create a legend
@@ -48,6 +56,12 @@ sits_plot_kohonen <- function(koh, type = "codes")
 #'
 #' @param data       Table containing the percentage of mixture between the clusters.
 #' @param text_title Title of plot. Default is "Cluster".
+#'
+#' @examples
+#' \donttest{
+#' # Plot confusion between the clusters
+#' sits_plot_cluster_info(confusion_by_cluster, "Confusion by cluster")
+#' }
 #' @export
 sits_plot_cluster_info <- function(data, text_title = " Cluster ")
 {
@@ -67,7 +81,7 @@ sits_plot_cluster_info <- function(data, text_title = " Cluster ")
         )  +
         ggplot2::theme_minimal() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 60, hjust = 1)) +
-        ggplot2::labs(x = "Clusters", y = "Percentage of Mixture", colour = "cluster")+
+        ggplot2::labs(x = "Clusters", y = "Percentage of mixture", colour = "cluster")+
         ggplot2::ggtitle(text_title)
 
     return(p)

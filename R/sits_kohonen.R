@@ -11,15 +11,29 @@
 #' @param grid_xdim      X dimension of the SOM grid (default = 25).
 #' @param grid_ydim      Y dimension of the SOM grid.
 #' @param rlen           Number of times the complete data set will be presented to the SOM grid
-#' @param dist.fcts      The similarity measure (distance).
+#' @param distance      The similarity measure (distance).
 #' @param alpha          Learning rate, a vector of two numbers indicating the amount of change.
 #' @param neighbourhood.fct Type of neighbourhood function (bubble or gaussian).
+#' @param mode           Type of learning algorithm (batch or paralel mode)
 #' @param  ...           Additional parameters to be passed to kohonen::supersom function.
 #' @return  A tibble with the clusters time series or cluster' members time series according to return_member parameter.
 #' If return_members are FALSE, the returning tibble will contain a new collumn called `n_members` informing how many members has each cluster.
+#'
+#' @examples
+#' \donttest{
+#' # Read a set of samples
+#' data(samples_mt_9classes)
+#' # perform kohonen to associate a sample to  a cluster
+#' sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25,
+#' rlen = 100, distance = "euclidean", alpha = 1, neighbourhood.fct = "bubble", mode = "online")
+#' # Visualize the samples with cluster information
+#' samples <- koh$info_samples
+# # Recover informations about the object kohonen
+#' kohonen_obj <- koh$obj
+#' }
 #' @export
-sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100, dist.fcts = "euclidean",
-                         alpha = 1, neighbourhood.fct = "bubble", ...) {
+sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100, distance = "euclidean",
+                         alpha = 1, neighbourhood.fct = "bubble", mode = "online", ...) {
     #set colors to paint neurons
     pallete1 <- .sits_brewerRGB[[.sits_color_name("Set1")]]
     set1 <- utils::head(unique(unlist(pallete1, use.names = FALSE)), -1)
@@ -30,7 +44,7 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
     pallete3 <- .sits_brewerRGB[[.sits_color_name("Pastel1")]]
     pastel1 <- utils::head(unique(unlist(pallete3, use.names = FALSE)), -1)
 
-    pallete_neighbors <- c(set1, pastel1, accent)
+    pallete_neighbors <- c(pastel1, set1, accent)
 
     # does the input data exist?
     .sits_test_tibble(data.tb)
@@ -38,6 +52,9 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
     # if no bands informed, get all bands available in SITS tibble
     if (purrr::is_null(bands))
         bands <- sits_bands(data.tb)
+
+    #select bands
+    data.tb <- sits_select_bands_(data.tb, bands)
 
     # get the time series
     time_series <- sits_values(data.tb, format = "bands_cases_dates")
@@ -51,8 +68,9 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
         grid = grid,
         rlen = rlen,
         alpha = alpha,
-        dist.fcts = dist.fcts,
+        dist.fcts = distance,
         keep.data = TRUE,
+        mode = mode,
         ...
     )
 
@@ -61,7 +79,9 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
 
     #add the in sample the id of neuron that the sample was allocated
     result.tb$id_neuron <- kohonen_obj$unit.classif
-    result.tb$neuron_label <- "neuron_label"
+
+    #neuron_label
+    result.tb$cluster <- "neuron_label"
 
     #get the size grid
     grid_size <- dim(kohonen_obj$grid$pts)[1]
@@ -91,7 +111,7 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
 
     # Which cluster the samples was allocated?
     cluster_sample <- class_matrix[neurons_]
-    result.tb$neuron_label <- cluster_sample
+    result.tb$cluster <- cluster_sample
 
     for (j in 1:length(unique(neurons_labelled)))
     {
@@ -99,7 +119,7 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
         neighborhood[paint_neurons] <- pallete_neighbors [j]
     }
 
-    empty_neuron <- which(neurons_labelled == "Noclass")
+    empty_neuron <- which(neurons_labelled == "No_class")
     neighborhood[empty_neuron] <- " White"
     kohonen_obj$paint_map <- neighborhood
     kohonen_obj$neurons_labelled <- neurons_labelled
@@ -177,10 +197,21 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
 #' @param mode           Type of learning algorithm (online or batch).
 #' @return Returns a sits tibble with a new column of label and a table with information about the
 #' confiability of each samples.
+#'
+#' @examples
+#' \donttest{
+#' # Read a set of samples
+#' data(samples_mt_9classes)
+#' # Evaluate the quality of each sample
+#' evaluate_samples <- sits_evaluate_samples( data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 100,
+#' distance = "euclidean", iterations = 100)
+#' # Evaluate the confiability of each sample
+#' metrics_by_samples <- evaluate_samples$metrics_by_samples
+#' }
 #' @export
+
 sits_evaluate_samples <- function(data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 100,
                                   alpha = 1, radius = 6, distance = "euclidean", iterations = 1, mode = "online") {
-
 
     # does the input data exist?
     .sits_test_tibble(data.tb)
@@ -203,7 +234,8 @@ sits_evaluate_samples <- function(data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 
                 alpha = alpha,
                 radius = radius,
                 dist.fcts = distance,
-                normalizeDataLayers = TRUE
+                normalizeDataLayers = TRUE,
+                mode = mode
             )
 
         # create a tibble to store the results
@@ -393,13 +425,24 @@ sits_evaluate_samples <- function(data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 
 #' @description Create new groups to identify variations in a same group.
 #'
 #' @param koh  An object with informations about kohonen clustering and samples.
-
 #' @return Returns a sits tibble with subgroups generated by hierarchical clustering.
+#'
+#' @examples
+#' \donttest{
+#' # Divide groups according to variations
+#' subgroups <- sits_subgroup(koh)
+#  # Get samples tibble with subgroups
+#' samples_subgroup <- subgroups$samples_subgroup.tb
+#  # Get neurons and their patterns
+#' neurons_subgroup <- subgroups$neurons_subgroup.lst
+#  # Number of subgroups for each class
+#' number_of_subgroup <- lengths(neurons_subgroup)
+#' }
 #' @export
 sits_subgroup <- function(koh)
 {
     subgroup.lst <- list()
-    cluster_label_analysis <- koh$info_samples$neuron_label
+    cluster_label_analysis <- koh$info_samples$cluster
     class_neurons <- (unique(cluster_label_analysis))
     class_group <- tibble::as_tibble()
 
@@ -407,7 +450,7 @@ sits_subgroup <- function(koh)
     {
         #filter the samples by neuron_label from class_neurons
         current_class <- dplyr::filter(koh$info_samples,
-                                       koh$info_samples$neuron_label == class_neurons[k])
+                                       koh$info_samples$cluster == class_neurons[k])
 
         #get the neuron's id of where these samples were allocated
         neurons_class <- unique(current_class$id_neuron)
@@ -496,7 +539,7 @@ sits_subgroup <- function(koh)
 }
 
 #' @title Metrics by cluster
-#' @name sits_metrics_by_cluster
+#' @name sits_evaluate_cluster
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function extracts metrics about the clusters calculating
@@ -504,20 +547,29 @@ sits_subgroup <- function(koh)
 #'
 #' @param data.tb Tibble containg information about evaluation of samples.
 #' @return Returns the confusion matrix and a table with percentage of mixture between the clusters.
+#'
+#' @examples
+#' \donttest{
+#' # Extract metrics about the clusters
+#' confusion_by_cluster <- sits_evaluate_cluster(koh$info_samples)
+#' # Show confusion matrix
+#' confusion_matrix <- confusion_by_cluster$confusion_matrix
+#' }
 #' @export
-sits_metrics_by_cluster <- function(data.tb)
+
+sits_evaluate_cluster <- function(data.tb)
 {
     #Initialize variables
     id_sample <- NULL
     neuron_label <- NULL
 
     #get only id, label and neuron_label
-    temp.data.tb <- unique(dplyr::select(data.tb, id_sample, label, neuron_label))
+    temp.data.tb <- unique(dplyr::select(data.tb, id_sample, label, cluster))
 
     #get label that no have cluster
-    no_cluster <- dplyr::setdiff(temp.data.tb$label, temp.data.tb$neuron_label)
+    no_cluster <- dplyr::setdiff(temp.data.tb$label, temp.data.tb$cluster)
 
-    confusion.matrix <- table(temp.data.tb$label, temp.data.tb$neuron_label)
+    confusion.matrix <- table(temp.data.tb$label, temp.data.tb$cluster)
 
     #get the names of classes (original labels from samples)
     label_table <- rownames(confusion.matrix)
