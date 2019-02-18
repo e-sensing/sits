@@ -15,17 +15,21 @@ data.tb <- samples_mt_9classes
 koh <-
     sits::sits_kohonen(
         data.tb,
+        bands = c("evi", "ndvi"),
         grid_xdim = 25,
         grid_ydim = 25,
         rlen = 100,
-        dist.fcts = "euclidean",
-        neighbourhood.fct = "gaussian"
+        distance = "euclidean",
+        neighbourhood.fct = "gaussian",
+        mode = "online"
+
     )
+sits_plot_kohonen(koh)
 
 #Analyze the mixture between groups and extract informations about confusion matrix
-confusion_by_cluster <- sits_metrics_by_cluster(koh$info_samples)
+confusion_by_cluster <- sits_evaluate_cluster(koh$info_samples)
 confusion_matrix <- confusion_by_cluster$confusion_matrix
-sits_plot_cluster_info(confusion_by_cluster, "Confusion by Cluster")
+sits_plot_cluster_info(confusion_by_cluster, "Confusion by cluster")
 
 #Divide groups according to variations
 subgroups <- sits_subgroup(koh)
@@ -41,4 +45,5 @@ number_of_subgroup <- lengths(neurons_subgroup)
 
 #Plot subgroups
 sits_plot_subgroups(neurons_subgroup)
+
 

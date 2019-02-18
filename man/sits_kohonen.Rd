@@ -5,8 +5,8 @@
 \title{Clustering a set of satellite image time series using SOM}
 \usage{
 sits_kohonen(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25,
-  rlen = 100, dist.fcts = "euclidean", alpha = 1,
-  neighbourhood.fct = "bubble", ...)
+  rlen = 100, distance = "euclidean", alpha = 1,
+  neighbourhood.fct = "bubble", mode = "online", ...)
 }
 \arguments{
 \item{data.tb}{A tibble with samples to be clustered.}
@@ -19,11 +19,13 @@ sits_kohonen(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25,
 
 \item{rlen}{Number of times the complete data set will be presented to the SOM grid}
 
-\item{dist.fcts}{The similarity measure (distance).}
+\item{distance}{The similarity measure (distance).}
 
 \item{alpha}{Learning rate, a vector of two numbers indicating the amount of change.}
 
 \item{neighbourhood.fct}{Type of neighbourhood function (bubble or gaussian).}
+
+\item{mode}{Type of learning algorithm (batch or paralel mode)}
 
 \item{...}{Additional parameters to be passed to kohonen::supersom function.}
 }
@@ -34,6 +36,18 @@ If return_members are FALSE, the returning tibble will contain a new collumn cal
 \description{
 This function uses package self-organized maps to find clusters in
 satellite image time series to cluster samples.
+}
+\examples{
+\donttest{
+# Read a set of samples
+data(samples_mt_9classes)
+# perform kohonen to associate a sample to  a cluster
+sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25,
+rlen = 100, distance = "euclidean", alpha = 1, neighbourhood.fct = "bubble", mode = "online")
+# Visualize the samples with cluster information
+samples <- koh$info_samples
+kohonen_obj <- koh$obj
+}
 }
 \references{
 `kohonen` package (https://CRAN.R-project.org/package=kohonen)

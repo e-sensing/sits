@@ -36,6 +36,17 @@ This function evaluate the samples and extract metrics from SOM cluster.
 The user can choose the amount of time that the kohonen process will be run.
 This function allows check if the sample reliable or not
 }
+\examples{
+\donttest{
+# Read a set of samples
+data(samples_mt_9classes)
+# Evaluate the quality of each sample
+evaluate_samples <- sits_evaluate_samples( data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 100,
+distance = "euclidean", iterations = 100)
+# Evalute the confiability of each sample
+metrics_by_samples <- evaluate_samples$metrics_by_samples
+}
+}
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}
 }

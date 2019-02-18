@@ -15,6 +15,12 @@ sits_plot_cluster_info(data, text_title = " Cluster ")
 Plot a bar graph with informations about each cluster.
 The percentage of mixture between the clusters.
 }
+\examples{
+\donttest{
+# Plot confusion between the clusters
+sits_plot_cluster_info(confusion_by_cluster, "Confusion by cluster")
+}
+}
 \author{
 Lorena Santos \email{lorena.santos@inpe.br}
 }

@@ -10,15 +10,15 @@ test_that("Creating clustering using Self-organizing Maps", {
             grid_xdim = 5,
             grid_ydim = 5,
             rlen = 20,
-            dist.fcts = "euclidean"
+            distance = "euclidean"
         )
     expect_true(NROW(data.tb) == NROW(koh$info_samples))
     expect_equal(length(names(koh$kohonen_obj)), 15)
-    expect_true("neuron_label" %in% names(koh$info_samples))
+    expect_true("cluster" %in% names(koh$info_samples))
 
     sits_plot_kohonen(koh)
 
-    confusion_by_cluster <- sits_metrics_by_cluster(koh$info_samples)
+    confusion_by_cluster <- sits_evaluate_cluster(koh$info_samples)
     expect_equal(length(names(confusion_by_cluster$confusion_matrix)), 6)
 
     sits_plot_cluster_info(confusion_by_cluster)
