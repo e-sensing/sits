@@ -429,21 +429,20 @@ sits_evaluate_samples <- function(data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 
 #'
 #' @examples
 #' \donttest{
-#' # perform kohonen to associate a sample to  a cluster
 #' # Divide groups according to variations
 #' subgroups <- sits_subgroup(koh)
-#  #Get samples tibble with subgroups
+#  # Get samples tibble with subgroups
 #' samples_subgroup <- subgroups$samples_subgroup.tb
-#  #Get neurons and their patterns
+#  # Get neurons and their patterns
 #' neurons_subgroup <- subgroups$neurons_subgroup.lst
-#  #Number of subgroups for each class
+#  # Number of subgroups for each class
 #' number_of_subgroup <- lengths(neurons_subgroup)
 #' }
 #' @export
 sits_subgroup <- function(koh)
 {
     subgroup.lst <- list()
-    cluster_label_analysis <- koh$info_samples$neuron_label
+    cluster_label_analysis <- koh$info_samples$cluster
     class_neurons <- (unique(cluster_label_analysis))
     class_group <- tibble::as_tibble()
 
@@ -451,7 +450,7 @@ sits_subgroup <- function(koh)
     {
         #filter the samples by neuron_label from class_neurons
         current_class <- dplyr::filter(koh$info_samples,
-                                       koh$info_samples$neuron_label == class_neurons[k])
+                                       koh$info_samples$cluster == class_neurons[k])
 
         #get the neuron's id of where these samples were allocated
         neurons_class <- unique(current_class$id_neuron)
