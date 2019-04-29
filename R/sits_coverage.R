@@ -55,33 +55,28 @@ sits_coverage <- function(service        = "RASTER",
                           minimum_values = NULL,
                           maximum_values = NULL,
                           files          = NA) {
-    # if no service is specified, but the names of files are provided,
-    # assume we are dealing with raster data
-    if (service == "RASTER") {
-        r <- suppressWarnings(rgdal::GDALinfo(files, silent = FALSE))
-        ensurer::ensure_that(r, all(!purrr::is_null(.)),
-                             err_desc = "sits_coverage: raster files cannot be accessed")
-    }
+
 
     # pre-condition
-    if (any(!is.na(files))) {
-        if (all(file.exists(files)) && service != "RASTER") {
+    .sits_check_service(service)
+
+    # get the protocol associated with the service
+    protocol <- .sits_get_protocol(service)
+
+    if (protocol == "WTSS") {
+
+        # pre-condition
+        if (any(!is.na(files))) {
             msg <- paste0("inconsistent specification of coverage parameters - files should
                           be provided only when service is RASTER")
             .sits_log_error(msg)
             message(msg)
             return(NULL)
         }
-    }
 
-    # pre-condition
-    .sits_check_service(service)
-    # get the protocol associated with the service
-    protocol <- .sits_get_protocol(service)
-
-    if (protocol == "WTSS") {
         tryCatch({
             URL  <- .sits_get_server(service)
+
             # obtains information about the available coverages
             wtss.obj   <- wtss::WTSS(URL)
 
@@ -95,9 +90,55 @@ sits_coverage <- function(service        = "RASTER",
         coverage.tb <- .sits_coverage_WTSS(wtss.obj, service, name, bands)
     }
     else if (protocol == "SATVEG") {
+
+        # pre-condition
+        if (any(!is.na(files))) {
+            msg <- paste0("inconsistent specification of coverage parameters - files should
+                          be provided only when service is RASTER")
+            .sits_log_error(msg)
+            message(msg)
+            return(NULL)
+        }
+
         coverage.tb <- .sits_coverage_SATVEG(name, timeline, bands)
     }
-    else
+    else if (protocol == "EOCUBES") {
+
+        # pre-condition
+        if (any(!is.na(files))) {
+            msg <- paste0("inconsistent specification of coverage parameters - files should
+                          be provided only when service is RASTER")
+            .sits_log_error(msg)
+            message(msg)
+            return(NULL)
+        }
+
+        tryCatch({
+            remote_name  <- .sits_get_server(service)
+
+            # obtains information about the available coverages
+            remote.obj   <- EOCubes::remote(name = remote_name)
+
+        }, error = function(e){
+            msg <- paste0("EOCubes remote not available at name ", remote_name)
+            .sits_log_error(msg)
+            message(msg)
+        })
+
+        # create a coverage
+        coverage.tb <- .sits_coverage_EOCUBES(remote.obj, service, name, bands)
+    }
+    else if (protocol == "RASTER") {
+
+        # append "vsicurl" prefix for all web files
+        web_files <- grepl(pattern = "^[^:/].+://.+$", x = files)
+        files[web_files] <- paste("/vsicurl", files[web_files], sep = "/")
+
+        # verify if all files are reacheable
+        r <- suppressWarnings(rgdal::GDALinfo(files, silent = FALSE))
+        ensurer::ensure_that(r, all(!purrr::is_null(.)),
+                             err_desc = "sits_coverage: raster files cannot be accessed")
+
         coverage.tb <- .sits_coverage_raster(name = name,
                                              timeline.vec       = timeline,
                                              bands.vec          = bands,
@@ -106,6 +147,30 @@ sits_coverage <- function(service        = "RASTER",
                                              minimum_values.vec = minimum_values,
                                              maximum_values.vec = maximum_values,
                                              files.vec          = files)
+    } else if (protocol == "STACK") {
+
+        files <- lapply(files, function(band) {
+            # append "vsicurl" prefix for all web files
+            web_files <- grepl(pattern = "^[^:/].+://.+$", x = band)
+            band[web_files] <- paste("/vsicurl", band[web_files], sep = "/")
+        })
+
+        # verify if all files are reacheable
+        for (band in files) {
+            r <- suppressWarnings(rgdal::GDALinfo(band, silent = FALSE))
+            ensurer::ensure_that(r, all(!purrr::is_null(.)),
+                                 err_desc = "sits_coverage: raster files cannot be accessed")
+        }
+
+        coverage.tb <- .sits_coverage_STACK(name = name,
+                                            timeline.vec       = timeline,
+                                            bands.vec          = bands,
+                                            scale_factors.vec  = scale_factors,
+                                            missing_values.vec = missing_values,
+                                            minimum_values.vec = minimum_values,
+                                            maximum_values.vec = maximum_values,
+                                            files.lst          = files)
+    }
     return(coverage.tb)
 }
 
@@ -327,6 +392,74 @@ sits_coverage <- function(service        = "RASTER",
     return(coverage.tb)
 }
 
+.sits_coverage_EOCUBES <- function(remote.obj, service, name, bands) {
+
+    # obtains information about the available coverages
+    cubes.vec    <- names(EOCubes::list_cubes(remote.obj))
+
+    # is the cube in the list of cubes?
+    ensurer::ensure_that(name, (.) %in% cubes.vec,
+                         err_desc = ".sits_coverage_EOCUBES: cube is not available in the EOCubes remote")
+
+    # describe the coverage
+    cub.obj    <- EOCubes::cube(name, remote.obj)
+
+    # temporal extent
+    timeline.lst <- list(EOCubes::cube_dates_info(cub.obj))
+
+    # retrieve information about the bands
+    attr <- EOCubes::cube_bands_info(cub.obj)
+
+    bands.vec <- EOCubes::cube_bands(cub.obj)
+
+    # verify if requested bands is in provided bands
+    if (!purrr::is_null(bands)) {
+        ensurer::ensure_that(bands.vec, all(bands %in% .),
+                             err_desc = ".sits_coverage_EOCUBES: requested band not provided by EOCubes remote.")
+    } else bands <- bands.vec
+
+    b <- bands.vec %in% bands
+    bands.vec <- bands.vec[b]
+
+    missing_values.vec <- attr$fill[b]
+    scale_factors.vec  <- attr$scale[b]
+    minimum_values.vec <- attr$min[b]
+    maximum_values.vec <- attr$max[b]
+
+    # Spatial extent
+    cub_bbox <- EOCubes::cube_bbox(cub.obj)
+    xmin <- cub_bbox[1] # xmin
+    ymin <- cub_bbox[2] # ymin
+    xmax <- cub_bbox[3] # xmax
+    ymax <- cub_bbox[4] # ymax
+
+    # Spatial resolution
+    raster_info <- EOCubes::cube_raster_info(cub.obj)
+    xres <- raster_info$resolution$x
+    yres <- raster_info$resolution$y
+
+    # Size (rows and cols)
+    nrows <- raster_info$size$y
+    ncols <- raster_info$size$x
+
+    # Projection CRS
+    crs <- EOCubes::cube_crs(cub.obj)
+
+    #labels
+    labels.vec <- c("NoClass")
+
+    # create a tibble to store the metadata
+    coverage.tb <- .sits_create_coverage(list(cub.obj), name, service,
+                                         bands.vec, labels.vec, scale_factors.vec,
+                                         missing_values.vec, minimum_values.vec,
+                                         maximum_values.vec, timeline.lst,
+                                         nrows, ncols, xmin, xmax, ymin, ymax,
+                                         xres, yres, crs, files.vec = NA)
+
+    # return the tibble with coverage info
+    return(coverage.tb)}
+
+
 #' @title Create a metadata tibble to store the description of a spatio-temporal raster dataset
 #' @name .sits_coverage_raster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -395,6 +528,78 @@ sits_coverage <- function(service        = "RASTER",
                                                 minimum_values.vec = minimum_values.vec,
                                                 maximum_values.vec = maximum_values.vec,
                                                 files.vec          = files.vec)
+
+    return(coverage.tb)
+}
+
+#' @title Create a metadata tibble to store the description of a spatio-temporal raster dataset
+#' @name .sits_coverage_STACK
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description  This function creates a tibble containing the metadata for
+#'               a set of spatio-temporal raster files, organized as a set of "Raster Bricks".
+#'               These files should be of the same size and
+#'               projection. Each raster brick file should contain one band
+#'               per time step. Different bands are archived in different raster files.
+#'
+#' @param  name                  Name of the coverage file.
+#' @param  timeline.vec          Vector of dates with the timeline of the bands.
+#' @param  bands.vec             Vector of bands contained in the Raster Brick set (in the same order as the files).
+#' @param  scale_factors.vec     Vector of scale factors (one per band).
+#' @param  missing_values.vec    Vector of missing values (one per band).
+#' @param  minimum_values.vec    Minimum values for each band (only for raster data).
+#' @param  maximum_values.vec    Maximum values for each band (only for raster data).
+#' @param  files.lst             List of vectors with the file paths of the raster files.
+#' @return A tibble with metadata information about a raster data set.
+.sits_coverage_STACK <- function(name,
+                                 timeline.vec,
+                                 bands.vec,
+                                 scale_factors.vec,
+                                 missing_values.vec,
+                                 minimum_values.vec,
+                                 maximum_values.vec,
+                                 files.lst) {
+    ensurer::ensure_that(bands.vec, length(.) == length(files.lst),
+                         err_desc = "sits_coverage_STACK: number of bands does not match number of files")
+    ensurer::ensure_that(name, !purrr::is_null(.),
+                         err_desc = "sits_coverage_STACK: name of the coverega must be provided")
+    ensurer::ensure_that(bands.vec, !purrr::is_null(.),
+                         err_desc = "sits_coverage_STACK - bands must be provided")
+    ensurer::ensure_that(files.lst, !purrr::is_null(.),
+                         err_desc = "sits_coverage_STACK - files must be provided")
+
+    # get the timeline
+    if (purrr::is_null(timeline.vec))
+        timeline.vec <- lubridate::as_date(.sits_get_timeline(service = "RASTER", name = name))
+
+    # set the labels
+    labels.vec <- c("NoClass")
+
+    # create a list to store the raster objects
+    stck.obj <- purrr::pmap(list(files.lst, bands.vec),
+                             function(files, band) {
+                                 # create a raster object associated to the file
+                                 raster.obj <- raster::stack(files)
+                                 # find out how many layers the object has
+                                 n_layers   <-  length(files)
+                                 # check that there are as many layers as the length of the timeline
+                                 ensurer::ensure_that(n_layers, (.) == length(timeline.vec),
+                                                      err_desc = "duration of timeline is not matched by number of layers in raster")
+                                 # add the object to the raster object list
+                                 return(raster.obj)
+                             })
+
+    coverage.tb <- .sits_create_STACK_coverage(raster.lst         = stck.obj,
+                                               service            = "RASTER",
+                                               name               = name,
+                                               timeline.lst       = list(timeline.vec),
+                                               bands.vec          = bands.vec,
+                                               labels.vec         = labels.vec,
+                                               scale_factors.vec  = scale_factors.vec,
+                                               missing_values.vec = missing_values.vec,
+                                               minimum_values.vec = minimum_values.vec,
+                                               maximum_values.vec = maximum_values.vec,
+                                               files.lst          = files.lst)
 
     return(coverage.tb)
 }
@@ -551,9 +756,11 @@ sits_coverage <- function(service        = "RASTER",
                                          files.vec) {
     # associate an R raster object to the first element of the list of bricks
     r_obj <- raster.lst[[1]]
+
     # get the size of the coverage
     nrows <- raster::nrow(r_obj)
     ncols <- raster::ncol(r_obj)
+
     # test if all bricks have the same size
     i <- 1
     while (length(raster.lst) > i) {
@@ -568,9 +775,11 @@ sits_coverage <- function(service        = "RASTER",
     xmax <- raster::xmax(r_obj)
     ymin <- raster::ymin(r_obj)
     ymax <- raster::ymax(r_obj)
+
     # get the resolution of the product
     xres <- raster::xres(r_obj)
     yres <- raster::yres(r_obj)
+
     # test if all bricks have the same resolution
     i <- 1
     while (length(raster.lst) > i) {
@@ -580,6 +789,7 @@ sits_coverage <- function(service        = "RASTER",
         ensurer::ensure_that(yres, (.) == raster::yres(raster.lst[[i]]),
                              err_desc = "raster bricks/layers have different yres")
     }
+
     # if scale factors are not provided, try a best guess
     if (purrr::is_null(scale_factors.vec)) {
         message("Scale factors not provided - will use default values: please check they are valid")
@@ -637,6 +847,129 @@ sits_coverage <- function(service        = "RASTER",
                                          xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
                                          xres = xres, yres = yres, crs = crs,
                                          files.vec = files.vec)
+
+    return(coverage.tb)
+}
+
+#' @title Creates a tibble with information about a set of raster bricks
+#' @name .sits_create_STACK_coverage
+#'
+#' @description Creates a tibble with metadata about a given coverage.
+#'
+#' @param raster.lst               List of Raster objects associated with the raster coverages.
+#' @param service                  Time series service.
+#' @param name                     Name of the coverage.
+#' @param timeline.lst             List of coverage timelines.
+#' @param bands.vec                Vector with names of bands.
+#' @param labels.vec               Vector of labels for classified image.
+#' @param scale_factors.vec        Vector of scale factors.
+#' @param missing_values.vec       Vector of missing values.
+#' @param minimum_values.vec       Vector of minimum values.
+#' @param maximum_values.vec       Vector of maximum values.
+#' @param files.lst                List of vectors containing raster files where the data is stored.
+.sits_create_STACK_coverage <- function(raster.lst,
+                                        service,
+                                        name,
+                                        timeline.lst,
+                                        bands.vec,
+                                        labels.vec,
+                                        scale_factors.vec,
+                                        missing_values.vec,
+                                        minimum_values.vec,
+                                        maximum_values.vec,
+                                        files.lst) {
+
+    # associate an R raster object to the first element of the list of stacks
+    r_obj <- raster.lst[[1]]
+
+    # get the size of the coverage
+    nrows <- raster::nrow(r_obj)
+    ncols <- raster::ncol(r_obj)
+
+    # test if all stacks have the same size
+    i <- 1
+    while (length(raster.lst) > i) {
+        i <- i + 1
+        ensurer::ensure_that(nrows, (.) == raster::nrow(raster.lst[[i]]),
+                             err_desc = "raster stack/layers do not have the same number of rows")
+        ensurer::ensure_that(ncols, (.) == raster::ncol(raster.lst[[i]]),
+                             err_desc = "raster stack/layers do not have the same number of cols")
+    }
+    # get the bounding box of the product
+    xmin <- raster::xmin(r_obj)
+    xmax <- raster::xmax(r_obj)
+    ymin <- raster::ymin(r_obj)
+    ymax <- raster::ymax(r_obj)
+
+    # get the resolution of the product
+    xres <- raster::xres(r_obj)
+    yres <- raster::yres(r_obj)
+
+    # test if all bricks have the same resolution
+    i <- 1
+    while (length(raster.lst) > i) {
+        i <- i + 1
+        ensurer::ensure_that(xres, (.) == raster::xres(raster.lst[[i]]),
+                             err_desc = "raster stacks/layers have different xres")
+        ensurer::ensure_that(yres, (.) == raster::yres(raster.lst[[i]]),
+                             err_desc = "raster stacks/layers have different yres")
+    }
+    # if scale factors are not provided, try a best guess
+    if (purrr::is_null(scale_factors.vec)) {
+        message("Scale factors not provided - will use default values: please check they are valid")
+        # try to guess what is the satellite
+        satellite <- .sits_guess_satellite(r_obj)
+        # retrieve the scale factors
+        scale_factors.vec <- .sits_get_scale_factors("RASTER", satellite, bands.vec)
+        # are the scale factors valid?
+        ensurer::ensure_that(scale_factors.vec, !(purrr::is_null(.)),
+                             err_desc = "Not able to obtain scale factors for raster data")
+    }
+    else
+        names(scale_factors.vec) <- bands.vec
+
+    # if missing_values are not provided, try a best guess
+    if (purrr::is_null(missing_values.vec)) {
+        message("Missing values not provided - will use default values: please check they are valid")
+        # try to guess what is the satellite
+        satellite      <- .sits_guess_satellite(r_obj)
+        # try to retrieve the missing values
+        missing_values.vec <- .sits_get_missing_values("RASTER", satellite, bands.vec)
+        ensurer::ensure_that(missing_values.vec, !(purrr::is_null(.)),
+                             err_desc = "Not able to obtain scale factors for raster data")
+    } else
+        names(missing_values.vec) <- bands.vec
+
+    if (purrr::is_null(minimum_values.vec)) {
+        minimum_values.vec <- .sits_get_minimum_values("RASTER", bands.vec)
+    }
+
+    if (purrr::is_null(maximum_values.vec)) {
+        maximum_values.vec <- .sits_get_maximum_values("RASTER", bands.vec)
+    }
+
+    # preserve the names of the bands on the list of raster objects and in the files
+    names(raster.lst) <- bands.vec
+    names(files.lst)  <- bands.vec
+
+    # get CRS
+    crs = as.character(raster::crs(r_obj))
+
+    # create a tibble to store the metadata
+    coverage.tb <- .sits_create_coverage(raster.lst,
+                                         name = name,
+                                         service = service,
+                                         bands.vec = bands.vec,
+                                         labels.vec = labels.vec,
+                                         scale_factors.vec = scale_factors.vec,
+                                         missing_values.vec = missing_values.vec,
+                                         minimum_values.vec = minimum_values.vec,
+                                         maximum_values.vec = maximum_values.vec,
+                                         timeline.lst = timeline.lst,
+                                         nrows = nrows, ncols = ncols,
+                                         xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
+                                         xres = xres, yres = yres, crs = crs,
+                                         files.vec = files.lst)
 
     return(coverage.tb)
 }

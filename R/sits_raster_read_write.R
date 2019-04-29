@@ -111,6 +111,87 @@
     return(data_DT)
 }
 
+#' @title Read a block of values retrived from a set of raster stacks
+#' @name  .sits_read_data_cubes
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  coverage        Input raster coverage.
+#' @param  samples         Tibble with samples.
+#' @param  ml_model        Machine learning model.
+#' @param  first_row       First row to start reading.
+#' @param  n_rows_block    Number of rows in the block.
+#' @param  stats           Normalization parameters.
+#' @param  filter          Smoothing filter to be applied.
+#' @param  multicores      Number of cores to process the time series.
+#' @return A data.table with values for classification.
+.sits_read_data_cubes <- function(coverage,
+                                  samples,
+                                  ml_model,
+                                  first_row,
+                                  n_rows_block,
+                                  stats,
+                                  filter,
+                                  multicores) {
+    # get the bands in the same order as the samples
+    bands <- sits_bands(samples)
+
+    # get the missing values, minimum values and scale factors
+    missing_values <- unlist(coverage$missing_values)
+    minimum_values <- unlist(coverage$minimum_values)
+    scale_factors  <- unlist(coverage$scale_factors)
+
+    ordered_bricks.lst <- vector(mode = "list", length = length(bands))
+
+    for (i in 1:length(bands)) {
+        ordered_bricks.lst[[i]] <- coverage[1,]$r_objs[[1]][[i]]
+    }
+
+    names(ordered_bricks.lst) <- bands
+
+    # index to go through the bands vector
+    b <- 0
+
+    # read the values from the raster bricks ordered by bands
+    values.lst <- ordered_bricks.lst %>%
+        purrr::map(function(r_stack) {
+            # getValues function returns a matrix
+            # the rows of the matrix are the pixels
+            # the cols of the matrix are the layers
+            values.mx    <- raster::getValues(r_stack, first_row, n_rows_block)
+
+            # proprocess the input data
+            b <<- b + 1
+            band <- bands[b]
+            values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band],
+                                               stats, filter, multicores)
+
+            # save information about memory use for debugging later
+            .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
+            .sits_log_debug(paste0("Read band ", b, " from rows ", first_row, "to ", (first_row + n_rows_block - 1)))
+
+            return(values.mx)
+        })
+    # create a data.table joining the values
+    data_DT <- data.table::as.data.table(do.call(cbind,values.lst))
+
+    # memory cleanup
+    rm(values.lst)
+    gc()
+
+    # create two additional columns for prediction
+    size <- n_rows_block*coverage[1,]$ncols
+    two_cols_DT <- data.table::data.table("original_row" = rep(1,size),
+                                          "reference"    = rep("NoClass", size))
+
+    # join the two columns with the data values
+    data_DT <- data.table::as.data.table(cbind(two_cols_DT, data_DT))
+
+    # memory debug
+    .sits_log_debug(paste0("Memory used after reading block - ", .sits_mem_used(), " GB"))
+
+    return(data_DT)
+}
+
 #' @title Scale the time series values in the case of a matrix
 #' @name .sits_scale_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
