@@ -53,36 +53,30 @@
     minimum_values <- unlist(coverage$minimum_values)
     scale_factors  <- unlist(coverage$scale_factors)
 
-    # get the raster bricks to be read
-    bricks.lst <- coverage$files[[1]]
-
     ordered_bricks.lst <- vector(mode = "list", length = length(bands))
 
-    for (i in 1:length(bands))
-        ordered_bricks.lst[[i]] <- bricks.lst[[bands[i]]]
+    for (i in 1:length(bands)) {
+        ordered_bricks.lst[[i]] <- coverage[1,]$r_objs[[1]][[i]]
+    }
 
     names(ordered_bricks.lst) <- bands
 
     # index to go through the bands vector
     b <- 0
 
-    # set the offset and region to be read by GDAL
-    offset     <- c(first_row - 1, 0)
-    region.dim <- c(n_rows_block, coverage[1,]$ncols)
-
     # read the values from the raster bricks ordered by bands
     values.lst <- ordered_bricks.lst %>%
-        purrr::map(function(r_brick) {
-            # the readGDAL function returns a matrix
+        purrr::map(function(r_stack) {
+            # getValues function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            values.mx    <- as.matrix(suppressWarnings(rgdal::readGDAL(r_brick, offset, region.dim, silent = TRUE))@data)
+            values.mx    <- raster::getValues(r_stack, first_row, n_rows_block)
 
             # proprocess the input data
             b <<- b + 1
             band <- bands[b]
             values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band],
-                                               stats, filter, multicores)
+                                                      stats, filter, multicores)
 
             # save information about memory use for debugging later
             .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))

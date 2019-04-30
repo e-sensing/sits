@@ -166,9 +166,9 @@ sits_classify_cubes <- function(file        = NULL,
     ts_length <- length(samples$time_series[[1]]$Index)
 
     # get stacks from EOCubes
-    stk.obj <- EOCubes::stack_tiles(cube = cub.obj, bands = bands,
-                                    start_reference = ref_start_date, stack_length = ts_length,
-                                    starts_interval = interval)
+    stk.obj <- EOCubes::stacks(cube = cub.obj, bands = bands,
+                               start_reference = ref_start_date, stack_length = ts_length,
+                               starts_interval = interval)
 
     # find the number of cores
     if (purrr::is_null(multicores))

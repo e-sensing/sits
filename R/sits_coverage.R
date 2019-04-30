@@ -155,12 +155,12 @@ sits_coverage <- function(service        = "RASTER",
             band[web_files] <- paste("/vsicurl", band[web_files], sep = "/")
         })
 
-        # verify if all files are reacheable
-        for (band in files) {
-            r <- suppressWarnings(rgdal::GDALinfo(band, silent = FALSE))
-            ensurer::ensure_that(r, all(!purrr::is_null(.)),
-                                 err_desc = "sits_coverage: raster files cannot be accessed")
-        }
+        # # verify if all files are reacheable
+        # for (band in files) {
+        #     r <- suppressWarnings(rgdal::GDALinfo(band, silent = FALSE))
+        #     ensurer::ensure_that(r, all(!purrr::is_null(.)),
+        #                          err_desc = "sits_coverage: raster files cannot be accessed")
+        # }
 
         coverage.tb <- .sits_coverage_STACK(name = name,
                                             timeline.vec       = timeline,
@@ -579,7 +579,7 @@ sits_coverage <- function(service        = "RASTER",
     stck.obj <- purrr::pmap(list(files.lst, bands.vec),
                              function(files, band) {
                                  # create a raster object associated to the file
-                                 raster.obj <- raster::stack(files)
+                                 raster.obj <- raster::stack(files, quick = TRUE)
                                  # find out how many layers the object has
                                  n_layers   <-  length(files)
                                  # check that there are as many layers as the length of the timeline
