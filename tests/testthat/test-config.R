@@ -56,7 +56,7 @@ test_that("Wetness", {
 test_that("Internal", {
     expect_type(sits:::.sits_get_account("SATVEG"), "character")
 
-    expect_equal(length(sits:::.sits_get_services()), 3)
+    expect_equal(length(sits:::.sits_get_services()), 5)
     expect_equal(length(sits:::.sits_get_timeline("WTSS-INPE", "MOD13Q1")), 423)
     expect_equal(length(sits:::.sits_get_tcap_brightness()), 7)
     expect_equal(length(sits:::.sits_get_tcap_greenness()), 7)
@@ -69,4 +69,5 @@ test_that("Internal", {
     expect_true(sits:::.sits_get_memory_bloat() >= 0)
 
     expect_equal(sits:::.sits_get_services("WTSS"), "WTSS-INPE")
+    expect_equal(sits:::.sits_get_services("EOCUBES"), "EOCUBES")
 })

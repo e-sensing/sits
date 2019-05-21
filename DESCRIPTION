@@ -79,7 +79,7 @@ Imports:
     wtss,
     zoo
 Remotes: 
-    rolfsimoes/EOCubes
+    e-sensing/EOCubes
 LinkingTo:
     Rcpp
 RoxygenNote: 6.1.1

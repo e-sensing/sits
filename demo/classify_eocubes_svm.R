@@ -12,7 +12,7 @@ cov.tb <- sits_coverage(service = "EOCUBES",
                         name = "MOD13Q1/006",
                         bands = "ndvi",
                         tiles_names = "h13v10_1920",
-                        from = "20016-01-01")
+                        from = "2016-01-01")
 
 # classify the raster image
 raster_class.tb <- sits_classify_cubes(file = "./test-class", cov.tb,
@@ -20,4 +20,4 @@ raster_class.tb <- sits_classify_cubes(file = "./test-class", cov.tb,
                                        multicores = 2)
 
 # plot the first classified image
-sits_plot_raster(raster_class.tb[19,], title = "2000/2001")
+sits_plot_raster(raster_class.tb[1,], title = "2016/2017")
