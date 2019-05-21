@@ -6,7 +6,8 @@
 \usage{
 sits_coverage(service = "RASTER", name, timeline = NULL,
   bands = NULL, missing_values = NULL, scale_factors = NULL,
-  minimum_values = NULL, maximum_values = NULL, files = NA)
+  minimum_values = NULL, maximum_values = NULL, files = NA,
+  tiles = NULL, from = NULL, to = NULL)
 }
 \arguments{
 \item{service}{Name of the time series service.}
@@ -26,6 +27,12 @@ sits_coverage(service = "RASTER", name, timeline = NULL,
 \item{maximum_values}{Vector of maximum values for each band.}
 
 \item{files}{Vector of file names for each band (only for raster data).}
+
+\item{tiles}{A string with tile name or \code{sfc} object to filter tiles from a cube.}
+
+\item{from}{A date value to filter cube's layers by date.}
+
+\item{to}{A date value to filter cube's layers by date.}
 }
 \description{
 Defines a coverage to retrieve data. As default, it uses the metadata about a

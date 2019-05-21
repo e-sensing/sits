@@ -31,6 +31,11 @@
 #' @param minimum_values    Vector of minimum values for each band.
 #' @param maximum_values    Vector of maximum values for each band.
 #' @param files             Vector of file names for each band (only for raster data).
+#' @param tiles_names       A string with tile names to be filtered.
+#' @param geom              A \code{sfc} object to filter tiles that intersects the given geometry.
+#' @param from              A date value to filter cube's layers by date.
+#' @param to                A date value to filter cube's layers by date.
+#'
 #' @seealso To see the available values for the parameters above use \code{\link{sits_services}}, \code{\link{sits_config}} or \code{\link{sits_show_config}}.
 #' @examples
 #' \donttest{
@@ -54,7 +59,11 @@ sits_coverage <- function(service        = "RASTER",
                           scale_factors  = NULL,
                           minimum_values = NULL,
                           maximum_values = NULL,
-                          files          = NA) {
+                          files          = NA,
+                          tiles_names    = NULL,
+                          geom           = NULL,
+                          from           = NULL,
+                          to             = NULL) {
 
 
     # pre-condition
@@ -126,7 +135,7 @@ sits_coverage <- function(service        = "RASTER",
         })
 
         # create a coverage
-        coverage.tb <- .sits_coverage_EOCUBES(remote.obj, service, name, bands)
+        coverage.tb <- .sits_coverage_EOCUBES(remote.obj, service, name, bands, tiles_names, geom, from, to)
     }
     else if (protocol == "RASTER") {
 
@@ -392,7 +401,20 @@ sits_coverage <- function(service        = "RASTER",
     return(coverage.tb)
 }
 
-.sits_coverage_EOCUBES <- function(remote.obj, service, name, bands) {
+#' @title Provides information about one coverage of the EOCUBES
+#' @name .sits_coverage_eocubes
+#'
+#' @description Creates a tibble with metadata about a given coverage.
+#'
+#' @param remote.obj Remote object.
+#' @param service    Service string.
+#' @param name       Name of the cube
+#' @param bands      Bands of the coverage.
+#' @param tiles      Filter tiles by prefix name.
+#' @param geom       Geometry to filter tiles.
+#' @param from       Start date to be filtered.
+#' @param to         End date to be filtered.
+.sits_coverage_EOCUBES <- function(remote.obj, service, name, bands, tiles, geom, from, to) {
 
     # obtains information about the available coverages
     cubes.vec    <- names(EOCubes::list_cubes(remote.obj))
@@ -402,7 +424,16 @@ sits_coverage <- function(service        = "RASTER",
                          err_desc = ".sits_coverage_EOCUBES: cube is not available in the EOCubes remote")
 
     # describe the coverage
-    cub.obj    <- EOCubes::cube(name, remote.obj)
+    cub.obj <- EOCubes::cube(name = name, remote = remote.obj)
+
+    # filter cube
+    cub.obj <- EOCubes::cube_filter(cube = cub.obj,
+                                    tiles = EOCubes::tiles_which(cub.obj, prefix = tiles, geom = geom),
+                                    from = from, to = to)
+
+    # verify if the filter returned tiles
+    ensurer::ensure_that(cub.obj, length(EOCubes::list_tiles(.)) > 0,
+                         err_desc = ".sits_coverage_EOCUBES: cube filter returned no tile.")
 
     # temporal extent
     timeline.lst <- list(EOCubes::cube_dates_info(cub.obj))
