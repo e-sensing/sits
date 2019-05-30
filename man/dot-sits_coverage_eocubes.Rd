@@ -5,7 +5,8 @@
 \alias{.sits_coverage_EOCUBES}
 \title{Provides information about one coverage of the EOCUBES}
 \usage{
-.sits_coverage_EOCUBES(remote.obj, service, name, bands, tiles, from, to)
+.sits_coverage_EOCUBES(remote.obj, service, name, bands, tiles, geom, from,
+  to)
 }
 \arguments{
 \item{remote.obj}{Remote object.}
@@ -16,7 +17,9 @@
 
 \item{bands}{Bands of the coverage.}
 
-\item{tiles}{Tiles to be filtered.}
+\item{tiles}{Filter tiles by prefix name.}
+
+\item{geom}{Geometry to filter tiles.}
 
 \item{from}{Start date to be filtered.}
 

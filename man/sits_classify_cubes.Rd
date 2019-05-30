@@ -54,7 +54,7 @@ raster_class.tb <- sits_classify_cubes("raster-class", raster.tb,
   ml_model = svm_model, memsize = 4, multicores = 1)
 
 # plot the resulting classification
-sits_plot_raster(raster_class.tb[1,], title = "Test class 2000-2001")
+sits_plot_raster(raster_class.tb, time = 1, title = "Test class 2000-2001")
 }
 }
 \author{

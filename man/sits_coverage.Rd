@@ -7,7 +7,7 @@
 sits_coverage(service = "RASTER", name, timeline = NULL,
   bands = NULL, missing_values = NULL, scale_factors = NULL,
   minimum_values = NULL, maximum_values = NULL, files = NA,
-  tiles = NULL, from = NULL, to = NULL)
+  tiles_names = NULL, geom = NULL, from = NULL, to = NULL)
 }
 \arguments{
 \item{service}{Name of the time series service.}
@@ -28,7 +28,9 @@ sits_coverage(service = "RASTER", name, timeline = NULL,
 
 \item{files}{Vector of file names for each band (only for raster data).}
 
-\item{tiles}{A string with tile name or \code{sfc} object to filter tiles from a cube.}
+\item{tiles_names}{A string with tile names to be filtered.}
+
+\item{geom}{A \code{sfc} object to filter tiles that intersects the given geometry.}
 
 \item{from}{A date value to filter cube's layers by date.}
 
