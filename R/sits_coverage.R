@@ -164,13 +164,6 @@ sits_coverage <- function(service        = "RASTER",
             band[web_files] <- paste("/vsicurl", band[web_files], sep = "/")
         })
 
-        # # verify if all files are reacheable
-        # for (band in files) {
-        #     r <- suppressWarnings(rgdal::GDALinfo(band, silent = FALSE))
-        #     ensurer::ensure_that(r, all(!purrr::is_null(.)),
-        #                          err_desc = "sits_coverage: raster files cannot be accessed")
-        # }
-
         coverage.tb <- .sits_coverage_STACK(name = name,
                                             timeline.vec       = timeline,
                                             bands.vec          = bands,
@@ -444,10 +437,10 @@ sits_coverage <- function(service        = "RASTER",
     bands.vec <- EOCubes::cube_bands(cub.obj)
 
     # verify if requested bands is in provided bands
-    if (!purrr::is_null(bands)) {
-        ensurer::ensure_that(bands.vec, all(bands %in% .),
-                             err_desc = ".sits_coverage_EOCUBES: requested band not provided by EOCubes remote.")
-    } else bands <- bands.vec
+    if (purrr::is_null(bands))
+        bands <- bands.vec
+    ensurer::ensure_that(bands.vec, all(bands %in% .),
+                         err_desc = ".sits_coverage_EOCUBES: requested band not provided by EOCubes remote.")
 
     b <- bands.vec %in% bands
     bands.vec <- bands.vec[b]
@@ -728,6 +721,7 @@ sits_coverage <- function(service        = "RASTER",
 
     # get the name of the coverage
     name   <-  paste0(raster.tb[1,]$name, "-class")
+
     # create a new RasterLayer for a defined period and generate the associated metadata
     coverage.tb <- .sits_create_raster_coverage(raster.lst         = rasters_class,
                                                 service            = "RASTER",
@@ -740,6 +734,9 @@ sits_coverage <- function(service        = "RASTER",
                                                 minimum_values.vec = minimum_values_class,
                                                 maximum_values.vec = maximum_values_class,
                                                 files.vec          = files_class)
+
+    # get the name of the coverage
+    name   <-  paste0(raster.tb[1,]$name, "-prob")
 
     coverage_probs.tb <- .sits_create_raster_coverage(raster.lst         = rasters_probs,
                                                       service            = "RASTER",
@@ -754,6 +751,9 @@ sits_coverage <- function(service        = "RASTER",
                                                       files.vec          = files_probs)
 
     coverage.tb <- dplyr::bind_rows(coverage.tb, coverage_probs.tb)
+
+    # join rows to a single row
+    coverage.tb <- dplyr::as_tibble(lapply(coverage.tb, list))
 
     return(coverage.tb)
 }
