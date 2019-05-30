@@ -44,7 +44,7 @@
 #' raster_class.tb <- sits_classify_raster("raster-class", raster.tb,
 #'   ml_model = svm_model, memsize = 4, multicores = 1)
 #' # plot the resulting classification
-#' sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
+#' sits_plot_raster(raster_class.tb, time = 1, title = "SINOP class 2000-2001")
 #' }
 #' @export
 sits_classify_raster <- function(file        = NULL,
@@ -129,7 +129,7 @@ sits_classify_raster <- function(file        = NULL,
 #'   ml_model = svm_model, memsize = 4, multicores = 1)
 #'
 #' # plot the resulting classification
-#' sits_plot_raster(raster_class.tb[1,], title = "Test class 2000-2001")
+#' sits_plot_raster(raster_class.tb, time = 1, title = "Test class 2000-2001")
 #' }
 #' @export
 sits_classify_cubes <- function(file        = NULL,
@@ -247,8 +247,8 @@ sits_classify_cubes <- function(file        = NULL,
                                        memsize,
                                        multicores) {
     # retrieve the output raster layers
-    layers_class.lst <- coverage_class[1,]$r_objs[[1]]
-    bricks_probs.lst <- coverage_class[2,]$r_objs[[1]]
+    layers_class.lst <- coverage_class$r_objs[[1]][[1]]
+    bricks_probs.lst <- coverage_class$r_objs[[1]][[2]]
 
     #initiate writing
     for (i in 1:length(layers_class.lst))
@@ -320,8 +320,8 @@ sits_classify_cubes <- function(file        = NULL,
         bricks_probs.lst[[i]] <- raster::writeStop(bricks_probs.lst[[i]])
 
     # update the raster objects
-    coverage_class[1,]$r_objs <- list(layers_class.lst)
-    coverage_class[2,]$r_objs <- list(bricks_probs.lst)
+    coverage_class$r_objs[[1]][[1]] <- list(layers_class.lst)
+    coverage_class$r_objs[[1]][[2]] <- list(bricks_probs.lst)
 
     return(coverage_class)
 }
@@ -359,8 +359,8 @@ sits_classify_cubes <- function(file        = NULL,
                                              memsize,
                                              multicores) {
     # retrieve the output raster layers
-    layers_class.lst <- coverage_class[1,]$r_objs[[1]]
-    bricks_probs.lst <- coverage_class[2,]$r_objs[[1]]
+    layers_class.lst <- coverage_class$r_objs[[1]][[1]]
+    bricks_probs.lst <- coverage_class$r_objs[[1]][[2]]
 
     #initiate writing
     for (i in 1:length(layers_class.lst))
@@ -432,8 +432,8 @@ sits_classify_cubes <- function(file        = NULL,
         bricks_probs.lst[[i]] <- raster::writeStop(bricks_probs.lst[[i]])
 
     # update the raster objects
-    coverage_class[1,]$r_objs <- list(layers_class.lst)
-    coverage_class[2,]$r_objs <- list(bricks_probs.lst)
+    coverage_class$r_objs[[1]][[1]] <- list(layers_class.lst)
+    coverage_class$r_objs[[1]][[2]] <- list(bricks_probs.lst)
 
     return(coverage_class)
 }

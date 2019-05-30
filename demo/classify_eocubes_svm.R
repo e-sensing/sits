@@ -11,7 +11,7 @@ svm_model <- sits_train(samples.tb, ml_method = sits_svm())
 cov.tb <- sits_coverage(service = "EOCUBES",
                         name = "MOD13Q1/006",
                         bands = "ndvi",
-                        tiles_names = "h13v10_1920",
+                        tiles_names = "h13v10",
                         from = "2016-01-01")
 
 # classify the raster image
@@ -20,4 +20,10 @@ raster_class.tb <- sits_classify_cubes(file = "./test-class", cov.tb,
                                        multicores = 2)
 
 # plot the first classified image
-sits_plot_raster(raster_class.tb[1,], title = "2016/2017")
+sits_plot_raster(raster_class.tb, time = 1, title = "Classification 2016/2017")
+
+# smooth the images
+raster_smooth.tb <- sits_bayes_postprocess(raster_class.tb, file = "./smooth")
+
+# plot the first smoothed classified image
+sits_plot_raster(raster_smooth.tb, time = 1, title = "Classification 2016/2017")
