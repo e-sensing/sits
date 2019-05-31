@@ -25,7 +25,7 @@ test_that("All", {
                                timeline = timeline_modis_392, bands = "ndvi", files = files)
     raster_class.tb <- sits_classify_raster(file = "raster-class", raster.tb,
                                             ml_model = svm_model, memsize = 1, multicores = 1)
-    sits_plot_raster(raster_class.tb[1,], title = "SINOP class 2000-2001")
+    sits_plot_raster(raster_class.tb, time = 1, title = "SINOP class 2000-2001")
 
     expect_true(TRUE)
 })

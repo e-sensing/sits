@@ -37,6 +37,7 @@ Imports:
     dendextend,
     e1071,
     ensurer,
+    EOCubes,
     dplyr (>= 0.7.4),
     dtw,
     dtwclust,
@@ -77,6 +78,8 @@ Imports:
     utils,
     wtss,
     zoo
+Remotes: 
+    e-sensing/EOCubes
 LinkingTo:
     Rcpp
 RoxygenNote: 6.1.1
@@ -84,6 +87,7 @@ Collate:
     'RcppExports.R'
     'data.R'
     'sits_satveg.R'
+    'sits_eocubes.R'
     'sits_twdtw.R'
     'sits_wtss.R'
     'sits_accuracy.R'

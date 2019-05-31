@@ -441,7 +441,8 @@ sits_plot_dendrogram <- function(data.tb,
 #' @export
 sits_plot_raster <- function(raster_class.tb, time = 1, title = "Classified Image", colors = NULL) {
     # get the raster object
-    r <- raster_class.tb[1,]$r_objs[[1]][[time]]
+    r <- raster_class.tb$r_objs[[1]][[1]][[1]][[time]]
+
     # convert from raster to points
     map.p <- raster::rasterToPoints(r)
     # create a data frame
@@ -450,7 +451,7 @@ sits_plot_raster <- function(raster_class.tb, time = 1, title = "Classified Imag
     colnames(df) <- c("x", "y", "class")
 
     # get the labels
-    labels <- raster_class.tb[1,]$labels[[1]]
+    labels <- raster_class.tb$labels[[1]][[1]]
 
     nclasses <- length(labels)
     # create a mapping from classes to labels

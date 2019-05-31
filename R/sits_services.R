@@ -37,8 +37,7 @@ sits_services <- function() {
                 bands <- as.vector(attr[,"name"])
                 cat(paste0("      Bands: \"", paste(bands, collapse = "\", \""), "\"\n"))
             }
-        }
-        else if (protocol == "SATVEG") {
+        } else if (protocol == "SATVEG") {
             cat(paste0("Service: \"", s,"\"\n"))
             q <- paste0(s,"_coverages")
             coverages <- sits.env$config[[q]]
@@ -48,6 +47,17 @@ sits_services <- function() {
                 q1 <- paste0(s, "_bands")
                 bands <- sits.env$config[[q1]][[cov]]
                 cat(paste0("      Bands: \"", paste(bands, collapse = "\", \""), "\"\n"))
+            }
+        } else if (protocol == "EOCUBES") {
+            cat(paste0("Service: \"", s,"\"\n"))
+
+            remote.obj   <- EOCubes::remote(name = "eocubes")
+            coverages <- names(EOCubes::list_cubes(remote.obj))
+
+            for (cov in coverages) {
+                cat(paste0("   Coverage: \"", cov, "\"\n"))
+                cub.obj <- EOCubes::cube(cov, remote.obj)
+                cat(paste0("      Bands: \"", paste(EOCubes::cube_bands(cub.obj), collapse = "\", \""), "\"\n"))
             }
         }
     }

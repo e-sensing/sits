@@ -345,6 +345,16 @@ sits_get_data <- function(coverage    = NULL,
                                label = "NoClass") {
     protocol <- .sits_get_protocol(coverage[1,]$service)
 
+    if (protocol == "EOCUBES") {
+        data.tb <- .sits_from_EOCubes(coverage = coverage,
+                                      longitude = longitude,
+                                      latitude = latitude,
+                                      start_date = start_date,
+                                      end_date = end_date,
+                                      bands = bands,
+                                      label = label)
+        return(data.tb)
+    }
     if (protocol == "WTSS") {
         data.tb <- .sits_from_wtss(coverage = coverage,
                                    longitude = longitude,
