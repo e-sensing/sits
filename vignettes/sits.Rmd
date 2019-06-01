@@ -14,12 +14,14 @@ author:
   name: Gilberto Camara
 - affiliation: Institute for Applied Economics Research (IPEA), Brazil
   name: Alexandre Carvalho
-- affiliation: International Institute for Applied System Analysis (IIASA), Austria
+- affiliation: National Institute for Space Research (INPE), Brazil
   name: Lorena Santos
-- affiliation: International Institute for Applied System Analysis (IIASA), Austria
-  name: Victor Maus
 - affiliation: National Institute for Space Research (INPE), Brazil
   name: Pedro R. Andrade
+- affiliation: National Institute for Space Research (INPE), Brazil
+  name: Karine Ferreira
+- affiliation: University of Vienna, Austria
+  name: Victor Maus
 - affiliation: National Institute for Space Research (INPE), Brazil
   name: Gilberto Queiroz
 date: "`r format(Sys.time(), '%B %d, %Y')`"

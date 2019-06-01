@@ -43,7 +43,7 @@ data(samples_mt_9classes)
 # Evaluate the quality of each sample
 evaluate_samples <- sits_evaluate_samples( data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 100,
 distance = "euclidean", iterations = 100)
-# Evalute the confiability of each sample
+# Evaluate the confiability of each sample
 metrics_by_samples <- evaluate_samples$metrics_by_samples
 }
 }

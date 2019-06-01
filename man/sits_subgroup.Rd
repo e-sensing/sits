@@ -17,7 +17,6 @@ Create new groups to identify variations in a same group.
 }
 \examples{
 \donttest{
-# perform kohonen to associate a sample to  a cluster
 # Divide groups according to variations
 subgroups <- sits_subgroup(koh)
 samples_subgroup <- subgroups$samples_subgroup.tb

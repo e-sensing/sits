@@ -10,6 +10,7 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              person('Alexandre', 'Carvalho', role = c('aut'), email= 'alexandre.ywata@ipea.gov.br'),
              person('Lorena', 'Santos', role = c('aut'), email = 'lorena.santos@inpe.br'),
              person('Gilberto', 'Queiroz', role = c('aut'), email = 'gilberto.queiroz@inpe.br'),
+             person('Karine', 'Ferreira', role = c('aut'), email = 'karine.ferreira@inpe.br'),
              person('Alber', 'Sanchez', role = c('ctb')),
              person('Luiz', 'Assis', role = c('ctb')),
              person('Adeline', 'Marinho', role = c('ctb'))
