@@ -141,7 +141,7 @@ sits_coverage <- function(service        = "RASTER",
 
         # append "vsicurl" prefix for all web files
         web_files <- grepl(pattern = "^[^:/].+://.+$", x = files)
-        files[web_files] <- paste("/vsicurl", files[web_files], sep = "/")
+        files[web_files] <- paste("/vsicurl", files[web_files], sep = "/")[web_files]
 
         # verify if all files are reacheable
         r <- suppressWarnings(rgdal::GDALinfo(files, silent = FALSE))
@@ -161,7 +161,8 @@ sits_coverage <- function(service        = "RASTER",
         files <- lapply(files, function(band) {
             # append "vsicurl" prefix for all web files
             web_files <- grepl(pattern = "^[^:/].+://.+$", x = band)
-            band[web_files] <- paste("/vsicurl", band[web_files], sep = "/")
+            band[web_files] <- paste("/vsicurl", band[web_files], sep = "/")[web_files]
+            band
         })
 
         coverage.tb <- .sits_coverage_STACK(name = name,
