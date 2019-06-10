@@ -443,7 +443,7 @@ sits_coverage <- function(service        = "RASTER",
     ensurer::ensure_that(bands.vec, all(bands %in% .),
                          err_desc = ".sits_coverage_EOCUBES: requested band not provided by EOCubes remote.")
 
-    b <- bands.vec %in% bands
+    b <- match(bands, bands.vec)
     bands.vec <- bands.vec[b]
 
     missing_values.vec <- attr$fill[b]
