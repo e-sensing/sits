@@ -4,17 +4,28 @@
 \alias{sits_coverage}
 \title{Provides information about one coverage used to retrieve data}
 \usage{
-sits_coverage(service = "RASTER", name, timeline = NULL,
-  bands = NULL, missing_values = NULL, scale_factors = NULL,
-  minimum_values = NULL, maximum_values = NULL, files = NA,
-  tiles_names = NULL, geom = NULL, from = NULL, to = NULL)
+sits_coverage(service = "RASTER", provider = NULL, name = NULL,
+  tiles_names = NULL, geom = NULL, from = NULL, to = NULL,
+  timeline = NULL, bands = NULL, missing_values = NULL,
+  scale_factors = NULL, minimum_values = NULL, maximum_values = NULL,
+  files = NA)
 }
 \arguments{
-\item{service}{Name of the time series service.}
+\item{service}{Name of the data service.}
 
-\item{name}{Name of the coverage.}
+\item{provider}{Name of the service provider.}
 
-\item{timeline}{Vector with the timeline of the coverage.}
+\item{name}{Name of the image collection.}
+
+\item{tiles_names}{A string with tile names to be filtered.}
+
+\item{geom}{A \code{sfc} object to filter tiles that intersects the given geometry.}
+
+\item{from}{A date value to filter cube's layers by date.}
+
+\item{to}{A date value to filter cube's layers by date.}
+
+\item{timeline}{Vector with the timeline of the collection.}
 
 \item{bands}{Vector of bands.}
 
@@ -27,41 +38,21 @@ sits_coverage(service = "RASTER", name, timeline = NULL,
 \item{maximum_values}{Vector of maximum values for each band.}
 
 \item{files}{Vector of file names for each band (only for raster data).}
-
-\item{tiles_names}{A string with tile names to be filtered.}
-
-\item{geom}{A \code{sfc} object to filter tiles that intersects the given geometry.}
-
-\item{from}{A date value to filter cube's layers by date.}
-
-\item{to}{A date value to filter cube's layers by date.}
 }
 \description{
-Defines a coverage to retrieve data. As default, it uses the metadata about a
-chosen coverage stored in an yml configuration file.
+Defines a coverage to retrieve data. Coverages are associated to
+data services. The following services are available:
 \itemize{
-\item{service: }{Name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER").}
-\item{name: }{Name of the coverage (must be unique).}
-\item{bands: }{Vector of bands.}
-\item{scale_factor: }{Vector of scale factors.}
-\item{missing_values: }{Vector of missing values.}
-\item{minimum_values: }{Vector of minimum values.}
-\item{maximum_values: }{Vector of maximum values.}
-\item{timeline: }{The timelines of the coverage (more than one if data has been classified).}
-\item{xmin: }{Spatial extent (xmin).}
-\item{ymin: }{Spatial extent (ymin).}
-\item{xmax: }{Spatial extent (xmax).}
-\item{ymax: }{Spatial extent (ymin).}
-\item{xres: }{Spatial resolution (x dimension).}
-\item{yres: }{Spatial resolution (y dimension).}
-\item{crs: }{Projection CRS.}
-\item{files: }{Files associated with the coverage (in case of raster data).}
+ \item{"WTSS": }{Web Time Series Service - used to get time series}
+ \item{"EOCUBES": }{EOCUBES service - used for cloud processing of data cubes}
+ \item{"RASTER": }{Raster Brick files, local or remote}
+ \item{"STACK": }{Raster Stack files, local or remote}
 }
 }
 \examples{
 \donttest{
-# Example 1. Retrieve information about a WTSS coverage
-coverage.tb <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+# Example 1. Retrieve information about a WTSS collection
+coverage.tb <- sits_coverage(service = "WTSS", name = "MOD13Q1")
 
 # Example 2. Create a raster coverage with metadata
 # read a raster file and put it into a vector

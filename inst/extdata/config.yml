@@ -7,31 +7,25 @@ default:
     # minimum number of samples for multicore processing
     minimum_number_samples   : 1000
 
-    # Protocols accepted for data acess
-    protocols               : ["WTSS", "SATVEG", "RASTER", "STACK", "EOCUBES"]
+    # Data services known to sits
+    services                : ["WTSS", "SATVEG", "RASTER", "STACK", "EOCUBES"]
 
-    # Time series services known to sits
-    ts_services             : ["WTSS-INPE", "SATVEG", "RASTER", "STACK", "EOCUBES"]
-
-    # Names of ts_services per protocols
-    WTSS_services           : ["WTSS-INPE"]
-    SATVEG_services         : ["SATVEG"]
-    RASTER_protocol         : ["RASTER"]
-    STACK_protocol          : ["STACK"]
-    EOCUBES_services        : ["EOCUBES"]
+    # Names of the providers of services
+    WTSS_providers           : ["WTSS-INPE"]
+    SATVEG_providers         : ["SATVEG-EMBRAPA"]
+    RASTER_providers         : ["RASTER"]
+    STACK_providers          : ["STACK"]
+    EOCUBES_providers        : ["EOCUBES-INPE"]
 
     # URL to access each WTSS service
-    WTSS-INPE_protocol      : "WTSS"
     WTSS-INPE_server        : "http://www.esensing.dpi.inpe.br/wtss/"
 
-    # URL to access each WTSS service
-    EOCUBES_protocol      : "EOCUBES"
-    EOCUBES_server        : "eocubes"
+    # URL to access each EOCUBES service
+    EOCUBES-INPE_server        : "eocubes"
 
     # URL to access SATVEG
-    SATVEG_protocol         : "SATVEG"
-    SATVEG_server           : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
-    SATVEG_coverages        : ["terra", "aqua", "comb"]
+    SATVEG-EMBRAPA_server   : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
+    SATVEG-EMBRAPA_coverages : ["terra", "aqua", "comb"]
 
     SATVEG_bands            :
         terra               : &bands-sv ["ndvi", "evi"]

@@ -64,7 +64,7 @@ from the WTSS service.
 \examples{
 \donttest{
 # Read a single lat long point from a WTSS server
-wtss_coverage <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+wtss_coverage <- sits_coverage(service = "WTSS", name = "MOD13Q1")
 point.tb <- sits_get_data (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
 sits_plot(point.tb)
 

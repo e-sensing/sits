@@ -5,13 +5,11 @@
 #' @description Uses the configuration file to print information about the services, products and coverages.
 #' @export
 sits_services <- function() {
-    services <- sits.env$config$ts_services
+    services <- sits.env$config$services
 
     for (s in services) {
-        # get the protocol associated with the service
-        protocol <- .sits_get_protocol(s)
 
-        if (protocol == "WTSS") {
+        if (s == "WTSS") {
             tryCatch({
                 URL  <- .sits_get_server(s)
                 # obtains information about the available coverages
@@ -37,7 +35,7 @@ sits_services <- function() {
                 bands <- as.vector(attr[,"name"])
                 cat(paste0("      Bands: \"", paste(bands, collapse = "\", \""), "\"\n"))
             }
-        } else if (protocol == "SATVEG") {
+        } else if (s == "SATVEG") {
             cat(paste0("Service: \"", s,"\"\n"))
             q <- paste0(s,"_coverages")
             coverages <- sits.env$config[[q]]
@@ -48,7 +46,7 @@ sits_services <- function() {
                 bands <- sits.env$config[[q1]][[cov]]
                 cat(paste0("      Bands: \"", paste(bands, collapse = "\", \""), "\"\n"))
             }
-        } else if (protocol == "EOCUBES") {
+        } else if (s == "EOCUBES") {
             cat(paste0("Service: \"", s,"\"\n"))
 
             remote.obj   <- EOCubes::remote(name = "eocubes")

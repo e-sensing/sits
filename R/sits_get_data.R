@@ -48,7 +48,7 @@
 #' @examples
 #' \donttest{
 #' # Read a single lat long point from a WTSS server
-#' wtss_coverage <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+#' wtss_coverage <- sits_coverage(service = "WTSS", name = "MOD13Q1")
 #' point.tb <- sits_get_data (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
 #' sits_plot(point.tb)
 #'
@@ -343,9 +343,9 @@ sits_get_data <- function(coverage    = NULL,
                                bands,
                                prefilter  = "1",
                                label = "NoClass") {
-    protocol <- .sits_get_protocol(coverage[1,]$service)
+    service <- coverage[1,]$service
 
-    if (protocol == "EOCUBES") {
+    if (service == "EOCUBES") {
         data.tb <- .sits_from_EOCubes(coverage = coverage,
                                       longitude = longitude,
                                       latitude = latitude,
@@ -355,7 +355,7 @@ sits_get_data <- function(coverage    = NULL,
                                       label = label)
         return(data.tb)
     }
-    if (protocol == "WTSS") {
+    if (service == "WTSS") {
         data.tb <- .sits_from_wtss(coverage = coverage,
                                    longitude = longitude,
                                    latitude = latitude,
@@ -365,7 +365,7 @@ sits_get_data <- function(coverage    = NULL,
                                    label = label)
         return(data.tb)
     }
-    if (protocol == "SATVEG") {
+    if (service == "SATVEG") {
         data.tb <- .sits_from_satveg(coverage = coverage,
                                      longitude = longitude,
                                      latitude = latitude,
@@ -377,7 +377,7 @@ sits_get_data <- function(coverage    = NULL,
 
         return(data.tb)
     }
-    if (protocol == "RASTER") {
+    if (service == "RASTER") {
         data.tb <- .sits_from_raster(coverage = coverage,
                                      longitude = longitude,
                                      latitude = latitude,

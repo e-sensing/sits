@@ -4,10 +4,12 @@
 \alias{.sits_get_server}
 \title{Retrieve the time series server for the product}
 \usage{
-.sits_get_server(service)
+.sits_get_server(service, provider = NULL)
 }
 \arguments{
-\item{service}{Name of the service.}
+\item{service}{Name of the data service}
+
+\item{provider}{URL of the service or name of the provider}
 }
 \value{
 A string with the server URL that provides the service.

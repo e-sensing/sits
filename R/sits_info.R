@@ -11,10 +11,8 @@ sits_info_services <- function() {
 
     services %>%
         purrr::map(function(s) {
-            # get the protocol associated with the service
-            protocol <- .sits_get_protocol(s)
 
-            if (protocol == "WTSS") {
+            if (s == "WTSS") {
                 tryCatch({
                     URL  <- .sits_get_server(s)
                     # obtains information about the available coverages
@@ -31,7 +29,7 @@ sits_info_services <- function() {
                 cat(paste0("Service -- ", s))
                 cat(paste0("---- Coverages -- ", names))
             }
-            if (protocol == "SATVEG"){
+            if (s == "SATVEG"){
                 q <- paste0("SATVEG_coverages")
                 names <- sits.env$config[[q]]
                 cat(paste0("Service -- ", s))

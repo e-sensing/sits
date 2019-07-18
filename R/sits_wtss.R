@@ -29,11 +29,11 @@
 sits_info_wtss <- function() {
     wtss.obj <- NULL
     # obtains information about the WTSS service
-    services <- .sits_get_services(protocol = "WTSS")
+    providers <- .sits_get_providers(service = "WTSS")
 
-    services %>%
-        purrr::map(function (service) {
-            URL       <- .sits_get_server(service)
+    providers %>%
+        purrr::map(function(p) {
+            URL       <- .sits_get_server(service = "WTSS", provider = p)
             tryCatch({
                 wtss.obj  <- wtss::WTSS(URL)
                 cat(paste("-----------------------------------------------------------", "\n",sep = ""))
@@ -56,7 +56,6 @@ sits_info_wtss <- function() {
 
     return(invisible(wtss.obj))
 }
-
 #' @title Obtain one timeSeries from WTSS server and load it on a sits tibble
 #' @name .sits_from_wtss
 #'

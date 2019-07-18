@@ -78,34 +78,6 @@ sits_show_config <- function() {
     return(invisible())
 }
 
-#' @title Get an account to access a time series service
-#' @name .sits_get_account
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param service        Name of the time series service.
-#' @param name           Name of the coverage.
-#' @return The account for service access.
-.sits_get_account <- function(service, name) {
-    # pre-condition
-    ensurer::ensure_that(service, (.) == "SATVEG",
-                         err_desc = "Account only required for service SATVEG")
-
-    i1      <- paste0(service,"_account")
-    account <- sits.env$config[[i1]][[name]]
-
-    # get the server URL from the configuration file
-    s <- paste0(service,"_server")
-    serverURL <- sits.env$config[[s]]
-
-    accountURL <- paste0(serverURL, account)
-
-    #post-condition
-    ensurer::ensure_that(accountURL, length(.) > 0,
-                         err_desc = paste0("accountURL not available for service ", service))
-
-    return(accountURL)
-}
-
 #' @title Retrieve the bands avaliable for the product in the time series service
 #' @name .sits_get_bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -115,7 +87,7 @@ sits_show_config <- function() {
 #' @return The available bands.
 .sits_get_bands <- function(service, name){
     # pre-condition
-    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
+    ensurer::ensure_that(service, (.) %in% sits.env$config$services,
                          err_desc = "Service not available - check configuration file")
 
     # get the bands information from the configuration file
@@ -261,7 +233,7 @@ sits_show_config <- function() {
 #' @return CRS PROJ4 infomation.
 .sits_get_projection <- function(service, name) {
     # pre-condition
-    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
+    ensurer::ensure_that(service, (.) %in% sits.env$config$services,
                          err_desc = "Service not available - check configuration file")
     # create a string to store the query
     s <- paste0(service, "_crs")
@@ -272,23 +244,14 @@ sits_show_config <- function() {
                          err_desc = paste0("Projection information for coverage ", name, " of service ", service, " not available"))
     return(crs)
 }
-
-#' @title Retrieve the protocol associated to the time series service
-#' @name .sits_get_protocol
+#' @title List the data services available
+#' @name .sits_get_providers
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service         The name of the service.
-#' @return The protocol associated to the service.
-.sits_get_protocol <- function(service) {
-    # pre-condition
-    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
-                         err_desc = "Service not available - check configuration file")
-
-    # get the server URL from the configuration file
-    s <- paste0(service,"_protocol")
-    protocol <- sits.env$config[[s]]
-
-    return(protocol)
+#' @return List of providers associated to a service
+.sits_get_providers <- function(service) {
+    p <- paste0(service,"_providers")
+    return(sits.env$config[[p]])
 }
 
 #' @title Retrieve the pixel resolution for an image product
@@ -346,34 +309,42 @@ sits_show_config <- function() {
 #' @name .sits_get_server
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service         Name of the service.
+#' @param service        Name of the data service
+#' @param provider       URL of the service or name of the provider
 #' @return A string with the server URL that provides the service.
-.sits_get_server <- function(service) {
+.sits_get_server <- function(service, provider = NULL) {
     # pre-condition
-    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
+    ensurer::ensure_that(service, (.) %in% sits.env$config$services,
                          err_desc = "Service not available - check configuration file")
 
-    # get the server URL from the configuration file
-    s <- paste0(service,"_server")
-    serverURL <- sits.env$config[[s]]
+    # Provider must be consistent
 
-    return(serverURL)
+    # if provider is not given, take the first one as default
+    if (purrr::is_null(provider)) {
+        p <- paste0(service,"_providers")
+        provider  <- sits.env$config[[p]][[1]]
+    }
+
+    # try to see if user gave a URL or a the name of a provider
+    if (length(grep("http", provider)) != 0)
+        return(provider)
+    else {
+        # get the server URL for the provider from the configuration file
+        s <- paste0(provider,"_server")
+        serverURL <- sits.env$config[[s]]
+        return(serverURL)
+    }
 }
 
-#' @title List the time series services available
+
+
+#' @title List the data services available
 #' @name .sits_get_services
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param protocol  A string with the protocol used to assess the time series service.
-#' @return Vector of (nrows, ncols).
-.sits_get_services <- function(protocol = NULL) {
-    if (purrr::is_null(protocol))
-        return(sits.env$config$ts_services)
-    else{
-        ensurer::ensure_that(protocol, (.) %in% sits.env$config$protocols)
-        s <- paste0(protocol, "_services")
-        return(sits.env$config[[s]])
-    }
+#' @return List of services supported by SITS
+.sits_get_services <- function() {
+        return(sits.env$config$services)
 }
 
 #' @title Retrieve the size of the product for a given time series service
@@ -399,7 +370,7 @@ sits_show_config <- function() {
         i1  <- paste0(service,"_size")
 
         names(size) %>%
-            purrr::map(function (c){
+            purrr::map(function(c){
                 size[c] <<- sits.env$config[[i1]][[name]][[c]]
             })
     }
@@ -428,9 +399,7 @@ sits_show_config <- function() {
         return(timeline)
     }
 
-    protocol <- .sits_get_protocol(service)
-
-    if (protocol == "WTSS") {
+    if (service == "WTSS") {
         URL  <- .sits_get_server(service)
         # obtains information about the available coverages
         wtss.obj         <- wtss::WTSS(URL)
@@ -548,7 +517,7 @@ sits_show_config <- function() {
 #' @param service        Name of the time series service.
 .sits_check_service <- function(service){
     # Ensure that the service is available
-    ensurer::ensure_that(service, (.) %in% sits.env$config$ts_services,
-                         err_desc = "sits_get_data: Invalid time series service")
+    ensurer::ensure_that(service, (.) %in% sits.env$config$services,
+                         err_desc = "sits_get_data: Invalid data service")
     return(TRUE)
 }

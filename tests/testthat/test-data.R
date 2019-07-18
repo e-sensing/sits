@@ -1,10 +1,10 @@
 context("Data input")
 test_that("Creating a WTSS coverage", {
     #skip_on_cran()
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+    coverage_wtss <- sits_coverage(service = "WTSS", name = "MOD13Q1")
 
     expect_equal(length(names(coverage_wtss)), 20)
-    expect_true(coverage_wtss$service == "WTSS-INPE")
+    expect_true(coverage_wtss$service == "WTSS")
     expect_true(length(coverage_wtss$timeline[[1]][[1]]) > 1)
 })
 
@@ -19,7 +19,7 @@ test_that("Creating a SATVEG coverage", {
 test_that("Reading a CSV file from WTSS", {
     #skip_on_cran()
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+    coverage_wtss <- sits_coverage(service = "WTSS", name = "MOD13Q1")
     expect_equal(length(names(coverage_wtss)), 20)
 
     points.tb <- sits_get_data(coverage = coverage_wtss, file = csv_file)
@@ -60,7 +60,7 @@ test_that("Reading a CSV file from RASTER", {
 
 test_that("Reading a point from WTSS ", {
     #skip_on_cran()
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+    coverage_wtss <- sits_coverage(service = "WTSS", name = "MOD13Q1")
     point.tb <- sits_get_data(coverage = coverage_wtss, longitude = -55.50563, latitude = -11.71557)
     timeline <- as.vector(point.tb$time_series[[1]]$Index)
 
@@ -107,7 +107,7 @@ test_that("Reading a ZOO time series", {
 
 test_that("Reading a shapefile", {
     #skip_on_cran()
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+    coverage_wtss <- sits_coverage(service = "WTSS", name = "MOD13Q1")
     shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
     munic.tb <- sits_get_data(coverage = coverage_wtss, file = shp_file)
 
@@ -120,7 +120,7 @@ test_that("Reading a shapefile", {
 })
 
 test_that("get_data", {
-    wtss_coverage <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+    wtss_coverage <- sits_coverage(service = "WTSS", name = "MOD13Q1")
     point.tb <- sits_get_data(wtss_coverage, longitude = -55.50563, latitude = -11.71557)
     sits_plot(point.tb)
 

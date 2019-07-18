@@ -12,7 +12,7 @@ test_that("XLS", {
 })
 
 test_that("Accuracy", {
-    coverage_wtss <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+    coverage_wtss <- sits_coverage(service = "WTSS", name = "MOD13Q1")
 
     data.tb <- sits_get_data(file = system.file("extdata/samples/samples_matogrosso.csv", package = "sits"),
                         coverage = coverage_wtss,

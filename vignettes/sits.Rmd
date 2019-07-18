@@ -32,15 +32,7 @@ fontsize: 11pt
 graphics: true
 mathtools: true
 bibliography: ../inst/extdata/markdown/references-sits.bib
-abstract: Using time series derived from big Earth Observation data sets is one of
-  the leading research trends in Land Use Science and Remote Sensing. One of the more
-  promising uses of satellite time series is its application for classification of
-  land use and land cover, since our growing demand for natural resources has caused
-  major environmental impacts. Here, we present an open source *R* package for satellite
-  image time series analysis called `sits`. Package `sits` provides support on how
-  to use statistical learning techniques with image time series. These methods include
-  linear and quadratic discrimination analysis, support vector machines, random forests,
-  and neural networks.
+abstract: Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. Here, we present an open source *R* package for satellit eimage time series analysis called `sits`. Package `sits` provides support on how to use statistical learning techniques with image time series. These methods include linear and quadratic discrimination analysis, support vector machines, random forests, and neural networks.
 vignette: |
   %\VignetteEncoding{UTF-8} 
   %\VignetteEngine{knitr::rmarkdown} 
@@ -62,10 +54,6 @@ Time series of remote sensing data show that land cover can occur not only in a 
 
 In this work, we present `sits`, an open source R package for satellite image time series analysis. It provides support on how to use machine learning techniques with image time series. These methods include linear and quadratic discrimination analysis, support vector machines, random forests, and neural networks. One important contribution of the `sits` package is to support the complete cycle of data analysis for time series classification, including data acquisition, visualisation, filtering, clustering, classification, validation and post-classification adjustments. 
 
-In what follows, we describe the main characteristics of the `sits` package. The first part describes its basic data structures and the tools used for visualization and data exploration. Then we describe data acquisition from external sources. The next sections describe filtering and clustering techniques. We then discuss machine learning techniques for satellite image time series data and how to apply them to image time series. Finally, we present validation and post-classification methods.
-
-# Previous Work and Research Contribution
-
 Most studies using satellite image time series for land cover classification use a \emph{space-first, time-later} approach. For multiyear studies, researchers first derive best-fit yearly composites and then classify each composite image. For a review of these methods for land use and land cover classification using time series, see [@Gomez2016]. As an alternative to \emph{Space-first, time-later} methods, the `sits` package provides support for classification of time series, preserving the full temporal resolution of the input data, using a \emph{time-first, space-later} approach. One can also use `sits` to work using the \emph{space-first, time-later} approach, as it will become clear in our discussion below.
 
 Algorithms for processing image time series using a \emph{time-first, space-later} approach include BFAST for detecting breaks [@Verbesselt2010], TIMESAT for modelling and measuring phenological attributes [@Jonsson2004] and methods based on Dynamic Time Warping (DTW) for land use and land cover classification [@Maus2016}. An additional approach, available in `sits` is to use the full time series to create larger dimensional spaces for machine learning. The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. Each temporal instance of a time series is taken as an independent dimension in the feature space of the classifier. 
@@ -73,35 +61,43 @@ Algorithms for processing image time series using a \emph{time-first, space-late
 To the authors' best knowledge, the classification techniques included in the `sits` package are not previoulsy available in other R or python packages. Furthermore, the package includes methods for filtering, clustering and post-processing that also have not been published in the literature. 
 
 
-# Web Services for Raster data
+# Using Web Data Services to Access Image Data
 
-One of the distinguishing features of `sits` is that it has been designed to work with big satellite image data sets which reside on the cloud. Many *R* packages that deal with remote sensing images require data to be accessible in a local computer. However, with the coming of age of big Earth observation data, it is not practical to transfer large data sets. Therefore, the package uses the concept of web services. We focus on two kinds of services: those that provide time series data and those that provide access to data cubes. Currently, `sits` works with four services:
+One of the distinguishing features of `sits` is that it has been designed to work with big satellite image data sets which reside on the cloud. Many *R* packages that work with remote sensing images require data to be accessible in a local computer. However, with the coming of age of big Earth observation data, it is not practical to transfer large data sets. Users have to rely on web services to provide access to these data sets. In this context, the `sits` package is based on four concepts:
 
-* WTSS (Web Series Time Service). WTSS is a light-weight service for retrieval of time series data for selected locations and periods [@Vinhas2016]. The functions include listing the data sets available in the server, describing the contents of a data set, and retrieving a time series based on spatial location and temporal filters.
-* SATVEG service.  The SATVEG service provides NDVI and EVI time series vegetation indices from MODIS image for the whole Brazilian territory and has been developed by EMBRAPA (Brazil's Agriculture Research Agency)[@Embrapa2014].
-* EOCUBES service. The EOCUBES service provides access to big data collections, which are organised by the `EOCubes` package. 
-* RASTER service: the RASTER service is used to create coverages, based on Raster Bricks and associated temporal information. This service should be use for those that want to use `sits` based on files (which can be local or remote).
+* Image collections: Following @Appel2019, we define an image collection is a set of 2D images, where each image contains different spectral bands. All bands from one image share a common spatial footprint, acquisition date/time, and spatial reference system. Images in a collection may have different pixel sizes. Image collections are typically stored in cloud services such as AWS. 
+
+* Web services: In `sits`, a web service is software system designed to support remote access to image collections through APIs. These are machine-to-machine protocols that allow access to image collections and to generate *coverages*. The package `sits` uses two kinds of services: those that provide time series data and those that provide access to data cubes. Currently, there are no established standards for these two services. For this reason, `sits` uses two new protocols: WTSS ("Web Time Series Serice") and EOCubes ("Earth observation Data Cubes Services") that we have develop.  WTSS is a light-weight service for retrieval of time series data for selected locations and periods [@Vinhas2016]. The WTSS R client is available in the CRAN archive using the `wtss` package. The EOCUBES service provides access to big data collections, which are organised by the `EOCubes` package. 
+
+* Coverages: A coverage is the data type used in `sits` to handle dense raster data. Its definition corresponds to that of a *data cube*. Generalising @Appel2019, we consider that a coverage (or data cube) is a four-dimensional array with dimensions x (longitude or easting), y (latitude or northing), time, and bands. Its spatial dimensions refer to a single spatial reference system (SRS). Cells of a data cube have a constant spatial size (with regard to the cube’s SRS). The temporal dimension is specified by a set of intervals. For every combination of dimensions, a cell has a single value. 
+
+The package `sits` also allows access to the SATVEG service, which provides NDVI and EVI time series vegetation indices from MODIS image for the whole Brazilian territory and has been developed by EMBRAPA (Brazil's Agriculture Research Agency)[@Embrapa2014]. 
+
+To allow users to create coverages based on files (either local or remote) `sits` allows the definition of a pseudo-service, called "RASTER". In this case, all information about the data has to be provided, including names and location of files and their temporal information.
 
 To find out the services and respective coverages available, one should use the `sits_services()` function. 
 ```{r}
 sits_services()
 ```
 
-We use these services to build coverages. A coverage is the data type used in `sits` to handle dense raster data. Its definition corresponds to that of a data cube. Following and generalising @Appel2019, we consider that a data cube is a four-dimensional array with dimensions x (longitude or easting), y (latitude or northing), time, and bands. Its spatial dimensions refer to a single spatial reference system (SRS). Cells of a data cube have a constant spatial size (with regard to the cube’s SRS). The temporal dimension is specified by a set of intervals. For every combination of dimensions, a cell has a single value. 
 
-Coverages in `sits` are created using the function `sits_coverage`, which is based on the connection to a data service. The return of this function is a tibble with the metadata about the coverage that lists the contents of the data set, including source, bands, spatial extent and resolution, time range, and temporal resolution. All functions that process coverage are based on lazy evaluation. Since the contents of a coverage can be big, its cells are not loaded into memory. It is the responsibility of each function that processes coverage to do the appropriate data management and processing. Therefore, it can be argued that `sits` coverages are equivalent to the arrays defined by @Appel2019 with lazy evaluation.
+# Defining coverages
+
+We use the web services described above to define coverages. To define a coverage, users have to specify the type of the service, and the server URL that is running the service. 
 
 ```{r}
-# create a coverage from WTSS
-coverage_wtss <- sits_coverage(service = "WTSS-INPE",
+# define a coverage from WTSS service the collection "MOD13Q1"
+# In this case, the WTSS service is run by a server in INPE Brazil
+coverage_wtss <- sits_coverage(service = "WTSS",
+                               provider  = "http://www.esensing.dpi.inpe.br/wtss/",
                                name    = "MOD13Q1")
 
 # get information on the coverage
 coverage_wtss %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
 
-# create a coverage from EOCUBES services
+# create a coverage from EOCUBES service from the collection "MOD13Q1/006"
 coverage_eocubes <- sits_coverage(service = "EOCUBES",
-                               name    = "MOD13Q1/006")
+                                  name    = "MOD13Q1/006")
 
 # get information on the coverage
 coverage_eocubes %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
@@ -116,16 +112,18 @@ evi_file <- paste0("/vsicurl/https://s3-sa-east-1.amazonaws.com/landsat-modis/Si
 data(timeline_modis_392)
 
 # create a raster metadata file based on the information about the files
-coverage_raster <- sits_coverage(service = "RASTER", name = "Sinop",
-                           timeline = timeline_modis_392,
-                           bands = c("ndvi", "evi"),
-                           files = c(ndvi_file, evi_file))
+coverage_raster <- sits_coverage(service = "RASTER", 
+                                 name = "Sinop",
+                                 timeline = timeline_modis_392,
+                                 bands = c("ndvi", "evi"),
+                                 files = c(ndvi_file, evi_file))
 
 # get information on the coverage
 coverage_raster %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
 ```
 
-Once a coverage has been created, it can be used for extracting time series and for data analysis and classification. 
+Once a coverage has been created, it can be used for extracting time series and for data analysis and classification, using the function `sits_get_data()`, descibed below. 
+
 
 # Time Series
 

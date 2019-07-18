@@ -1,46 +1,36 @@
 #' @title Provides information about one coverage used to retrieve data
 #' @name sits_coverage
 #'
-#' @description Defines a coverage to retrieve data. As default, it uses the metadata about a
-#' chosen coverage stored in an yml configuration file.
+#' @description Defines a coverage to retrieve data. Coverages are associated to
+#' data services. The following services are available:
 #' \itemize{
-#' \item{service: }{Name of time series service that provides the coverage (e.g., "WTSS", "SATVEG", "RASTER").}
-#' \item{name: }{Name of the coverage (must be unique).}
-#' \item{bands: }{Vector of bands.}
-#' \item{scale_factor: }{Vector of scale factors.}
-#' \item{missing_values: }{Vector of missing values.}
-#' \item{minimum_values: }{Vector of minimum values.}
-#' \item{maximum_values: }{Vector of maximum values.}
-#' \item{timeline: }{The timelines of the coverage (more than one if data has been classified).}
-#' \item{xmin: }{Spatial extent (xmin).}
-#' \item{ymin: }{Spatial extent (ymin).}
-#' \item{xmax: }{Spatial extent (xmax).}
-#' \item{ymax: }{Spatial extent (ymin).}
-#' \item{xres: }{Spatial resolution (x dimension).}
-#' \item{yres: }{Spatial resolution (y dimension).}
-#' \item{crs: }{Projection CRS.}
-#' \item{files: }{Files associated with the coverage (in case of raster data).}
+#'  \item{"WTSS": }{Web Time Series Service - used to get time series}
+#'  \item{"EOCUBES": }{EOCUBES service - used for cloud processing of data cubes}
+#'  \item{"RASTER": }{Raster Brick files, local or remote}
+#'  \item{"STACK": }{Raster Stack files, local or remote}
 #' }
 #'
-#' @param service           Name of the time series service.
-#' @param name              Name of the coverage.
-#' @param timeline          Vector with the timeline of the coverage.
+#'
+#' @param service           Name of the data service.
+#' @param provider          Name of the service provider.
+#' @param name              Name of the image collection.
+#' @param tiles_names       A string with tile names to be filtered.
+#' @param geom              A \code{sfc} object to filter tiles that intersects the given geometry.
+#' @param from              A date value to filter cube's layers by date.
+#' @param to                A date value to filter cube's layers by date.
+#' @param timeline          Vector with the timeline of the collection.
 #' @param bands             Vector of bands.
 #' @param scale_factors     Vector with the scale factor for each band.
 #' @param missing_values    Vector of missing values for each band.
 #' @param minimum_values    Vector of minimum values for each band.
 #' @param maximum_values    Vector of maximum values for each band.
 #' @param files             Vector of file names for each band (only for raster data).
-#' @param tiles_names       A string with tile names to be filtered.
-#' @param geom              A \code{sfc} object to filter tiles that intersects the given geometry.
-#' @param from              A date value to filter cube's layers by date.
-#' @param to                A date value to filter cube's layers by date.
 #'
 #' @seealso To see the available values for the parameters above use \code{\link{sits_services}}, \code{\link{sits_config}} or \code{\link{sits_show_config}}.
 #' @examples
 #' \donttest{
-#' # Example 1. Retrieve information about a WTSS coverage
-#' coverage.tb <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+#' # Example 1. Retrieve information about a WTSS collection
+#' coverage.tb <- sits_coverage(service = "WTSS", name = "MOD13Q1")
 #'
 #' # Example 2. Create a raster coverage with metadata
 #' # read a raster file and put it into a vector
@@ -52,27 +42,28 @@
 #' }
 #' @export
 sits_coverage <- function(service        = "RASTER",
-                          name,
+                          provider       = NULL,
+                          name           = NULL,
+                          tiles_names    = NULL,
+                          geom           = NULL,
+                          from           = NULL,
+                          to             = NULL,
                           timeline       = NULL,
                           bands          = NULL,
                           missing_values = NULL,
                           scale_factors  = NULL,
                           minimum_values = NULL,
                           maximum_values = NULL,
-                          files          = NA,
-                          tiles_names    = NULL,
-                          geom           = NULL,
-                          from           = NULL,
-                          to             = NULL) {
+                          files          = NA) {
 
 
+    # backward compatibility
+    if (service == "WTSS-INPE")
+        service <- "WTSS"
     # pre-condition
     .sits_check_service(service)
 
-    # get the protocol associated with the service
-    protocol <- .sits_get_protocol(service)
-
-    if (protocol == "WTSS") {
+    if (service == "WTSS") {
 
         # pre-condition
         if (any(!is.na(files))) {
@@ -83,14 +74,13 @@ sits_coverage <- function(service        = "RASTER",
             return(NULL)
         }
 
+        serverURL  <- .sits_get_server(service, provider)
         tryCatch({
-            URL  <- .sits_get_server(service)
-
             # obtains information about the available coverages
-            wtss.obj   <- wtss::WTSS(URL)
+            wtss.obj   <- wtss::WTSS(serverURL)
 
         }, error = function(e){
-            msg <- paste0("WTSS service not available at URL ", URL)
+            msg <- paste0("WTSS service not available at URL ", serverURL)
             .sits_log_error(msg)
             message(msg)
         })
@@ -98,7 +88,7 @@ sits_coverage <- function(service        = "RASTER",
         # create a coverage
         coverage.tb <- .sits_coverage_WTSS(wtss.obj, service, name, bands)
     }
-    else if (protocol == "SATVEG") {
+    else if (service == "SATVEG") {
 
         # pre-condition
         if (any(!is.na(files))) {
@@ -111,7 +101,7 @@ sits_coverage <- function(service        = "RASTER",
 
         coverage.tb <- .sits_coverage_SATVEG(name, timeline, bands)
     }
-    else if (protocol == "EOCUBES") {
+    else if (service == "EOCUBES") {
 
         # pre-condition
         if (any(!is.na(files))) {
@@ -137,7 +127,7 @@ sits_coverage <- function(service        = "RASTER",
         # create a coverage
         coverage.tb <- .sits_coverage_EOCUBES(remote.obj, service, name, bands, tiles_names, geom, from, to)
     }
-    else if (protocol == "RASTER") {
+    else if (service == "RASTER") {
 
         # append "vsicurl" prefix for all web files
         web_files <- grepl(pattern = "^[^:/].+://.+$", x = files)
@@ -156,7 +146,7 @@ sits_coverage <- function(service        = "RASTER",
                                              minimum_values.vec = minimum_values,
                                              maximum_values.vec = maximum_values,
                                              files.vec          = files)
-    } else if (protocol == "STACK") {
+    } else if (service == "STACK") {
 
         files <- lapply(files, function(band) {
             # append "vsicurl" prefix for all web files

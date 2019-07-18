@@ -4,7 +4,7 @@ message("WTSS is a web time series service developed by INPE")
 library(sits)
 
 # get information about a specific coverage
-coverage_wtss.tb <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+coverage_wtss.tb <- sits_coverage(service = "WTSS", name = "MOD13Q1")
 
 # retrieve the time series associated with the point from the WTSS server
 point.tb <- sits_get_data(coverage_wtss.tb, longitude = -47.0516, latitude = -10.7241,

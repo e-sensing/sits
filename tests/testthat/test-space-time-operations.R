@@ -13,7 +13,7 @@ test_that("All", {
 })
 
 test_that("Convert", {
-    wtss_coverage <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+    wtss_coverage <- sits_coverage(service = "WTSS", name = "MOD13Q1")
 
     res <- sits:::.sits_convert_resolution(wtss_coverage)
 
@@ -22,7 +22,7 @@ test_that("Convert", {
 })
 
 test_that("Inside", {
-    wtss_coverage <- sits_coverage(service = "WTSS-INPE", name = "MOD13Q1")
+    wtss_coverage <- sits_coverage(service = "WTSS", name = "MOD13Q1")
 
     point <- data.frame(X = 1, Y = 1)
 
