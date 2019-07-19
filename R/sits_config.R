@@ -247,6 +247,7 @@ sits_show_config <- function() {
 #' @title List the data services available
 #' @name .sits_get_providers
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param service        Name of the service.
 #'
 #' @return List of providers associated to a service
 .sits_get_providers <- function(service) {
