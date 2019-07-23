@@ -46,6 +46,10 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
 
     pallete_neighbors <- c(pastel1, set1, accent)
 
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
     # does the input data exist?
     .sits_test_tibble(data.tb)
 
@@ -60,7 +64,7 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
     time_series <- sits_values(data.tb, format = "bands_cases_dates")
 
     # creates the resulting tibble
-    cluster.tb <- sits_tibble()
+    cluster.tb <- .sits_tibble()
 
     grid <- kohonen::somgrid(xdim = grid_xdim, ydim = grid_ydim, topo = "rectangular", neighbourhood.fct = neighbourhood.fct)
     kohonen_obj  <- kohonen::supersom(
@@ -212,7 +216,9 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
 
 sits_evaluate_samples <- function(data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 100,
                                   alpha = 1, radius = 6, distance = "euclidean", iterations = 1, mode = "online") {
-
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # does the input data exist?
     .sits_test_tibble(data.tb)
     # get the time series
@@ -559,6 +565,9 @@ sits_subgroup <- function(koh)
 
 sits_evaluate_cluster <- function(data.tb)
 {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     #Initialize variables
     id_sample <- NULL
     neuron_label <- NULL

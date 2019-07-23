@@ -1,25 +1,21 @@
 #' @title Use time series values from a sits tibble as distances for training patterns
-#' @name sits_distances
+#' @name .sits_distances
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function allows using a set of labelled time series as
 #' input to the machine learning models. The attributes used to train the model
 #' are the series themselves. This function extracts the time series from a sits tibble
-#' and "spreads" them in time to produce a tibble with distances. It needs an additional
-#' value that adjusts the values of the time series to meet the criteria of
-#' machine learning methods, since most ML methods do not allow for negative data.
+#' and "spreads" them in time to produce a tibble with distances.
 #'
 #' @param  data.tb       A tibble with time series data and metadata.
 #' @return A data.table where columns have the reference label and the time series values as distances.
 #'
-#' @examples
-#' # Retrieve the set of samples for the Cerrado and Pasture classes
-#' data(cerrado_2classes)
-#' # estimate distances from the data
-#' distances <- sits_distances(cerrado_2classes)
-#' @export
-sits_distances <- function(data.tb) {
+.sits_distances <- function(data.tb) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
     # create a list with the time series transposed from columns to rows
     ts.lst <- data.tb$time_series %>%
         purrr::map(function(ts){

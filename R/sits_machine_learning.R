@@ -12,9 +12,8 @@
 #' 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 #' 'lasso' (see \code{\link[sits]{sits_mlr}}), 'ridge' (see \code{\link[sits]{sits_mlr}}),
 #' and 'deep learning' (see \code{\link[sits]{sits_deeplearning}}).
-#' The sits_train function is called inside \code{\link[sits]{sits_classify}}
-#' and \code{\link[sits]{sits_classify_raster}}, so the user does not need
-#' to explicitly use this function. Please see the above-mention classification functions.
+#' The sits_train function is called inside \code{\link[sits]{sits_classify}} , so the user does not need
+#' to explicitly use this function. Please see the above-mention classification function.
 #'
 #' @param  data.tb          Time series with the training samples.
 #' @param  ml_method        Machine learning method that returns a model for prediction.
@@ -33,6 +32,9 @@
 #' }
 #' @export
 sits_train <- function(data.tb, ml_method = sits_svm()) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # is the input data a valid sits tibble?
     ensurer::ensure_that(data.tb, "label" %in% names(.),
                          err_desc = "sits_train: input data does not contain a valid sits tibble")
@@ -104,11 +106,15 @@ sits_deeplearning <- function(data.tb          = NULL,
                               validation_split = 0.2,
                               verbose          = 1,
                               binary_classification = FALSE) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data.tb){
         # data normalization
         stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb))
+        train_data_DT <- .sits_distances(sits_normalize_data(data.tb, stats.tb))
 
         # is the train data correct?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
@@ -231,7 +237,7 @@ sits_deeplearning <- function(data.tb          = NULL,
 #'
 #' @description This function receives a tibble with a set of attributes X for each observation Y
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in sits (see \code{\link[sits]{sits_distances}}).
+#' function in sits (see \code{\link[sits]{.sits_distances}}).
 #' The method performs a linear discriminant analysis (lda) to obtain a predictive model.
 #' This function is a front-end to the "lda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
@@ -256,12 +262,15 @@ sits_deeplearning <- function(data.tb          = NULL,
 #' }
 #' @export
 sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(data.tb){
 
         # data normalization
         stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb))
+        train_data_DT <- .sits_distances(sits_normalize_data(data.tb, stats.tb))
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
@@ -299,7 +308,7 @@ sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #'
 #' @description This function receives a tibble with a set of attributes X for each observation Y
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in sits (see \code{\link[sits]{sits_distances}}).
+#' function in sits (see \code{\link[sits]{.sits_distances}}).
 #' The function performs a quadratic discriminant analysis (qda) to obtain a predictive model.
 #' This function is a front-end to the "qda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
@@ -324,12 +333,15 @@ sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' }
 #' @export
 sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # function that returns MASS::qda model based on a sits sample tibble
     result_fun <- function(data.tb){
 
         # data normalization
         stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb))
+        train_data_DT <- .sits_distances(sits_normalize_data(data.tb, stats.tb))
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -362,7 +374,7 @@ sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #'
 #' @description Use multinomial log-linear (mlr) fitting model via neural networks to classify data.
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in sits (see \code{\link[sits]{sits_distances}}).
+#' function in sits (see \code{\link[sits]{.sits_distances}}).
 #' This function is a front-end to the "multinom" method in the "nnet" package.
 #' Please refer to the documentation in that package for more details.
 #'
@@ -388,11 +400,14 @@ sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' @export
 sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # function that returns nnet::multinom model based on a sits sample tibble
     result_fun <- function(data.tb) {
 
         stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb))
+        train_data_DT <- .sits_distances(sits_normalize_data(data.tb, stats.tb))
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -449,6 +464,9 @@ sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
 #' }
 #' @export
 sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # function that returns a randomForest model based on a sits sample tibble
     result_fun <- function(data.tb){
 
@@ -460,7 +478,7 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
         names(int_labels) <- labels
 
         # calculate the distances
-        train_data_DT <- sits_distances(data.tb)
+        train_data_DT <- .sits_distances(data.tb)
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         formula <- sits_formula_linear()(train_data_DT)
@@ -496,7 +514,7 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #'
 #' @description This function receives a tibble with a set of attributes X for each observation Y.
 #' These attributes are distance metrics between patterns and observations, obtained by a distance
-#' function in sits (see \code{\link[sits]{sits_distances}}).
+#' function in sits (see \code{\link[sits]{.sits_distances}}).
 #' The SVM algorithm is used for multiclass-classification.
 #' For this purpose, it uses the "one-against-one" approach, in which k(k-1)/2 binary
 #' classifiers are trained; the appropriate class is found by a voting scheme.
@@ -532,12 +550,15 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' @export
 sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), scale = FALSE, cachesize = 1000,
                      kernel = "radial", degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0, ...) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(data.tb){
 
         # data normalization
         stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb))
+        train_data_DT <- .sits_distances(sits_normalize_data(data.tb, stats.tb))
 
         # if parameter formula is a function call it passing as argument the input data sample.
         # The function must return a valid formula.
@@ -724,8 +745,7 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 #'
 #' @description Given a sits tibble time series and a model trained by \code{\link[sits]{sits_train}},
 #'   returns a predicted label. Note that this function is
-#'   called inside \code{\link[sits]{sits_classify}},
-#'   and \code{\link[sits]{sits_classify_raster}}, so the user does not need
+#'   called inside \code{\link[sits]{sits_classify}}, so the user does not need
 #'   to explicitly use it. Please see the above-mentioned classification functions.
 #'
 #' @param distances_DT  Set of distance metrics to each of the classes.

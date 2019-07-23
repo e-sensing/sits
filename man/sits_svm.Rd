@@ -37,7 +37,7 @@ sits_svm(data.tb = NULL, formula = sits_formula_logref(),
 \description{
 This function receives a tibble with a set of attributes X for each observation Y.
 These attributes are distance metrics between patterns and observations, obtained by a distance
-function in sits (see \code{\link[sits]{sits_distances}}).
+function in sits (see \code{\link[sits]{.sits_distances}}).
 The SVM algorithm is used for multiclass-classification.
 For this purpose, it uses the "one-against-one" approach, in which k(k-1)/2 binary
 classifiers are trained; the appropriate class is found by a voting scheme.

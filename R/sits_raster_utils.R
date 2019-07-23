@@ -4,17 +4,17 @@
 #' @description Verify that required parameters are correct.
 #'
 #' @param  file            Vector of file names to store the output (one file per classified year).
-#' @param  coverage        Tibble with information about a set of space-time raster bricks.
+#' @param  cube            Tibble with information about a data cube.
 #' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
 #' @return Tests succeeded?
-.sits_check_classify_params <- function(file, coverage, ml_model){
+.sits_check_classify_params <- function(file, cube, ml_model){
     # ensure metadata tibble exists
-    ensurer::ensure_that(coverage, NROW(.) > 0,
-                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
+    ensurer::ensure_that(cube, NROW(.) > 0,
+                         err_desc = "sits_classify: need a valid metadata for the cube")
 
     # ensure that file name is provided
     ensurer::ensure_that(file, !purrr::is_null(.),
-                         err_desc = "sits-classify-raster: please provide name of output file")
+                         err_desc = "sits-classify: please provide name of output file")
 
     # ensure the machine learning model has been built
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")
@@ -34,7 +34,7 @@
 .sits_check_results <- function(prediction, nrows_DT) {
     # check the result has the right dimension
     ensurer::ensure_that(prediction$probs, nrow(.) == nrows_DT,
-                         err_desc = "sits_classify_raster - number of rows of probability matrix is different
+                         err_desc = ".sits_classify_cube - number of rows of probability matrix is different
                          from number of input pixels")
     return(invisible(TRUE))
 }

@@ -16,7 +16,7 @@ sits_from_zoo(ts.zoo, longitude = 0, latitude = 0, label = "NoClass",
 
 \item{label}{Label to attach to the time series (optional).}
 
-\item{name}{Name of the coverage where data comes from.}
+\item{name}{Name of the data cube where data comes from.}
 }
 \value{
 Time series in sits tibble format.

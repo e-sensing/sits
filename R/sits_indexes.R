@@ -14,6 +14,9 @@
 #' }
 #' @export
 sits_tasseled_cap <- function(data.tb, satellite = "MODIS"){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     bands <- sits_bands(data.tb)
     bands_mod13q1 <- c("mir", "blue", "nir", "red")
     ensurer::ensure_that(bands, all(bands_mod13q1 %in% (.)),
@@ -49,6 +52,9 @@ sits_tasseled_cap <- function(data.tb, satellite = "MODIS"){
 #' }
 #' @export
 sits_savi <- function(data.tb){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     bands <- sits_bands(data.tb)
     bands_savi <- c("nir", "red")
     ensurer::ensure_that(bands, all(bands_savi %in% (.)),
@@ -74,6 +80,9 @@ sits_savi <- function(data.tb){
 #' }
 #' @export
 sits_ndwi <- function(data.tb){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     bands <- sits_bands(data.tb)
     bands_ndwi <- c("nir", "mir")
     ensurer::ensure_that(bands, all(bands_ndwi %in% (.)),

@@ -1,5 +1,5 @@
 #' @title Compute a dendrogram using hierarchical clustering
-#' @name sits_dendrogram
+#' @name .sits_dendrogram
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -19,28 +19,13 @@
 #' @param  ...            Any additional parameters to be passed to dtwclust::tsclust() function.
 #' @return A full dendrogram tree for data analysis.
 #'
-#' @examples
-#' \donttest{
-#' # Load the "dtwclust" package
-#' library (dtwclust)
-#' # load a simple data set with two classes
-#' data(cerrado_2classes)
-#' # calculate the dendrogram
-#' dendro <- sits_dendrogram (cerrado_2classes, bands = c("ndvi", "evi"))
-#' # plot the dendrogram
-#' sits_plot_dendrogram (cerrado_2classes, dendro)
-#' }
-#' @export
-sits_dendrogram <- function(data.tb, bands = NULL,
+.sits_dendrogram <- function(data.tb, bands = NULL,
                             dist_method = "dtw_basic",
                             linkage = "ward.D2", ...){
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
     }
-
-    # does the input data exist?
-    .sits_test_tibble(data.tb)
 
     # if no bands informed, get all bands available in sits tibble
     if (purrr::is_null(bands))
@@ -61,7 +46,7 @@ sits_dendrogram <- function(data.tb, bands = NULL,
 }
 
 #' @title Compute validity indexes to a range of cut height
-#' @name sits_dendro_bestcut
+#' @name .sits_dendro_bestcut
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Reads a dendrogram object and its corresponding sits tibble and
@@ -74,20 +59,10 @@ sits_dendrogram <- function(data.tb, bands = NULL,
 #' See \link[flexclust]{randIndex} for implementation details.
 #'
 #' @param data.tb          Tibble used to generate `dendro.obj`.
-#' @param dendro.obj       Dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.
-#' @return Vector with the best number of clusters (k) and its respective heigh.
+#' @param dendro.obj       Dendrogram object returned from \code{\link[sits]{.sits_dendrogram}}.
+#' @return Vector with the best number of clusters (k) and its respective height.
 #'
-#' @examples
-#' \donttest{
-#' # load a simple data set with two classes
-#' data(cerrado_2classes)
-#' # calculate the dendrogram
-#' dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi", "evi"))
-#' # include the cluster info in the sits tibble
-#' sits_dendro_bestcut (cerrado_2classes, dendro.obj)
-#' }
-#' @export
-sits_dendro_bestcut <-  function (data.tb, dendro.obj) {
+.sits_dendro_bestcut <-  function(data.tb, dendro.obj) {
     # compute range
     k_range <- seq(2, max(length(dendro.obj$height) - 1, 2))
 
@@ -109,5 +84,5 @@ sits_dendro_bestcut <-  function (data.tb, dendro.obj) {
 
     # create a named vector and return
     result.vec <- structure(c(k_result, h_result), .Names = c("k", "height"))
-    return (result.vec)
+    return(result.vec)
 }

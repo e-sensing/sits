@@ -14,6 +14,9 @@
 #' sits_labels(cerrado_2classes)
 #' @export
 sits_labels <- function(data.tb) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # get frequency table
     data.vec <- table(data.tb$label)
 
@@ -55,6 +58,9 @@ sits_labels <- function(data.tb) {
 #' }
 #' @export
 sits_relabel <- function(data.tb, conv.lst = list()){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     #does the input data exist?
     .sits_test_tibble (data.tb)
 
@@ -88,6 +94,9 @@ sits_relabel <- function(data.tb, conv.lst = list()){
 #'                     the function is used as list.lst value for the respective label.
 #' @return A list whose values non informed in list.lst is filled by fun_label for each unique label in data.tb.
 .sits_labels_list <- function(data.tb, list.lst = list(), fun_label = function(lb) lb) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # verify if data.tb has data
     .sits_test_tibble (data.tb)
 

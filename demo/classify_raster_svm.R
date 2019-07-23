@@ -11,7 +11,7 @@ evi_file <- paste0("/vsicurl/https://s3-sa-east-1.amazonaws.com/landsat-modis/Si
 data(timeline_modis_392)
 
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_coverage(service = "RASTER", name = "Sinop",
+raster.tb <- sits_cube(service = "RASTER", name = "Sinop",
                            timeline = timeline_modis_392,
                            bands = c("ndvi", "evi"),
                            files = c(ndvi_file, evi_file))
@@ -23,8 +23,8 @@ samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi)
 svm_model <- sits_train(samples.tb, ml_method = sits_svm())
 
 # classify the raster image
-raster_class.tb <- sits_classify_raster(file = "./sinop-class", raster.tb,
-                                        ml_model = svm_model, memsize = 4, multicores = 2)
+raster_class.tb <- sits_classify(raster.tb, ml_model = svm_model, memsize = 4, multicores = 2,
+                                 file = "./sinop-class")
 
 # plot the first classified image
 sits_plot_raster(raster_class.tb, time = 1, title = "SINOP MT - 2000/2001")

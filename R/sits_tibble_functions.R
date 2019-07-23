@@ -6,24 +6,28 @@
 #' This function is useful to join many time series from different years to a single year,
 #' which is required by methods that combine many time series, such as clustering methods.
 #' The reference year is taken from the date of the start of the time series
-#' available in the coverage.
+#' available in the data cube.
 #'
 #' @param  data.tb       Input sits tibble (useful for chaining functions).
 #' @param  ref_dates     Dates to align the time series.
 #' @return A tibble with the converted sits tibble (useful for chaining functions).
 #' @export
 sits_align <- function(data.tb, ref_dates) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+    .sits_test_tibble(data.tb)
     # function to shift a time series in time
     shift_ts <- function(d, k) dplyr::bind_rows(utils::tail(d,k), utils::head(d,-k))
 
     # get the reference date
     start_date <- lubridate::as_date(ref_dates[1])
     # create an output tibble
-    data1.tb <- sits_tibble()
+    data1.tb <- .sits_tibble()
 
     purrr::pmap(list(data.tb$longitude, data.tb$latitude,
-                     data.tb$label, data.tb$coverage, data.tb$time_series),
-                function(long, lat, lab, cov, ts) {
+                     data.tb$label, data.tb$cube, data.tb$time_series),
+                function(long, lat, lab, cb, ts) {
 
                     # only rows that match the number of reference dates are kept
                     if (length(ref_dates) == nrow(ts)) {
@@ -46,7 +50,7 @@ sits_align <- function(data.tb, ref_dates) {
                                               start_date  = lubridate::as_date(ref_dates[1]),
                                               end_date    = ref_dates[length(ref_dates)],
                                               label       = lab,
-                                              coverage    = cov,
+                                              cube        = cb,
                                               time_series = list(ts1))
                     }
                     data1.tb <<- dplyr::bind_rows(data1.tb, row)
@@ -68,7 +72,7 @@ sits_align <- function(data.tb, ref_dates) {
 #'
 #' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
 #'
-#' @param data          Valid sits tibble or matrix.
+#' @param data.tb       Valid sits tibble or matrix.
 #' @param fun           Function with one parameter as input and a vector or list of vectors as output.
 #' @param fun_index     Function with one parameter as input and a Date vector as output.
 #' @param bands_suffix  String informing the suffix of the resulting bands.
@@ -79,13 +83,15 @@ sits_align <- function(data.tb, ref_dates) {
 #' # apply a normalization function
 #' point2 <- sits_apply (point_ndvi, fun = function (x) { (x - min (x))/(max(x) - min(x))} )
 #' @export
-sits_apply <- function(data, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
-    if ("tbl" %in% class(data)) {
-        # verify if data.tb has values
-        .sits_test_tibble(data)
-
+sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
+    if ("tbl" %in% class(data.tb)) {
+        # backward compatibility
+        if ("coverage" %in% names(data.tb))
+            data.tb <- .sits_tibble_rename(data.tb)
+        # verify if data.tb is valid
+        .sits_test_tibble(data.tb)
         # computes fun and fun_index for all time series and substitutes the original time series data
-        data$time_series <- data$time_series %>%
+        data.tb$time_series <- data.tb$time_series %>%
             purrr::map(function(ts.tb) {
                 ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
                     purrr::map(fun)
@@ -107,20 +113,20 @@ sits_apply <- function(data, fun, fun_index = function(index){ return(index) }, 
                 # reorganizes time series tibble
                 return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
             })
-        return(data)
+        return(data.tb)
     }
-    else if ("matrix" %in% class(data)) {
+    else if ("matrix" %in% class(data.tb)) {
         multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
         # auxiliary function to filter a block of data
         filter_block <- function(mat) {
             rows_block.lst <- lapply(seq_along(mat), function(i) fun(mat[i,]))
             mat_block.mx <- do.call(rbind, rows_block.lst)
         }
-        chunk.lst <- .sits_split_data(data, multicores)
+        chunk.lst <- .sits_split_data(data.tb, multicores)
         rows.lst  <- parallel::mclapply(chunk.lst, filter_block, mc.cores = multicores)
-        data <- do.call(rbind, rows.lst)
+        data.tb <- do.call(rbind, rows.lst)
 
-        return(data)
+        return(data.tb)
     }
 }
 
@@ -142,6 +148,10 @@ sits_apply <- function(data, fun, fun_index = function(index){ return(index) }, 
 #' sits_bands(samples_mt_9classes)
 #' @export
 sits_bands <- function(data.tb) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
     result.vec <- data.tb[1,]$time_series[[1]] %>%
         colnames() %>% .[2:length(.)]
     return(result.vec)
@@ -157,7 +167,7 @@ sits_bands <- function(data.tb) {
 #' required for building a set of samples for classification.
 #'
 #' @param  data.tb    A sits tibble.
-#' @param  timeline   Timeline associated with the coverage.
+#' @param  timeline   Timeline associated with the data cube.
 #' @param  start_date Starting date within an interval.
 #' @param  end_date   Ending date within an interval.
 #' @param  interval   Interval for breaking the series.
@@ -166,8 +176,12 @@ sits_bands <- function(data.tb) {
 #' points.tb <- sits_break(point_ndvi, timeline_modis_392, "2000-08-28", "2016-08-12")
 #' @export
 sits_break <- function(data.tb, timeline, start_date, end_date, interval = "12 month"){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
     # create a tibble to store the results
-    newdata.tb <- sits_tibble()
+    newdata.tb <- .sits_tibble()
 
     # get the dates
     subset_dates.lst <- sits_match_timeline(timeline, as.Date(start_date), as.Date(end_date), interval = interval)
@@ -201,6 +215,10 @@ sits_break <- function(data.tb, timeline, start_date, end_date, interval = "12 m
 #' sits_dates(point_mt_6bands)
 #' @export
 sits_dates <- function(data.tb) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
     values <- data.tb$time_series[[1]]$Index
     return(values)
 }
@@ -211,7 +229,7 @@ sits_dates <- function(data.tb) {
 #'
 #' @description This function merges the time series of two sits tibbles.
 #' To merge two series, we consider that they contain different
-#' attributes but refer to the same coverage, and spatio-temporal location.
+#' attributes but refer to the same data cube, and spatio-temporal location.
 #' This function is useful to merge different bands of the same spatio-temporal locations.
 #' For example, one may want to put the raw and smoothed bands for the same set of locations
 #' in the same tibble.
@@ -230,6 +248,11 @@ sits_dates <- function(data.tb) {
 #' }
 #' @export
 sits_merge <-  function(data1.tb, data2.tb) {
+    # backward compatibility
+    if ("coverage" %in% names(data1.tb))
+        data1.tb <- .sits_tibble_rename(data1.tb)
+    if ("coverage" %in% names(data2.tb))
+        data2.tb <- .sits_tibble_rename(data2.tb)
     # are the names of the bands different?
     ensurer::ensure_that(data1.tb, !(any(sits_bands(.) %in% sits_bands(data2.tb)) | any(sits_bands(data2.tb) %in% sits_bands(.))),
                          err_desc = "sits_merge: cannot merge two sits tibbles with bands with the same names")
@@ -271,6 +294,10 @@ sits_merge <-  function(data1.tb, data2.tb) {
 #' @return A sits tibble with same samples and the selected bands.
 #' @export
 sits_mutate_bands <- function(data.tb, ...){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
     # verify if data.tb has values
     .sits_test_tibble(data.tb)
 
@@ -301,6 +328,11 @@ sits_mutate_bands <- function(data.tb, ...){
 #' @return A pruned sits tibble.
 #' @export
 sits_prune <- function(data.tb) {
+
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
     .sits_test_tibble(data.tb)
 
     # create a vector to store the number of indices per time series
@@ -353,6 +385,9 @@ sits_prune <- function(data.tb) {
 #' sits_bands(ndvi1.tb)
 #' @export
 sits_rename <- function(data.tb, names){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # verify if the number of bands informed is the same as the actual number of bands in input data
     ensurer::ensure_that(names, length(.) == length(sits_bands(data.tb)),
                          err_desc = "sits_bands: bands in data input and informed band names have different lengths.")
@@ -390,7 +425,12 @@ sits_rename <- function(data.tb, names){
 #' sits_labels(data.tb)
 #' @export
 sits_sample <- function(data.tb, n = NULL, frac = NULL){
-    # verify if data.tb is empty
+
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
+    # verify if data.tb is valid
     .sits_test_tibble(data.tb)
 
     # verify if either n or frac is informed
@@ -409,7 +449,7 @@ sits_sample <- function(data.tb, n = NULL, frac = NULL){
         function(tb) tb %>% dplyr::sample_frac(size = frac, replace = TRUE)
 
     # compute sampling
-    result.tb <- sits_tibble()
+    result.tb <- .sits_tibble()
     labels <- sits_labels(data.tb)$label
     labels %>%
         purrr::map(function(l){
@@ -444,6 +484,9 @@ sits_sample <- function(data.tb, n = NULL, frac = NULL){
 #' sits_labels(data.tb)
 #' @export
 sits_select <- function(data.tb, ...) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # store the dots in a list
     dots <- match.call(expand.dots = TRUE)
 
@@ -487,6 +530,9 @@ sits_select <- function(data.tb, ...) {
 #' sits_bands(data.tb)
 #' @export
 sits_select_bands <- function(data.tb, ...) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     bands <-  paste(substitute(list(...)))[-1]
 
     ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
@@ -525,6 +571,9 @@ sits_select_bands <- function(data.tb, ...) {
 #' sits_bands(data.tb)
 #' @export
 sits_select_bands_ <- function(data.tb, bands) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # verify if bands exists in data.tb
     ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
                          err_desc = paste0("sits_select_bands_: the following bands do not exist in the input data: ",
@@ -557,7 +606,11 @@ sits_select_bands_ <- function(data.tb, bands) {
 #' }
 #' @export
 sits_transmute_bands <- function(data.tb, ...){
-    # verify if data.tb has values
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
+    # verify if data.tb is valid
     .sits_test_tibble(data.tb)
 
     # tricky to include "Index" column and expand `...` arguments
@@ -595,6 +648,9 @@ sits_transmute_bands <- function(data.tb, ...){
 sits_values <- function(data.tb, bands = NULL, format = "cases_dates_bands"){
     ensurer::ensure_that(format, . == "cases_dates_bands" || . == "bands_cases_dates" || . == "bands_dates_cases",
                          err_desc = "sits_values: valid format parameter are 'cases_dates_bands', 'bands_cases_dates', or 'bands_dates_cases'")
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
 
     if (purrr::is_null(bands))
         bands <- sits_bands(data.tb)

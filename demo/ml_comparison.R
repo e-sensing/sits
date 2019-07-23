@@ -14,7 +14,7 @@ library(sits)
 #  The tibble has 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
 #  latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #  end_date (final date of the time series), label (the class label associated to the sample),
-#  coverage (the name of the coverage associated with the data),
+#  cube (the name of the cube associated with the data),
 #  time_series (list containing a tibble with the values of the time series).
 
 data("samples_mt_9classes")
@@ -43,11 +43,11 @@ results[[length(results) + 1]] <- conf_svm.mx
 
 # Deep Learning
 conf_dl.tb <- sits_kfold_validate(samples.tb, folds = 4, multicores = 2,
-                                  ml_method = sits_deeplearning( units = c(512, 512, 512, 512, 512),
+                                  ml_method = sits_deeplearning( units = c(512, 512, 512),
                                                                  activation       = 'elu',
-                                                                 dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
+                                                                 dropout_rates    = c(0.50, 0.40, 0.30),
                                                                  optimizer        = keras::optimizer_adam(lr = 0.001),
-                                                                 epochs           = 200,
+                                                                 epochs           = 150,
                                                                  batch_size       = 128,
                                                                  validation_split = 0.2,
                                                                  binary_classification = FALSE))
@@ -61,7 +61,7 @@ results[[length(results) + 1]] <- conf_dl.mx
 
 # =============== RFOR ==============================
 
-conf_rfor.tb <- sits_kfold_validate(samples.tb, folds = 4, multicores = 2,
+conf_rfor.tb <- sits_kfold_validate(samples.tb, folds = 4, multicores = 1,
                                     ml_method = sits_train(samples.tb, sits_rfor(num.trees = 5000)))
 print("== Confusion Matrix = RFOR =======================")
 conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)

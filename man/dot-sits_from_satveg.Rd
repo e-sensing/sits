@@ -4,12 +4,12 @@
 \alias{.sits_from_satveg}
 \title{Obtain one timeSeries from the EMBRAPA SATVEG server and load it on a sits tibble}
 \usage{
-.sits_from_satveg(coverage, longitude, latitude, start_date = NULL,
+.sits_from_satveg(cube, longitude, latitude, start_date = NULL,
   end_date = NULL, bands = NULL, prefilter = "1",
   label = "NoClass")
 }
 \arguments{
-\item{coverage}{The coverage metadata with the SATVEG information.}
+\item{cube}{The data cube metadata that describes the SATVEG data.}
 
 \item{longitude}{A double value with the longitude of the chosen location.}
 

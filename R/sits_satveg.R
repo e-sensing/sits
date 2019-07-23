@@ -8,7 +8,7 @@
 #' and inclues the data on a stis tibble. If start and end date are given, the function
 #' filter the data to limit the temporal interval.
 #'
-#' @param coverage        The coverage metadata with the SATVEG information.
+#' @param cube            The data cube metadata that describes the SATVEG data.
 #' @param longitude       A double value with the longitude of the chosen location.
 #' @param latitude        A double value with the latitude of the chosen location.
 #' @param start_date      The start date of the period.
@@ -17,14 +17,15 @@
 #' @param prefilter       A string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @param label           A string with the label to attach to the time series (optional).
 #' @return A sits tibble.
-.sits_from_satveg <- function(coverage,
+.sits_from_satveg <- function(cube,
                              longitude,
                              latitude,
                              start_date  = NULL,
                              end_date    = NULL,
                              bands       = NULL,
                              prefilter   = "1",
-                             label       = "NoClass") {
+                             label       = "NoClass")
+{
 
     # check parameters
     ensurer::ensure_that(longitude, !purrr::is_null(.),
@@ -33,7 +34,7 @@
                          err_desc = "sits_from_satveg: Missing latitude info")
 
     # retrieve the time series
-    ts.tb <- .sits_ts_from_satveg(longitude, latitude, coverage$name, prefilter)
+    ts.tb <- .sits_ts_from_satveg(longitude, latitude, cube$name, prefilter)
 
     # filter the dates
     if (!purrr::is_null(start_date) && !purrr::is_null(end_date))
@@ -44,13 +45,13 @@
     }
 
     # filter bands
-    bands.vec <- coverage$bands[[1]]
+    bands.vec <- cube$bands[[1]]
 
     # check if requested bands are in provided bands
     if (!purrr::is_null(bands)) {
         ensurer::ensure_that(bands.vec, all(bands %in% bands.vec),
-                             err_desc = "sits_fromSATVEG: band not provided by coverage.")
-    } else bands <- coverage$bands[[1]]
+                             err_desc = "sits_from_satveg: band not provided by data cube.")
+    } else bands <- cube$bands[[1]]
     ts.tb <- ts.tb[, c("Index", bands)]
 
     # use a list to store the time series
@@ -58,7 +59,7 @@
     ts.lst[[1]] <- ts.tb
 
     # create a tibble to store the SATVEG data
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # add one row to the tibble
     data.tb <- tibble::add_row(data.tb,
                                longitude    = longitude,
@@ -66,7 +67,7 @@
                                start_date   = start_date,
                                end_date     = end_date,
                                label        = label,
-                               coverage     = coverage$name,
+                               cube         = cube$name,
                                time_series  = ts.lst
     )
     return(data.tb)
@@ -81,7 +82,7 @@
 #'
 #' @param longitude       The longitude of the chosen location.
 #' @param latitude        The latitude of the chosen location.
-#' @param name            Name of the desired coverage in SATVEG (see configuration file).
+#' @param name            Name of the desired data cube in SATVEG (see configuration file).
 #' @param prefilter       String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
 #' @return TRUE if no problems are detected.
 .sits_ts_from_satveg <- function(longitude, latitude, name, prefilter){
@@ -178,12 +179,12 @@
 
     # set the name of one of the bands
     band <- "ndvi"
-    coverage <- "terra"
+    cube <- "terra"
     # URL to access SATVEG services
     URL <- .sits_get_server("SATVEG")
 
     # Build the URL to retrieve the time series
-    URL_ts <- paste0(URL, band, "/ponto", "/", longitude, "/", latitude, "/", coverage, "/",
+    URL_ts <- paste0(URL, band, "/ponto", "/", longitude, "/", latitude, "/", cube, "/",
                      prefilter, "/", filter, "/", filter_par)
 
     # Get the data from SATVEG service

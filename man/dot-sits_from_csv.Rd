@@ -2,15 +2,14 @@
 % Please edit documentation in R/sits_get_data.R
 \name{.sits_from_csv}
 \alias{.sits_from_csv}
-\title{Obtain timeSeries from time series server, based on a CSV file.}
+\title{Obtain timeSeries from a data cube, based on a CSV file.}
 \usage{
-.sits_from_csv(csv_file, coverage, bands, prefilter, .n_start, .n_max,
-  .n_save)
+.sits_from_csv(csv_file, cube, bands, prefilter, .n_start, .n_max, .n_save)
 }
 \arguments{
 \item{csv_file}{Name of a CSV file with information <id, latitude, longitude, from, end, label>.}
 
-\item{coverage}{A tibble with metadata about coverage which contains data to be retrieved.}
+\item{cube}{A tibble with metadata about the data cube which contains data to be retrieved.}
 
 \item{bands}{A string vector with the names of the bands to be retrieved.}
 
@@ -27,8 +26,8 @@ A sits tibble.
 }
 \description{
 reads descriptive information about a set of
-spatio-temporal locations from a CSV file. Then, it uses the WTSS time series service
-to retrieve the time series, and stores the time series on a sits tibble for later use.
+spatio-temporal locations from a CSV file. Then, it retrieve the time series from a data cube,
+and stores the time series on a sits tibble for later use.
 The CSV file should have the following column names:
 "longitude", "latitude", "start_date", "end_date", "label"
 }

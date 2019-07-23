@@ -4,11 +4,11 @@
 \alias{.sits_from_EOCubes}
 \title{Obtain one timeSeries from EOCubes package and load it on a sits tibble}
 \usage{
-.sits_from_EOCubes(coverage, longitude, latitude, start_date = NULL,
+.sits_from_EOCubes(cube, longitude, latitude, start_date = NULL,
   end_date = NULL, bands = NULL, label = "NoClass")
 }
 \arguments{
-\item{coverage}{Metadata about the coverage where the data is to be retrived.}
+\item{cube}{Metadata about the data cube to be retrived.}
 
 \item{longitude}{The longitude of the chosen location.}
 
@@ -18,7 +18,7 @@
 
 \item{end_date}{Date with the end of the period.}
 
-\item{bands}{A list of string with the names of the bands of the coverage.}
+\item{bands}{A list of string with the names of the bands of the data cube.}
 
 \item{label}{A string with the label to attach to the time series (optional).}
 }

@@ -4,13 +4,13 @@
 \alias{sits_get_data}
 \title{Obtain time series from different sources}
 \usage{
-sits_get_data(coverage = NULL, file = NULL, longitude = NULL,
-  latitude = NULL, start_date = NULL, end_date = NULL,
-  bands = NULL, prefilter = "1", label = "NoClass", .n_start = 1,
-  .n_max = Inf, .n_save = 0)
+sits_get_data(cube, file = NULL, longitude = NULL, latitude = NULL,
+  start_date = NULL, end_date = NULL, bands = NULL,
+  prefilter = "1", label = "NoClass", .n_start = 1, .n_max = Inf,
+  .n_save = 0)
 }
 \arguments{
-\item{coverage}{A mandatory tibble with information about the coverage.}
+\item{cube}{A tibble with information about the data cube where dta is to be retrived.}
 
 \item{file}{An optional name of a file with information on the data to be retrieved (options - CSV, SHP).}
 
@@ -38,16 +38,22 @@ sits_get_data(coverage = NULL, file = NULL, longitude = NULL,
 A tibble with time series data and metadata.
 }
 \description{
-Retrieve a set of time series. There are two main ways of retrieving time series:
-using a time series service and from a Raster Brick. Two time series services are available:
+Retrieve a set of time series and puts it in a "sits tibble".
+Sits tibbles are the main structures of sits package.
+They contain both the satellite image time series and its metadata.
+A sits tibble is a tibble with pre-defined columns that
+has the metadata and data for each time series. The columns are
+<longitude, latitude, start_date, end_date, label, cube, time_series>.
+There are two main ways of retrieving time series:
+1. Using a time series service and from a data cube defined based on a set of Raster Bricks. Two time series services are available:
 (a) the Web Time Series Service (WTSS) by INPE; (b) the SATVEG service from EMBRAPA.
-Please see \code{\link[sits]{sits_info_wtss}} for more information on thw WTSS service.
+Please see \code{\link[sits]{sits_services}} for more information on thw WTSS service.
 The URL and other parameters for access to the time series services are defined in the package
 configuration file. This file is called "config.yml". Please see the \code{\link[sits]{sits_config}} for
 more information.
 
-Before using this service, the user should create a valid coverage tibble
-using the \code{\link[sits]{sits_coverage}} function.
+Before using this service, the user should create a valid description of a data cube ´
+using the \code{\link[sits]{sits_cube}} function.
 
 The following options are available:
 \enumerate{
@@ -59,52 +65,45 @@ from the WTSS service.
 \item The source is a RasterBrick - retrieves the point based on lat/long from the RasterBrick.
 }
  The results is a sits tibble, which  has the metadata and data for each time series
-<longitude, latitude, start_date, end_date, label, coverage, time_series>
+<longitude, latitude, start_date, end_date, label, cube, time_series>
 }
 \examples{
 \donttest{
 # Read a single lat long point from a WTSS server
-wtss_coverage <- sits_coverage(service = "WTSS", name = "MOD13Q1")
-point.tb <- sits_get_data (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
+wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
+point.tb <- sits_get_data (wtss_cube, longitude = -55.50563, latitude = -11.71557)
 sits_plot(point.tb)
 
 # Read a set of points defined in a CSV file from a WTSS server
 csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
-points.tb <- sits_get_data (wtss_coverage, file = csv_file)
+points.tb <- sits_get_data (wtss_cube, file = csv_file)
 # show the points retrieved for the WTSS server
 sits_plot (points.tb[1:3,])
 
 # Read a single lat long point from the SATVEG server
-satveg_coverage <- sits_coverage(service = "SATVEG", name = "terra")
-point_satveg.tb <- sits_get_data (satveg_coverage, longitude = -55.50563, latitude = -11.71557)
+satveg_cube <- sits_cube(service = "SATVEG", name = "terra")
+point_satveg.tb <- sits_get_data (satveg_cube, longitude = -55.50563, latitude = -11.71557)
 sits_plot(point_satveg.tb)
 
 # define a shapefile and read from the points inside it from the WTSS service
 shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
-munic.tb <- sits_get_data(coverage = wtss_coverage, file = shp_file)
+munic.tb <- sits_get_data(wtss_cube, file = shp_file)
 
 # Read a point in a Raster Brick
 # define the file that has the raster brick
 files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 # define the timeline
 data(timeline_modis_392)
-# create a raster metadata file based on the information about the files
-raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
+# create a data cube based on the information about the files
+raster_cube <- sits_cube(service = "RASTER", files = files, name = "Sinop-crop",
                             timeline = timeline_modis_392, bands = c("ndvi"))
-# read the point from the raster
-point_coverage <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
-sits_plot(point_coverage)
+# read the time series of the point from the raster
+point_ts <- sits_getdata(raster_cube, longitude = -55.554, latitude = -11.525)
+sits_plot(point_ts)
 
 #' # Read a CSV file in a Raster Brick
-# define the file that has the raster brick
-files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-# define the timeline
-data(timeline_modis_392)
-# create a raster metadata file based on the information about the files
-raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-                            timeline = timeline_modis_392, bands = c("ndvi"))
-csv_raster_file <- system.file ("extdata/samples/samples_sinop_crop.csv", package = "sits")
-points.tb <- sits_get_data (raster_cov, file = csv_raster_file)
+csv_file <- system.file ("extdata/samples/samples_sinop_crop.csv", package = "sits")
+points.tb <- sits_get_data (raster_cube, file = csv_file)
 # show the points retrieved for the RASTER images
 sits_plot (points.tb)
 }

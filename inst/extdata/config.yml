@@ -25,7 +25,7 @@ default:
 
     # URL to access SATVEG
     SATVEG-EMBRAPA_server   : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
-    SATVEG-EMBRAPA_coverages : ["terra", "aqua", "comb"]
+    SATVEG-EMBRAPA_cubes    : ["terra", "aqua", "comb"]
 
     SATVEG_bands            :
         terra               : &bands-sv ["ndvi", "evi"]

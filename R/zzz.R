@@ -20,7 +20,7 @@ sits.env$model_formula <- "log"
 # Include the following global variables in the sits package
 utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V1", "Index", "from", "value", "variable", "cond",
                          "med", "qt25", "qt75", "cluster_id", "x", "y",
-                         "longitude", "latitude", "label", "coverage", "service",
+                         "longitude", "latitude", "label", "cube", "coverage", "service",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
                          "original_label", "n_members", "n_members.n", "count",

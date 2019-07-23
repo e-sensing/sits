@@ -1,70 +1,40 @@
-#' @title Classify a set of spatio-temporal raster bricks using multicore machines
-#' @name sits_classify_raster
+#' @title Classify a data cube using multicore machines
+#' @name .sits_classify_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Takes a set of spatio-temporal raster bricks, whose metadata is
-#'              described by tibble (created by \code{\link[sits]{sits_coverage}}),
+#' @description Takes a data cube, whose metadata is
+#'              described by tibble (created by \code{\link[sits]{sits_cube}}),
 #'              a set of samples used for training a classification model,
 #'              a prediction model (created by \code{\link[sits]{sits_train}}),
-#'              and produces a classified set of RasterLayers. This function is similar to
-#'               \code{\link[sits]{sits_classify}} which is applied to time series stored in a sits tibble.
-#'               There are two parameters for optimizing processing of large data sets. These
+#'              and produces a classified set of RasterLayers. These
 #'               parameters are "memsize" and "multicores". The "multicores" parameter defines the
 #'               number of cores used for processing. The "memsize" parameter  controls
 #'               the amount of memory available for classification.
 #'
-#' @param  file            File name prefix to store the output. For each time interval, one file will be created.
-#' @param  coverage        Tibble with information about a coverage of space-time raster bricks.
+#' @param  cube            Tibble with information about a data cube.
 #' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
 #' @param  interval        Interval between two sucessive classifications, expressed in months.
 #' @param  filter          Smoothing filter to be applied (if desired).
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of cores to be used for classification.
+#' @param  out_prefix      Prefix of the output files. For each time interval, one file will be created.
 #' @return A tibble with the metadata for the vector of classified RasterLayers.
 #'
-#' @examples
-#' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_mt_ndvi)
-#'
-#' # Build a machine learning model based on the samples
-#' svm_model <- sits_train(samples_mt_ndvi, sits_svm())
-#'
-#' # read a raster file and put it into a vector
-#' file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits")
-#'
-#' # define the timeline
-#' data(timeline_modis_392)
-#'
-#' # create a raster coverage file based on the information about the files
-#' raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
-#'   timeline = timeline_modis_392, bands = "ndvi", files = file)
-#'
-#' # classify the raster file
-#' raster_class.tb <- sits_classify_raster("raster-class", raster.tb,
-#'   ml_model = svm_model, memsize = 4, multicores = 1)
-#' # plot the resulting classification
-#' sits_plot_raster(raster_class.tb, time = 1, title = "SINOP class 2000-2001")
-#' }
-#' @export
-sits_classify_raster <- function(file        = NULL,
-                                 coverage    = NULL,
+.sits_classify_cube <- function(cube          = NULL,
                                  ml_model    = NULL,
                                  interval    = "12 month",
                                  filter      = NULL,
                                  memsize     = 4,
-                                 multicores  = NULL) {
+                                 multicores  = 2,
+                                 out_prefix  = "cube-class") {
 
-    if (coverage$service[[1]] == "EOCUBES") {
-
-        res <- sits_classify_cubes(file = file, coverage = coverage,
-                                   ml_model = ml_model, interval = interval,
-                                   filter = filter, memsize = memsize, multicores = multicores)
+    if (cube$service[[1]] == "EOCUBES") {
+        res <- .sits_classify_eocubes(cube, ml_model, interval, filter, memsize, multicores, out_prefix)
         return(res)
     }
 
     # checks the classification params
-    .sits_check_classify_params(file, coverage, ml_model)
+    .sits_check_classify_params(file, cube, ml_model)
 
     # find the number of cores
     if (purrr::is_null(multicores))
@@ -74,27 +44,21 @@ sits_classify_raster <- function(file        = NULL,
     samples  <- environment(ml_model)$data.tb
 
     # create the raster objects and their respective filenames
-    coverage_class <- .sits_coverage_raster_classified(coverage, samples, file, interval)
+    cube_class <- .sits_cube_classified(cube, samples, out_prefix, interval)
 
     # classify the data
-    raster_class.tb <- .sits_classify_multicores(coverage,
-                                                 coverage_class,
-                                                 samples,
-                                                 ml_model,
-                                                 interval,
-                                                 filter,
-                                                 memsize,
-                                                 multicores)
+    raster_class.tb <- .sits_classify_multicores(cube, cube_class, samples, ml_model,
+                                                 interval, filter, memsize, multicores)
 
     return(raster_class.tb)
 }
 
-#' @title Classify a set of spatio-temporal raster cubes using multicore machines
-#' @name sits_classify_cubes
+#' @title Classify a data cube created with the EOCUBES service
+#' @name .sits_classify_eocubes
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Takes a set of spatio-temporal raster bricks, whose metadata is
-#'              described by tibble (created by \code{\link[sits]{sits_coverage}}),
+#'              described by tibble (created by \code{\link[sits]{sits_cube}}),
 #'              a set of samples used for training a classification model,
 #'              a prediction model (created by \code{\link[sits]{sits_train}}),
 #'              and produces a classified set of RasterLayers. This function is similar to
@@ -104,56 +68,22 @@ sits_classify_raster <- function(file        = NULL,
 #'               number of cores used for processing. The "memsize" parameter  controls
 #'               the amount of memory available for classification.
 #'
-#' @param  file            File name prefix to store the output. For each time interval, one file will be created.
-#' @param  coverage        Tibble with information about a coverage of space-time raster bricks.
+#' @param  cube            Tibble with information about a data cube.
 #' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
 #' @param  interval        Interval between two sucessive classifications, expressed in months.
 #' @param  filter          Smoothing filter to be applied (if desired).
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of cores to be used for classification.
+#' @param  out_prefix      Prefix of the output files. For each time interval, one file will be created.
 #' @return A tibble with the metadata for the vector of classified RasterLayers.
 #'
-#' @examples
-#' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_mt_ndvi)
-#'
-#' # Build a machine learning model based on the samples
-#' svm_model <- sits_train(samples_mt_ndvi, sits_svm())
-#'
-#' # create a raster coverage file based on the information about the files
-#' raster.tb <- sits_coverage(service = "EOCUBES", name  = "MOD13Q1/006")
-#'
-#' # classify the raster file
-#' raster_class.tb <- sits_classify_cubes("raster-class", raster.tb,
-#'   ml_model = svm_model, memsize = 4, multicores = 1)
-#'
-#' # plot the resulting classification
-#' sits_plot_raster(raster_class.tb, time = 1, title = "Test class 2000-2001")
-#' }
-#' @export
-sits_classify_cubes <- function(file        = NULL,
-                                coverage    = NULL,
-                                ml_model    = NULL,
-                                interval    = "12 month",
-                                filter      = NULL,
-                                memsize     = 4,
-                                multicores  = NULL) {
-
-    if (coverage$service[[1]] == "RASTER" || coverage$service[[1]] == "STACK") {
-
-        res <- sits_classify_raster(file = file, coverage = coverage,
-                                    ml_model = ml_model, interval = interval,
-                                    filter = filter, memsize = memsize, multicores = multicores)
-        return(res)
-    }
-
+.sits_classify_eocubes <- function(cube, ml_model, interval, filter, memsize, multicores, out_prefix) {
 
     # get cube object
-    cub.obj <- coverage$r_objs[[1]][[1]]
+    cub.obj <- cube$r_objs[[1]][[1]]
 
     # get bands names
-    bands <- coverage$bands[[1]]
+    bands <- cube$bands[[1]]
 
     # get bands info
     bands_info <- EOCubes::cube_bands_info(cube = cub.obj)
@@ -174,7 +104,7 @@ sits_classify_cubes <- function(file        = NULL,
     if (purrr::is_null(multicores))
         multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
 
-    raster_class.tb <-
+    cube_class.tb <-
         dplyr::bind_rows(lapply(seq_along(stk.obj), function(i) {
 
             dplyr::bind_rows(lapply(seq_along(stk.obj[[i]]), function(j) {
@@ -185,7 +115,7 @@ sits_classify_cubes <- function(file        = NULL,
                 # file sufix
                 file_sufx <- names(stk.obj)[[i]]
 
-                coverage <- sits_coverage(service = "STACK", name = file_sufx,
+                cube <- sits_cube(service = "STACK", name = file_sufx,
                                           timeline = tile_interv$timeline, bands = bands,
                                           missing_values = bands_info$fill[bands],
                                           scale_factors = bands_info$scale[bands],
@@ -194,24 +124,19 @@ sits_classify_cubes <- function(file        = NULL,
                                           files = tile_interv$bands)
 
                 # checks the classification params
-                .sits_check_classify_params(file, coverage, ml_model)
+                .sits_check_classify_params(out_prefix, cube, ml_model)
 
                 # create the raster objects and their respective filenames
-                coverage_class <- .sits_coverage_raster_classified(coverage, samples, paste0(file, "_", file_sufx), interval)
+                cube_class <- .sits_cube_classified(cube, samples, paste0(out_prefix, "_", file_sufx), interval)
 
                 # classify the data
-                raster_class.tb <- .sits_classify_multicores_cubes(coverage,
-                                                                   coverage_class,
-                                                                   samples,
-                                                                   ml_model,
-                                                                   interval,
-                                                                   filter,
-                                                                   memsize,
-                                                                   multicores)
+                cube_class.tb <- .sits_classify_multicores_cubes(cube, cube_class, samples,
+                                                                   ml_model, interval, filter,
+                                                                   memsize, multicores)
             }))
         }))
 
-    return(raster_class.tb)
+    return(cube_class.tb)
 }
 
 #' @title Classify a raster chunk using multicores
@@ -229,8 +154,8 @@ sits_classify_cubes <- function(file        = NULL,
 #' After all cores process their blocks, it joins the result and then writes it
 #' in the classified images for each corresponding year.
 #'
-#' @param  coverage        Tibble with metadata for a RasterBrick.
-#' @param  coverage_class  Taster layer objects to be written.
+#' @param  cube            Tibble with metadata for a data cube derived from a raster brick.
+#' @param  cube_class      Raster layer objects to be written.
 #' @param  samples         Tibble with samples used for training the classification model.
 #' @param  ml_model        A model trained by \code{\link[sits]{sits_train}}.
 #' @param  interval        Classification interval.
@@ -238,8 +163,8 @@ sits_classify_cubes <- function(file        = NULL,
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of cores.
 #' @return List of the classified raster layers.
-.sits_classify_multicores <-  function(coverage,
-                                       coverage_class,
+.sits_classify_multicores <-  function(cube,
+                                       cube_class,
                                        samples,
                                        ml_model,
                                        interval,
@@ -247,8 +172,8 @@ sits_classify_cubes <- function(file        = NULL,
                                        memsize,
                                        multicores) {
     # retrieve the output raster layers
-    layers_class.lst <- coverage_class$r_objs[[1]][[1]]
-    bricks_probs.lst <- coverage_class$r_objs[[1]][[2]]
+    layers_class.lst <- cube_class$r_objs[[1]][[1]]
+    bricks_probs.lst <- cube_class$r_objs[[1]][[2]]
 
     #initiate writing
     for (i in 1:length(layers_class.lst))
@@ -263,10 +188,10 @@ sits_classify_cubes <- function(file        = NULL,
     stats     <- environment(ml_model)$stats.tb
 
     # divide the input data in blocks
-    bs <- .sits_raster_blocks(coverage, ml_model, interval, memsize, multicores)
+    bs <- .sits_raster_blocks(cube, ml_model, interval, memsize, multicores)
 
     # build a list with columns of data table to be processed for each interval
-    select.lst <- .sits_select_raster_indexes(coverage, samples, interval)
+    select.lst <- .sits_select_raster_indexes(cube, samples, interval)
 
     # get the labels of the data
     labels <- sits_labels(samples)$label
@@ -285,7 +210,7 @@ sits_classify_cubes <- function(file        = NULL,
     # read the blocks
     for (block in 1:bs$n) {
         # read the data
-        data_DT <- .sits_read_data(coverage, samples, ml_model, bs$row[block], bs$nrows[block], stats, filter, multicores)
+        data_DT <- .sits_read_data(cube, samples, ml_model, bs$row[block], bs$nrows[block], stats, filter, multicores)
         # process one temporal instance at a time
 
         for (time in 1:length(select.lst)) {
@@ -320,15 +245,15 @@ sits_classify_cubes <- function(file        = NULL,
         bricks_probs.lst[[i]] <- raster::writeStop(bricks_probs.lst[[i]])
 
     # update the raster objects
-    coverage_class$r_objs[[1]][[1]] <- list(layers_class.lst)
-    coverage_class$r_objs[[1]][[2]] <- list(bricks_probs.lst)
+    cube_class$r_objs[[1]][[1]] <- list(layers_class.lst)
+    cube_class$r_objs[[1]][[2]] <- list(bricks_probs.lst)
 
-    return(coverage_class)
+    return(cube_class)
 }
 
 #' @title Classify a stacks chunk using multicores
 #' @name .sits_classify_multicores_cubes
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Classifies a block of data using multicores. It breaks
 #' the data into horizontal blocks and divides them between the available cores.
@@ -341,8 +266,8 @@ sits_classify_cubes <- function(file        = NULL,
 #' After all cores process their blocks, it joins the result and then writes it
 #' in the classified images for each corresponding year.
 #'
-#' @param  coverage        Tibble with metadata for a RasterBrick.
-#' @param  coverage_class  Taster layer objects to be written.
+#' @param  cube            Tibble with metadata for a data cube derived from a raster brick.
+#' @param  cube_class      Raster layer objects to be written.
 #' @param  samples         Tibble with samples used for training the classification model.
 #' @param  ml_model        A model trained by \code{\link[sits]{sits_train}}.
 #' @param  interval        Classification interval.
@@ -350,8 +275,8 @@ sits_classify_cubes <- function(file        = NULL,
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of cores.
 #' @return List of the classified raster layers.
-.sits_classify_multicores_cubes <-  function(coverage,
-                                             coverage_class,
+.sits_classify_multicores_cubes <-  function(cube,
+                                             cube_class,
                                              samples,
                                              ml_model,
                                              interval,
@@ -359,8 +284,8 @@ sits_classify_cubes <- function(file        = NULL,
                                              memsize,
                                              multicores) {
     # retrieve the output raster layers
-    layers_class.lst <- coverage_class$r_objs[[1]][[1]]
-    bricks_probs.lst <- coverage_class$r_objs[[1]][[2]]
+    layers_class.lst <- cube_class$r_objs[[1]][[1]]
+    bricks_probs.lst <- cube_class$r_objs[[1]][[2]]
 
     #initiate writing
     for (i in 1:length(layers_class.lst))
@@ -375,10 +300,10 @@ sits_classify_cubes <- function(file        = NULL,
     stats     <- environment(ml_model)$stats.tb
 
     # divide the input data in blocks
-    bs <- .sits_raster_blocks(coverage, ml_model, interval, memsize, multicores)
+    bs <- .sits_raster_blocks(cube, ml_model, interval, memsize, multicores)
 
     # build a list with columns of data table to be processed for each interval
-    select.lst <- .sits_select_raster_indexes(coverage, samples, interval)
+    select.lst <- .sits_select_raster_indexes(cube, samples, interval)
 
     # get the labels of the data
     labels <- sits_labels(samples)$label
@@ -397,7 +322,7 @@ sits_classify_cubes <- function(file        = NULL,
     # read the blocks
     for (block in 1:bs$n) {
         # read the data
-        data_DT <- .sits_read_data_cubes(coverage, samples, ml_model, bs$row[block], bs$nrows[block], stats, filter, multicores)
+        data_DT <- .sits_read_data_cubes(cube, samples, ml_model, bs$row[block], bs$nrows[block], stats, filter, multicores)
         # process one temporal instance at a time
 
         for (time in 1:length(select.lst)) {
@@ -432,10 +357,10 @@ sits_classify_cubes <- function(file        = NULL,
         bricks_probs.lst[[i]] <- raster::writeStop(bricks_probs.lst[[i]])
 
     # update the raster objects
-    coverage_class$r_objs[[1]][[1]] <- list(layers_class.lst)
-    coverage_class$r_objs[[1]][[2]] <- list(bricks_probs.lst)
+    cube_class$r_objs[[1]][[1]] <- list(layers_class.lst)
+    cube_class$r_objs[[1]][[2]] <- list(bricks_probs.lst)
 
-    return(coverage_class)
+    return(cube_class)
 }
 
 #' @title Classify one interval of data
@@ -503,7 +428,7 @@ sits_classify_cubes <- function(file        = NULL,
 
     # are the results consistent with the data input?
     ensurer::ensure_that(prediction_DT, nrow(.) == nrows_DT,
-                         err_desc = "sits_classify_raster - number of rows of probability matrix is different
+                         err_desc = ".sits_classify_cube - number of rows of probability matrix is different
                          from number of input pixels")
 
     # write the raster values
@@ -516,4 +441,41 @@ sits_classify_cubes <- function(file        = NULL,
     gc()
 
     return(output.lst)
+}
+#' @title Classify a raster data set (backward compatibility)
+#' @name sits_classify_raster
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Takes a data cube, whose metadata is
+#'              described by tibble (created by \code{\link[sits]{sits_cube}}),
+#'              a set of samples used for training a classification model,
+#'              a prediction model (created by \code{\link[sits]{sits_train}}),
+#'              and produces a classified set of RasterLayers.
+#'               There are two parameters for optimizing processing of large data sets. These
+#'               parameters are "memsize" and "multicores". The "multicores" parameter defines the
+#'               number of cores used for processing. The "memsize" parameter  controls
+#'               the amount of memory available for classification.
+#'
+#' @param  cube            Tibble with information about a data cube.
+#' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
+#' @param  interval        Interval between two sucessive classifications, expressed in months.
+#' @param  filter          Smoothing filter to be applied (if desired).
+#' @param  memsize         Memory available for classification (in GB).
+#' @param  multicores      Number of cores to be used for classification.
+#' @param  out_prefix      Prefix of the output files. For each time interval, one file will be created.
+#' @return A tibble with the metadata for the vector of classified RasterLayers.
+#' @export
+sits_classify_raster <- function(cube       = NULL,
+                                ml_model    = NULL,
+                                interval    = "12 month",
+                                filter      = NULL,
+                                memsize     = 4,
+                                multicores  = 2,
+                                out_prefix  = "raster_class")
+{
+    #backward compatibility
+    raster_class.tb <- .sits_classify_cube(cube, ml_model, interval, filter, memsize, multicores, out_prefix)
+
+    return(raster_class.tb)
+
 }

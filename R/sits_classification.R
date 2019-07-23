@@ -1,8 +1,8 @@
-#' @title Classify a sits tibble using machine learning models
+#' @title Classify a set of time series or a data cube using machine learning models
 #' @name sits_classify
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function classifies a set of time series, given
+#' @description This function classifies a set of time series or data cube given
 #' a set of training samples, an inference model, and an interval.
 #' To perform the classification, users should provide a set of
 #' labelled samples. Each samples should be associated to one spatial location
@@ -21,12 +21,15 @@
 #' @param  data.tb           Tibble with time series metadata and data.
 #' @param  ml_model          Pre-built machine learning model (see \code{\link[sits]{sits_train}}).
 #' @param  interval          Interval used for classification (in months).
-#' @param  multicores        Number of threads to process the time series.
+#' @param  filter            Smoothing filter to be applied (if desired).
+#' @param  memsize           Memory available for classification (in GB).
+#' @param  multicores        Number of cores to be used for classification.
+#' @param  out_prefix        Prefix of the output files. For each time interval, one file will be created.
 #' @return A tibble with the predicted labels for each input segment.
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_mt_ndvi)
+#' data(samples_mt_9classes)
 #' # select the bands "ndvi", "evi", "nir", and "mir"
 #' samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
 #' # build a classification model using SVM
@@ -37,95 +40,50 @@
 #' class.tb <- sits_classify(point.tb, ml_model = model_svm)
 #' # plot the classification
 #' sits_plot(class.tb)
+#'
+#' # read a raster file and put it into a vector
+#' file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits")
+#' # define the timeline
+#' data(timeline_modis_392)
+#'
+#' # create a data cube  based on raster bricks
+#' raster.tb <- sits_cube(service = "RASTER", name  = "Sinop-crop",
+#'   timeline = timeline_modis_392, bands = "ndvi", files = file)
+#'
+#' # select only the ndvi band to build a model
+#' data(samples_mt_ndvi)
+#'
+#' # build a classification model using random forest
+#' model_rfor <- sits_train(samples_mt_ndvi, ml_method = sits_rfor())
+#'
+#' # classify the raster file
+#' raster_class.tb <- sits_classify(raster.tb, ml_model = model_rfor)
+#' # plot the resulting classification
+#' sits_plot_raster(raster_class.tb, time = 1, title = "SINOP class 2000-2001")
+#'
+#' # create a data cube file based on the information provided by the EOCUBES service
+#' cube.tb <- sits_cube(service = "EOCUBES", name  = "MOD13Q1/006")
+#'
+#' # classify the raster file
+#' cube_class.tb <- sits_classify(raster.tb, ml_model = svm_model, memsize = 4, multicores = 1,
+#' out_prefix = "raster-class")
+#'
+#' # plot the resulting classification
+#' sits_plot_raster(cube_class.tb, time = 1, title = "Test class 2000-2001")
 #' }
 #' @export
-sits_classify <- function(data.tb    = NULL,
-                          ml_model   = NULL,
-                          interval   = "12 month",
-                          multicores = 1) {
-    .sits_test_tibble(data.tb)
-
-    # ensure the machine learning model has been built
-    ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits_classify: please provide a machine learning model already trained")
-
-    # has normalization been applied to the data?
-    stats.tb   <- environment(ml_model)$stats.tb
-
-    # obtain the distances after normalizing data by band
-    if (purrr::is_null(stats.tb))
-        distances_DT <- sits_distances(data.tb)
+sits_classify <- function(data.tb     = NULL,
+                          ml_model    = NULL,
+                          interval    = "12 month",
+                          filter      = NULL,
+                          multicores  = 2,
+                          memsize     = 4,
+                          out_prefix  = "cube-class")
+{
+    if ("time_series" %in% names(data.tb))
+        result.tb <- .sits_classify_ts(data.tb, ml_model, interval, multicores)
     else
-        distances_DT <- sits_distances(sits_normalize_data(data.tb, stats.tb, multicores))
+        result.tb <- .sits_classify_cube(data.tb, ml_model, interval, filter, multicores, memsize, out_prefix)
 
-
-    # define the parameters for breaking up a long time series
-    samples.tb <- environment(ml_model)$data.tb
-    class_info.tb <- .sits_class_info(data.tb, samples.tb, interval)
-
-    # create a matrix to store the predicted results
-    predict.mtx <- .sits_classify_distances(distances_DT, class_info.tb,  ml_model,  multicores)
-
-    # Store the result in the input data
-    data.tb <- .sits_tibble_prediction(data.tb, class_info.tb, predict.mtx, interval)
-
-    return(data.tb)
-}
-
-#' @title Classify a distances tibble using machine learning models
-#' @name .sits_classify_distances
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns a sits tibble with the results of the ML classifier.
-#'
-#' @param  distances_DT    data.table with distances.
-#' @param  class_info.tb   classification information.
-#' @param  ml_model        model trained by \code{\link[sits]{sits_train}}.
-#' @param  multicores      number of threads to process the time series.
-#' @return A vector with the predicted labels.
-.sits_classify_distances <- function(distances_DT, class_info.tb, ml_model, multicores) {
-    # define the column names
-    attr_names <- names(environment(ml_model)$train_data_DT)
-
-    # create a data table to store the distances
-    dist_DT <- data.table::data.table(nrow = 0, ncol = length(attr_names))
-
-    # select the data table indexes for each time index
-    select.lst <- .sits_select_indexes(class_info.tb, ncol(distances_DT))
-
-    # classify a block of data
-    classify_block <- function(block_DT) {
-        # create a list to store the data tables to be used for prediction
-        row.lst <- list()
-        for (i in 1:length(select.lst)) {
-                rows_DT <- block_DT[, select.lst[[i]], with = FALSE]
-                row.lst[[length(row.lst) + 1]] <- rows_DT
-        }
-        # create a set of distances to be classified
-        dist_DT <- data.table::rbindlist(row.lst)
-        # set the attribute names of the columns
-        colnames(dist_DT) <- attr_names
-
-        # classify the subset data
-        prediction_DT <- ml_model(dist_DT)
-
-        return(prediction_DT)
-    }
-
-    join_blocks <- function(blocks.lst) {
-        pred.mtx <-
-            blocks.lst %>%
-            dplyr::bind_rows()
-        return(pred.mtx)
-    }
-
-    if (multicores > 1) {
-        blocks.lst <- split.data.frame(distances_DT, cut(1:nrow(distances_DT), multicores, labels = FALSE))
-        # apply parallel processing to the split dat
-        results.lst <- parallel::mclapply(blocks.lst, classify_block, mc.cores = multicores)
-        pred.mtx <- join_blocks(results.lst)
-    }
-    else
-        pred.mtx <- classify_block(distances_DT)
-
-    return(pred.mtx)
+    return(result.tb)
 }

@@ -24,7 +24,7 @@ A model function to be passed in sits_predict.
 \description{
 Use multinomial log-linear (mlr) fitting model via neural networks to classify data.
 These attributes are distance metrics between patterns and observations, obtained by a distance
-function in sits (see \code{\link[sits]{sits_distances}}).
+function in sits (see \code{\link[sits]{.sits_distances}}).
 This function is a front-end to the "multinom" method in the "nnet" package.
 Please refer to the documentation in that package for more details.
 }

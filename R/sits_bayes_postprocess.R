@@ -3,10 +3,10 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Takes a set of classified raster layers, whose metadata is
-#'              described by tibble (created by \code{\link[sits]{sits_coverage}}),
+#'              described by tibble (created by \code{\link[sits]{sits_cube}}),
 #'              and a noise value, to do a bayesian smoothing process.
 #'
-#' @param  raster_class      Output raster coverage.
+#' @param  raster_class      Classified image data cube.
 #' @param  window            A matrix with the neighborhood window to compute bayesian smooth.
 #'                           The central element index (i, j) is given by
 #'                           i = floor(nrows(window)/2)+1 and j = floor(ncols(window)/2)+1.
@@ -15,7 +15,7 @@
 #' @param  file              File to save the post processed raster.
 #' @return A tibble with metadata about the output RasterLayer objects.
 #' @export
-sits_bayes_postprocess <- function(raster_class, window = matrix(1, nrow = 3, ncol = 3, byrow = TRUE), noise = 100, file) {
+sits_bayes_postprocess <- function(raster_class, window = matrix(1, nrow = 3, ncol = 3, byrow = TRUE), noise = 10, file) {
 
     raster_smooth <-
         lapply(seq_along(raster_class$files), function(i) {
@@ -75,9 +75,9 @@ sits_bayes_postprocess <- function(raster_class, window = matrix(1, nrow = 3, nc
                     return(smooth_raster)
                 })
 
-            # populate coverage_class to be returned
+            # populate raster object to be returned
             raster_layers.tb <-
-                .sits_create_raster_coverage(raster.lst         = smoothed_raster.lst,
+                .sits_create_raster_cube(raster.lst         = smoothed_raster.lst,
                                              service            = "RASTER",
                                              name               = raster_class$name[[i]][[1]],
                                              timeline.lst       = raster_class$timeline[[i]][[1]],

@@ -1,7 +1,7 @@
-#' @title Provides information about one coverage used to retrieve data
-#' @name sits_coverage
+#' @title Defines a data cube
+#' @name sits_cube
 #'
-#' @description Defines a coverage to retrieve data. Coverages are associated to
+#' @description Defines a cube to retrieve data. Cubes are associated to
 #' data services. The following services are available:
 #' \itemize{
 #'  \item{"WTSS": }{Web Time Series Service - used to get time series}
@@ -30,18 +30,18 @@
 #' @examples
 #' \donttest{
 #' # Example 1. Retrieve information about a WTSS collection
-#' coverage.tb <- sits_coverage(service = "WTSS", name = "MOD13Q1")
+#' cube.tb <- sits_cube(service = "WTSS", name = "MOD13Q1")
 #'
-#' # Example 2. Create a raster coverage with metadata
+#' # Example 2. Create a raster cube with metadata
 #' # read a raster file and put it into a vector
 #' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #'
-#' # create a raster coverage file based on the information about the files
-#' raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
+#' # create a raster cube file based on the information about the files
+#' raster.tb <- sits_cube(service = "RASTER", name  = "Sinop-crop",
 #'              timeline = timeline_modis_392, bands = "ndvi", files = files)
 #' }
 #' @export
-sits_coverage <- function(service        = "RASTER",
+sits_cube <- function(service        = "RASTER",
                           provider       = NULL,
                           name           = NULL,
                           tiles_names    = NULL,
@@ -67,7 +67,7 @@ sits_coverage <- function(service        = "RASTER",
 
         # pre-condition
         if (any(!is.na(files))) {
-            msg <- paste0("inconsistent specification of coverage parameters - files should
+            msg <- paste0("inconsistent specification of cube parameters - files should
                           be provided only when service is RASTER")
             .sits_log_error(msg)
             message(msg)
@@ -76,7 +76,7 @@ sits_coverage <- function(service        = "RASTER",
 
         serverURL  <- .sits_get_server(service, provider)
         tryCatch({
-            # obtains information about the available coverages
+            # obtains information about the available cubes
             wtss.obj   <- wtss::WTSS(serverURL)
 
         }, error = function(e){
@@ -85,27 +85,27 @@ sits_coverage <- function(service        = "RASTER",
             message(msg)
         })
 
-        # create a coverage
-        coverage.tb <- .sits_coverage_WTSS(wtss.obj, service, name, bands)
+        # create a cube
+        cube.tb <- .sits_cube_wtss(wtss.obj, service, name, bands)
     }
     else if (service == "SATVEG") {
 
         # pre-condition
         if (any(!is.na(files))) {
-            msg <- paste0("inconsistent specification of coverage parameters - files should
+            msg <- paste0("inconsistent specification of cube parameters - files should
                           be provided only when service is RASTER")
             .sits_log_error(msg)
             message(msg)
             return(NULL)
         }
 
-        coverage.tb <- .sits_coverage_SATVEG(name, timeline, bands)
+        cube.tb <- .sits_cube_satveg(name, timeline, bands)
     }
     else if (service == "EOCUBES") {
 
         # pre-condition
         if (any(!is.na(files))) {
-            msg <- paste0("inconsistent specification of coverage parameters - files should
+            msg <- paste0("inconsistent specification of cube parameters - files should
                           be provided only when service is RASTER")
             .sits_log_error(msg)
             message(msg)
@@ -115,7 +115,7 @@ sits_coverage <- function(service        = "RASTER",
         tryCatch({
             remote_name  <- .sits_get_server(service)
 
-            # obtains information about the available coverages
+            # obtains information about the available cubes
             remote.obj   <- EOCubes::remote(name = remote_name)
 
         }, error = function(e){
@@ -124,8 +124,8 @@ sits_coverage <- function(service        = "RASTER",
             message(msg)
         })
 
-        # create a coverage
-        coverage.tb <- .sits_coverage_EOCUBES(remote.obj, service, name, bands, tiles_names, geom, from, to)
+        # create a cube
+        cube.tb <- .sits_cube_eocubes(remote.obj, service, name, bands, tiles_names, geom, from, to)
     }
     else if (service == "RASTER") {
 
@@ -136,16 +136,10 @@ sits_coverage <- function(service        = "RASTER",
         # verify if all files are reacheable
         r <- suppressWarnings(rgdal::GDALinfo(files, silent = FALSE))
         ensurer::ensure_that(r, all(!purrr::is_null(.)),
-                             err_desc = "sits_coverage: raster files cannot be accessed")
+                             err_desc = "sits_cube: raster files cannot be accessed")
 
-        coverage.tb <- .sits_coverage_raster(name = name,
-                                             timeline.vec       = timeline,
-                                             bands.vec          = bands,
-                                             scale_factors.vec  = scale_factors,
-                                             missing_values.vec = missing_values,
-                                             minimum_values.vec = minimum_values,
-                                             maximum_values.vec = maximum_values,
-                                             files.vec          = files)
+        cube.tb <- .sits_cube_raster(name, timeline, bands, scale_factors, missing_values,
+                                     minimum_values, maximum_values, files)
     } else if (service == "STACK") {
 
         files <- lapply(files, function(band) {
@@ -155,100 +149,33 @@ sits_coverage <- function(service        = "RASTER",
             band
         })
 
-        coverage.tb <- .sits_coverage_STACK(name = name,
-                                            timeline.vec       = timeline,
-                                            bands.vec          = bands,
-                                            scale_factors.vec  = scale_factors,
-                                            missing_values.vec = missing_values,
-                                            minimum_values.vec = minimum_values,
-                                            maximum_values.vec = maximum_values,
-                                            files.lst          = files)
+        cube.tb <- .sits_cube_stack(name, timeline, bands, scale_factors, missing_values,
+                                    minimum_values, maximum_values, files)
     }
-    return(coverage.tb)
+    return(cube.tb)
 }
 
-#' @title Creates a coverage metadata
-#' @name .sits_create_coverage
-#'
-#' @description Uses the configuration file to print information and save metadata about a
-#' chosen coverage.
-#'
-#' @param r_objs.lst         List of raster objects contained in the coverage.
-#' @param name               Name of the coverage.
-#' @param service            Name of the time series service.
-#' @param bands.vec          Vector with the names of the bands.
-#' @param labels.vec         Vector with labels (only valid for classified data).
-#' @param scale_factors.vec  Vector with scale factor for each band.
-#' @param missing_values.vec Vector with missing values for each band.
-#' @param minimum_values.vec Vector with minimum values for each band.
-#' @param maximum_values.vec Vector with maximum values for each band.
-#' @param timeline.lst       List with vectors of valid timelines for each band.
-#' @param nrows              Number of rows in the coverage.
-#' @param ncols              Number of columns in the coverage.
-#' @param xmin               Spatial extent (xmin).
-#' @param ymin               Spatial extent (ymin).
-#' @param xmax               Spatial extent (xmax).
-#' @param ymax               Spatial extent (ymin).
-#' @param xres               Spatial resolution (x dimension).
-#' @param yres               Spatial resolution (y dimension).
-#' @param crs                CRS for coverage.
-#' @param files.vec          Vector with associated files.
-.sits_create_coverage <- function(r_objs.lst,
-                                  name,
-                                  service,
-                                  bands.vec,
-                                  labels.vec,
-                                  scale_factors.vec,
-                                  missing_values.vec,
-                                  minimum_values.vec,
-                                  maximum_values.vec,
-                                  timeline.lst,
-                                  nrows, ncols, xmin, xmax, ymin, ymax,
-                                  xres, yres, crs, files.vec) {
-    # create a tibble to store the metadata
-    coverage.tb <- tibble::tibble(r_objs         = list(r_objs.lst),
-                                  name           = name,
-                                  service        = service,
-                                  bands          = list(bands.vec),
-                                  labels         = list(labels.vec),
-                                  scale_factors  = list(scale_factors.vec),
-                                  missing_values = list(missing_values.vec),
-                                  minimum_values = list(minimum_values.vec),
-                                  maximum_values = list(maximum_values.vec),
-                                  timeline       = list(timeline.lst),
-                                  nrows          = nrows,
-                                  ncols          = ncols,
-                                  xmin           = xmin,
-                                  xmax           = xmax,
-                                  ymin           = ymin,
-                                  ymax           = ymax,
-                                  xres           = xres,
-                                  yres           = yres,
-                                  crs            = crs,
-                                  files          = list(files.vec))
 
-    return(coverage.tb)
-}
 
-#' @title Provides information about one coverage of the WTSS service
-#' @name .sits_coverage_wtss
+#' @title Provides information about one cube of the WTSS service
+#' @name .sits_cube_wtss
 #'
 #' @description Uses the WTSS services to print information and save metadata about a
-#' chosen coverage.
+#' chosen cube.
 #'
 #' @param wtss.obj   R WTSS object associated to the service.
 #' @param service    Name of the service.
-#' @param name       Name of the coverage.
+#' @param name       Name of the cube.
 #' @param bands      Name of the bands.
-.sits_coverage_WTSS <- function(wtss.obj, service, name, bands) {
-    # obtains information about the available coverages
-    coverages.vec    <- wtss::listCoverages(wtss.obj)
+.sits_cube_wtss <- function(wtss.obj, service, name, bands) {
+    # obtains information about the available cubes
+    cubes.vec    <- wtss::listCoverages(wtss.obj)
 
-    # is the coverage in the list of coverages?
-    ensurer::ensure_that(name, (.) %in% coverages.vec,
-                         err_desc = ".sits_coverage_wtss: coverage is not available in the WTSS server")
+    # is the cube in the list of cubes?
+    ensurer::ensure_that(name, (.) %in% cubes.vec,
+                         err_desc = ".sits_cube_wtss: cube is not available in the WTSS server")
 
-    # describe the coverage
+    # describe the cube based on the WTSS API
     cov.lst    <- wtss::describeCoverage(wtss.obj, name)
     cov        <- cov.lst[[name]]
 
@@ -264,7 +191,7 @@ sits_coverage <- function(service        = "RASTER",
     # verify if requested bands is in provided bands
     if (!purrr::is_null(bands)) {
         ensurer::ensure_that(bands.vec, all(bands %in% .),
-                             err_desc = ".sits_coverage_WTSS: requested band not provided by WTSS service.")
+                             err_desc = ".sits_cube_WTSS: requested band not provided by WTSS service.")
     } else bands <- bands.vec
 
     b <- bands.vec %in% bands
@@ -300,26 +227,26 @@ sits_coverage <- function(service        = "RASTER",
     labels.vec <- c("NoClass")
 
     # create a tibble to store the metadata
-    coverage.tb <- .sits_create_coverage(list(wtss.obj), name, service,
+    cube.tb <- .sits_create_cube(list(wtss.obj), name, service,
                                          bands.vec, labels.vec, scale_factors.vec,
                                          missing_values.vec, minimum_values.vec,
                                          maximum_values.vec, timeline.lst,
                                          nrows, ncols, xmin, xmax, ymin, ymax,
                                          xres, yres, crs, files.vec = NA)
 
-    # return the tibble with coverage info
-    return(coverage.tb)
+    # return the tibble with cube info
+    return(cube.tb)
 }
 
-#' @title Provides information about one coverage of the SATVEG time series service
-#' @name .sits_coverage_satveg
+#' @title Provides information about one cube of the SATVEG time series service
+#' @name .sits_cube_satveg
 #'
-#' @description Creates a tibble with metadata about a given coverage.
+#' @description Creates a tibble with metadata about a given cube.
 #'
-#' @param name       Name of the coverage.
-#' @param timeline   Timeline of the coverage.
-#' @param bands      Bands of the coverage.
-.sits_coverage_SATVEG <- function(name, timeline, bands) {
+#' @param name       Name of the cube.
+#' @param timeline   Timeline of the cube.
+#' @param bands      Bands of the cube.
+.sits_cube_satveg <- function(name, timeline, bands) {
 
     service <- "SATVEG"
     # get the bands
@@ -328,7 +255,7 @@ sits_coverage <- function(service        = "RASTER",
     # check if requested bands are in provided bands
     if (!purrr::is_null(bands)) {
         ensurer::ensure_that(bands.vec, all(bands %in% .),
-                             err_desc = ".sits_coverage_SATVEG: requested band not provided by WTSS service.")
+                             err_desc = ".sits_cube_SATVEG: requested band not provided by SATVEG service.")
     } else bands <- bands.vec
 
     # select requested bands
@@ -344,12 +271,12 @@ sits_coverage <- function(service        = "RASTER",
     else
         timeline.lst <- list(timeline)
 
-    # get the size of the coverage
+    # get the size of the cube
     size <- .sits_get_size(service, name)
     nrows <- as.integer(size["nrows"])
     ncols <- as.integer(size["ncols"])
 
-    # get the bounding box of the coverage
+    # get the bounding box of the cube
     bbox <- .sits_get_bbox(service, name)
     xmin <-  as.numeric(bbox["xmin"])
     xmax <-  as.numeric(bbox["xmax"])
@@ -374,40 +301,37 @@ sits_coverage <- function(service        = "RASTER",
     names(maximum_values.vec) <- bands.vec
 
     # create a tibble to store the metadata
-    coverage.tb <- .sits_create_coverage(r_objs.lst = NA,
-                                         name, service,
-                                         bands.vec, labels.vec, scale_factors.vec,
-                                         missing_values.vec, minimum_values.vec, maximum_values.vec,
-                                         timeline.lst, nrows, ncols, xmin, xmax, ymin, ymax,
-                                         xres, yres, crs,
-                                         files.vec = NA)
+    cube.tb <- .sits_create_cube(r_objs.lst = NA, name, service, bands.vec, labels.vec, scale_factors.vec,
+                                 missing_values.vec, minimum_values.vec, maximum_values.vec,
+                                 timeline.lst, nrows, ncols, xmin, xmax, ymin, ymax,
+                                 xres, yres, crs, files.vec = NA)
 
-    return(coverage.tb)
+    return(cube.tb)
 }
 
-#' @title Provides information about one coverage of the EOCUBES
-#' @name .sits_coverage_eocubes
+#' @title Uses the EOCUBES service to provide information about a data cube
+#' @name .sits_cube_eocubes
 #'
-#' @description Creates a tibble with metadata about a given coverage.
+#' @description Creates a tibble with metadata about a data cube.
 #'
 #' @param remote.obj Remote object.
 #' @param service    Service string.
 #' @param name       Name of the cube
-#' @param bands      Bands of the coverage.
+#' @param bands      Bands of the cube.
 #' @param tiles      Filter tiles by prefix name.
 #' @param geom       Geometry to filter tiles.
 #' @param from       Start date to be filtered.
 #' @param to         End date to be filtered.
-.sits_coverage_EOCUBES <- function(remote.obj, service, name, bands, tiles, geom, from, to) {
+.sits_cube_eocubes <- function(remote.obj, service, name, bands, tiles, geom, from, to) {
 
-    # obtains information about the available coverages
+    # obtains information about the available cubes
     cubes.vec    <- names(EOCubes::list_cubes(remote.obj))
 
     # is the cube in the list of cubes?
     ensurer::ensure_that(name, (.) %in% cubes.vec,
-                         err_desc = ".sits_coverage_EOCUBES: cube is not available in the EOCubes remote")
+                         err_desc = ".sits_cube_EOCUBES: cube is not available in the EOCubes remote")
 
-    # describe the coverage
+    # describe the cube
     cub.obj <- EOCubes::cube(name = name, remote = remote.obj)
 
     # filter cube
@@ -417,7 +341,7 @@ sits_coverage <- function(service        = "RASTER",
 
     # verify if the filter returned tiles
     ensurer::ensure_that(cub.obj, length(EOCubes::list_tiles(.)) > 0,
-                         err_desc = ".sits_coverage_EOCUBES: cube filter returned no tile.")
+                         err_desc = ".sits_cube_EOCUBES: cube filter returned no tile.")
 
     # temporal extent
     timeline.lst <- list(EOCubes::cube_dates_info(cub.obj))
@@ -431,7 +355,7 @@ sits_coverage <- function(service        = "RASTER",
     if (purrr::is_null(bands))
         bands <- bands.vec
     ensurer::ensure_that(bands.vec, all(bands %in% .),
-                         err_desc = ".sits_coverage_EOCUBES: requested band not provided by EOCubes remote.")
+                         err_desc = ".sits_cube_EOCUBES: requested band not provided by EOCubes remote.")
 
     b <- match(bands, bands.vec)
     bands.vec <- bands.vec[b]
@@ -464,19 +388,19 @@ sits_coverage <- function(service        = "RASTER",
     labels.vec <- c("NoClass")
 
     # create a tibble to store the metadata
-    coverage.tb <- .sits_create_coverage(list(cub.obj), name, service,
+    cube.tb <- .sits_create_cube(list(cub.obj), name, service,
                                          bands.vec, labels.vec, scale_factors.vec,
                                          missing_values.vec, minimum_values.vec,
                                          maximum_values.vec, timeline.lst,
                                          nrows, ncols, xmin, xmax, ymin, ymax,
                                          xres, yres, crs, files.vec = NA)
 
-    # return the tibble with coverage info
-    return(coverage.tb)}
+    # return the tibble with cube info
+    return(cube.tb)}
 
 
-#' @title Create a metadata tibble to store the description of a spatio-temporal raster dataset
-#' @name .sits_coverage_raster
+#' @title Create a data cube based on a set of Raster Bricks
+#' @name .sits_cube_raster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  This function creates a tibble containing the metadata for
@@ -485,7 +409,7 @@ sits_coverage <- function(service        = "RASTER",
 #'               projection. Each raster brick file should contain one band
 #'               per time step. Different bands are archived in different raster files.
 #'
-#' @param  name                  Name of the coverage file.
+#' @param  name                  Name of the data cube.
 #' @param  timeline.vec          Vector of dates with the timeline of the bands.
 #' @param  bands.vec             Vector of bands contained in the Raster Brick set (in the same order as the files).
 #' @param  scale_factors.vec     Vector of scale factors (one per band).
@@ -494,22 +418,16 @@ sits_coverage <- function(service        = "RASTER",
 #' @param  maximum_values.vec    Maximum values for each band (only for raster data).
 #' @param  files.vec             Vector with the file paths of the raster files.
 #' @return A tibble with metadata information about a raster data set.
-.sits_coverage_raster <- function(name,
-                                  timeline.vec,
-                                  bands.vec,
-                                  scale_factors.vec,
-                                  missing_values.vec,
-                                  minimum_values.vec,
-                                  maximum_values.vec,
-                                  files.vec) {
+.sits_cube_raster <- function(name,  timeline.vec, bands.vec, scale_factors.vec,
+                              missing_values.vec, minimum_values.vec, maximum_values.vec, files.vec) {
     ensurer::ensure_that(bands.vec, length(.) == length(files.vec),
-                         err_desc = "sits_coverageRaster: number of bands does not match number of files")
+                         err_desc = "sits_cubeRaster: number of bands does not match number of files")
     ensurer::ensure_that(name, !purrr::is_null(.),
-                         err_desc = "sits_coverageRaster: name of the coverega must be provided")
+                         err_desc = "sits_cubeRaster: name of the coverega must be provided")
     ensurer::ensure_that(bands.vec, !purrr::is_null(.),
-                         err_desc = "sits_coverageRaster - bands must be provided")
+                         err_desc = "sits_cubeRaster - bands must be provided")
     ensurer::ensure_that(files.vec, !purrr::is_null(.),
-                         err_desc = "sits_coverageRaster - files must be provided")
+                         err_desc = "sits_cubeRaster - files must be provided")
 
     # get the timeline
     if (purrr::is_null(timeline.vec))
@@ -532,23 +450,15 @@ sits_coverage <- function(service        = "RASTER",
                                  return(raster.obj)
                              })
 
-    coverage.tb <- .sits_create_raster_coverage(raster.lst         = brick.lst,
-                                                service            = "RASTER",
-                                                name               = name,
-                                                timeline.lst       = list(timeline.vec),
-                                                bands.vec          = bands.vec,
-                                                labels.vec         = labels.vec,
-                                                scale_factors.vec  = scale_factors.vec,
-                                                missing_values.vec = missing_values.vec,
-                                                minimum_values.vec = minimum_values.vec,
-                                                maximum_values.vec = maximum_values.vec,
-                                                files.vec          = files.vec)
+    cube.tb <- .sits_create_raster_cube(brick.lst, service = "RASTER", name, list(timeline.vec),
+                                        bands.vec, labels.vec, scale_factors.vec, missing_values.vec = missing_values.vec,
+                                        minimum_values.vec, maximum_values.vec, files.vec)
 
-    return(coverage.tb)
+    return(cube.tb)
 }
 
-#' @title Create a metadata tibble to store the description of a spatio-temporal raster dataset
-#' @name .sits_coverage_STACK
+#' @title Create a data cube based on a set of Raster Stacks
+#' @name .sits_cube_stack
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  This function creates a tibble containing the metadata for
@@ -557,7 +467,7 @@ sits_coverage <- function(service        = "RASTER",
 #'               projection. Each raster brick file should contain one band
 #'               per time step. Different bands are archived in different raster files.
 #'
-#' @param  name                  Name of the coverage file.
+#' @param  name                  Name of the cube file.
 #' @param  timeline.vec          Vector of dates with the timeline of the bands.
 #' @param  bands.vec             Vector of bands contained in the Raster Brick set (in the same order as the files).
 #' @param  scale_factors.vec     Vector of scale factors (one per band).
@@ -565,23 +475,18 @@ sits_coverage <- function(service        = "RASTER",
 #' @param  minimum_values.vec    Minimum values for each band (only for raster data).
 #' @param  maximum_values.vec    Maximum values for each band (only for raster data).
 #' @param  files.lst             List of vectors with the file paths of the raster files.
-#' @return A tibble with metadata information about a raster data set.
-.sits_coverage_STACK <- function(name,
-                                 timeline.vec,
-                                 bands.vec,
-                                 scale_factors.vec,
-                                 missing_values.vec,
-                                 minimum_values.vec,
-                                 maximum_values.vec,
-                                 files.lst) {
+#' @return A tibble with metadata information about a data cube.
+.sits_cube_stack <- function(name, timeline.vec, bands.vec, scale_factors.vec,
+                             missing_values.vec, minimum_values.vec, maximum_values.vec, files.lst)
+{
     ensurer::ensure_that(bands.vec, length(.) == length(files.lst),
-                         err_desc = "sits_coverage_STACK: number of bands does not match number of files")
+                         err_desc = "sits_cube_STACK: number of bands does not match number of files")
     ensurer::ensure_that(name, !purrr::is_null(.),
-                         err_desc = "sits_coverage_STACK: name of the coverega must be provided")
+                         err_desc = "sits_cube_STACK: name of the coverega must be provided")
     ensurer::ensure_that(bands.vec, !purrr::is_null(.),
-                         err_desc = "sits_coverage_STACK - bands must be provided")
+                         err_desc = "sits_cube_STACK - bands must be provided")
     ensurer::ensure_that(files.lst, !purrr::is_null(.),
-                         err_desc = "sits_coverage_STACK - files must be provided")
+                         err_desc = "sits_cube_STACK - files must be provided")
 
     # get the timeline
     if (purrr::is_null(timeline.vec))
@@ -604,39 +509,32 @@ sits_coverage <- function(service        = "RASTER",
                                  return(raster.obj)
                              })
 
-    coverage.tb <- .sits_create_STACK_coverage(raster.lst         = stck.obj,
-                                               service            = "RASTER",
-                                               name               = name,
-                                               timeline.lst       = list(timeline.vec),
-                                               bands.vec          = bands.vec,
-                                               labels.vec         = labels.vec,
-                                               scale_factors.vec  = scale_factors.vec,
-                                               missing_values.vec = missing_values.vec,
-                                               minimum_values.vec = minimum_values.vec,
-                                               maximum_values.vec = maximum_values.vec,
-                                               files.lst          = files.lst)
+    cube.tb <- .sits_create_stack_cube(stck.obj, service = "RASTER",
+                                       name, list(timeline.vec), bands.vec, labels.vec,
+                                       scale_factors.vec, missing_values.vec, minimum_values.vec,
+                                       maximum_values.vec, files.lst)
 
-    return(coverage.tb)
+    return(cube.tb)
 }
 
-#' @title Create a set of RasterLayer objects to store time series classification results
-#' @name .sits_coverage_raster_classified
+#' @title Create a set of RasterLayer objects to store data cube classification results
+#' @name .sits_cube_classified
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Takes a tibble containing metadata about a set of RasterBrick objects
+#' @description Takes a tibble containing metadata about a data cube
 #' containing time series (each Brick has information for one band) and creates a
 #' set of RasterLayers to store the classification result. Each RasterLayer corresponds
 #' to one time step. The time steps are specified in a list of dates.
 #'
-#' @param  raster.tb         Tibble with metadata about the input RasterBrick objects.
+#' @param  raster.tb         Tibble with metadata about the input data cube.
 #' @param  samples.tb        Samples used for training the classification model.
 #' @param  file              Generic name of the files that will contain the RasterLayers.
 #' @param  interval          Classification interval.
 #' @return A tibble with metadata about the output RasterLayer objects.
-.sits_coverage_raster_classified <- function(raster.tb, samples.tb, file, interval){
+.sits_cube_classified <- function(raster.tb, samples.tb, file, interval){
     # ensure metadata tibble exists
     ensurer::ensure_that(raster.tb, NROW(.) > 0,
-                         err_desc = "sits_classify_raster: need a valid metadata for coverage")
+                         err_desc = ".sits_classify_cube: need a valid metadata for cube")
 
     # get the timeline of observations (required for matching dates)
     timeline <- raster.tb[1,]$timeline[[1]][[1]]
@@ -710,54 +608,40 @@ sits_coverage <- function(service        = "RASTER",
                                  "_",lubridate::year(start_date),"_",lubridate::month(end_date))
     }
 
-    # get the name of the coverage
+    # get the name of the cube
     name   <-  paste0(raster.tb[1,]$name, "-class")
 
     # create a new RasterLayer for a defined period and generate the associated metadata
-    coverage.tb <- .sits_create_raster_coverage(raster.lst         = rasters_class,
-                                                service            = "RASTER",
-                                                name               = name,
-                                                timeline.lst       = timeline_rasters,
-                                                bands.vec          = bands_class,
-                                                labels.vec         = labels,
-                                                scale_factors.vec  = scale_factors_class,
-                                                missing_values.vec = missing_values_class,
-                                                minimum_values.vec = minimum_values_class,
-                                                maximum_values.vec = maximum_values_class,
-                                                files.vec          = files_class)
+    cube.tb <- .sits_create_raster_cube(rasters_class, service            = "RASTER", name,
+                                        timeline_rasters, bands_class, labels,
+                                        scale_factors_class, missing_values_class,
+                                        minimum_values_class, maximum_values_class, files_class)
 
-    # get the name of the coverage
+    # get the name of the cube
     name   <-  paste0(raster.tb[1,]$name, "-prob")
 
-    coverage_probs.tb <- .sits_create_raster_coverage(raster.lst         = rasters_probs,
-                                                      service            = "RASTER",
-                                                      name               = name,
-                                                      timeline.lst       = timeline_rasters,
-                                                      bands.vec          = bands_probs,
-                                                      labels.vec         = labels,
-                                                      scale_factors.vec  = scale_factors_probs,
-                                                      missing_values.vec = missing_values_probs,
-                                                      minimum_values.vec = minimum_values_probs,
-                                                      maximum_values.vec = maximum_values_probs,
-                                                      files.vec          = files_probs)
+    cube_probs.tb <- .sits_create_raster_cube(rasters_probs, service = "RASTER",
+                                              name, timeline_rasters, bands_probs, labels,
+                                              scale_factors_probs, missing_values_probs,
+                                              minimum_values_probs, maximum_values_probs, files_probs)
 
-    coverage.tb <- dplyr::bind_rows(coverage.tb, coverage_probs.tb)
+    cube.tb <- dplyr::bind_rows(cube.tb, cube_probs.tb)
 
     # join rows to a single row
-    coverage.tb <- dplyr::as_tibble(lapply(coverage.tb, list))
+    cube.tb <- dplyr::as_tibble(lapply(cube.tb, list))
 
-    return(coverage.tb)
+    return(cube.tb)
 }
 
-#' @title Creates a tibble with information about a set of raster bricks
-#' @name .sits_create_raster_coverage
+#' @title Creates a tibble with information about a data cube based on Raster objects
+#' @name .sits_create_raster_cube
 #'
-#' @description Creates a tibble with metadata about a given coverage.
+#' @description Creates a tibble with metadata about a given cube.
 #'
-#' @param raster.lst               List of Raster objects associated with the raster coverages.
+#' @param raster.lst               List of Raster objects associated with the raster cubes.
 #' @param service                  Time series service.
-#' @param name                     Name of the coverage.
-#' @param timeline.lst             List of coverage timelines.
+#' @param name                     Name of the cube.
+#' @param timeline.lst             List of cube timelines.
 #' @param bands.vec                Vector with names of bands.
 #' @param labels.vec               Vector of labels for classified image.
 #' @param scale_factors.vec        Vector of scale factors.
@@ -765,7 +649,7 @@ sits_coverage <- function(service        = "RASTER",
 #' @param minimum_values.vec       Vector of minimum values.
 #' @param maximum_values.vec       Vector of maximum values.
 #' @param files.vec                Vector of names of raster files where the data is stored.
-.sits_create_raster_coverage <- function(raster.lst,
+.sits_create_raster_cube <- function(raster.lst,
                                          service,
                                          name,
                                          timeline.lst,
@@ -779,7 +663,7 @@ sits_coverage <- function(service        = "RASTER",
     # associate an R raster object to the first element of the list of bricks
     r_obj <- raster.lst[[1]]
 
-    # get the size of the coverage
+    # get the size of the cube
     nrows <- raster::nrow(r_obj)
     ncols <- raster::ncol(r_obj)
 
@@ -855,33 +739,24 @@ sits_coverage <- function(service        = "RASTER",
     crs = as.character(raster::crs(r_obj))
 
     # create a tibble to store the metadata
-    coverage.tb <- .sits_create_coverage(raster.lst,
-                                         name = name,
-                                         service = service,
-                                         bands.vec = bands.vec,
-                                         labels.vec = labels.vec,
-                                         scale_factors.vec = scale_factors.vec,
-                                         missing_values.vec = missing_values.vec,
-                                         minimum_values.vec = minimum_values.vec,
-                                         maximum_values.vec = maximum_values.vec,
-                                         timeline.lst = timeline.lst,
-                                         nrows = nrows, ncols = ncols,
-                                         xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
-                                         xres = xres, yres = yres, crs = crs,
-                                         files.vec = files.vec)
+    cube.tb <- .sits_create_cube(raster.lst, name, service, bands.vec, labels.vec,
+                                 scale_factors.vec, missing_values.vec,
+                                 minimum_values.vec, maximum_values.vec, timeline.lst,
+                                 nrows, ncols, xmin, xmax, ymin, ymax,
+                                 xres, yres, crs, files.vec)
 
-    return(coverage.tb)
+    return(cube.tb)
 }
 
 #' @title Creates a tibble with information about a set of raster bricks
-#' @name .sits_create_STACK_coverage
+#' @name .sits_create_stack_cube
 #'
-#' @description Creates a tibble with metadata about a given coverage.
+#' @description Creates a tibble with metadata about a given cube.
 #'
-#' @param raster.lst               List of Raster objects associated with the raster coverages.
+#' @param raster.lst               List of Raster objects associated with the raster cubes.
 #' @param service                  Time series service.
-#' @param name                     Name of the coverage.
-#' @param timeline.lst             List of coverage timelines.
+#' @param name                     Name of the cube.
+#' @param timeline.lst             List of cube timelines.
 #' @param bands.vec                Vector with names of bands.
 #' @param labels.vec               Vector of labels for classified image.
 #' @param scale_factors.vec        Vector of scale factors.
@@ -889,7 +764,7 @@ sits_coverage <- function(service        = "RASTER",
 #' @param minimum_values.vec       Vector of minimum values.
 #' @param maximum_values.vec       Vector of maximum values.
 #' @param files.lst                List of vectors containing raster files where the data is stored.
-.sits_create_STACK_coverage <- function(raster.lst,
+.sits_create_stack_cube <- function(raster.lst,
                                         service,
                                         name,
                                         timeline.lst,
@@ -904,7 +779,7 @@ sits_coverage <- function(service        = "RASTER",
     # associate an R raster object to the first element of the list of stacks
     r_obj <- raster.lst[[1]]
 
-    # get the size of the coverage
+    # get the size of the cube
     nrows <- raster::nrow(r_obj)
     ncols <- raster::ncol(r_obj)
 
@@ -978,7 +853,7 @@ sits_coverage <- function(service        = "RASTER",
     crs = as.character(raster::crs(r_obj))
 
     # create a tibble to store the metadata
-    coverage.tb <- .sits_create_coverage(raster.lst,
+    cube.tb <- .sits_create_cube(raster.lst,
                                          name = name,
                                          service = service,
                                          bands.vec = bands.vec,
@@ -993,9 +868,63 @@ sits_coverage <- function(service        = "RASTER",
                                          xres = xres, yres = yres, crs = crs,
                                          files.vec = files.lst)
 
-    return(coverage.tb)
+    return(cube.tb)
 }
+#' @title Creates the description of a data cube
+#' @name .sits_create_cube
+#'
+#' @description Uses the configuration file to print information and save metadata about a
+#' data cube.
+#'
+#' @param r_objs.lst         List of raster objects contained in the cube.
+#' @param name               Name of the data cube.
+#' @param service            Name of the web service that has provided metadata about the cube.
+#' @param bands.vec          Vector with the names of the bands.
+#' @param labels.vec         Vector with labels (only valid for classified data).
+#' @param scale_factors.vec  Vector with scale factor for each band.
+#' @param missing_values.vec Vector with missing values for each band.
+#' @param minimum_values.vec Vector with minimum values for each band.
+#' @param maximum_values.vec Vector with maximum values for each band.
+#' @param timeline.lst       List with vectors of valid timelines for each band.
+#' @param nrows              Number of rows in the cube.
+#' @param ncols              Number of columns in the cube.
+#' @param xmin               Spatial extent (xmin).
+#' @param ymin               Spatial extent (ymin).
+#' @param xmax               Spatial extent (xmax).
+#' @param ymax               Spatial extent (ymin).
+#' @param xres               Spatial resolution (x dimension).
+#' @param yres               Spatial resolution (y dimension).
+#' @param crs                CRS for cube.
+#' @param files.vec          Vector with associated files.
+.sits_create_cube <- function(r_objs.lst, name, service,
+                              bands.vec, labels.vec, scale_factors.vec, missing_values.vec,
+                              minimum_values.vec, maximum_values.vec, timeline.lst,
+                              nrows, ncols, xmin, xmax, ymin, ymax,
+                              xres, yres, crs, files.vec) {
+    # create a tibble to store the metadata
+    cube.tb <- tibble::tibble(r_objs         = list(r_objs.lst),
+                              name           = name,
+                              service        = service,
+                              bands          = list(bands.vec),
+                              labels         = list(labels.vec),
+                              scale_factors  = list(scale_factors.vec),
+                              missing_values = list(missing_values.vec),
+                              minimum_values = list(minimum_values.vec),
+                              maximum_values = list(maximum_values.vec),
+                              timeline       = list(timeline.lst),
+                              nrows          = nrows,
+                              ncols          = ncols,
+                              xmin           = xmin,
+                              xmax           = xmax,
+                              ymin           = ymin,
+                              ymax           = ymax,
+                              xres           = xres,
+                              yres           = yres,
+                              crs            = crs,
+                              files          = list(files.vec))
 
+    return(cube.tb)
+}
 #' @title Try a best guess for the type of sensor/satellite
 #' @name .sits_guess_satellite
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -1047,4 +976,70 @@ sits_coverage <- function(service        = "RASTER",
     file_name <- paste0(file_base, "_", y1, "_", m1, "_", y2, "_", m2, ".tif")
 
     return(file_name)
+}
+
+#' @title Provides information about one coverage used to retrieve data
+#' @name sits_coverage
+#'
+#' @description Defines a coverage to retrieve data. Coverages are associated to
+#' data services. The following services are available:
+#' \itemize{
+#'  \item{"WTSS": }{Web Time Series Service - used to get time series}
+#'  \item{"EOCUBES": }{EOCUBES service - used for cloud processing of data cubes}
+#'  \item{"RASTER": }{Raster Brick files, local or remote}
+#'  \item{"STACK": }{Raster Stack files, local or remote}
+#' }
+#'
+#'
+#' @param service           Name of the data service.
+#' @param provider          Name of the service provider.
+#' @param name              Name of the image collection.
+#' @param tiles_names       A string with tile names to be filtered.
+#' @param geom              A \code{sfc} object to filter tiles that intersects the given geometry.
+#' @param from              A date value to filter cube's layers by date.
+#' @param to                A date value to filter cube's layers by date.
+#' @param timeline          Vector with the timeline of the collection.
+#' @param bands             Vector of bands.
+#' @param scale_factors     Vector with the scale factor for each band.
+#' @param missing_values    Vector of missing values for each band.
+#' @param minimum_values    Vector of minimum values for each band.
+#' @param maximum_values    Vector of maximum values for each band.
+#' @param files             Vector of file names for each band (only for raster data).
+#'
+#' @seealso To see the available values for the parameters above use \code{\link{sits_services}}, \code{\link{sits_config}} or \code{\link{sits_show_config}}.
+#' @examples
+#' \donttest{
+#' # Example 1. Retrieve information about a WTSS collection
+#' coverage.tb <- sits_coverage(service = "WTSS", name = "MOD13Q1")
+#'
+#' # Example 2. Create a raster coverage with metadata
+#' # read a raster file and put it into a vector
+#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#'
+#' # create a raster coverage file based on the information about the files
+#' raster.tb <- sits_coverage(service = "RASTER", name  = "Sinop-crop",
+#'              timeline = timeline_modis_392, bands = "ndvi", files = files)
+#' }
+#' @export
+sits_coverage <- function(service        = "RASTER",
+                          provider       = NULL,
+                          name           = NULL,
+                          tiles_names    = NULL,
+                          geom           = NULL,
+                          from           = NULL,
+                          to             = NULL,
+                          timeline       = NULL,
+                          bands          = NULL,
+                          missing_values = NULL,
+                          scale_factors  = NULL,
+                          minimum_values = NULL,
+                          maximum_values = NULL,
+                          files          = NA) {
+
+    # backward compatibility
+    cube.tb <- sits_cube(service, provider, name, tiles_names, geom, from, to, timeline,
+                         bands, missing_values, scale_factors, minimum_values,
+                         maximum_values, files)
+
+    return (cube.tb)
 }

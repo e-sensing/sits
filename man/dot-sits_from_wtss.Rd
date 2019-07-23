@@ -4,11 +4,11 @@
 \alias{.sits_from_wtss}
 \title{Obtain one timeSeries from WTSS server and load it on a sits tibble}
 \usage{
-.sits_from_wtss(coverage, longitude, latitude, start_date = NULL,
+.sits_from_wtss(cube, longitude, latitude, start_date = NULL,
   end_date = NULL, bands = NULL, label = "NoClass")
 }
 \arguments{
-\item{coverage}{Metadata about the coverage where the data is to be retrived.}
+\item{cube}{Metadata about the cube where the data is to be retrived.}
 
 \item{longitude}{The longitude of the chosen location.}
 
@@ -18,7 +18,7 @@
 
 \item{end_date}{Date with the end of the period.}
 
-\item{bands}{A list of string with the names of the bands of the coverage.}
+\item{bands}{A list of string with the names of the bands of the cube.}
 
 \item{label}{A string with the label to attach to the time series (optional).}
 }

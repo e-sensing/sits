@@ -2,13 +2,13 @@
 % Please edit documentation in R/sits_get_data.R
 \name{.sits_from_service}
 \alias{.sits_from_service}
-\title{Obtain timeSeries from time series service}
+\title{Obtain timeSeries from a web service associated to data cubes}
 \usage{
-.sits_from_service(coverage, longitude, latitude, start_date, end_date,
-  bands, prefilter = "1", label = "NoClass")
+.sits_from_service(cube, longitude, latitude, start_date, end_date, bands,
+  prefilter = "1", label = "NoClass")
 }
 \arguments{
-\item{coverage}{Coverage metadata.}
+\item{cube}{Data cube metadata.}
 
 \item{longitude}{Longitude of the chosen location.}
 

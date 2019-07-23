@@ -19,8 +19,7 @@ A vector of predicted labels.
 \description{
 Given a sits tibble time series and a model trained by \code{\link[sits]{sits_train}},
   returns a predicted label. Note that this function is
-  called inside \code{\link[sits]{sits_classify}},
-  and \code{\link[sits]{sits_classify_raster}}, so the user does not need
+  called inside \code{\link[sits]{sits_classify}}, so the user does not need
   to explicitly use it. Please see the above-mentioned classification functions.
 }
 \author{

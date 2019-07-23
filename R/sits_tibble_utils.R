@@ -74,7 +74,7 @@
 #' @return A tibble in sits format with the chosen subset.
 .sits_extract <- function(row.tb, start_date, end_date) {
     # create a tibble to store the results
-    subset.tb <- sits_tibble()
+    subset.tb <- .sits_tibble()
 
     # filter the time series by start and end dates
     ts <- row.tb$time_series[[1]]
@@ -92,7 +92,7 @@
                                      start_date   = as.Date(start_date),
                                      end_date     = as.Date(end_date),
                                      label        = row.tb$label,
-                                     coverage     = row.tb$coverage,
+                                     cube         = row.tb$cube,
                                      time_series  = ts.lst)
     }
     return(subset.tb)
@@ -114,7 +114,7 @@
         dplyr::group_by(...)
 
     # comply result with sits tibble format and return
-    result.tb <- dplyr::bind_rows(list(sits_tibble(), result.tb))
+    result.tb <- dplyr::bind_rows(list(.sits_tibble(), result.tb))
     return(result.tb)
 }
 
@@ -134,7 +134,7 @@
                          err_desc = "input data is empty")
 
     names <- c("longitude", "latitude", "start_date", "end_date",
-               "label", "coverage", "time_series")
+               "label", "cube", "time_series")
 
     ensurer::ensure_that(data.tb, all(names %in% colnames(.)),
                          err_desc = "data input is not a valid sits tibble")
@@ -229,5 +229,18 @@
 
     data.tb$predicted <- predicted.lst
 
+    return(data.tb)
+}
+#' @title Rename a tibble to use "cube" instead of "coverage"
+#' @name .sits_tibble_rename
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param data.tb   Tibble with
+.sits_tibble_rename <- function(data.tb)
+{
+    # is the input data a valid sits tibble?
+    ensurer::ensure_that(data.tb, "coverage" %in% names(.),
+                         err_desc = "sits_tibble_rename: input data does not contain a coverage column ")
+
+    data.tb <- data.tb %>% dplyr::rename(cube = coverage)
     return(data.tb)
 }

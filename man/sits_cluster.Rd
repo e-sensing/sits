@@ -4,23 +4,36 @@
 \alias{sits_cluster}
 \title{Cuts a cluster tree produced by sits_dendrogram}
 \usage{
-sits_cluster(data.tb, dendro.obj, k = NULL, height = NULL)
+sits_cluster(data.tb, bands = NULL, dist_method = "dtw_basic",
+  linkage = "ward.D2", k = NULL, colors = "RdYlGn", silent = FALSE,
+  ...)
 }
 \arguments{
 \item{data.tb}{A tibble with input data of dtwclust.}
 
-\item{dendro.obj}{Dendrogram object returned from \code{\link[sits]{sits_dendrogram}}.}
+\item{bands}{Bands to be used in the clustering}
 
-\item{k}{Desired number of clusters (integer).}
+\item{dist_method}{String with one of the supported distance from proxy's dist, e.g. \code{TWDTW}.}
 
-\item{height}{Desired height to cut the dendrogram (double). At least one of k or height must be specified, k overrides height if both are given.}
+\item{linkage}{String with agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'.}
+
+\item{k}{The desired number of clusters (overrides default value)}
+
+\item{colors}{A color scheme as showed in `sits_color_name` function.}
+
+\item{silent}{Should output be provided?}
+
+\item{...}{Any additional parameters to be passed to dtwclust::tsclust() function.}
 }
 \value{
 A tibble with the clusters or clusters' members.
 }
 \description{
-reads a list of clusters provided by the dtwclust
-package,  and produces a sits tibble with an added "cluster" column
+Takes a SITS tibble and produces a sits tibble with an added "cluster" column
+This is done in several steps:
+1. Calculation of the dendogram
+2. Selection of the validity index for best cluster using the adjusted Rand Index
+3. Cut the dendogram using the chosen validity index
 }
 \examples{
 \donttest{
@@ -28,10 +41,9 @@ package,  and produces a sits tibble with an added "cluster" column
 library(dtwclust)
 # load a simple data set with two classes
 data(cerrado_2classes)
-# calculate the dendrogram
-dendro.obj <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
+# calculate the dendrogram and the best cluster
 # include the cluster info in the sits tibble
-clustered.tb <- sits_cluster (cerrado_2classes, dendro.obj, k = 6)
+clustered.tb <- sits_cluster (cerrado_2classes, bands = c("ndvi"))
 }
 }
 \references{

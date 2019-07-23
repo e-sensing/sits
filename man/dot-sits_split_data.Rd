@@ -4,14 +4,12 @@
 \alias{.sits_split_data}
 \title{Split a data.table or a matrix for multicore processing}
 \usage{
-.sits_split_data(data, ncores, ml_model)
+.sits_split_data(data, ncores)
 }
 \arguments{
 \item{data}{Data (data.table or matrix).}
 
 \item{ncores}{Number of cores for processing.}
-
-\item{ml_model}{Machine learning model which is part of the object.}
 }
 \value{
 List of pairs of positions (first row, last row) to be assigned to each core.

@@ -4,12 +4,12 @@
 \alias{.sits_check_classify_params}
 \title{Check clasification parameters}
 \usage{
-.sits_check_classify_params(file, coverage, ml_model)
+.sits_check_classify_params(file, cube, ml_model)
 }
 \arguments{
 \item{file}{Vector of file names to store the output (one file per classified year).}
 
-\item{coverage}{Tibble with information about a set of space-time raster bricks.}
+\item{cube}{Tibble with information about a data cube.}
 
 \item{ml_model}{An R model trained by \code{\link[sits]{sits_train}}.}
 }

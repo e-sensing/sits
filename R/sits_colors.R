@@ -1,7 +1,7 @@
 #' @title Brewer color schemes
 #' @name .sits_color_name
 #'
-#' @description brewer color schemes names to be used with `sits_plot_dendrogram`.
+#' @description brewer color schemes names to be used with `.sits_plot_dendrogram`.
 #'
 #' @param name      name of the brewer color set.
 #' @return A string with the common color set name.

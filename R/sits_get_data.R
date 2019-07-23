@@ -2,16 +2,22 @@
 #' @name sits_get_data
 #' @author Gilberto Camara
 #'
-#' @description Retrieve a set of time series. There are two main ways of retrieving time series:
-#' using a time series service and from a Raster Brick. Two time series services are available:
+#' @description Retrieve a set of time series and puts it in a "sits tibble".
+#' Sits tibbles are the main structures of sits package.
+#' They contain both the satellite image time series and its metadata.
+#' A sits tibble is a tibble with pre-defined columns that
+#' has the metadata and data for each time series. The columns are
+#' <longitude, latitude, start_date, end_date, label, cube, time_series>.
+#' There are two main ways of retrieving time series:
+#' 1. Using a time series service and from a data cube defined based on a set of Raster Bricks. Two time series services are available:
 #' (a) the Web Time Series Service (WTSS) by INPE; (b) the SATVEG service from EMBRAPA.
-#' Please see \code{\link[sits]{sits_info_wtss}} for more information on thw WTSS service.
+#' Please see \code{\link[sits]{sits_services}} for more information on thw WTSS service.
 #' The URL and other parameters for access to the time series services are defined in the package
 #' configuration file. This file is called "config.yml". Please see the \code{\link[sits]{sits_config}} for
 #' more information.
 #'
-#' Before using this service, the user should create a valid coverage tibble
-#' using the \code{\link[sits]{sits_coverage}} function.
+#' Before using this service, the user should create a valid description of a data cube ´
+#' using the \code{\link[sits]{sits_cube}} function.
 #'
 #' The following options are available:
 #' \enumerate{
@@ -23,7 +29,7 @@
 #' \item The source is a RasterBrick - retrieves the point based on lat/long from the RasterBrick.
 #' }
 #'  The results is a sits tibble, which  has the metadata and data for each time series
-#' <longitude, latitude, start_date, end_date, label, coverage, time_series>
+#' <longitude, latitude, start_date, end_date, label, cube, time_series>
 #'
 #' @references
 #' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
@@ -31,7 +37,7 @@
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177.
 #'
-#' @param coverage        A mandatory tibble with information about the coverage.
+#' @param cube            A tibble with information about the data cube where dta is to be retrived.
 #' @param file            An optional name of a file with information on the data to be retrieved (options - CSV, SHP).
 #' @param longitude       Longitude of the chosen location.
 #' @param latitude        Latitude of the chosen location.
@@ -48,52 +54,45 @@
 #' @examples
 #' \donttest{
 #' # Read a single lat long point from a WTSS server
-#' wtss_coverage <- sits_coverage(service = "WTSS", name = "MOD13Q1")
-#' point.tb <- sits_get_data (wtss_coverage, longitude = -55.50563, latitude = -11.71557)
+#' wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
+#' point.tb <- sits_get_data (wtss_cube, longitude = -55.50563, latitude = -11.71557)
 #' sits_plot(point.tb)
 #'
 #' # Read a set of points defined in a CSV file from a WTSS server
 #' csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
-#' points.tb <- sits_get_data (wtss_coverage, file = csv_file)
+#' points.tb <- sits_get_data (wtss_cube, file = csv_file)
 #' # show the points retrieved for the WTSS server
 #' sits_plot (points.tb[1:3,])
 #'
 #' # Read a single lat long point from the SATVEG server
-#' satveg_coverage <- sits_coverage(service = "SATVEG", name = "terra")
-#' point_satveg.tb <- sits_get_data (satveg_coverage, longitude = -55.50563, latitude = -11.71557)
+#' satveg_cube <- sits_cube(service = "SATVEG", name = "terra")
+#' point_satveg.tb <- sits_get_data (satveg_cube, longitude = -55.50563, latitude = -11.71557)
 #' sits_plot(point_satveg.tb)
 #'
 #' # define a shapefile and read from the points inside it from the WTSS service
 #' shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
-#' munic.tb <- sits_get_data(coverage = wtss_coverage, file = shp_file)
+#' munic.tb <- sits_get_data(wtss_cube, file = shp_file)
 #'
 #' # Read a point in a Raster Brick
 #' # define the file that has the raster brick
 #' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 #' # define the timeline
 #' data(timeline_modis_392)
-#' # create a raster metadata file based on the information about the files
-#' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
+#' # create a data cube based on the information about the files
+#' raster_cube <- sits_cube(service = "RASTER", files = files, name = "Sinop-crop",
 #'                             timeline = timeline_modis_392, bands = c("ndvi"))
-#' # read the point from the raster
-#' point_coverage <- sits_getdata(raster_cov, longitude = -55.554, latitude = -11.525)
-#' sits_plot(point_coverage)
+#' # read the time series of the point from the raster
+#' point_ts <- sits_getdata(raster_cube, longitude = -55.554, latitude = -11.525)
+#' sits_plot(point_ts)
 #'
 #' #' # Read a CSV file in a Raster Brick
-#' # define the file that has the raster brick
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-#' # define the timeline
-#' data(timeline_modis_392)
-#' # create a raster metadata file based on the information about the files
-#' raster_cov <- sits_coverage(files = files, name = "Sinop-crop",
-#'                             timeline = timeline_modis_392, bands = c("ndvi"))
-#' csv_raster_file <- system.file ("extdata/samples/samples_sinop_crop.csv", package = "sits")
-#' points.tb <- sits_get_data (raster_cov, file = csv_raster_file)
+#' csv_file <- system.file ("extdata/samples/samples_sinop_crop.csv", package = "sits")
+#' points.tb <- sits_get_data (raster_cube, file = csv_file)
 #' # show the points retrieved for the RASTER images
 #' sits_plot (points.tb)
 #' }
 #' @export
-sits_get_data <- function(coverage    = NULL,
+sits_get_data <- function(cube,
                          file        = NULL,
                          longitude   = NULL,
                          latitude    = NULL,
@@ -106,12 +105,12 @@ sits_get_data <- function(coverage    = NULL,
                          .n_max      = Inf,
                          .n_save     = 0) {
     # Ensure that the service is available
-    .sits_check_service(coverage[1,]$service)
+    .sits_check_service(cube[1,]$service)
 
     # get data based on latitude and longitude
     if (purrr::is_null(file) &&
         !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
-        data.tb <- .sits_from_service(coverage = coverage,
+        data.tb <- .sits_from_service(cube = cube,
                                       longitude = longitude,
                                       latitude = latitude,
                                       start_date = start_date,
@@ -123,18 +122,12 @@ sits_get_data <- function(coverage    = NULL,
     }
     # get data based on CSV file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv") {
-        data.tb <- .sits_from_csv(csv_file  = file,
-                                 coverage  = coverage,
-                                 bands     = bands,
-                                 prefilter = prefilter,
-                                .n_start   = .n_start,
-                                .n_max     = .n_max,
-                                .n_save    = .n_save)
+        data.tb <- .sits_from_csv(file, cube, bands, prefilter, .n_start, .n_max, .n_save)
         return(data.tb)
     }
     # get data based on SHP file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "shp") {
-        data.tb <- .sits_from_shp(file, coverage, start_date, end_date, bands, prefilter, label)
+        data.tb <- .sits_from_shp(file, cube, start_date, end_date, bands, prefilter, label)
         return(data.tb)
     }
     message(paste("No valid input to retrieve time series data!!", "\n", sep = ""))
@@ -143,24 +136,24 @@ sits_get_data <- function(coverage    = NULL,
 
 
 
-#' @title Obtain timeSeries from time series server, based on a CSV file.
+#' @title Obtain timeSeries from a data cube, based on a CSV file.
 #' @name .sits_from_csv
 #'
 #' @description reads descriptive information about a set of
-#' spatio-temporal locations from a CSV file. Then, it uses the WTSS time series service
-#' to retrieve the time series, and stores the time series on a sits tibble for later use.
+#' spatio-temporal locations from a CSV file. Then, it retrieve the time series from a data cube,
+#' and stores the time series on a sits tibble for later use.
 #' The CSV file should have the following column names:
 #' "longitude", "latitude", "start_date", "end_date", "label"
 #'
 #' @param csv_file        Name of a CSV file with information <id, latitude, longitude, from, end, label>.
-#' @param coverage        A tibble with metadata about coverage which contains data to be retrieved.
+#' @param cube            A tibble with metadata about the data cube which contains data to be retrieved.
 #' @param bands           A string vector with the names of the bands to be retrieved.
 #' @param prefilter       String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @param .n_start        Row on the CSV file to start reading (optional).
 #' @param .n_max          Maximum number of samples to be read.
 #' @param .n_save         Number of samples to save as intermediate files (used for long reads).
 #' @return A sits tibble.
-.sits_from_csv <-  function(csv_file, coverage, bands, prefilter, .n_start, .n_max, .n_save) {
+.sits_from_csv <-  function(csv_file, cube, bands, prefilter, .n_start, .n_max, .n_save) {
     # configure the format of the CSV file to be read
     cols_csv <- readr::cols(id          = readr::col_integer(),
                             longitude   = readr::col_double(),
@@ -181,14 +174,14 @@ sits_get_data <- function(coverage    = NULL,
     # create a variable to store the number of rows
     nrow <- 0
     # create the tibble
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # create a file to store the unread rows
     csv_unread.tb <- .sits_tibble_csv()
     # for each row of the input, retrieve the time series
     purrr::pmap(list(csv.tb$longitude, csv.tb$latitude, csv.tb$start_date,
                 csv.tb$end_date, csv.tb$label),
                 function(longitude, latitude, start_date, end_date, label){
-                    row <- .sits_from_service(coverage, longitude, latitude,
+                    row <- .sits_from_service(cube, longitude, latitude,
                                               lubridate::as_date(start_date),
                                               lubridate::as_date(end_date),
                                               bands, prefilter, label)
@@ -231,28 +224,29 @@ sits_get_data <- function(coverage    = NULL,
 #' @name .sits_from_raster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Reads metadata about a raster data set to retrieve a set of
-#' time series.
+#' @description Retrieve a set of time series for data cube stored as a raster data set.
 #'
-#' @param coverage        A tibble with metadata describing a raster coverage.
+#' @param cube            A tibble with metadata describing a data cube stored as a raster data set.
 #' @param longitude       A double with the longitude of the chosen location.
 #' @param latitude        A double with the latitude of the chosen location.
 #' @param start_date      A date with the start of the period.
 #' @param end_date        A date with the end of the period.
+#' @param bands           A string vector with the names of the bands to be retrieved.
 #' @param label           A string with the label to attach to the time series.
 #' @return A sits tibble with the time series.
-.sits_from_raster <- function(coverage,
+.sits_from_raster <- function(cube,
                               longitude,
                               latitude,
                               start_date = NULL,
                               end_date  = NULL,
+                              bands,
                               label = "NoClass"){
 
     # ensure metadata tibble exists
-    ensurer::ensure_that(coverage, NROW(.) >= 1,
-                         err_desc = "sits_from_raster: need a valid metadata for coverage")
+    ensurer::ensure_that(cube, NROW(.) >= 1,
+                         err_desc = "sits_from_raster: need a valid metadata for data cube")
 
-    timeline <- coverage$timeline[[1]][[1]]
+    timeline <- cube$timeline[[1]][[1]]
 
     start_idx <- 1
     end_idx   <- length(timeline)
@@ -268,9 +262,9 @@ sits_get_data <- function(coverage    = NULL,
     ts.tb <- tibble::tibble(Index = timeline)
 
     # get the bands, scale factors and missing values
-    bands <- unlist(coverage$bands)
-    missing_values <- unlist(coverage$missing_values)
-    scale_factors  <- unlist(coverage$scale_factors)
+    bands <- unlist(cube$bands)
+    missing_values <- unlist(cube$missing_values)
+    scale_factors  <- unlist(cube$scale_factors)
     nband <- 0
 
     # transform longitude and latitude to an sp Spatial Points* (understood by raster)
@@ -279,7 +273,7 @@ sits_get_data <- function(coverage    = NULL,
     ll_sp <- sf::as_Spatial(ll_sfc)
 
     # An input raster brick contains several files, each corresponds to a band
-    values.lst <- coverage$r_objs[[1]] %>%
+    values.lst <- cube$r_objs[[1]] %>%
         purrr::map(function(r_brick) {
             # eack brick is a band
             nband <<- nband + 1
@@ -308,7 +302,7 @@ sits_get_data <- function(coverage    = NULL,
     ts.lst[[1]] <- ts.tb
 
     # create a tibble to store the WTSS data
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # add one row to the tibble
     data.tb <- tibble::add_row(data.tb,
                                longitude    = longitude,
@@ -316,17 +310,17 @@ sits_get_data <- function(coverage    = NULL,
                                start_date   = as.Date(timeline[1]),
                                end_date     = as.Date(timeline[length(timeline)]),
                                label        = label,
-                               coverage     = coverage$name,
+                               cube         = cube$name,
                                time_series  = ts.lst
     )
     return(data.tb)
 }
-#' @title Obtain timeSeries from time series service
+#' @title Obtain timeSeries from a web service associated to data cubes
 #' @name .sits_from_service
 #'
 #' @description Obtains a time series from a time series service.
 #'
-#' @param coverage        Coverage metadata.
+#' @param cube            Data cube metadata.
 #' @param longitude       Longitude of the chosen location.
 #' @param latitude        Latitude of the chosen location).
 #' @param start_date      Optional start date of the period.
@@ -335,7 +329,7 @@ sits_get_data <- function(coverage    = NULL,
 #' @param prefilter       String (only for SATVEG) ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @param label           String with the label to attach to the time series.
 #' @return A sits tibble.
-.sits_from_service <- function(coverage,
+.sits_from_service <- function(cube,
                                longitude,
                                latitude,
                                start_date,
@@ -343,47 +337,23 @@ sits_get_data <- function(coverage    = NULL,
                                bands,
                                prefilter  = "1",
                                label = "NoClass") {
-    service <- coverage[1,]$service
+    service <- cube[1,]$service
 
     if (service == "EOCUBES") {
-        data.tb <- .sits_from_EOCubes(coverage = coverage,
-                                      longitude = longitude,
-                                      latitude = latitude,
-                                      start_date = start_date,
-                                      end_date = end_date,
-                                      bands = bands,
-                                      label = label)
+        data.tb <- .sits_from_EOCubes(cube, longitude, latitude, start_date, end_date, bands, label)
         return(data.tb)
     }
     if (service == "WTSS") {
-        data.tb <- .sits_from_wtss(coverage = coverage,
-                                   longitude = longitude,
-                                   latitude = latitude,
-                                   start_date = start_date,
-                                   end_date = end_date,
-                                   bands = bands,
-                                   label = label)
+        data.tb <- .sits_from_wtss(cube, longitude, latitude, start_date, end_date, bands, label)
         return(data.tb)
     }
     if (service == "SATVEG") {
-        data.tb <- .sits_from_satveg(coverage = coverage,
-                                     longitude = longitude,
-                                     latitude = latitude,
-                                     start_date = start_date,
-                                     end_date = end_date,
-                                     bands = bands,
-                                     prefilter = prefilter,
-                                     label = label)
+        data.tb <- .sits_from_satveg(cube, longitude, latitude, start_date, end_date, bands, prefilter, label)
 
         return(data.tb)
     }
     if (service == "RASTER") {
-        data.tb <- .sits_from_raster(coverage = coverage,
-                                     longitude = longitude,
-                                     latitude = latitude,
-                                     start_date = start_date,
-                                     end_date = end_date,
-                                     label = label)
+        data.tb <- .sits_from_raster(cube, longitude, latitude, start_date, end_date, bands, label)
 
         return(data.tb)
     }
@@ -393,12 +363,12 @@ sits_get_data <- function(coverage    = NULL,
 #' @name .sits_from_shp
 #'
 #' @description reads a shapefile and retrieves a sits tibble
-#' containing time series from a coverage that are inside the SHP file.
-#' The script uses the WTSS service, taking information about coverage, spatial and
+#' containing time series from a data cube that are inside the SHP file.
+#' The script uses the WTSS service, taking information about spatial and
 #' temporal resolution from the WTSS configuration.
 #'
 #' @param shp_file        Name of a SHP file which provides the boundaries of a region of interest.
-#' @param coverage        A tibble with metadata about the coverage.
+#' @param cube            Data cube metadata.
 #' @param start_date      The start date of the period.
 #' @param end_date        The end date of the period.
 #' @param bands           A string vector with the names of the bands to be retrieved.
@@ -406,7 +376,7 @@ sits_get_data <- function(coverage    = NULL,
 #' @param label           A string with the label to attach to the time series.
 #' @return A sits tibble.
 .sits_from_shp <- function(shp_file,
-                          coverage,
+                          cube,
                           start_date = NULL,
                           end_date   = NULL,
                           bands      = NULL,
@@ -416,7 +386,7 @@ sits_get_data <- function(coverage    = NULL,
     ensurer::ensure_that(shp_file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
                          err_desc = "sits_from_shp: please provide a valid SHP file")
     # Ensure that the service is available
-    .sits_check_service(coverage$service)
+    .sits_check_service(cube$service)
 
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
@@ -429,17 +399,17 @@ sits_get_data <- function(coverage    = NULL,
     # get the bounding box
     bbox <- sf::st_bbox(sf_shape)
     # create an empty sits tibble
-    shape.tb <- sits_tibble()
+    shape.tb <- .sits_tibble()
 
-    # if the resolution of the coverage is expressed in meters, convert it to lat long
-    if (coverage$xres > 1) {
-        res <- .sits_convert_resolution(coverage)
+    # if the resolution of the cube is expressed in meters, convert it to lat long
+    if (cube$xres > 1) {
+        res <- .sits_convert_resolution(cube)
         xres <- res["xres"]
         yres <- res["yres"]
     }
     else {
-        xres <- coverage$xres
-        yres <- coverage$yres
+        xres <- cube$xres
+        yres <- cube$yres
     }
 
     # setup the sequence of latitudes and longitudes to be searched
@@ -452,7 +422,7 @@ sits_get_data <- function(coverage    = NULL,
                 purrr::map(function(lat){
                     ll <- sf::st_point(c(long, lat))
                     if (1 %in% as.logical(unlist(sf::st_within(ll, sf_shape)))) {
-                        row <- .sits_from_service(coverage, long, lat, start_date, end_date,
+                        row <- .sits_from_service(cube, long, lat, start_date, end_date,
                                                   bands, prefilter, label)
                         shape.tb <<- dplyr::bind_rows(shape.tb, row)
                     }

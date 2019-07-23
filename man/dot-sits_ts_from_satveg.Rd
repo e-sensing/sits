@@ -11,7 +11,7 @@
 
 \item{latitude}{The latitude of the chosen location.}
 
-\item{name}{Name of the desired coverage in SATVEG (see configuration file).}
+\item{name}{Name of the desired data cube in SATVEG (see configuration file).}
 
 \item{prefilter}{String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
 }

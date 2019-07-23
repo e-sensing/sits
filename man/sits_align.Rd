@@ -19,7 +19,7 @@ Converts the time indexes of a set of sits tibble to a single reference year.
 This function is useful to join many time series from different years to a single year,
 which is required by methods that combine many time series, such as clustering methods.
 The reference year is taken from the date of the start of the time series
-available in the coverage.
+available in the data cube.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

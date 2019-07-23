@@ -9,7 +9,7 @@
 \arguments{
 \item{service}{Name of the time series service.}
 
-\item{name}{Name of the coverage.}
+\item{name}{Name of the cube.}
 }
 \value{
 CRS PROJ4 infomation.

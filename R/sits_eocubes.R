@@ -1,38 +1,3 @@
-#' @title Provides information about EOCubes service
-#' @name sits_info_EOCubes
-#' @author Rolf Simoes
-#'
-#' @description Obtains information about the EOCubes remotes
-#' and about the cubes.
-#'
-#' The EOCubes package is a lightweight link data package that allows remote access to satellite
-#'  image time series.
-#'
-#' @return An R object containing the information about the EOCubes object.
-#'
-#' @examples
-#' \donttest{
-#' # Obtain information about the coverages available
-#' sits_info_EOCubes()
-#' }
-#' @export
-sits_info_EOCubes <- function() {
-
-    remote_name <- .sits_get_server("EOCUBES")
-    remote <- EOCubes::remote(name = remote_name)
-
-    cat(paste("-----------------------------------------------------------", "\n",sep = ""))
-    cat(paste("The EOCubes remote name is '", EOCubes::remote_name(remote), "'\n", sep = ""))
-
-    # obtains information about the coverages
-    cubes.obj    <- EOCubes::list_cubes(remote = remote)
-    cat(paste("Available Cubes: \n"))
-    names(cubes.obj) %>%
-        purrr::map(function(x) cat(paste(x, "\n", sep = "")))
-    cat(paste("------------------------------------------------------------", "\n",sep = ""))
-}
-
-
 #' @title Obtain one timeSeries from EOCubes package and load it on a sits tibble
 #' @name .sits_from_EOCubes
 #'
@@ -40,35 +5,35 @@ sits_info_EOCubes <- function() {
 #' Given a location (lat/long), and start/end period, and the Cube name
 #' retrieve a time series and include it on a sits tibble.
 #'
-#' @param coverage        Metadata about the coverage where the data is to be retrived.
+#' @param cube            Metadata about the data cube to be retrived.
 #' @param longitude       The longitude of the chosen location.
 #' @param latitude        The latitude of the chosen location.
 #' @param start_date      Date with the start of the period.
 #' @param end_date        Date with the end of the period.
-#' @param bands           A list of string with the names of the bands of the coverage.
+#' @param bands           A list of string with the names of the bands of the data cube.
 #' @param label           A string with the label to attach to the time series (optional).
 #' @return A sits tibble.
-.sits_from_EOCubes <- function(coverage,
+.sits_from_EOCubes <- function(cube,
                                longitude,
                                latitude,
                                start_date = NULL,
                                end_date   = NULL,
                                bands      = NULL,
                                label      = "NoClass") {
-    # if bands are not provided, use all bands available in the coverage
+    # if bands are not provided, use all bands available in the cube
     # check the bands are available
-    cov_bands <- coverage$bands[[1]]
+    cube_bands <- cube$bands[[1]]
     if (purrr::is_null(bands))
-        bands <- cov_bands
+        bands <- cube_bands
     else
-        ensurer::ensure_that(bands, all((.) %in% cov_bands),
-                             err_desc = "sits_from_EOCubes: requested bands are not available in the coverage")
+        ensurer::ensure_that(bands, all((.) %in% cube_bands),
+                             err_desc = "sits_from_EOCubes: requested bands are not available in the cube")
 
     # get cube object
-    cub.obj <- coverage$r_objs[[1]][[1]]
+    cub.obj <- cube$r_objs[[1]][[1]]
 
     # check start and end dates
-    timeline <- coverage$timeline[[1]][[1]]
+    timeline <- cube$timeline[[1]][[1]]
     if (purrr::is_null(start_date))
         start_date <- lubridate::as_date(timeline$from)
     if (purrr::is_null(end_date))
@@ -117,7 +82,7 @@ sits_info_EOCubes <- function() {
                                        tibble::as_tibble(ts$bands)))
 
         # create a tibble to store the WTSS data
-        data.tb <- sits_tibble()
+        data.tb <- .sits_tibble()
 
         # add one row to the tibble
         data.tb <- tibble::add_row(data.tb,
@@ -126,7 +91,7 @@ sits_info_EOCubes <- function() {
                                    start_date  = start_date,
                                    end_date    = end_date,
                                    label       = label,
-                                   coverage    = coverage$name,
+                                   cube        = cube$name,
                                    time_series = list(ts.tb))
 
         # return the tibble with the time series

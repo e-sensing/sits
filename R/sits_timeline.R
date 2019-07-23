@@ -131,7 +131,7 @@
     return(FALSE)
 }
 
-#' @title Find dates in the input coverage that match those of the patterns
+#' @title Find dates in the input data cube that match those of the patterns
 #' @name sits_match_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -308,13 +308,13 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
 #' be extracted to classify each band, obtain a list of indexes that will be used to
 #' extract values from a combined distance tibble (with has all the bands put together)
 #'
-#' @param  coverage           Coverage with input data set.
+#' @param  cube               Data cube with input data set.
 #' @param  samples            Tibble with samples used for classification.
 #' @param  interval           Classification interval.
 #' @return List of values to be extracted for each classification interval.
-.sits_select_raster_indexes <- function(coverage, samples, interval) {
+.sits_select_raster_indexes <- function(cube, samples, interval) {
     # define the classification info parameters
-    class_info <- .sits_class_info(coverage, samples, interval)
+    class_info <- .sits_class_info(cube, samples, interval)
 
     # define the time indexes required for classification
     time_index.lst <- .sits_get_time_index(class_info)
@@ -323,7 +323,7 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
     select.lst <- vector("list", length(time_index.lst))
 
     # find the length of the timeline
-    ntimes <- length(coverage$timeline[[1]][[1]])
+    ntimes <- length(cube$timeline[[1]][[1]])
 
     # get the bands in the same order as the samples
     nbands <- length(sits_bands(samples))
@@ -370,16 +370,16 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
     return(time_index.lst)
 }
 
-#' @title Obtains the timeline for a coverage
+#' @title Obtains the timeline for a cube
 #' @name .sits_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function returns the timeline for a given coverage.
+#' @description This function returns the timeline for a given cube.
 #'
 #' @param  data.tb  A sits tibble (either a sits tibble or a raster metadata).
 .sits_timeline <- function(data.tb){
     timeline <-  NULL
-    # is this a coverage metadata?
+    # is this a cube metadata?
     if ("timeline" %in% names(data.tb))
         timeline <- as.Date(data.tb[1,]$timeline[[1]][[1]])
 

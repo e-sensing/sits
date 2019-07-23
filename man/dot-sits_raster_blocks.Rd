@@ -4,10 +4,10 @@
 \alias{.sits_raster_blocks}
 \title{Define a reasonable block size to process a RasterBrick}
 \usage{
-.sits_raster_blocks(coverage, ml_model, interval, memsize, multicores)
+.sits_raster_blocks(cube, ml_model, interval, memsize, multicores)
 }
 \arguments{
-\item{coverage}{Input raster coverage.}
+\item{cube}{Input data cube.}
 
 \item{ml_model}{Machine learning model.}
 

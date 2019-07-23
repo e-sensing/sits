@@ -6,6 +6,9 @@
 \usage{
 .sits_get_providers(service)
 }
+\arguments{
+\item{service}{Name of the web service}
+}
 \value{
 List of providers associated to a service
 }

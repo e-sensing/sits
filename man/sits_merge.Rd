@@ -17,7 +17,7 @@ A merged sits tibble with a nested set of time series.
 \description{
 This function merges the time series of two sits tibbles.
 To merge two series, we consider that they contain different
-attributes but refer to the same coverage, and spatio-temporal location.
+attributes but refer to the same data cube, and spatio-temporal location.
 This function is useful to merge different bands of the same spatio-temporal locations.
 For example, one may want to put the raw and smoothed bands for the same set of locations
 in the same tibble.

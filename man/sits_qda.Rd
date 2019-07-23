@@ -19,7 +19,7 @@ A model function to be passed in sits_predict.
 \description{
 This function receives a tibble with a set of attributes X for each observation Y
 These attributes are distance metrics between patterns and observations, obtained by a distance
-function in sits (see \code{\link[sits]{sits_distances}}).
+function in sits (see \code{\link[sits]{.sits_distances}}).
 The function performs a quadratic discriminant analysis (qda) to obtain a predictive model.
 This function is a front-end to the "qda" method in the "MASS" package.
 Please refer to the documentation in that package for more details.

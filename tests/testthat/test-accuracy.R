@@ -12,12 +12,10 @@ test_that("XLS", {
 })
 
 test_that("Accuracy", {
-    coverage_wtss <- sits_coverage(service = "WTSS", name = "MOD13Q1")
+    cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
 
-    data.tb <- sits_get_data(file = system.file("extdata/samples/samples_matogrosso.csv", package = "sits"),
-                        coverage = coverage_wtss,
-                        bands = c("ndvi", "evi"),
-                        .n_save = 0)
+    data.tb <- sits_get_data(cube_wtss, file = system.file("extdata/samples/samples_matogrosso.csv", package = "sits"),
+                        bands = c("ndvi", "evi"), .n_save = 0)
 
     data("cerrado_2classes")
     svm_model <- sits_train(cerrado_2classes, ml_method = sits_svm())

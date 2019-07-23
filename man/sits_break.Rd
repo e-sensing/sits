@@ -10,7 +10,7 @@ sits_break(data.tb, timeline, start_date, end_date,
 \arguments{
 \item{data.tb}{A sits tibble.}
 
-\item{timeline}{Timeline associated with the coverage.}
+\item{timeline}{Timeline associated with the data cube.}
 
 \item{start_date}{Starting date within an interval.}
 

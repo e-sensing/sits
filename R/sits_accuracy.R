@@ -26,6 +26,10 @@
 #' }
 #' @export
 sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
+    # backward compatibility
+    if ("coverage" %in% names(class.tb))
+        class.tb <- .sits_tibble_rename(class.tb)
+
     # does the input data contain a set of predicted values?
     ensurer::ensure_that(class.tb, "predicted" %in% names(.), err_desc = "sits_conf_matrix: input data does not contain predicted values")
 
@@ -110,6 +114,9 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
         stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
     }
+    # backward compatibility
+    if ("coverage" %in% names(class.tb))
+        class.tb <- .sits_tibble_rename(class.tb)
 
     # Get reference classes
     references <- class.tb$label

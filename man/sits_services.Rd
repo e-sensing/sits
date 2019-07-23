@@ -8,4 +8,28 @@ sits_services()
 }
 \description{
 Uses the configuration file to print information about the services, products and coverages.
+WTSS - The Web Time Series Service is a lightweight web service the allow remote access to satellite
+ image time series and provides three operations:
+
+ 1. listCoverages: this operation allows clients to retrieve the capabilities provided
+    by any server that implements WTSS. It returns a list of data cubes
+    available in a server instance.
+
+ 2. describeCoverage: this operation returns the metadata for a given data cube
+    identified by its name. It includes its range in the spatial and temporal dimensions.
+
+ 3. timeSeries: this operation requests the time series of values of a data cube
+   at a given location.
+
+EOCUBES - The EOCubes service is a lightweight link data package that allows remote access to satellite
+ image data cubes. It has the following functions:
+
+ 1. listCubes: this operation allows clients to retrieve the capabilities provided
+    by any server that implements EOCUBES. It returns a list of data cubes
+    available in a server instance.
+
+ 2. describeCube: this operation returns the metadata for a given data cube
+    identified by its name. It includes its range in the spatial and temporal dimensions.
+
+ 3. GetDataCube: this operation creates a metadata description of a data cube.
 }

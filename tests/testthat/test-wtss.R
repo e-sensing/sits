@@ -1,7 +1,7 @@
 context("WTSS")
 
 test_that("Info", {
-    invisible(capture.output(sits_info_wtss()))
+    invisible(capture.output(sits_services()))
 
     expect_true(TRUE)
 })

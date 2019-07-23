@@ -35,7 +35,7 @@
 #' @name  .sits_read_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  coverage        Input raster coverage.
+#' @param  cube            Input data cube.
 #' @param  samples         Tibble with samples.
 #' @param  ml_model        Machine learning model.
 #' @param  first_row       First row to start reading.
@@ -44,19 +44,19 @@
 #' @param  filter          Smoothing filter to be applied.
 #' @param  multicores      Number of cores to process the time series.
 #' @return A data.table with values for classification.
-.sits_read_data <- function(coverage, samples, ml_model, first_row, n_rows_block, stats, filter, multicores) {
+.sits_read_data <- function(cube, samples, ml_model, first_row, n_rows_block, stats, filter, multicores) {
     # get the bands in the same order as the samples
     bands <- sits_bands(samples)
 
     # get the missing values, minimum values and scale factors
-    missing_values <- unlist(coverage$missing_values)
-    minimum_values <- unlist(coverage$minimum_values)
-    scale_factors  <- unlist(coverage$scale_factors)
+    missing_values <- unlist(cube$missing_values)
+    minimum_values <- unlist(cube$minimum_values)
+    scale_factors  <- unlist(cube$scale_factors)
 
     ordered_bricks.lst <- vector(mode = "list", length = length(bands))
 
     for (i in 1:length(bands)) {
-        ordered_bricks.lst[[i]] <- coverage[1,]$r_objs[[1]][[i]]
+        ordered_bricks.lst[[i]] <- cube[1,]$r_objs[[1]][[i]]
     }
 
     names(ordered_bricks.lst) <- bands
@@ -92,7 +92,7 @@
     gc()
 
     # create two additional columns for prediction
-    size <- n_rows_block*coverage[1,]$ncols
+    size <- n_rows_block*cube[1,]$ncols
     two_cols_DT <- data.table::data.table("original_row" = rep(1,size),
                                           "reference"    = rep("NoClass", size))
 
@@ -109,7 +109,7 @@
 #' @name  .sits_read_data_cubes
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  coverage        Input raster coverage.
+#' @param  cube            Input data cube.
 #' @param  samples         Tibble with samples.
 #' @param  ml_model        Machine learning model.
 #' @param  first_row       First row to start reading.
@@ -118,7 +118,7 @@
 #' @param  filter          Smoothing filter to be applied.
 #' @param  multicores      Number of cores to process the time series.
 #' @return A data.table with values for classification.
-.sits_read_data_cubes <- function(coverage,
+.sits_read_data_cubes <- function(cube,
                                   samples,
                                   ml_model,
                                   first_row,
@@ -130,14 +130,14 @@
     bands <- sits_bands(samples)
 
     # get the missing values, minimum values and scale factors
-    missing_values <- unlist(coverage$missing_values)
-    minimum_values <- unlist(coverage$minimum_values)
-    scale_factors  <- unlist(coverage$scale_factors)
+    missing_values <- unlist(cube$missing_values)
+    minimum_values <- unlist(cube$minimum_values)
+    scale_factors  <- unlist(cube$scale_factors)
 
     ordered_bricks.lst <- vector(mode = "list", length = length(bands))
 
     for (i in 1:length(bands)) {
-        ordered_bricks.lst[[i]] <- coverage[1,]$r_objs[[1]][[i]]
+        ordered_bricks.lst[[i]] <- cube[1,]$r_objs[[1]][[i]]
     }
 
     names(ordered_bricks.lst) <- bands
@@ -173,7 +173,7 @@
     gc()
 
     # create two additional columns for prediction
-    size <- n_rows_block*coverage[1,]$ncols
+    size <- n_rows_block*cube[1,]$ncols
     two_cols_DT <- data.table::data.table("original_row" = rep(1,size),
                                           "reference"    = rep("NoClass", size))
 

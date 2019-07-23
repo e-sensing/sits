@@ -9,9 +9,9 @@
 \arguments{
 \item{service}{Name of the time series service.}
 
-\item{name}{Name of the coverage.}
+\item{name}{Name of the cube.}
 
-\item{r_obj}{R object associated with the coverage.}
+\item{r_obj}{R object associated with the cube.}
 }
 \value{
 The bounding box.

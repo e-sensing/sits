@@ -4,7 +4,7 @@
 #'
 #' @description Converts metadata from a sits tibble to a CSV file. The CSV file will not contain the actual time
 #'              series. Its columns will be the same as those of a CSV file used to retrieve data from
-#'              ground information ("latitude", "longitude", "start_date", "end_date", "coverage", "label").
+#'              ground information ("latitude", "longitude", "start_date", "end_date", "cube", "label").
 #'
 #' @param  data.tb    A sits time series.
 #' @param  file       Name of the exported CSV file.
@@ -18,6 +18,10 @@
 #' }
 #' @export
 sits_metadata_to_csv <- function(data.tb, file){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
     csv_columns <- c("longitude", "latitude", "start_date", "end_date", "label")
 
     #select the parts of the tibble to be saved
@@ -60,9 +64,13 @@ sits_metadata_to_csv <- function(data.tb, file){
 #' }
 #' @export
 sits_data_to_csv <- function(data.tb, file){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+    # check if data is valid
     .sits_test_tibble(data.tb)
 
-    distances_DT <- sits_distances(data.tb)
+    distances_DT <- .sits_distances(data.tb)
 
     tryCatch({utils::write.csv(distances_DT, file, row.names = FALSE, quote = FALSE)},
              error = function(e){
@@ -81,7 +89,7 @@ sits_data_to_csv <- function(data.tb, file){
 #'
 #' @description Converts points from a shapefile to a CSV file. The CSV file will not contain the actual time
 #'              series. Its columns will be the same as those of a CSV file used to retrieve data from
-#'              ground information ("latitude", "longitude", "start_date", "end_date", "coverage", "label").
+#'              ground information ("latitude", "longitude", "start_date", "end_date", "label").
 #'
 #' @param  shpfile    A point shapefile.
 #' @param  csvfile    The name of the exported CSV file.

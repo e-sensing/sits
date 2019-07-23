@@ -2,14 +2,14 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_get_scale_factors}
 \alias{.sits_get_scale_factors}
-\title{Retrieve the scale factor for a given band for an image product}
+\title{Retrieve the scale factor for a given band for a data cube}
 \usage{
 .sits_get_scale_factors(service, name, bands)
 }
 \arguments{
 \item{service}{Name of the service.}
 
-\item{name}{Name of the coverage.}
+\item{name}{Name of the cube.}
 
 \item{bands}{Vector of bands.}
 }
@@ -17,7 +17,7 @@
 Vector of scale factors.
 }
 \description{
-Retrieve the scale factor for a given band for an image product
+Retrieve the scale factor for a given band for a data cube
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

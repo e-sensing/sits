@@ -21,7 +21,7 @@
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  data.tb       A tibble in sits format with time series.
-#' @param  timeline      A timeline vector with the all dates for the coverage.
+#' @param  timeline      A timeline vector with the all dates for the cube.
 #' @param  start_date    Starting date (month-day).
 #' @param  end_date      End date (month-day).
 #' @param  freq          Interval in days for the estimates to be generated.
@@ -48,6 +48,9 @@
 #' @export
 sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, end_date = NULL,
                       freq = 8, formula = y ~ s(x), ...){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # function that is used to be called as a value from another function
     result_fun <- function(tb){
         # does the input data exist?
@@ -57,7 +60,7 @@ sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, en
         bds <- sits_bands(tb)
 
         # create a tibble to store the results
-        patterns.tb <- sits_tibble()
+        patterns.tb <- .sits_tibble()
 
         # what are the variables in the formula?
         vars <- all.vars(formula)
@@ -139,7 +142,7 @@ sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, en
                     start_date     = as.Date(start_date),
                     end_date       = as.Date(end_date),
                     label          = lb,
-                    coverage       = label.tb[1,]$coverage,
+                    cube           = label.tb[1,]$cube,
                     time_series    = ts)
                 return(row)
             })

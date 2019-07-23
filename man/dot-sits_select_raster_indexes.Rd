@@ -4,10 +4,10 @@
 \alias{.sits_select_raster_indexes}
 \title{Provide a list of indexes to extract data from a raster-derived data table for classification}
 \usage{
-.sits_select_raster_indexes(coverage, samples, interval)
+.sits_select_raster_indexes(cube, samples, interval)
 }
 \arguments{
-\item{coverage}{Coverage with input data set.}
+\item{cube}{Data cube with input data set.}
 
 \item{samples}{Tibble with samples used for classification.}
 

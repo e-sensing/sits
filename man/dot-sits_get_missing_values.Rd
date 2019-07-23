@@ -9,7 +9,7 @@
 \arguments{
 \item{service}{Name of the product.}
 
-\item{name}{Name of the coverage.}
+\item{name}{Name of the cube.}
 
 \item{bands}{Vector of bands.}
 }

@@ -43,6 +43,10 @@
 #' @export
 sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
                               bands_suffix = "cf", apply_whit = FALSE, lambda_whit = 1.0){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
     filter_fun <- function(data.tb) {
         # find the bands of the data
         bands <- sits_bands(data.tb)
@@ -110,6 +114,9 @@ sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "e
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
     }
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
 
     filter_fun <- function(data.tb) {
         # definitions of operations and the key returned by `dtwclust::compute_envelope`
@@ -163,6 +170,9 @@ sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "e
 #' }
 #' @export
 sits_interp <- function(data.tb = NULL, fun = stats::approx, n = base::length, ...) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     filter_fun <- function(data.tb) {
         # compute linear approximation
         result.tb <- sits_apply(data.tb,
@@ -188,6 +198,9 @@ sits_interp <- function(data.tb = NULL, fun = stats::approx, n = base::length, .
 #' @return A tibble with smoothed sits time series.
 #' @export
 sits_kalman <- function(data.tb = NULL, bands_suffix = "kf"){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     filter_fun <- function(data.tb) {
         result.tb <- sits_apply(data.tb,
                                 fun = function(band) .sits_kalman_filter(band, NULL, NULL, NULL),
@@ -220,6 +233,9 @@ sits_kalman <- function(data.tb = NULL, bands_suffix = "kf"){
 #' }
 #' @export
 sits_linear_interp <- function(data.tb = NULL, n = 23) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     filter_fun <- function(data.tb){
         # compute linear approximation
         result.tb <- sits_apply(data.tb,
@@ -240,6 +256,9 @@ sits_linear_interp <- function(data.tb = NULL, n = 23) {
 #' @return A tibble with time series data and metadata (with missing values removed).
 #' @export
 sits_missing_values <-  function(data.tb, miss_value) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     # test if data.tb has data
     .sits_test_tibble(data.tb)
 
@@ -284,6 +303,10 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' @export
 sits_ndvi_arima_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
                               bands_suffix = "ar", apply_whit = TRUE, lambda_whit = 1.0){
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+
     filter_fun <- function(data.tb) {
         # find the bands of the data
         bands <- sits_bands(data.tb)
@@ -362,6 +385,9 @@ sits_ndvi_arima_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0,
 #' }
 #' @export
 sits_whittaker <- function(data.tb = NULL, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     filter_fun <- function(data.tb) {
         result.tb <- sits_apply(data.tb,
                                 fun = function(band){
@@ -406,6 +432,9 @@ sits_whittaker <- function(data.tb = NULL, lambda    = 1.0, differences = 3, ban
 #' }
 #' @export
 sits_sgolay <- function(data.tb = NULL, order = 3, scale = 1, bands_suffix = "sg") {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
     filter_fun <- function(data.tb) {
         result.tb <- sits_apply(data.tb,
                                 fun = function(band) signal::sgolayfilt(band, p = order, ts = scale),

@@ -13,22 +13,22 @@ test_that("All", {
 })
 
 test_that("Convert", {
-    wtss_coverage <- sits_coverage(service = "WTSS", name = "MOD13Q1")
+    wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
 
-    res <- sits:::.sits_convert_resolution(wtss_coverage)
+    res <- sits:::.sits_convert_resolution(wtss_cube)
 
     expect_equal(res[[1]], 0.002134755, tol = 0.00001)
     expect_equal(res[[2]], 0.002083333, tol = 0.00001)
 })
 
 test_that("Inside", {
-    wtss_coverage <- sits_coverage(service = "WTSS", name = "MOD13Q1")
+    wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
 
     point <- data.frame(X = 1, Y = 1)
 
-    expect_false(sits:::.sits_xy_inside_raster(point, wtss_coverage))
+    expect_false(sits:::.sits_xy_inside_raster(point, wtss_cube))
 
     point <- data.frame(X = -41, Y = -10)
 
-    expect_true(sits:::.sits_xy_inside_raster(point, wtss_coverage))
+    expect_true(sits:::.sits_xy_inside_raster(point, wtss_cube))
 })

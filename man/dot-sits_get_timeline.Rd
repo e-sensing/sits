@@ -2,20 +2,20 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_get_timeline}
 \alias{.sits_get_timeline}
-\title{Retrieve the default timeline for a product for a given time series service}
+\title{Retrieve the default timeline for a product for a given data cube}
 \usage{
 .sits_get_timeline(service, name)
 }
 \arguments{
-\item{service}{Name of the time series service.}
+\item{service}{Name of the web service.}
 
-\item{name}{Name of the coverage.}
+\item{name}{Name of the cube.}
 }
 \value{
 Vector of (nrows, ncols).
 }
 \description{
-Retrieve the default timeline for a product for a given time series service
+Retrieve the default timeline for a product for a given data cube
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

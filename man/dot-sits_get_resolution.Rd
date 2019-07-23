@@ -2,20 +2,20 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_get_resolution}
 \alias{.sits_get_resolution}
-\title{Retrieve the pixel resolution for an image product}
+\title{Retrieve the pixel spatial resolution for a data cube}
 \usage{
 .sits_get_resolution(service, name)
 }
 \arguments{
 \item{service}{Name of the service.}
 
-\item{name}{Name of the coverage.}
+\item{name}{Name of the data cube.}
 }
 \value{
 Vector of (xres, yres).
 }
 \description{
-Retrieve the pixel resolution for an image product
+Retrieve the pixel spatial resolution for a data cube
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

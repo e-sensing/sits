@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_timeline.R
 \name{.sits_timeline}
 \alias{.sits_timeline}
-\title{Obtains the timeline for a coverage}
+\title{Obtains the timeline for a cube}
 \usage{
 .sits_timeline(data.tb)
 }
@@ -10,7 +10,7 @@
 \item{data.tb}{A sits tibble (either a sits tibble or a raster metadata).}
 }
 \description{
-This function returns the timeline for a given coverage.
+This function returns the timeline for a given cube.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

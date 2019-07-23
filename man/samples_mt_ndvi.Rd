@@ -7,7 +7,7 @@
 \format{A tibble with 2115 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
   end_date (final date of the time series), label (the class label associated to the sample),
-  coverage (the name of the coverage associated with the data),
+  cube (the name of the cube associated with the data),
   time_series (list containing a tibble with the values of the time series).}
 \usage{
 data(samples_mt_ndvi)

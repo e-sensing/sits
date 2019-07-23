@@ -6,7 +6,7 @@ output:
       fig_caption: yes
       keep_tex: no
       template: "../inst/extdata/markdown/latex-ms.tex"
-title: 'SITS: Data Analysis and Machine Learning using Satellite Image Time Series'
+title: 'SITS: Data Analysis and Machine Learning for Data Cubes using Satellite Image Time Series'
 author:
 - affiliation: National Institute for Space Research (INPE), Brazil
   name: Rolf Simoes
@@ -32,7 +32,7 @@ fontsize: 11pt
 graphics: true
 mathtools: true
 bibliography: ../inst/extdata/markdown/references-sits.bib
-abstract: Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. Here, we present an open source *R* package for satellit eimage time series analysis called `sits`. Package `sits` provides support on how to use statistical learning techniques with image time series. These methods include linear and quadratic discrimination analysis, support vector machines, random forests, and neural networks.
+abstract: Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. Here, we present an open source *R* package for satellit eimage time series analysis called `sits`. Package `sits` provides support on how to use statistical learning techniques with image time series obtained from data cubes. These methods include linear and quadratic discrimination analysis, support vector machines, random forests, deep learning and neural networks.
 vignette: |
   %\VignetteEncoding{UTF-8} 
   %\VignetteEngine{knitr::rmarkdown} 
@@ -61,47 +61,48 @@ Algorithms for processing image time series using a \emph{time-first, space-late
 To the authors' best knowledge, the classification techniques included in the `sits` package are not previoulsy available in other R or python packages. Furthermore, the package includes methods for filtering, clustering and post-processing that also have not been published in the literature. 
 
 
-# Using Web Data Services to Access Image Data
+# Using Web Data Services to Access Image Data Cubes
 
-One of the distinguishing features of `sits` is that it has been designed to work with big satellite image data sets which reside on the cloud. Many *R* packages that work with remote sensing images require data to be accessible in a local computer. However, with the coming of age of big Earth observation data, it is not practical to transfer large data sets. Users have to rely on web services to provide access to these data sets. In this context, the `sits` package is based on four concepts:
+One of the distinguishing features of `sits` is that it has been designed to work with big satellite image data sets which reside on the cloud and with data cubes. Many *R* packages that work with remote sensing images require data to be accessible in a local computer. However, with the coming of age of big Earth observation data, it is not always practical to transfer large data sets. Users have to rely on web services to provide access to these data sets. In this context, the `sits` package is based on four concepts:
 
-* Image collections: Following @Appel2019, we define an image collection is a set of 2D images, where each image contains different spectral bands. All bands from one image share a common spatial footprint, acquisition date/time, and spatial reference system. Images in a collection may have different pixel sizes. Image collections are typically stored in cloud services such as AWS. 
+* Web services: In `sits`, a web service is software system designed to support remote access to image collections through APIs. These are machine-to-machine protocols that allow access to image collections and to generate *data cubes*. The package `sits` uses two kinds of services: those that provide time series data and those that provide access to data cubes. Currently, there are no established standards for these two services. For this reason, `sits` uses two new protocols: WTSS ("Web Time Series Serice") and EOCubes ("Earth observation Data Cubes Services") that we have develop.  WTSS is a light-weight service for retrieval of time series data for selected locations and periods [@Vinhas2016]. The WTSS R client is available in the CRAN archive using the `wtss` package. The EOCUBES service provides access to big data collections, which are organised by the `EOCubes` package. 
 
-* Web services: In `sits`, a web service is software system designed to support remote access to image collections through APIs. These are machine-to-machine protocols that allow access to image collections and to generate *coverages*. The package `sits` uses two kinds of services: those that provide time series data and those that provide access to data cubes. Currently, there are no established standards for these two services. For this reason, `sits` uses two new protocols: WTSS ("Web Time Series Serice") and EOCubes ("Earth observation Data Cubes Services") that we have develop.  WTSS is a light-weight service for retrieval of time series data for selected locations and periods [@Vinhas2016]. The WTSS R client is available in the CRAN archive using the `wtss` package. The EOCUBES service provides access to big data collections, which are organised by the `EOCubes` package. 
-
-* Coverages: A coverage is the data type used in `sits` to handle dense raster data. Its definition corresponds to that of a *data cube*. Generalising @Appel2019, we consider that a coverage (or data cube) is a four-dimensional array with dimensions x (longitude or easting), y (latitude or northing), time, and bands. Its spatial dimensions refer to a single spatial reference system (SRS). Cells of a data cube have a constant spatial size (with regard to the cube’s SRS). The temporal dimension is specified by a set of intervals. For every combination of dimensions, a cell has a single value. 
+* Cubes: A data cube is the data type used in `sits` to handle dense raster data. Generalising @Appel2019, we consider that a coverage (or data cube) is a four-dimensional array with dimensions x (longitude or easting), y (latitude or northing), time, and bands. Its spatial dimensions refer to a single spatial reference system (SRS). Cells of a data cube have a constant spatial size (with regard to the cube’s SRS). The temporal dimension is specified by a set of intervals. For every combination of dimensions, a cell has a single value. 
 
 The package `sits` also allows access to the SATVEG service, which provides NDVI and EVI time series vegetation indices from MODIS image for the whole Brazilian territory and has been developed by EMBRAPA (Brazil's Agriculture Research Agency)[@Embrapa2014]. 
 
-To allow users to create coverages based on files (either local or remote) `sits` allows the definition of a pseudo-service, called "RASTER". In this case, all information about the data has to be provided, including names and location of files and their temporal information.
-
-To find out the services and respective coverages available, one should use the `sits_services()` function. 
+To find out the services and respective data cubes available, one should use the `sits_services()` function. 
 ```{r}
 sits_services()
 ```
 
+## Defining data cubes based on the WTSS service
 
-# Defining coverages
-
-We use the web services described above to define coverages. To define a coverage, users have to specify the type of the service, and the server URL that is running the service. 
+We use the web services described above to define data cubes. To do so, users have to specify the type of the service, and the server URL that is running the service. 
 
 ```{r}
-# define a coverage from WTSS service the collection "MOD13Q1"
+# define the data cube "MOD13Q1" using the WTSS service
 # In this case, the WTSS service is run by a server in INPE Brazil
-coverage_wtss <- sits_coverage(service = "WTSS",
-                               provider  = "http://www.esensing.dpi.inpe.br/wtss/",
-                               name    = "MOD13Q1")
+wtss_cube <- sits_cube(service = "WTSS", 
+                       provider  = "http://www.esensing.dpi.inpe.br/wtss/",
+                       name    = "MOD13Q1")
 
-# get information on the coverage
-coverage_wtss %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
+# get information on the data cube
+wtss_cube %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
 
 # create a coverage from EOCUBES service from the collection "MOD13Q1/006"
-coverage_eocubes <- sits_coverage(service = "EOCUBES",
-                                  name    = "MOD13Q1/006")
+modis_cube <- sits_cube(service = "EOCUBES",
+                        name    = "MOD13Q1/006")
 
-# get information on the coverage
-coverage_eocubes %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
+# get information on the cube
+modis_cube %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
+```
 
+# Using Raster Files to Define Image Data Cubes
+
+To allow users to create data cubes based on files (either local or remote) `sits` allows the definition of a pseudo-service, called "RASTER". In this case, all information about the data has to be provided, including names and location of files and their temporal information.
+
+```{r}
 # create a coverage from files available in AWS
 # Read ndvi and evi data from dropbox
 # these are the symbolic links for the files at dropbox
@@ -112,22 +113,20 @@ evi_file <- paste0("/vsicurl/https://s3-sa-east-1.amazonaws.com/landsat-modis/Si
 data(timeline_modis_392)
 
 # create a raster metadata file based on the information about the files
-coverage_raster <- sits_coverage(service = "RASTER", 
-                                 name = "Sinop",
-                                 timeline = timeline_modis_392,
-                                 bands = c("ndvi", "evi"),
-                                 files = c(ndvi_file, evi_file))
+raster_cube <- sits_cube(service = "RASTER", name = "Sinop",
+                         timeline = timeline_modis_392, bands = c("ndvi", "evi"),
+                         files = c(ndvi_file, evi_file))
 
 # get information on the coverage
-coverage_raster %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
+raster_cube %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
 ```
 
-Once a coverage has been created, it can be used for extracting time series and for data analysis and classification, using the function `sits_get_data()`, descibed below. 
+Once a data cube has been created, it can be used for extracting time series and for data analysis and classification, using the function `sits_get_data()`, descibed below. 
 
 
-# Time Series
+# Creating Satellite Image Time Series
 
-The `sits` package requires a set of time series data, describing properties in spatio-temporal locations of interest. For land use classification, this set consists of samples provided by experts that take *in-situ* field observations or recognize land classes using high resolution images. The package can also be used for any type of classification, provided that the timeline and bands of the time series (used for training) match that of the coverages. 
+The `sits` package requires a set of time series data, describing properties in spatio-temporal locations of interest. For land use classification, this set consists of samples provided by experts that take *in-situ* field observations or recognize land classes using high resolution images. The package can also be used for any type of classification, provided that the timeline and bands of the time series (used for training) match that of the data cubes. 
 
 For handling time series, the package uses a `sits` tibble, a way of organizing a set of time series data with associated spatial information. A `tibble` is a generalization of a `data.frame`, the usual way in *R* to organise data in tables. Tibbles are part of the `tidyverse`, a collection of R packages designed to work together in data manipulation [@Wickham2017]. As a example of how the `sits` tibble works, the following code shows the first three lines of a tibble containing $2,115$ labelled samples of land cover in Mato Grosso state of Brazil. It is the most important agricultural frontier of Brazil and it is the largest producer of soybeans, corn, and cotton. The samples contain time series extracted from the MODIS MOD13Q1 product from 2000 to 2016, provided every $16$ days at $250$-meter spatial resolution in the Sinusoidal projection. Based on ground surveys and high resolution imagery, we selected $2,115$ samples of nine classes: "Forest", "Cerrado", "Pasture", "Soybean-fallow", "Fallow-Cotton", "Soybean-Cotton", "Soybean-Corn", "Soybean-Millet", and "Soybean-Sunflower".
 
@@ -137,7 +136,7 @@ data(samples_mt_9classes)
 samples_mt_9classes[1:3,]
 ```
 
-A `sits` tibble contains data and metadata. The first six columns contain the metadata: spatial and temporal information, label assigned to the sample, and the coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location ($-55.1852$, $-10.8387$), and is considered valid for the period (2013-09-14, 2014-08-29). Informing the dates where the label is valid is crucial for correct classification. In this case, the researchers involved in labeling the samples chose to use the agricultural calendar in Brazil, where the spring crop is planted in the months of September and October, and the autumn crop is planted in the months of February and March. For other applications and other countries, the relevant dates will most likely be different from those used in the example. The `time_series` column contains the time series data for each spatiotemporal location. This data is also organized as a tibble, with a column with the dates and the other columns with the values for each spectral band. 
+A `sits` tibble contains data and metadata. The first six columns contain the metadata: spatial and temporal information, label assigned to the sample, and the data cube from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location ($-55.1852$, $-10.8387$), and is considered valid for the period (2013-09-14, 2014-08-29). Informing the dates where the label is valid is crucial for correct classification. In this case, the researchers involved in labeling the samples chose to use the agricultural calendar in Brazil, where the spring crop is planted in the months of September and October, and the autumn crop is planted in the months of February and March. For other applications and other countries, the relevant dates will most likely be different from those used in the example. The `time_series` column contains the time series data for each spatiotemporal location. This data is also organized as a tibble, with a column with the dates and the other columns with the values for each spectral band. 
 
 ```{r}
 # print the first time series records of the first sample
@@ -173,14 +172,14 @@ sits_plot(samples_cerrado.tb)
 
 # Obtaining Time Series Data
 
-To get a time series, we usually need to create a coverage first, as described above. Alternatively, the time series can also be converted from data stored  in the ZOO format [@Zeileis2005]. Users can request one or more time series points from a coverage by using `sits_get_data()`. This function provides a general means of access to image time series. In its simplest fashion, the user provides the latitude and longitude of the desired location, the product and coverage names, the bands, and the start date and end date of the time series. If the start and end dates are not provided, it retrieves all the available period. The result is a tibble that can be visualized using `sits_plot()`.
+To get a time series, we usually need to create a data cube first, as described above. Alternatively, the time series can also be converted from data stored  in the ZOO format [@Zeileis2005]. Users can request one or more time series points from a data cube by using `sits_get_data()`. This function provides a general means of access to image time series. In its simplest fashion, the user provides the latitude and longitude of the desired location, the product and data cube names, the bands, and the start date and end date of the time series. If the start and end dates are not provided, it retrieves all the available period. The result is a tibble that can be visualized using `sits_plot()`.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI and EVI time series fetched from WTSS service."}
 # a point in the transition forest to pasture in Northern MT
 # obtain a time series from the WTSS server for this point
-series.tb <- sits_get_data(longitude = -55.57320, 
+series.tb <- sits_get_data(cube      = wtss_cube,
+                           longitude = -55.57320, 
                            latitude  = -11.50566,
-                           coverage  = coverage_wtss,
                            bands     = c("ndvi", "evi"))
 sits_plot(series.tb)
 ```
@@ -197,7 +196,7 @@ The literature on satellite image time series have several applications of filte
 
 Various somewhat conflicting results have been expressed in relation to the time series filtering techniques for phenology applications. For example, in an investigation of phenological parameter estimation, @Atkinson2012 found that the Whittaker and Fourier transform approaches were preferable to the double logistic and asymmetric Gaussian models. They applied the filters to preprocess MERIS NDVI time series for estimating phenological parameters in India. Comparing the same filters as in the previous work, @Shao2016 found that only Fourier transform and Whittaker techniques improved interclass separability for crop classes and significantly improved overall classification accuracy. The authors used MODIS NDVI time series from the Great Lakes region in North America. @Zhou2016 found that asymmetric Gaussian model outperforms other filters over high latitude boreal biomes, while the Savitzky-Golay model gives the best reconstruction performance in tropical evergreen broadleaf forests. In the remaining biomes, Whittaker gives superior results. The authors compare all previous mentioned filters plus Savitzky-Golay method for noise removal in MODIS NDVI data from sites spread worldwide in different climatological conditions. Many other techniques can be found in applications of satellite image time series such as curve fitting [@Bradley2007], wavelet decomposition [@Sakamoto2005], mean-value iteration, ARMD3-ARMA5, and 4253H [@Hird2009]. Therefore, any comparative analysis of smoothing algorithms depends on the adopted performance measurement.
 
-One of the main uses of time series filtering is to reduce the noise and miss data produced by clouds in tropical areas. The following examples use data produced by the PRODES project [@INPE2017], which detects deforestation in the Brazilian Amazon rain forest through visual interpretation. `sits` provides $617$ samples from a region corresponding to the standard Landsat Path/Row 226/064. This is an area in the East of the Brazilian Pará state. It was chosen because of its huge cloud coverage from November to March, which is a significant factor in degrading time series quality. Its NDVI and EVI time series were extracted from a combination of MOD13Q1 and Landsat8 images (to best visualize the effects of each filter, we selected only NDVI time series).
+One of the main uses of time series filtering is to reduce the noise and miss data produced by clouds in tropical areas. The following examples use data produced by the PRODES project [@INPE2017], which detects deforestation in the Brazilian Amazon rain forest through visual interpretation. `sits` provides $617$ samples from a region corresponding to the standard Landsat Path/Row 226/064. This is an area in the East of the Brazilian Pará state. It was chosen because of its huge cloud cover from November to March, which is a significant factor in degrading time series quality. Its NDVI and EVI time series were extracted from a combination of MOD13Q1 and Landsat8 images (to best visualize the effects of each filter, we selected only NDVI time series).
 
 ## Savitzky–Golay filter
 
@@ -323,9 +322,10 @@ point_cf.tb <- sits_ndvi_arima_filter(point.tb, apply_whit = FALSE)
 # plot the series
 sits_merge(point_cf.tb, point.tb) %>% sits_plot()
 ```
+
 #Pre-processing for sample quality control
 
-One of the key challenges when using samples to train machine learning classification models is assessing their quality. Noisy and imperfect training samples can have a negative effect on classification performance [@Frenay2013].  Therefore, it is useful to apply pre-processing methods to improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Representative samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM) neural.
+One of the key challenges when using samples to train machine learning classification models is assessing their quality. Noisy and imperfect training samples can have a negative effect on classification performance [@Frenay2013].  Therefore, it is useful to apply pre-processing methods to improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Representative samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM).
 
 ## Hierachical clustering
 
@@ -335,20 +335,8 @@ Agglomerative hierarchical clustering (AHC) is a family of methods that groups e
 
 The main result of AHC method is a *dendrogram*. It is the ultrametric relation formed by the successive merges in the hierarchical process that can be represented by a tree. Dendrograms are quite useful to decide the number of clusters to partition the data. It shows the height where each merging happens, which corresponds to the minimum distance between two clusters defined by a *linkage criterion*. The most common linkage criteria are: *single-linkage*, *complete-linkage*, *average-linkage*, and *Ward-linkage*. Complete-linkage prioritizes the within-cluster dissimilarities, producing clusters with shorter distance samples. Complete-linkage clustering can be sensitive to outliers, which can increase the resulting intracluster data variance. As an alternative, Ward proposes a criteria to minimize the data variance by means of either *sum-of-squares* or *sum-of-squares-error* [@Ward1963]. Ward's intuition is that clusters of multivariate observations, such as time series, should be approximately elliptical in shape [@Hennig2015]. In `sits`, a dendrogram can be generated by `sits_dendrogram()`. The following codes illustrate how to create, visualize, and cut a dendrogram (for details, see `?sits_dendrogram()`).
 
-```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
-# take a set of patterns for 2 classes
-# create a dendrogram object with default clustering parameters
-dendro <- sits_dendrogram(cerrado_2classes)
-# plot the resulting dendrogram
-sits_plot_dendrogram(cerrado_2classes, dendro)
-```
 
 After creating a dendrogram, an important question emerges: *where to cut the dendrogram?* The answer depends on what are the purposes of the cluster analysis [@Hennig2015]. If one is interested in an unsupervised classification, it is common to use *internal validity indices*, such as silhouettes [@Rousseeuw1987], to help determine the best number of clusters. However, if one is interested in understanding the structure of a labeled data set, or in the identifying sample anomalies, as we are here, one can use *external validity indices* to assist the semi-supervised procedure in order to achieve the optimal correspondence between clusters and classes partitions. In this regard, we need to balance two objectives: get clusters as large as possible, and get clusters as homogeneous as possible with respect to their known classes. To help this process, `sits` provides `sits_dendro_bestcut()` function that computes an external validity index *Adjusted Rand Index* (ARI) for a series of different number of generated clusters. This function returns the height where the cut of the dendrogram maximizes the index.
-
-```{r}
-# search for the best height to cut the dendrogram
-sits_dendro_bestcut(cerrado_2classes, dendro)
-```
 
 In this example, the height optimizes the ARI and generates $6$ clusters. The ARI considers any pair of distinct samples and computes the following counts:
 (a) the number of distinct pairs whose samples have the same label and are in the same cluster;
@@ -367,10 +355,11 @@ $$
 
 Unlike other validity indexes such as Jaccard (${J=a/(a+b+c)}$), Fowlkes-Mallows (${FM=a/(a^2+a(b+c)+bc)^{1/2}}$), and Rand (the same as ARI without the $E$ adjustment) indices, ARI is more appropriate either when the number of clusters is outweighed by the number of labels (and *vice versa*) or when the amount of samples in labels and clusters is imbalanced [@Hubert1985], which is usually the case.
 
-```{r}
-# create 6 clusters by cutting the dendrogram at 
-# the linkage distance 20.39655
-clusters.tb <- sits_cluster(cerrado_2classes, dendro, k = 6)
+```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
+# take a set of patterns for 2 classes
+# create a dendrogram object, plot, and get the optimal cluster based on ARI index
+clusters.tb <- sits_cluster(cerrado_2classes, bands = c("ndvi"))
+
 # show clusters samples frequency
 sits_cluster_frequency(clusters.tb)
 ```
@@ -381,9 +370,9 @@ In an case, it is possible to remove outliers using `sits_cluster_clean()` or `s
 
 ```{r}
 # clear those samples with a high confusion rate in a cluster 
-# (those clusters which majority class does not reach 90% of 
+# (those clusters which majority class does not reach 75% of 
 # samples in that cluster)
-cleaned.tb <- sits_cluster_remove(clusters.tb, min_perc = 0.9)
+cleaned.tb <- sits_cluster_remove(clusters.tb, min_perc = 0.75)
 # show clusters samples frequency
 sits_cluster_frequency(cleaned.tb)
 ```
@@ -605,17 +594,13 @@ prediction.mx <-
 sits_conf_matrix(prediction.mx)
 ```
 
-# Raster classification
+# Cube classification
 
 The continuous observation of the Earth surface provided by orbital sensors is unprecedented in history. Just for the sake of illustration, a unique tile from MOD13Q1 product, a square of $4800$ pixels provided every 16 days since February 2000 takes around $18$GB of uncompressed data to store only one band or vegetation index. This data deluge puts the field into a big data era and imposes challenges to design and build technologies that allow the Earth observation community to analyse those data sets [@Gilberto2017]. 
 
-There are two functions for raster classification: `sits_classify_raster()` and `sits_classify_eocubes`, as described below. 
+To classify a data cube, use the function `sits_classify()` as described below. This function works both with cubes built from raster bricks and those built with services such as "EOCUBES". The classification algorithms allows users to choose how many process will run the task in parallel, and also the size of each data chunk to be consumed at each iteration. This strategy enables `sits` to work on average desktop computers without depleting all computational resources. The code bellow illustrates how to classify a small raster brick image that accompany the package.
 
-## Classification of Raster Bricks
-
-works with coverages that have been created with the "RASTER" services. In this case, the raster data must be a set of *raster bricks*  in the `GeoTIFF` format. The classification algorithms allows users to choose how many process will run the task in parallel, and also the size of each data chunk to be consumed at each iteration. This strategy enables `sits` to work on average desktop computers without depleting all computational resources. The code bellow illustrates how to classify a small raster brick image that accompany the package.
-
-To reduce processing time, it is necessary to adjust `sits_classify_raster()` according to the capabilities of the server. The package tries to keep memory use to a minimum, performing garbage collection to free memory as often as possible. Nevertheless, there is an inevitable trade-off between computing time, memory use, and I/O operations. The best trade-off has to be determined by the user, considering issues such disk read speed, number of cores in the server, and CPU performance.
+To reduce processing time, it is necessary to adjust `sits_classify()` according to the capabilities of the server. The package tries to keep memory use to a minimum, performing garbage collection to free memory as often as possible. Nevertheless, there is an inevitable trade-off between computing time, memory use, and I/O operations. The best trade-off has to be determined by the user, considering issues such disk read speed, number of cores in the server, and CPU performance.
 
 The first parameter is `memsize`. It controls the size of the main memory (in GBytes) to be used for classification. The user must specify how much free memory will be available. The second factor controlling performance of raster classification is `multicores`. Once a block of data is read from disk into main memory, it is split into different cores, as specified by the user. In general, the more cores are assigned to classification, the faster the result will be. However, there are overheads in switching time, especially when the server has other processes running.
 
@@ -638,19 +623,16 @@ data("timeline_modis_392")
 # create a raster metadata file based on the 
 # information about the files
 raster.tb <- 
-    sits_coverage(service  = "RASTER",
-                  name     = "Sinop-crop",
-                  timeline = timeline_modis_392,
-                  bands    = "ndvi",
-                  files    = file)
+    sits_cube(service  = "RASTER",
+              name     = "Sinop-crop",
+              timeline = timeline_modis_392,
+              bands    = "ndvi",
+              files    = file)
 
 # classify the raster file
 raster_class.tb <- 
-    sits_classify_raster(file = paste0(tempdir(), "/raster-class"), 
-                         raster.tb, 
-                         ml_model = svm_model, 
-                         memsize = 2, 
-                         multicores = 1)
+    sits_classify(raster.tb, ml_model = svm_model, memsize = 2, 
+                  multicores = 1, out_prefix = paste0(tempdir(), "/raster-class"),)
 
 # plot the first raster object with a selected color pallete
 # make a title, define the colors and the labels)
@@ -663,10 +645,6 @@ The classified files can also be visualized with applications such as QGIS. Note
 # remove all files
 file.remove(unlist(raster_class.tb$files))
 ```
-## Classification of EOCUBES based data 
-
-
-
 # Smoothing of raster data after classification
 
 One of the well-established methods in remote sensing image analysis is to combine pixel-based classification methods with a spatial post-processing method to remove outliers and misclassified pixels. Methods proposed in the literature include modal filters [@Ghimire2010] and probabilistic relaxation [@Gong1989]. Our method used Bayesian smoothing to reclassify the pixels because machine learning methods assign class probabilities to each pixel. 

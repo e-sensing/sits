@@ -95,7 +95,7 @@ sits_show_config <- function() {
     bands <- sits.env$config[[b]][[name]]
     #post-condition
     ensurer::ensure_that(bands, length(.) > 0,
-                         err_desc = paste0("bands not available for coverage ", name, " in service ", service))
+                         err_desc = paste0("bands not available for cube ", name, " in service ", service))
     return(bands)
 }
 
@@ -104,8 +104,8 @@ sits_show_config <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        Name of the time series service.
-#' @param name           Name of the coverage.
-#' @param r_obj          R object associated with the coverage.
+#' @param name           Name of the cube.
+#' @param r_obj          R object associated with the cube.
 #' @return The bounding box.
 .sits_get_bbox <- function(service, name, r_obj = NA){
     bbox        <- vector(length = 4)
@@ -205,7 +205,7 @@ sits_show_config <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service          Name of the product.
-#' @param name             Name of the coverage.
+#' @param name             Name of the cube.
 #' @param bands            Vector of bands.
 #' @return The missing values.
 .sits_get_missing_values <- function(service, name, bands) {
@@ -229,7 +229,7 @@ sits_show_config <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        Name of the time series service.
-#' @param name           Name of the coverage.
+#' @param name           Name of the cube.
 #' @return CRS PROJ4 infomation.
 .sits_get_projection <- function(service, name) {
     # pre-condition
@@ -241,12 +241,13 @@ sits_show_config <- function() {
 
     #post-condition
     ensurer::ensure_that(crs, length(.) > 0,
-                         err_desc = paste0("Projection information for coverage ", name, " of service ", service, " not available"))
+                         err_desc = paste0("Projection information for cube ", name, " of service ", service, " not available"))
     return(crs)
 }
 #' @title List the data services available
 #' @name .sits_get_providers
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param service Name of the web service
 #'
 #' @return List of providers associated to a service
 .sits_get_providers <- function(service) {
@@ -254,12 +255,12 @@ sits_show_config <- function() {
     return(sits.env$config[[p]])
 }
 
-#' @title Retrieve the pixel resolution for an image product
+#' @title Retrieve the pixel spatial resolution for a data cube
 #' @name .sits_get_resolution
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        Name of the service.
-#' @param name           Name of the coverage.
+#' @param name           Name of the data cube.
 #' @return Vector of (xres, yres).
 .sits_get_resolution <- function(service, name) {
     # create a string to query for the resolution
@@ -274,19 +275,19 @@ sits_show_config <- function() {
 
     #post-condition
     ensurer::ensure_that(res["xres"], as.numeric(.) > 0,
-                         err_desc = paste0("Horizontal resolution not available for coverage ", name))
+                         err_desc = paste0("Horizontal resolution not available for cube ", name))
     ensurer::ensure_that(res["yres"], as.numeric(.) > 0,
-                         err_desc = paste0("Vertical resolution not available for coverage ", name))
+                         err_desc = paste0("Vertical resolution not available for cube ", name))
 
     return(res)
 }
 
-#' @title Retrieve the scale factor for a given band for an image product
+#' @title Retrieve the scale factor for a given band for a data cube
 #' @name .sits_get_scale_factors
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        Name of the service.
-#' @param name           Name of the coverage.
+#' @param name           Name of the cube.
 #' @param bands          Vector of bands.
 #' @return Vector of scale factors.
 .sits_get_scale_factors <- function(service, name, bands) {
@@ -347,13 +348,13 @@ sits_show_config <- function() {
         return(sits.env$config$services)
 }
 
-#' @title Retrieve the size of the product for a given time series service
+#' @title Retrieve the size of the product for a given data cube
 #' @name .sits_get_size
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param service        Name of the time series service.
-#' @param name           Name of the coverage.
-#' @param r_obj          R object associated with the coverage.
+#' @param name           Name of the cube.
+#' @param r_obj          R object associated with the cube.
 #' @return Vector of (nrows, ncols).
 .sits_get_size <- function(service, name, r_obj = NA) {
     size         <- vector(length = 2)
@@ -377,23 +378,23 @@ sits_show_config <- function() {
 
     #post-condition
     ensurer::ensure_that(size["nrows"], as.integer(.) > 0,
-                         err_desc = paste0("Number of rows not available for coverage ", name, " for service ", service))
+                         err_desc = paste0("Number of rows not available for cube ", name, " for service ", service))
     ensurer::ensure_that(size["ncols"], as.integer(.) > 0,
-                         err_desc = paste0("Number of cols not available for coverage ", name, " for service ", service))
+                         err_desc = paste0("Number of cols not available for cube ", name, " for service ", service))
 
     return(size)
 }
 
-#' @title Retrieve the default timeline for a product for a given time series service
+#' @title Retrieve the default timeline for a product for a given data cube
 #' @name .sits_get_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param service        Name of the time series service.
-#' @param name           Name of the coverage.
+#' @param service        Name of the web service.
+#' @param name           Name of the cube.
 #' @return Vector of (nrows, ncols).
 .sits_get_timeline <- function(service, name){
     if (service == "RASTER") {
-        message("Please provide timeline for raster data: will use default timeline")
+        message("Please provide timeline for raster data: will use default timeline which might be wrong")
         s <- paste0("RASTER_timeline")
         timeline <- lubridate::as_date(sits.env$config[[s]]["MOD13Q1"])
         return(timeline)
@@ -401,15 +402,15 @@ sits_show_config <- function() {
 
     if (service == "WTSS") {
         URL  <- .sits_get_server(service)
-        # obtains information about the available coverages
-        wtss.obj         <- wtss::WTSS(URL)
-        coverages.vec    <- wtss::listCoverages(wtss.obj)
+        # obtains information about the available cubes
+        wtss.obj     <- wtss::WTSS(URL)
+        cubes.vec    <- wtss::listCoverages(wtss.obj)
 
-        # is the coverage in the list of coverages?
-        ensurer::ensure_that(name, (.) %in% coverages.vec,
-                             err_desc = "sits_get_timeline: coverage is not available in the WTSS server")
+        # is the cube in the list of cubes?
+        ensurer::ensure_that(name, (.) %in% cubes.vec,
+                             err_desc = "sits_get_timeline: cube is not available in the WTSS server")
 
-        # describe the coverage
+        # describe the cube
         cov.lst    <- wtss::describeCoverage(wtss.obj, name)
         cov        <- cov.lst[[name]]
 
@@ -422,7 +423,7 @@ sits_show_config <- function() {
         timeline <- lubridate::as_date(sits.env$config[[s]][[name]])
 
         ensurer::ensure_that(timeline, length(.) > 0,
-                             err_desc = paste0("Could not retrieve timeline for coverage ", name))
+                             err_desc = paste0("Could not retrieve timeline for cube ", name))
     }
 
     return(lubridate::as_date(timeline))

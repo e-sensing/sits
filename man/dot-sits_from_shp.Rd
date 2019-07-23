@@ -4,13 +4,13 @@
 \alias{.sits_from_shp}
 \title{Obtain timeSeries from WTSS server, based on a SHP file.}
 \usage{
-.sits_from_shp(shp_file, coverage, start_date = NULL, end_date = NULL,
+.sits_from_shp(shp_file, cube, start_date = NULL, end_date = NULL,
   bands = NULL, prefilter = "1", label = "NoClass")
 }
 \arguments{
 \item{shp_file}{Name of a SHP file which provides the boundaries of a region of interest.}
 
-\item{coverage}{A tibble with metadata about the coverage.}
+\item{cube}{Data cube metadata.}
 
 \item{start_date}{The start date of the period.}
 
@@ -27,7 +27,7 @@ A sits tibble.
 }
 \description{
 reads a shapefile and retrieves a sits tibble
-containing time series from a coverage that are inside the SHP file.
-The script uses the WTSS service, taking information about coverage, spatial and
+containing time series from a data cube that are inside the SHP file.
+The script uses the WTSS service, taking information about spatial and
 temporal resolution from the WTSS configuration.
 }

@@ -31,10 +31,8 @@ based on the input data. If the input data has less than 30 samples, it
 will default to "all years". If there is only one sample per class, it will
 default to "patterns". If there are more than 30 samples, it will default to
 "together". If the input data has predicted values resulting from a classification, it will
-plot the classification.
-
-To plot the result of a dendrogram, please use \code{\link[sits]{sits_plot_dendrogram}}.
-To plot a classified raster image, please use \code{\link[sits]{sits_plot_raster}}.
+plot the classification. To plot a classified raster image,
+please use \code{\link[sits]{sits_plot_raster}}.
 }
 \examples{
 \donttest{

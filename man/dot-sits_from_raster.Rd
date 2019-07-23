@@ -4,11 +4,11 @@
 \alias{.sits_from_raster}
 \title{Extract a time series from a ST raster data set}
 \usage{
-.sits_from_raster(coverage, longitude, latitude, start_date = NULL,
-  end_date = NULL, label = "NoClass")
+.sits_from_raster(cube, longitude, latitude, start_date = NULL,
+  end_date = NULL, bands, label = "NoClass")
 }
 \arguments{
-\item{coverage}{A tibble with metadata describing a raster coverage.}
+\item{cube}{A tibble with metadata describing a data cube stored as a raster data set.}
 
 \item{longitude}{A double with the longitude of the chosen location.}
 
@@ -18,14 +18,15 @@
 
 \item{end_date}{A date with the end of the period.}
 
+\item{bands}{A string vector with the names of the bands to be retrieved.}
+
 \item{label}{A string with the label to attach to the time series.}
 }
 \value{
 A sits tibble with the time series.
 }
 \description{
-Reads metadata about a raster data set to retrieve a set of
-time series.
+Retrieve a set of time series for data cube stored as a raster data set.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

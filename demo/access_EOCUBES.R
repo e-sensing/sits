@@ -5,10 +5,10 @@ message("EOCubes is a time series package developed by INPE")
 library(sits)
 
 # retrieve a specific collection
-coverage_modis.tb <- sits_coverage(service = "EOCUBES", name = "MOD13Q1/006")
+cube_modis.tb <- sits_cube(service = "EOCUBES", name = "MOD13Q1/006")
 
 # retrieve the time series associated with the point from the WTSS server
-point.tb <- sits_get_data(coverage = coverage_modis.tb,
+point.tb <- sits_get_data(cube_modis.tb,
                           longitude = -46.5, latitude = -11.5,
                           bands = c("ndvi", "evi"),
                           start_date = "2016-09-01", end_date = "2017-09-01")

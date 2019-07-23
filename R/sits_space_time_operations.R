@@ -38,26 +38,26 @@
 #'
 #' @description Transform a latitude and longitude coordinate to a XY projection coordinate
 #'
-#' @param coverage        Metadata about a coverage.
+#' @param cube       Metadata about a data cube.
 #' @return A matrix with resolution in WGS84 coordinates.
-.sits_convert_resolution <- function(coverage) {
+.sits_convert_resolution <- function(cube) {
     # create a vector to store the result
     res <- vector(length = 2)
     names(res) <- c("xres", "yres")
 
     # set the minimum and maximum coordinates
-    xy1 <- sf::st_point(c(coverage$xmin, coverage$ymin))
-    xy2 <- sf::st_point(c(coverage$xmax, coverage$ymax))
+    xy1 <- sf::st_point(c(cube$xmin, cube$ymin))
+    xy2 <- sf::st_point(c(cube$xmax, cube$ymax))
 
-    xymin <- sf::st_sfc(xy1, crs = coverage$crs)
-    xymax <- sf::st_sfc(xy2, crs = coverage$crs)
+    xymin <- sf::st_sfc(xy1, crs = cube$crs)
+    xymax <- sf::st_sfc(xy2, crs = cube$crs)
 
     # get the bounding box in lat/long
     llmin <- sf::st_coordinates(sf::st_transform(xymin, crs = "+init=epsg:4326"))
     llmax <- sf::st_coordinates(sf::st_transform(xymax, crs = "+init=epsg:4326"))
 
-    res["xres"] <- (llmax[1, "X"] - llmin[1, "X"]) / coverage$ncols
-    res["yres"] <- (llmax[1, "Y"] - llmin[1, "Y"]) / coverage$nrows
+    res["xres"] <- (llmax[1, "X"] - llmin[1, "X"]) / cube$ncols
+    res["yres"] <- (llmax[1, "Y"] - llmin[1, "Y"]) / cube$nrows
 
     return(res)
 }

@@ -4,11 +4,11 @@
 \alias{.sits_read_data_cubes}
 \title{Read a block of values retrived from a set of raster stacks}
 \usage{
-.sits_read_data_cubes(coverage, samples, ml_model, first_row, n_rows_block,
+.sits_read_data_cubes(cube, samples, ml_model, first_row, n_rows_block,
   stats, filter, multicores)
 }
 \arguments{
-\item{coverage}{Input raster coverage.}
+\item{cube}{Input data cube.}
 
 \item{samples}{Tibble with samples.}
 

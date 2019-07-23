@@ -4,7 +4,7 @@
 library(sits)
 library(magrittr)
 
-# Get data from a mixed LANDSAT 8/MODIS coverage over a cloudy area in Amazonia
+# Get data from a mixed LANDSAT 8/MODIS cube over a cloudy area in Amazonia
 # This data comes from areas classified by the PRODES project (manual interpretation)
 # This is a cloudy area which represents a good test for filtering methods
 
@@ -74,10 +74,10 @@ cat ("# =========== ENVELOPE FILTER =============\n")
 
 prodes_ndvi.tb <- sits_select(prodes_226_064, bands = c("ndvi"))
 
-# test whitakker filter
+# test envelope filter
 prodes_env.tb <- sits_envelope(prodes_ndvi.tb)
 
-# compare the raw data with the Savistky Golay filter
+# compare the raw data with the envelope filter
 w1 <- sits_envelope(prodes_ndvi.tb[1,])
 
 w1 %>%
@@ -101,12 +101,12 @@ cat ("# =========== CLOUD REMOVAL FILTER =============\n")
 # test whitakker filter
 prodes_cf.tb <- sits_cloud_filter(prodes_ndvi.tb)
 
-# compare the raw data with the Savistky Golay filter
+# compare the raw data with the envelope filter
 w1 <- sits_cloud_filter(prodes_ndvi.tb[1,])
 
 w1 %>%
     sits_merge(prodes_ndvi.tb[1,]) %>%
-    sits_select_bands(ndvi, ndvi.cf.whit) %>%
+    sits_select_bands(ndvi, ndvi.cf) %>%
     sits_plot()
 
 conf_cf.tb <- sits_kfold_validate(prodes_cf.tb, folds = 2)

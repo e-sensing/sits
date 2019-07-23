@@ -1,5 +1,5 @@
 ---
-title: "SITS - Satellite Image Time Series Analysis"
+title: "SITS - Satellite Image Time Series Analysis for Data Cubes"
 authors: Rolf Simoes, Gilberto Camara, Pedro Andrade, Alexandre Carvalho, Gilberto Queiroz, Lorena Santos
 output:
     github_document
@@ -92,28 +92,15 @@ sits_plot(samples_cerrado.tb)
 
 ### Clustering
 
-Clustering is a way to improve training data to use in machine learning classification models. In this regard, cluster analysis can assist the identification of structural patterns and anomalous samples. **sits** provides support for the agglomerative hierarchical clustering (AHC) using the DTW (dynamic time warping) distance measure. 
+Clustering is a way to improve training data to use in machine learning classification models. In this regard, cluster analysis can assist the identification of structural patterns and anomalous samples. **sits** provides support for the agglomerative hierarchical clustering (AHC) using the DTW (dynamic time warping) distance measure. After creating a dendrogram, we compute a validity index and returns the clustering that meets the best value.
 
 ```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
 # take a set of patterns for 2 classes
 # create a dendrogram object with default clustering parameters
-dendro <- sits_dendrogram(cerrado_2classes)
-# plot the resulting dendrogram
-sits_plot_dendrogram(cerrado_2classes, dendro)
+cluster.tb <- sits_cluster(cerrado_2classes)
 ```
-After creating a dendrogram, we provide `sits_dendro_bestcut()`, a function that computes a validity index and returns the height where the cut of the dendrogram maximizes this index.
-
+We can then see the cluster frequency using `sits_cluster_frequency`. In the example, we note that cluster $3$, unlike other clusters, includes a mix of two classes. Users can then remove this cluster with `sits_cluster_remove`to reduce the number of mixed-class samples.
 ```{r}
-# search for the best height to cut the dendrogram
-sits_dendro_bestcut(cerrado_2classes, 
-                    dendro)
-```
-This height optimises the ARI and generates $6$ clusters, which are then created by function `sits_cluster`. We can then see the cluster frequency using `sits_cluster_frequency`. In the example, we note that cluster $3$, unlike other clusters, includes a mix of two classes. Users can then remove this cluster with `sits_cluster_remove`to reduce the number of mixed-class samples.
-```{r}
-# create 6 clusters by cutting the dendrogram at 
-# the linkage distance 20.39655
-clusters.tb <- 
-    sits_cluster(cerrado_2classes, dendro, k = 6)
 # show clusters samples frequency
 sits_cluster_frequency(clusters.tb)
 # clear those samples with a high confusion rate in a cluster 

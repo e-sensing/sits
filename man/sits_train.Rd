@@ -22,9 +22,8 @@ Given a tibble with a set of distance measures,
 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
 'lasso' (see \code{\link[sits]{sits_mlr}}), 'ridge' (see \code{\link[sits]{sits_mlr}}),
 and 'deep learning' (see \code{\link[sits]{sits_deeplearning}}).
-The sits_train function is called inside \code{\link[sits]{sits_classify}}
-and \code{\link[sits]{sits_classify_raster}}, so the user does not need
-to explicitly use this function. Please see the above-mention classification functions.
+The sits_train function is called inside \code{\link[sits]{sits_classify}} , so the user does not need
+to explicitly use this function. Please see the above-mention classification function.
 }
 \examples{
 \donttest{

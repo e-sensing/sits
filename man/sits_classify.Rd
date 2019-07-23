@@ -2,10 +2,11 @@
 % Please edit documentation in R/sits_classification.R
 \name{sits_classify}
 \alias{sits_classify}
-\title{Classify a sits tibble using machine learning models}
+\title{Classify a set of time series or a data cube using machine learning models}
 \usage{
 sits_classify(data.tb = NULL, ml_model = NULL, interval = "12 month",
-  multicores = 1)
+  filter = NULL, multicores = 2, memsize = 4,
+  out_prefix = "cube-class")
 }
 \arguments{
 \item{data.tb}{Tibble with time series metadata and data.}
@@ -14,13 +15,19 @@ sits_classify(data.tb = NULL, ml_model = NULL, interval = "12 month",
 
 \item{interval}{Interval used for classification (in months).}
 
-\item{multicores}{Number of threads to process the time series.}
+\item{filter}{Smoothing filter to be applied (if desired).}
+
+\item{multicores}{Number of cores to be used for classification.}
+
+\item{memsize}{Memory available for classification (in GB).}
+
+\item{out_prefix}{Prefix of the output files. For each time interval, one file will be created.}
 }
 \value{
 A tibble with the predicted labels for each input segment.
 }
 \description{
-This function classifies a set of time series, given
+This function classifies a set of time series or data cube given
 a set of training samples, an inference model, and an interval.
 To perform the classification, users should provide a set of
 labelled samples. Each samples should be associated to one spatial location
@@ -39,7 +46,7 @@ passed to the function using the parameter "ml_model".
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_mt_ndvi)
+data(samples_mt_9classes)
 # select the bands "ndvi", "evi", "nir", and "mir"
 samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
 # build a classification model using SVM
@@ -50,6 +57,36 @@ point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 class.tb <- sits_classify(point.tb, ml_model = model_svm)
 # plot the classification
 sits_plot(class.tb)
+
+# read a raster file and put it into a vector
+file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits")
+# define the timeline
+data(timeline_modis_392)
+
+# create a data cube  based on raster bricks
+raster.tb <- sits_cube(service = "RASTER", name  = "Sinop-crop",
+  timeline = timeline_modis_392, bands = "ndvi", files = file)
+
+# select only the ndvi band to build a model
+data(samples_mt_ndvi)
+
+# build a classification model using random forest
+model_rfor <- sits_train(samples_mt_ndvi, ml_method = sits_rfor())
+
+# classify the raster file
+raster_class.tb <- sits_classify(raster.tb, ml_model = model_rfor)
+# plot the resulting classification
+sits_plot_raster(raster_class.tb, time = 1, title = "SINOP class 2000-2001")
+
+# create a data cube file based on the information provided by the EOCUBES service
+cube.tb <- sits_cube(service = "EOCUBES", name  = "MOD13Q1/006")
+
+# classify the raster file
+cube_class.tb <- sits_classify(raster.tb, ml_model = svm_model, memsize = 4, multicores = 1,
+out_prefix = "raster-class")
+
+# plot the resulting classification
+sits_plot_raster(cube_class.tb, time = 1, title = "Test class 2000-2001")
 }
 }
 \author{

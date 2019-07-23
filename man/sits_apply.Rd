@@ -4,11 +4,11 @@
 \alias{sits_apply}
 \title{Apply a function over sits bands.}
 \usage{
-sits_apply(data, fun, fun_index = function(index) {     return(index) },
-  bands_suffix = "")
+sits_apply(data.tb, fun, fun_index = function(index) {     return(index)
+  }, bands_suffix = "")
 }
 \arguments{
-\item{data}{Valid sits tibble or matrix.}
+\item{data.tb}{Valid sits tibble or matrix.}
 
 \item{fun}{Function with one parameter as input and a vector or list of vectors as output.}
 

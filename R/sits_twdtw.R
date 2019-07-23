@@ -55,6 +55,9 @@ sits_twdtw_classify <- function (data.tb = NULL, patterns.tb = NULL, bands = NUL
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
         stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
     }
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
 
     # add a progress bar
     progress_bar <- NULL

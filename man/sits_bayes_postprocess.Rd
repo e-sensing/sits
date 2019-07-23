@@ -5,10 +5,10 @@
 \title{Post-process a classified data raster with bayesian filter}
 \usage{
 sits_bayes_postprocess(raster_class, window = matrix(1, nrow = 3, ncol =
-  3, byrow = TRUE), noise = 100, file)
+  3, byrow = TRUE), noise = 10, file)
 }
 \arguments{
-\item{raster_class}{Output raster coverage.}
+\item{raster_class}{Output raster image.}
 
 \item{window}{A matrix with the neighborhood window to compute bayesian smooth.
 The central element index (i, j) is given by
@@ -24,7 +24,7 @@ A tibble with metadata about the output RasterLayer objects.
 }
 \description{
 Takes a set of classified raster layers, whose metadata is
-             described by tibble (created by \code{\link[sits]{sits_coverage}}),
+             described by tibble (created by \code{\link[sits]{sits_cube}}),
              and a noise value, to do a bayesian smoothing process.
 }
 \author{

@@ -10,7 +10,7 @@ sits_patterns(data.tb = NULL, timeline = NULL, start_date = NULL,
 \arguments{
 \item{data.tb}{A tibble in sits format with time series.}
 
-\item{timeline}{A timeline vector with the all dates for the coverage.}
+\item{timeline}{A timeline vector with the all dates for the cube.}
 
 \item{start_date}{Starting date (month-day).}
 

@@ -8,7 +8,7 @@
 #' @param longitude     Longitude of the chosen location.
 #' @param latitude      Latitude of the chosen location.
 #' @param label         Label to attach to the time series (optional).
-#' @param name          Name of the coverage where data comes from.
+#' @param name          Name of the data cube where data comes from.
 #' @return Time series in sits tibble format.
 #'
 #' @examples
@@ -32,7 +32,7 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
     end_date <- ts.tb[NROW(ts.tb), ]$Index
 
     # create a tibble to store the WTSS data
-    data.tb <- sits_tibble()
+    data.tb <- .sits_tibble()
     # add one row to the tibble
     data.tb <- tibble::add_row(data.tb,
                                longitude    = longitude,
@@ -40,7 +40,7 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
                                start_date   = as.Date(start_date),
                                end_date     = as.Date(end_date),
                                label        = label,
-                               coverage     = name,
+                               cube         = name,
                                time_series  = ts.lst)
     class(data.tb) <- append(class(data.tb), "sits_tibble")
 

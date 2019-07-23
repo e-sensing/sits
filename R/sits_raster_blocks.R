@@ -8,21 +8,21 @@
 #' with 500 rows and 500 columns and 400 time instances will have a total pixel size
 #' of 800 Mb if pixels are 64-bit.
 #'
-#' @param  coverage        Input raster coverage.
+#' @param  cube            Input data cube.
 #' @param  ml_model        Machine learning model.
 #' @param  interval        Classification interval.
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of threads to process the time series.
 #' @return List with three attributes: n (number of blocks), rows (list of rows to begin),
 #' nrows (number of rows to read at each iteration).
-.sits_raster_blocks <- function(coverage, ml_model, interval, memsize, multicores){
+.sits_raster_blocks <- function(cube, ml_model, interval, memsize, multicores){
     # number of bands
-    nbands <-  length(coverage[1,]$bands[[1]])
+    nbands <-  length(cube[1,]$bands[[1]])
     # number of rows and cols
-    nrows <- coverage[1,]$nrows
-    ncols <- coverage[1,]$ncols
+    nrows <- cube[1,]$nrows
+    ncols <- cube[1,]$ncols
     # timeline
-    timeline <- coverage[1,]$timeline[[1]][[1]]
+    timeline <- cube[1,]$timeline[[1]][[1]]
 
     nblocks <- .sits_estimate_nblocks(ml_model, nbands, nrows, ncols, timeline, interval, memsize, multicores)
 
@@ -132,9 +132,8 @@
 #'
 #' @param data             Data (data.table or matrix).
 #' @param ncores           Number of cores for processing.
-#' @param ml_model         Machine learning model which is part of the object.
 #' @return List of pairs of positions (first row, last row) to be assigned to each core.
-.sits_split_data <- function(data, ncores, ml_model){
+.sits_split_data <- function(data, ncores){
     # number of rows in the data
     nrows <- nrow(data)
     # find the number of rows per core

@@ -4,10 +4,10 @@
 \alias{.sits_convert_resolution}
 \title{Convert resolution from projection values to lat/long}
 \usage{
-.sits_convert_resolution(coverage)
+.sits_convert_resolution(cube)
 }
 \arguments{
-\item{coverage}{Metadata about a coverage.}
+\item{cube}{Metadata about a data cube.}
 }
 \value{
 A matrix with resolution in WGS84 coordinates.

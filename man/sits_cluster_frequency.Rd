@@ -22,11 +22,8 @@ This function needs as input a sits tibble with `cluster` column.
 library(dtwclust)
 # load a simple data set with two classes
 data(cerrado_2classes)
-# calculate the dendrogram
-dendro <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
-# include the cluster info in the sits tibble
-# create 6 clusters by cutting the dendrogram
-clusters.tb <- sits_cluster(cerrado_2classes, dendro, k = 6)
+# create clusters by cutting a dendrogram
+clusters.tb <- sits_cluster(cerrado_2classes, bands = c("ndvi"))
 # show clusters samples frequency
 sits_cluster_frequency(clusters.tb)
 }

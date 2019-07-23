@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_timeline.R
 \name{sits_match_timeline}
 \alias{sits_match_timeline}
-\title{Find dates in the input coverage that match those of the patterns}
+\title{Find dates in the input data cube that match those of the patterns}
 \usage{
 sits_match_timeline(timeline, ref_start_date, ref_end_date,
   interval = "12 month")
