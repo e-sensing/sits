@@ -41,9 +41,8 @@ This is done in several steps:
 library(dtwclust)
 # load a simple data set with two classes
 data(cerrado_2classes)
-# calculate the dendrogram and the best cluster
-# include the cluster info in the sits tibble
-clustered.tb <- sits_cluster (cerrado_2classes, bands = c("ndvi"))
+# calculate the dendrogram and the best clusters
+cluster.tb <- sits_cluster (cerrado_2classes, bands = c("ndvi", "evi"))
 }
 }
 \references{

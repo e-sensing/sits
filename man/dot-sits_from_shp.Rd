@@ -4,8 +4,8 @@
 \alias{.sits_from_shp}
 \title{Obtain timeSeries from WTSS server, based on a SHP file.}
 \usage{
-.sits_from_shp(shp_file, cube, start_date = NULL, end_date = NULL,
-  bands = NULL, prefilter = "1", label = "NoClass")
+.sits_from_shp(shp_file, cube, start_date, end_date, bands, prefilter,
+  label, epsg)
 }
 \arguments{
 \item{shp_file}{Name of a SHP file which provides the boundaries of a region of interest.}
@@ -21,6 +21,8 @@
 \item{prefilter}{A string related to data correction ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 
 \item{label}{A string with the label to attach to the time series.}
+
+\item{epsg}{An optional code for the planar projection to be used if the shapefile is in WGS84 (for reading data inside shapefiles)}
 }
 \value{
 A sits tibble.

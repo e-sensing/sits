@@ -36,29 +36,27 @@
 #' @name .sits_convert_resolution
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Transform a latitude and longitude coordinate to a XY projection coordinate
+#' @description Transform a latitude and longitude coordinate to a meters.
 #'
 #' @param cube       Metadata about a data cube.
-#' @return A matrix with resolution in WGS84 coordinates.
+#' @return A matrix with resolution in the desired crs.
 .sits_convert_resolution <- function(cube) {
     # create a vector to store the result
     res <- vector(length = 2)
     names(res) <- c("xres", "yres")
 
-    # set the minimum and maximum coordinates
-    xy1 <- sf::st_point(c(cube$xmin, cube$ymin))
-    xy2 <- sf::st_point(c(cube$xmax, cube$ymax))
+    # If the resolution of the cube is expressed in latlong, convert it to the desired crs
+    # This is a hack, that covers cases of cubes with resolutions bigger than 1 meter
+    # It assumes that resolutions smaller than 1 are expressed in decimal degress
 
-    xymin <- sf::st_sfc(xy1, crs = cube$crs)
-    xymax <- sf::st_sfc(xy2, crs = cube$crs)
-
-    # get the bounding box in lat/long
-    llmin <- sf::st_coordinates(sf::st_transform(xymin, crs = "+init=epsg:4326"))
-    llmax <- sf::st_coordinates(sf::st_transform(xymax, crs = "+init=epsg:4326"))
-
-    res["xres"] <- (llmax[1, "X"] - llmin[1, "X"]) / cube$ncols
-    res["yres"] <- (llmax[1, "Y"] - llmin[1, "Y"]) / cube$nrows
-
+    if (cube$xres < 1) {
+        res["xres"] <- geosphere::distGeo(c(0.0, 0.0), c(0.0, cube$xres))
+        res["yres"] <- geosphere::distGeo(c(0.0, 0.0), c(cube$yres,0.0))
+    }
+    else {
+        res["xres"] <- cube$xres
+        res["yres"] <- cube$yres
+    }
     return(res)
 }
 

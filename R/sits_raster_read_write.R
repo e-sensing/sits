@@ -76,7 +76,7 @@
             b <<- b + 1
             band <- bands[b]
             values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band],
-                                                      stats, filter, multicores)
+                                               stats, filter, multicores)
 
             # save information about memory use for debugging later
             .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))

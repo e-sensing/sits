@@ -1,5 +1,5 @@
 #' @title Normalize the time series in the given sits_tibble
-#' @name sits_normalize_data
+#' @name .sits_normalize_data
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description This function normalizes the time series using the mean and
@@ -9,8 +9,7 @@
 #' @param stats.tb    Statistics for normalization.
 #' @param multicores  Number of cores to process.
 #' @return A normalized sits tibble.
-#' @export
-sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
+.sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
     # backward compatibility
     if ("coverage" %in% names(data.tb))
         data.tb <- .sits_tibble_rename(data.tb)
@@ -41,7 +40,7 @@ sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
                         med      <- as.numeric(stats.tb[1, b])
                         quant_2  <- as.numeric(stats.tb[2, b])
                         quant_98 <- as.numeric(stats.tb[3, b])
-                        values <- tibble::as.tibble(normalize_data(as.matrix(ts[,b]), quant_2, quant_98))
+                        values <- tibble::as_tibble(normalize_data(as.matrix(ts[,b]), quant_2, quant_98))
                         return(values)
                     })
                 ts.tb <- dplyr::bind_cols(norm.lst)
@@ -99,6 +98,7 @@ sits_normalize_data <- function(data.tb, stats.tb, multicores = 1){
 
     return(data.mx)
 }
+
 
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_normalization_param

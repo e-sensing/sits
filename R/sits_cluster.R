@@ -27,9 +27,8 @@
 #' library(dtwclust)
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
-#' # calculate the dendrogram and the best cluster
-#' # include the cluster info in the sits tibble
-#' clustered.tb <- sits_cluster (cerrado_2classes, bands = c("ndvi"))
+#' # calculate the dendrogram and the best clusters
+#' cluster.tb <- sits_cluster (cerrado_2classes, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_cluster <-  function(data.tb, bands = NULL, dist_method = "dtw_basic",
@@ -73,17 +72,6 @@ sits_cluster <-  function(data.tb, bands = NULL, dist_method = "dtw_basic",
     # plot the dendrogram
     if (!silent) message("Plotting dendrogram...")
     .sits_plot_dendrogram(data.tb, dendro.obj, cut.vec["height"], colors)
-
-    # # Cluster validity indices
-    # message("cluster validity indexes...")
-    # val_indexes.vec <- .sits_cluster_validity(result.tb)
-    # msg3 <- paste0("adjusted Rand index = ", val_indexes.vec["ARI"])
-    # msg4 <- paste0("Rand index = ", val_indexes.vec["RI"])
-    # msg5 <- paste0("Jaccard index = ", val_indexes.vec["J"])
-    # msg6 <- paste0("Fowlkes-Mallows index = ", val_indexes.vec["FM"])
-    # msg7 <- paste0("Variation of Information index = ", val_indexes.vec["VI"])
-    # index_msgs <- c(msg3, msg4, msg5, msg6, msg7)
-    # index_msgs <- index_msgs %>% purrr::map(function(mg) message(mg))
 
     # return the result
     if (!silent) message("result is a tibble with cluster indexes...")
@@ -140,7 +128,7 @@ sits_cluster <-  function(data.tb, bands = NULL, dist_method = "dtw_basic",
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # create clusters by cutting a dendrogram
-#' clusters.tb <- sits_cluster(cerrado_2classes, bands = c("ndvi"))
+#' clusters.tb <- sits_cluster(cerrado_2classes, bands = c("ndvi", "evi"))
 #' # show clusters samples frequency
 #' sits_cluster_frequency(clusters.tb)
 #' }
@@ -163,18 +151,8 @@ sits_cluster_frequency <-  function(data.tb) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Removes sits tibble samples of labels that are minority in each cluster.
-#' The function removes samples according to a percentage threshold "min_perc".
-#' If the method "intracluster" is chosen, the "min_perc" parameter
-#' controls the relative percentage of labels inside each cluster. If the number of samples
-#' of a given label inside a cluster are below this limit, then all those label samples are
-#' removed from that cluster. If the method "intercluster" is set, the "min_perc"
-#' parameter is a threshold that controls the minimum
-#' percentage of each label in all clusters. If the percentage of samples of a label in a cluster
-#' is less than this "min_perc", all thise label samples are removed from that cluster.
 #'
 #' @param data.tb           Tibble with `cluster` column.
-#' @param min_perc          Minimum percentage of label inside a cluster for the label to remain in cluster.
-#' @param method            String with "intracluster" or "intercluster" or both
 #' @return A tibble with all selected samples.
 #' @examples
 #' \donttest{
@@ -182,100 +160,44 @@ sits_cluster_frequency <-  function(data.tb) {
 #' library(dtwclust)
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
-#' # calculate the dendrogram
-#' dendro <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
-#' # create 6 clusters by cutting the dendrogram
-#' clusters.tb <- sits_cluster(cerrado_2classes, dendro, k = 6)
+#' # calculate the dendrogram and the best clusters
+#' cluster.tb <- sits_cluster (cerrado_2classes, bands = c("ndvi", "evi"))
 #' # show clusters samples frequency
-#' sits_cluster_frequency(clusters.tb)
-#' # clear those clusters that are less that 25% of each cluster
-#' cleaned.tb <- sits_cluster_clean(clusters.tb, min_perc = 0.25)
+#' sits_cluster_frequency(cluster.tb)
+#' # remove cluster 3 from the samples
+#' clusters_new.tb <- dplyr::filter(cluster.tb, cluster != 3)
 #' # show clusters samples frequency
-#' sits_cluster_frequency(cleaned.tb)
-#' }
-#' @export
-sits_cluster_clean <- function(data.tb, min_perc = 0.05, method = "intracluster") {
-    # verify if data.tb has data
-    .sits_test_tibble(data.tb)
-
-    ensurer::ensure_that(method, (.) %in% c("intercluster", "intracluster"),
-                         err_desc = "sits_cluster_cleaner: chosen method is invalid")
-
-    # is the input data the result of a cluster function?
-    ensurer::ensure_that(data.tb, "cluster" %in% names(.),
-                         err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
-
-    # compute frequency table
-    result.mtx <- table(data.tb$label, data.tb$cluster)
-
-    # compute frequency in each cluster according to the corresponding method
-    if (method == "intracluster")
-        # compute relative frequency
-        freq.mtx <- prop.table(result.mtx, margin = 2)
-    else
-        # compute frequency in each label
-        freq.mtx <- prop.table(result.mtx, margin = 1)
-
-    # get those indexes whose labels represents more than `min_perc`
-    index.mtx <- which(freq.mtx > min_perc, arr.ind = TRUE, useNames = TRUE)
-
-    # return only those samples that satisfies the `min_perc` condition
-    filter_condition <- paste0(purrr::map2(rownames(index.mtx), index.mtx[,2],
-                                            function(lb, clu) paste0("(label=='", lb, "' & cluster==", clu, ")")),
-                                collapse = " | ")
-    # filter result and return
-    result.tb <- dplyr::filter_(data.tb, filter_condition)
-    return(result.tb)
-}
-
-#' @title Remove cluster with mixed classes
-#' @name sits_cluster_remove
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description
-#' The function removes clusters according to a percentage threshold "min_perc".
-#' A cluster is considered good when the most frequent class has a percentage
-#' of samples greater than the "min_perc" threshold.
-#'
-#' @param data.tb           A tibble with `cluster` column.
-#' @param min_perc          Minimum percentage of the most frequent label inside a cluster for the cluster not to be deleted.
-#' @return A tibble with all selected samples.
-#' @examples
-#' \donttest{
-#' # Load the "dtwclust" package
-#' library(dtwclust)
-#' # load a simple data set with two classes
-#' data(cerrado_2classes)
-#' # calculate the dendrogram
-#' dendro <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
-#' # create 6 clusters by cutting the dendrogram
-#' clusters.tb <- sits_cluster(cerrado_2classes, dendro, k = 6)
-#' # show clusters samples frequency
-#' sits_cluster_frequency(clusters.tb)
-#' # clear those clusters that are less that 25% of each cluster
-#' cleaned.tb <- sits_cluster_remove(clusters.tb, min_perc = 0.70)
+#' sits_cluster_frequency(clusters_new.tb)
+#' # clean all remaining clusters
+#' cleaned.tb <- sits_cluster_clean(clusters_new.tb)
 #' # show clusters samples frequency
 #' sits_cluster_frequency(cleaned.tb)
 #' }
 #' @export
-sits_cluster_remove <- function(data.tb, min_perc = 0.90) {
+sits_cluster_clean <- function(data.tb) {
     # verify if data.tb has data
     .sits_test_tibble(data.tb)
 
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data.tb, "cluster" %in% names(.),
-                         err_desc = "sits_cluster_cleaner: input data does not contain cluster column")
+                         err_desc = "sits_cluster_clean: input data does not contain cluster column")
 
     # compute frequency table
     result.mtx <- table(data.tb$label, data.tb$cluster)
 
-    # compute relative frequency
-    freq.mtx <- prop.table(result.mtx, margin = 2)
+    # list of the clusters of the data table
+    num_cls <- unique(data.tb$cluster)
+    # get the labels of the data
+    lbs <- unique(data.tb$label)
+    # for each cluster, get the label with the maximum number of samples
+    lbs_max <- lbs[as.vector(apply(result.mtx, 2, which.max))]
 
-    # get those indexes whose labels represents more than `min_perc`
-    index.mtx <- which(freq.mtx > min_perc, arr.ind = TRUE, useNames = TRUE)
-
-    # filter result and return
-    result.tb <- dplyr::filter(data.tb, cluster %in% as.integer(index.mtx[,"col"]))
+    # compute the resulting table
+    row.lst <- purrr::map2(lbs_max, num_cls, function(lb, cl)
+        {
+            partial.tb <- dplyr::filter(data.tb, label == lb & cluster == cl)
+            return(partial.tb)
+        })
+    result.tb <- dplyr::bind_rows(row.lst)
     return(result.tb)
 }

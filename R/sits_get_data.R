@@ -46,6 +46,7 @@
 #' @param bands           An optional vector with the names of the bands to be retrieved.
 #' @param prefilter       An optional string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @param label           An optional string with the label to be assigned to the time series.
+#' @param epsg            An optional code for the planar projection to be used (for reading data inside shapefiles)
 #' @param .n_start        An optional integer with the row on the CSV file to start reading.
 #' @param .n_max          An optional integer with the maximum number of CSV samples to be read (set to Inf to read all).
 #' @param .n_save         An optional number of samples to save as intermediate files (used for long reads).
@@ -101,6 +102,7 @@ sits_get_data <- function(cube,
                          bands       = NULL,
                          prefilter   = "1",
                          label       = "NoClass",
+                         epsg        = 6842,
                          .n_start    = 1,
                          .n_max      = Inf,
                          .n_save     = 0) {
@@ -127,7 +129,7 @@ sits_get_data <- function(cube,
     }
     # get data based on SHP file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "shp") {
-        data.tb <- .sits_from_shp(file, cube, start_date, end_date, bands, prefilter, label)
+        data.tb <- .sits_from_shp(file, cube, start_date, end_date, bands, prefilter, label, epsg)
         return(data.tb)
     }
     message(paste("No valid input to retrieve time series data!!", "\n", sep = ""))
@@ -234,12 +236,8 @@ sits_get_data <- function(cube,
 #' @param bands           A string vector with the names of the bands to be retrieved.
 #' @param label           A string with the label to attach to the time series.
 #' @return A sits tibble with the time series.
-.sits_from_raster <- function(cube,
-                              longitude,
-                              latitude,
-                              start_date = NULL,
-                              end_date  = NULL,
-                              bands,
+.sits_from_raster <- function(cube, longitude, latitude,
+                              start_date, end_date, bands,
                               label = "NoClass"){
 
     # ensure metadata tibble exists
@@ -374,14 +372,10 @@ sits_get_data <- function(cube,
 #' @param bands           A string vector with the names of the bands to be retrieved.
 #' @param prefilter       A string related to data correction ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @param label           A string with the label to attach to the time series.
+#' @param epsg             An optional code for the planar projection to be used if the shapefile is in WGS84 (for reading data inside shapefiles)
 #' @return A sits tibble.
-.sits_from_shp <- function(shp_file,
-                          cube,
-                          start_date = NULL,
-                          end_date   = NULL,
-                          bands      = NULL,
-                          prefilter  = "1",
-                          label      = "NoClass") {
+.sits_from_shp <- function(shp_file, cube, start_date, end_date, bands,
+                          prefilter, label, epsg) {
     # test parameters
     ensurer::ensure_that(shp_file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
                          err_desc = "sits_from_shp: please provide a valid SHP file")
@@ -391,38 +385,33 @@ sits_get_data <- function(cube,
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
     # find out what is the projection of the shape file
-    crs1 <- sf::st_crs(sf_shape)
-    # if the shapefile is not in EPSG:4326 and WGS84, transform shape into WGS84
-    if (is.na(crs1$epsg) || crs1$epsg != 4326) {
-        sf_shape <- sf::st_transform(sf_shape, crs = 4326)
+    epsg_shp <- sf::st_crs(sf_shape)$epsg
+    # if the shapefile is not in planar coordinates, convert it
+    if (epsg_shp == 4326) {
+        sf_shape <- sf::st_transform(sf_shape, crs = epsg)
     }
+    else # if shapefile not in lat/long, use the shapefile EPSG
+        epsg <- epsg_shp
     # get the bounding box
     bbox <- sf::st_bbox(sf_shape)
     # create an empty sits tibble
     shape.tb <- .sits_tibble()
 
-    # if the resolution of the cube is expressed in meters, convert it to lat long
-    if (cube$xres > 1) {
-        res <- .sits_convert_resolution(cube)
-        xres <- res["xres"]
-        yres <- res["yres"]
-    }
-    else {
-        xres <- cube$xres
-        yres <- cube$yres
-    }
+    # If the resolution of the cube is expressed in latlong, convert it to planar coordinates
+    res <- .sits_convert_resolution(cube)
 
     # setup the sequence of latitudes and longitudes to be searched
-    longitudes <- seq(from = bbox["xmin"], to = bbox["xmax"], by = xres)
-    latitudes  <- seq(from = bbox["ymin"], to = bbox["ymax"], by = yres)
+    xs <- seq(from = bbox["xmin"], to = bbox["xmax"], by = res["xres"])
+    ys  <- seq(from = bbox["ymin"], to = bbox["ymax"], by = res["yres"])
 
-    longitudes %>%
-        purrr::map(function(long){
-            latitudes %>%
-                purrr::map(function(lat){
-                    ll <- sf::st_point(c(long, lat))
-                    if (1 %in% as.logical(unlist(sf::st_within(ll, sf_shape)))) {
-                        row <- .sits_from_service(cube, long, lat, start_date, end_date,
+    xs %>%
+        purrr::map(function(x){
+            ys %>%
+                purrr::map(function(y){
+                    xy <- sf::st_point(c(x, y))
+                    if (1 %in% as.logical(unlist(sf::st_contains(sf_shape, xy)))) {
+                        ll <- .sits_proj_to_latlong(x, y, epsg)
+                        row <- .sits_from_service(cube, ll[,"X"], ll[,"Y"], start_date, end_date,
                                                   bands, prefilter, label)
                         shape.tb <<- dplyr::bind_rows(shape.tb, row)
                     }

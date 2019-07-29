@@ -4,13 +4,15 @@
 \alias{.sits_classify_eocubes}
 \title{Classify a data cube created with the EOCUBES service}
 \usage{
-.sits_classify_eocubes(cube, ml_model, interval, filter, memsize,
+.sits_classify_eocubes(cube, ml_model, samples, interval, filter, memsize,
   multicores, out_prefix)
 }
 \arguments{
 \item{cube}{Tibble with information about a data cube.}
 
 \item{ml_model}{An R model trained by \code{\link[sits]{sits_train}}.}
+
+\item{samples}{Tibble with samples used for training the classification model.}
 
 \item{interval}{Interval between two sucessive classifications, expressed in months.}
 
@@ -38,5 +40,5 @@ Takes a set of spatio-temporal raster bricks, whose metadata is
               the amount of memory available for classification.
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

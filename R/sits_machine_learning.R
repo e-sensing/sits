@@ -35,6 +35,7 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
     # backward compatibility
     if ("coverage" %in% names(data.tb))
         data.tb <- .sits_tibble_rename(data.tb)
+
     # is the input data a valid sits tibble?
     ensurer::ensure_that(data.tb, "label" %in% names(.),
                          err_desc = "sits_train: input data does not contain a valid sits tibble")
@@ -114,7 +115,7 @@ sits_deeplearning <- function(data.tb          = NULL,
     result_fun <- function(data.tb){
         # data normalization
         stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- .sits_distances(sits_normalize_data(data.tb, stats.tb))
+        train_data_DT <- .sits_distances(.sits_normalize_data(data.tb, stats.tb))
 
         # is the train data correct?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
@@ -270,13 +271,14 @@ sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 
         # data normalization
         stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- .sits_distances(sits_normalize_data(data.tb, stats.tb))
+        train_data_DT <- .sits_distances(.sits_normalize_data(data.tb, stats.tb))
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_lda: input data does not contain distance")
 
-        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        # if parameter formula is a function call it passing as argument the input data sample.
+        # The function must return a valid formula.
         if (class(formula) == "function")
             formula <- formula(train_data_DT)
 
@@ -341,7 +343,7 @@ sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 
         # data normalization
         stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- .sits_distances(sits_normalize_data(data.tb, stats.tb))
+        train_data_DT <- .sits_distances(.sits_normalize_data(data.tb, stats.tb))
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -405,9 +407,9 @@ sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
         data.tb <- .sits_tibble_rename(data.tb)
     # function that returns nnet::multinom model based on a sits sample tibble
     result_fun <- function(data.tb) {
-
+        # data normalization
         stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- .sits_distances(sits_normalize_data(data.tb, stats.tb))
+        train_data_DT <- .sits_distances(.sits_normalize_data(data.tb, stats.tb))
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -558,7 +560,7 @@ sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), scale = FA
 
         # data normalization
         stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- .sits_distances(sits_normalize_data(data.tb, stats.tb))
+        train_data_DT <- .sits_distances(.sits_normalize_data(data.tb, stats.tb))
 
         # if parameter formula is a function call it passing as argument the input data sample.
         # The function must return a valid formula.

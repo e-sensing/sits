@@ -117,6 +117,34 @@
     result.tb <- dplyr::bind_rows(list(.sits_tibble(), result.tb))
     return(result.tb)
 }
+#' @title Filter bands on a sits tibble
+#' @name .sits_select_bands_
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a sits tibble with the selected bands.
+#'
+#' @param data.tb      A sits tibble metadata and data on time series.
+#' @param bands        The selected bands.
+#' @return A tibble in sits format with the selected bands.
+.sits_select_bands_ <- function(data.tb, bands) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+    # verify if bands exists in data.tb
+    ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
+                         err_desc = paste0(".sits_select_bands_: the following bands do not exist in the input data: ",
+                                           paste(bands[!bands %in% sits_bands(data.tb)], collapse = ", ")))
+
+    # prepare result sits tibble
+    result.tb <- data.tb
+
+    # select the chosen bands for the time series
+    result.tb$time_series <- data.tb$time_series %>%
+        purrr::map(function(ts) ts[, c("Index", bands)])
+
+    # return the result
+    return(result.tb)
+}
 
 #' @title Tests if a sits tibble is valid
 #' @name .sits_test_tibble
@@ -242,5 +270,6 @@
                          err_desc = "sits_tibble_rename: input data does not contain a coverage column ")
 
     data.tb <- data.tb %>% dplyr::rename(cube = coverage)
+
     return(data.tb)
 }

@@ -23,7 +23,7 @@ library(dtwclust)
 # load a simple data set with two classes
 data(cerrado_2classes)
 # create clusters by cutting a dendrogram
-clusters.tb <- sits_cluster(cerrado_2classes, bands = c("ndvi"))
+clusters.tb <- sits_cluster(cerrado_2classes, bands = c("ndvi", "evi"))
 # show clusters samples frequency
 sits_cluster_frequency(clusters.tb)
 }

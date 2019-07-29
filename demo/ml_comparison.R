@@ -21,11 +21,8 @@ data("samples_mt_9classes")
 # the tibble contains 9 classes of the Cerrado biome in Brazil
 sits_labels(samples_mt_9classes)
 
-# remove classes with low number of samples
-samples.tb <- sits_select(samples_mt_9classes, !(label %in% c("Fallow_Cotton", "Soy_Sunflower")))
-
 # select NDVI, EVI, NIR and MIR
-samples.tb <- sits_select_bands(samples.tb, ndvi, evi, nir, mir)
+samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
 
 # create a list to store the results
 results <- list()
@@ -62,7 +59,7 @@ results[[length(results) + 1]] <- conf_dl.mx
 # =============== RFOR ==============================
 
 conf_rfor.tb <- sits_kfold_validate(samples.tb, folds = 4, multicores = 1,
-                                    ml_method = sits_train(samples.tb, sits_rfor(num.trees = 5000)))
+                                    ml_method = sits_rfor(num.trees = 5000))
 print("== Confusion Matrix = RFOR =======================")
 conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
 conf_rfor.mx$name <- "rfor"

@@ -8,7 +8,7 @@ sits_bayes_postprocess(raster_class, window = matrix(1, nrow = 3, ncol =
   3, byrow = TRUE), noise = 10, file)
 }
 \arguments{
-\item{raster_class}{Output raster image.}
+\item{raster_class}{Classified image data cube.}
 
 \item{window}{A matrix with the neighborhood window to compute bayesian smooth.
 The central element index (i, j) is given by

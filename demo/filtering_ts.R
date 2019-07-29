@@ -24,6 +24,8 @@ prodes_relabel.lst <-  tibble::lst("Forest" = "Forest",
                                    "Deforestation_2015" = "NonForest",
                                    "Pasture"  = "NonForest")
 
+cat ("# =========== UNFILTERED DATA =============\n")
+
 sits_conf_matrix(conf.tb, prodes_relabel.lst)
 
 cat ("# =========== SAVITKSY - GOLAY FILTER =============\n")
@@ -72,7 +74,7 @@ cat ("# =========== ENVELOPE FILTER =============\n")
 
 # The envelope filter works with the NDVI band
 
-prodes_ndvi.tb <- sits_select(prodes_226_064, bands = c("ndvi"))
+prodes_ndvi.tb <- sits_select_bands(prodes_226_064, ndvi)
 
 # test envelope filter
 prodes_env.tb <- sits_envelope(prodes_ndvi.tb)

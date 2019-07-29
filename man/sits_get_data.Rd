@@ -6,8 +6,8 @@
 \usage{
 sits_get_data(cube, file = NULL, longitude = NULL, latitude = NULL,
   start_date = NULL, end_date = NULL, bands = NULL,
-  prefilter = "1", label = "NoClass", .n_start = 1, .n_max = Inf,
-  .n_save = 0)
+  prefilter = "1", label = "NoClass", epsg = 6842, .n_start = 1,
+  .n_max = Inf, .n_save = 0)
 }
 \arguments{
 \item{cube}{A tibble with information about the data cube where dta is to be retrived.}
@@ -27,6 +27,8 @@ sits_get_data(cube, file = NULL, longitude = NULL, latitude = NULL,
 \item{prefilter}{An optional string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 
 \item{label}{An optional string with the label to be assigned to the time series.}
+
+\item{epsg}{An optional code for the planar projection to be used (for reading data inside shapefiles)}
 
 \item{.n_start}{An optional integer with the row on the CSV file to start reading.}
 

@@ -25,7 +25,7 @@ utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V1", "Index"
                          "name", "scale_factor", "missing_value",
                          "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n", "rows.lst", "whit",
-                         "blue", "red", "green", "nir", "mir", "swir", "model_formula",
+                         "blue", "red", "green", "nir", "mir", "swir", "ndvi", "evi", "model_formula",
                          "distance", "predicted", "new_values", "sum_area", "area_vec", "area",
                          "Alig.N", "matches", "original_row", "reference", "cluster", ".data"))
 #' @importFrom dtw symmetric1 symmetric2

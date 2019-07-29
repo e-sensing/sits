@@ -28,6 +28,7 @@ sits_plot_kohonen(koh)
 #Analyze the mixture between groups and extract informations about confusion matrix
 confusion_by_cluster <- sits_evaluate_cluster(koh$info_samples)
 confusion_matrix <- confusion_by_cluster$confusion_matrix
+# Show the result of the confusion matrix
 sits_plot_cluster_info(confusion_by_cluster, "Confusion by cluster")
 
 #Divide groups according to variations

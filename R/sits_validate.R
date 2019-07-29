@@ -39,18 +39,11 @@
 #' }
 #' @export
 sits_kfold_validate <- function(data.tb, folds = 5,
-                                ml_method = sits_rfor(), multicores = NULL){
+                                ml_method = sits_rfor(), multicores = 2){
 
     # backward compatibility
     if ("coverage" %in% names(data.tb))
         data.tb <- .sits_tibble_rename(data.tb)
-
-    # find the number of cores
-    if (purrr::is_null(multicores))
-        multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
-
-    # does the input data exist?
-    .sits_test_tibble(data.tb)
 
     # get the labels of the data
     labels <- sits_labels(data.tb)$label
@@ -85,7 +78,7 @@ sits_kfold_validate <- function(data.tb, folds = 5,
 
         # obtain the distances after normalizing data by band
         if (!purrr::is_null(stats.tb))
-            distances_DT <- .sits_distances(sits_normalize_data(data_test.tb, stats.tb, multicores))
+            distances_DT <- .sits_distances(.sits_normalize_data(data_test.tb, stats.tb, multicores))
         else
             distances_DT <- .sits_distances(data_test.tb)
 

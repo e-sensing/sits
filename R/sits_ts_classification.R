@@ -35,18 +35,22 @@
     # ensure the machine learning model has been built
     ensurer::ensure_that(ml_model, !purrr::is_null(.), err_desc = "sits_classify_ts: please provide a machine learning model already trained")
 
-    # has normalization been applied to the data?
-    stats.tb   <- environment(ml_model)$stats.tb
-
-    # obtain the distances after normalizing data by band
-    if (purrr::is_null(stats.tb))
-        distances_DT <- .sits_distances(data.tb)
-    else
-        distances_DT <- .sits_distances(sits_normalize_data(data.tb, stats.tb, multicores))
-
-
-    # define the parameters for breaking up a long time series
+    # retrieve the samples
     samples.tb <- environment(ml_model)$data.tb
+    ensurer::ensure_that(samples.tb, NROW(.) > 0, err_desc = "sits_classify_ts: original samples not saved in the model environment")
+
+    # get normalization params
+    stats.tb   <- environment(ml_model)$stats.tb
+    if (!purrr::is_null(stats.tb))
+        # obtain the distances after normalizing data by band
+        distances_DT <- .sits_distances(.sits_normalize_data(data.tb, stats.tb, multicores))
+    else
+        # obtain the distances after normalizing data by band
+        distances_DT <- .sits_distances(data.tb)
+
+    ensurer::ensure_that(distances_DT, NROW(.) > 0, err_desc = "sits_classify_ts: problem with normalization")
+
+    # calculate the breaks in the time classification
     class_info.tb <- .sits_class_info(data.tb, samples.tb, interval)
 
     # create a matrix to store the predicted results
@@ -72,7 +76,8 @@
 .sits_classify_distances <- function(distances_DT, class_info.tb, ml_model, multicores) {
     # define the column names
     attr_names <- names(environment(ml_model)$train_data_DT)
-
+    ensurer::ensure_that(attr_names, length(.) > 0,
+                         err_desc = "sits_classify_distances: training data not saved in the model environment")
     # create a data table to store the distances
     dist_DT <- data.table::data.table(nrow = 0, ncol = length(attr_names))
 

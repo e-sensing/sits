@@ -461,55 +461,6 @@ sits_sample <- function(data.tb, n = NULL, frac = NULL){
     return(result.tb)
 }
 
-#' @title General selection criteria for subsetting a sits tibble
-#' @name sits_select
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This is a general selection function for extracting any subset of a sits tibble
-#'              It supports spatial selection by lat/long bounding boxes, names of labels,
-#'              start and end dates, and subset of bands.
-#'
-#' @param data.tb      A sits tibble with the time series.
-#' @param ...          Logical expressions in the format `name == value`, where `name` is any sits column name
-#'                     or `bands = c(band names)` for selection of a subset of bands.
-#'                     See `dplyr::filter()` help for more details.
-#' @return A tibble in sits format with the selected bands.
-#' @examples
-#' # Retrieve a set of time series with 2 classes
-#' data(cerrado_2classes)
-#' # Select only the time series with the "Cerrado" label
-#' data.tb <- sits_select(cerrado_2classes, label == "Cerrado")
-#' # Print the labels of the resulting tibble
-#' sits_labels(data.tb)
-#' @export
-sits_select <- function(data.tb, ...) {
-    # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    # store the dots in a list
-    dots <- match.call(expand.dots = TRUE)
-
-    # remove the bands argument from the list (this will be processed later)
-    bands <- dots$bands
-    if (!purrr::is_null(bands))
-        dots$bands <- NULL
-
-    # apply the dplyr filter to select a subset of the tibble
-    # this works for arguments like "label", "start_date", "end_date"
-    if (length(dots) > 2)
-        for (i in 3:length(dots))
-            data.tb <- dplyr::filter_(data.tb, toString(dots[i]))
-
-    # retrieve only the chosen bands (if the bands argument is used)
-    if (!purrr::is_null(bands)) {
-        b1 <- as.character(bands)
-        data.tb <- sits_select_bands_(data.tb, b1[-1])
-    }
-
-    return(data.tb)
-}
-
 #' @title Filter bands on a sits tibble
 #' @name sits_select_bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -550,45 +501,7 @@ sits_select_bands <- function(data.tb, ...) {
     return(result.tb)
 }
 
-#' @title Filter bands on a sits tibble
-#' @name sits_select_bands_
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns a sits tibble with the selected bands.
-#'
-#' @param data.tb      A sits tibble metadata and data on time series.
-#' @param bands        The selcted bands.
-#' @return A tibble in sits format with the selected bands.
-#' @examples
-#' # Retrieve a set of time series with 2 classes
-#' data(cerrado_2classes)
-#' # Print the original bands
-#' sits_bands(cerrado_2classes)
-#' # Select only the "ndvi" band
-#' band_ndvi <- "ndvi"
-#' data.tb <- sits_select_bands_(cerrado_2classes, bands = band_ndvi)
-#' # Print the labels of the resulting table
-#' sits_bands(data.tb)
-#' @export
-sits_select_bands_ <- function(data.tb, bands) {
-    # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    # verify if bands exists in data.tb
-    ensurer::ensure_that(data.tb, all(bands %in% sits_bands(.)),
-                         err_desc = paste0("sits_select_bands_: the following bands do not exist in the input data: ",
-                            paste(bands[!bands %in% sits_bands(data.tb)], collapse = ", ")))
 
-    # prepare result sits tibble
-    result.tb <- data.tb
-
-    # select the chosen bands for the time series
-    result.tb$time_series <- data.tb$time_series %>%
-        purrr::map(function(ts) ts[, c("Index", bands)])
-
-    # return the result
-    return(result.tb)
-}
 
 #' @title Add new sits bands and drops existing.
 #' @name sits_transmute_bands

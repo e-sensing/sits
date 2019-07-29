@@ -17,8 +17,8 @@ test_that("Convert", {
 
     res <- sits:::.sits_convert_resolution(wtss_cube)
 
-    expect_equal(res[[1]], 0.002134755, tol = 0.00001)
-    expect_equal(res[[2]], 0.002083333, tol = 0.00001)
+    expect_equal(res[[1]], 230.7679, tol = 0.001)
+    expect_equal(res[[2]], 232.3231, tol = 0.001)
 })
 
 test_that("Inside", {

@@ -24,6 +24,5 @@ test_that("Does k-fold validate and build confusion matrix", {
     cerrado_2classes$label = "NoClass"
 
     expect_error(sits_kfold_validate(cerrado_2classes), "sits_cross_validate: please provide a labelled set of time series")
-    expect_error(sits_kfold_validate(1), "data input is not a valid sits tibble")
 })
 

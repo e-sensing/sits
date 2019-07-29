@@ -44,6 +44,7 @@ Imports:
     dtwclust,
     dtwSat,
     flexclust,
+    geosphere,
     ggplot2,
     graphics,
     grDevices,

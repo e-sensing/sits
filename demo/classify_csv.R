@@ -2,7 +2,7 @@
 library(sits)
 cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
 
-# obtain a time series from the WTSS server for a set of 30 samples
+# obtain a time series from the WTSS server for a set of 5 samples defined in a CSV file
 data.tb <- sits_get_data(cube_wtss, file = system.file("extdata/samples/samples_matogrosso.csv", package = "sits"),
                         bands = c("ndvi", "evi"), .n_save = 0)
 

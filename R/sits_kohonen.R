@@ -58,7 +58,7 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
         bands <- sits_bands(data.tb)
 
     #select bands
-    data.tb <- sits_select_bands_(data.tb, bands)
+    data.tb <- .sits_select_bands_(data.tb, bands)
 
     # get the time series
     time_series <- sits_values(data.tb, format = "bands_cases_dates")
@@ -631,7 +631,7 @@ sits_evaluate_cluster <- function(data.tb)
         current_col_Total <- confusion.matrix.tb[dim_row, d]
 
         current_class_ambiguity <-
-            tibble::as.tibble(
+            tibble::as_tibble(
                 list(
                     id_class = as.integer(d),
                     cluster = label_table[d],

@@ -4,28 +4,16 @@
 \alias{sits_cluster_clean}
 \title{Cluster cleaner}
 \usage{
-sits_cluster_clean(data.tb, min_perc = 0.05, method = "intracluster")
+sits_cluster_clean(data.tb)
 }
 \arguments{
 \item{data.tb}{Tibble with `cluster` column.}
-
-\item{min_perc}{Minimum percentage of label inside a cluster for the label to remain in cluster.}
-
-\item{method}{String with "intracluster" or "intercluster" or both}
 }
 \value{
 A tibble with all selected samples.
 }
 \description{
 Removes sits tibble samples of labels that are minority in each cluster.
-The function removes samples according to a percentage threshold "min_perc".
-If the method "intracluster" is chosen, the "min_perc" parameter
-controls the relative percentage of labels inside each cluster. If the number of samples
-of a given label inside a cluster are below this limit, then all those label samples are
-removed from that cluster. If the method "intercluster" is set, the "min_perc"
-parameter is a threshold that controls the minimum
-percentage of each label in all clusters. If the percentage of samples of a label in a cluster
-is less than this "min_perc", all thise label samples are removed from that cluster.
 }
 \examples{
 \donttest{
@@ -33,14 +21,16 @@ is less than this "min_perc", all thise label samples are removed from that clus
 library(dtwclust)
 # load a simple data set with two classes
 data(cerrado_2classes)
-# calculate the dendrogram
-dendro <- sits_dendrogram (cerrado_2classes, bands = c("ndvi"))
-# create 6 clusters by cutting the dendrogram
-clusters.tb <- sits_cluster(cerrado_2classes, dendro, k = 6)
+# calculate the dendrogram and the best clusters
+cluster.tb <- sits_cluster (cerrado_2classes, bands = c("ndvi", "evi"))
 # show clusters samples frequency
-sits_cluster_frequency(clusters.tb)
-# clear those clusters that are less that 25\% of each cluster
-cleaned.tb <- sits_cluster_clean(clusters.tb, min_perc = 0.25)
+sits_cluster_frequency(cluster.tb)
+# remove cluster 3 from the samples
+clusters_new.tb <- dplyr::filter(cluster.tb, cluster != 3)
+# show clusters samples frequency
+sits_cluster_frequency(clusters_new.tb)
+# clean all remaining clusters
+cleaned.tb <- sits_cluster_clean(clusters_new.tb)
 # show clusters samples frequency
 sits_cluster_frequency(cleaned.tb)
 }

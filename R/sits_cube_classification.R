@@ -42,6 +42,8 @@
 
     # retrieve the samples from the model
     samples  <- environment(ml_model)$data.tb
+    ensurer::ensure_that(samples, NROW(.) > 0,
+                        err_desc = "sits_classify: original samples not saved in the model environment")
 
     # create the raster objects and their respective filenames
     cube_class <- .sits_cube_classified(cube, samples, out_prefix, interval)
@@ -55,7 +57,7 @@
 
 #' @title Classify a data cube created with the EOCUBES service
 #' @name .sits_classify_eocubes
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Takes a set of spatio-temporal raster bricks, whose metadata is
 #'              described by tibble (created by \code{\link[sits]{sits_cube}}),
@@ -70,6 +72,7 @@
 #'
 #' @param  cube            Tibble with information about a data cube.
 #' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
+#' @param  samples         Tibble with samples used for training the classification model.
 #' @param  interval        Interval between two sucessive classifications, expressed in months.
 #' @param  filter          Smoothing filter to be applied (if desired).
 #' @param  memsize         Memory available for classification (in GB).
@@ -77,7 +80,7 @@
 #' @param  out_prefix      Prefix of the output files. For each time interval, one file will be created.
 #' @return A tibble with the metadata for the vector of classified RasterLayers.
 #'
-.sits_classify_eocubes <- function(cube, ml_model, interval, filter, memsize, multicores, out_prefix) {
+.sits_classify_eocubes <- function(cube, ml_model, samples, interval, filter, memsize, multicores, out_prefix) {
 
     # get cube object
     cub.obj <- cube$r_objs[[1]][[1]]
@@ -88,9 +91,6 @@
     # get bands info
     bands_info <- EOCubes::cube_bands_info(cube = cub.obj)
 
-    # retrieve the samples from the model
-    samples  <- environment(ml_model)$data.tb
-
     # what is the reference start date?
     ref_start_date <- lubridate::as_date(samples$time_series[[1]]$Index[1])
     ts_length <- length(samples$time_series[[1]]$Index)
@@ -99,10 +99,6 @@
     stk.obj <- EOCubes::stacks(cube = cub.obj, bands = bands,
                                start_reference = ref_start_date, stack_length = ts_length,
                                starts_interval = interval)
-
-    # find the number of cores
-    if (purrr::is_null(multicores))
-        multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
 
     cube_class.tb <-
         dplyr::bind_rows(lapply(seq_along(stk.obj), function(i) {
@@ -202,10 +198,12 @@
 
     # get the attribute names
     attr_names <- names(environment(ml_model)$train_data_DT)
-
+    ensurer::ensure_that(attr_names, length(.) > 0,
+                         err_desc = "sits_classify_distances: training data not saved in the model environment")
     # get initial time for classification
     start_time <- lubridate::now()
     message(sprintf("Starting classification at %s", start_time))
+
 
     # read the blocks
     for (block in 1:bs$n) {
@@ -314,7 +312,8 @@
 
     # get the attribute names
     attr_names <- names(environment(ml_model)$train_data_DT)
-
+    ensurer::ensure_that(attr_names, length(.) > 0,
+                         err_desc = "sits_classify_distances: training data not saved in the model environment")
     # get initial time for classification
     start_time <- lubridate::now()
     message(sprintf("Starting classification at %s", start_time))

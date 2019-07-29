@@ -272,7 +272,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
             bands %>%
                 purrr::map(function(band) {
                     # select the band to be shown
-                    band.tb <- sits_select_bands_(data2.tb, band)
+                    band.tb <- .sits_select_bands_(data2.tb, band)
                     # create a list with all time series for this band
                     DT.lst <- purrr::map(band.tb$time_series, function(ts) {data.table::data.table(ts) })
                     # set "Index" as the key for all data.tables in the list

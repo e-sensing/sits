@@ -10,10 +10,10 @@
 \item{cube}{Metadata about a data cube.}
 }
 \value{
-A matrix with resolution in WGS84 coordinates.
+A matrix with resolution in the desired crs.
 }
 \description{
-Transform a latitude and longitude coordinate to a XY projection coordinate
+Transform a latitude and longitude coordinate to a meters.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

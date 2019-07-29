@@ -54,7 +54,7 @@ sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
 
         # prepare result sits tibble
         result.tb <- data.tb
-        env.tb <- sits_select_bands_(data.tb, "ndvi") %>% sits_envelope(operations = "UU")
+        env.tb <- sits_select_bands(data.tb, ndvi) %>% sits_envelope(operations = "UU")
 
         # select the chosen bands for the time series
         result.tb$time_series <- purrr::pmap(list(data.tb$time_series, env.tb$time_series, result.tb$time_series),
