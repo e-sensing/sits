@@ -2,6 +2,6 @@ context("zzz")
 
 test_that("onLoad", {
     sits:::.onLoad()
-    expect(TRUE)
+    expect(TRUE, "onLoad failed to load")
 })
 

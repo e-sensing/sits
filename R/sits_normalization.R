@@ -40,7 +40,7 @@
                         med      <- as.numeric(stats.tb[1, b])
                         quant_2  <- as.numeric(stats.tb[2, b])
                         quant_98 <- as.numeric(stats.tb[3, b])
-                        values <- tibble::as_tibble(normalize_data(as.matrix(ts[,b]), quant_2, quant_98))
+                        values <- suppressWarnings(tibble::as_tibble(normalize_data(as.matrix(ts[,b]), quant_2, quant_98)))
                         return(values)
                     })
                 ts.tb <- dplyr::bind_cols(norm.lst)

@@ -68,7 +68,7 @@ sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
                             purrr::map(function(b) {
                                     ts <- dplyr::pull(ts_res[, b])
                                     ts[idx] <- NA
-                                    ts_res[,b] <<- imputeTS::na.interpolation(ts, option = "spline")
+                                    ts_res[,b] <<- imputeTS::na_interpolation(ts, option = "spline")
                                 })
                         return(ts_res)
                     })
