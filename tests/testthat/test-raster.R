@@ -20,9 +20,9 @@ test_that("Working with raster data cubes", {
 
     expect_true(length(point.tb$time_series[[1]]$Index) == length(timeline_modis_392))
 
-    rfor_model <- sits_train(samples_mt_ndvi, sits_rfor())
+    svm_model <- sits_train(samples_mt_ndvi, sits_svm())
 
-    raster_class.tb <- sits_classify(raster.tb, rfor_model, memsize = 4, multicores = 1,
+    raster_class.tb <- sits_classify(raster.tb, svm_model, memsize = 4, multicores = 2,
                                      out_prefix = "raster-class")
 
     expect_true(all(file.exists(unlist(raster_class.tb$files))))

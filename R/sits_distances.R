@@ -22,7 +22,7 @@
             as.data.frame(t(unlist(ts[-1])))
         })
     # bind the lists of time series together
-    dist_DT <- data.table::rbindlist(ts.lst)
+    dist_DT <- data.table::rbindlist(ts.lst, use.names = FALSE)
     # create a data frame with the first two columns for training
     distances_DT <- data.table::data.table("original_row" = 1:nrow(data.tb), "reference" = data.tb$label)
     # join the two references columns with the data values

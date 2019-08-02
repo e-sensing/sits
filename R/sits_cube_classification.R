@@ -36,6 +36,13 @@
     # checks the classification params
     .sits_check_classify_params(file, cube, ml_model)
 
+    # CRAN limits the number of cores to 2
+    chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+    # if running on check mode, multicores must be 2
+    if (nzchar(chk) && chk == "TRUE") {
+        # use 2 cores in CRAN/Travis/AppVeyor
+        multicores <- 2L
+    }
     # find the number of cores
     if (purrr::is_null(multicores))
         multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)

@@ -93,7 +93,7 @@
                 row.lst[[length(row.lst) + 1]] <- rows_DT
         }
         # create a set of distances to be classified
-        dist_DT <- data.table::rbindlist(row.lst)
+        dist_DT <- data.table::rbindlist(row.lst, use.names = FALSE)
         # set the attribute names of the columns
         colnames(dist_DT) <- attr_names
 

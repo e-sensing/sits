@@ -9,7 +9,91 @@
 #  common tasks such as missing values removal and smoothing
 #
 # ---------------------------------------------------------------
+#' @title General function for filtering
+#' @name sits_filter
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a tibble with a set of time series, filter the tibble with one of
+#' the available filtering algorithms:
+#'
+#' @param  data.tb          Set of time series
+#' @param  filter           Filter to be applied to the data.
+#' @return A set of filtered time series
+#'
+#' @examples
+#'\donttest{
+#' # Test the diffeent filters
+#' sits_plot(point_ndvi)
+#'
+#' # Apply the cloud filter
+#' # Merge the filtered with the raw data
+#' # Plot the result
+#' point_ndvi %>%
+#'       sits_filter(filter = sits_cloud_filter()) %>%
+#'       sits_merge (point_ndvi, .) %>%
+#'       sits_plot ()
+#'
+#'
+#' # Apply the envelope filter
+#' # Merge the filtered with the raw data
+#' # Plot the result
+#' point_ndvi %>%
+#'       sits_filter(filter = sits_envelope()) %>%
+#'       sits_merge (point_ndvi, .) %>%
+#'       sits_plot ()
+#'
+#' # Apply the ARIMA filter
+#' # Merge the filtered with the raw data
+#' # Plot the result
+#' point_ndvi %>%
+#'       sits_filter(filter = sits_ndvi_arima_filter()) %>%
+#'       sits_merge (point_ndvi, .) %>%
+#'       sits_plot ()
+#'
+#' # Apply the Whittaker smoother
+#' # Merge the filtered with the raw data
+#' # Plot the result
+#' point_ndvi %>%
+#'       sits_filter(filter = sits_whittaker (lambda = 3.0)) %>%
+#'       sits_merge (point_ndvi, .) %>%
+#'       sits_plot ()
+#'
+#' # Apply the Savitsky-Golay smoother
+#' # Merge the filtered with the raw data
+#' # Plot the result
+#' point_ndvi %>%
+#'       sits_filter(filter = sits_sgolay()) %>%
+#'       sits_merge (point_ndvi, .) %>%
+#'       sits_plot ()
+#'
+#' # interpolate three times more points
+#' point_int.tb <- sits_filter(point_ndvi, sits_linear_interp(n = 3*n_times))
+#' # plot the result
+#' sits_plot (point5.tb)
+#'
+#' }
+#' @export
+sits_filter <- function(data.tb, filter = sits_whittaker()) {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
 
+    # is the input data a valid sits tibble?
+    ensurer::ensure_that(data.tb, "label" %in% names(.),
+                         err_desc = "sits_filter: input data does not contain a valid sits tibble")
+
+    # is the train method a function?
+    ensurer::ensure_that(filter, class(.) == "function",
+                         err_desc = "sits_filter: filter is not a valid function")
+
+    # compute the training method by the given data
+    result <- filter(data.tb)
+
+    # return a valid machine learning method
+    return(result)
+}
 #' @title cloud filter
 #' @name sits_cloud_filter
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -39,6 +123,7 @@
 #' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 #' # Plot the result
 #' sits_plot (point2.tb)
+#'
 #' }
 #' @export
 sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
@@ -58,7 +143,7 @@ sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
 
         # select the chosen bands for the time series
         result.tb$time_series <- purrr::pmap(list(data.tb$time_series, env.tb$time_series, result.tb$time_series),
-                    function (ts_data, ts_env, ts_res) {
+                    function(ts_data, ts_env, ts_res) {
                         ndvi <- dplyr::pull(ts_data[, "ndvi"])
                         env  <- dplyr::pull(ts_env[, "ndvi.env"])
                         idx <- which(abs(env - ndvi) > cutoff)

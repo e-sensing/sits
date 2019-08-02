@@ -41,6 +41,7 @@ point_cld.tb <- sits_cloud_filter(point_ndvi.tb)
 point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 # Plot the result
 sits_plot (point2.tb)
+
 }
 }
 \author{
