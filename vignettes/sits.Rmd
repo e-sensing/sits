@@ -132,40 +132,40 @@ For handling time series, the package uses a `sits` tibble, a way of organizing 
 
 ```{r}
 # data set of samples
-data(samples_mt_9classes)
-samples_mt_9classes[1:3,]
+data(samples_mt_6bands)
+samples_mt_6bands[1:3,]
 ```
 
-A `sits` tibble contains data and metadata. The first six columns contain the metadata: spatial and temporal information, label assigned to the sample, and the data cube from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location ($-55.1852$, $-10.8387$), and is considered valid for the period (2013-09-14, 2014-08-29). Informing the dates where the label is valid is crucial for correct classification. In this case, the researchers involved in labeling the samples chose to use the agricultural calendar in Brazil, where the spring crop is planted in the months of September and October, and the autumn crop is planted in the months of February and March. For other applications and other countries, the relevant dates will most likely be different from those used in the example. The `time_series` column contains the time series data for each spatiotemporal location. This data is also organized as a tibble, with a column with the dates and the other columns with the values for each spectral band. 
+A `sits` tibble contains data and metadata. The first six columns contain the metadata: spatial and temporal information, label assigned to the sample, and the data cube from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Cerrado, at location ($-58.5631$, $-13.8844$), and is considered valid for the period (2007-09-14, 2008-08-28). Informing the dates where the label is valid is crucial for correct classification. In this case, the researchers involved in labeling the samples chose to use the agricultural calendar in Brazil, where the spring crop is planted in the months of September and October, and the autumn crop is planted in the months of February and March. For other applications and other countries, the relevant dates will most likely be different from those used in the example. The `time_series` column contains the time series data for each spatiotemporal location. This data is also organized as a tibble, with a column with the dates and the other columns with the values for each spectral band. 
 
 ```{r}
 # print the first time series records of the first sample
-samples_mt_9classes$time_series[[1]][1:3,]
+samples_mt_6bands$time_series[[1]][1:3,]
 ```
 
 The `sits` package provides functions for data manipulation and displaying information for `sits` tibbles. For example, `sits_labels()` shows the labels of the sample set and their frequencies.
 
 ```{r}
-sits_labels(samples_mt_9classes)
+sits_labels(samples_mt_6bands)
 ```
 
 In many cases, it is useful to relabel the data set. For example, there may be situations when one wants to use a smaller set of labels, since samples in one label on the original set may not be distinguishable from samples with other labels. We then could use `sits_relabel()`, which requires a conversion list (for details, see `?sits_relabel`).
 
 Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions from `dplyr`, `tidyr` and `purrr` packages of the `tidyverse` [@Wickham2017] to process the data. For example, the following code uses `sits_select_bands()` to get a subset of the sample data set with two bands (NDVI and EVI) and then uses the `dplyr::filter()` to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot()` to display the time series. Given a small number of samples to display, `sits_plot()` tries to group as many spatial locations together. In the following example, the first 15 samples of  "Cerrado" class refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together.
 
-```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 15 'Cerrado' samples from data set \\texttt{samples_mt_9classes} (different dates for the same point location)."}
+```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 'Cerrado' sample from data set" }
 # select NDVI band
-samples_ndvi.tb <- sits_select_bands(samples_mt_9classes, ndvi)
+samples_ndvi.tb <- sits_select_bands(samples_mt_6bands, ndvi)
 # select only samples with Cerrado label
 samples_cerrado.tb <-
     dplyr::filter(samples_ndvi.tb, label == "Cerrado")
-# plot the first 15 samples (different dates for a single point)
-sits_plot(samples_cerrado.tb[1:15,])
+# plot the first sample
+sits_plot(samples_cerrado.tb[1])
 ```
 
 For a large number of samples, where the amount of individual plots would be substantial, the default visualization combines all samples together in a single temporal interval (even if they belong to different years). All samples with the same band and label are aligned to a common time interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, while the two orange lines are the first and third interquartile ranges. The documentation of `sits_plot()` has more details about the different ways it can display data.
 
-```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all Cerrado samples from data set \\texttt{samples_mt_9classes}."}
+```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all Cerrado samples from data set"}
 # plot all cerrado samples together
 sits_plot(samples_cerrado.tb)
 ```
@@ -417,11 +417,11 @@ where $\alpha(t)$ is the learning rate, which must be set as $0<\alpha(t)<1$, an
 After producing the SOM map, it is necessary to separate the samples in groups in order to label the neurons. In this step, each neuron is labeled using majority vote from  the labels of its samples. As a result of this, a sample belonging to a neuron with a different label will have its own label updated to the label of the neuron. When the neuron has no samples, it will receive the label "Noclass". Clusters are then composed by all neurons that belong to the same label.
 
 ```{r}
-data("samples_mt_9classes", package = "sits")
+data("samples_mt_6bands")
 
 ```
 ```{r}
-data.tb <- samples_mt_9classes
+samples <- samples_mt_6bands
 ```
 
 
@@ -429,10 +429,10 @@ data.tb <- samples_mt_9classes
 # clustering time series using SOM
 kohonen_cluster <-
     sits::sits_kohonen(
-        data.tb,
+        samples,
         bands = c("evi", "ndvi"),
-        grid_xdim = 25,
-        grid_ydim = 25,
+        grid_xdim = 15,
+        grid_ydim = 15,
         rlen = 100,
         distance = "euclidean",
         neighbourhood.fct = "gaussian",
@@ -468,9 +468,9 @@ The process of clustering and labelling with SOM can be performed several times 
 # run clustering 10 times to evaluate samples
 evaluate_samples <-
     sits::sits_evaluate_samples(
-        data.tb,
-        grid_xdim = 25,
-        grid_ydim = 25,
+        samples,
+        grid_xdim = 15,
+        grid_ydim = 15,
         rlen = 9,
         distance = "euclidean",
         mode = "online",

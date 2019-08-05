@@ -7,11 +7,10 @@ test_that("Apply",{
 })
 
 test_that("Bands",{
-    bands <- sits_bands(samples_mt_9classes)
+    bands <- sits_bands(samples_mt_ndvi)
 
-    expect_equal(length(bands), 6)
-    expect_equal(bands[1], "mir")
-    expect_equal(bands[6], "ndvi")
+    expect_equal(length(bands), 1)
+    expect_equal(bands[1], "ndvi")
 })
 
 test_that("Break",{
@@ -40,9 +39,9 @@ test_that("Merge", {
 })
 
 test_that("Mutate", {
-    savi.tb <- sits_mutate_bands(samples_mt_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+    savi.tb <- sits_mutate_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 
-    expect_equal(sum(savi.tb$time_series[[1]]$savi), 9.0234, tolerance = 0.001)
+    expect_equal(sum(savi.tb$time_series[[1]]$savi), 5.980619, tolerance = 0.001)
 })
 
 test_that("Rename",{
@@ -67,20 +66,17 @@ test_that("Values", {
 })
 
 test_that("Values", {
-    data (samples_mt_9classes)
-    savi.tb <- sits_transmute_bands(samples_mt_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+    data(samples_mt_6bands)
+    savi.tb <- sits_transmute_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 
     expect_equal(names(savi.tb$time_series[[1]])[2], "savi")
 })
 
 test_that("Select",{
-    bands <- sits_bands(samples_mt_9classes)
 
-    samplesMir <- sits_select_bands(samples_mt_9classes, mir)
+    expect_equal(length(sits_bands(samples_mt_ndvi)), 1)
 
-    expect_equal(length(sits_bands(samplesMir)), 1)
-
-    samplesPasture <- samples_mt_9classes %>% dplyr::filter(label == "Pasture")
+    samplesPasture <- samples_mt_ndvi %>% dplyr::filter(label == "Pasture")
 
     expect_equal(dim(samplesPasture)[1], 370)
 })

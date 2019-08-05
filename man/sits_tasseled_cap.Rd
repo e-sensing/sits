@@ -20,9 +20,9 @@ Adds new tasseled cap bands.
 \examples{
 \donttest{
 # Retrieve data for time series with label samples in Mato Grosso in Brazil
-data (samples_mt_9classes)
+data (samples_mt_6bands)
 # Generate a new image with the tasseled cap
-tc.tb <- sits_tasseled_cap(samples_mt_9classes, satellite = "MODIS")
+tc.tb <- sits_tasseled_cap(samples_mt_6bands, satellite = "MODIS")
 }
 }
 \author{

@@ -49,17 +49,25 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_mt_ndvi)
+# Install the inSitu library
+devtools::install_github("e-sensing/inSitu")
+library(inSitu)
+
+# select the bands for classification
+samples <- inSitu::br_mt_1_8K_9classes_6bands
+
+# find a training model based on the distances and default values (SVM model)
+samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+
 # Build a machine learning model based on deep learning
-dl_model <- sits_train (samples_mt_ndvi,
+dl_model <- sits_train (samples_4bands,
                         sits_deeplearning(units = c(512, 512, 512),
                                           dropout_rates = c(0.50, 0.40, 0.35),
-                                          epochs = 50))
-# get a point with a 16 year time series
-data(point_ndvi)
-# classify the point
-class.tb <- sits_classify (point_ndvi, dl_model)
-# plot the classified point
+                                          epochs = 100))
+
+# get a point and classify the point with the ml_model
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+class.tb <- sits_classify(point.tb, dl_model)
 sits_plot(class.tb)
 }
 }

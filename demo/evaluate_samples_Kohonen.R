@@ -3,17 +3,22 @@
 library(sits)
 library(kohonen)
 
-data("samples_mt_9classes")
-data.tb <- samples_mt_9classes
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#select the bands for classification
+if (!requireNamespace("inSitu", quietly = TRUE)) {
+    if (!requireNamespace("devtools", quietly = TRUE))
+        install.packages("devtools")
+    devtools::install_github("e-sensing/inSitu")
+}
+library(inSitu)
 
-
-##To use the DTW distance
-#sourceCpp(paste(path.package("sits"), "inst/Distances/distance.cpp", sep = "/"))
+#select the bands for classification
+samples <- inSitu::br_mt_1_8K_9classes_6bands
 
 #Create cluster with Self-organizing maps (kohonen)
 koh <-
     sits::sits_kohonen(
-        data.tb,
+        samples,
         bands = c("evi", "ndvi"),
         grid_xdim = 25,
         grid_ydim = 25,

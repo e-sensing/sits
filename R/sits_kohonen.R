@@ -22,14 +22,11 @@
 #' @examples
 #' \donttest{
 #' # Read a set of samples
-#' data(samples_mt_9classes)
+#' data(samples_mt_6bands)
 #' # perform kohonen to associate a sample to  a cluster
-#' sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25,
-#' rlen = 100, distance = "euclidean", alpha = 1, neighbourhood.fct = "bubble", mode = "online")
+#' koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
 #' # Visualize the samples with cluster information
-#' samples <- koh$info_samples
-# # Recover informations about the object kohonen
-#' kohonen_obj <- koh$obj
+#' sits_plot_kohonen(koh)
 #' }
 #' @export
 sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, rlen = 100, distance = "euclidean",
@@ -205,12 +202,11 @@ sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25, 
 #' @examples
 #' \donttest{
 #' # Read a set of samples
-#' data(samples_mt_9classes)
+#' data(samples_mt_6bands)
 #' # Evaluate the quality of each sample
-#' evaluate_samples <- sits_evaluate_samples( data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 100,
-#' distance = "euclidean", iterations = 100)
-#' # Evaluate the confiability of each sample
-#' metrics_by_samples <- evaluate_samples$metrics_by_samples
+#' ev_samples <- sits_evaluate_samples(samples_mt_6bands, iterations = 100)
+#' # Show the confiability of each sample
+#' ev_samples$metrics_by_samples
 #' }
 #' @export
 

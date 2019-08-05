@@ -53,9 +53,9 @@ NULL
 #'
 #' @docType data
 #' @keywords datasets
-#' @name samples_mt_9classes
-#' @usage data(samples_mt_9classes)
-#' @format A tibble with 2115 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
+#' @name samples_mt_6bands
+#' @usage data(samples_mt_6bands)
+#' @format A tibble with 425 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),
 #'   cube (the name of the cube associated with the data),

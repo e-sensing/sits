@@ -2,10 +2,21 @@
 # The cube images are a MODIS data set of 480x480 pixels throughout 17 years
 
 #select the bands for classification
-samples.tb <- sits_select_bands(samples_mt_9classes, ndvi)
+#select the bands for classification
+if (!requireNamespace("inSitu", quietly = TRUE)) {
+    if (!requireNamespace("devtools", quietly = TRUE))
+        install.packages("devtools")
+    devtools::install_github("e-sensing/inSitu")
+}
+library(inSitu)
+
+#select the bands for classification
+samples <- inSitu::br_mt_1_8K_9classes_6bands
+samples_ndvi <- sits_select_bands(samples, ndvi)
+
 
 # build the classification model
-svm_model <- sits_train(samples.tb, ml_method = sits_svm())
+svm_model <- sits_train(samples_ndvi, ml_method = sits_svm())
 
 # create a raster metadata file based on the information about the files
 cube_modis <- sits_cube(service = "EOCUBES",

@@ -28,48 +28,61 @@
 #' @return A tibble with the predicted labels for each input segment.
 #' @examples
 #' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_mt_9classes)
+#' # Retrive the samples for Mato Grosso
+#' devtools::install_github("e-sensing/inSitu")
+#' library(inSitu)
+#'
+#' samples <- inSitu::br_mt_1_8K_9classes_6bands
+#'
 #' # select the bands "ndvi", "evi", "nir", and "mir"
-#' samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
-#' # build a classification model using SVM
-#' model_svm <- sits_train(samples.tb, ml_method = sits_svm())
-#' # Retrieve a time series and select the bands "ndvi", "evi", "nir", and "mir"
+#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#'
+#' #select a random forest model
+#'
+#' rfor_model <- sits_train(samples_4bands, ml_method = sits_rfor())
+#'
+#' # Retrieve a time series (17 years)
+#' data(point_mt_6bands)
+#'
+#' # select the bands "ndvi", "evi", "nir", and "mir"
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#'
 #' # classify the point
-#' class.tb <- sits_classify(point.tb, ml_model = model_svm)
+#'
+#' class.tb <- sits_classify(point.tb, rfor_model)
+#'
 #' # plot the classification
+#'
 #' sits_plot(class.tb)
 #'
-#' # read a raster file and put it into a vector
-#' file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits")
-#' # define the timeline
-#' data(timeline_modis_392)
+#' # Classify a raster file with 23 instances for one year
 #'
-#' # create a data cube  based on raster bricks
-#' raster.tb <- sits_cube(service = "RASTER", name  = "Sinop-crop",
-#'   timeline = timeline_modis_392, bands = "ndvi", files = file)
+#' # select the bands "ndvi", "evi" from the "inSitu" package
+#' evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
+#' ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
 #'
-#' # select only the ndvi band to build a model
-#' data(samples_mt_ndvi)
+#' files <- c(ndvi_file, evi_file)
 #'
-#' # build a classification model using random forest
-#' model_rfor <- sits_train(samples_mt_ndvi, ml_method = sits_rfor())
+#' # define the timeline for the files
+#' time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
+#' timeline_2013_2014 <- scan(time_file, character())
 #'
-#' # classify the raster file
-#' raster_class.tb <- sits_classify(raster.tb, ml_model = model_rfor)
-#' # plot the resulting classification
-#' sits_plot_raster(raster_class.tb, time = 1, title = "SINOP class 2000-2001")
+#' # create a data cube based on the information about the files
+#' raster.tb <- sits_cube(service = "RASTER", name = "Sinop",
+#'              timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = files)
 #'
-#' # create a data cube file based on the information provided by the EOCUBES service
-#' cube.tb <- sits_cube(service = "EOCUBES", name  = "MOD13Q1/006")
+#' # classify the raster image
+#' raster_class.tb <- sits_classify(raster.tb, ml_model = rfor_model, memsize = 4, multicores = 2,
+#'                    out_prefix = "./Sinop-class")
 #'
-#' # classify the raster file
-#' cube_class.tb <- sits_classify(raster.tb, ml_model = svm_model, memsize = 4, multicores = 1,
-#' out_prefix = "raster-class")
+#' # plot the raster image
+#' sits_plot_raster(raster_class.tb, time = 1, title = "Sinop-2013-2014")
 #'
-#' # plot the resulting classification
-#' sits_plot_raster(cube_class.tb, time = 1, title = "Test class 2000-2001")
+#' # smooth the result with a bayesian filter
+#' raster_class_bayes.tb <- sits::sits_bayes_postprocess(raster_class.tb, file = "./smooth")
+#'
+#' # plot the smoothened image
+#' sits_plot_raster(raster_class_bayes.tb, time = 1, title = "Sinop-smooth")
 #' }
 #' @export
 sits_classify <- function(data.tb     = NULL,

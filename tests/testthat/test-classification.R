@@ -21,16 +21,15 @@ test_that("Classify time series with an svm model",{
     #skip_on_cran()
 
     data(point_mt_6bands)
-    data(samples_mt_9classes)
+    data(samples_mt_ndvi)
 
-    samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi)
-    model <- sits_train(samples.tb, sits_svm())
+    model <- sits_train(samples_mt_ndvi, sits_svm())
 
-    class.tb <- sits_select_bands(point_mt_6bands, ndvi, evi) %>%
+    class.tb <- sits_select_bands(point_mt_6bands, ndvi) %>%
         sits_classify(model)
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
-                                  sits_labels(samples_mt_9classes)$label))
+                                  sits_labels(samples_mt_ndvi)$label))
 })
 
 test_that("Classify time series with TWDTW method", {
@@ -46,37 +45,11 @@ test_that("Classify time series with TWDTW method", {
 
 test_that("Classify error bands 1", {
     data(point_mt_6bands)
-    data(samples_mt_9classes)
+    data(samples_mt_ndvi)
 
-    samples.tb <- sits_select_bands(samples_mt_9classes[1:400,], ndvi, evi, red)
-    model <- sits_train(samples.tb, sits_svm())
-    point.tb <- sits_select_bands(point_mt_6bands, ndvi)
+    model <- sits_train(samples_mt_ndvi, sits_svm())
+    point.tb <- sits_select_bands(point_mt_6bands, evi)
 
-    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi) do not match bands in the model (ndvi, evi, red)", fixed = TRUE)
+    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (evi) do not match bands in the model (ndvi)", fixed = TRUE)
 })
 
-test_that("Classify error bands 2", {
-    data(point_mt_6bands)
-    data(samples_mt_9classes)
-
-    samples.tb <- sits_select_bands(samples_mt_9classes[1:400,], ndvi, evi, red)
-
-    # Model is empty
-    #system.time({model <- sits_train(samples.tb, sits_svm(tolerance = 10))})
-
-    model <- sits_train(samples.tb, sits_svm())
-    point.tb <- sits_select_bands(point_mt_6bands, ndvi, red)
-
-    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi, red) do not match bands in the model (ndvi, evi, red)", fixed = TRUE)
-})
-
-test_that("Classify error bands 3", {
-    data(point_mt_6bands)
-    data(samples_mt_9classes)
-
-    samples.tb <- sits_select_bands(samples_mt_9classes[1:400,], ndvi, evi, red)
-    model <- sits_train(samples.tb, sits_svm())
-    point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
-
-    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (ndvi, evi) do not match bands in the model (ndvi, evi, red)", fixed = TRUE)
-})

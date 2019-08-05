@@ -81,6 +81,13 @@ Imports:
     zoo
 Remotes: 
     e-sensing/EOCubes
+Suggests:
+    devtools,
+    inSitu,
+    knitr,
+    rmarkdown,
+    testthat
+VignetteBuilder: knitr
 LinkingTo:
     Rcpp
 RoxygenNote: 6.1.1
@@ -130,8 +137,4 @@ Collate:
     'sits_wtss.R'
     'sits_zoo.R'
     'zzz.R'
-Suggests: 
-    knitr,
-    rmarkdown,
-    testthat
-VignetteBuilder: knitr
+

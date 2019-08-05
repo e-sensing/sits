@@ -2,13 +2,19 @@ library(sits)
 library(keras)
 # install_keras()
 
-# select a file with samples
-data("samples_mt_9classes")
+if (!requireNamespace("inSitu", quietly = TRUE)) {
+    if (!requireNamespace("devtools", quietly = TRUE))
+        install.packages("devtools")
+    devtools::install_github("e-sensing/inSitu")
+}
+library(inSitu)
 
-samples <- sits_select_bands(samples_mt_9classes, ndvi, evi)
+samples <- inSitu::br_mt_1_8K_9classes_6bands
+
+samples_ndvi_evi <- sits_select_bands(samples, ndvi, evi)
 
 # train the deep learning model
-dl_model <-  sits_train(samples,
+dl_model <-  sits_train(samples_ndvi_evi,
                         ml_method = sits_deeplearning(
                              units            = c(512, 512, 512),
                              activation       = 'elu',
@@ -20,13 +26,14 @@ dl_model <-  sits_train(samples,
 
 sits_keras_diagnostics(dl_model)
 
-# select the bands "ndvi", "evi"
-evi_file <- paste0("/vsicurl/https://modis-cities.s3-sa-east-1.amazonaws.com/Sinop_MT/evi_2014.tif")
-ndvi_file <- paste0("/vsicurl/https://modis-cities.s3-sa-east-1.amazonaws.com/Sinop_MT/ndvi_2014.tif")
+# select the bands "ndvi", "evi" from the "inSitu" package
+evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
+ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
 
 files <- c(ndvi_file, evi_file)
 # define the timeline
-timeline_2013_2014 <- scan("http://modis-cities.s3.amazonaws.com/Sinop_MT/timeline_2014.txt", what = "Date", quiet = TRUE)
+time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
+timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
 raster.tb <- sits_cube(service = "RASTER", name = "Sinop",

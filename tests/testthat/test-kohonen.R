@@ -1,18 +1,17 @@
 context("Evaluate samples")
 test_that("Creating clustering using Self-organizing Maps", {
     #skip_on_cran()
-    data("samples_mt_9classes")
-    data.tb <- samples_mt_9classes[1:500,]
+    data("cerrado_2classes")
 
     koh <-
         sits_kohonen(
-            data.tb,
+            cerrado_2classes,
             grid_xdim = 5,
             grid_ydim = 5,
             rlen = 20,
             distance = "euclidean"
         )
-    expect_true(NROW(data.tb) == NROW(koh$info_samples))
+    expect_true(NROW(cerrado_2classes) == NROW(koh$info_samples))
     expect_equal(length(names(koh$kohonen_obj)), 15)
     expect_true("cluster" %in% names(koh$info_samples))
 
@@ -28,11 +27,8 @@ test_that("Creating clustering using Self-organizing Maps", {
 
     expect_true("label_subgroup" %in% names(subgroups$samples_subgroup.tb))
 
-    sits_plot_subgroups(neurons_subgroup)
-    expect_true(all(file.remove(list.files(path = ".", pattern = ".png", full.names = TRUE))))
-
     evaluate_samples <- sits_evaluate_samples(
-        data.tb,
+        cerrado_2classes,
         grid_xdim = 5,
         grid_ydim = 5,
         rlen = 20,

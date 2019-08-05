@@ -143,9 +143,9 @@ sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) 
 #'
 #' @examples
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_mt_9classes)
+#' data(samples_mt_6bands)
 #' # print the bands
-#' sits_bands(samples_mt_9classes)
+#' sits_bands(samples_mt_6bands)
 #' @export
 sits_bands <- function(data.tb) {
     # backward compatibility
@@ -287,9 +287,9 @@ sits_merge <-  function(data1.tb, data2.tb) {
 #' @examples
 #' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
-#' data (samples_mt_9classes)
+#' data (samples_mt_6bands)
 #' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-#' savi.tb <- sits_mutate_bands(samples_mt_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#' savi.tb <- sits_mutate_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 #' }
 #' @return A sits tibble with same samples and the selected bands.
 #' @export
@@ -513,9 +513,9 @@ sits_select_bands <- function(data.tb, ...) {
 #' @examples
 #' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
-#' data(samples_mt_9classes)
+#' data(samples_mt_6bands)
 #' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-#' savi.tb <- sits_transmute_bands(samples_mt_9classes, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#' savi.tb <- sits_transmute_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 #' }
 #' @export
 sits_transmute_bands <- function(data.tb, ...){

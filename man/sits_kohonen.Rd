@@ -40,13 +40,11 @@ satellite image time series to cluster samples.
 \examples{
 \donttest{
 # Read a set of samples
-data(samples_mt_9classes)
+data(samples_mt_6bands)
 # perform kohonen to associate a sample to  a cluster
-sits_kohonen <- function(data.tb, bands = NULL, grid_xdim = 25, grid_ydim = 25,
-rlen = 100, distance = "euclidean", alpha = 1, neighbourhood.fct = "bubble", mode = "online")
+koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
 # Visualize the samples with cluster information
-samples <- koh$info_samples
-kohonen_obj <- koh$obj
+sits_plot_kohonen(koh)
 }
 }
 \references{

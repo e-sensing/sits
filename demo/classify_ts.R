@@ -8,13 +8,19 @@ library(sits)
 # we will show how to set the classification info
 
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_mt_9classes)
+#select the bands for classification
+if (!requireNamespace("inSitu", quietly = TRUE)) {
+    if (!requireNamespace("devtools", quietly = TRUE))
+        install.packages("devtools")
+    devtools::install_github("e-sensing/inSitu")
+}
+library(inSitu)
 
-# print the bands available
-sits_bands(samples_mt_9classes)
+#select the bands for classification
+samples <- inSitu::br_mt_1_8K_9classes_6bands
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-samples.tb <- sits_select_bands(samples_mt_9classes, ndvi, evi, nir, mir)
+samples.tb <- sits_select_bands(samples, ndvi, evi, nir, mir)
 
 #select a random forest model
 rfor_model <- sits_train(samples.tb, ml_method = sits_rfor())

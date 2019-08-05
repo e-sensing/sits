@@ -39,12 +39,11 @@ This function allows check if the sample reliable or not
 \examples{
 \donttest{
 # Read a set of samples
-data(samples_mt_9classes)
+data(samples_mt_6bands)
 # Evaluate the quality of each sample
-evaluate_samples <- sits_evaluate_samples( data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 100,
-distance = "euclidean", iterations = 100)
-# Evaluate the confiability of each sample
-metrics_by_samples <- evaluate_samples$metrics_by_samples
+ev_samples <- sits_evaluate_samples(samples_mt_6bands, iterations = 100)
+# Show the confiability of each sample
+ev_samples$metrics_by_samples
 }
 }
 \author{
