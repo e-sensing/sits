@@ -29,7 +29,7 @@
                            label      = "NoClass") {
     # if bands are not provided, use all bands available in the cube
     # check the bands are available
-    cb_bands <- cube$bands[[1]]
+    cb_bands <- .sits_cube_bands(cube)
     if (purrr::is_null(bands))
         bands <- cb_bands
     else
@@ -37,7 +37,7 @@
                              err_desc = "sits_from_wtss: requested bands are not available in the cube")
 
     # check start and end dates
-    timeline <- cube$timeline[[1]][[1]]
+    timeline <- sits_timeline(cube)
     if (purrr::is_null(start_date))
         start_date <- lubridate::as_date(timeline[1])
     if (purrr::is_null(end_date))
@@ -46,7 +46,7 @@
     # try to get a time series from the WTSS server
     tryCatch({
         # get the WTSS object associated to the URL
-        wtss.obj <- cube$r_objs[[1]][[1]]
+        wtss.obj <- wtss::WTSS(cube$URL)
         # retrieve the time series from the service
         ts <- wtss::timeSeries(object     = wtss.obj,
                                coverages  = cube$name,
@@ -60,7 +60,7 @@
         time_series <- ts[[cube$name]]$attributes
 
         # determine the missing value for each band
-        missing_values <- cube$missing_values[[1]]
+        missing_values <- .sits_cube_missing_values(cube)
         # update missing values to NA
         bands %>%
             purrr::map(function (b) {
@@ -71,7 +71,7 @@
         time_series[, bands] <- zoo::na.spline(time_series[, bands])
 
         # scale the time series
-        scale_factors <- cube$scale_factors[[1]]
+        scale_factors <- .sits_cube_scale_factors(cube)
         bands %>%
             purrr::map(function(b) {
                 time_series[, b] <<- time_series[, b]*scale_factors[b]

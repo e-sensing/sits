@@ -17,6 +17,7 @@ sits_labels <- function(data.tb) {
     # backward compatibility
     if ("coverage" %in% names(data.tb))
         data.tb <- .sits_tibble_rename(data.tb)
+
     # get frequency table
     data.vec <- table(data.tb$label)
 

@@ -80,10 +80,10 @@
 #' # define the timeline
 #' data(timeline_modis_392)
 #' # create a data cube based on the information about the files
-#' raster_cube <- sits_cube(service = "RASTER", files = files, name = "Sinop-crop",
-#'                             timeline = timeline_modis_392, bands = c("ndvi"))
+#' raster_cube <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+#'                          bands = c("ndvi"), files = files)
 #' # read the time series of the point from the raster
-#' point_ts <- sits_getdata(raster_cube, longitude = -55.554, latitude = -11.525)
+#' point_ts <- sits_get_data(raster_cube, longitude = -55.554, latitude = -11.525)
 #' sits_plot(point_ts)
 #'
 #' #' # Read a CSV file in a Raster Brick
@@ -244,7 +244,7 @@ sits_get_data <- function(cube,
     ensurer::ensure_that(cube, NROW(.) >= 1,
                          err_desc = "sits_from_raster: need a valid metadata for data cube")
 
-    timeline <- cube$timeline[[1]][[1]]
+    timeline <- sits_timeline(cube)
 
     start_idx <- 1
     end_idx   <- length(timeline)
@@ -270,8 +270,10 @@ sits_get_data <- function(cube,
     ll_sfc <- sf::st_sfc(st_point, crs = "+init=epsg:4326")
     ll_sp <- sf::as_Spatial(ll_sfc)
 
+    r_objs <- .sits_cube_all_robjs(cube)
+
     # An input raster brick contains several files, each corresponds to a band
-    values.lst <- cube$r_objs[[1]] %>%
+    values.lst <- r_objs %>%
         purrr::map(function(r_brick) {
             # eack brick is a band
             nband <<- nband + 1
@@ -335,7 +337,9 @@ sits_get_data <- function(cube,
                                bands,
                                prefilter  = "1",
                                label = "NoClass") {
-    service <- cube[1,]$service
+
+    # find out which is the service associate to the cube
+    service <- .sits_cube_service(cube)
 
     if (service == "EOCUBES") {
         data.tb <- .sits_from_EOCubes(cube, longitude, latitude, start_date, end_date, bands, label)
@@ -350,7 +354,7 @@ sits_get_data <- function(cube,
 
         return(data.tb)
     }
-    if (service == "RASTER") {
+    if (service == "RASTER" || service == "LOCALHOST" || service == "STACK" || service == "AWS") {
         data.tb <- .sits_from_raster(cube, longitude, latitude, start_date, end_date, bands, label)
 
         return(data.tb)
@@ -404,18 +408,19 @@ sits_get_data <- function(cube,
     xs <- seq(from = bbox["xmin"], to = bbox["xmax"], by = res["xres"])
     ys  <- seq(from = bbox["ymin"], to = bbox["ymax"], by = res["yres"])
 
-    xs %>%
-        purrr::map(function(x){
-            ys %>%
-                purrr::map(function(y){
-                    xy <- sf::st_point(c(x, y))
-                    if (1 %in% as.logical(unlist(sf::st_contains(sf_shape, xy)))) {
+    xys <- tidyr::crossing(xs, ys)
+    names(xys) <- c("x", "y")
+    rows.lst <-
+        xys %>%
+            purrr::pmap(function (x, y) {
+                xy <- sf::st_point(c(x,y))
+                if (1 %in% as.logical(unlist(sf::st_contains(sf_shape, xy)))) {
                         ll <- .sits_proj_to_latlong(x, y, epsg)
                         row <- .sits_from_service(cube, ll[,"X"], ll[,"Y"], start_date, end_date,
-                                                  bands, prefilter, label)
-                        shape.tb <<- dplyr::bind_rows(shape.tb, row)
-                    }
-                })
-        })
+                                bands, prefilter, label)
+                        return(row)
+                }
+            })
+    shape.tb <- dplyr::bind_rows(rows.lst)
     return(shape.tb)
 }

@@ -13,8 +13,12 @@ preprocess_data <- function(data, minimum_value, scale_factor) {
     .Call(`_sits_preprocess_data`, data, minimum_value, scale_factor)
 }
 
-smooth_estimator_class <- function(data, window, noise) {
-    .Call(`_sits_smooth_estimator_class`, data, window, noise)
+bayes_estimator_class <- function(data, window, variance) {
+    .Call(`_sits_bayes_estimator_class`, data, window, variance)
+}
+
+majority_smooth <- function(neigh, n_classes) {
+    .Call(`_sits_majority_smooth`, neigh, n_classes)
 }
 
 scale_data <- function(data, scale_factor, adj_val = 0.0) {

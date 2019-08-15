@@ -38,7 +38,7 @@ This is done in several steps:
 \examples{
 \donttest{
 # Load the "dtwclust" package
-library(dtwclust)
+# library(dtwclust)
 # load a simple data set with two classes
 data(cerrado_2classes)
 # calculate the dendrogram and the best clusters

@@ -3,18 +3,13 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Verify that required parameters are correct.
 #'
-#' @param  file            Vector of file names to store the output (one file per classified year).
 #' @param  cube            Tibble with information about a data cube.
 #' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
 #' @return Tests succeeded?
-.sits_check_classify_params <- function(file, cube, ml_model){
+.sits_check_classify_params <- function(cube, ml_model){
     # ensure metadata tibble exists
     ensurer::ensure_that(cube, NROW(.) > 0,
                          err_desc = "sits_classify: need a valid metadata for the cube")
-
-    # ensure that file name is provided
-    ensurer::ensure_that(file, !purrr::is_null(.),
-                         err_desc = "sits-classify: please provide name of output file")
 
     # ensure the machine learning model has been built
     ensurer::ensure_that(ml_model,  !purrr::is_null(.), err_desc = "sits-classify: please provide a machine learning model already trained")

@@ -4,12 +4,12 @@
 \alias{sits_tasseled_cap}
 \title{Builds tasseled cap bands}
 \usage{
-sits_tasseled_cap(data.tb, satellite = "MODIS")
+sits_tasseled_cap(data.tb, sensor = "MODIS")
 }
 \arguments{
 \item{data.tb}{Valid sits tibble.}
 
-\item{satellite}{Satellite name.}
+\item{sensor}{sensor.}
 }
 \value{
 A sits tibble with same samples and the new bands.
@@ -22,7 +22,7 @@ Adds new tasseled cap bands.
 # Retrieve data for time series with label samples in Mato Grosso in Brazil
 data (samples_mt_6bands)
 # Generate a new image with the tasseled cap
-tc.tb <- sits_tasseled_cap(samples_mt_6bands, satellite = "MODIS")
+tc.tb <- sits_tasseled_cap(samples_mt_6bands, sensor = "MODIS")
 }
 }
 \author{

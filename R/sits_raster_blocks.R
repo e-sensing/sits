@@ -17,12 +17,12 @@
 #' nrows (number of rows to read at each iteration).
 .sits_raster_blocks <- function(cube, ml_model, interval, memsize, multicores){
     # number of bands
-    nbands <-  length(cube[1,]$bands[[1]])
+    nbands <-  length(.sits_cube_bands(cube))
     # number of rows and cols
     nrows <- cube[1,]$nrows
     ncols <- cube[1,]$ncols
     # timeline
-    timeline <- cube[1,]$timeline[[1]][[1]]
+    timeline <- sits_timeline(cube[1,])
 
     nblocks <- .sits_estimate_nblocks(ml_model, nbands, nrows, ncols, timeline, interval, memsize, multicores)
 

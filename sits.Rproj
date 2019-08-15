@@ -20,5 +20,5 @@ PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
 PackageBuildArgs: --resave-data=best
 PackageBuildBinaryArgs: --resave-data
-PackageCheckArgs: --as-cran --no-tests
+PackageCheckArgs: --as-cran --no-tests --run-donttest
 PackageRoxygenize: rd,collate,namespace,vignette

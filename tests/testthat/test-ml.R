@@ -35,7 +35,8 @@ test_that("QDA",{
 test_that("DL",{
     options(keras.fit_verbose = 2)
 
-    invisible(capture.output(dl_model <- sits_train(samples_mt_ndvi, sits_deeplearning(epochs = 3, verbose = 0))))
+    invisible(capture.output(dl_model <- sits_train(samples_mt_ndvi,
+                                                    sits_deeplearning(epochs = 3, verbose = 0))))
     class.tb <- sits_classify(point_ndvi, dl_model)
 
     expect_true(all(class.tb$predicted[[1]]$class %in%

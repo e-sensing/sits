@@ -29,8 +29,8 @@ to explicitly use this function. Please see the above-mention classification fun
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 # Install the inSitu library
-devtools::install_github("e-sensing/inSitu")
-library(inSitu)
+# devtools::install_github("e-sensing/inSitu")
+# library(inSitu)
 #select the bands for classification
 samples <- inSitu::br_mt_1_8K_9classes_6bands
 # find a training model based on the distances and default values (SVM model)

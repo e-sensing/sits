@@ -77,7 +77,7 @@
     subset.tb <- .sits_tibble()
 
     # filter the time series by start and end dates
-    ts <- row.tb$time_series[[1]]
+    ts <- sits_time_series(row.tb)
     indexes <- dplyr::between(ts$Index, start_date, end_date)
 
     if (any(indexes)) {
@@ -117,6 +117,7 @@
     result.tb <- dplyr::bind_rows(list(.sits_tibble(), result.tb))
     return(result.tb)
 }
+
 #' @title Filter bands on a sits tibble
 #' @name .sits_select_bands_
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -273,3 +274,5 @@
 
     return(data.tb)
 }
+
+

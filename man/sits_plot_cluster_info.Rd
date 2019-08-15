@@ -17,6 +17,11 @@ The percentage of mixture between the clusters.
 }
 \examples{
 \donttest{
+data(cerrado_2classes)
+# Generate a SOM map to cluster the data
+koh <- sits_kohonen(cerrado_2classes, grid_xdim = 5, grid_ydim = 5, rlen = 20)
+# Calculate the confusion by cluster
+confusion_by_cluster <- sits_evaluate_cluster(koh$info_samples)
 # Plot confusion between the clusters
 sits_plot_cluster_info(confusion_by_cluster, "Confusion by cluster")
 }

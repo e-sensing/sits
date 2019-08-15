@@ -4,12 +4,14 @@
 \alias{.sits_cube_wtss}
 \title{Provides information about one cube of the WTSS service}
 \usage{
-.sits_cube_wtss(wtss.obj, service, name, bands)
+.sits_cube_wtss(wtss.obj, service, URL, name, bands)
 }
 \arguments{
 \item{wtss.obj}{R WTSS object associated to the service.}
 
 \item{service}{Name of the service.}
+
+\item{URL}{URL of the service provider.}
 
 \item{name}{Name of the cube.}
 

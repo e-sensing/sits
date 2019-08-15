@@ -69,9 +69,11 @@
 #'       sits_plot ()
 #'
 #' # interpolate three times more points
-#' point_int.tb <- sits_filter(point_ndvi, sits_linear_interp(n = 3*n_times))
+#' # find out how many time instances are there in the time series
+#' n_times <- NROW(sits_time_series(point_ndvi))
+#' point_int <- sits_filter(point_ndvi, sits_linear_interp(n = 3*n_times))
 #' # plot the result
-#' sits_plot (point5.tb)
+#' sits_plot (point_int)
 #'
 #' }
 #' @export
@@ -247,7 +249,7 @@ sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "e
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # find out how many time instances are there
-#' n_times <- NROW(point_ndvi$time_series[[1]])
+#' n_times <- NROW(sits_time_series(point_ndvi))
 #' # interpolate three times more points
 #' point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
 #' # plot the result
@@ -310,7 +312,7 @@ sits_kalman <- function(data.tb = NULL, bands_suffix = "kf"){
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # find out how many time instances are there
-#' n_times <- NROW (point_ndvi$time_series[[1]])
+#' n_times <- NROW(sits_time_series(point_ndvi))
 #' # interpolate three times more points
 #' point_int.tb <- sits_linear_interp(point_ndvi, n = 3*n_times)
 #' # plot the result

@@ -4,25 +4,25 @@
 \alias{.sits_cube_raster}
 \title{Create a data cube based on a set of Raster Bricks}
 \usage{
-.sits_cube_raster(name, timeline.vec, bands.vec, scale_factors.vec,
-  missing_values.vec, minimum_values.vec, maximum_values.vec, files.vec)
+.sits_cube_raster(service, URL, satellite, sensor, name, timeline, bands,
+  files)
 }
 \arguments{
+\item{service}{Name of the data service.}
+
+\item{URL}{URL of the service provider.}
+
+\item{satellite}{Name of satellite}
+
+\item{sensor}{Name of sensor}
+
 \item{name}{Name of the data cube.}
 
-\item{timeline.vec}{Vector of dates with the timeline of the bands.}
+\item{timeline}{Vector of dates with the timeline of the bands.}
 
-\item{bands.vec}{Vector of bands contained in the Raster Brick set (in the same order as the files).}
+\item{bands}{Vector of bands contained in the Raster Brick set (in the same order as the files).}
 
-\item{scale_factors.vec}{Vector of scale factors (one per band).}
-
-\item{missing_values.vec}{Vector of missing values (one per band).}
-
-\item{minimum_values.vec}{Minimum values for each band (only for raster data).}
-
-\item{maximum_values.vec}{Maximum values for each band (only for raster data).}
-
-\item{files.vec}{Vector with the file paths of the raster files.}
+\item{files}{Vector with the file paths of the raster files.}
 }
 \value{
 A tibble with metadata information about a raster data set.

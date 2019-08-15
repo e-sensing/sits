@@ -4,38 +4,33 @@
 \alias{sits_cube}
 \title{Defines a data cube}
 \usage{
-sits_cube(service = "RASTER", provider = NULL, name = NULL,
-  tiles_names = NULL, geom = NULL, from = NULL, to = NULL,
-  timeline = NULL, bands = NULL, missing_values = NULL,
-  scale_factors = NULL, minimum_values = NULL, maximum_values = NULL,
+sits_cube(service = "LOCALHOST", URL = NULL, name = NULL,
+  satellite = NULL, sensor = NULL, tiles_names = NULL, geom = NULL,
+  from = NULL, to = NULL, timeline = NULL, bands = NULL,
   files = NA)
 }
 \arguments{
 \item{service}{Name of the data service.}
 
-\item{provider}{Name of the service provider.}
+\item{URL}{URL of the service provider.}
 
-\item{name}{Name of the image collection.}
+\item{name}{Name of the data cube in the remote service.}
 
-\item{tiles_names}{A string with tile names to be filtered.}
+\item{satellite}{Name of satellite}
 
-\item{geom}{A \code{sfc} object to filter tiles that intersects the given geometry.}
+\item{sensor}{Name of sensor}
 
-\item{from}{A date value to filter cube's layers by date.}
+\item{tiles_names}{A string with tile names to be filtered (for EOCUBES service)}
 
-\item{to}{A date value to filter cube's layers by date.}
+\item{geom}{An \code{sf} object to filter tiles (for EOCUBES service)}
 
-\item{timeline}{Vector with the timeline of the collection.}
+\item{from}{Starting date for the cube to be extracted}
+
+\item{to}{End date for the cube to be extracted}
+
+\item{timeline}{Vector with the timeline of the collection (only for local files)}
 
 \item{bands}{Vector of bands.}
-
-\item{missing_values}{Vector of missing values for each band.}
-
-\item{scale_factors}{Vector with the scale factor for each band.}
-
-\item{minimum_values}{Vector of minimum values for each band.}
-
-\item{maximum_values}{Vector of maximum values for each band.}
 
 \item{files}{Vector of file names for each band (only for raster data).}
 }
@@ -45,8 +40,9 @@ data services. The following services are available:
 \itemize{
  \item{"WTSS": }{Web Time Series Service - used to get time series}
  \item{"EOCUBES": }{EOCUBES service - used for cloud processing of data cubes}
- \item{"RASTER": }{Raster Brick files, local or remote}
- \item{"STACK": }{Raster Stack files, local or remote}
+ \item{"AWS": }{AWS service - used for cloud processing of data cubes}
+ \item{"LOCALHOST": }{Raster Brick files, local}
+ \item{"STACK": }{Raster Stack files, local}
 }
 }
 \examples{
@@ -59,7 +55,7 @@ cube.tb <- sits_cube(service = "WTSS", name = "MOD13Q1")
 files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 
 # create a raster cube file based on the information about the files
-raster.tb <- sits_cube(service = "RASTER", name  = "Sinop-crop",
+raster.tb <- sits_cube(name  = "Sinop-crop",
              timeline = timeline_modis_392, bands = "ndvi", files = files)
 }
 }

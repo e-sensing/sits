@@ -28,14 +28,18 @@ Please refer to the documentation in that package for more details.
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 # Install the inSitu library
-devtools::install_github("e-sensing/inSitu")
-library(inSitu)
+# devtools::install_github("e-sensing/inSitu")
+# library(inSitu)
 
 # select the bands for classification
 samples <- inSitu::br_mt_1_8K_9classes_6bands
 
 # find a training model based on the distances and default values (SVM model)
 samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+
+# remove classes with small numbers of samples
+samples_4bands <- dplyr::filter(samples_4bands,
+       !(label \%in\% c("Fallow_Cotton", "Soy_Sunflower", "Soy_Fallow")))
 
 # Build a machine learning model based on deep learning
 ml_model <- sits_train (samples_4bands, sits_qda())

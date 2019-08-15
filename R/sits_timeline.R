@@ -21,7 +21,7 @@
 #' @return A tibble with the classification information.
 .sits_class_info <- function(data.tb, samples.tb, interval){
     # find the timeline
-    timeline <- .sits_timeline(data.tb)
+    timeline <- sits_timeline(data.tb)
 
     # find the labels
     labels <- sits_labels(samples.tb)$label
@@ -55,7 +55,7 @@
 }
 
 #' @title Find the time index of the blocks to be extracted for classification
-#' @name .sits_get_time_index
+#' @name .sits_blocks_time_index
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Obtains the indexes of the blocks to be extract for each time interval
@@ -64,7 +64,7 @@
 #' @param class_info.tb Tibble with information required for classification.
 #' @return List with indexes of the input data set associated to each time interval
 #' used for classification.
-.sits_get_time_index <- function(class_info.tb) {
+.sits_blocks_time_index <- function(class_info.tb) {
     # find the subsets of the input data
     dates_index.lst <- class_info.tb$dates_index[[1]]
 
@@ -317,13 +317,13 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
     class_info <- .sits_class_info(cube, samples, interval)
 
     # define the time indexes required for classification
-    time_index.lst <- .sits_get_time_index(class_info)
+    time_index.lst <- .sits_blocks_time_index(class_info)
 
     # create a vector with selection interval
     select.lst <- vector("list", length(time_index.lst))
 
     # find the length of the timeline
-    ntimes <- length(cube$timeline[[1]][[1]])
+    ntimes <- length(sits_timeline(cube))
 
     # get the bands in the same order as the samples
     nbands <- length(sits_bands(samples))
@@ -370,24 +370,27 @@ sits_match_timeline <- function(timeline, ref_start_date, ref_end_date, interval
     return(time_index.lst)
 }
 
-#' @title Obtains the timeline for a cube
-#' @name .sits_timeline
+#' @title Obtains the timeline
+#' @name sits_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function returns the timeline for a given cube.
 #'
-#' @param  data.tb  A sits tibble (either a sits tibble or a raster metadata).
-.sits_timeline <- function(data.tb){
+#' @param  data     A sits tibble (either a sits tibble or a raster metadata).
+#' @param  index    The index to obtain the timeline (in case of raster bricks)
+#' @export
+sits_timeline <- function(data, index = 1){
     timeline <-  NULL
     # is this a cube metadata?
-    if ("timeline" %in% names(data.tb))
-        timeline <- as.Date(data.tb[1,]$timeline[[1]][[1]])
+    if ("timeline" %in% names(data))
+        timeline <- lubridate::as_date(.sits_cube_timeline(data, index))
 
     # is this a sits tibble with the time series?
-    if ("time_series" %in% names(data.tb))
-        timeline <- lubridate::as_date(data.tb[1,]$time_series[[1]]$Index)
+    if ("time_series" %in% names(data))
+        timeline <- lubridate::as_date(sits_time_series_dates(data))
 
-    ensurer::ensure_that(timeline, !purrr::is_null(.), err_desc = "sits_timeline: input does not contain a valid timeline")
+    ensurer::ensure_that(timeline, !purrr::is_null(.),
+                         err_desc = "sits_timeline: input does not contain a valid timeline")
 
     return(timeline)
 }

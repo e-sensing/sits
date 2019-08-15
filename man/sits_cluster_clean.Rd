@@ -18,7 +18,7 @@ Removes sits tibble samples of labels that are minority in each cluster.
 \examples{
 \donttest{
 # Load the "dtwclust" package
-library(dtwclust)
+# library(dtwclust)
 # load a simple data set with two classes
 data(cerrado_2classes)
 # calculate the dendrogram and the best clusters

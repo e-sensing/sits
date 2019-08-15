@@ -40,29 +40,28 @@ test_that("Reading a CSV file from WTSS", {
 test_that("Reading a CSV file from RASTER", {
     #skip_on_cran()
     file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
-    raster_cube <- sits_cube(service = "RASTER", name = "Sinop-crop",
-                             timeline = sits::timeline_modis_392, bands = c("ndvi"),
+    raster_cube <- sits_cube(name = "Sinop-crop", timeline = sits::timeline_modis_392, bands = c("ndvi"),
                              files = file)
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
     points.tb <- sits_get_data(raster_cube, file = csv_raster_file)
     df_csv <- utils::read.csv(system.file("extdata/samples/samples_sinop_crop.csv", package = "sits"))
     expect_true(NROW(points.tb) == NROW(df_csv))
 
-    expect_equal(points.tb$label[1], "Forest")
+    expect_true("Forest" %in% sits_labels(points.tb)$label)
     expect_equal(names(points.tb)[1], "longitude")
     expect_equal(length(names(points.tb)), 7)
-    expect_equal(length(points.tb$time_series[[1]]), 2)
-    expect_equal(dim(points.tb$time_series[[1]])[1], 23)
+    expect_true(ncol(sits_time_series(points.tb)) == 2)
+    expect_true(length(sits_time_series_dates(points.tb)) == 23)
 })
 
 test_that("Reading a point from WTSS ", {
     #skip_on_cran()
     cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
     point.tb <- sits_get_data(cube_wtss, longitude = -55.50563, latitude = -11.71557)
-    timeline <- as.vector(point.tb$time_series[[1]]$Index)
+    timeline <- lubridate::as_date(as.vector(sits_time_series_dates(point.tb)))
 
-    expect_equal(length(point.tb$time_series[[1]]), 7)
-    expect_equal(sum(point.tb$time_series[[1]]$evi), 157.3737, tolerance = 1e-3)
+    expect_true(ncol(sits_time_series(point.tb)) == 7)
+    expect_equal(sum(sits_time_series(point.tb)$evi), 157.3737, tolerance = 1e-3)
     expect_true(point.tb$start_date == timeline[1])
     expect_true(point.tb$end_date == timeline[length(timeline)])
 })
@@ -73,33 +72,33 @@ test_that("Reading a point from SATVEG ", {
     cube_2 <- sits_cube(service = "SATVEG", name = "aqua")
     cube_3 <- sits_cube(service = "SATVEG", name = "comb")
 
-    point_terra.tb <- sits_get_data(cube_1, longitude = -55.50563, latitude = -11.71557)
+    point_terra <- sits_get_data(cube_1, longitude = -55.50563, latitude = -11.71557)
 
-    expect_equal(length(point_terra.tb$time_series[[1]]), 3)
-    expect_equal(sum(point_terra.tb$time_series[[1]]$evi), 158.11, tolerance = 2)
+    expect_equal(ncol(sits_time_series(point_terra)), 3)
+    expect_equal(sum(sits_time_series(point_terra)$evi), 158.11, tolerance = 2)
 
-    point_aqua.tb <- sits_get_data(cube_2, longitude = -55.50563, latitude = -11.71557)
+    point_aqua <- sits_get_data(cube_2, longitude = -55.50563, latitude = -11.71557)
 
-    expect_equal(length(point_aqua.tb$time_series[[1]]), 3)
-    expect_equal(sum(point_aqua.tb$time_series[[1]]$evi), 132.3852, tolerance = 2)
+    expect_equal(ncol(sits_time_series(point_aqua)), 3)
+    expect_equal(sum(sits_time_series(point_aqua)$evi), 132.3852, tolerance = 2)
 
-    point_comb.tb <- sits_get_data(cube_3, longitude = -55.50563, latitude = -11.71557)
+    point_comb <- sits_get_data(cube_3, longitude = -55.50563, latitude = -11.71557)
 
-    expect_equal(length(point_comb.tb$time_series[[1]]), 3)
-    expect_equal(sum(point_comb.tb$time_series[[1]]$evi), 290.3342, tolerance = 2)
+    expect_equal(ncol(sits_time_series(point_comb)), 3)
+    expect_equal(sum(sits_time_series(point_comb)$evi), 290.3342, tolerance = 2)
 
-    expect_true(length(point_comb.tb$time_series[[1]]$Index) >=
-                    length(point_terra.tb$time_series[[1]]$Index))
+    expect_true(length(sits_time_series_dates(point_comb)) >=
+                    length(sits_time_series_dates(point_terra)))
 })
 
 test_that("Reading a ZOO time series", {
     #skip_on_cran()
     data(ts_zoo)
-    data.tb <- sits_from_zoo(ts_zoo, longitude = -54.2313, latitude = -14.0482,
+    data <- sits_from_zoo(ts_zoo, longitude = -54.2313, latitude = -14.0482,
                              label = "Cerrado", name = "mod13q1")
 
-    expect_equal(sum(data.tb$time_series[[1]]$ndvi), 13.6291, tolerance = 1e-3)
-    expect_true(NROW(ts_zoo) == NROW(data.tb$time_series[[1]]))
+    expect_equal(sum(sits_time_series(data)$ndvi), 13.6291, tolerance = 1e-3)
+    expect_true(NROW(ts_zoo) == length(sits_time_series_dates(data)))
 })
 
 test_that("Reading a shapefile", {

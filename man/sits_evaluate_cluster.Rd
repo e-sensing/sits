@@ -18,10 +18,12 @@ the percentage of mixture between a cluster and others.
 }
 \examples{
 \donttest{
+#' # perform kohonen to associate a sample to  a cluster
+koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
 # Extract metrics about the clusters
 confusion_by_cluster <- sits_evaluate_cluster(koh$info_samples)
 # Show confusion matrix
-confusion_matrix <- confusion_by_cluster$confusion_matrix
+confusion_by_cluster$confusion_matrix
 }
 }
 \author{

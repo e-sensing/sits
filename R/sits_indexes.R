@@ -3,34 +3,31 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description  Adds new tasseled cap bands.
 #' @param data.tb       Valid sits tibble.
-#' @param satellite     Satellite name.
+#' @param sensor        sensor.
 #' @return A sits tibble with same samples and the new bands.
 #' @examples
 #' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
 #' data (samples_mt_6bands)
 #' # Generate a new image with the tasseled cap
-#' tc.tb <- sits_tasseled_cap(samples_mt_6bands, satellite = "MODIS")
+#' tc.tb <- sits_tasseled_cap(samples_mt_6bands, sensor = "MODIS")
 #' }
 #' @export
-sits_tasseled_cap <- function(data.tb, satellite = "MODIS"){
+sits_tasseled_cap <- function(data.tb, sensor = "MODIS"){
     # backward compatibility
     if ("coverage" %in% names(data.tb))
         data.tb <- .sits_tibble_rename(data.tb)
     bands <- sits_bands(data.tb)
-    bands_mod13q1 <- c("mir", "blue", "nir", "red")
-    ensurer::ensure_that(bands, all(bands_mod13q1 %in% (.)),
-                         err_desc = "sits_tasseled_cap: not enough bands to compute")
 
-    b_coef <- .sits_get_tcap_brightness(satellite)
+    b_coef <- .sits_tcap_brightness(sensor)
     data.tb <- sits_mutate_bands(data.tb, tcb = b_coef["blue"]*blue + b_coef["red"]*red
                            + b_coef["nir"]*nir + b_coef["mir"]*mir)
 
-    g_coef <- .sits_get_tcap_greenness(satellite)
+    g_coef <- .sits_tcap_greenness(sensor)
     data.tb <- sits_mutate_bands(data.tb, tcg = g_coef["blue"]*blue + g_coef["red"]*red
                            + g_coef["nir"]*nir + g_coef["mir"]*mir)
 
-    w_coef <- .sits_get_tcap_wetness(satellite)
+    w_coef <- .sits_tcap_wetness(sensor)
     data.tb <- sits_mutate_bands(data.tb, tcw = w_coef["blue"]*blue + w_coef["red"]*red
                            + w_coef["nir"]*nir + w_coef["mir"]*mir)
 

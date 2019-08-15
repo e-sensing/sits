@@ -23,8 +23,8 @@
 #'\donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # Install the inSitu library
-#' devtools::install_github("e-sensing/inSitu")
-#' library(inSitu)
+#' # devtools::install_github("e-sensing/inSitu")
+#' # library(inSitu)
 #' #select the bands for classification
 #' samples <- inSitu::br_mt_1_8K_9classes_6bands
 #' # find a training model based on the distances and default values (SVM model)
@@ -89,8 +89,8 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # Install the inSitu library
-#' devtools::install_github("e-sensing/inSitu")
-#' library(inSitu)
+#' # devtools::install_github("e-sensing/inSitu")
+#' # library(inSitu)
 #'
 #' # select the bands for classification
 #' samples <- inSitu::br_mt_1_8K_9classes_6bands
@@ -265,8 +265,8 @@ sits_deeplearning <- function(data.tb          = NULL,
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # Install the inSitu library
-#' devtools::install_github("e-sensing/inSitu")
-#' library(inSitu)
+#' # devtools::install_github("e-sensing/inSitu")
+#' # library(inSitu)
 #'
 #' # select the bands for classification
 #' samples <- inSitu::br_mt_1_8K_9classes_6bands
@@ -345,14 +345,18 @@ sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # Install the inSitu library
-#' devtools::install_github("e-sensing/inSitu")
-#' library(inSitu)
+#' # devtools::install_github("e-sensing/inSitu")
+#' # library(inSitu)
 #'
 #' # select the bands for classification
 #' samples <- inSitu::br_mt_1_8K_9classes_6bands
 #'
 #' # find a training model based on the distances and default values (SVM model)
 #' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#'
+#' # remove classes with small numbers of samples
+#' samples_4bands <- dplyr::filter(samples_4bands,
+#'        !(label %in% c("Fallow_Cotton", "Soy_Sunflower", "Soy_Fallow")))
 #'
 #' # Build a machine learning model based on deep learning
 #' ml_model <- sits_train (samples_4bands, sits_qda())
@@ -419,8 +423,8 @@ sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # Install the inSitu library
-#' devtools::install_github("e-sensing/inSitu")
-#' library(inSitu)
+#' # devtools::install_github("e-sensing/inSitu")
+#' # library(inSitu)
 #'
 #' # select the bands for classification
 #' samples <- inSitu::br_mt_1_8K_9classes_6bands
@@ -492,8 +496,8 @@ sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # Install the inSitu library
-#' devtools::install_github("e-sensing/inSitu")
-#' library(inSitu)
+#' # devtools::install_github("e-sensing/inSitu")
+#' # library(inSitu)
 #'
 #' # select the bands for classification
 #' samples <- inSitu::br_mt_1_8K_9classes_6bands
@@ -585,8 +589,8 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # Install the inSitu library
-#' devtools::install_github("e-sensing/inSitu")
-#' library(inSitu)
+#' # devtools::install_github("e-sensing/inSitu")
+#' # library(inSitu)
 #'
 #' # select the bands for classification
 #' samples <- inSitu::br_mt_1_8K_9classes_6bands
@@ -663,9 +667,8 @@ sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), scale = FA
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' data(cerrado_2classes)
 #'  # obtain a DL model
-#' dl_model <- sits_train(cerrado2classes,
-#'      sits_deeplearning(units = c(512, 512),
-#'      dropout_rates = c(0.45, 0.25)))
+#' dl_model <- sits_train(cerrado_2classes,
+#'      sits_deeplearning(units = c(512, 512), dropout_rates = c(0.45, 0.25), epochs = 100))
 #' # run the keras diagnostics
 #' sits_keras_diagnostics(dl_model)
 #' }

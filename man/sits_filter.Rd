@@ -65,9 +65,11 @@ point_ndvi \%>\%
       sits_plot ()
 
 # interpolate three times more points
-point_int.tb <- sits_filter(point_ndvi, sits_linear_interp(n = 3*n_times))
+# find out how many time instances are there in the time series
+n_times <- NROW(sits_time_series(point_ndvi))
+point_int <- sits_filter(point_ndvi, sits_linear_interp(n = 3*n_times))
 # plot the result
-sits_plot (point5.tb)
+sits_plot (point_int)
 
 }
 }

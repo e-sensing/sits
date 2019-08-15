@@ -21,9 +21,6 @@
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  data.tb       A tibble in sits format with time series.
-#' @param  timeline      A timeline vector with the all dates for the cube.
-#' @param  start_date    Starting date (month-day).
-#' @param  end_date      End date (month-day).
 #' @param  freq          Interval in days for the estimates to be generated.
 #' @param  formula       Formula to be applied in the estimate.
 #' @param  ...           Any additional parameters.
@@ -46,8 +43,7 @@
 #' sits_plot(patterns.tb)
 #' }
 #' @export
-sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, end_date = NULL,
-                      freq = 8, formula = y ~ s(x), ...){
+sits_patterns <- function(data.tb = NULL, freq = 8, formula = y ~ s(x), ...){
     # backward compatibility
     if ("coverage" %in% names(data.tb))
         data.tb <- .sits_tibble_rename(data.tb)
@@ -66,14 +62,13 @@ sits_patterns <- function(data.tb = NULL, timeline = NULL, start_date = NULL, en
         vars <- all.vars(formula)
 
         # align all samples to the same time series intervals
-        sample_dates <- lubridate::as_date(tb[1,]$time_series[[1]]$Index)
+        sample_dates <- lubridate::as_date(sits_time_series_dates(tb))
         tb           <- sits_align(tb, sample_dates)
 
-        # if "from" and "to" are not given, extract them from the data samples
-        if (purrr::is_null(start_date) || purrr::is_null(end_date)) {
-            start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
-            end_date   <- lubridate::as_date(utils::tail(sample_dates, n = 1))
-        }
+        # extract the start and and dates
+        start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
+        end_date   <- lubridate::as_date(utils::tail(sample_dates, n = 1))
+
 
         # determine the sequence of prediction times
         pred_time = seq(from = lubridate::as_date(start_date),

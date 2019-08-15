@@ -4,10 +4,14 @@
 \alias{.sits_raster_filename}
 \title{Define a filename associated to one classified raster layer}
 \usage{
-.sits_raster_filename(file, start_date, end_date)
+.sits_raster_filename(output_dir, name, type, start_date, end_date)
 }
 \arguments{
-\item{file}{Original file name (without temporal information).}
+\item{output_dir}{Output directory}
+
+\item{name}{Original cube name (without temporal information).}
+
+\item{type}{Type of output}
 
 \item{start_date}{Starting date of the time series classification.}
 

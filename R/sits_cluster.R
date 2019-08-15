@@ -24,7 +24,7 @@
 #' @examples
 #' \donttest{
 #' # Load the "dtwclust" package
-#' library(dtwclust)
+#' # library(dtwclust)
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # calculate the dendrogram and the best clusters
@@ -124,7 +124,7 @@ sits_cluster <-  function(data.tb, bands = NULL, dist_method = "dtw_basic",
 #' @examples
 #' \donttest{
 #' # Load the "dtwclust" package
-#' library(dtwclust)
+#' # library(dtwclust)
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # create clusters by cutting a dendrogram
@@ -157,7 +157,7 @@ sits_cluster_frequency <-  function(data.tb) {
 #' @examples
 #' \donttest{
 #' # Load the "dtwclust" package
-#' library(dtwclust)
+#' # library(dtwclust)
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # calculate the dendrogram and the best clusters

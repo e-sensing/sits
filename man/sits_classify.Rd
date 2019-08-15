@@ -5,8 +5,7 @@
 \title{Classify a set of time series or a data cube using machine learning models}
 \usage{
 sits_classify(data.tb = NULL, ml_model = NULL, interval = "12 month",
-  filter = NULL, multicores = 2, memsize = 4,
-  out_prefix = "cube-class")
+  filter = NULL, multicores = 2, memsize = 4, output_dir = "./")
 }
 \arguments{
 \item{data.tb}{Tibble with time series metadata and data.}
@@ -21,7 +20,7 @@ sits_classify(data.tb = NULL, ml_model = NULL, interval = "12 month",
 
 \item{memsize}{Memory available for classification (in GB).}
 
-\item{out_prefix}{Prefix of the output files. For each time interval, one file will be created.}
+\item{output_dir}{Output directory}
 }
 \value{
 A tibble with the predicted labels for each input segment.
@@ -45,24 +44,25 @@ passed to the function using the parameter "ml_model".
 }
 \examples{
 \donttest{
-# Retrive the samples for Mato Grosso
-devtools::install_github("e-sensing/inSitu")
-library(inSitu)
+# Retrieve the samples for Mato Grosso
+# Install the inSitu library
+# devtools::install_github("e-sensing/inSitu")
+# library(inSitu)
 
 samples <- inSitu::br_mt_1_8K_9classes_6bands
 
-# select the bands "ndvi", "evi", "nir", and "mir"
-samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+# select the bands "ndvi", "evi"
+samples_2bands <- sits_select_bands(samples, ndvi, evi)
 
 #select a random forest model
 
-rfor_model <- sits_train(samples_4bands, ml_method = sits_rfor())
+rfor_model <- sits_train(samples_2bands, ml_method = sits_rfor())
 
 # Retrieve a time series (17 years)
 data(point_mt_6bands)
 
-# select the bands "ndvi", "evi", "nir", and "mir"
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+# select the bands "ndvi" and "evi"
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 
 # classify the point
 
@@ -85,21 +85,23 @@ time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a data cube based on the information about the files
-raster.tb <- sits_cube(service = "RASTER", name = "Sinop",
-             timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = files)
+sinop <- sits_cube(name = "Sinop", timeline = timeline_2013_2014,
+                   bands = c("ndvi", "evi"), files = files)
 
 # classify the raster image
-raster_class.tb <- sits_classify(raster.tb, ml_model = rfor_model, memsize = 4, multicores = 2,
-                   out_prefix = "./Sinop-class")
+sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 4, multicores = 2)
+
+# label the classified image
+sinop_label <- sits_label_classification(sinop_probs)
 
 # plot the raster image
-sits_plot_raster(raster_class.tb, time = 1, title = "Sinop-2013-2014")
+sits_plot_raster(sinop_label, time = 1, title = "Sinop-2013-2014")
 
 # smooth the result with a bayesian filter
-raster_class_bayes.tb <- sits::sits_bayes_postprocess(raster_class.tb, file = "./smooth")
+sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
 
 # plot the smoothened image
-sits_plot_raster(raster_class_bayes.tb, time = 1, title = "Sinop-smooth")
+sits_plot_raster(sinop_bayes, time = 1, title = "Sinop-smooth")
 }
 }
 \author{

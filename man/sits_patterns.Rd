@@ -4,17 +4,10 @@
 \alias{sits_patterns}
 \title{Create temporal patterns using a generalised additive model (gam)}
 \usage{
-sits_patterns(data.tb = NULL, timeline = NULL, start_date = NULL,
-  end_date = NULL, freq = 8, formula = y ~ s(x), ...)
+sits_patterns(data.tb = NULL, freq = 8, formula = y ~ s(x), ...)
 }
 \arguments{
 \item{data.tb}{A tibble in sits format with time series.}
-
-\item{timeline}{A timeline vector with the all dates for the cube.}
-
-\item{start_date}{Starting date (month-day).}
-
-\item{end_date}{End date (month-day).}
 
 \item{freq}{Interval in days for the estimates to be generated.}
 

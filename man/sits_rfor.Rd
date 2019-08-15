@@ -26,8 +26,8 @@ Please refer to the documentation in that package for more details.
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 # Install the inSitu library
-devtools::install_github("e-sensing/inSitu")
-library(inSitu)
+# devtools::install_github("e-sensing/inSitu")
+# library(inSitu)
 
 # select the bands for classification
 samples <- inSitu::br_mt_1_8K_9classes_6bands

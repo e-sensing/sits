@@ -33,7 +33,7 @@ raster_class.tb <- sits_classify(cube_modis, ml_model = svm_model, memsize = 4, 
 sits_plot_raster(raster_class.tb, time = 1, title = "Classification 2016/2017")
 
 # smooth the images
-raster_smooth.tb <- sits_bayes_postprocess(raster_class.tb, file = "./smooth")
+raster_smooth.tb <- sits_bayes_smooth(cube = raster_class.tb)
 
 # plot the first smoothed classified image
 sits_plot_raster(raster_smooth.tb, time = 1, title = "Classification 2016/2017")

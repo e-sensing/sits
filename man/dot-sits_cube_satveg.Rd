@@ -4,14 +4,10 @@
 \alias{.sits_cube_satveg}
 \title{Provides information about one cube of the SATVEG time series service}
 \usage{
-.sits_cube_satveg(name, timeline, bands)
+.sits_cube_satveg(name)
 }
 \arguments{
 \item{name}{Name of the cube.}
-
-\item{timeline}{Timeline of the cube.}
-
-\item{bands}{Bands of the cube.}
 }
 \description{
 Creates a tibble with metadata about a given cube.

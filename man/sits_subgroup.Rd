@@ -17,6 +17,9 @@ Create new groups to identify variations in a same group.
 }
 \examples{
 \donttest{
+data(samples_mt_6bands)
+# generate a SOM map to find clusters of samples
+koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
 # Divide groups according to variations
 subgroups <- sits_subgroup(koh)
 samples_subgroup <- subgroups$samples_subgroup.tb

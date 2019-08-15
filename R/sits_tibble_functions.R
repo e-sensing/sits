@@ -136,9 +136,9 @@ sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) 
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description  Finds the names of the bands of time series in a sits tibble
-#'               or sets the names of the bands if a set of values is given.
+#'               or in a metadata cube
 #'
-#' @param data.tb      Valid sits tibble.
+#' @param data      Valid sits tibble (time series or a cube)
 #' @return A string vector with the names of the bands.
 #'
 #' @examples
@@ -147,14 +147,21 @@ sits_apply <- function(data.tb, fun, fun_index = function(index){ return(index) 
 #' # print the bands
 #' sits_bands(samples_mt_6bands)
 #' @export
-sits_bands <- function(data.tb) {
+sits_bands <- function(data) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
 
-    result.vec <- data.tb[1,]$time_series[[1]] %>%
-        colnames() %>% .[2:length(.)]
-    return(result.vec)
+    # is this a cube metadata?
+    if ("timeline" %in% names(data))
+        bands <- data$bands[[1]]
+
+    # is this a sits tibble with the time series?
+    if ("time_series" %in% names(data))
+        bands <- sits_time_series(data) %>%
+            colnames() %>% .[2:length(.)]
+
+    return(bands)
 }
 
 #' @title Breaks a set of time series into equal intervals
@@ -218,9 +225,7 @@ sits_dates <- function(data.tb) {
     # backward compatibility
     if ("coverage" %in% names(data.tb))
         data.tb <- .sits_tibble_rename(data.tb)
-
-    values <- data.tb$time_series[[1]]$Index
-    return(values)
+    return(sits_time_series_dates(data.tb))
 }
 
 #' @title Merge two satellite image time series
@@ -500,7 +505,40 @@ sits_select_bands <- function(data.tb, ...) {
     # return the result
     return(result.tb)
 }
-
+#' @title Retrieve the dates of time series for a row of a sits tibble
+#' @name sits_time_series_dates
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns the dates of the time series associated to a sits tibble
+#'
+#' @param data         A sits tibble with one or more time series.
+#' @return             A vector of dates
+#' @examples
+#' # Retrieve a set of time series with 2 classes
+#' data(cerrado_2classes)
+#' # Retrieve the dates of the first time series
+#' sits_time_series_dates(cerrado_2classes)
+#' @export
+sits_time_series_dates <- function(data) {
+    return(data$time_series[[1]]$Index)
+}
+#' @title Retrieve time series for a row of a sits tibble
+#' @name sits_time_series
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns the time series associated to a row of the a sits tibble
+#'
+#' @param data     A sits tibble with one or more time series.
+#' @return A tibble in sits format with the time series.
+#' @examples
+#' # Retrieve a set of time series with 2 classes
+#' data(cerrado_2classes)
+#' # Retrieve the first time series
+#' sits_time_series(cerrado_2classes)
+#' @export
+sits_time_series <- function(data) {
+    return(data$time_series[[1]])
+}
 
 
 #' @title Add new sits bands and drops existing.
@@ -538,6 +576,8 @@ sits_transmute_bands <- function(data.tb, ...){
     data.tb$time_series <- proc_fun(...)
     return(data.tb)
 }
+
+
 
 #' @title Return the values of a given sits tibble as a list of matrices according to a specified format.
 #' @name sits_values

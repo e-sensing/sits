@@ -15,6 +15,12 @@
 #' @param  whatmap What data layer will be plotted.
 #' @examples
 #' \donttest{
+#' #' # Read a set of samples
+#' data(samples_mt_6bands)
+#' # perform kohonen to associate a sample to  a cluster
+#' koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
+#' # Visualize the samples with cluster information
+#' sits_plot_kohonen(koh)
 #' # Plot kohonen map with vector of weight
 #' sits_plot_kohonen(koh, type = "codes")
 #' # Plot kohonen map showing where the samples were allocated
@@ -59,6 +65,11 @@ sits_plot_kohonen <- function(koh, type = "codes", whatmap = 1)
 #'
 #' @examples
 #' \donttest{
+#' data(cerrado_2classes)
+#' # Generate a SOM map to cluster the data
+#' koh <- sits_kohonen(cerrado_2classes, grid_xdim = 5, grid_ydim = 5, rlen = 20)
+#' # Calculate the confusion by cluster
+#' confusion_by_cluster <- sits_evaluate_cluster(koh$info_samples)
 #' # Plot confusion between the clusters
 #' sits_plot_cluster_info(confusion_by_cluster, "Confusion by cluster")
 #' }

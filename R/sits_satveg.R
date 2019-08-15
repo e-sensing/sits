@@ -45,13 +45,8 @@
     }
 
     # filter bands
-    bands.vec <- cube$bands[[1]]
+    bands <- .sits_cube_bands(cube)
 
-    # check if requested bands are in provided bands
-    if (!purrr::is_null(bands)) {
-        ensurer::ensure_that(bands.vec, all(bands %in% bands.vec),
-                             err_desc = "sits_from_satveg: band not provided by data cube.")
-    } else bands <- cube$bands[[1]]
     ts.tb <- ts.tb[, c("Index", bands)]
 
     # use a list to store the time series
@@ -93,10 +88,10 @@
     has_timeline <- FALSE
 
     # URL to access SATVEG services
-    URL <- .sits_get_server("SATVEG")
+    URL <- .sits_server("SATVEG")
 
     # bands available in SATVEG
-    bands <- .sits_get_bands("SATVEG", name)
+    bands <- .sits_bands_service("SATVEG", name)
 
     # read each of the bands separately
     for (b in bands) {
@@ -119,7 +114,7 @@
         names(ts_b) <- b
 
         if (!has_timeline) {
-            timeline <- .sits_get_satveg_timeline_from_txt(satveg.txt)
+            timeline <- .sits_satveg_timeline_from_txt(satveg.txt)
 
             # create a tibble to store the data
             ts.tb <- tibble::tibble(Index = timeline)
@@ -133,14 +128,14 @@
 }
 
 #' @title Retrieve a timeline from the SATVEG service based on text expression
-#' @name .sits_get_satveg_timeline_from_txt
+#' @name .sits_satveg_timeline_from_txt
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Retrieves a time series from the SATVEG service.
 #'
 #' @param satveg.txt   Information retrieved from SATVEG (in text format).
-.sits_get_satveg_timeline_from_txt <- function(satveg.txt){
+.sits_satveg_timeline_from_txt <- function(satveg.txt){
     # Retrieve the time series
     # find the place where the series ends and the dates start
     pos1 <- regexpr("listaDatas", satveg.txt)
@@ -181,7 +176,7 @@
     band <- "ndvi"
     cube <- "terra"
     # URL to access SATVEG services
-    URL <- .sits_get_server("SATVEG")
+    URL <- .sits_server("SATVEG")
 
     # Build the URL to retrieve the time series
     URL_ts <- paste0(URL, band, "/ponto", "/", longitude, "/", latitude, "/", cube, "/",
@@ -190,7 +185,7 @@
     # Get the data from SATVEG service
     satveg.txt <-  RCurl::getURL(URL_ts)
 
-    timeline <- .sits_get_satveg_timeline_from_txt(satveg.txt)
+    timeline <- .sits_satveg_timeline_from_txt(satveg.txt)
 
     return (timeline)
 }

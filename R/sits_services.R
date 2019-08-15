@@ -35,7 +35,7 @@ sits_services <- function() {
 
         if (s == "WTSS") {
             tryCatch({
-                URL  <- .sits_get_server(s)
+                URL  <- .sits_server(s)
                 # obtains information about the available data cubes in the WTSS service
                 wtss.obj  <- wtss::WTSS(URL)
             }, error = function(e){

@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
-Title: Satellite Image Time Series Analysis
-Version: 2.08.01
-Date: 2019-01-07
+Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
+Version: 0.08.01
+Date: 2019-08-06
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Pedro', 'Andrade', role = c('aut', 'cre'), email = 'pedro.andrade@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut'), email = 'gilberto.camara@inpe.br'), 
@@ -16,15 +16,17 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              person('Adeline', 'Marinho', role = c('ctb'))
              )
 Maintainer: Pedro Andrade <pedro.andrade@inpe.br>
-Description: A set of tools for working with satellite image time series.
-    Supports data retrieval from a WTSS (web time series service) and other data sets.
+Description: A set of tools for working with satellite image time series, both as individual data or as part of data cubes.
+    Supports data retrieval from a WTSS (web time series service) and EOCUBES data service.
     Provides different visualisation methods for image time series.
     Provides smoothing methods for noisy time series.
     Enables different clustering methods, including dendrograms and SOM.
     Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition.
-    Provide machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
+    Provides machine learning methods for time series classification, including SVM, Random Forests and Deep Learning.
+    Includes functions for smoothing based on Bayesian inference. 
+    Minimum recommended requirements: 4 GB RAM and 1 CPU dual-core.
 Encoding: UTF-8
-Depends: R (>= 3.5.0)
+Depends: R (>= 3.6.0)
 URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2 | file LICENSE
@@ -51,6 +53,7 @@ Imports:
     keras,
     kohonen,
     imputeTS,
+    inSitu,
     log4r,
     lubridate,
     MASS,
@@ -76,17 +79,19 @@ Imports:
     stringr,
     tibble (>= 1.4),
     tools,
+    tidyr,
+    urltools,
     utils,
     wtss,
     zoo
-Remotes: 
-    e-sensing/EOCubes
 Suggests:
     devtools,
-    inSitu,
     knitr,
     rmarkdown,
     testthat
+Remotes: 
+    e-sensing/EOCubes,
+    e-sensing/inSitu
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp
@@ -95,7 +100,6 @@ Collate:
     'RcppExports.R'
     'data.R'
     'sits_accuracy.R'
-    'sits_bayes_postprocess.R'
     'sits_classification.R'
     'sits_cluster.R'
     'sits_colors.R'
@@ -107,12 +111,14 @@ Collate:
     'sits_distances.R'
     'sits_dt_reference.R'
     'sits_eocubes.R'
+    'sits_eocube_classification.R'
     'sits_factory.R'
     'sits_filters.R'
     'sits_get_data.R'
     'sits_indexes.R'
     'sits_keras.R'
     'sits_kohonen.R'
+    'sits_label_classification.R'
     'sits_labels.R'
     'sits_log.R'
     'sits_machine_learning.R'

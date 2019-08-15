@@ -6,65 +6,73 @@ test_that("All", {
 })
 
 test_that("Brightness", {
-    ls8 <- sits:::.sits_get_tcap_brightness("LANDSAT8")
+    ls8 <- sits:::.sits_tcap_brightness("OLI")
 
     expect_equal(names(ls8[3]), "red")
     expect_equal(ls8[[3]], 0.473, tol = 0.001)
     expect_equal(length(ls8), 6)
 
-    mod <- sits:::.sits_get_tcap_brightness()
+    mod <- sits:::.sits_tcap_brightness("MODIS")
 
     expect_equal(names(mod[3]), "red")
     expect_equal(mod[[3]], 0.44, tol = 0.001)
     expect_equal(length(mod), 7)
 
-    expect_error(sits:::.sits_get_tcap_brightness("ABC"), "Unable to retrieve tasseled cap coefficients")
+    expect_error(sits:::.sits_tcap_brightness("ABC"), "Unable to retrieve tasseled cap coefficients")
 })
 
 test_that("Greenness", {
-    ls8 <- sits:::.sits_get_tcap_greenness("LANDSAT8")
+    ls8 <- sits:::.sits_tcap_greenness("OLI")
 
     expect_equal(names(ls8[3]), "red")
     expect_equal(ls8[[3]], -0.5424, tol = 0.001)
     expect_equal(length(ls8), 6)
 
-    mod <- sits:::.sits_get_tcap_greenness()
+    mod <- sits:::.sits_tcap_greenness("MODIS")
 
     expect_equal(names(mod[3]), "red")
     expect_equal(mod[[3]], -0.4064, tol = 0.001)
     expect_equal(length(mod), 7)
 
-    expect_error(sits:::.sits_get_tcap_greenness("ABC"), "Unable to retrieve tasseled cap coefficients")
+    expect_error(sits:::.sits_tcap_greenness("ABC"), "Unable to retrieve tasseled cap coefficients")
 })
 
 test_that("Wetness", {
-    ls8 <- sits:::.sits_get_tcap_wetness("LANDSAT8")
+    ls8 <- sits:::.sits_tcap_wetness("OLI")
 
     expect_equal(names(ls8[3]), "red")
     expect_equal(ls8[[3]], 0.328, tol = 0.001)
     expect_equal(length(ls8), 6)
 
-    mod <- sits:::.sits_get_tcap_wetness()
+    mod <- sits:::.sits_tcap_wetness("MODIS")
 
     expect_equal(names(mod[3]), "red")
     expect_equal(mod[[3]], -0.4064, tol = 0.001)
     expect_equal(length(mod), 7)
 
-    expect_error(sits:::.sits_get_tcap_wetness("ABC"), "Unable to retrieve tasseled cap coefficients")
+    expect_error(sits:::.sits_tcap_wetness("ABC"), "Unable to retrieve tasseled cap coefficients")
 })
 
 test_that("Internal", {
 
-    expect_equal(length(sits:::.sits_get_services()), 5)
-    expect_equal(length(sits:::.sits_get_timeline("WTSS", "MOD13Q1")), 423)
-    expect_equal(length(sits:::.sits_get_tcap_brightness()), 7)
-    expect_equal(length(sits:::.sits_get_tcap_greenness()), 7)
-    expect_equal(length(sits:::.sits_get_tcap_wetness()), 7)
+    services <- sits:::.sits_services()
+    expect_true("WTSS" %in% services)
+    expect_true("SATVEG" %in% services)
+    expect_true("LOCALHOST" %in% services)
 
-    expect_error(sits:::.sits_get_bbox("RASTER"), "r_obj is mandatory when using a RASTER service")
-    expect_equal(sum(sits:::.sits_get_bbox("RASTER", NULL, raster::raster())), 0)
+    cubes <- sits:::.sits_cubes_service("SATVEG")
+    expect_true(length(cubes) > 1)
 
-    expect_equal(sits:::.sits_get_color(), "#737373")
-    expect_true(sits:::.sits_get_memory_bloat() >= 0)
+    bbox <- sits:::.sits_bbox_service("SATVEG", cubes[1])
+    expect_true(bbox["xmin"] < bbox["xmax"])
+
+    expect_equal(sits:::.sits_color("NoClass"), "#737373")
+
+    expect_true(sits:::.sits_memory_bloat() > 1)
+
+    bands <- sits:::.sits_bands_service("SATVEG", cubes[1])
+
+    expect_true(.sits_minimum_values("MODIS", bands)[1] > -100000)
+    expect_true(.sits_maximum_values("MODIS", bands)[1] <  100000)
 
 })

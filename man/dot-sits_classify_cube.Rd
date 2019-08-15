@@ -4,9 +4,8 @@
 \alias{.sits_classify_cube}
 \title{Classify a data cube using multicore machines}
 \usage{
-.sits_classify_cube(cube = NULL, ml_model = NULL,
-  interval = "12 month", filter = NULL, memsize = 4,
-  multicores = 2, out_prefix = "cube-class")
+.sits_classify_cube(cube, ml_model, interval, filter, memsize, multicores,
+  output_dir)
 }
 \arguments{
 \item{cube}{Tibble with information about a data cube.}
@@ -21,10 +20,10 @@
 
 \item{multicores}{Number of cores to be used for classification.}
 
-\item{out_prefix}{Prefix of the output files. For each time interval, one file will be created.}
+\item{output_dir}{Directory for output file}
 }
 \value{
-A tibble with the metadata for the vector of classified RasterLayers.
+A tibble with the metadata for the vector of probabilities for classified RasterLayers.
 }
 \description{
 Takes a data cube, whose metadata is

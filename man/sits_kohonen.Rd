@@ -41,9 +41,9 @@ satellite image time series to cluster samples.
 \donttest{
 # Read a set of samples
 data(samples_mt_6bands)
-# perform kohonen to associate a sample to  a cluster
+# generate a SOM map to find clusters of samples
 koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
-# Visualize the samples with cluster information
+# Visualize the SOM map with cluster information
 sits_plot_kohonen(koh)
 }
 }

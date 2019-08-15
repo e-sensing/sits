@@ -23,9 +23,9 @@
 #' \donttest{
 #' # Read a set of samples
 #' data(samples_mt_6bands)
-#' # perform kohonen to associate a sample to  a cluster
+#' # generate a SOM map to find clusters of samples
 #' koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
-#' # Visualize the samples with cluster information
+#' # Visualize the SOM map with cluster information
 #' sits_plot_kohonen(koh)
 #' }
 #' @export
@@ -431,6 +431,9 @@ sits_evaluate_samples <- function(data.tb, grid_xdim = 5, grid_ydim = 5, rlen = 
 #'
 #' @examples
 #' \donttest{
+#' data(samples_mt_6bands)
+#' # generate a SOM map to find clusters of samples
+#' koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
 #' # Divide groups according to variations
 #' subgroups <- sits_subgroup(koh)
 #  # Get samples tibble with subgroups
@@ -552,10 +555,12 @@ sits_subgroup <- function(koh)
 #'
 #' @examples
 #' \donttest{
+#' #' # perform kohonen to associate a sample to  a cluster
+#' koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
 #' # Extract metrics about the clusters
 #' confusion_by_cluster <- sits_evaluate_cluster(koh$info_samples)
 #' # Show confusion matrix
-#' confusion_matrix <- confusion_by_cluster$confusion_matrix
+#' confusion_by_cluster$confusion_matrix
 #' }
 #' @export
 

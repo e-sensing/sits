@@ -54,8 +54,9 @@ seasonal variability.
 }
 \examples{
 \donttest{
-devtools::install_github("e-sensing/inSitu")
-library(inSitu)
+# Install the inSitu library
+# devtools::install_github("e-sensing/inSitu")
+# library(inSitu)
 
 #select the bands for classification
 samples <- inSitu::br_mt_1_8K_9classes_6bands

@@ -4,31 +4,34 @@
 \alias{.sits_create_cube}
 \title{Creates the description of a data cube}
 \usage{
-.sits_create_cube(r_objs.lst, name, service, bands.vec, labels.vec,
-  scale_factors.vec, missing_values.vec, minimum_values.vec,
-  maximum_values.vec, timeline.lst, nrows, ncols, xmin, xmax, ymin, ymax,
-  xres, yres, crs, files.vec)
+.sits_create_cube(service, URL, satellite, sensor, name, bands, labels,
+  scale_factors, missing_values, minimum_values, maximum_values, timelines,
+  nrows, ncols, xmin, xmax, ymin, ymax, xres, yres, crs, files = NULL)
 }
 \arguments{
-\item{r_objs.lst}{List of raster objects contained in the cube.}
+\item{service}{Name of the web service that has provided metadata about the cube.}
+
+\item{URL}{URL of the provider}
+
+\item{satellite}{Name of satellite}
+
+\item{sensor}{Name of sensor}
 
 \item{name}{Name of the data cube.}
 
-\item{service}{Name of the web service that has provided metadata about the cube.}
+\item{bands}{Vector with the names of the bands.}
 
-\item{bands.vec}{Vector with the names of the bands.}
+\item{labels}{Vector with labels (only valid for classified data).}
 
-\item{labels.vec}{Vector with labels (only valid for classified data).}
+\item{scale_factors}{Vector with scale factor for each band.}
 
-\item{scale_factors.vec}{Vector with scale factor for each band.}
+\item{missing_values}{Vector with missing values for each band.}
 
-\item{missing_values.vec}{Vector with missing values for each band.}
+\item{minimum_values}{Vector with minimum values for each band.}
 
-\item{minimum_values.vec}{Vector with minimum values for each band.}
+\item{maximum_values}{Vector with maximum values for each band.}
 
-\item{maximum_values.vec}{Vector with maximum values for each band.}
-
-\item{timeline.lst}{List with vectors of valid timelines for each band.}
+\item{timelines}{List with vectors of valid timelines for each band.}
 
 \item{nrows}{Number of rows in the cube.}
 
@@ -48,7 +51,7 @@
 
 \item{crs}{CRS for cube.}
 
-\item{files.vec}{Vector with associated files.}
+\item{files}{Vector with associated files.}
 }
 \description{
 Uses the configuration file to print information and save metadata about a

@@ -4,17 +4,17 @@
 \alias{sits_bands}
 \title{Informs the names of the bands of a time series}
 \usage{
-sits_bands(data.tb)
+sits_bands(data)
 }
 \arguments{
-\item{data.tb}{Valid sits tibble.}
+\item{data}{Valid sits tibble (time series or a cube)}
 }
 \value{
 A string vector with the names of the bands.
 }
 \description{
 Finds the names of the bands of time series in a sits tibble
-              or sets the names of the bands if a set of values is given.
+              or in a metadata cube
 }
 \examples{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)

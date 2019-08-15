@@ -56,7 +56,7 @@
     ordered_bricks.lst <- vector(mode = "list", length = length(bands))
 
     for (i in 1:length(bands)) {
-        ordered_bricks.lst[[i]] <- cube[1,]$r_objs[[1]][[i]]
+        ordered_bricks.lst[[i]] <- .sits_cube_robj(cube, i)
     }
 
     names(ordered_bricks.lst) <- bands
@@ -137,7 +137,7 @@
     ordered_bricks.lst <- vector(mode = "list", length = length(bands))
 
     for (i in 1:length(bands)) {
-        ordered_bricks.lst[[i]] <- cube[1,]$r_objs[[1]][[i]]
+        ordered_bricks.lst[[i]] <- .sits_cube_robj(cube, i)
     }
 
     names(ordered_bricks.lst) <- bands
@@ -156,12 +156,15 @@
             # proprocess the input data
             b <<- b + 1
             band <- bands[b]
-            values.mx <- .sits_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band],
+            values.mx <- .sits_preprocess_data(values.mx, band,
+                                               missing_values[band], minimum_values[band],
+                                               scale_factors[band],
                                                stats, filter, multicores)
 
             # save information about memory use for debugging later
             .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
-            .sits_log_debug(paste0("Read band ", b, " from rows ", first_row, "to ", (first_row + n_rows_block - 1)))
+            .sits_log_debug(paste0("Read band ", b, " from rows ", first_row, "to ",
+                                   (first_row + n_rows_block - 1)))
 
             return(values.mx)
         })
@@ -246,46 +249,4 @@
         int_values.mx <- scale_matrix_integer(values.mx, scale_factor)
 
     return(int_values.mx)
-}
-
-#' @title Write the values and probs into raster files
-#' @name .sits_write_raster_values
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Write the raster values to the outout files.
-#'
-#' @param  output.lst        List with value layers and probability bricks.
-#' @param  prediction_DT     A data.table with predicted probabilities for each class.
-#' @param  labels            Class labels.
-#' @param  int_labels        Integer values corresponding to labels.
-#' @param  time              Interval to be written to file.
-#' @param  first_row         Initial row of the output layer to write block.
-#' @param  multicores        Number of cores to process the time series.
-#' @return Updated list with value layers and probability bricks.
-.sits_write_raster_values <- function(output.lst,
-                                      prediction_DT,
-                                      labels,
-                                      int_labels,
-                                      time,
-                                      first_row,
-                                      multicores) {
-    # for each layer, write the predicted values
-    # extract the values
-    values <-  int_labels[max.col(prediction_DT)]
-
-    layers.lst <- output.lst$layers
-    layers.lst[[time]] <- raster::writeValues(layers.lst[[time]], values, first_row)
-
-    # convert probabilities matrix to INT2U
-    scale_factor_save <- 10000
-    probs  <- .sits_scale_matrix_integer(as.matrix(prediction_DT), scale_factor_save, multicores)
-
-    # write the probabilities
-    bricks.lst <- output.lst$bricks
-    bricks.lst[[time]] <- raster::writeValues(bricks.lst[[time]], probs, first_row)
-
-    # update the joint list of layers (values) and bricks (probs)
-    output.lst <- list(layers = layers.lst, bricks = bricks.lst)
-
-    return(output.lst)
 }

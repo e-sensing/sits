@@ -263,7 +263,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
             # what are the band names?
             bands  <- sits_bands(data2.tb)
             # what are the reference dates?
-            ref_dates <- data2.tb[1,]$time_series[[1]]$Index
+            ref_dates <- sits_time_series_dates(data2.tb)
             # align all time series to the same dates
             data2.tb <- sits_align(data2.tb, ref_dates)
             # extract the time series
@@ -426,14 +426,21 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' @description plots a raster using ggplot. This function is used
 #' for showing the same lat/long location in a series of time steps.
 #'
-#' @param raster_class.tb   A tibble with the metadata for a classified raster object.
+#' @param cube        A tibble with the metadata for a labelled data cube.
 #' @param time        Temporal reference for plot.
 #' @param title       A string.
 #' @param colors      Color pallete.
 #' @export
-sits_plot_raster <- function(raster_class.tb, time = 1, title = "Classified Image", colors = NULL) {
+sits_plot_raster <- function(cube, time = 1, title = "Classified Image", colors = NULL) {
+    #precondition 1 - cube must be a labelled cube
+    ensurer::ensure_that(.sits_cube_bands(cube)[1], as.logical(grep("class", (.))),
+                         err_desc = "sits_plot_raster: input cube must be a labelled one")
+    #precondition 2 - time must be a positive integer
+    ensurer::ensure_that(time, (.) >= 1,
+                         err_desc = "sits_plot_raster: time must be a positive integer")
+
     # get the raster object
-    r <- raster_class.tb$r_objs[[1]][[1]][[1]][[time]]
+    r <- .sits_cube_robj(cube, time)
 
     # convert from raster to points
     map.p <- raster::rasterToPoints(r)
@@ -442,9 +449,8 @@ sits_plot_raster <- function(raster_class.tb, time = 1, title = "Classified Imag
     # define the column names for the data frame
     colnames(df) <- c("x", "y", "class")
 
-    # get the labels
-    labels <- raster_class.tb$labels[[1]][[1]]
-
+    # get the labels and how many there are
+    labels <- .sits_cube_labels(cube)
     nclasses <- length(labels)
     # create a mapping from classes to labels
     names(labels) = as.character(c(1:nclasses))
@@ -453,7 +459,7 @@ sits_plot_raster <- function(raster_class.tb, time = 1, title = "Classified Imag
     if (purrr::is_null(colors)) {
         colors <- vector(length = nclasses)
         for (i in 1:nclasses)
-            colors[i] <- .sits_get_color(labels[i])
+            colors[i] <- .sits_color(labels[i])
     }
     # set the names of the color vector
     names(colors) <- as.character(c(1:nclasses))

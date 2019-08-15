@@ -22,7 +22,7 @@
                                label      = "NoClass") {
     # if bands are not provided, use all bands available in the cube
     # check the bands are available
-    cube_bands <- cube$bands[[1]]
+    cube_bands <- .sits_cube_bands(cube)
     if (purrr::is_null(bands))
         bands <- cube_bands
     else
@@ -30,10 +30,10 @@
                              err_desc = "sits_from_EOCubes: requested bands are not available in the cube")
 
     # get cube object
-    cub.obj <- cube$r_objs[[1]][[1]]
+    cub.obj <- .sits_cube_robj(cube)
 
     # check start and end dates
-    timeline <- cube$timeline[[1]][[1]]
+    timeline <- sits_timeline(cube)
     if (purrr::is_null(start_date))
         start_date <- lubridate::as_date(timeline$from)
     if (purrr::is_null(end_date))
@@ -68,7 +68,8 @@
         })
 
         # interpolate missing values
-        ts$bands[bands] <- as.list(as.data.frame(zoo::na.spline(do.call(data.frame, ts$bands[bands]), ts$timeline)))
+        ts$bands[bands] <- as.list(as.data.frame(zoo::na.spline(do.call(data.frame,
+                                                                        ts$bands[bands]), ts$timeline)))
 
         # scale the time series
         ts$bands[bands] <- lapply(bands, function(band) {

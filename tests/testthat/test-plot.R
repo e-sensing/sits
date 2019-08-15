@@ -15,13 +15,14 @@ test_that("All", {
     svm_model <- sits_train(samples_mt_ndvi, sits_svm())
     files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
     data(timeline_modis_392)
-    raster.tb <- sits_cube(service = "RASTER", name  = "Sinop-crop",
-                               timeline = timeline_modis_392, bands = "ndvi", files = files)
-    raster_class.tb <- sits_classify(raster.tb, ml_model = svm_model, memsize = 1, multicores = 1,
-                                     out_prefix = "raster-class")
-    sits_plot_raster(raster_class.tb, time = 1, title = "SINOP class 2000-2001")
+    sinop <- sits_cube(name  = "Sinop-crop", timeline = timeline_modis_392, bands = "ndvi", files = files)
+    sinop_probs <- sits_classify(sinop, ml_model = svm_model, memsize = 1, multicores = 1)
+    sinop_labels <- sits_label_classification(sinop_probs)
+    sits_plot_raster(sinop_labels, time = 1, title = "SINOP class 2000-2001")
 
-    expect_true(TRUE)
+    expect_true(all(file.remove(unlist(sinop_probs$files))))
+    expect_true(all(file.remove(unlist(sinop_labels$files))))
+
 })
 
 

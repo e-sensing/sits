@@ -3,7 +3,7 @@ context("Tibble")
 test_that("Apply",{
     point2 <- sits_apply(point_ndvi, fun = function(x) {(x - min(x)) / (max(x) - min(x))})
 
-    expect_equal(sum(point2$time_series[[1]]$ndvi), 219.068, tolerance = 0.01)
+    expect_equal(sum((sits_time_series(point2))$ndvi), 219.068, tolerance = 0.01)
 })
 
 test_that("Bands",{
@@ -34,14 +34,14 @@ test_that("Merge", {
     point_ws.tb <- sits_whittaker(point_ndvi, lambda = 3.0)
     result <- sits_merge(point_ndvi, point_ws.tb)
 
-    expect_equal(dim(result$time_series[[1]])[1], 392)
-    expect_equal(dim(result$time_series[[1]])[2], 3)
+    expect_true(length(sits_time_series_dates(result)) == 392)
+    expect_true(ncol(sits_time_series(result)) == 3)
 })
 
 test_that("Mutate", {
     savi.tb <- sits_mutate_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 
-    expect_equal(sum(savi.tb$time_series[[1]]$savi), 5.980619, tolerance = 0.001)
+    expect_equal(sum(sits_time_series(savi.tb)$savi), 5.980619, tolerance = 0.001)
 })
 
 test_that("Rename",{
@@ -69,7 +69,7 @@ test_that("Values", {
     data(samples_mt_6bands)
     savi.tb <- sits_transmute_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 
-    expect_equal(names(savi.tb$time_series[[1]])[2], "savi")
+    expect_true("savi" %in% names(sits_time_series(savi.tb)))
 })
 
 test_that("Select",{

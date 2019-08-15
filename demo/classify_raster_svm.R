@@ -29,8 +29,7 @@ time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_cube(service = "RASTER", name = "Sinop",
-                       timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = files)
+raster.tb <- sits_cube(name = "Sinop",  timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = files)
 
 
 # classify the raster image
@@ -41,8 +40,7 @@ raster_class.tb <- sits_classify(raster.tb, ml_model = svm_model, memsize = 4, m
 sits_plot_raster(raster_class.tb, time = 1, title = "Sinop")
 
 # smooth the result with a bayesian filter
-raster_class_bayes.tb <- sits::sits_bayes_postprocess(raster_class.tb,
-                                                      file = "./smooth")
+raster_class_bayes.tb <- sits::sits_bayes_smooth(cube = raster_class.tb)
 
 # plot the smoothened image
 sits_plot_raster(raster_class_bayes.tb, time = 1, title = "Sinop")

@@ -26,6 +26,12 @@ with same category corresponds to a same cluster.
 }
 \examples{
 \donttest{
+#' # Read a set of samples
+data(samples_mt_6bands)
+# perform kohonen to associate a sample to  a cluster
+koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
+# Visualize the samples with cluster information
+sits_plot_kohonen(koh)
 # Plot kohonen map with vector of weight
 sits_plot_kohonen(koh, type = "codes")
 # Plot kohonen map showing where the samples were allocated

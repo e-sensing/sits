@@ -2,18 +2,18 @@
 % Please edit documentation in R/sits_cube.R
 \name{.sits_cube_classified}
 \alias{.sits_cube_classified}
-\title{Create a set of RasterLayer objects to store data cube classification results}
+\title{Create a set of RasterLayer objects to store data cube classification results (only the probs)}
 \usage{
-.sits_cube_classified(raster.tb, samples.tb, file, interval)
+.sits_cube_classified(cube, samples, interval, output_dir)
 }
 \arguments{
-\item{raster.tb}{Tibble with metadata about the input data cube.}
+\item{cube}{Tibble with metadata about the input data cube.}
 
-\item{samples.tb}{Samples used for training the classification model.}
-
-\item{file}{Generic name of the files that will contain the RasterLayers.}
+\item{samples}{Samples used for training the classification model..}
 
 \item{interval}{Classification interval.}
+
+\item{output_dir}{Prefix of the output files.}
 }
 \value{
 A tibble with metadata about the output RasterLayer objects.

@@ -4,13 +4,11 @@
 \alias{.sits_classify_multicores}
 \title{Classify a raster chunk using multicores}
 \usage{
-.sits_classify_multicores(cube, cube_class, samples, ml_model, interval,
-  filter, memsize, multicores)
+.sits_classify_multicores(cube, samples, ml_model, interval, filter,
+  memsize, multicores, output_dir)
 }
 \arguments{
 \item{cube}{Tibble with metadata for a data cube derived from a raster brick.}
-
-\item{cube_class}{Raster layer objects to be written.}
 
 \item{samples}{Tibble with samples used for training the classification model.}
 
@@ -23,6 +21,8 @@
 \item{memsize}{Memory available for classification (in GB).}
 
 \item{multicores}{Number of cores.}
+
+\item{output_dir}{Output directory}
 }
 \value{
 List of the classified raster layers.

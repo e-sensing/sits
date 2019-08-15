@@ -4,12 +4,15 @@
 \alias{.sits_cube_eocubes}
 \title{Uses the EOCUBES service to provide information about a data cube}
 \usage{
-.sits_cube_eocubes(remote.obj, service, name, bands, tiles, geom, from, to)
+.sits_cube_eocubes(remote.obj, service, URL, name, bands, tiles, geom,
+  from, to)
 }
 \arguments{
 \item{remote.obj}{Remote object.}
 
-\item{service}{Service string.}
+\item{service}{Name of the data service.}
+
+\item{URL}{URL of the service provider.}
 
 \item{name}{Name of the cube}
 

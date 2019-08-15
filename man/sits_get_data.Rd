@@ -97,10 +97,10 @@ files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package =
 # define the timeline
 data(timeline_modis_392)
 # create a data cube based on the information about the files
-raster_cube <- sits_cube(service = "RASTER", files = files, name = "Sinop-crop",
-                            timeline = timeline_modis_392, bands = c("ndvi"))
+raster_cube <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+                         bands = c("ndvi"), files = files)
 # read the time series of the point from the raster
-point_ts <- sits_getdata(raster_cube, longitude = -55.554, latitude = -11.525)
+point_ts <- sits_get_data(raster_cube, longitude = -55.554, latitude = -11.525)
 sits_plot(point_ts)
 
 #' # Read a CSV file in a Raster Brick
