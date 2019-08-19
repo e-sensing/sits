@@ -1,5 +1,5 @@
 #' @title  Plot the SOM grid with neurons labeled
-#' @name   sits_plot_kohonen
+#' @name   sits_plot_som
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #' @description Given a kohonen object with a set of time neurons, plot them.
 #'
@@ -8,36 +8,30 @@
 #'  \item{"codes": }{Plot in each neuron the vector weight which corresponds to it.}
 #'  \item{"mapping": }{Shows where samples are mapped.}
 #' }
-#' Function sits_plot_kohonen plots a classified kohonen map. A set of neurons
+#' Function sits_plot_som plots a classified kohonen map. A set of neurons
 #' with same category corresponds to a same cluster.
 #' @param  koh  Data to be plotted (must be a kohonen object).
 #' @param  type Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.
 #' @param  whatmap What data layer will be plotted.
 #' @examples
 #' \donttest{
-#' #' # Read a set of samples
-#' data(samples_mt_6bands)
-#' # perform kohonen to associate a sample to  a cluster
-#' koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
-#' # Visualize the samples with cluster information
-#' sits_plot_kohonen(koh)
 #' # Plot kohonen map with vector of weight
-#' sits_plot_kohonen(koh, type = "codes")
+#' sits_plot_som(koh, type = "codes")
 #' # Plot kohonen map showing where the samples were allocated
-#' sits_plot_kohonen(koh, type = "mapping")
+#' sits_plot_som(koh, type = "mapping")
 #' }
 #'
 #' @export
-sits_plot_kohonen <- function(koh, type = "codes", whatmap = 1)
+sits_plot_som <- function(koh, type = "codes", whatmap = 1)
 {
     if (type == "mapping"){
-        graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "mapping", whatmap = whatmap)
+        graphics::plot(koh$som_properties,  bgcol = koh$som_properties$paint_map , "mapping", whatmap = whatmap)
     } else{
-        graphics::plot(koh$kohonen_obj,  bgcol = koh$kohonen_obj$paint_map , "codes", whatmap = whatmap)
+        graphics::plot(koh$som_properties,  bgcol = koh$som_properties$paint_map , "codes", whatmap = whatmap)
     }
 
     #create a legend
-    leg <- cbind(koh$kohonen_obj$neurons_labelled, koh$kohonen_obj$paint_map)
+    leg <- cbind(koh$som_properties$neuron_label, koh$som_properties$paint_map)
     graphics::legend(
         "bottomright",
         legend = unique(leg[, 1]),
@@ -47,7 +41,7 @@ sits_plot_kohonen <- function(koh, type = "codes", whatmap = 1)
         cex = 1,
         text.col = "black",
         #horiz = T ,
-        inset = c(0.0350, 0.05),
+        inset = c(0.0095, 0.05),
         xpd = TRUE,
         ncol = 1
     )
@@ -65,11 +59,6 @@ sits_plot_kohonen <- function(koh, type = "codes", whatmap = 1)
 #'
 #' @examples
 #' \donttest{
-#' data(cerrado_2classes)
-#' # Generate a SOM map to cluster the data
-#' koh <- sits_kohonen(cerrado_2classes, grid_xdim = 5, grid_ydim = 5, rlen = 20)
-#' # Calculate the confusion by cluster
-#' confusion_by_cluster <- sits_evaluate_cluster(koh$info_samples)
 #' # Plot confusion between the clusters
 #' sits_plot_cluster_info(confusion_by_cluster, "Confusion by cluster")
 #' }
@@ -108,82 +97,58 @@ sits_plot_cluster_info <- function(data, text_title = " Cluster ")
 #' The plots are also saved into files named "class_neurons<class_neuron>_plot_EVI<subgroup>.png".
 #' @param  neurons_subgroup  The list contain the EVI and NDVI time series (weight of each neuron) by class.
 #' @export
-sits_plot_subgroups <- function(neurons_subgroup)
+sits_plot_subgroups <- function(subgroups.tb, cluster = cluster_name, band = "ndvi")
 {
-    #get the name of class_neurons from list neurons_subgroup
-    class_neurons <- names(neurons_subgroup)
+    samples_current_class.tb <- dplyr::filter(subgroups.tb$samples_subgroups.tb, subgroups.tb$samples_subgroups.tb$som_label == cluster)
 
-    for (i in 1:length(class_neurons))
+    #Get the amount of subclasses
+    names_subgroups <- sort(unique(samples_current_class.tb$label_subgroup))
+    number_of_subgroups <- length(unique(samples_current_class.tb$label_subgroup))
+
+    #Put this value in a dynamic way
+    if(band == "ndvi")
+        codes <- subgroups.tb$som_properties$codes$ndvi
+
+    if(band == "evi")
+        codes <- subgroups.tb$som_properties$codes$evi
+
+    plot.vec <- vector()
+    for (i in 1:number_of_subgroups)
     {
-        #get the current group
-        group <- neurons_subgroup[i]
+        get_samples_current_subgroup.tb <- dplyr::filter(samples_current_class.tb, samples_current_class.tb$label_subgroup == names_subgroups[i] )
+        get_neurons <- get_samples_current_subgroup.tb$id_neuron
 
-        #acess each list inside the list of group
-        index_time <- vector()
-        for (j in 1:length(group[[1]]))
-        {
-            #get list of class i and subgroup j, for example
-            #class pasture subgroup 1
-            subgroup_j <- as.matrix(group[[1]][[j]])
+        current_codes <- codes[get_neurons, ]
+        time_series_current_subgroup.ts <- zoo::zoo(t(current_codes))
 
-            if (NCOL(subgroup_j) == 1)
-            {
-                ts_ndvi.ts <- as.matrix(subgroup_j[1:23])
-                colnames(ts_ndvi.ts) <- "V"
-                #get only evi
-                ts_evi.ts <- as.matrix(subgroup_j[24:46])
-                colnames(ts_evi.ts) <-"V"
-                ts_group_ndvi.ts <- zoo::zoo((ts_ndvi.ts))
-                ts_group_evi.ts <- zoo::zoo((ts_evi.ts))
-            } else{
-                #get only ndvi
-                ts_ndvi.ts <- subgroup_j[, 1:23]
-                #get only evi
-                ts_evi.ts <- subgroup_j[, 24:46]
-                ts_group_ndvi.ts <- zoo::zoo(t(ts_ndvi.ts))
-                ts_group_evi.ts  <- zoo::zoo(t(ts_evi.ts))
-            }
+        #Arrumar aqui quando tem 1 neuron só
+        # if (length(get_neurons) == 1)
+        # {
+        #     colnames(time_series_current_subgroup.ts) <- "V"
+        #     time_series_current_subgroup.ts <-
+        #         zoo::zoo((current_codes))
+        # }
 
-            groupts_ndvi.df <-
-                data.frame(
-                    value = as.vector(ts_group_ndvi.ts),
-                    index_time = stats::time(ts_group_ndvi.ts),
-                    neurons = rep(
-                        names(ts_group_ndvi.ts),
-                        each = nrow(ts_group_ndvi.ts)
-                    )
+
+        group_ts <-
+            data.frame(
+                value = as.vector(time_series_current_subgroup.ts),
+                index_time = stats::time(time_series_current_subgroup.ts),
+                neurons = rep(
+                    names(time_series_current_subgroup.ts),
+                    each = nrow(time_series_current_subgroup.ts)
                 )
-
-            groupts_evi.df <-
-                data.frame(
-                    value = as.vector(ts_group_evi.ts),
-                    index_time = stats::time(ts_group_evi.ts),
-                    neurons = rep(names(ts_group_evi.ts), each = nrow(ts_group_evi.ts))
-                )
-            # -------------------------------- Plots -------------------------------------------------------
-            p.ndvi <-
-                ggplot2::ggplot(groupts_ndvi.df, ggplot2::aes(x = index_time, y = value)) +
-                ggplot2::stat_summary(fun.data = "mean_cl_boot",
-                                      geom = "smooth") + ggplot2::labs(x = "Time", y = "NDVI") +
-                ggplot2::ggtitle(paste(class_neurons[i], " Group ", j , sep = ''))
-
-            p.evi <-
-                ggplot2::ggplot(groupts_evi.df, ggplot2::aes(x = index_time, y = value)) +
-                ggplot2::stat_summary(fun.data = "mean_cl_boot",
-                                      geom = "smooth") + ggplot2::labs(x = "Time", y =
-                                                                           "EVI") + ggplot2::ggtitle(paste(class_neurons[i], " Group ", j , sep = ''))
-            #save plots in a set folder
-            ggplot2::ggsave(
-                paste(class_neurons[i], "_plot_EVI", j, ".png" , sep = ''),
-                plot = p.evi,
-                device = "png"
             )
 
-            ggplot2::ggsave(
-                paste(class_neurons[i], "_plot_NDVI", j, ".png" , sep = ''),
-                plot = p.ndvi,
-                device = "png"
-            )
-        }
+        plot_ts_subgroup <-
+            ggplot2::ggplot(group_ts, ggplot2::aes(x = index_time, y = value)) +
+            ggplot2::stat_summary(fun.data = "mean_cl_boot",
+                                  geom = "smooth") + ggplot2::labs(x = "Time", y = band) +
+            ggplot2::ggtitle(paste(names_subgroups[i]))
+
+
+        graphics::plot(plot_ts_subgroup)
+
     }
+    return(plot_ts_subgroup)
 }
