@@ -1,41 +1,32 @@
-context("Evaluate samples")
+context("Evaluate samples using SOM")
 test_that("Creating clustering using Self-organizing Maps", {
     #skip_on_cran()
     data("cerrado_2classes")
-
-    koh <-
-        sits_kohonen(
+    som_cluster.tb <-
+        sits_cluster_som(
             cerrado_2classes,
             grid_xdim = 5,
             grid_ydim = 5,
-            rlen = 20,
-            distance = "euclidean"
+            rlen = 10,
+            alpha = 1,
+            distance = "euclidean",
+            mode =  "online",
+            iterations = 2
         )
-    expect_true(NROW(cerrado_2classes) == NROW(koh$info_samples))
-    expect_equal(length(names(koh$kohonen_obj)), 15)
-    expect_true("cluster" %in% names(koh$info_samples))
+    expect_equal(length(names(som_cluster.tb$som_properties)), 17)
 
-    sits_plot_kohonen(koh)
+    sits_plot_som(som_cluster.tb)
 
-    confusion_by_cluster <- sits_evaluate_cluster(koh$info_samples)
-    expect_equal(length(names(confusion_by_cluster$confusion_matrix)), 6)
+    new_samples.tb <- sits_clean_samples_som(som_cluster.tb)
+    expect_true("probability" %in% names(new_samples.tb))
 
-    sits_plot_cluster_info(confusion_by_cluster)
+    cluster_overall <- sits_evaluate_cluster(som_cluster.tb)
+    expect_equal(length(names(cluster_overall$confusion_matrix)), 6)
 
-    subgroups <- sits_subgroup(koh)
-    neurons_subgroup <- subgroups$neurons_subgroup.lst
+    sits_plot_cluster_info(cluster_overall, "Confusion by cluster")
 
-    expect_true("label_subgroup" %in% names(subgroups$samples_subgroup.tb))
-
-    evaluate_samples <- sits_evaluate_samples(
-        cerrado_2classes,
-        grid_xdim = 5,
-        grid_ydim = 5,
-        rlen = 20,
-        distance = "euclidean",
-        iterations = 1
-    )
-    expect_true("metrics_by_samples" %in% names(evaluate_samples))
-    expect_true("samples.tb" %in% names(evaluate_samples))
+    subgroups <- sits_evaluate_som_subgroups(som_cluster.tb)
+    expect_true("samples_subgroups.tb" %in% names(subgroups))
+    expect_true("som_properties" %in% names(subgroups))
 
 })
