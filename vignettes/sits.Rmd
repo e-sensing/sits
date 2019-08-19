@@ -446,8 +446,8 @@ data.tb <- samples_mt_6bands
 som_cluster.tb <-
     sits::sits_cluster_som(
         data.tb,
-        grid_xdim = 25,
-        grid_ydim = 25,
+        grid_xdim = 20,
+        grid_ydim = 20,
         rlen = 100,
         distance = "euclidean",
         mode = "pbatch",
