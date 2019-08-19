@@ -434,13 +434,12 @@ where $\alpha(t)$ is the learning rate, which must be set as $0<\alpha(t)<1$, an
 After producing the SOM map, it is necessary to separate the samples in groups in order to label the neurons. In this step, each neuron is labeled using majority vote from  the labels of its samples. As a result of this, a sample belonging to a neuron with a different label will have its own label updated to the label of the neuron. When the neuron has no samples, it will receive the label "Noclass". Clusters are then composed by all neurons that belong to the same label.
 
 ```{r}
-data("samples_mt_9classes", package = "sits")
+data("samples_mt_6bands")
 
 ```
 ```{r}
-data.tb <- samples_mt_9classes
+data.tb <- samples_mt_6bands
 ```
-
 
 ```{r}
 # clustering time series using SOM
