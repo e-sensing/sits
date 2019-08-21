@@ -45,7 +45,10 @@ sits_cluster_som <-
 
     {
         # does the input data exist?
-        # .sits_test_tibble(data.tb)
+        # backward compatibility
+        if ("coverage" %in% names(data.tb))
+            data.tb <- .sits_tibble_rename(data.tb)
+
         # get the time series
         time_series <- sits_values(data.tb, format = "bands_cases_dates")
 
@@ -215,6 +218,11 @@ sits_cluster_som <-
 
 sits_clean_samples_som <- function(som_cluster_analysis.tb) {
 
+    sample.tb <- som_cluster_analysis.tb$samples.tb
+    # backward compatibility
+    if ("coverage" %in% names(sample.tb))
+        sample.tb <- .sits_tibble_rename(sample.tb)
+
     data.tb <-
         unique(
             dplyr::select(
@@ -225,7 +233,7 @@ sits_clean_samples_som <- function(som_cluster_analysis.tb) {
                 start_date,
                 end_date,
                 label,
-                coverage,
+                cube,
                 time_series
             )
         )
@@ -540,7 +548,7 @@ sits_evaluate_som_subgroups <- function(som_cluster.tb)
 
     class_group <- dplyr::arrange(dplyr::select(class_group, id_sample, neuron_label, id_neuron, label_subgroup), id_sample)
 
-    samples.tb <- unique(dplyr::select(som_cluster.tb$samples.tb,id_sample,longitude,latitude, start_date,end_date, label,coverage, time_series))
+    samples.tb <- unique(dplyr::select(som_cluster.tb$samples.tb,id_sample,longitude,latitude, start_date,end_date, label,cube, time_series))
     samples.tb$som_label <- class_group$neuron_label
     samples.tb$label_subgroup <- class_group$label_subgroup
     samples.tb$id_neuron <- class_group$id_neuron
