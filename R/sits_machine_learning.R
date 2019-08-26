@@ -20,7 +20,7 @@
 #' @return A model fitted to input data given by train_method parameter.
 #'
 #' @examples
-#'\donttest{
+#' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # Install the inSitu library
 #' # devtools::install_github("e-sensing/inSitu")

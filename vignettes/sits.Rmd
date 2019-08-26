@@ -193,6 +193,10 @@ To get a time series in SITS, one has to create a data cube first, as described 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI and EVI time series fetched from WTSS service."}
 # a point in the transition forest to pasture in Northern MT
 # obtain a time series from the WTSS server for this point
+# define the data cube "MOD13Q1" using the WTSS service
+# In this case, the WTSS service is run by a server in INPE Brazil
+wtss_cube <- sits_cube(service = "WTSS", 
+                       name    = "MOD13Q1")
 series.tb <- sits_get_data(cube      = wtss_cube,
                            longitude = -55.57320, 
                            latitude  = -11.50566,
@@ -202,107 +206,42 @@ sits_plot(series.tb)
 
 A useful case is when a set of labelled samples are available to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. Function `sits_get_data()` can get a CSV file path as an argument. The CSV file must provide, for each time series, its latitude and longitude, the start and end dates, and a label associated to a ground sample. 
 
-After importing the samples time series, it is useful to explore the data to see how it is structured and look for its inter-class separability. For example, we can note in the figure above the variability of 400 time series collected from different years and locations. The scattering behavior is intrinsic to remote sensing data. Atmospheric noise, sun angle, interferences on observations or different equipment specifications, as well as the very nature of the climate-land dynamics can be sources of such variability [@Atkinson2012]. One helpful technique to explore such properties is *cluster analysis*. In the following section we present a clustering technique supported by `sits`.
-
 # Filtering techniques 
 
-Satellite image time series generally is contaminated by atmospheric influence, geolocation error, and directional effects [@Lambin2006]. Inter-annual climate variability also changes the phenological cycles of the vegetation, resulting in time series whose periods and intensities do not match on an year to year basis. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with  *noisy* and *non-homogeneous* data sets. In this section, we discuss filtering techniques to improve time series data that present missing values or noise.
-
-The literature on satellite image time series have several applications of filtering to correct or smooth vegetation index data. The `sits` have support for Savitzky–Golay (`sits_sgolay()`), Whitaker (`sits_whittaker()`), envelope (`sits_envelope()`) and, the "cloud filter" (`sits_cloud_filter()`) filters. The first two filters are commonly used in the literature, while the remaining two are adapted from other methods and, for our knowledge, its use has not been reported in the literature.
-
-Various somewhat conflicting results have been expressed in relation to the time series filtering techniques for phenology applications. For example, in an investigation of phenological parameter estimation, @Atkinson2012 found that the Whittaker and Fourier transform approaches were preferable to the double logistic and asymmetric Gaussian models. They applied the filters to preprocess MERIS NDVI time series for estimating phenological parameters in India. Comparing the same filters as in the previous work, @Shao2016 found that only Fourier transform and Whittaker techniques improved interclass separability for crop classes and significantly improved overall classification accuracy. The authors used MODIS NDVI time series from the Great Lakes region in North America. @Zhou2016 found that asymmetric Gaussian model outperforms other filters over high latitude boreal biomes, while the Savitzky-Golay model gives the best reconstruction performance in tropical evergreen broadleaf forests. In the remaining biomes, Whittaker gives superior results. The authors compare all previous mentioned filters plus Savitzky-Golay method for noise removal in MODIS NDVI data from sites spread worldwide in different climatological conditions. Many other techniques can be found in applications of satellite image time series such as curve fitting [@Bradley2007], wavelet decomposition [@Sakamoto2005], mean-value iteration, ARMD3-ARMA5, and 4253H [@Hird2009]. Therefore, any comparative analysis of smoothing algorithms depends on the adopted performance measurement.
-
-One of the main uses of time series filtering is to reduce the noise and miss data produced by clouds in tropical areas. The following examples use data produced by the PRODES project [@INPE2017], which detects deforestation in the Brazilian Amazon rain forest through visual interpretation. `sits` provides $617$ samples from a region corresponding to the standard Landsat Path/Row 226/064. This is an area in the East of the Brazilian Pará state. It was chosen because of its huge cloud cover from November to March, which is a significant factor in degrading time series quality. Its NDVI and EVI time series were extracted from a combination of MOD13Q1 and Landsat8 images (to best visualize the effects of each filter, we selected only NDVI time series).
+The literature on satellite image time series have several applications of filtering to correct or smooth vegetation index data. The `sits` packages supports the Savitzky–Golay (`sits_sgolay()`), Whitaker (`sits_whittaker()`), envelope (`sits_envelope()`) and the "cloud filter" (`sits_cloud_filter()`) filters. The first two filters are commonly used in the literature, while the remaining two are adapted from other methods. For details on the filtering techniques available in SITS, please see the 'Satellite Image Time Series Filtering with SITS' vignette. 
 
 ## Savitzky–Golay filter
 
-The Savitzky-Golay filter works by fitting a successive array of $2n+1$ adjacent data points with a $d$-degree polynomial through linear least squares. The central point $i$ of the window array assumes the value of the interpolated polynomial. An equivalent and much faster solution than this convolution procedure is given by the closed expression
-$$
-{\hat{x}_{i}=\sum _{j=-n}^{n}C_{j}\,x_{i+j}},
-$$
-where $\hat{x}$ is the the filtered time series, $C_{j}$ are the Savitzky-Golay smoothing coefficients, and $x$ is the original time series.
+The Savitzky-Golay filter works by fitting a successive array of $2n+1$ adjacent data points with a $d$-degree polynomial through linear least squares. The central point $i$ of the window array assumes the value of the interpolated polynomial. In general, this filter produces smoother results for larger values of $n$ and/or a smaller value of $d$ [@Chen2004]. The optimal value for these two parameters is case-dependent. In SITS, users set the order of the polynomial using the parameter `order` (default = 3), the size of the temporal window with the parameter `length` (default = 5), and the temporal expansion with the parameter `scaling`. 
 
-The coefficients $C_{j}$ depend uniquely on the polynomial degree ($d$) and the length of the window data points (given by parameter $n$). If ${d=0}$, the coefficients are constants ${C_{j}=1/(2n+1)}$ and the Savitzky-Golay filter will be equivalent to moving average filter. When the time series is equally spaced, the coefficients have analytical solution. According to @Madden1978, for ${d\in{}[2,3]}$ each $C_{j}$ smoothing coefficients can be obtained by
-$$
-C_{j}=\frac{3(3n^2+3n-1-5j^2)}{(2n+3)(2n+1)(2n-1)}.
-$$
-
-In general, the Savitzky-Golay filter produces smoother results for a larger value of $n$ and/or a smaller value of $d$ [@Chen2004]. The optimal value for these two parameters can vary from case to case. For example, @Zhou2016 set ${d=2}$ and ${n=10}$. @Hird2009 tests the filter for ${n\in{}[5,6,7]}$ using quadratic polynomial.
-
-`sits` Savitzky-Golay function  The following example shows the effect of Savitsky-Golay filter on the original time series.
+The following example shows the effect of Savitsky-Golay filter on the original time series.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Savitzky-Golay filter applied on a one-year NDVI time series."}
-# Take NDVI band of the first sample data set
-point.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
-# apply Savitzky–Golay filter
-point_sg.tb <- sits_sgolay(point.tb)
-# plot the series
-sits_merge(point_sg.tb, point.tb) %>% sits_plot()
+# Take an NDVI 16 year time series, apply the Savitzky–Golay filter and plot the series
+point_sg <- sits_sgolay(point_ndvi, order = 5, length = 9)
+
+point_sg %>% 
+  sits_merge(point_ndvi) %>% 
+  sits_plot()
+
 ```
 
 ## Whittaker filter
 
-The Whittaker smoother attempts to fit a curve that represents the raw data, but is penalized if subsequent points vary too much [@Atzberger2011]. The Whittaker filter is a balancing between the residual to the original data and the "smoothness" of the fitted curve. The residual, as measured by the sum of squares of all $n$ time series points deviations, is given by
-$$
-RSS=\sum_{i}(x_{i} - \hat{x_{i}})^2,
-$$
-where $x$ and $\hat{x}$ are the original and the filtered time series vectors, respectively. The smoothness is assumed to be the measure of the the sum of the squares of the third order differences of the time series [@Whittaker1922] which is given by
-$$
-\begin{split}
-S\!S\!D = (\hat{x}_4 - 3\hat{x}_3 + 3\hat{x}_2 - \hat{x}_1)^2 + (\hat{x}_5 - 3\hat{x}_4 + 3\hat{x}_3 - \hat{x}_2)^2 \\ + \ldots + (\hat{x}_n - 3\hat{x}_{n-1} + 3\hat{x}_{n-2} - \hat{x}_{n-3})^2.
-\end{split}
-$$
+The Whittaker smoother attempts to fit a curve that represents the raw data, but is penalized if subsequent points vary too much [@Atzberger2011]. The Whittaker filter is a balancing between the residual to the original data and the "smoothness" of the fitted curve. It has two parameters: `lambda` controls the degree of smoothing and `differences` the order of the finite difference penalty. Default values are `lambda = 1` and `differences = 3`. Increasing `lambda` results in much smoother data. When dealing with land use/land cover classes that include both natural vegetation and agriculture, a strong smoothing can reduce the amount of noise in natural vegetation (e.g., forest) time series; however, higher values of `lambda` reduce the information present in agricultural time series, since they reduce the peak values of crop plantations.
 
-The filter is obtained by finding a new time series $\hat{x}$ whose points minimize the expression
-$$
-RSS+\lambda{}S\!S\!D,
-$$ 
-where $\lambda{}$, a scalar, works as an "smoothing weight" parameter. The minimization can be obtained by differentiating the expression with respect to $\hat{x}$ and equating it to zero. The solution of the resulting linear system of equations gives the filtered time series which, in matrix form, can be expressed as
-$$
-\hat{x} = ({\rm I} + \lambda {D}^{\intercal} D)^{-1}x,
-$$
-where ${\rm I}$ is the identity matrix and 
-$$
-D = \left[\begin{array}{ccccccc}
-1 & -3 & 3 & -1 & 0 & 0 &\cdots \\
-0 & 1 & -3 & 3 & -1 & 0 &\cdots \\
-0 & 0 & 1 & -3 & 3 & -1 & \cdots \\
-\vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots
-\end{array}
-\right]
-$$
-is the third order difference matrix. The Whitakker filter can be a large but sparse optimization problem, as we can note from $D$ matrix. 
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=3$ parameter."}
+# Take a NDVI time series of 16 years, apply Whittaker filter and plot the series
+point_whit <- sits_whittaker(point_ndvi, lambda = 3, differences = 5)
 
-Whittaker smoother has been used only recently in satellite image time series investigations. According to @Atzberger2011, the smoother has an advantage over other filtering techniques such as Fourier and wavelets as it does not assume signal periodicity. Moreover, the authors argue that is enables rapid processing of large amounts of data, and handles incomplete time series with missing values. 
-
-In the `sits` package, the Whittaker smoother has two parameters: `lambda` controls the degree of smoothing and `differences` the order of the finite difference penalty. The default values are `lambda = 1` and `differences = 3`. Users should be aware that increasing `lambda` results in much smoother data. When dealing with land use/land cover classes that include both natural vegetation and agriculture, a strong smoothing can reduce the amount of noise in natural vegetation (e.g., forest) time series; however, higher values of `lambda` reduce the information present in agricultural time series, since they reduce the peak values of crop plantations.
-
-The fact that it has only one parameter ($\lambda{}$) facilitates its calibration/comparison process. @Zhou2016 found that $\lambda=15$ gives the best result when compared with $\lambda=2$. Larger values of $\lambda{}$ produces smoother results.
-
-```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=1$ parameter."}
-# Take EVI band of the first sample data set
-point.tb <- sits_select_bands(prodes_226_064[1,], evi)
-# apply Whitaker filter
-point_whit.tb <- sits_whittaker(point.tb)
-# plot the series
-sits_merge(point_whit.tb, point.tb) %>% sits_plot()
+point_whit %>% 
+  sits_merge(point_ndvi) %>% 
+  sits_plot()
 ```
 
 ## Envelope filter
 
-This filter can generate a time series corresponding to the superior (inferior) bounding of the input signal. This is accomplished through a convoluting window (odd length) that attributes to the point $i$, in the resulting time series, the maximum (minimum) value of the points in the window. The $i$ point corresponds to the central point of the window. It can be defined as
-$$
-u_i=\max_{k}{(\{x_{k}:\left|i-k\right|\le{}1\})},
-$$
-whereas an lower dilation is obtained by
-$$
-l_i=\min_{k}{(\{x_{k}:\left|i-k\right|\le{}1\})}.
-$$
-Here, $x$ is the input time series and, $k$ and $i$ are vector indices.
-
-The `sits_envelope()` can combine both maximum and minimum window sequentially. The function can receive a string sequence with `"U"` (for maximization) and `"L"` (for minimization) characters passed to its parameter. A repeated sequence of the same character is equivalent to one operation with a larger window. The sequential operations on the input time series produces the final filtered result that is returned.
-
-The envelope filter can be viewed through mathematical morphology lenses, a very common field in digital image processing [@Haralick1987]. Here the operations of `"U"` and `"L"` corresponds to the *dilation* and *erosion* morphological operators applied to univariate arrays [@Vavra2004]. Furthermore, the compounds operation of *opening* and *closing* can be obtained by `"UL"` and `"LU"`, respectively. This technique has been applied on time series analysis in other fields [@Accardo1997] but, for our knowledge, there is no application in satellite image time series literature.
+This filter can generate a time series corresponding to the superior (inferior) bounding of the input signal. The filter does a convolution of the signal with a window of odd length; the result is the maximum (minimum) value of the points in the window. The `sits_envelope()` function can combine both maximum and minimum window sequentially. The function receives a string sequence with `"U"` (for maximization) and `"L"` (for minimization) characters passed to its parameter. A repeated sequence of the same character is equivalent to one operation with a larger window. The sequential operations on the input time series produces the final filtered result that is returned. The envelope filter is a mathematical morphology operation, where the operators `"U"` and `"L"` corresponds to the *dilation* and *erosion* morphological operators applied to univariate arrays [@Vavra2004]. Furthermore, the compounds operation of *opening* and *closing* can be obtained by `"UL"` and `"LU"`, respectively. This technique has been applied on time series analysis in other fields [@Accardo1997]. 
 
 In the following example we can see an application of `sits_envelope()` function. There, we performs the *opening filtration* and *closing filtration* introduced by @Vavra2004. The correspondent operations sequence are `"ULLULUUL"` and `"LUULULLU"`.
 
@@ -339,50 +278,24 @@ point_cf.tb <- sits_ndvi_arima_filter(point.tb, apply_whit = FALSE)
 sits_merge(point_cf.tb, point.tb) %>% sits_plot()
 ```
 
-#Pre-processing for sample quality control
 
-One of the key challenges when using samples to train machine learning classification models is assessing their quality. Noisy and imperfect training samples can have a negative effect on classification performance [@Frenay2013].  Therefore, it is useful to apply pre-processing methods to improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Representative samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM).
+# Clustering for sample quality control
 
-## Hierachical clustering
+One of the key challenges of machine learning classification models is assessing the quality of the training data sets. It is useful to apply pre-processing methods to improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Good samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM). Full details of the cluster methods used in SITS are available in the vignette 'Clustering of Satellite Image Time Series with SITS'.
 
-Cluster analysis has been used for many purposes in satellite image time series literature ranging from unsupervised classification [@Petitjean2011], and pattern detection [@Romani2011]. Here, we are interested in the second use of clustering, using it as a way to improve training data to feed machine learning classification models. In this regard, cluster analysis can assist the identification of structural *time series patterns* and anomalous samples [@Romani2011], [@Chandola2009]. 
+## Hierarchical clustering
 
-Agglomerative hierarchical clustering (AHC) is a family of methods that groups elements using a distance function to associate a real value to a pair of elements. From this distance measure, we can compute the dissimilarity between any two elements from a data set. Depending on the distance functions and linkage criteria, the algorithm decides which two clusters are merged at each iteration. AHC approach is suitable for the purposes of samples data exploration due to its visualization power and ease of use [@Keogh2003]. Moreover, AHC does not require a predefined number of clusters as an initial parameter. This is an important feature in satellite image time series clustering since defining the number of clusters present in a set of multi-attribute time series is not straightforward [@Aghabozorgi2015].
-
-The main result of AHC method is a *dendrogram*. It is the ultrametric relation formed by the successive merges in the hierarchical process that can be represented by a tree. Dendrograms are quite useful to decide the number of clusters to partition the data. It shows the height where each merging happens, which corresponds to the minimum distance between two clusters defined by a *linkage criterion*. The most common linkage criteria are: *single-linkage*, *complete-linkage*, *average-linkage*, and *Ward-linkage*. Complete-linkage prioritizes the within-cluster dissimilarities, producing clusters with shorter distance samples. Complete-linkage clustering can be sensitive to outliers, which can increase the resulting intracluster data variance. As an alternative, Ward proposes a criteria to minimize the data variance by means of either *sum-of-squares* or *sum-of-squares-error* [@Ward1963]. Ward's intuition is that clusters of multivariate observations, such as time series, should be approximately elliptical in shape [@Hennig2015]. In `sits`, a dendrogram can be generated by `sits_dendrogram()`. The following codes illustrate how to create, visualize, and cut a dendrogram (for details, see `?sits_dendrogram()`).
-
-
-After creating a dendrogram, an important question emerges: *where to cut the dendrogram?* The answer depends on what are the purposes of the cluster analysis [@Hennig2015]. If one is interested in an unsupervised classification, it is common to use *internal validity indices*, such as silhouettes [@Rousseeuw1987], to help determine the best number of clusters. However, if one is interested in understanding the structure of a labeled data set, or in the identifying sample anomalies, as we are here, one can use *external validity indices* to assist the semi-supervised procedure in order to achieve the optimal correspondence between clusters and classes partitions. In this regard, we need to balance two objectives: get clusters as large as possible, and get clusters as homogeneous as possible with respect to their known classes. To help this process, `sits` provides `sits_dendro_bestcut()` function that computes an external validity index *Adjusted Rand Index* (ARI) for a series of different number of generated clusters. This function returns the height where the cut of the dendrogram maximizes the index.
-
-In this example, the height optimizes the ARI and generates $6$ clusters. The ARI considers any pair of distinct samples and computes the following counts:
-(a) the number of distinct pairs whose samples have the same label and are in the same cluster;
-(b) the number of distinct pairs whose samples have the same label and are in different clusters;
-(c) the number of distinct pairs whose samples have different labels and are in the same cluster; and
-(d) the number of distinct pairs whose samples have the different labels and are in different clusters.
-Here, $a$ and $d$ consist in all agreements, and $b$ and $c$ all disagreements. The ARI is obtained by:
-
-$$
-ARI=\frac{a+d-E}{a+d+b+c-E},
-$$
-where $E$ is the expected agreement, a random chance correction calculated by 
-$$
-E=(a+b)(b+c)+(c+d)(b+d).
-$$ 
-
-Unlike other validity indexes such as Jaccard (${J=a/(a+b+c)}$), Fowlkes-Mallows (${FM=a/(a^2+a(b+c)+bc)^{1/2}}$), and Rand (the same as ARI without the $E$ adjustment) indices, ARI is more appropriate either when the number of clusters is outweighed by the number of labels (and *vice versa*) or when the amount of samples in labels and clusters is imbalanced [@Hubert1985], which is usually the case.
+Agglomerative hierarchical clustering (AHC) is a family of methods that groups elements using a distance function to associate a real value to a pair of elements. From this distance measure, we can compute the dissimilarity between any two elements from a data set. Depending on the distance functions and linkage criteria, the algorithm decides which two clusters are merged at each iteration. The main tool of AHC is a *dendrogram*. It is the ultrametric relation formed by the successive merges in the hierarchical process that can be represented by a tree. Dendrograms are quite useful to decide the number of clusters to partition the data. In `sits`, AHC is implemented by the `sits_cluster_dendro` function, which generates a dendrogram and then determines a possible best cut using the *Adjusted Rand Index* (ARI). Based on this cut, it generates a set of clusters. The cluster information is appended as an additional column of the tibble that contains the samples. 
 
 ```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
 # take a set of patterns for 2 classes
 # create a dendrogram object, plot, and get the optimal cluster based on ARI index
-clusters.tb <- sits_cluster(cerrado_2classes, bands = c("ndvi", "evi"))
-
+clusters.tb <- sits_cluster_dendro(cerrado_2classes, bands = c("ndvi", "evi"))
 # show clusters samples frequency
 sits_cluster_frequency(clusters.tb)
 ```
 
-Note in this example that almost all clusters has a predominance of either "Cerrado" or "Pasture" classes with the exception of cluster $3$. The contingency table plotted by `sits_cluster_frequency()` shows how the samples are distributed across the clusters and helps to identify two kinds of confusions. The first is relative to those small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$), while the second is relative to those samples in non-dominated clusters (*e.g.* cluster $3$). These confusions can be an indication of samples with poor quality, an inadequacy of selected parameters for cluster analysis, or even a natural confusion due to the inherent variability of the land classes.
-
-The result of the `sits_cluster` operation is a `sits_tibble` with one additional column, called "cluster". Thus, it is possible to remove clusters with mixed classes using standard `R` such as those in the `dplyr` package. In the example above, removing cluster $3$ can be done using the `dplyr::filter` function.
+After the clusters have been determined, the function `sits_cluster_frequency()` shows how the samples are distributed across the clusters. It helps to identify two problems: (a) small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$); and (b) samples in mixed  clusters (*e.g.* cluster $3$). These confusions can be an indication of samples with poor quality, an inadequacy of selected parameters for cluster analysis, or even a natural confusion due to the inherent variability of the land classes. Since the result of the `sits_cluster` operation is a `sits_tibble` with one additional column, called "cluster",  it is possible to remove clusters with mixed classes using standard `R` fucntions such as those in the `dplyr` package. In the example above, removing cluster $3$ can be done using the `dplyr::filter` function.
 
 ```{r}
 # remove cluster 3 from the samples
@@ -392,137 +305,41 @@ clusters_new.tb <- dplyr::filter(clusters.tb, cluster != 3)
 sits_cluster_frequency(clusters_new.tb)
 ```
 
-The resulting clusters still contained mixed labels, possibly resulting from outliers. In this case, users may want to remove the outliers and leave only the most frequent class. To do this, one can use `sits_cluster_clean()`, which removes all minority samples, as shown below..
+The resulting clusters still contain mixed labels, possibly resulting from outliers. In this case, users may want to remove the outliers and leave only the most frequent class. To do this, one can use `sits_cluster_clean()`, which removes all minority samples, as shown below. The resulting set of samples can be used for classification, as discussed in the "machine learning" section.
 
 ```{r}
 # clear clusters, leaving only the majority class in each cluster
-cleaned.tb <- sits_cluster_clean(clusters.tb)
+cleaned.tb <- sits_cluster_clean(clusters_new.tb)
 # show clusters samples frequency
 sits_cluster_frequency(cleaned.tb)
 ```
 
 ## Self-organizing maps
 
-Self-organizing maps is a dimensionality reduction technique [@Kohonen2001]. High-dimensional data is mapped into two dimensions, keeping the topological relations between data patterns. This allows users to visualize and assess the structure of the input dataset. For quality control of the training data, `sits` uses a SOM clustering method, whose input is a dataset of time series samples. Package kohonen [@Wehrens2018] is used as basis to run SOM.
+As an alternative for hierachical clustering for quality control of training samples, SITS provides a clustering technique based on self-organizing maps (SOM). SOM is a dimensionality reduction technique [@Kohonen2001], where high-dimensional data is mapped into two dimensions, keeping the topological relations between data patterns. The input data is a set of tranining samples which are typically of a high-dimension. For example, a time series of 25 instances of 4 spectral bands is a 100-dimensional data set. The output layer is a 2D grid of neurons, each associated to a weight vector of the same dimension as the input space. The general idea of SOM-based clustering is that, by projecting the high-dimensional data set of training samples into a 2D map, good quality samples of each class should be close together in the resulting map. 
 
-The output layer comprises a 2D grid of neurons, each associated to a weight vector of the same dimension as the input space. The 2D grid of neurons is initialized randomly. Then, for each time series sample, the algorithm finds the 2D grid neuron which has the smallest distance, based on its weight vector. After the match, the neuron's weight vector and those of its neighbors are then updated. After all training samples are associated with neurons, each neuron is labeled using a majority vote, taking the most frequent class from the samples associated with it. In this way, SOM splits the output space into regions. It is expected that good quality samples of each class should be close together in the resulting map. This allows using SOM to detect and remove outliers. 
+The process of clustering  with SOM is done by `sits_cluster_som()`. It creates a self-organizing map. First, a 2D grid of neurons is initialized randomly. Then, for each time series sample, the algorithm finds the neuron which has the smallest distance to the sample, based on its weight vector. After the match, the neuron's weight vector and those of its neighbors are then updated. After all training samples are associated with neurons, each neuron is labeled using a majority vote, taking the most frequent class from the samples associated with it. In this way, SOM splits the output space into regions.  This allows using SOM to detect and remove outliers. 
 
-To increase the reliability of quality control procedures, the SOM clustering can be  executed several times. Using this iterative procedure, we computed the probability that a sample belongs to each of the resulting clusters. From these probabilities, we analyzed the separability of samples with similar phenological patterns and decided which samples were to be discarded.
+To increase the reliability of quality control procedures, the SOM clustering can be executed several times. Using this iterative procedure, the algorithm computes the probability that a sample belongs to each of the resulting clusters. From these probabilities, samples with similar phenological patterns are grouped together. Samples whose set of probabilities has a high variance are discarded.
 
-For each neuron $j$, SOM uses a vector of weights, $w_j=[w_{j1},\ldots,w_{jn} ]$,that has the same dimension of the input vector of time series samples $x(t)=[x(t)_1,\ldots,x(t)_n ]$, where $n$ is the time series dimension. In the begining, the neurons are randomly initialized.
-At each training step, a time series sample $x(t)$ is presented to the network in order to find the neuron whose weight vector has the smaller distance to the sample. Distance metrics $D_{j}$ compute the distance between input sample $x(t)$ and the weight vector of a neuron. This is computed for each neuron $j$ in the output layer. The most commonly used metric is Euclidean distance, shown below.
-
-$$
-D_{j}=\sum_{i=1}^{n}{\sqrt{(x(t)_i{-}w_{ji})^{2}}}.
-$$
-
-The neuron that contains the shortest distance is declared the winner neuron, defined here as ${b}$, also know as Best Matching Unit (BMU):
-
-
-$$
- d_{b}= min \left\{D_1,\ldots, D_J \right\}.
-$$
-
-Once the BMU is selected for a given sample, its neighborhood must be updated. The weight of each neighbour is adjusted according to  the similarity with input vector.
-The equation for updating the weight vector is given by:
-
-$$
- w_{j}(t{+}1)=  w_{j}(t){+}\alpha(t)* h_{b,j}(t) [x(t)_i{-}w_{j}(t)],
-$$
-where $\alpha(t)$ is the learning rate, which must be set as $0<\alpha(t)<1$, and $h_{b,j}(t)$ is a neighbourhood function.
-
-After producing the SOM map, it is necessary to separate the samples in groups in order to label the neurons. In this step, each neuron is labeled using majority vote from  the labels of its samples. As a result of this, a sample belonging to a neuron with a different label will have its own label updated to the label of the neuron. When the neuron has no samples, it will receive the label "Noclass". Clusters are then composed by all neurons that belong to the same label.
-
-```{r}
-data("samples_mt_9classes", package = "sits")
-
-```
-```{r}
-data.tb <- samples_mt_9classes
-```
-
+The package `sits` provides the convenience function `sits_cluster_som` to perform clustering using SOM, This function uses self-organized maps to find clusters in satellite image time series for quality control of the  samples. It calls two functions: `sits_som_map` to generate the som map and `sits_clean_samples_som` to produce a cleaned set of samples. The parameters "grid_xdim", "grid_ydim", "distance", "alpha", and "iterations" are used by `sits_som_map` to control how the Kohonen map is generated. The parameters "prob_label_change" and "min_cluster_prob" control how the good quality samples are selected by the function `sits_clean_samples_som`, based on the Kohonen map.
 
 ```{r}
 # clustering time series using SOM
-som_cluster.tb <-
-    sits::sits_cluster_som(
-        data.tb,
-        grid_xdim = 25,
-        grid_ydim = 25,
-        rlen = 100,
-        distance = "euclidean",
-        mode = "pbatch",
-        iterations = 2
-
-    )
 # return a tibble with all samples and which cluster it belongs
+som_cluster.tb <-
+    sits::sits_cluster_som(prodes_226_064,
+        grid_xdim = 10,
+        grid_ydim = 10,
+        alpha = 1.0,
+        distance = "euclidean",
+        iterations = 50,
+        prob_label_change = 0.8, 
+        min_cluster_prob = 0.6)
+
 
 ```
-
-The function `sits_plot_som()` plots the kohonen map. The neurons are labelled using the majority voting.
-```{r}
-sits_plot_som(som_cluster.tb)
-```
-
-The process of clustering  with SOM can be performed several times to evaluate the reliability of each sample. This can be executed by `sits_cluster_som()`. This procedure returns a list. This list returns a tibble with statistics of each sample and neuron and its neighbours in each iteration and a summarized data.frame that contains the probabilities of each sample belonging to a cluster.
-
-
-For each sample, a tibble contains a sample identifier, its original label, the label of the neuron, the id of the neuron, and the probability of the sample belonging to the neuron's label and the number of the iteration that was obtained the information about the cluster. The field probability was computed  through bayesian filter using the probability of the samples belongs to a cluster and its neighbourhood on the kononen map.
-```{r}
-statistics_about_som_cluster <- som_cluster.tb$statistics_samples
-detail_samples.tb <- statistics_about_som_cluster$samples
-detail_samples.tb
-```
-
-For each neuron, a tibble contains a neuron identifier,  the label of the neuron, the frequency and labels of each neuron neighbor, the number of neigbours that a neuron contain and the number of the iteration that was obtained each information.
-
-```{r}
-detail_neurons.tb <- statistics_about_som_cluster$neuron
-detail_neurons.tb
-```
-
-Another element returned by `sits_cluster_som` about the statistics is a contingency table, that contains the probabilities of each sample belonging to a cluster. It is a tibble where each row contains a sample identifier, its original label, the label of the neuron, and the probability of the sample belonging to the neuron's label, according to the frequency in the different repetitions of SOM. Since we have the probability calculated through the Bayesian filter for each sample in each iteration, the median is calculated to obtain the total probability of sample $s_k$ belonging to a cluster. From these results, the user can make decisions to improve classification, such as manually removing samples of dataset. 
-```{r}
-summarized_sample_cluster.tb <- statistics_about_som_cluster$cluster_sample_probability
-summarized_sample_cluster.tb
-```
-
-From the statistics obtained from function `sits_cluster_som`, a new dataset can be generated removing the samples with bad quality.
-The function `sits_clean_samples_som()` remove the bad samples based on the probability a samples belongs to a cluster. 
-
-```{r}
-new_samples.tb <- sits_clean_samples_som(som_cluster.tb)
-new_samples.tb
-```
-
-To verify the quality of the clusters generated by SOM, a confusion matrix, the overall accuracy and the statistics about each class is evaluated.  
-```{r}
-cluster_overall <- sits_evaluate_cluster(som_cluster.tb)
-cluster_overall$confusion_matrix
-```
-Besides that, a table showing how a table showing how pure the cluster is computed.
-```{r}
-cluster_overall$mixture_cluster
-```
-
-Finally, a graphic showing the mixture within each cluster is presented.
-```{r}
-sits_plot_cluster_info(cluster_overall, "Confusion by cluster")
-```
-A class can be represent by several patterns. The function `sits_evaluate_som_subgroups()` takes a cluster and estimates how many subgroups it contains, using the hierachical clustering a cluster is partioned in several subgorups. A tibble of samples with new column showing the subgroups is returned.
-
-```{r}
-subgroups <- sits_evaluate_som_subgroups(som_cluster.tb)
-subgroups$samples_subgroups.tb
-
-```
-The function `sits_plot_subgroups()`is used to visualize the signature of each subgroup.
-
-```{r}
-sits_plot_subgroups(subgroups, cluster = "Soy_Corn", band = "ndvi")
-```
-
-
+For more details on SOM clustering, please see the vignette "Clustering of Satellite Image Time Series with SITS".
 
 # Machine learning classification
 

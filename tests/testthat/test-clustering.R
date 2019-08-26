@@ -5,7 +5,7 @@ test_that("Creating a dendrogram and clustering the results",{
     library(flexclust)
     library(dtwclust)
     data(cerrado_2classes)
-    clustered.tb <- sits_cluster(cerrado_2classes, bands = c("ndvi", "evi"), silent = TRUE)
+    clustered.tb <- sits_cluster_dendro(cerrado_2classes, bands = c("ndvi", "evi"), silent = TRUE)
     expect_equal(length(dplyr::distinct(clustered.tb, cluster)$cluster), 6)
 
     result.mtx   <- sits_cluster_frequency(clustered.tb)

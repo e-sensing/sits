@@ -2,30 +2,40 @@ context("Evaluate samples using SOM")
 test_that("Creating clustering using Self-organizing Maps", {
     #skip_on_cran()
     data("cerrado_2classes")
-    som_cluster.tb <-
+    new_samples <-
         sits_cluster_som(
             cerrado_2classes,
             grid_xdim = 5,
             grid_ydim = 5,
-            rlen = 10,
             alpha = 1,
             distance = "euclidean",
-            mode =  "online",
             iterations = 2
         )
-    expect_equal(length(names(som_cluster.tb$som_properties)), 17)
+    expect_true("probability" %in% names(new_samples))
 
-    sits_plot_som(som_cluster.tb)
+    som_map <-
+        sits_som_map(
+            cerrado_2classes,
+            grid_xdim = 5,
+            grid_ydim = 5,
+            alpha = 1,
+            distance = "euclidean",
+            iterations = 4
+        )
 
-    new_samples.tb <- sits_clean_samples_som(som_cluster.tb)
-    expect_true("probability" %in% names(new_samples.tb))
+    expect_equal(length(names(som_map$som_properties)), 17)
 
-    cluster_overall <- sits_evaluate_cluster(som_cluster.tb)
+    sits_plot_som(som_map)
+
+    cleaned_samples <- sits_clean_samples_som(som_map)
+    expect_true("probability" %in% names(cleaned_samples))
+
+    cluster_overall <- sits_evaluate_cluster(som_map)
     expect_equal(length(names(cluster_overall$confusion_matrix)), 6)
 
-    sits_plot_cluster_info(cluster_overall, "Confusion by cluster")
+    sits_plot_som_clusters(cluster_overall, "Confusion by cluster")
 
-    subgroups <- sits_evaluate_som_subgroups(som_cluster.tb)
+    subgroups <- sits_evaluate_som_subgroups(som_map)
     expect_true("samples_subgroups.tb" %in% names(subgroups))
     expect_true("som_properties" %in% names(subgroups))
 

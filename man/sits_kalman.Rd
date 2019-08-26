@@ -17,3 +17,18 @@ A tibble with smoothed sits time series.
 \description{
 A simple Kalman filter implementation.
 }
+\examples{
+\donttest{
+# Read a set of samples of forest/non-forest in Amazonia
+# This is an area full of clouds
+data(prodes_226_064)
+# Select the NDVI band of the first point
+point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
+# Apply the cloud filter
+point_kf.tb <- sits_kalman(point_ndvi.tb)
+# Merge the filtered with the raw data
+point2.tb <- sits_merge (point_ndvi.tb, point_kf.tb)
+# Plot the result
+sits_plot (point2.tb)
+}
+}

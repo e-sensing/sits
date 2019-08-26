@@ -4,7 +4,7 @@
 \alias{sits_sgolay}
 \title{Smooth the time series using Savitsky-Golay filter}
 \usage{
-sits_sgolay(data.tb = NULL, order = 3, scale = 1,
+sits_sgolay(data.tb = NULL, order = 3, length = 5, scaling = 1,
   bands_suffix = "sg")
 }
 \arguments{
@@ -12,7 +12,9 @@ sits_sgolay(data.tb = NULL, order = 3, scale = 1,
 
 \item{order}{Filter order (integer).}
 
-\item{scale}{Time scaling (integer).}
+\item{length}{Filter length (must be odd)}
+
+\item{scaling}{Time scaling (integer).}
 
 \item{bands_suffix}{Suffix to be appended to the smoothed filters.}
 }
@@ -22,14 +24,16 @@ A tibble with smoothed sits time series.
 \description{
 The algorithm searches for an optimal polynomial describing the warping.
 The degree of smoothing depends on the filter order (usually 3.0).
-Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing.
+The user can set the order of the polynomial using the parameter `order` (default = 3), +
+the size of the temporal window with the parameter `length` (default = 5),
+and the temporal expansion with the parameter `scaling`.
 }
 \examples{
 \donttest{
 #' # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the Savitsky Golay smoother
-point_sg.tb <- sits_sgolay (point_ndvi, order = 3, scale = 2)
+point_sg.tb <- sits_sgolay (point_ndvi, order = 3, length  = 5)
 # Plot the two points to see the smoothing effect
 sits_plot(sits_merge(point_ndvi, point_sg.tb))
 }

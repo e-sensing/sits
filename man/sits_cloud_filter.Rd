@@ -5,7 +5,7 @@
 \title{cloud filter}
 \usage{
 sits_cloud_filter(data.tb = NULL, cutoff = 0.25, bands_suffix = "cf",
-  apply_whit = FALSE, lambda_whit = 1)
+  apply_whit = TRUE, lambda_whit = 1)
 }
 \arguments{
 \item{data.tb}{A tibble with time series data and metadata with only the "ndvi" band.}
@@ -41,7 +41,6 @@ point_cld.tb <- sits_cloud_filter(point_ndvi.tb)
 point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 # Plot the result
 sits_plot (point2.tb)
-
 }
 }
 \author{

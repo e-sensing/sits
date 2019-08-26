@@ -2,12 +2,12 @@
 % Please edit documentation in R/sits_kohonen.R
 \name{sits_evaluate_cluster}
 \alias{sits_evaluate_cluster}
-\title{Metrics by cluster}
+\title{Cluster evaluation}
 \usage{
-sits_evaluate_cluster(data.tb)
+sits_evaluate_cluster(som_cluster)
 }
 \arguments{
-\item{data.tb}{Tibble containg information about evaluation of samples.}
+\item{som_cluster}{Kohonen map and associated information created by \code{\link[sits]{sits_som_map}}}
 }
 \value{
 Returns the confusion matrix and a table with percentage of mixture between the clusters.
@@ -18,12 +18,12 @@ the percentage of mixture between a cluster and others.
 }
 \examples{
 \donttest{
-#' # perform kohonen to associate a sample to  a cluster
-koh <- sits_kohonen(samples_mt_6bands, bands = NULL, grid_xdim = 15, grid_ydim = 15)
+# Produce a Kohonen map for the time series samples
+som_cluster <- sits_som_map(prodes_226_064)
 # Extract metrics about the clusters
-confusion_by_cluster <- sits_evaluate_cluster(koh$info_samples)
+confusion_by_cluster <- sits_evaluate_cluster(som_cluster)
 # Show confusion matrix
-confusion_by_cluster$confusion_matrix
+confusion_matrix <- confusion_by_cluster$confusion_matrix
 }
 }
 \author{

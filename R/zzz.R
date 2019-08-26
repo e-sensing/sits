@@ -20,7 +20,7 @@ sits.env$model_formula <- "log"
 # Include the following global variables in the sits package
 utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V1", "Index",
                          "from", "value", "variable", "cond",
-                         "med", "qt25", "qt75", "cluster_id", "x", "y",
+                         "med", "qt25", "qt75", "cluster_id", "x", "y", "median",
                          "longitude", "latitude", "label", "cube", "coverage", "service",
                          "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
@@ -28,6 +28,10 @@ utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V1", "Index"
                          "segr", "frac", "total", "n", "rows.lst", "whit",
                          "blue", "red", "green", "nir", "mir", "swir", "ndvi", "evi", "model_formula",
                          "distance", "predicted", "new_values", "sum_area", "area_vec", "area",
+                         "id_sample", "neuron_label", "percentage_s", "id_neuron", "neuron_class",
+                         "label_neighbor_neuron", "p_Neighbor", "desc", "percentage_n", "iteration",
+                         "samples_label", "label_subgroup", "cluster_name", "index_time", "dup_neuron",
+                         "probability", "total_probability", "radius",
                          "Alig.N", "matches", "original_row", "reference", "cluster", ".data"))
 #' @import zoo
 #' @importFrom dtw symmetric1 symmetric2

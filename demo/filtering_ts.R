@@ -4,41 +4,35 @@
 library(sits)
 library(magrittr)
 
-# Get data from a mixed LANDSAT 8/MODIS cube over a cloudy area in Amazonia
-# This data comes from areas classified by the PRODES project (manual interpretation)
-# This is a cloudy area which represents a good test for filtering methods
+# Select a data set containing a sits tibble
+# with time series samples from Brazilian Mato Grosso State
+# (Amazon and Cerrado biomes).
 
-data(prodes_226_064)
-# Plot the NDVI band distribution for each label
-sits_plot(sits_select_bands(prodes_226_064, ndvi))
+samples <- inSitu::br_mt_1_8K_9classes_6bands
 
-#cross_validate raw series
-conf.tb <- sits_kfold_validate (prodes_226_064, folds = 2)
-
-#evaluate the accuracy of the classification
-sits_conf_matrix(conf.tb)
-
-# relabel and see new assessment with two classes only
-prodes_relabel.lst <-  tibble::lst("Forest" = "Forest",
-                                   "Deforestation_2014"  = "NonForest",
-                                   "Deforestation_2015" = "NonForest",
-                                   "Pasture"  = "NonForest")
-
-cat ("# =========== UNFILTERED DATA =============\n")
-
-sits_conf_matrix(conf.tb, prodes_relabel.lst)
+cat("# =========== UNFILTERED DATA =============\n")
+samples %>%
+    sits_select_bands(ndvi, evi, nir, mir) %>%
+    sits_kfold_validate(folds = 4) %>%
+    sits_conf_matrix()
 
 cat ("# =========== SAVITKSY - GOLAY FILTER =============\n")
 
 # test savitsky golay filter
-prodes_sg.tb <- sits_sgolay(prodes_226_064, order = 2, scale = 1)
+samples %>%
+    sits_select_bands(ndvi, evi, nir, mir) %>%
+    sits_sgolay(order = 3, length = 5, scaling = 1) %>%
+    sits_kfold_validate(folds = 4) %>%
+    sits_conf_matrix()
+
+prodes_sg.tb <- sits_sgolay(prodes_226_064, order = 3, length = 5, scaling = 1)
 
 # compare the raw data with the Savistky Golay filter
-sg1 <- sits_sgolay(prodes_226_064[1,], order = 2, scale = 1)
+sg1 <- sits_sgolay(prodes_226_064[1,], order = 3, length = 5, scaling = 1)
 
 sg1 %>%
      sits_merge(prodes_226_064[1,]) %>%
-     sits_select_bands(ndvi, ndvi.sg) %>%
+     sits_select_bands(evi, evi.sg) %>%
      sits_plot()
 
 conf_sg.tb <- sits_kfold_validate (prodes_sg.tb, folds = 2)

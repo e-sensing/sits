@@ -10,21 +10,23 @@
 #' }
 #' Function sits_plot_som plots a classified kohonen map. A set of neurons
 #' with same category corresponds to a same cluster.
-#' @param  koh  Data to be plotted (must be a kohonen object).
-#' @param  type Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.
-#' @param  whatmap What data layer will be plotted.
+#' @param  koh        Kohonen map produced by "sits_som_map" function
+#' @param  type       Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.
+#' @param  whatmap    What data layer will be plotted.
 #' @examples
 #' \donttest{
+#' # Produce a cluster map
+#' som_cluster <- sits_som_map(prodes_226_064)
 #' # Plot kohonen map with vector of weight
-#' sits_plot_som(koh, type = "codes")
+#' sits_plot_som(som_cluster, type = "codes")
 #' # Plot kohonen map showing where the samples were allocated
-#' sits_plot_som(koh, type = "mapping")
+#' sits_plot_som(som_cluster, type = "mapping")
 #' }
 #'
 #' @export
 sits_plot_som <- function(koh, type = "codes", whatmap = 1)
 {
-    if (type == "mapping"){
+    if (type == "mapping") {
         graphics::plot(koh$som_properties,  bgcol = koh$som_properties$paint_map , "mapping", whatmap = whatmap)
     } else{
         graphics::plot(koh$som_properties,  bgcol = koh$som_properties$paint_map , "codes", whatmap = whatmap)
@@ -48,22 +50,27 @@ sits_plot_som <- function(koh, type = "codes", whatmap = 1)
 }
 
 #' @title  Plot information about clusters
-#' @name   sits_plot_cluster_info
+#' @name   sits_plot_som_clusters
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
 #' @description Plot a bar graph with informations about each cluster.
 #' The percentage of mixture between the clusters.
 #'
-#' @param data       Table containing the percentage of mixture between the clusters.
+#' @param data       Table containing the percentage of mixture between the clusters
+#'                   (produced by \code{\link[sits]{sits_evaluate_cluster}})
 #' @param text_title Title of plot. Default is "Cluster".
 #'
 #' @examples
 #' \donttest{
+#' # Produce a cluster map
+#' som_cluster <- sits_som_map(prodes_226_064)
+#' # Evaluate the clusters
+#' cluster_overall <- sits_evaluate_cluster(som_cluster)
 #' # Plot confusion between the clusters
-#' sits_plot_cluster_info(confusion_by_cluster, "Confusion by cluster")
+#' sits_plot_som_clusters(cluster_overall, "Confusion by cluster")
 #' }
 #' @export
-sits_plot_cluster_info <- function(data, text_title = " Cluster ")
+sits_plot_som_clusters <- function(data, text_title = " Cluster ")
 {
     data <- data$mixture_cluster
     labels <- data$original_class
@@ -81,36 +88,49 @@ sits_plot_cluster_info <- function(data, text_title = " Cluster ")
         )  +
         ggplot2::theme_minimal() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 60, hjust = 1)) +
-        ggplot2::labs(x = "Clusters", y = "Percentage of mixture", colour = "cluster")+
+        ggplot2::labs(x = "Clusters", y = "Percentage of mixture", colour = "cluster") +
         ggplot2::ggtitle(text_title)
 
     return(p)
 }
 
-#' @title  Plot the patterns of subgroups
-#' @name   sits_plot_subgroups
+#' @title  Plot the patterns of SOM subgroups (only NDVI and EVI time series)
+#' @name   sits_plot_som_subgroups
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
 #' @description Plot the average pattern of subgroups from  weights of neurons labelled.
 #' Each neuron has a weight which can be represent a set of time series samples. Neurons of same
 #' category or label form a cluster, but the neurons within a cluster can have different patterns.
-#' The plots are also saved into files named "class_neurons<class_neuron>_plot_EVI<subgroup>.png".
-#' @param  neurons_subgroup  The list contain the EVI and NDVI time series (weight of each neuron) by class.
+#'
+#' @param  subgroups  The list contain the EVI and NDVI time series (weight of each neuron) by class.
+#' @param  label      Label to be plotted
+#' @param  band       Band to be plotted
+#' @examples
+#' \donttest{
+#' # Produce a cluster map
+#' som_cluster <- sits_som_map(prodes_226_064)
+#' # Evaluate and produce information on the subgroups
+#' subgroups <- sits_evaluate_som_subgroups(som_cluster)
+#' # Plot the resulting subgroups
+#' sits_plot_som_subgroups(subgroups, cluster = "Forest", band = "ndvi")
+#' }
+#'
 #' @export
-sits_plot_subgroups <- function(subgroups.tb, cluster = cluster_name, band = "ndvi")
+sits_plot_som_subgroups <- function(subgroups, label, band = "ndvi")
 {
-    samples_current_class.tb <- dplyr::filter(subgroups.tb$samples_subgroups.tb, subgroups.tb$samples_subgroups.tb$som_label == cluster)
+    samples_current_class.tb <- dplyr::filter(subgroups$samples_subgroups.tb,
+                                              subgroups$samples_subgroups.tb$som_label == label)
 
     #Get the amount of subclasses
     names_subgroups <- sort(unique(samples_current_class.tb$label_subgroup))
     number_of_subgroups <- length(unique(samples_current_class.tb$label_subgroup))
 
     #Put this value in a dynamic way
-    if(band == "ndvi")
-        codes <- subgroups.tb$som_properties$codes$ndvi
+    if (band == "ndvi")
+        codes <- subgroups$som_properties$codes$ndvi
 
-    if(band == "evi")
-        codes <- subgroups.tb$som_properties$codes$evi
+    if (band == "evi")
+        codes <- subgroups$som_properties$codes$evi
 
     plot.vec <- vector()
     for (i in 1:number_of_subgroups)
@@ -120,15 +140,6 @@ sits_plot_subgroups <- function(subgroups.tb, cluster = cluster_name, band = "nd
 
         current_codes <- codes[get_neurons, ]
         time_series_current_subgroup.ts <- zoo::zoo(t(current_codes))
-
-        #Arrumar aqui quando tem 1 neuron só
-        # if (length(get_neurons) == 1)
-        # {
-        #     colnames(time_series_current_subgroup.ts) <- "V"
-        #     time_series_current_subgroup.ts <-
-        #         zoo::zoo((current_codes))
-        # }
-
 
         group_ts <-
             data.frame(

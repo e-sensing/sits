@@ -72,6 +72,7 @@ from the WTSS service.
 \examples{
 \donttest{
 # Read a single lat long point from a WTSS server
+
 wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
 point.tb <- sits_get_data (wtss_cube, longitude = -55.50563, latitude = -11.71557)
 sits_plot(point.tb)

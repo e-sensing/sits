@@ -1,33 +1,24 @@
 # satellite image time series package (SITS)
 # example of clustering using self-organizin maps
 library(sits)
-library(kohonen)
-
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#select the bands for classification
-if (!requireNamespace("inSitu", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE))
-        install.packages("devtools")
-    devtools::install_github("e-sensing/inSitu")
-}
-library(inSitu)
-
-#select the bands for classification
-samples <- inSitu::br_mt_2K_9classes_6bands
-
 
 #Clustering time series samples using self-organizing maps
-som_cluster.tb <-
+som_cluster <-
     sits_cluster_som(
-        samples,
-        grid_xdim = 20,
-        grid_ydim = 20,
+        prodes_226_064,
+        grid_xdim = 10,
+        grid_ydim = 10,
         rlen = 100,
         alpha = 1,
         distance = "euclidean",
         mode =  "pbatch",
-        iterations = 2
+        iterations = 100
     )
+
+
+
+
+
 
 sits_plot_som(som_cluster.tb)
 

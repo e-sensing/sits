@@ -1,14 +1,3 @@
-# ---------------------------------------------------------------
-#
-#  This file contain a list of time series filters
-#  As a rule, filters are functions that apply a 1D function to a
-#  time series and produce new values as a result
-#
-#  Most of the filters provides the generic method sits_apply to apply a
-#  1D generic function to a time series and specific methods for
-#  common tasks such as missing values removal and smoothing
-#
-# ---------------------------------------------------------------
 #' @title General function for filtering
 #' @name sits_filter
 #'
@@ -23,7 +12,7 @@
 #' @return A set of filtered time series
 #'
 #' @examples
-#'\donttest{
+#' \donttest{
 #' # Test the diffeent filters
 #' sits_plot(point_ndvi)
 #'
@@ -125,11 +114,10 @@ sits_filter <- function(data.tb, filter = sits_whittaker()) {
 #' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 #' # Plot the result
 #' sits_plot (point2.tb)
-#'
 #' }
 #' @export
 sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
-                              bands_suffix = "cf", apply_whit = FALSE, lambda_whit = 1.0){
+                              bands_suffix = "cf", apply_whit = TRUE, lambda_whit = 1.0){
     # backward compatibility
     if ("coverage" %in% names(data.tb))
         data.tb <- .sits_tibble_rename(data.tb)
@@ -283,6 +271,20 @@ sits_interp <- function(data.tb = NULL, fun = stats::approx, n = base::length, .
 #' @param data.tb      A sits tibble containing the original time series.
 #' @param bands_suffix The suffix to be appended to the smoothed filters.
 #' @return A tibble with smoothed sits time series.
+#' @examples
+#' \donttest{
+#' # Read a set of samples of forest/non-forest in Amazonia
+#' # This is an area full of clouds
+#' data(prodes_226_064)
+#' # Select the NDVI band of the first point
+#' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
+#' # Apply the cloud filter
+#' point_kf.tb <- sits_kalman(point_ndvi.tb)
+#' # Merge the filtered with the raw data
+#' point2.tb <- sits_merge (point_ndvi.tb, point_kf.tb)
+#' # Plot the result
+#' sits_plot (point2.tb)
+#' }
 #' @export
 sits_kalman <- function(data.tb = NULL, bands_suffix = "kf"){
     # backward compatibility
@@ -297,6 +299,76 @@ sits_kalman <- function(data.tb = NULL, bands_suffix = "kf"){
     }
     result <- .sits_factory_function(data.tb, filter_fun)
     return(result)
+}
+#' Compute the Kalman filter
+#'
+#' @param measurement                    A vector of measurements.
+#' @param error_in_measurement           A vector of errors in the measuments.
+#' @param initial_estimate               A first estimation of the measurement.
+#' @param initial_error_in_estimate      A first error in the estimation.
+#' @return                               A matrix of 3 columns estimate, error_in_estimate, and kalman_gain.
+.sits_kalman_filter <- function(measurement,
+                                error_in_measurement = NULL,
+                                initial_estimate = NULL,
+                                initial_error_in_estimate = NULL){
+    kg <- vector(mode = "logical", length = length(measurement) + 1)
+    est <- vector(mode = "logical", length = length(measurement) + 1)
+    e_est <- vector(mode = "logical", length = length(measurement) + 1)
+    #
+    # default values
+    if (is.null(initial_estimate) || is.na(initial_estimate)) {
+        initial_estimate <- base::mean(measurement, na.rm = TRUE)
+    }
+    if (is.null(initial_error_in_estimate) || is.na(initial_error_in_estimate)) {
+        initial_error_in_estimate <- base::abs(stats::sd(measurement, na.rm = TRUE))
+    }
+    if (is.null(error_in_measurement)) {
+        error_in_measurement <- rep(stats::sd(measurement, na.rm = TRUE), length.out = base::length(measurement))
+    }
+    #
+    # Compute the Kalman gain
+    # @param e_est    error in estimation
+    # @param e_mea    error in measurement
+    # @return         the Kalman gain
+    .KG <- function(e_est, e_mea){
+        return(e_est/(e_est + e_mea))
+    }
+    # Compute the KF current estimate
+    # @param kg        Kalman gain
+    # @param est_t1    previous estimate
+    # @param mea       measurement
+    # @return          current estimate
+    .EST_t <- function(kg, est_t1, mea){
+        est_t1 + kg * (mea - est_t1)
+    }
+    # Compute the KF error in the estimation
+    # @param kg        Kalman gain
+    # @param e_est_t1  previous error in estimation
+    .E_EST_t <- function(kg, e_est_t1){
+        (1 - kg) * e_est_t1
+    }
+    # add initial results
+    est[1] <- initial_estimate[1]
+    e_est[1] <- initial_error_in_estimate[1]
+    kg[1] <- NA
+    # compute
+    for (i in 2:(length(measurement) + 1)) {
+        kg[i] <- .KG(e_est[i - 1], error_in_measurement[i - 1])
+        m <- measurement[i - 1]
+        if (is.na(m)) {
+            m <- est[i - 1] # if the measurement is missing, use the estimation instead
+        }
+        est[i] <- .EST_t(kg[i], est[i - 1], m)
+        e_est[i] <- .E_EST_t(kg[i], e_est[i - 1])
+    }
+    # format the results: remove the row before the first measurement (t-1)
+    return(
+        list(
+            estimation = est[2:length(est)],
+            error_in_estimate = e_est[2:length(e_est)],
+            kalman_gain = kg[2:length(kg)]
+        )
+    )
 }
 
 #' @title Interpolation function of the time series in a sits tibble
@@ -441,6 +513,47 @@ sits_ndvi_arima_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0,
     result <- .sits_factory_function(data.tb, filter_fun)
 }
 
+#' @title Smooth the time series using Savitsky-Golay filter
+#'
+#' @name sits_sgolay
+#' @description  The algorithm searches for an optimal polynomial describing the warping.
+#' The degree of smoothing depends on the filter order (usually 3.0).
+#' The user can set the order of the polynomial using the parameter `order` (default = 3), +
+#' the size of the temporal window with the parameter `length` (default = 5),
+#' and the temporal expansion with the parameter `scaling`.
+#'
+#' @param data.tb       A tibble with time series data and metadata.
+#' @param order         Filter order (integer).
+#' @param length        Filter length (must be odd)
+#' @param scaling       Time scaling (integer).
+#' @param bands_suffix  Suffix to be appended to the smoothed filters.
+#' @return A tibble with smoothed sits time series.
+#' @examples
+#' \donttest{
+#' #' # Retrieve a time series with values of NDVI
+#' data(point_ndvi)
+#' # Filter the point using the Savitsky Golay smoother
+#' point_sg.tb <- sits_sgolay (point_ndvi, order = 3, length  = 5)
+#' # Plot the two points to see the smoothing effect
+#' sits_plot(sits_merge(point_ndvi, point_sg.tb))
+#' }
+#' @export
+sits_sgolay <- function(data.tb = NULL, order = 3,
+                        length = 5, scaling = 1, bands_suffix = "sg") {
+    # backward compatibility
+    if ("coverage" %in% names(data.tb))
+        data.tb <- .sits_tibble_rename(data.tb)
+    filter_fun <- function(data.tb) {
+        result.tb <- sits_apply(data.tb,
+                                fun = function(band) signal::sgolayfilt(band, p = order, n = length, ts = scale),
+                                fun_index = function(band) band,
+                                bands_suffix = bands_suffix)
+        return(result.tb)
+    }
+
+    result <- .sits_factory_function(data.tb, filter_fun)
+}
+
 #' @title Smooth the time series using Whittaker smoother
 #'
 #' @name sits_whittaker
@@ -466,7 +579,7 @@ sits_ndvi_arima_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0,
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the whittaker smoother
-#' point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0)
+#' point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0, differences = 3)
 #' # Plot the two points to see the smoothing effect
 #' sits_plot(sits_merge(point_ndvi, point_ws.tb))
 #' }
@@ -496,110 +609,6 @@ sits_whittaker <- function(data.tb = NULL, lambda    = 1.0, differences = 3, ban
     result <- .sits_factory_function(data.tb, filter_fun)
 }
 
-#' @title Smooth the time series using Savitsky-Golay filter
-#'
-#' @name sits_sgolay
-#' @description  The algorithm searches for an optimal polynomial describing the warping.
-#' The degree of smoothing depends on the filter order (usually 3.0).
-#' Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing.
-#'
-#' @param data.tb       A tibble with time series data and metadata.
-#' @param order         Filter order (integer).
-#' @param scale         Time scaling (integer).
-#' @param bands_suffix  Suffix to be appended to the smoothed filters.
-#' @return A tibble with smoothed sits time series.
-#' @examples
-#' \donttest{
-#' #' # Retrieve a time series with values of NDVI
-#' data(point_ndvi)
-#' # Filter the point using the Savitsky Golay smoother
-#' point_sg.tb <- sits_sgolay (point_ndvi, order = 3, scale = 2)
-#' # Plot the two points to see the smoothing effect
-#' sits_plot(sits_merge(point_ndvi, point_sg.tb))
-#' }
-#' @export
-sits_sgolay <- function(data.tb = NULL, order = 3, scale = 1, bands_suffix = "sg") {
-    # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    filter_fun <- function(data.tb) {
-        result.tb <- sits_apply(data.tb,
-                                fun = function(band) signal::sgolayfilt(band, p = order, ts = scale),
-                                fun_index = function(band) band,
-                                bands_suffix = bands_suffix)
-        return(result.tb)
-    }
 
-    result <- .sits_factory_function(data.tb, filter_fun)
-}
 
-#' Compute the Kalman filter
-#'
-#' @param measurement                    A vector of measurements.
-#' @param error_in_measurement           A vector of errors in the measuments.
-#' @param initial_estimate               A first estimation of the measurement.
-#' @param initial_error_in_estimate      A first error in the estimation.
-#' @return                               A matrix of 3 columns estimate, error_in_estimate, and kalman_gain.
-.sits_kalman_filter <- function(measurement,
-                          error_in_measurement = NULL,
-                          initial_estimate = NULL,
-                          initial_error_in_estimate = NULL){
-    kg <- vector(mode = "logical", length = length(measurement) + 1)
-    est <- vector(mode = "logical", length = length(measurement) + 1)
-    e_est <- vector(mode = "logical", length = length(measurement) + 1)
-    #
-    # default values
-    if (is.null(initial_estimate) || is.na(initial_estimate)) {
-        initial_estimate <- base::mean(measurement, na.rm = TRUE)
-    }
-    if (is.null(initial_error_in_estimate) || is.na(initial_error_in_estimate)) {
-        initial_error_in_estimate <- base::abs(stats::sd(measurement, na.rm = TRUE))
-    }
-    if (is.null(error_in_measurement)) {
-        error_in_measurement <- rep(stats::sd(measurement, na.rm = TRUE), length.out = base::length(measurement))
-    }
-    #
-    # Compute the Kalman gain
-    # @param e_est    error in estimation
-    # @param e_mea    error in measurement
-    # @return         the Kalman gain
-    .KG <- function(e_est, e_mea){
-        return(e_est/(e_est + e_mea))
-    }
-    # Compute the KF current estimate
-    # @param kg        Kalman gain
-    # @param est_t1    previous estimate
-    # @param mea       measurement
-    # @return          current estimate
-    .EST_t <- function(kg, est_t1, mea){
-        est_t1 + kg * (mea - est_t1)
-    }
-    # Compute the KF error in the estimation
-    # @param kg        Kalman gain
-    # @param e_est_t1  previous error in estimation
-    .E_EST_t <- function(kg, e_est_t1){
-        (1 - kg) * e_est_t1
-    }
-    # add initial results
-    est[1] <- initial_estimate[1]
-    e_est[1] <- initial_error_in_estimate[1]
-    kg[1] <- NA
-    # compute
-    for (i in 2:(length(measurement) + 1)) {
-        kg[i] <- .KG(e_est[i - 1], error_in_measurement[i - 1])
-        m <- measurement[i - 1]
-        if (is.na(m)) {
-            m <- est[i - 1] # if the measurement is missing, use the estimation instead
-        }
-        est[i] <- .EST_t(kg[i], est[i - 1], m)
-        e_est[i] <- .E_EST_t(kg[i], e_est[i - 1])
-    }
-    # format the results: remove the row before the first measurement (t-1)
-    return(
-        list(
-            estimation = est[2:length(est)],
-            error_in_estimate = e_est[2:length(e_est)],
-            kalman_gain = kg[2:length(kg)]
-        )
-    )
-}
+

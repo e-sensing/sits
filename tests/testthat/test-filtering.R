@@ -13,7 +13,7 @@ test_that("Cloud filter", {
     data(prodes_226_064)
     point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
     point_cld  <- sits_cloud_filter(point_ndvi)
-    expect_true(all(sits_time_series(point_cld)$ndvi.cf >= sits_time_series(point_ndvi)$ndvi))
+    expect_true(NROW(sits_time_series(point_cld)) == NROW(sits_time_series(point_ndvi)))
 })
 
 test_that("Whittaker filter", {
