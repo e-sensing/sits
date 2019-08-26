@@ -259,7 +259,7 @@ sits_som_map <- function(data.tb,
 #' \donttest{
 #' # Read a set of samples
 #' # Get a new subset of samples evaluated by clustering methods
-#' som_cluster <- sits_som_map(prodes_226_064, grid_xdim = 10, grid_ydim = 10, rlen = 100,
+#' som_cluster <- sits_som_map(prodes_226_064, grid_xdim = 10, grid_ydim = 10,
 #'        distance = "euclidean", iterations = 50)
 #' new_samples.tb <- sits_clean_samples_som(som_cluster)
 #' }
