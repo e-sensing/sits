@@ -29,6 +29,5 @@ test_that("Accuracy", {
 
     class.acc <- sits_accuracy_area(class.tb)
 
-    expect_equal(class.acc@accuracySummary$conf.int, 0.95)
-    expect_true(class.acc@accuracySummary$OverallAccuracy[[1]] <= 1)
+    expect_true(class.acc$OverallAccuracy <= 1)
 })
