@@ -87,8 +87,8 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
 #' produce more reliable accuracy estimates at 95% confidence level.
 #'
 #' This function performs an accuracy assessment of the classified, including
-#' Overall Accuracy, User's Accuracy, Produce's Accuracy, error matrix (confusion matrix),
-#' and estimated area according to [1-2].
+#' Overall Accuracy, User's Accuracy, Produce's Accuracy and error matrix (confusion matrix)
+#' according to [1-2].
 #'
 #' @references
 #' [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).
@@ -104,10 +104,8 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
 #' @param class.tb A sits tibble with a set of lat/long/time locations with known and trusted labels and
 #' with the result of classification method.
 #' @param area A list with the area of each label.
-#' @param rm.nosample If sum of columns and sum of rows of the error matrix are zero
-#' then remove class. Default is FALSE.
 #' @export
-sits_accuracy_area <- function(class.tb, area = NULL, rm.nosample = FALSE){
+sits_accuracy_area <- function(class.tb, area = NULL){
 
     # @title Asses accuracy and estimate area according to Olofsson
     # @author Alber Sanchez, \email{alber.ipia@@inpe.br}
@@ -156,7 +154,7 @@ sits_accuracy_area <- function(class.tb, area = NULL, rm.nosample = FALSE){
         
         return(
             list(error_matrix = error_matrix, area = area,
-                 confint95 = list( superior = Ahat_sup, inferior = Ahat_inf),
+                 confint95 = list(superior = Ahat_sup, inferior = Ahat_inf),
                  accuracy = list(overall = Ohat, user = Uhat, producer = Phat))
         )
     }
