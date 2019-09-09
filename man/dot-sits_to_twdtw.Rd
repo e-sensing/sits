@@ -4,10 +4,10 @@
 \alias{.sits_to_twdtw}
 \title{Export data to be used by the dtwSat package}
 \usage{
-.sits_to_twdtw(data.tb)
+.sits_to_twdtw(data)
 }
 \arguments{
-\item{data.tb}{A tibble in sits format with time series to be converted to TWTDW time series.}
+\item{data}{A tibble in sits format with time series to be converted to TWTDW time series.}
 }
 \value{
 A time series in TWDTW format (an object of the twdtwTimeSeries class).

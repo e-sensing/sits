@@ -91,20 +91,20 @@ sits_log <- function() {
 }
 
 #' @title Prints the error log
-#' @name sits_show_errors
+#' @name sits_log_show_errors
 #' @description Prints the errors log.
 #'
 #' @export
-sits_show_errors <- function() {
+sits_log_show_errors <- function() {
     file.show(sits.env$error_file)
 }
 
 #' @title Prints the debug log
-#' @name sits_show_debug
+#' @name sits_log_show_debug
 #' @description Prints the debug log.
 #'
 #' @export
-sits_show_debug <- function() {
+sits_log_show_debug <- function() {
     file.show(sits.env$debug_file)
 }
 

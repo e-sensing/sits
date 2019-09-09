@@ -34,53 +34,77 @@ sits_services <- function() {
     for (s in services) {
 
         if (s == "WTSS") {
-            tryCatch({
-                URL  <- .sits_server(s)
-                # obtains information about the available data cubes in the WTSS service
+            # find the URL of the WTSS service in the configuration file
+            URL  <- .sits_config_server(s)
+            # check if the service is running
+            wtss_ok <- .sits_wtss_check(URL)
+            # if service is running, describe it
+            if (wtss_ok) {
                 wtss.obj  <- wtss::WTSS(URL)
-            }, error = function(e){
-                msg <- paste0("WTSS service not available at URL ", URL)
-                .sits_log_error(msg)
-                message(msg)
-            })
+                cubes <- wtss::listCoverages(wtss.obj)
 
-            cubes <- wtss::listCoverages(wtss.obj)
+                cat(paste0("Service: \"", s,"\"\n"))
+                for (c_name in cubes) {
+                    cat(paste0("   Cube: \"", c_name, "\"\n"))
 
-            cat(paste0("Service: \"", s,"\"\n"))
-            for (c_name in cubes) {
-                cat(paste0("   Cube: \"", c_name, "\"\n"))
+                    # describe the data cube
+                    cb <- wtss::describeCoverage(wtss.obj, c_name)[[c_name]]
 
-                # describe the data cube
-                cb <- wtss::describeCoverage(wtss.obj, c_name)[[c_name]]
-
-                # retrieve information about the bands
-                band_info <- cb$attributes
-                attr <- as.data.frame(band_info)
-                bands <- as.vector(attr[,"name"])
-                cat(paste0("      Bands: \"", paste(bands, collapse = "\", \""), "\"\n"))
+                    # retrieve information about the bands
+                    band_info <- cb$attributes
+                    attr <- as.data.frame(band_info)
+                    bands <- as.vector(attr[,"name"])
+                    cat(paste0("  Bands: \"", paste(bands, collapse = "\", \""), "\"\n"))
+                }
             }
-        } else if (s == "SATVEG") {
-            cat(paste0("Service: \"", s,"\"\n"))
-            q <- paste0(s,"_cubes")
-            cubes <- sits.env$config[[q]]
+            else
+                message(paste0("Default WTSS service not running - please check configuration file"))
+        }
+        else if (s == "SATVEG") {
+            # check if the service is running
+            satveg_ok <- .sits_satveg_check()
+            # if service is running, describe it
+            if (satveg_ok) {
+                cat(paste0("Service: \"", s,"\"\n"))
+                q <- paste0(s,"_cubes")
+                cubes <- sits.env$config[[q]]
 
-            for (cb in cubes) {
-                cat(paste0("   Cube: \"", cb, "\"\n"))
-                q1 <- paste0(s, "_bands")
-                bands <- sits.env$config[[q1]][[cb]]
-                cat(paste0("      Bands: \"", paste(bands, collapse = "\", \""), "\"\n"))
+                for (cb in cubes) {
+                    cat(paste0("   Cube: \"", cb, "\"\n"))
+                    q1 <- paste0(s, "_bands")
+                    bands <- sits.env$config[[q1]][[cb]]
+                    cat(paste0("      Bands: \"", paste(bands, collapse = "\", \""), "\"\n"))
+                }
             }
+            else
+                message(paste0("Default SATVEG service not running - please check configuration file"))
+
         } else if (s == "EOCUBES") {
-            cat(paste0("Service: \"", s,"\"\n"))
+            # find the URL of the EOCUBES service in the configuration file
+            URL  <- .sits_config_server(s)
+            # check if the service is running
+            eocubes_ok <- .sits_eocubes_check(URL)
+            # if service is running, describe it
+            if (eocubes_ok) {
+                cat(paste0("Service: \"", s,"\"\n"))
 
-            remote.obj   <- EOCubes::remote(name = "eocubes")
-            cubes <- names(EOCubes::list_cubes(remote.obj))
+                remote.obj   <- EOCubes::remote(name = "eocubes")
+                cubes <- names(EOCubes::list_cubes(remote.obj))
 
-            for (cb in cubes) {
-                cat(paste0("   Cube: \"", cb, "\"\n"))
-                cub.obj <- EOCubes::cube(cb, remote.obj)
-                cat(paste0("      Bands: \"", paste(EOCubes::cube_bands(cub.obj), collapse = "\", \""), "\"\n"))
+                for (cb in cubes) {
+                    cat(paste0("   Cube: \"", cb, "\"\n"))
+                    cub.obj <- EOCubes::cube(cb, remote.obj)
+                    cat(paste0("      Bands: \"", paste(EOCubes::cube_bands(cub.obj), collapse = "\", \""), "\"\n"))
+                }
             }
+            else
+                message(paste0("Default EOCUBES service not running - please check configuration file"))
         }
     }
 }
+
+
+
+
+
+

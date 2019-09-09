@@ -4,17 +4,17 @@
 \alias{sits_lda}
 \title{Train a sits classification model using linear discriminant analysis}
 \usage{
-sits_lda(data.tb = NULL, formula = sits_formula_logref(), ...)
+sits_lda(data = NULL, formula = sits_formula_logref(), ...)
 }
 \arguments{
-\item{data.tb}{Time series with the training samples.}
+\item{data}{Time series with the training samples.}
 
 \item{formula}{A symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_formula_logref).}
 
 \item{...}{Other parameters to be passed to MASS::lda function.}
 }
 \value{
-A model function to be passed in sits_predict.
+A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
 This function receives a tibble with a set of attributes X for each observation Y

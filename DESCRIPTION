@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
-Version: 0.08.01
-Date: 2019-08-06
+Version: 0.09.01
+Date: 2019-09-09
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Pedro', 'Andrade', role = c('aut', 'cre'), email = 'pedro.andrade@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut'), email = 'gilberto.camara@inpe.br'), 
@@ -45,6 +45,7 @@ Imports:
     dtwclust,
     dtwSat,
     flexclust,
+    gbm,
     geosphere,
     ggplot2,
     graphics,
@@ -82,6 +83,7 @@ Imports:
     urltools,
     utils,
     wtss,
+    xgboost,
     zoo
 Suggests:
     devtools,
@@ -100,42 +102,32 @@ Collate:
     'data.R'
     'sits_accuracy.R'
     'sits_classification.R'
-    'sits_colors.R'
     'sits_config.R'
     'sits_csv.R'
     'sits_cube.R'
-    'sits_cube_classification.R'
-    'sits_dendrogram.R'
-    'sits_distances.R'
+    'sits_cluster.R'
+    'sits_deep_learning.R'
     'sits_dt_reference.R'
     'sits_eocubes.R'
-    'sits_eocube_classification.R'
     'sits_factory.R'
     'sits_filters.R'
     'sits_get_data.R'
     'sits_indexes.R'
     'sits_keras.R'
     'sits_kohonen.R'
-    'sits_label_classification.R'
     'sits_labels.R'
     'sits_log.R'
     'sits_machine_learning.R'
-    'sits_normalization.R'
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
-    'sits_plot_cluster.R'
-    'sits_raster_blocks.R'
-    'sits_raster_read_write.R'
-    'sits_raster_utils.R'
+    'sits_raster.R'
     'sits_satveg.R'
     'sits_services.R'
+    'sits_shp.R'
     'sits_space_time_operations.R'
     'sits_tibble.R'
-    'sits_tibble_functions.R'
-    'sits_tibble_utils.R'
     'sits_timeline.R'
-    'sits_ts_classification.R'
     'sits_twdtw.R'
     'sits_validate.R'
     'sits_wtss.R'

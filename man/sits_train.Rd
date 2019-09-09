@@ -4,26 +4,31 @@
 \alias{sits_train}
 \title{Train sits classification models}
 \usage{
-sits_train(data.tb, ml_method = sits_svm())
+sits_train(data, ml_method = sits_svm())
 }
 \arguments{
-\item{data.tb}{Time series with the training samples.}
+\item{data}{Time series with the training samples.}
 
 \item{ml_method}{Machine learning method that returns a model for prediction.}
 }
 \value{
-A model fitted to input data given by train_method parameter.
+A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
 Given a tibble with a set of distance measures,
    returns trained models. Currenly, sits supports the following models:
-'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
-'lda' (see \code{\link[sits]{sits_lda}}),
-'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
-'lasso' (see \code{\link[sits]{sits_mlr}}), 'ridge' (see \code{\link[sits]{sits_mlr}}),
-and 'deep learning' (see \code{\link[sits]{sits_deeplearning}}).
-The sits_train function is called inside \code{\link[sits]{sits_classify}} , so the user does not need
-to explicitly use this function. Please see the above-mention classification function.
+'svm' (see \code{\link[sits]{sits_svm}}),
+random forests (see \code{\link[sits]{sits_rfor}}),
+linear discriminant analysis (see \code{\link[sits]{sits_lda}}),
+quadratic discriminant analysis (see \code{\link[sits]{sits_qda}}),
+multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
+'lasso' (see \code{\link[sits]{sits_mlr}}) and
+'ridge' (see \code{\link[sits]{sits_mlr}}),
+extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
+and different deep learning functions, including multi-layer perceptrons
+(see \code{\link[sits]{sits_deeplearning}}, 1D convolutional neural networks
+\code{\link[sits]{sits_CNN}}, mixed 1D and MLP networks \code{\link[sits]{sits_tempCNN}}
+and a 1D version of ResNet \code{\link[sits]{sits_ResNet}}).
 }
 \examples{
 \donttest{

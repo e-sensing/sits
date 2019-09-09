@@ -12,7 +12,7 @@ test_that("Cloud filter", {
     #skip_on_cran()
     data(prodes_226_064)
     point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
-    point_cld  <- sits_cloud_filter(point_ndvi)
+    point_cld  <- sits_cloud_removal(point_ndvi)
     expect_true(NROW(sits_time_series(point_cld)) == NROW(sits_time_series(point_ndvi)))
 })
 
@@ -56,7 +56,7 @@ test_that("Kalman filter", {
 test_that("Arima filter", {
     data(prodes_226_064)
     point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
-    point_cld  <- sits_ndvi_arima_filter(point_ndvi)
+    point_cld  <- sits_ndvi_arima(point_ndvi)
 
     # filtered data has less sd
     expect_true(sd(sits_time_series(point_ndvi)$ndvi) > sd(sits_time_series(point_cld)$ndvi.ar.whit))

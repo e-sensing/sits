@@ -2,7 +2,7 @@
 #' @name sits_tasseled_cap
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description  Adds new tasseled cap bands.
-#' @param data.tb       Valid sits tibble.
+#' @param data          Valid sits tibble.
 #' @param sensor        sensor.
 #' @return A sits tibble with same samples and the new bands.
 #' @examples
@@ -13,32 +13,32 @@
 #' tc.tb <- sits_tasseled_cap(samples_mt_6bands, sensor = "MODIS")
 #' }
 #' @export
-sits_tasseled_cap <- function(data.tb, sensor = "MODIS"){
+sits_tasseled_cap <- function(data, sensor = "MODIS"){
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    bands <- sits_bands(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    bands <- sits_bands(data)
 
-    b_coef <- .sits_tcap_brightness(sensor)
-    data.tb <- sits_mutate_bands(data.tb, tcb = b_coef["blue"]*blue + b_coef["red"]*red
+    b_coef <- .sits_config_tcap_brightness(sensor)
+    data   <- sits_mutate_bands(data, tcb = b_coef["blue"]*blue + b_coef["red"]*red
                            + b_coef["nir"]*nir + b_coef["mir"]*mir)
 
-    g_coef <- .sits_tcap_greenness(sensor)
-    data.tb <- sits_mutate_bands(data.tb, tcg = g_coef["blue"]*blue + g_coef["red"]*red
+    g_coef <- .sits_config_tcap_greenness(sensor)
+    data   <- sits_mutate_bands(data, tcg = g_coef["blue"]*blue + g_coef["red"]*red
                            + g_coef["nir"]*nir + g_coef["mir"]*mir)
 
-    w_coef <- .sits_tcap_wetness(sensor)
-    data.tb <- sits_mutate_bands(data.tb, tcw = w_coef["blue"]*blue + w_coef["red"]*red
+    w_coef <- .sits_config_tcap_wetness(sensor)
+    data   <- sits_mutate_bands(data, tcw = w_coef["blue"]*blue + w_coef["red"]*red
                            + w_coef["nir"]*nir + w_coef["mir"]*mir)
 
-    return(data.tb)
+    return(data)
 }
 
 #' @title Builds soil-adjusted vegetation index
 #' @name sits_savi
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description  Adds new tasseled cap bands.
-#' @param data.tb       Valid sits tibble.
+#' @param data       Valid sits tibble.
 #' @return A sits tibble with the SAVI index.
 #' @examples
 #' \donttest{
@@ -48,25 +48,25 @@ sits_tasseled_cap <- function(data.tb, sensor = "MODIS"){
 #' savi.tb <- sits_savi(samples_mt_6bands)
 #' }
 #' @export
-sits_savi <- function(data.tb){
+sits_savi <- function(data){
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    bands <- sits_bands(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    bands <- sits_bands(data)
     bands_savi <- c("nir", "red")
     ensurer::ensure_that(bands, all(bands_savi %in% (.)),
                          err_desc = "sits_savi: not enough bands to compute")
 
-    data.tb <- sits_mutate_bands(data.tb, savi = (1.5)*(nir - red)/(nir + red + 0.5))
+    data <- sits_mutate_bands(data, savi = (1.5)*(nir - red)/(nir + red + 0.5))
 
-    return(data.tb)
+    return(data)
 }
 
 #' @title Builds normalized difference water index
 #' @name sits_ndwi
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description  Adds new tasseled cap bands.
-#' @param data.tb       A valid sits tibble.
+#' @param data       A valid sits tibble.
 #' @return A sits tibble with the SAVI index.
 #' @examples
 #' \donttest{
@@ -76,16 +76,16 @@ sits_savi <- function(data.tb){
 #' ndwi.tb <- sits_ndwi(samples_mt_6bands)
 #' }
 #' @export
-sits_ndwi <- function(data.tb){
+sits_ndwi <- function(data){
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    bands <- sits_bands(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    bands <- sits_bands(data)
     bands_ndwi <- c("nir", "mir")
     ensurer::ensure_that(bands, all(bands_ndwi %in% (.)),
                          err_desc = "sits_ndwi: not enough bands to compute")
 
-    data.tb <- sits_mutate_bands(data.tb, ndwi = (1.5) * (nir - mir)/(nir + mir))
+    data <- sits_mutate_bands(data, ndwi = (1.5) * (nir - mir)/(nir + mir))
 
-    return(data.tb)
+    return(data)
 }

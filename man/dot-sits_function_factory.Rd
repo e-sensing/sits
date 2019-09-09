@@ -5,10 +5,10 @@
 \alias{.sits_factory_function}
 \title{Create a closure for calling functions with and without data}
 \usage{
-.sits_factory_function(data.tb, fun)
+.sits_factory_function(data, fun)
 }
 \arguments{
-\item{data.tb}{Tibble with time series data and metadata.}
+\item{data}{Tibble with time series data and metadata.}
 
 \item{fun}{The function that performs some calculation on the input data.}
 }

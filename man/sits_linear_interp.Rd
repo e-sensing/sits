@@ -4,10 +4,10 @@
 \alias{sits_linear_interp}
 \title{Interpolation function of the time series in a sits tibble}
 \usage{
-sits_linear_interp(data.tb = NULL, n = 23)
+sits_linear_interp(data = NULL, n = 23)
 }
 \arguments{
-\item{data.tb}{A tibble with time series data and metadata.}
+\item{data}{A tibble with time series data and metadata.}
 
 \item{n}{Number of time series elements to be created between start date and end date.}
 }

@@ -1,5 +1,5 @@
 #' @title Save a Keras model for later processing in sits
-#' @name sits_save_keras
+#' @name sits_keras_save
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Takes a Keras model trained by \code{\link[sits]{sits_deeplearning}} and saves it in two files.
@@ -11,7 +11,7 @@
 #' @param  rdsfile         A rds file where the R environment is to be saved.
 #'
 #' @export
-sits_save_keras <-  function(model, hdffile = "./model_keras.h5", rdsfile = "./model_keras.rds"){
+sits_keras_save <-  function(model, hdffile = "./model_keras.h5", rdsfile = "./model_keras.rds"){
     # retrieve the keras model from the sits model object
     model.keras <- environment(model)$model.keras
     # save the keras model in a HDF5 file
@@ -21,7 +21,7 @@ sits_save_keras <-  function(model, hdffile = "./model_keras.h5", rdsfile = "./m
 }
 
 #' @title Load a Keras model for processing in sits
-#' @name sits_load_keras
+#' @name sits_keras_load
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Takes a save Keras model trained by \code{\link[sits]{sits_deeplearning}}, which has
@@ -34,7 +34,7 @@ sits_save_keras <-  function(model, hdffile = "./model_keras.h5", rdsfile = "./m
 #' @return An R Keras model trained by \code{\link[sits]{sits_deeplearning}}.
 #'
 #' @export
-sits_load_keras <-  function(hdffile, rdsfile){
+sits_keras_load <-  function(hdffile, rdsfile){
     # loads the keras model from an hdf5 file
     model.keras <- keras::load_model_hdf5(hdffile)
     # loads the sits model object from an RDS file

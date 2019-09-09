@@ -20,7 +20,7 @@
 #'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  data.tb       A sits tibble to be classified using TWTDW.
+#' @param  data          A sits tibble to be classified using TWTDW.
 #' @param  patterns.tb   A tibble with known temporal signatures for the chosen classes.
 #' @param  bands         Names of the bands to be used for classification.
 #' @param  dist.method   Name of the method to derive the local cost matrix.
@@ -59,7 +59,7 @@
 #' alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 #' }
 #' @export
-sits_twdtw_classify <- function(data.tb = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
+sits_twdtw_classify <- function(data = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
                         alpha = -0.1, beta = 100, theta = 0.5, span  = 0, keep  = FALSE,
                         start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
@@ -68,22 +68,22 @@ sits_twdtw_classify <- function(data.tb = NULL, patterns.tb = NULL, bands = NULL
         stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
     }
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
 
     # add a progress bar
     progress_bar <- NULL
-    if (nrow (data.tb) > 10) {
+    if (nrow (data) > 10) {
         message("Matching patterns to time series...")
-        progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data.tb), style = 3)
+        progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data), style = 3)
         i <- 0
     }
     # does the input data exist?
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble (data)
     .sits_test_tibble (patterns.tb)
 
     # handle the case of null bands
-    if (purrr::is_null (bands)) bands <- sits_bands(data.tb)
+    if (purrr::is_null (bands)) bands <- sits_bands(data)
 
     # create a list to store the results of the TWDTW matches
     matches.lst <- list()
@@ -96,8 +96,8 @@ sits_twdtw_classify <- function(data.tb = NULL, patterns.tb = NULL, bands = NULL
     # Define the logistic function
     log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
-    for (r in 1:NROW(data.tb)) {
-        row.tb <- data.tb[r, ]
+    for (r in 1:NROW(data)) {
+        row.tb <- data[r, ]
         # select the bands for the samples time series and convert to TWDTW format
         twdtw_series <- row.tb %>%
             .sits_select_bands_(bands = bands) %>%
@@ -127,13 +127,13 @@ sits_twdtw_classify <- function(data.tb = NULL, patterns.tb = NULL, bands = NULL
     .sits_plot_twdtw_alignments (matches.lst)
 
     # Classify a sits tibble using the matches found by the TWDTW methods
-    data.tb <- .sits_twdtw_breaks (matches.lst, data.tb,
+    data  <- .sits_twdtw_breaks(matches.lst, data,
                                    start_date = start_date, end_date = end_date,
                                    interval, overlap)
     .sits_plot_twdtw_classification(matches.lst,
                                     start_date = start_date, end_date = end_date,
                                     interval = interval, overlap = overlap)
-    return (data.tb)
+    return (data)
 }
 
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
@@ -150,13 +150,13 @@ sits_twdtw_classify <- function(data.tb = NULL, patterns.tb = NULL, bands = NULL
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  matches       A dtwSat S4 object with the matches that have been produced by the sits_TWTDW_matches function.
-#' @param  data.tb       A sits tibble used as input for the TWDTW matching function.
+#' @param  data          A sits tibble used as input for the TWDTW matching function.
 #' @param  start_date    The start date of the classification period.
 #' @param  end_date      The end date of the classification period.
 #' @param  interval      The period between two classifications.
 #' @param  overlap       Minimum overlapping between one match and the interval of classification.
 #' @return A sits tibble with the information on matches for the data.
-.sits_twdtw_breaks <- function (matches, data.tb, start_date = NULL, end_date = NULL,
+.sits_twdtw_breaks <- function (matches, data, start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
@@ -164,10 +164,9 @@ sits_twdtw_classify <- function(data.tb = NULL, patterns.tb = NULL, bands = NULL
     }
 
     # create a tibble to store the results
-    # data.tb$predicted <- list()
     i <- 1
     predicted.lst <-
-        purrr::pmap(list(data.tb$start_date, data.tb$end_date),
+        purrr::pmap(list(data$start_date, data$end_date),
                     function (row_start_date, row_end_date) {
 
                         if (purrr::is_null (start_date)) {
@@ -190,9 +189,9 @@ sits_twdtw_classify <- function(data.tb = NULL, patterns.tb = NULL, bands = NULL
 
                     })
 
-    data.tb$predicted <- predicted.lst
+    data$predicted <- predicted.lst
 
-    return(data.tb)
+    return(data)
 }
 
 #' @title Export data to be used by the dtwSat package
@@ -202,16 +201,16 @@ sits_twdtw_classify <- function(data.tb = NULL, patterns.tb = NULL, bands = NULL
 #'
 #' @description Converts data from a sits tibble to an instance of a TWDTW time series class.
 #'
-#' @param  data.tb       A tibble in sits format with time series to be converted to TWTDW time series.
+#' @param  data       A tibble in sits format with time series to be converted to TWTDW time series.
 #' @return A time series in TWDTW format (an object of the twdtwTimeSeries class).
-.sits_to_twdtw <- function (data.tb){
+.sits_to_twdtw <- function (data){
     # transform each sits time series into a list of zoo
-    ts <- data.tb$time_series %>%
+    ts <- data$time_series %>%
         purrr::map(function (ts) zoo::zoo(ts[,2:ncol(ts), drop=FALSE], ts$Index))
 
     # create a new twdtwTimeSeries object from list above
     ts.twdtw <- methods::new("twdtwTimeSeries", timeseries = ts,
-                             labels = as.character(data.tb$label))
+                             labels = as.character(data$label))
     return (ts.twdtw)
 }
 

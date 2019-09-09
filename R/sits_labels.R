@@ -4,7 +4,7 @@
 #'
 #' @description Returns the labels and its respective counting and frequency.
 #'
-#' @param data.tb     A tibble with time series data and metadata.
+#' @param data     A tibble with time series data and metadata.
 #' @return A tibble with the names of the labels and their absolute and relative frequency.
 #'
 #' @examples
@@ -13,19 +13,19 @@
 #' # print the labels
 #' sits_labels(cerrado_2classes)
 #' @export
-sits_labels <- function(data.tb) {
+sits_labels <- function(data) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
 
     # get frequency table
-    data.vec <- table(data.tb$label)
+    data.vec <- table(data$label)
 
     # compose output tibble containing labels, count and relative frequency columns
-    result.tb <- tibble::as_tibble(list(label = names(data.vec),
+    result  <- tibble::as_tibble(list(label = names(data.vec),
                                         count = as.integer(data.vec),
                                         prop  = as.numeric(prop.table(data.vec))))
-    return(result.tb)
+    return(result)
 }
 
 #' @title Relabels a sits tibble
@@ -36,7 +36,7 @@ sits_labels <- function(data.tb) {
 #' @description Given a sits tibble with a set of labels, and a conversion list
 #' between the original labels and new labels, returns a new sits tibble whose labels are changed.
 #'
-#' @param  data.tb        A sits tibble.
+#' @param  data           A sits tibble.
 #' @param  conv.lst       A named list used to convert labels to a new value. Actual labels must be the names of the conv.lst elements.
 #'                        an empty list produces no difference.
 #' @return A new sits tibble with modified labels.
@@ -53,56 +53,56 @@ sits_labels <- function(data.tb) {
 #'                 Deforestation_2015 = "NonForest",
 #'                 Pasture = "NonForest")
 #' # relabel the data
-#' new_data.tb <- sits_relabel(prodes_226_064, conv.lst)
+#' new_data  <- sits_relabel(prodes_226_064, conv.lst)
 #' # show the new labels
-#' sits_labels(new_data.tb)
+#' sits_labels(new_data)
 #' }
 #' @export
-sits_relabel <- function(data.tb, conv.lst = list()){
+sits_relabel <- function(data, conv.lst = list()){
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
     #does the input data exist?
-    .sits_test_tibble (data.tb)
+    .sits_test_tibble(data)
 
     ensurer::ensure_that(conv.lst, !purrr::is_null(.),
                          err_desc = "sits_relabel: conversion list not provided")
 
     # prepare result tibble
-    result.tb <- data.tb
+    result <- data
 
-    if (length(conv.lst) > 0){
+    if (length(conv.lst) > 0) {
         # get those labels not in conv.lst names
-        conv.lst <- .sits_labels_list(data.tb, conv.lst)
+        conv.lst <- .sits_labels_list(data, conv.lst)
 
         # convert labels and return
-        result.tb$label <- as.character(conv.lst[result.tb$label])
+        result$label <- as.character(conv.lst[result$label])
     }
-    return (result.tb)
+    return (result)
 }
 
 #' @title Sits labels processing function
 #' @name .sits_labels_list
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Completes list.lst list as a named list (names are unique labels from data.tb) according
+#' @description Completes list.lst list as a named list (names are unique labels from data) according
 #'              to a given function that receives each label as an argument.
 #'
-#' @param  data.tb     A sits tibble.
+#' @param  data        A sits tibble.
 #' @param  list.lst    Any named list whose names are unique labels from data input. Non-informed labels will be completed
 #'                     according to fun_label function.
 #' @param  fun_label   A function that will be executed for each label non listed in list.lst parameter. The result of
 #'                     the function is used as list.lst value for the respective label.
-#' @return A list whose values non informed in list.lst is filled by fun_label for each unique label in data.tb.
-.sits_labels_list <- function(data.tb, list.lst = list(), fun_label = function(lb) lb) {
+#' @return A list whose values non informed in list.lst is filled by fun_label for each unique label in data.
+.sits_labels_list <- function(data, list.lst = list(), fun_label = function(lb) lb) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    # verify if data.tb has data
-    .sits_test_tibble (data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    # verify if data is correct
+    .sits_test_tibble(data)
 
     # get unique labels
-    u_labels <- base::unique(data.tb$label)
+    u_labels <- base::unique(data$label)
 
     # prepare result
     result.lst <- list.lst
@@ -111,7 +111,7 @@ sits_relabel <- function(data.tb, conv.lst = list()){
     non_listed_values <- !(u_labels %in% names(list.lst))
 
     # generate entries to those labels not listed in list.lst
-    if (any(non_listed_values)){
+    if (any(non_listed_values)) {
         # call fun_label for each label as an argument
         identity.lst <- u_labels[non_listed_values] %>%
             purrr::map(fun_label)

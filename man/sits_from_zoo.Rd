@@ -28,7 +28,7 @@ Converts data from an instance of a zoo series to a sits tibble.
 # Read a time series in ZOO format
 data(ts_zoo)
 # Convert the zoo series into a sits tibble
-data.tb <- sits_from_zoo (ts_zoo, longitude = -54.2313, latitude = -14.0482,
+data <- sits_from_zoo (ts_zoo, longitude = -54.2313, latitude = -14.0482,
            label = "Cerrado", name = "mod13q1")
 }
 \author{

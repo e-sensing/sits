@@ -4,11 +4,10 @@
 \alias{.sits_labels_list}
 \title{Sits labels processing function}
 \usage{
-.sits_labels_list(data.tb, list.lst = list(), fun_label = function(lb)
-  lb)
+.sits_labels_list(data, list.lst = list(), fun_label = function(lb) lb)
 }
 \arguments{
-\item{data.tb}{A sits tibble.}
+\item{data}{A sits tibble.}
 
 \item{list.lst}{Any named list whose names are unique labels from data input. Non-informed labels will be completed
 according to fun_label function.}
@@ -17,10 +16,10 @@ according to fun_label function.}
 the function is used as list.lst value for the respective label.}
 }
 \value{
-A list whose values non informed in list.lst is filled by fun_label for each unique label in data.tb.
+A list whose values non informed in list.lst is filled by fun_label for each unique label in data.
 }
 \description{
-Completes list.lst list as a named list (names are unique labels from data.tb) according
+Completes list.lst list as a named list (names are unique labels from data) according
              to a given function that receives each label as an argument.
 }
 \author{

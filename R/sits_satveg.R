@@ -1,3 +1,61 @@
+#' @title Provides information about one cube of the SATVEG time series service
+#' @name .sits_satveg_cube
+#'
+#' @description Creates a tibble with metadata about a given cube.
+#'
+#' @param name       Name of the cube.
+.sits_satveg_cube <- function(name) {
+
+    service   <- "SATVEG"
+    satellite <- "TERRA"
+    sensor    <- "MODIS"
+    # get the bands
+    bands <- .sits_config_bands(service, name)
+
+    # the data in unlabelled
+    labels <- c("NoClass")
+
+    # get scale factors, missing values and minimum values
+    scale_factors  <- .sits_config_scale_factors(sensor,  bands)
+    missing_values <- .sits_config_missing_values(sensor, bands)
+    minimum_values <- .sits_config_minimum_values(sensor, bands)
+    maximum_values <- .sits_config_maximum_values(sensor, bands)
+
+    # get the timeline
+    timeline <- lubridate::as_date(.sits_satveg_timeline())
+
+    # get the size of the cube
+    size <- .sits_config_size(service, name)
+    nrows <- as.integer(size["nrows"])
+    ncols <- as.integer(size["ncols"])
+
+    # get the bounding box of the cube
+    bbox <- .sits_config_bbox(service, name)
+    xmin <-  as.numeric(bbox["xmin"])
+    xmax <-  as.numeric(bbox["xmax"])
+    ymin <-  as.numeric(bbox["ymin"])
+    ymax <-  as.numeric(bbox["ymax"])
+
+    # get the resolution of the product
+    res  <- .sits_config_resolution(sensor)
+    xres <-  as.numeric(res["xres"])
+    yres <-  as.numeric(res["yres"])
+
+    # get the CRS projection
+    crs <- .sits_config_projection(service, name)
+
+
+    URL <- .sits_config_providers(service)
+
+    # create a tibble to store the metadata
+    cube_satveg <- .sits_cube_create(service, URL, satellite, sensor, name, bands, labels,
+                                     scale_factors, missing_values, minimum_values, maximum_values,
+                                     list(timeline), nrows, ncols, xmin, xmax, ymin, ymax,
+                                     xres, yres, crs)
+
+    return(cube_satveg)
+}
+
 #' @title Obtain one timeSeries from the EMBRAPA SATVEG server and load it on a sits tibble
 #' @name .sits_from_satveg
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
@@ -54,9 +112,9 @@
     ts.lst[[1]] <- ts.tb
 
     # create a tibble to store the SATVEG data
-    data.tb <- .sits_tibble()
+    data <- .sits_tibble()
     # add one row to the tibble
-    data.tb <- tibble::add_row(data.tb,
+    data    <- tibble::add_row(data,
                                longitude    = longitude,
                                latitude     = latitude,
                                start_date   = start_date,
@@ -65,7 +123,7 @@
                                cube         = cube$name,
                                time_series  = ts.lst
     )
-    return(data.tb)
+    return(data)
 }
 
 #' @title Retrieve a time series from the SATVEG service
@@ -88,10 +146,10 @@
     has_timeline <- FALSE
 
     # URL to access SATVEG services
-    URL <- .sits_server("SATVEG")
+    URL <- .sits_config_server("SATVEG")
 
     # bands available in SATVEG
-    bands <- .sits_bands_service("SATVEG", name)
+    bands <- .sits_config_bands("SATVEG", name)
 
     # read each of the bands separately
     for (b in bands) {
@@ -176,7 +234,7 @@
     band <- "ndvi"
     cube <- "terra"
     # URL to access SATVEG services
-    URL <- .sits_server("SATVEG")
+    URL <- .sits_config_server("SATVEG")
 
     # Build the URL to retrieve the time series
     URL_ts <- paste0(URL, band, "/ponto", "/", longitude, "/", latitude, "/", cube, "/",
@@ -187,5 +245,30 @@
 
     timeline <- .sits_satveg_timeline_from_txt(satveg.txt)
 
-    return (timeline)
+    return(timeline)
+}
+
+#' @title Check that the SATVEG service is working
+#' @name .sits_satveg_check
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return Boolean that indicates if SATVEG is operating
+.sits_satveg_check <- function() {
+    # Retrieve the URL to test for SATVEG access
+    URL_test <- .sits_config_satveg_access()
+    check <- tryCatch({
+        # tries to connect to the SATVEG service
+        satveg.txt <-  RCurl::getURL(URL_test)
+        ensurer::ensure_that(satveg.txt, length(.) > 0,
+                             err_desc = "SATVEG service not available")
+    }, error = function(e){
+        msg <- paste0("SATVEG service not available")
+        .sits_log_error(msg)
+        message(msg)
+    })
+    # did we get an error?
+    if (inherits(check, "error"))
+        return(FALSE)
+    else
+        return(TRUE)
 }

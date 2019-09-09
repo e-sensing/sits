@@ -5,7 +5,7 @@
 #' @description This function uses self-organized maps to find clusters in
 #' satellite image time series for quality control of the  samples.
 #' It calls the function \code{\link[sits]{sits_som_map}} to generate the som map and
-#' \code{\link[sits]{sits_clean_samples_som}} to produce a cleaned set of samples.
+#' \code{\link[sits]{sits_som_clean_samples}} to produce a cleaned set of samples.
 #' The parameters "grid_xdim", "grid_ydim", "rlen", "distance", "alpha", and
 #' "iterations are used by \code{\link[sits]{sits_som_map}} to control how the Kohonen map
 #' is generated. The parameters "prob_label_change" and "min_cluster_prob" control how the
@@ -13,7 +13,7 @@
 #'
 #' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 #'
-#' @param data.tb        A tibble with samples to be clustered.
+#' @param data           A tibble with samples to be clustered.
 #' @param grid_xdim      X dimension of the SOM grid (default = 25).
 #' @param grid_ydim      Y dimension of the SOM grid.
 #' @param alpha          Starting learning rate, which decreases according to number of iterations.
@@ -31,14 +31,14 @@
 #' }
 #' @export
 
-sits_cluster_som <- function(data.tb,  grid_xdim = 10, grid_ydim = 10, alpha = 1.0,
+sits_cluster_som <- function(data,  grid_xdim = 10, grid_ydim = 10, alpha = 1.0,
                               distance = "euclidean", iterations = 50,
                               prob_label_change = 0.8, min_cluster_prob = 0.6){
 
-    som_cluster <- sits_som_map(data.tb,  grid_xdim, grid_ydim, alpha,
+    som_cluster <- sits_som_map(data,  grid_xdim, grid_ydim, alpha,
                                  distance, iterations)
 
-    data_clean <- sits_clean_samples_som(som_cluster, prob_label_change, min_cluster_prob)
+    data_clean <- sits_som_clean_samples(som_cluster, prob_label_change, min_cluster_prob)
 
     return(data_clean)
 }
@@ -56,7 +56,7 @@ sits_cluster_som <- function(data.tb,  grid_xdim = 10, grid_ydim = 10, alpha = 1
 #' sample allocated in aneuron-cluster and its neighbourhood.
 #' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 #'
-#' @param data.tb        A tibble with samples to be clustered.
+#' @param data           A tibble with samples to be clustered.
 #' @param grid_xdim      X dimension of the SOM grid (default = 25).
 #' @param grid_ydim      Y dimension of the SOM grid.
 #' @param alpha          Starting learning rate, which decreases according to number of iterations.
@@ -64,7 +64,7 @@ sits_cluster_som <- function(data.tb,  grid_xdim = 10, grid_ydim = 10, alpha = 1
 #' @param iterations     The number of time to run the SOM cluster.
 #' @param  ...           Additional parameters to be passed to kohonen::supersom function.
 #' @return               Returns a list of sits tibbles containing statistics about the samples and the neuron in each iteration.
-#' Besides that, the data.tb is returned with the columns presenting the probability of a sample belongs to a cluster based on a frequency
+#' Besides that, the data is returned with the columns presenting the probability of a sample belongs to a cluster based on a frequency
 #' that a sample was allocated in a neuron, and finally a column presenting the total probability of a sample belongs to a cluster using data of neighbourhood.
 #'
 #' @examples
@@ -72,10 +72,10 @@ sits_cluster_som <- function(data.tb,  grid_xdim = 10, grid_ydim = 10, alpha = 1
 #' # Produce a cluster map
 #' som_cluster <- sits_som_map(prodes_226_064)
 #' # Clean the samples to get better quality ones
-#' clean_samples <- sits_clean_samples_som(som_cluster)
+#' clean_samples <- sits_som_clean_samples(som_cluster)
 #' }
 #' @export
-sits_som_map <- function(data.tb,
+sits_som_map <- function(data,
                              grid_xdim = 10,
                              grid_ydim = 10,
                              alpha = 1.0,
@@ -84,18 +84,18 @@ sits_som_map <- function(data.tb,
 
     {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
     # does the input data exist?
-    .sits_test_tibble(data.tb)
+    .sits_test_tibble(data)
     # get the time series
-    time_series <- sits_values(data.tb, format = "bands_cases_dates")
+    time_series <- sits_values(data, format = "bands_cases_dates")
 
     #initialize tibbles
     neurons_info_t.tb <- tibble::as_tibble()
     samples_info_t.tb <- tibble::as_tibble()
 
-    #Create an if here. The user can be enter with only data.tb, then we need
+    #Create an if here. The user can be enter with only data, then we need
     # to extract the time series here using sits_value
     for (k in 1:iterations)
     {
@@ -111,16 +111,16 @@ sits_som_map <- function(data.tb,
             )
 
         #put id in samples here, because the labell needs
-        data.tb$id_sample <- 1:rep(dim(data.tb)[1])
+        data$id_sample <- 1:rep(dim(data)[1])
 
         # create a tibble to store the results
 
-        result.tb <- data.tb
-        #result.tb$id_sample <- 1:(dim(result.tb)[1])
+        result <- data
+        #result$id_sample <- 1:(dim(result)[1])
 
         #add the in sample the id of neuron that the sample was allocated
-        result.tb$id_neuron <- kohonen_obj$unit.classif
-        #result.tb$neuron_label <- "neuron_label"
+        result$id_neuron <- kohonen_obj$unit.classif
+        #result$neuron_label <- "neuron_label"
 
         #get the size grid
         grid_size <- dim(kohonen_obj$grid$pts)[1]
@@ -129,7 +129,7 @@ sits_som_map <- function(data.tb,
         neighborhood_neurons <- rep(1:grid_size)
 
         #get label
-        neurons_labelled <- .sits_labelling_neurons_frequency(result.tb,kohonen_obj)
+        neurons_labelled <- .sits_som_labelling_neurons_frequency(result,kohonen_obj)
 
         neuron_id_class <-  unique(dplyr::select(neurons_labelled,id_neuron, neuron_class))
         duplicated_id_neuron <- (neuron_id_class %>%
@@ -137,13 +137,13 @@ sits_som_map <- function(data.tb,
                                      dplyr::filter(dup_neuron))$id_neuron
 
         if(length(duplicated_id_neuron) != 0){
-            neurons_labelled.tb <- .sits_tie_breaking_neuron_labelling (neurons_labelled, kohonen_obj, duplicated_id_neuron)
+            neurons_labelled.tb <- .sits_som_tie_breaking_neuron_labelling (neurons_labelled, kohonen_obj, duplicated_id_neuron)
         }else{
             neurons_labelled.tb <- neurons_labelled
         }
 
         #provavelmente alterar a funcao de vizinhança - corrigir_
-        neighborhood <- .sits_neighbor_neurons(neurons_labelled.tb, kohonen_obj, duplicated_id_neuron, 1)
+        neighborhood <- .sits_som_neighbor_neurons(neurons_labelled.tb, kohonen_obj, duplicated_id_neuron, 1)
         table_neurons <- neighborhood
 
         #This table contain id and neuron label
@@ -163,23 +163,23 @@ sits_som_map <- function(data.tb,
 
         #Get the id of neuron of each sample.
         #This vector must have the same lengh of  samples.tb
-        neurons_ <- result.tb$id_neuron
+        neurons_ <- result$id_neuron
 
         # The neuron(label) where the samples was allocated
         neuron_label_for_each_sample <- neuron_label_id.mt[neurons_]
-        result.tb$neuron_label <- neuron_label_for_each_sample
+        result$neuron_label <- neuron_label_for_each_sample
 
         kohonen_obj$neuron_label <- neurons_label.vec
         kohonen_obj$neuron_label_id.mt <- neuron_label_id.mt
         kohonen_obj$neighborhood_neurons <- neighborhood_neurons
 
         #Bayesian filter
-        samples_probability_i.tb <- .sits_bayesian_som_neighbourhood(kohonen_obj, neurons_labelled.tb, result.tb)
+        samples_probability_i.tb <- .sits_som_bayesian_neighbourhood(kohonen_obj, neurons_labelled.tb, result)
 
         #In the last iteration, the neuros will be painted.
         #The map plot will be of the last iteration
         if (iterations == k)
-            kohonen_obj <- .sits_paint_neurons(kohonen_obj)
+            kohonen_obj <- .sits_som_paint_neurons(kohonen_obj)
 
         #until here is common sits_kohonen (improve this function)
         table_samples <- tibble::as_tibble(
@@ -212,7 +212,7 @@ sits_som_map <- function(data.tb,
     cluster_som$neuron <- neurons_info_t.tb
 
     #This table shows the probability of a sample belongs a classes without look neighbourhood
-    sample_cluster_probability.tb <- .sits_cluster_probability(cluster_som)
+    sample_cluster_probability.tb <- .sits_som_cluster_probability(cluster_som)
 
     cluster_sample_probability <- sample_cluster_probability.tb %>%
         dplyr::inner_join(id_median.tb, by = "id_sample")
@@ -223,7 +223,7 @@ sits_som_map <- function(data.tb,
 
     samples_statistics_overall.tb <- samples_statistics_overall.tb %>%
         dplyr::mutate(total_probability = total_probability*100)
-    samples.tb <- data.tb %>%
+    samples <- data %>%
         dplyr::inner_join(samples_statistics_overall.tb, by = "id_sample")
 
     cluster_som$cluster_sample_probability <- cluster_sample_probability
@@ -233,7 +233,7 @@ sits_som_map <- function(data.tb,
             list(
                 statistics_samples = cluster_som,
                 som_properties = kohonen_obj,
-                samples.tb = samples.tb
+                samples.tb = samples
             ),
             class = "sits"
         )
@@ -242,7 +242,7 @@ sits_som_map <- function(data.tb,
 }
 
 #' @title Clean samples
-#' @name sits_clean_samples_som
+#' @name sits_som_clean_samples
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
 #'
@@ -261,13 +261,13 @@ sits_som_map <- function(data.tb,
 #' # Get a new subset of samples evaluated by clustering methods
 #' som_cluster <- sits_som_map(prodes_226_064, grid_xdim = 10, grid_ydim = 10,
 #'        distance = "euclidean", iterations = 50)
-#' new_samples.tb <- sits_clean_samples_som(som_cluster)
+#' new_samples <- sits_som_clean_samples(som_cluster)
 #' }
 #' @export
 
-sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_cluster_prob = 0.6) {
+sits_som_clean_samples <- function(som_cluster, prob_label_change = 0.8, min_cluster_prob = 0.6) {
 
-    data.tb <-
+    data <-
         unique(
             dplyr::select(
                 som_cluster$samples.tb,
@@ -281,7 +281,7 @@ sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_clu
                 time_series
             )
         )
-    data.tb$id_sample <- 1:rep(dim(data.tb)[1])
+    data$id_sample <- 1:rep(dim(data)[1])
 
     #Get samples that have different original_label and majority cluster
     confused_samples <-
@@ -305,7 +305,7 @@ sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_clu
         )
 
     id_matching_samples.tb <- unique(matching_samples.tb$id_sample)
-    samples_cleaned.tb <- dplyr::filter(data.tb, data.tb$id_sample %in% id_matching_samples.tb)
+    samples_cleaned.tb <- dplyr::filter(data, data$id_sample %in% id_matching_samples.tb)
     samples_median.tb <- unique(dplyr::select(som_cluster$statistics_samples$cluster_sample_probability, id_sample, probability = median))
 
     if ( length(id_change_samples) != 0)
@@ -313,8 +313,8 @@ sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_clu
         samples_to_change_id_cluster <- dplyr::arrange(unique(dplyr::select(samples_to_change_label,
                                                                             id_sample, cluster)), id_sample)
 
-        samples_label_changed.tb <- dplyr::arrange(dplyr::filter(data.tb,
-                                                                 data.tb$id_sample %in% id_change_samples),
+        samples_label_changed.tb <- dplyr::arrange(dplyr::filter(data,
+                                                                 data$id_sample %in% id_change_samples),
                                                    id_sample)
 
         samples_temp.tb <- dplyr::arrange(rbind(samples_cleaned.tb,samples_label_changed.tb ), id_sample)
@@ -329,19 +329,19 @@ sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_clu
 }
 
 #' @title Labelling neurons
-#' @name .sits_labelling_neurons_frequency
+#' @name .sits_som_labelling_neurons_frequency
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description Compute the probability of a neuron belongs to a class.
 #' However the neuron is labelled using the majority voting.
 #' If the neuron is empty, it will labeled as "NoClass".
 #'
-#' @param data.tb      A SITS tibble with info of samples and kohonen.obj.
+#' @param data      A SITS tibble with info of samples and kohonen.obj.
 #' @param kohonen_obj  The kohonen object returned by kohonen package.
 #' @return Returns a tibble with the probability of each neuron belongs to class
 #' and a majority label which is the neuron is labelled.
 #'
-.sits_labelling_neurons_frequency <- function(data.tb, kohonen_obj)
+.sits_som_labelling_neurons_frequency <- function(data, kohonen_obj)
 {
     neuron_label.tb <- tibble::as_tibble()
     grid_size <- dim(kohonen_obj$grid$pts)[1]
@@ -350,29 +350,29 @@ sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_clu
     for (i in 1:grid_size)
     {
         #Get the id of samples that were allocated in neuron i
-        neuron_i <- dplyr::filter(data.tb, data.tb$id_neuron == i)$id_sample
+        neuron_i <- dplyr::filter(data, data$id_neuron == i)$id_sample
         vb <- neuron_i
 
         #Check if the neuron is empty or full
         if (length(vb) != 0)
         {
-            alloc_neurons_i <- data.tb[neuron_i, ]
+            alloc_neurons_i <- data[neuron_i, ]
             data.vec <- table(alloc_neurons_i$label)
 
-            result.tb <- tibble::as_tibble(list(
+            result <- tibble::as_tibble(list(
                 id_neuron = as.numeric(i),
                 label_samples = names(data.vec),
                 count = as.integer(data.vec),
                 freq  = as.numeric(prop.table(data.vec))
             ))
 
-            max_class <- dplyr::summarize(result.tb, max.pt = max(count))
+            max_class <- dplyr::summarize(result, max.pt = max(count))
 
-            neuron_class <- dplyr::filter(result.tb, result.tb$count == as.integer(max_class))$label_samples
+            neuron_class <- dplyr::filter(result, result$count == as.integer(max_class))$label_samples
 
         } else if (length(vb) == 0){
             neuron_class <- 'Noclass'
-            result.tb <- tibble::as_tibble(list(
+            result <- tibble::as_tibble(list(
                 id_neuron = as.numeric(i),
                 label_samples = "NoSamples",
                 count = 0,
@@ -380,20 +380,20 @@ sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_clu
             ))
         }
 
-        if ((length(neuron_class) != 1 ) &  (length(neuron_class) < dim(result.tb)[1]))
+        if ((length(neuron_class) != 1 ) &  (length(neuron_class) < dim(result)[1]))
         {
             neuron_class <- append(neuron_class, neuron_class, after = length(neuron_class) + 1)
-            neuron_class <- neuron_class[1:dim(result.tb)[1]]
+            neuron_class <- neuron_class[1:dim(result)[1]]
         }
-        result.tb$neuron_class <- neuron_class
-        neuron_label.tb <- rbind(neuron_label.tb,result.tb)
+        result$neuron_class <- neuron_class
+        neuron_label.tb <- rbind(neuron_label.tb,result)
     }
 
     return(neuron_label.tb)
 }
 
 #' @title Tie breaking neuron labelling
-#' @name .sits_tie_breaking_neuron_labelling
+#' @name .sits_som_tie_breaking_neuron_labelling
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function tie breaking the neurons that has the same rate to belong a class.
@@ -404,7 +404,7 @@ sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_clu
 #'
 #' @return Return a new majority label of a neuron based on its neighbourhood
 #'
-.sits_tie_breaking_neuron_labelling <- function(class_vector, kohonen_obj, duplicated_id_neuron)
+.sits_som_tie_breaking_neuron_labelling <- function(class_vector, kohonen_obj, duplicated_id_neuron)
 {
     for (i in  1:length(duplicated_id_neuron))
     {
@@ -444,7 +444,7 @@ sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_clu
 }
 
 #' @title Get the neighbor of neurons
-#' @name .sits_neighbor_neurons
+#' @name .sits_som_neighbor_neurons
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function create a table contained the information about all
@@ -456,7 +456,7 @@ sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_clu
 #' @param radius radius of neigbourhood of each neuron.
 #'
 #' @return Returns a sits tibble with informations about the vinicity of each neuron.
-.sits_neighbor_neurons <- function(class_vector, kohonen_obj, duplicated_id_neuron, radius = 1)
+.sits_som_neighbor_neurons <- function(class_vector, kohonen_obj, duplicated_id_neuron, radius = 1)
 {
     neuron_vicinity.tb <- tibble::as_tibble()
     grid_size <- dim(kohonen_obj$grid$pts)[1]
@@ -489,7 +489,7 @@ sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_clu
 }
 
 #' @title Create new groups from kohonen maps
-#' @name sits_evaluate_som_subgroups
+#' @name sits_som_evaluate_subgroups
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @param som_cluster Kohonen map and associated information created by \code{\link[sits]{sits_som_map}}
@@ -502,10 +502,10 @@ sits_clean_samples_som <- function(som_cluster, prob_label_change = 0.8, min_clu
 #' # Create a Kohonen map
 #' som_cluster <- sits_som_map(prodes_226_064)
 #' # Create subgroups
-#' subgroups.tb <- sits_evaluate_som_subgroups(som_cluster)
+#' subgroups.tb <- sits_som_evaluate_subgroups(som_cluster)
 #' }
 #' @export
-sits_evaluate_som_subgroups <- function(som_cluster)
+sits_som_evaluate_subgroups <- function(som_cluster)
 {
     #subgroup.lst <- list()
     cluster_labels <- som_cluster$statistics_samples$cluster_sample_probability$cluster
@@ -619,7 +619,7 @@ sits_evaluate_som_subgroups <- function(som_cluster)
 }
 
 #' @title Cluster evaluation
-#' @name sits_evaluate_cluster
+#' @name sits_som_evaluate_cluster
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function extracts metrics about the clusters calculating
@@ -633,26 +633,26 @@ sits_evaluate_som_subgroups <- function(som_cluster)
 #' # Produce a Kohonen map for the time series samples
 #' som_cluster <- sits_som_map(prodes_226_064)
 #' # Extract metrics about the clusters
-#' confusion_by_cluster <- sits_evaluate_cluster(som_cluster)
+#' confusion_by_cluster <- sits_som_evaluate_cluster(som_cluster)
 #' # Show confusion matrix
 #' confusion_matrix <- confusion_by_cluster$confusion_matrix
 #' }
 #' @export
-sits_evaluate_cluster <- function(som_cluster)
+sits_som_evaluate_cluster <- function(som_cluster)
 {
-    data.tb <- som_cluster$statistics_samples$cluster_sample_probability
+    data <- som_cluster$statistics_samples$cluster_sample_probability
     #id_sample original_label neuron_label percentage_s cluster
     #Initialize variables
     id_sample <- NULL
     neuron_label <- NULL
 
     #get only id, label and neuron_label
-    temp.data.tb <- unique(dplyr::select(data.tb, id_sample, original_label, cluster))
+    temp.data <- unique(dplyr::select(data, id_sample, original_label, cluster))
 
     #get label that no have cluster
-    no_cluster <- dplyr::setdiff(temp.data.tb$original_label, temp.data.tb$cluster)
+    no_cluster <- dplyr::setdiff(temp.data$original_label, temp.data$cluster)
 
-    confusion.matrix <- table(temp.data.tb$original_label, temp.data.tb$cluster)
+    confusion.matrix <- table(temp.data$original_label, temp.data$cluster)
 
     #get the names of classes (original labels from samples)
     label_table <- rownames(confusion.matrix)
@@ -737,7 +737,7 @@ sits_evaluate_cluster <- function(som_cluster)
 }
 
 #' @title Get cluster probability
-#' @name .sits_cluster_probability
+#' @name .sits_som_cluster_probability
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function summarize the probability a sample belongs to a cluster from the label of the neuron
@@ -746,8 +746,7 @@ sits_evaluate_cluster <- function(som_cluster)
 #' @param data       A sits tibble with info of samples provided by sits_cluster_som.
 #' @return Returns a sits tibble with a new column indicating the probability of a sample belongs to a cluster and the majority cluster of a sample
 #'
-
-.sits_cluster_probability <- function(data)
+.sits_som_cluster_probability <- function(data)
 {
 
     #Count samples to extract the percentage of a sample belong to a cluster
@@ -851,14 +850,14 @@ sits_evaluate_cluster <- function(som_cluster)
 }
 
 #' @title Paint neurons
-#' @name .sits_paint_neurons
+#' @name .sits_som_paint_neurons
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function paint all neurons of the last iteration of SOM in function sits_cluster_som
 #' @param kohonen_obj    Object Kohonen, this object contains all parameters of SOM provided by package Kohonen
 #' @return Returns kohonen_obj with a new parameter with the colour of the neuron.
 #'
-.sits_paint_neurons <- function(kohonen_obj)
+.sits_som_paint_neurons <- function(kohonen_obj)
 {
     #set colors to paint neurons
     pallete1 <- .sits_brewerRGB[[.sits_color_name("Set1")]]
@@ -889,16 +888,16 @@ sits_evaluate_cluster <- function(som_cluster)
 
 
 #' @title Paint neurons
-#' @name .sits_bayesian_som_neighbourhood
+#' @name .sits_som_bayesian_neighbourhood
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function compute the probability of a sample belongs to a cluster using bayesian filter.
 #' @param kohonen_obj    Object Kohonen, this object contains all parameters of SOM provided by package Kohonen
 #' @param neurons_labelled.tb A tibble containing informations about each neuron.
-#' @param result.tb A tibble with samples.
+#' @param result A tibble with samples.
 #' @return Returns the probability of a sample belongs to a cluster based on class of neuron and its neighborhood.
 
-.sits_bayesian_som_neighbourhood <- function (kohonen_obj, neurons_labelled.tb, result.tb)
+.sits_som_bayesian_neighbourhood <- function(kohonen_obj, neurons_labelled.tb, result)
 {
     grid_size <- dim(kohonen_obj$grid$pts)[1]
     samples_probability_i.tb <- tibble::as_tibble()
@@ -923,9 +922,9 @@ sits_evaluate_cluster <- function(som_cluster)
                 #get sample with the same label of current class of neuron
                 samples_inside_neuron.tb <-
                     dplyr::filter(
-                        result.tb,
-                        result.tb$id_neuron == neuron_i &
-                            result.tb$label == current_class_neuron.tb$label_samples
+                        result,
+                        result$id_neuron == neuron_i &
+                            result$label == current_class_neuron.tb$label_samples
                     )
 
                 get_data_neighbouhood_current_class.tb <-
@@ -957,4 +956,117 @@ sits_evaluate_cluster <- function(som_cluster)
     }
     return(samples_probability_i.tb)
 }
+#' @title  Plot information about clusters
+#' @name   sits_som_plot_clusters
+#' @author Lorena Santos \email{lorena.santos@@inpe.br}
+#'
+#' @description Plot a bar graph with informations about each cluster.
+#' The percentage of mixture between the clusters.
+#'
+#' @param data       Table containing the percentage of mixture between the clusters
+#'                   (produced by \code{\link[sits]{sits_som_evaluate_cluster}})
+#' @param text_title Title of plot. Default is "Cluster".
+#'
+#' @examples
+#' \donttest{
+#' # Produce a cluster map
+#' som_cluster <- sits_som_map(prodes_226_064)
+#' # Evaluate the clusters
+#' cluster_overall <- sits_som_evaluate_cluster(som_cluster)
+#' # Plot confusion between the clusters
+#' sits_som_plot_clusters(cluster_overall, "Confusion by cluster")
+#' }
+#' @export
+sits_som_plot_clusters <- function(data, text_title = " Cluster ")
+{
+    data <- data$mixture_cluster
+    labels <- data$original_class
 
+    p <-
+        ggplot2::ggplot() + ggplot2::geom_bar(
+            ggplot2::aes(
+                y = data$mixture_percentage,
+                x = data$cluster,
+                fill = labels
+            ),
+            data = data,
+            stat = "identity",
+            position = ggplot2::position_dodge()
+        )  +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 60, hjust = 1)) +
+        ggplot2::labs(x = "Clusters", y = "Percentage of mixture", colour = "cluster") +
+        ggplot2::ggtitle(text_title)
+
+    return(p)
+}
+
+#' @title  Plot the patterns of SOM subgroups (only NDVI and EVI time series)
+#' @name   sits_som_plot_subgroups
+#' @author Lorena Santos \email{lorena.santos@@inpe.br}
+#'
+#' @description Plot the average pattern of subgroups from  weights of neurons labelled.
+#' Each neuron has a weight which can be represent a set of time series samples. Neurons of same
+#' category or label form a cluster, but the neurons within a cluster can have different patterns.
+#'
+#' @param  subgroups  The list contain the EVI and NDVI time series (weight of each neuron) by class.
+#' @param  label      Label to be plotted
+#' @param  band       Band to be plotted
+#' @examples
+#' \donttest{
+#' # Produce a cluster map
+#' som_cluster <- sits_som_map(prodes_226_064)
+#' # Evaluate and produce information on the subgroups
+#' subgroups <- sits_som_evaluate_subgroups(som_cluster)
+#' # Plot the resulting subgroups
+#' sits_som_plot_subgroups(subgroups, cluster = "Forest", band = "ndvi")
+#' }
+#'
+#' @export
+sits_som_plot_subgroups <- function(subgroups, label, band = "ndvi")
+{
+    samples_current_class.tb <- dplyr::filter(subgroups$samples_subgroups.tb,
+                                              subgroups$samples_subgroups.tb$som_label == label)
+
+    #Get the amount of subclasses
+    names_subgroups <- sort(unique(samples_current_class.tb$label_subgroup))
+    number_of_subgroups <- length(unique(samples_current_class.tb$label_subgroup))
+
+    #Put this value in a dynamic way
+    if (band == "ndvi")
+        codes <- subgroups$som_properties$codes$ndvi
+
+    if (band == "evi")
+        codes <- subgroups$som_properties$codes$evi
+
+    plot.vec <- vector()
+    for (i in 1:number_of_subgroups)
+    {
+        get_samples_current_subgroup.tb <- dplyr::filter(samples_current_class.tb, samples_current_class.tb$label_subgroup == names_subgroups[i] )
+        get_neurons <- get_samples_current_subgroup.tb$id_neuron
+
+        current_codes <- codes[get_neurons, ]
+        time_series_current_subgroup.ts <- zoo::zoo(t(current_codes))
+
+        group_ts <-
+            data.frame(
+                value = as.vector(time_series_current_subgroup.ts),
+                index_time = stats::time(time_series_current_subgroup.ts),
+                neurons = rep(
+                    names(time_series_current_subgroup.ts),
+                    each = nrow(time_series_current_subgroup.ts)
+                )
+            )
+
+        plot_ts_subgroup <-
+            ggplot2::ggplot(group_ts, ggplot2::aes(x = index_time, y = value)) +
+            ggplot2::stat_summary(fun.data = "mean_cl_boot",
+                                  geom = "smooth") + ggplot2::labs(x = "Time", y = band) +
+            ggplot2::ggtitle(paste(names_subgroups[i]))
+
+
+        graphics::plot(plot_ts_subgroup)
+
+    }
+    return(plot_ts_subgroup)
+}

@@ -4,10 +4,10 @@
 \alias{sits_kalman}
 \title{Kalman filter}
 \usage{
-sits_kalman(data.tb = NULL, bands_suffix = "kf")
+sits_kalman(data = NULL, bands_suffix = "kf")
 }
 \arguments{
-\item{data.tb}{A sits tibble containing the original time series.}
+\item{data}{A sits tibble containing the original time series.}
 
 \item{bands_suffix}{The suffix to be appended to the smoothed filters.}
 }

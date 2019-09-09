@@ -4,11 +4,11 @@
 \alias{sits_sgolay}
 \title{Smooth the time series using Savitsky-Golay filter}
 \usage{
-sits_sgolay(data.tb = NULL, order = 3, length = 5, scaling = 1,
+sits_sgolay(data = NULL, order = 3, length = 5, scaling = 1,
   bands_suffix = "sg")
 }
 \arguments{
-\item{data.tb}{A tibble with time series data and metadata.}
+\item{data}{A tibble with time series data and metadata.}
 
 \item{order}{Filter order (integer).}
 
@@ -33,8 +33,12 @@ and the temporal expansion with the parameter `scaling`.
 #' # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the Savitsky Golay smoother
-point_sg.tb <- sits_sgolay (point_ndvi, order = 3, length  = 5)
+point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5))
 # Plot the two points to see the smoothing effect
-sits_plot(sits_merge(point_ndvi, point_sg.tb))
+sits_plot(sits_merge(point_ndvi, point_sg))
 }
+}
+\references{
+A. Savitzky, M. Golay, "Smoothing and Differentiation of Data by
+Simplified Least Squares Procedures". Analytical Chemistry, 36 (8): 1627–39, 1964.
 }

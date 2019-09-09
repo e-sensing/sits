@@ -4,11 +4,11 @@
 \alias{sits_mlr}
 \title{Train a sits classifiaction model using multinomial log-linear regions via neural networks}
 \usage{
-sits_mlr(data.tb = NULL, formula = sits_formula_linear(),
+sits_mlr(data = NULL, formula = sits_formula_linear(),
   n_weights = 20000, maxit = 2000, ...)
 }
 \arguments{
-\item{data.tb}{Time series with the training samples.}
+\item{data}{Time series with the training samples.}
 
 \item{formula}{Symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_formula_logref).}
 
@@ -19,7 +19,7 @@ sits_mlr(data.tb = NULL, formula = sits_formula_linear(),
 \item{...}{Other parameters to be passed to nnet::multinom function.}
 }
 \value{
-A model function to be passed in sits_predict.
+A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
 Use multinomial log-linear (mlr) fitting model via neural networks to classify data.

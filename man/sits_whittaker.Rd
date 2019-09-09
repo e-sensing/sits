@@ -2,13 +2,13 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_whittaker}
 \alias{sits_whittaker}
-\title{Smooth the time series using Whittaker smoother}
+\title{Filter the time series using Whittaker smoother}
 \usage{
-sits_whittaker(data.tb = NULL, lambda = 1, differences = 3,
+sits_whittaker(data = NULL, lambda = 1, differences = 3,
   bands_suffix = "whit")
 }
 \arguments{
-\item{data.tb}{A tibble with time series data and metadata.}
+\item{data}{A tibble with time series data and metadata.}
 
 \item{lambda}{Smoothing factor to be applied (default 1.0).}
 
@@ -31,9 +31,9 @@ Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the whittaker smoother
-point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0, differences = 3)
+point_whit<- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, differences = 3))
 # Plot the two points to see the smoothing effect
-sits_plot(sits_merge(point_ndvi, point_ws.tb))
+sits_plot(sits_merge(point_ndvi, point_whit))
 }
 }
 \references{

@@ -4,10 +4,10 @@
 \alias{sits_tasseled_cap}
 \title{Builds tasseled cap bands}
 \usage{
-sits_tasseled_cap(data.tb, sensor = "MODIS")
+sits_tasseled_cap(data, sensor = "MODIS")
 }
 \arguments{
-\item{data.tb}{Valid sits tibble.}
+\item{data}{Valid sits tibble.}
 
 \item{sensor}{sensor.}
 }

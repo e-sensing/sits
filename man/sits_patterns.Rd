@@ -4,10 +4,10 @@
 \alias{sits_patterns}
 \title{Create temporal patterns using a generalised additive model (gam)}
 \usage{
-sits_patterns(data.tb = NULL, freq = 8, formula = y ~ s(x), ...)
+sits_patterns(data = NULL, freq = 8, formula = y ~ s(x), ...)
 }
 \arguments{
-\item{data.tb}{A tibble in sits format with time series.}
+\item{data}{A tibble in sits format with time series.}
 
 \item{freq}{Interval in days for the estimates to be generated.}
 
@@ -35,16 +35,16 @@ described in the reference paper.
 # Read a set of samples for two classes
 data(cerrado_2classes)
 # Estimate a set of patterns (one for each label)
-patterns.tb <- sits_patterns(cerrado_2classes)
+patterns <- sits_patterns(cerrado_2classes)
 # Show the patterns
-sits_plot(patterns.tb)
+sits_plot(patterns)
 
 # Read a set of samples for the state of Mato Grosso, Brazil, provided by EMBRAPA
 data(samples_mt_6bands)
 # Estimate a set of patterns (one for each label)
-patterns.tb <- sits_patterns(samples_mt_6bands)
+patterns <- sits_patterns(samples_mt_6bands)
 # Show the patterns
-sits_plot(patterns.tb)
+sits_plot(patterns)
 }
 }
 \references{

@@ -22,7 +22,7 @@
 #'
 #' This function returns the confusion matrix, and Kappa values.
 #'
-#' @param data.tb         A sits tibble.
+#' @param data            A sits tibble.
 #' @param folds           Number of partitions to create.
 #' @param ml_method       Machine learning method.
 #' @param multicores      Number of cores for processing.
@@ -38,15 +38,15 @@
 #' sits_conf_matrix(conf_matrix1.mx)
 #' }
 #' @export
-sits_kfold_validate <- function(data.tb, folds = 5,
+sits_kfold_validate <- function(data, folds = 5,
                                 ml_method = sits_rfor(), multicores = 2){
 
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
 
     # get the labels of the data
-    labels <- sits_labels(data.tb)$label
+    labels <- sits_labels(data)$label
 
     # create a named vector with integers match the class labels
     n_labels <- length(labels)
@@ -54,11 +54,11 @@ sits_kfold_validate <- function(data.tb, folds = 5,
     names(int_labels) <- labels
 
     # is the data labelled?
-    ensurer::ensure_that(data.tb, !("NoClass" %in% sits_labels(.)$label),
+    ensurer::ensure_that(data, !("NoClass" %in% sits_labels(.)$label),
                          err_desc = "sits_cross_validate: please provide a labelled set of time series")
 
     # create partitions different splits of the input data
-    data.tb <- .sits_create_folds(data.tb, folds = folds)
+    data <- .sits_create_folds(data, folds = folds)
 
     # create prediction and reference vector
     pred.vec = character()
@@ -67,27 +67,27 @@ sits_kfold_validate <- function(data.tb, folds = 5,
     conf.lst <- parallel::mclapply(X = 1:folds, FUN = function(k)
     {
         # split data into training and test data sets
-        data_train.tb <- data.tb[data.tb$folds != k,]
-        data_test.tb  <- data.tb[data.tb$folds == k,]
+        data_train <- data[data$folds != k,]
+        data_test  <- data[data$folds == k,]
 
         # create a machine learning model
-        ml_model <- sits_train(data_train.tb, ml_method)
+        ml_model <- sits_train(data_train, ml_method)
 
         # has normalization been applied to the data?
-        stats.tb   <- environment(ml_model)$stats.tb
+        stats   <- environment(ml_model)$stats
 
         # obtain the distances after normalizing data by band
-        if (!purrr::is_null(stats.tb))
-            distances_DT <- .sits_distances(.sits_normalize_data(data_test.tb, stats.tb, multicores))
+        if (!purrr::is_null(stats))
+            distances_DT <- .sits_distances(.sits_normalize_data(data_test, stats, multicores))
         else
-            distances_DT <- .sits_distances(data_test.tb)
+            distances_DT <- .sits_distances(data_test)
 
         # classify the test data
         prediction_DT <- ml_model(distances_DT)
         # extract the values
         values <-  names(int_labels[max.col(prediction_DT)])
 
-        ref.vec  <- c(ref.vec,  data_test.tb$label)
+        ref.vec  <- c(ref.vec,  data_test$label)
         pred.vec <- c(pred.vec, values)
 
         return(list(pred = pred.vec, ref = ref.vec))

@@ -50,10 +50,10 @@ test_that("Rename",{
 })
 
 test_that("Transmute", {
-    data.tb <- sits_sample(cerrado_2classes, n = 10)
+    data <- sits_sample(cerrado_2classes, n = 10)
 
-    expect_equal(sits_labels(cerrado_2classes)$label, sits_labels(data.tb)$label)
-    expect_equal(dim(data.tb)[1], 20)
+    expect_equal(sits_labels(cerrado_2classes)$label, sits_labels(data)$label)
+    expect_equal(dim(data)[1], 20)
 })
 
 

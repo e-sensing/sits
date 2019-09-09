@@ -4,10 +4,10 @@
 \alias{sits_filter}
 \title{General function for filtering}
 \usage{
-sits_filter(data.tb, filter = sits_whittaker())
+sits_filter(data, filter = sits_whittaker())
 }
 \arguments{
-\item{data.tb}{Set of time series}
+\item{data}{Set of time series}
 
 \item{filter}{Filter to be applied to the data.}
 }
