@@ -214,6 +214,8 @@ class.tb <- point_mt_4bands %>%
 
 # 1D convolutional neural networks
 
+Con
+
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Deep learning classification of a $16$ year time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
 # Mato Grosso region for train the  model.

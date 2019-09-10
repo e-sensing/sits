@@ -9,3 +9,4 @@
 ^README_cache$
 ^doc$
 ^Meta$
+^\.travis\.yml$

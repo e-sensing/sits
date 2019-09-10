@@ -1,6 +1,6 @@
 ---
 title: "SITS - Satellite Image Time Series Analysis for Data Cubes"
-authors: Rolf Simoes, Gilberto Camara, Pedro Andrade, Alexandre Carvalho, Gilberto Queiroz, Lorena Santos
+authors: Rolf Simoes, Gilberto Camara, Pedro Andrade, Alexandre Carvalho, Gilberto Queiroz, Lorena Santos, Karine Ferreira, Victor Maus, 
 output:
     github_document
 ---
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-"
 )
 ```
-The SITS package is a set of tools for working with satellite image time series. Includes data retrieval from a WTSS (web time series service), different visualisation methods for image time series, smoothing methods for noisy time series, different clustering methods, including dendrograms and SOM. Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition and provides machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
+The SITS package is a set of tools for working with satellite image time series. Includes data retrieval from a WTSS (web time series service), different visualisation methods for image time series, smoothing methods for noisy time series, different clustering methods, including dendrograms and SOM. Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition. Supports  machine learning methods for time series classification, including SVM, GLM, Lasso, Random Forests, Extreme Gradient Boosting (XGBoost) and different Deep Learning methods: multi-layer perceptrons, 1D Convolution Neural Networks (1D-CNN), tempCNN and ResNet.
 
 ### Overview
 
@@ -22,7 +22,9 @@ The **sits** package is a set of tools for working with satellite image time ser
 - Includes smoothing methods for noisy time series.
 - Enables different clustering methods, including dendrograms and SOM (Kohonen maps).
 - Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition.
-- Provides machine learning methods for time series classification, including SVM, LDA, QDA, GLM, Lasso, Random Forests and Deep Learning.
+- Supports  machine learning methods for time series classification, including SVM, GLM, Lasso, Random Forests, Extreme Gradient Boosting (XGBoost).
+- Supports Deep Learning methods for classification: multi-layer perceptrons, 1D Convolution Neural Networks (1D-CNN), tempCNN and ResNet.
+
 
 **sits** is a convenient front-end to many analysis package that are useful for satellite image time series analysis. The package organizes time series data using tibbles, which makes it quite simple for users to manage time series data sets. 
 
@@ -40,6 +42,8 @@ The **sits** package is a set of tools for working with satellite image time ser
 - **kohonen** for clustering based on SOM.
 - **dtwSat** for access to the time-weigthed dynamic time warping algorithm.
 - **signal** for filtering.
+- **xgboost** for Extreme Gradient Boosting.
+- **keras** and **tensorflow** for Deep Learning.
     
 **sits** also relies extensively on the **tidyverse**, **data.table**, **raster** and **sf** packages. The tight integration achieved by tha package makes it easier for users to perform different types of analysis on satellite image time series.   
 
@@ -57,8 +61,6 @@ After loading the library, users can print a **sits** tibble to see how the pack
 
 ```{r, include = FALSE}
 library(sits)
-library(tibble)
-library(dtwclust)
 ```
 
 ```{r}
@@ -145,6 +147,10 @@ sits_plot(class.tb)
 |Check |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)|
 |Documentation |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull)|
 | Coverage      | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master) |
+
+<!-- badges: start -->
+  [![Travis build status](https://travis-ci.org/e-sensing/sits.svg?branch=master)](https://travis-ci.org/e-sensing/sits)
+<!-- badges: end -->
 
 [![DOI](https://zenodo.org/badge/98539507.svg)](https://zenodo.org/badge/latestdoi/98539507)
 
