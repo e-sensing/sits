@@ -10,3 +10,5 @@
 ^doc$
 ^Meta$
 ^\.travis\.yml$
+^appveyor\.yml$
+^tic\.R$

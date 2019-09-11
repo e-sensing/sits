@@ -1,6 +1,6 @@
 ---
-title: "SITS - Satellite Image Time Series Analysis for Data Cubes"
-authors: Rolf Simoes, Gilberto Camara, Pedro Andrade, Alexandre Carvalho, Gilberto Queiroz, Lorena Santos, Karine Ferreira, Victor Maus, 
+title: "SITS - Satellite Image Time Series Analysis for Earth Observation Data Cubes"
+authors: Rolf Simoes, Gilberto Camara, Pedro Andrade, Alexandre Carvalho, Gilberto Queiroz, Lorena Santos, Karine Ferreira, Victor Maus 
 output:
     github_document
 ---
@@ -11,133 +11,157 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-"
 )
 ```
-The SITS package is a set of tools for working with satellite image time series. Includes data retrieval from a WTSS (web time series service), different visualisation methods for image time series, smoothing methods for noisy time series, different clustering methods, including dendrograms and SOM. Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition. Supports  machine learning methods for time series classification, including SVM, GLM, Lasso, Random Forests, Extreme Gradient Boosting (XGBoost) and different Deep Learning methods: multi-layer perceptrons, 1D Convolution Neural Networks (1D-CNN), tempCNN and ResNet.
 
 ### Overview
 
-The **sits** package is a set of tools for working with satellite image time series, that:
+The SITS package provides a set of tools for analysis, visualization and classification of satellite image time series. It includes methods for filtering, clustering, classification, and post-processing. 
 
-- Supports for data retrieval from a web time series services, rasters files and other data sets.
-- Provides different visualisation methods for image time series.
-- Includes smoothing methods for noisy time series.
-- Enables different clustering methods, including dendrograms and SOM (Kohonen maps).
-- Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition.
-- Supports  machine learning methods for time series classification, including SVM, GLM, Lasso, Random Forests, Extreme Gradient Boosting (XGBoost).
-- Supports Deep Learning methods for classification: multi-layer perceptrons, 1D Convolution Neural Networks (1D-CNN), tempCNN and ResNet.
+### Vignettes
 
+  - [“SITS: Data Analysis and Machine Learning for Data Cubes using
+    Satellite Image Time
+    Series”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/sits.pdf)
 
-**sits** is a convenient front-end to many analysis package that are useful for satellite image time series analysis. The package organizes time series data using tibbles, which makes it quite simple for users to manage time series data sets. 
+  - [“Clustering of Satellite Image Time Series with
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering.pdf)
 
-### Interface to CRAN data analysis packages
+  - [“Satellite Image Time Series Filtering with
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.pdf)
 
-**sits** is a convenient front-end to many packages that are useful for satellite image time series analysis. Given data sets organized as time series tibbles, the package provides easy access to many packages for time series analysis:
+  - [“Time Series classification using machine
+    learning”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/machine_learning.pdf)
 
-- **keras** for Deep Learning classification.
-- **e1071** for SVM models.
-- **MASS** for LDA and QDA models.
-- **nnet** for multinomial log-linear models.
-- **glmnet** for generalized linear models.
-- **ranger** for random forest methods.
-- **dtwclust** for time series clustering.
-- **kohonen** for clustering based on SOM.
-- **dtwSat** for access to the time-weigthed dynamic time warping algorithm.
-- **signal** for filtering.
-- **xgboost** for Extreme Gradient Boosting.
-- **keras** and **tensorflow** for Deep Learning.
+  - [“Post classification smoothing using Bayesian techniques in
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/smoothing.pdf)
     
-**sits** also relies extensively on the **tidyverse**, **data.table**, **raster** and **sf** packages. The tight integration achieved by tha package makes it easier for users to perform different types of analysis on satellite image time series.   
-
 ### Installation
 
 Please install the SITS package from github, making sure you have the latest version of the other packages it requires:
 
 ```{r, eval = FALSE}
 devtools::install_github("e-sensing/sits")
+library(sits)
+
+# Retrieve the data available in the "inSitu" package (used for some examples)
+devtools::install_github("e-sensing/inSitu")
+library(inSitu)
 ```
 
-### Basic data structure
+### Data Access 
 
-After loading the library, users can print a **sits** tibble to see how the package organizes the data.
+**sits** allows different methods of data input, including: (a) obtain data from a time series web services such as INPE's WTSS (Web Series Time Service) or EMBRAPA's SATVEG; (b) read data stored in a time series in the ZOO format [@Zeileis2005]; (c) read a time series from a TIFF RasterBrick; (d) Read images organized in data cubes using the EOCUbes packages. More services will be added in future releases.
+
+### Visualization
 
 ```{r, include = FALSE}
 library(sits)
-```
-
-```{r}
 samples_mt_6bands[1:3,]
 ```
 
-The **sits** tibble contains data and metadata. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location (-55.1852, -10.8387), and is considered valid for the period (2013-09-14, 2014-08-29).
-
-To display the time series, we provide `sits_plot()` function to display the time series. Given a small number of samples to display, the `sits_plot()` function tries to group as many spatial locations together. In the following example, the first 15 samples of the "Cerrado" class all refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together. 
+After a time series is imported, it is loaded in a tibble. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location (-55.1852, -10.8387), and is considered valid for the period (2013-09-14, 2014-08-29). To display the time series, use the `sits_plot()` function. For a large number of samples, where the amount of individual plots would be substantial, the default visualisation combines all samples together in a single temporal interval. 
 
 ```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5}
 # select the "ndvi" band
-samples_ndvi.tb <- sits_select_bands(samples_mt_6bands, ndvi)
+samples_ndvi <- sits_select_bands(samples_mt_6bands, ndvi)
 # select only the samples with the cerrado label
-samples_cerrado.tb <- dplyr::filter(samples_ndvi.tb, 
+samples_cerrado <- dplyr::filter(samples_ndvi, 
                   label == "Cerrado")
+sits_plot(samples_cerrado)
 ```
 
-For a large number of samples, where the amount of individual plots would be substantial, the default visualisation combines all samples together in a single temporal interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, and the two orange lines are the first and third interquartile ranges. 
-
-```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5}
-# plot all cerrado samples together (shows the distribution)
-sits_plot(samples_cerrado.tb)
-```
-
-### Importing Data into `sits`
-
-**sits** allows different methods of data input, including: (a) obtain data from a time series web services such as INPE's WTSS (Web Series Time Service) or EMBRAPA's SATVEG; (b) read data stored in a time series in the ZOO format [@Zeileis2005]; (c) read a time series from a TIFF RasterBrick. More services will be added in future releases.
 
 ### Clustering
 
-Clustering is a way to improve training data to use in machine learning classification models. In this regard, cluster analysis can assist the identification of structural patterns and anomalous samples. **sits** provides support for the agglomerative hierarchical clustering (AHC) using the DTW (dynamic time warping) distance measure. After creating a dendrogram, we compute a validity index and returns the clustering that meets the best value.
+Clustering methods in SITS improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Good samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM). Full details of the cluster methods used in SITS are available in the vignette 'Clustering of Satellite Image Time Series with SITS'. The following example shows how to create a dendrogram and associated clusters for a dataset with two classes ("pasture" and "cerrado") for the Cerrado biome in Brasil.
+
 
 ```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
 # take a set of patterns for 2 classes
 # create a dendrogram object with default clustering parameters
-clusters.tb <- sits_cluster(cerrado_2classes)
-```
-We can then see the cluster frequency using `sits_cluster_frequency`. In the example, we note that cluster $3$, unlike other clusters, includes a mix of two classes. Users can then remove this cluster with `sits_cluster_remove`to reduce the number of mixed-class samples.
-```{r}
-# show clusters samples frequency
-sits_cluster_frequency(clusters.tb)
-# clear those samples with a high confusion rate in a cluster 
-clean.tb <- sits_cluster_clean(clusters.tb)
-# show clean clusters samples frequency
-sits_cluster_frequency(clean.tb)
+clusters.tb <- sits_cluster_dendro(cerrado_2classes)
 ```
 
-### Filtering
 
-Satellite image time series are contaminated by atmospheric influence and directional effects. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with data sets that are *noisy* and *non-homogeneous*. For data filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker (`sits_whittaker()`), envelope (`sits_envelope()`) and the "cloud filter" (`sits_cloud_filter()`). As an example, we show how to apply the Whitakker smoother to the data.
+## Filtering
 
-```{r, fig.align="center", fig.height=3.1, fig.width=5}
-# Take the NDVI band of the first sample data set
-point.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
-# apply Whitaker filter
-point_whit.tb <- sits_whittaker(point.tb)
-# plot the series
-sits_plot(sits_merge(point_whit.tb, 
-                     point.tb))
+Satellite image time series are contaminated by atmospheric influence and directional effects. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with data sets that are *noisy* and *non-homogeneous*. For data filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker (`sits_whittaker()`), envelope (`sits_envelope()`) and the "cloud filter" (`sits_cloud_filter()`). As an example, we show how to apply the Whitakker smoother to a 16-year NDVI time series.
+
+For more details, please see the vignette ["Satellite Image Time Series Filtering with SITS"]
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=1$ parameter."}
+# apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
+# merge with the original data
+# plot the original and the modified series
+point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 5))
+point_whit %>% 
+  sits_merge(point_ndvi) %>% 
+  sits_plot()
 ```
 
-### Machine Learning and Deep Learning
+## Time Series classification using machine learning 
 
-**sits** explores the full depth of satellite image time series data for classification. It treat time series as a feature vector, formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars, also known as training data, to infer classes of a larger data set. 
+SITS provides support for the classification of both individual time series as well as data cubes. The following machine learning methods are available in SITS:
 
-We support a number of machine learning techniques, including SVM (support vector machines), Random Forests, generalised linear models, and gradient boosting machines, and deep learning. We show an example of using the SVM and Deep Learning classifiers below.
+* Linear discriminant analysis (`sits_lda`)
+* Quadratic discriminant analysis (`sits_qda`)
+* Multinomial logit and its variants 'lasso' and 'ridge' (`sits_mlr`)
+* Support vector machines (`sits_svm`)
+* Random forests (`sits_rfor`)
+* Extreme gradient boosting (`sits_xgboost`)
+* Deep learning (DL) using multi-layer perceptrons (`sits_deeplearning`)
+* DL with 1D convolutional neural networks (`sits_CNN`), 
+* DL combining 1D CNN and multi-layer perceptron networks (`sits_tempCNN`)
+* DL using 1D version of ResNet (`sits_ResNet`).
 
-```{r}
-# Build a machine learning model with a set of samples 
-# for the Mato Grosso region (provided by EMBRAPA) (samples_mt_ndvi)
-svm_model <- sits_train(samples_mt_ndvi, ml_method = sits_svm(kernel = "radial",  cost = 10))
-# get a point to be classified (point_ndvi)
 
-class.tb <- sits_classify(point_ndvi, svm_model)
+The following example illustrate how to train a dataset and classify an individual time series. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, an XGBoost classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `sits_plot`.
+
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="XGBoost classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
+
+
+#select the data for classification
+mato_grosso_samples <- inSitu::br_mt_1_8K_9classes_6bands
+mato_grosso_2bands  <- sits_select_bands(mato_grosso_samples, ndvi, evi)
+
+# get a point to be classified
+point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
+
+# Train a machine learning model for the mato grosso dataset using Random Forest
+xgb_model <- sits_train(data = mato_grosso_2bands, ml_method = sits_xgboost())
+
+# Classify using random forest model and plot the result
+class.tb <- sits_classify(point_mt_2bands, xgb_model)
+# plot the results of the prediction
 sits_plot(class.tb)
 ```
+
+The following example shows how to use the model trained above to classify a data cube organised as a set of raster bricks. 
+
+```{r, fig.align="center", fig.cap="Image classified with XGBoost."}
+
+# Create a data cube from two raster bricks
+evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
+ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
+
+# Obtain the associated timeline
+time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
+timeline_2013_2014 <- scan(time_file, character(), quiet = TRUE)
+
+# create a raster metadata file based on the information about the files
+raster_cube <- sits_cube(name = "Sinop", timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
+# Classify the raster cube, generating a probability file
+probs_cube <- sits_classify(raster_cube, ml_model = xgb_model)
+
+# label the probability file (by default selecting the class with higher probability)
+# apply a bayesian smoothing to remove outliers
+label_cube <- sits_label_classification(probs_cube, smoothing = "bayesian")
+
+# plot the first raster object with a selected color pallete
+# make a title, define the colors and the labels)
+sits_plot_raster(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
+```
+
+For more details, please see the vignette "Machine Learning for Data Cubes using the SITS package". 
 
 #### Code status
 

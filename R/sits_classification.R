@@ -421,6 +421,12 @@ sits_label_classification <- function(cube,
     ensurer::ensure_that(samples, NROW(.) > 0,
                          err_desc = "sits_classify: original samples not saved in the model environment")
 
+    # Sanity check - are the cube bands the same as the sample bands
+    cube_bands   <- .sits_cube_bands(cube)
+    sample_bands <- sits_bands(samples)
+    ensurer::ensure_that(cube_bands, all((.) %in% sample_bands) && all(sample_bands %in% (.)),
+                         err_desc = "sits_classify: bands in the training samples are different from bands in the cube")
+
     # classify the data
     cube_probs <- .sits_classify_multicores(cube, samples, ml_model,
                                             interval, filter, memsize, multicores, output_dir)
@@ -507,7 +513,7 @@ sits_label_classification <- function(cube,
     # read the blocks
     for (block in 1:bs$n) {
         # read the data
-        data_DT <- .sits_raster_read_data(cube, samples, ml_model,
+         data_DT <- .sits_raster_read_data(cube, samples, ml_model,
                                    bs$row[block], bs$nrows[block], stats, filter, multicores)
         # process one temporal instance at a time
 

@@ -449,8 +449,7 @@ sits_cube_timeline <- function(cube, index = 1){
 #'
 .sits_cube_robj <- function(cube, index = 1){
     ensurer::ensure_that(index, (.) <= length(cube$files[[1]]),
-                         err_desc = ".sits_cube_file: files is not available - index is out of range")
-
+                         err_desc = ".sits_cube_robj: file is not available - index is out of range")
     return(raster::brick(cube$files[[1]][index]))
 }
 
