@@ -214,7 +214,14 @@ class.tb <- point_mt_4bands %>%
 
 # 1D convolutional neural networks
 
-Con
+As argued by @Russwurm2017, the use of (convolutional) neural networks in general and RNNs and LSTM
+units in particular has significant advantages to multi-layer perceptrons for satellite image time series classification: 
+* Neural networks are capable of learning complex relations solely based on presented input data an corresponding labels (i.e., end-to-end learning), superseding manual process modelling.
+* Due to information propagation along the observation sequence, RNNs and LSTMs are capable of learning temporal relationships between the data items.
+* At each point in time, classification decisions are based on relevant information from the entirety of all previous observations, extracted and stored in a globally optimal manner.
+* The classification process itself is robust to highfrequent temporal coverage—e.g., by clouds, snow, etc.—, as long as these perturbations are adequately represented in the corpus of training data.
+
+
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Deep learning classification of a $16$ year time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
 # Retrieve the set of samples (provided by EMBRAPA) from the 

@@ -51,5 +51,4 @@ addons:
       - libnetcdf-dev
       - netcdf-bin
 
-#services
-services:
+install: travis_wait 10 mvn install
