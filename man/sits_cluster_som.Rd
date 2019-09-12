@@ -4,12 +4,12 @@
 \alias{sits_cluster_som}
 \title{Clustering a set of satellite image time series using SOM}
 \usage{
-sits_cluster_som(data.tb, grid_xdim = 10, grid_ydim = 10, alpha = 1,
+sits_cluster_som(data, grid_xdim = 10, grid_ydim = 10, alpha = 1,
   distance = "euclidean", iterations = 50, prob_label_change = 0.8,
   min_cluster_prob = 0.6)
 }
 \arguments{
-\item{data.tb}{A tibble with samples to be clustered.}
+\item{data}{A tibble with samples to be clustered.}
 
 \item{grid_xdim}{X dimension of the SOM grid (default = 25).}
 
@@ -33,7 +33,7 @@ presenting the probability of each sample belongs to a class described in column
 This function uses self-organized maps to find clusters in
 satellite image time series for quality control of the  samples.
 It calls the function \code{\link[sits]{sits_som_map}} to generate the som map and
-\code{\link[sits]{sits_clean_samples_som}} to produce a cleaned set of samples.
+\code{\link[sits]{sits_som_clean_samples}} to produce a cleaned set of samples.
 The parameters "grid_xdim", "grid_ydim", "rlen", "distance", "alpha", and
 "iterations are used by \code{\link[sits]{sits_som_map}} to control how the Kohonen map
 is generated. The parameters "prob_label_change" and "min_cluster_prob" control how the

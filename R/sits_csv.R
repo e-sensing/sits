@@ -1,3 +1,87 @@
+#' @title Obtain timeSeries from a data cube, based on a CSV file.
+#' @name .sits_from_csv
+#'
+#' @description reads descriptive information about a set of
+#' spatio-temporal locations from a CSV file. Then, it retrieve the time series from a data cube,
+#' and stores the time series on a sits tibble for later use.
+#' The CSV file should have the following column names:
+#' "longitude", "latitude", "start_date", "end_date", "label"
+#'
+#' @param csv_file        Name of a CSV file with information <id, latitude, longitude, from, end, label>.
+#' @param cube            A tibble with metadata about the data cube which contains data to be retrieved.
+#' @param bands           A string vector with the names of the bands to be retrieved.
+#' @param prefilter       String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
+#' @param .n_start        Row on the CSV file to start reading (optional).
+#' @param .n_max          Maximum number of samples to be read.
+#' @param .n_save         Number of samples to save as intermediate files (used for long reads).
+#' @return A sits tibble.
+.sits_from_csv <-  function(csv_file, cube, bands, prefilter, .n_start, .n_max, .n_save) {
+    # configure the format of the CSV file to be read
+    cols_csv <- readr::cols(id          = readr::col_integer(),
+                            longitude   = readr::col_double(),
+                            latitude    = readr::col_double(),
+                            start_date  = readr::col_date(),
+                            end_date    = readr::col_date(),
+                            label       = readr::col_character())
+    # read sample information from CSV file and put it in a tibble
+    csv.tb <- readr::read_csv(csv_file, n_max = Inf, col_types = cols_csv)
+
+    # select a subset
+    if (.n_max == Inf)
+        .n_max = NROW(csv.tb)
+    csv.tb <- csv.tb[.n_start:.n_max, ]
+
+    # find how many samples are to be read
+    n_rows_csv <- NROW(csv.tb)
+    # create a variable to store the number of rows
+    nrow <- 0
+    # create the tibble
+    data <- .sits_tibble()
+    # create a file to store the unread rows
+    csv_unread.tb <- .sits_tibble_csv()
+    # for each row of the input, retrieve the time series
+    purrr::pmap(list(csv.tb$longitude, csv.tb$latitude, csv.tb$start_date,
+                     csv.tb$end_date, csv.tb$label),
+                function(longitude, latitude, start_date, end_date, label){
+                    row <- .sits_from_service(cube, longitude, latitude,
+                                              lubridate::as_date(start_date),
+                                              lubridate::as_date(end_date),
+                                              bands, prefilter, label)
+                    # did we get the data?
+                    if (!purrr::is_null(row)) {
+                        nrow <<-  nrow + 1
+
+                        # add the new point to the sits tibble
+                        data <<- dplyr::bind_rows(data, row)
+
+                        # optional - save the results to an intermediate file
+                        if (.n_save != 0 && !(nrow %% .n_save)) {
+                            .sits_log_data(data)
+                        }
+                    }
+                    # the point could not be read - save it in the log file
+                    else {
+                        csv_unread_row.tb <- tibble::tibble(
+                            longitude  = longitude,
+                            latitude   = latitude,
+                            start_date = lubridate::as_date(start_date),
+                            end_date   = lubridate::as_date(end_date),
+                            label      = label
+                        )
+                        csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
+                    }
+                })
+
+
+    # Have all input rows being read?
+    if (nrow != n_rows_csv) {
+        message("Some points could not be retrieved - see log file and csv_unread_file")
+        .sits_log_csv(csv_unread.tb, "unread_samples.csv")
+    }
+
+    return(data)
+}
+
 #' @title Export a sits tibble metadata to the CSV format
 #' @name sits_metadata_to_csv
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -6,7 +90,7 @@
 #'              series. Its columns will be the same as those of a CSV file used to retrieve data from
 #'              ground information ("latitude", "longitude", "start_date", "end_date", "cube", "label").
 #'
-#' @param  data.tb    A sits time series.
+#' @param  data       A sits time series.
 #' @param  file       Name of the exported CSV file.
 #' @return The status of the operation.
 #' @examples
@@ -17,15 +101,15 @@
 #' sits_metadata_to_csv (cerrado_2classes, file = "./cerrado_2classes.csv")
 #' }
 #' @export
-sits_metadata_to_csv <- function(data.tb, file){
+sits_metadata_to_csv <- function(data, file){
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
 
     csv_columns <- c("longitude", "latitude", "start_date", "end_date", "label")
 
     #select the parts of the tibble to be saved
-    csv.tb <- dplyr::select(data.tb, csv_columns)
+    csv.tb <- dplyr::select(data, csv_columns)
 
     # create a column with the id
     id.tb <- tibble::tibble(id = 1:NROW(csv.tb))
@@ -52,7 +136,7 @@ sits_metadata_to_csv <- function(data.tb, file){
 #' but will have the actual time series, with a reference value. This function is useful to
 #' export the data for external applications
 #'
-#' @param  data.tb    A tibble with time series data and metadata.
+#' @param  data       A tibble with time series data and metadata.
 #' @param  file       Name of the exported CSV file.
 #' @return Status of the operation.
 #' @examples
@@ -63,14 +147,14 @@ sits_metadata_to_csv <- function(data.tb, file){
 #' sits_data_to_csv(cerrado_2classes, file = "cerrado_2classes.csv")
 #' }
 #' @export
-sits_data_to_csv <- function(data.tb, file){
+sits_data_to_csv <- function(data, file){
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
     # check if data is valid
-    .sits_test_tibble(data.tb)
+    .sits_test_tibble(data)
 
-    distances_DT <- .sits_distances(data.tb)
+    distances_DT <- .sits_distances(data)
 
     tryCatch({utils::write.csv(distances_DT, file, row.names = FALSE, quote = FALSE)},
              error = function(e){
@@ -102,19 +186,24 @@ sits_data_to_csv <- function(data.tb, file){
 #'
 #' @examples
 #' \donttest{
-#' # set the timeline
-#' data("timeline_2000_2017")
-#' # set the start and end dates
+#' # select the cube
+#' wtss_cube <- sits_cube(service = "WTSS", name    = "MOD13Q1")
+#' #  get the timeline from the cube
+#' cube_timeline <- sits_timeline(wtss_cube)
+#' # define the input shapefile (consisting of POINTS)
+#' shpfile <- system.file("extdata/shapefiles/cerrado_forested.shp", package = "sits")
+#' # set the start and end dates for the validity of the labels of the points in the shapefile
 #' start_date <- lubridate::ymd("2002-08-29")
 #' end_date   <- lubridate::ymd("2013-08-13")
-#' # define the input shapefile
-#' shpfile <- system.file ("extdata/shapefiles/cerrado_forested.shp", package = "sits")
 #' # define the output csv file
 #' csvfile <- paste0("cerrado_forested.csv")
-#' # define the label
+#' #' # define the label
 #' label <- "Cerrado_Forested"
 #' # read the points in the shapefile and produce a CSV file
-#' sits_shp_to_csv(shpfile, csvfile, label, timeline_2000_2017, start_date, end_date)
+#' sits_shp_to_csv(shpfile, csvfile, label, cube_timeline, start_date, end_date, interval = "12 month")
+#' # read the first three samples from the CSV file
+#' csv_data <- sits_get_data(cube = wtss_cube, file = csvfile, .n_max = 3)
+#' csv_data
 #' }
 #' @export
 sits_shp_to_csv <- function(shpfile, csvfile, label, timeline, start_date, end_date, interval = "12 month") {
@@ -152,7 +241,7 @@ sits_shp_to_csv <- function(shpfile, csvfile, label, timeline, start_date, end_d
     timeline <- timeline[timeline <= end_date]
 
     # obtain pairs of (start, end) dates for each interval
-    subset_dates.lst <- sits_match_timeline(timeline, start_date, end_date, interval)
+    subset_dates.lst <- sits_timeline_match(timeline, start_date, end_date, interval)
 
     # generate the output tibble
     purrr::pmap(list(coords$longitude, coords$latitude), function(long, lat){

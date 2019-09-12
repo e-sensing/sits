@@ -4,11 +4,11 @@
 \alias{.sits_plot_dendrogram}
 \title{Plot a dendrogram}
 \usage{
-.sits_plot_dendrogram(data.tb, dendro.obj, cutree_height = NULL,
+.sits_plot_dendrogram(data, dendro.obj, cutree_height = NULL,
   colors = "RdYlGn")
 }
 \arguments{
-\item{data.tb}{A sits tibble with data used to extract the dendrogram.}
+\item{data}{A sits tibble with data used to extract the dendrogram.}
 
 \item{dendro.obj}{Cluster object. Usually stored by `sits_cluster` function in `.sits_last_object`.}
 

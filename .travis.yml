@@ -1,26 +1,61 @@
-# Sample .travis.yml for R projects.
-#
-# See README.md for instructions, or for more configuration options,
-# see the wiki:
-#   https://github.com/craigcitro/r-travis/wiki
+# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
+# Default configuration for use with tic package
+# tic documentation to get started: https://ropenscilabs.github.io/tic/
+# Usually you shouldn't need to change the first part of the file
 
-language: R
-cache: packages
-sudo: required
-
+# DO NOT CHANGE THE CODE BELOW
 before_install:
-  - curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
-  - chmod 755 ./travis-tool.sh
-  - ./travis-tool.sh aptget_install libgdal-dev libproj-dev
-  - ./travis-tool.sh bootstrap
-install:
-  - ./travis-tool.sh install_deps
-script:
-  - ./travis-tool.sh install_github e-sensing/sits
-  - ./travis-tool.sh run_tests
-after_failure:
-  - ./travis-tool.sh dump_logs
-notifications:
-  email:
-    on_success: change
-    on_failure: change
+  - R -q -e 'if (!requireNamespace("remotes")) install.packages("remotes")'
+  - R -q -e 'if (getRversion() < "3.2" && !requireNamespace("curl")) install.packages("curl")'
+  - R -q -e 'remotes::install_github("ropenscilabs/tic", upgrade = "always"); print(tic::dsl_load()); tic::prepare_all_stages()'
+  - R -q -e 'tic::before_install()'
+install: R -q -e 'tic::install()'
+after_install: R -q -e 'tic::after_install()'
+before_script: R -q -e 'tic::before_script()'
+script: R -q -e 'tic::script()'
+after_success: R -q -e 'tic::after_success()'
+after_failure: R -q -e 'tic::after_failure()'
+before_deploy: R -q -e 'tic::before_deploy()'
+deploy:
+  provider: script
+  script: R -q -e 'tic::deploy()'
+  on:
+    all_branches: true
+after_deploy: R -q -e 'tic::after_deploy()'
+after_script: R -q -e 'tic::after_script()'
+# DO NOT CHANGE THE CODE ABOVE
+
+# Custom parts:
+
+# Header
+language: r
+sudo: required
+dist: xenial
+cache: packages
+latex: false
+
+#env
+env:
+  global:
+  - MAKEFLAGS="-j 2"
+
+r_github_packages:
+  - e-sensing/inSitu
+  - e-sensing/EOCUBES
+
+addons:
+  apt:
+    sources:
+      - sourceline: 'ppa:ubuntugis/ubuntugis-unstable'
+    packages:
+      - libgdal-dev
+      - libproj-dev
+      - libgeos-dev
+      - libudunits2-dev
+      - libnetcdf-dev
+      - netcdf-bin
+
+after_install:
+  - R -q -e 'keras::install_keras()'
+  - R -q -e 'covr::codecov(quiet = FALSE)'
+

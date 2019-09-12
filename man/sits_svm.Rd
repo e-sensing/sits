@@ -4,13 +4,12 @@
 \alias{sits_svm}
 \title{Train a sits classification model using a support vector machine}
 \usage{
-sits_svm(data.tb = NULL, formula = sits_formula_logref(),
-  scale = FALSE, cachesize = 1000, kernel = "radial", degree = 3,
-  coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1,
-  cross = 0, ...)
+sits_svm(data = NULL, formula = sits_formula_logref(), scale = FALSE,
+  cachesize = 1000, kernel = "radial", degree = 3, coef0 = 0,
+  cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0, ...)
 }
 \arguments{
-\item{data.tb}{Time series with the training samples.}
+\item{data}{Time series with the training samples.}
 
 \item{formula}{Symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_svm).}
 
@@ -33,6 +32,9 @@ sits_svm(data.tb = NULL, formula = sits_formula_logref(),
 \item{cross}{Number of cross validation folds applied on the training data to assess the quality of the model.}
 
 \item{...}{Other parameters to be passed to e1071::svm function.}
+}
+\value{
+A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
 This function receives a tibble with a set of attributes X for each observation Y.

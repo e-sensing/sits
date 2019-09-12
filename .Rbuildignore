@@ -7,3 +7,8 @@
 ^\.tmp$
 ^README\.Rmd$
 ^README_cache$
+^doc$
+^Meta$
+^\.travis\.yml$
+^appveyor\.yml$
+^tic\.R$

@@ -32,19 +32,24 @@ Converts points from a shapefile to a CSV file. The CSV file will not contain th
 }
 \examples{
 \donttest{
-# set the timeline
-data("timeline_2000_2017")
-# set the start and end dates
+# select the cube
+wtss_cube <- sits_cube(service = "WTSS", name    = "MOD13Q1")
+#  get the timeline from the cube
+cube_timeline <- sits_timeline(wtss_cube)
+# define the input shapefile (consisting of POINTS)
+shpfile <- system.file("extdata/shapefiles/cerrado_forested.shp", package = "sits")
+# set the start and end dates for the validity of the labels of the points in the shapefile
 start_date <- lubridate::ymd("2002-08-29")
 end_date   <- lubridate::ymd("2013-08-13")
-# define the input shapefile
-shpfile <- system.file ("extdata/shapefiles/cerrado_forested.shp", package = "sits")
 # define the output csv file
 csvfile <- paste0("cerrado_forested.csv")
-# define the label
+#' # define the label
 label <- "Cerrado_Forested"
 # read the points in the shapefile and produce a CSV file
-sits_shp_to_csv(shpfile, csvfile, label, timeline_2000_2017, start_date, end_date)
+sits_shp_to_csv(shpfile, csvfile, label, cube_timeline, start_date, end_date, interval = "12 month")
+# read the first three samples from the CSV file
+csv_data <- sits_get_data(cube = wtss_cube, file = csvfile, .n_max = 3)
+csv_data
 }
 }
 \author{

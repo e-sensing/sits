@@ -32,7 +32,7 @@ fontsize: 11pt
 graphics: true
 mathtools: true
 bibliography: ../inst/extdata/markdown/references-sits.bib
-abstract: Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. Here, we present an open source *R* package for satellit eimage time series analysis called `sits`. Package `sits` provides support on how to use statistical learning techniques with image time series obtained from data cubes. These methods include linear and quadratic discrimination analysis, support vector machines, random forests, deep learning and neural networks.
+abstract: Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. Here, we present an open source *R* package for satellite image time series analysis called `sits`. Package `sits` provides support on how to use statistical learning techniques with image time series obtained from data cubes. These methods include linear and quadratic discrimination analysis, support vector machines, random forests, boosting, deep learning and convolution neural networks.
 vignette: |
   %\VignetteEncoding{UTF-8} 
   %\VignetteEngine{knitr::rmarkdown} 
@@ -40,8 +40,15 @@ vignette: |
 ---
 ```{r, include = FALSE}
 library(sits)
-library(tibble)
 library(dtwclust)
+# Retrieve the data available in the "inSitu" package (used for some examples)
+#select the bands for classification
+if (!requireNamespace("inSitu", quietly = TRUE)) {
+    if (!requireNamespace("devtools", quietly = TRUE))
+        install.packages("devtools")
+    devtools::install_github("e-sensing/inSitu")
+}
+library(inSitu)
 ```
 
 # Introduction 
@@ -84,8 +91,7 @@ To define a data cube for the WTSS, in principle the following parameters should
 ```{r}
 # define the data cube "MOD13Q1" using the WTSS service
 # In this case, the WTSS service is run by a server in INPE Brazil
-wtss_cube <- sits_cube(service = "WTSS", 
-                       name    = "MOD13Q1")
+wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
 
 # get information on the data cube 
 wtss_cube %>% dplyr::select(service, URL, satellite, sensor)
@@ -120,16 +126,17 @@ The SITS package enables uses to create data cube based on files. In this case, 
 In the example, neither the satellite nor the sensor are provided; this information is deduced by SITS considering the cartographical projection associated to the image. If the projection is "sinusoidal", SITS will deduce these are MODIS files; data on "utm" projection is associated to the LANDSAT-8 satellite. 
 
 ```{r}
-# create a coverage from files available in AWSx
-ndvi_file <- paste0("/vsicurl/https://s3-sa-east-1.amazonaws.com/landsat-modis/Sinop_ndvi.tif")
-evi_file <- paste0("/vsicurl/https://s3-sa-east-1.amazonaws.com/landsat-modis/Sinop_evi.tif")
+# Obtain a raster brick with 23 instances for one year
+# Select the bands "ndvi", "evi" from bricks  available in the "inSitu" package
+evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
+ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
 
-# define the timeline
-data(timeline_modis_392)
+# Obtain the associated timeline
+time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
+timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-raster_cube <- sits_cube(name = "Sinop", timeline = timeline_modis_392, bands = c("ndvi", "evi"),
-                         files = c(ndvi_file, evi_file))
+raster_cube <- sits_cube(name = "Sinop", timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
 
 # get information on the data cube 
 raster_cube %>% dplyr::select(service, URL, satellite, sensor)
@@ -137,8 +144,8 @@ raster_cube %>% dplyr::select(service, URL, satellite, sensor)
 raster_cube %>% dplyr::select(xmin, xmax, ymin, ymax)
 ```
 
-Once a data cube has been created, it can be used for extracting time series and for data analysis and classification, using the function `sits_get_data()`, descibed below. 
-
+To create the raster cube, we a set of consistent raster bricks (one for each satellite band) and a `timeline` that matches the input images of the raster brick. Once created, the coverage can be used either to retrieve time series data from the raster bricks using `sits_get_data()` or to do the raster classification by calling the function `sits_classify`.
+ 
 
 # Data structures for satellite image time series
 
@@ -204,88 +211,68 @@ series.tb <- sits_get_data(cube      = wtss_cube,
 sits_plot(series.tb)
 ```
 
-A useful case is when a set of labelled samples are available to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. Function `sits_get_data()` can get a CSV file path as an argument. The CSV file must provide, for each time series, its latitude and longitude, the start and end dates, and a label associated to a ground sample. 
+A useful case is when a set of labelled samples are available to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. Function `sits_get_data()` can get a CSV file path as an argument. The CSV file must provide, for each time series, its latitude and longitude, the start and end dates, and a label associated to a ground sample. An example of a CSV file used is shown below:
+
+```{r}
+# print the first line of a CSV file used to retrieve data 
+csv_sinop <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
+head(read.csv(csv_sinop))
+# read the first three samples from the CSV file
+csv_data <- sits_get_data(cube = wtss_cube, file = csv_sinop, .n_max = 3)
+csv_data
+```
+A common situation is when users have samples available as shapefiles in point format. Since shapefiles contain only geometries, we need to provide information about the start and end times for which each label is valid. in this case, one should use the function `sits_shp_to_csv` to produce a CSV which describes the data to be read from a data cube. For best results, one needs to pre-select the data cube from which data will be read, and use the timeline of this data cube.
+
+```{r}
+# select the cube 
+wtss_cube <- sits_cube(service = "WTSS", name    = "MOD13Q1")
+#  get the timeline from the cube
+cube_timeline <- sits_timeline(wtss_cube)
+# define the input shapefile (consisting of POINTS)
+shpfile <- system.file("extdata/shapefiles/cerrado_forested.shp", package = "sits")
+# set the start and end dates for the validity of the labels of the points in the shapefile
+start_date <- lubridate::ymd("2002-08-29")
+end_date   <- lubridate::ymd("2013-08-13")
+# define the output csv file
+csvfile <- paste0("cerrado_forested.csv")
+#' # define the label
+label <- "Cerrado_Forested"
+# read the points in the shapefile and produce a CSV file
+sits_shp_to_csv(shpfile, csvfile, label, cube_timeline, start_date, end_date, interval = "12 month")
+# read the first three samples from the CSV file
+csv_data <- sits_get_data(cube = wtss_cube, file = csvfile, .n_max = 3)
+csv_data
+```
 
 # Filtering techniques 
 
-The literature on satellite image time series have several applications of filtering to correct or smooth vegetation index data. The `sits` packages supports the Savitzky–Golay (`sits_sgolay()`), Whitaker (`sits_whittaker()`), envelope (`sits_envelope()`) and the "cloud filter" (`sits_cloud_filter()`) filters. The first two filters are commonly used in the literature, while the remaining two are adapted from other methods. For details on the filtering techniques available in SITS, please see the 'Satellite Image Time Series Filtering with SITS' vignette. 
+The literature on satellite image time series have several applications of filtering to correct or smooth vegetation index data. The following filters are available in SITS and are described in more detail in the vignette "Satellite Image Time Series Filtering with SITS":
 
-## Savitzky–Golay filter
+* Savitzky–Golay filter (`sits_sgolay`)
+* Whittaker filter (`sits_whittaker`)
+* Envelope filter (`sits_envelope`)
+* ARIMA filter for cloud removal in NDVI band (`sits_ndvi_arima`)
+* Cloud filter (`sits_cloud_removal`)
+* Kalman filter (`sits_kalman`)
 
-The Savitzky-Golay filter works by fitting a successive array of $2n+1$ adjacent data points with a $d$-degree polynomial through linear least squares. The central point $i$ of the window array assumes the value of the interpolated polynomial. In general, this filter produces smoother results for larger values of $n$ and/or a smaller value of $d$ [@Chen2004]. The optimal value for these two parameters is case-dependent. In SITS, users set the order of the polynomial using the parameter `order` (default = 3), the size of the temporal window with the parameter `length` (default = 5), and the temporal expansion with the parameter `scaling`. 
 
-The following example shows the effect of Savitsky-Golay filter on the original time series.
-
-```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Savitzky-Golay filter applied on a one-year NDVI time series."}
-# Take an NDVI 16 year time series, apply the Savitzky–Golay filter and plot the series
-point_sg <- sits_sgolay(point_ndvi, order = 5, length = 9)
-
-point_sg %>% 
-  sits_merge(point_ndvi) %>% 
-  sits_plot()
-
-```
-
-## Whittaker filter
-
-The Whittaker smoother attempts to fit a curve that represents the raw data, but is penalized if subsequent points vary too much [@Atzberger2011]. The Whittaker filter is a balancing between the residual to the original data and the "smoothness" of the fitted curve. It has two parameters: `lambda` controls the degree of smoothing and `differences` the order of the finite difference penalty. Default values are `lambda = 1` and `differences = 3`. Increasing `lambda` results in much smoother data. When dealing with land use/land cover classes that include both natural vegetation and agriculture, a strong smoothing can reduce the amount of noise in natural vegetation (e.g., forest) time series; however, higher values of `lambda` reduce the information present in agricultural time series, since they reduce the peak values of crop plantations.
+The SITS package uses a common interface to all filter functions with the `sits_filter`. The function has two parameters: `data` for the dataset to be filtered and `filter` for the filter to be applied. To aid on data visualisation, all bands which are filtered have a suffix which is appended, as shown in the examples below. Here we show an example using the Whittaker smoother, which has been proposed in literature  [@Atzberger2011] as arguably the most appropriate one to use for satellite image time series. The Whittaker smoother attempts to fit a curve that represents the raw data, but is penalized if subsequent points vary too much [@Atzberger2011]. As such, it balances between the residual to the original data and the "smoothness" of the fitted curve. It uses the parameter `lambda` to control the degree of smoothing. I
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=3$ parameter."}
 # Take a NDVI time series of 16 years, apply Whittaker filter and plot the series
-point_whit <- sits_whittaker(point_ndvi, lambda = 3, differences = 5)
-
+point_whit <- sits_filter(point_ndvi, filter = sits_whittaker(lambda = 5.0))
+# merge with original data and plot the original and the filtered data
 point_whit %>% 
   sits_merge(point_ndvi) %>% 
   sits_plot()
 ```
-
-## Envelope filter
-
-This filter can generate a time series corresponding to the superior (inferior) bounding of the input signal. The filter does a convolution of the signal with a window of odd length; the result is the maximum (minimum) value of the points in the window. The `sits_envelope()` function can combine both maximum and minimum window sequentially. The function receives a string sequence with `"U"` (for maximization) and `"L"` (for minimization) characters passed to its parameter. A repeated sequence of the same character is equivalent to one operation with a larger window. The sequential operations on the input time series produces the final filtered result that is returned. The envelope filter is a mathematical morphology operation, where the operators `"U"` and `"L"` corresponds to the *dilation* and *erosion* morphological operators applied to univariate arrays [@Vavra2004]. Furthermore, the compounds operation of *opening* and *closing* can be obtained by `"UL"` and `"LU"`, respectively. This technique has been applied on time series analysis in other fields [@Accardo1997]. 
-
-In the following example we can see an application of `sits_envelope()` function. There, we performs the *opening filtration* and *closing filtration* introduced by @Vavra2004. The correspondent operations sequence are `"ULLULUUL"` and `"LUULULLU"`.
-
-```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Envelope filter applied on one-year NDVI time series. The examples uses two morfological filters: opening filtration (~.OF) and closing filtration (~.CF)."}
-# Take the NDVI band of the first sample data set
-point.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
-# apply envelope filter (remove downward and upward noises)
-point_env1.tb <- 
-    sits_envelope(point.tb,
-                  "ULLULUUL",
-                  bands_suffix = "OF")
-point_env2.tb <- 
-    sits_envelope(point.tb,
-                  "LUULULLU",
-                  bands_suffix = "CF")
-# plot the series
-sits_merge(point_env1.tb, point_env2.tb) %>%
-    sits_merge(point.tb) %>%
-    sits_plot()
-```
-
-## ARIMA filter for cloud removal
-
-The cloud filter makes use of the well known autoregressive integrated moving average (ARIMA) model. The algorithm looks to the first order difference time series for points where the value is above a certain threshold. This procedure selects only those points with large variations in the original time series, probably associated with noise. Finally, these points are replaced by the ARIMA correspondent values.
-
-The parameters of the ARIMA model can be set by the user. Please see `arima` for the detailed description of parameters $p$, $d$, and $q$.
-
-```{r, fig.align="center", fig.height=3.1, fig.width=5}
-# Take the NDVI band of the first sample data set
-point.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
-# apply ARIMA filter
-point_cf.tb <- sits_ndvi_arima_filter(point.tb, apply_whit = FALSE)
-# plot the series
-sits_merge(point_cf.tb, point.tb) %>% sits_plot()
-```
-
-
 # Clustering for sample quality control
 
 One of the key challenges of machine learning classification models is assessing the quality of the training data sets. It is useful to apply pre-processing methods to improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Good samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM). Full details of the cluster methods used in SITS are available in the vignette 'Clustering of Satellite Image Time Series with SITS'.
 
 ## Hierarchical clustering
 
-Agglomerative hierarchical clustering (AHC) is a family of methods that groups elements using a distance function to associate a real value to a pair of elements. From this distance measure, we can compute the dissimilarity between any two elements from a data set. Depending on the distance functions and linkage criteria, the algorithm decides which two clusters are merged at each iteration. The main tool of AHC is a *dendrogram*. It is the ultrametric relation formed by the successive merges in the hierarchical process that can be represented by a tree. Dendrograms are quite useful to decide the number of clusters to partition the data. In `sits`, AHC is implemented by the `sits_cluster_dendro` function, which generates a dendrogram and then determines a possible best cut using the *Adjusted Rand Index* (ARI). Based on this cut, it generates a set of clusters. The cluster information is appended as an additional column of the tibble that contains the samples. 
+Agglomerative hierarchical clustering (AHC) is a method that computes the dissimilarity between any two elements from a data set and builds a dendrogram, which is useful to decide the number of clusters to partition the data. In `sits`, AHC is implemented by the `sits_cluster_dendro` function, which generates a dendrogram and then determines a possible best cut using the *Adjusted Rand Index* (ARI). Based on this cut, it generates a set of clusters. The cluster information is appended as an additional column of the tibble, called "cluster". 
 
 ```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
 # take a set of patterns for 2 classes
@@ -295,7 +282,7 @@ clusters.tb <- sits_cluster_dendro(cerrado_2classes, bands = c("ndvi", "evi"))
 sits_cluster_frequency(clusters.tb)
 ```
 
-After the clusters have been determined, the function `sits_cluster_frequency()` shows how the samples are distributed across the clusters. It helps to identify two problems: (a) small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$); and (b) samples in mixed  clusters (*e.g.* cluster $3$). These confusions can be an indication of samples with poor quality, an inadequacy of selected parameters for cluster analysis, or even a natural confusion due to the inherent variability of the land classes. Since the result of the `sits_cluster` operation is a `sits_tibble` with one additional column, called "cluster",  it is possible to remove clusters with mixed classes using standard `R` fucntions such as those in the `dplyr` package. In the example above, removing cluster $3$ can be done using the `dplyr::filter` function.
+After the clusters have been determined, the function `sits_cluster_frequency()` shows how the samples are distributed across the clusters. It helps to identify two problems: (a) small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$); and (b) samples in mixed  clusters (*e.g.* cluster $3$). It is possible to remove clusters with mixed classes using standard `R` fucntions such as those in the `dplyr` package. In the example above, removing cluster $3$ can be done using the `dplyr::filter` function.
 
 ```{r}
 # remove cluster 3 from the samples
@@ -316,13 +303,7 @@ sits_cluster_frequency(cleaned.tb)
 
 ## Self-organizing maps
 
-As an alternative for hierachical clustering for quality control of training samples, SITS provides a clustering technique based on self-organizing maps (SOM). SOM is a dimensionality reduction technique [@Kohonen2001], where high-dimensional data is mapped into two dimensions, keeping the topological relations between data patterns. The input data is a set of tranining samples which are typically of a high-dimension. For example, a time series of 25 instances of 4 spectral bands is a 100-dimensional data set. The output layer is a 2D grid of neurons, each associated to a weight vector of the same dimension as the input space. The general idea of SOM-based clustering is that, by projecting the high-dimensional data set of training samples into a 2D map, good quality samples of each class should be close together in the resulting map. 
-
-The process of clustering  with SOM is done by `sits_cluster_som()`. It creates a self-organizing map. First, a 2D grid of neurons is initialized randomly. Then, for each time series sample, the algorithm finds the neuron which has the smallest distance to the sample, based on its weight vector. After the match, the neuron's weight vector and those of its neighbors are then updated. After all training samples are associated with neurons, each neuron is labeled using a majority vote, taking the most frequent class from the samples associated with it. In this way, SOM splits the output space into regions.  This allows using SOM to detect and remove outliers. 
-
-To increase the reliability of quality control procedures, the SOM clustering can be executed several times. Using this iterative procedure, the algorithm computes the probability that a sample belongs to each of the resulting clusters. From these probabilities, samples with similar phenological patterns are grouped together. Samples whose set of probabilities has a high variance are discarded.
-
-The package `sits` provides the convenience function `sits_cluster_som` to perform clustering using SOM, This function uses self-organized maps to find clusters in satellite image time series for quality control of the  samples. It calls two functions: `sits_som_map` to generate the som map and `sits_clean_samples_som` to produce a cleaned set of samples. The parameters "grid_xdim", "grid_ydim", "distance", "alpha", and "iterations" are used by `sits_som_map` to control how the Kohonen map is generated. The parameters "prob_label_change" and "min_cluster_prob" control how the good quality samples are selected by the function `sits_clean_samples_som`, based on the Kohonen map.
+As an alternative for hierachical clustering for quality control of training samples, SITS provides a clustering technique based on self-organizing maps (SOM). SOM is a dimensionality reduction technique [@Kohonen2001], where high-dimensional data is mapped into two dimensions, keeping the topological relations between data patterns. The input data is a set of tranining samples which are typically of a high-dimension. For example, a time series of 25 instances of 4 spectral bands is a 100-dimensional data set. The output layer is a 2D grid of neurons, each associated to a weight vector of the same dimension as the input space. The general idea of SOM-based clustering is that, by projecting the high-dimensional data set of training samples into a 2D map, good quality samples of each class should be close together in the resulting map. SITS provides the convenience function `sits_cluster_som` to perform clustering using SOM, This function uses self-organized maps to find clusters in satellite image time series for quality control of the  samples. 
 
 ```{r}
 # clustering time series using SOM
@@ -336,99 +317,55 @@ som_cluster.tb <-
         iterations = 50,
         prob_label_change = 0.8, 
         min_cluster_prob = 0.6)
-
-
 ```
-For more details on SOM clustering, please see the vignette "Clustering of Satellite Image Time Series with SITS".
 
-# Machine learning classification
+# Classification using machine learning 
 
 There has been much recent interest in using classifiers such as support vector machines \citep{Mountrakis2011} and random forests \citep{Belgiu2016} for remote sensing images. Most often, researchers use a \emph{space-first, time-later} approach, in which the dimension of the decision space is limited to the number of spectral bands or their transformations. Sometimes, the decision space is extended with temporal attributes.  To do this, researchers filter the raw data to get smoother time series \citep{Brown2013, Kastens2017}. Then, using software such as TIMESAT \citep{Jonsson2004}, they derive a small set of phenological parameters from vegetation indexes, like the beginning, peak, and length of the growing season \citep{Estel2015, Pelletier2016}. 
 
-`sits` has support for a variety of machine learning techniques: linear discriminant analysis, quadratic discriminant analysis, multinomial logistic regression, random forests, support vector machines, and deep learning. In a recent review of machine learning methods to classify remote sensing data [@Maxwell2018], the authors note that many factors influence the performance of these classifiers, including the size and quality of the training dataset, the dimension of the feature space, and the choice of the parameters. We support both \emph{space-first, time-later} and \emph{time-first, space-later} approaches. Therefore, the `sits` package provides functionality to explore the full depth of satellite image time series data. 
+In a recent review of machine learning methods to classify remote sensing data [@Maxwell2018], the authors note that many factors influence the performance of these classifiers, including the size and quality of the training dataset, the dimension of the feature space, and the choice of the parameters. We support both \emph{space-first, time-later} and \emph{time-first, space-later} approaches. Therefore, the `sits` package provides functionality to explore the full depth of satellite image time series data. 
 
 When used in \emph{time-first, space-later} approache, `sits` treats time series as a feature vector. To be consistent, the procedure aligns all time series from different years by its time proximity considering an given cropping schedule. Once aligned, the feature vector is formed by all pixel "bands". The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. In this scenario, statistical learning models are the natural candidates to deal with high-dimensional data: learning to distinguish all land cover and land use classes from trusted samples exemplars (the training data) to infer classes of a larger data set. 
 
-## Support Vector Machine
+The SITS package provides a common interface to all machine learning models, using the `sits_train` function. this function takes two parameters: the input data samples and the ML method (`ml_method`), as shown below. After the model is estimated, it can be used to classify individual time series or full data cubes using the `sits_classify` function. In the examples that follow, we show how to apply each method for the classification of a single time series. Then, we disscuss how to classify full data cubes. 
 
-Given a multidimensional dataset, the Support Vector Machine (SVM) method finds an optimal separation hyperplane that minimizes misclassifications [@Cortes1995]. Hyperplanes are linear ${(p-1)}$-dimensional boundaries and define linear partitions in the feature space. The solution for the hyperplane coefficients depends only on those samples that violates the maximum margin criteria, the so-called *support vectors*. All other points far away from the hyperplane does not exert any influence on the hyperplane coefficients which let SVM less sensitive to outliers.
-
-For data that is not linearly separable, SVM includes kernel functions that map the original feature space into a higher dimensional space,  providing nonlinear boundaries to the original feature space. In this manner, the new classification model, despite having a linear boundary on the enlarged feature space, generally translates its hyperplane to a nonlinear boundaries in the original attribute space. The use of kernels are an efficient computational strategy to produce nonlinear boundaries in the input attribute space an hence can improve training-class separation. SVM is one of the most widely used algorithms in machine learning applications and has been widely applied to classify remote sensing data [@Mountrakis2011].
-
-In `sits`, SVM is the default machine learning model. As a wrapper of `e1071` R package that uses the `LIBSVM` implementation [@Chang2011], `sits` adopts the *one-against-one* method for multiclass classification. For a $q$ class problem, this method creates ${q(q-1)/2}$ SVM binary models, one for each class pair combination and tests any unknown input vectors throughout all those models. The overall result is computed by a voting scheme. The following example illustrate how to classify an individual sample (in this case a series of 16 one-year NDVI time series from the same location). We used the NDVI time series from Mato Grosso Brazilian state as a training data set.
+When a dataset of time series organised as a SITS tibble is taken as input to the classifier,  the result is the same tibble with one additional column ("predicted"), which contains the information on what labels are have been assigned for each interval. The following example illustrate how to train a dataset and classify an individual time series. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, a random forest classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `sits_plot`.
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="SVM classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
-# Retrieve the set of samples (provided by EMBRAPA) from the 
-# Mato Grosso region for train the SVM model
-data(samples_mt_ndvi)
-# train a machine learning model using SVM
-svm_model <- sits_train(samples_mt_ndvi,
-                        sits_svm(kernel = "radial",
-                                 cost = 10))
+
+
+#select the data for classification
+mato_grosso_samples <- inSitu::br_mt_1_8K_9classes_6bands
+mato_grosso_4bands  <- sits_select_bands(mato_grosso_samples, ndvi, evi, nir, mir)
+
 # get a point to be classified
-data(point_ndvi)
-# Classify using SVM model
-class.tb <- sits_classify(point_ndvi, svm_model)
+point_mt_4bands <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+
+# Train a machine learning model for the mato grosso dataset using Random Forest
+model <- sits_train(data = mato_grosso_4bands, ml_method = sits_rfor())
+
+# Classify using random forest model and plot the result
+class.tb <- sits_classify(point_mt_4bands, model)
+# show the results of the prediction
+sits_show_prediction(class.tb)
+# plot the results of the prediction
 sits_plot(class.tb)
 ```
 
-## Random forest
+The following methods are available in SITS for training machine learning models:
 
-Random forest uses the idea *decision tree* as its base model. It combines many decision trees via *bootstrap* procedure and *stochastic feature selection*, developing a population of somewhat uncorrelated base models. The final classification model is obtained by a majority voting schema. This procedure decreases the classification variance, improving prediction of individual decision trees. 
+* Linear discriminant analysis (`sits_lda`)
+* Quadratic discriminant analysis (`sits_qda`)
+* Multinomial logit and its variants 'lasso' and 'ridge' (`sits_mlr`)
+* Support vector machines (`sits_svm`)
+* Random forests (`sits_rfor`)
+* Extreme gradient boosting (`sits_xgboost`)
+* Deep learning (DL) using multi-layer perceptrons (`sits_deeplearning`)
+* DL with 1D convolutional neural networks (`sits_CNN`), 
+* DL combining 1D CNN and multi-layer perceptron networks (`sits_tempCNN`)
+* DL using 1D version of ResNet (`sits_ResNet`).
 
-Random forest training process is essentially nondeterministic. It starts by growing trees through repeatedly random sampling-with-replacement the observations set. At each growing tree, the random forest considers only a fraction of the original attributes to decide where to split a node, according to a *purity criterion*. This decreases the correlation among trees and improves the prediction performance. The most used impurity criterion are *Gini*, *cross-entropy*, and *misclassification error*. The splitting process continues until the tree reaches some given minimum nodes size or a minimum impurity index value.
-
-The random forest classification performance can vary according to the tunning of the model parameters. The main random forest parameters are the number of attributes sampled as candidates at each split, the number of decision trees to grow, the minimum node size, and the sample fraction to be drawn at each bootstrap iteration. 
-
-<!--
-% Lower values of $m$ tends to grow taller and uncorrelated decision trees, but decreases the model classification accuracy. The parameter $b$, the number of trees composing the random forest ensemble, is connected with the variance reduction of the model. High values of $b$ can reduce the variance of the model up to a certain level (dependent on the observations data set) but reduces the model performance. Lower values of $N_{\!m\!i\!n}$ parameter can introduce model overfitting but may increase the classification accuracy. Finally, lower values of $\lambda$ tends to increase the model variance but can underrepresent the sample universe reducing its accuracy.
--->
-
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
-# Retrieve the set of samples (provided by EMBRAPA) from the 
-# Mato Grosso region for train the Random Forest model.
-data(samples_mt_ndvi)
-# train a machine learning model using random forest
-rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num.trees = 1000))
-# get a point to be classified
-data(point_ndvi)
-# Classify using Random Forest model
-class.tb <- sits_classify(point_ndvi, rfor_model)
-sits_plot(class.tb)
-```
-
-## Deep learning methods 
-
-In `sits`, the interface to deep learning models is done using the `keras` package [@Chollet2018]. This package implements different deep learning techniques. Currently, `sits` provides access to deep feedforward networks. Also called feedforward neural networks, or multilayer perceptrons (MLPs), these are the quintessential deep learning models. The goal of a feedforward network is to approximate some function $f$. For example, for a classifier $y =f(x)$ maps an input $x$ to a category $y$. A feedforward network defines a mapping $y = f(x;\theta)$ and learns the value of the parameters $\theta$ that result in the best function approximation. These models are called feedforward because information flows through the function being evaluated from $x$, through the intermediate computations used to define $f$, and finally to the output $y$. There are no feedback connections in which outputs of the model are fed back into itself [@Goodfellow2016].
-
-Specifying a MLP requires some work on customization, which requires some amount of trial-and-error by the user, since there is no proven model for classification of satellite image time series. The most important decision is the number of layers in the model. Initial tests indicate that 3 to 5 layers are enough to produce good results. The choice of the number of layers depends on the inherent separability of the data set to be classified. For data sets where the classes have different signatures, a shallow model (with 3 layers) may provide appropriate responses. More complex situations require models of deeper hierarchy. The user should be aware that some models with many hidden layers may take a long time to train and may not be able to converge. The suggestion is to start with 3 layers and test different options of number of neurons per layer, before increasing the number of layers.
-
-Three other important parameters for an MLP are: (a) the activation function; (b) the optimization method; (c) the dropout rate. The activation function  the activation function of a node defines the output of that node given an input or set of inputs. Following standard practices [@Goodfellow2016], we recommend the use of the "relu" and "elu" functions. The optimization method is a crucial choice, and the most common choices are gradient descent algorithm. These methods aim to maximize an objective function by updating the parameters in the opposite direction of the gradient of the objective function [@Ruder2016]. Based on experience with image time series, we recommend that users start by using the default method provided by `sits`, which is the `optimizer_adam` method. Please refer to the `keras` package documentation for more information.
-
-The dropout rates have a huge impact on the performance of deep learning classifiers. Dropout is a technique for randomly  dropping  units  from  the  neural network during training [@Srivastava2014]. By randomly discarding some neurons, dropout reduces overfitting. It is a counter-intuitive idea that works well. Since the purpose of a cascade of neural nets is to improve learning as more data is acquired, discarding some of these neurons may seem a waste of resources. In fact, as experience has shown [@Goodfellow2016], this procedures prevents an early convergence of the optimization to a local minimum. Thus, in practice, dropout rates between 50% and 20% are recommended for each layer. 
-
-In the following example, we classify the same data set using a simple example of the `deep learning` method, for fast processing: (a) Two layers with 512 neurons each; (b) Using the 'elu' activation function and 'optimizer_adam'; (c) dropout rates of 40% and 30% for the layers. 
-
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Deep learning classification of a $16$ year time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
-# Retrieve the set of samples (provided by EMBRAPA) from the 
-# Mato Grosso region for train the  model.
-data(samples_mt_ndvi)
-# train a machine learning model using deep learning
-train_dl <- sits_deeplearning(
-    units            = c(512, 512),
-    activation       = "elu",
-    dropout_rates    = c(0.40, 0.30),
-    optimizer        = keras::optimizer_adam(lr = 0.001),
-    epochs           = 50,
-    batch_size       = 128,
-    validation_split = 0.2)
-
-dl_model <- sits_train(samples_mt_ndvi, train_dl)
-# get a point to be classified
-data(point_ndvi)
-class.tb <- sits_classify(point_ndvi, dl_model)
-sits_plot(class.tb)
-```
+For more details on each method, please see the vignette "Machine Learning for Data Cubes using the SITS package". 
 
 # Validation techniques
 
@@ -441,22 +378,16 @@ A natural question that arises is: *how good is this estimation?* According to @
 `sits_kfold_validate()` gives support the k-fold validation in `sits`. The following code gives an example on how to proceed a k-fold cross-validation in the package. It perform a five-fold validation using SVM classification model as a default classifier. We can see in the output text the corresponding confusion matrix and the accuracy statistics (overall and by class).
 
 ```{r}
-# read a set of samples
-data(cerrado_2classes)
-
-# perform a five fold validation with the 
-# SVM machine learning method using default parameters
-prediction.mx <- 
-    sits_kfold_validate(cerrado_2classes, 
-                        folds = 5,
-                        ml_method = sits_svm())
+# perform a five fold validation for the "cerrado_2classes" data set
+# XGBoost machine learning method using default parameters
+prediction.mx <- sits_kfold_validate(cerrado_2classes, folds = 5, ml_method = sits_xgboost())
 # prints the output confusion matrix and statistics 
 sits_conf_matrix(prediction.mx)
 ```
 
 # Cube classification
 
-The continuous observation of the Earth surface provided by orbital sensors is unprecedented in history. Just for the sake of illustration, a unique tile from MOD13Q1 product, a square of $4800$ pixels provided every 16 days since February 2000 takes around $18$GB of uncompressed data to store only one band or vegetation index. This data deluge puts the field into a big data era and imposes challenges to design and build technologies that allow the Earth observation community to analyse those data sets [@Gilberto2017]. 
+The continuous observation of the Earth surface provided by orbital sensors is unprecedented in history. Just for the sake of illustration, a unique tile from MOD13Q1 product, a square of $4800$ pixels provided every 16 days since February 2000 takes around $18$GB of uncompressed data to store only one band or vegetation index. This data deluge puts the field into a big data era and imposes challenges to design and build technologies that allow the Earth observation community to analyse those data sets [@Camara2017]. 
 
 To classify a data cube, use the function `sits_classify()` as described below. This function works both with cubes built from raster bricks and those built with services such as "EOCUBES". The classification algorithms allows users to choose how many process will run the task in parallel, and also the size of each data chunk to be consumed at each iteration. This strategy enables `sits` to work on average desktop computers without depleting all computational resources. The code bellow illustrates how to classify a small raster brick image that accompany the package.
 
@@ -477,27 +408,18 @@ The first parameter is `memsize`. It controls the size of the main memory (in GB
 
 Based on current experience, the classification of a MODIS tile (4800 x 4800) with four bands and 400 time instances, covering 15 years of data, using SVM with a training data set of about 10,000 samples, takes about 24 hours using 20 cores and a memory size of 60 GB, in a server with 2.4GHz Xeon CPU and 96 GB of memory to produce the yearly classification maps.
 
-```{r, fig.align="center", fig.height=3.4, fig.width=4.1, fig.cap="Image (${11\\times14}$ pixels) classified using SVM. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
+```{r, fig.align="center", fig.cap="Image classified with XGBoost. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
 # Retrieve the set of samples for the Mato Grosso region 
-data(samples_mt_ndvi)
+# Select the data for classification
+mato_grosso_samples <- inSitu::br_mt_1_8K_9classes_6bands
+mato_grosso_2bands  <- sits_select_bands(mato_grosso_samples, ndvi, evi)
 
 # build a machine learning model for this area
-svm_model <- sits_train(samples_mt_ndvi, sits_svm())
+xbg_model <- sits_train(mato_grosso_2bands, sits_xgboost())
 
-# read a raster file and put it into a vector
-file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", 
-                    package = "sits")
-
-# define the timeline
-data("timeline_modis_392")
-
-# create a raster metadata file based on the 
-# information about the files
-raster_cube <-  sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
-              bands    = "ndvi", files    = file)
-
-# classify the raster file, generating a probability file
-probs_cube <- sits_classify(raster_cube, ml_model = svm_model, memsize = 2, multicores = 1)
+# Use the raster cube created in the section "Defining a data cube using files" above
+# Classify the raster cube, generating a probability file
+probs_cube <- sits_classify(raster_cube, ml_model = xbg_model, memsize = 2, multicores = 1)
 
 # label the probability file (by default selecting the class with higher probability)
 label_cube <- sits_label_classification(probs_cube)
@@ -507,53 +429,21 @@ label_cube <- sits_label_classification(probs_cube)
 sits_plot_raster(label_cube, time = 1, title = "SINOP-MT - 2000/2001")
 ```
 
-The classified files can also be visualized with applications such as QGIS. Note that we create two coverage `tibbles` with metadata information, one for the input data and other for the output.  To create the input data, we need a `timeline` that matches the input images of the raster brick. Once created, the coverage can be used either to retrieve time series data from the raster bricks using `sits_get_data()` or to do the raster classification by calling the function `sits_classify_raster()`. The machine learning model and the training data to be used are passed by the arguments `sits_svm()` (default) and `samples_mt_ndvi` parameters. The classification result is stored as a set of files beginning with `file` prefix.
-
-```{r, include=FALSE}
-# remove all files
-file.remove(unlist(probs_cube$files))
-```
 # Smoothing of raster data after classification
 
-One of the well-established methods in remote sensing image analysis is to combine pixel-based classification methods with a spatial post-processing method to remove outliers and misclassified pixels. Methods proposed in the literature include modal filters [@Ghimire2010] and probabilistic relaxation [@Gong1989]. Our method used Bayesian smoothing to reclassify the pixels because machine learning methods assign class probabilities to each pixel. 
+Post-processing is a desirable step in any classification process. Most statistical classifiers use training samples derived from "pure" pixels, that have been selected by users as representative of the desired output classes. However, images contain many mixed pixels irrespective of the resolution. Also, there is a considerable degree of data variability in each class. These effects lead to outliers whose chance of misclassification is significant. To offset these problems, most post-processing methods use the "smoothness assumption" [@Schindler2012]: nearby pixels tend to have the same label. To put this assumption in practice, smoothing methods use the neighbourhood information to remove outliers and enhance consistency in the resulting product.
 
-Most applications of machine learning methods for image classification use only the categorical result of the classifier which is the most probable class. The proposed method uses all class probabilities to compute our confidence in the result. For each pixel $i$, the odds of the classification for class $k$ is $o_{i,k} = p_{i,k} / (1-p_{i,k})$ where $p_{i,k}$ is the probability of class $k$. We have more confidence in pixels with higher odds since their class assignment is stronger. However, there are situations, such as a border or mixed pixels, where the odds of different classes are similar in magnitude. We took this as a case of low confidence in the classification result. To assess these situations, we followed well-established Bayesian smoothing methods [@Cressie1995]: borrow strength from the neighbors and thus reduced the variance of the estimated class for each pixel.
+Smoothing methods are an important complement to machine learning algorithms for image classification. Since these methods are mostly pixel-based, it is useful to complement them with post-processing smoothing to include spatial information in the result. For each pixel, machine learning and other statistical algorithms provide the probabilities of that pixel belonging to each of the classes. As a first step in obtaining a result, each pixel is assigned to the class whose probability is higher. After this step, smoothing methods use class probabilities to detect and correct outliers or misclassified pixels. SITS uses a Bayesian smoothing method, which provides the means to incorporate prior knowledge in data analysis. For more details on the smoothing procedure, please see the vignette "Post classification smoothing using Bayesian techniques in SITS". 
 
-More formally, consider the transformation $l_{i,k} = \log [o_{i,k}]$ which measures the logit (log of the odds) associated to classifying the pixel $i$ as being of class $k$. The support of $l_{i,k}$ is $\mathbb{R}$. Let $V_{i}$ be a spatial neighbourhood for pixel $i$. We considered a Bayesian normal distribution update for the value $l_{i,k}$ based on the neighbourhood, assuming independence between the classes. In this way, the update be performed for each class $k$ at a time. Consider that $l_{i,k}$ follows a normal distribution, $N(\mu_{i,k}, \sigma^2_{k})$, with parameters $\mu_{i,k}$ and $\sigma^2_{k}$. 
-In a Bayesian context, the likelihood function is given by
-$$
-l_{i,k} | \mu_{i,k} \sim N(\mu_{i,k}, \sigma^2_{k})
-$$
-We assumed that all pixels in the neighbourhood follow the same normal prior for the parameter $\mu_{i,k}$ with parameters $m_{i,k}$ and $s^2_{i,k}$, so that
-$$
-\mu_{i,k} \sim N(m_{i,k}, s^2_{i,k}).
-$$
-The Bayesian smoothing procedure then comprises conditionally estimating the value of $\mu_{i,k}$, which is the updated value of the logit of class probability for class $k$ of pixel $i$. We used $\sigma^2_{k}$ as a hyper-parameter to control the level of smoothness. Based on Bayesian statistics, the value of conditional mean for a normal distribution is given by:
-$$
-{E}[\mu_{i,k} | l_{i,k}] =
-\frac{m_{i,t} \times \sigma^2_{k} + 
-l_{i,k} \times s^2_{i,k}}{ \sigma^2_{k} +s^2_{i,k}}
-$$
-which can also be expressed as
-$$
-{E}[\mu_{i,k} | l_{i,k}] =
-\Biggl [ \frac{s^2_{i,k}}{\sigma^2_{k} +s^2_{i,k}} \Biggr ] \times
-l_{i,k} +
-\Biggl [ \frac{\sigma^2_{k}}{\sigma^2_{k} +s^2_{i,k}} \Biggr ] \times m_{i,k}
-$$
-In the above equation, the parameter $m_{i,k}$ is the local mean of the probability distribution of values for class $k$ and $s^2_{i,k}$ is the local variance. We estimated local means and variances by considering the neighboring pixels in space. Let $\#(V_{i})$ be the number of elements in $V_{i}$. We then have for the local mean:
+Doing post-processing using Bayesian smoothing in SITS is straightforward. The result of the `sits_classify` function applied to a data cube is  set of more probability images, one per requested clasification interval. The next step is to apply the `sits_label_classification` function. By default, this function selects the most likely class for each pixel considering only the probabilities of each class for each pixel. To allow for Bayesian smooting, it suffices to include the `smoothing = bayesian` parameter. If desired, the `variance` parameter (associated to the hyperparameter $\sigma^2_k$ described above) can control the degree of smoothness. The following example takes the previously produced classification output and applies a Bayesian smoothing. 
 
-$$
-m_{i,k} = \frac{\displaystyle\sum_{j \in V_{i}} l_{j,k}}{\#(V_{i})},
-$$
-and for the local standard deviation:
-$$
-s^2_{i,k} = \frac{\displaystyle\sum_{j \in V_{i}} [l_{j,k} - m_{i,k}]^2}{\#(V_{i})-1}.
-$$
+```{r, fig.align="center", fig.cap="Image post-processed with Bayesian smoothing. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
+# smooth the result with a bayesian filter
+label_bayes <- sits_label_classification(probs_cube, smoothing = "bayesian")
 
-The updated value for the class probability of the pixel is a weighted average between the original logit value $l_{i,k}$ and the mean of the class logits $m_{i,k}$ for the neighboring pixels. When the local class variance of the neighbors $s^2_{i,k}$ is high, our confidence on the influence of the neighbors is low, and the smoothing algorithm gives more weight to the original pixel value $l_{i,k}$. When the local class variance $s^2_{i,k}$ decreases relative to the smoothness factor $\sigma^2_k$, then our confidence on the influence of the neighborhood increases. The smoothing procedure will be most relevant in situations where the original classification odds ratio is low, showing a low level of separability between classes. In these cases, the updated values of the classes will be influenced by the local class variances. 
-
-The parameter $\sigma^2_k$ sets the level of smoothness. If $\sigma^2_k$ is zero, the smoothed value ${E}[\mu_{i,,k} | l_{i,k}]$ is equal to the pixel value $l_{i,k}$. Higher values of $\sigma^2_k$ will cause the assignment of the local mean to the pixel updated probability. In practice, $\sigma^2_k$ is a user-controlled parameter that will be set by users based on their knowledge of the region to be classified. In our case, after some classification tests, we decided to set the parameters $V$ as the Moore neighborhood where each pixel is connected to all those pixels with Chebyshev distance of $1$, and $\sigma^2_k=10$ for all $k$. This level of smoothness showed the best performance in the technical validation.
+# plot the smoothened image
+sits_plot_raster(label_bayes, time = 1, title = "Sinop-smooth")
+```
 
 
 # Final remarks

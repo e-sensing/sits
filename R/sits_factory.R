@@ -13,14 +13,14 @@
 #' The factory pattern is used in many situations in the sits package, to allow different alternatives
 #' for filtering, pattern creation, training, and cross-validation
 #'
-#' @param data.tb   Tibble with time series data and metadata.
+#' @param data      Tibble with time series data and metadata.
 #' @param fun       The function that performs some calculation on the input data.
-.sits_factory_function <- function(data.tb, fun) {
+.sits_factory_function <- function(data, fun) {
     # if no data is given, we prepare a function to be called as a parameter of other functions
-    if (is.null(data.tb))
+    if (is.null(data))
         result <- fun
     # ...otherwise compute the result on the input data
     else
-        result <- fun(data.tb)
+        result <- fun(data)
     return(result)
 }

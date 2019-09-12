@@ -4,10 +4,10 @@
 \alias{sits_relabel}
 \title{Relabels a sits tibble}
 \usage{
-sits_relabel(data.tb, conv.lst = list())
+sits_relabel(data, conv.lst = list())
 }
 \arguments{
-\item{data.tb}{A sits tibble.}
+\item{data}{A sits tibble.}
 
 \item{conv.lst}{A named list used to convert labels to a new value. Actual labels must be the names of the conv.lst elements.
 an empty list produces no difference.}
@@ -31,9 +31,9 @@ conv.lst = list(Deforestation_2014 = "NonForest",
                 Deforestation_2015 = "NonForest",
                 Pasture = "NonForest")
 # relabel the data
-new_data.tb <- sits_relabel(prodes_226_064, conv.lst)
+new_data  <- sits_relabel(prodes_226_064, conv.lst)
 # show the new labels
-sits_labels(new_data.tb)
+sits_labels(new_data)
 }
 }
 \author{

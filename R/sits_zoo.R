@@ -15,7 +15,7 @@
 #' # Read a time series in ZOO format
 #' data(ts_zoo)
 #' # Convert the zoo series into a sits tibble
-#' data.tb <- sits_from_zoo (ts_zoo, longitude = -54.2313, latitude = -14.0482,
+#' data <- sits_from_zoo (ts_zoo, longitude = -54.2313, latitude = -14.0482,
 #'            label = "Cerrado", name = "mod13q1")
 #' @export
 sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoClass", name  = "unknown"){
@@ -32,9 +32,9 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
     end_date <- ts.tb[NROW(ts.tb), ]$Index
 
     # create a tibble to store the WTSS data
-    data.tb <- .sits_tibble()
+    data <- .sits_tibble()
     # add one row to the tibble
-    data.tb <- tibble::add_row(data.tb,
+    data    <- tibble::add_row(data,
                                longitude    = longitude,
                                latitude     = latitude,
                                start_date   = as.Date(start_date),
@@ -42,9 +42,9 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
                                label        = label,
                                cube         = name,
                                time_series  = ts.lst)
-    class(data.tb) <- append(class(data.tb), "sits_tibble")
+    class(data) <- append(class(data), "sits_tibble")
 
-    return(data.tb)
+    return(data)
 }
 
 #' @title Export data to be used to the zoo format
@@ -53,7 +53,7 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
 #'
 #' @description Converts data from a sits tibble to a list of a zoo series.
 #'
-#' @param  data.tb    A sits tibble with time series.
+#' @param  data       A sits tibble with time series.
 #' @param  band       Name of the band to be exported (if NULL all bands are exported).
 #' @return List of time series in zoo format.
 #' @examples
@@ -62,8 +62,8 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
 #' # export a time series to zoo
 #' zoo.lst <- sits_to_zoo (cerrado_2classes[1:5,])
 #' @export
-sits_to_zoo <- function(data.tb, band = NULL){
-    zoo.lst <- data.tb$time_series %>%
+sits_to_zoo <- function(data, band = NULL){
+    zoo.lst <- data$time_series %>%
         purrr::map(function(ts) {
             if (purrr::is_null(band))
                 band <-  colnames(ts[-1:0])

@@ -4,11 +4,11 @@
 \alias{sits_som_map}
 \title{Generate a Kohonen map for quality control of the samples and calculate parameters}
 \usage{
-sits_som_map(data.tb, grid_xdim = 10, grid_ydim = 10, alpha = 1,
+sits_som_map(data, grid_xdim = 10, grid_ydim = 10, alpha = 1,
   distance = "euclidean", iterations = 50)
 }
 \arguments{
-\item{data.tb}{A tibble with samples to be clustered.}
+\item{data}{A tibble with samples to be clustered.}
 
 \item{grid_xdim}{X dimension of the SOM grid (default = 25).}
 
@@ -24,7 +24,7 @@ sits_som_map(data.tb, grid_xdim = 10, grid_ydim = 10, alpha = 1,
 }
 \value{
 Returns a list of sits tibbles containing statistics about the samples and the neuron in each iteration.
-Besides that, the data.tb is returned with the columns presenting the probability of a sample belongs to a cluster based on a frequency
+Besides that, the data is returned with the columns presenting the probability of a sample belongs to a cluster based on a frequency
 that a sample was allocated in a neuron, and finally a column presenting the total probability of a sample belongs to a cluster using data of neighbourhood.
 }
 \description{
@@ -38,7 +38,7 @@ sample allocated in aneuron-cluster and its neighbourhood.
 # Produce a cluster map
 som_cluster <- sits_som_map(prodes_226_064)
 # Clean the samples to get better quality ones
-clean_samples <- sits_clean_samples_som(som_cluster)
+clean_samples <- sits_som_clean_samples(som_cluster)
 }
 }
 \references{

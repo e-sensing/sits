@@ -26,9 +26,9 @@ test_that("Inside", {
 
     point <- data.frame(X = 1, Y = 1)
 
-    expect_false(sits:::.sits_xy_inside_raster(point, wtss_cube))
+    expect_false(sits:::.sits_raster_xy_inside(point, wtss_cube))
 
     point <- data.frame(X = -41, Y = -10)
 
-    expect_true(sits:::.sits_xy_inside_raster(point, wtss_cube))
+    expect_true(sits:::.sits_raster_xy_inside(point, wtss_cube))
 })

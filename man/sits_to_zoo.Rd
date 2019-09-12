@@ -4,10 +4,10 @@
 \alias{sits_to_zoo}
 \title{Export data to be used to the zoo format}
 \usage{
-sits_to_zoo(data.tb, band = NULL)
+sits_to_zoo(data, band = NULL)
 }
 \arguments{
-\item{data.tb}{A sits tibble with time series.}
+\item{data}{A sits tibble with time series.}
 
 \item{band}{Name of the band to be exported (if NULL all bands are exported).}
 }

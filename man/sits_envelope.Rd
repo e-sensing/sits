@@ -4,11 +4,10 @@
 \alias{sits_envelope}
 \title{Envelope filter}
 \usage{
-sits_envelope(data.tb = NULL, operations = "UULL",
-  bands_suffix = "env")
+sits_envelope(data = NULL, operations = "UULL", bands_suffix = "env")
 }
 \arguments{
-\item{data.tb}{A tibble with time series data and metadata.}
+\item{data}{A tibble with time series data and metadata.}
 
 \item{operations}{A character sequence indicating which operations must be taken. "U" for upper filter, "L" for down filter.}
 

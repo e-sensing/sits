@@ -4,10 +4,10 @@
 \alias{sits_labels}
 \title{Returns the information about labels  of a sits tibble}
 \usage{
-sits_labels(data.tb)
+sits_labels(data)
 }
 \arguments{
-\item{data.tb}{A tibble with time series data and metadata.}
+\item{data}{A tibble with time series data and metadata.}
 }
 \value{
 A tibble with the names of the labels and their absolute and relative frequency.

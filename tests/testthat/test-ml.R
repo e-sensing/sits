@@ -6,14 +6,16 @@ test_that("SVM",{
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_mt_ndvi)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
 })
 
 test_that("Random Forest",{
-    rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num.trees = 200))
+    rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
     class.tb <- sits_classify(point_ndvi, rfor_model)
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_mt_ndvi)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
 })
 
 test_that("LDA",{
@@ -22,6 +24,7 @@ test_that("LDA",{
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_mt_ndvi)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
 })
 
 test_that("QDA",{
@@ -30,37 +33,81 @@ test_that("QDA",{
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_mt_ndvi)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
 })
-
-test_that("DL",{
-    options(keras.fit_verbose = 2)
-
-    invisible(capture.output(dl_model <- sits_train(samples_mt_ndvi,
-                                                    sits_deeplearning(epochs = 3, verbose = 0))))
-    class.tb <- sits_classify(point_ndvi, dl_model)
-
-    expect_true(all(class.tb$predicted[[1]]$class %in%
-                        sits_labels(samples_mt_ndvi)$label))
-
-    expect_equal(getOption("keras.fit_verbose"), 2)
-    options(keras.fit_verbose = NULL)
-})
-
 test_that("MLR",{
-    invisible(capture.output(mlr_model <- sits_train(samples_mt_ndvi, sits_mlr(maxit = 30))))
-    class.tb <- sits_classify(point_ndvi, mlr_model)
+    #skip_on_cran()
+
+    model <- sits_train(samples_mt_ndvi, sits_mlr())
+
+    class.tb <- sits_classify(point_ndvi, model)
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
                         sits_labels(samples_mt_ndvi)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
 })
 
-test_that("Keras diagnostics",{
-    data(cerrado_2classes)
-    dl_model <- sits_train(cerrado_2classes,
-                           sits_deeplearning(units = c(512, 512),
-                                             epochs = 20,
-                                             dropout_rates = c(0.45, 0.25),
-                                             verbose = 0))
+test_that("XGBoost",{
+    #skip_on_cran()
 
-    suppressMessages(expect_true(sits_keras_diagnostics(dl_model)))
+    model <- sits_train(samples_mt_ndvi, sits_xgboost())
+
+    class.tb <- sits_classify(point_ndvi, model)
+
+    expect_true(all(class.tb$predicted[[1]]$class %in%
+                        sits_labels(samples_mt_ndvi)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
 })
+test_that("DL-MLP",{
+    #skip_on_cran()
+
+    model <- suppressWarnings(sits_train(samples_mt_ndvi, sits_deeplearning(
+        units = c(128,128), dropout_rates = c(0.5, 0.4), epochs = 50, verbose = 0)))
+
+    class.tb <- sits_classify(point_ndvi, model)
+
+    expect_true(all(class.tb$predicted[[1]]$class %in%
+                        sits_labels(samples_mt_ndvi)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
+})
+test_that("1D CNN model",{
+    #skip_on_cran()
+
+    model <- suppressWarnings(sits_train(samples_mt_ndvi, sits_CNN(
+        units = c(32,32), kernels = c(9, 5),
+        dropout_rates = c(0.5, 0.4), epochs = 50, verbose = 0)))
+
+    class.tb <- sits_classify(point_ndvi, model)
+
+    expect_true(all(class.tb$predicted[[1]]$class %in%
+                        sits_labels(samples_mt_ndvi)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
+})
+test_that("tempCNN model",{
+    #skip_on_cran()
+
+    model <- suppressWarnings(sits_train(samples_mt_ndvi, sits_tempCNN(
+        conv_units = c(32, 32), conv_kernels = c(7, 5),
+        conv_dropout_rates = c(0.5, 0.4),
+        node_units = c(128, 128), node_dropout_rates = c(0.5, 0.4),
+        epochs = 50, verbose = 0)))
+
+    class.tb <- sits_classify(point_ndvi, model)
+
+    expect_true(all(class.tb$predicted[[1]]$class %in%
+                        sits_labels(samples_mt_ndvi)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
+})
+test_that("ResNet",{
+    #skip_on_cran()
+
+    model <- suppressWarnings(sits_train(samples_mt_ndvi, sits_ResNet(
+        units = 16, kernels = c(7,5,3), epochs = 50, verbose = 0)))
+
+    class.tb <- sits_classify(point_ndvi, model)
+
+    expect_true(all(class.tb$predicted[[1]]$class %in%
+                        sits_labels(samples_mt_ndvi)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
+})
+

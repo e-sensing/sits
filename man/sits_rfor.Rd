@@ -4,18 +4,22 @@
 \alias{sits_rfor}
 \title{Train a sits classifiction model using fast random forest algorithm}
 \usage{
-sits_rfor(data.tb = NULL, num.trees = 2000, ...)
+sits_rfor(data = NULL, num_trees = 2000, importance = "impurity",
+  ...)
 }
 \arguments{
-\item{data.tb}{Time series with the training samples.}
+\item{data}{Time series with the training samples.}
 
-\item{num.trees}{Number of trees to grow. This should not be set to too small a number,
+\item{num_trees}{Number of trees to grow. This should not be set to too small a number,
 to ensure that every input row gets predicted at least a few times. (default: 2000).}
+
+\item{importance}{Variable importance mode, one of 'none', 'impurity', 'impurity_corrected', 'permutation'.
+The 'impurity' measure is the Gini index for classification.}
 
 \item{...}{Other parameters to be passed to \code{\link[ranger]{ranger}} function.}
 }
 \value{
-Either a model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model.
+A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
 Use Fast Random Forest algorithm to classify data.

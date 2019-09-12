@@ -4,10 +4,10 @@
 \alias{sits_metadata_to_csv}
 \title{Export a sits tibble metadata to the CSV format}
 \usage{
-sits_metadata_to_csv(data.tb, file)
+sits_metadata_to_csv(data, file)
 }
 \arguments{
-\item{data.tb}{A sits time series.}
+\item{data}{A sits time series.}
 
 \item{file}{Name of the exported CSV file.}
 }

@@ -7,17 +7,22 @@
 #'
 #' @description Given a tibble with a set of distance measures,
 #'    returns trained models. Currenly, sits supports the following models:
-#' 'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
-#' 'lda' (see \code{\link[sits]{sits_lda}}),
-#' 'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
-#' 'lasso' (see \code{\link[sits]{sits_mlr}}), 'ridge' (see \code{\link[sits]{sits_mlr}}),
-#' and 'deep learning' (see \code{\link[sits]{sits_deeplearning}}).
-#' The sits_train function is called inside \code{\link[sits]{sits_classify}} , so the user does not need
-#' to explicitly use this function. Please see the above-mention classification function.
+#' 'svm' (see \code{\link[sits]{sits_svm}}),
+#' random forests (see \code{\link[sits]{sits_rfor}}),
+#' linear discriminant analysis (see \code{\link[sits]{sits_lda}}),
+#' quadratic discriminant analysis (see \code{\link[sits]{sits_qda}}),
+#' multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
+#' 'lasso' (see \code{\link[sits]{sits_mlr}}) and
+#' 'ridge' (see \code{\link[sits]{sits_mlr}}),
+#' extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
+#' and different deep learning functions, including multi-layer perceptrons
+#' (see \code{\link[sits]{sits_deeplearning}}, 1D convolutional neural networks
+#' \code{\link[sits]{sits_CNN}}, mixed 1D and MLP networks \code{\link[sits]{sits_tempCNN}}
+#' and a 1D version of ResNet \code{\link[sits]{sits_ResNet}}).
 #'
-#' @param  data.tb          Time series with the training samples.
+#' @param  data             Time series with the training samples.
 #' @param  ml_method        Machine learning method that returns a model for prediction.
-#' @return A model fitted to input data given by train_method parameter.
+#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
 #' \donttest{
@@ -36,13 +41,13 @@
 #' sits_plot(class.tb)
 #' }
 #' @export
-sits_train <- function(data.tb, ml_method = sits_svm()) {
+sits_train <- function(data, ml_method = sits_svm()) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
 
     # is the input data a valid sits tibble?
-    ensurer::ensure_that(data.tb, "label" %in% names(.),
+    ensurer::ensure_that(data, "label" %in% names(.),
                          err_desc = "sits_train: input data does not contain a valid sits tibble")
 
     # is the train method a function?
@@ -50,195 +55,9 @@ sits_train <- function(data.tb, ml_method = sits_svm()) {
                          err_desc = "sits_train: ml_method is not a valid function")
 
     # compute the training method by the given data
-    result <- ml_method(data.tb)
+    result <- ml_method(data)
 
     # return a valid machine learning method
-    return(result)
-}
-
-#' @title Train a sits classifiction model using the keras deep learning
-#' @name sits_deeplearning
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Use a deeplearning algorithm to classify data.
-#' This function is a front-end to the "keras" method R package.
-#' Please refer to the documentation in that package for more details.
-#'
-#' @param data.tb           Time series with the training samples.
-#' @param units             Vector with the number of hidden nodes in each hidden layer.
-#' @param activation        Vector with the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param dropout_rates     Vector with the dropout rates (0,1) for each layer to the next layer.
-#' @param optimizer         Function with a pointer to the optimizer function (default is optimization_adam()).
-#'                          Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
-#'                          optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
-#' @param epochs            Number of iterations to train the model.
-#' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Number between 0 and 1. Fraction of the training data to be used as validation data.
-#'                          The model will set apart this fraction of the training data, will not train on it,
-#'                          and will evaluate the loss and any model metrics on this data at the end of each epoch.
-#'                          The validation data is selected from the last samples in the x and y data provided,
-#'                          before shuffling.
-#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
-#' @param binary_classification A lenght-one logical indicating if this is a binary classification. If it is so,
-#'                          the number of unique labels in the training data must be two as well.
-#' @return Either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model.
-#' @examples
-#' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
-#'
-#' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_4bands,
-#'                         sits_deeplearning(units = c(512, 512, 512),
-#'                                           dropout_rates = c(0.50, 0.40, 0.35),
-#'                                           epochs = 100))
-#'
-#' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
-#' class.tb <- sits_classify(point.tb, dl_model)
-#' sits_plot(class.tb)
-#' }
-#' @export
-sits_deeplearning <- function(data.tb          = NULL,
-                              units            = c(512, 512, 512, 512, 512),
-                              activation       = 'elu',
-                              dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
-                              optimizer        = keras::optimizer_adam(lr = 0.001),
-                              epochs           = 500,
-                              batch_size       = 128,
-                              validation_split = 0.2,
-                              verbose          = 1,
-                              binary_classification = FALSE) {
-    # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-
-    # function that returns keras model based on a sits sample data.table
-    result_fun <- function(data.tb){
-        # data normalization
-        stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data.tb, stats.tb))
-
-        # is the train data correct?
-        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
-                             err_desc = "sits_deeplearning: input data does not contain distances")
-
-        ensurer::ensure_that(units, length(.) == length(dropout_rates),
-                             err_desc = "sits_deeplearning: number of units must match number of dropout rates")
-
-        ensurer::ensure_that(activation, length(.) == length(dropout_rates) || length(.) == 1,
-                             err_desc = "sits_deeplearning: activation vectors should be one string or a
-                             set of strings that match the number of units")
-
-        # get the labels of the data
-        labels <- sits_labels(data.tb)$label
-
-        # create a named vector with integers match the class labels
-        n_labels <- length(labels)
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
-
-        # split the data into training and validation data sets
-        # create partitions different splits of the input data
-        test_data_DT <- .sits_sample_distances(train_data_DT, frac = validation_split)
-
-        # remove the lines used for validation
-        train_data_DT <- train_data_DT[!test_data_DT, on = "original_row"]
-
-        # shuffle the data
-        train_data_DT <- train_data_DT[sample(nrow(train_data_DT), nrow(train_data_DT)),]
-        test_data_DT  <- test_data_DT[sample(nrow(test_data_DT), nrow(test_data_DT)),]
-
-        # organize data for model training
-        train.x <- data.matrix(train_data_DT[, -(1:2)])
-        train.y <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
-
-        # create the test data for keras
-        test.x <- data.matrix(test_data_DT[, -(1:2)])
-        test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
-
-        # set the activation vector
-        act_vec <- vector()
-
-        for (i in 1:length(units)) {
-            if (length(activation) == 1)
-                act_vec[i] <- activation
-            else
-                act_vec <- activation
-        }
-
-        # build the model step by step
-        # create the input_tensor
-        input_tensor  <- keras::layer_input(shape = c(NCOL(train.x)))
-        output_tensor <-  input_tensor
-
-        # build the nodes
-        for (i in 1:length(units)) {
-            output_tensor <- keras::layer_dense(output_tensor, units = units[i], activation = act_vec[i])
-            output_tensor <- keras::layer_dropout(output_tensor, rate = dropout_rates[i])
-            output_tensor <- keras::layer_batch_normalization(output_tensor)
-        }
-        # create the final tensor
-        model_loss <- ""
-        if (binary_classification && n_labels == 2) {
-            output_tensor <- keras::layer_dense(output_tensor, units = 1, activation = "sigmoid")
-            model_loss <- "binary_crossentropy"
-        }
-        else {
-            output_tensor <- keras::layer_dense(output_tensor, units = n_labels, activation = "softmax")
-            model_loss <- "categorical_crossentropy"
-            # keras requires categorical data to be put in a matrix
-            train.y <- keras::to_categorical(train.y, n_labels)
-            test.y  <- keras::to_categorical(test.y, n_labels)
-        }
-        # create the model
-        model.keras <- keras::keras_model(input_tensor, output_tensor)
-        # compile the model
-        model.keras %>% keras::compile(
-            loss = model_loss,
-            optimizer = optimizer,
-            metrics = "accuracy"
-        )
-
-        prev.fit_verbose <- getOption("keras.fit_verbose")
-        options(keras.fit_verbose = verbose)
-
-        # fit the model
-        history <- model.keras %>% keras::fit(
-            train.x, train.y,
-            epochs = epochs, batch_size = batch_size,
-            validation_data = list(test.x, test.y)
-        )
-
-        options(keras.fit_verbose = prev.fit_verbose)
-
-        # construct model predict closure function and returns
-        model_predict <- function(values_DT){
-            # transform input (data.table) into a matrix (remove first two columns)
-            values.x         <- data.matrix(values_DT[, -(1:2)])
-            # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(model.keras, values.x))
-            # adjust the names of the columns of the probs
-            colnames(prediction_DT) <- labels
-
-            return(prediction_DT)
-        }
-
-        return(model_predict)
-    }
-
-    result <- .sits_factory_function(data.tb, result_fun)
     return(result)
 }
 
@@ -256,10 +75,10 @@ sits_deeplearning <- function(data.tb          = NULL,
 #' This function is a front-end to the "lda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param data.tb          Time series with the training samples.
+#' @param data             Time series with the training samples.
 #' @param formula          A symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_formula_logref).
 #' @param ...              Other parameters to be passed to MASS::lda function.
-#' @return A model function to be passed in sits_predict.
+#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
 #' \donttest{
@@ -283,16 +102,16 @@ sits_deeplearning <- function(data.tb          = NULL,
 #' sits_plot(class.tb)
 #' }
 #' @export
-sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
+sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
     # function that returns MASS::lda model based on a sits sample tibble
-    result_fun <- function(data.tb){
+    result_fun <- function(data){
 
         # data normalization
-        stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        stats <- .sits_normalization_param(data)
+        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
@@ -318,7 +137,7 @@ sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
         return(model_predict)
     }
 
-    result <- .sits_factory_function(data.tb, result_fun)
+    result <- .sits_factory_function(data, result_fun)
     return(result)
 }
 
@@ -336,10 +155,10 @@ sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' This function is a front-end to the "qda" method in the "MASS" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param data.tb          Time series with the training samples.
+#' @param data          Time series with the training samples.
 #' @param formula          Symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_formula_logref).
 #' @param ...              Other parameters to be passed to MASS::qda function.
-#' @return A model function to be passed in sits_predict.
+#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
 #' \donttest{
@@ -367,16 +186,16 @@ sits_lda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' sits_plot(class.tb)
 #' }
 #' @export
-sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
+sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
     # function that returns MASS::qda model based on a sits sample tibble
-    result_fun <- function(data.tb){
+    result_fun <- function(data){
 
         # data normalization
-        stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        stats <- .sits_normalization_param(data)
+        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -396,7 +215,7 @@ sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
         }
         return(model_predict)
     }
-    result <- .sits_factory_function(data.tb, result_fun)
+    result <- .sits_factory_function(data, result_fun)
     return(result)
 }
 
@@ -413,12 +232,12 @@ sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' This function is a front-end to the "multinom" method in the "nnet" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param data.tb          Time series with the training samples.
+#' @param data             Time series with the training samples.
 #' @param formula          Symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_formula_logref).
 #' @param n_weights        Maximum number of weights (should be proportional to size of input data).
 #' @param maxit            Maximum number of iterations (default 300).
 #' @param ...              Other parameters to be passed to nnet::multinom function.
-#' @return A model function to be passed in sits_predict.
+#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
@@ -441,16 +260,16 @@ sits_qda <- function(data.tb = NULL, formula = sits_formula_logref(), ...) {
 #' sits_plot(class.tb)
 #' }
 #' @export
-sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
+sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
     # function that returns nnet::multinom model based on a sits sample tibble
-    result_fun <- function(data.tb) {
+    result_fun <- function(data) {
         # data normalization
-        stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        stats <- .sits_normalization_param(data)
+        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         if (class(formula) == "function")
@@ -460,7 +279,8 @@ sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
         result_mlr <- nnet::multinom(formula = formula,
                                      data = train_data_DT,
                                      maxit = maxit,
-                                     MaxNWts = n_weights, ..., na.action = stats::na.fail)
+                                     MaxNWts = n_weights,
+                                     trace = FALSE, ..., na.action = stats::na.fail)
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
@@ -472,10 +292,9 @@ sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
         return(model_predict)
     }
 
-    result <- .sits_factory_function(data.tb, result_fun)
+    result <- .sits_factory_function(data, result_fun)
     return(result)
 }
-
 #' @title Train a sits classifiction model using fast random forest algorithm
 #' @name sits_rfor
 #'
@@ -487,11 +306,13 @@ sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
 #' This function is a front-end to the "ranger" method in the "ranger" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param data.tb          Time series with the training samples.
-#' @param num.trees        Number of trees to grow. This should not be set to too small a number,
+#' @param data          Time series with the training samples.
+#' @param num_trees     Number of trees to grow. This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted at least a few times. (default: 2000).
-#' @param ...              Other parameters to be passed to \code{\link[ranger]{ranger}} function.
-#' @return Either a model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model.
+#' @param importance   Variable importance mode, one of 'none', 'impurity', 'impurity_corrected', 'permutation'.
+#'                     The 'impurity' measure is the Gini index for classification.
+#' @param ...          Other parameters to be passed to \code{\link[ranger]{ranger}} function.
+#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
@@ -514,22 +335,28 @@ sits_mlr <- function(data.tb = NULL, formula = sits_formula_linear(),
 #' sits_plot(class.tb)
 #' }
 #' @export
-sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
+sits_rfor <- function(data = NULL, num_trees = 2000, importance = "impurity", ...) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
     # function that returns a randomForest model based on a sits sample tibble
-    result_fun <- function(data.tb){
+    result_fun <- function(data){
+
+        valid_importance <- c("none", "impurity", "permutation")
+
+        # is the input data consistent?
+        ensurer::ensure_that(importance, (.) %in% valid_importance,
+                             err_desc = "sits_rfor: invalid variable importance value")
 
         # get the labels of the data
-        labels <- sits_labels(data.tb)$label
+        labels <- sits_labels(data)$label
 
         # create a named vector with integers match the class labels
         int_labels <- c(1:length(labels))
         names(int_labels) <- labels
 
         # calculate the distances
-        train_data_DT <- .sits_distances(data.tb)
+        train_data_DT <- .sits_distances(data)
 
         # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
         formula <- sits_formula_linear()(train_data_DT)
@@ -537,8 +364,8 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
         # call `ranger::ranger` method and return the trained model
         result_ranger <- ranger::ranger(formula = formula,
                                       data = train_data_DT[,2:ncol(train_data_DT)],
-                                      probability = TRUE,
-                                      num.trees = num.trees, min.node.size = 1, ...)
+                                      probability = TRUE, importance = importance,
+                                      num.trees = num_trees, min.node.size = 1, ...)
 
         # construct model predict closure function and return it
         model_predict <- function(values_DT){
@@ -552,7 +379,7 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
         return(model_predict)
     }
 
-    result <- .sits_factory_function(data.tb, result_fun)
+    result <- .sits_factory_function(data, result_fun)
     return(result)
 }
 
@@ -572,7 +399,7 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' This function is a front-end to the "svm" method in the "e1071" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param data.tb          Time series with the training samples.
+#' @param data             Time series with the training samples.
 #' @param formula          Symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_svm).
 #' @param scale            Logical vector indicating the variables to be scaled.
 #' @param cachesize        Cache memory in MB (default = 1000).
@@ -584,7 +411,7 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' @param epsilon          Epsilon in the insensitive-loss function (default: 0.1).
 #' @param cross            Number of cross validation folds applied on the training data to assess the quality of the model.
 #' @param ...              Other parameters to be passed to e1071::svm function.
-#'
+#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
@@ -607,17 +434,17 @@ sits_rfor <- function(data.tb = NULL, num.trees = 2000, ...) {
 #' sits_plot(class.tb)
 #' }
 #' @export
-sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), scale = FALSE, cachesize = 1000,
+sits_svm <- function(data = NULL, formula = sits_formula_logref(), scale = FALSE, cachesize = 1000,
                      kernel = "radial", degree = 3, coef0 = 0, cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0, ...) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
     # function that returns e1071::svm model based on a sits sample tibble
-    result_fun <- function(data.tb){
+    result_fun <- function(data){
 
         # data normalization
-        stats.tb <- .sits_normalization_param(data.tb)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data.tb, stats.tb))
+        stats <- .sits_normalization_param(data)
+        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
 
         # if parameter formula is a function call it passing as argument the input data sample.
         # The function must return a valid formula.
@@ -646,47 +473,119 @@ sits_svm <- function(data.tb = NULL, formula = sits_formula_logref(), scale = FA
         }
         return(model_predict)
     }
-    result <- .sits_factory_function(data.tb, result_fun)
+    result <- .sits_factory_function(data, result_fun)
     return(result)
 }
 
-#' @title Provides access to diagnostic information about a Keras deep learning model
-#' @name sits_keras_diagnostics
+
+#' @title Train a sits classification model with an extreme gradient boosting machine
+#' @name sits_xgboost
 #'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description After the Keras deeplearning model is compiled and fit, this
-#'              function provides access to the history plot and the evaluation results.
+#' @description This function implements the extreme gradient boosting algorithm.
+#' Boosting is the process of iteratively adding basis functions in a greedy fashion
+#' so that each additional basis function further reduces the selected loss function.
+#' This function is a front-end to the methods in the "xgboost" package.
+#' Please refer to the documentation in that package for more details.
 #'
-#' @param dl_model  A valid keras model.
+#' @references             Tianqi Chen, Carlos Guestrin,
+#'                         "XGBoost : Reliable Large-scale Tree Boosting System", SIG KDD 2016.
 #'
-#' @return This function returns NULL. It only prints the model diagnostics.
+#' @param data             Time series with the training samples.
+#' @param eta              Learning rate: scale the contribution of each tree by a factor of 0 < eta < 1 when it is added to the current approximation.
+#'                         Used to prevent overfitting. Default: 0.3
+#' @param gamma            Minimum loss reduction to make a further partition of a leaf.  Default: 0.
+#' @param max_depth        Maximum depth of a tree.
+#'                         Increasing this value will make the model more complex
+#'                         and more likely to overfit, Default: 6.
+#' @param min_child_weight If the leaf node has a minimum sum of instance weights lower than min_child_weight, the tree splitting stops.
+#' @param subsample        Controls the percentage of samples (observations) supplied to a tree. Default: 1.
+#' @param nfold            Number of the subsamples for the cross-validation.
+#' @param nrounds          Number of rounds to iterate the cross-validation (default: 100)
+#' @param early_stopping_rounds Training with a validation set will stop if the performance doesn't improve for k rounds.
+#' @param verbose          Print information on statistics during the process
+#' @param ...              Other parameters to be passed to `xgboost::xgboost` function.
+#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
 #' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(cerrado_2classes)
-#'  # obtain a DL model
-#' dl_model <- sits_train(cerrado_2classes,
-#'      sits_deeplearning(units = c(512, 512), dropout_rates = c(0.45, 0.25), epochs = 100))
-#' # run the keras diagnostics
-#' sits_keras_diagnostics(dl_model)
+#' #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' # Install the inSitu library
+#' # devtools::install_github("e-sensing/inSitu")
+#' # library(inSitu)
+#'
+#' # select the bands for classification
+#' samples <- inSitu::br_mt_1_8K_9classes_6bands
+#'
+#' # find a training model based on the distances and default values (SVM model)
+#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#'
+#' # Build a machine learning model based on xgboost
+#' xgb_model <- sits_train(samples_4bands, sits_xgboost(eta = 0.5, gamma = 0, max.depth = 2))
+#'
+#' # get a point and classify the point with the ml_model
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' class.tb <- sits_classify(point.tb, xgb_model)
+#' sits_plot(class.tb)
 #' }
 #' @export
-sits_keras_diagnostics <- function(dl_model) {
-    if (purrr::is_null(environment(dl_model)$model.keras)) {
-        message("Please configure a keras model before running this function")
-        return(FALSE)
+sits_xgboost <- function(data = NULL, eta = 0.3, gamma = 0, max_depth = 6, min_child_weight = 1,
+                         subsample = 1, nfold = 5, nrounds = 100, early_stopping_rounds = 20,
+                         verbose = FALSE, ...) {
+    # function that returns glmnet::multinom model based on a sits sample tibble
+    result_fun <- function(data){
+
+        # data normalization
+        stats <- .sits_normalization_param(data)
+        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
+
+        # get the labels of the data
+        labels <- sits_labels(data)$label
+        # create a named vector with integers match the class labels
+        int_labels <- c(1:length(labels))
+        names(int_labels) <- labels
+
+        # reference labels for each sample expressed as numerical values
+        references <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
+
+        # define the parameters of the model
+        params <- list(booster = "gbtree", objective = "multi:softprob", eta = eta, gamma = gamma,
+                       max_depth = max_depth, min_child_weight = min_child_weight,
+                       subsample = subsample)
+
+        # run the cross-validation
+        xgbcv <- xgboost::xgb.cv(params = params, data = as.matrix(train_data_DT[, 3:length(train_data_DT)]),
+                                 label = references, num_class = length(labels),
+                                 nrounds = nrounds, nfold = nfold, early_stopping_rounds = early_stopping_rounds,
+                                 print_every_n = 10,  verbose = verbose, maximize = FALSE)
+
+        # get the best iteration of the model based on the CV
+        nrounds_best <- xgbcv$best_iteration
+
+        # call gbm::gbm method and return the trained multinom model
+        result_xgb <- xgboost::xgb.train(data = xgboost::xgb.DMatrix(data = as.matrix(train_data_DT[, 3:length(train_data_DT)]), label = references),
+                                         num_class = length(labels),
+                                         params = params, nrounds = nrounds_best,
+                                         print_every_n = 10,  maximize = FALSE)
+
+        # construct model predict closure function and returns
+        model_predict <- function(values_DT){
+            # transform input (data.table) into a matrix (remove first two columns)
+            # retrieve the prediction probabilities
+            prediction_DT <- data.table::as.data.table(stats::predict(result_xgb, data.matrix(values_DT[, -(1:2)]), reshape = TRUE))
+            # adjust the names of the columns of the probs
+            colnames(prediction_DT) <- labels
+            # retrieve the prediction results
+            return(prediction_DT)
+        }
+        return(model_predict)
     }
 
-    message("Plotting history of the model fit")
-    graphics::plot(environment(dl_model)$history)
-
-    test_eval <- keras::evaluate(environment(dl_model)$model.keras, environment(dl_model)$test.x, environment(dl_model)$test.y, verbose = 0)
-    message("Estimated loss and accuracy based on test data")
-    message(paste0("Estimated accuracy: ", round(test_eval$acc, digits = 3),
-                   " estimated loss: ", round(test_eval$loss, digits = 3)))
-    return(TRUE)
+    result <- .sits_factory_function(data, result_fun)
+    return(result)
 }
 
 #' @title Define a loglinear formula for classification models
@@ -795,22 +694,182 @@ sits_formula_smooth <- function(predictors_index = -2:0){
     return(result_fun)
 }
 
-#' @title Predict class based on the trained models
-#' @name .sits_predict
+#' @title Use time series values from a sits tibble as distances for training patterns
+#' @name .sits_distances
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @description This function allows using a set of labelled time series as
+#' input to the machine learning models. The attributes used to train the model
+#' are the series themselves. This function extracts the time series from a sits tibble
+#' and "spreads" them in time to produce a tibble with distances.
+#'
+#' @param  data       A tibble with time series data and metadata.
+#' @return A data.table where columns have the reference label and the time series values as distances.
+#'
+.sits_distances <- function(data) {
+    # backward compatibility
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+
+    # create a list with the time series transposed from columns to rows
+    ts.lst <- data$time_series %>%
+        purrr::map(function(ts){
+            as.data.frame(t(unlist(ts[-1])))
+        })
+    # bind the lists of time series together
+    dist_DT <- data.table::rbindlist(ts.lst, use.names = FALSE)
+    # create a data frame with the first two columns for training
+    distances_DT <- data.table::data.table("original_row" = 1:nrow(data), "reference" = data$label)
+    # join the two references columns with the data values
+    distances_DT <- data.table::as.data.table(cbind(distances_DT, dist_DT))
+
+    return(distances_DT)
+}
+
+#' @title Sample a percentage of a time series distance matrix
+#' @name .sits_sample_distances
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Given a sits tibble time series and a model trained by \code{\link[sits]{sits_train}},
-#'   returns a predicted label. Note that this function is
-#'   called inside \code{\link[sits]{sits_classify}}, so the user does not need
-#'   to explicitly use it. Please see the above-mentioned classification functions.
+#' @description Takes a sits tibble with different labels and
+#'              returns a new tibble. For a given field as a group criterion, this new table contains a given number or percentage
+#'              of the total number of samples per group. Parameter n indicantes the number of random samples with reposition.
+#'              Parameter frac indicates a fraction of random samples without reposition. If frac > 1, no sampling is done.
 #'
-#' @param distances_DT  Set of distance metrics to each of the classes.
-#' @param ml_model      Model trained by \code{\link[sits]{sits_train}}.
-#' @param ...           Other parameters to be passed to the model function.
-#' @return A vector of predicted labels.
-.sits_predict <- function(distances_DT = NULL, ml_model, ...){
-    prediction <- ml_model(distances_DT)
-    return(prediction)
+#' @param  distances_DT    A data.table object with the distances associated to a time series.
+#' @param  frac            Percentage of samples to pick from a given group of data.
+#' @return A data.table with a fixed quantity of samples of informed labels and all other.
+.sits_sample_distances <- function(distances_DT, frac){
+    # compute sampling
+    result_DT <- distances_DT[, .SD[sample(.N, round(frac*.N))], by = reference]
+
+    return(result_DT)
 }
+#' @title Normalize the time series in the given sits_tibble
+#' @name .sits_normalize_data
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description This function normalizes the time series using the mean and
+#' standard deviation of all the time series.
+#'
+#' @param data     A sits tibble.
+#' @param stats    Statistics for normalization.
+#' @param multicores  Number of cores to process.
+#' @return A normalized sits tibble.
+.sits_normalize_data <- function(data, stats, multicores = 1){
+    # backward compatibility
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    .sits_test_tibble(data)
+    # find the number of cores
+    if (purrr::is_null(multicores))
+        multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
+    # avoid overhead on multicore processing
+    if (nrow(data) < sits.env$config$minimum_number_samples)
+        multicores <- 1
+    # get the bands of the input data
+    bands <- sits_bands(data)
+    # check that the bands in the input are include in the statistics already calculated
+    ensurer::ensure_that(bands, all(sort(.) == sort(colnames(stats[,-1]))),
+                         err_desc = paste0("sits_normalize: bands in the data (",
+                                           paste(bands, collapse = ", "),
+                                           ") do not match bands in the model (",
+                                           paste(colnames(stats[,-1]), collapse = ", "), ")"))
+
+    # extract the values of the time series to a list of tibbles
+    values.lst <- data$time_series
+
+    normalize_list <- function(chunk.lst) {
+        norm_chunk.lst <- chunk.lst %>%
+            purrr::map(function(ts) {
+                norm.lst <- bands %>%
+                    purrr::map(function(b){
+                        med      <- as.numeric(stats[1, b])
+                        quant_2  <- as.numeric(stats[2, b])
+                        quant_98 <- as.numeric(stats[3, b])
+                        values <- suppressWarnings(tibble::as_tibble(normalize_data(as.matrix(ts[,b]), quant_2, quant_98)))
+                        return(values)
+                    })
+                ts.tb <- dplyr::bind_cols(norm.lst)
+                ts.tb <- dplyr::bind_cols(list(ts[,1], ts.tb))
+                colnames(ts.tb) <- colnames(ts)
+                return(ts.tb)
+            })
+        return(norm_chunk.lst)
+    }
+
+    if (multicores > 1) {
+        parts.lst <- split(values.lst, cut(1:length(values.lst), 2, labels = FALSE))
+        norm.lst <- dplyr::combine(parallel::mclapply(parts.lst, normalize_list, mc.cores = multicores))
+    }
+    else
+        norm.lst <- normalize_list(values.lst)
+
+    data$time_series <- norm.lst
+    return(data)
+}
+
+#' @title Normalize the time series values in the case of a matrix
+#' @name .sits_normalize_matrix
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description this function normalizes one band of the values read from a raster brick
+#'
+#' @param  data.mx        Matrix of values.
+#' @param  stats       Statistics for normalization.
+#' @param  band           Band to be normalized.
+#' @param  multicores     Number of cores.
+#' @return A normalized matrix.
+.sits_normalize_matrix <- function(data.mx, stats, band, multicores) {
+    # select the 2% and 98% quantiles
+    quant_2   <- as.numeric(stats[2, band])
+    quant_98  <- as.numeric(stats[3, band])
+
+    # auxiliary function to normalize a block of data
+    normalize_block <- function(chunk, quant_2, quant_98) {
+        # normalize a block of data
+        values_block.mx <- normalize_data(chunk, quant_2, quant_98)
+    }
+
+    # parallel processing for normalization
+    if (multicores > 1) {
+        chunk.lst <- .sits_raster_split_data(data.mx, multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, normalize_block, quant_2, quant_98, mc.cores = multicores)
+        data.mx <- do.call(rbind, rows.lst)
+        rm(chunk.lst)
+        rm(rows.lst)
+        gc()
+    }
+    else
+        data.mx <- normalize_data(data.mx, quant_2, quant_98)
+
+    return(data.mx)
+}
+
+
+#' @title Normalize the time series in the given sits_tibble
+#' @name .sits_normalization_param
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description this function normalizes the time series using the mean and
+#' standard deviation of all the time series.
+#'
+#' @param data     A sits tibble.
+#' @return A tibble with statistics.
+.sits_normalization_param <- function(data) {
+    .sits_test_tibble(data)
+
+    DT <- data.table::data.table(dplyr::bind_rows(data$time_series))
+    DT[, Index := NULL]
+
+    # compute statistics
+    DT_med      <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
+    DT_quant_2  <- DT[, lapply(.SD, function(x) stats::quantile(x, 0.02, na.rm = TRUE))]
+    DT_quant_98 <- DT[, lapply(.SD, function(x) stats::quantile(x, 0.98, na.rm = TRUE))]
+
+    stats <- dplyr::bind_cols(stats = c("med", "quant_2", "quant_98"),
+                                 dplyr::bind_rows(DT_med, DT_quant_2, DT_quant_98))
+
+    return(stats)
+}
+

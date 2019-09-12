@@ -124,9 +124,9 @@ test_that("Labels and re-label", {
                     Deforestation_2015 = "NonForest",
                     Forest = "Forest",
                     Pasture = "NonForest")
-    new_data.tb <- sits_relabel(prodes_226_064, conv.lst)
+    new_data <- sits_relabel(prodes_226_064, conv.lst)
 
-    labels <- sits_labels(new_data.tb)
+    labels <- sits_labels(new_data)
 
     expect_equal(length(labels$label), 2)
     expect_equal(labels$label[1], "Forest")

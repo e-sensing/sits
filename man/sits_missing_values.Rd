@@ -4,10 +4,10 @@
 \alias{sits_missing_values}
 \title{Remove missing values}
 \usage{
-sits_missing_values(data.tb, miss_value)
+sits_missing_values(data, miss_value)
 }
 \arguments{
-\item{data.tb}{A tibble with time series data and metadata.}
+\item{data}{A tibble with time series data and metadata.}
 
 \item{miss_value}{Number indicating missing values in a time series.}
 }

@@ -7,7 +7,7 @@
 #' @description Given a tibble with a set of time series, filter the tibble with one of
 #' the available filtering algorithms:
 #'
-#' @param  data.tb          Set of time series
+#' @param  data          Set of time series
 #' @param  filter           Filter to be applied to the data.
 #' @return A set of filtered time series
 #'
@@ -66,13 +66,13 @@
 #'
 #' }
 #' @export
-sits_filter <- function(data.tb, filter = sits_whittaker()) {
+sits_filter <- function(data, filter = sits_whittaker()) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
 
     # is the input data a valid sits tibble?
-    ensurer::ensure_that(data.tb, "label" %in% names(.),
+    ensurer::ensure_that(data, "label" %in% names(.),
                          err_desc = "sits_filter: input data does not contain a valid sits tibble")
 
     # is the train method a function?
@@ -80,13 +80,13 @@ sits_filter <- function(data.tb, filter = sits_whittaker()) {
                          err_desc = "sits_filter: filter is not a valid function")
 
     # compute the training method by the given data
-    result <- filter(data.tb)
+    result <- filter(data)
 
     # return a valid machine learning method
     return(result)
 }
-#' @title cloud filter
-#' @name sits_cloud_filter
+#' @title cloud removal
+#' @name sits_cloud_removal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description  This function tries to remove clouds in the ndvi band of
 #' a satellite image time series. It looks for points where the value of the NDVI
@@ -94,7 +94,7 @@ sits_filter <- function(data.tb, filter = sits_whittaker()) {
 #' than a cutoff value which is set by the user. Then it applies an spline interploation.
 #' Finally, the function applies a whitakker smoother.
 #'
-#' @param data.tb       A tibble with time series data and metadata with only the "ndvi" band.
+#' @param data       A tibble with time series data and metadata with only the "ndvi" band.
 #' @param cutoff        A numeric value for the maximum acceptable value of a NDVI difference.
 #' @param bands_suffix  Suffix to rename the filtered bands.
 #' @param apply_whit    Apply the whittaker smoother after filtering? The default value is FALSE.
@@ -109,30 +109,30 @@ sits_filter <- function(data.tb, filter = sits_whittaker()) {
 #' # Select the NDVI band of the first point
 #' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the cloud filter
-#' point_cld.tb <- sits_cloud_filter(point_ndvi.tb)
+#' point_cld.tb <- sits_filter(point_ndvi.tb, sits_cloud_removal ())
 #' # Merge the filtered with the raw data
 #' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 #' # Plot the result
 #' sits_plot (point2.tb)
 #' }
 #' @export
-sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
+sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
                               bands_suffix = "cf", apply_whit = TRUE, lambda_whit = 1.0){
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
 
-    filter_fun <- function(data.tb) {
+    filter_fun <- function(data) {
         # find the bands of the data
-        bands <- sits_bands(data.tb)
+        bands <- sits_bands(data)
         ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
 
         # prepare result sits tibble
-        result.tb <- data.tb
-        env.tb <- sits_select_bands(data.tb, ndvi) %>% sits_envelope(operations = "UU")
+        result <- data
+        env.tb <- sits_select_bands(data, ndvi) %>% sits_envelope(operations = "UU")
 
         # select the chosen bands for the time series
-        result.tb$time_series <- purrr::pmap(list(data.tb$time_series, env.tb$time_series, result.tb$time_series),
+        result$time_series <- purrr::pmap(list(data$time_series, env.tb$time_series, result$time_series),
                     function(ts_data, ts_env, ts_res) {
                         ndvi <- dplyr::pull(ts_data[, "ndvi"])
                         env  <- dplyr::pull(ts_env[, "ndvi.env"])
@@ -149,15 +149,15 @@ sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
                     })
         # rename the output bands
         new_bands <- paste0(bands, ".", bands_suffix)
-        result.tb <- sits_rename(result.tb, new_bands)
+        result <- sits_rename(result, new_bands)
 
         if (apply_whit)
-            result.tb <- sits_whittaker(result.tb, lambda = lambda_whit)
+            result <- sits_whittaker(result, lambda = lambda_whit)
 
-        return(result.tb)
+        return(result)
 
     }
-    result <- .sits_factory_function(data.tb, filter_fun)
+    result <- .sits_factory_function(data, filter_fun)
 }
 
 #' @title Envelope filter
@@ -165,7 +165,7 @@ sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  This function computes the envelope of a time series using the
 #' streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelope` function.
-#' @param data.tb      A tibble with time series data and metadata.
+#' @param data      A tibble with time series data and metadata.
 #' @param operations   A character sequence indicating which operations must be taken. "U" for upper filter, "L" for down filter.
 #' @param bands_suffix Suffix to be appended to the resulting data (default "env").
 #' @return A tibble with filtered time series values.
@@ -184,16 +184,16 @@ sits_cloud_filter <- function(data.tb = NULL, cutoff = 0.25,
 #' sits_plot (point2.tb)
 #' }
 #' @export
-sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "env"){
+sits_envelope <- function(data = NULL, operations = "UULL", bands_suffix = "env"){
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
     }
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
 
-    filter_fun <- function(data.tb) {
+    filter_fun <- function(data) {
         # definitions of operations and the key returned by `dtwclust::compute_envelope`
         def_op <- list("U" = "upper", "L" = "lower", "u" = "upper", "l" = "lower")
 
@@ -205,7 +205,7 @@ sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "e
                              err_desc = "sits_envelope: invalid operation sequence")
 
         # compute envelopes
-        result.tb <- sits_apply(data.tb,
+        result <- sits_apply(data,
                                 fun = function(band) {
                                     for (op in operations) {
                                         upper_lower.lst <- dtwclust::compute_envelope(band, window.size = 1, error.check = FALSE)
@@ -215,9 +215,9 @@ sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "e
                                 },
                                 fun_index = function(band) band,
                                 bands_suffix = bands_suffix)
-        return(result.tb)
+        return(result)
     }
-    result <- .sits_factory_function(data.tb, filter_fun)
+    result <- .sits_factory_function(data, filter_fun)
 }
 
 #' @title Interpolation function of the time series of a sits_tibble
@@ -225,7 +225,7 @@ sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "e
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Computes the linearly interpolated bands for a given resolution
 #'               using the R base function approx.
-#' @param data.tb       A tibble with time series data and metadata.
+#' @param data       A tibble with time series data and metadata.
 #' @param fun           Interpolation function.
 #' @param n             Number of time series elements to be created between start date and end date.
 #'                      When a class function is passed to `n`, is is evaluated with each band time series as
@@ -244,13 +244,13 @@ sits_envelope <- function(data.tb = NULL, operations = "UULL", bands_suffix = "e
 #' sits_plot(point_int.tb)
 #' }
 #' @export
-sits_interp <- function(data.tb = NULL, fun = stats::approx, n = base::length, ...) {
+sits_interp <- function(data = NULL, fun = stats::approx, n = base::length, ...) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    filter_fun <- function(data.tb) {
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    filter_fun <- function(data) {
         # compute linear approximation
-        result.tb <- sits_apply(data.tb,
+        result <- sits_apply(data,
                                 fun = function(band) {
                                     if (class(n) == "function")
                                         return(fun(band, n = n(band), ...)$y)
@@ -258,9 +258,9 @@ sits_interp <- function(data.tb = NULL, fun = stats::approx, n = base::length, .
                                 },
                                 fun_index = function(band) as.Date(fun(band, n = n, ...)$y,
                                                                    origin = "1970-01-01"))
-        return(result.tb)
+        return(result)
     }
-    result <- .sits_factory_function(data.tb, filter_fun)
+    result <- .sits_factory_function(data, filter_fun)
 }
 
 #' @title Kalman filter
@@ -268,7 +268,7 @@ sits_interp <- function(data.tb = NULL, fun = stats::approx, n = base::length, .
 #' @name sits_kalman
 #' @description  A simple Kalman filter implementation.
 #'
-#' @param data.tb      A sits tibble containing the original time series.
+#' @param data      A sits tibble containing the original time series.
 #' @param bands_suffix The suffix to be appended to the smoothed filters.
 #' @return A tibble with smoothed sits time series.
 #' @examples
@@ -286,18 +286,18 @@ sits_interp <- function(data.tb = NULL, fun = stats::approx, n = base::length, .
 #' sits_plot (point2.tb)
 #' }
 #' @export
-sits_kalman <- function(data.tb = NULL, bands_suffix = "kf"){
+sits_kalman <- function(data = NULL, bands_suffix = "kf"){
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    filter_fun <- function(data.tb) {
-        result.tb <- sits_apply(data.tb,
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    filter_fun <- function(data) {
+        result <- sits_apply(data,
                                 fun = function(band) .sits_kalman_filter(band, NULL, NULL, NULL),
                                 fun_index = function(band) band,
                                 bands_suffix = bands_suffix)
-        return(result.tb)
+        return(result)
     }
-    result <- .sits_factory_function(data.tb, filter_fun)
+    result <- .sits_factory_function(data, filter_fun)
     return(result)
 }
 #' Compute the Kalman filter
@@ -376,7 +376,7 @@ sits_kalman <- function(data.tb = NULL, bands_suffix = "kf"){
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Computes the linearly interpolated bands for a given resolution
 #'               using the R base function approx.
-#' @param data.tb       A tibble with time series data and metadata.
+#' @param data       A tibble with time series data and metadata.
 #' @param n             Number of time series elements to be created between start date and end date.
 #' @return A sits tibble with same samples and the new bands.
 #' @examples
@@ -391,43 +391,43 @@ sits_kalman <- function(data.tb = NULL, bands_suffix = "kf"){
 #' sits_plot (point_int.tb)
 #' }
 #' @export
-sits_linear_interp <- function(data.tb = NULL, n = 23) {
+sits_linear_interp <- function(data = NULL, n = 23) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    filter_fun <- function(data.tb){
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    filter_fun <- function(data){
         # compute linear approximation
-        result.tb <- sits_apply(data.tb,
+        result <- sits_apply(data,
                                 fun = function(band) stats::approx(band, n = n, ties = mean)$y,
                                 fun_index = function(band) as.Date(stats::approx(band, n = n, ties = mean)$y,
                                                                    origin = "1970-01-01"))
-        return(result.tb)
+        return(result)
     }
-    result <- .sits_factory_function(data.tb, filter_fun)
+    result <- .sits_factory_function(data, filter_fun)
 }
 
 #' @title Remove missing values
 #' @name sits_missing_values
 #' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
 #' @description  This function removes the missing values from an image time series by substituting them by NA.
-#' @param data.tb     A tibble with time series data and metadata.
+#' @param data     A tibble with time series data and metadata.
 #' @param miss_value  Number indicating missing values in a time series.
 #' @return A tibble with time series data and metadata (with missing values removed).
 #' @export
-sits_missing_values <-  function(data.tb, miss_value) {
+sits_missing_values <-  function(data, miss_value) {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    # test if data.tb has data
-    .sits_test_tibble(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    # test if data has data
+    .sits_test_tibble(data)
 
     # remove missing values by NAs
-    result.tb <- sits_apply(data.tb, fun = function(band) return(ifelse(band == miss_value, NA, band)))
-    return(result.tb)
+    result <- sits_apply(data, fun = function(band) return(ifelse(band == miss_value, NA, band)))
+    return(result)
 }
 
 #' @title NDVI filter with ARIMA model
-#' @name sits_ndvi_arima_filter
+#' @name sits_ndvi_arima
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description  This function tries to remove clouds in the ndvi band of
 #' a satellite image time series. It looks for points where the value of the NDVI
@@ -435,7 +435,7 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' than a cutoff value which is set by the user. Then it applies an spline interploation.
 #' Finally, the function applies a whitakker smoother.
 #'
-#' @param data.tb       A tibble with time series data and metadata with only the "ndvi" band.
+#' @param data       A tibble with time series data and metadata with only the "ndvi" band.
 #' @param cutoff        Numeric value for the maximum acceptable value of a NDVI difference.
 #' @param p             Order (number of time lags) of the autoregressive model.
 #' @param d             Degree of differencing (the number of times the data have had past values subtracted).
@@ -451,24 +451,24 @@ sits_missing_values <-  function(data.tb, miss_value) {
 #' # This is an area full of clouds
 #' data(prodes_226_064)
 #' # Select the NDVI band of the first point
-#' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
+#' point_ndvi<- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the cloud filter
-#' point_cld.tb <- sits_ndvi_arima_filter(point_ndvi.tb)
+#' point_cld <- sits_filter(point_ndvi.tb, sits_ndvi_arima())
 #' # Merge the filtered with the raw data
-#' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
+#' point2 <- sits_merge (point_ndvi, point_cld)
 #' # Plot the result
-#' sits_plot (point2.tb)
+#' sits_plot (point2)
 #' }
 #' @export
-sits_ndvi_arima_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
+sits_ndvi_arima <- function(data = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
                               bands_suffix = "ar", apply_whit = TRUE, lambda_whit = 1.0){
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
 
-    filter_fun <- function(data.tb) {
+    filter_fun <- function(data) {
         # find the bands of the data
-        bands <- sits_bands(data.tb)
+        bands <- sits_bands(data)
         ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
 
         # predictive model for missing values
@@ -484,11 +484,11 @@ sits_ndvi_arima_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0,
             return(x)
         }
         # prepare result sits tibble
-        result.tb <- data.tb
-        env.tb <- sits_envelope(data.tb, operations = "U")
+        result <- data
+        env.tb <- sits_envelope(data, operations = "U")
 
         # select the chosen bands for the time series
-        result.tb$time_series <- data.tb$time_series %>%
+        result$time_series <- data$time_series %>%
             purrr::map(function(ts) {
                 ndvi <- dplyr::pull(ts[, "ndvi"])
                 idx <- which(c(0, diff(ndvi)) < cutoff)
@@ -502,15 +502,15 @@ sits_ndvi_arima_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0,
             })
         # rename the output bands
         new_bands <- paste0(bands, ".", bands_suffix)
-        result.tb <- sits_rename(result.tb, new_bands)
+        result <- sits_rename(result, new_bands)
 
         if (apply_whit)
-            result.tb <- sits_whittaker(result.tb, lambda = lambda_whit)
+            result <- sits_whittaker(result, lambda = lambda_whit)
 
-        return(result.tb)
+        return(result)
 
     }
-    result <- .sits_factory_function(data.tb, filter_fun)
+    result <- .sits_factory_function(data, filter_fun)
 }
 
 #' @title Smooth the time series using Savitsky-Golay filter
@@ -522,7 +522,10 @@ sits_ndvi_arima_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0,
 #' the size of the temporal window with the parameter `length` (default = 5),
 #' and the temporal expansion with the parameter `scaling`.
 #'
-#' @param data.tb       A tibble with time series data and metadata.
+#' @references A. Savitzky, M. Golay, "Smoothing and Differentiation of Data by
+#' Simplified Least Squares Procedures". Analytical Chemistry, 36 (8): 1627–39, 1964.
+#'
+#' @param data       A tibble with time series data and metadata.
 #' @param order         Filter order (integer).
 #' @param length        Filter length (must be odd)
 #' @param scaling       Time scaling (integer).
@@ -533,28 +536,28 @@ sits_ndvi_arima_filter <- function(data.tb = NULL, cutoff = -0.25, p = 0, d = 0,
 #' #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the Savitsky Golay smoother
-#' point_sg.tb <- sits_sgolay (point_ndvi, order = 3, length  = 5)
+#' point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5))
 #' # Plot the two points to see the smoothing effect
-#' sits_plot(sits_merge(point_ndvi, point_sg.tb))
+#' sits_plot(sits_merge(point_ndvi, point_sg))
 #' }
 #' @export
-sits_sgolay <- function(data.tb = NULL, order = 3,
+sits_sgolay <- function(data = NULL, order = 3,
                         length = 5, scaling = 1, bands_suffix = "sg") {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    filter_fun <- function(data.tb) {
-        result.tb <- sits_apply(data.tb,
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    filter_fun <- function(data) {
+        result <- sits_apply(data,
                                 fun = function(band) signal::sgolayfilt(band, p = order, n = length, ts = scale),
                                 fun_index = function(band) band,
                                 bands_suffix = bands_suffix)
-        return(result.tb)
+        return(result)
     }
 
-    result <- .sits_factory_function(data.tb, filter_fun)
+    result <- .sits_factory_function(data, filter_fun)
 }
 
-#' @title Smooth the time series using Whittaker smoother
+#' @title Filter the time series using Whittaker smoother
 #'
 #' @name sits_whittaker
 #' @description  The algorithm searches for an optimal polynomial describing the warping.
@@ -568,7 +571,7 @@ sits_sgolay <- function(data.tb = NULL, order = 3,
 #' Example of Landsat data", Int Journal of Applied Earth Observation and Geoinformation,
 #' vol. 57, pg. 202-213, 2107.
 #'
-#' @param data.tb      A tibble with time series data and metadata.
+#' @param data      A tibble with time series data and metadata.
 #' @param lambda       Smoothing factor to be applied (default 1.0).
 #' @param differences  The order of differences of contiguous elements (default 3).
 #' @param bands_suffix Suffix to be appended to the smoothed filters (default "whit").
@@ -579,17 +582,17 @@ sits_sgolay <- function(data.tb = NULL, order = 3,
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the whittaker smoother
-#' point_ws.tb <- sits_whittaker (point_ndvi, lambda = 3.0, differences = 3)
+#' point_whit<- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, differences = 3))
 #' # Plot the two points to see the smoothing effect
-#' sits_plot(sits_merge(point_ndvi, point_ws.tb))
+#' sits_plot(sits_merge(point_ndvi, point_whit))
 #' }
 #' @export
-sits_whittaker <- function(data.tb = NULL, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
+sits_whittaker <- function(data = NULL, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
-    filter_fun <- function(data.tb) {
-        result.tb <- sits_apply(data.tb,
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    filter_fun <- function(data) {
+        result <- sits_apply(data,
                                 fun = function(band){
                                     # According to: Whittaker (1923). On a new method of graduation.
                                     # Proceedings of the Edinburgh Mathematical Society, 41, 63-73.
@@ -604,9 +607,9 @@ sits_whittaker <- function(data.tb = NULL, lambda    = 1.0, differences = 3, ban
                                 },
                                 fun_index = function(band) band,
                                 bands_suffix = bands_suffix)
-        return(result.tb)
+        return(result)
     }
-    result <- .sits_factory_function(data.tb, filter_fun)
+    result <- .sits_factory_function(data, filter_fun)
 }
 
 

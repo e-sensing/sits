@@ -8,15 +8,16 @@ default:
     minimum_number_samples   : 1000
 
     # Data services known to sits
-    services                : ["WTSS", "SATVEG", "EOCUBES", "LOCALHOST", "AWS", "RASTER", "STACK"]
+    services                : ["WTSS", "SATVEG", "EOCUBES", "BRICK", "STACK", "LAYER"]
 
     # Names of the providers of services
     WTSS_providers          : ["WTSS-INPE"]
     SATVEG_providers        : ["SATVEG-EMBRAPA"]
-    LOCALHOST_providers     : ["LOCALHOST"]
+    BRICK_providers         : ["BRICK"]
     AWS_providers           : ["AWS"]
     RASTER_providers        : ["RASTER"]
     STACK_providers         : ["STACK"]
+    LAYER_providers         : ["LAYER"]
     EOCUBES_providers       : ["EOCUBES-INPE"]
 
     # URL to access each WTSS service
@@ -26,13 +27,15 @@ default:
     EOCUBES-INPE_server     : "eocubes"
 
     # URL to access LOCALHOST
-    LOCALHOST_server        : "http://127.0.0.1"
+    BRICK_server            : "http://127.0.0.1"
+    STACK_server            : "http://127.0.0.1"
 
     # URL to access AWS
     AWS_server              : "s3-sa-east-1.amazonaws.com"
 
     # URL to access SATVEG
     SATVEG-EMBRAPA_server   : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
+    SATVEG_EMBRAPA_test     : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/ndvi/ponto/-55.50563/-11.71557/terra/1//"
     SATVEG-EMBRAPA_cubes    : ["terra", "aqua", "comb"]
 
 

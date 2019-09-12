@@ -4,10 +4,10 @@
 \alias{sits_savi}
 \title{Builds soil-adjusted vegetation index}
 \usage{
-sits_savi(data.tb)
+sits_savi(data)
 }
 \arguments{
-\item{data.tb}{Valid sits tibble.}
+\item{data}{Valid sits tibble.}
 }
 \value{
 A sits tibble with the SAVI index.

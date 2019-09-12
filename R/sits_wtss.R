@@ -1,3 +1,88 @@
+#' @title Provides information about one cube of the WTSS service
+#' @name .sits_wtss_cube
+#'
+#' @description Uses the WTSS services to print information and save metadata about a
+#' chosen cube.
+#'
+#' @param wtss.obj   R WTSS object associated to the service.
+#' @param service    Name of the service.
+#' @param URL        URL of the service provider.
+#' @param name       Name of the cube.
+#' @param bands      Name of the bands.
+.sits_wtss_cube <- function(wtss.obj, service, URL, name, bands) {
+    # obtains information about the available cubes
+    cubes.vec    <- wtss::listCoverages(wtss.obj)
+
+    # is the cube in the list of cubes?
+    ensurer::ensure_that(name, (.) %in% cubes.vec,
+                         err_desc = ".sits_wtss_cube: cube is not available in the WTSS server")
+
+    # describe the cube based on the WTSS API
+    cov.lst    <- wtss::describeCoverage(wtss.obj, name)
+    cov        <- cov.lst[[name]]
+
+    # retrieve the satellite associated to the cube
+    satellite <- .sits_config_satellite(name)
+    # retrieve the sensor associated to the cube
+    sensor <- .sits_config_sensor(name)
+    # temporal extent
+    timeline <- lubridate::as_date(cov$timeline)
+
+    # retrieve information about the bands
+    band_info <- cov$attributes
+
+    attr <- as.data.frame(band_info)
+    bands_wtss <- as.vector(attr[,"name"])
+
+    # verify if requested bands is in provided bands
+    if (!purrr::is_null(bands)) {
+        ensurer::ensure_that(bands_wtss, all(bands %in% .),
+                             err_desc = ".sits_wtss_cube: requested band not provided by WTSS service.")
+    } else
+        bands <- bands_wtss
+
+    b <- bands_wtss %in% bands
+    bands_wtss <- bands_wtss[b]
+
+    missing_values <- as.vector(attr[,"missing_value"])[b]
+    names(missing_values) <- bands_wtss
+    scale_factors  <- as.vector(attr[,"scale_factor"])[b]
+    names(scale_factors)  <- bands_wtss
+    minimum_values <- as.vector(attr[,"valid_range"][["min"]])[b]
+    names(minimum_values) <- bands_wtss
+    maximum_values <- as.vector(attr[,"valid_range"][["max"]])[b]
+    names(maximum_values) <- bands_wtss
+
+    # Spatial extent
+    xmin <- cov$spatial_extent$xmin
+    ymin <- cov$spatial_extent$ymin
+    xmax <- cov$spatial_extent$xmax
+    ymax <- cov$spatial_extent$ymax
+
+    # Spatial resolution
+    xres <- cov$spatial_resolution$x
+    yres <- cov$spatial_resolution$y
+
+    # Size (rows and cols)
+    nrows <- cov$dimension$y$max_idx - cov$dimensions$y$min_idx + 1
+    ncols <- cov$dimension$x$max_idx - cov$dimensions$x$min_idx + 1
+
+    # Projection CRS
+    crs <- cov$crs$proj4
+
+    #labels
+    labels <- c("NoClass")
+
+    # create a tibble to store the metadata
+    cube_wtss <- .sits_cube_create(service, URL, satellite, sensor, name, bands_wtss, labels,
+                                   scale_factors, missing_values, minimum_values, maximum_values,
+                                   list(timeline), nrows, ncols, xmin, xmax, ymin, ymax,
+                                   xres, yres, crs)
+
+    # return the tibble with cube info
+    return(cube_wtss)
+}
+
 #' @title Obtain one timeSeries from WTSS server and load it on a sits tibble
 #' @name .sits_from_wtss
 #'
@@ -85,9 +170,9 @@
         ts.lst[[1]] <- ts.tb
 
         # create a tibble to store the WTSS data
-        data.tb <- .sits_tibble()
+        data <- .sits_tibble()
         # add one row to the tibble
-        data.tb <- tibble::add_row(data.tb,
+        data <-    tibble::add_row(data,
                                    longitude,
                                    latitude,
                                    start_date  = start_date,
@@ -97,7 +182,7 @@
                                    time_series = ts.lst)
 
         # return the tibble with the time series
-        return(data.tb)
+        return(data)
 
     }, error = function(e){
         msg <- paste0("WTSS - unable to retrieve point (", longitude, ", ", latitude, ", ", start_date," ,", end_date,")")
@@ -105,4 +190,25 @@
         message("WTSS - unable to retrieve point - see log file for details" )
         return(NULL)
     })
+}
+#' @title Check that the URL of WTSS service is working
+#' @name .sits_wtss_check
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param URL        URL of the WTSS service.
+#' @return check     TRUE or FALSE
+.sits_wtss_check <- function(URL) {
+    check <- tryCatch({
+        # tries to connect to the WTSS service
+        wtss.obj   <- wtss::WTSS(URL)
+    }, error = function(e){
+        msg <- paste0("WTSS service not available at URL ", URL)
+        .sits_log_error(msg)
+        message(msg)
+    })
+    # did we get an error?
+    if (!inherits(check, "error"))
+        return(TRUE)
+    else
+        return(FALSE)
 }

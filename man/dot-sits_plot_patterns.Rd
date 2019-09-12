@@ -4,10 +4,10 @@
 \alias{.sits_plot_patterns}
 \title{Plot classification patterns}
 \usage{
-.sits_plot_patterns(data.tb)
+.sits_plot_patterns(data)
 }
 \arguments{
-\item{data.tb}{One or more time series containing patterns (stored in a sits tibble).}
+\item{data}{One or more time series containing patterns (stored in a sits tibble).}
 }
 \description{
 Plots the patterns to be used for classification

@@ -60,21 +60,4 @@
     return(res)
 }
 
-#' @title Tests if an XY position is inside a ST Raster Brick
-#' @name .sits_xy_inside_raster
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function compares an XY position to the extent of a RasterBrick
-#'              described by a raster metadata tibble, and return TRUE if the point is
-#'              inside the extent of the RasterBrick object.
-#'
-#' @param xy         XY extent compatible with the R raster package.
-#' @param raster.tb  Tibble with metadata information about a raster data set.
-#' @return TRUE if XY is inside the raster extent, FALSE otherwise.
-.sits_xy_inside_raster <- function(xy, raster.tb){
-    if(xy[1, "X"] < raster.tb[1, ]$xmin) return(FALSE)
-    if(xy[1, "X"] > raster.tb[1, ]$xmax) return(FALSE)
-    if(xy[1, "Y"] < raster.tb[1, ]$ymin) return(FALSE)
-    if(xy[1, "Y"] > raster.tb[1, ]$ymax) return(FALSE)
-    return(TRUE)
-}
+

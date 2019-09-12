@@ -27,15 +27,15 @@ test_that("Creating clustering using Self-organizing Maps", {
 
     sits_plot_som(som_map)
 
-    cleaned_samples <- sits_clean_samples_som(som_map)
+    cleaned_samples <- sits_som_clean_samples(som_map)
     expect_true("probability" %in% names(cleaned_samples))
 
-    cluster_overall <- sits_evaluate_cluster(som_map)
+    cluster_overall <- sits_som_evaluate_cluster(som_map)
     expect_equal(length(names(cluster_overall$confusion_matrix)), 6)
 
-    sits_plot_som_clusters(cluster_overall, "Confusion by cluster")
+    sits_som_plot_clusters(cluster_overall, "Confusion by cluster")
 
-    subgroups <- sits_evaluate_som_subgroups(som_map)
+    subgroups <- sits_som_evaluate_subgroups(som_map)
     expect_true("samples_subgroups.tb" %in% names(subgroups))
     expect_true("som_properties" %in% names(subgroups))
 

@@ -3,7 +3,7 @@ test_that("Classify a time series with random forest", {
     #skip_on_cran()
     data(samples_mt_ndvi)
     data(point_ndvi)
-    model <- sits_train(samples_mt_ndvi, sits_rfor())
+    model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
 
     expect_type(model, "closure")
 
@@ -16,22 +16,6 @@ test_that("Classify a time series with random forest", {
     expect_true(all(class_ndvi.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_mt_ndvi)$label))
 })
-
-test_that("Classify time series with an svm model",{
-    #skip_on_cran()
-
-    data(point_mt_6bands)
-    data(samples_mt_ndvi)
-
-    model <- sits_train(samples_mt_ndvi, sits_svm())
-
-    class.tb <- sits_select_bands(point_mt_6bands, ndvi) %>%
-        sits_classify(model)
-
-    expect_true(all(class.tb$predicted[[1]]$class %in%
-                                  sits_labels(samples_mt_ndvi)$label))
-})
-
 test_that("Classify time series with TWDTW method", {
     #skip_on_cran()
     patterns.tb <- sits_patterns(samples_mt_ndvi)

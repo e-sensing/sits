@@ -4,11 +4,11 @@
 \alias{sits_classify}
 \title{Classify a set of time series or a data cube using machine learning models}
 \usage{
-sits_classify(data.tb = NULL, ml_model = NULL, interval = "12 month",
+sits_classify(data = NULL, ml_model = NULL, interval = "12 month",
   filter = NULL, multicores = 2, memsize = 4, output_dir = "./")
 }
 \arguments{
-\item{data.tb}{Tibble with time series metadata and data.}
+\item{data}{Tibble with time series metadata and data.}
 
 \item{ml_model}{Pre-built machine learning model (see \code{\link[sits]{sits_train}}).}
 
@@ -34,13 +34,21 @@ labelled samples. Each samples should be associated to one spatial location
 
 After defining the training samples, the users need to provide a machine learning model.
 Currenly, sits supports the following models:
-'svm' (see \code{\link[sits]{sits_svm}}), 'random forest' (see \code{\link[sits]{sits_rfor}}),
-'lda' (see \code{\link[sits]{sits_lda}}),
-'qda' (see \code{\link[sits]{sits_qda}}), multinomial logit' (see \code{\link[sits]{sits_mlr}}),
-'lasso' (see \code{\link[sits]{sits_mlr}}), and 'ridge' (see \code{\link[sits]{sits_mlr}}).
+'svm' (see \code{\link[sits]{sits_svm}}),
+random forests (see \code{\link[sits]{sits_rfor}}),
+linear discriminant analysis (see \code{\link[sits]{sits_lda}}),
+quadratic discriminant analysis (see \code{\link[sits]{sits_qda}}),
+multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
+'lasso' (see \code{\link[sits]{sits_mlr}}) and
+'ridge' (see \code{\link[sits]{sits_mlr}}),
+extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
+and different deep learning functions, including multi-layer perceptrons
+(see \code{\link[sits]{sits_deeplearning}}, 1D convolutional neural networks
+\code{\link[sits]{sits_CNN}}, mixed 1D and MLP networks \code{\link[sits]{sits_tempCNN}}
+and a 1D version of ResNet \code{\link[sits]{sits_ResNet}}).
 
-The model should be precomputed by the user. This model should be
-passed to the function using the parameter "ml_model".
+The model should be precomputed by the user using the function \code{\link[sits]{sits_train}}
+and then passed to the "sits_classify" function using the parameter "ml_model".
 }
 \examples{
 \donttest{

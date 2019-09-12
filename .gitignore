@@ -16,3 +16,7 @@ tests/testthat/Rplots.pdf
 vignettes/sits.R
 README_cache/*
 README_files/*
+doc
+Meta
+*.bkp
+travis/*

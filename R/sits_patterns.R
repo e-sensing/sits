@@ -20,7 +20,7 @@
 #' IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  data.tb       A tibble in sits format with time series.
+#' @param  data          A tibble in sits format with time series.
 #' @param  freq          Interval in days for the estimates to be generated.
 #' @param  formula       Formula to be applied in the estimate.
 #' @param  ...           Any additional parameters.
@@ -31,22 +31,22 @@
 #' # Read a set of samples for two classes
 #' data(cerrado_2classes)
 #' # Estimate a set of patterns (one for each label)
-#' patterns.tb <- sits_patterns(cerrado_2classes)
+#' patterns <- sits_patterns(cerrado_2classes)
 #' # Show the patterns
-#' sits_plot(patterns.tb)
+#' sits_plot(patterns)
 #'
 #' # Read a set of samples for the state of Mato Grosso, Brazil, provided by EMBRAPA
 #' data(samples_mt_6bands)
 #' # Estimate a set of patterns (one for each label)
-#' patterns.tb <- sits_patterns(samples_mt_6bands)
+#' patterns <- sits_patterns(samples_mt_6bands)
 #' # Show the patterns
-#' sits_plot(patterns.tb)
+#' sits_plot(patterns)
 #' }
 #' @export
-sits_patterns <- function(data.tb = NULL, freq = 8, formula = y ~ s(x), ...){
+sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
     # backward compatibility
-    if ("coverage" %in% names(data.tb))
-        data.tb <- .sits_tibble_rename(data.tb)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
     # function that is used to be called as a value from another function
     result_fun <- function(tb){
         # does the input data exist?
@@ -56,14 +56,14 @@ sits_patterns <- function(data.tb = NULL, freq = 8, formula = y ~ s(x), ...){
         bds <- sits_bands(tb)
 
         # create a tibble to store the results
-        patterns.tb <- .sits_tibble()
+        patterns <- .sits_tibble()
 
         # what are the variables in the formula?
         vars <- all.vars(formula)
 
         # align all samples to the same time series intervals
         sample_dates <- lubridate::as_date(sits_time_series_dates(tb))
-        tb           <- sits_align(tb, sample_dates)
+        tb           <- sits_align_dates(tb, sample_dates)
 
         # extract the start and and dates
         start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
@@ -142,9 +142,9 @@ sits_patterns <- function(data.tb = NULL, freq = 8, formula = y ~ s(x), ...){
                 return(row)
             })
 
-        patterns.tb <- dplyr::bind_rows(patterns.lst)
-        return(patterns.tb)
+        patterns <- dplyr::bind_rows(patterns.lst)
+        return(patterns)
     }
 
-    result <- .sits_factory_function(data.tb, result_fun)
+    result <- .sits_factory_function(data, result_fun)
 }

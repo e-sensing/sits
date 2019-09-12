@@ -4,10 +4,10 @@
 \alias{sits_ndwi}
 \title{Builds normalized difference water index}
 \usage{
-sits_ndwi(data.tb)
+sits_ndwi(data)
 }
 \arguments{
-\item{data.tb}{A valid sits tibble.}
+\item{data}{A valid sits tibble.}
 }
 \value{
 A sits tibble with the SAVI index.

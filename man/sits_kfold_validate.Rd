@@ -4,11 +4,11 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate temporal patterns}
 \usage{
-sits_kfold_validate(data.tb, folds = 5, ml_method = sits_rfor(),
+sits_kfold_validate(data, folds = 5, ml_method = sits_rfor(),
   multicores = 2)
 }
 \arguments{
-\item{data.tb}{A sits tibble.}
+\item{data}{A sits tibble.}
 
 \item{folds}{Number of partitions to create.}
 

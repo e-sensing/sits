@@ -108,12 +108,12 @@ sits_get_data <- function(cube,
                          .n_max      = Inf,
                          .n_save     = 0) {
     # Ensure that the service is available
-    .sits_check_service(cube[1,]$service)
+    .sits_config_check(cube[1,]$service)
 
     # get data based on latitude and longitude
     if (purrr::is_null(file) &&
         !purrr::is_null(latitude) && !purrr::is_null(longitude)) {
-        data.tb <- .sits_from_service(cube = cube,
+        data    <- .sits_from_service(cube = cube,
                                       longitude = longitude,
                                       latitude = latitude,
                                       start_date = start_date,
@@ -121,107 +121,22 @@ sits_get_data <- function(cube,
                                       bands = bands,
                                       prefilter = prefilter,
                                       label = label)
-        return(data.tb)
+        return(data)
     }
     # get data based on CSV file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "csv") {
-        data.tb <- .sits_from_csv(file, cube, bands, prefilter, .n_start, .n_max, .n_save)
-        return(data.tb)
+        data  <- .sits_from_csv(file, cube, bands, prefilter, .n_start, .n_max, .n_save)
+        return(data)
     }
     # get data based on SHP file
     if (!purrr::is_null(file) && tolower(tools::file_ext(file)) == "shp") {
-        data.tb <- .sits_from_shp(file, cube, start_date, end_date, bands, prefilter, label, epsg)
-        return(data.tb)
+        data  <- .sits_from_shp(file, cube, start_date, end_date, bands, prefilter, label, epsg)
+        return(data)
     }
     message(paste("No valid input to retrieve time series data!!", "\n", sep = ""))
     stop()
 }
 
-
-
-#' @title Obtain timeSeries from a data cube, based on a CSV file.
-#' @name .sits_from_csv
-#'
-#' @description reads descriptive information about a set of
-#' spatio-temporal locations from a CSV file. Then, it retrieve the time series from a data cube,
-#' and stores the time series on a sits tibble for later use.
-#' The CSV file should have the following column names:
-#' "longitude", "latitude", "start_date", "end_date", "label"
-#'
-#' @param csv_file        Name of a CSV file with information <id, latitude, longitude, from, end, label>.
-#' @param cube            A tibble with metadata about the data cube which contains data to be retrieved.
-#' @param bands           A string vector with the names of the bands to be retrieved.
-#' @param prefilter       String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
-#' @param .n_start        Row on the CSV file to start reading (optional).
-#' @param .n_max          Maximum number of samples to be read.
-#' @param .n_save         Number of samples to save as intermediate files (used for long reads).
-#' @return A sits tibble.
-.sits_from_csv <-  function(csv_file, cube, bands, prefilter, .n_start, .n_max, .n_save) {
-    # configure the format of the CSV file to be read
-    cols_csv <- readr::cols(id          = readr::col_integer(),
-                            longitude   = readr::col_double(),
-                            latitude    = readr::col_double(),
-                            start_date  = readr::col_date(),
-                            end_date    = readr::col_date(),
-                            label       = readr::col_character())
-    # read sample information from CSV file and put it in a tibble
-    csv.tb <- readr::read_csv(csv_file, n_max = Inf, col_types = cols_csv)
-
-    # select a subset
-    if (.n_max == Inf)
-        .n_max = NROW(csv.tb)
-    csv.tb <- csv.tb[.n_start:.n_max, ]
-
-    # find how many samples are to be read
-    n_rows_csv <- NROW(csv.tb)
-    # create a variable to store the number of rows
-    nrow <- 0
-    # create the tibble
-    data.tb <- .sits_tibble()
-    # create a file to store the unread rows
-    csv_unread.tb <- .sits_tibble_csv()
-    # for each row of the input, retrieve the time series
-    purrr::pmap(list(csv.tb$longitude, csv.tb$latitude, csv.tb$start_date,
-                csv.tb$end_date, csv.tb$label),
-                function(longitude, latitude, start_date, end_date, label){
-                    row <- .sits_from_service(cube, longitude, latitude,
-                                              lubridate::as_date(start_date),
-                                              lubridate::as_date(end_date),
-                                              bands, prefilter, label)
-                    # did we get the data?
-                    if (!purrr::is_null(row)) {
-                        nrow <<-  nrow + 1
-
-                        # add the new point to the sits tibble
-                        data.tb <<- dplyr::bind_rows(data.tb, row)
-
-                        # optional - save the results to an intermediate file
-                        if (.n_save != 0 && !(nrow %% .n_save)) {
-                            .sits_log_data(data.tb)
-                        }
-                    }
-                    # the point could not be read - save it in the log file
-                    else {
-                        csv_unread_row.tb <- tibble::tibble(
-                            longitude  = longitude,
-                            latitude   = latitude,
-                            start_date = lubridate::as_date(start_date),
-                            end_date   = lubridate::as_date(end_date),
-                            label      = label
-                        )
-                        csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
-                    }
-                })
-
-
-    # Have all input rows being read?
-    if (nrow != n_rows_csv) {
-        message("Some points could not be retrieved - see log file and csv_unread_file")
-        .sits_log_csv(csv_unread.tb, "unread_samples.csv")
-    }
-
-    return(data.tb)
-}
 
 #' @title Extract a time series from a ST raster data set
 #' @name .sits_from_raster
@@ -303,9 +218,9 @@ sits_get_data <- function(cube,
     ts.lst[[1]] <- ts.tb
 
     # create a tibble to store the WTSS data
-    data.tb <- .sits_tibble()
+    data <- .sits_tibble()
     # add one row to the tibble
-    data.tb <- tibble::add_row(data.tb,
+    data  <- tibble::add_row(data,
                                longitude    = longitude,
                                latitude     = latitude,
                                start_date   = as.Date(timeline[1]),
@@ -314,7 +229,7 @@ sits_get_data <- function(cube,
                                cube         = cube$name,
                                time_series  = ts.lst
     )
-    return(data.tb)
+    return(data)
 }
 #' @title Obtain timeSeries from a web service associated to data cubes
 #' @name .sits_from_service
@@ -343,85 +258,23 @@ sits_get_data <- function(cube,
     service <- .sits_cube_service(cube)
 
     if (service == "EOCUBES") {
-        data.tb <- .sits_from_EOCubes(cube, longitude, latitude, start_date, end_date, bands, label)
-        return(data.tb)
+        data  <- .sits_from_EOCubes(cube, longitude, latitude, start_date, end_date, bands, label)
+        return(data)
     }
     if (service == "WTSS") {
-        data.tb <- .sits_from_wtss(cube, longitude, latitude, start_date, end_date, bands, label)
-        return(data.tb)
+        data <- .sits_from_wtss(cube, longitude, latitude, start_date, end_date, bands, label)
+        return(data)
     }
     if (service == "SATVEG") {
-        data.tb <- .sits_from_satveg(cube, longitude, latitude, start_date, end_date, bands, prefilter, label)
+        data <- .sits_from_satveg(cube, longitude, latitude, start_date, end_date, bands, prefilter, label)
 
-        return(data.tb)
+        return(data)
     }
-    if (service == "RASTER" || service == "LOCALHOST" || service == "STACK" || service == "AWS") {
-        data.tb <- .sits_from_raster(cube, longitude, latitude, start_date, end_date, bands, label)
+    if (service == "BRICK" || service == "STACK" || service == "AWS") {
+        data <- .sits_from_raster(cube, longitude, latitude, start_date, end_date, bands, label)
 
-        return(data.tb)
+        return(data)
     }
     return(NULL)
 }
-#' @title Obtain timeSeries from WTSS server, based on a SHP file.
-#' @name .sits_from_shp
-#'
-#' @description reads a shapefile and retrieves a sits tibble
-#' containing time series from a data cube that are inside the SHP file.
-#' The script uses the WTSS service, taking information about spatial and
-#' temporal resolution from the WTSS configuration.
-#'
-#' @param shp_file        Name of a SHP file which provides the boundaries of a region of interest.
-#' @param cube            Data cube metadata.
-#' @param start_date      The start date of the period.
-#' @param end_date        The end date of the period.
-#' @param bands           A string vector with the names of the bands to be retrieved.
-#' @param prefilter       A string related to data correction ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
-#' @param label           A string with the label to attach to the time series.
-#' @param epsg             An optional code for the planar projection to be used if the shapefile is in WGS84 (for reading data inside shapefiles)
-#' @return A sits tibble.
-.sits_from_shp <- function(shp_file, cube, start_date, end_date, bands,
-                          prefilter, label, epsg) {
-    # test parameters
-    ensurer::ensure_that(shp_file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
-                         err_desc = "sits_from_shp: please provide a valid SHP file")
-    # Ensure that the service is available
-    .sits_check_service(cube$service)
 
-    # read the shapefile
-    sf_shape <- sf::read_sf(shp_file)
-    # find out what is the projection of the shape file
-    epsg_shp <- sf::st_crs(sf_shape)$epsg
-    # if the shapefile is not in planar coordinates, convert it
-    if (epsg_shp == 4326) {
-        sf_shape <- sf::st_transform(sf_shape, crs = epsg)
-    }
-    else # if shapefile not in lat/long, use the shapefile EPSG
-        epsg <- epsg_shp
-    # get the bounding box
-    bbox <- sf::st_bbox(sf_shape)
-    # create an empty sits tibble
-    shape.tb <- .sits_tibble()
-
-    # If the resolution of the cube is expressed in latlong, convert it to planar coordinates
-    res <- .sits_convert_resolution(cube)
-
-    # setup the sequence of latitudes and longitudes to be searched
-    xs <- seq(from = bbox["xmin"], to = bbox["xmax"], by = res["xres"])
-    ys  <- seq(from = bbox["ymin"], to = bbox["ymax"], by = res["yres"])
-
-    xys <- tidyr::crossing(xs, ys)
-    names(xys) <- c("x", "y")
-    rows.lst <-
-        xys %>%
-            purrr::pmap(function (x, y) {
-                xy <- sf::st_point(c(x,y))
-                if (1 %in% as.logical(unlist(sf::st_contains(sf_shape, xy)))) {
-                        ll <- .sits_proj_to_latlong(x, y, epsg)
-                        row <- .sits_from_service(cube, ll[,"X"], ll[,"Y"], start_date, end_date,
-                                bands, prefilter, label)
-                        return(row)
-                }
-            })
-    shape.tb <- dplyr::bind_rows(rows.lst)
-    return(shape.tb)
-}

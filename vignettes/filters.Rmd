@@ -38,10 +38,6 @@ vignette: |
 library(sits)
 ```
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 # Filtering techniques in SITS
 
 Satellite image time series generally is contaminated by atmospheric influence, geolocation error, and directional effects [@Lambin2006]. Atmospheric noise, sun angle, interferences on observations or different equipment specifications, as well as the very nature of the climate-land dynamics can be sources of variability [@Atkinson2012]. Inter-annual climate variability also changes the phenological cycles of the vegetation, resulting in time series whose periods and intensities do not match on an year to year basis. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with  *noisy* and *non-homogeneous* data sets. In this vignette, we discuss filtering techniques to improve time series data that present missing values or noise.
@@ -51,6 +47,17 @@ The literature on satellite image time series have several applications of filte
 Various somewhat conflicting results have been expressed in relation to the time series filtering techniques for phenology applications. For example, in an investigation of phenological parameter estimation, @Atkinson2012 found that the Whittaker and Fourier transform approaches were preferable to the double logistic and asymmetric Gaussian models. They applied the filters to preprocess MERIS NDVI time series for estimating phenological parameters in India. Comparing the same filters as in the previous work, @Shao2016 found that only Fourier transform and Whittaker techniques improved interclass separability for crop classes and significantly improved overall classification accuracy. The authors used MODIS NDVI time series from the Great Lakes region in North America. @Zhou2016 found that asymmetric Gaussian model outperforms other filters over high latitude boreal biomes, while the Savitzky-Golay model gives the best reconstruction performance in tropical evergreen broadleaf forests. In the remaining biomes, Whittaker gives superior results. The authors compare all previous mentioned filters plus Savitzky-Golay method for noise removal in MODIS NDVI data from sites spread worldwide in different climatological conditions. Many other techniques can be found in applications of satellite image time series such as curve fitting [@Bradley2007], wavelet decomposition [@Sakamoto2005], mean-value iteration, ARMD3-ARMA5, and 4253H [@Hird2009]. Therefore, any comparative analysis of smoothing algorithms depends on the adopted performance measurement.
 
 One of the main uses of time series filtering is to reduce the noise and miss data produced by clouds in tropical areas. The following examples use data produced by the PRODES project [@INPE2017], which detects deforestation in the Brazilian Amazon rain forest through visual interpretation. This data set is called `prodes_226_04` and is provided together with the `sits` package. It has  $617$ samples from a region corresponding to the standard Landsat Path/Row 226/064. This is an area in the East of the Brazilian Pará state. It was chosen because of its huge cloud cover from November to March, which is a significant factor in degrading time series quality. Its NDVI and EVI time series were extracted from a combination of MOD13Q1 and Landsat8 images (to best visualize the effects of each filter, we selected only NDVI time series).
+
+# Common interface to SITS filter functions 
+
+The SITS package uses a common interface to all filter functions with the `sits_filter`. The function has two parameters: `data` for the dataset to be filtered and `filter` for the filter to be applied. To aid on data visualisation, all bands which are filtered have a suffix which is appended, as shown in the examples below. The following filters are available and described in what follows:
+
+* Savitzky–Golay filter (`sits_sgolay`)
+* Whittaker filter (`sits_whittaker`)
+* Envelope filter (`sits_envelope`)
+* ARIMA filter for cloud removal in NDVI band (`sits_ndvi_arima_filter`)
+* Cloud filter (`sits_cloud_filter`)
+* Kalman filter (`sits_kalman`)
 
 # Savitzky–Golay filter
 
@@ -71,7 +78,7 @@ In general, the Savitzky-Golay filter produces smoother results for a larger val
 # Take NDVI band of the first sample data set
 point.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # apply Savitzky–Golay filter
-point_sg.tb <- sits_sgolay(point.tb)
+point_sg.tb <- sits_filter(point.tb, filter = sits_sgolay())
 # plot the series
 sits_merge(point_sg.tb, point.tb) %>% sits_plot()
 ```
@@ -111,17 +118,16 @@ is the third order difference matrix. The Whitakker filter can be a large but sp
 
 Whittaker smoother has been used only recently in satellite image time series investigations. According to @Atzberger2011, the smoother has an advantage over other filtering techniques such as Fourier and wavelets as it does not assume signal periodicity. Moreover, the authors argue that is enables rapid processing of large amounts of data, and handles incomplete time series with missing values. 
 
-In the `sits` package, the Whittaker smoother has two parameters: `lambda` controls the degree of smoothing and `differences` the order of the finite difference penalty. The default values are `lambda = 1` and `differences = 3`. Users should be aware that increasing `lambda` results in much smoother data. When dealing with land use/land cover classes that include both natural vegetation and agriculture, a strong smoothing can reduce the amount of noise in natural vegetation (e.g., forest) time series; however, higher values of `lambda` reduce the information present in agricultural time series, since they reduce the peak values of crop plantations.
+In the `sits` package, the Whittaker smoother has two parameters: `lambda` controls the degree of smoothing and `differences` the order of the finite difference penalty. The default values are `lambda = 1` and `differences = 3`. Users should be aware that increasing `lambda` results in much smoother data. When dealing with land use/land cover classes that include both natural vegetation and agriculture, a strong smoothing can reduce the amount of noise in natural vegetation (e.g., forest) time series; however, higher values of `lambda` reduce the information present in agricultural time series, since they reduce the peak values of crop plantations. 
 
-The fact that it has only one parameter ($\lambda{}$) facilitates its calibration/comparison process. @Zhou2016 found that $\lambda=15$ gives the best result when compared with $\lambda=2$. Larger values of $\lambda{}$ produces smoother results.
-
-```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=1$ parameter."}
-# Take EVI band of the first sample data set
-point.tb <- sits_select_bands(prodes_226_064[1,], evi)
-# apply Whitaker filter
-point_whit.tb <- sits_whittaker(point.tb)
-# plot the series
-sits_merge(point_whit.tb, point.tb) %>% sits_plot()
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker smoother filter applied on 16-year NDVI time series"}
+# apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
+# merge with the original data
+# plot the original and the modified series
+point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 3))
+point_whit %>% 
+  sits_merge(point_ndvi) %>% 
+  sits_plot()
 ```
 
 # Envelope filter
@@ -146,14 +152,9 @@ In the following example we can see an application of `sits_envelope()` function
 # Take the NDVI band of the first sample data set
 point.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # apply envelope filter (remove downward and upward noises)
-point_env1.tb <- 
-    sits_envelope(point.tb,
-                  "ULLULUUL",
-                  bands_suffix = "OF")
-point_env2.tb <- 
-    sits_envelope(point.tb,
-                  "LUULULLU",
-                  bands_suffix = "CF")
+point_env1.tb <- sits_filter(point.tb, sits_envelope(operations = "ULLULUUL", bands_suffix = "OF"))
+point_env2.tb <- sits_filter(point.tb, sits_envelope(operations = "LUULULLU", bands_suffix = "CF"))
+                             
 # plot the series
 sits_merge(point_env1.tb, point_env2.tb) %>%
     sits_merge(point.tb) %>%
@@ -166,13 +167,13 @@ The cloud filter makes use of the well known autoregressive integrated moving av
 
 The parameters of the ARIMA model can be set by the user. Please see `arima` for the detailed description of parameters $p$, $d$, and $q$.
 
-```{r, fig.align="center", fig.height=3.1, fig.width=5}
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="ARIMA cloud filter applied on one-year NDVI time series"}
 # Take the NDVI band of the first sample data set
-point.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
+point <- sits_select_bands(prodes_226_064[1,], ndvi)
 # apply ARIMA filter
-point_cf.tb <- sits_ndvi_arima_filter(point.tb, apply_whit = FALSE)
+point_cf <- sits_filter(point, sits_ndvi_arima())
 # plot the series
-sits_merge(point_cf.tb, point.tb) %>% sits_plot()
+sits_merge(point_cf, point) %>% sits_plot()
 ```
 
 

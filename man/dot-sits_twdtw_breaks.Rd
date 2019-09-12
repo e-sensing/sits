@@ -4,13 +4,13 @@
 \alias{.sits_twdtw_breaks}
 \title{Classify a sits tibble using the matches found by the TWDTW methods}
 \usage{
-.sits_twdtw_breaks(matches, data.tb, start_date = NULL,
-  end_date = NULL, interval = "12 month", overlap = 0.5)
+.sits_twdtw_breaks(matches, data, start_date = NULL, end_date = NULL,
+  interval = "12 month", overlap = 0.5)
 }
 \arguments{
 \item{matches}{A dtwSat S4 object with the matches that have been produced by the sits_TWTDW_matches function.}
 
-\item{data.tb}{A sits tibble used as input for the TWDTW matching function.}
+\item{data}{A sits tibble used as input for the TWDTW matching function.}
 
 \item{start_date}{The start date of the classification period.}
 
