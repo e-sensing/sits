@@ -50,5 +50,6 @@ addons:
       - libudunits2-dev
       - libnetcdf-dev
       - netcdf-bin
+      - maven
 
 install: travis_wait 10 mvn install
