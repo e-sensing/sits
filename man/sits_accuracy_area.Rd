@@ -23,6 +23,36 @@ This function performs an accuracy assessment of the classified, including
 Overall Accuracy, User's Accuracy, Produce's Accuracy and error matrix (confusion matrix)
 according to [1-2].
 }
+\examples{
+\donttest{
+# Install the inSitu library
+# devtools::install_github("e-sensing/inSitu")
+library(inSitu)
+library(magrittr)
+set.seed(42)
+
+# Load some sample data.
+data(samples_mt_6bands)
+
+# Fit a randon forest model to the samples.
+rfor_model <- inSitu::br_mt_1_8K_9classes_6bands \%>\%
+    sits_select_bands(ndvi, evi) \%>\%
+    sits_train(ml_method = sits_rfor())
+
+# Classify 10 samples of each label.
+class.tb <- samples_mt_6bands \%>\% 
+     sits_sample(n = 10) \%>\%
+     sits_select_bands(ndvi, evi) \%>\%
+     sits_classify(rfor_model)
+
+# Simalate the area of each label in a reference map.
+area <- sample(1:100 * 10^3, size = length(area_names))
+names(area) <- unique(class.tb$label)
+
+# Compute the accuracy.
+sits_accuracy_area(class.tb, area)
+}
+}
 \references{
 [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).
 Making better use of accuracy data in land change studies: Estimating

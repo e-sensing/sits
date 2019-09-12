@@ -104,6 +104,36 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
 #' @param class.tb A sits tibble with a set of lat/long/time locations with known and trusted labels and
 #' with the result of classification method.
 #' @param area A list with the area of each label.
+#'
+#' @examples
+#' \donttest{
+#' # Install the inSitu library
+#' # devtools::install_github("e-sensing/inSitu")
+#' library(inSitu)
+#' library(magrittr)
+#' set.seed(42)
+#'
+#' # Load some sample data.
+#' data(samples_mt_6bands)
+#'
+#' # Fit a randon forest model to the samples.
+#' rfor_model <- inSitu::br_mt_1_8K_9classes_6bands %>%
+#'     sits_select_bands(ndvi, evi) %>%
+#'     sits_train(ml_method = sits_rfor())
+#'
+#' # Classify 10 samples of each label.
+#' class.tb <- samples_mt_6bands %>% 
+#'      sits_sample(n = 10) %>%
+#'      sits_select_bands(ndvi, evi) %>%
+#'      sits_classify(rfor_model)
+#' 
+#' # Simalate the area of each label in a reference map.
+#' area <- sample(1:100 * 10^3, size = length(area_names))
+#' names(area) <- unique(class.tb$label)
+#' 
+#' # Compute the accuracy.
+#' sits_accuracy_area(class.tb, area)
+#' }
 #' @export
 sits_accuracy_area <- function(class.tb, area = NULL){
 
