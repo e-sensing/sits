@@ -58,10 +58,10 @@ library(inSitu)
 
 #select the data for classification
 mato_grosso_samples <- inSitu::br_mt_1_8K_9classes_6bands
-mato_grosso_4bands  <- sits_select_bands(mato_grosso_samples, ndvi, evi, nir, mir)
+mato_grosso_2bands  <- sits_select_bands(mato_grosso_samples, ndvi, evi)
 
 # get a point to be classified
-point_mt_4bands <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
 ```
 
 # Visualizing Samples 
@@ -70,7 +70,7 @@ One useful way of describing and understanding the samples is by plotting them. 
 
 ```{r, include = FALSE}
 # Select a subset of the samples to be plotted
-mato_grosso_4bands %>% 
+mato_grosso_2bands %>% 
     sits_select_bands(ndvi) %>% 
     dplyr::filter(label %in% c("Forest", "Cerrado", "Pasture")) %>% 
     sits_plot()
@@ -84,7 +84,7 @@ $$
 The function `sits_patterns` uses a GAM to predict a smooth, idealized approximation to the time series associated to the each label, for all bands. This function is based on the R package `dtwSat`[@Maus2019], which implements the TWDTW time series matching method described in @Maus2016. The resulting patterns can be viewed using `sits_plot`. 
 ```{r, include = FALSE}
 # Select a subset of the samples to be plotted
-mato_grosso_4bands %>% 
+mato_grosso_2bands %>% 
     sits_patterns() %>% 
     sits_plot()
 ```
@@ -94,19 +94,7 @@ The resulting plots provide some insights over the time series behaviour of each
 
 The SITS package provides a common interface to all machine learning models, using the `sits_train` function. this function takes two parameters: the input data samples and the ML method (`ml_method`), as shown below. After the model is estimated, it can be used to classify individual time series or full data cubes using the `sits_classify` function. In the examples that follow, we show how to apply each method for the classification of a single time series. Then, we disscuss how to classify full data cubes. 
 
-When a dataset of time series organised as a SITS tibble is taken as input to the classifier,  the result is the same tibble with one additional column ("predicted"), which contains the information on what labels are have been assigned for each interval. The following example illustrate how to train a dataset and classify an individual time series. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, a random forest classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `sits_plot`.  
-
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="SVM classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
-# Train a machine learning model for the mato grosso dataset using SVM
-# The parameters are those of the "e1071:svm" method
-model <- sits_train(data = mato_grosso_4bands, ml_method = sits_rfor())
-# Classify using random forest model and plot the result
-class.tb <- sits_classify(point_mt_4bands, model)
-# show the results of the prediction
-sits_show_prediction(class.tb)
-# plot the results of the prediction
-sits_plot(class.tb)
-```
+When a dataset of time series organised as a SITS tibble is taken as input to the classifier,  the result is the same tibble with one additional column ("predicted"), which contains the information on what labels are have been assigned for each interval. The following examples illustrate how to train a dataset and classify an individual time series using the different machine learning techniques. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, a random forest classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `sits_plot`.  
 
 # Support Vector Machines
 
@@ -119,9 +107,9 @@ In `sits`, SVM is implemented as a wrapper of `e1071` R package that uses the `L
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="SVM classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
 # Train a machine learning model for the mato grosso dataset using SVM
 # The parameters are those of the "e1071:svm" method
-svm_model <- sits_train(mato_grosso_4bands, ml_method = sits_svm(kernel = "radial", cost = 100))
+svm_model <- sits_train(mato_grosso_2bands, ml_method = sits_svm(kernel = "radial", cost = 100))
 # Classify using SVM model and plot the result
-class.tb <- point_mt_4bands %>% 
+class.tb <- point_mt_2bands %>% 
     sits_whittaker(lambda = 0.25, bands_suffix = "") %>% 
     sits_classify(svm_model) %>% 
     sits_plot()
@@ -145,9 +133,9 @@ One of the advantages of the random forest model is that the classification perf
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
 # Mato Grosso region for train the Random Forest model.
-rfor_model <- sits_train(mato_grosso_4bands, sits_rfor(num_trees = 500))
+rfor_model <- sits_train(mato_grosso_2bands, sits_rfor(num_trees = 500))
 # Classify using Random Forest model and plot the result
-class.tb <- point_mt_4bands %>% 
+class.tb <- point_mt_2bands %>% 
     sits_whittaker(lambda = 0.2, bands_suffix = "") %>% 
     sits_classify(rfor_model) %>% 
     sits_plot()
@@ -166,14 +154,14 @@ In SITS, the XGBoost method is implemented by the `sits_xbgoost()` function, whi
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="XGBoost classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
 # Train a machine learning model for the mato grosso dataset using SVM
 # The parameters are those of the "xgboost" package
-xgb_model <- sits_train(mato_grosso_4bands, sits_xgboost(eta = 0.3, 
+xgb_model <- sits_train(mato_grosso_2bands, sits_xgboost(eta = 0.3, 
                                                          gamma = 0.01,
                                                          max_depth = 6,
                                                          subsample = 0.9,
                                                          nrounds = 100,
                                                          verbose = FALSE))
 # Classify and plot the result
-class.tb <- point_mt_4bands %>% 
+class.tb <- point_mt_2bands %>% 
     sits_whittaker(lambda = 0.2, bands_suffix = "") %>% 
     sits_classify(xgb_model) %>% 
     sits_plot()
@@ -191,22 +179,27 @@ The dropout rates have a huge impact on the performance of deep learning classif
 
 In the following example, we classify the same data set using a simple example of the `deep learning` method, for fast processing: (a) Two layers with 512 neurons each; (b) Using the 'elu' activation function and 'optimizer_adam'; (c) dropout rates of 40% and 30% for the layers. 
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Multi-layer perceptron classification of a $16$ year time series."}
+
+
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Training history for multi-layer percepton model."}
 # train a machine learning model for the Mato Grosso data using an MLP
-mlp_model <- sits_train(mato_grosso_4bands, 
+mlp_model <- sits_train(mato_grosso_2bands, 
                        sits_deeplearning(
                          units            = c(512, 512, 512),
                          activation       = "elu",
                          dropout_rates    = c(0.50, 0.40, 0.30),
                          optimizer        = keras::optimizer_adam(lr = 0.001),
-                         epochs           = 150,
+                         epochs           = 75,
                          batch_size       = 128,
                          validation_split = 0.2) )
 
 # show training evolution
 plot(environment(mlp_model)$history)
+```
+
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Multi-layer perceptron classification of a $16$ year time series."}
 # classify and plot 
-class.tb <- point_mt_4bands %>% 
+class.tb <- point_mt_2bands %>% 
     sits_whittaker(lambda = 0.2, bands_suffix = "") %>% 
     sits_classify(mlp_model) %>% 
     sits_plot()
@@ -221,14 +214,9 @@ units in particular has significant advantages to multi-layer perceptrons for sa
 * At each point in time, classification decisions are based on relevant information from the entirety of all previous observations, extracted and stored in a globally optimal manner.
 * The classification process itself is robust to highfrequent temporal coverage—e.g., by clouds, snow, etc.—, as long as these perturbations are adequately represented in the corpus of training data.
 
-
-
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Deep learning classification of a $16$ year time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
-# Retrieve the set of samples (provided by EMBRAPA) from the 
-# Mato Grosso region for train the  model.
-data(samples_mt_ndvi)
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Training history for 1D-CNN model"}
 # train a machine learning model using deep learning
-cnn_model <- sits_train(mato_grosso_4bands, 
+cnn_model <- sits_train(mato_grosso_2bands, 
                        sits_CNN(
                          units            = c(32, 32, 32),
                          kernels          = c(11, 7, 3),
@@ -237,16 +225,19 @@ cnn_model <- sits_train(mato_grosso_4bands,
                          dropout_rates    = c(0.50, 0.45, 0.40),
                          batch_normalization = FALSE,
                          optimizer        = keras::optimizer_adam(lr = 0.001),
-                         epochs           = 150,
+                         epochs           = 75,
                          batch_size       = 128,
                          verbose          = 1,
                          binary_classification = FALSE) )
 
 # show training evolution
 plot(environment(cnn_model)$history)
-# get a point to be classified
+```
+
+
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="1D-CNN classification of a $16$ year time series."}
 # classify and plot 
-class.tb <- point_mt_4bands %>% 
+class.tb <- point_mt_2bands %>% 
     sits_whittaker(lambda = 0.2, bands_suffix = "") %>% 
     sits_classify(cnn_model) %>% 
     sits_plot()
@@ -256,9 +247,9 @@ class.tb <- point_mt_4bands %>%
 # 1D CNN and multi-layer perceptron networks
 
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="TempCNN classification of a $16$ year time series."}
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Training history for the tempCNN model."}
 # train a machine learning model using tempCNN
-tCNN_model <- sits_train(mato_grosso_4bands, 
+tCNN_model <- sits_train(mato_grosso_2bands, 
                        sits_tempCNN(
                           conv_units           = c(64, 64, 64),
                           conv_kernels         = c(7, 7, 7),
@@ -269,7 +260,7 @@ tCNN_model <- sits_train(mato_grosso_4bands,
                           node_activation      = 'elu',
                           node_dropout_rates   = c(0.50, 0.45, 0.40),
                           optimizer            = keras::optimizer_adam(lr = 0.001),
-                          epochs               = 150,
+                          epochs               = 75,
                           batch_size           = 128,
                           validation_split     = 0.2,
                           verbose              = 1,
@@ -277,9 +268,11 @@ tCNN_model <- sits_train(mato_grosso_4bands,
 
 # show training evolution
 plot(environment(tCNN_model)$history)
-# get a point to be classified
+```
+
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="TempCNN classification of a $16$ year time series."}
 # classify and plot 
-class.tb <- point_mt_4bands %>% 
+class.tb <- point_mt_2bands %>% 
     sits_whittaker(lambda = 0.2, bands_suffix = "") %>% 
     sits_classify(tCNN_model) %>% 
     sits_plot()
@@ -287,26 +280,29 @@ class.tb <- point_mt_4bands %>%
 
 # 1D version of ResNet
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Deep learning classification of a $16$ year time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
-# train a machine learning model using tempCNN
-resnet_model <- sits_train(mato_grosso_4bands, 
+
+
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Training history for the ResNet model."}
+# train a machine learning model using ResNet
+resnet_model <- sits_train(mato_grosso_2bands, 
                        sits_ResNet(
                           units                = 16,
                           kernels              = c(11, 7, 3),
                           activation           = 'relu',
                           L2_rate              = 1e-06,
                           optimizer            = keras::optimizer_adam(lr = 0.001),
-                          epochs               = 150,
+                          epochs               = 75,
                           batch_size           = 128,
                           validation_split     = 0.2,
                           verbose              = 1,
                           binary_classification = FALSE) )
-
 # show training evolution
 plot(environment(resnet_model)$history)
-# get a point to be classified
+```
+
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Classification of a $16$ year time series using ResNet model."}
 # classify and plot 
-class.tb <- point_mt_4bands %>% 
+class.tb <- point_mt_2bands %>% 
     sits_whittaker(lambda = 0.2, bands_suffix = "") %>% 
     sits_classify(resnet_model) %>% 
     sits_plot()

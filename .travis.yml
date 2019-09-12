@@ -29,7 +29,7 @@ after_script: R -q -e 'tic::after_script()'
 
 # Header
 language: r
-sudo: false
+sudo: required
 dist: xenial
 cache: packages
 latex: false
@@ -38,6 +38,10 @@ latex: false
 env:
   global:
   - MAKEFLAGS="-j 2"
+
+r_github_packages:
+  - e-sensing/inSitu
+  - e-sensing/EOCUBES
 
 addons:
   apt:
@@ -50,6 +54,8 @@ addons:
       - libudunits2-dev
       - libnetcdf-dev
       - netcdf-bin
-      - maven
 
-install: travis_wait 10 mvn install
+after_install:
+  - R -q -e 'keras::install_keras()'
+  - R -q -e 'covr::codecov(quiet = FALSE)'
+
