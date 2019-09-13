@@ -23,12 +23,19 @@ test_that("Accuracy", {
 
     names(class.tb)
 
-    invisible(capture.output(conf.mx <- sits_conf_matrix(class.tb)))
+    invisible(utils::capture.output(conf.mx <- sits_conf_matrix(class.tb)))
 
     expect_equal(length(names(conf.mx)), 6)
 
-    class.acc <- sits_accuracy_area(class.tb)
+    # Error when the sum of any row in the error matrix is exactly 1.
+    testthat::expect_error(sits_accuracy_area(class.tb))
 
-    expect_equal(class.acc@accuracySummary$conf.int, 0.95)
-    expect_true(class.acc@accuracySummary$OverallAccuracy[[1]] <= 1)
+    # Duplicate the rows to ensure all the rows sum to more than 1.
+    acc_ls <- sits_accuracy_area(rbind(class.tb, class.tb))
+    expect_true(acc_ls$accuracy$overall <= 1)
+    expect_true(all(acc_ls$accuracy$user <= 1))
+    expect_true(all(acc_ls$accuracy$producer <= 1))
+    expect_true(acc_ls$accuracy$overall >= 0)
+    expect_true(all(acc_ls$accuracy$user >= 0))
+    expect_true(all(acc_ls$accuracy$producer >= 0))
 })

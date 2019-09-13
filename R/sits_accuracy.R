@@ -84,12 +84,11 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
 #' both the label assigned by the user and the classification result.
 #' Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
 #' This function uses an area-weighted technique proposed by Olofsson et al. to
-#' produce accuracy estimates that are more reliable.
+#' produce more reliable accuracy estimates at 95% confidence level.
 #'
-#' This function calls \code{\link[dtwSat]{twdtwAssess}} from \pkg{dtwSat}.
-#' \code{\link[dtwSat]{twdtwAssess}} performs an accuracy assessment of the classified, including
-#' Overall Accuracy, User's Accuracy, Produce's Accuracy, error matrix (confusion matrix),
-#' and estimated area according to [1-2].
+#' This function performs an accuracy assessment of the classified, including
+#' Overall Accuracy, User's Accuracy, Produce's Accuracy and error matrix (confusion matrix)
+#' according to [1-2].
 #'
 #' @references
 #' [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).
@@ -105,15 +104,91 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
 #' @param class.tb A sits tibble with a set of lat/long/time locations with known and trusted labels and
 #' with the result of classification method.
 #' @param area A list with the area of each label.
-#' @param conf.int Specifies the confidence level (0-1).
-#' @param rm.nosample If sum of columns and sum of rows of the error matrix are zero
-#' then remove class. Default is TRUE.
+#'
+#' @examples
+#' \donttest{
+#' # Install the inSitu library
+#' # devtools::install_github("e-sensing/inSitu")
+#' library(inSitu)
+#' library(magrittr)
+#' set.seed(42)
+#'
+#' # Load some sample data.
+#' data(samples_mt_6bands)
+#'
+#' # Fit a randon forest model to the samples.
+#' rfor_model <- inSitu::br_mt_1_8K_9classes_6bands %>%
+#'     sits_select_bands(ndvi, evi) %>%
+#'     sits_train(ml_method = sits_rfor())
+#'
+#' # Classify 10 samples of each label.
+#' class.tb <- samples_mt_6bands %>% 
+#'      sits_sample(n = 10) %>%
+#'      sits_select_bands(ndvi, evi) %>%
+#'      sits_classify(rfor_model)
+#' 
+#' # Simalate the area of each label in a reference map.
+#' area <- sample(1:100 * 10^3, size = length(area_names))
+#' names(area) <- unique(class.tb$label)
+#' 
+#' # Compute the accuracy.
+#' sits_accuracy_area(class.tb, area)
+#' }
 #' @export
-sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosample = FALSE){
-    # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+sits_accuracy_area <- function(class.tb, area = NULL){
+
+    # @title Asses accuracy and estimate area according to Olofsson
+    # @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+    # @description Compute the accuracy normalized by the area. Note that, these computations don't work on clustered sampling because the equations are different.
+    #
+    # @param error_matrix A matrix given in sample counts. Columns represent the reference data and rows the results of the classification
+    # @param area         A vector of the total area of each class on the map
+    # @return             A list of lists: The error_matrix, the class_areas, confidence interval (confint95, a list of two numerics) and the accuracy (accuracy, a list of three numerics: overall, user, and producer)
+    .asses_accuracy_area <- function(error_matrix, area){
+
+        if (any(dim(error_matrix) == 0))
+            stop("Invalid dimensions in error matrix.", call. = FALSE)
+        if (length(unique(dim(error_matrix))) != 1)
+            stop("The error matrix is not square.", call. = FALSE)
+        if (!all(colnames(error_matrix) == rownames(error_matrix)))
+            stop("Labels mismatch in error matrix.", call. = FALSE)
+        if (unique(dim(error_matrix)) != length(area))
+            stop("Mismatch between error matrix and area vector.", 
+                 call. = FALSE)
+        if (!all(names(area) %in% colnames(error_matrix)))
+            stop("Label mismatch between error matrix and area vector.", 
+                 call. = FALSE)
+
+        # Re-order vector elements.
+        area <- area[colnames(error_matrix)]
+
+        W <- area/sum(area)
+        n <- rowSums(error_matrix)
+        if (any(n < 2))
+            stop("Undefined accuracy when there is one or fewer pixels in any predicted class (division by zero).", 
+                 call. = FALSE)
+        n.mat <- matrix(rep(n, times = ncol(error_matrix)), 
+                        ncol = ncol(error_matrix))
+        p <- W * error_matrix / n.mat
+        error_adjusted_area_estimate <- colSums(p) * sum(area)
+        Sphat_1 <- vapply(1:ncol(error_matrix), function(i){
+            sqrt(sum(W^2 * error_matrix[, i]/n * (1 - error_matrix[, i]/n)/(n - 1)))
+        }, numeric(1))
+        
+        SAhat <- sum(area) * Sphat_1
+        Ahat_sup <- error_adjusted_area_estimate + 2 * SAhat
+        Ahat_inf <- error_adjusted_area_estimate - 2 * SAhat
+        Ohat <- sum(diag(p))
+        Uhat <- diag(p) / rowSums(p)
+        Phat <- diag(p) / colSums(p)
+        
+        return(
+            list(error_matrix = error_matrix, area = area,
+                 confint95 = list(superior = Ahat_sup, inferior = Ahat_inf),
+                 accuracy = list(overall = Ohat, user = Uhat, producer = Phat))
+        )
     }
+
     # backward compatibility
     if ("coverage" %in% names(class.tb))
         class.tb <- .sits_tibble_rename(class.tb)
@@ -136,17 +211,12 @@ sits_accuracy_area <- function(class.tb, area = NULL, conf.int = 0.95, rm.nosamp
             factor(references, levels = classes, labels = classes)
         )
 
-    # Get area - TO IMPROVE USING THE METADATA FROM SATELLITE PRODUCTS
+    # Get area
     if (purrr::is_null(area))
         area <- rowSums(error_matrix)
 
-    # Compute accuracy metrics using dtwSat::twdtwAssess
-    assessment <- dtwSat::twdtwAssess(
-        error_matrix,
-        area = area,
-        conf.int = conf.int,
-        rm.nosample = rm.nosample
-    )
+    # Compute accuracy metrics
+    assessment <- .asses_accuracy_area(error_matrix, area)
 
     return(assessment)
 }

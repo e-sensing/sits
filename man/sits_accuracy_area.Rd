@@ -4,31 +4,54 @@
 \alias{sits_accuracy_area}
 \title{Area-weighted post-classification accuracy assessment of classified maps}
 \usage{
-sits_accuracy_area(class.tb, area = NULL, conf.int = 0.95,
-  rm.nosample = FALSE)
+sits_accuracy_area(class.tb, area = NULL)
 }
 \arguments{
 \item{class.tb}{A sits tibble with a set of lat/long/time locations with known and trusted labels and
 with the result of classification method.}
 
 \item{area}{A list with the area of each label.}
-
-\item{conf.int}{Specifies the confidence level (0-1).}
-
-\item{rm.nosample}{If sum of columns and sum of rows of the error matrix are zero
-then remove class. Default is TRUE.}
 }
 \description{
 To use this function, the input table should be a set of results containing
 both the label assigned by the user and the classification result.
 Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
 This function uses an area-weighted technique proposed by Olofsson et al. to
-produce accuracy estimates that are more reliable.
+produce more reliable accuracy estimates at 95% confidence level.
 
-This function calls \code{\link[dtwSat]{twdtwAssess}} from \pkg{dtwSat}.
-\code{\link[dtwSat]{twdtwAssess}} performs an accuracy assessment of the classified, including
-Overall Accuracy, User's Accuracy, Produce's Accuracy, error matrix (confusion matrix),
-and estimated area according to [1-2].
+This function performs an accuracy assessment of the classified, including
+Overall Accuracy, User's Accuracy, Produce's Accuracy and error matrix (confusion matrix)
+according to [1-2].
+}
+\examples{
+\donttest{
+# Install the inSitu library
+# devtools::install_github("e-sensing/inSitu")
+library(inSitu)
+library(magrittr)
+set.seed(42)
+
+# Load some sample data.
+data(samples_mt_6bands)
+
+# Fit a randon forest model to the samples.
+rfor_model <- inSitu::br_mt_1_8K_9classes_6bands \%>\%
+    sits_select_bands(ndvi, evi) \%>\%
+    sits_train(ml_method = sits_rfor())
+
+# Classify 10 samples of each label.
+class.tb <- samples_mt_6bands \%>\% 
+     sits_sample(n = 10) \%>\%
+     sits_select_bands(ndvi, evi) \%>\%
+     sits_classify(rfor_model)
+
+# Simalate the area of each label in a reference map.
+area <- sample(1:100 * 10^3, size = length(area_names))
+names(area) <- unique(class.tb$label)
+
+# Compute the accuracy.
+sits_accuracy_area(class.tb, area)
+}
 }
 \references{
 [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).
