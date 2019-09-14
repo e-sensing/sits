@@ -110,7 +110,7 @@ sits_classify <- function(data        = NULL,
     if ("time_series" %in% names(data))
         result <- .sits_classify_ts(data, ml_model, interval, multicores)
     else
-        result <- .sits_classify_cube(data, ml_model, interval, filter, multicores, memsize, output_dir)
+        result <- .sits_classify_cube(data, ml_model, interval, filter, memsize, multicores, output_dir)
 
     return(result)
 }
