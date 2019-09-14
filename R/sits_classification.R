@@ -108,9 +108,11 @@ sits_classify <- function(data        = NULL,
     if (.Platform$OS.type != "unix")
         multicores <-  1
     if ("time_series" %in% names(data))
-        result <- .sits_classify_ts(data, ml_model, interval, multicores)
+        result <- .sits_classify_ts(data = data, ml_model = ml_model, interval = interval, multicores = multicores)
     else
-        result <- .sits_classify_cube(data, ml_model, interval, filter, memsize, multicores, output_dir)
+        result <- .sits_classify_cube(cube = data, ml_model = ml_model, interval = interval,
+                                      filter = filter, memsize = memsize, multicores = multicores,
+                                      output_dir = output_dir)
 
     return(result)
 }
@@ -394,11 +396,13 @@ sits_label_classification <- function(cube,
 #' @param  output_dir      Directory for output file
 #' @return A tibble with the metadata for the vector of probabilities for classified RasterLayers.
 #'
-.sits_classify_cube <- function(cube , ml_model, interval, filter,
+.sits_classify_cube <- function(cube, ml_model, interval, filter,
                                 memsize, multicores, output_dir) {
 
     if (.sits_cube_service(cube) == "EOCUBES") {
-        res <- .sits_classify_eocubes(cube, ml_model, interval, filter, memsize, multicores, output_dir)
+        res <- .sits_classify_eocubes(cube = cube, ml_model = ml_model, interval = interval,
+                                      filter = filter, memsize = memsize, multicores = multicores,
+                                      output_dir = output_dir)
         return(res)
     }
 
