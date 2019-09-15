@@ -138,23 +138,14 @@ Doing post-processing using Bayesian smoothing in SITS is straightforward. The r
 ```{r, include=FALSE}
 library(sits)
 library(dtwclust)
-# Retrieve the data available in the "inSitu" package (used for some examples)
-#select the bands for classification
-if (!requireNamespace("inSitu", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE))
-        install.packages("devtools")
-    devtools::install_github("e-sensing/inSitu")
-}
-library(inSitu)
 ```
 
 
-```{r}
+```{r, eval = FALSE}
 # Retrieve the data for the Mato Grosso state
-samples <- inSitu::br_mt_1_8K_9classes_6bands
 
 # select the bands "ndvi", "evi"
-samples_2bands <- sits_select_bands(samples, ndvi, evi)
+samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 
 #select a xgboost model
 xgb_model <- sits_train(samples_2bands, ml_method = sits_xgboost())
@@ -179,12 +170,15 @@ raster_probs <- sits_classify(raster_cube, ml_model = xgb_model, memsize = 4, mu
 # label the probability (no smoothing applied by default)
 raster_class <- sits_label_classification(raster_probs)
 
-# plot the raster image
-sits_plot_raster(raster_class, time = 1, title = "Sinop-2013-2014")
-
 # smooth the result with a bayesian filter
 raster_class_bayes <- sits_label_classification(raster_probs, smoothing = "bayesian")
 
 # plot the smoothened image
 sits_plot_raster(raster_class_bayes, time = 1, title = "Sinop-smooth")
+```
+
+The result is shown below.
+```{r, fig.align="center", fig.cap="Classified image post-processed with Bayesian smoothing. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
+
+knitr::include_graphics(system.file("extdata/markdown", "sinop_class.png", package = "sits"))
 ```

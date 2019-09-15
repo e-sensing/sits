@@ -109,9 +109,10 @@ SITS provides support for the classification of both individual time series as w
 * Random forests (`sits_rfor`)
 * Extreme gradient boosting (`sits_xgboost`)
 * Deep learning (DL) using multi-layer perceptrons (`sits_deeplearning`)
-* DL with 1D convolutional neural networks (`sits_CNN`), 
-* DL combining 1D CNN and multi-layer perceptron networks (`sits_tempCNN`)
-* DL using 1D version of ResNet (`sits_ResNet`).
+* DL with 1D convolutional neural networks (`sits_FCN`) 
+* DL combining 1D CNN and multi-layer perceptron networks (`sits_TempCNN`)
+* DL using 1D version of ResNet (`sits_ResNet`)
+* DL using a combination of long-short term memory (LSTM) and 1D CNN (`sits_LSTM_FCN`)
 
 
 The following example illustrate how to train a dataset and classify an individual time series. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, an XGBoost classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `sits_plot`.
@@ -171,10 +172,6 @@ For more details, please see the vignette "Machine Learning for Data Cubes using
 |Check |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)|
 |Documentation |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull)|
 | Coverage      | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master) |
-
-<!-- badges: start -->
-  [![Travis build status](https://travis-ci.org/e-sensing/sits.svg?branch=master)](https://travis-ci.org/e-sensing/sits)
-<!-- badges: end -->
 
 [![DOI](https://zenodo.org/badge/98539507.svg)](https://zenodo.org/badge/latestdoi/98539507)
 

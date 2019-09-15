@@ -39,16 +39,10 @@ vignette: |
   %\VignetteIndexEntry{SITS: Data Analysis and Machine Learning using Satellite Image Time Series}
 ---
 ```{r, include = FALSE}
+devtools::load_all(".")
 library(sits)
 library(dtwclust)
-# Retrieve the data available in the "inSitu" package (used for some examples)
-#select the bands for classification
-if (!requireNamespace("inSitu", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE))
-        install.packages("devtools")
-    devtools::install_github("e-sensing/inSitu")
-}
-library(inSitu)
+require(sits)
 ```
 
 # Introduction 
@@ -127,16 +121,14 @@ In the example, neither the satellite nor the sensor are provided; this informat
 
 ```{r}
 # Obtain a raster brick with 23 instances for one year
-# Select the bands "ndvi", "evi" from bricks  available in the "inSitu" package
-evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
-ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
+# Select the band "ndvi", "evi" from bricks  available in the "sits" package
+ndvi_file <- system.file("extdata/raster/mod13q1", "sinop-crop-ndvi.tif", package = "sits")
 
 # Obtain the associated timeline
-time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
-timeline_2013_2014 <- scan(time_file, character())
+timeline <- data("timeline_2000_2017")
 
 # create a raster metadata file based on the information about the files
-raster_cube <- sits_cube(name = "Sinop", timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
+raster_cube <- sits_cube(name = "Sinop", timeline = timeline, bands = c("ndvi"), files = c(ndvi_file))
 
 # get information on the data cube 
 raster_cube %>% dplyr::select(service, URL, satellite, sensor)
@@ -314,7 +306,7 @@ som_cluster.tb <-
         grid_ydim = 10,
         alpha = 1.0,
         distance = "euclidean",
-        iterations = 50,
+        iterations = 20,
         prob_label_change = 0.8, 
         min_cluster_prob = 0.6)
 ```
@@ -331,12 +323,10 @@ The SITS package provides a common interface to all machine learning models, usi
 
 When a dataset of time series organised as a SITS tibble is taken as input to the classifier,  the result is the same tibble with one additional column ("predicted"), which contains the information on what labels are have been assigned for each interval. The following example illustrate how to train a dataset and classify an individual time series. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, a random forest classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `sits_plot`.
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="SVM classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
-
+```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
 
 #select the data for classification
-mato_grosso_samples <- inSitu::br_mt_1_8K_9classes_6bands
-mato_grosso_4bands  <- sits_select_bands(mato_grosso_samples, ndvi, evi, nir, mir)
+mato_grosso_4bands  <- sits_select_bands(samples_mt_6bands, ndvi, evi, nir, mir)
 
 # get a point to be classified
 point_mt_4bands <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
@@ -408,7 +398,7 @@ The first parameter is `memsize`. It controls the size of the main memory (in GB
 
 Based on current experience, the classification of a MODIS tile (4800 x 4800) with four bands and 400 time instances, covering 15 years of data, using SVM with a training data set of about 10,000 samples, takes about 24 hours using 20 cores and a memory size of 60 GB, in a server with 2.4GHz Xeon CPU and 96 GB of memory to produce the yearly classification maps.
 
-```{r, fig.align="center", fig.cap="Image classified with XGBoost. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
+```{r, eval = FALSE}
 # Retrieve the set of samples for the Mato Grosso region 
 # Select the data for classification
 mato_grosso_samples <- inSitu::br_mt_1_8K_9classes_6bands
@@ -423,10 +413,6 @@ probs_cube <- sits_classify(raster_cube, ml_model = xbg_model, memsize = 2, mult
 
 # label the probability file (by default selecting the class with higher probability)
 label_cube <- sits_label_classification(probs_cube)
-
-# plot the first raster object with a selected color pallete
-# make a title, define the colors and the labels)
-sits_plot_raster(label_cube, time = 1, title = "SINOP-MT - 2000/2001")
 ```
 
 # Smoothing of raster data after classification
@@ -437,12 +423,17 @@ Smoothing methods are an important complement to machine learning algorithms for
 
 Doing post-processing using Bayesian smoothing in SITS is straightforward. The result of the `sits_classify` function applied to a data cube is  set of more probability images, one per requested clasification interval. The next step is to apply the `sits_label_classification` function. By default, this function selects the most likely class for each pixel considering only the probabilities of each class for each pixel. To allow for Bayesian smooting, it suffices to include the `smoothing = bayesian` parameter. If desired, the `variance` parameter (associated to the hyperparameter $\sigma^2_k$ described above) can control the degree of smoothness. The following example takes the previously produced classification output and applies a Bayesian smoothing. 
 
-```{r, fig.align="center", fig.cap="Image post-processed with Bayesian smoothing. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
+```{r, eval = FALSE}
 # smooth the result with a bayesian filter
 label_bayes <- sits_label_classification(probs_cube, smoothing = "bayesian")
 
 # plot the smoothened image
 sits_plot_raster(label_bayes, time = 1, title = "Sinop-smooth")
+```
+
+```{r, fig.align="center", fig.cap="Classified image post-processed with Bayesian smoothing. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
+
+knitr::include_graphics(system.file("extdata/markdown", "sinop_class.png", package = "sits"))
 ```
 
 

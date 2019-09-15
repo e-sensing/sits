@@ -46,22 +46,14 @@ Please refer to the documentation in that package for more details.
 }
 \examples{
 \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-# Install the inSitu library
-# devtools::install_github("e-sensing/inSitu")
-# library(inSitu)
-
-# select the bands for classification
-samples <- inSitu::br_mt_1_8K_9classes_6bands
-
-# find a training model based on the distances and default values (SVM model)
-samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 
 # Build a machine learning model based on xgboost
-xgb_model <- sits_train(samples_4bands, sits_xgboost(eta = 0.5, gamma = 0, max.depth = 2))
+xgb_model <- sits_train(samples_2bands, sits_xgboost(eta = 0.5, gamma = 0, max.depth = 2))
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 class.tb <- sits_classify(point.tb, xgb_model)
 sits_plot(class.tb)
 }

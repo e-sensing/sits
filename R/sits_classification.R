@@ -20,8 +20,9 @@
 #' extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
 #' and different deep learning functions, including multi-layer perceptrons
 #' (see \code{\link[sits]{sits_deeplearning}}, 1D convolutional neural networks
-#' \code{\link[sits]{sits_CNN}}, mixed 1D and MLP networks \code{\link[sits]{sits_tempCNN}}
-#' and a 1D version of ResNet \code{\link[sits]{sits_ResNet}}).
+#' \code{\link[sits]{sits_FCN}}, mixed 1D and MLP networks \code{\link[sits]{sits_TempCNN}}
+#' a 1D version of ResNet \code{\link[sits]{sits_ResNet}}), and a combined LSTM-FCN model
+#' \code{\link[sits]{sits_LSTM_FCN}}
 #'
 #' The model should be precomputed by the user using the function \code{\link[sits]{sits_train}}
 #' and then passed to the "sits_classify" function using the parameter "ml_model".
@@ -401,8 +402,7 @@ sits_label_classification <- function(cube,
 
     if (.sits_cube_service(cube) == "EOCUBES") {
         res <- .sits_classify_eocubes(cube = cube, ml_model = ml_model, interval = interval,
-                                      filter = filter, memsize = memsize, multicores = multicores,
-                                      output_dir = output_dir)
+                                      filter = filter, memsize = memsize, multicores = multicores)
         return(res)
     }
 

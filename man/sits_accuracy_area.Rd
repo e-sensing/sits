@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_accuracy.R
 \name{sits_accuracy_area}
 \alias{sits_accuracy_area}
-\title{Area-weighted post-classification accuracy assessment of classified maps}
+\title{Area-weighted post-classification accuracy assessment of classified maps according to Olofsson}
 \usage{
 sits_accuracy_area(class.tb, area = NULL)
 }
@@ -25,28 +25,20 @@ according to [1-2].
 }
 \examples{
 \donttest{
-# Install the inSitu library
-# devtools::install_github("e-sensing/inSitu")
-library(inSitu)
-library(magrittr)
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 set.seed(42)
 
-# Load some sample data.
-data(samples_mt_6bands)
-
 # Fit a randon forest model to the samples.
-rfor_model <- inSitu::br_mt_1_8K_9classes_6bands \%>\%
-    sits_select_bands(ndvi, evi) \%>\%
-    sits_train(ml_method = sits_rfor())
+rfor_model <- sits_train(samples_2bands, ml_method = sits_rfor())
 
-# Classify 10 samples of each label.
-class.tb <- samples_mt_6bands \%>\% 
-     sits_sample(n = 10) \%>\%
-     sits_select_bands(ndvi, evi) \%>\%
-     sits_classify(rfor_model)
+# Classify samples.
+class.tb <- sits_classify(samples_2bands, rfor_model)
 
-# Simalate the area of each label in a reference map.
-area <- sample(1:100 * 10^3, size = length(area_names))
+
+# Simulate the area of each label in a reference map.
+n_labels <- nrow(sits_labels(class.tb))
+area <- sample(1:100 * 10^3, size = n_labels)
 names(area) <- unique(class.tb$label)
 
 # Compute the accuracy.
@@ -64,7 +56,5 @@ Good practices for estimating area and assessing accuracy of land change. Remote
 Environment, 148, pp. 42-57.
 }
 \author{
-Victor Maus, \email{vwmaus1@gmail.com}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Alber Sanchez, \email{alber.ipia@inpe.br}
 }

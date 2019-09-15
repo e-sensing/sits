@@ -27,22 +27,18 @@ multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
 extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
 and different deep learning functions, including multi-layer perceptrons
 (see \code{\link[sits]{sits_deeplearning}}, 1D convolutional neural networks
-\code{\link[sits]{sits_CNN}}, mixed 1D and MLP networks \code{\link[sits]{sits_tempCNN}}
-and a 1D version of ResNet \code{\link[sits]{sits_ResNet}}).
+\code{\link[sits]{sits_FCN}}, mixed 1D and MLP networks \code{\link[sits]{sits_TempCNN}}
+a 1D version of ResNet \code{\link[sits]{sits_ResNet}}), and a combined LSTM-FCN model
+\code{\link[sits]{sits_LSTM_FCN}}.
 }
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-# Install the inSitu library
-# devtools::install_github("e-sensing/inSitu")
-# library(inSitu)
-#select the bands for classification
-samples <- inSitu::br_mt_1_8K_9classes_6bands
-# find a training model based on the distances and default values (SVM model)
-samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
-ml_model <- sits_train(samples_4bands, sits_rfor(num.trees = 5000))
+# find a training model based on the distances and default values (RFOR model)
+samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
+ml_model <- sits_train(samples_4bands, sits_rfor(num.trees = 1000))
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 class.tb <- sits_classify(point.tb, ml_model)
 sits_plot(class.tb)
 }

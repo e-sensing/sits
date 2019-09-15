@@ -17,8 +17,9 @@
 #' extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
 #' and different deep learning functions, including multi-layer perceptrons
 #' (see \code{\link[sits]{sits_deeplearning}}, 1D convolutional neural networks
-#' \code{\link[sits]{sits_CNN}}, mixed 1D and MLP networks \code{\link[sits]{sits_tempCNN}}
-#' and a 1D version of ResNet \code{\link[sits]{sits_ResNet}}).
+#' \code{\link[sits]{sits_FCN}}, mixed 1D and MLP networks \code{\link[sits]{sits_TempCNN}}
+#' a 1D version of ResNet \code{\link[sits]{sits_ResNet}}), and a combined LSTM-FCN model
+#' \code{\link[sits]{sits_LSTM_FCN}}.
 #'
 #' @param  data             Time series with the training samples.
 #' @param  ml_method        Machine learning method that returns a model for prediction.
@@ -27,16 +28,11 @@
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#' #select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
-#' ml_model <- sits_train(samples_4bands, sits_rfor(num.trees = 5000))
+#' # find a training model based on the distances and default values (RFOR model)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
+#' ml_model <- sits_train(samples_4bands, sits_rfor(num.trees = 1000))
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' sits_plot(class.tb)
 #' }
@@ -83,21 +79,13 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_4bands, sits_lda())
+#' ml_model <- sits_train (samples_2bands, sits_lda())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' sits_plot(class.tb)
 #' }
@@ -163,25 +151,17 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # remove classes with small numbers of samples
-#' samples_4bands <- dplyr::filter(samples_4bands,
+#' samples_2bands <- dplyr::filter(samples_2bands,
 #'        !(label %in% c("Fallow_Cotton", "Soy_Sunflower", "Soy_Fallow")))
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_4bands, sits_qda())
+#' ml_model <- sits_train (samples_2bands, sits_qda())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' sits_plot(class.tb)
 #' }
@@ -241,21 +221,13 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_4bands, sits_mlr())
+#' ml_model <- sits_train (samples_2bands, sits_mlr())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' sits_plot(class.tb)
 #' }
@@ -316,21 +288,13 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_4bands, sits_rfor())
+#' ml_model <- sits_train (samples_2bands, sits_rfor())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' sits_plot(class.tb)
 #' }
@@ -415,21 +379,13 @@ sits_rfor <- function(data = NULL, num_trees = 2000, importance = "impurity", ..
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_4bands, sits_svm())
+#' ml_model <- sits_train (samples_2bands, sits_svm())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' sits_plot(class.tb)
 #' }
@@ -512,22 +468,14 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(), scale = FALSE
 #'
 #' @examples
 #' \donttest{
-#' #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on xgboost
-#' xgb_model <- sits_train(samples_4bands, sits_xgboost(eta = 0.5, gamma = 0, max.depth = 2))
+#' xgb_model <- sits_train(samples_2bands, sits_xgboost(eta = 0.5, gamma = 0, max.depth = 2))
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, xgb_model)
 #' sits_plot(class.tb)
 #' }

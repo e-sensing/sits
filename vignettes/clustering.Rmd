@@ -31,6 +31,9 @@ vignette: |
   %\VignetteIndexEntry{Clustering of Satellite Image Time Series with SITS}
 ---
 ```{r, include = FALSE}
+if (!requireNamespace("devtools", quietly = TRUE))
+        install.packages("devtools")
+devtools::load_all(".")
 library(sits)
 ```
 
@@ -73,10 +76,10 @@ Unlike other validity indexes such as Jaccard (${J=a/(a+b+c)}$), Fowlkes-Mallows
 ```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
 # take a set of patterns for 2 classes
 # create a dendrogram object, plot, and get the optimal cluster based on ARI index
-clusters.tb <- sits_cluster_dendro(cerrado_2classes, bands = c("ndvi", "evi"))
+clusters.tb <- sits::sits_cluster_dendro(cerrado_2classes, bands = c("ndvi", "evi"))
 
 # show clusters samples frequency
-sits_cluster_frequency(clusters.tb)
+sits::sits_cluster_frequency(clusters.tb)
 ```
 
 Note in this example that almost all clusters has a predominance of either "Cerrado" or "Pasture" classes with the exception of cluster $3$. The contingency table plotted by `sits_cluster_frequency()` shows how the samples are distributed across the clusters and helps to identify two kinds of confusions. The first is relative to those small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$), while the second is relative to those samples in non-dominated clusters (*e.g.* cluster $3$). These confusions can be an indication of samples with poor quality, an inadequacy of selected parameters for cluster analysis, or even a natural confusion due to the inherent variability of the land classes.

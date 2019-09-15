@@ -75,11 +75,9 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
     return(invisible(caret_assess))
 }
 
-#' @title Area-weighted post-classification accuracy assessment of classified maps
+#' @title Area-weighted post-classification accuracy assessment of classified maps according to Olofsson
 #' @name sits_accuracy_area
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @description To use this function, the input table should be a set of results containing
 #' both the label assigned by the user and the classification result.
 #' Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
@@ -107,87 +105,27 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
 #'
 #' @examples
 #' \donttest{
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' library(inSitu)
-#' library(magrittr)
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #' set.seed(42)
 #'
-#' # Load some sample data.
-#' data(samples_mt_6bands)
-#'
 #' # Fit a randon forest model to the samples.
-#' rfor_model <- inSitu::br_mt_1_8K_9classes_6bands %>%
-#'     sits_select_bands(ndvi, evi) %>%
-#'     sits_train(ml_method = sits_rfor())
+#' rfor_model <- sits_train(samples_2bands, ml_method = sits_rfor())
 #'
-#' # Classify 10 samples of each label.
-#' class.tb <- samples_mt_6bands %>% 
-#'      sits_sample(n = 10) %>%
-#'      sits_select_bands(ndvi, evi) %>%
-#'      sits_classify(rfor_model)
-#' 
-#' # Simalate the area of each label in a reference map.
-#' area <- sample(1:100 * 10^3, size = length(area_names))
+#' # Classify samples.
+#' class.tb <- sits_classify(samples_2bands, rfor_model)
+#'
+#'
+#' # Simulate the area of each label in a reference map.
+#' n_labels <- nrow(sits_labels(class.tb))
+#' area <- sample(1:100 * 10^3, size = n_labels)
 #' names(area) <- unique(class.tb$label)
-#' 
+#'
 #' # Compute the accuracy.
 #' sits_accuracy_area(class.tb, area)
 #' }
 #' @export
 sits_accuracy_area <- function(class.tb, area = NULL){
-
-    # @title Asses accuracy and estimate area according to Olofsson
-    # @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-    # @description Compute the accuracy normalized by the area. Note that, these computations don't work on clustered sampling because the equations are different.
-    #
-    # @param error_matrix A matrix given in sample counts. Columns represent the reference data and rows the results of the classification
-    # @param area         A vector of the total area of each class on the map
-    # @return             A list of lists: The error_matrix, the class_areas, confidence interval (confint95, a list of two numerics) and the accuracy (accuracy, a list of three numerics: overall, user, and producer)
-    .asses_accuracy_area <- function(error_matrix, area){
-
-        if (any(dim(error_matrix) == 0))
-            stop("Invalid dimensions in error matrix.", call. = FALSE)
-        if (length(unique(dim(error_matrix))) != 1)
-            stop("The error matrix is not square.", call. = FALSE)
-        if (!all(colnames(error_matrix) == rownames(error_matrix)))
-            stop("Labels mismatch in error matrix.", call. = FALSE)
-        if (unique(dim(error_matrix)) != length(area))
-            stop("Mismatch between error matrix and area vector.", 
-                 call. = FALSE)
-        if (!all(names(area) %in% colnames(error_matrix)))
-            stop("Label mismatch between error matrix and area vector.", 
-                 call. = FALSE)
-
-        # Re-order vector elements.
-        area <- area[colnames(error_matrix)]
-
-        W <- area/sum(area)
-        n <- rowSums(error_matrix)
-        if (any(n < 2))
-            stop("Undefined accuracy when there is one or fewer pixels in any predicted class (division by zero).", 
-                 call. = FALSE)
-        n.mat <- matrix(rep(n, times = ncol(error_matrix)), 
-                        ncol = ncol(error_matrix))
-        p <- W * error_matrix / n.mat
-        error_adjusted_area_estimate <- colSums(p) * sum(area)
-        Sphat_1 <- vapply(1:ncol(error_matrix), function(i){
-            sqrt(sum(W^2 * error_matrix[, i]/n * (1 - error_matrix[, i]/n)/(n - 1)))
-        }, numeric(1))
-        
-        SAhat <- sum(area) * Sphat_1
-        Ahat_sup <- error_adjusted_area_estimate + 2 * SAhat
-        Ahat_inf <- error_adjusted_area_estimate - 2 * SAhat
-        Ohat <- sum(diag(p))
-        Uhat <- diag(p) / rowSums(p)
-        Phat <- diag(p) / colSums(p)
-        
-        return(
-            list(error_matrix = error_matrix, area = area,
-                 confint95 = list(superior = Ahat_sup, inferior = Ahat_inf),
-                 accuracy = list(overall = Ohat, user = Uhat, producer = Phat))
-        )
-    }
 
     # backward compatibility
     if ("coverage" %in% names(class.tb))
@@ -216,9 +154,63 @@ sits_accuracy_area <- function(class.tb, area = NULL){
         area <- rowSums(error_matrix)
 
     # Compute accuracy metrics
-    assessment <- .asses_accuracy_area(error_matrix, area)
+    assessment <- .sits_assess_accuracy_area(error_matrix, area)
 
     return(assessment)
+}
+
+#' @title Support for Area-weighted post-classification accuracy
+#' @name .sits_assess_accuracy_area
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @param error_matrix A matrix given in sample counts. Columns represent the reference data and rows the results of the classification
+#' @param area         A vector of the total area of each class on the map
+#'
+#' @return             A list of lists: The error_matrix, the class_areas, confidence interval (confint95, a list of two numerics) and the accuracy (accuracy, a list of three numerics: overall, user, and producer)
+
+.sits_assess_accuracy_area <- function(error_matrix, area){
+
+    if (any(dim(error_matrix) == 0))
+        stop("Invalid dimensions in error matrix.", call. = FALSE)
+    if (length(unique(dim(error_matrix))) != 1)
+        stop("The error matrix is not square.", call. = FALSE)
+    if (!all(colnames(error_matrix) == rownames(error_matrix)))
+        stop("Labels mismatch in error matrix.", call. = FALSE)
+    if (unique(dim(error_matrix)) != length(area))
+        stop("Mismatch between error matrix and area vector.",
+             call. = FALSE)
+    if (!all(names(area) %in% colnames(error_matrix)))
+        stop("Label mismatch between error matrix and area vector.",
+             call. = FALSE)
+
+    # Re-order vector elements.
+    area <- area[colnames(error_matrix)]
+
+    W <- area/sum(area)
+    n <- rowSums(error_matrix)
+    if (any(n < 2))
+        stop("Undefined accuracy when there is one or fewer pixels in any predicted class (division by zero).",
+             call. = FALSE)
+    n.mat <- matrix(rep(n, times = ncol(error_matrix)),
+                    ncol = ncol(error_matrix))
+    p <- W * error_matrix / n.mat
+    error_adjusted_area_estimate <- colSums(p) * sum(area)
+    Sphat_1 <- vapply(1:ncol(error_matrix), function(i){
+        sqrt(sum(W^2 * error_matrix[, i]/n * (1 - error_matrix[, i]/n)/(n - 1)))
+    }, numeric(1))
+
+    SAhat <- sum(area) * Sphat_1
+    Ahat_sup <- error_adjusted_area_estimate + 2 * SAhat
+    Ahat_inf <- error_adjusted_area_estimate - 2 * SAhat
+    Ohat <- sum(diag(p))
+    Uhat <- diag(p) / rowSums(p)
+    Phat <- diag(p) / colSums(p)
+
+    return(
+        list(error_matrix = error_matrix, area = area,
+             confint95 = list(superior = Ahat_sup, inferior = Ahat_inf),
+             accuracy = list(overall = Ohat, user = Uhat, producer = Phat))
+    )
 }
 
 #' @title Print the values of a confusion matrix

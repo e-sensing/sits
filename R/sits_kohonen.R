@@ -88,6 +88,11 @@ sits_som_map <- function(data,
         data <- .sits_tibble_rename(data)
     # does the input data exist?
     .sits_test_tibble(data)
+    # is are there more neurons than samples?
+    n_samples <- nrow(data)
+    ensurer::ensure_that(n_samples, (.) > grid_xdim*grid_ydim,
+                         err_desc = "sits_som_map: number of samples should be greater than number of neurons")
+
     # get the time series
     time_series <- sits_values(data, format = "bands_cases_dates")
 

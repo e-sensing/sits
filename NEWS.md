@@ -1,8 +1,16 @@
 # SITS (development version)
 
-We are preparing to release the package on CRAN and are making relevant changes in the development version
+We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
-# What's new in sits version 0.8
+# What's new in SITS version 0.9
+
+### New Features
+
+* New deep learning models for time series: 1D convolutional neural networks (`sits_FCN`), combining 1D CNN and multi-layer perceptron networks (`sits_TempCNN`), 1D version of ResNet (`sits_ResNet`), and combination of long-short term memory (LSTM) and 1D CNN (`sits_LSTM_FCN`).
+
+* New version of area accuracy measures that include Oloffson metrics ()
+
+# What's new in SITS version 0.8
 
 ### New Features
 

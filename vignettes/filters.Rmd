@@ -35,6 +35,7 @@ vignette: |
   %\VignetteIndexEntry{Satellite Image Time Series Filtering with SITS}
 ---
 ```{r, include = FALSE}
+devtools::load_all(".")
 library(sits)
 ```
 

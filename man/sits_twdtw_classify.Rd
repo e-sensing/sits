@@ -54,18 +54,14 @@ seasonal variability.
 }
 \examples{
 \donttest{
-# Install the inSitu library
-# devtools::install_github("e-sensing/inSitu")
-# library(inSitu)
+# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+samples <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 
-#select the bands for classification
-samples <- inSitu::br_mt_1_8K_9classes_6bands
-
-# Get a 17 year time series
-data(point_mt_6bands)
+# get a point and classify the point with the ml_model
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 
 # plot the series
-sits_plot(point_mt_6bands)
+sits_plot(point.tb)
 
 # obtain a set of patterns for these samples
 patterns.tb <- sits_patterns(samples)
@@ -73,7 +69,7 @@ sits_plot(patterns.tb)
 
 # find the matches between the patterns and the time series using the TWDTW algorithm
 # (uses the dtwSat R package)
-matches <- sits_twdtw_classify(point_mt_6bands, patterns.tb, bands = c("ndvi", "evi", "nir", "mir"),
+matches <- sits_twdtw_classify(point.tb, patterns.tb, bands = c("ndvi", "evi"),
 alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 }
 }

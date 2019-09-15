@@ -1,3 +1,42 @@
+#' @title Provides access to diagnostic information about a Keras deep learning model
+#' @name sits_keras_diagnostics
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description After the Keras deeplearning model is compiled and fit, this
+#'              function provides access to the history plot and the evaluation results.
+#'
+#' @param dl_model  A valid keras model.
+#'
+#' @return This function returns NULL. It only prints the model diagnostics.
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' data(cerrado_2classes)
+#'  # obtain a DL model
+#' dl_model <- sits_train(cerrado_2classes,
+#'      sits_deeplearning(units = c(512, 512), dropout_rates = c(0.45, 0.25), epochs = 100))
+#' # run the keras diagnostics
+#' sits_keras_diagnostics(dl_model)
+#' }
+#' @export
+sits_keras_diagnostics <- function(dl_model) {
+    if (purrr::is_null(environment(dl_model)$model.keras)) {
+        message("Please configure a keras model before running this function")
+        return(FALSE)
+    }
+
+    message("Plotting history of the model fit")
+    graphics::plot(environment(dl_model)$history)
+
+    test_eval <- keras::evaluate(environment(dl_model)$model.keras, environment(dl_model)$test.x, environment(dl_model)$test.y, verbose = 0)
+    message("Estimated loss and accuracy based on test data")
+    message(paste0("Estimated accuracy: ", round(test_eval$acc, digits = 3),
+                   " estimated loss: ", round(test_eval$loss, digits = 3)))
+    return(TRUE)
+}
+
 #' @title Train a classification model using a multi-layer perceptron.
 #' @name sits_deeplearning
 #'
@@ -34,24 +73,16 @@
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_4bands,
+#' dl_model <- sits_train (samples_2bands,
 #'                         sits_deeplearning(layers = c(512, 512, 512),
 #'                                           dropout_rates = c(0.50, 0.40, 0.35),
 #'                                           epochs = 100))
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, dl_model)
 #' sits_plot(class.tb)
 #' }
@@ -156,7 +187,7 @@ sits_deeplearning <- function(data          = NULL,
         )
 
         # show training evolution
-        plot(history)
+        graphics::plot(history)
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
@@ -178,19 +209,19 @@ sits_deeplearning <- function(data          = NULL,
 }
 
 #' @title Train a model using the a full Convolutional Neural Network
-#' @name sits_fullCNN
+#' @name sits_FCN
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Use the fullCNN algorithm to classify data. Users can define the number of
+#' @description Use the a full 1D CNN algorithm to classify data. Users can define the number of
 #' convolutional layers], the size of the convolutional
 #' kernels, and the activation functions.
 #'
-#' The fullCNN has been proposed for time series classification by the paper of Wang et al.
-#' The SITS implementation of fullCNN is based on the work of Hassan Fawaz and
-#' collaborators. Fawaz provides a reference Keras implementation of fullCNN
+#' The FCN has been proposed for time series classification by the paper of Wang et al.
+#' The SITS implementation of FCN is based on the work of Hassan Fawaz and
+#' collaborators. Fawaz provides a reference Keras implementation of FCN
 #' in https://github.com/hfawaz/dl-4-tsc.
 #' If you use this function, please cite the references.
 #'
@@ -230,36 +261,28 @@ sits_deeplearning <- function(data          = NULL,
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' cnn_model <- sits_train (samples_4bands, sits_fullCNN())
+#' cnn_model <- sits_train (samples_2bands, sits_FCN())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, cnn_model)
 #' sits_plot(class.tb)
 #' }
 #' @export
-sits_fullCNN <- function(data         = NULL,
-                         layers           = c(128, 256, 128),
-                         kernels          = c(9, 7, 5),
-                         activation       = 'relu',
-                         L2_rate          = 1e-06,
-                         optimizer        = keras::optimizer_adam(lr = 0.001),
-                         epochs           = 150,
-                         batch_size       = 128,
-                         validation_split = 0.2,
-                         verbose          = 1,
-                         binary_classification = FALSE) {
+sits_FCN <- function(data         = NULL,
+                     layers           = c(128, 256, 128),
+                     kernels          = c(9, 7, 5),
+                     activation       = 'relu',
+                     L2_rate          = 1e-06,
+                     optimizer        = keras::optimizer_adam(lr = 0.001),
+                     epochs           = 150,
+                     batch_size       = 128,
+                     validation_split = 0.2,
+                     verbose          = 1,
+                     binary_classification = FALSE) {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -374,7 +397,7 @@ sits_fullCNN <- function(data         = NULL,
         )
 
         # show training evolution
-        plot(history)
+        graphics::plot(history)
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
@@ -398,8 +421,6 @@ sits_fullCNN <- function(data         = NULL,
     result <- .sits_factory_function(data, result_fun)
     return(result)
 }
-
-
 
 
 #' @title Train a model using the ResNet model
@@ -454,21 +475,13 @@ sits_fullCNN <- function(data         = NULL,
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_4bands, sits_ResNet())
+#' dl_model <- sits_train (samples_2bands, sits_ResNet())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, dl_model)
 #' sits_plot(class.tb)
 #' }
@@ -625,7 +638,7 @@ sits_ResNet <- function(data              = NULL,
             verbose = verbose, view_metrics = "auto"
         )
         # show training evolution
-        plot(history)
+        graphics::plot(history)
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
@@ -650,13 +663,13 @@ sits_ResNet <- function(data              = NULL,
     return(result)
 }
 #' @title Train a model using the Temporal Convolutional Neural Network
-#' @name sits_tempCNN
+#' @name sits_TempCNN
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Use a tempCNN algorithm to classify data. The tempCNN algorithm has
+#' @description Use a TempCNN algorithm to classify data. The tempCNN algorithm has
 #' two stages: a 1D CNN is applied to the input time series data is combined with a
 #' multi-layer perceptron. Users can define the depth of the 1D network, as well as
 #' the number of perceptron layers.
@@ -677,7 +690,7 @@ sits_ResNet <- function(data              = NULL,
 #' @param cnn_L2_rate       Regularization rate for 1D convolution.
 #'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param cnn_dropout_rates Vector with dropout rates for 1D convolutional filters.
-#' @param mlp_units         Vector with the number of hidden nodes in the MLP (multi-layer-perceptron).
+#' @param mlp_layers        Vector with the number of hidden nodes in the MLP (multi-layer-perceptron).
 #' @param mlp_activation    Names of 2D activation functions for the MLP. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param mlp_dropout_rates Vector with the dropout rates (0,1) for each layer in the MLP.
 #' @param optimizer         Function with a pointer to the optimizer function (default is optimization_adam()).
@@ -698,28 +711,20 @@ sits_ResNet <- function(data              = NULL,
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_4bands, sits_tempCNN())
+#' dl_model <- sits_train (samples_2bands, sits_TempCNN())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, dl_model)
 #' sits_plot(class.tb)
 #' }
 #' @export
-sits_tempCNN <- function(data                 = NULL,
+sits_TempCNN <- function(data                 = NULL,
                          cnn_layers           = c(64, 64, 64),
-                         cnn_kernels          = c(7, 7, 7),
+                         cnn_kernels          = c(5, 5, 5),
                          cnn_activation       = 'relu',
                          cnn_L2_rate          = 1e-06,
                          cnn_dropout_rates    = c(0.50, 0.50, 0.50),
@@ -849,17 +854,13 @@ sits_tempCNN <- function(data                 = NULL,
             metrics = "accuracy"
         )
 
-        prev.fit_verbose <- getOption("keras.fit_verbose")
-        options(keras.fit_verbose = verbose)
-
         # fit the model
         history <- model.keras %>% keras::fit(
             train.x, train.y,
             epochs = epochs, batch_size = batch_size,
-            validation_data = list(test.x, test.y)
+            validation_data = list(test.x, test.y),
+            verbose = verbose, view_metrics = "auto"
         )
-
-        options(keras.fit_verbose = prev.fit_verbose)
 
         # show training evolution
         graphics::plot(history)
@@ -887,47 +888,8 @@ sits_tempCNN <- function(data                 = NULL,
     return(result)
 }
 
-#' @title Provides access to diagnostic information about a Keras deep learning model
-#' @name sits_keras_diagnostics
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description After the Keras deeplearning model is compiled and fit, this
-#'              function provides access to the history plot and the evaluation results.
-#'
-#' @param dl_model  A valid keras model.
-#'
-#' @return This function returns NULL. It only prints the model diagnostics.
-#'
-#' @examples
-#' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(cerrado_2classes)
-#'  # obtain a DL model
-#' dl_model <- sits_train(cerrado_2classes,
-#'      sits_deeplearning(units = c(512, 512), dropout_rates = c(0.45, 0.25), epochs = 100))
-#' # run the keras diagnostics
-#' sits_keras_diagnostics(dl_model)
-#' }
-#' @export
-sits_keras_diagnostics <- function(dl_model) {
-    if (purrr::is_null(environment(dl_model)$model.keras)) {
-        message("Please configure a keras model before running this function")
-        return(FALSE)
-    }
-
-    message("Plotting history of the model fit")
-    plot(environment(dl_model)$history)
-
-    test_eval <- keras::evaluate(environment(dl_model)$model.keras, environment(dl_model)$test.x, environment(dl_model)$test.y, verbose = 0)
-    message("Estimated loss and accuracy based on test data")
-    message(paste0("Estimated accuracy: ", round(test_eval$acc, digits = 3),
-                   " estimated loss: ", round(test_eval$loss, digits = 3)))
-    return(TRUE)
-}
-
 #' @title Train a model using the a combination of LSTM and CNN
-#' @name sits_LSTM_CNN
+#' @name sits_LSTM_FCN
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -938,18 +900,21 @@ sits_keras_diagnostics <- function(dl_model) {
 #' convolutional layers, the size of the convolutional
 #' kernels, and the activation functions.
 #'
+#' #' This function is based on the paper by Karim et al. referenced below
+#' and the code made available on github (https://github.com/titu1994/LSTM-FCN)
+#' If you use this method, please cite the original paper.
+#'
+#' @references Fazle Karim, Somshubra Majumdar, Houshang Darabi, Sun Chen,
+#' "LSTM fully convolutional networks for time series classification", IEEE Access, 6(1662-1669), 2018.
+#'
 #'
 #' @param data              Time series with the training samples.
 #' @param lstm_units        Number of cells in the each LSTM layer
 #' @param lstm_dropout      Dropout rate of the LSTM module
-#' @param cnn_units         Vector with the number of 1D convolutional filters.
+#' @param cnn_layers        Vector with the number of filters for each 1D CNN layer.
 #' @param cnn_kernels       Vector with the size of the 1D convolutional kernels.
 #' @param activation        Activation function for 1D convolution.
 #'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param L2_rate           Regularization rate for 1D convolution.
-#'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param dropout_rates     Vector with dropout rates for 1D convolutional filters.
-#' @param batch_normalization Boolean: use batch normalization instead of dropout? Default: FALSE
 #' @param optimizer         Function with a pointer to the optimizer function (default is optimization_adam()).
 #'                          Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
 #'                          optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
@@ -969,34 +934,23 @@ sits_keras_diagnostics <- function(dl_model) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' # Install the inSitu library
-#' # devtools::install_github("e-sensing/inSitu")
-#' # library(inSitu)
-#'
-#' # select the bands for classification
-#' samples <- inSitu::br_mt_1_8K_9classes_6bands
-#'
-#' # find a training model based on the distances and default values (SVM model)
-#' samples_4bands <- sits_select_bands(samples, ndvi, evi, nir, mir)
+#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' lstm_cnn_model <- sits_train (samples_4bands, sits_LSTM_CNN())
+#' lstm_cnn_model <- sits_train (samples_2bands, sits_LSTM_FCN())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, lstm_cnn_model)
 #' sits_plot(class.tb)
 #' }
 #' @export
-sits_LSTM_CNN <- function(data                =  NULL,
+sits_LSTM_FCN <- function(data                =  NULL,
                           lstm_units          = 8,
                           lstm_dropout        = 0.80,
                           cnn_layers          = c(128, 256, 128),
-                          cnn_kernels         = c(9, 7, 5),
+                          cnn_kernels         = c(8, 5, 3),
                           activation          = 'relu',
-                          L2_rate             = 1e-06,
-                          dropout_rates       = c(0.50, 0.45, 0.40),
-                          batch_normalization = TRUE,
                           optimizer           = keras::optimizer_adam(lr = 0.001),
                           epochs              = 150,
                           batch_size          = 128,
@@ -1018,13 +972,13 @@ sits_LSTM_CNN <- function(data                =  NULL,
 
         # is the input data consistent?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
-                             err_desc = "sits_CNN: input data does not contain distances")
+                             err_desc = "sits_LSTM_FCN: input data does not contain distances")
 
         ensurer::ensure_that(cnn_layers, length(.) == length(cnn_kernels),
-                             err_desc = "sits_CNN: number of 1D CNN layers must match number of 1D kernels")
+                             err_desc = "sits_LSTM_FCN: number of 1D CNN layers must match number of 1D kernels")
 
         ensurer::ensure_that(activation, all(. %in% valid_activations),
-                             err_desc = "sits_CNN: invalid CNN activation method")
+                             err_desc = "sits_LSTM_FCN: invalid CNN activation method")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -1075,18 +1029,14 @@ sits_LSTM_CNN <- function(data                =  NULL,
 
         # build the 1D nodes
         for (i in 1:length(cnn_layers)) {
-            # Add a Convolution1D
+            # Add a 1D CNN layer
             output_tensor <- keras::layer_conv_1d(output_tensor, filters = cnn_layers[i],
-                                                  kernel_size = cnn_kernels[i],
-                                                  activation = activation,
-                                                  kernel_regularizer = keras::regularizer_l2(l = L2_rate))
+                                                  kernel_size = cnn_kernels[i])
 
-            # Batch normalization or dropout?
-            if (batch_normalization)
-                output_tensor <- keras::layer_batch_normalization(output_tensor)
-            else
-                # Apply layer dropout
-                output_tensor <- keras::layer_dropout(output_tensor, rate = dropout_rates[i])
+            # batch normalisation
+            output_tensor <- keras::layer_batch_normalization(output_tensor)
+            # Layer activation
+            output_tensor <- keras::layer_activation(output_tensor, activation = activation)
         }
 
         # Apply average pooling
@@ -1120,20 +1070,16 @@ sits_LSTM_CNN <- function(data                =  NULL,
             metrics = "accuracy"
         )
 
-        prev.fit_verbose <- getOption("keras.fit_verbose")
-        options(keras.fit_verbose = verbose)
-
         # fit the model
         history <- model.keras %>% keras::fit(
             train.x, train.y,
             epochs = epochs, batch_size = batch_size,
-            validation_data = list(test.x, test.y)
+            validation_data = list(test.x, test.y),
+            verbose = verbose, view_metrics = "auto"
         )
 
-        options(keras.fit_verbose = prev.fit_verbose)
-
         # show training evolution
-        keras::plot.keras_training_history(history)
+        graphics::plot(history)
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
