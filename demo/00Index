@@ -11,3 +11,4 @@ classify_deeplearning    Classify a mixed LANDSAT8-MODIS data brick deep learnin
 evaluate_samples_Kohonen Clustering and evaluation of samples using self-organizing maps
 filtering_ts             Comparison of different methods for filtering a time series
 ml_comparison            Comparison of different machine learning methods for classifying time series
+ml_dl_comparison         Comparison of SITS machine learning and deep learning for the Amazonia dataset

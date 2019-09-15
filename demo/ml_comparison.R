@@ -49,7 +49,7 @@ results[[length(results) + 1]] <- conf_svm.mx
 
 # Deep Learning
 conf_dl.tb <- sits_kfold_validate(samples, folds = 4, multicores = 2,
-                                  ml_method = sits_deeplearning( units = c(512, 512, 512),
+                                  ml_method = sits_deeplearning( layers = c(512, 512, 512),
                                                                  activation       = 'elu',
                                                                  dropout_rates    = c(0.50, 0.40, 0.30),
                                                                  optimizer        = keras::optimizer_adam(lr = 0.001),
