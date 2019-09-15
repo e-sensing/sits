@@ -3,7 +3,6 @@
 export("%>%")
 export(.sits_mem_used)
 export(.sits_tibble)
-export(sits_CNN)
 export(sits_ResNet)
 export(sits_accuracy_area)
 export(sits_align_dates)

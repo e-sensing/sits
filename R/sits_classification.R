@@ -401,8 +401,7 @@ sits_label_classification <- function(cube,
 
     if (.sits_cube_service(cube) == "EOCUBES") {
         res <- .sits_classify_eocubes(cube = cube, ml_model = ml_model, interval = interval,
-                                      filter = filter, memsize = memsize, multicores = multicores,
-                                      output_dir = output_dir)
+                                      filter = filter, memsize = memsize, multicores = multicores)
         return(res)
     }
 
