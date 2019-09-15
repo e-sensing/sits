@@ -6,9 +6,25 @@ Cubes
 
 The SITS package provides a set of tools for analysis, visualization and
 classification of satellite image time series. It includes methods for
-filtering, clustering, classification, and post-processing. For a
-general view of SITS, please see the vignette “SITS: Data Analysis and
-Machine Learning for Data Cubes using Satellite Image Time Series”.
+filtering, clustering, classification, and post-processing.
+
+### Vignettes
+
+  - [“SITS: Data Analysis and Machine Learning for Data Cubes using
+    Satellite Image Time
+    Series”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/sits.pdf)
+
+  - [“Clustering of Satellite Image Time Series with
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering.pdf)
+
+  - [“Satellite Image Time Series Filtering with
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.pdf)
+
+  - [“Time Series classification using machine
+    learning”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/machine_learning.pdf)
+
+  - [“Post classification smoothing using Bayesian techniques in
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/smoothing.pdf)
 
 ### Installation
 
@@ -90,9 +106,9 @@ filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker
 filter” (`sits_cloud_filter()`). As an example, we show how to apply
 the Whitakker smoother to a 16-year NDVI time series.
 
-For more details, please see the vignette “Satellite Image Time Series
+For more details, please see the vignette \[“Satellite Image Time Series
 Filtering with
-SITS”.
+SITS”\]
 
 ``` r
 # apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
@@ -120,10 +136,12 @@ available in SITS:
   - Extreme gradient boosting (`sits_xgboost`)
   - Deep learning (DL) using multi-layer perceptrons
     (`sits_deeplearning`)
-  - DL with 1D convolutional neural networks (`sits_CNN`),
+  - DL with 1D convolutional neural networks (`sits_FCN`)
   - DL combining 1D CNN and multi-layer perceptron networks
-    (`sits_tempCNN`)
-  - DL using 1D version of ResNet (`sits_ResNet`).
+    (`sits_TempCNN`)
+  - DL using 1D version of ResNet (`sits_ResNet`)
+  - DL using a combination of long-short term memory (LSTM) and 1D CNN
+    (`sits_LSTM_FCN`)
 
 The following example illustrate how to train a dataset and classify an
 individual time series. First we use the `sits_train` function with two
@@ -174,8 +192,8 @@ raster_cube <- sits_cube(name = "Sinop", timeline = timeline_2013_2014, bands = 
 #> sensor information not provided - assuming MODIS
 # Classify the raster cube, generating a probability file
 probs_cube <- sits_classify(raster_cube, ml_model = xgb_model)
-#> Starting classification at 2019-09-11 13:18:11
-#> Classification finished at 2019-09-11 13:18:30. Total elapsed time: 0.3 minute(s).
+#> Starting classification at 2019-09-15 16:01:21
+#> Classification finished at 2019-09-15 16:01:42. Total elapsed time: 0.3 minute(s).
 
 # label the probability file (by default selecting the class with higher probability)
 # apply a bayesian smoothing to remove outliers
@@ -200,12 +218,6 @@ package”.
 | Check         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Documentation | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull) |
 | Coverage      | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master)                                                    |
-
-<!-- badges: start -->
-
-[![Travis build
-status](https://travis-ci.org/e-sensing/sits.svg?branch=master)](https://travis-ci.org/e-sensing/sits)
-<!-- badges: end -->
 
 [![DOI](https://zenodo.org/badge/98539507.svg)](https://zenodo.org/badge/latestdoi/98539507)
 

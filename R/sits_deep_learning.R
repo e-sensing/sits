@@ -103,6 +103,14 @@ sits_deeplearning <- function(data          = NULL,
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){
+        # pre-conditions
+        ensurer::ensure_that(layers, length(.) == length(dropout_rates),
+                             err_desc = "sits_deeplearning: number of layers must match number of dropout rates")
+
+        valid_activations <- c("relu", "elu", "selu", "sigmoid")
+        ensurer::ensure_that(activation, (.) %in% valid_activations,
+                             err_desc = "sits_deeplearning: invalid node activation method")
+
         # data normalization
         stats <- .sits_normalization_param(data)
         train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
@@ -111,12 +119,6 @@ sits_deeplearning <- function(data          = NULL,
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_deeplearning: input data does not contain distances")
 
-        ensurer::ensure_that(layers, length(.) == length(dropout_rates),
-                             err_desc = "sits_deeplearning: number of layers must match number of dropout rates")
-
-        valid_activations <- c("relu", "elu", "selu", "sigmoid")
-        ensurer::ensure_that(activation, (.) %in% valid_activations,
-                             err_desc = "sits_deeplearning: invalid node activation method")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -289,22 +291,21 @@ sits_FCN <- function(data         = NULL,
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){
+        # pre-conditions
+        ensurer::ensure_that(layers, length(.) == length(kernels),
+                             err_desc = "sits_FCN: number of 1D layers must match number of 1D kernels")
+        valid_activations <- c("relu", "elu", "selu", "sigmoid")
+        ensurer::ensure_that(activation, all(. %in% valid_activations),
+                             err_desc = "sits_FCN: invalid CNN activation method")
+
         # data normalization
         stats <- .sits_normalization_param(data)
         # obtain the distances used for training and test
         train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
 
-        valid_activations <- c("relu", "elu", "selu", "sigmoid")
-
         # is the input data consistent?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                              err_desc = "sits_CNN: input data does not contain distances")
-
-        ensurer::ensure_that(layers, length(.) == length(kernels),
-                             err_desc = "sits_CNN: number of 1D layers must match number of 1D kernels")
-
-        ensurer::ensure_that(activation, all(. %in% valid_activations),
-                             err_desc = "sits_CNN: invalid CNN activation method")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -502,23 +503,22 @@ sits_ResNet <- function(data              = NULL,
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){
-        # data normalization
-        stats <- .sits_normalization_param(data)
-        # obtain the distances used for training and test
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
-
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
-
-        # is the input data consistent?
-        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
-                             err_desc = "sits_ResNet: input data does not contain distances")
-
+        # pre-conditions
         ensurer::ensure_that(activation, (.) %in% valid_activations,
                              err_desc = "sits_ResNet: invalid CNN activation method")
 
         ensurer::ensure_that(kernels, length(.) == 3,
                              err_desc = "sits_ResNet: should inform size of three kernels")
 
+        # data normalization
+        stats <- .sits_normalization_param(data)
+        # obtain the distances used for training and test
+        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
+
+        # is the input data consistent?
+        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
+                             err_desc = "sits_ResNet: input data does not contain distances")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -562,7 +562,7 @@ sits_ResNet <- function(data              = NULL,
         # create the input_tensor for 1D convolution
         input_tensor  <- keras::layer_input(shape = c(n_timesteps, n_bands))
 
-        # BLOCK 1
+        # initial assignment
         output_tensor <- input_tensor
         shortcut <- input_tensor
 
