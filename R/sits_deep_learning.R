@@ -65,6 +65,7 @@ sits_keras_diagnostics <- function(dl_model) {
 #'                          The validation data is selected from the last samples in the x and y data provided,
 #'                          before shuffling.
 #' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
+#' @param patience          Number of epochs with no improvement after which training will be stopped.
 #' @param binary_classification A lenght-one logical indicating if this is a binary classification. If it is so,
 #'                          the number of unique labels in the training data must be two as well.
 #'
@@ -73,29 +74,26 @@ sits_keras_diagnostics <- function(dl_model) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_2bands,
-#'                         sits_deeplearning(layers = c(512, 512, 512),
-#'                                           dropout_rates = c(0.50, 0.40, 0.35),
-#'                                           epochs = 100))
+#' dl_model <- sits_train (samples_mt_4bands, sits_deeplearning())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 #' class.tb <- sits_classify(point.tb, dl_model)
 #' sits_plot(class.tb)
 #' }
 #' @export
 sits_deeplearning <- function(data          = NULL,
                               layers           = c(512, 512, 512, 512, 512),
-                              activation       = 'elu',
-                              dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
+                              activation       = 'relu',
+                              dropout_rates    = c(0.50, 0.45, 0.40, 0.35, 0.30),
                               optimizer        = keras::optimizer_adam(lr = 0.001),
-                              epochs           = 500,
+                              epochs           = 400,
                               batch_size       = 128,
                               validation_split = 0.2,
                               verbose          = 1,
+                              patience         = 30,
                               binary_classification = FALSE) {
     # backward compatibility
     if ("coverage" %in% names(data))
@@ -128,24 +126,13 @@ sits_deeplearning <- function(data          = NULL,
         int_labels <- c(1:n_labels)
         names(int_labels) <- labels
 
-        # split the data into training and validation data sets
-        # create partitions different splits of the input data
-        test_data_DT <- .sits_sample_distances(train_data_DT, frac = validation_split)
+        # create the train and test datasets for keras
 
-        # remove the lines used for validation
-        train_data_DT <- train_data_DT[!test_data_DT, on = "original_row"]
-
-        # shuffle the data
-        train_data_DT <- train_data_DT[sample(nrow(train_data_DT), nrow(train_data_DT)),]
-        test_data_DT  <- test_data_DT[sample(nrow(test_data_DT), nrow(test_data_DT)),]
-
-        # organize data for model training
-        train.x <- data.matrix(train_data_DT[, -(1:2)])
-        train.y <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
-
-        # create the test data for keras
-        test.x <- data.matrix(test_data_DT[, -(1:2)])
-        test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
+        keras.data <- .sits_dl_prepare_data(data, validation_split)
+        train.x <- keras.data$train.x
+        train.y <- keras.data$train.y
+        test.x  <- keras.data$test.x
+        test.y  <- keras.data$test.y
 
         # build the model step by step
         # create the input_tensor
@@ -185,7 +172,8 @@ sits_deeplearning <- function(data          = NULL,
             train.x, train.y,
             epochs = epochs, batch_size = batch_size,
             validation_data = list(test.x, test.y),
-            verbose = verbose, view_metrics = "auto"
+            verbose = verbose, view_metrics = "auto",
+            callbacks = keras::callback_early_stopping(mode = "min", patience = patience)
         )
 
         # show training evolution
@@ -263,10 +251,9 @@ sits_deeplearning <- function(data          = NULL,
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' cnn_model <- sits_train (samples_2bands, sits_FCN())
+#' cnn_model <- sits_train (samples_mt_4bands, sits_FCN())
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
@@ -1102,4 +1089,44 @@ sits_LSTM_FCN <- function(data                =  NULL,
 
     result <- .sits_factory_function(data, result_fun)
     return(result)
+}
+
+.sits_dl_prepare_data <- function(data, validation_split){
+    # data normalization
+    stats <- .sits_normalization_param(data)
+    train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
+
+    # is the train data correct?
+    ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
+                         err_desc = "sits_deeplearning: input data does not contain distances")
+
+
+    # get the labels of the data
+    labels <- sits_labels(data)$label
+
+    # create a named vector with integers match the class labels
+    n_labels <- length(labels)
+    int_labels <- c(1:n_labels)
+    names(int_labels) <- labels
+
+    # split the data into training and validation data sets
+    # create partitions different splits of the input data
+    test_data_DT <- .sits_sample_distances(train_data_DT, frac = validation_split)
+
+    # remove the lines used for validation
+    train_data_DT <- train_data_DT[!test_data_DT, on = "original_row"]
+
+    # shuffle the data
+    train_data_DT <- train_data_DT[sample(nrow(train_data_DT), nrow(train_data_DT)),]
+    test_data_DT  <- test_data_DT[sample(nrow(test_data_DT), nrow(test_data_DT)),]
+
+    # organize data for model training
+    train.x <- data.matrix(train_data_DT[, -(1:2)])
+    train.y <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
+
+    # create the test data for keras
+    test.x <- data.matrix(test_data_DT[, -(1:2)])
+    test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
+
+    return(list(train.x = train.x, train.y = train.y, test.x = test.x, test.y = test.y))
 }

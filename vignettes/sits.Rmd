@@ -147,21 +147,21 @@ For handling time series, the package uses a `sits tibble` to organize time seri
 
 ```{r}
 # data set of samples
-data(samples_mt_6bands)
-samples_mt_6bands[1:3,]
+data(samples_mt_4bands)
+samples_mt_4bands[1:3,]
 ```
 
 A `sits tibble` contains data and metadata. The first six columns contain the metadata: spatial and temporal information, label assigned to the sample, and the data cube from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Cerrado, at location ($-58.5631$, $-13.8844$), and is considered valid for the period (2007-09-14, 2008-08-28). Informing the dates where the label is valid is crucial for correct classification. In this case, the researchers involved in labeling the samples chose to use the agricultural calendar in Brazil, where the spring crop is planted in the months of September and October, and the autumn crop is planted in the months of February and March. For other applications and other countries, the relevant dates will most likely be different from those used in the example. The `time_series` column contains the time series data for each spatiotemporal location. This data is also organized as a tibble, with a column with the dates and the other columns with the values for each spectral band. 
 
 ```{r}
 # print the first time series records of the first sample
-sits_time_series(samples_mt_6bands[1,])[1:3,]
+sits_time_series(samples_mt_4bands[1,])[1:3,]
 ```
 
 The `sits` package provides functions for data manipulation and displaying information for `sits` tibbles. For example, `sits_labels()` shows the labels of the sample set and their frequencies.
 
 ```{r}
-sits_labels(samples_mt_6bands)
+sits_labels(samples_mt_4bands)
 ```
 
 In many cases, it is useful to relabel the data set. For example, there may be situations when one wants to use a smaller set of labels, since samples in one label on the original set may not be distinguishable from samples with other labels. We then could use `sits_relabel()`, which requires a conversion list (for details, see `?sits_relabel`).
@@ -170,7 +170,7 @@ Given that we have used the tibble data format for the metadata and and the embe
 
 ```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 'Cerrado' sample from data set" }
 # select NDVI band
-samples_ndvi.tb <- sits_select_bands(samples_mt_6bands, ndvi)
+samples_ndvi.tb <- sits_select_bands(samples_mt_4bands, ndvi)
 # select only samples with Cerrado label
 samples_cerrado.tb <-
     dplyr::filter(samples_ndvi.tb, label == "Cerrado")
@@ -326,13 +326,12 @@ When a dataset of time series organised as a SITS tibble is taken as input to th
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
 
 #select the data for classification
-mato_grosso_4bands  <- sits_select_bands(samples_mt_6bands, ndvi, evi, nir, mir)
 
 # get a point to be classified
 point_mt_4bands <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 
 # Train a machine learning model for the mato grosso dataset using Random Forest
-model <- sits_train(data = mato_grosso_4bands, ml_method = sits_rfor())
+model <- sits_train(data = samples_mt_4bands, ml_method = sits_rfor())
 
 # Classify using random forest model and plot the result
 class.tb <- sits_classify(point_mt_4bands, model)

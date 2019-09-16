@@ -63,7 +63,7 @@ For the machine learning examples, we use a data set containing a sits tibble wi
 
 ```{r, include = FALSE}
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-mato_grosso_2bands  <- sits_select_bands(samples_mt_6bands, ndvi, evi)
+mato_grosso_2bands  <- sits_select_bands(samples_mt_4bands, ndvi, evi)
 
 # get a point to be classified
 point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)

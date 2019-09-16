@@ -1,8 +1,7 @@
 context("Classification of time series")
 test_that("Classify a time series with random forest", {
     #skip_on_cran()
-    data(samples_mt_ndvi)
-    data(point_ndvi)
+    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
     model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
 
     expect_type(model, "closure")
@@ -18,6 +17,7 @@ test_that("Classify a time series with random forest", {
 })
 test_that("Classify time series with TWDTW method", {
     #skip_on_cran()
+    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
     patterns.tb <- sits_patterns(samples_mt_ndvi)
     point_mt_ndvi <- sits_select_bands(point_mt_6bands, ndvi)
     matches <- sits_twdtw_classify(point_mt_ndvi, patterns.tb, bands = "ndvi",
@@ -28,8 +28,8 @@ test_that("Classify time series with TWDTW method", {
 })
 
 test_that("Classify error bands 1", {
-    data(point_mt_6bands)
-    data(samples_mt_ndvi)
+
+    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
 
     model <- sits_train(samples_mt_ndvi, sits_svm())
     point.tb <- sits_select_bands(point_mt_6bands, evi)

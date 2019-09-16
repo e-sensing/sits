@@ -19,25 +19,12 @@ library(sits)
 #  cube (the name of the cube associated with the data),
 #  time_series (list containing a tibble with the values of the time series).
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#select the bands for classification
-if (!requireNamespace("inSitu", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE))
-        install.packages("devtools")
-    devtools::install_github("e-sensing/inSitu")
-}
-library(inSitu)
-
-#select the bands for classification
-samples_mt <- inSitu::br_mt_1_8K_9classes_6bands
-
-# select NDVI, EVI, NIR and MIR
-samples <- sits_select_bands(samples_mt, ndvi, evi, nir, mir)
 
 # create a list to store the results
 results <- list()
 
 ## SVM model
-conf_svm.tb <- sits_kfold_validate(samples, folds = 4, multicores = 2,
+conf_svm.tb <- sits_kfold_validate(samples_mt_4bands, folds = 4, multicores = 2,
                                    ml_method = sits_svm(kernel = "radial", cost = 10))
 
 print("== Confusion Matrix = SVM =======================")
@@ -48,7 +35,7 @@ conf_svm.mx$name <- "svm_10"
 results[[length(results) + 1]] <- conf_svm.mx
 
 # Deep Learning
-conf_dl.tb <- sits_kfold_validate(samples, folds = 4, multicores = 2,
+conf_dl.tb <- sits_kfold_validate(samples_mt_4bands, folds = 4, multicores = 2,
                                   ml_method = sits_deeplearning( layers = c(512, 512, 512),
                                                                  activation       = 'elu',
                                                                  dropout_rates    = c(0.50, 0.40, 0.30),
@@ -67,7 +54,7 @@ results[[length(results) + 1]] <- conf_dl.mx
 
 # =============== RFOR ==============================
 
-conf_rfor.tb <- sits_kfold_validate(samples, folds = 4, multicores = 1,
+conf_rfor.tb <- sits_kfold_validate(samples_mt_4bands, folds = 4, multicores = 1,
                                     ml_method = sits_rfor(num.trees = 5000))
 print("== Confusion Matrix = RFOR =======================")
 conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
@@ -78,7 +65,7 @@ results[[length(results) + 1]] <- conf_rfor.mx
 
 
 # =============== LDA ==============================
-conf_lda.tb <- sits_kfold_validate(samples, folds = 4, multicores = 2,
+conf_lda.tb <- sits_kfold_validate(samples_mt_4bands, folds = 4, multicores = 2,
                                    ml_method = sits_lda())
 
 print("== Confusion Matrix = LDA =======================")
@@ -90,7 +77,7 @@ results[[length(results) + 1]] <- conf_lda.mx
 
 # =============== MLR ==============================
 # "multinomial log-linear (mlr)
-conf_mlr.tb <- sits_kfold_validate(samples, folds = 4, multicores = 2,
+conf_mlr.tb <- sits_kfold_validate(samples_mt_4bands, folds = 4, multicores = 2,
                                    ml_method = sits_mlr())
 
 # print the accuracy of the Multinomial log-linear
@@ -103,6 +90,6 @@ results[[length(results) + 1]] <- conf_mlr.mx
 
 WD = getwd()
 
-sits_to_xlsx(results, file = paste0(WD, "/accuracy_cerrado.xlsx"))
+sits_to_xlsx(results, file = paste0(WD, "/accuracy_mt_samples.xlsx"))
 
 

@@ -1,8 +1,7 @@
 context("Config")
 
 test_that("NDWI", {
-    data (samples_mt_6bands)
-    ndwi.tb <- sits_ndwi(samples_mt_6bands)
+    ndwi.tb <- sits_ndwi(samples_mt_4bands)
 
     expect_true("ndwi" %in% names(ndwi.tb$time_series[[1]]))
 })

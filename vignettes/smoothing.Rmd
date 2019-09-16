@@ -145,10 +145,10 @@ library(dtwclust)
 # Retrieve the data for the Mato Grosso state
 
 # select the bands "ndvi", "evi"
-samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
+samples_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
 
-#select a xgboost model
-xgb_model <- sits_train(samples_2bands, ml_method = sits_xgboost())
+#select a rfor model
+rfor_model <- sits_train(samples_2bands, ml_method = sits_rfor())
 
 # Classify a raster file with 23 instances for one year
 # select the bands "ndvi", "evi" from the "inSitu" package

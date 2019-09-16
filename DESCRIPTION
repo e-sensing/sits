@@ -53,7 +53,6 @@ Imports:
     keras,
     kohonen,
     imputeTS,
-    inSitu,
     log4r,
     lubridate,
     MASS,
@@ -91,8 +90,7 @@ Suggests:
     rmarkdown,
     testthat
 Remotes: 
-    e-sensing/EOCubes,
-    e-sensing/inSitu
+    e-sensing/EOCubes
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp
