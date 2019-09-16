@@ -258,44 +258,12 @@ point_whit %>%
   sits_merge(point_ndvi) %>% 
   sits_plot()
 ```
-# Clustering for sample quality control
 
-One of the key challenges of machine learning classification models is assessing the quality of the training data sets. It is useful to apply pre-processing methods to improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Good samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM). Full details of the cluster methods used in SITS are available in the vignette 'Clustering of Satellite Image Time Series with SITS'.
+# Clustering for sample quality control using self-organizing maps
 
-## Hierarchical clustering
+One of the key challenges of machine learning classification models is assessing the quality of the training data sets. It is useful to apply pre-processing methods to improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Good samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM).  In what follows, we briefly describe the use of SOM for clustering, which is applicable for large data sets such as those used in machine learing. Full details of the cluster methods used in SITS are available in the vignette 'Clustering of Satellite Image Time Series with SITS'.
 
-Agglomerative hierarchical clustering (AHC) is a method that computes the dissimilarity between any two elements from a data set and builds a dendrogram, which is useful to decide the number of clusters to partition the data. In `sits`, AHC is implemented by the `sits_cluster_dendro` function, which generates a dendrogram and then determines a possible best cut using the *Adjusted Rand Index* (ARI). Based on this cut, it generates a set of clusters. The cluster information is appended as an additional column of the tibble, called "cluster". 
-
-```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
-# take a set of patterns for 2 classes
-# create a dendrogram object, plot, and get the optimal cluster based on ARI index
-clusters.tb <- sits_cluster_dendro(cerrado_2classes, bands = c("ndvi", "evi"))
-# show clusters samples frequency
-sits_cluster_frequency(clusters.tb)
-```
-
-After the clusters have been determined, the function `sits_cluster_frequency()` shows how the samples are distributed across the clusters. It helps to identify two problems: (a) small amount of samples in clusters dominated by another class (*e.g.* clusters $1$, $2$, $4$, $5$, and $6$); and (b) samples in mixed  clusters (*e.g.* cluster $3$). It is possible to remove clusters with mixed classes using standard `R` fucntions such as those in the `dplyr` package. In the example above, removing cluster $3$ can be done using the `dplyr::filter` function.
-
-```{r}
-# remove cluster 3 from the samples
-clusters_new.tb <- dplyr::filter(clusters.tb, cluster != 3)
-
-# show new clusters samples frequency
-sits_cluster_frequency(clusters_new.tb)
-```
-
-The resulting clusters still contain mixed labels, possibly resulting from outliers. In this case, users may want to remove the outliers and leave only the most frequent class. To do this, one can use `sits_cluster_clean()`, which removes all minority samples, as shown below. The resulting set of samples can be used for classification, as discussed in the "machine learning" section.
-
-```{r}
-# clear clusters, leaving only the majority class in each cluster
-cleaned.tb <- sits_cluster_clean(clusters_new.tb)
-# show clusters samples frequency
-sits_cluster_frequency(cleaned.tb)
-```
-
-## Self-organizing maps
-
-As an alternative for hierachical clustering for quality control of training samples, SITS provides a clustering technique based on self-organizing maps (SOM). SOM is a dimensionality reduction technique [@Kohonen2001], where high-dimensional data is mapped into two dimensions, keeping the topological relations between data patterns. The input data is a set of tranining samples which are typically of a high-dimension. For example, a time series of 25 instances of 4 spectral bands is a 100-dimensional data set. The output layer is a 2D grid of neurons, each associated to a weight vector of the same dimension as the input space. The general idea of SOM-based clustering is that, by projecting the high-dimensional data set of training samples into a 2D map, good quality samples of each class should be close together in the resulting map. SITS provides the convenience function `sits_cluster_som` to perform clustering using SOM, This function uses self-organized maps to find clusters in satellite image time series for quality control of the  samples. 
+Self-organizing maps (SOM) is a dimensionality reduction technique [@Kohonen2001], where high-dimensional data is mapped into two dimensions, keeping the topological relations between data patterns. The input data is a set of tranining samples which are typically of a high-dimension. For example, a time series of 25 instances of 4 spectral bands is a 100-dimensional data set. The output layer is a 2D grid of neurons, each associated to a weight vector of the same dimension as the input space. The general idea of SOM-based clustering is that, by projecting the high-dimensional data set of training samples into a 2D map, good quality samples of each class should be close together in the resulting map. SITS provides the convenience function `sits_cluster_som` to perform clustering using SOM, This function uses self-organized maps to find clusters in satellite image time series for quality control of the  samples. 
 
 ```{r}
 # clustering time series using SOM
@@ -354,6 +322,7 @@ The following methods are available in SITS for training machine learning models
 * DL with 1D convolutional neural networks (`sits_CNN`), 
 * DL combining 1D CNN and multi-layer perceptron networks (`sits_tempCNN`)
 * DL using 1D version of ResNet (`sits_ResNet`).
+* DL using a combination of long-short term memory (LSTM) and 1D CNN (`sits_LSTM_FCN`)
 
 For more details on each method, please see the vignette "Machine Learning for Data Cubes using the SITS package". 
 
@@ -370,7 +339,7 @@ A natural question that arises is: *how good is this estimation?* According to @
 ```{r}
 # perform a five fold validation for the "cerrado_2classes" data set
 # XGBoost machine learning method using default parameters
-prediction.mx <- sits_kfold_validate(cerrado_2classes, folds = 5, ml_method = sits_xgboost())
+prediction.mx <- sits_kfold_validate(cerrado_2classes, folds = 5, ml_method = sits_rfor())
 # prints the output confusion matrix and statistics 
 sits_conf_matrix(prediction.mx)
 ```
@@ -405,7 +374,7 @@ mato_grosso_samples <- inSitu::br_mt_1_8K_9classes_6bands
 mato_grosso_2bands  <- sits_select_bands(mato_grosso_samples, ndvi, evi)
 
 # build a machine learning model for this area
-xbg_model <- sits_train(mato_grosso_2bands, sits_xgboost())
+xbg_model <- sits_train(mato_grosso_2bands, sits_rfor())
 
 # Use the raster cube created in the section "Defining a data cube using files" above
 # Classify the raster cube, generating a probability file

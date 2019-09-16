@@ -29,7 +29,7 @@ samples <- inSitu::amazonia_33K_12classes_4bands
 results <- list()
 
 ## SVM model
-conf_svm.tb <- sits_kfold_validate(samples, folds = 5, multicores = 32,
+conf_svm.tb <- sits_kfold_validate(samples, folds = 5, multicores = 1,
                                    ml_method = sits_svm(kernel = "radial", cost = 10))
 
 print("== Confusion Matrix = SVM =======================")
