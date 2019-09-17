@@ -25,13 +25,13 @@ library(inSitu)
 #select the bands for classification
 samples <- inSitu::amazonia_33K_12classes_4bands
 
-samples_amaz <- sits_select_bands(samples, ndvi, evi, nir, mir)
+samples_amz <- sits_select_bands(samples, ndvi, evi, nir, mir)
 
 # create a list to store the results
 results <- list()
 
 ## SVM model
-conf_svm.tb <- sits_kfold_validate(samples_amaz, folds = 5, multicores = 32,
+conf_svm.tb <- sits_kfold_validate(samples_amz, folds = 5, multicores = 1,
                                    ml_method = sits_svm(kernel = "radial", cost = 10))
 
 print("== Confusion Matrix = SVM =======================")
@@ -43,8 +43,8 @@ results[[length(results) + 1]] <- conf_svm.mx
 
 # =============== RFOR ==============================
 
-conf_rfor.tb <- sits_kfold_validate(samples_amaz, folds = 5, multicores = 1,
-                                    ml_method = sits_rfor(num.trees = 5000))
+conf_rfor.tb <- sits_kfold_validate(samples_amz, folds = 5, multicores = 1,
+                                    ml_method = sits_rfor(num_trees = 5000))
 print("== Confusion Matrix = RFOR =======================")
 conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
 conf_rfor.mx$name <- "rfor_5000"
@@ -53,7 +53,7 @@ results[[length(results) + 1]] <- conf_rfor.mx
 
 # =============== MLR ==============================
 # "multinomial log-linear (mlr)
-conf_mlr.tb <- sits_kfold_validate(samples_amaz, folds = 5, multicores = 32,
+conf_mlr.tb <- sits_kfold_validate(samples_amz, folds = 5, multicores = 32,
                                    ml_method = sits_mlr())
 
 # print the accuracy of the Multinomial log-linear
@@ -64,8 +64,8 @@ conf_mlr.mx$name <- "mlr"
 results[[length(results) + 1]] <- conf_mlr.mx
 
 # Deep Learning - MLP
-conf_dl.tb <- sits_kfold_validate(samples_amaz, folds = 5, multicores = 32,
-                                  ml_method = sits_deeplearning(verbose = 0))
+conf_dl.tb <- sits_kfold_validate(samples_amz, folds = 5, multicores = 32,
+                                  ml_method = sits_deeplearning(verbose = 0, patience = ))
 
 print("== Confusion Matrix = DL =======================")
 conf_dl.mx <- sits_conf_matrix(conf_dl.tb)
@@ -76,7 +76,7 @@ results[[length(results) + 1]] <- conf_dl.mx
 
 
 # Deep Learning - MLP - 3 layers
-conf_dl3.tb <- sits_kfold_validate(samples_amaz, folds = 5, multicores = 32,
+conf_dl3.tb <- sits_kfold_validate(samples_amz, folds = 5, multicores = 32,
                                   ml_method = sits_deeplearning(layers = c(512, 512, 512),
                                                                 dropout_rates    = c(0.50, 0.40, 0.30),
                                                                 verbose = 0))
@@ -90,7 +90,7 @@ results[[length(results) + 1]] <- conf_dl3.mx
 
 
 # Deep Learning - FCN
-conf_fcn.tb <- sits_kfold_validate(samples_amaz, folds = 5, multicores = 32,
+conf_fcn.tb <- sits_kfold_validate(samples_amz, folds = 5, multicores = 32,
                                   ml_method = sits_FCN(verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
@@ -101,7 +101,7 @@ conf_fcn.mx$name <- "fcn_default"
 results[[length(results) + 1]] <- conf_fcn.mx
 
 # Deep Learning - FCN
-conf_fcn853.tb <- sits_kfold_validate(samples_amaz, folds = 5, multicores = 32,
+conf_fcn853.tb <- sits_kfold_validate(samples_amz, folds = 5, multicores = 32,
                                    ml_method = sits_FCN(kernels = c(8, 5, 3),verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
@@ -112,7 +112,7 @@ conf_fcn853.mx$name <- "fcn_853"
 results[[length(results) + 1]] <- conf_fcn853.mx
 
 # Deep Learning - ResNet
-conf_rn.tb <- sits_kfold_validate(samples_amaz, folds = 5, multicores = 32,
+conf_rn.tb <- sits_kfold_validate(samples_amz, folds = 5, multicores = 32,
                                       ml_method = sits_ResNet(verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
@@ -123,7 +123,7 @@ conf_rn.mx$name <- "ResNet"
 results[[length(results) + 1]] <- conf_rn.mx
 
 # Deep Learning - TempCNN
-conf_tc.tb <- sits_kfold_validate(samples_amaz, folds = 5, multicores = 32,
+conf_tc.tb <- sits_kfold_validate(samples_amz, folds = 5, multicores = 32,
                                   ml_method = sits_TempCNN(verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
@@ -136,7 +136,7 @@ results[[length(results) + 1]] <- conf_tc.mx
 WD = getwd()
 
 # Deep Learning - LSTM
-conf_lc.tb <- sits_kfold_validate(samples_amaz, folds = 5, multicores = 32,
+conf_lc.tb <- sits_kfold_validate(samples_amz, folds = 5, multicores = 32,
                                   ml_method = sits_LSTM_FCN(verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
