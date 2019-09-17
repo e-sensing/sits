@@ -16,7 +16,7 @@
 #' data(cerrado_2classes)
 #'  # obtain a DL model
 #' dl_model <- sits_train(cerrado_2classes,
-#'      sits_deeplearning(units = c(512, 512), dropout_rates = c(0.45, 0.25), epochs = 100))
+#'      sits_deeplearning(layers = c(512, 512), dropout_rates = c(0.45, 0.25), epochs = 100))
 #' # run the keras diagnostics
 #' sits_keras_diagnostics(dl_model)
 #' }
@@ -65,7 +65,6 @@ sits_keras_diagnostics <- function(dl_model) {
 #'                          The validation data is selected from the last samples in the x and y data provided,
 #'                          before shuffling.
 #' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
-#' @param patience          Number of epochs with no improvement after which training will be stopped.
 #' @param binary_classification A lenght-one logical indicating if this is a binary classification. If it is so,
 #'                          the number of unique labels in the training data must be two as well.
 #'
@@ -76,7 +75,7 @@ sits_keras_diagnostics <- function(dl_model) {
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_mt_4bands, sits_deeplearning())
+#' dl_model <- sits_train (samples_mt_4bands, sits_deeplearning(epochs = 150))
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
@@ -93,7 +92,6 @@ sits_deeplearning <- function(data          = NULL,
                               batch_size       = 128,
                               validation_split = 0.2,
                               verbose          = 1,
-                              patience         = 30,
                               binary_classification = FALSE) {
     # backward compatibility
     if ("coverage" %in% names(data))
@@ -109,26 +107,12 @@ sits_deeplearning <- function(data          = NULL,
         ensurer::ensure_that(activation, (.) %in% valid_activations,
                              err_desc = "sits_deeplearning: invalid node activation method")
 
-        # data normalization
-        stats <- .sits_normalization_param(data)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
-
-        # is the train data correct?
-        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
-                             err_desc = "sits_deeplearning: input data does not contain distances")
-
-
         # get the labels of the data
         labels <- sits_labels(data)$label
-
-        # create a named vector with integers match the class labels
         n_labels <- length(labels)
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
 
         # create the train and test datasets for keras
-
-        keras.data <- .sits_dl_prepare_data(data, validation_split)
+        keras.data <- .sits_dl_prepare_data(data, validation_split = validation_split, type = "MLP")
         train.x <- keras.data$train.x
         train.y <- keras.data$train.y
         test.x  <- keras.data$test.x
@@ -172,8 +156,7 @@ sits_deeplearning <- function(data          = NULL,
             train.x, train.y,
             epochs = epochs, batch_size = batch_size,
             validation_data = list(test.x, test.y),
-            verbose = verbose, view_metrics = "auto",
-            callbacks = keras::callback_early_stopping(mode = "min", patience = patience)
+            verbose = verbose, view_metrics = "auto"
         )
 
         # show training evolution
@@ -256,7 +239,7 @@ sits_deeplearning <- function(data          = NULL,
 #' cnn_model <- sits_train (samples_mt_4bands, sits_FCN())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 #' class.tb <- sits_classify(point.tb, cnn_model)
 #' sits_plot(class.tb)
 #' }
@@ -285,52 +268,20 @@ sits_FCN <- function(data         = NULL,
         ensurer::ensure_that(activation, all(. %in% valid_activations),
                              err_desc = "sits_FCN: invalid CNN activation method")
 
-        # data normalization
-        stats <- .sits_normalization_param(data)
-        # obtain the distances used for training and test
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
-
-        # is the input data consistent?
-        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
-                             err_desc = "sits_CNN: input data does not contain distances")
-
         # get the labels of the data
         labels <- sits_labels(data)$label
-
-        # create a named vector with integers match the class labels
         n_labels <- length(labels)
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
 
         # number of bands and number of samples
         n_bands <- length(sits_bands(data))
         n_timesteps <- nrow(sits_time_series(data[1,]))
 
-        # split the data into training and validation data sets
-        # create partitions different splits of the input data
-        test_data_DT <- .sits_sample_distances(train_data_DT, frac = validation_split)
-
-        # remove the lines used for validation
-        train_data_DT <- train_data_DT[!test_data_DT, on = "original_row"]
-
-        # shuffle the data
-        train_data_DT <- train_data_DT[sample(nrow(train_data_DT), nrow(train_data_DT)),]
-        test_data_DT  <- test_data_DT[sample(nrow(test_data_DT), nrow(test_data_DT)),]
-
-        # organize training and test data
-        # tranform the training data into a 3D array
-        n_samples_train <- nrow(train_data_DT)
-        train.x <- array(data = as.matrix(train_data_DT[,3:ncol(train_data_DT)]),
-                         dim = c(n_samples_train, n_timesteps, n_bands))
-        # the training labels are stored as a 1D array
-        train.y <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
-
-        # tranform the test data into a 3D array
-        n_samples_test <- nrow(test_data_DT)
-        test.x <- array(data = as.matrix(test_data_DT[,3:ncol(test_data_DT)]),
-                        dim = c(n_samples_test, n_timesteps, n_bands))
-        # the test labels are stored as a 1D array
-        test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
+        # create the train and test datasets for keras
+        keras.data <- .sits_dl_prepare_data(data, validation_split = validation_split, type = "1DCNN")
+        train.x <- keras.data$train.x
+        train.y <- keras.data$train.y
+        test.x  <- keras.data$test.x
+        test.y  <- keras.data$test.y
 
         # build the model step by step
         # create the input_tensor for 1D convolution
@@ -463,14 +414,13 @@ sits_FCN <- function(data         = NULL,
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_2bands, sits_ResNet())
+#' rn_model <- sits_train (samples_mt_4bands, sits_ResNet(epochs = 75))
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
-#' class.tb <- sits_classify(point.tb, dl_model)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' class.tb <- sits_classify(point.tb, rn_model)
 #' sits_plot(class.tb)
 #' }
 #' @export
@@ -498,52 +448,20 @@ sits_ResNet <- function(data              = NULL,
         ensurer::ensure_that(kernels, length(.) == 3,
                              err_desc = "sits_ResNet: should inform size of three kernels")
 
-        # data normalization
-        stats <- .sits_normalization_param(data)
-        # obtain the distances used for training and test
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
-
-        # is the input data consistent?
-        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
-                             err_desc = "sits_ResNet: input data does not contain distances")
-
         # get the labels of the data
         labels <- sits_labels(data)$label
-
-        # create a named vector with integers match the class labels
         n_labels <- length(labels)
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
 
         # number of bands and number of samples
         n_bands <- length(sits_bands(data))
         n_timesteps <- nrow(sits_time_series(data[1,]))
 
-        # split the data into training and validation data sets
-        # create partitions different splits of the input data
-        test_data_DT <- .sits_sample_distances(train_data_DT, frac = validation_split)
-
-        # remove the lines used for validation
-        train_data_DT <- train_data_DT[!test_data_DT, on = "original_row"]
-
-        # shuffle the data
-        train_data_DT <- train_data_DT[sample(nrow(train_data_DT), nrow(train_data_DT)),]
-        test_data_DT  <- test_data_DT[sample(nrow(test_data_DT), nrow(test_data_DT)),]
-
-        # organize training and test data
-        # tranform the training data into a 3D array
-        n_samples_train <- nrow(train_data_DT)
-        train.x <- array(data = as.matrix(train_data_DT[,3:ncol(train_data_DT)]),
-                         dim = c(n_samples_train, n_timesteps, n_bands))
-        # the training labels are stored as a 1D array
-        train.y <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
-
-        # tranform the test data into a 3D array
-        n_samples_test <- nrow(test_data_DT)
-        test.x <- array(data = as.matrix(test_data_DT[,3:ncol(test_data_DT)]),
-                        dim = c(n_samples_test, n_timesteps, n_bands))
-        # the test labels are stored as a 1D array
-        test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
+        # create the train and test datasets for keras
+        keras.data <- .sits_dl_prepare_data(data, validation_split = validation_split, type = "1DCNN")
+        train.x <- keras.data$train.x
+        train.y <- keras.data$train.y
+        test.x  <- keras.data$test.x
+        test.y  <- keras.data$test.y
 
         # build the model step by step
         # create the input_tensor for 1D convolution
@@ -698,14 +616,13 @@ sits_ResNet <- function(data              = NULL,
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_2bands, sits_TempCNN())
+#' tc_model <- sits_train (samples_mt_4bands, sits_TempCNN(epochs = 75))
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
-#' class.tb <- sits_classify(point.tb, dl_model)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' class.tb <- sits_classify(point.tb, tc_model)
 #' sits_plot(class.tb)
 #' }
 #' @export
@@ -730,17 +647,9 @@ sits_TempCNN <- function(data                 = NULL,
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){
-        # data normalization
-        stats <- .sits_normalization_param(data)
-        # obtain the distances used for training and test
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
 
+        # pre-conditions
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
-
-        # is the input data consistent?
-        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
-                             err_desc = "sits_tempCNN: input data does not contain distances")
-
         ensurer::ensure_that(cnn_layers, length(.) == length(cnn_kernels),
                              err_desc = "sits_tempCNN: number of 1D layers must match number of 1D kernel sizes")
         ensurer::ensure_that(cnn_layers, length(.) == length(cnn_dropout_rates),
@@ -756,41 +665,18 @@ sits_TempCNN <- function(data                 = NULL,
 
         # get the labels of the data
         labels <- sits_labels(data)$label
-
-        # create a named vector with integers match the class labels
         n_labels <- length(labels)
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
 
         # number of bands and number of samples
         n_bands <- length(sits_bands(data))
         n_timesteps <- nrow(sits_time_series(data[1,]))
 
-        # split the data into training and validation data sets
-        # create partitions different splits of the input data
-        test_data_DT <- .sits_sample_distances(train_data_DT, frac = validation_split)
-
-        # remove the lines used for validation
-        train_data_DT <- train_data_DT[!test_data_DT, on = "original_row"]
-
-        # shuffle the data
-        train_data_DT <- train_data_DT[sample(nrow(train_data_DT), nrow(train_data_DT)),]
-        test_data_DT  <- test_data_DT[sample(nrow(test_data_DT), nrow(test_data_DT)),]
-
-        # organize training and test data
-        # tranform the training data into a 3D array
-        n_samples_train <- nrow(train_data_DT)
-        train.x <- array(data = as.matrix(train_data_DT[,3:ncol(train_data_DT)]),
-                         dim = c(n_samples_train, n_timesteps, n_bands))
-        # the training labels are stored as a 1D array
-        train.y <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
-
-        # tranform the test data into a 3D array
-        n_samples_test <- nrow(test_data_DT)
-        test.x <- array(data = as.matrix(test_data_DT[,3:ncol(test_data_DT)]),
-                        dim = c(n_samples_test, n_timesteps, n_bands))
-        # the test labels are stored as a 1D array
-        test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
+        # create the train and test datasets for keras
+        keras.data <- .sits_dl_prepare_data(data, validation_split = validation_split, type = "1DCNN")
+        train.x <- keras.data$train.x
+        train.y <- keras.data$train.y
+        test.x  <- keras.data$test.x
+        test.y  <- keras.data$test.y
 
         # build the model step by step
         # create the input_tensor for 1D convolution
@@ -921,13 +807,12 @@ sits_TempCNN <- function(data                 = NULL,
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # Build a machine learning model based on deep learning
-#' lstm_cnn_model <- sits_train (samples_2bands, sits_LSTM_FCN())
+#' lstm_cnn_model <- sits_train (samples_mt_4bands, sits_LSTM_FCN())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 #' class.tb <- sits_classify(point.tb, lstm_cnn_model)
 #' sits_plot(class.tb)
 #' }
@@ -950,16 +835,9 @@ sits_LSTM_FCN <- function(data                =  NULL,
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){
-        # data normalization
-        stats <- .sits_normalization_param(data)
-        # obtain the distances used for training and test
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
 
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
-
         # is the input data consistent?
-        ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
-                             err_desc = "sits_LSTM_FCN: input data does not contain distances")
 
         ensurer::ensure_that(cnn_layers, length(.) == length(cnn_kernels),
                              err_desc = "sits_LSTM_FCN: number of 1D CNN layers must match number of 1D kernels")
@@ -969,41 +847,19 @@ sits_LSTM_FCN <- function(data                =  NULL,
 
         # get the labels of the data
         labels <- sits_labels(data)$label
-
-        # create a named vector with integers match the class labels
         n_labels <- length(labels)
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
 
         # number of bands and number of samples
         n_bands <- length(sits_bands(data))
         n_timesteps <- nrow(sits_time_series(data[1,]))
 
-        # split the data into training and validation data sets
-        # create partitions different splits of the input data
-        test_data_DT <- .sits_sample_distances(train_data_DT, frac = validation_split)
 
-        # remove the lines used for validation
-        train_data_DT <- train_data_DT[!test_data_DT, on = "original_row"]
-
-        # shuffle the data
-        train_data_DT <- train_data_DT[sample(nrow(train_data_DT), nrow(train_data_DT)),]
-        test_data_DT  <- test_data_DT[sample(nrow(test_data_DT), nrow(test_data_DT)),]
-
-        # organize training and test data
-        # tranform the training data into a 3D array
-        n_samples_train <- nrow(train_data_DT)
-        train.x <- array(data = as.matrix(train_data_DT[,3:ncol(train_data_DT)]),
-                         dim = c(n_samples_train, n_timesteps, n_bands))
-        # the training labels are stored as a 1D array
-        train.y <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
-
-        # tranform the test data into a 3D array
-        n_samples_test <- nrow(test_data_DT)
-        test.x <- array(data = as.matrix(test_data_DT[,3:ncol(test_data_DT)]),
-                        dim = c(n_samples_test, n_timesteps, n_bands))
-        # the test labels are stored as a 1D array
-        test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
+        # create the train and test datasets for keras
+        keras.data <- .sits_dl_prepare_data(data, validation_split = validation_split, type = "1DCNN")
+        train.x <- keras.data$train.x
+        train.y <- keras.data$train.y
+        test.x  <- keras.data$test.x
+        test.y  <- keras.data$test.y
 
         # build the model step by step
         # create the input_tensor for 1D convolution
@@ -1091,7 +947,29 @@ sits_LSTM_FCN <- function(data                =  NULL,
     return(result)
 }
 
-.sits_dl_prepare_data <- function(data, validation_split){
+#' @title Prepare data for keras model training
+#' @name .sits_dl_prepare_data
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a training set organised as a SITS tibble, prepare
+#' the data for keras training, providing test and training data, distinguishing
+#' between MLP and 1DCNN models
+#'
+#' @param data              Time series with the training samples.
+#' @param validation_split  Number between 0 and 1. Fraction of the training data to be used as validation data.
+#' @param type              Type of the model. Valid options are "MLP" for multi-layer perceptrons and
+#'                          "1DCNN" for 1D convolutional neural networks
+#' @return                  List with four elements (training data (X and Y) and test data (X and Y))
+#'
+.sits_dl_prepare_data <- function(data, validation_split = 0.2, type = "MLP"){
+    # pre-condition
+    ensurer::ensure_that(validation_split, (.) > 0.0 && (.) < 0.5,
+                         err_desc = ".sits_dl_prepare_data - invalid validation split")
+    valid_types <- c("MLP", "1DCNN")
+    ensurer::ensure_that(type, (.) %in% valid_types,
+                         err_desc = ".sits_dl_prepare_data - invalid type")
+
     # data normalization
     stats <- .sits_normalization_param(data)
     train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
@@ -1100,7 +978,6 @@ sits_LSTM_FCN <- function(data                =  NULL,
     ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
                          err_desc = "sits_deeplearning: input data does not contain distances")
 
-
     # get the labels of the data
     labels <- sits_labels(data)$label
 
@@ -1108,6 +985,10 @@ sits_LSTM_FCN <- function(data                =  NULL,
     n_labels <- length(labels)
     int_labels <- c(1:n_labels)
     names(int_labels) <- labels
+
+    # number of bands and number of samples
+    n_bands <- length(sits_bands(data))
+    n_timesteps <- nrow(sits_time_series(data[1,]))
 
     # split the data into training and validation data sets
     # create partitions different splits of the input data
@@ -1120,12 +1001,25 @@ sits_LSTM_FCN <- function(data                =  NULL,
     train_data_DT <- train_data_DT[sample(nrow(train_data_DT), nrow(train_data_DT)),]
     test_data_DT  <- test_data_DT[sample(nrow(test_data_DT), nrow(test_data_DT)),]
 
+    n_samples_train <- nrow(train_data_DT)
+    n_samples_test  <- nrow(test_data_DT)
+
     # organize data for model training
-    train.x <- data.matrix(train_data_DT[, -(1:2)])
+    if (type == "MLP")
+        train.x <- data.matrix(train_data_DT[, -(1:2)])
+    else
+        train.x <- array(data = as.matrix(train_data_DT[,3:ncol(train_data_DT)]),
+                         dim = c(n_samples_train, n_timesteps, n_bands))
+
     train.y <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
 
     # create the test data for keras
-    test.x <- data.matrix(test_data_DT[, -(1:2)])
+    if (type == "MLP")
+        test.x <- data.matrix(test_data_DT[, -(1:2)])
+    else
+        test.x <- array(data = as.matrix(test_data_DT[,3:ncol(test_data_DT)]),
+                        dim = c(n_samples_test, n_timesteps, n_bands))
+
     test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
 
     return(list(train.x = train.x, train.y = train.y, test.x = test.x, test.y = test.y))

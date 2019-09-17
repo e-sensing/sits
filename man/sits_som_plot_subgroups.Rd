@@ -4,12 +4,12 @@
 \alias{sits_som_plot_subgroups}
 \title{Plot the patterns of SOM subgroups (only NDVI and EVI time series)}
 \usage{
-sits_som_plot_subgroups(subgroups, label, band = "ndvi")
+sits_som_plot_subgroups(subgroups, class_name, band = "ndvi")
 }
 \arguments{
 \item{subgroups}{The list contain the EVI and NDVI time series (weight of each neuron) by class.}
 
-\item{label}{Label to be plotted}
+\item{class_name}{Name of the generic class to be plotted}
 
 \item{band}{Band to be plotted}
 }
@@ -25,7 +25,7 @@ som_cluster <- sits_som_map(prodes_226_064)
 # Evaluate and produce information on the subgroups
 subgroups <- sits_som_evaluate_subgroups(som_cluster)
 # Plot the resulting subgroups
-sits_som_plot_subgroups(subgroups, cluster = "Forest", band = "ndvi")
+sits_som_plot_subgroups(subgroups, class_name = "Forest", band = "ndvi")
 }
 
 }

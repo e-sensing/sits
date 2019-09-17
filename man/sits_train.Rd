@@ -36,7 +36,7 @@ a 1D version of ResNet \code{\link[sits]{sits_ResNet}}), and a combined LSTM-FCN
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 # find a training model based on the distances and default values (RFOR model)
 samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
-ml_model <- sits_train(samples_4bands, sits_rfor(num.trees = 1000))
+ml_model <- sits_train(samples_2bands, sits_rfor(num_trees = 1000))
 # get a point and classify the point with the ml_model
 point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 class.tb <- sits_classify(point.tb, ml_model)

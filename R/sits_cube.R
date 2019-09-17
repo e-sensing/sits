@@ -210,8 +210,9 @@ sits_cube <- function(service        = "BRICK",
 #' @param  samples           Samples used for training the classification model..
 #' @param  interval          Classification interval.
 #' @param  output_dir        Prefix of the output files.
+#' @param  version           Version of the output files
 #' @return A tibble with metadata about the output RasterLayer objects.
-.sits_cube_classified <- function(cube, samples, interval, output_dir){
+.sits_cube_classified <- function(cube, samples, interval, output_dir, version){
     # ensure metadata tibble exists
     ensurer::ensure_that(cube, NROW(.) > 0,
                          err_desc = ".sits_classify_cube: need a valid metadata for cube")
@@ -224,7 +225,8 @@ sits_cube <- function(service        = "BRICK",
     ref_end_date   <- lubridate::as_date(samples[1,]$end_date)
 
     # produce the breaks used to generate the output rasters
-    subset_dates <- sits_timeline_match(timeline, ref_start_date, ref_end_date, interval)
+    subset_dates <- sits_timeline_match(timeline = timeline, ref_start_date = ref_start_date,
+                                        ref_end_date = ref_end_date, interval = interval)
 
     # how many objects are to be created?
     n_objs <- length(subset_dates)
@@ -255,8 +257,10 @@ sits_cube <- function(service        = "BRICK",
                                        lubridate::as_date(timeline) <= end_date]
 
         # define the filename for the classified image
-        files[i] <- .sits_raster_filename(output_dir, cube$name, "probs", start_date, end_date)
-        bands[i] <- .sits_class_band_name(cube$name, "probs", start_date, end_date)
+        files[i] <- .sits_raster_filename(output_dir = output_dir, version = version, name = cube$name, type = "probs",
+                                          start_date = start_date, end_date = end_date)
+        bands[i] <- .sits_class_band_name(name = cube$name, type = "probs",
+                                          start_date = start_date, end_date = end_date)
     }
 
     params <- .sits_raster_params(.sits_cube_robj(cube))
@@ -288,8 +292,9 @@ sits_cube <- function(service        = "BRICK",
 #' @param  cube_probs        Tibble with metadata about the input data cube (probability).
 #' @param  smoothing         (optional) smoothing method to be applied ("none", "bayesian", "majority")
 #' @param  output_dir        Output directory where to put the files
+#' @param  version           Name of the version of the result
 #' @return A tibble with metadata about the output RasterLayer objects.
-.sits_cube_labelled <- function(cube_probs, smoothing, output_dir){
+.sits_cube_labelled <- function(cube_probs, smoothing, output_dir, version){
 
     # labels come from the input cube
     labels <- .sits_cube_labels(cube_probs)
@@ -322,8 +327,11 @@ sits_cube <- function(service        = "BRICK",
         end_date       <- timelines[[i]][length(timelines[[i]])]
 
         # # define the filename for the classified image
-        bands[i] <- .sits_class_band_name(cube_probs[1,]$name, type, start_date, end_date)
-        files[i] <- .sits_raster_filename(output_dir, cube_probs[1,]$name, type, start_date, end_date)
+        bands[i] <- .sits_class_band_name(name = cube_probs[1,]$name, type = type,
+                                          start_date = start_date, end_date = end_date)
+        files[i] <- .sits_raster_filename(output_dir = output_dir, version = version,
+                                          name = cube_probs[1,]$name, type = type,
+                                          start_date = start_date, end_date = end_date)
     }
 
 

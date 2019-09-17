@@ -5,8 +5,8 @@
 \title{Train a classification model using a multi-layer perceptron.}
 \usage{
 sits_deeplearning(data = NULL, layers = c(512, 512, 512, 512, 512),
-  activation = "elu", dropout_rates = c(0.5, 0.4, 0.35, 0.3, 0.2),
-  optimizer = keras::optimizer_adam(lr = 0.001), epochs = 500,
+  activation = "relu", dropout_rates = c(0.5, 0.45, 0.4, 0.35, 0.3),
+  optimizer = keras::optimizer_adam(lr = 0.001), epochs = 400,
   batch_size = 128, validation_split = 0.2, verbose = 1,
   binary_classification = FALSE)
 }
@@ -51,16 +51,12 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 
 # Build a machine learning model based on deep learning
-dl_model <- sits_train (samples_2bands,
-                        sits_deeplearning(layers = c(512, 512, 512),
-                                          dropout_rates = c(0.50, 0.40, 0.35),
-                                          epochs = 100))
+dl_model <- sits_train (samples_mt_4bands, sits_deeplearning(epochs = 150))
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 class.tb <- sits_classify(point.tb, dl_model)
 sits_plot(class.tb)
 }

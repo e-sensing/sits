@@ -40,11 +40,11 @@ Finally, the function applies a whitakker smoother.
 # This is an area full of clouds
 data(prodes_226_064)
 # Select the NDVI band of the first point
-point_ndvi<- sits_select_bands(prodes_226_064[1,], ndvi)
+point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
 # Apply the cloud filter
-point_cld <- sits_filter(point_ndvi.tb, sits_ndvi_arima())
+point_ar <- sits_filter(point_ndvi, sits_ndvi_arima())
 # Merge the filtered with the raw data
-point2 <- sits_merge (point_ndvi, point_cld)
+point2 <- sits_merge (point_ndvi, point_ar)
 # Plot the result
 sits_plot (point2)
 }

@@ -59,13 +59,12 @@ If you use this method, please cite the original paper.
 \examples{
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 
 # Build a machine learning model based on deep learning
-lstm_cnn_model <- sits_train (samples_2bands, sits_LSTM_FCN())
+lstm_cnn_model <- sits_train (samples_mt_4bands, sits_LSTM_FCN())
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 class.tb <- sits_classify(point.tb, lstm_cnn_model)
 sits_plot(class.tb)
 }

@@ -65,7 +65,7 @@ interval.
 
 ``` r
 # select the "ndvi" band
-samples_ndvi <- sits_select_bands(samples_mt_6bands, ndvi)
+samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
 # select only the samples with the cerrado label
 samples_cerrado <- dplyr::filter(samples_ndvi, 
                   label == "Cerrado")
@@ -192,8 +192,8 @@ raster_cube <- sits_cube(name = "Sinop", timeline = timeline_2013_2014, bands = 
 #> sensor information not provided - assuming MODIS
 # Classify the raster cube, generating a probability file
 probs_cube <- sits_classify(raster_cube, ml_model = xgb_model)
-#> Starting classification at 2019-09-15 16:01:21
-#> Classification finished at 2019-09-15 16:01:42. Total elapsed time: 0.3 minute(s).
+#> Starting classification at 2019-09-17 10:15:38
+#> Classification finished at 2019-09-17 10:15:55. Total elapsed time: 0.3 minute(s).
 
 # label the probability file (by default selecting the class with higher probability)
 # apply a bayesian smoothing to remove outliers

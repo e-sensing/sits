@@ -4,7 +4,7 @@
 \alias{.sits_cube_classified}
 \title{Create a set of RasterLayer objects to store data cube classification results (only the probs)}
 \usage{
-.sits_cube_classified(cube, samples, interval, output_dir)
+.sits_cube_classified(cube, samples, interval, output_dir, version)
 }
 \arguments{
 \item{cube}{Tibble with metadata about the input data cube.}
@@ -14,6 +14,8 @@
 \item{interval}{Classification interval.}
 
 \item{output_dir}{Prefix of the output files.}
+
+\item{version}{Version of the output files}
 }
 \value{
 A tibble with metadata about the output RasterLayer objects.

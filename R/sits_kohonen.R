@@ -1014,9 +1014,9 @@ sits_som_plot_clusters <- function(data, text_title = " Cluster ")
 #' Each neuron has a weight which can be represent a set of time series samples. Neurons of same
 #' category or label form a cluster, but the neurons within a cluster can have different patterns.
 #'
-#' @param  subgroups  The list contain the EVI and NDVI time series (weight of each neuron) by class.
-#' @param  label      Label to be plotted
-#' @param  band       Band to be plotted
+#' @param  subgroups       The list contain the EVI and NDVI time series (weight of each neuron) by class.
+#' @param  class_name      Name of the generic class to be plotted
+#' @param  band            Band to be plotted
 #' @examples
 #' \donttest{
 #' # Produce a cluster map
@@ -1024,14 +1024,13 @@ sits_som_plot_clusters <- function(data, text_title = " Cluster ")
 #' # Evaluate and produce information on the subgroups
 #' subgroups <- sits_som_evaluate_subgroups(som_cluster)
 #' # Plot the resulting subgroups
-#' sits_som_plot_subgroups(subgroups, cluster = "Forest", band = "ndvi")
+#' sits_som_plot_subgroups(subgroups, class_name = "Forest", band = "ndvi")
 #' }
 #'
 #' @export
-sits_som_plot_subgroups <- function(subgroups, label, band = "ndvi")
+sits_som_plot_subgroups <- function(subgroups, class_name, band = "ndvi")
 {
-    samples_current_class.tb <- dplyr::filter(subgroups$samples_subgroups.tb,
-                                              subgroups$samples_subgroups.tb$som_label == label)
+    samples_current_class.tb <- dplyr::filter(subgroups$samples_subgroups.tb, som_label == class_name)
 
     #Get the amount of subclasses
     names_subgroups <- sort(unique(samples_current_class.tb$label_subgroup))

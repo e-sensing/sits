@@ -5,7 +5,8 @@
 \title{Post-process a classified data raster probs to obtain a labelled image}
 \usage{
 sits_label_classification(cube, smoothing = "none", window = matrix(1,
-  nrow = 3, ncol = 3, byrow = TRUE), variance = 20, output_dir = "./")
+  nrow = 3, ncol = 3, byrow = TRUE), variance = 20, output_dir = "./",
+  version = "v1")
 }
 \arguments{
 \item{cube}{Classified image data cube.}
@@ -20,6 +21,8 @@ Elements '0' are excluded from window.}
 \item{variance}{Estimated variance of logit of class_probs (Bayesian smoothing parameter).}
 
 \item{output_dir}{Output directory where to out the file}
+
+\item{version}{Version of resulting image (in the case of multiple tests)}
 }
 \value{
 A tibble with metadata about the output RasterLayer objects.
@@ -32,48 +35,33 @@ Takes a set of classified raster layers with probabilities, whose metadata is
 \examples{
 \donttest{
 # Retrieve the samples for Mato Grosso
-# Install the inSitu library
-# devtools::install_github("e-sensing/inSitu")
-# library(inSitu)
+# select the band "ndvi"
 
-samples <- inSitu::br_mt_1_8K_9classes_6bands
-
-# select the bands "ndvi", "evi"
-
-samples_2bands <- sits_select_bands(samples, ndvi, evi)
+samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
 
 #select a random forest model
-rfor_model <- sits_train(samples_2bands, ml_method = sits_rfor())
+rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
 
 # Classify a raster file with 23 instances for one year
-# select the bands "ndvi", "evi" from the "inSitu" package
-evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
-ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
-
-files <- c(ndvi_file, evi_file)
-
-# define the timeline for the files
-time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
-timeline_2013_2014 <- scan(time_file, character())
+files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 
 # create a data cube based on the information about the files
-raster.tb <- sits_cube(name = "Sinop", timeline = timeline_2013_2014,
-                       bands = c("ndvi", "evi"), files = files)
+sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392, bands = "ndvi", files = files)
 
-# classify the raster image and generate a probability file
-raster_probs.tb <- sits_classify(raster.tb, ml_model = rfor_model, memsize = 4, multicores = 2)
+# classify the raster image
+sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicores = 1)
 
-# label the probability (no smoothing applied by default)
-raster_class.tb <- sits_label_classification(raster_probs.tb)
+# label the classified image
+sinop_label <- sits_label_classification(sinop_probs)
 
 # plot the raster image
-sits_plot_raster(raster_class.tb, time = 1, title = "Sinop-2013-2014")
+sits_plot_raster(sinop_label, time = 1, title = "Sinop-2013-2014")
 
 # smooth the result with a bayesian filter
-raster_class_bayes.tb <- sits_label_classification(raster_probs.tb, smoothing = "bayesian")
+sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
 
 # plot the smoothened image
-sits_plot_raster(raster_class_bayes.tb, time = 1, title = "Sinop-smooth")
+sits_plot_raster(sinop_bayes, time = 1, title = "Sinop-smooth")
 }
 }
 \author{

@@ -4,7 +4,13 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 # What's new in SITS version 0.9
 
-### New Features
+### New features in SITS version 0.9.2
+
+* Raster classification results can now have versions: a new parameter "version" has been included in the `sits_classify` function. 
+
+* Corrections to `sits_kohonen` and to the documentation.
+
+### New Features in version 0.9.1
 
 * New deep learning models for time series: 1D convolutional neural networks (`sits_FCN`), combining 1D CNN and multi-layer perceptron networks (`sits_TempCNN`), 1D version of ResNet (`sits_ResNet`), and combination of long-short term memory (LSTM) and 1D CNN (`sits_LSTM_FCN`).
 

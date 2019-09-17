@@ -20,7 +20,7 @@
 #' # Merge the filtered with the raw data
 #' # Plot the result
 #' point_ndvi %>%
-#'       sits_filter(filter = sits_cloud_filter()) %>%
+#'       sits_filter(filter = sits_cloud_removal()) %>%
 #'       sits_merge (point_ndvi, .) %>%
 #'       sits_plot ()
 #'
@@ -37,7 +37,7 @@
 #' # Merge the filtered with the raw data
 #' # Plot the result
 #' point_ndvi %>%
-#'       sits_filter(filter = sits_ndvi_arima_filter()) %>%
+#'       sits_filter(filter = sits_ndvi_arima()) %>%
 #'       sits_merge (point_ndvi, .) %>%
 #'       sits_plot ()
 #'
@@ -109,7 +109,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' # Select the NDVI band of the first point
 #' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the cloud filter
-#' point_cld.tb <- sits_filter(point_ndvi.tb, sits_cloud_removal ())
+#' point_cld.tb <- sits_filter(point_ndvi.tb, sits_cloud_removal())
 #' # Merge the filtered with the raw data
 #' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 #' # Plot the result
@@ -451,11 +451,11 @@ sits_missing_values <-  function(data, miss_value) {
 #' # This is an area full of clouds
 #' data(prodes_226_064)
 #' # Select the NDVI band of the first point
-#' point_ndvi<- sits_select_bands(prodes_226_064[1,], ndvi)
+#' point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the cloud filter
-#' point_cld <- sits_filter(point_ndvi.tb, sits_ndvi_arima())
+#' point_ar <- sits_filter(point_ndvi, sits_ndvi_arima())
 #' # Merge the filtered with the raw data
-#' point2 <- sits_merge (point_ndvi, point_cld)
+#' point2 <- sits_merge (point_ndvi, point_ar)
 #' # Plot the result
 #' sits_plot (point2)
 #' }

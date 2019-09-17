@@ -27,7 +27,7 @@ sits_plot(point_ndvi)
 # Merge the filtered with the raw data
 # Plot the result
 point_ndvi \%>\%
-      sits_filter(filter = sits_cloud_filter()) \%>\%
+      sits_filter(filter = sits_cloud_removal()) \%>\%
       sits_merge (point_ndvi, .) \%>\%
       sits_plot ()
 
@@ -44,7 +44,7 @@ point_ndvi \%>\%
 # Merge the filtered with the raw data
 # Plot the result
 point_ndvi \%>\%
-      sits_filter(filter = sits_ndvi_arima_filter()) \%>\%
+      sits_filter(filter = sits_ndvi_arima()) \%>\%
       sits_merge (point_ndvi, .) \%>\%
       sits_plot ()
 

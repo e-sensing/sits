@@ -40,7 +40,9 @@ test_that("Merge", {
 })
 
 test_that("Mutate", {
-    ndwi.tb <- sits_mutate_bands(samples_mt_4bands, ndwi = (1.5) * (nir - mir)/(nir + mir)))
+    savi.tb <- sits_mutate_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+
+    expect_equal(sum(sits_time_series(savi.tb)$savi), 5.980619, tolerance = 0.001)
 })
 
 test_that("Rename",{
@@ -64,11 +66,18 @@ test_that("Values", {
     expect_equal(sum(values$ndvi[, "ndvi"]), 13.6291, tolerance = 0.001)
 })
 
+test_that("Values", {
+    data(samples_mt_6bands)
+    savi.tb <- sits_transmute_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+
+    expect_true("savi" %in% names(sits_time_series(savi.tb)))
+})
+
 test_that("Select",{
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
     expect_equal(length(sits_bands(samples_mt_ndvi)), 1)
 
     samplesPasture <- samples_mt_ndvi %>% dplyr::filter(label == "Pasture")
 
-    expect_equal(dim(samplesPasture)[1], 370)
+    expect_equal(dim(samplesPasture)[1], 344)
 })

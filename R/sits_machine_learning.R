@@ -30,7 +30,7 @@
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' # find a training model based on the distances and default values (RFOR model)
 #' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
-#' ml_model <- sits_train(samples_4bands, sits_rfor(num.trees = 1000))
+#' ml_model <- sits_train(samples_2bands, sits_rfor(num_trees = 1000))
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
@@ -151,18 +151,13 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
-#'
-#' # remove classes with small numbers of samples
-#' samples_2bands <- dplyr::filter(samples_2bands,
-#'        !(label %in% c("Fallow_Cotton", "Soy_Sunflower", "Soy_Fallow")))
-#'
-#' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_2bands, sits_qda())
-#'
-#' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
-#' class.tb <- sits_classify(point.tb, ml_model)
+#' # Select the NDVI band
+#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#' # Train a QDA model
+#' qda_model <- sits_train(samples_mt_ndvi, sits_qda())
+#' # Classify a point
+#' class.tb <- sits_classify(point_ndvi, qda_model)
+#' # Plot results
 #' sits_plot(class.tb)
 #' }
 #' @export

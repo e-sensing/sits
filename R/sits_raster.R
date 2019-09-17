@@ -276,18 +276,19 @@
 #' @description    Creates a filename for a raster layer with associated temporal information,
 #'                 given a basic filename.
 #' @param output_dir     Output directory
+#' @param version        Output version
 #' @param name           Original cube name (without temporal information).
 #' @param type           Type of output
 #' @param start_date    Starting date of the time series classification.
 #' @param end_date      End date of the time series classification.
 #' @return Name of the classification file for the required interval.
-.sits_raster_filename <- function(output_dir, name, type, start_date, end_date){
+.sits_raster_filename <- function(output_dir, version, name, type, start_date, end_date){
     y1 <- lubridate::year(start_date)
     m1 <- lubridate::month(start_date)
     y2 <- lubridate::year(end_date)
     m2 <- lubridate::month(end_date)
 
-    file_name <- paste0(output_dir,"/", name, "_", type, "_", y1, "_", m1, "_", y2, "_", m2, ".tif")
+    file_name <- paste0(output_dir,"/", name, "_", type, "_", y1, "_", m1, "_", y2, "_", m2, "_", version,".tif")
 
     return(file_name)
 }

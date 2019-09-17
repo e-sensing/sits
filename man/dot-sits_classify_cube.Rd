@@ -5,7 +5,7 @@
 \title{Classify a data cube using multicore machines}
 \usage{
 .sits_classify_cube(cube, ml_model, interval, filter, memsize, multicores,
-  output_dir)
+  output_dir, version)
 }
 \arguments{
 \item{cube}{Tibble with information about a data cube.}
@@ -21,6 +21,8 @@
 \item{multicores}{Number of cores to be used for classification.}
 
 \item{output_dir}{Directory for output file}
+
+\item{version}{Version of the output (for multiple classifications)}
 }
 \value{
 A tibble with the metadata for the vector of probabilities for classified RasterLayers.

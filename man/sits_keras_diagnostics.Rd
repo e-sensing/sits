@@ -22,7 +22,7 @@ After the Keras deeplearning model is compiled and fit, this
 data(cerrado_2classes)
  # obtain a DL model
 dl_model <- sits_train(cerrado_2classes,
-     sits_deeplearning(units = c(512, 512), dropout_rates = c(0.45, 0.25), epochs = 100))
+     sits_deeplearning(layers = c(512, 512), dropout_rates = c(0.45, 0.25), epochs = 100))
 # run the keras diagnostics
 sits_keras_diagnostics(dl_model)
 }

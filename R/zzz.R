@@ -31,7 +31,7 @@ utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V1", "Index"
                          "id_sample", "neuron_label", "percentage_s", "id_neuron", "neuron_class",
                          "label_neighbor_neuron", "p_Neighbor", "desc", "percentage_n", "iteration",
                          "samples_label", "label_subgroup", "cluster_name", "index_time", "dup_neuron",
-                         "probability", "total_probability", "radius",
+                         "probability", "total_probability", "radius", "som_label",
                          "Alig.N", "matches", "original_row", "reference", "cluster", ".data"))
 #' @import zoo
 #' @importFrom dtw symmetric1 symmetric2

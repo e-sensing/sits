@@ -5,7 +5,7 @@
 \title{Classify a chunk of raster bricks using multicores}
 \usage{
 .sits_classify_multicores(cube, samples, ml_model, interval, filter,
-  memsize, multicores, output_dir)
+  memsize, multicores, output_dir, version)
 }
 \arguments{
 \item{cube}{Tibble with metadata for a data cube derived from a raster brick.}
@@ -23,6 +23,8 @@
 \item{multicores}{Number of cores.}
 
 \item{output_dir}{Output directory}
+
+\item{version}{Version of result}
 }
 \value{
 List of the classified raster layers.

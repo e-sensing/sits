@@ -24,6 +24,7 @@ data(samples_mt_6bands)
 # Generate a new image with the SAVI (Soil-adjusted vegetation index)
 savi.tb <- sits_transmute_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
 }
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

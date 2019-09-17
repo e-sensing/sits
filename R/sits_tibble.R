@@ -316,6 +316,12 @@ sits_merge <-  function(data1.tb, data2.tb) {
 #' @param data       Valid sits tibble.
 #' @param ...           Expressions written as `name = value`. See \code{dplyr::mutate()} help for more details.
 #' @examples
+#' \donttest{
+#' # Retrieve data for time series with label samples in Mato Grosso in Brazil
+#' data (samples_mt_6bands)
+#' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
+#' savi.tb <- sits_mutate_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#' }
 #' @return A sits tibble with same samples and the selected bands.
 #' @export
 sits_mutate_bands <- function(data, ...){
@@ -586,6 +592,15 @@ sits_time_series <- function(data) {
 #' @param data       A sits tibble.
 #' @param ...           Pair expressions in the format `name = value`. See \code{\link[dplyr]{mutate}} help for more details.
 #' @return A sits tibble with same samples and the new bands.
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve data for time series with label samples in Mato Grosso in Brazil
+#' data(samples_mt_6bands)
+#' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
+#' savi.tb <- sits_transmute_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#' }
+#'
 #' @export
 sits_transmute_bands <- function(data, ...){
     # backward compatibility

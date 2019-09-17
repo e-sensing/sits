@@ -92,6 +92,7 @@ default:
         missing_value       :
             ndvi            : -9999
             evi             : -9999
+            blue            : -9999
             red             : -9999
             nir             : -9999
             swir1           : -9999

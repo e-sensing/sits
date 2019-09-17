@@ -36,7 +36,7 @@ data(prodes_226_064)
 # Select the NDVI band of the first point
 point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # Apply the cloud filter
-point_cld.tb <- sits_filter(point_ndvi.tb, sits_cloud_removal ())
+point_cld.tb <- sits_filter(point_ndvi.tb, sits_cloud_removal())
 # Merge the filtered with the raw data
 point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 # Plot the result
