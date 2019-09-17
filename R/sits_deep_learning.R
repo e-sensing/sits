@@ -80,7 +80,7 @@ sits_keras_diagnostics <- function(dl_model) {
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 #' class.tb <- sits_classify(point.tb, dl_model)
-#' sits_plot(class.tb)
+#' sits_plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_deeplearning <- function(data          = NULL,
@@ -241,7 +241,7 @@ sits_deeplearning <- function(data          = NULL,
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 #' class.tb <- sits_classify(point.tb, cnn_model)
-#' sits_plot(class.tb)
+#' sits_plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_FCN <- function(data         = NULL,
@@ -421,7 +421,7 @@ sits_FCN <- function(data         = NULL,
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 #' class.tb <- sits_classify(point.tb, rn_model)
-#' sits_plot(class.tb)
+#' sits_plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_ResNet <- function(data              = NULL,
@@ -623,7 +623,7 @@ sits_ResNet <- function(data              = NULL,
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 #' class.tb <- sits_classify(point.tb, tc_model)
-#' sits_plot(class.tb)
+#' sits_plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_TempCNN <- function(data                 = NULL,
@@ -814,7 +814,7 @@ sits_TempCNN <- function(data                 = NULL,
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 #' class.tb <- sits_classify(point.tb, lstm_cnn_model)
-#' sits_plot(class.tb)
+#' sits_plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_LSTM_FCN <- function(data                =  NULL,

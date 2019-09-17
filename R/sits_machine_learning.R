@@ -34,7 +34,7 @@
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' sits_plot(class.tb)
+#' sits_plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_train <- function(data, ml_method = sits_svm()) {
@@ -87,7 +87,7 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' sits_plot(class.tb)
+#' sits_plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
@@ -224,7 +224,7 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' sits_plot(class.tb)
+#' sits_plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
@@ -291,7 +291,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' sits_plot(class.tb)
+#' sits_plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_rfor <- function(data = NULL, num_trees = 2000, importance = "impurity", ...) {
@@ -382,7 +382,7 @@ sits_rfor <- function(data = NULL, num_trees = 2000, importance = "impurity", ..
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' sits_plot(class.tb)
+#' sits_plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_svm <- function(data = NULL, formula = sits_formula_logref(), scale = FALSE, cachesize = 1000,
@@ -472,7 +472,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(), scale = FALSE
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, xgb_model)
-#' sits_plot(class.tb)
+#' sits_plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_xgboost <- function(data = NULL, eta = 0.3, gamma = 0, max_depth = 6, min_child_weight = 1,
