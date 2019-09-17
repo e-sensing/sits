@@ -20,7 +20,7 @@
 #'
 #'
 #' @param  data          Data to be plotted (can be a sits tibble, clusters, or TWDTW matches).
-#' @param  band          The band used for visualisation (optional for sits_plot_classification).
+#' @param  bands         Bands used for visualisation (optional for sits_plot_classification).
 #' @param  colors        Color pallete to be used (based on Color Brewer - default is "Dark2").
 #' @return Input sits tibble (useful for chaining functions).
 #'
@@ -45,7 +45,7 @@
 #' sits_plot (class_ndvi.tb)
 #' }
 #' @export
-sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
+sits_plot <- function(data, bands = c("ndvi"), colors = "Dark2") {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -62,7 +62,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
             .sits_plot_patterns(data)
         # Both data and prediction exist? Plot classification!
         else if ("predicted" %in% names(data)) {
-            .sits_plot_classification(data, band = band)
+            .sits_plot_classification(data, bands = bands)
         }
         # Are there more than 30 samples? Plot them together!
         else if (nrow(data) > 30) {
@@ -98,10 +98,10 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @description        Plots the classification results (code reused from the dtwSat package by Victor Maus).
 #' @param data         A sits tibble with one or more time series that have been classified.
-#' @param band         Band for plotting the classification.
-.sits_plot_classification <- function(data, band = NULL) {
-    if (purrr::is_null(band))
-        band <- sits_bands(data)[1]
+#' @param bands         Band for plotting the classification.
+.sits_plot_classification <- function(data, bands = NULL) {
+    if (purrr::is_null(bands))
+        bands <- sits_bands(data)[1]
 
     # prepare a data frame for plotting
 
@@ -117,7 +117,7 @@ sits_plot <- function(data, band = "ndvi", colors = "Dark2") {
                     # extract the time series
                     ts <- row_time_series
                     # convert to data frame
-                    df.x <- data.frame(Time = ts$Index, ts[,band], Series = as.factor(lb))
+                    df.x <- data.frame(Time = ts$Index, ts[,bands], Series = as.factor(lb))
                     # melt the time series data for plotting
                     df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
                     # define a nice set of breaks for value plotting

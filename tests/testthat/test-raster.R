@@ -9,13 +9,10 @@ test_that("Working with raster data cubes", {
     expect_true(raster::nrow(r_obj) == sinop$nrows)
     expect_true(raster::xmin(r_obj) == sinop$xmin)
 
-    point.tb <- sits_get_data(sinop, longitude = -55.55502, latitude = -11.52774)
+    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 500))
 
-    expect_true(length(sits_time_series_dates(point.tb)) == length(timeline_modis_392))
-
-    svm_model <- sits_train(samples_mt_ndvi, sits_svm())
-
-    sinop_probs <- sits_classify(sinop, svm_model, memsize = 4, multicores = 2)
+    sinop_probs <- sits_classify(sinop, rfor_model, memsize = 4, multicores = 2)
 
     expect_true(all(file.exists(unlist(sinop_probs$files))))
     rc_obj <- sits:::.sits_cube_robj(sinop_probs)
