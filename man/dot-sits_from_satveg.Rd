@@ -5,8 +5,8 @@
 \title{Obtain one timeSeries from the EMBRAPA SATVEG server and load it on a sits tibble}
 \usage{
 .sits_from_satveg(cube, longitude, latitude, start_date = NULL,
-  end_date = NULL, bands = NULL, prefilter = "1",
-  label = "NoClass")
+  end_date = NULL, bands = NULL, label = "NoClass",
+  .prefilter = "1")
 }
 \arguments{
 \item{cube}{The data cube metadata that describes the SATVEG data.}
@@ -21,9 +21,9 @@
 
 \item{bands}{The bands to be retrieved.}
 
-\item{prefilter}{A string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
-
 \item{label}{A string with the label to attach to the time series (optional).}
+
+\item{.prefilter}{A string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 }
 \value{
 A sits tibble.

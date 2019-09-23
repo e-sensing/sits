@@ -29,6 +29,6 @@ point_kf.tb <- sits_kalman(point_ndvi.tb)
 # Merge the filtered with the raw data
 point2.tb <- sits_merge (point_ndvi.tb, point_kf.tb)
 # Plot the result
-sits_plot (point2.tb)
+plot(point2.tb)
 }
 }

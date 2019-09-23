@@ -31,9 +31,9 @@ Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the whittaker smoother
-point_whit<- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, differences = 3))
+point_whit <- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, differences = 3))
 # Plot the two points to see the smoothing effect
-sits_plot(sits_merge(point_ndvi, point_whit))
+plot(sits_merge(point_ndvi, point_whit))
 }
 }
 \references{

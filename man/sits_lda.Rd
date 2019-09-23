@@ -35,7 +35,7 @@ ml_model <- sits_train (samples_2bands, sits_lda())
 # get a point and classify the point with the ml_model
 point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 class.tb <- sits_classify(point.tb, ml_model)
-sits_plot(class.tb)
+plot(class.tb, bands = c("ndvi", "evi"))
 }
 }
 \author{

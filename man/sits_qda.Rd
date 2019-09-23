@@ -34,7 +34,7 @@ qda_model <- sits_train(samples_mt_ndvi, sits_qda())
 # Classify a point
 class.tb <- sits_classify(point_ndvi, qda_model)
 # Plot results
-sits_plot(class.tb)
+plot(class.tb)
 }
 }
 \author{

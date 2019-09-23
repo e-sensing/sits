@@ -9,18 +9,15 @@ if (!requireNamespace("inSitu", quietly = TRUE)) {
 }
 library(inSitu)
 
-samples <- inSitu::br_mt_1_8K_9classes_6bands
-
-samples_ndvi_evi <- sits_select_bands(samples, ndvi, evi)
+samples_ndvi_evi <- sits_select_bands(samples_mt_4bands, ndvi, evi)
 
 # train the deep learning model
 dl_model <-  sits_train(samples_ndvi_evi,
                         ml_method = sits_deeplearning(
-                             units            = c(512, 512, 512),
-                             activation       = 'elu',
+                             layers           = c(512, 512, 512),
+                             activation       = 'relu',
                              dropout_rates    = c(0.50, 0.40, 0.35),
-                             optimizer = keras::optimizer_adam(),
-                             epochs = 200,
+                             epochs = 100,
                              batch_size = 128,
                              validation_split = 0.2))
 
@@ -45,10 +42,10 @@ sinop_probs <- sits_classify(sinop, ml_model = dl_model, memsize = 4, multicores
 sinop_label <- sits_label_classification(sinop_probs)
 
 # plot the raster image
-sits_plot_raster(sinop_label, time = 1, title = "Sinop-2013-2014")
+plot(sinop_label, time = 1, title = "Sinop-2013-2014")
 
 # smooth the result with a bayesian filter
 sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
 
 # plot the smoothened image
-sits_plot_raster(sinop_bayes, time = 1, title = "Sinop-smooth")
+plot(sinop_bayes, time = 1, title = "Sinop-smooth")

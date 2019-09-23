@@ -21,7 +21,7 @@ the available filtering algorithms:
 \examples{
 \donttest{
 # Test the diffeent filters
-sits_plot(point_ndvi)
+plot(point_ndvi)
 
 # Apply the cloud filter
 # Merge the filtered with the raw data
@@ -29,7 +29,7 @@ sits_plot(point_ndvi)
 point_ndvi \%>\%
       sits_filter(filter = sits_cloud_removal()) \%>\%
       sits_merge (point_ndvi, .) \%>\%
-      sits_plot ()
+      plot()
 
 
 # Apply the envelope filter
@@ -38,7 +38,7 @@ point_ndvi \%>\%
 point_ndvi \%>\%
       sits_filter(filter = sits_envelope()) \%>\%
       sits_merge (point_ndvi, .) \%>\%
-      sits_plot ()
+      plot()
 
 # Apply the ARIMA filter
 # Merge the filtered with the raw data
@@ -46,7 +46,7 @@ point_ndvi \%>\%
 point_ndvi \%>\%
       sits_filter(filter = sits_ndvi_arima()) \%>\%
       sits_merge (point_ndvi, .) \%>\%
-      sits_plot ()
+      plot()
 
 # Apply the Whittaker smoother
 # Merge the filtered with the raw data
@@ -54,7 +54,7 @@ point_ndvi \%>\%
 point_ndvi \%>\%
       sits_filter(filter = sits_whittaker (lambda = 3.0)) \%>\%
       sits_merge (point_ndvi, .) \%>\%
-      sits_plot ()
+      plot()
 
 # Apply the Savitsky-Golay smoother
 # Merge the filtered with the raw data
@@ -62,14 +62,14 @@ point_ndvi \%>\%
 point_ndvi \%>\%
       sits_filter(filter = sits_sgolay()) \%>\%
       sits_merge (point_ndvi, .) \%>\%
-      sits_plot ()
+      plot()
 
 # interpolate three times more points
 # find out how many time instances are there in the time series
 n_times <- NROW(sits_time_series(point_ndvi))
 point_int <- sits_filter(point_ndvi, sits_linear_interp(n = 3*n_times))
 # plot the result
-sits_plot (point_int)
+plot(point_int)
 
 }
 }

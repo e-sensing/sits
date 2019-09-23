@@ -2,14 +2,14 @@
 % Please edit documentation in R/sits_plot.R
 \name{sits_plot}
 \alias{sits_plot}
-\title{Plot a set of satellite image time series}
+\title{Plot a set of satellite image time series (deprecated)}
 \usage{
-sits_plot(data, band = "ndvi", colors = "Dark2")
+sits_plot(data, bands = c("ndvi"), colors = "Dark2")
 }
 \arguments{
 \item{data}{Data to be plotted (can be a sits tibble, clusters, or TWDTW matches).}
 
-\item{band}{The band used for visualisation (optional for sits_plot_classification).}
+\item{bands}{Bands used for visualisation (optional for sits_plot_classification).}
 
 \item{colors}{Color pallete to be used (based on Color Brewer - default is "Dark2").}
 }
@@ -31,8 +31,9 @@ based on the input data. If the input data has less than 30 samples, it
 will default to "all years". If there is only one sample per class, it will
 default to "patterns". If there are more than 30 samples, it will default to
 "together". If the input data has predicted values resulting from a classification, it will
-plot the classification. To plot a classified raster image,
-please use \code{\link[sits]{sits_plot_raster}}.
+plot the classification.
+
+WARNING: This function is deprecated. Please use plot() instead.
 }
 \examples{
 \donttest{

@@ -40,7 +40,7 @@ point_cld.tb <- sits_filter(point_ndvi.tb, sits_cloud_removal())
 # Merge the filtered with the raw data
 point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 # Plot the result
-sits_plot (point2.tb)
+plot (point2.tb)
 }
 }
 \author{

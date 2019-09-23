@@ -7,7 +7,7 @@ data <- sits_get_data(cube_wtss, file = system.file("extdata/samples/samples_mat
                         bands = c("ndvi", "evi"), .n_save = 0)
 
 # plot the data
-sits_plot(data[1,])
+plot(data[1,])
 
 # get the samples used for classification
 data("cerrado_2classes")
@@ -18,7 +18,7 @@ svm_model <- sits_train(cerrado_2classes, ml_method = sits_svm())
 class.tb <- sits_classify(data, svm_model)
 
 # plot the classification of the time series by yearly intervals
-sits_plot(class.tb[1:5,], band = "ndvi")
+plot(class.tb[1:5,], bands = c("ndvi", "evi"))
 
 # estimate the accuracy of the result and the confusion matrix
 conf.mx <- sits_conf_matrix(class.tb)

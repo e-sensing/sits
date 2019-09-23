@@ -33,14 +33,14 @@
 #' # Estimate a set of patterns (one for each label)
 #' patterns <- sits_patterns(cerrado_2classes)
 #' # Show the patterns
-#' sits_plot(patterns)
+#' plot(patterns)
 #'
 #' # Read a set of samples for the state of Mato Grosso, Brazil, provided by EMBRAPA
 #' data(samples_mt_4bands)
 #' # Estimate a set of patterns (one for each label)
 #' patterns <- sits_patterns(samples_mt_4bands)
 #' # Show the patterns
-#' sits_plot(patterns)
+#' plot(patterns)
 #' }
 #' @export
 sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
@@ -143,6 +143,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
             })
 
         patterns <- dplyr::bind_rows(patterns.lst)
+        class(patterns) <- append(class(patterns), "patterns", after = 0)
         return(patterns)
     }
 

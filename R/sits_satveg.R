@@ -72,8 +72,8 @@
 #' @param start_date      The start date of the period.
 #' @param end_date        The end date of the period.
 #' @param bands           The bands to be retrieved.
-#' @param prefilter       A string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @param label           A string with the label to attach to the time series (optional).
+#' @param .prefilter      A string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @return A sits tibble.
 .sits_from_satveg <- function(cube,
                              longitude,
@@ -81,8 +81,8 @@
                              start_date  = NULL,
                              end_date    = NULL,
                              bands       = NULL,
-                             prefilter   = "1",
-                             label       = "NoClass")
+                             label       = "NoClass",
+                             .prefilter   = "1")
 {
 
     # check parameters
@@ -92,7 +92,7 @@
                          err_desc = "sits_from_satveg: Missing latitude info")
 
     # retrieve the time series
-    ts.tb <- .sits_ts_from_satveg(longitude, latitude, cube$name, prefilter)
+    ts.tb <- .sits_ts_from_satveg(longitude, latitude, cube$name, .prefilter)
 
     # filter the dates
     if (!purrr::is_null(start_date) && !purrr::is_null(end_date))
@@ -136,9 +136,9 @@
 #' @param longitude       The longitude of the chosen location.
 #' @param latitude        The latitude of the chosen location.
 #' @param name            Name of the desired data cube in SATVEG (see configuration file).
-#' @param prefilter       String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
+#' @param .prefilter       String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
 #' @return TRUE if no problems are detected.
-.sits_ts_from_satveg <- function(longitude, latitude, name, prefilter){
+.sits_ts_from_satveg <- function(longitude, latitude, name, .prefilter){
     # the parameter filter is not used
     filter <- ""
     filter_par <- ""
@@ -155,7 +155,7 @@
     for (b in bands) {
         # Build the URL to retrieve the time series
         URL_ts <- paste0(URL, b, "/ponto", "/", longitude, "/", latitude, "/", name, "/",
-                         prefilter, "/", filter, "/", filter_par)
+                         .prefilter, "/", filter, "/", filter_par)
 
         # Get the data from SATVEG service
         satveg.txt <-  RCurl::getURL(URL_ts)

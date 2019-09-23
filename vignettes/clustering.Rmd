@@ -152,9 +152,9 @@ The output of the `sits_som_map` is a list with 4 tibbles:
 * one tibble with the association bewteen each neuron and its neighbours.
 
 
-The function `sits_plot_som()` plots the kohonen map. The neurons are labelled using the majority voting.
+To plot the kohonen map, use `plot.som_map()`, which can be called directly from `plot()`. The neurons are labelled using the majority voting.
 ```{r}
-sits_plot_som(som_cluster)
+plot(som_cluster)
 ```
 
 From the statistics obtained from function `sits_som_map`, a new dataset can be generated removing the samples with bad quality.

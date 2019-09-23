@@ -46,7 +46,8 @@ rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
 files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 
 # create a data cube based on the information about the files
-sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392, bands = "ndvi", files = files)
+sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+bands = "ndvi", files = files)
 
 # classify the raster image
 sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicores = 1)
@@ -55,13 +56,13 @@ sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicor
 sinop_label <- sits_label_classification(sinop_probs)
 
 # plot the raster image
-sits_plot_raster(sinop_label, time = 1, title = "Sinop-2013-2014")
+plot(sinop_label, time = 1, title = "Sinop-2013-2014")
 
 # smooth the result with a bayesian filter
 sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
 
 # plot the smoothened image
-sits_plot_raster(sinop_bayes, time = 1, title = "Sinop-smooth")
+plot(sinop_bayes, time = 1, title = "Sinop-smooth")
 }
 }
 \author{

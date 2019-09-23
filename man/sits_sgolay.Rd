@@ -35,7 +35,7 @@ data(point_ndvi)
 # Filter the point using the Savitsky Golay smoother
 point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5))
 # Plot the two points to see the smoothing effect
-sits_plot(sits_merge(point_ndvi, point_sg))
+plot(sits_merge(point_ndvi, point_sg))
 }
 }
 \references{

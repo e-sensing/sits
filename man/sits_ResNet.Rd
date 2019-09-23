@@ -61,11 +61,13 @@ If you use this function, please cite the references.
 
 # Build a machine learning model based on deep learning
 rn_model <- sits_train (samples_mt_4bands, sits_ResNet(epochs = 75))
+# Plot the model
+plot(rn_model)
 
 # get a point and classify the point with the ml_model
 point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 class.tb <- sits_classify(point.tb, rn_model)
-sits_plot(class.tb)
+plot(class.tb, bands = c("ndvi", "evi"))
 }
 }
 \references{

@@ -65,24 +65,19 @@ samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
 
 rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
 
-# Retrieve a time series (17 years)
-data(point_mt_6bands)
-
-# select the bands "ndvi" and "evi"
-point.tb <- sits_select_bands(point_mt_6bands, ndvi)
-
 # classify the point
 
-class.tb <- sits_classify(point.tb, rfor_model)
+class.tb <- sits_classify(point_ndvi, rfor_model)
 
 # plot the classification
 
-sits_plot(class.tb)
+plot(class.tb)
 
 # Classify a raster file with 23 instances for one year
 files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
 # create a data cube based on the information about the files
-sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392, bands = "ndvi", files = files)
+sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+bands = "ndvi", files = files)
 
 # classify the raster image
 sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicores = 1)
@@ -91,13 +86,13 @@ sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicor
 sinop_label <- sits_label_classification(sinop_probs)
 
 # plot the raster image
-sits_plot_raster(sinop_label, time = 1, title = "Sinop-2013-2014")
+plot(sinop_label, time = 1, title = "Sinop-2013-2014")
 
 # smooth the result with a bayesian filter
 sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
 
 # plot the smoothened image
-sits_plot_raster(sinop_bayes, time = 1, title = "Sinop-smooth")
+plot(sinop_bayes, time = 1, title = "Sinop-smooth")
 }
 }
 \author{

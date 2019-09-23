@@ -6,23 +6,23 @@ message("comb combines data from TERRA and AQUA satellites")
 message("the bands available are ndvi and evi")
 
 # create three data cubes
-terra <- sits_cube(service = "SATVEG",  name = "terra")
-aqua <- sits_cube(service = "SATVEG",  name = "aqua")
-comb <- sits_cube(service = "SATVEG",  name = "comb")
+cube_terra <- sits_cube(service = "SATVEG",  name = "terra")
+cube_aqua <- sits_cube(service = "SATVEG",  name = "aqua")
+cube_comb <- sits_cube(service = "SATVEG",  name = "comb")
 
 # retrieve the same point from three different data cubes
-point_terra.tb <- sits_get_data(terra, longitude = -55.50563, latitude = -11.71557)
-point_aqua.tb <- sits_get_data(aqua, longitude = -55.50563, latitude = -11.71557)
-point_comb.tb <- sits_get_data(comb, longitude = -55.50563, latitude = -11.71557)
+point_terra.tb <- sits_get_data(cube_terra, longitude = -55.50563, latitude = -11.71557)
+point_aqua.tb <- sits_get_data(cube_aqua, longitude = -55.50563, latitude = -11.71557)
+point_comb.tb <- sits_get_data(cube_comb, longitude = -55.50563, latitude = -11.71557)
 
 # plot the three points
-sits_plot(point_terra.tb)
-sits_plot(point_aqua.tb)
-sits_plot(point_comb.tb)
+plot(point_terra.tb)
+plot(point_aqua.tb)
+plot(point_comb.tb)
 
 # retrieve a set of points based on a CSV file
 csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
-points.tb <- sits_get_data(comb, file = csv_file)
+points.tb <- sits_get_data(cube_comb, file = csv_file)
 # show the points retrieved for the SATVEG server
-sits_plot(points.tb)
+plot(points.tb)
 

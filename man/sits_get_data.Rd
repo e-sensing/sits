@@ -6,8 +6,9 @@
 \usage{
 sits_get_data(cube, file = NULL, longitude = NULL, latitude = NULL,
   start_date = NULL, end_date = NULL, bands = NULL,
-  prefilter = "1", label = "NoClass", epsg = 6842, .n_start = 1,
-  .n_max = Inf, .n_save = 0)
+  label = "NoClass", shp_attr = NULL, .n_shp_pol = 20,
+  .n_shp_pts = Inf, .prefilter = "1", .n_start_csv = 1,
+  .n_max_csv = Inf, .n_save = 0)
 }
 \arguments{
 \item{cube}{A tibble with information about the data cube where dta is to be retrived.}
@@ -24,15 +25,19 @@ sits_get_data(cube, file = NULL, longitude = NULL, latitude = NULL,
 
 \item{bands}{An optional vector with the names of the bands to be retrieved.}
 
-\item{prefilter}{An optional string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
-
 \item{label}{An optional string with the label to be assigned to the time series.}
 
-\item{epsg}{An optional code for the planar projection to be used (for reading data inside shapefiles)}
+\item{shp_attr}{An optional string to indicate the attribute in the shapefile to be used as a polygon label}
 
-\item{.n_start}{An optional integer with the row on the CSV file to start reading.}
+\item{.n_shp_pol}{Number of samples per polygon to be read (for POLYGON or MULTIPOLYGON shapes)}
 
-\item{.n_max}{An optional integer with the maximum number of CSV samples to be read (set to Inf to read all).}
+\item{.n_shp_pts}{Number of points to be read (for POINT shapes)}
+
+\item{.prefilter}{Prefilter for SATVEG cube("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
+
+\item{.n_start_csv}{An optional integer with the row on the CSV file to start reading.}
+
+\item{.n_max_csv}{An optional integer with the maximum number of CSV samples to be read (set to Inf to read all).}
 
 \item{.n_save}{An optional number of samples to save as intermediate files (used for long reads).}
 }
@@ -75,22 +80,22 @@ from the WTSS service.
 
 wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
 point.tb <- sits_get_data (wtss_cube, longitude = -55.50563, latitude = -11.71557)
-sits_plot(point.tb)
+plot(point.tb)
 
 # Read a set of points defined in a CSV file from a WTSS server
 csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
 points.tb <- sits_get_data (wtss_cube, file = csv_file)
 # show the points retrieved for the WTSS server
-sits_plot (points.tb[1:3,])
+plot(points.tb[1:3,])
 
 # Read a single lat long point from the SATVEG server
 satveg_cube <- sits_cube(service = "SATVEG", name = "terra")
 point_satveg.tb <- sits_get_data (satveg_cube, longitude = -55.50563, latitude = -11.71557)
-sits_plot(point_satveg.tb)
+plot(point_satveg.tb)
 
 # define a shapefile and read from the points inside it from the WTSS service
-shp_file <- system.file("extdata/shapefiles/santa_cruz_minas.shp", package = "sits")
-munic.tb <- sits_get_data(wtss_cube, file = shp_file)
+shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp", package = "sits")
+parcel.tb <- sits_get_data(wtss_cube, file = shp_file, .n_shp_pol = 5)
 
 # Read a point in a Raster Brick
 # define the file that has the raster brick
@@ -102,13 +107,13 @@ raster_cube <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
                          bands = c("ndvi"), files = files)
 # read the time series of the point from the raster
 point_ts <- sits_get_data(raster_cube, longitude = -55.554, latitude = -11.525)
-sits_plot(point_ts)
+plot(point_ts)
 
 #' # Read a CSV file in a Raster Brick
 csv_file <- system.file ("extdata/samples/samples_sinop_crop.csv", package = "sits")
 points.tb <- sits_get_data (raster_cube, file = csv_file)
 # show the points retrieved for the RASTER images
-sits_plot (points.tb)
+plot(points.tb)
 }
 }
 \references{

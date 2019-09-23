@@ -11,5 +11,5 @@ point.tb <- sits_get_data(cube_wtss.tb, longitude = -47.0516, latitude = -10.724
                           bands = c("ndvi", "evi", "nir", "mir"))
 
 # plot the series
-sits_plot(point.tb)
+plot(point.tb)
 

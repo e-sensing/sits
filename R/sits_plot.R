@@ -1,73 +1,232 @@
-#' @title  Plot a set of satellite image time series
-#' @name   sits_plot
+#' @title  Generic interface for ploting time series
+#' @method plot sits
+#' @name plot
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Given a sits tibble with a set of time series, plot them.
 #'
 #' The plot function produces different plots based on the input data:
 #' \itemize{
 #'  \item{"all years": }{Plot all samples from the same location together}
-#'  \item{"patterns": }{Plot the patterns for a given set of classes}
 #'  \item{"together": }{Plot all samples of the same band and label together}
-#'  \item{"classification": }{Plot the results of a classification}
+#' }
+#' The plot.sits function makes an educated guess of what plot is required,
+#' based on the input data. If the input data has less than 30 samples, it
+#' will default to "all years". If there are more than 30 samples, it will default to
+#' "together".
+#'
+#' @param  x            object of class "sits"
+#' @param  y            ignored
+#' @param ...           further specifications for \link{plot}.
+#' @param  colors       Color pallete to be used (based on Color Brewer - default is "Dark2").
+#' @return Input sits tibble (useful for chaining functions).
+#'
+#' @examples
+#' \donttest{
+#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
+#' # Plot all the samples together
+#' plot(cerrado_2classes)
+#' # Plot the first 20 samples (defaults to "allyears")
+#' plot(cerrado_2classes[1:20,])
+#' }
+#' @export
+plot.sits <- function(x, y, ..., colors = "Dark2") {
+
+    stopifnot(missing(y))
+
+    # Are there more than 30 samples? Plot them together!
+    if (nrow(x) > 30)
+        .sits_plot_together(x, colors)
+    # If no conditions are met, take "allyears" as the default
+    else
+        .sits_plot_allyears(x, colors)
+    # return the original sits tibble - useful for chaining
+    return(invisible(x))
+}
+
+#' @title  Generic interface for ploting patterns
+#' @name   plot.patterns
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Given a sits tibble with a set of patterns, plot them.
+#'
+#' @param  x             object of class "patterns"
+#' @param  y             ignored
+#' @param  ...           further specifications for \link{plot}.
+#' @return Input sits tibble (useful for chaining functions).
+#'
+#' @examples
+#' \donttest{
+#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
+#' # Plot the patterns
+#' plot(sits_patterns(cerrado_2classes))
+#' }
+#' @export
+plot.patterns <- function(x, y, ...) {
+    stopifnot(missing(y))
+    .sits_plot_patterns(x)
+
+}
+#' @title  Generic interface for ploting time series predictions
+#' @name   plot.predicted
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Given a sits tibble with a set of predictions, plot them
+#'
+#' @param  x             object of class "predicted"
+#' @param  y             ignored
+#' @param  ...           further specifications for \link{plot}.
+#' @param  bands         Bands used for visualisation
+#' @return Input sits tibble (useful for chaining functions).
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#' # classify the point
+#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
+#' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
+#' # plot the classification
+#' plot (class_ndvi.tb)
+#' }
+#' @export
+plot.predicted <- function(x, y, ..., bands = "ndvi") {
+    stopifnot(missing(y))
+    .sits_plot_classification(x, bands)
+}
+
+#' @title  Generic interface for ploting classified images
+#' @name   plot.classified_image
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a classified raster using ggplot.
+#'
+#' @param  x             Object of class "classified_image"
+#' @param  y             Ignored
+#' @param  ...           Further specifications for \link{plot}.
+#' @param time           Temporal reference for plot.
+#' @param title          A string.
+#' @param colors         Color pallete.
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the samples for Mato Grosso
+#'
+#' # select the bands "ndvi", "evi"
+#' samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#'
+#' #select a random forest model
+#'
+#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#' # Classify a raster file with 23 instances for one year
+#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#' # create a data cube based on the information about the files
+#' sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+#' bands = "ndvi", files = files)
+#'
+#' # classify the raster image
+#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicores = 1)
+#'
+#' # label the classified image
+#' sinop_label <- sits_label_classification(sinop_probs)
+#'
+#' # plot the raster image
+#' plot(sinop_label, time = 1, title = "Sinop-2013-2014")
+#' }
+#' @export
+plot.classified_image <- function(x , y, ..., time = 1, title = "Classified Image", colors = NULL) {
+    stopifnot(missing(y))
+    .sits_plot_raster(cube = x, time = time, title = title, colors = colors)
+}
+
+#' @title  Generic interface for plotting a Deep Learning model
+#' @name   plot.keras_model
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a deep learning model
+#'
+#' @param  x             Object of class "keras_model"
+#' @param  y             Ignored
+#' @param  ...           Further specifications for \link{plot}.
+#'
+#' @examples
+#' \donttest{
+#' # Get a set of samples
+#' samples_ndvi_evi <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+#'
+#' # train a deep learning model
+#' dl_model <-  sits_train(samples_ndvi_evi, ml_method = sits_deeplearning(
+#'                          layers           = c(512, 512, 512),
+#'                          activation       = 'relu',
+#'                          dropout_rates    = c(0.50, 0.40, 0.35),
+#'                          epochs = 100,
+#'                          batch_size = 128,
+#'                          validation_split = 0.2))
+#' plot(dl_model)
+#' }
+#' @export
+plot.keras_model <- function(x, y, ...) {
+    stopifnot(missing(y))
+    graphics::plot(environment(x)$history)
+}
+
+#' @title  Generic interface for plotting a SOM map
+#' @name   plot.som_map
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a SOM map generated by "sits_som_map"
+#' The plot function produces different plots based on the input data:
+#' \itemize{
+#'  \item{"codes": }{Plot in each neuron the vector weight which corresponds to it.}
+#'  \item{"mapping": }{Shows where samples are mapped.}
+#' }
+#'
+#' @param  x          Object of class "som_map"
+#' @param  y          Ignored
+#' @param  ...        Further specifications for \link{plot}.
+#' @param  type       Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.
+#' @param  whatmap    What data layer will be plotted.
+#'
+#' @examples
+#' \donttest{
+#' # Produce a cluster map
+#' som_cluster <- sits_som_map(prodes_226_064)
+#' # Plot the clusters
+#' plot(som_cluster, type = "codes")
+#' # Plot kohonen map showing where the samples were allocated
+#' plot(som_cluster, type = "mapping")
+#' }
+#' @export
+plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
+    stopifnot(missing(y))
+    .sits_plot_som_map(x, type, whatmap)
+}
+
+#' @title  Plot a set of satellite image time series
+#' @name   .sits_plot
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Given a sits tibble with a set of time series, plot them.
+#'
+#' The plot function produces different plots based on the input data:
+#' \itemize{
+#'  \item{"all years": }{Plot all samples from the same location together}
+#'  \item{"together": }{Plot all samples of the same band and label together}
 #' }
 #' The sits_plot function makes an educated guess of what plot is required,
 #' based on the input data. If the input data has less than 30 samples, it
 #' will default to "all years". If there is only one sample per class, it will
 #' default to "patterns". If there are more than 30 samples, it will default to
-#' "together". If the input data has predicted values resulting from a classification, it will
-#' plot the classification. To plot a classified raster image,
-#' please use \code{\link[sits]{sits_plot_raster}}.
-#'
+#' "together".
 #'
 #' @param  data          Data to be plotted (can be a sits tibble, clusters, or TWDTW matches).
 #' @param  bands         Bands used for visualisation (optional for sits_plot_classification).
 #' @param  colors        Color pallete to be used (based on Color Brewer - default is "Dark2").
 #' @return Input sits tibble (useful for chaining functions).
 #'
-#' @examples
-#' \donttest{
-#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-#' data ("cerrado_2classes")
-#' # Plot all the samples together
-#' sits_plot (cerrado_2classes)
-#' # Plot the first 20 samples (defaults to "allyears")
-#' sits_plot (cerrado_2classes[1:20,])
-#' # Plot the patterns
-#' sits_plot (sits_patterns(cerrado_2classes))
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_mt_ndvi)
-#' # Retrieve a point
-#' data(point_ndvi)
-#' # classify the point
-#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
-#' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
-#' # plot the classification
-#' sits_plot (class_ndvi.tb)
-#' }
-#' @export
-sits_plot <- function(data, bands = c("ndvi"), colors = "Dark2") {
+.sits_plot <- function(data, bands = c("ndvi"), colors = "Dark2") {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
-    # is the input a dendrogram"
-    if ("dtwclust" %in% class(data))
-        stop("input is a set of clusters generated by sits_dendrogram \n please use sits_plot_dendrogram")
-    if ("twdtwMatches" %in% class(data))
-        .sits_plot_twdtw_alignments(data)
 
     # try to guess what is the plot type
-    if ("time_series" %in% names(data)) {
-        # is there only one sample per label? Plot patterns!
-        if (max(sits_labels(data)$count) == 1 && nrow(data) > 1)
-            .sits_plot_patterns(data)
-        # Both data and prediction exist? Plot classification!
-        else if ("predicted" %in% names(data)) {
-            .sits_plot_classification(data, bands = bands)
-        }
+    if ("sits" %in% class(data)) {
         # Are there more than 30 samples? Plot them together!
-        else if (nrow(data) > 30) {
+        if (nrow(data) > 30)
             .sits_plot_together(data, colors)
-        }
         # If no conditions are met, take "allyears" as the default
         else
             .sits_plot_allyears(data, colors)
@@ -421,7 +580,7 @@ sits_plot <- function(data, bands = c("ndvi"), colors = "Dark2") {
 
 #' @title Plot a raster classified images
 #'
-#' @name sits_plot_raster
+#' @name .sits_plot_raster
 #'
 #' @description plots a raster using ggplot. This function is used
 #' for showing the same lat/long location in a series of time steps.
@@ -430,8 +589,7 @@ sits_plot <- function(data, bands = c("ndvi"), colors = "Dark2") {
 #' @param time        Temporal reference for plot.
 #' @param title       A string.
 #' @param colors      Color pallete.
-#' @export
-sits_plot_raster <- function(cube, time = 1, title = "Classified Image", colors = NULL) {
+.sits_plot_raster <- function(cube, time = 1, title = "Classified Image", colors = NULL) {
     #precondition 1 - cube must be a labelled cube
     ensurer::ensure_that(.sits_cube_bands(cube)[1], as.logical(grep("class", (.))),
                          err_desc = "sits_plot_raster: input cube must be a labelled one")
@@ -546,7 +704,7 @@ sits_plot_raster <- function(cube, time = 1, title = "Classified Image", colors 
 }
 
 #' @title  Plot the SOM grid with neurons labeled
-#' @name   sits_plot_som
+#' @name   .sits_plot_som_map
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #' @description Given a kohonen object with a set of time neurons, plot them.
 #'
@@ -560,18 +718,7 @@ sits_plot_raster <- function(cube, time = 1, title = "Classified Image", colors 
 #' @param  koh        Kohonen map produced by "sits_som_map" function
 #' @param  type       Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.
 #' @param  whatmap    What data layer will be plotted.
-#' @examples
-#' \donttest{
-#' # Produce a cluster map
-#' som_cluster <- sits_som_map(prodes_226_064)
-#' # Plot kohonen map with vector of weight
-#' sits_plot_som(som_cluster, type = "codes")
-#' # Plot kohonen map showing where the samples were allocated
-#' sits_plot_som(som_cluster, type = "mapping")
-#' }
-#'
-#' @export
-sits_plot_som <- function(koh, type = "codes", whatmap = 1)
+.sits_plot_som_map <- function(koh, type = "codes", whatmap = 1)
 {
     if (type == "mapping") {
         graphics::plot(koh$som_properties,  bgcol = koh$som_properties$paint_map , "mapping", whatmap = whatmap)
@@ -595,8 +742,6 @@ sits_plot_som <- function(koh, type = "codes", whatmap = 1)
         ncol = 1
     )
 }
-
-
 
 #' @title Brewer color schemes
 #' @name .sits_color_name
@@ -5619,3 +5764,77 @@ sits_plot_som <- function(koh, type = "codes", whatmap = 1)
         "type" = "sequential"
     )
 )
+
+#' @title  Plot a set of satellite image time series (deprecated)
+#' @name   sits_plot
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Given a sits tibble with a set of time series, plot them.
+#'
+#' The plot function produces different plots based on the input data:
+#' \itemize{
+#'  \item{"all years": }{Plot all samples from the same location together}
+#'  \item{"patterns": }{Plot the patterns for a given set of classes}
+#'  \item{"together": }{Plot all samples of the same band and label together}
+#'  \item{"classification": }{Plot the results of a classification}
+#' }
+#' The sits_plot function makes an educated guess of what plot is required,
+#' based on the input data. If the input data has less than 30 samples, it
+#' will default to "all years". If there is only one sample per class, it will
+#' default to "patterns". If there are more than 30 samples, it will default to
+#' "together". If the input data has predicted values resulting from a classification, it will
+#' plot the classification.
+#'
+#' WARNING: This function is deprecated. Please use plot() instead.
+#'
+#'
+#' @param  data          Data to be plotted (can be a sits tibble, clusters, or TWDTW matches).
+#' @param  bands         Bands used for visualisation (optional for sits_plot_classification).
+#' @param  colors        Color pallete to be used (based on Color Brewer - default is "Dark2").
+#' @return Input sits tibble (useful for chaining functions).
+#'
+#' @examples
+#' \donttest{
+#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
+#' data ("cerrado_2classes")
+#' # Plot all the samples together
+#' sits_plot (cerrado_2classes)
+#' # Plot the first 20 samples (defaults to "allyears")
+#' sits_plot (cerrado_2classes[1:20,])
+#' # Plot the patterns
+#' sits_plot (sits_patterns(cerrado_2classes))
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' data(samples_mt_ndvi)
+#' # Retrieve a point
+#' data(point_ndvi)
+#' # classify the point
+#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
+#' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
+#' # plot the classification
+#' sits_plot (class_ndvi.tb)
+#' }
+#' @export
+sits_plot <- function(data, bands = c("ndvi"), colors = "Dark2") {
+    warning("sits_plot is deprecated; please use plot() directly")
+    # backward compatibility
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    # is there only one sample per label? Plot patterns!
+    if ("patterns" %in% class(data))
+        .sits_plot_patterns(data)
+    # Both data and prediction exist? Plot classification!
+    if ("predicted" %in% class(data))
+        .sits_plot_classification(data, bands = bands)
+
+    # if data is a time series
+    if ("sits" %in% names(data)) {
+        # Are there more than 30 samples? Plot them together!
+        if (nrow(data) > 30) {
+            .sits_plot_together(data, colors)
+        }
+        # Take "allyears" as the default
+        else
+            .sits_plot_allyears(data, colors)
+    }
+    # return the original sits tibble - useful for chaining
+    return(invisible(data))
+}

@@ -34,7 +34,7 @@
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' sits_plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_train <- function(data, ml_method = sits_svm()) {
@@ -87,7 +87,7 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' sits_plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
@@ -122,6 +122,7 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
             return(prediction_DT)
         }
+        class(model_predict) <- append(class(model_predict), "lda_model", after = 0)
         return(model_predict)
     }
 
@@ -158,7 +159,7 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' # Classify a point
 #' class.tb <- sits_classify(point_ndvi, qda_model)
 #' # Plot results
-#' sits_plot(class.tb)
+#' plot(class.tb)
 #' }
 #' @export
 sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
@@ -188,6 +189,7 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
             return(prediction_DT)
         }
+        class(model_predict) <- append(class(model_predict), "qda_model", after = 0)
         return(model_predict)
     }
     result <- .sits_factory_function(data, result_fun)
@@ -224,7 +226,7 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' sits_plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
@@ -256,6 +258,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 
             return(prediction_DT)
         }
+        class(model_predict) <- append(class(model_predict), "mlr_model", after = 0)
         return(model_predict)
     }
 
@@ -291,7 +294,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' sits_plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_rfor <- function(data = NULL, num_trees = 2000, importance = "impurity", ...) {
@@ -335,6 +338,7 @@ sits_rfor <- function(data = NULL, num_trees = 2000, importance = "impurity", ..
 
             return(prediction_DT)
         }
+        class(model_predict) <- append(class(model_predict), "rfor_model", after = 0)
         return(model_predict)
     }
 
@@ -382,7 +386,7 @@ sits_rfor <- function(data = NULL, num_trees = 2000, importance = "impurity", ..
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' sits_plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_svm <- function(data = NULL, formula = sits_formula_logref(), scale = FALSE, cachesize = 1000,
@@ -422,6 +426,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(), scale = FALSE
 
             return(prediction_DT)
         }
+        class(model_predict) <- append(class(model_predict), "svm_model", after = 0)
         return(model_predict)
     }
     result <- .sits_factory_function(data, result_fun)
@@ -472,7 +477,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(), scale = FALSE
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #' class.tb <- sits_classify(point.tb, xgb_model)
-#' sits_plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
 sits_xgboost <- function(data = NULL, eta = 0.3, gamma = 0, max_depth = 6, min_child_weight = 1,
@@ -508,22 +513,25 @@ sits_xgboost <- function(data = NULL, eta = 0.3, gamma = 0, max_depth = 6, min_c
         # get the best iteration of the model based on the CV
         nrounds_best <- xgbcv$best_iteration
 
-        # call gbm::gbm method and return the trained multinom model
-        result_xgb <- xgboost::xgb.train(data = xgboost::xgb.DMatrix(data = as.matrix(train_data_DT[, 3:length(train_data_DT)]), label = references),
-                                         num_class = length(labels),
-                                         params = params, nrounds = nrounds_best,
-                                         print_every_n = 10,  maximize = FALSE)
+        # call xgboost method and return l
+        result_xgb <- xgboost::xgb.train(data = xgboost::xgb.DMatrix(
+            data = as.matrix(train_data_DT[, 3:length(train_data_DT)]), label = references),
+            num_class = length(labels),
+            params = params, nrounds = nrounds_best,
+            print_every_n = 10,  maximize = FALSE)
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
             # transform input (data.table) into a matrix (remove first two columns)
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(result_xgb, data.matrix(values_DT[, -(1:2)]), reshape = TRUE))
+            prediction_DT <- data.table::as.data.table(
+                stats::predict(result_xgb, data.matrix(values_DT[, -(1:2)]), reshape = TRUE))
             # adjust the names of the columns of the probs
             colnames(prediction_DT) <- labels
             # retrieve the prediction results
             return(prediction_DT)
         }
+        class(model_predict) <- append(class(model_predict), "xgb_model", after = 0)
         return(model_predict)
     }
 

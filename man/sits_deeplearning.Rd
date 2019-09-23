@@ -54,11 +54,13 @@ Please refer to the documentation in that package for more details.
 
 # Build a machine learning model based on deep learning
 dl_model <- sits_train (samples_mt_4bands, sits_deeplearning(epochs = 150))
+# plot the model
+plot(dl_model)
 
 # get a point and classify the point with the ml_model
 point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 class.tb <- sits_classify(point.tb, dl_model)
-sits_plot(class.tb)
+plot(class.tb, bands = c("ndvi", "evi"))
 }
 }
 \author{

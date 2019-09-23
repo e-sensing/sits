@@ -101,11 +101,11 @@ test_that("Reading a ZOO time series", {
     expect_true(NROW(ts_zoo) == length(sits_time_series_dates(data)))
 })
 
-test_that("Reading a shapefile", {
+test_that("Reading a POLYGON shapefile", {
     #skip_on_cran()
     cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
     shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp", package = "sits")
-    parcel.tb <- sits_get_data(cube_wtss, file = shp_file)
+    parcel.tb <- sits_get_data(cube_wtss, file = shp_file, shp_attr = "ext_na", .n_shp_pol = 3)
 
     sf_shape <- sf::read_sf(shp_file)
     sf_shape <- sf::st_transform(sf_shape, crs = 4326)
@@ -115,6 +115,16 @@ test_that("Reading a shapefile", {
     expect_true(nrow(parcel.tb) > 1)
     expect_true(all(unique(longitudes_shp) > bbox["xmin"]))
     expect_true(all(unique(longitudes_shp) < bbox["xmax"]))
+    expect_true(all(parcel.tb$label == "Soja_Algodao"))
+})
+
+test_that("Reading a POINT shapefile", {
+    #skip_on_cran()
+    cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
+    shp_file <- system.file("extdata/shapefiles/cerrado_forested.shp", package = "sits")
+    points.tb <- sits_get_data(cube_wtss, file = shp_file, label = "Cerrado_Forested", .n_shp_pts = 3)
+
+    expect_true(all(points.tb$label == "Cerrado_Forested"))
 })
 
 test_that("Labels and re-label", {

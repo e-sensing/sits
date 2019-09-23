@@ -129,7 +129,7 @@
         end_date  <- lubridate::as_date(timeline[length(timeline)])
 
     # try to get a time series from the WTSS server
-    tryCatch({
+    check <- tryCatch({
         # get the WTSS object associated to the URL
         wtss.obj <- wtss::WTSS(cube$URL)
         # retrieve the time series from the service
@@ -190,6 +190,7 @@
         message("WTSS - unable to retrieve point - see log file for details" )
         return(NULL)
     })
+
 }
 #' @title Check that the URL of WTSS service is working
 #' @name .sits_wtss_check

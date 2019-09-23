@@ -174,7 +174,7 @@ raster_class <- sits_label_classification(raster_probs)
 raster_class_bayes <- sits_label_classification(raster_probs, smoothing = "bayesian")
 
 # plot the smoothened image
-sits_plot_raster(raster_class_bayes, time = 1, title = "Sinop-smooth")
+plot(raster_class_bayes, time = 1, title = "Sinop-smooth")
 ```
 
 The result is shown below.

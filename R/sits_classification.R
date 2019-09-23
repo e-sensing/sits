@@ -47,19 +47,13 @@
 #'
 #' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
 #'
-#' # Retrieve a time series (17 years)
-#' data(point_mt_6bands)
-#'
-#' # select the bands "ndvi" and "evi"
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi)
-#'
 #' # classify the point
 #'
-#' class.tb <- sits_classify(point.tb, rfor_model)
+#' class.tb <- sits_classify(point_ndvi, rfor_model)
 #'
 #' # plot the classification
 #'
-#' sits_plot(class.tb)
+#' plot(class.tb)
 #'
 #' # Classify a raster file with 23 instances for one year
 #' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
@@ -74,13 +68,13 @@
 #' sinop_label <- sits_label_classification(sinop_probs)
 #'
 #' # plot the raster image
-#' sits_plot_raster(sinop_label, time = 1, title = "Sinop-2013-2014")
+#' plot(sinop_label, time = 1, title = "Sinop-2013-2014")
 #'
 #' # smooth the result with a bayesian filter
 #' sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
 #'
 #' # plot the smoothened image
-#' sits_plot_raster(sinop_bayes, time = 1, title = "Sinop-smooth")
+#' plot(sinop_bayes, time = 1, title = "Sinop-smooth")
 #' }
 #' @export
 sits_classify <- function(data        = NULL,
@@ -148,13 +142,13 @@ sits_classify <- function(data        = NULL,
 #' sinop_label <- sits_label_classification(sinop_probs)
 #'
 #' # plot the raster image
-#' sits_plot_raster(sinop_label, time = 1, title = "Sinop-2013-2014")
+#' plot(sinop_label, time = 1, title = "Sinop-2013-2014")
 #'
 #' # smooth the result with a bayesian filter
 #' sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
 #'
 #' # plot the smoothened image
-#' sits_plot_raster(sinop_bayes, time = 1, title = "Sinop-smooth")
+#' plot(sinop_bayes, time = 1, title = "Sinop-smooth")
 #' }
 #' @export
 sits_label_classification <- function(cube,
@@ -187,14 +181,12 @@ sits_label_classification <- function(cube,
     labels    <- .sits_cube_labels(cube)
     n_labels  <- length(labels)
     nrows     <- cube$nrows
-    ncols     <- cube$ncols
 
     # allocate matrix of  probability image
     values <- matrix(NA, nrow = cube_size, ncol = n_labels)
 
     # create metadata for labelled raster cube
-    cube_labels <-  .sits_cube_labelled(cube_probs = cube, smoothing = smoothing, output_dir = output_dir,
-                                        version = version)
+    cube_labels <- .sits_cube_labelled(cube_probs = cube, smoothing = smoothing, output_dir = output_dir, version = version)
     # retrieve the files to be written
     out_files   <-  .sits_cube_files(cube_labels)
 
@@ -232,6 +224,7 @@ sits_label_classification <- function(cube,
         # save raster output to file
         layer <- raster::writeRaster(layer, filename = out_files[i], overwrite = TRUE)
     }
+    class(cube_labels) <- append(class(cube_labels), "classified_image", after = 0)
     return(cube_labels)
 }
 #' @title Classify a set of time series using machine learning models
@@ -755,7 +748,7 @@ sits_label_classification <- function(cube,
                                                 xmin  = params$xmin, xmax  = params$xmax,
                                                 ymin  = params$ymin, ymax  = params$ymax,
                                                 xres  = params$xres, yres  = params$yres,
-                                                crs   = params$xmin,
+                                                crs   = params$crs,
                                                 files = tile_interv$bands)
 
                 # checks the classification params

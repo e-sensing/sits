@@ -4,7 +4,7 @@
 \alias{.sits_ts_from_satveg}
 \title{Retrieve a time series from the SATVEG service}
 \usage{
-.sits_ts_from_satveg(longitude, latitude, name, prefilter)
+.sits_ts_from_satveg(longitude, latitude, name, .prefilter)
 }
 \arguments{
 \item{longitude}{The longitude of the chosen location.}
@@ -13,7 +13,7 @@
 
 \item{name}{Name of the desired data cube in SATVEG (see configuration file).}
 
-\item{prefilter}{String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
+\item{.prefilter}{String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)}
 }
 \value{
 TRUE if no problems are detected.

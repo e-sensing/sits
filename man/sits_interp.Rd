@@ -33,7 +33,7 @@ n_times <- NROW(sits_time_series(point_ndvi))
 # interpolate three times more points
 point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
 # plot the result
-sits_plot(point_int.tb)
+plot(point_int.tb)
 }
 }
 \author{

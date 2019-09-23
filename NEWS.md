@@ -4,6 +4,11 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 # What's new in SITS version 0.9
 
+### New features in SITS version 0.9.3
+
+* Improvements in reading shapefiles: using sampling to retrieve time series inside polygons
+* Improvement is plotting: uses overloading to the "plot" function
+
 ### New features in SITS version 0.9.2
 
 * Raster classification results can now have versions: a new parameter "version" has been included in the `sits_classify` function. 

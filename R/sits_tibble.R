@@ -22,7 +22,7 @@
                                 cube        = character(),
                                 time_series = list()
     )
-    class(result) <- append(class(result), "sits_tibble")
+    class(result) <- append(class(result), "sits", after = 0)
     return(result)
 }
 #' @title Aligns dates of time series to a reference date
@@ -275,7 +275,7 @@ sits_dates <- function(data) {
 #' # Filter the point using the whittaker smoother
 #' point_ws.tb <- sits_whittaker(point_ndvi, lambda = 3.0)
 #' # Plot the two points to see the smoothing effect
-#' sits_plot(sits_merge(point_ndvi, point_ws.tb))
+#' plot(sits_merge(point_ndvi, point_ws.tb))
 #' }
 #' @export
 sits_merge <-  function(data1.tb, data2.tb) {
@@ -956,6 +956,7 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
         })
 
     data$predicted <- predicted.lst
+    class(data) <- append(class(data), "predicted", after = 0)
 
     return(data)
 }

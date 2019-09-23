@@ -31,7 +31,7 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
     # get the end date
     end_date <- ts.tb[NROW(ts.tb), ]$Index
 
-    # create a tibble to store the WTSS data
+    # create a tibble to store the data
     data <- .sits_tibble()
     # add one row to the tibble
     data    <- tibble::add_row(data,
@@ -42,7 +42,6 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "No
                                label        = label,
                                cube         = name,
                                time_series  = ts.lst)
-    class(data) <- append(class(data), "sits_tibble")
 
     return(data)
 }

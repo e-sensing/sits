@@ -41,7 +41,6 @@ good quality samples are selected, based on the Kohonen map.
 }
 \examples{
 \donttest{
-# Read a set of samples
 # Get a new subset of samples evaluated by SOM clustering methods
 new_samples.tb <- sits_cluster_som(prodes_226_064)
 }

@@ -14,7 +14,7 @@
 #' @examples
 #' \donttest{
 #' # Test the diffeent filters
-#' sits_plot(point_ndvi)
+#' plot(point_ndvi)
 #'
 #' # Apply the cloud filter
 #' # Merge the filtered with the raw data
@@ -22,7 +22,7 @@
 #' point_ndvi %>%
 #'       sits_filter(filter = sits_cloud_removal()) %>%
 #'       sits_merge (point_ndvi, .) %>%
-#'       sits_plot ()
+#'       plot()
 #'
 #'
 #' # Apply the envelope filter
@@ -31,7 +31,7 @@
 #' point_ndvi %>%
 #'       sits_filter(filter = sits_envelope()) %>%
 #'       sits_merge (point_ndvi, .) %>%
-#'       sits_plot ()
+#'       plot()
 #'
 #' # Apply the ARIMA filter
 #' # Merge the filtered with the raw data
@@ -39,7 +39,7 @@
 #' point_ndvi %>%
 #'       sits_filter(filter = sits_ndvi_arima()) %>%
 #'       sits_merge (point_ndvi, .) %>%
-#'       sits_plot ()
+#'       plot()
 #'
 #' # Apply the Whittaker smoother
 #' # Merge the filtered with the raw data
@@ -47,7 +47,7 @@
 #' point_ndvi %>%
 #'       sits_filter(filter = sits_whittaker (lambda = 3.0)) %>%
 #'       sits_merge (point_ndvi, .) %>%
-#'       sits_plot ()
+#'       plot()
 #'
 #' # Apply the Savitsky-Golay smoother
 #' # Merge the filtered with the raw data
@@ -55,14 +55,14 @@
 #' point_ndvi %>%
 #'       sits_filter(filter = sits_sgolay()) %>%
 #'       sits_merge (point_ndvi, .) %>%
-#'       sits_plot ()
+#'       plot()
 #'
 #' # interpolate three times more points
 #' # find out how many time instances are there in the time series
 #' n_times <- NROW(sits_time_series(point_ndvi))
 #' point_int <- sits_filter(point_ndvi, sits_linear_interp(n = 3*n_times))
 #' # plot the result
-#' sits_plot (point_int)
+#' plot(point_int)
 #'
 #' }
 #' @export
@@ -113,7 +113,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' # Merge the filtered with the raw data
 #' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 #' # Plot the result
-#' sits_plot (point2.tb)
+#' plot (point2.tb)
 #' }
 #' @export
 sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
@@ -181,7 +181,7 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
 #' # Merge the filtered with the raw data
 #' point2.tb <- sits_merge (point_ndvi.tb, point_env.tb)
 #' # Plot the result
-#' sits_plot (point2.tb)
+#' plot(point2.tb)
 #' }
 #' @export
 sits_envelope <- function(data = NULL, operations = "UULL", bands_suffix = "env"){
@@ -241,7 +241,7 @@ sits_envelope <- function(data = NULL, operations = "UULL", bands_suffix = "env"
 #' # interpolate three times more points
 #' point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
 #' # plot the result
-#' sits_plot(point_int.tb)
+#' plot(point_int.tb)
 #' }
 #' @export
 sits_interp <- function(data = NULL, fun = stats::approx, n = base::length, ...) {
@@ -283,7 +283,7 @@ sits_interp <- function(data = NULL, fun = stats::approx, n = base::length, ...)
 #' # Merge the filtered with the raw data
 #' point2.tb <- sits_merge (point_ndvi.tb, point_kf.tb)
 #' # Plot the result
-#' sits_plot (point2.tb)
+#' plot(point2.tb)
 #' }
 #' @export
 sits_kalman <- function(data = NULL, bands_suffix = "kf"){
@@ -388,7 +388,7 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
 #' # interpolate three times more points
 #' point_int.tb <- sits_linear_interp(point_ndvi, n = 3*n_times)
 #' # plot the result
-#' sits_plot (point_int.tb)
+#' plot(point_int.tb)
 #' }
 #' @export
 sits_linear_interp <- function(data = NULL, n = 23) {
@@ -457,7 +457,7 @@ sits_missing_values <-  function(data, miss_value) {
 #' # Merge the filtered with the raw data
 #' point2 <- sits_merge (point_ndvi, point_ar)
 #' # Plot the result
-#' sits_plot (point2)
+#' plot(point2)
 #' }
 #' @export
 sits_ndvi_arima <- function(data = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
@@ -538,7 +538,7 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
 #' # Filter the point using the Savitsky Golay smoother
 #' point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5))
 #' # Plot the two points to see the smoothing effect
-#' sits_plot(sits_merge(point_ndvi, point_sg))
+#' plot(sits_merge(point_ndvi, point_sg))
 #' }
 #' @export
 sits_sgolay <- function(data = NULL, order = 3,
@@ -582,9 +582,9 @@ sits_sgolay <- function(data = NULL, order = 3,
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the whittaker smoother
-#' point_whit<- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, differences = 3))
+#' point_whit <- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, differences = 3))
 #' # Plot the two points to see the smoothing effect
-#' sits_plot(sits_merge(point_ndvi, point_whit))
+#' plot(sits_merge(point_ndvi, point_whit))
 #' }
 #' @export
 sits_whittaker <- function(data = NULL, lambda    = 1.0, differences = 3, bands_suffix = "whit") {

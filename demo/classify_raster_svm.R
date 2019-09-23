@@ -11,8 +11,7 @@ if (!requireNamespace("inSitu", quietly = TRUE)) {
 library(inSitu)
 
 #select the bands for classification
-samples <- inSitu::br_mt_1_8K_9classes_6bands
-samples_ndvi_evi <- sits_select_bands(samples, ndvi, evi)
+samples_ndvi_evi <- sits_select_bands(samples_mt_4bands, ndvi, evi)
 
 # build the classification model
 svm_model <- sits_train(samples_ndvi_evi, ml_method = sits_svm())
@@ -29,19 +28,20 @@ time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-raster.tb <- sits_cube(name = "Sinop",  timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = files)
-
+sinop <- sits_cube(name = "Sinop",  timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = files)
 
 # classify the raster image
-raster_class.tb <- sits_classify(raster.tb, ml_model = svm_model, memsize = 4, multicores = 2,
-                                 out_prefix = "./Sinop-class")
+sinop_probs <- sits_classify(sinop, ml_model = svm_model, memsize = 2, multicores = 1)
+
+# label the classified image
+sinop_label <- sits_label_classification(sinop_probs)
 
 # plot the raster image
-sits_plot_raster(raster_class.tb, time = 1, title = "Sinop")
+plot(sinop_label, time = 1, title = "Sinop")
 
 # smooth the result with a bayesian filter
-raster_class_bayes.tb <- sits::sits_bayes_smooth(cube = raster_class.tb)
+sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
 
 # plot the smoothened image
-sits_plot_raster(raster_class_bayes.tb, time = 1, title = "Sinop")
+plot(sinop_bayes, time = 1, title = "Sinop-smooth")
 

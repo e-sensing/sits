@@ -11,53 +11,84 @@
 #' @param start_date      The start date of the period.
 #' @param end_date        The end date of the period.
 #' @param bands           A string vector with the names of the bands to be retrieved.
-#' @param prefilter       A string related to data correction ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @param label           A string with the label to attach to the time series.
-#' @param epsg             An optional code for the planar projection to be used if the shapefile is in WGS84 (for reading data inside shapefiles)
+#' @param shp_attr        An optional string to indicate the attribute in the shapefile to be used as a polygon label
+#' @param .n_shp_pol      Number of samples per polygon to be read (for POLYGON or MULTIPOLYGON shapes)
+#' @param .n_shp_pts      Number of points to be read (for POINT shapes)
+#' @param .prefilter      Filtering for SATVEG cube ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
 #' @return A sits tibble.
 .sits_from_shp <- function(shp_file, cube, start_date, end_date, bands,
-                           prefilter, label, epsg) {
-    # test parameters
-    ensurer::ensure_that(shp_file, !purrr::is_null(.) && tolower(tools::file_ext(.)) == "shp",
-                         err_desc = "sits_from_shp: please provide a valid SHP file")
-    # Ensure that the service is available
-    .sits_config_check(cube$service)
+                           label, shp_attr, .n_shp_pol, .n_shp_pts, .prefilter) {
+
+    # pre-condition - does the shapefile exist?
+    ensurer::ensure_that(shp_file, file.exists(.),
+                         err_desc = "sits_from_shp: shapefile does not exist")
+    # pre-condition - is the default label valid?
+    ensurer::ensure_that(label, !purrr::is_null(.) || !purrr::is_null(shp_attr) ,
+                         err_desc = "sits_from_shp: either default label or name of shape attribute should be valid")
 
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
-    # find out what is the projection of the shape file
-    epsg_shp <- sf::st_crs(sf_shape)$epsg
+    # get the geometry type
+    geom_type <-  sf::st_geometry_type(sf_shape)[1]
+    # get the data frame associated to the shapefile
+    shp_df <- sf::st_drop_geometry(sf_shape)
+
+    # are all geometries compatible?
+    ensurer::ensure_that(sf_shape, all(sf::st_geometry_type(.) == geom_type),
+                         err_desc = "sits_from_shp: shapefile has different geometries in a single file")
+
+    # can the function deal with the geometry_type?
+    ensurer::ensure_that(geom_type, (.) %in% c("POINT", "POLYGON", "MULTIPOLYGON"),
+                         err_desc = "sits_from_shp: function only handles POINT, POLYGON or MULTIPOLYGON shapefiles")
+
+    # is the shape attribute valid?
+    if (!purrr::is_null(shp_attr))
+        ensurer::ensure_that(shp_attr, length(as.character(unname(shp_df[1, (.)]))) > 0,
+                             err_desc = "sits_from_shp: invalid shapefile attribute")
+
     # if the shapefile is not in planar coordinates, convert it
-    if (epsg_shp == 4326) {
-        sf_shape <- sf::st_transform(sf_shape, crs = epsg)
-    }
-    else # if shapefile not in lat/long, use the shapefile EPSG
-        epsg <- epsg_shp
-    # get the bounding box
-    bbox <- sf::st_bbox(sf_shape)
+    sf_shape <- suppressWarnings(sf::st_transform(sf_shape, crs = 4326))
     # create an empty sits tibble
     shape.tb <- .sits_tibble()
 
-    # If the resolution of the cube is expressed in latlong, convert it to planar coordinates
-    res <- .sits_convert_resolution(cube)
-
-    # setup the sequence of latitudes and longitudes to be searched
-    xs <- seq(from = bbox["xmin"], to = bbox["xmax"], by = res["xres"])
-    ys  <- seq(from = bbox["ymin"], to = bbox["ymax"], by = res["yres"])
-
-    xys <- tidyr::crossing(xs, ys)
-    names(xys) <- c("x", "y")
-    rows.lst <-
-        xys %>%
-        purrr::pmap(function(x, y) {
-            xy <- sf::st_point(c(x,y))
-            if (1 %in% as.logical(unlist(sf::st_contains(sf_shape, xy)))) {
-                ll <- .sits_proj_to_latlong(x, y, epsg)
-                row <- .sits_from_service(cube, ll[,"X"], ll[,"Y"], start_date, end_date,
-                                          bands, prefilter, label)
+    # if geom_type is POINT, use the points provided in the shapefile
+    if (geom_type == "POINT") {
+        points.lst <- as.list(sf_shape$geometry)
+        # reduce the number of points to be read
+        if (length(points.lst) > .n_shp_pts)
+            points.lst <- points.lst[1:.n_shp_pts]
+        # read the points
+        rows.lst <- points.lst %>%
+            purrr::map(function(p) {
+                paste0("long = ", p[1])
+                row <- .sits_from_service(cube = cube, longitude = p[1], latitude = p[2],
+                                          start_date = start_date, end_date = end_date,
+                                          bands = bands, label = label, .prefilter = .prefilter)
                 return(row)
-            }
-        })
-    shape.tb <- dplyr::bind_rows(rows.lst)
+            })
+        shape.tb <- dplyr::bind_rows(shape.tb, rows.lst)
+    }
+    # if geom_type is not POINT, we have to sample each polygong
+    else {
+        for (i in 1:nrow(sf_shape)) {
+            # retrive the class from the shape attribute
+            if (!purrr::is_null(shp_attr))
+                label <-  as.character(unname(shp_df[i, shp_attr]))
+            # obtain a set of samples based on polygons
+            points.lst <- list(sf::st_sample(sf_shape[i,], size = .n_shp_pol))
+            # get one time series per sample
+            rows.lst <- points.lst %>%
+                purrr::pmap(function(p) {
+                    pll <- sf::st_geometry(p)[[1]]
+                    row <- .sits_from_service(cube = cube, longitude = pll[1], latitude = pll[2],
+                                              start_date = start_date, end_date = end_date,
+                                              bands = bands, label = label, .prefilter = .prefilter)
+                    return(row)
+                })
+            # combine rows to make SITS tibble
+            shape.tb <- dplyr::bind_rows(shape.tb, rows.lst)
+        }
+    }
     return(shape.tb)
 }

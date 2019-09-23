@@ -33,7 +33,7 @@ sg1 <- sits_sgolay(prodes_226_064[1,], order = 3, length = 5, scaling = 1)
 sg1 %>%
      sits_merge(prodes_226_064[1,]) %>%
      sits_select_bands(evi, evi.sg) %>%
-     sits_plot()
+     plot()
 
 conf_sg.tb <- sits_kfold_validate (prodes_sg.tb, folds = 2)
 
@@ -54,7 +54,7 @@ w1 <- sits_whittaker(prodes_226_064[1,], lambda = 2.0)
 w1 %>%
     sits_merge(prodes_226_064[1,]) %>%
     sits_select_bands(ndvi, ndvi.whit) %>%
-    sits_plot()
+    plot()
 
 conf_whit.tb <- sits_kfold_validate(prodes_whit.tb, folds = 2)
 
@@ -79,7 +79,7 @@ w1 <- sits_envelope(prodes_ndvi.tb[1,])
 w1 %>%
     sits_merge(prodes_ndvi.tb[1,]) %>%
     sits_select_bands(ndvi, ndvi.env) %>%
-    sits_plot()
+    plot()
 
 conf_env.tb <- sits_kfold_validate(prodes_env.tb, folds = 2)
 
@@ -103,7 +103,7 @@ w1 <- sits_cloud_filter(prodes_ndvi.tb[1,])
 w1 %>%
     sits_merge(prodes_ndvi.tb[1,]) %>%
     sits_select_bands(ndvi, ndvi.cf) %>%
-    sits_plot()
+    plot()
 
 conf_cf.tb <- sits_kfold_validate(prodes_cf.tb, folds = 2)
 

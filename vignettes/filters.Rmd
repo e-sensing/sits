@@ -81,7 +81,7 @@ point.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # apply Savitzky–Golay filter
 point_sg.tb <- sits_filter(point.tb, filter = sits_sgolay())
 # plot the series
-sits_merge(point_sg.tb, point.tb) %>% sits_plot()
+sits_merge(point_sg.tb, point.tb) %>% plot()
 ```
 
 # Whittaker filter
@@ -128,7 +128,7 @@ In the `sits` package, the Whittaker smoother has two parameters: `lambda` contr
 point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 3))
 point_whit %>% 
   sits_merge(point_ndvi) %>% 
-  sits_plot()
+  plot()
 ```
 
 # Envelope filter
@@ -159,7 +159,7 @@ point_env2.tb <- sits_filter(point.tb, sits_envelope(operations = "LUULULLU", ba
 # plot the series
 sits_merge(point_env1.tb, point_env2.tb) %>%
     sits_merge(point.tb) %>%
-    sits_plot()
+    plot()
 ```
 
 # ARIMA filter for cloud removal
@@ -174,7 +174,7 @@ point <- sits_select_bands(prodes_226_064[1,], ndvi)
 # apply ARIMA filter
 point_cf <- sits_filter(point, sits_ndvi_arima())
 # plot the series
-sits_merge(point_cf, point) %>% sits_plot()
+sits_merge(point_cf, point) %>% plot()
 ```
 
 

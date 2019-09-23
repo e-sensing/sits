@@ -25,7 +25,7 @@ test_that("Creating clustering using Self-organizing Maps", {
 
     expect_equal(length(names(som_map$som_properties)), 17)
 
-    sits_plot_som(som_map)
+    plot(som_map)
 
     cleaned_samples <- sits_som_clean_samples(som_map)
     expect_true("probability" %in% names(cleaned_samples))

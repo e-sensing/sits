@@ -1,8 +1,8 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
-Version: 0.09.02
-Date: 2019-09-17
+Version: 0.9.3
+Date: 2019-09-23
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Pedro', 'Andrade', role = c('aut', 'cre'), email = 'pedro.andrade@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut'), email = 'gilberto.camara@inpe.br'), 
@@ -45,7 +45,6 @@ Imports:
     dtwclust,
     dtwSat,
     flexclust,
-    gbm,
     geosphere,
     ggplot2,
     graphics,
@@ -55,6 +54,7 @@ Imports:
     imputeTS,
     log4r,
     lubridate,
+    lwgeom,
     MASS,
     methods,
     mgcv,
@@ -77,8 +77,8 @@ Imports:
     stats,
     stringr,
     tibble (>= 1.4),
-    tools,
     tidyr,
+    tools,
     urltools,
     utils,
     wtss,

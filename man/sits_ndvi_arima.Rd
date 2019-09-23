@@ -46,7 +46,7 @@ point_ar <- sits_filter(point_ndvi, sits_ndvi_arima())
 # Merge the filtered with the raw data
 point2 <- sits_merge (point_ndvi, point_ar)
 # Plot the result
-sits_plot (point2)
+plot(point2)
 }
 }
 \author{

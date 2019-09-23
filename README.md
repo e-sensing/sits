@@ -58,7 +58,7 @@ extracted. The spatial location is given in longitude and latitude
 coordinates for the “WGS84” ellipsoid. For example, the first sample has
 been labelled “Pasture”, at location (-55.1852, -10.8387), and is
 considered valid for the period (2013-09-14, 2014-08-29). To display the
-time series, use the `sits_plot()` function. For a large number of
+time series, use the `plot()` function. For a large number of
 samples, where the amount of individual plots would be substantial, the
 default visualisation combines all samples together in a single temporal
 interval.
@@ -69,7 +69,7 @@ samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
 # select only the samples with the cerrado label
 samples_cerrado <- dplyr::filter(samples_ndvi, 
                   label == "Cerrado")
-sits_plot(samples_cerrado)
+plot(samples_cerrado)
 ```
 
 <img src="man/figures/README-cerrado-15-1.png" style="display: block; margin: auto;" />
@@ -117,7 +117,7 @@ SITS”\]
 point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 5))
 point_whit %>% 
   sits_merge(point_ndvi) %>% 
-  sits_plot()
+  plot()
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-1.png" title="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." alt="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." style="display: block; margin: auto;" />
@@ -150,7 +150,7 @@ machine learning model (in this case, an XGBoost classifier). The
 trained model is then used to classify a time series from Mato Grosso
 Brazilian state, using `sits_classify`. The results can be shown in text
 format using the function `sits_show_prediction` or graphically using
-`sits_plot`.
+`plot`.
 
 ``` r
 
@@ -168,7 +168,7 @@ xgb_model <- sits_train(data = mato_grosso_2bands, ml_method = sits_xgboost())
 # Classify using random forest model and plot the result
 class.tb <- sits_classify(point_mt_2bands, xgb_model)
 # plot the results of the prediction
-sits_plot(class.tb)
+plot(class.tb)
 ```
 
 <img src="man/figures/README-unnamed-chunk-5-1.png" title="XGBoost classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\it datum})." alt="XGBoost classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\it datum})." style="display: block; margin: auto;" />
@@ -201,7 +201,7 @@ label_cube <- sits_label_classification(probs_cube, smoothing = "bayesian")
 
 # plot the first raster object with a selected color pallete
 # make a title, define the colors and the labels)
-sits_plot_raster(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
+plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
 ```
 
 <img src="man/figures/README-unnamed-chunk-6-1.png" title="Image classified with XGBoost." alt="Image classified with XGBoost." style="display: block; margin: auto;" />

@@ -4,7 +4,7 @@
 \alias{sits_twdtw_classify}
 \title{Find matches between a set of sits patterns and segments of sits tibble using TWDTW}
 \usage{
-sits_twdtw_classify(data = NULL, patterns.tb = NULL, bands = NULL,
+sits_twdtw_classify(data, patterns, bands = NULL,
   dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
   span = 0, keep = FALSE, start_date = NULL, end_date = NULL,
   interval = "12 month", overlap = 0.5)
@@ -12,7 +12,7 @@ sits_twdtw_classify(data = NULL, patterns.tb = NULL, bands = NULL,
 \arguments{
 \item{data}{A sits tibble to be classified using TWTDW.}
 
-\item{patterns.tb}{A tibble with known temporal signatures for the chosen classes.}
+\item{patterns}{Patterns to be used for classification.}
 
 \item{bands}{Names of the bands to be used for classification.}
 
@@ -58,18 +58,18 @@ seasonal variability.
 samples <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+point <- sits_select_bands(point_mt_6bands, ndvi, evi)
 
 # plot the series
-sits_plot(point.tb)
+plot(point)
 
 # obtain a set of patterns for these samples
-patterns.tb <- sits_patterns(samples)
-sits_plot(patterns.tb)
+patterns <- sits_patterns(samples)
+plot(patterns)
 
 # find the matches between the patterns and the time series using the TWDTW algorithm
 # (uses the dtwSat R package)
-matches <- sits_twdtw_classify(point.tb, patterns.tb, bands = c("ndvi", "evi"),
+matches <- sits_twdtw_classify(point.tb, patterns, bands = c("ndvi", "evi"),
 alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 }
 }

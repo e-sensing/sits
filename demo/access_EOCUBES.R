@@ -14,5 +14,5 @@ point.tb <- sits_get_data(cube_modis.tb,
                           start_date = "2016-09-01", end_date = "2017-09-01")
 
 # plot the series
-sits_plot(point.tb)
+plot(point.tb)
 

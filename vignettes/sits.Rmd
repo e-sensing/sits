@@ -166,7 +166,7 @@ sits_labels(samples_mt_4bands)
 
 In many cases, it is useful to relabel the data set. For example, there may be situations when one wants to use a smaller set of labels, since samples in one label on the original set may not be distinguishable from samples with other labels. We then could use `sits_relabel()`, which requires a conversion list (for details, see `?sits_relabel`).
 
-Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions from `dplyr`, `tidyr` and `purrr` packages of the `tidyverse` [@Wickham2017] to process the data. For example, the following code uses `sits_select_bands()` to get a subset of the sample data set with two bands (NDVI and EVI) and then uses the `dplyr::filter()` to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `sits_plot()` to display the time series. Given a small number of samples to display, `sits_plot()` tries to group as many spatial locations together. In the following example, the first 15 samples of  "Cerrado" class refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together.
+Given that we have used the tibble data format for the metadata and and the embedded time series, one can use the functions from `dplyr`, `tidyr` and `purrr` packages of the `tidyverse` [@Wickham2017] to process the data. For example, the following code uses `sits_select_bands()` to get a subset of the sample data set with two bands (NDVI and EVI) and then uses the `dplyr::filter()` to select the samples labelled either as "Cerrado" or "Pasture". We can then use the `plot.sits()` function (or use `plot()` directly) to display the time series. Given a small number of samples to display, `plot.sits()` tries to group as many spatial locations together. In the following example, the first 15 samples of  "Cerrado" class refer to the same spatial location in consecutive time periods. For this reason, these samples are plotted together.
 
 ```{r cerrado-15, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of the first 'Cerrado' sample from data set" }
 # select NDVI band
@@ -175,19 +175,19 @@ samples_ndvi.tb <- sits_select_bands(samples_mt_4bands, ndvi)
 samples_cerrado.tb <-
     dplyr::filter(samples_ndvi.tb, label == "Cerrado")
 # plot the first sample
-sits_plot(samples_cerrado.tb[1,])
+plot(samples_cerrado.tb[1,])
 ```
 
-For a large number of samples, where the amount of individual plots would be substantial, the default visualization combines all samples together in a single temporal interval (even if they belong to different years). All samples with the same band and label are aligned to a common time interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, while the two orange lines are the first and third interquartile ranges. The documentation of `sits_plot()` has more details about the different ways it can display data.
+For a large number of samples, where the amount of individual plots would be substantial, the default visualization combines all samples together in a single temporal interval (even if they belong to different years). All samples with the same band and label are aligned to a common time interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, while the two orange lines are the first and third interquartile ranges. The documentation of `plot.sits()` has more details about the different ways it can display data.
 
 ```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all Cerrado samples from data set"}
 # plot all cerrado samples together
-sits_plot(samples_cerrado.tb)
+plot(samples_cerrado.tb)
 ```
 
 # Obtaining time series data
 
-To get a time series in SITS, one has to create a data cube first, as described above. Alternatively, the time series can also be converted from data stored  in the ZOO format [@Zeileis2005]. Users can request one or more time series points from a data cube by using `sits_get_data()`. This function provides a general means of access to image time series. Given data cue, the user provides the latitude and longitude of the desired location, the bands, and the start date and end date of the time series. If the start and end dates are not provided, it retrieves all the available period. The result is a tibble that can be visualized using `sits_plot()`.
+To get a time series in SITS, one has to create a data cube first, as described above. Alternatively, the time series can also be converted from data stored  in the ZOO format [@Zeileis2005]. Users can request one or more time series points from a data cube by using `sits_get_data()`. This function provides a general means of access to image time series. Given data cue, the user provides the latitude and longitude of the desired location, the bands, and the start date and end date of the time series. If the start and end dates are not provided, it retrieves all the available period. The result is a tibble that can be visualized using `plot()`.
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI and EVI time series fetched from WTSS service."}
 # a point in the transition forest to pasture in Northern MT
@@ -200,7 +200,7 @@ series.tb <- sits_get_data(cube      = wtss_cube,
                            longitude = -55.57320, 
                            latitude  = -11.50566,
                            bands     = c("ndvi", "evi"))
-sits_plot(series.tb)
+plot(series.tb)
 ```
 
 A useful case is when a set of labelled samples are available to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. Function `sits_get_data()` can get a CSV file path as an argument. The CSV file must provide, for each time series, its latitude and longitude, the start and end dates, and a label associated to a ground sample. An example of a CSV file used is shown below:
@@ -210,30 +210,27 @@ A useful case is when a set of labelled samples are available to be used as a tr
 csv_sinop <- system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
 head(read.csv(csv_sinop))
 # read the first three samples from the CSV file
-csv_data <- sits_get_data(cube = wtss_cube, file = csv_sinop, .n_max = 3)
+csv_data <- sits_get_data(cube = wtss_cube, file = csv_sinop, .n_max_csv = 3)
 csv_data
 ```
-A common situation is when users have samples available as shapefiles in point format. Since shapefiles contain only geometries, we need to provide information about the start and end times for which each label is valid. in this case, one should use the function `sits_shp_to_csv` to produce a CSV which describes the data to be read from a data cube. For best results, one needs to pre-select the data cube from which data will be read, and use the timeline of this data cube.
+A common situation is when users have samples available as shapefiles in point format. Since shapefiles contain only geometries, we need to provide information about the start and end times for which each label is valid. in this case, one should use the function `sits_get_data()` to retrieve data from a data cube based on the contents of the shapefile. The parameter `shp_attr` (optional) indicates the name of the column on the shapefile which contains the label to be associated to each time series; the parameter `.n_shp_pol` (defaults to 20) determines the number of samples to be extracted from each polygon. 
 
 ```{r}
 # select the cube 
 wtss_cube <- sits_cube(service = "WTSS", name    = "MOD13Q1")
-#  get the timeline from the cube
-cube_timeline <- sits_timeline(wtss_cube)
-# define the input shapefile (consisting of POINTS)
-shpfile <- system.file("extdata/shapefiles/cerrado_forested.shp", package = "sits")
+# define the input shapefile (consisting of POLYGONS)
+shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp", package = "sits")
 # set the start and end dates for the validity of the labels of the points in the shapefile
-start_date <- lubridate::ymd("2002-08-29")
+start_date <- lubridate::ymd("2012-08-29")
 end_date   <- lubridate::ymd("2013-08-13")
-# define the output csv file
-csvfile <- paste0("cerrado_forested.csv")
-#' # define the label
-label <- "Cerrado_Forested"
+# define the name of attribute of the shapefile that contains the label
+shp_attr <- "ext_na"
+# define the number of samples to extract from each polygin
+.n_shp_pol <- 10
 # read the points in the shapefile and produce a CSV file
-sits_shp_to_csv(shpfile, csvfile, label, cube_timeline, start_date, end_date, interval = "12 month")
-# read the first three samples from the CSV file
-csv_data <- sits_get_data(cube = wtss_cube, file = csvfile, .n_max = 3)
-csv_data
+data <- sits_get_data(cube = wtss_cube, file = shp_file, start_date = start_date, end_date = end_date, 
+                      shp_attr = shp_attr, .n_shp_pol = .n_shp_pol)
+data
 ```
 
 # Filtering techniques 
@@ -256,7 +253,7 @@ point_whit <- sits_filter(point_ndvi, filter = sits_whittaker(lambda = 5.0))
 # merge with original data and plot the original and the filtered data
 point_whit %>% 
   sits_merge(point_ndvi) %>% 
-  sits_plot()
+  plot()
 ```
 
 # Clustering for sample quality control using self-organizing maps
@@ -289,7 +286,7 @@ When used in \emph{time-first, space-later} approache, `sits` treats time series
 
 The SITS package provides a common interface to all machine learning models, using the `sits_train` function. this function takes two parameters: the input data samples and the ML method (`ml_method`), as shown below. After the model is estimated, it can be used to classify individual time series or full data cubes using the `sits_classify` function. In the examples that follow, we show how to apply each method for the classification of a single time series. Then, we disscuss how to classify full data cubes. 
 
-When a dataset of time series organised as a SITS tibble is taken as input to the classifier,  the result is the same tibble with one additional column ("predicted"), which contains the information on what labels are have been assigned for each interval. The following example illustrate how to train a dataset and classify an individual time series. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, a random forest classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `sits_plot`.
+When a dataset of time series organised as a SITS tibble is taken as input to the classifier,  the result is the same tibble with one additional column ("predicted"), which contains the information on what labels are have been assigned for each interval. The following example illustrate how to train a dataset and classify an individual time series. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, a random forest classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `plot`.
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
 
@@ -306,7 +303,7 @@ class.tb <- sits_classify(point_mt_4bands, model)
 # show the results of the prediction
 sits_show_prediction(class.tb)
 # plot the results of the prediction
-sits_plot(class.tb)
+plot(class.tb)
 ```
 
 The following methods are available in SITS for training machine learning models:
@@ -396,7 +393,7 @@ Doing post-processing using Bayesian smoothing in SITS is straightforward. The r
 label_bayes <- sits_label_classification(probs_cube, smoothing = "bayesian")
 
 # plot the smoothened image
-sits_plot_raster(label_bayes, time = 1, title = "Sinop-smooth")
+plot(label_bayes, time = 1, title = "Sinop-smooth")
 ```
 
 ```{r, fig.align="center", fig.cap="Classified image post-processed with Bayesian smoothing. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}

@@ -4,8 +4,8 @@
 \alias{.sits_from_shp}
 \title{Obtain timeSeries from WTSS server, based on a SHP file.}
 \usage{
-.sits_from_shp(shp_file, cube, start_date, end_date, bands, prefilter,
-  label, epsg)
+.sits_from_shp(shp_file, cube, start_date, end_date, bands, label,
+  shp_attr, .n_shp_pol, .n_shp_pts, .prefilter)
 }
 \arguments{
 \item{shp_file}{Name of a SHP file which provides the boundaries of a region of interest.}
@@ -18,11 +18,15 @@
 
 \item{bands}{A string vector with the names of the bands to be retrieved.}
 
-\item{prefilter}{A string related to data correction ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
-
 \item{label}{A string with the label to attach to the time series.}
 
-\item{epsg}{An optional code for the planar projection to be used if the shapefile is in WGS84 (for reading data inside shapefiles)}
+\item{shp_attr}{An optional string to indicate the attribute in the shapefile to be used as a polygon label}
+
+\item{.n_shp_pol}{Number of samples per polygon to be read (for POLYGON or MULTIPOLYGON shapes)}
+
+\item{.n_shp_pts}{Number of points to be read (for POINT shapes)}
+
+\item{.prefilter}{Filtering for SATVEG cube ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 }
 \value{
 A sits tibble.

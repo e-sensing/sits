@@ -192,6 +192,8 @@ sits_cube <- function(service        = "BRICK",
                               crs            = crs,
                               files          = list(files))
 
+    class(cube.tb) <- append(class(cube.tb), "cube", after = 0)
+
     return(cube.tb)
 }
 
@@ -384,15 +386,33 @@ sits_cube <- function(service        = "BRICK",
     return(cube$bands[[1]])
 }
 
-#' @title Find the web service associated to a cube
-#' @name .sits_cube_service
+#' @title Check that the cube is valid
+#' @name .sits_cube_check_validity
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description    Given a data cube, informs the web services
-#' @param cube     Metadata about a data cube
-#' @return Name of web service
-.sits_cube_service <- function(cube) {
-    return(cube[1,]$service)
+#' @description     Given a data cube, retrieve the scale factors
+#' @param cube      Metadata about a data cube
+#' @return          Boolean value
+.sits_cube_check_validity <- function(cube){
+    # check that the service is valid
+    .sits_config_check(cube[1,]$service)
+
+    # check is WTSS service is working
+    if (cube$service == "WTSS")
+        check <- .sits_wtss_check(cube$URL)
+    # check is SATVEG service is working
+    else if (cube$service == "SATVEG")
+        check <- .sits_satveg_check()
+    # check if the raster files are organised as bricks
+    else if (cube$service == "BRICK")
+        check <- .sits_raster_check_bricks(cube$files[[1]])
+    # check if the raster files are organised as stacks
+    else if (cube$service == "STACK")
+        check <- .sits_raster_check_stacks(cube$files[[1]])
+    else if (cube$service == "EOCUBES")
+        check <- .sits_eocubes_check(cube$URL)
+
+    return(check)
 }
 
 #' @title Return a file associated to a data cube, given an index
@@ -520,4 +540,14 @@ sits_cube_timeline <- function(cube, index = 1){
     return(cube$scale_factors[[1]])
 }
 
+#' @title Find the web service associated to a cube
+#' @name .sits_cube_service
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description    Given a data cube, informs the web services
+#' @param cube     Metadata about a data cube
+#' @return Name of web service
+.sits_cube_service <- function(cube) {
+    return(cube[1,]$service)
+}
 

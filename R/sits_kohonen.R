@@ -25,7 +25,6 @@
 #' presenting the probability of each sample belongs to a class described in column label.
 #' @examples
 #' \donttest{
-#' # Read a set of samples
 #' # Get a new subset of samples evaluated by SOM clustering methods
 #' new_samples.tb <- sits_cluster_som(prodes_226_064)
 #' }
@@ -141,9 +140,10 @@ sits_som_map <- function(data,
                                      dplyr::mutate(dup_neuron = duplicated(id_neuron)) %>%
                                      dplyr::filter(dup_neuron))$id_neuron
 
-        if(length(duplicated_id_neuron) != 0){
-            neurons_labelled.tb <- .sits_som_tie_breaking_neuron_labelling (neurons_labelled, kohonen_obj, duplicated_id_neuron)
-        }else{
+        if (length(duplicated_id_neuron) != 0) {
+            neurons_labelled.tb <- .sits_som_tie_breaking_neuron_labelling(neurons_labelled, kohonen_obj, duplicated_id_neuron)
+        }
+        else {
             neurons_labelled.tb <- neurons_labelled
         }
 
@@ -242,7 +242,7 @@ sits_som_map <- function(data,
             ),
             class = "sits"
         )
-
+    class(som_map.lst) <- append(class(som_map.lst), "som_map", after = 0)
     return(som_map.lst)
 }
 

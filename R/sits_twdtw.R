@@ -21,7 +21,7 @@
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  data          A sits tibble to be classified using TWTDW.
-#' @param  patterns.tb   A tibble with known temporal signatures for the chosen classes.
+#' @param  patterns      Patterns to be used for classification.
 #' @param  bands         Names of the bands to be used for classification.
 #' @param  dist.method   Name of the method to derive the local cost matrix.
 #' @param  alpha         Steepness of the logistic function used for temporal weighting (a double value).
@@ -40,22 +40,22 @@
 #' samples <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+#' point <- sits_select_bands(point_mt_6bands, ndvi, evi)
 #'
 #' # plot the series
-#' sits_plot(point.tb)
+#' plot(point)
 #'
 #' # obtain a set of patterns for these samples
-#' patterns.tb <- sits_patterns(samples)
-#' sits_plot(patterns.tb)
+#' patterns <- sits_patterns(samples)
+#' plot(patterns)
 #'
 #' # find the matches between the patterns and the time series using the TWDTW algorithm
 #' # (uses the dtwSat R package)
-#' matches <- sits_twdtw_classify(point.tb, patterns.tb, bands = c("ndvi", "evi"),
+#' matches <- sits_twdtw_classify(point.tb, patterns, bands = c("ndvi", "evi"),
 #' alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 #' }
 #' @export
-sits_twdtw_classify <- function(data = NULL, patterns.tb = NULL, bands = NULL, dist.method = "euclidean",
+sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euclidean",
                         alpha = -0.1, beta = 100, theta = 0.5, span  = 0, keep  = FALSE,
                         start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
@@ -69,23 +69,22 @@ sits_twdtw_classify <- function(data = NULL, patterns.tb = NULL, bands = NULL, d
 
     # add a progress bar
     progress_bar <- NULL
-    if (nrow (data) > 10) {
+    if (nrow(data) > 10) {
         message("Matching patterns to time series...")
         progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data), style = 3)
         i <- 0
     }
     # does the input data exist?
-    .sits_test_tibble (data)
-    .sits_test_tibble (patterns.tb)
+    .sits_test_tibble(data)
 
     # handle the case of null bands
-    if (purrr::is_null (bands)) bands <- sits_bands(data)
+    if (purrr::is_null(bands)) bands <- sits_bands(data)
 
     # create a list to store the results of the TWDTW matches
     matches.lst <- list()
 
     # select the bands for patterns time series and convert to TWDTW format
-    twdtw_patterns <- patterns.tb %>%
+    twdtw_patterns <- patterns %>%
         .sits_select_bands_(bands = bands) %>%
         .sits_to_twdtw()
 
@@ -120,7 +119,7 @@ sits_twdtw_classify <- function(data = NULL, patterns.tb = NULL, bands = NULL, d
     }
     if (!purrr::is_null(progress_bar)) close(progress_bar)
 
-    .sits_plot_twdtw_alignments (matches.lst)
+    .sits_plot_twdtw_alignments(matches.lst)
 
     # Classify a sits tibble using the matches found by the TWDTW methods
     data  <- .sits_twdtw_breaks(matches.lst, data,
@@ -129,7 +128,7 @@ sits_twdtw_classify <- function(data = NULL, patterns.tb = NULL, bands = NULL, d
     .sits_plot_twdtw_classification(matches.lst,
                                     start_date = start_date, end_date = end_date,
                                     interval = interval, overlap = overlap)
-    return (data)
+    return(data)
 }
 
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
@@ -152,7 +151,7 @@ sits_twdtw_classify <- function(data = NULL, patterns.tb = NULL, bands = NULL, d
 #' @param  interval      The period between two classifications.
 #' @param  overlap       Minimum overlapping between one match and the interval of classification.
 #' @return A sits tibble with the information on matches for the data.
-.sits_twdtw_breaks <- function (matches, data, start_date = NULL, end_date = NULL,
+.sits_twdtw_breaks <- function(matches, data, start_date = NULL, end_date = NULL,
                         interval = "12 month", overlap = 0.5){
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
@@ -163,9 +162,9 @@ sits_twdtw_classify <- function(data = NULL, patterns.tb = NULL, bands = NULL, d
     i <- 1
     predicted.lst <-
         purrr::pmap(list(data$start_date, data$end_date),
-                    function (row_start_date, row_end_date) {
+                    function(row_start_date, row_end_date) {
 
-                        if (purrr::is_null (start_date)) {
+                        if (purrr::is_null(start_date)) {
                             start_date  <- lubridate::as_date(row_start_date)
                             end_date    <- lubridate::as_date(row_end_date)
                             interval <- lubridate::as_date(end_date) - lubridate::as_date(start_date)

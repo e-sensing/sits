@@ -4,7 +4,8 @@
 \alias{.sits_from_csv}
 \title{Obtain timeSeries from a data cube, based on a CSV file.}
 \usage{
-.sits_from_csv(csv_file, cube, bands, prefilter, .n_start, .n_max, .n_save)
+.sits_from_csv(csv_file, cube, bands, .prefilter, .n_start_csv, .n_max_csv,
+  .n_save)
 }
 \arguments{
 \item{csv_file}{Name of a CSV file with information <id, latitude, longitude, from, end, label>.}
@@ -13,11 +14,11 @@
 
 \item{bands}{A string vector with the names of the bands to be retrieved.}
 
-\item{prefilter}{String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
+\item{.prefilter}{String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 
-\item{.n_start}{Row on the CSV file to start reading (optional).}
+\item{.n_start_csv}{Row on the CSV file to start reading (optional).}
 
-\item{.n_max}{Maximum number of samples to be read.}
+\item{.n_max_csv}{Maximum number of samples to be read.}
 
 \item{.n_save}{Number of samples to save as intermediate files (used for long reads).}
 }
