@@ -14,7 +14,7 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              person('Alber', 'Sanchez', role = c('ctb')),
              person('Adeline', 'Marinho', role = c('ctb'))
              )
-Maintainer: Pedro Andrade <pedro.andrade@inpe.br>
+Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series, both as individual data or as part of data cubes.
     Supports data retrieval from a WTSS (web time series service) and EOCUBES data service.
     Provides different visualisation methods for image time series.
