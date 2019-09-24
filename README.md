@@ -58,9 +58,9 @@ extracted. The spatial location is given in longitude and latitude
 coordinates for the “WGS84” ellipsoid. For example, the first sample has
 been labelled “Pasture”, at location (-55.1852, -10.8387), and is
 considered valid for the period (2013-09-14, 2014-08-29). To display the
-time series, use the `plot()` function. For a large number of
-samples, where the amount of individual plots would be substantial, the
-default visualisation combines all samples together in a single temporal
+time series, use the `plot()` function. For a large number of samples,
+where the amount of individual plots would be substantial, the default
+visualisation combines all samples together in a single temporal
 interval.
 
 ``` r
@@ -85,7 +85,10 @@ Self-organizing Maps (SOM). Full details of the cluster methods used in
 SITS are available in the vignette ‘Clustering of Satellite Image Time
 Series with SITS’. The following example shows how to create a
 dendrogram and associated clusters for a dataset with two classes
-(“pasture” and “cerrado”) for the Cerrado biome in Brasil.
+(“pasture” and “cerrado”) for the Cerrado biome in Brasil. For more
+details, please see the vignette [“Clustering of Satellite Image Time
+Series with
+SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering.pdf)
 
 ``` r
 # take a set of patterns for 2 classes
@@ -104,11 +107,9 @@ deal with data sets that are *noisy* and *non-homogeneous*. For data
 filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker
 (`sits_whittaker()`), envelope (`sits_envelope()`) and the “cloud
 filter” (`sits_cloud_filter()`). As an example, we show how to apply
-the Whitakker smoother to a 16-year NDVI time series.
-
-For more details, please see the vignette \[“Satellite Image Time Series
-Filtering with
-SITS”\]
+the Whitakker smoother to a 16-year NDVI time series. For more details,
+please see the vignette [“Satellite Image Time Series Filtering with
+SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.pdf)
 
 ``` r
 # apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
@@ -192,8 +193,8 @@ raster_cube <- sits_cube(name = "Sinop", timeline = timeline_2013_2014, bands = 
 #> sensor information not provided - assuming MODIS
 # Classify the raster cube, generating a probability file
 probs_cube <- sits_classify(raster_cube, ml_model = xgb_model)
-#> Starting classification at 2019-09-17 10:15:38
-#> Classification finished at 2019-09-17 10:15:55. Total elapsed time: 0.3 minute(s).
+#> Starting classification at 2019-09-24 17:57:08
+#> Classification finished at 2019-09-24 17:57:28. Total elapsed time: 0.3 minute(s).
 
 # label the probability file (by default selecting the class with higher probability)
 # apply a bayesian smoothing to remove outliers
@@ -206,9 +207,11 @@ plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
 
 <img src="man/figures/README-unnamed-chunk-6-1.png" title="Image classified with XGBoost." alt="Image classified with XGBoost." style="display: block; margin: auto;" />
 
-For more details, please see the vignette “Machine Learning for Data
-Cubes using the SITS
-package”.
+For more details, please see the vignettes [“Time Series classification
+using machine
+learning”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/machine_learning.pdf)
+and [“Post classification smoothing using Bayesian techniques in
+SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/smoothing.pdf)
 
 #### Code status
 

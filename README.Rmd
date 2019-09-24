@@ -72,7 +72,7 @@ plot(samples_cerrado)
 
 ### Clustering
 
-Clustering methods in SITS improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Good samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM). Full details of the cluster methods used in SITS are available in the vignette 'Clustering of Satellite Image Time Series with SITS'. The following example shows how to create a dendrogram and associated clusters for a dataset with two classes ("pasture" and "cerrado") for the Cerrado biome in Brasil.
+Clustering methods in SITS improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Good samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM). Full details of the cluster methods used in SITS are available in the vignette 'Clustering of Satellite Image Time Series with SITS'. The following example shows how to create a dendrogram and associated clusters for a dataset with two classes ("pasture" and "cerrado") for the Cerrado biome in Brasil. For more details, please see the vignette [“Clustering of Satellite Image Time Series with SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering.pdf)
 
 
 ```{r dendrogram, cache=TRUE, fig.align="center", fig.height=4.1, fig.width=5}
@@ -84,9 +84,8 @@ clusters.tb <- sits_cluster_dendro(cerrado_2classes)
 
 ## Filtering
 
-Satellite image time series are contaminated by atmospheric influence and directional effects. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with data sets that are *noisy* and *non-homogeneous*. For data filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker (`sits_whittaker()`), envelope (`sits_envelope()`) and the "cloud filter" (`sits_cloud_filter()`). As an example, we show how to apply the Whitakker smoother to a 16-year NDVI time series.
+Satellite image time series are contaminated by atmospheric influence and directional effects. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with data sets that are *noisy* and *non-homogeneous*. For data filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker (`sits_whittaker()`), envelope (`sits_envelope()`) and the "cloud filter" (`sits_cloud_filter()`). As an example, we show how to apply the Whitakker smoother to a 16-year NDVI time series. For more details, please see the vignette [“Satellite Image Time Series Filtering with SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.pdf)
 
-For more details, please see the vignette ["Satellite Image Time Series Filtering with SITS"]
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=1$ parameter."}
 # apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
@@ -115,7 +114,7 @@ SITS provides support for the classification of both individual time series as w
 * DL using a combination of long-short term memory (LSTM) and 1D CNN (`sits_LSTM_FCN`)
 
 
-The following example illustrate how to train a dataset and classify an individual time series. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, an XGBoost classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `sits_plot`.
+The following example illustrate how to train a dataset and classify an individual time series. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, an XGBoost classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `plot`.
 
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="XGBoost classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
 
@@ -162,7 +161,7 @@ label_cube <- sits_label_classification(probs_cube, smoothing = "bayesian")
 plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
 ```
 
-For more details, please see the vignette "Machine Learning for Data Cubes using the SITS package". 
+For more details, please see the vignettes [“Time Series classification using machine learning”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/machine_learning.pdf) and [“Post classification smoothing using Bayesian techniques in SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/smoothing.pdf)
 
 #### Code status
 
