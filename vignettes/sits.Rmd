@@ -370,7 +370,7 @@ mato_grosso_samples <- inSitu::br_mt_1_8K_9classes_6bands
 mato_grosso_2bands  <- sits_select_bands(mato_grosso_samples, ndvi, evi)
 
 # build a machine learning model for this area
-xbg_model <- sits_train(mato_grosso_2bands, sits_rfor())
+xbg_model <- sits_train(mato_grosso_2bands, sits_xgboost())
 
 # Use the raster cube created in the section "Defining a data cube using files" above
 # Classify the raster cube, generating a probability file
@@ -398,7 +398,7 @@ plot(label_bayes, time = 1, title = "Sinop-smooth")
 
 ```{r, fig.align="center", fig.cap="Classified image post-processed with Bayesian smoothing. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
 
-knitr::include_graphics(system.file("extdata/markdown", "sinop_class.png", package = "sits"))
+knitr::include_graphics(system.file("extdata/markdown/figures", "sinop_bayes.png", package = "sits"))
 ```
 
 

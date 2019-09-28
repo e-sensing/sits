@@ -51,6 +51,13 @@ packages. More services will be added in future releases.
 
 ### Visualization
 
+``` r
+library(sits)
+samples_mt_4bands[1:3,]
+```
+
+![](/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/samples_mt_4bands.png)<!-- -->
+
 After a time series is imported, it is loaded in a tibble. The first six
 columns contain the metadata: spatial and temporal location, label
 assigned to the sample, and coverage from where the data has been
@@ -72,7 +79,7 @@ samples_cerrado <- dplyr::filter(samples_ndvi,
 plot(samples_cerrado)
 ```
 
-<img src="man/figures/README-cerrado-15-1.png" style="display: block; margin: auto;" />
+<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/samples_cerrado.png" title="Samples for NDVI band for Cerrado class" alt="Samples for NDVI band for Cerrado class" style="display: block; margin: auto;" />
 
 ### Clustering
 
@@ -96,7 +103,7 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering
 clusters.tb <- sits_cluster_dendro(cerrado_2classes)
 ```
 
-<img src="man/figures/README-dendrogram-1.png" style="display: block; margin: auto;" />
+<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/cluster_dendro.png" title="Dendrogram for samples of classes Pasture and Cerrado" alt="Dendrogram for samples of classes Pasture and Cerrado" style="display: block; margin: auto;" />
 
 ## Filtering
 
@@ -115,13 +122,13 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.
 # apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
 # merge with the original data
 # plot the original and the modified series
-point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 5))
+point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 10))
 point_whit %>% 
   sits_merge(point_ndvi) %>% 
   plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" title="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." alt="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." style="display: block; margin: auto;" />
+<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/whit.png" title="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." alt="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." style="display: block; margin: auto;" />
 
 ## Time Series classification using machine learning
 
@@ -155,30 +162,28 @@ format using the function `sits_show_prediction` or graphically using
 
 ``` r
 
+# Train a machine learning model for the mato grosso dataset using Extreme Gradient Boosting
+xgb_model <- sits_train(data = samples_mt_4bands, ml_method = sits_xgboost())
 
-#select the data for classification
-mato_grosso_samples <- inSitu::br_mt_1_8K_9classes_6bands
-mato_grosso_2bands  <- sits_select_bands(mato_grosso_samples, ndvi, evi)
-
-# get a point to be classified
-point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
-
-# Train a machine learning model for the mato grosso dataset using Random Forest
-xgb_model <- sits_train(data = mato_grosso_2bands, ml_method = sits_xgboost())
+# get a point to be classified with four bands
+point_mt_4bands <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 
 # Classify using random forest model and plot the result
-class.tb <- sits_classify(point_mt_2bands, xgb_model)
+class.tb <- sits_classify(point_mt_4bands, xgb_model)
 # plot the results of the prediction
-plot(class.tb)
+plot(class.tb, bands = c("ndvi", "mir"))
 ```
 
-<img src="man/figures/README-unnamed-chunk-5-1.png" title="XGBoost classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\it datum})." alt="XGBoost classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\it datum})." style="display: block; margin: auto;" />
+<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/point_mt_classified_xgboost.png" title="XGBoost classification of a $16$ years time series" alt="XGBoost classification of a $16$ years time series" style="display: block; margin: auto;" />
 
-The following example shows how to use the model trained above to
-classify a data cube organised as a set of raster bricks.
+The following example shows how to classify a data cube organised as a
+set of raster bricks. First, we ned to build a model based on the the
+same bands as the data cube.
 
 ``` r
-
+# estimate a model only for bands "ndvi" and "evi"
+samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+xgb_model_ndvi_evi <- sits_train(samples_mt_2bands, ml_method = sits_xgboost())
 # Create a data cube from two raster bricks
 evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
 ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
@@ -189,12 +194,8 @@ timeline_2013_2014 <- scan(time_file, character(), quiet = TRUE)
 
 # create a raster metadata file based on the information about the files
 raster_cube <- sits_cube(name = "Sinop", timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
-#> satellite information not provided - assuming TERRA
-#> sensor information not provided - assuming MODIS
 # Classify the raster cube, generating a probability file
-probs_cube <- sits_classify(raster_cube, ml_model = xgb_model)
-#> Starting classification at 2019-09-24 17:57:08
-#> Classification finished at 2019-09-24 17:57:28. Total elapsed time: 0.3 minute(s).
+probs_cube <- sits_classify(raster_cube, ml_model = xgb_model_ndvi_evi)
 
 # label the probability file (by default selecting the class with higher probability)
 # apply a bayesian smoothing to remove outliers
@@ -205,7 +206,7 @@ label_cube <- sits_label_classification(probs_cube, smoothing = "bayesian")
 plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
 ```
 
-<img src="man/figures/README-unnamed-chunk-6-1.png" title="Image classified with XGBoost." alt="Image classified with XGBoost." style="display: block; margin: auto;" />
+<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/sinop_bayes.png" title="Image classified with XGBoost" alt="Image classified with XGBoost" style="display: block; margin: auto;" />
 
 For more details, please see the vignettes [“Time Series classification
 using machine

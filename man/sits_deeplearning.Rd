@@ -6,7 +6,7 @@
 \usage{
 sits_deeplearning(data = NULL, layers = c(512, 512, 512, 512, 512),
   activation = "relu", dropout_rates = c(0.5, 0.45, 0.4, 0.35, 0.3),
-  optimizer = keras::optimizer_adam(lr = 0.001), epochs = 400,
+  optimizer = keras::optimizer_adam(lr = 0.001), epochs = 200,
   batch_size = 128, validation_split = 0.2, verbose = 1,
   binary_classification = FALSE)
 }

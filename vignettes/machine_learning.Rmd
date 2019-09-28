@@ -61,38 +61,44 @@ SITS provides support for the classification of both individual time series as w
 
 For the machine learning examples, we use a data set containing a sits tibble with time series samples from Brazilian Mato Grosso State (Amazon and Cerrado biomes). The samples are from many sources. It has 9 classes ("Cerrado", "Fallow_Cotton", "Forest", "Millet_Cotton", "Pasture", "Soy_Corn", "Soy_Cotton", "Soy_Fallow", "Soy_Millet"). Each time series comprehends 12 months (23 data points) from MOD13Q1 product, and has 6 bands ("ndvi", "evi", "blue", "red", "nir", "mir". The dataset was used in the paper "Big Earth observation time series analysis for monitoring Brazilian agriculture" [@Picoli2018], and is available in the R package "inSitu", which is downloadable from the website associated to the "e-sensing" project. The examples below use two out of six bands ("ndvi", "evi") for training and classification. In practice, we suggest that users include additionally at least the "nir" and "mir" bands.
 
-```{r, include = FALSE}
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-mato_grosso_2bands  <- sits_select_bands(samples_mt_4bands, ndvi, evi)
-
-# get a point to be classified
-point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
-```
 
 # Visualizing Samples 
 
-One useful way of describing and understanding the samples is by plotting them. A direct way of doing so is using the `plot` function. When applied to a large data sample, the result is the set of all samples for each label and each band, as shown in the example below, where we plot the raw distribution of the "Forest", "Pasture" and "Cerrado" labels in the "evi" band.
+One useful way of describing and understanding the samples is by plotting them. A direct way of doing so is using the `plot` function. When applied to a large data sample, the result is the set of all samples for each label and each band, as shown in the example below, where we plot the raw distribution of the samples with "Forest" label in the "ndvi" band.
 
-```{r, include = FALSE}
+```{r, eval = FALSE}
 # Select a subset of the samples to be plotted
+# Retrieve the set of samples for the Mato Grosso region 
+mato_grosso_2bands  <- sits_select_bands(samples_mt_4bands, ndvi, evi)
 mato_grosso_2bands %>% 
     sits_select_bands(ndvi) %>% 
-    dplyr::filter(label %in% c("Forest", "Cerrado", "Pasture")) %>% 
+    dplyr::filter(label == "Forest") %>% 
     plot()
 ```
-In the above plots, the thick red line is the median value for each time instance and the yellow lines are the first and third interquartile ranges. Visually, one can see that samples labelled as "Forest" are distinguishable from those of "Cerrado" and "Pasture"; in turn, these latter classes have many similar features and required sophisticated methods for distinction.
+
+```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8,  fig.cap="Forest samples in Mato Grosso for the NDVI band"}
+knitr::include_graphics(system.file("extdata/markdown/figures", "forest_ndvi.png", package = "sits"))
+```
+
+
+In the above plot, the thick red line is the median value for each time instance and the yellow lines are the first and third interquartile ranges. Visually, one can see that samples labelled as "Forest" are distinguishable from those of "Cerrado" and "Pasture"; in turn, these latter classes have many similar features and required sophisticated methods for distinction.
 
 An alternative to visualise the samples is to estimate a statistical approximation to an idealized pattern based on a generalised additive model (GAM). A GAM is a linear model in which the linear predictor depends linearly on a smooth function of the predictor variables
 $$
 y = \beta_{i} + f(x) + \epsilon, \epsilon \sim N(0, \sigma^2).
 $$
 The function `sits_patterns` uses a GAM to predict a smooth, idealized approximation to the time series associated to the each label, for all bands. This function is based on the R package `dtwSat`[@Maus2019], which implements the TWDTW time series matching method described in @Maus2016. The resulting patterns can be viewed using `plot`. 
-```{r, fig.align="center", fig.cap="Patterns for the Mato Grosso 2 band data set"}
+```{r, eval = FALSE}
 # Select a subset of the samples to be plotted
 mato_grosso_2bands %>% 
     sits_patterns() %>% 
     plot()
 ```
+
+```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8, fig.cap="Patterns of samples for land use/land cover classes in Mato Grosso"}
+knitr::include_graphics(system.file("extdata/markdown/figures", "patterns_mt.png", package = "sits"))
+```
+
 The resulting plots provide some insights over the time series behaviour of each class. While the response of the "Forest" class is quite distinctive, there are similarities between the double-cropping classes ("Soy-Corn", "Soy-Millet", "Soy-Sunflower" and "Soy-Corn") and between the "Cerrado" and "Pasture" classes. This could suggest that additional information, more bands, or higher-resolution data could be considered to provide a better basis for time series samples that can better distinguish the intended classes. Despite these limitations, the best machine learning algorithms can provide good performance even in the above case.
 
 # Common interface to machine learning and deeplearning models 
@@ -109,20 +115,30 @@ Random forest training process is essentially nondeterministic. It starts by gro
 
 One of the advantages of the random forest model is that the classification performance is mostly dependent on the number of decision trees to grow and of the "importance" parameter, which controls the purity variable importance measures. SITS provides a `sits_rfor` function which is a front-end to the `ranger` package[@Wright2017]; its two main parameters are: `num_trees` (number of trees to grow) and `importance`, the variable importance criterion. Possible values for `importance` are: `none`, `impurity` (Gini index), and `permutation`, the default being `impurity`. 
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph are in geographic coordinate system  (WGS84 {\\it datum})."}
+```{r, eval = FALSE}
 # Retrieve the set of samples (provided by EMBRAPA) from the 
 # Mato Grosso region for train the Random Forest model.
-rfor_model <- sits_train(mato_grosso_2bands, sits_rfor(num_trees = 500))
+rfor_model <- sits_train(samples_mt_4bands, sits_rfor(num_trees = 500))
 # Classify using Random Forest model and plot the result
-class.tb <- point_mt_2bands %>% 
+point_mt_4bands <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+class.tb <- point_mt_4bands %>% 
     sits_whittaker(lambda = 0.2, bands_suffix = "") %>% 
     sits_classify(rfor_model) %>% 
-    plot()
+    plot(bands = c("ndvi", "mir"))
 ```
 
-```{r}
+```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8, fig.cap="Patterns of samples for land use/land cover classes in Mato Grosso"}
+knitr::include_graphics(system.file("extdata/markdown/figures", "point_mt_classified_rfor.png", package = "sits"))
+```
+
+
+```{r, eval = FALSE}
 # show the results of the prediction
 sits_show_prediction(class.tb)
+```
+
+```{r, echo = FALSE, fig.align="center", fig.height=3, fig.width=5, fig.cap="Temporal clasification of a time series of 16 years using a Random Forest model"}
+knitr::include_graphics(system.file("extdata/markdown/figures", "point_classification.png", package = "sits"))
 ```
 
 The result shows the tendency of the random forest classifier to be robust to outliers and to be able to deal with irrelevant inputs [@Hastie2009]. Performs internal variable selection helps the results be robust to outliers and noise, a common feature in image time series. However, despite being robust, random forest tend to overemphasize some variables and thus rarely turn out to be the classifier with the smallest error. One reason is that the performance of random forest tends to stabilise after a part of the trees are grown [@Hastie2009]. For this reason, in classification comparisons, its performance tends to be weaker than methods such as extreme gradient boosting, described below. Nevertheless, random forest classifiers can be quite useful to provide a baseline to compare with more sophisticated methods. 
@@ -135,16 +151,21 @@ For data that is not linearly separable, SVM includes kernel functions that map 
 
 In `sits`, SVM is implemented as a wrapper of `e1071` R package that uses the `LIBSVM` implementation [@Chang2011], `sits` adopts the *one-against-one* method for multiclass classification. For a $q$ class problem, this method creates ${q(q-1)/2}$ SVM binary models, one for each class pair combination and tests any unknown input vectors throughout all those models. The overall result is computed by a voting scheme. 
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="SVM classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
+```{r, eval = FALSE}
 # Train a machine learning model for the mato grosso dataset using SVM
 # The parameters are those of the "e1071:svm" method
-svm_model <- sits_train(mato_grosso_2bands, ml_method = sits_svm(kernel = "radial", cost = 100))
+svm_model <- sits_train(mato_grosso_2bands, 
+                        ml_method = sits_svm(kernel = "radial", cost = 100))
 # Classify using SVM model and plot the result
 class.tb <- point_mt_2bands %>% 
     sits_whittaker(lambda = 0.25, bands_suffix = "") %>% 
     sits_classify(svm_model) %>% 
-    plot()
+    plot(bands = c("ndvi", "evi"))
 
+```
+
+```{r, echo = FALSE, fig.align="center", fig.cap="Temporal clasification of a time series of 16 years using an SVM model"}
+knitr::include_graphics(system.file("extdata/markdown/figures", "point_mt_classified_svm.png", package = "sits"))
 ```
 
 The result is mostly consistent of what one could expect by visualising the time series. The area started out as a forest in 2000, it was deforested from 2004 to 2005, used as pasture from 2006 to 2007, and for double-cropping agriculture from 2008 onwards. However, the result shows some inconsistencies. First, since the training dataset does not contain a samples of deforested areas, places where forest is removed will tend to be classified as "Cerrado", which is the nearest kind of vegetation cover where trees and grasslands are mixed. This misinterpretation needs to be corrected in post-processing by applying a time-dependent rule (see the main SITS vignette and the post-processing methods vignette). Also, the classification for year 2009 is "Soy-Millet", which is different from the "Soy-Corn" label assigned from the other years from 2008 to 2017. To test if this result is inconsistent, one could apply spatial post-processing techniques, as discussed in the main SITS vignette and in the post-processing one.
@@ -159,8 +180,8 @@ Gradient boosting is a variant of boosting methods where the cost function is  m
 
 In SITS, the XGBoost method is implemented by the `sits_xbgoost()` function, which is based on "XGBoost" R package and has five parameters that require tuning. The learning rate `eta` varies from 0 to 1, but show be kept small (default is 0.3) to avoid overfitting. The minimim loss value  `gamma` specifies the minimum reduction required to make a split. Its default is 0, but increasing it makes the algorithm more conservative. The maximum depth of a tree `max_depth` controls how deep tress are to be built. In principle, it should not be largem since higher depth trees lead to overfitting (default is 6.0). The `subsample` parameter controls the percentage of samples supplied to a tree. Its default is 1 (maximum). Setting it to lower values means that xgboost randomly collects only part of the data instances to grow trees, thus preventing overfitting. The `nrounds` parameters controls the maximum number of boosting interactions; its default is 100, which has proven to be sufficient in the SITS. In order to follow the convergence of the algorithm, users can turn the `verbose` parameter on. 
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="XGBoost classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
-# Train a machine learning model for the mato grosso dataset using SVM
+```{r, eval = FALSE}
+# Train a machine learning model for the mato grosso dataset using XGBOOST
 # The parameters are those of the "xgboost" package
 xgb_model <- sits_train(mato_grosso_2bands, sits_xgboost(eta = 0.3, 
                                                          gamma = 0.01,
@@ -169,6 +190,8 @@ xgb_model <- sits_train(mato_grosso_2bands, sits_xgboost(eta = 0.3,
                                                          nrounds = 100,
                                                          verbose = FALSE))
 ```
+
+In general, the results from the extreme gradient boosting model are similar to the Random Forest model. However, for each specific study, users need to perform validation. See the function `sits_kfold_validate` for more details.
 
 # Deep learning using multi-layer perceptrons
 
@@ -182,7 +205,7 @@ The dropout rates have a huge impact on the performance of MLP  classifiers. Dro
 
 In the following example, we classify the same data set using an example of the `deep learning` method. The parameters for the MLP are: (a) Three layers with 512 neurons each, specified by the parameter `layers`; (b) Using the 'elu' activation function; (c) dropout rates of 50%, 40% and 30% for the layers; (d) the "optimizer_adam" as optimizer (default value); (e) a number of training steps (`epochs`) of 75; (f) a `batch_size` of 128, which indicates how many time series are used for input at a given steps; (g) a validation percentage of 20%, which means 20% of the samples will be randomly set side for validation. In practice, users may want to increase the number of epochs and the number of layers. In our experience, if the training dataset is of good quality, using 3 to 5 layers is a reasonable compromise. Further increase on the number of layers will not improve the model. If a better performance is required, users should try to use the convolutional models descibed below. To simplify the vignette generation, the `verbose` option has been turned off. The default value is on. After the model has been generated, we plot its training history and then classify a 16-year time series.
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Training history for multi-layer percepton model."}
+```{r, eval = FALSE}
 # train a machine learning model for the Mato Grosso data using an MLP
 mlp_model <- sits_train(mato_grosso_2bands, sits_deeplearning(
                          layers           = c(512, 512, 512),
@@ -198,6 +221,10 @@ mlp_model <- sits_train(mato_grosso_2bands, sits_deeplearning(
 plot(mlp_model)
 ```
 
+```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8, fig.cap="Training history of multi-layer percepton model."}
+knitr::include_graphics(system.file("extdata/markdown/figures", "mlp_model.png", package = "sits"))
+```
+
 
 # 1D Convolutional Neural Networks
 
@@ -206,14 +233,14 @@ Convolutional neural networks (CNN) are a variety of deep learning methods where
 
 SITS includes four different variations of 1D-CNN, described in what follows. The first one is a "full Convolutional Neural Network"[@Wang2017], implemented in the `sits_fullCNN` function. FullCNNs are cascading networks, where the size of the input data is kept constant during the convolution. After the nvolutions have been applied, the model includes a global average pooling layer which reduces the number of parameters, and highlights which parts of the input time series contribute the most to the classification [@Fawaz2019]. The fullCNN architecture proposed in @Wang2017 has three convolutional layers. Each layer performs a convolution in its input and uses batch normalization for avoiding premature convergence to a local minimum. Batch normalisation is an alternative to dropout [@Ioffe2015]. The result is to a ReLU activation function. The result of the third convolutional block is averaged over the whole time dimension which corresponds to a global average pooling layer. Finally, a traditional softmax classifier is used to get the classification results (see figure below).
 
-```{r, fig.align="center", fig.cap="Structure of fullCNN architecture (source: Wang et al.(2017))"}
+```{r, echo = FALSE, fig.align="center", fig.cap="Structure of fullCNN architecture (source: Wang et al.(2017))"}
 
-knitr::include_graphics(system.file("extdata/markdown", "fullcnn.png", package = "sits"))
+knitr::include_graphics(system.file("extdata/markdown/figures", "fullcnn.png", package = "sits"))
 ```
 
 The `sits_fullCNN` functions uses the architecture proposed by Wang as its default, and allows the users to experiment with different settings. The `layers` parameter controls the number of layers and the number of filters in each layer. The `kernels` parameters controls the size of the convolution kernels for earh layer. The default is to design the first convolution with 128 filters with a kernel size of 8, followed by a second convolution of 256 filters with a kernel size of 5, and a third and final convolutional layer with 128 filters, each one with a kernel size to 3.
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Training history for 1D-CNN model"}
+```{r, eval = FALSE}
 # train a machine learning model using deep learning
 cnn_model <- sits_train(mato_grosso_2bands, 
                        sits_FCN(
@@ -231,18 +258,24 @@ plot(cnn_model)
 ```
 
 
+```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8, fig.cap="Training history of 1D-CNN model"}
+knitr::include_graphics(system.file("extdata/markdown/figures", "cnn_model.png", package = "sits"))
+```
+
+
+
 # Residual 1D CNN Networks (ResNet)
 
 The Residual Network (ResNet) is a variation of the fullCNN network proposed by @Wang2017. ResNet is composed of 11 layers (see figure below). ResNet is a deep network, by default divided in three blocks of three 1D CNN layers each. Each block corresponds to a fullCNN network archicture. The output of each block is combined with a shortcut that links its output to its input. The idea is avoid the so-called "vanishing gradient", which occurs when a deep learning network is trained based gradient optimization methods[@Hochreiter1998]. As the networks get deeper, otimising them becomes more difficult. Including the input layer of the block at its end is a heuristic that has shown to be effective. In a recent review of time series classification methods using deep learning, Fawaz et al. state the RestNet and fullCNN have the best performance on the UCR/UEA time series test archive [@Fawaz2019]. 
 
-```{r, fig.align="center", fig.cap="Structure of ResNet architecture (source: Wang et al.(2017))"}
+```{r, echo = FALSE, fig.align="center", fig.cap="Structure of ResNet architecture (source: Wang et al.(2017))"}
 
-knitr::include_graphics(system.file("extdata/markdown", "resnet.png", package = "sits"))
+knitr::include_graphics(system.file("extdata/markdown/figures", "resnet.png", package = "sits"))
 ```
 
 In SITS, the ResNet is implemented using the `sits_resnet` function. The default parameters are those proposed by @Wang2017, and we also benefited from the code provided by @Fawaz2019 ( https://github.com/hfawaz/dl-4-tsc). The first parameter is `blocks`, which controls the number of blocks and the size of filters in each block. By default, the model implements three blocks, the first with 64 filters and the others with 128 filters. Users can control the number of blocks and filter size by changing this parameter. The parameter `kernels` controls the size the of kernels of the three layers inside each block. @Wang2017 proposes to use kernels of sizes 8,5, and 3. We have found out that it is useful to experiment a bit with these kernel sizes in the case of satellite image time series. The default activation is "relu", which is recommended in the literature to reduce the problem of vanishing gradients. The default optimizer is the same as proposed in @Wang2017 and @Fawaz2019. In the case of the 2-band Mato Grosso data set, the estimated accuracy is 95.8%. 
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Training history for the ResNet model."}
+```{r, eval = FALSE}
 # train a machine learning model using ResNet
 resnet_model <- sits_train(mato_grosso_2bands, 
                        sits_ResNet(
@@ -259,20 +292,24 @@ resnet_model <- sits_train(mato_grosso_2bands,
 plot(resnet_model)
 ```
 
+```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8, fig.cap="Training history of ResNet model"}
+knitr::include_graphics(system.file("extdata/markdown/figures", "resnet.png", package = "sits"))
+```
+
 
 # Combined 1D CNN and multi-layer perceptron networks
 
 The combination of 1D CNNs and multi-layer perceptron models for satellite image time series classification was first proposed in @Pelletier2019. The so-called "tempCNN" architecture consists of a number of 1D-CNN layers, similar to the fullCNN model discussed above, whose output is fed into a set of multi-layer perceptrons. The original tempCNN architecture is composed of three 1D convolutional layers (each with 64 units), one dense layer of 256 units and a final softmax layer for classification (see figure). The kernel size of the convolution filters is set to 5. The authors use a combination of different methods to avoid overfitting and reduce the vanishing gradiente effect, including dropout, regularization, and batch normalisation. In the tempCNN paper [@Pelletier2019], the authors compare favourably the tempCNN model with the Recurrent Neural Network proposed by @Russwurm2018 for land use classification. The figure below shows the architecture of the tempCNN model.
 
-```{r, fig.align="center", fig.cap="Structure of tempCNN architecture (source: Pelletier et al.(2019))"}
+```{r, echo = FALSE, fig.align="center", fig.cap="Structure of tempCNN architecture (source: Pelletier et al.(2019))"}
 
-knitr::include_graphics(system.file("extdata/markdown", "tempcnn.png", package = "sits"))
+knitr::include_graphics(system.file("extdata/markdown/figures", "tempcnn.png", package = "sits"))
 ```
 
 The function `sits_tempCNN` implements the model, using the default parameters proposed by @Pelletier2019. The code has been derived from the Python source provided by the authors (https://github.com/charlotte-pel/temporalCNN). The parameter `cnn_layers` controls the number of 1D-CNN layers and the size of the filters applied at each layer; the parameter `cnn_kernels` indicates the size of the convolution kernels. Activation, regularisation for all 1D-CNN layers are set, respectively, by the `cnn_activation`, `cnn_L2_rate`. The dropout rates for each 1D-CNN layer are controlled individually by the parameter `cnn_dropout_rates`. The parameters `mlp_layers` and `mlp_dropout_rates` allow the user to set the number and size of the desired MLP layers, as well as their dropout_rates. The activation of the MLP layers is controlled by `mlp_activation`. By default, the function uses the ADAM optimizer, but any of the optimizers available in the `keras` package can be used. The `validation_split` controls the size of the test set, relative to the full data set. We recommend to set aside at least 20% of the samples for validation. In the case of the 2-band Mato Grosso data set, the estimated accuracy is 95.5%. 
 
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Training history for the tempCNN model."}
+```{r, eval = FALSE}
 # train a machine learning model using tempCNN
 tCNN_model <- sits_train(mato_grosso_2bands, 
                        sits_TempCNN(
@@ -295,6 +332,9 @@ tCNN_model <- sits_train(mato_grosso_2bands,
 plot(tCNN_model)
 ```
 
+```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8, fig.cap="Training history of TempCNN model"}
+knitr::include_graphics(system.file("extdata/markdown/figures", "tcnn_model.png", package = "sits"))
+```
 
 
 # LSTM Convolutional Networks for Time Series Classification 
@@ -303,14 +343,14 @@ Given the success of 1D-CNN networks for time series classification, there have 
 
 @Karim2019b consider that LSTM networks are "well-suited to classifying, processing and making predictions based on time series data, since there can be lags of unknown duration between important events in a time series". The authors proposed a mixed LSTM-CNN architecture, composed of two paralel data streams: a 3-step CNN such as the one implemented in `sits_FCN` (see above) combined with a data stream consisting of an LSTM unit, as shown in the figure below. In @Karim2018, the authors argue the LSTM-CNN model is capable of a better performance in the UCR/UEA time series test set than architectures such as ResNet and fullCNN. 
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap= "LSTM Fully Convolutional Networks for Time Series Classification (source: Karim et al.(2019))"}
+```{r, echo = FALSE, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap= "LSTM Fully Convolutional Networks for Time Series Classification (source: Karim et al.(2019))"}
 
-knitr::include_graphics(system.file("extdata/markdown", "lstm-cnn.png", package = "sits"))
+knitr::include_graphics(system.file("extdata/markdown/figures", "lstm-cnn.png", package = "sits"))
 ```
 
 In the SITS package, the combined LSTM-CNN architecture is implemented by the `sits_LSTM_CNN` function. The default values are similar those proposed by @Karim2019b. The parameter `lstm_units` controls the number of units in the LSTM cell at every time step of the network. @Karim2019b proposes an LSTM with 8 units, each with a dropout rate of 80%, which are controlled by parameters `lstm_units` and `lstm_dropout`. In initial experiments, we got a better performance with an LSTM with 16 units. As proposed by @Karim2019b, the CNN layers have filter sizes of {128, 256, 128} and kernel convolution sizes of {8, 5, 3}, controled by the parameters `cnn_layers` and `cnn_kernels`. One should experiment with these parameters, and consider the simulations carried out by @Pelletier2019 (see above), where the authors found that an FCN network of sizes {64, 64, 64} with kernels sizes of {5, 5, 5} had best performance in their case study. In this example, the estimated accuracy of the model was 94.7%. 
 
-```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Training history for the LSTM-FCN model."}
+```{r, eval = FALSE}
 lstm_fcn_model <- sits_train(mato_grosso_2bands, 
                        sits_LSTM_FCN(
                           lstm_units          = 16,
@@ -328,4 +368,7 @@ lstm_fcn_model <- sits_train(mato_grosso_2bands,
 plot(lstm_fcn_model)
 ```
 
+```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8, fig.cap="Training history of TempCNN model"}
+knitr::include_graphics(system.file("extdata/markdown/figures", "lstm_fcn_model.png", package = "sits"))
+```
 
