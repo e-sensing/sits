@@ -73,7 +73,7 @@ samples_cerrado <- dplyr::filter(samples_ndvi,
 plot(samples_cerrado)
 ```
 
-```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8, fig.cap= "Samples for NDVI band for Cerrado class"}
+```{r, echo = FALSE, fig.align="center", fig.height=3, fig.width=5, fig.cap= "Samples for NDVI band for Cerrado class"}
 knitr::include_graphics(system.file("extdata/markdown/figures", "samples_cerrado.png", package = "sits"))
 ```
 
@@ -88,7 +88,7 @@ Clustering methods in SITS improve the quality of the samples and to remove thos
 clusters.tb <- sits_cluster_dendro(cerrado_2classes)
 ```
 
-```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8, fig.cap = "Dendrogram for samples of classes Pasture and Cerrado"}
+```{r, echo = FALSE, fig.align="center", fig.height=3, fig.width=5, fig.cap = "Dendrogram for samples of classes Pasture and Cerrado"}
 knitr::include_graphics(system.file("extdata/markdown/figures", "cluster_dendro.png", package = "sits"))
 ```
 
@@ -108,7 +108,7 @@ point_whit %>%
   plot()
 ```
 
-```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=1$ parameter."}
+```{r, echo = FALSE, fig.align="center", fig.height=3, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=1$ parameter."}
 knitr::include_graphics(system.file("extdata/markdown/figures", "whit.png", package = "sits"))
 ```
 
@@ -149,7 +149,7 @@ class.tb <- sits_classify(point_filtered, rfor_model)
 plot(class.tb, bands = c("ndvi", "mir"))
 ```
 
-```{r, echo = FALSE, fig.align="center", fig.height=5, fig.width=8, fig.cap="XGBoost classification of a $16$ years time series"}
+```{r, echo = FALSE, fig.align="center", fig.height=3, fig.width=5, fig.cap="XGBoost classification of a $16$ years time series"}
 knitr::include_graphics(system.file("extdata/markdown/figures", "point_mt_classified_rfor.png", package = "sits"))
 ```
 
@@ -182,20 +182,23 @@ label_cube <- sits_label_classification(probs_cube, smoothing = "bayesian")
 plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
 ```
 
-```{r, echo = FALSE, fig.align="center", fig.cap="Image classified with XGBoost"}
+```{r, echo = FALSE, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Image classified with XGBoost"}
 knitr::include_graphics(system.file("extdata/markdown/figures", "sinop_bayes.png", package = "sits"))
 ```
 
 For more details, please see the vignettes [“Time Series classification using machine learning”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/machine_learning.pdf) and [“Post classification smoothing using Bayesian techniques in SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/smoothing.pdf)
 
-#### Code status
+#### Package status of SITS version 0.9.3
 
-|Job|Status|
+| |Status|
 |---|---|
-|Build | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)|
-|Check |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)|
-|Documentation |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull)|
-| Coverage      | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master) |
+|Code Build | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)|
+|Code Check |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)|
+|Code Documentation |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull)|
+| Test Coverage | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master) |
+| Project Status | [<img src="http://www.repostatus.org/badges/latest/active.svg">](https://www.tidyverse.org/lifecycle/#maturing) |
+| Lifecycle | [<img src="https://img.shields.io/badge/lifecycle-maturing-blue.svg">](https://www.tidyverse.org/lifecycle/#maturing) |
+
 
 [![DOI](https://zenodo.org/badge/98539507.svg)](https://zenodo.org/badge/latestdoi/98539507)
 

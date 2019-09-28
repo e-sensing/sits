@@ -154,7 +154,7 @@ available in SITS:
 The following example illustrate how to train a dataset and classify an
 individual time series. First we use the `sits_train` function with two
 parameters: the training dataset (described above) and the chosen
-machine learning model (in this case, an XGBoost classifier). The
+machine learning model (in this case, a random forest classifier). The
 trained model is then used to classify a time series from Mato Grosso
 Brazilian state, using `sits_classify`. The results can be shown in text
 format using the function `sits_show_prediction` or graphically using
@@ -163,18 +163,21 @@ format using the function `sits_show_prediction` or graphically using
 ``` r
 
 # Train a machine learning model for the mato grosso dataset using Extreme Gradient Boosting
-xgb_model <- sits_train(data = samples_mt_4bands, ml_method = sits_xgboost())
+rfor_model <- sits_train(data = samples_mt_4bands, ml_method = sits_rfor(num_trees = 500))
 
 # get a point to be classified with four bands
 point_mt_4bands <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 
+# filter the point with a Whittaker smoother
+point_filtered <- sits_whittaker(point_mt_4bands, lambda = 0.2, bands_suffix = "") 
+
 # Classify using random forest model and plot the result
-class.tb <- sits_classify(point_mt_4bands, xgb_model)
+class.tb <- sits_classify(point_filtered, rfor_model)
 # plot the results of the prediction
 plot(class.tb, bands = c("ndvi", "mir"))
 ```
 
-<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/point_mt_classified_xgboost.png" title="XGBoost classification of a $16$ years time series" alt="XGBoost classification of a $16$ years time series" style="display: block; margin: auto;" />
+<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/point_mt_classified_rfor.png" title="XGBoost classification of a $16$ years time series" alt="XGBoost classification of a $16$ years time series" style="display: block; margin: auto;" />
 
 The following example shows how to classify a data cube organised as a
 set of raster bricks. First, we ned to build a model based on the the
@@ -214,14 +217,16 @@ learning”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/machin
 and [“Post classification smoothing using Bayesian techniques in
 SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/smoothing.pdf)
 
-#### Code status
+#### Package status of SITS version 0.9.3
 
-| Job           | Status                                                                                                                                                                                      |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Build         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)                 |
-| Check         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)                 |
-| Documentation | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull) |
-| Coverage      | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master)                                                    |
+|                    | Status                                                                                                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Code Build         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)                 |
+| Code Check         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)                 |
+| Code Documentation | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull) |
+| Test Coverage      | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master)                                                    |
+| Project Status     | [<img src="http://www.repostatus.org/badges/latest/active.svg">](https://www.tidyverse.org/lifecycle/#maturing)                                                                             |
+| Lifecycle          | [<img src="https://img.shields.io/badge/lifecycle-maturing-blue.svg">](https://www.tidyverse.org/lifecycle/#maturing)                                                                       |
 
 [![DOI](https://zenodo.org/badge/98539507.svg)](https://zenodo.org/badge/latestdoi/98539507)
 
