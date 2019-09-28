@@ -56,7 +56,7 @@ library(sits)
 samples_mt_4bands[1:3,]
 ```
 
-![](/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/samples_mt_4bands.png)<!-- -->
+![](./inst/extdata/markdown/figures/samples_mt_4bands.png)<!-- -->
 
 After a time series is imported, it is loaded in a tibble. The first six
 columns contain the metadata: spatial and temporal location, label
@@ -79,7 +79,7 @@ samples_cerrado <- dplyr::filter(samples_ndvi,
 plot(samples_cerrado)
 ```
 
-<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/samples_cerrado.png" title="Samples for NDVI band for Cerrado class" alt="Samples for NDVI band for Cerrado class" style="display: block; margin: auto;" />
+<img src="./inst/extdata/markdown/figures/samples_cerrado.png" title="Samples for NDVI band for Cerrado class" alt="Samples for NDVI band for Cerrado class" style="display: block; margin: auto;" />
 
 ### Clustering
 
@@ -103,7 +103,7 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering
 clusters.tb <- sits_cluster_dendro(cerrado_2classes)
 ```
 
-<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/cluster_dendro.png" title="Dendrogram for samples of classes Pasture and Cerrado" alt="Dendrogram for samples of classes Pasture and Cerrado" style="display: block; margin: auto;" />
+<img src="./inst/extdata/markdown/figures/cluster_dendro.png" title="Dendrogram for samples of classes Pasture and Cerrado" alt="Dendrogram for samples of classes Pasture and Cerrado" style="display: block; margin: auto;" />
 
 ## Filtering
 
@@ -128,7 +128,7 @@ point_whit %>%
   plot()
 ```
 
-<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/whit.png" title="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." alt="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." style="display: block; margin: auto;" />
+<img src="./inst/extdata/markdown/figures/whit.png" title="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." alt="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." style="display: block; margin: auto;" />
 
 ## Time Series classification using machine learning
 
@@ -177,7 +177,7 @@ class.tb <- sits_classify(point_filtered, rfor_model)
 plot(class.tb, bands = c("ndvi", "mir"))
 ```
 
-<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/point_mt_classified_rfor.png" title="XGBoost classification of a $16$ years time series" alt="XGBoost classification of a $16$ years time series" style="display: block; margin: auto;" />
+<img src="./inst/extdata/markdown/figures/point_mt_classified_rfor.png" title="XGBoost classification of a $16$ years time series" alt="XGBoost classification of a $16$ years time series" style="display: block; margin: auto;" />
 
 The following example shows how to classify a data cube organised as a
 set of raster bricks. First, we ned to build a model based on the the
@@ -209,7 +209,7 @@ label_cube <- sits_label_classification(probs_cube, smoothing = "bayesian")
 plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
 ```
 
-<img src="/Users/gilberto/Library/R/3.6/library/sits/extdata/markdown/figures/sinop_bayes.png" title="Image classified with XGBoost" alt="Image classified with XGBoost" style="display: block; margin: auto;" />
+<img src="./inst/extdata/markdown/figures/sinop_bayes.png" title="Image classified with XGBoost" alt="Image classified with XGBoost" style="display: block; margin: auto;" />
 
 For more details, please see the vignettes [“Time Series classification
 using machine
