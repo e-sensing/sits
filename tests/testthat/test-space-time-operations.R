@@ -32,3 +32,9 @@ test_that("Inside", {
 
     expect_true(sits:::.sits_raster_xy_inside(point, wtss_cube))
 })
+test_that("Time Series Dates", {
+    times <- sits_time_series_dates(cerrado_2classes)
+    expect_true(length(times) == 23)
+
+})
+

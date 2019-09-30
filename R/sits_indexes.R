@@ -20,16 +20,22 @@ sits_tasseled_cap <- function(data, sensor = "MODIS"){
     bands <- sits_bands(data)
 
     b_coef <- .sits_config_tcap_brightness(sensor)
-    data   <- sits_mutate_bands(data, tcb = b_coef["blue"]*blue + b_coef["red"]*red
-                           + b_coef["nir"]*nir + b_coef["mir"]*mir)
+    data   <- sits_mutate_bands(data, tcb = b_coef["blue"]*blue
+                                          + b_coef["red"]*red
+                                          + b_coef["nir"]*nir
+                                          + b_coef["mir"]*mir)
 
     g_coef <- .sits_config_tcap_greenness(sensor)
-    data   <- sits_mutate_bands(data, tcg = g_coef["blue"]*blue + g_coef["red"]*red
-                           + g_coef["nir"]*nir + g_coef["mir"]*mir)
+    data   <- sits_mutate_bands(data, tcg = g_coef["blue"]*blue
+                                          + g_coef["red"]*red
+                                          + g_coef["nir"]*nir
+                                          + g_coef["mir"]*mir)
 
     w_coef <- .sits_config_tcap_wetness(sensor)
-    data   <- sits_mutate_bands(data, tcw = w_coef["blue"]*blue + w_coef["red"]*red
-                           + w_coef["nir"]*nir + w_coef["mir"]*mir)
+    data   <- sits_mutate_bands(data, tcw = w_coef["blue"]*blue
+                                          + w_coef["red"]*red
+                                          + w_coef["nir"]*nir
+                                          + w_coef["mir"]*mir)
 
     return(data)
 }
@@ -55,7 +61,7 @@ sits_savi <- function(data){
     bands <- sits_bands(data)
     bands_savi <- c("nir", "red")
     ensurer::ensure_that(bands, all(bands_savi %in% (.)),
-                         err_desc = "sits_savi: not enough bands to compute")
+        err_desc = "sits_savi: not enough bands to compute")
 
     data <- sits_mutate_bands(data, savi = (1.5)*(nir - red)/(nir + red + 0.5))
 

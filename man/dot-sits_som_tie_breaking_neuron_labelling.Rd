@@ -18,7 +18,8 @@
 Return a new majority label of a neuron based on its neighbourhood
 }
 \description{
-This function tie breaking the neurons that has the same rate to belong a class.
+This function does tie breaking for neurons
+             that have the same rate to belong a class.
 }
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}

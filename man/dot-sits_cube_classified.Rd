@@ -23,8 +23,9 @@ A tibble with metadata about the output RasterLayer objects.
 \description{
 Takes a tibble containing metadata about a data cube
 containing time series (each Brick has information for one band) and creates a
-set of RasterLayers to store the classification result. Each RasterLayer corresponds
-to one time step. The time steps are specified in a list of dates.
+set of RasterLayers to store the classification result.
+Each RasterLayer corresponds to one time step.
+The time steps are specified in a list of dates.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

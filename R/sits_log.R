@@ -11,12 +11,16 @@
 #' @export
 sits_log <- function() {
     sits.env$debug_file <- tempfile(pattern = "sits_debug", fileext = ".log")
-    sits.env$logger_debug <- log4r::create.logger(logfile = sits.env$debug_file, level = "DEBUG")
-    message(paste0("Created logger for sits package - DEBUG level at ", sits.env$debug_file))
+    sits.env$logger_debug <- log4r::create.logger(logfile = sits.env$debug_file,
+                                                  level = "DEBUG")
+    message(paste0("Created logger for sits package - DEBUG level at ",
+                   sits.env$debug_file))
 
     sits.env$error_file <- tempfile(pattern = "sits_error", fileext = ".log")
-    sits.env$logger_error <- log4r::create.logger(logfile = sits.env$error_file, level = "ERROR")
-    message(paste0("Created logger for sits package - ERROR level at ", sits.env$error_file))
+    sits.env$logger_error <- log4r::create.logger(logfile = sits.env$error_file,
+                                                  level = "ERROR")
+    message(paste0("Created logger for sits package - ERROR level at ",
+                   sits.env$error_file))
 
     return(TRUE)
 }
@@ -55,14 +59,14 @@ sits_log <- function() {
     ensurer::ensure_that(data, !purrr::is_null(.),
                          err_desc = "Cannot save NULL data")
 
-    file_save = paste0(dirname(sits.env$debug_file),"/", file_name)
+    file_save <- paste0(dirname(sits.env$debug_file),"/", file_name)
 
     tryCatch({save(data, file = file_save)},
              error = function(e){
-                msg <- paste0("WTSS - unable to save data in file ", file_save)
-                .sits_log_error(msg)
-                message("WTSS - unable to retrieve point - see log file for details" )
-                return(NULL)})
+              msg <- paste0("WTSS - unable to save data in file ", file_save)
+              .sits_log_error(msg)
+              message("WTSS - unable to retrieve point - see log file" )
+            return(NULL)})
 }
 
 #' @title Saves a CSV data set
@@ -77,7 +81,8 @@ sits_log <- function() {
     ensurer::ensure_that(csv.tb, !purrr::is_null(.),
                          err_desc = "Cannot save NULL CSV data")
 
-    sits_metadata_to_csv(csv.tb, file = paste0(dirname(sits.env$debug_file),"/", file_name))
+    sits_metadata_to_csv(csv.tb, file =
+                        paste0(dirname(sits.env$debug_file),"/", file_name))
 }
 
 #' @title Shows the memory used in GB
@@ -96,7 +101,10 @@ sits_log <- function() {
 #'
 #' @export
 sits_log_show_errors <- function() {
-    file.show(sits.env$error_file)
+    out <- utils::read.delim(sits.env$error_file, header = FALSE,
+                      stringsAsFactors = FALSE)
+    out <- dplyr::rename(out, error = V1)
+    return(out)
 }
 
 #' @title Prints the debug log
@@ -105,15 +113,9 @@ sits_log_show_errors <- function() {
 #'
 #' @export
 sits_log_show_debug <- function() {
-    file.show(sits.env$debug_file)
+    out <- utils::read.delim(sits.env$debug_file, header = FALSE,
+                      stringsAsFactors = FALSE)
+    out <- dplyr::rename(out, error = V1)
+    return(out)
 }
 
-#' @title Loads the CSV error file saved in the log directory
-#' @name sits_csv_error_file
-#' @description Loads the CSV error file saved in the log directory.
-#' @param    file_name Name of file to be retrieved.
-#' @export
-sits_csv_error_file <- function(file_name = "errors.csv") {
-    csv.tb <- utils::read.csv(paste0(dirname(sits.env$debug_file),"/", file_name))
-    return(csv.tb)
-}

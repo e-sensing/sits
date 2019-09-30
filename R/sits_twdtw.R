@@ -51,7 +51,7 @@
 #'
 #' # find the matches between the patterns and the time series using the TWDTW algorithm
 #' # (uses the dtwSat R package)
-#' matches <- sits_twdtw_classify(point.tb, patterns, bands = c("ndvi", "evi"),
+#' matches <- sits_twdtw_classify(point, patterns, bands = c("ndvi", "evi"),
 #' alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 #' }
 #' @export
@@ -91,7 +91,8 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
     # Define the logistic function
     log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
-    for (r in 1:NROW(data)) {
+    n_rows_data <- NROW(data)
+    for (r in 1:n_rows_data) {
         row.tb <- data[r, ]
         # select the bands for the samples time series and convert to TWDTW format
         twdtw_series <- row.tb %>%
@@ -99,13 +100,13 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
             .sits_to_twdtw()
 
         #classify the data using TWDTW
-        matches = dtwSat::twdtwApply(x          = twdtw_series,
-                                     y          = twdtw_patterns,
-                                     weight.fun = log_fun,
-                                     theta      = theta,
-                                     span       = span,
-                                     keep       = keep,
-                                     dist.method = dist.method)
+        matches <- dtwSat::twdtwApply(x          = twdtw_series,
+                                      y          = twdtw_patterns,
+                                      weight.fun = log_fun,
+                                      theta      = theta,
+                                      span       = span,
+                                      keep       = keep,
+                                      dist.method = dist.method)
 
         # add the matches to the list
         matches.lst[[length(matches.lst) + 1]] <- matches
@@ -151,11 +152,13 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
 #' @param  interval      The period between two classifications.
 #' @param  overlap       Minimum overlapping between one match and the interval of classification.
 #' @return A sits tibble with the information on matches for the data.
-.sits_twdtw_breaks <- function(matches, data, start_date = NULL, end_date = NULL,
-                        interval = "12 month", overlap = 0.5){
+.sits_twdtw_breaks <- function(matches, data,
+                               start_date = NULL, end_date = NULL,
+                               interval = "12 month", overlap = 0.5){
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+        stop("dtwSat needed for this function to work.
+             Please install it.", call. = FALSE)
     }
 
     # create a tibble to store the results
@@ -167,7 +170,8 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
                         if (purrr::is_null(start_date)) {
                             start_date  <- lubridate::as_date(row_start_date)
                             end_date    <- lubridate::as_date(row_end_date)
-                            interval <- lubridate::as_date(end_date) - lubridate::as_date(start_date)
+                            interval <- lubridate::as_date(end_date) -
+                                        lubridate::as_date(start_date)
                         }
 
                         # classify using the TWDTWclassify function
@@ -201,7 +205,7 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
 .sits_to_twdtw <- function (data){
     # transform each sits time series into a list of zoo
     ts <- data$time_series %>%
-        purrr::map(function (ts) zoo::zoo(ts[,2:ncol(ts), drop=FALSE], ts$Index))
+        purrr::map(function(ts) zoo::zoo(ts[,2:ncol(ts), drop=FALSE], ts$Index))
 
     # create a new twdtwTimeSeries object from list above
     ts.twdtw <- methods::new("twdtwTimeSeries", timeseries = ts,

@@ -8,11 +8,11 @@
   interval, filter, memsize, multicores)
 }
 \arguments{
-\item{cube}{Tibble with metadata for a data cube derived from a raster brick.}
+\item{cube}{Metadata for a data cube}
 
 \item{cube_class}{Raster layer objects to be written.}
 
-\item{samples}{Tibble with samples used for training the classification model.}
+\item{samples}{Samples used for training the classification model.}
 
 \item{ml_model}{A model trained by \code{\link[sits]{sits_train}}.}
 
@@ -31,7 +31,7 @@ List of the classified raster layers.
 Classifies a block of data using multicores. It breaks
 the data into horizontal blocks and divides them between the available cores.
 
-Reads data from a file using Rgdal, then cleans the data for NAs and missing values. The clean
+Reads data using Rgdal, then cleans the data for NAs and missing values. The clean
 data is stored in a data table that has all the time instances for all pixels of
 the block. The algorithm then classifies data on an year by year basis.
 For each year, it extracts the sub-blocks for each band.

@@ -12,7 +12,8 @@
 
 \item{ml_model}{An R model trained by \code{\link[sits]{sits_train}}.}
 
-\item{interval}{Interval between two sucessive classifications, expressed in months.}
+\item{interval}{Interval between two sucessive classifications,
+expressed in months.}
 
 \item{filter}{Smoothing filter to be applied (if desired).}
 
@@ -25,17 +26,19 @@
 \item{version}{Version of the output (for multiple classifications)}
 }
 \value{
-A tibble with the metadata for the vector of probabilities for classified RasterLayers.
+A tibble with the metadata for the vector of probabilities
+        for classified RasterLayers.
 }
 \description{
 Takes a data cube, whose metadata is
-             described by tibble (created by \code{\link[sits]{sits_cube}}),
-             a set of samples used for training a classification model,
-             a prediction model (created by \code{\link[sits]{sits_train}}),
-             and produces a classified set of RasterLayers. These
-              parameters are "memsize" and "multicores". The "multicores" parameter defines the
-              number of cores used for processing. The "memsize" parameter  controls
-              the amount of memory available for classification.
+   described by tibble (created by \code{\link[sits]{sits_cube}}),
+   a set of samples used for training a classification model,
+   a prediction model (created by \code{\link[sits]{sits_train}}),
+   and produces a classified set of RasterLayers. These
+   parameters are "memsize" and "multicores".
+   The "multicores" parameter defines the
+   number of cores used for processing. The "memsize" parameter  controls
+   the amount of memory available for classification.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

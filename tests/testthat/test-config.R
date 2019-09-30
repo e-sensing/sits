@@ -18,7 +18,8 @@ test_that("Brightness", {
     expect_equal(mod[[3]], 0.44, tol = 0.001)
     expect_equal(length(mod), 7)
 
-    expect_error(sits:::.sits_config_tcap_brightness("ABC"), "Unable to retrieve tasseled cap coefficients")
+    expect_error(sits:::.sits_config_tcap_brightness("ABC"),
+                 "Unable to retrieve tasseled cap coefficients")
 })
 
 test_that("Greenness", {
@@ -34,7 +35,8 @@ test_that("Greenness", {
     expect_equal(mod[[3]], -0.4064, tol = 0.001)
     expect_equal(length(mod), 7)
 
-    expect_error(sits:::.sits_config_tcap_greenness("ABC"), "Unable to retrieve tasseled cap coefficients")
+    expect_error(sits:::.sits_config_tcap_greenness("ABC"),
+                 "Unable to retrieve tasseled cap coefficients")
 })
 
 test_that("Wetness", {
@@ -50,7 +52,8 @@ test_that("Wetness", {
     expect_equal(mod[[3]], -0.4064, tol = 0.001)
     expect_equal(length(mod), 7)
 
-    expect_error(sits:::.sits_config_tcap_wetness("ABC"), "Unable to retrieve tasseled cap coefficients")
+    expect_error(sits:::.sits_config_tcap_wetness("ABC"),
+                 "Unable to retrieve tasseled cap coefficients")
 })
 
 test_that("Internal", {

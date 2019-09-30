@@ -71,7 +71,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
 
 
         # determine the sequence of prediction times
-        pred_time = seq(from = lubridate::as_date(start_date),
+        pred_time <- seq(from = lubridate::as_date(start_date),
                         to   = lubridate::as_date(end_date),
                         by   = freq)
 
@@ -88,7 +88,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
                 time <- data.frame(as.numeric(pred_time))
 
                 # name the time as the second variable of the formula (usually, this is x)
-                names(time) = vars[2]
+                names(time) <- vars[2]
 
                 # create a tibble to store the time series associated to the pattern
                 ind.tb <- tibble::tibble(Index = lubridate::as_date(pred_time))

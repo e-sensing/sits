@@ -1,14 +1,34 @@
 context("Machine Learning")
-test_that("SVM",{
+test_that("SVM  - Formula logref",{
     #skip_on_cran()
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    svm_model <- sits_train(samples_mt_ndvi, sits_svm(kernel = "radial", cost = 10))
+    svm_model <- sits_train(samples_mt_ndvi,
+                            sits_svm(
+                                formula = sits_formula_logref(),
+                                kernel = "radial",
+                                cost = 10))
     class.tb <- sits_classify(point_ndvi, svm_model)
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
                                   sits_labels(samples_mt_ndvi)$label))
     expect_true(nrow(sits_show_prediction(class.tb)) == 16)
 })
+
+test_that("SVM - Formula linear",{
+    #skip_on_cran()
+    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    svm_model <- sits_train(samples_mt_ndvi,
+                            sits_svm(
+                                formula = sits_formula_linear(),
+                                kernel = "radial",
+                                cost = 10))
+    class.tb <- sits_classify(point_ndvi, svm_model)
+
+    expect_true(all(class.tb$predicted[[1]]$class %in%
+                        sits_labels(samples_mt_ndvi)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
+})
+
 
 test_that("Random Forest",{
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
@@ -65,8 +85,12 @@ test_that("XGBoost",{
 test_that("DL-MLP",{
     #skip_on_cran()
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    model <- suppressWarnings(sits_train(samples_mt_ndvi, sits_deeplearning(
-        layers = c(128,128), dropout_rates = c(0.5, 0.4), epochs = 50, verbose = 0)))
+    model <- suppressWarnings(sits_train(samples_mt_ndvi,
+                              sits_deeplearning(
+                                  layers = c(128,128),
+                                  dropout_rates = c(0.5, 0.4),
+                                  epochs = 50,
+                                  verbose = 0)))
 
     class.tb <- sits_classify(point_ndvi, model)
 
@@ -77,8 +101,11 @@ test_that("DL-MLP",{
 test_that("1D CNN model",{
     #skip_on_cran()
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    model <- suppressWarnings(sits_train(samples_mt_ndvi, sits_FCN(layers = c(32,32), kernels = c(9, 5),
-                                                                   epochs = 50, verbose = 0)))
+    model <- suppressWarnings(sits_train(samples_mt_ndvi,
+                                         sits_FCN(layers = c(32,32),
+                                                  kernels = c(9, 5),
+                                                  epochs = 50,
+                                                  verbose = 0)))
 
     class.tb <- sits_classify(point_ndvi, model)
 
@@ -89,11 +116,14 @@ test_that("1D CNN model",{
 test_that("tempCNN model",{
     #skip_on_cran()
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    model <- suppressWarnings(sits_train(samples_mt_ndvi, sits_TempCNN(
-        cnn_layers = c(32, 32), cnn_kernels = c(7, 5),
-        cnn_dropout_rates = c(0.5, 0.4),
-        mlp_layers = c(128), mlp_dropout_rates = c(0.5),
-        epochs = 50, verbose = 0)))
+    model <- suppressWarnings(sits_train(samples_mt_ndvi,
+             sits_TempCNN(cnn_layers = c(32, 32),
+                          cnn_kernels = c(7, 5),
+                          cnn_dropout_rates = c(0.5, 0.4),
+                          mlp_layers = c(128),
+                          mlp_dropout_rates = c(0.5),
+                          epochs = 50,
+                          verbose = 0)))
 
     class.tb <- sits_classify(point_ndvi, model)
 

@@ -30,7 +30,9 @@
 #' clusters <- sits_cluster_dendro (cerrado_2classes, bands = c("ndvi", "evi"))
 #' }
 #' @export
-sits_cluster_dendro <-  function(data = NULL, bands = NULL, dist_method = "dtw_basic",
+sits_cluster_dendro <-  function(data = NULL,
+                                 bands = NULL,
+                                 dist_method = "dtw_basic",
                                  linkage = "ward.D2",
                                  k = NULL,
                                  colors = "RdYlGn",
@@ -48,13 +50,15 @@ sits_cluster_dendro <-  function(data = NULL, bands = NULL, dist_method = "dtw_b
 
     # calculate the dendrogram
     if (!silent) message("calculating dendrogram...")
-    dendro.obj <- .sits_cluster_dendrogram(data, bands, dist_method, linkage, ...)
+    dendro.obj <- .sits_cluster_dendrogram(data, bands,
+                                           dist_method, linkage, ...)
 
     # find the best cut for the dendrogram
-    if (!silent) message("finding the best cut for the dendrogram...")
+    if (!silent) message("finding the best cut...")
     cut.vec <- .sits_cluster_dendro_bestcut(data, dendro.obj)
     msg1 <- paste0("best number of clusters = ", cut.vec["k"])
-    msg2 <- paste0("best height for cutting the dendrogram = ", cut.vec["height"])
+    msg2 <- paste0("best height for cutting the dendrogram = ",
+                   cut.vec["height"])
     if (!silent) message(msg1)
     if (!silent) message(msg2)
 
@@ -62,7 +66,8 @@ sits_cluster_dendro <-  function(data = NULL, bands = NULL, dist_method = "dtw_b
     if (!silent) message("cutting the tree...")
     if (!purrr::is_null(k)) {
         if (k != cut.vec["k"]) {
-            msg_k <- paste0("Caveat: desired number of clusters (", k, ") overrides best value")
+            msg_k <- paste0("Caveat: desired number of clusters (", k, ")
+                            overrides best value")
             if (!silent) message(msg_k)
             cut.vec["k"] <- k
             cut.vec["height"] <- c(0, dendro.obj$height)[length(dendro.obj$height) - k + 2]
@@ -103,13 +108,15 @@ sits_cluster_dendro <-  function(data = NULL, bands = NULL, dist_method = "dtw_b
 sits_cluster_frequency <-  function(data) {
     # is the input data the result of a cluster function?
     ensurer::ensure_that(data, "cluster" %in% names(.),
-                         err_desc = "sits_cluster_contigency: input data does not contain cluster column")
+       err_desc = "sits_cluster_contigency: missing cluster column")
 
     # compute frequency table
     result.mtx <- table(data$label, data$cluster)
 
     # compute total row and col
-    result.mtx <- stats::addmargins(result.mtx, FUN = list(Total = sum), quiet = TRUE)
+    result.mtx <- stats::addmargins(result.mtx,
+                                    FUN = list(Total = sum),
+                                    quiet = TRUE)
     return(result.mtx)
 }
 

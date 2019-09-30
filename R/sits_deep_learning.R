@@ -30,7 +30,9 @@ sits_keras_diagnostics <- function(dl_model) {
     message("Plotting history of the model fit")
     graphics::plot(environment(dl_model)$history)
 
-    test_eval <- keras::evaluate(environment(dl_model)$model.keras, environment(dl_model)$test.x, environment(dl_model)$test.y, verbose = 0)
+    test_eval <- keras::evaluate(environment(dl_model)$model.keras,
+                                 environment(dl_model)$test.x,
+                                 environment(dl_model)$test.y, verbose = 0)
     message("Estimated loss and accuracy based on test data")
     message(paste0("Estimated accuracy: ", round(test_eval$acc, digits = 3),
                    " estimated loss: ", round(test_eval$loss, digits = 3)))
@@ -86,15 +88,15 @@ sits_keras_diagnostics <- function(dl_model) {
 #' }
 #' @export
 sits_deeplearning <- function(data          = NULL,
-                              layers           = c(512, 512, 512, 512, 512),
-                              activation       = 'relu',
-                              dropout_rates    = c(0.50, 0.45, 0.40, 0.35, 0.30),
-                              optimizer        = keras::optimizer_adam(lr = 0.001),
-                              epochs           = 200,
-                              batch_size       = 128,
-                              validation_split = 0.2,
-                              verbose          = 1,
-                              binary_classification = FALSE) {
+                        layers           = c(512, 512, 512, 512, 512),
+                        activation       = 'relu',
+                        dropout_rates    = c(0.50, 0.45, 0.40, 0.35, 0.30),
+                        optimizer        = keras::optimizer_adam(lr = 0.001),
+                        epochs           = 200,
+                        batch_size       = 128,
+                        validation_split = 0.2,
+                        verbose          = 1,
+                        binary_classification = FALSE) {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -103,18 +105,21 @@ sits_deeplearning <- function(data          = NULL,
     result_fun <- function(data){
         # pre-conditions
         ensurer::ensure_that(layers, length(.) == length(dropout_rates),
-                             err_desc = "sits_deeplearning: number of layers must match number of dropout rates")
+            err_desc = "sits_deeplearning: number of layers does not match
+                        number of dropout rates")
 
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         ensurer::ensure_that(activation, (.) %in% valid_activations,
-                             err_desc = "sits_deeplearning: invalid node activation method")
+            err_desc = "sits_deeplearning: invalid node activation method")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
         n_labels <- length(labels)
 
         # create the train and test datasets for keras
-        keras.data <- .sits_dl_prepare_data(data, validation_split = validation_split, type = "MLP")
+        keras.data <- .sits_dl_prepare_data(data = data,
+                                            validation_split = validation_split,
+                                            type = "MLP")
         train.x <- keras.data$train.x
         train.y <- keras.data$train.y
         test.x  <- keras.data$test.x
@@ -126,19 +131,23 @@ sits_deeplearning <- function(data          = NULL,
         output_tensor <-  input_tensor
 
         # build the nodes
-        for (i in 1:length(layers)) {
-            output_tensor <- keras::layer_dense(output_tensor, units = layers[i], activation = activation)
-            output_tensor <- keras::layer_dropout(output_tensor, rate = dropout_rates[i])
+        purrr::map2(layers, dropout_rates, function(ly, dr) {
+            output_tensor <- keras::layer_dense(output_tensor, units = ly,
+                                                activation = activation)
+            output_tensor <- keras::layer_dropout(output_tensor, rate = dr)
             output_tensor <- keras::layer_batch_normalization(output_tensor)
-        }
+        })
         # create the final tensor
         model_loss <- ""
         if (binary_classification && n_labels == 2) {
-            output_tensor <- keras::layer_dense(output_tensor, units = 1, activation = "sigmoid")
+            output_tensor <- keras::layer_dense(output_tensor, units = 1,
+                                                activation = "sigmoid")
             model_loss <- "binary_crossentropy"
         }
         else {
-            output_tensor <- keras::layer_dense(output_tensor, units = n_labels, activation = "softmax")
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = n_labels,
+                                                activation = "softmax")
             model_loss <- "categorical_crossentropy"
             # keras requires categorical data to be put in a matrix
             train.y <- keras::to_categorical(train.y, n_labels)
@@ -169,13 +178,16 @@ sits_deeplearning <- function(data          = NULL,
             # transform input (data.table) into a matrix (remove first two columns)
             values.x         <- data.matrix(values_DT[, -(1:2)])
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(model.keras, values.x))
+            prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
+                                                                      values.x))
             # adjust the names of the columns of the probs
             colnames(prediction_DT) <- labels
 
             return(prediction_DT)
         }
-        class(model_predict) <- append(class(model_predict), "keras_model", after = 0)
+        class(model_predict) <- append(class(model_predict),
+                                       "keras_model",
+                                       after = 0)
         return(model_predict)
     }
 
@@ -190,52 +202,65 @@ sits_deeplearning <- function(data          = NULL,
 #' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Use the a full 1D CNN algorithm to classify data. Users can define the number of
-#' convolutional layers], the size of the convolutional
-#' kernels, and the activation functions.
+#' @description Use the a full 1D CNN algorithm to classify data.
+#' Users can define the number of convolutional layers,
+#' the size of the convolutional kernels, and the activation functions.
 #'
-#' The FCN has been proposed for time series classification by the paper of Wang et al.
+#' The FCN has been proposed for time series classification by  Wang et al.
 #' The SITS implementation of FCN is based on the work of Hassan Fawaz and
 #' collaborators. Fawaz provides a reference Keras implementation of FCN
 #' in https://github.com/hfawaz/dl-4-tsc.
 #' If you use this function, please cite the references.
 #'
-#' @references Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane Idoumghar,  and Pierre-Alain Muller,
+#' @references Hassan Fawaz, Germain Forestier, Jonathan Weber,
+#' Lhassane Idoumghar,  and Pierre-Alain Muller,
 #' "Deep learning for time series classification: a review",
 #' Data Mining and Knowledge Discovery, 33(4): 917--963, 2019.
 #'
 #' Zhiguang Wang, Weizhong Yan, and Tim Oates,
-#' "Time series classification from scratch with deep neural networks: A strong baseline",
-#'  2017 international joint conference on neural networks (IJCNN).
+#' "Time series classification from scratch with deep neural networks:
+#' A strong baseline",
+#' 2017 international joint conference on neural networks (IJCNN).
 #'
 #'
 #'
 #' @param data              Time series with the training samples.
-#' @param layers            Vector with the size of the 1D convolutional filters for each layer.
+#' @param layers            Vector with the size of the 1D convolutional filters
+#'                          for each layer.
 #' @param kernels           Vector with the size of the 1D convolutional kernels.
 #' @param activation        Activation function for 1D convolution.
 #'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param L2_rate           Regularization rate for 1D convolution.
 #'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param optimizer         Function with a pointer to the optimizer function (default is optimization_adam()).
-#'                          Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
-#'                          optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
+#' @param optimizer         Function with a pointer to the optimizer function
+#'                          (default is optimization_adam()).
+#'                          Options are optimizer_adadelta(), optimizer_adagrad(),
+#'                          optimizer_adam(), optimizer_adamax(),
+#'                          optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
 #' @param epochs            Number of iterations to train the model.
 #' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Number between 0 and 1. Fraction of the training data to be used as validation data.
-#'                          The model will set apart this fraction of the training data, will not train on it,
-#'                          and will evaluate the loss and any model metrics on this data at the end of each epoch.
-#'                          The validation data is selected from the last samples in the x and y data provided,
+#' @param validation_split  Number between 0 and 1. Fraction of the training data
+#'                          to be used as validation data.
+#'                          The model will set apart this fraction of the
+#'                          training data, will not train on it,
+#'                          and will evaluate the loss and any model metrics
+#'                          on this data at the end of each epoch.
+#'                          The validation data is selected from the last
+#'                          samples in the x and y data provided,
 #'                          before shuffling.
-#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
-#' @param binary_classification A lenght-one logical indicating if this is a binary classification. If it is so,
-#'                          the number of unique labels in the training data must be two as well.
+#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar,
+#'                          2 = one line per epoch).
+#' @param binary_classification A lenght-one logical indicating
+#'                              if this is a binary classification. If it is so,
+#'                          the number of unique labels in the training data
+#'                          must be two as well.
 #'
-#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+#' @return A model fitted to input data to be passed
+#'         to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
 #' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' # Retrieve the set of samples for the Mato Grosso region
 #'
 #' # Build a machine learning model based on deep learning
 #' cnn_model <- sits_train (samples_mt_4bands, sits_FCN())
@@ -267,10 +292,11 @@ sits_FCN <- function(data         = NULL,
     result_fun <- function(data){
         # pre-conditions
         ensurer::ensure_that(layers, length(.) == length(kernels),
-                             err_desc = "sits_FCN: number of 1D layers must match number of 1D kernels")
+            err_desc = "sits_FCN: 1D layers must match 1D kernels")
+
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         ensurer::ensure_that(activation, all(. %in% valid_activations),
-                             err_desc = "sits_FCN: invalid CNN activation method")
+            err_desc = "sits_FCN: invalid CNN activation method")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -281,7 +307,9 @@ sits_FCN <- function(data         = NULL,
         n_timesteps <- nrow(sits_time_series(data[1,]))
 
         # create the train and test datasets for keras
-        keras.data <- .sits_dl_prepare_data(data, validation_split = validation_split, type = "1DCNN")
+        keras.data <- .sits_dl_prepare_data(data = data,
+                                            validation_split = validation_split,
+                                            type = "1DCNN")
         train.x <- keras.data$train.x
         train.y <- keras.data$train.y
         test.x  <- keras.data$test.x
@@ -293,16 +321,17 @@ sits_FCN <- function(data         = NULL,
         output_tensor <- input_tensor
 
         # build the 1D nodes
-        for (i in 1:length(layers)) {
+        purrr::map2(layers, kernels, function(ly, kr) {
             # Add a Convolution1D layer
-            output_tensor <- keras::layer_conv_1d(output_tensor, filters = layers[i],
-                                                  kernel_size = kernels[i],
-                                                  kernel_regularizer = keras::regularizer_l2(l = L2_rate))
+            output_tensor <- keras::layer_conv_1d(output_tensor, filters = ly,
+                             kernel_size = kr,
+                             kernel_regularizer = keras::regularizer_l2(l = L2_rate))
             # Batch normalization
             output_tensor <- keras::layer_batch_normalization(output_tensor)
             # activation
-            output_tensor <- keras::layer_activation(output_tensor, activation = activation)
-        }
+            output_tensor <- keras::layer_activation(output_tensor,
+                                                     activation = activation)
+        })
         # Apply max pooling?
         output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
 
@@ -312,11 +341,15 @@ sits_FCN <- function(data         = NULL,
         # create the final tensor
         model_loss <- ""
         if (binary_classification && n_labels == 2) {
-            output_tensor <- keras::layer_dense(output_tensor, units = 1, activation = "sigmoid")
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = 1,
+                                                activation = "sigmoid")
             model_loss <- "binary_crossentropy"
         }
         else {
-            output_tensor <- keras::layer_dense(output_tensor, units = n_labels, activation = "softmax")
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = n_labels,
+                                                activation = "softmax")
             model_loss <- "categorical_crossentropy"
             # keras requires categorical data to be put in a matrix
             train.y <- keras::to_categorical(train.y, n_labels)
@@ -344,20 +377,23 @@ sits_FCN <- function(data         = NULL,
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
-            # transform input (data.table) into a 3D tensor (remove first two columns)
+            # transform input (data.table) into a 3D tensor
             n_samples <- nrow(values_DT)
             n_timesteps <- nrow(sits_time_series(data[1,]))
             n_bands <- length(sits_bands(data))
             values.x <- array(data = as.matrix(values_DT[,3:ncol(values_DT)]),
                               dim = c(n_samples, n_timesteps, n_bands))
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(model.keras, values.x))
+            prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
+                                                                      values.x))
             # adjust the names of the columns of the probs
             colnames(prediction_DT) <- labels
 
             return(prediction_DT)
         }
-        class(model_predict) <- append(class(model_predict), "keras_model", after = 0)
+        class(model_predict) <- append(class(model_predict),
+                                       "keras_model",
+                                       after = 0)
         return(model_predict)
     }
 
@@ -449,10 +485,10 @@ sits_ResNet <- function(data              = NULL,
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         # pre-conditions
         ensurer::ensure_that(activation, (.) %in% valid_activations,
-                             err_desc = "sits_ResNet: invalid CNN activation method")
+            err_desc = "sits_ResNet: invalid CNN activation method")
 
         ensurer::ensure_that(kernels, length(.) == 3,
-                             err_desc = "sits_ResNet: should inform size of three kernels")
+            err_desc = "sits_ResNet: should inform size of three kernels")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -463,7 +499,9 @@ sits_ResNet <- function(data              = NULL,
         n_timesteps <- nrow(sits_time_series(data[1,]))
 
         # create the train and test datasets for keras
-        keras.data <- .sits_dl_prepare_data(data, validation_split = validation_split, type = "1DCNN")
+        keras.data <- .sits_dl_prepare_data(data = data,
+                                            validation_split = validation_split,
+                                            type = "1DCNN")
         train.x <- keras.data$train.x
         train.y <- keras.data$train.y
         test.x  <- keras.data$test.x
@@ -477,44 +515,52 @@ sits_ResNet <- function(data              = NULL,
         output_tensor <- input_tensor
         shortcut <- input_tensor
 
-        for (i in 1:length(blocks)) {
+        purrr::map(blocks, function(blk_size) {
             # Add a Convolution1D
-            output_tensor_x <- keras::layer_conv_1d(output_tensor, filters = blocks[i],
+            output_tensor_x <- keras::layer_conv_1d(output_tensor,
+                                                    filters = blk_size,
                                                     kernel_size = kernels[1],
                                                     padding = "same")
             # normalization
             output_tensor_x <- keras::layer_batch_normalization(output_tensor_x)
 
             # activation
-            output_tensor_x <- keras::layer_activation(output_tensor_x, activation = activation)
+            output_tensor_x <- keras::layer_activation(output_tensor_x,
+                                                       activation = activation)
 
             # Add a new convolution
-            output_tensor_y <- keras::layer_conv_1d(output_tensor_x, filters = blocks[i],
+            output_tensor_y <- keras::layer_conv_1d(output_tensor_x,
+                                                    filters = blk_size,
                                                     kernel_size = kernels[2],
                                                     padding = "same")
             # normalization
             output_tensor_y <- keras::layer_batch_normalization(output_tensor_y)
 
             # activation
-            output_tensor_y <- keras::layer_activation(output_tensor_y, activation = activation)
+            output_tensor_y <- keras::layer_activation(output_tensor_y,
+                                                       activation = activation)
 
             # Add a third convolution
-            output_tensor_z <- keras::layer_conv_1d(output_tensor_y, filters = blocks[i],
+            output_tensor_z <- keras::layer_conv_1d(output_tensor_y,
+                                                    filters = blk_size,
                                                     kernel_size = kernels[3],
                                                     padding = "same")
             output_tensor_z <- keras::layer_batch_normalization(output_tensor_z)
 
             # include the shortcut
-            shortcut <- keras::layer_conv_1d(shortcut, filters = blocks[i],
+            shortcut <- keras::layer_conv_1d(shortcut,
+                                             filters = blk_size,
                                              kernel_size = 1,
                                              padding = "same")
             shortcut <- keras::layer_batch_normalization(shortcut)
 
             # get the output tensor
             output_tensor <- keras::layer_add(list(shortcut, output_tensor_z))
-            output_tensor <- keras::layer_activation(output_tensor, activation = activation)
+            output_tensor <- keras::layer_activation(output_tensor,
+                                                     activation = activation)
             shortcut <- output_tensor
-        }
+            return(output_tensor)
+        })
 
         # reshape a tensor into a 2D shape
         output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
@@ -522,11 +568,15 @@ sits_ResNet <- function(data              = NULL,
         # create the final tensor
         model_loss <- ""
         if (binary_classification && n_labels == 2) {
-            output_tensor <- keras::layer_dense(output_tensor, units = 1, activation = "sigmoid")
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = 1,
+                                                activation = "sigmoid")
             model_loss <- "binary_crossentropy"
         }
         else {
-            output_tensor <- keras::layer_dense(output_tensor, units = n_labels, activation = "softmax")
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = n_labels,
+                                                activation = "softmax")
             model_loss <- "categorical_crossentropy"
             # keras requires categorical data to be put in a matrix
             train.y <- keras::to_categorical(train.y, n_labels)
@@ -553,20 +603,23 @@ sits_ResNet <- function(data              = NULL,
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
-            # transform input (data.table) into a 3D tensor (remove first two columns)
+            # transform input (data.table) into a 3D tensor
             n_samples <- nrow(values_DT)
             n_timesteps <- nrow(sits_time_series(data[1,]))
             n_bands <- length(sits_bands(data))
             values.x <- array(data = as.matrix(values_DT[,3:ncol(values_DT)]),
                               dim = c(n_samples, n_timesteps, n_bands))
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(model.keras, values.x))
+            prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
+                                                                      values.x))
             # adjust the names of the columns of the probs
             colnames(prediction_DT) <- labels
 
             return(prediction_DT)
         }
-        class(model_predict) <- append(class(model_predict), "keras_model", after = 0)
+        class(model_predict) <- append(class(model_predict),
+                                       "keras_model",
+                                       after = 0)
         return(model_predict)
     }
 
@@ -636,20 +689,20 @@ sits_ResNet <- function(data              = NULL,
 #' }
 #' @export
 sits_TempCNN <- function(data                 = NULL,
-                         cnn_layers           = c(64, 64, 64),
-                         cnn_kernels          = c(5, 5, 5),
-                         cnn_activation       = 'relu',
-                         cnn_L2_rate          = 1e-06,
-                         cnn_dropout_rates    = c(0.50, 0.50, 0.50),
-                         mlp_layers           = c(256),
-                         mlp_activation       = 'relu',
-                         mlp_dropout_rates    = c(0.50),
-                         optimizer            = keras::optimizer_adam(lr = 0.001),
-                         epochs               = 150,
-                         batch_size           = 128,
-                         validation_split     = 0.2,
-                         verbose              = 1,
-                         binary_classification = FALSE) {
+                    cnn_layers           = c(64, 64, 64),
+                    cnn_kernels          = c(5, 5, 5),
+                    cnn_activation       = 'relu',
+                    cnn_L2_rate          = 1e-06,
+                    cnn_dropout_rates    = c(0.50, 0.50, 0.50),
+                    mlp_layers           = c(256),
+                    mlp_activation       = 'relu',
+                    mlp_dropout_rates    = c(0.50),
+                    optimizer            = keras::optimizer_adam(lr = 0.001),
+                    epochs               = 150,
+                    batch_size           = 128,
+                    validation_split     = 0.2,
+                    verbose              = 1,
+                    binary_classification = FALSE) {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -659,18 +712,21 @@ sits_TempCNN <- function(data                 = NULL,
 
         # pre-conditions
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
+
         ensurer::ensure_that(cnn_layers, length(.) == length(cnn_kernels),
-                             err_desc = "sits_tempCNN: number of 1D layers must match number of 1D kernel sizes")
+            err_desc = "sits_tempCNN: 1D layers must match 1D kernel sizes")
+
         ensurer::ensure_that(cnn_layers, length(.) == length(cnn_dropout_rates),
-                             err_desc = "sits_tempCNN: number of 1D layers must match number of 1D dropout rates")
+            err_desc = "sits_tempCNN: 1D layers must match 1D dropout rates")
+
         ensurer::ensure_that(mlp_layers, length(.) == length(mlp_dropout_rates),
-                             err_desc = "sits_tempCNN: number of 2D units must match number of 2D dropout rates")
+            err_desc = "sits_tempCNN: 2D units must match 2D dropout rates")
 
         ensurer::ensure_that(cnn_activation, (.) %in% valid_activations,
-                             err_desc = "sits_tempCNN: invalid CNN activation method")
+            err_desc = "sits_tempCNN: invalid CNN activation method")
 
         ensurer::ensure_that(mlp_activation, (.) %in% valid_activations,
-                             err_desc = "sits_tempCNN: invalid node activation method")
+            err_desc = "sits_tempCNN: invalid node activation method")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -681,7 +737,9 @@ sits_TempCNN <- function(data                 = NULL,
         n_timesteps <- nrow(sits_time_series(data[1,]))
 
         # create the train and test datasets for keras
-        keras.data <- .sits_dl_prepare_data(data, validation_split = validation_split, type = "1DCNN")
+        keras.data <- .sits_dl_prepare_data(data = data,
+                                            validation_split = validation_split,
+                                            type = "1DCNN")
         train.x <- keras.data$train.x
         train.y <- keras.data$train.y
         test.x  <- keras.data$test.x
@@ -693,35 +751,47 @@ sits_TempCNN <- function(data                 = NULL,
         output_tensor <- input_tensor
 
         # build the 1D nodes
-        for (i in 1:length(cnn_layers)) {
+        purrr::pmap(list(cnn_layers, cnn_kernels, cnn_dropout_rates),
+                    function(layer_size, kernel_size, dropout_rate) {
             # Add a Convolution1D
-            output_tensor <- keras::layer_conv_1d(output_tensor, filters = cnn_layers[i],
-                                                  kernel_size = cnn_kernels[i],
-                                                  kernel_regularizer = keras::regularizer_l2(l = cnn_L2_rate))
+            output_tensor <- keras::layer_conv_1d(output_tensor,
+                        filters = layer_size,
+                        kernel_size = kernel_size,
+                        kernel_regularizer = keras::regularizer_l2(l = cnn_L2_rate))
             # Apply layer dropout
-            output_tensor <- keras::layer_dropout(output_tensor, rate = cnn_dropout_rates[i])
+            output_tensor <- keras::layer_dropout(output_tensor,
+                                                  rate = dropout_rate)
             # Activation
-            output_tensor <- keras::layer_activation(output_tensor, activation = cnn_activation)
-        }
+            output_tensor <- keras::layer_activation(output_tensor,
+                                                     activation = cnn_activation)
+        })
 
         # reshape a tensor into a 2D shape
         output_tensor <- keras::layer_flatten(output_tensor)
 
         # build the 2D nodes
-        for (i in 1:length(mlp_layers)) {
-            output_tensor <- keras::layer_dense(output_tensor, units = mlp_layers[i], activation = mlp_activation)
-            output_tensor <- keras::layer_dropout(output_tensor, rate = mlp_dropout_rates[i])
+        purrr::map2(mlp_layers, mlp_dropout_rates,
+                    function(mlp_units, mlp_dropout_rate) {
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = mlp_units,
+                                                activation = mlp_activation)
+            output_tensor <- keras::layer_dropout(output_tensor,
+                                                  rate = mlp_dropout_rate)
             output_tensor <- keras::layer_batch_normalization(output_tensor)
-        }
+        })
 
         # create the final tensor
         model_loss <- ""
         if (binary_classification && n_labels == 2) {
-            output_tensor <- keras::layer_dense(output_tensor, units = 1, activation = "sigmoid")
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = 1,
+                                                activation = "sigmoid")
             model_loss <- "binary_crossentropy"
         }
         else {
-            output_tensor <- keras::layer_dense(output_tensor, units = n_labels, activation = "softmax")
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = n_labels,
+                                                activation = "softmax")
             model_loss <- "categorical_crossentropy"
             # keras requires categorical data to be put in a matrix
             train.y <- keras::to_categorical(train.y, n_labels)
@@ -756,13 +826,16 @@ sits_TempCNN <- function(data                 = NULL,
             values.x <- array(data = as.matrix(values_DT[,3:ncol(values_DT)]),
                               dim = c(n_samples, n_timesteps, n_bands))
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(model.keras, values.x))
+            prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
+                                                                      values.x))
             # adjust the names of the columns of the probs
             colnames(prediction_DT) <- labels
 
             return(prediction_DT)
         }
-        class(model_predict) <- append(class(model_predict), "keras_model", after = 0)
+        class(model_predict) <- append(class(model_predict),
+                                       "keras_model",
+                                       after = 0)
         return(model_predict)
     }
 
@@ -830,17 +903,17 @@ sits_TempCNN <- function(data                 = NULL,
 #' }
 #' @export
 sits_LSTM_FCN <- function(data                =  NULL,
-                          lstm_units          = 8,
-                          lstm_dropout        = 0.80,
-                          cnn_layers          = c(128, 256, 128),
-                          cnn_kernels         = c(8, 5, 3),
-                          activation          = 'relu',
-                          optimizer           = keras::optimizer_adam(lr = 0.001),
-                          epochs              = 150,
-                          batch_size          = 128,
-                          validation_split    = 0.2,
-                          verbose             = 1,
-                          binary_classification = FALSE) {
+                    lstm_units          = 8,
+                    lstm_dropout        = 0.80,
+                    cnn_layers          = c(128, 256, 128),
+                    cnn_kernels         = c(8, 5, 3),
+                    activation          = 'relu',
+                    optimizer           = keras::optimizer_adam(lr = 0.001),
+                    epochs              = 150,
+                    batch_size          = 128,
+                    validation_split    = 0.2,
+                    verbose             = 1,
+                    binary_classification = FALSE) {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -852,10 +925,10 @@ sits_LSTM_FCN <- function(data                =  NULL,
         # is the input data consistent?
 
         ensurer::ensure_that(cnn_layers, length(.) == length(cnn_kernels),
-                             err_desc = "sits_LSTM_FCN: number of 1D CNN layers must match number of 1D kernels")
+            err_desc = "sits_LSTM_FCN: 1D CNN layers must match 1D kernels")
 
         ensurer::ensure_that(activation, all(. %in% valid_activations),
-                             err_desc = "sits_LSTM_FCN: invalid CNN activation method")
+             err_desc = "sits_LSTM_FCN: invalid CNN activation method")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -867,7 +940,9 @@ sits_LSTM_FCN <- function(data                =  NULL,
 
 
         # create the train and test datasets for keras
-        keras.data <- .sits_dl_prepare_data(data, validation_split = validation_split, type = "1DCNN")
+        keras.data <- .sits_dl_prepare_data(data = data,
+                                            validation_split = validation_split,
+                                            type = "1DCNN")
         train.x <- keras.data$train.x
         train.y <- keras.data$train.y
         test.x  <- keras.data$test.x
@@ -879,20 +954,25 @@ sits_LSTM_FCN <- function(data                =  NULL,
         output_tensor <- input_tensor
 
         # build the LSTM node
-        lstm_layer <- keras::layer_permute(input_tensor, dims = c(2,1))
-        lstm_layer <- keras::layer_lstm(input_tensor, units = lstm_units, dropout = lstm_dropout)
+        lstm_layer <- keras::layer_permute(input_tensor,
+                                           dims = c(2,1))
+        lstm_layer <- keras::layer_lstm(input_tensor,
+                                        units = lstm_units,
+                                        dropout = lstm_dropout)
 
         # build the 1D nodes
-        for (i in 1:length(cnn_layers)) {
+        purrr::map2(cnn_layers, cnn_kernels, function(layer_size, kernel_size) {
             # Add a 1D CNN layer
-            output_tensor <- keras::layer_conv_1d(output_tensor, filters = cnn_layers[i],
-                                                  kernel_size = cnn_kernels[i])
+            output_tensor <- keras::layer_conv_1d(output_tensor,
+                                                  filters     = layer_size,
+                                                  kernel_size = kernel_size)
 
             # batch normalisation
             output_tensor <- keras::layer_batch_normalization(output_tensor)
             # Layer activation
-            output_tensor <- keras::layer_activation(output_tensor, activation = activation)
-        }
+            output_tensor <- keras::layer_activation(output_tensor,
+                                                     activation = activation)
+        })
 
         # Apply average pooling
         output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
@@ -906,11 +986,15 @@ sits_LSTM_FCN <- function(data                =  NULL,
         # create the final tensor
         model_loss <- ""
         if (binary_classification && n_labels == 2) {
-            output_tensor <- keras::layer_dense(output_tensor, units = 1, activation = "sigmoid")
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = 1,
+                                                activation = "sigmoid")
             model_loss <- "binary_crossentropy"
         }
         else {
-            output_tensor <- keras::layer_dense(output_tensor, units = n_labels, activation = "softmax")
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = n_labels,
+                                                activation = "softmax")
             model_loss <- "categorical_crossentropy"
             # keras requires categorical data to be put in a matrix
             train.y <- keras::to_categorical(train.y, n_labels)
@@ -945,13 +1029,16 @@ sits_LSTM_FCN <- function(data                =  NULL,
             values.x <- array(data = as.matrix(values_DT[,3:ncol(values_DT)]),
                               dim = c(n_samples, n_timesteps, n_bands))
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(model.keras, values.x))
+            prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
+                                                                      values.x))
             # adjust the names of the columns of the probs
             colnames(prediction_DT) <- labels
 
             return(prediction_DT)
         }
-        class(model_predict) <- append(class(model_predict), "keras_model", after = 0)
+        class(model_predict) <- append(class(model_predict),
+                                       "keras_model",
+                                       after = 0)
         return(model_predict)
     }
 

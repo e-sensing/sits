@@ -16,7 +16,7 @@ samples <- inSitu::br_mt_1_8K_9classes_6bands
 samples_ndvi_evi <- sits_select_bands(samples, ndvi, evi)
 
 # build the classification model
-rfor_model <- sits_train(samples_ndvi_evi, ml_method = sits_rfor(num.trees = 2000))
+rfor_model <- sits_train(samples_ndvi_evi, ml_method = sits_rfor(num_trees = 2000))
 
 # select the bands "ndvi", "evi" from the "inSitu" package
 evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")

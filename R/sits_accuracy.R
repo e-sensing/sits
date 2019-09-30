@@ -31,7 +31,8 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
         class.tb <- .sits_tibble_rename(class.tb)
 
     # does the input data contain a set of predicted values?
-    ensurer::ensure_that(class.tb, "predicted" %in% names(.), err_desc = "sits_conf_matrix: input data does not contain predicted values")
+    ensurer::ensure_that(class.tb, "predicted" %in% names(.),
+        err_desc = "sits_conf_matrix: input data without predicted values")
 
     # recover predicted and reference vectors from input
     # is the input the result of a sits_classify?
@@ -56,8 +57,8 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
         names_ref <- unique(ref.vec)
         # are all input labels in the coversion list?
         ensurer::ensure_that(names_ref,
-                             all(. %in% names(conv.lst)),
-                             err_desc = "sits_conf_matrix: conversion list does not contain all reference labels")
+            all(. %in% names(conv.lst)),
+            err_desc = "sits_conf_matrix: missing reference labels")
         pred.vec <- as.character(conv.lst[pred.vec])
         ref.vec  <- as.character(conv.lst[ref.vec])
     }
@@ -189,13 +190,13 @@ sits_accuracy_area <- function(class.tb, area = NULL){
     W <- area/sum(area)
     n <- rowSums(error_matrix)
     if (any(n < 2))
-        stop("Undefined accuracy when there is one or fewer pixels in any predicted class (division by zero).",
+        stop("Undefined accuracy: one pixel in a class (division by zero).",
              call. = FALSE)
     n.mat <- matrix(rep(n, times = ncol(error_matrix)),
                     ncol = ncol(error_matrix))
     p <- W * error_matrix / n.mat
     error_adjusted_area_estimate <- colSums(p) * sum(area)
-    Sphat_1 <- vapply(1:ncol(error_matrix), function(i){
+    Sphat_1 <- vapply(seq_len(ncol(error_matrix)), function(i){
         sqrt(sum(W^2 * error_matrix[, i]/n * (1 - error_matrix[, i]/n)/(n - 1)))
     }, numeric(1))
 
@@ -227,7 +228,8 @@ sits_accuracy_area <- function(class.tb, area = NULL){
 #' @param \dots Optional arguments to pass to \code{print.table}.
 #' @return \code{x} is invisibly returned.
 #' @seealso \code{\link{confusionMatrix}}
-.print_confusion_matrix <- function(x, mode = "sens_spec", digits = max(3, getOption("digits") - 3), ...){
+.print_confusion_matrix <- function(x, mode = "sens_spec",
+                              digits = max(3, getOption("digits") - 3), ...){
     cat("Confusion Matrix and Statistics\n\n")
     print(x$table, ...)
 
@@ -240,10 +242,12 @@ sits_accuracy_area <- function(class.tb, area = NULL){
     # overall <- tmp
 
     accCI <- paste("(",
-                   paste( overall[ c("AccuracyLower", "AccuracyUpper")], collapse = ", "), ")",
+                   paste(overall[ c("AccuracyLower", "AccuracyUpper")],
+                          collapse = ", "), ")",
                    sep = "")
 
-    overallText <- c(paste(overall["Accuracy"]), accCI, "", paste(overall["Kappa"]))
+    overallText <- c(paste(overall["Accuracy"]), accCI, "",
+                     paste(overall["Kappa"]))
 
     overallNames <- c("Accuracy", "95% CI", "", "Kappa")
 
@@ -259,18 +263,21 @@ sits_accuracy_area <- function(class.tb, area = NULL){
         print(out, quote = FALSE)
 
         cat("\nStatistics by Class:\n\n")
-        x$byClass <- x$byClass[,grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
-                                      colnames(x$byClass))]
+        x$byClass <- x$byClass[,
+        grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+            colnames(x$byClass))]
         ass.mx <- t(x$byClass)
-        rownames(ass.mx) <- c("Prod Acc (Sensitivity)", "Specificity", "User Acc (Pos Pred Value)", "Neg Pred Value" )
+        rownames(ass.mx) <- c("Prod Acc (Sensitivity)", "Specificity",
+                              "User Acc (Pos Pred Value)", "Neg Pred Value" )
         print(ass.mx, digits = digits)
 
     } else {
         # this is the case of ony two classes
-        # get the values of the User's and Producer's Accuracy for the two classes
-        # the names in caret are different from the usual names in Earth observation
-        x$byClass <- x$byClass[grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
-                                     names(x$byClass))]
+        # get the values of the User's and Producer's Accuracy
+        # Names in caret are different from the usual names in Earth observation
+        x$byClass <- x$byClass[
+        grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+            names(x$byClass))]
         # get the names of the two classes
         nm <- row.names(x$table)
         # the first class (which is called the "positive" class by caret)
@@ -308,7 +315,7 @@ sits_accuracy_area <- function(class.tb, area = NULL){
 #
 #' @description Obtains a tibble of predicted and reference values from a classified data set.
 #'
-#' @param  class.tb       A sits tibble containing a set of classified samples whose labels are known.
+#' @param  class.tb  A sits tibble with a set of classified samples whose labels are known.
 #' @return A tibble with predicted and reference values.
 .sits_pred_ref <- function(class.tb) {
     # retrieve the predicted values
@@ -317,10 +324,12 @@ sits_accuracy_area <- function(class.tb, area = NULL){
     # retrieve the reference labels
     ref.vec <- class.tb$label
     # does the input data contained valid reference labels?
-    ensurer::ensure_that(ref.vec, !("NoClass" %in% (.)), err_desc = "sits_accuracy: input data does not contain reference values")
+    ensurer::ensure_that(ref.vec, !("NoClass" %in% (.)),
+        err_desc = "sits_accuracy: input data without reference values")
 
     # build the tibble
     pred_ref.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
+
 
     # return the tibble
     return(pred_ref.tb)
@@ -423,7 +432,7 @@ sits_to_xlsx <- function(acc.lst, file = NULL){
             # save the perclass data in the worksheet
             openxlsx::writeData(wb, sheet_name, acc_bc.mx,
                                 rowNames = TRUE, startRow = NROW(acc.mx$table) + 8, startCol = 1)
-    })
+        })
 
     # write the worksheets to the XLSX file
     openxlsx::saveWorkbook(wb, file = file, overwrite = TRUE)

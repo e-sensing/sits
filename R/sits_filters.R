@@ -73,11 +73,11 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 
     # is the input data a valid sits tibble?
     ensurer::ensure_that(data, "label" %in% names(.),
-                         err_desc = "sits_filter: input data does not contain a valid sits tibble")
+        err_desc = "sits_filter: invalid input data")
 
     # is the train method a function?
     ensurer::ensure_that(filter, class(.) == "function",
-                         err_desc = "sits_filter: filter is not a valid function")
+        err_desc = "sits_filter: filter is not a valid function")
 
     # compute the training method by the given data
     result <- filter(data)
@@ -117,7 +117,9 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' }
 #' @export
 sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
-                              bands_suffix = "cf", apply_whit = TRUE, lambda_whit = 1.0){
+                              bands_suffix = "cf",
+                              apply_whit = TRUE,
+                              lambda_whit = 1.0){
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -125,14 +127,17 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
     filter_fun <- function(data) {
         # find the bands of the data
         bands <- sits_bands(data)
-        ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
+        ensurer::ensure_that(bands, ("ndvi" %in% (.)),
+                             err_desc = "data does not contain the ndvi band")
 
         # prepare result sits tibble
         result <- data
         env.tb <- sits_select_bands(data, ndvi) %>% sits_envelope(operations = "UU")
 
         # select the chosen bands for the time series
-        result$time_series <- purrr::pmap(list(data$time_series, env.tb$time_series, result$time_series),
+        result$time_series <- purrr::pmap(list(data$time_series,
+                                               env.tb$time_series,
+                                               result$time_series),
                     function(ts_data, ts_env, ts_res) {
                         ndvi <- dplyr::pull(ts_data[, "ndvi"])
                         env  <- dplyr::pull(ts_env[, "ndvi.env"])
@@ -141,10 +146,11 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
                         # interpolate missing values
                         bands %>%
                             purrr::map(function(b) {
-                                    ts <- dplyr::pull(ts_res[, b])
-                                    ts[idx] <- NA
-                                    ts_res[,b] <<- imputeTS::na_interpolation(ts, option = "spline")
-                                })
+                                ts <- dplyr::pull(ts_res[, b])
+                                ts[idx] <- NA
+                                ts_res[,b] <<- imputeTS::na_interpolation(ts,
+                                                                option = "spline")
+                            })
                         return(ts_res)
                     })
         # rename the output bands
@@ -184,10 +190,13 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
 #' plot(point2.tb)
 #' }
 #' @export
-sits_envelope <- function(data = NULL, operations = "UULL", bands_suffix = "env"){
+sits_envelope <- function(data = NULL,
+                          operations = "UULL",
+                          bands_suffix = "env"){
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
+        stop("dtwclust needed for this function to work.
+             Please install it.", call. = FALSE)
     }
     # backward compatibility
     if ("coverage" %in% names(data))
@@ -195,25 +204,28 @@ sits_envelope <- function(data = NULL, operations = "UULL", bands_suffix = "env"
 
     filter_fun <- function(data) {
         # definitions of operations and the key returned by `dtwclust::compute_envelope`
-        def_op <- list("U" = "upper", "L" = "lower", "u" = "upper", "l" = "lower")
+        def_op <- list("U" = "upper", "L" = "lower",
+                       "u" = "upper", "l" = "lower")
 
         # split envelope operations
         operations <- strsplit(operations, "")[[1]]
 
         # verify if operations are either "U" or "L"
         ensurer::ensure_that(operations, all(. %in% names(def_op)),
-                             err_desc = "sits_envelope: invalid operation sequence")
+            err_desc = "sits_envelope: invalid operation sequence")
 
         # compute envelopes
         result <- sits_apply(data,
-                                fun = function(band) {
-                                    for (op in operations) {
-                                        upper_lower.lst <- dtwclust::compute_envelope(band, window.size = 1, error.check = FALSE)
-                                        band <- upper_lower.lst[[def_op[[op]]]]
-                                    }
-                                    return(band)
-                                },
-                                fun_index = function(band) band,
+                    fun = function(band) {
+                        for (op in operations) {
+                            upper_lower.lst <- dtwclust::compute_envelope(band,
+                                                            window.size = 1,
+                                                            error.check = FALSE)
+                            band <- upper_lower.lst[[def_op[[op]]]]
+                        }
+                        return(band)
+                    },
+                    fun_index = function(band) band,
                                 bands_suffix = bands_suffix)
         return(result)
     }
@@ -256,8 +268,9 @@ sits_interp <- function(data = NULL, fun = stats::approx, n = base::length, ...)
                                         return(fun(band, n = n(band), ...)$y)
                                     return(fun(band, n = n, ...)$y)
                                 },
-                                fun_index = function(band) as.Date(fun(band, n = n, ...)$y,
-                                                                   origin = "1970-01-01"))
+                                fun_index = function(band)
+                                    as.Date(fun(band, n = n, ...)$y,
+                                                origin = "1970-01-01"))
         return(result)
     }
     result <- .sits_factory_function(data, filter_fun)
@@ -292,7 +305,8 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
         data <- .sits_tibble_rename(data)
     filter_fun <- function(data) {
         result <- sits_apply(data,
-                                fun = function(band) .sits_kalman_filter(band, NULL, NULL, NULL),
+                                fun = function(band) .sits_kalman_filter(band,
+                                                            NULL, NULL, NULL),
                                 fun_index = function(band) band,
                                 bands_suffix = bands_suffix)
         return(result)
@@ -323,7 +337,8 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
         initial_error_in_estimate <- base::abs(stats::sd(measurement, na.rm = TRUE))
     }
     if (is.null(error_in_measurement)) {
-        error_in_measurement <- rep(stats::sd(measurement, na.rm = TRUE), length.out = base::length(measurement))
+        error_in_measurement <- rep(stats::sd(measurement, na.rm = TRUE),
+                                    length.out = base::length(measurement))
     }
     #
     # Compute the Kalman gain
@@ -356,7 +371,7 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
         kg[i] <- .KG(e_est[i - 1], error_in_measurement[i - 1])
         m <- measurement[i - 1]
         if (is.na(m)) {
-            m <- est[i - 1] # if the measurement is missing, use the estimation instead
+            m <- est[i - 1] # measurement is missing, use estimation instead
         }
         est[i] <- .EST_t(kg[i], est[i - 1], m)
         e_est[i] <- .E_EST_t(kg[i], e_est[i - 1])

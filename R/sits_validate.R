@@ -55,14 +55,14 @@ sits_kfold_validate <- function(data, folds = 5,
 
     # is the data labelled?
     ensurer::ensure_that(data, !("NoClass" %in% sits_labels(.)$label),
-                         err_desc = "sits_cross_validate: please provide a labelled set of time series")
+        err_desc = "sits_cross_validate: requires labelled set of time series")
 
     # create partitions different splits of the input data
     data <- .sits_create_folds(data, folds = folds)
 
     # create prediction and reference vector
-    pred.vec = character()
-    ref.vec  = character()
+    pred.vec <-  character()
+    ref.vec  <-  character()
 
     conf.lst <- parallel::mclapply(X = 1:folds, FUN = function(k)
     {
@@ -78,7 +78,8 @@ sits_kfold_validate <- function(data, folds = 5,
 
         # obtain the distances after normalizing data by band
         if (!purrr::is_null(stats))
-            distances_DT <- .sits_distances(.sits_normalize_data(data_test, stats, multicores))
+            distances_DT <- .sits_distances(
+                .sits_normalize_data(data_test, stats, multicores))
         else
             distances_DT <- .sits_distances(data_test)
 

@@ -11,7 +11,9 @@
 #' @param  rdsfile         A rds file where the R environment is to be saved.
 #'
 #' @export
-sits_keras_save <-  function(model, hdffile = "./model_keras.h5", rdsfile = "./model_keras.rds"){
+sits_keras_save <-  function(model,
+                             hdffile = "./model_keras.h5",
+                             rdsfile = "./model_keras.rds"){
     # retrieve the keras model from the sits model object
     model.keras <- environment(model)$model.keras
     # save the keras model in a HDF5 file

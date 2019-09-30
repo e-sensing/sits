@@ -46,11 +46,12 @@ sits_plot (cerrado_2classes[1:20,])
 # Plot the patterns
 sits_plot (sits_patterns(cerrado_2classes))
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-data(samples_mt_ndvi)
+data(samples_mt_4bands)
+samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, bands = ndvi)
+model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
 # Retrieve a point
 data(point_ndvi)
 # classify the point
-model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
 class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
 # plot the classification
 sits_plot (class_ndvi.tb)

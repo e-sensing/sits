@@ -30,7 +30,7 @@ sits_config <- function() {
 
     # check that the file is valid
     ensurer::ensure_that(yml_file, !purrr::is_null(.),
-                         err_desc = "sits_config : Please provide a valid configuration file")
+        err_desc = "sits_config : invalid configuration file")
 
     # read the configuration parameters
     sits.env$config <- config::get(file = yml_file)
@@ -63,7 +63,7 @@ sits_config_show <- function() {
     yml_file <- system.file("extdata", "config.yml", package = "sits")
     # check that the file is valid
     ensurer::ensure_that(yml_file, !purrr::is_null(.),
-                         err_desc = "sits_config : Please provide a valid configuration file")
+        err_desc = "sits_config: Invalid configuration file")
     # try to find a valid user configuration file
     WD <- getwd()
     if (file.exists(paste0(WD, "/config.yml")))
@@ -176,13 +176,13 @@ sits_config_show <- function() {
 .sits_config_default_sensor <- function(satellite) {
 
     ensurer::ensure_that(satellite, (.) %in% .sits_config_satellites(),
-                         err_desc = "satellite not supported by SITS - please edit configuration file")
+        err_desc = "satellite not supported by SITS - edit configuration file")
 
     q <- paste0(satellite,"_sensors")
     sensor <- sits.env$config[[q]][1]
 
     ensurer::ensure_that(sensor, !purrr::is_null(.),
-                         err_desc = "could not find default sensor for satellite - please edit configuration file")
+        err_desc = "unknown sensor - edit configuration file")
     return(sensor)
 }
 #' @title Retrieve the maximum values for a given band, based on the configuration file
@@ -203,7 +203,8 @@ sits_config_show <- function() {
 
     #post-condition
     ensurer::ensure_that(maximum_values, !purrr::is_null(.),
-                         err_desc = paste0("Configuration file has failed to find maximum values for ", sensor))
+        err_desc = paste0("Missing maximum values for ", sensor,
+                          " edit configuration file"))
 
     names(maximum_values) <- bands
     return(maximum_values)
@@ -227,18 +228,19 @@ sits_config_show <- function() {
 .sits_config_minimum_values <- function(sensor, bands) {
 
     # create a string to query for  values
-    minimum_values <- vector()
+    min_val <- vector()
     bands %>%
         purrr::map(function(b) {
-            minimum_values[b] <<- as.numeric(sits.env$config[[sensor]][["minimum_value"]][[b]])
-        })
+        min_val[b] <<- as.numeric(sits.env$config[[sensor]][["minimum_value"]][[b]])
+    })
 
     #post-condition
-    ensurer::ensure_that(minimum_values, !purrr::is_null(.),
-                         err_desc = paste0("Configuration file has failed to find minimum values for ", sensor))
+    ensurer::ensure_that(min_val, !purrr::is_null(.),
+        err_desc = paste0("No minimum values for ", sensor,
+                          " edit configuration files"))
 
-    names(minimum_values) <- bands
-    return(minimum_values)
+    names(min_val) <- bands
+    return(min_val)
 }
 
 
@@ -251,17 +253,18 @@ sits_config_show <- function() {
 #' @return The missing values.
 .sits_config_missing_values <- function(sensor, bands) {
     # create a string to query for the missing values
-    missing_values <- vector()
+    mis_val <- vector()
     bands %>%
-        purrr::map(function(b) {
-            missing_values[b] <<- as.numeric(sits.env$config[[sensor]][["missing_value"]][[b]])
-        })
+      purrr::map(function(b) {
+        mis_val[b] <<- as.numeric(sits.env$config[[sensor]][["missing_value"]][[b]])
+    })
     #post-condition
-    ensurer::ensure_that(missing_values, !purrr::is_null(.),
-                         err_desc = paste0("Configuration file has no missing values for sensor ", sensor))
+    ensurer::ensure_that(mis_val, !purrr::is_null(.),
+        err_desc = paste0("No missing values for sensor ", sensor,
+                          " edit configuration file"))
 
-    names(missing_values) <- bands
-    return(missing_values)
+    names(mis_val) <- bands
+    return(mis_val)
 }
 
 #' @title Retrieve the estimated value of R memory bloat, based on the configuration file
@@ -282,14 +285,15 @@ sits_config_show <- function() {
 .sits_config_projection <- function(service, name) {
     # pre-condition
     ensurer::ensure_that(service, (.) == "SATVEG",
-                         err_desc = "sits_config_projection only works for SATVEG")
+        err_desc = "sits_config_projection only works for SATVEG")
     # create a string to store the query
     s <- paste0(service, "_crs")
     crs <- sits.env$config[[s]][[name]]
 
     #post-condition
     ensurer::ensure_that(crs, length(.) > 0,
-                         err_desc = paste0("Projection information for cube ", name, " of service ", service, " not available"))
+        err_desc = paste0("Projection information for cube ", name,
+                          " of service ", service, " not available"))
     return(crs)
 }
 #' @title List the data providers available in the configuration file
@@ -322,9 +326,11 @@ sits_config_show <- function() {
 
     #post-condition
     ensurer::ensure_that(res["xres"], as.numeric(.) > 0,
-                         err_desc = paste0("Horizontal resolution not available for sensor ", sensor))
+        err_desc = paste0("Horizontal resolution unavailable for ", sensor,
+                          " edit configuration file"))
     ensurer::ensure_that(res["yres"], as.numeric(.) > 0,
-                         err_desc = paste0("Vertical resolution not available for sensor ", sensor))
+        err_desc = paste0("Vertical resolution unavailable for ", sensor,
+                          " edit configuration file"))
 
     return(res)
 }
@@ -348,7 +354,7 @@ sits_config_show <- function() {
     s <- sits.env$config[[p]]
     #post-condition
     ensurer::ensure_that(s, !purrr::is_null(.),
-                         err_desc = paste0("Could not find satellite for cube ", cube))
+        err_desc = paste0("Could not find satellite for cube ", cube))
     return(s)
 }
 
@@ -370,16 +376,17 @@ sits_config_show <- function() {
 #' @param bands          Vector of bands.
 #' @return Vector of scale factors.
 .sits_config_scale_factors <- function(sensor, bands) {
-    scale_factors <- vector()
+    scale_f <- vector()
     bands %>%
-        purrr::map(function(b) {
-            scale_factors[b] <<- as.numeric(sits.env$config[[sensor]][["scale_factor"]][[b]])
-        })
-    names(scale_factors) <- bands
+      purrr::map(function(b) {
+        scale_f[b] <<- as.numeric(sits.env$config[[sensor]][["scale_factor"]][[b]])
+    })
+    names(scale_f) <- bands
     #post-condition
-    ensurer::ensure_that(scale_factors, !purrr::is_null(.),
-                         err_desc = paste0("Configuration file has no scale factors for sensor", sensor))
-    return(scale_factors)
+    ensurer::ensure_that(scale_f, !purrr::is_null(.),
+        err_desc = paste0("No scale factors for sensor", sensor,
+                          " edit configuration file"))
+    return(scale_f)
 }
 
 #' @title retrieve the sensor associated to a data cube
@@ -418,7 +425,7 @@ sits_config_show <- function() {
 .sits_config_server <- function(service, provider = NULL) {
     # pre-condition
     ensurer::ensure_that(service, (.) %in% sits.env$config$services,
-                         err_desc = "Service not available - check configuration file")
+        err_desc = "Service not available - check configuration file")
 
     # Provider must be consistent
 
@@ -474,11 +481,11 @@ sits_config_show <- function() {
 
     #post-condition
     ensurer::ensure_that(size["nrows"], as.integer(.) > 0,
-                         err_desc = paste0("Number of rows not available for cube ",
-                                           name, " for service ", service))
+        err_desc = paste0("Number of rows not available for cube ",
+                          name, " for service ", service))
     ensurer::ensure_that(size["ncols"], as.integer(.) > 0,
-                         err_desc = paste0("Number of cols not available for cube ",
-                                           name, " for service ", service))
+        err_desc = paste0("Number of cols not available for cube ",
+                          name, " for service ", service))
 
     return(size)
 }
@@ -494,8 +501,9 @@ sits_config_show <- function() {
 #' @return The default timeline associated to the service
 .sits_config_timeline <- function(service, name){
     if (service == "BRICK" || service == "STACK") {
-        message("Please provide timeline for raster data: will use default timeline from MOD13Q1
-                which might be wrong")
+        message("Please provide timeline for raster data:
+            will use default timeline from MOD13Q1
+            which might be wrong")
         s <- paste0("RASTER_timeline")
         timeline <- lubridate::as_date(sits.env$config[[s]]["MOD13Q1"])
         return(timeline)
@@ -509,7 +517,7 @@ sits_config_show <- function() {
 
         # is the cube in the list of cubes?
         ensurer::ensure_that(name, (.) %in% cubes.vec,
-                             err_desc = "sits_config_timeline: cube is not available in the WTSS server")
+            err_desc = "sits_config_timeline: cube unavailable in WTSS server")
 
         # describe the cube
         cov.lst    <- wtss::describeCoverage(wtss.obj, name)
@@ -524,7 +532,7 @@ sits_config_show <- function() {
         timeline <- lubridate::as_date(sits.env$config[[s]][[name]])
 
         ensurer::ensure_that(timeline, length(.) > 0,
-                             err_desc = paste0("Could not retrieve timeline for cube ", name))
+            err_desc = paste0("Could not retrieve timeline for cube ", name))
     }
 
     return(lubridate::as_date(timeline))
@@ -546,10 +554,12 @@ sits_config_show <- function() {
             stop("Unable to retrieve tasseled cap coefficients")
         }
     }
-    coef <- vector()
 
-    for (i in 1:length(bands))
-        coef[length(coef) + 1] <- as.double(sits.env$config$tasseled_cap_coef[[sensor]]$brightness[[bands[i]]])
+    coef.lst <- purrr::map(bands, function(b) {
+      c <- as.double(sits.env$config$tasseled_cap_coef[[sensor]]$brightness[[b]])
+    })
+
+    coef <- unlist(coef.lst)
 
     names(coef) <- bands
     return(coef)
@@ -571,12 +581,11 @@ sits_config_show <- function() {
             stop("Unable to retrieve tasseled cap coefficients")
         }
     }
-    coef <- vector()
 
-    for (i in 1:length(bands)) {
-        c <- as.double(sits.env$config$tasseled_cap_coef[[sensor]]$greenness[[bands[i]]])
-        coef[length(coef) + 1] <- c
-    }
+    coef.lst <- purrr::map(bands, function(b)  {
+      c <- as.double(sits.env$config$tasseled_cap_coef[[sensor]]$greenness[[b]])
+    })
+    coef <- unlist(coef.lst)
     names(coef) <- bands
     return(coef)
 }
@@ -597,12 +606,11 @@ sits_config_show <- function() {
             stop("Unable to retrieve tasseled cap coefficients")
         }
     }
-    coef <- vector()
 
-    for (i in 1:length(bands)) {
-        c <- as.double(sits.env$config$tasseled_cap_coef[[sensor]]$wetness[[bands[i]]])
-        coef[length(coef) + 1] <- c
-    }
+    coef.lst <- purrr::map(bands, function(b)  {
+      c <- as.double(sits.env$config$tasseled_cap_coef[[sensor]]$wetness[[b]])
+    })
+    coef <- unlist(coef.lst)
     names(coef) <- bands
     return(coef)
 }

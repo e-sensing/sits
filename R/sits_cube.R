@@ -100,13 +100,15 @@ sits_cube <- function(service        = "BRICK",
             # connect to the EOCUBES service
             eocubes.obj <- EOCubes::remote(URL)
             # create a cube
-            cube.tb <- .sits_eocubes_cube(eocubes.obj, service, URL, name, bands, tiles_names, geom, from, to)
+            cube.tb <- .sits_eocubes_cube(eocubes.obj, service,
+                                          URL, name, bands,
+                                          tiles_names, geom,
+                                          from, to)
         }
-
     }
     else {
         # raster files
-        # check if the raster files need to include "/vsicurl" to be read by GDAL
+        # check if need to include "/vsicurl" to be read by GDAL
         files <- .sits_raster_check_webfiles(files)
 
         # check if the raster files can be read by GDAL
@@ -128,7 +130,14 @@ sits_cube <- function(service        = "BRICK",
             URL <- .sits_config_server(service)
 
         # create a stack data cube
-        cube.tb <- .sits_raster_cube(service, URL, satellite, sensor, name, timeline, bands, files)
+        cube.tb <- .sits_raster_cube(service = service,
+                                     URL       = URL,
+                                     satellite = satellite,
+                                     sensor    = sensor,
+                                     name      = name,
+                                     timeline  = timeline,
+                                     bands     = bands,
+                                     files     = files)
     }
     return(cube.tb)
 }
@@ -162,9 +171,12 @@ sits_cube <- function(service        = "BRICK",
 #' @param crs                CRS for cube.
 #' @param files              Vector with associated files.
 #'
-.sits_cube_create <- function(service, URL, satellite, sensor, name, bands, labels,
-                              scale_factors, missing_values, minimum_values, maximum_values,
-                              timelines, nrows, ncols, xmin, xmax, ymin, ymax, xres, yres, crs,
+.sits_cube_create <- function(service, URL, satellite, sensor,
+                              name, bands, labels,
+                              scale_factors, missing_values,
+                              minimum_values, maximum_values,
+                              timelines, nrows, ncols, xmin,
+                              xmax, ymin, ymax, xres, yres, crs,
                               files = NULL) {
 
 
@@ -205,8 +217,9 @@ sits_cube <- function(service        = "BRICK",
 #'
 #' @description Takes a tibble containing metadata about a data cube
 #' containing time series (each Brick has information for one band) and creates a
-#' set of RasterLayers to store the classification result. Each RasterLayer corresponds
-#' to one time step. The time steps are specified in a list of dates.
+#' set of RasterLayers to store the classification result.
+#' Each RasterLayer corresponds to one time step.
+#' The time steps are specified in a list of dates.
 #'
 #' @param  cube              Tibble with metadata about the input data cube.
 #' @param  samples           Samples used for training the classification model..
@@ -217,7 +230,7 @@ sits_cube <- function(service        = "BRICK",
 .sits_cube_classified <- function(cube, samples, interval, output_dir, version){
     # ensure metadata tibble exists
     ensurer::ensure_that(cube, NROW(.) > 0,
-                         err_desc = ".sits_classify_cube: need a valid metadata for cube")
+        err_desc = ".sits_classify_cube: need a valid metadata for cube")
 
     # get the timeline of of the data cube
     timeline <- lubridate::as_date(sits_timeline(cube))
@@ -227,8 +240,10 @@ sits_cube <- function(service        = "BRICK",
     ref_end_date   <- lubridate::as_date(samples[1,]$end_date)
 
     # produce the breaks used to generate the output rasters
-    subset_dates <- sits_timeline_match(timeline = timeline, ref_start_date = ref_start_date,
-                                        ref_end_date = ref_end_date, interval = interval)
+    subset_dates <- sits_timeline_match(timeline = timeline,
+                                        ref_start_date = ref_start_date,
+                                        ref_end_date = ref_end_date,
+                                        interval = interval)
 
     # how many objects are to be created?
     n_objs <- length(subset_dates)
@@ -259,24 +274,42 @@ sits_cube <- function(service        = "BRICK",
                                        lubridate::as_date(timeline) <= end_date]
 
         # define the filename for the classified image
-        files[i] <- .sits_raster_filename(output_dir = output_dir, version = version, name = cube$name, type = "probs",
-                                          start_date = start_date, end_date = end_date)
+        files[i] <- .sits_raster_filename(output_dir = output_dir,
+                                          version = version,
+                                          name = cube$name,
+                                          type = "probs",
+                                          start_date = start_date,
+                                          end_date = end_date)
         bands[i] <- .sits_class_band_name(name = cube$name, type = "probs",
-                                          start_date = start_date, end_date = end_date)
+                                          start_date = start_date,
+                                          end_date = end_date)
     }
 
     params <- .sits_raster_params(.sits_cube_robj(cube))
     # get the name of the cube
     name   <-  paste0(cube[1,]$name, "_probs")
     # set the metadata for the probability cube
-    cube_probs <- .sits_cube_create(service = "LAYER", URL     = "http://127.0.0.1",
-                                    satellite = cube$satellite, sensor = cube$sensor,
-                                    name, bands, labels, scale_factors,
-                                    missing_values, minimum_values, maximum_values,
-                                    timelines, nrows = params$nrows, ncols = params$ncols,
-                                    xmin  = params$xmin, xmax  = params$xmax,
-                                    ymin  = params$ymin, ymax  = params$ymax,
-                                    xres  = params$xres, yres  = params$yres, crs   = params$xmin,
+    cube_probs <- .sits_cube_create(service = "LAYER",
+                                    URL     = "http://127.0.0.1",
+                                    satellite = cube$satellite,
+                                    sensor = cube$sensor,
+                                    name = name,
+                                    bands = bands,
+                                    labels = labels,
+                                    scale_factors = scale_factors,
+                                    missing_values = missing_values,
+                                    minimum_values = minimum_values,
+                                    maximum_values = maximum_values,
+                                    timelines = timelines,
+                                    nrows = params$nrows,
+                                    ncols = params$ncols,
+                                    xmin  = params$xmin,
+                                    xmax  = params$xmax,
+                                    ymin  = params$ymin,
+                                    ymax  = params$ymax,
+                                    xres  = params$xres,
+                                    yres  = params$yres,
+                                    crs   = params$xmin,
                                     files = files )
 
 
@@ -329,25 +362,43 @@ sits_cube <- function(service        = "BRICK",
         end_date       <- timelines[[i]][length(timelines[[i]])]
 
         # # define the filename for the classified image
-        bands[i] <- .sits_class_band_name(name = cube_probs[1,]$name, type = type,
-                                          start_date = start_date, end_date = end_date)
-        files[i] <- .sits_raster_filename(output_dir = output_dir, version = version,
-                                          name = cube_probs[1,]$name, type = type,
-                                          start_date = start_date, end_date = end_date)
+        bands[i] <- .sits_class_band_name(name = cube_probs[1,]$name,
+                                          type = type,
+                                          start_date = start_date,
+                                          end_date = end_date)
+        files[i] <- .sits_raster_filename(output_dir = output_dir,
+                                          version = version,
+                                          name = cube_probs[1,]$name,
+                                          type = type,
+                                          start_date = start_date,
+                                          end_date = end_date)
     }
 
 
     # inherit the dimension parameters from probability cube
     params <- .sits_raster_params(.sits_cube_robj(cube_probs))
     # create a new RasterLayer for a defined period and generate the associated metadata
-    cube_labels <- .sits_cube_create(service = "LAYER", URL     = "http://127.0.0.1",
-                                     satellite = cube_probs$satellite, sensor = cube_probs$sensor,
-                                     name, bands, labels,
-                                     scale_factors, missing_values, minimum_values, maximum_values,
-                                     timelines, nrows = params$nrows, ncols = params$ncols,
-                                     xmin  = params$xmin, xmax  = params$xmax,
-                                     ymin  = params$ymin, ymax  = params$ymax,
-                                     xres  = params$xres, yres  = params$yres, crs   = params$crs,
+    cube_labels <- .sits_cube_create(service = "LAYER",
+                                     URL     = "http://127.0.0.1",
+                                     satellite = cube_probs$satellite,
+                                     sensor = cube_probs$sensor,
+                                     name = name,
+                                     bands = bands,
+                                     labels = labels,
+                                     scale_factors = scale_factors,
+                                     missing_values = missing_values,
+                                     minimum_values = minimum_values,
+                                     maximum_values = maximum_values,
+                                     timelines = timelines,
+                                     nrows = params$nrows,
+                                     ncols = params$ncols,
+                                     xmin  = params$xmin,
+                                     xmax  = params$xmax,
+                                     ymin  = params$ymin,
+                                     ymax  = params$ymax,
+                                     xres  = params$xres,
+                                     yres  = params$yres,
+                                     crs   = params$crs,
                                      files = files)
 
     return(cube_labels)

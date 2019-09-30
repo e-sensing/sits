@@ -13,26 +13,27 @@
 #' @param geom       Geometry to filter tiles.
 #' @param from       Start date to be filtered.
 #' @param to         End date to be filtered.
-.sits_eocubes_cube <- function(remote.obj, service, URL, name, bands, tiles, geom, from, to) {
+.sits_eocubes_cube <- function(remote.obj, service, URL, name,
+                               bands, tiles, geom, from, to) {
 
     # obtains information about the available cubes
     cubes.vec    <- names(EOCubes::list_cubes(remote.obj))
 
     # is the cube in the list of cubes?
     ensurer::ensure_that(name, (.) %in% cubes.vec,
-                         err_desc = ".sits_cube_EOCUBES: cube is not available in the EOCubes remote")
+        err_desc = ".sits_cube_EOCUBES: cube is not available in the EOCubes remote")
 
     # describe the cube
     cub.obj <- EOCubes::cube(name = name, remote = remote.obj)
 
     # filter cube
     cub.obj <- EOCubes::cube_filter(cube = cub.obj,
-                                    tiles = EOCubes::tiles_which(cub.obj, prefix = tiles, geom = geom),
-                                    from = from, to = to)
+                tiles = EOCubes::tiles_which(cub.obj, prefix = tiles, geom = geom),
+                from = from, to = to)
 
     # verify if the filter returned tiles
     ensurer::ensure_that(cub.obj, length(EOCubes::list_tiles(.)) > 0,
-                         err_desc = ".sits_cube_EOCUBES: cube filter returned no tile.")
+        err_desc = ".sits_cube_EOCUBES: cube filter returned no tile.")
 
     # temporal extent
     timeline <- lubridate::as_date(c(EOCubes::cube_dates_info(cub.obj)$from,
@@ -47,7 +48,7 @@
     if (purrr::is_null(bands))
         bands <- bands.vec
     ensurer::ensure_that(bands.vec, all(bands %in% .),
-                         err_desc = ".sits_cube_EOCUBES: requested band not provided by EOCubes remote.")
+        err_desc = ".sits_cube_EOCUBES: band not avilabe in EOCubes service.")
 
     b <- match(bands, bands.vec)
     bands.vec <- bands.vec[b]
@@ -82,12 +83,30 @@
     # temporary fix until EOCubes is fully implemented
     satellite <- "TERRA"
     sensor    <- "MODIS"
-
     # create a tibble to store the metadata
-    cube <- .sits_cube_create(service, URL, satellite, sensor, name, bands.vec, labels,
-                              scale_factors, missing_values, minimum_values, maximum_values,
-                              list(timeline), nrows, ncols, xmin, xmax, ymin, ymax,
-                              xres, yres, crs)
+    cube <- .sits_cube_create(service = "LAYER",
+                              URL     = "http://127.0.0.1",
+                              satellite = satellite,
+                              sensor = sensor,
+                              name = name,
+                              bands = bands,
+                              labels = labels,
+                              scale_factors = scale_factors,
+                              missing_values = missing_values,
+                              minimum_values = minimum_values,
+                              maximum_values = maximum_values,
+                              timelines = list(timeline),
+                              nrows = nrows,
+                              ncols = ncols,
+                              xmin  = xmin,
+                              xmax  = xmax,
+                              ymin  = ymin,
+                              ymax  = ymax,
+                              xres  = xres,
+                              yres  = yres,
+                              crs   = crs,
+                              files = NULL)
+
 
     # return the tibble with cube info
     return(cube)

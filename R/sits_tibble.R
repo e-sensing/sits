@@ -912,9 +912,9 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
 
     # get the labels of the data
     labels <- class_info.tb$labels[[1]]
-
+    n_labels <- length(labels)
     # create a named vector with integers match the class labels
-    int_labels <- c(1:length(labels))
+    int_labels <- c(1:n_labels)
     names(int_labels) <- labels
 
     # compute pred.vec

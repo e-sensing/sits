@@ -4,7 +4,7 @@
 \alias{plot.keras_model}
 \title{Generic interface for plotting a Deep Learning model}
 \usage{
-\method{plot}{keras_model}(x, y, ...)
+plot.keras_model(x, y, ...)
 }
 \arguments{
 \item{x}{Object of class "keras_model"}

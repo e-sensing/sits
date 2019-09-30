@@ -100,22 +100,7 @@ IntegerVector majority_smooth(const IntegerVector& neigh, const int& n_classes) 
             hist_neigh(neigh(i)) =  hist_neigh(neigh(i)) + 1;
 
     return which_max(hist_neigh);
-    }
-// IntegerVector majority_smooth(const IntegerMatrix& data, const IntegerMatrix& window, const int& nclasses) {
-//
-//     int nrows = data.nrow();
-//     int ncols = data.ncol();
-//
-//     IntegerVector result(nrows * ncols);
-//
-//     int k = 0;
-//     for (int i = 0; i < nrows; i++) {
-//         for (int j = 0; j < ncols; ++j) {
-//                 result(k++) = majority_pixel(data(i,j), window, i, j, nclasses);
-//         }
-//     }
-//     return result;
-// }
+}
 
 
 

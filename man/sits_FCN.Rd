@@ -13,7 +13,8 @@ sits_FCN(data = NULL, layers = c(128, 256, 128), kernels = c(9, 7,
 \arguments{
 \item{data}{Time series with the training samples.}
 
-\item{layers}{Vector with the size of the 1D convolutional filters for each layer.}
+\item{layers}{Vector with the size of the 1D convolutional filters
+for each layer.}
 
 \item{kernels}{Vector with the size of the 1D convolutional kernels.}
 
@@ -23,34 +24,44 @@ Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
 \item{L2_rate}{Regularization rate for 1D convolution.
 Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
 
-\item{optimizer}{Function with a pointer to the optimizer function (default is optimization_adam()).
-Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
-optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()}
+\item{optimizer}{Function with a pointer to the optimizer function
+(default is optimization_adam()).
+Options are optimizer_adadelta(), optimizer_adagrad(),
+optimizer_adam(), optimizer_adamax(),
+optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()}
 
 \item{epochs}{Number of iterations to train the model.}
 
 \item{batch_size}{Number of samples per gradient update.}
 
-\item{validation_split}{Number between 0 and 1. Fraction of the training data to be used as validation data.
-The model will set apart this fraction of the training data, will not train on it,
-and will evaluate the loss and any model metrics on this data at the end of each epoch.
-The validation data is selected from the last samples in the x and y data provided,
+\item{validation_split}{Number between 0 and 1. Fraction of the training data
+to be used as validation data.
+The model will set apart this fraction of the
+training data, will not train on it,
+and will evaluate the loss and any model metrics
+on this data at the end of each epoch.
+The validation data is selected from the last
+samples in the x and y data provided,
 before shuffling.}
 
-\item{verbose}{Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).}
+\item{verbose}{Verbosity mode (0 = silent, 1 = progress bar,
+2 = one line per epoch).}
 
-\item{binary_classification}{A lenght-one logical indicating if this is a binary classification. If it is so,
-the number of unique labels in the training data must be two as well.}
+\item{binary_classification}{A lenght-one logical indicating
+    if this is a binary classification. If it is so,
+the number of unique labels in the training data
+must be two as well.}
 }
 \value{
-A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+A model fitted to input data to be passed
+        to \code{\link[sits]{sits_classify}}
 }
 \description{
-Use the a full 1D CNN algorithm to classify data. Users can define the number of
-convolutional layers], the size of the convolutional
-kernels, and the activation functions.
+Use the a full 1D CNN algorithm to classify data.
+Users can define the number of convolutional layers,
+the size of the convolutional kernels, and the activation functions.
 
-The FCN has been proposed for time series classification by the paper of Wang et al.
+The FCN has been proposed for time series classification by  Wang et al.
 The SITS implementation of FCN is based on the work of Hassan Fawaz and
 collaborators. Fawaz provides a reference Keras implementation of FCN
 in https://github.com/hfawaz/dl-4-tsc.
@@ -58,7 +69,7 @@ If you use this function, please cite the references.
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for the Mato Grosso region
 
 # Build a machine learning model based on deep learning
 cnn_model <- sits_train (samples_mt_4bands, sits_FCN())
@@ -72,13 +83,15 @@ plot(class.tb, bands = c("ndvi", "evi"))
 }
 }
 \references{
-Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane Idoumghar,  and Pierre-Alain Muller,
+Hassan Fawaz, Germain Forestier, Jonathan Weber,
+Lhassane Idoumghar,  and Pierre-Alain Muller,
 "Deep learning for time series classification: a review",
 Data Mining and Knowledge Discovery, 33(4): 917--963, 2019.
 
 Zhiguang Wang, Weizhong Yan, and Tim Oates,
-"Time series classification from scratch with deep neural networks: A strong baseline",
- 2017 international joint conference on neural networks (IJCNN).
+"Time series classification from scratch with deep neural networks:
+A strong baseline",
+2017 international joint conference on neural networks (IJCNN).
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

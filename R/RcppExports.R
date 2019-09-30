@@ -9,10 +9,6 @@ normalize_data <- function(data, min, max) {
     .Call(`_sits_normalize_data`, data, min, max)
 }
 
-preprocess_data <- function(data, minimum_value, scale_factor) {
-    .Call(`_sits_preprocess_data`, data, minimum_value, scale_factor)
-}
-
 bayes_estimator_class <- function(data, window, variance) {
     .Call(`_sits_bayes_estimator_class`, data, window, variance)
 }

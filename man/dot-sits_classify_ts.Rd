@@ -9,7 +9,8 @@
 \arguments{
 \item{data}{Tibble with time series metadata and data.}
 
-\item{ml_model}{Pre-built machine learning model (see \code{\link[sits]{sits_train}}).}
+\item{ml_model}{Pre-built machine learning model
+(see \code{\link[sits]{sits_train}}).}
 
 \item{interval}{Interval used for classification (in months).}
 

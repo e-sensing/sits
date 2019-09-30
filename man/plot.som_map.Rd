@@ -4,7 +4,7 @@
 \alias{plot.som_map}
 \title{Generic interface for plotting a SOM map}
 \usage{
-\method{plot}{som_map}(x, y, ..., type = "codes", whatmap = 1)
+plot.som_map(x, y, ..., type = "codes", whatmap = 1)
 }
 \arguments{
 \item{x}{Object of class "som_map"}

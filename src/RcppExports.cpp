@@ -31,19 +31,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// preprocess_data
-NumericMatrix preprocess_data(NumericMatrix data, const int& minimum_value, const double& scale_factor);
-RcppExport SEXP _sits_preprocess_data(SEXP dataSEXP, SEXP minimum_valueSEXP, SEXP scale_factorSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const int& >::type minimum_value(minimum_valueSEXP);
-    Rcpp::traits::input_parameter< const double& >::type scale_factor(scale_factorSEXP);
-    rcpp_result_gen = Rcpp::wrap(preprocess_data(data, minimum_value, scale_factor));
-    return rcpp_result_gen;
-END_RCPP
-}
 // bayes_estimator_class
 NumericVector bayes_estimator_class(const NumericMatrix& data, const IntegerMatrix& window, const double& variance);
 RcppExport SEXP _sits_bayes_estimator_class(SEXP dataSEXP, SEXP windowSEXP, SEXP varianceSEXP) {
@@ -98,7 +85,6 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
-    {"_sits_preprocess_data", (DL_FUNC) &_sits_preprocess_data, 3},
     {"_sits_bayes_estimator_class", (DL_FUNC) &_sits_bayes_estimator_class, 3},
     {"_sits_majority_smooth", (DL_FUNC) &_sits_majority_smooth, 2},
     {"_sits_scale_data", (DL_FUNC) &_sits_scale_data, 3},

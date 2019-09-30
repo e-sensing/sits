@@ -12,9 +12,10 @@
 
 \item{ml_model}{An R model trained by \code{\link[sits]{sits_train}}.}
 
-\item{samples}{Tibble with samples used for training the classification model.}
+\item{samples}{Samples used for training the classification model.}
 
-\item{interval}{Interval between two sucessive classifications, expressed in months.}
+\item{interval}{Interval between two sucessive classifications,
+expressed in months.}
 
 \item{filter}{Smoothing filter to be applied (if desired).}
 
@@ -27,15 +28,15 @@ A tibble with the metadata for the vector of classified RasterLayers.
 }
 \description{
 Takes a set of spatio-temporal raster bricks, whose metadata is
-             described by tibble (created by \code{\link[sits]{sits_cube}}),
-             a set of samples used for training a classification model,
-             a prediction model (created by \code{\link[sits]{sits_train}}),
-             and produces a classified set of RasterLayers. This function is similar to
-              \code{\link[sits]{sits_classify}} which is applied to time series stored in a sits tibble.
-              There are two parameters for optimizing processing of large data sets. These
-              parameters are "memsize" and "multicores". The "multicores" parameter defines the
-              number of cores used for processing. The "memsize" parameter  controls
-              the amount of memory available for classification.
+ described by tibble (created by \code{\link[sits]{sits_cube}}),
+ a set of samples used for training a classification model,
+ a prediction model (created by \code{\link[sits]{sits_train}}),
+ and produces a classified set of RasterLayers. This function is similar to
+ \code{\link[sits]{sits_classify}} which is applied to time series.
+ There are two parameters for optimizing processing of large data sets. These
+ parameters are "memsize" and "multicores". The "multicores" parameter defines the
+ number of cores used for processing. The "memsize" parameter  controls
+ the amount of memory available for classification.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -272,7 +272,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
                      data$time_series, data$predicted),
                 function(row_latitude, row_longitude, row_label,
                           row_time_series, row_predicted) {
-                    lb = .sits_plot_title(row_latitude, row_longitude, row_label)
+                    lb <- .sits_plot_title(row_latitude, row_longitude, row_label)
                     # extract the time series
                     ts <- row_time_series
                     # convert to data frame
@@ -280,8 +280,8 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
                     # melt the time series data for plotting
                     df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
                     # define a nice set of breaks for value plotting
-                    y.labels = scales::pretty_breaks()(range(df.x$value, na.rm = TRUE))
-                    y.breaks = y.labels
+                    y.labels <-  scales::pretty_breaks()(range(df.x$value, na.rm = TRUE))
+                    y.breaks <-  y.labels
 
                     # get the predicted values as a tibble
 
@@ -312,10 +312,10 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
                     df.pol$Class  <-  factor(df.pol$Class)
                     df.pol$Series <-  rep(lb, length(df.pol$Time))
 
-                    I = min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
-                        df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
+                    I <-  min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
+                          df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
 
-                    df.x = df.x[I,,drop = FALSE]
+                    df.x <- df.x[I,,drop = FALSE]
 
                     gp <-  ggplot2::ggplot() +
                         ggplot2::facet_wrap(~Series, scales = "free_x", ncol = 1) +
@@ -350,7 +350,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
     # put the time series in the data frame
     purrr::pmap(list(data$label, data$time_series),
                      function(label, ts) {
-                         lb = as.character(label)
+                         lb <- as.character(label)
                          # extract the time series and convert
                          df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
                          plot.df <<- rbind(plot.df, df)
@@ -414,7 +414,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 
     labels %>%
         purrr::map(function(l) {
-            lb = as.character(l)
+            lb <- as.character(l)
             # filter only those rows with the same label
             data2.tb <- dplyr::filter(data, label == lb)
             # how many time series are to be plotted?
@@ -437,8 +437,10 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
                     # set "Index" as the key for all data.tables in the list
                     DT.lst <- purrr::map(DT.lst, function(dt) {data.table::setkey(dt, Index)})
                     # rename the columns of the data table prior to merging
-                    for (i in 1:length(DT.lst))
-                        data.table::setnames(DT.lst[[i]],band,paste0(band, ".", as.character(i)))
+                    length_DT <- length(DT.lst)
+                    DT.lst <- purrr::map2(DT.lst, 1:length_DT, function(dt, i) {
+                        data.table::setnames(dt, band,
+                                             paste0(band, ".", as.character(i)))})
                     # merge the list of data.tables into a single table
                     DT <- Reduce(function(...) merge(..., all = T), DT.lst)
 
@@ -611,7 +613,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
     labels <- .sits_cube_labels(cube)
     nclasses <- length(labels)
     # create a mapping from classes to labels
-    names(labels) = as.character(c(1:nclasses))
+    names(labels) <- as.character(c(1:nclasses))
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(colors)) {
@@ -893,7 +895,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 
 # Brewer color set constant
 # based on http://colorbrewer2.org colors' schemes
-.sits_brewerRGB = tibble::lst(
+.sits_brewerRGB <- tibble::lst(
     "Spectral" =  tibble::lst(
         "1" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255)),
         "2" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
@@ -5803,11 +5805,12 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 #' # Plot the patterns
 #' sits_plot (sits_patterns(cerrado_2classes))
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_mt_ndvi)
+#' data(samples_mt_4bands)
+#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, bands = ndvi)
+#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
 #' # Retrieve a point
 #' data(point_ndvi)
 #' # classify the point
-#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
 #' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
 #' # plot the classification
 #' sits_plot (class_ndvi.tb)

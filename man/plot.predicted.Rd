@@ -4,7 +4,7 @@
 \alias{plot.predicted}
 \title{Generic interface for ploting time series predictions}
 \usage{
-\method{plot}{predicted}(x, y, ..., bands = "ndvi")
+plot.predicted(x, y, ..., bands = "ndvi")
 }
 \arguments{
 \item{x}{object of class "predicted"}

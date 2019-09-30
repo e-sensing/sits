@@ -15,7 +15,8 @@
 #' @param .n_max_csv      Maximum number of samples to be read.
 #' @param .n_save         Number of samples to save as intermediate files (used for long reads).
 #' @return A sits tibble.
-.sits_from_csv <-  function(csv_file, cube, bands, .prefilter, .n_start_csv, .n_max_csv, .n_save) {
+.sits_from_csv <-  function(csv_file, cube, bands,
+                            .prefilter, .n_start_csv, .n_max_csv, .n_save) {
     # configure the format of the CSV file to be read
     cols_csv <- readr::cols(id          = readr::col_integer(),
                             longitude   = readr::col_double(),
@@ -33,7 +34,7 @@
 
     # select a subset
     if (.n_max_csv == Inf)
-        .n_max_csv = NROW(csv.tb)
+        .n_max_csv <-  NROW(csv.tb)
     csv.tb <- csv.tb[.n_start_csv:.n_max_csv, ]
 
     # find how many samples are to be read
@@ -48,11 +49,14 @@
     purrr::pmap(list(csv.tb$longitude, csv.tb$latitude, csv.tb$start_date,
                      csv.tb$end_date, csv.tb$label),
                 function(longitude, latitude, start_date, end_date, label){
-                    row <- .sits_from_service(cube = cube, longitude = longitude,
-                                              latitude = latitude,
-                                              start_date = lubridate::as_date(start_date),
-                                              end_date = lubridate::as_date(end_date),
-                                              bands = bands, label = label, .prefilter = .prefilter)
+                    row <- .sits_from_service(cube = cube,
+                                        longitude = longitude,
+                                        latitude = latitude,
+                                        start_date = lubridate::as_date(start_date),
+                                        end_date = lubridate::as_date(end_date),
+                                        bands = bands,
+                                        label = label,
+                                        .prefilter = .prefilter)
                     # did we get the data?
                     if (!purrr::is_null(row)) {
                         nrow <<-  nrow + 1
@@ -74,14 +78,16 @@
                             end_date   = lubridate::as_date(end_date),
                             label      = label
                         )
-                        csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb, csv_unread_row.tb)
+                        csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb,
+                                                           csv_unread_row.tb)
                     }
                 })
 
 
     # Have all input rows being read?
     if (nrow != n_rows_csv) {
-        message("Some points could not be retrieved - see log file and csv_unread_file")
+        message("Some points could not be retrieved -
+                see log file and csv_unread_file")
         .sits_log_csv(csv_unread.tb, "unread_samples.csv")
     }
 
@@ -117,8 +123,11 @@ sits_metadata_to_csv <- function(data, file){
     #select the parts of the tibble to be saved
     csv.tb <- dplyr::select(data, csv_columns)
 
+    ensurer::ensure_that(csv.tb, NROW(.) > 0,
+                         err_desc = "sits_metadata_to_csv: invalid csv file")
+    n_rows_csv <- NROW(csv.tb)
     # create a column with the id
-    id.tb <- tibble::tibble(id = 1:NROW(csv.tb))
+    id.tb <- tibble::tibble(id = 1:n_rows_csv)
 
     # join the two tibbles
     csv.tb <- dplyr::bind_cols(id.tb, csv.tb)
@@ -127,7 +136,8 @@ sits_metadata_to_csv <- function(data, file){
              error = function(e){
                  msg <- paste0("CSV - unable to save data in file ", file)
                  .sits_log_error(msg)
-                 message("WTSS - unable to retrieve point - see log file for details" )
+                 message("WTSS - unable to retrieve point -
+                         see log file for details" )
                  return(invisible(FALSE))})
 
     # write the CSV file
@@ -162,11 +172,13 @@ sits_data_to_csv <- function(data, file){
 
     distances_DT <- .sits_distances(data)
 
-    tryCatch({utils::write.csv(distances_DT, file, row.names = FALSE, quote = FALSE)},
+    tryCatch({utils::write.csv(distances_DT, file,
+                               row.names = FALSE, quote = FALSE)},
              error = function(e){
                  msg <- paste0("CSV - unable to save data in file ", file)
                  .sits_log_error(msg)
-                 message("WTSS - unable to retrieve point - see log file for details" )
+                 message("WTSS - unable to retrieve point
+                         - see log file for details" )
                  return(invisible(FALSE))})
 
     # write the CSV file

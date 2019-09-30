@@ -15,7 +15,7 @@
 
     # is the cube in the list of cubes?
     ensurer::ensure_that(name, (.) %in% cubes.vec,
-                         err_desc = ".sits_wtss_cube: cube is not available in the WTSS server")
+        err_desc = ".sits_wtss_cube: cube not available in the WTSS server")
 
     # describe the cube based on the WTSS API
     cov.lst    <- wtss::describeCoverage(wtss.obj, name)
@@ -37,7 +37,7 @@
     # verify if requested bands is in provided bands
     if (!purrr::is_null(bands)) {
         ensurer::ensure_that(bands_wtss, all(bands %in% .),
-                             err_desc = ".sits_wtss_cube: requested band not provided by WTSS service.")
+            err_desc = ".sits_wtss_cube: band not available from WTSS")
     } else
         bands <- bands_wtss
 
@@ -74,10 +74,27 @@
     labels <- c("NoClass")
 
     # create a tibble to store the metadata
-    cube_wtss <- .sits_cube_create(service, URL, satellite, sensor, name, bands_wtss, labels,
-                                   scale_factors, missing_values, minimum_values, maximum_values,
-                                   list(timeline), nrows, ncols, xmin, xmax, ymin, ymax,
-                                   xres, yres, crs)
+    cube_wtss <- .sits_cube_create(service   = service,
+                                   URL       = URL,
+                                   satellite = satellite,
+                                   sensor    = sensor,
+                                   name      = name,
+                                   bands     = bands_wtss,
+                                   labels    = labels,
+                                   scale_factors  = scale_factors,
+                                   missing_values = missing_values,
+                                   minimum_values = minimum_values,
+                                   maximum_values = maximum_values,
+                                   timelines      = list(timeline),
+                                   nrows = nrows,
+                                   ncols = ncols,
+                                   xmin  = xmin,
+                                   xmax  = xmax,
+                                   ymin  = ymin,
+                                   ymax  = ymax,
+                                   xres  = xres,
+                                   yres  = yres,
+                                   crs   = crs)
 
     # return the tibble with cube info
     return(cube_wtss)
@@ -119,7 +136,7 @@
         bands <- cb_bands
     else
         ensurer::ensure_that(bands, all((.) %in% cb_bands),
-                             err_desc = "sits_from_wtss: requested bands are not available in the cube")
+            err_desc = "sits_from_wtss: bands are not available in the cube")
 
     # check start and end dates
     timeline <- sits_timeline(cube)
@@ -185,7 +202,9 @@
         return(data)
 
     }, error = function(e){
-        msg <- paste0("WTSS - unable to retrieve point (", longitude, ", ", latitude, ", ", start_date," ,", end_date,")")
+        msg <- paste0("WTSS - unable to retrieve point
+                      (", longitude, ", ", latitude, ", ",
+                      start_date," ,", end_date,")")
         .sits_log_error(msg)
         message("WTSS - unable to retrieve point - see log file for details" )
         return(NULL)

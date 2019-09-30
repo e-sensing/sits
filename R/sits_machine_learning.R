@@ -44,11 +44,11 @@ sits_train <- function(data, ml_method = sits_svm()) {
 
     # is the input data a valid sits tibble?
     ensurer::ensure_that(data, "label" %in% names(.),
-                         err_desc = "sits_train: input data does not contain a valid sits tibble")
+        err_desc = "sits_train: input data does not contain a valid sits tibble")
 
     # is the train method a function?
     ensurer::ensure_that(ml_method, class(.) == "function",
-                         err_desc = "sits_train: ml_method is not a valid function")
+        err_desc = "sits_train: ml_method is not a valid function")
 
     # compute the training method by the given data
     result <- ml_method(data)
@@ -103,15 +103,18 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
         # is the input data the result of a TWDTW matching function?
         ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
-                             err_desc = "sits_lda: input data does not contain distance")
+            err_desc = "sits_lda: input data does not contain distance")
 
-        # if parameter formula is a function call it passing as argument the input data sample.
+        # if parameter formula is a function
+        # Call it passing as argument the input data sample.
         # The function must return a valid formula.
         if (class(formula) == "function")
             formula <- formula(train_data_DT)
 
         # call MASS::lda method and return the trained lda model
-        result_lda <- MASS::lda(formula = formula, data = train_data_DT, ..., na.action = stats::na.fail)
+        result_lda <- MASS::lda(formula = formula,
+                                data = train_data_DT, ...,
+                                na.action = stats::na.fail)
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT) {
@@ -173,12 +176,16 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
         stats <- .sits_normalization_param(data)
         train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
 
-        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        # If parameter formula is a function
+        # Call it passing as argument the input data sample.
+        # The function must return a valid formula.
         if (class(formula) == "function")
             formula <- formula(train_data_DT)
 
         # call MASS::qda method and return the trained lda model
-        result_qda <- MASS::qda(formula = formula, data = train_data_DT, ..., na.action = stats::na.fail)
+        result_qda <- MASS::qda(formula = formula,
+                                data = train_data_DT, ...,
+                                na.action = stats::na.fail)
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
@@ -240,7 +247,9 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
         stats <- .sits_normalization_param(data)
         train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
 
-        # if parameter formula is a function call it passing as argument the input data sample. The function must return a valid formula.
+        # if parameter formula is a function
+        # call it passing as argument the input data sample.
+        # The function must return a valid formula.
         if (class(formula) == "function")
             formula <- formula(train_data_DT)
 
@@ -249,12 +258,14 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
                                      data = train_data_DT,
                                      maxit = maxit,
                                      MaxNWts = n_weights,
-                                     trace = FALSE, ..., na.action = stats::na.fail)
+                                     trace = FALSE, ...,
+                                     na.action = stats::na.fail)
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
             # return probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(result_mlr, newdata = values_DT, type = "probs"))
+            prediction_DT <- data.table::as.data.table(
+                stats::predict(result_mlr, newdata = values_DT, type = "probs"))
 
             return(prediction_DT)
         }
@@ -312,9 +323,12 @@ sits_rfor <- function(data = NULL, num_trees = 2000, importance = "impurity", ..
 
         # get the labels of the data
         labels <- sits_labels(data)$label
+        ensurer::ensure_that(labels, length(.) > 0,
+                             err_desc = "sits_rfor: invalid data - bad labels")
+        n_labels <- length(labels)
 
         # create a named vector with integers match the class labels
-        int_labels <- c(1:length(labels))
+        int_labels <- c(1:n_labels)
         names(int_labels) <- labels
 
         # calculate the distances
@@ -414,9 +428,6 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(), scale = FALSE
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
-            # try load e1071 dependency
-            ensurer::ensure_that("e1071", require(., quietly = TRUE, warn.conflicts = FALSE, character.only = TRUE),
-                                 err_desc = "sits_svm: library 'e1071' load failed.")
             # get the prediction
             preds <- stats::predict(result_svm, newdata = values_DT, probability = TRUE)
             # retrieve the predicted probabilities
@@ -492,8 +503,12 @@ sits_xgboost <- function(data = NULL, eta = 0.3, gamma = 0, max_depth = 6, min_c
 
         # get the labels of the data
         labels <- sits_labels(data)$label
+        ensurer::ensure_that(labels, length(.) > 0,
+                             err_desc = "sits_rfor: invalid data - bad labels")
+        n_labels <- length(labels)
+
         # create a named vector with integers match the class labels
-        int_labels <- c(1:length(labels))
+        int_labels <- c(1:n_labels)
         names(int_labels) <- labels
 
         # reference labels for each sample expressed as numerical values
@@ -561,9 +576,12 @@ sits_formula_logref <- function(predictors_index = -2:0){
     # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
     # respectivelly, the reference and predictors fields of tibble in `tb` parameter.
     result_fun <- function(tb){
+        ensurer::ensure_that(tb, NROW(.) > 0,
+                             err_desc = "sits_formula_logref - invalid data")
+        n_rows_tb <- NROW(tb)
         # if no predictors_index are given, assume that all tb's fields are used
         if (is.null(predictors_index))
-            predictors_index <- 1:NROW(tb)
+            predictors_index <- 1:n_rows_tb
 
         # get predictors names
         categories <- names(tb)[c(predictors_index)]
@@ -597,9 +615,12 @@ sits_formula_linear <- function(predictors_index = -2:0){
     # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
     # respectivelly, the reference and predictors fields of tibble in `tb` parameter.
     result_fun <- function(tb){
+        ensurer::ensure_that(tb, NROW(.) > 0,
+                             err_desc = "sits_formula_logref - invalid data")
+        n_rows_tb <- NROW(tb)
         # if no predictors_index are given, assume that all tb's fields are used
         if (is.null(predictors_index))
-            predictors_index <- 1:NROW(tb)
+            predictors_index <- 1:n_rows_tb
 
         # get predictors names
         categories <- names(tb)[c(predictors_index)]
@@ -610,41 +631,6 @@ sits_formula_linear <- function(predictors_index = -2:0){
     }
     return(result_fun)
 }
-
-#' @title Define a smoothing formula for classification models
-#' @name sits_formula_smooth
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description A function to be used as a symbolic description of some fitting models such as gam.
-#' This function instructs the model to do a smoothing transformation (via splines) of the input values.
-#' `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
-#' If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
-#'
-#' @param predictors_index  Index of the valid columns whose names are used to compose formula (default: NULL).
-#' @return A function that computes a valid formula.
-#'
-#' @export
-sits_formula_smooth <- function(predictors_index = -2:0){
-    # store configuration information about model formula
-    sits.env$model_formula <-  "smooth"
-
-    # this function returns a formula like 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are,
-    # respectivelly, the reference and predictors fields of tibble in `tb` parameter.
-    result_fun <- function(tb){
-        # if no predictors_index are given, assume that all tb's fields are used
-        if (is.null(predictors_index))
-            predictors_index <- 1:NROW(tb)
-
-        # get predictors names
-        categories <- names(tb)[c(predictors_index)]
-
-        # compute formula result
-        result_for <- stats::as.formula(paste0("factor(reference)~", paste0(paste0('s(`', categories, '`)'), collapse = "+")))
-        return(result_for)
-    }
-    return(result_fun)
-}
-
 #' @title Use time series values from a sits tibble as distances for training patterns
 #' @name .sits_distances
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -663,6 +649,8 @@ sits_formula_smooth <- function(predictors_index = -2:0){
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
 
+    n_rows_data <- nrow(data)
+
     # create a list with the time series transposed from columns to rows
     ts.lst <- data$time_series %>%
         purrr::map(function(ts){
@@ -671,7 +659,7 @@ sits_formula_smooth <- function(predictors_index = -2:0){
     # bind the lists of time series together
     dist_DT <- data.table::rbindlist(ts.lst, use.names = FALSE)
     # create a data frame with the first two columns for training
-    distances_DT <- data.table::data.table("original_row" = 1:nrow(data), "reference" = data$label)
+    distances_DT <- data.table::data.table("original_row" = 1:n_rows_data, "reference" = data$label)
     # join the two references columns with the data values
     distances_DT <- data.table::as.data.table(cbind(distances_DT, dist_DT))
 
@@ -729,6 +717,7 @@ sits_formula_smooth <- function(predictors_index = -2:0){
 
     # extract the values of the time series to a list of tibbles
     values.lst <- data$time_series
+    n_values <- length(values.lst)
 
     normalize_list <- function(chunk.lst) {
         norm_chunk.lst <- chunk.lst %>%
@@ -738,7 +727,9 @@ sits_formula_smooth <- function(predictors_index = -2:0){
                         med      <- as.numeric(stats[1, b])
                         quant_2  <- as.numeric(stats[2, b])
                         quant_98 <- as.numeric(stats[3, b])
-                        values <- suppressWarnings(tibble::as_tibble(normalize_data(as.matrix(ts[,b]), quant_2, quant_98)))
+                        values <- suppressWarnings(
+                            tibble::as_tibble(normalize_data
+                                              (as.matrix(ts[,b]), quant_2, quant_98)))
                         return(values)
                     })
                 ts.tb <- dplyr::bind_cols(norm.lst)
@@ -750,7 +741,7 @@ sits_formula_smooth <- function(predictors_index = -2:0){
     }
 
     if (multicores > 1) {
-        parts.lst <- split(values.lst, cut(1:length(values.lst), 2, labels = FALSE))
+        parts.lst <- split(values.lst, cut(1:n_values, 2, labels = FALSE))
         norm.lst <- dplyr::combine(parallel::mclapply(parts.lst, normalize_list, mc.cores = multicores))
     }
     else

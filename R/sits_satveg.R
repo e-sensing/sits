@@ -48,10 +48,27 @@
     URL <- .sits_config_providers(service)
 
     # create a tibble to store the metadata
-    cube_satveg <- .sits_cube_create(service, URL, satellite, sensor, name, bands, labels,
-                                     scale_factors, missing_values, minimum_values, maximum_values,
-                                     list(timeline), nrows, ncols, xmin, xmax, ymin, ymax,
-                                     xres, yres, crs)
+    cube_satveg <- .sits_cube_create(service   = service,
+                                   URL       = URL,
+                                   satellite = satellite,
+                                   sensor    = sensor,
+                                   name      = name,
+                                   bands     = bands,
+                                   labels    = labels,
+                                   scale_factors  = scale_factors,
+                                   missing_values = missing_values,
+                                   minimum_values = minimum_values,
+                                   maximum_values = maximum_values,
+                                   timelines      = list(timeline),
+                                   nrows = nrows,
+                                   ncols = ncols,
+                                   xmin  = xmin,
+                                   xmax  = xmax,
+                                   ymin  = ymin,
+                                   ymax  = ymax,
+                                   xres  = xres,
+                                   yres  = yres,
+                                   crs   = crs)
 
     return(cube_satveg)
 }

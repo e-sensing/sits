@@ -281,22 +281,20 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
     #retrieve the time index
     time_index.lst  <- .sits_timeline_index_from_dates(dates_index.lst, timeline, bands)
 
-    select.lst <- vector("list", length(time_index.lst))
+    size_lst <- nbands*ntimes + 2
 
-    size_lst = nbands*ntimes + 2
-
-    for (t in 1:length(time_index.lst)) {
-        idx <- time_index.lst[[t]]
+    select.lst <- purrr::map(time_index.lst, function(idx) {
         # for a given time index, build the data.table to be classified
         # build the classification matrix extracting the relevant columns
-        select.lst[[t]] <- logical(length = size_lst)
-        select.lst[[t]][1:2] <- TRUE
+        select <- logical(length = size_lst)
+        select[1:2] <- TRUE
         for (b in 1:nbands) {
             i1 <- idx[(2*b - 1)] + 2
             i2 <- idx[2*b] + 2
-            select.lst[[t]][i1:i2] <- TRUE
+            select[i1:i2] <- TRUE
         }
-    }
+        return(select)
+    })
     return(select.lst)
 }
 
@@ -319,29 +317,26 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
     # define the time indexes required for classification
     time_index.lst <- .sits_timeline_index_blocks(class_info)
 
-    # create a vector with selection interval
-    select.lst <- vector("list", length(time_index.lst))
-
     # find the length of the timeline
     ntimes <- length(sits_timeline(cube))
 
     # get the bands in the same order as the samples
     nbands <- length(sits_bands(samples))
 
-    size_lst = nbands*ntimes + 2
+    size_lst <- nbands*ntimes + 2
 
-    for (t in 1:length(time_index.lst)) {
-        idx <- time_index.lst[[t]]
+    select.lst <- purrr::map(time_index.lst, function(idx)  {
         # for a given time index, build the data.table to be classified
         # build the classification matrix extracting the relevant columns
-        select.lst[[t]] <- logical(length = size_lst)
-        select.lst[[t]][1:2] <- TRUE
+        select <- logical(length = size_lst)
+        select[1:2] <- TRUE
         for (b in 1:nbands) {
             i1 <- idx[(2*b - 1)] + 2
             i2 <- idx[2*b] + 2
-            select.lst[[t]][i1:i2] <- TRUE
+            select[i1:i2] <- TRUE
         }
-    }
+        return(select)
+    })
     return(select.lst)
 }
 
@@ -356,10 +351,11 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
 .sits_timeline_index_from_dates <- function(dates_index.lst, timeline, bands) {
     # transform the dates index (a list of dates) to a list of indexes
     # this speeds up extracting the distances for classification
+    n_bands <- length(bands)
     time_index.lst <- dates_index.lst %>%
         purrr::map(function(idx){
             index_ts <- vector()
-            for (i in 1:length(bands)) {
+            for (i in 1:n_bands) {
                 idx1 <- idx[1] + (i - 1)*length(timeline)
                 index_ts[length(index_ts) + 1 ] <- idx1
                 idx2 <- idx[2] + (i - 1)*length(timeline)

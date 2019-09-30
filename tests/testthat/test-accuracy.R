@@ -14,8 +14,11 @@ test_that("XLS", {
 test_that("Accuracy", {
     cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
 
-    data <- sits_get_data(cube_wtss, file = system.file("extdata/samples/samples_matogrosso.csv", package = "sits"),
-                        bands = c("ndvi", "evi"), .n_save = 0)
+    data <- sits_get_data(cube_wtss,
+                          file = system.file("extdata/samples/samples_matogrosso.csv",
+                                 package = "sits"),
+                          bands = c("ndvi", "evi"),
+                          .n_save = 0)
 
     data("cerrado_2classes")
     svm_model <- sits_train(cerrado_2classes, ml_method = sits_svm())

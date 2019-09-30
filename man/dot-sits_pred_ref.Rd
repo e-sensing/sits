@@ -7,7 +7,7 @@
 .sits_pred_ref(class.tb)
 }
 \arguments{
-\item{class.tb}{A sits tibble containing a set of classified samples whose labels are known.}
+\item{class.tb}{A sits tibble with a set of classified samples whose labels are known.}
 }
 \value{
 A tibble with predicted and reference values.

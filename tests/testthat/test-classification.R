@@ -21,7 +21,8 @@ test_that("Classify time series with TWDTW method", {
     point_mt_ndvi <- sits_select_bands(point_mt_6bands, ndvi)
     patterns <- sits_patterns(samples_mt_ndvi)
     matches <- sits_twdtw_classify(point_mt_ndvi, patterns, bands = "ndvi",
-                                   alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE)
+                                   alpha = -0.1, beta = 100,
+                                   theta = 0.5, keep = TRUE)
 
     expect_true(all(unique(matches$predicted[[1]]$predicted) %in%
                                   sits_labels(samples_mt_ndvi)$label))
@@ -34,6 +35,8 @@ test_that("Classify error bands 1", {
     model <- sits_train(samples_mt_ndvi, sits_svm())
     point.tb <- sits_select_bands(point_mt_6bands, evi)
 
-    expect_error(sits_classify(point.tb, model), "sits_normalize: bands in the data (evi) do not match bands in the model (ndvi)", fixed = TRUE)
+    expect_error(sits_classify(point.tb, model),
+    "sits_normalize: bands in the data (evi) do not match bands in the model (ndvi)",
+                fixed = TRUE)
 })
 

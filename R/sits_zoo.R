@@ -18,7 +18,8 @@
 #' data <- sits_from_zoo (ts_zoo, longitude = -54.2313, latitude = -14.0482,
 #'            label = "Cerrado", name = "mod13q1")
 #' @export
-sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00, label = "NoClass", name  = "unknown"){
+sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00,
+                          label = "NoClass", name  = "unknown"){
     # convert the data from the zoo format to a tibble used by sits
     ts.tb <- tibble::as_tibble(zoo::fortify.zoo(ts.zoo))
     # create a list to store the zoo time series

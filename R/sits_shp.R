@@ -25,10 +25,15 @@
                          err_desc = "sits_from_shp: shapefile does not exist")
     # pre-condition - is the default label valid?
     ensurer::ensure_that(label, !purrr::is_null(.) || !purrr::is_null(shp_attr) ,
-                         err_desc = "sits_from_shp: either default label or name of shape attribute should be valid")
+         err_desc = "sits_from_shp: default label or shape attribute should be valid")
 
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
+    n_rows_shp <- nrow(sf_shape)
+    # pre-condition - is the default label valid?
+    ensurer::ensure_that(n_rows_shp, (.) > 0,
+            err_desc = "sits_from_shp: shapefile has no content")
+
     # get the geometry type
     geom_type <-  sf::st_geometry_type(sf_shape)[1]
     # get the data frame associated to the shapefile
@@ -71,7 +76,7 @@
     }
     # if geom_type is not POINT, we have to sample each polygong
     else {
-        for (i in 1:nrow(sf_shape)) {
+        for (i in 1:n_rows_shp) {
             # retrive the class from the shape attribute
             if (!purrr::is_null(shp_attr))
                 label <-  as.character(unname(shp_df[i, shp_attr]))

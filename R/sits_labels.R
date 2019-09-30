@@ -21,10 +21,10 @@ sits_labels <- function(data) {
     # get frequency table
     data.vec <- table(data$label)
 
-    # compose output tibble containing labels, count and relative frequency columns
+    # compose tibble containing labels, count and relative frequency columns
     result  <- tibble::as_tibble(list(label = names(data.vec),
-                                        count = as.integer(data.vec),
-                                        prop  = as.numeric(prop.table(data.vec))))
+                                    count = as.integer(data.vec),
+                                    prop  = as.numeric(prop.table(data.vec))))
     return(result)
 }
 
@@ -66,7 +66,7 @@ sits_relabel <- function(data, conv.lst = list()){
     .sits_test_tibble(data)
 
     ensurer::ensure_that(conv.lst, !purrr::is_null(.),
-                         err_desc = "sits_relabel: conversion list not provided")
+        err_desc = "sits_relabel: conversion list not provided")
 
     # prepare result tibble
     result <- data
@@ -94,7 +94,8 @@ sits_relabel <- function(data, conv.lst = list()){
 #' @param  fun_label   A function that will be executed for each label non listed in list.lst parameter. The result of
 #'                     the function is used as list.lst value for the respective label.
 #' @return A list whose values non informed in list.lst is filled by fun_label for each unique label in data.
-.sits_labels_list <- function(data, list.lst = list(), fun_label = function(lb) lb) {
+.sits_labels_list <- function(data, list.lst = list(),
+                              fun_label = function(lb) lb) {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)

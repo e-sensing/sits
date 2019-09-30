@@ -4,16 +4,12 @@
 \alias{.sits_classify_interval}
 \title{Classify one interval of data}
 \usage{
-.sits_classify_interval(DT, time, ml_model, first_row, multicores)
+.sits_classify_interval(DT, ml_model, multicores)
 }
 \arguments{
 \item{DT}{A data.table with distance values.}
 
-\item{time}{Time interval to be processed.}
-
 \item{ml_model}{Machine learning model to be applied.}
-
-\item{first_row}{Initial row of the output layer to write block.}
 
 \item{multicores}{Number of cores to process the time series.}
 }

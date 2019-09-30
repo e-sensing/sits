@@ -13,10 +13,13 @@ test_that("All", {
 
     samples_mt_ndvi <- sits_select_bands(samples_mt_6bands, ndvi)
     svm_model <- sits_train(samples_mt_ndvi, sits_rfor())
-    files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+    files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+                            package = "sits"))
     data(timeline_modis_392)
-    sinop <- sits_cube(name  = "Sinop-crop", timeline = timeline_modis_392, bands = "ndvi", files = files)
-    sinop_probs <- sits_classify(sinop, ml_model = svm_model, memsize = 1, multicores = 1)
+    sinop <- sits_cube(name  = "Sinop-crop", timeline = timeline_modis_392,
+                       bands = "ndvi", files = files)
+    sinop_probs <- sits_classify(sinop, ml_model = svm_model,
+                                 memsize = 1, multicores = 1)
     sinop_labels <- sits_label_classification(sinop_probs)
     plot(sinop_labels, time = 1, title = "SINOP class 2000-2001")
 

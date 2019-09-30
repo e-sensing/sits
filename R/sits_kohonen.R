@@ -37,7 +37,9 @@ sits_cluster_som <- function(data,  grid_xdim = 10, grid_ydim = 10, alpha = 1.0,
     som_cluster <- sits_som_map(data,  grid_xdim, grid_ydim, alpha,
                                  distance, iterations)
 
-    data_clean <- sits_som_clean_samples(som_cluster, prob_label_change, min_cluster_prob)
+    data_clean <- sits_som_clean_samples(som_cluster,
+                                         prob_label_change,
+                                         min_cluster_prob)
 
     return(data_clean)
 }
@@ -90,7 +92,8 @@ sits_som_map <- function(data,
     # is are there more neurons than samples?
     n_samples <- nrow(data)
     ensurer::ensure_that(n_samples, (.) > grid_xdim*grid_ydim,
-                         err_desc = "sits_som_map: number of samples should be greater than number of neurons")
+        err_desc = "sits_som_map: number of samples should be
+                    greater than number of neurons")
 
     # get the time series
     time_series <- sits_values(data, format = "bands_cases_dates")
@@ -106,7 +109,9 @@ sits_som_map <- function(data,
         kohonen_obj <-
             kohonen::supersom(
                 time_series,
-                grid = kohonen::somgrid(grid_xdim, grid_ydim , "rectangular", "gaussian", toroidal = FALSE),
+                grid = kohonen::somgrid(grid_xdim, grid_ydim ,
+                                        "rectangular", "gaussian",
+                                        toroidal = FALSE),
                 rlen = 100,
                 alpha = alpha,
                 dist.fcts = distance,
@@ -135,27 +140,38 @@ sits_som_map <- function(data,
         #get label
         neurons_labelled <- .sits_som_labelling_neurons_frequency(result,kohonen_obj)
 
-        neuron_id_class <-  unique(dplyr::select(neurons_labelled,id_neuron, neuron_class))
+        neuron_id_class <-  unique(dplyr::select(neurons_labelled,
+                                                 id_neuron,
+                                                 neuron_class))
         duplicated_id_neuron <- (neuron_id_class %>%
-                                     dplyr::mutate(dup_neuron = duplicated(id_neuron)) %>%
-                                     dplyr::filter(dup_neuron))$id_neuron
+             dplyr::mutate(dup_neuron = duplicated(id_neuron)) %>%
+             dplyr::filter(dup_neuron))$id_neuron
 
         if (length(duplicated_id_neuron) != 0) {
-            neurons_labelled.tb <- .sits_som_tie_breaking_neuron_labelling(neurons_labelled, kohonen_obj, duplicated_id_neuron)
+            neurons_labelled.tb <-
+                .sits_som_tie_breaking_neuron_labelling(neurons_labelled,
+                                                        kohonen_obj,
+                                                        duplicated_id_neuron)
         }
         else {
             neurons_labelled.tb <- neurons_labelled
         }
 
         #provavelmente alterar a funcao de vizinhança - corrigir_
-        neighborhood <- .sits_som_neighbor_neurons(neurons_labelled.tb, kohonen_obj, duplicated_id_neuron, 1)
+        neighborhood <- .sits_som_neighbor_neurons(neurons_labelled.tb,
+                                                   kohonen_obj,
+                                                   duplicated_id_neuron, 1)
         table_neurons <- neighborhood
 
         #This table contain id and neuron label
-        id_neuron_class.tb <- (unique(dplyr::select(neurons_labelled.tb, id_neuron, neuron_class)))
+        id_neuron_class.tb <- (unique(dplyr::select(neurons_labelled.tb,
+                                                    id_neuron,
+                                                    neuron_class)))
 
         #Vector containing only the label of each neuron
-        neurons_label.vec <- (unique(dplyr::select(neurons_labelled.tb, id_neuron, neuron_class)))$neuron_class
+        neurons_label.vec <- (unique(dplyr::select(neurons_labelled.tb,
+                                                   id_neuron,
+                                                   neuron_class)))$neuron_class
 
         #Create an integer to correspond a class
         class_vector_int <- as.integer(factor(neurons_label.vec))
@@ -179,7 +195,10 @@ sits_som_map <- function(data,
         kohonen_obj$neighborhood_neurons <- neighborhood_neurons
 
         #Bayesian filter
-        samples_probability_i.tb <- .sits_som_bayesian_neighbourhood(kohonen_obj, neurons_labelled.tb, result)
+        samples_probability_i.tb <-
+            .sits_som_bayesian_neighbourhood(kohonen_obj,
+                                             neurons_labelled.tb,
+                                             result)
 
         #In the last iteration, the neuros will be painted.
         #The map plot will be of the last iteration
@@ -188,13 +207,13 @@ sits_som_map <- function(data,
 
         #until here is common sits_kohonen (improve this function)
         table_samples <- tibble::as_tibble(
-            list(
-                id_sample = as.integer(samples_probability_i.tb$id_sample),
-                original_label = as.character(samples_probability_i.tb$label),
-                neuron_label = as.character(samples_probability_i.tb$neuron_label),
-                id_neuron = as.integer(samples_probability_i.tb$id_neuron),
-                probability = as.numeric(samples_probability_i.tb$probability_cluster),
-                iteration = as.integer(k)
+          list(
+            id_sample = as.integer(samples_probability_i.tb$id_sample),
+            original_label = as.character(samples_probability_i.tb$label),
+            neuron_label = as.character(samples_probability_i.tb$neuron_label),
+            id_neuron = as.integer(samples_probability_i.tb$id_neuron),
+            probability = as.numeric(samples_probability_i.tb$probability_cluster),
+            iteration = as.integer(k)
             )
         )
 
@@ -216,15 +235,17 @@ sits_som_map <- function(data,
     cluster_som$samples <- samples_info_t.tb
     cluster_som$neuron <- neurons_info_t.tb
 
-    #This table shows the probability of a sample belongs a classes without look neighbourhood
+    #This table shows the probability of a sample belongs to a class
+    # without look neighbourhood
     sample_cluster_probability.tb <- .sits_som_cluster_probability(cluster_som)
 
     cluster_sample_probability <- sample_cluster_probability.tb %>%
         dplyr::inner_join(id_median.tb, by = "id_sample")
-    samples_statistics_overall.tb <- dplyr::select(cluster_sample_probability, id_sample,
-                                                   som_label = neuron_label,
-                                                   cluster_probability = percentage_s,
-                                                   total_probability = median)
+    samples_statistics_overall.tb <- dplyr::select(cluster_sample_probability,
+                                             id_sample,
+                                             som_label = neuron_label,
+                                             cluster_probability = percentage_s,
+                                             total_probability = median)
 
     samples_statistics_overall.tb <- samples_statistics_overall.tb %>%
         dplyr::mutate(total_probability = total_probability*100)
@@ -270,7 +291,9 @@ sits_som_map <- function(data,
 #' }
 #' @export
 
-sits_som_clean_samples <- function(som_cluster, prob_label_change = 0.8, min_cluster_prob = 0.6) {
+sits_som_clean_samples <- function(som_cluster,
+                                   prob_label_change = 0.8,
+                                   min_cluster_prob = 0.6) {
 
     data <-
         unique(
@@ -297,7 +320,8 @@ sits_som_clean_samples <- function(som_cluster, prob_label_change = 0.8, min_clu
         )
 
     #Get sample with high value of probability to change the label
-    samples_to_change_label <- dplyr::filter(confused_samples, confused_samples$median > prob_label_change)
+    samples_to_change_label <- dplyr::filter(confused_samples,
+                                  confused_samples$median > prob_label_change)
     id_change_samples <- unique(samples_to_change_label$id_sample)
 
     #Get the "good samples"
@@ -310,7 +334,8 @@ sits_som_clean_samples <- function(som_cluster, prob_label_change = 0.8, min_clu
         )
 
     id_matching_samples.tb <- unique(matching_samples.tb$id_sample)
-    samples_cleaned.tb <- dplyr::filter(data, data$id_sample %in% id_matching_samples.tb)
+    samples_cleaned.tb <- dplyr::filter(data,
+                                        data$id_sample %in% id_matching_samples.tb)
     samples_median.tb <- unique(dplyr::select(som_cluster$statistics_samples$cluster_sample_probability, id_sample, probability = median))
 
     if ( length(id_change_samples) != 0)
@@ -322,9 +347,11 @@ sits_som_clean_samples <- function(som_cluster, prob_label_change = 0.8, min_clu
                                                                  data$id_sample %in% id_change_samples),
                                                    id_sample)
 
-        samples_temp.tb <- dplyr::arrange(rbind(samples_cleaned.tb,samples_label_changed.tb ), id_sample)
+        samples_temp.tb <- dplyr::arrange(rbind(samples_cleaned.tb,
+                                                samples_label_changed.tb ),
+                                          id_sample)
     } else {
-        samples_temp.tb <- dplyr::arrange((samples_cleaned.tb ), id_sample)
+        samples_temp.tb <- dplyr::arrange((samples_cleaned.tb), id_sample)
     }
     samples.tb <- samples_temp.tb %>%
         dplyr::inner_join(samples_median.tb, by = "id_sample")
@@ -373,7 +400,8 @@ sits_som_clean_samples <- function(som_cluster, prob_label_change = 0.8, min_clu
 
             max_class <- dplyr::summarize(result, max.pt = max(count))
 
-            neuron_class <- dplyr::filter(result, result$count == as.integer(max_class))$label_samples
+            neuron_class <- dplyr::filter(result,
+                               result$count == as.integer(max_class))$label_samples
 
         } else if (length(vb) == 0){
             neuron_class <- 'Noclass'
@@ -387,7 +415,8 @@ sits_som_clean_samples <- function(som_cluster, prob_label_change = 0.8, min_clu
 
         if ((length(neuron_class) != 1 ) &  (length(neuron_class) < dim(result)[1]))
         {
-            neuron_class <- append(neuron_class, neuron_class, after = length(neuron_class) + 1)
+            neuron_class <- append(neuron_class, neuron_class,
+                                   after = length(neuron_class) + 1)
             neuron_class <- neuron_class[1:dim(result)[1]]
         }
         result$neuron_class <- neuron_class
@@ -401,7 +430,8 @@ sits_som_clean_samples <- function(som_cluster, prob_label_change = 0.8, min_clu
 #' @name .sits_som_tie_breaking_neuron_labelling
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
-#' @description This function tie breaking the neurons that has the same rate to belong a class.
+#' @description This function does tie breaking for neurons
+#'              that have the same rate to belong a class.
 #'
 #' @param class_vector  A vector contained the labels of each neuron.
 #' @param kohonen_obj   The kohonen object returned by kohonen package.
@@ -409,7 +439,9 @@ sits_som_clean_samples <- function(som_cluster, prob_label_change = 0.8, min_clu
 #'
 #' @return Return a new majority label of a neuron based on its neighbourhood
 #'
-.sits_som_tie_breaking_neuron_labelling <- function(class_vector, kohonen_obj, duplicated_id_neuron)
+.sits_som_tie_breaking_neuron_labelling <- function(class_vector,
+                                                    kohonen_obj,
+                                                    duplicated_id_neuron)
 {
     for (i in  1:length(duplicated_id_neuron))
     {
@@ -420,7 +452,7 @@ sits_som_clean_samples <- function(som_cluster, prob_label_change = 0.8, min_clu
         viz_neu <- which(kohonen::unit.distances(kohonen_obj$grid)[, duplicated_id_neuron[i]] == 1)
 
         #remove duplicate neigbour
-        datvec = viz_neu[!(viz_neu %in% duplicated_id_neuron)]
+        datvec <- viz_neu[!(viz_neu %in% duplicated_id_neuron)]
 
         #What is the class of this neihgbour?
         class_neighbors.tb <- dplyr::filter(class_vector, class_vector$id_neuron %in% datvec)
@@ -782,7 +814,7 @@ sits_som_evaluate_cluster <- function(som_cluster)
 {
     s_samples <- som_cluster$statistics_samples
     #number of iterations
-    k = length(unique(s_samples$samples$iteration))
+    k <- length(unique(s_samples$samples$iteration))
 
     table_sample_neuron <- s_samples$sample %>%
         dplyr::inner_join(s_samples$neuron)
@@ -815,7 +847,7 @@ sits_som_evaluate_cluster <- function(som_cluster)
     s_samples <- som_cluster$statistics_samples
 
     #number of iterations
-    k = length(unique(s_samples$samples$iteration))
+    k <-  length(unique(s_samples$samples$iteration))
     table_sample_neuron <- s_samples$sample %>%
         dplyr::inner_join(s_samples$neuron)
 
@@ -949,8 +981,8 @@ sits_som_evaluate_cluster <- function(som_cluster)
                 #Bayesian Filter equations
                 probability_sample_k <- current_class_neuron.tb$freq
 
-                w1 = (variance_neighbourhood.vec/(1+variance_neighbourhood.vec))*probability_sample_k
-                w2 = (1/(1+variance_neighbourhood.vec))*mean(neighbourhood_probaility.vec)
+                w1 <- (variance_neighbourhood.vec/(1+variance_neighbourhood.vec))*probability_sample_k
+                w2 <- (1/(1+variance_neighbourhood.vec))*mean(neighbourhood_probaility.vec)
                 probality_samples <- w1 + w2
 
                 #add this value in samples that belongs to this neuron

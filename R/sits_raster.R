@@ -180,7 +180,7 @@
 .sits_raster_check_stacks <- function(files){
     # are the files stacks?
     tryCatch({
-        brick <- raster::stack(files[1])
+        stack <- raster::stack(files[1])
     }, error = function(e){
         msg <- paste0("Raster files are not bricks")
         .sits_log_error(msg)
@@ -260,12 +260,28 @@
 
 
     # create a tibble to store the metadata
-    cube <- .sits_cube_create(service, URL, satellite, sensor, name, bands, labels, scale_factors,
-                              missing_values, minimum_values, maximum_values, list(timeline),
-                              nrows = params$nrows, ncols = params$ncols,
-                              xmin  = params$xmin, xmax  = params$xmax, ymin  = params$ymin, ymax  = params$ymax,
-                              xres  = params$xres, yres  = params$yres, crs   = params$crs,
-                              files)
+    cube <- .sits_cube_create(service        = service,
+                              URL            = URL,
+                              satellite      = satellite,
+                              sensor         = sensor,
+                              name           = name,
+                              bands          = bands,
+                              labels         = labels,
+                              scale_factors  = scale_factors,
+                              missing_values = missing_values,
+                              minimum_values = minimum_values,
+                              maximum_values = maximum_values,
+                              timelines      = list(timeline),
+                              nrows = params$nrows,
+                              ncols = params$ncols,
+                              xmin  = params$xmin,
+                              xmax  = params$xmax,
+                              ymin  = params$ymin,
+                              ymax  = params$ymax,
+                              xres  = params$xres,
+                              yres  = params$yres,
+                              crs   = params$xmin,
+                              files = files )
     return(cube)
 }
 
@@ -303,7 +319,7 @@
 #' @return Name of the satellite .
 .sits_raster_guess_satellite <- function(r_obj) {
 
-    crs   = as.character(raster::crs(r_obj))
+    crs   <- as.character(raster::crs(r_obj))
     # if the projection is UTM, guess it's a LANDSAT data set
     if (stringr::str_detect(crs, "utm")) {
         satellite <- "LANDSAT"
@@ -389,20 +405,20 @@
 #' @param  filter          Smoothing filter to be applied.
 #' @param  multicores      Number of cores to process the time series.
 #' @return A data.table with values for classification.
-.sits_raster_read_data <- function(cube, samples, ml_model, first_row, n_rows_block, stats, filter, multicores) {
+.sits_raster_read_data <- function(cube, samples, ml_model,
+                                   first_row, n_rows_block,
+                                   stats, filter, multicores) {
     # get the bands in the same order as the samples
     bands <- sits_bands(samples)
-
+    n_bands <- length(bands)
     # get the missing values, minimum values and scale factors
     missing_values <- unlist(cube$missing_values)
     minimum_values <- unlist(cube$minimum_values)
     scale_factors  <- unlist(cube$scale_factors)
 
-    ordered_bricks.lst <- vector(mode = "list", length = length(bands))
-
-    for (i in 1:length(bands)) {
-        ordered_bricks.lst[[i]] <- .sits_cube_robj(cube, i)
-    }
+    ordered_bricks.lst <- purrr::map(1:n_bands, function(i) {
+        ordered_bricks <- .sits_cube_robj(cube, i)
+    })
 
     names(ordered_bricks.lst) <- bands
 
@@ -473,17 +489,16 @@
                                   multicores) {
     # get the bands in the same order as the samples
     bands <- sits_bands(samples)
+    n_bands <- length(bands)
 
     # get the missing values, minimum values and scale factors
     missing_values <- unlist(cube$missing_values)
     minimum_values <- unlist(cube$minimum_values)
     scale_factors  <- unlist(cube$scale_factors)
 
-    ordered_bricks.lst <- vector(mode = "list", length = length(bands))
-
-    for (i in 1:length(bands)) {
-        ordered_bricks.lst[[i]] <- .sits_cube_robj(cube, i)
-    }
+    ordered_bricks.lst <- purrr::map(1:n_bands, function(i) {
+        ordered_bricks <- .sits_cube_robj(cube, i)
+    })
 
     names(ordered_bricks.lst) <- bands
 
@@ -634,17 +649,14 @@
     # create a vector with the initial rows per block
     blocks <- seq(from = 1, to = nrows, by = step)
 
-    # create a list to store the result
-    block.lst <- vector("list", ncores)
-
     # fill the list with the initial and final row per block
-    for (i in 1:length(blocks)) {
-        start <- blocks[i]
+    block.lst <- purrr::map2(blocks, 1:ncores, function(blk, i) {
+        start <- blk
         end   <- start + step - 1
         if (i == ncores )
             end <- nrows
-        block.lst[[i]] <- data[start:end,]
-    }
+        return(data[start:end,])
+    })
     return(block.lst)
 }
 
