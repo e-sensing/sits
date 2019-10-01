@@ -130,3 +130,15 @@ NULL
 #' @usage data(timeline_2000_2017)
 #' @format A vector with 407 dates in YYYY-MM-DD format.
 NULL
+
+#' @title The timeline for the sequence of images one year (2013 to 2014)
+#'
+#' @description The timeline for the time series used in the examples of the sits package
+#'    that use data for one year classification.
+#'    There are 23 instances from 2013-09-14 until 2014-08-29.
+#' @docType data
+#' @keywords datasets
+#' @name timeline_2013_2014
+#' @usage data(timeline_2013_2014)
+#' @format A vector with 23 dates in YYYY-MM-DD format.
+NULL
