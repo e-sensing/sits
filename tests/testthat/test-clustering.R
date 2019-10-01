@@ -33,3 +33,14 @@ test_that("Creating a dendrogram and clustering the results",{
     expect_true(sits_cluster_frequency(clusters_new.tb)[3,1]
               > sits_cluster_frequency(clean.tb)[3,1])
 })
+
+test_that("Creating a dendrogram with a fixed k value",{
+    #skip_on_cran()
+    library(flexclust)
+    library(dtwclust)
+    data(cerrado_2classes)
+    clustered.tb <- sits_cluster_dendro(cerrado_2classes,
+                                        silent = FALSE,
+                                        k = 12)
+    expect_equal(length(dplyr::distinct(clustered.tb, cluster)$cluster), 12)
+})

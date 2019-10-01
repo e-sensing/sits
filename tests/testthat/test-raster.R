@@ -13,17 +13,16 @@ test_that("Working with raster data cubes", {
     expect_true(raster::xmin(r_obj) == sinop$xmin)
 
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    svm_model <- sits_train(samples_mt_ndvi, sits_svm())
+    rfor_model <- sits_train(samples_mt_ndvi, sits_svm())
 
     # classify using multicores
-    sinop_probs <- sits_classify(sinop, svm_model, memsize = 4, multicores = 2)
-
-    # retrieve the output raster layers
-    bricks_probs <- .sits_cube_all_robjs(sinop_probs)
+    sinop_probs <- sits_classify(sinop, rfor_model, memsize = 4, multicores = 1)
 
     expect_true(all(file.exists(unlist(sinop_probs$files))))
     rc_obj <- sits:::.sits_cube_robj(sinop_probs)
     expect_true(raster::nrow(rc_obj) == sinop_probs$nrows)
+
+    expect_error(sits:::.sits_raster)
 
     sinop_class <- sits::sits_label_classification(sinop_probs)
     expect_true(all(file.exists(unlist(sinop_class$files))))
@@ -92,32 +91,31 @@ test_that("Check webfile access", {
 
 })
 
-# test_that("Check webfile access", {
-#     library(sits)
-#     samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
-#     svm_model <- sits_train(samples_mt_2bands, sits_svm())
-#
-#
-#     ndvi_file <- c("https://landsat-modis.s3-sa-east-1.amazonaws.com/Sinop_evi.tif")
-#     evi_file  <- c("https://landsat-modis.s3-sa-east-1.amazonaws.com/Sinop_evi.tif")
-#
-#     files <- c(ndvi_file, evi_file)
-#
-#     data("timeline_2013_2014")
-#
-#     sinop_aws <- sits_cube(name = "Sinop-AWS", timeline = timeline_2013_2014,
-#                        satellite = "TERRA", sensor = "MODIS",
-#                        bands = c("ndvi", "evi"), files = files)
-#
-#     sinop_aws_probs <- sits_classify(sinop_aws, svm_model, memsize = 4, multicores = 2)
-#
-#     expect_true(all(file.exists(unlist(sinop_aws_probs$files))))
-#     rc_obj <- sits:::.sits_cube_robj(sinop_aws_probs)
-#     expect_true(raster::nrow(rc_obj) == sinop_aws_probs$nrows)
-#
-#     expect_true(all(file.remove(unlist(sinop_aws_probs$files))))
-#
-# })
+test_that("Multicore classification of one year", {
+    samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+    svm_model <- sits_train(samples_mt_2bands, sits_svm())
+
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/Sinop_evi_2014.tif",
+                              package = "sits"))
+
+    evi_file <- c(system.file("extdata/raster/mod13q1/Sinop_evi_2014.tif",
+                           package = "sits"))
+
+    data("timeline_2013_2014")
+
+    sinop_2014 <- sits_cube(name = "Sinop-2014", timeline = timeline_2013_2014,
+                       satellite = "TERRA", sensor = "MODIS",
+                       bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
+
+    sinop_2014_probs <- sits_classify(sinop_2014, svm_model, memsize = 4, multicores = 2)
+
+    expect_true(all(file.exists(unlist(sinop_2014_probs$files))))
+    rc_obj <- sits:::.sits_cube_robj(sinop_2014_probs)
+    expect_true(raster::nrow(rc_obj) == sinop_2014_probs$nrows)
+
+    expect_true(all(file.remove(unlist(sinop_2014_probs$files))))
+
+})
 
 test_that("Check GDAL access and Brick files", {
     files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",

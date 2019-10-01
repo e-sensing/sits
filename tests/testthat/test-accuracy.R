@@ -11,7 +11,7 @@ test_that("XLS", {
     expect_true(file.remove("confusion_matrix.xlsx"))
 })
 
-test_that("Accuracy", {
+test_that("Accuracy - 2 classes", {
     cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
 
     data <- sits_get_data(cube_wtss,
@@ -41,4 +41,23 @@ test_that("Accuracy", {
     expect_true(acc_ls$accuracy$overall >= 0)
     expect_true(all(acc_ls$accuracy$user >= 0))
     expect_true(all(acc_ls$accuracy$producer >= 0))
+})
+
+test_that("Accuracy - more than 2 classes", {
+    data("prodes_226_064")
+    pred_ref.tb <- sits_kfold_validate(prodes_226_064, folds = 2)
+    invisible(capture.output(conf.mx <- sits_conf_matrix(pred_ref.tb)))
+
+    expect_true(conf.mx$overall["Accuracy"] > 0.80)
+    expect_true(conf.mx$overall["Kappa"] > 0.75)
+
+    conv.lst <-  list(Deforestation_2014 = "NonForest",
+                      Deforestation_2015 = "NonForest",
+                      Pasture = "NonForest",
+                      Forest  = "Forest")
+
+    invisible(capture.output(conf2.mx <- sits_conf_matrix(pred_ref.tb, conv.lst = conv.lst)))
+
+    expect_true(conf2.mx$overall["Accuracy"] > 0.90)
+    expect_true(conf2.mx$overall["Kappa"] > 0.80)
 })

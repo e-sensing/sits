@@ -12,7 +12,6 @@
 #'
 #' @param  class.tb        A tibble containing a set of classified samples whose labels are known.
 #' @param  conv.lst        List with labels to be converted. If NULL no conversion is done.
-#' @param  pred_sans_ext   A logical value: remove all label extension? (i.e. every string after last '.' character) from predictors before compute assesment.
 #' @return A confusion matrix assessment produced by the caret package.
 #'
 #' @examples
@@ -25,7 +24,7 @@
 #' conf.mx <- sits_conf_matrix(pred_ref.tb)
 #' }
 #' @export
-sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
+sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
     # backward compatibility
     if ("coverage" %in% names(class.tb))
         class.tb <- .sits_tibble_rename(class.tb)
@@ -46,10 +45,6 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL, pred_sans_ext = FALSE) {
         pred.vec <- class.tb$predicted
         ref.vec  <- class.tb$reference
     }
-
-    # remove predicted labels' extensions
-    if (pred_sans_ext)
-        pred.vec <- tools::file_path_sans_ext(pred.vec)
 
     # convert class names
     if (!purrr::is_null(conv.lst)) {

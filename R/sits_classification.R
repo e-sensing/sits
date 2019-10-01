@@ -695,23 +695,6 @@ sits_label_classification <- function(cube,
     return(invisible(TRUE))
 }
 
-#' @title  Check the results of the classification with the input data
-#' @name .sits_check_results
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Verify that classification results have the right size.
-#'
-#' @param  prediction      Prototype with predictions.
-#' @param  nrows_DT        Number of rows of distance matrix.
-#' @return TRUE if check is OK.
-.sits_check_results <- function(prediction, nrows_DT) {
-    # check the result has the right dimension
-    ensurer::ensure_that(prediction$probs, nrow(.) == nrows_DT,
-        err_desc = ".sits_classify_cube - number of rows of probability matrix
-        is different from number of input pixels")
-    return(invisible(TRUE))
-}
-
 #' @title Estimate the processing time
 #' @name .sits_classify_estimate_processing_time
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}

@@ -65,8 +65,7 @@ sits_services <- function() {
             satveg_ok <- .sits_satveg_check()
             # if service is running, describe it
             if (satveg_ok) {
-                cat(paste0("Service: \"", s,"\"\n"))
-                q <- paste0(s,"_cubes")
+                q <- "SATVEG-EMBRAPA_cubes"
                 cubes <- sits.env$config[[q]]
 
                 for (cb in cubes) {
