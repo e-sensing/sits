@@ -51,5 +51,9 @@ test_that("Error Reading a CSV file from WTSS", {
                                        .n_save      = 0)
 
     expect_true(nrow(points.tb) == 6)
+
+    err <- sits_log_show_errors()
+    err_wtss <- dplyr::filter(err, grepl("WTSS", error))
+    expect_true(nrow(err_wtss) > 0)
     expect_true(file.remove("test.csv"))
 })

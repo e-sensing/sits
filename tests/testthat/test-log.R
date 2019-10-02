@@ -6,10 +6,12 @@ test_that("Log", {
     sits:::.sits_log_debug("def")
 
     err <- sits_log_show_errors()
-    expect_true(as.logical(grep("abc", err[1,])))
+    err_abc <- dplyr::filter(err, grepl("abc", error))
+    expect_true(nrow(err_abc) > 0)
 
     deb <- sits_log_show_debug()
-    expect_true(as.logical(grep("def", deb[1,])))
+    deb_def <- dplyr::filter(deb, grepl("def", error))
+    expect_true(nrow(deb_def) > 0)
 
     expect_error(sits:::.sits_log_csv(NULL), "Cannot save NULL CSV data")
     expect_error(sits:::.sits_log_data(NULL), "Cannot save NULL data")

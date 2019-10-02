@@ -747,7 +747,6 @@ sits_label_classification <- function(cube,
 #'
 #' @param  cube            Tibble with information about a data cube.
 #' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
-#' @param  samples         Samples used for training the classification model.
 #' @param  interval        Interval between two sucessive classifications,
 #'                          expressed in months.
 #' @param  filter          Smoothing filter to be applied (if desired).
@@ -755,17 +754,24 @@ sits_label_classification <- function(cube,
 #' @param  multicores      Number of cores to be used for classification.
 #' @return A tibble with the metadata for the vector of classified RasterLayers.
 #'
-.sits_classify_eocubes <- function(cube, ml_model, samples, interval, filter,
+.sits_classify_eocubes <- function(cube, ml_model, interval, filter,
                                    memsize, multicores) {
 
     # get cube object
-    cub.obj <- .sits_cube_robj(cube)
+    #cub.obj <- .sits_cube_robj(cube)
+    remote.obj   <- EOCubes::remote(name = cube$URL)
+    cub.obj <- EOCubes::cube(name = cube$name, remote = remote.obj)
 
     # get bands names
     bands <- .sits_cube_bands(cube)
 
     # get bands info
     bands_info <- EOCubes::cube_bands_info(cube = cub.obj)
+
+    # retrieve the samples from the model
+    samples  <- environment(ml_model)$data
+    ensurer::ensure_that(samples, NROW(.) > 0,
+                         err_desc = "sits_classify: original samples not saved")
 
     # what is the reference start date?
     dates          <- sits_time_series_dates(samples)
@@ -794,7 +800,7 @@ sits_label_classification <- function(cube,
                 file_sufx <- names(stk.obj)[[i]]
                 # set the metadate for the probability cube
                 cube_stack <- .sits_cube_create(service = "STACK",
-                                                URL       = cube$URL,
+                                                URL       = URL,
                                                 satellite = cube$satellite,
                                                 sensor    = cube$sensor,
                                                 name      = file_sufx,

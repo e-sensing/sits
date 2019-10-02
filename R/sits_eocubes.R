@@ -84,8 +84,8 @@
     satellite <- "TERRA"
     sensor    <- "MODIS"
     # create a tibble to store the metadata
-    cube <- .sits_cube_create(service = "LAYER",
-                              URL     = "http://127.0.0.1",
+    cube <- .sits_cube_create(service = "EOCUBES",
+                              URL     = URL,
                               satellite = satellite,
                               sensor = sensor,
                               name = name,
