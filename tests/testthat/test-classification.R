@@ -4,7 +4,7 @@ test_that("Classify a single time series with random forest", {
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
     rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
 
-    expect_type(model, "closure")
+    expect_type(rfor_model, "closure")
 
     class_ndvi.tb <- sits_classify(point_ndvi, rfor_model)
 
@@ -18,7 +18,7 @@ test_that("Classify a set time series with svm - single core and multicore", {
     samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
     svm_model <- sits_train(samples_mt_2bands, sits_svm())
 
-    expect_type(model, "closure")
+    expect_type(svm_model, "closure")
 
     class1.tb <- sits_classify(cerrado_2classes, svm_model, multicores = 1)
 

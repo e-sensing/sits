@@ -69,7 +69,14 @@ test_that("Working with raster data cubes", {
 
 test_that("Single core classification", {
     #
+    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
     svm_model <- sits_train(samples_mt_ndvi, sits_svm())
+    files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+                           package = "sits"))
+    data("timeline_modis_392")
+    sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+                       satellite = "TERRA", sensor = "MODIS",
+                       bands = "ndvi", files = files)
     # classify using one core
     sinop_probs <- sits_classify(sinop, rfor_model, memsize = 2, multicores = 1)
 
