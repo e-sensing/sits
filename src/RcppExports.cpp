@@ -44,18 +44,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// majority_smooth
-IntegerVector majority_smooth(const IntegerVector& neigh, const int& n_classes);
-RcppExport SEXP _sits_majority_smooth(SEXP neighSEXP, SEXP n_classesSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerVector& >::type neigh(neighSEXP);
-    Rcpp::traits::input_parameter< const int& >::type n_classes(n_classesSEXP);
-    rcpp_result_gen = Rcpp::wrap(majority_smooth(neigh, n_classes));
-    return rcpp_result_gen;
-END_RCPP
-}
 // scale_data
 NumericMatrix scale_data(NumericMatrix data, const double& scale_factor, const double& adj_val);
 RcppExport SEXP _sits_scale_data(SEXP dataSEXP, SEXP scale_factorSEXP, SEXP adj_valSEXP) {
@@ -86,7 +74,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
     {"_sits_bayes_estimator_class", (DL_FUNC) &_sits_bayes_estimator_class, 3},
-    {"_sits_majority_smooth", (DL_FUNC) &_sits_majority_smooth, 2},
     {"_sits_scale_data", (DL_FUNC) &_sits_scale_data, 3},
     {"_sits_scale_matrix_integer", (DL_FUNC) &_sits_scale_matrix_integer, 2},
     {NULL, NULL, 0}

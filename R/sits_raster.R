@@ -171,24 +171,6 @@
     return(TRUE)
 }
 
-#' @title Check if the raster files are stacks
-#' @name .sits_raster_check_stacks
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param files         files associated to the raster data
-#' @return TRUE         true if filles are acessible
-.sits_raster_check_stacks <- function(files){
-    # are the files stacks?
-    tryCatch({
-        stack <- raster::stack(files[1])
-    }, error = function(e){
-        msg <- paste0("Raster files are not bricks")
-        .sits_log_error(msg)
-        message(msg)
-    })
-    return(TRUE)
-}
-
 #' @title Create a data cube based on a set of Raster Bricks
 #' @name .sits_raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

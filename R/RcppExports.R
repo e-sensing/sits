@@ -13,10 +13,6 @@ bayes_estimator_class <- function(data, window, variance) {
     .Call(`_sits_bayes_estimator_class`, data, window, variance)
 }
 
-majority_smooth <- function(neigh, n_classes) {
-    .Call(`_sits_majority_smooth`, neigh, n_classes)
-}
-
 scale_data <- function(data, scale_factor, adj_val = 0.0) {
     .Call(`_sits_scale_data`, data, scale_factor, adj_val)
 }

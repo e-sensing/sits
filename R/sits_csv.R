@@ -134,10 +134,9 @@ sits_metadata_to_csv <- function(data, file){
 
     tryCatch({utils::write.csv(csv.tb, file, row.names = FALSE, quote = FALSE)},
              error = function(e){
-                 msg <- paste0("CSV - unable to save data in file ", file)
+                 msg <- paste0("CSV - unable to save metadata - file is not writable")
                  .sits_log_error(msg)
-                 message("WTSS - unable to retrieve point -
-                         see log file for details" )
+                 message(msg)
                  return(invisible(FALSE))})
 
     # write the CSV file

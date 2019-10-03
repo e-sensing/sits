@@ -6,12 +6,19 @@ test_that("Data to CSV",{
     expect_true(file.remove("./cerrado_2classes.csv"))
 })
 
-test_that("Metadata to shp",{
+test_that("Metadata to CSV",{
     data(cerrado_2classes)
     sits_metadata_to_csv(cerrado_2classes, file = "cerrado_2classes.csv")
 
     expect_true(file.remove("cerrado_2classes.csv"))
 })
+
+# test_that("Metadata to CSV - error",{
+#     data(cerrado_2classes)
+#     expect_error(sits_metadata_to_csv(cerrado_2classes,
+#                                       file = "/non-existent-directory/cerrado_2classes.csv"),
+#                  "CSV - unable to save metadata - file is not writable")
+# })
 
 test_that("Reading a CSV file from WTSS", {
     #skip_on_cran()

@@ -40,3 +40,32 @@ test_that("Creating clustering using Self-organizing Maps", {
     expect_true("som_properties" %in% names(subgroups))
 
 })
+
+test_that("SOM with a small map and neighborhood cluster", {
+
+    som_map <-
+        sits_som_map(
+            cerrado_2classes,
+            grid_xdim = 2,
+            grid_ydim = 2,
+            alpha = 1,
+            distance = "euclidean",
+            iterations = 4
+        )
+    expect_true(all(som_map$statistics_samples$samples$probability < 0.60))
+
+    neigh <- sits:::.sits_som_cluster_neighbourhood(som_map)
+
+    expect_true(all(neigh[1,"percentage_n"] > 0.90))
+
+})
+test_that("SOM subgroups evaluate and plot", {
+
+    # Produce a cluster map
+    som_cluster <- sits_som_map(cerrado_2classes, grid_xdim = 5, grid_ydim = 5)
+    # Evaluate and produce information on the subgroups
+    subgroups <- sits_som_evaluate_subgroups(som_cluster)
+    # Plot the resulting subgroups
+    sits_som_plot_subgroups(subgroups, class_name = "Cerrado", band = "evi")
+
+})
