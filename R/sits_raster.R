@@ -171,6 +171,23 @@
     return(TRUE)
 }
 
+#' @title Check if the raster files are stacks
+#' @name .sits_raster_check_stacks
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param files         files associated to the raster data
+#' @return TRUE         true if filles are acessible
+.sits_raster_check_stacks <- function(files){
+    # are the files stacks?
+    tryCatch({
+        brick <- raster::stack(files[1])
+    }, error = function(e){
+        msg <- paste0("Raster files are not stacks")
+        .sits_log_error(msg)
+        message(msg)
+    })
+    return(TRUE)
+}
 #' @title Create a data cube based on a set of Raster Bricks
 #' @name .sits_raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -199,6 +216,9 @@
                          err_desc = "sits_raster_cube: name of the coverege must be provided")
     ensurer::ensure_that(files, !purrr::is_null(.),
                          err_desc = "sits_raster_cube - files must be provided")
+
+    ensurer::ensure_that(timeline, !purrr::is_null(.),
+                         err_desc = "sits_raster_cube - timeline must be provided")
 
     # try to guess which is the satellite
     if (purrr::is_null(satellite)) {

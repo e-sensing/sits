@@ -4,15 +4,13 @@
 \alias{.sits_classify_eocubes}
 \title{Classify a data cube created with the EOCUBES service}
 \usage{
-.sits_classify_eocubes(cube, ml_model, samples, interval, filter, memsize,
+.sits_classify_eocubes(cube, ml_model, interval, filter, memsize,
   multicores)
 }
 \arguments{
 \item{cube}{Tibble with information about a data cube.}
 
 \item{ml_model}{An R model trained by \code{\link[sits]{sits_train}}.}
-
-\item{samples}{Samples used for training the classification model.}
 
 \item{interval}{Interval between two sucessive classifications,
 expressed in months.}

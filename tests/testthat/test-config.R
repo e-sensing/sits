@@ -5,6 +5,16 @@ test_that("All", {
     invisible(capture.output(sits_config_show()))
 })
 
+test_that("User configuration file", {
+    file_config<- file("./config.yml")
+    writeLines(c("default:","      R_memory_bloat           : 10.0"), file_config)
+    close(file_config)
+    sits_config()
+    expect_true(sits:::.sits_config_memory_bloat() == 10.0)
+    invisible(capture.output(sits_config_show()))
+    file.remove(file_config)
+})
+
 test_that("Brightness", {
     ls8 <- sits:::.sits_config_tcap_brightness("OLI")
 

@@ -66,10 +66,8 @@ test_that("SOM subgroups evaluate and plot", {
     # Evaluate and produce information on the subgroups
     subgroups <- sits_som_evaluate_subgroups(som_cluster)
     # test results
-    clusters <- subgroups$samples_subgroups.tb$label_subgroup
-    names <- c("Cerrado_1", "Cerrado_2", "Cerrado_3", "Cerrado_4",
-               "Pasture_1", "Pasture_2", "Pasture_3", "Pasture_4")
-    expect_true(all(clusters %in% names))
+
+    expect_true(max(subgroups$samples_subgroups.tb$id_neuron) == 9)
     # Plot the resulting subgroups
     sits_som_plot_subgroups(subgroups, class_name = "Cerrado", band = "evi")
 

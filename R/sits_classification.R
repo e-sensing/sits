@@ -800,7 +800,7 @@ sits_label_classification <- function(cube,
                 file_sufx <- names(stk.obj)[[i]]
                 # set the metadate for the probability cube
                 cube_stack <- .sits_cube_create(service = "STACK",
-                                                URL       = URL,
+                                                URL       = cube$URL,
                                                 satellite = cube$satellite,
                                                 sensor    = cube$sensor,
                                                 name      = file_sufx,

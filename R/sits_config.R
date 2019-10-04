@@ -492,51 +492,6 @@ sits_config_show <- function() {
 
 
 
-#' @title Retrieve the default timeline based on the configuration file
-#' @name .sits_config_timeline
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param service        Name of the web service.
-#' @param name           Name of the product (a cube).
-#' @return The default timeline associated to the service
-.sits_config_timeline <- function(service, name){
-    if (service == "BRICK" || service == "STACK") {
-        message("Please provide timeline for raster data:
-            will use default timeline from MOD13Q1
-            which might be wrong")
-        s <- paste0("RASTER_timeline")
-        timeline <- lubridate::as_date(sits.env$config[[s]]["MOD13Q1"])
-        return(timeline)
-    }
-
-    if (service == "WTSS") {
-        URL  <- .sits_config_server(service)
-        # obtains information about the available cubes
-        wtss.obj     <- wtss::WTSS(URL)
-        cubes.vec    <- wtss::listCoverages(wtss.obj)
-
-        # is the cube in the list of cubes?
-        ensurer::ensure_that(name, (.) %in% cubes.vec,
-            err_desc = "sits_config_timeline: cube unavailable in WTSS server")
-
-        # describe the cube
-        cov.lst    <- wtss::describeCoverage(wtss.obj, name)
-        cov        <- cov.lst[[name]]
-
-        # temporal extent
-        timeline <- cov$timeline
-
-    }
-    else {
-        s <- paste0(service, "_timeline")
-        timeline <- lubridate::as_date(sits.env$config[[s]][[name]])
-
-        ensurer::ensure_that(timeline, length(.) > 0,
-            err_desc = paste0("Could not retrieve timeline for cube ", name))
-    }
-
-    return(lubridate::as_date(timeline))
-}
 
 #' @title Retrieve the vector of coeficientes for brightness component of tasseled cap
 #' @name .sits_config_tcap_brightness

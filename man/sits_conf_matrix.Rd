@@ -4,14 +4,12 @@
 \alias{sits_conf_matrix}
 \title{Assessment of the accuracy of classification based on a confusion matrix}
 \usage{
-sits_conf_matrix(class.tb, conv.lst = NULL, pred_sans_ext = FALSE)
+sits_conf_matrix(class.tb, conv.lst = NULL)
 }
 \arguments{
 \item{class.tb}{A tibble containing a set of classified samples whose labels are known.}
 
 \item{conv.lst}{List with labels to be converted. If NULL no conversion is done.}
-
-\item{pred_sans_ext}{A logical value: remove all label extension? (i.e. every string after last '.' character) from predictors before compute assesment.}
 }
 \value{
 A confusion matrix assessment produced by the caret package.

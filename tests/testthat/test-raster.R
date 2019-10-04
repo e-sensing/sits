@@ -104,7 +104,7 @@ test_that("One-year, single core classification", {
     samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
     rfor_model <- sits_train(samples_mt_2bands, sits_rfor(num_trees = 500))
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/Sinop_evi_2014.tif",
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/Sinop_ndvi_2014.tif",
                                package = "sits"))
 
     evi_file <- c(system.file("extdata/raster/mod13q1/Sinop_evi_2014.tif",
@@ -130,15 +130,15 @@ test_that("One-year, multicore classification", {
     samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
     svm_model <- sits_train(samples_mt_2bands, sits_svm())
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/Sinop_evi_2014.tif",
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop_evi_2014.tif",
                               package = "sits"))
 
-    evi_file <- c(system.file("extdata/raster/mod13q1/Sinop_evi_2014.tif",
+    evi_file <- c(system.file("extdata/raster/mod13q1/sinop_evi_2014.tif",
                            package = "sits"))
 
     data("timeline_2013_2014")
 
-    sinop_2014 <- sits_cube(name = "Sinop-2014", timeline = timeline_2013_2014,
+    sinop_2014 <- sits_cube(name = "sinop-2014", timeline = timeline_2013_2014,
                        satellite = "TERRA", sensor = "MODIS",
                        bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
 
@@ -182,12 +182,12 @@ test_that("Raster filename", {
 
     file <- sits:::.sits_raster_filename(output_dir = "./",
                                          version = "v1",
-                                         name = "Sinop",
+                                         name = "sinop",
                                          type = "probs",
                                          start_date = "2018-08-01",
                                          end_date = "2019-07-31")
 
-    expect_true(as.logical(grep("Sinop_probs_2018_8_2019_7", file)))
+    expect_true(as.logical(grep("sinop_probs_2018_8_2019_7", file)))
 })
 
 test_that("Guess satellite", {

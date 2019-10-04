@@ -4,7 +4,7 @@
 \alias{plot.patterns}
 \title{Generic interface for ploting patterns}
 \usage{
-plot.patterns(x, y, ...)
+\method{plot}{patterns}(x, y, ...)
 }
 \arguments{
 \item{x}{object of class "patterns"}
