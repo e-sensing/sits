@@ -833,58 +833,58 @@ sits_som_evaluate_cluster <- function(som_cluster)
 }
 
 
-#' @title SOM neuron unitary
-#' @name .sits_som_cluster_unitary
-#' @author Lorena Santos, \email{lorena.santos@@inpe.br}
+#' #' @title SOM neuron unitary
+#' #' @name .sits_som_cluster_unitary
+#' #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
+#' #'
+#' #' @description This function shows how many times a sample was allocated in a neuron alone.
+#' #' @param som_cluster Kohonen map and associated information created by \code{\link[sits]{sits_som_map}}
+#' #' @return Returns a sits tibble with the amount of times a sample was allocated alone in a neuron during the
+#' #' clustering process.
+#' #'
+#' .sits_som_cluster_unitary <- function(som_cluster)
+#' {
+#'     s_samples <- som_cluster$statistics_samples
 #'
-#' @description This function shows how many times a sample was allocated in a neuron alone.
-#' @param som_cluster Kohonen map and associated information created by \code{\link[sits]{sits_som_map}}
-#' @return Returns a sits tibble with the amount of times a sample was allocated alone in a neuron during the
-#' clustering process.
+#'     #number of iterations
+#'     k <-  length(unique(s_samples$samples$iteration))
+#'     table_sample_neuron <- s_samples$sample %>%
+#'         dplyr::inner_join(s_samples$neuron)
 #'
-.sits_som_cluster_unitary <- function(som_cluster)
-{
-    s_samples <- som_cluster$statistics_samples
-
-    #number of iterations
-    k <-  length(unique(s_samples$samples$iteration))
-    table_sample_neuron <- s_samples$sample %>%
-        dplyr::inner_join(s_samples$neuron)
-
-    temp.tb <-
-        dplyr::arrange(unique(
-            dplyr::select(
-                table_sample_neuron,
-                id_neuron,
-                neuron_label,
-                samples_label = original_label,
-                id_sample,
-                iteration
-            )
-        ), id_neuron)
-
-    table_neuron_samples <- tibble::as_tibble(temp.tb %>%
-                              dplyr::group_by(id_neuron,iteration,neuron_label,samples_label) %>%
-                              dplyr::summarise(count = dplyr::n()) %>%
-                              dplyr::mutate(percentage_n = count / sum(count)))
-
-    neuron_alone <- dplyr::filter (table_neuron_samples, table_neuron_samples$percentage_n == 1 & table_neuron_samples$count == 1)
-    table_score_sample_neuron_alone <- temp.tb %>% dplyr::inner_join(neuron_alone)
-    alone_by_samples <- tibble::as_tibble(table_score_sample_neuron_alone %>%
-                                              dplyr::group_by(id_sample) %>%
-                                              dplyr::summarise(count = dplyr::n()) %>%
-                                              dplyr::mutate(percentage_n = count /k))
-
-    alone_by_samples.tb <- tibble::as_tibble(table_score_sample_neuron_alone %>%
-                                                 dplyr::group_by(id_sample, neuron_label) %>%
-                                                 dplyr::summarise(count = dplyr::n()) %>%
-                                                 dplyr::mutate(percentage_n = count /100))
-
-    cluster_unitary.tb <- dplyr::arrange(alone_by_samples.tb, desc(percentage_n))
-
-    return(cluster_unitary.tb)
-
-}
+#'     temp.tb <-
+#'         dplyr::arrange(unique(
+#'             dplyr::select(
+#'                 table_sample_neuron,
+#'                 id_neuron,
+#'                 neuron_label,
+#'                 samples_label = original_label,
+#'                 id_sample,
+#'                 iteration
+#'             )
+#'         ), id_neuron)
+#'
+#'     table_neuron_samples <- tibble::as_tibble(temp.tb %>%
+#'                               dplyr::group_by(id_neuron,iteration,neuron_label,samples_label) %>%
+#'                               dplyr::summarise(count = dplyr::n()) %>%
+#'                               dplyr::mutate(percentage_n = count / sum(count)))
+#'
+#'     neuron_alone <- dplyr::filter (table_neuron_samples, table_neuron_samples$percentage_n == 1 & table_neuron_samples$count == 1)
+#'     table_score_sample_neuron_alone <- temp.tb %>% dplyr::inner_join(neuron_alone)
+#'     alone_by_samples <- tibble::as_tibble(table_score_sample_neuron_alone %>%
+#'                                               dplyr::group_by(id_sample) %>%
+#'                                               dplyr::summarise(count = dplyr::n()) %>%
+#'                                               dplyr::mutate(percentage_n = count /k))
+#'
+#'     alone_by_samples.tb <- tibble::as_tibble(table_score_sample_neuron_alone %>%
+#'                                                  dplyr::group_by(id_sample, neuron_label) %>%
+#'                                                  dplyr::summarise(count = dplyr::n()) %>%
+#'                                                  dplyr::mutate(percentage_n = count /100))
+#'
+#'     cluster_unitary.tb <- dplyr::arrange(alone_by_samples.tb, desc(percentage_n))
+#'
+#'     return(cluster_unitary.tb)
+#'
+#' }
 
 #' @title Paint neurons
 #' @name .sits_som_paint_neurons

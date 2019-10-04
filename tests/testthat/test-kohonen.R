@@ -43,7 +43,7 @@ test_that("Creating clustering using Self-organizing Maps", {
 
 test_that("SOM with a small map and neighborhood cluster", {
 
-    som_map <-
+    som_map2 <-
         sits_som_map(
             cerrado_2classes,
             grid_xdim = 2,
@@ -52,9 +52,9 @@ test_that("SOM with a small map and neighborhood cluster", {
             distance = "euclidean",
             iterations = 4
         )
-    expect_true(all(som_map$statistics_samples$samples$probability < 0.60))
+    expect_true(all(som_map2$statistics_samples$samples$neuron_label %in% c("Cerrado", "Pasture")))
 
-    neigh <- sits:::.sits_som_cluster_neighbourhood(som_map)
+    neigh <- sits:::.sits_som_cluster_neighbourhood(som_map2)
 
     expect_true(all(neigh[1,"percentage_n"] > 0.90))
 
@@ -62,9 +62,14 @@ test_that("SOM with a small map and neighborhood cluster", {
 test_that("SOM subgroups evaluate and plot", {
 
     # Produce a cluster map
-    som_cluster <- sits_som_map(cerrado_2classes, grid_xdim = 5, grid_ydim = 5)
+    som_cluster <- sits_som_map(cerrado_2classes, grid_xdim = 3, grid_ydim = 3)
     # Evaluate and produce information on the subgroups
     subgroups <- sits_som_evaluate_subgroups(som_cluster)
+    # test results
+    clusters <- subgroups$samples_subgroups.tb$label_subgroup
+    names <- c("Cerrado_1", "Cerrado_2", "Cerrado_3", "Cerrado_4",
+               "Pasture_1", "Pasture_2", "Pasture_3", "Pasture_4")
+    expect_true(all(clusters %in% names))
     # Plot the resulting subgroups
     sits_som_plot_subgroups(subgroups, class_name = "Cerrado", band = "evi")
 
