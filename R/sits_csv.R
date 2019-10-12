@@ -117,6 +117,8 @@ sits_metadata_to_csv <- function(data, file){
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
+    ensurer::ensure_that(file, suppressWarnings(file.create(.)),
+                         err_desc = "sits_metadata_to_csv - file is not writable")
 
     csv_columns <- c("longitude", "latitude", "start_date", "end_date", "label")
 
@@ -132,14 +134,9 @@ sits_metadata_to_csv <- function(data, file){
     # join the two tibbles
     csv.tb <- dplyr::bind_cols(id.tb, csv.tb)
 
-    tryCatch({utils::write.csv(csv.tb, file, row.names = FALSE, quote = FALSE)},
-             error = function(e){
-                 msg <- paste0("CSV - unable to save metadata - file is not writable")
-                 .sits_log_error(msg)
-                 message(msg)
-                 return(invisible(FALSE))})
-
     # write the CSV file
+    utils::write.csv(csv.tb, file, row.names = FALSE, quote = FALSE)
+
     return(invisible(TRUE))
 }
 
@@ -169,17 +166,13 @@ sits_data_to_csv <- function(data, file){
     # check if data is valid
     .sits_test_tibble(data)
 
+    ensurer::ensure_that(file, suppressWarnings(file.create(.)),
+                         err_desc = "sits_data_to_csv - file is not writable")
+
     distances_DT <- .sits_distances(data)
 
-    tryCatch({utils::write.csv(distances_DT, file,
-                               row.names = FALSE, quote = FALSE)},
-             error = function(e){
-                 msg <- paste0("CSV - unable to save data in file ", file)
-                 .sits_log_error(msg)
-                 message("WTSS - unable to retrieve point
-                         - see log file for details" )
-                 return(invisible(FALSE))})
-
     # write the CSV file
+    utils::write.csv(distances_DT, file, row.names = FALSE, quote = FALSE)
+
     return(invisible(TRUE))
 }

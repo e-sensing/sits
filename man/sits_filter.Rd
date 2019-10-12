@@ -52,7 +52,7 @@ point_ndvi \%>\%
 # Merge the filtered with the raw data
 # Plot the result
 point_ndvi \%>\%
-      sits_filter(filter = sits_whittaker (lambda = 3.0)) \%>\%
+      sits_filter(filter = sits_whittaker (lambda = 3000)) \%>\%
       sits_merge (point_ndvi, .) \%>\%
       plot()
 

@@ -36,7 +36,7 @@ timeline_2013_2014 <- scan(time_file, character())
 sinop <- sits_cube(name = "Sinop",  timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = files)
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop, ml_model = dl_model, memsize = 4, multicores = 2)
+sinop_probs <- sits_classify(sinop, ml_model = dl_model, memsize = 4, multicores = 1)
 
 # label the classified image
 sinop_label <- sits_label_classification(sinop_probs)

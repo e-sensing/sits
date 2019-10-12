@@ -36,10 +36,14 @@ sits_config <- function() {
     sits.env$config <- config::get(file = yml_file)
 
     # try to find a valid user configuration file
-    WD <- getwd()
-    if (file.exists(paste0(WD, "/config.yml"))) {
-        user_yml_file <- paste0(WD, "/config.yml")
-        config_user <- config::get(file = user_yml_file)
+    # check if we are running in Windows
+    if (.Platform$OS.type != "unix")
+        user_yml_file   <- c("~/sits/config.yml")
+    else
+        user_yml_file   <- c("~/.sits/config.yml")
+
+    if (file.exists(user_yml_file)) {
+        config_user     <- config::get(file = user_yml_file)
         sits.env$config <- config::merge(sits.env$config, config_user)
     }
 
@@ -65,9 +69,8 @@ sits_config_show <- function() {
     ensurer::ensure_that(yml_file, !purrr::is_null(.),
         err_desc = "sits_config: Invalid configuration file")
     # try to find a valid user configuration file
-    WD <- getwd()
-    if (file.exists(paste0(WD, "/config.yml")))
-        yml_user_file <- paste0(WD, "/config.yml")
+    if (file.exists("~/.sits/config.yml"))
+        yml_user_file <- c("~/.sits/config.yml")
     else
         yml_user_file <- NULL
 

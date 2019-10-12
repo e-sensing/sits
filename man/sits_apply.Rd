@@ -5,16 +5,18 @@
 \title{Apply a function over sits bands.}
 \usage{
 sits_apply(data, fun, fun_index = function(index) {     return(index) },
-  bands_suffix = "")
+  bands_suffix = "", multicores = 1)
 }
 \arguments{
-\item{data}{Valid sits tibble or matrix.}
+\item{data}{Valid sits tibble}
 
 \item{fun}{Function with one parameter as input and a vector or list of vectors as output.}
 
 \item{fun_index}{Function with one parameter as input and a Date vector as output.}
 
 \item{bands_suffix}{String informing the suffix of the resulting bands.}
+
+\item{multicores}{Number of cores to be used}
 }
 \value{
 A sits tibble with same samples and the new bands.

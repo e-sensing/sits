@@ -8,7 +8,7 @@ sits_LSTM_FCN(data = NULL, lstm_units = 8, lstm_dropout = 0.8,
   cnn_layers = c(128, 256, 128), cnn_kernels = c(8, 5, 3),
   activation = "relu", optimizer = keras::optimizer_adam(lr = 0.001),
   epochs = 150, batch_size = 128, validation_split = 0.2,
-  verbose = 1, binary_classification = FALSE)
+  verbose = 1)
 }
 \arguments{
 \item{data}{Time series with the training samples.}
@@ -39,9 +39,6 @@ The validation data is selected from the last samples in the x and y data provid
 before shuffling.}
 
 \item{verbose}{Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).}
-
-\item{binary_classification}{A lenght-one logical indicating if this is a binary classification. If it is so,
-the number of unique labels in the training data must be two as well.}
 }
 \value{
 A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}

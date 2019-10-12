@@ -20,7 +20,7 @@
 #' # Merge the filtered with the raw data
 #' # Plot the result
 #' point_ndvi %>%
-#'       sits_filter(filter = sits_cloud_removal()) %>%
+#'       sits_filter(filter = sits_cloud_removal(band_suffix = "cf")) %>%
 #'       sits_merge (point_ndvi, .) %>%
 #'       plot()
 #'
@@ -29,7 +29,7 @@
 #' # Merge the filtered with the raw data
 #' # Plot the result
 #' point_ndvi %>%
-#'       sits_filter(filter = sits_envelope()) %>%
+#'       sits_filter(filter = sits_envelope(band.suffix = "env")) %>%
 #'       sits_merge (point_ndvi, .) %>%
 #'       plot()
 #'
@@ -37,7 +37,7 @@
 #' # Merge the filtered with the raw data
 #' # Plot the result
 #' point_ndvi %>%
-#'       sits_filter(filter = sits_ndvi_arima()) %>%
+#'       sits_filter(filter = sits_ndvi_arima(band_suffix = "arima")) %>%
 #'       sits_merge (point_ndvi, .) %>%
 #'       plot()
 #'
@@ -45,7 +45,7 @@
 #' # Merge the filtered with the raw data
 #' # Plot the result
 #' point_ndvi %>%
-#'       sits_filter(filter = sits_whittaker (lambda = 3.0)) %>%
+#'       sits_filter(filter = sits_whittaker (lambda = 3.0, band_suffix = "whit")) %>%
 #'       sits_merge (point_ndvi, .) %>%
 #'       plot()
 #'
@@ -53,7 +53,7 @@
 #' # Merge the filtered with the raw data
 #' # Plot the result
 #' point_ndvi %>%
-#'       sits_filter(filter = sits_sgolay()) %>%
+#'       sits_filter(filter = sits_sgolay(band_suffix = "sg")) %>%
 #'       sits_merge (point_ndvi, .) %>%
 #'       plot()
 #'
@@ -72,8 +72,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
         data <- .sits_tibble_rename(data)
 
     # is the input data a valid sits tibble?
-    ensurer::ensure_that(data, "label" %in% names(.),
-        err_desc = "sits_filter: invalid input data")
+    .sits_test_tibble(data)
 
     # is the train method a function?
     ensurer::ensure_that(filter, class(.) == "function",
@@ -109,7 +108,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' # Select the NDVI band of the first point
 #' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the cloud filter
-#' point_cld.tb <- sits_filter(point_ndvi.tb, sits_cloud_removal())
+#' point_cld.tb <- sits_filter(point_ndvi.tb, sits_cloud_removal(band_suffix = "cf"))
 #' # Merge the filtered with the raw data
 #' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 #' # Plot the result
@@ -117,7 +116,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' }
 #' @export
 sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
-                              bands_suffix = "cf",
+                              bands_suffix = "",
                               apply_whit = TRUE,
                               lambda_whit = 1.0){
     # backward compatibility
@@ -132,7 +131,8 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
 
         # prepare result sits tibble
         result <- data
-        env.tb <- sits_select_bands(data, ndvi) %>% sits_envelope(operations = "UU")
+        env.tb <- sits_select_bands(data, ndvi) %>%
+            sits_envelope(operations = "UU", bands_suffix = "env")
 
         # select the chosen bands for the time series
         result$time_series <- purrr::pmap(list(data$time_series,
@@ -183,7 +183,7 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
 #' # Select the NDVI band of the first point
 #' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the envelope filter
-#' point_env.tb <- sits_envelope(point_ndvi.tb)
+#' point_env.tb <- sits_envelope(point_ndvi.tb, bands_suffix = "env")
 #' # Merge the filtered with the raw data
 #' point2.tb <- sits_merge (point_ndvi.tb, point_env.tb)
 #' # Plot the result
@@ -192,7 +192,7 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
 #' @export
 sits_envelope <- function(data = NULL,
                           operations = "UULL",
-                          bands_suffix = "env"){
+                          bands_suffix = ""){
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work.
@@ -292,14 +292,14 @@ sits_interp <- function(data = NULL, fun = stats::approx, n = base::length, ...)
 #' # Select the NDVI band of the first point
 #' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the cloud filter
-#' point_kf.tb <- sits_kalman(point_ndvi.tb)
+#' point_kf.tb <- sits_kalman(point_ndvi.tb, bands_suffix = "kf")
 #' # Merge the filtered with the raw data
 #' point2.tb <- sits_merge (point_ndvi.tb, point_kf.tb)
 #' # Plot the result
 #' plot(point2.tb)
 #' }
 #' @export
-sits_kalman <- function(data = NULL, bands_suffix = "kf"){
+sits_kalman <- function(data = NULL, bands_suffix = ""){
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -468,7 +468,7 @@ sits_missing_values <-  function(data, miss_value) {
 #' # Select the NDVI band of the first point
 #' point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the cloud filter
-#' point_ar <- sits_filter(point_ndvi, sits_ndvi_arima())
+#' point_ar <- sits_filter(point_ndvi, sits_ndvi_arima(bands_suffix = "ar"))
 #' # Merge the filtered with the raw data
 #' point2 <- sits_merge (point_ndvi, point_ar)
 #' # Plot the result
@@ -476,7 +476,7 @@ sits_missing_values <-  function(data, miss_value) {
 #' }
 #' @export
 sits_ndvi_arima <- function(data = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
-                              bands_suffix = "ar", apply_whit = TRUE, lambda_whit = 1.0){
+                              bands_suffix = "", apply_whit = TRUE, lambda_whit = 1.0){
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -551,22 +551,31 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
 #' #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the Savitsky Golay smoother
-#' point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5))
+#' point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5, bands_suffix = "sg"))
 #' # Plot the two points to see the smoothing effect
 #' plot(sits_merge(point_ndvi, point_sg))
 #' }
 #' @export
 sits_sgolay <- function(data = NULL, order = 3,
-                        length = 5, scaling = 1, bands_suffix = "sg") {
+                        length = 5, scaling = 1, bands_suffix = "") {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
+    result <- NULL
     filter_fun <- function(data) {
-        result <- sits_apply(data,
-                                fun = function(band) signal::sgolayfilt(band, p = order, n = length, ts = scale),
-                                fun_index = function(band) band,
-                                bands_suffix = bands_suffix)
+        if ("tbl" %in% class(data)) {
+            result <- sits_apply(data,
+                                 fun = function(band) signal::sgolayfilt(band, p = order, n = length, ts = scale),
+                                 fun_index = function(band) band,
+                                 bands_suffix = bands_suffix)
+        }
+        if ("matrix" %in% class(data)) {
+            result <- apply(data, 2,
+                    function(row) {signal::sgolayfilt(row, p = order, n = length, ts = scale)})
+        }
+
         return(result)
+        append(class(result), "image_filter", after  = 0)
     }
 
     result <- .sits_factory_function(data, filter_fun)
@@ -588,7 +597,6 @@ sits_sgolay <- function(data = NULL, order = 3,
 #'
 #' @param data      A tibble with time series data and metadata.
 #' @param lambda       Smoothing factor to be applied (default 1.0).
-#' @param differences  The order of differences of contiguous elements (default 3).
 #' @param bands_suffix Suffix to be appended to the smoothed filters (default "whit").
 #' @return A tibble with smoothed sits time series.
 #'
@@ -597,31 +605,29 @@ sits_sgolay <- function(data = NULL, order = 3,
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the whittaker smoother
-#' point_whit <- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, differences = 3))
+#' point_whit <- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, bands_suffix = "wf"))
 #' # Plot the two points to see the smoothing effect
 #' plot(sits_merge(point_ndvi, point_whit))
 #' }
 #' @export
-sits_whittaker <- function(data = NULL, lambda    = 1.0, differences = 3, bands_suffix = "whit") {
+sits_whittaker <- function(data = NULL, lambda = 1.0, bands_suffix = "") {
     # backward compatibility
-    if ("coverage" %in% names(data))
+    if ("sits_tibble" %in% class(data) && "coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
     filter_fun <- function(data) {
-        result <- sits_apply(data,
+        result <- NULL
+        if ("tbl" %in% class(data)) {
+            result <- sits_apply(data,
                                 fun = function(band){
-                                    # According to: Whittaker (1923). On a new method of graduation.
-                                    # Proceedings of the Edinburgh Mathematical Society, 41, 63-73.
-                                    id.mtx <- diag(length(band))
-                                    diff.mtx <- diff(id.mtx, lag = 1, differences = differences)
-
-                                    # system of equations to be solved for band values
-                                    smooth.mtx <- id.mtx + (lambda * crossprod(diff.mtx))
-
-                                    # compute solution and return
-                                    return(solve(smooth.mtx, band))
+                                    ptw::whit2(band, lambda = lambda)
                                 },
                                 fun_index = function(band) band,
                                 bands_suffix = bands_suffix)
+        }
+        if ("matrix" %in% class(data)) {
+            result <- apply(data, 2,
+                            function(row) {ptw::whit2(row, lambda = lambda)})
+        }
         return(result)
     }
     result <- .sits_factory_function(data, filter_fun)

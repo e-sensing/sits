@@ -1,10 +1,23 @@
 context("Filtering")
+
+test_that("Generic filter",{
+    point_ndvi_whit <- sits_filter(point_ndvi)
+    expect_true(length(sits_time_series_dates(point_ndvi))
+                == length(sits_time_series_dates(point_ndvi_whit)))
+})
+
+test_that("Generic filter-error",{
+    lambda <- 2
+    expect_error(sits_filter(point_ndvi, lambda),
+                 "sits_filter: filter is not a valid function")
+})
+
 test_that("Envelope filter", {
     #skip_on_cran()
     library(dtwclust)
     data(prodes_226_064)
     point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
-    point_env  <- sits_envelope(point_ndvi)
+    point_env  <- sits_envelope(point_ndvi, bands_suffix = "env")
     expect_true(all(sits_time_series(point_env)$ndvi.env
                     >= sits_time_series(point_ndvi)$ndvi ))
 })
@@ -62,9 +75,15 @@ test_that("Kalman filter", {
 test_that("Arima filter", {
     data(prodes_226_064)
     point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
-    point_cld  <- sits_ndvi_arima(point_ndvi)
+    point_cld  <- sits_ndvi_arima(point_ndvi, bands_suffix = "ar.whit")
 
     # filtered data has less sd
     expect_true(sd(sits_time_series(point_ndvi)$ndvi) >
                     sd(sits_time_series(point_cld)$ndvi.ar.whit))
+})
+
+test_that("Missing values", {
+    point_ndvi_2 <- sits_missing_values(point_ndvi, miss_value = -3000)
+    expect_true(length(sits_time_series_dates(point_ndvi))
+                == length(sits_time_series_dates(point_ndvi_2)))
 })

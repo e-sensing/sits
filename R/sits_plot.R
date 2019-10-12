@@ -196,45 +196,6 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
     .sits_plot_som_map(x, type, whatmap)
 }
 
-#' @title  Plot a set of satellite image time series
-#' @name   .sits_plot
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Given a sits tibble with a set of time series, plot them.
-#'
-#' The plot function produces different plots based on the input data:
-#' \itemize{
-#'  \item{"all years": }{Plot all samples from the same location together}
-#'  \item{"together": }{Plot all samples of the same band and label together}
-#' }
-#' The sits_plot function makes an educated guess of what plot is required,
-#' based on the input data. If the input data has less than 30 samples, it
-#' will default to "all years". If there is only one sample per class, it will
-#' default to "patterns". If there are more than 30 samples, it will default to
-#' "together".
-#'
-#' @param  data          Data to be plotted (can be a sits tibble, clusters, or TWDTW matches).
-#' @param  bands         Bands used for visualisation (optional for sits_plot_classification).
-#' @param  colors        Color pallete to be used (based on Color Brewer - default is "Dark2").
-#' @return Input sits tibble (useful for chaining functions).
-#'
-.sits_plot <- function(data, bands = c("ndvi"), colors = "Dark2") {
-    # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
-
-    # try to guess what is the plot type
-    if ("sits" %in% class(data)) {
-        # Are there more than 30 samples? Plot them together!
-        if (nrow(data) > 30)
-            .sits_plot_together(data, colors)
-        # If no conditions are met, take "allyears" as the default
-        else
-            .sits_plot_allyears(data, colors)
-    }
-    # return the original sits tibble - useful for chaining
-    return(invisible(data))
-}
-
 #' @title Plot all time intervals of one time series for the same lat/long together
 #' @name .sits_plot_allyears
 #'

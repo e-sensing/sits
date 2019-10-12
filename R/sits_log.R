@@ -63,9 +63,9 @@ sits_log <- function() {
 
     tryCatch({save(data, file = file_save)},
              error = function(e){
-              msg <- paste0("WTSS - unable to save data in file ", file_save)
+              msg <- paste0("sits_log_data - unable to save data in file ", file_save)
               .sits_log_error(msg)
-              message("WTSS - unable to retrieve point - see log file" )
+              message("sits_log_data - unable to retrieve point - see log file" )
             return(NULL)})
 }
 

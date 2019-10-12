@@ -4,6 +4,12 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 # What's new in SITS version 0.9
 
+### New features in SITS version 0.9.4
+
+* Filtering can be applied to classified images
+* Band suffix in filtering is now set to ""
+* Improvement in code coverage: most of the code has more than 90% coverage
+
 ### New features in SITS version 0.9.3
 
 * Improvements in reading shapefiles: using sampling to retrieve time series inside polygons

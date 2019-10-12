@@ -12,15 +12,6 @@ test_that("All", {
     expect_equal(reproj[2], -20)
 })
 
-test_that("Convert", {
-    wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
-
-    res <- sits:::.sits_convert_resolution(wtss_cube)
-
-    expect_equal(res[[1]], 230.7679, tol = 0.001)
-    expect_equal(res[[2]], 232.3231, tol = 0.001)
-})
-
 test_that("Inside", {
     wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
 

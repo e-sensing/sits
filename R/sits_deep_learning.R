@@ -36,7 +36,7 @@ sits_keras_diagnostics <- function(dl_model) {
     message("Estimated loss and accuracy based on test data")
     message(paste0("Estimated accuracy: ", round(test_eval$acc, digits = 3),
                    " estimated loss: ", round(test_eval$loss, digits = 3)))
-    return(TRUE)
+    return(test_eval)
 }
 
 #' @title Train a classification model using a multi-layer perceptron.
@@ -67,8 +67,6 @@ sits_keras_diagnostics <- function(dl_model) {
 #'                          The validation data is selected from the last samples in the x and y data provided,
 #'                          before shuffling.
 #' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
-#' @param binary_classification A lenght-one logical indicating if this is a binary classification. If it is so,
-#'                          the number of unique labels in the training data must be two as well.
 #'
 #' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -95,8 +93,7 @@ sits_deeplearning <- function(data          = NULL,
                         epochs           = 200,
                         batch_size       = 128,
                         validation_split = 0.2,
-                        verbose          = 1,
-                        binary_classification = FALSE) {
+                        verbose          = 1) {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -139,7 +136,7 @@ sits_deeplearning <- function(data          = NULL,
         })
         # create the final tensor
         model_loss <- ""
-        if (binary_classification && n_labels == 2) {
+        if (n_labels == 2) {
             output_tensor <- keras::layer_dense(output_tensor, units = 1,
                                                 activation = "sigmoid")
             model_loss <- "binary_crossentropy"
@@ -180,7 +177,12 @@ sits_deeplearning <- function(data          = NULL,
             # retrieve the prediction probabilities
             prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
                                                                       values.x))
-            # adjust the names of the columns of the probs
+            # for the binary classification case
+            # adjust the prediction values to match the multi-class classification
+            if (n_labels == 2)
+                prediction_DT <- .sits_dl_binary_class(prediction_DT)
+
+            # add the class labels as the column names
             colnames(prediction_DT) <- labels
 
             return(prediction_DT)
@@ -250,10 +252,6 @@ sits_deeplearning <- function(data          = NULL,
 #'                          before shuffling.
 #' @param verbose           Verbosity mode (0 = silent, 1 = progress bar,
 #'                          2 = one line per epoch).
-#' @param binary_classification A lenght-one logical indicating
-#'                              if this is a binary classification. If it is so,
-#'                          the number of unique labels in the training data
-#'                          must be two as well.
 #'
 #' @return A model fitted to input data to be passed
 #'         to \code{\link[sits]{sits_classify}}
@@ -282,8 +280,7 @@ sits_FCN <- function(data         = NULL,
                      epochs           = 150,
                      batch_size       = 128,
                      validation_split = 0.2,
-                     verbose          = 1,
-                     binary_classification = FALSE) {
+                     verbose          = 1) {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -340,7 +337,7 @@ sits_FCN <- function(data         = NULL,
 
         # create the final tensor
         model_loss <- ""
-        if (binary_classification && n_labels == 2) {
+        if (n_labels == 2) {
             output_tensor <- keras::layer_dense(output_tensor,
                                                 units = 1,
                                                 activation = "sigmoid")
@@ -386,6 +383,12 @@ sits_FCN <- function(data         = NULL,
             # retrieve the prediction probabilities
             prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
                                                                       values.x))
+
+            # If binary classification,
+            # adjust the prediction values to match the multi-class classification
+            if (n_labels == 2)
+                prediction_DT <- .sits_dl_binary_class(prediction_DT)
+
             # adjust the names of the columns of the probs
             colnames(prediction_DT) <- labels
 
@@ -446,8 +449,6 @@ sits_FCN <- function(data         = NULL,
 #'                          The validation data is selected from the last samples in the x and y data provided,
 #'                          before shuffling.
 #' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
-#' @param binary_classification A lenght-one logical indicating if this is a binary classification. If it is so,
-#'                          the number of unique labels in the training data must be two as well.
 #'
 #' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -474,8 +475,7 @@ sits_ResNet <- function(data              = NULL,
                         epochs           = 150,
                         batch_size       = 128,
                         validation_split = 0.2,
-                        verbose          = 1,
-                        binary_classification = FALSE) {
+                        verbose          = 1) {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -567,7 +567,7 @@ sits_ResNet <- function(data              = NULL,
 
         # create the final tensor
         model_loss <- ""
-        if (binary_classification && n_labels == 2) {
+        if (n_labels == 2) {
             output_tensor <- keras::layer_dense(output_tensor,
                                                 units = 1,
                                                 activation = "sigmoid")
@@ -612,6 +612,12 @@ sits_ResNet <- function(data              = NULL,
             # retrieve the prediction probabilities
             prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
                                                                       values.x))
+
+            # If binary classification,
+            # adjust the prediction values to match the multi-class classification
+            if (n_labels == 2)
+                prediction_DT <- .sits_dl_binary_class(prediction_DT)
+
             # adjust the names of the columns of the probs
             colnames(prediction_DT) <- labels
 
@@ -668,7 +674,6 @@ sits_ResNet <- function(data              = NULL,
 #'                          The validation data is selected from the last samples in the x and y data provided,
 #'                          before shuffling.
 #' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
-#' @param binary_classification A lenght-one logical indicating if this is a binary classification. If it is so,
 #'
 #' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -701,8 +706,7 @@ sits_TempCNN <- function(data                 = NULL,
                     epochs               = 150,
                     batch_size           = 128,
                     validation_split     = 0.2,
-                    verbose              = 1,
-                    binary_classification = FALSE) {
+                    verbose              = 1) {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -782,7 +786,7 @@ sits_TempCNN <- function(data                 = NULL,
 
         # create the final tensor
         model_loss <- ""
-        if (binary_classification && n_labels == 2) {
+        if (n_labels == 2) {
             output_tensor <- keras::layer_dense(output_tensor,
                                                 units = 1,
                                                 activation = "sigmoid")
@@ -828,6 +832,11 @@ sits_TempCNN <- function(data                 = NULL,
             # retrieve the prediction probabilities
             prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
                                                                       values.x))
+            # If binary classification,
+            # adjust the prediction values to match the multi-class classification
+            if (n_labels == 2)
+                prediction_DT <- .sits_dl_binary_class(prediction_DT)
+
             # adjust the names of the columns of the probs
             colnames(prediction_DT) <- labels
 
@@ -881,8 +890,6 @@ sits_TempCNN <- function(data                 = NULL,
 #'                          The validation data is selected from the last samples in the x and y data provided,
 #'                          before shuffling.
 #' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
-#' @param binary_classification A lenght-one logical indicating if this is a binary classification. If it is so,
-#'                          the number of unique labels in the training data must be two as well.
 #'
 #' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -912,8 +919,7 @@ sits_LSTM_FCN <- function(data                =  NULL,
                     epochs              = 150,
                     batch_size          = 128,
                     validation_split    = 0.2,
-                    verbose             = 1,
-                    binary_classification = FALSE) {
+                    verbose             = 1) {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -985,7 +991,7 @@ sits_LSTM_FCN <- function(data                =  NULL,
 
         # create the final tensor
         model_loss <- ""
-        if (binary_classification && n_labels == 2) {
+        if (n_labels == 2) {
             output_tensor <- keras::layer_dense(output_tensor,
                                                 units = 1,
                                                 activation = "sigmoid")
@@ -1031,6 +1037,11 @@ sits_LSTM_FCN <- function(data                =  NULL,
             # retrieve the prediction probabilities
             prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
                                                                       values.x))
+            # If binary classification,
+            # adjust the prediction values to match the multi-class classification
+            if (n_labels == 2)
+                prediction_DT <- .sits_dl_binary_class(prediction_DT)
+
             # adjust the names of the columns of the probs
             colnames(prediction_DT) <- labels
 
@@ -1122,4 +1133,28 @@ sits_LSTM_FCN <- function(data                =  NULL,
     test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
 
     return(list(train.x = train.x, train.y = train.y, test.x = test.x, test.y = test.y))
+}
+
+#' @title Adjust prediction for the binary classification case
+#' @name .sits_dl_binary_class
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description For binary classification, the prediction function produces only
+#' one column (the probability of label 1). For compatibility with the rest of the
+#' code in the sits package, this function includes a second column in the prediction
+#' values to match the results of multi-class classification.
+#'
+#' @param prediction_DT     Data.table with the predicted values from the keras model
+#'                          for the binary classification case (one column)
+#' @return                  Data.table with an additional column for multi-class
+#'                          compatibility
+#'
+.sits_dl_binary_class <- function(prediction_DT) {
+    # binary classification prediction has one column (the second label)
+    # create a second column for compatibility with the rest of the code
+    prediction_DT <- prediction_DT[, V0 := 1.0 - V1]
+    # swap columns
+    prediction_DT <- prediction_DT[,c("V0", "V1")]
+    return(prediction_DT)
 }

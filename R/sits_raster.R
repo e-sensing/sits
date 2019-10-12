@@ -104,7 +104,7 @@
     class_data_size <- input_class_data_size + output_class_data_size
 
     # memory required for processing depends on the model
-    if ( !(purrr::is_null(environment(ml_model)$model.keras)) || !(purrr::is_null(environment(ml_model)$result_ranger)))  {
+    if ("keras_model" %in% class(ml_model) || "rfor_model" %in% class(ml_model))  {
         .sits_log_debug(paste0("keras and ranger run on multiple threads"))
         mem_required_processing <- (class_data_size + as.numeric(.sits_mem_used()))*proc_bloat
     }
@@ -238,10 +238,6 @@
     ensurer::ensure_that(sensor, (.) %in% .sits_config_sensors(satellite),
                          err_desc = "sensor not supported by SITS - please edit configuration file")
 
-    # guess the timeline if it is not provided
-    if (purrr::is_null(timeline))
-        timeline <- .sits_config_timeline(service, name)
-
     # transform the timeline to date format
     timeline <- lubridate::as_date(timeline)
 
@@ -310,7 +306,36 @@
 
     return(file_name)
 }
+#' @title Filter the time series values in the case of a matrix
+#' @name .sits_raster_filter_data
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function filters a matrix.
+#'
+#' @param  values.mx      Matrix of values.
+#' @param  filter         Filter function to apply to matrix.
+#' @param  multicores     Number of cores.
+#' @return Scaled integer matrix.
+.sits_raster_filter_data <- function(values.mx, filter, multicores) {
+    # scale the data set
+    # auxiliary function to scale a block of data
+    filter_matrix_block <- function(chunk) {
+        filtered_block.mx <- filter(chunk)
+    }
+    # use multicores to speed up filtering
+    if (multicores > 1) {
+        chunk.lst <- .sits_raster_split_data(values.mx, multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, filter_matrix_block, mc.cores = multicores)
+        values.mx <- do.call(rbind, rows.lst)
+        rm(chunk.lst)
+        rm(rows.lst)
+        gc()
+    }
+    else
+        values.mx <- filter(values.mx)
 
+    return(values.mx)
+}
 #' @title Try a best guess for the type of sensor/satellite
 #' @name .sits_raster_guess_satellite
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -389,7 +414,7 @@
     }
 
     if (!(purrr::is_null(filter))) {
-        values.mx <- filter(values.mx)
+        values.mx <- .sits_raster_filter_data(values.mx, filter, multicores)
     }
     return(values.mx)
 }

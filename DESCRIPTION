@@ -1,7 +1,7 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis For Remote Sensing Data Cubes
-Version: 0.9.3
+Version: 0.9.4
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Pedro', 'Andrade', role = c('aut', 'cre'), email = 'pedro.andrade@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut'), email = 'gilberto.camara@inpe.br'), 
@@ -62,6 +62,7 @@ Imports:
     parallel,
     proxy,
     purrr,
+    ptw,
     ranger,
     raster (>= 2.6),
     readr,

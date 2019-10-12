@@ -14,6 +14,21 @@ test_that("SVM  - Formula logref",{
     expect_true(nrow(sits_show_prediction(class.tb)) == 16)
 })
 
+test_that("SVM  - Formula logref - difference",{
+    #skip_on_cran()
+    samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+    svm_model <- sits_train(samples_mt_2bands,
+                            sits_svm(
+                                formula = sits_formula_logref(),
+                                kernel = "radial",
+                                cost = 10))
+    class.tb <- sits_classify(cerrado_2classes[1:100, ], svm_model, multicores = 2)
+
+    expect_true(all(class.tb$predicted[[1]]$class %in%
+                        sits_labels(samples_mt_2bands)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 100)
+})
+
 test_that("SVM - Formula linear",{
     #skip_on_cran()
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
@@ -84,19 +99,43 @@ test_that("XGBoost",{
 })
 test_that("DL-MLP",{
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    model <- suppressWarnings(sits_train(samples_mt_ndvi,
+    samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+    model <- suppressWarnings(sits_train(samples_mt_2bands,
                               sits_deeplearning(
                                   layers = c(128,128),
                                   dropout_rates = c(0.5, 0.4),
                                   epochs = 50,
                                   verbose = 0)))
 
-    class.tb <- sits_classify(point_ndvi, model)
+    plot(model)
+
+    point_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
+
+    class.tb <- sits_classify(point_2bands, model)
 
     expect_true(all(class.tb$predicted[[1]]$class %in%
-                        sits_labels(samples_mt_ndvi)$label))
-    expect_true(nrow(sits_show_prediction(class.tb)) == 16)
+                        sits_labels(samples_mt_2bands)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 17)
+})
+
+test_that("DL-MLP-2classes",{
+    #skip_on_cran()
+    samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+    model <- suppressWarnings(sits_train(samples_mt_2bands,
+                                         sits_deeplearning(
+                                             layers = c(128, 128, 128),
+                                             dropout_rates = c(0.5, 0.4, 0.3),
+                                             epochs = 100,
+                                             verbose = 0)))
+    test_eval <- suppressMessages(sits_keras_diagnostics(model))
+    expect_true(test_eval$acc > 0.7)
+    plot(model)
+
+    class.tb <- sits_classify(cerrado_2classes[1:60,], model)
+
+    expect_true(all(class.tb$predicted[[1]]$class %in%
+                        sits_labels(samples_mt_2bands)$label))
+    expect_true(nrow(sits_show_prediction(class.tb)) == 60)
 })
 test_that("1D CNN model",{
     #skip_on_cran()

@@ -7,8 +7,7 @@
 sits_deeplearning(data = NULL, layers = c(512, 512, 512, 512, 512),
   activation = "relu", dropout_rates = c(0.5, 0.45, 0.4, 0.35, 0.3),
   optimizer = keras::optimizer_adam(lr = 0.001), epochs = 200,
-  batch_size = 128, validation_split = 0.2, verbose = 1,
-  binary_classification = FALSE)
+  batch_size = 128, validation_split = 0.2, verbose = 1)
 }
 \arguments{
 \item{data}{Time series with the training samples.}
@@ -34,9 +33,6 @@ The validation data is selected from the last samples in the x and y data provid
 before shuffling.}
 
 \item{verbose}{Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).}
-
-\item{binary_classification}{A lenght-one logical indicating if this is a binary classification. If it is so,
-the number of unique labels in the training data must be two as well.}
 }
 \value{
 A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}

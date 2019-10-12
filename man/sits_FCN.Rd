@@ -7,8 +7,7 @@
 sits_FCN(data = NULL, layers = c(128, 256, 128), kernels = c(9, 7,
   5), activation = "relu", L2_rate = 1e-06,
   optimizer = keras::optimizer_adam(lr = 0.001), epochs = 150,
-  batch_size = 128, validation_split = 0.2, verbose = 1,
-  binary_classification = FALSE)
+  batch_size = 128, validation_split = 0.2, verbose = 1)
 }
 \arguments{
 \item{data}{Time series with the training samples.}
@@ -46,11 +45,6 @@ before shuffling.}
 
 \item{verbose}{Verbosity mode (0 = silent, 1 = progress bar,
 2 = one line per epoch).}
-
-\item{binary_classification}{A lenght-one logical indicating
-    if this is a binary classification. If it is so,
-the number of unique labels in the training data
-must be two as well.}
 }
 \value{
 A model fitted to input data to be passed

@@ -104,7 +104,7 @@ sits_som_map <- function(data,
 
     #Create an if here. The user can be enter with only data, then we need
     # to extract the time series here using sits_value
-    for (k in 1:iterations)
+    for (k in seq_len(iterations))
     {
         kohonen_obj <-
             kohonen::supersom(
@@ -379,7 +379,7 @@ sits_som_clean_samples <- function(som_cluster,
     grid_size <- dim(kohonen_obj$grid$pts)[1]
 
     #class_vector <- vector()
-    for (i in 1:grid_size)
+    for (i in seq_len(grid_size))
     {
         #Get the id of samples that were allocated in neuron i
         neuron_i <- dplyr::filter(data, data$id_neuron == i)$id_sample
@@ -443,7 +443,7 @@ sits_som_clean_samples <- function(som_cluster,
                                                     kohonen_obj,
                                                     duplicated_id_neuron)
 {
-    for (i in  1:length(duplicated_id_neuron))
+    for (i in seq_along(duplicated_id_neuron))
     {
         neurons_neighbors <- which(kohonen::unit.distances(kohonen_obj$grid)[, duplicated_id_neuron[i]] == 1)
         neuron <- dplyr::filter(class_vector, class_vector$id_neuron == duplicated_id_neuron[i])
@@ -498,7 +498,7 @@ sits_som_clean_samples <- function(som_cluster,
     neuron_vicinity.tb <- tibble::as_tibble()
     grid_size <- dim(kohonen_obj$grid$pts)[1]
 
-    for (neuron in 1:grid_size)
+    for (neuron in seq_len(grid_size))
     {
         neurons_neighbors <- which(kohonen::unit.distances(kohonen_obj$grid)[, neuron] == radius)
 
@@ -525,135 +525,7 @@ sits_som_clean_samples <- function(som_cluster,
     return(neuron_vicinity.tb)
 }
 
-#' @title Create new groups from kohonen maps
-#' @name sits_som_evaluate_subgroups
-#' @author Lorena Santos, \email{lorena.santos@@inpe.br}
-#'
-#' @param som_cluster Kohonen map and associated information created by \code{\link[sits]{sits_som_map}}
-#'
-#' @description Create subgroups from a cluster created by SOM.
-#' @return Returns a sits tibble with a new column presenting the subgroups that each sample belongs.
-#'
-#' @examples
-#' \donttest{
-#' # Create a Kohonen map
-#' som_cluster <- sits_som_map(prodes_226_064)
-#' # Create subgroups
-#' subgroups.tb <- sits_som_evaluate_subgroups(som_cluster)
-#' }
-#' @export
-sits_som_evaluate_subgroups <- function(som_cluster)
-{
-    #subgroup.lst <- list()
-    cluster_labels <- som_cluster$statistics_samples$cluster_sample_probability$cluster
-    class_neurons <- (unique(cluster_labels))
-    class_group <- tibble::as_tibble()
 
-    #Get the same information samples of som_properties
-    samples_temp.tb <- som_cluster$statistics_samples$samples
-    last_iteration <- max(unique(samples_temp.tb$iteration))
-    samples_temp.tb <- dplyr::filter(samples_temp.tb, samples_temp.tb$iteration == last_iteration)
-
-    for (k in 1:length(unique(class_neurons)))
-    {
-
-        #filter the samples by neuron_label from class_neurons
-        current_class <- dplyr::filter(samples_temp.tb,
-                                       samples_temp.tb$neuron_label == class_neurons[k])
-
-        #get the neuron's id of where these samples were allocated
-        neurons_class <- unique(current_class$id_neuron)
-
-        #get the  weigth's vector of neurons
-        codebooks <- som_cluster$som_properties$codes
-
-        #get the number of list that represents evi and ndvi
-        #position_evi <- which(names(codebooks) == "evi")
-        #position_ndvi <- which(names(codebooks) == "ndvi")
-
-        #get the ndvi weight
-        weight_ndvi <- som_cluster$som_properties$codes$ndvi
-
-        #only neurons of current class
-        #weight_ndvi.ts <- weight_ndvi[neurons_class, ]
-
-        #get the evi weight
-        weight_evi <- som_cluster$som_properties$codes$evi
-        weight_evi.ts <- weight_evi[neurons_class, ]
-        codes_ndvi_evi <- cbind(weight_ndvi, weight_evi)
-        codes_ndvi_evi.ts <- codes_ndvi_evi[neurons_class, ]
-
-        if (length(neurons_class) <= 10)
-        {
-            min_group <- 1
-            max_group <- length(neurons_class) - 1
-        } else {
-            min_group <- 2
-            max_group <- 10
-        }
-
-        #other index can be used "sdbw", "sdindex"
-        nb_all <-
-            NbClust::NbClust(
-                t(weight_evi.ts),
-                distance = "euclidean",
-                min.nc = min_group,
-                max.nc = max_group,
-                method = "ward.D2",
-                index = "dunn"
-            )
-
-        number_of_cluster <- nb_all$Best.nc[1]
-        distance_atrributes <- proxy::dist(codes_ndvi_evi.ts, distance = "euclidean")
-        hc <- stats::hclust(distance_atrributes, "ward.D2")
-        cut_hc <- stats::cutree(hc, k = number_of_cluster)
-        #id_neurons <- names(cut_hc)
-
-        #Divide groups
-        temp.lst <- list()
-        for (j in 1:length(unique(cut_hc)))
-        {
-            #Convert neuron name to integer for example V1 to 1
-            neuron_id_string <- which(cut_hc == j)
-            neuron_id_string <- names(neuron_id_string)
-            neuron_id_int <- as.integer(substring(neuron_id_string, 2))
-
-            #get the weight time series. The evi and ndvi are concatened
-            ts <- codes_ndvi_evi[neuron_id_int, ]
-
-            temp.lst[[j]] <- ts
-            names(temp.lst)[j] <- paste(" - Group ", j, sep = '')
-
-            #get samples of current group
-            s_group <- tibble::as_tibble()
-
-            temporary_samples <- dplyr::filter(current_class,current_class$id_neuron %in% neuron_id_int)
-            s_group <- rbind(s_group, temporary_samples)
-
-
-            s_group_cluster <- s_group
-            s_group_cluster$label_subgroup <- paste(class_neurons[k], "_", j,  sep = '')
-            class_group <- rbind(class_group, s_group_cluster)
-        }
-
-        #subgroup.lst[[k]] <- temp.lst
-        #names(subgroup.lst)[k] <- paste(class_neurons[k], sep = '')
-    }
-
-    class_group <- dplyr::arrange(dplyr::select(class_group, id_sample, neuron_label, id_neuron, label_subgroup), id_sample)
-
-    samples.tb <- unique(dplyr::select(som_cluster$samples.tb,id_sample,longitude,latitude, start_date,end_date, label, cube, time_series))
-    samples.tb$som_label <- class_group$neuron_label
-    samples.tb$label_subgroup <- class_group$label_subgroup
-    samples.tb$id_neuron <- class_group$id_neuron
-
-    subgroups.tb <-
-        structure(list(
-            samples_subgroups.tb = samples.tb,
-            som_properties = som_cluster$som_properties
-        ))
-    return(subgroups.tb)
-}
 
 #' @title Cluster evaluation
 #' @name sits_som_evaluate_cluster
@@ -699,7 +571,7 @@ sits_som_evaluate_cluster <- function(som_cluster)
         size_vector <- length(no_cluster)
 
         #Add columns in confusion matrix
-        for (sv in 1:size_vector)
+        for (sv in seq_len(size_vector))
         {
             #position to add column in confusion matrix
             positon_to_add <- which(label_table == no_cluster[sv])
@@ -730,7 +602,7 @@ sits_som_evaluate_cluster <- function(som_cluster)
     label_table <- rownames(confusion.matrix.tb)[1:dim_row - 1]
 
     mix_class <- dplyr::tibble()
-    for (d in 1:(dim_row - 1))
+    for (d in seq_len(dim_row - 1))
     {
         #sum the samples of label "d" by cluster.
         #each column represents the cluster where the sample was allocated
@@ -833,58 +705,7 @@ sits_som_evaluate_cluster <- function(som_cluster)
 }
 
 
-#' #' @title SOM neuron unitary
-#' #' @name .sits_som_cluster_unitary
-#' #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
-#' #'
-#' #' @description This function shows how many times a sample was allocated in a neuron alone.
-#' #' @param som_cluster Kohonen map and associated information created by \code{\link[sits]{sits_som_map}}
-#' #' @return Returns a sits tibble with the amount of times a sample was allocated alone in a neuron during the
-#' #' clustering process.
-#' #'
-#' .sits_som_cluster_unitary <- function(som_cluster)
-#' {
-#'     s_samples <- som_cluster$statistics_samples
-#'
-#'     #number of iterations
-#'     k <-  length(unique(s_samples$samples$iteration))
-#'     table_sample_neuron <- s_samples$sample %>%
-#'         dplyr::inner_join(s_samples$neuron)
-#'
-#'     temp.tb <-
-#'         dplyr::arrange(unique(
-#'             dplyr::select(
-#'                 table_sample_neuron,
-#'                 id_neuron,
-#'                 neuron_label,
-#'                 samples_label = original_label,
-#'                 id_sample,
-#'                 iteration
-#'             )
-#'         ), id_neuron)
-#'
-#'     table_neuron_samples <- tibble::as_tibble(temp.tb %>%
-#'                               dplyr::group_by(id_neuron,iteration,neuron_label,samples_label) %>%
-#'                               dplyr::summarise(count = dplyr::n()) %>%
-#'                               dplyr::mutate(percentage_n = count / sum(count)))
-#'
-#'     neuron_alone <- dplyr::filter (table_neuron_samples, table_neuron_samples$percentage_n == 1 & table_neuron_samples$count == 1)
-#'     table_score_sample_neuron_alone <- temp.tb %>% dplyr::inner_join(neuron_alone)
-#'     alone_by_samples <- tibble::as_tibble(table_score_sample_neuron_alone %>%
-#'                                               dplyr::group_by(id_sample) %>%
-#'                                               dplyr::summarise(count = dplyr::n()) %>%
-#'                                               dplyr::mutate(percentage_n = count /k))
-#'
-#'     alone_by_samples.tb <- tibble::as_tibble(table_score_sample_neuron_alone %>%
-#'                                                  dplyr::group_by(id_sample, neuron_label) %>%
-#'                                                  dplyr::summarise(count = dplyr::n()) %>%
-#'                                                  dplyr::mutate(percentage_n = count /100))
-#'
-#'     cluster_unitary.tb <- dplyr::arrange(alone_by_samples.tb, desc(percentage_n))
-#'
-#'     return(cluster_unitary.tb)
-#'
-#' }
+
 
 #' @title Paint neurons
 #' @name .sits_som_paint_neurons
@@ -909,7 +730,7 @@ sits_som_evaluate_cluster <- function(som_cluster)
     pallete_neighbors <- c(pastel1, set1, accent)
 
     #Paint
-    for (j in 1:length(unique(kohonen_obj$neuron_label)))
+    for (j in seq_along(unique(kohonen_obj$neuron_label)))
     {
         paint_neurons <- which(kohonen_obj$neuron_label_id.mt[, 2] == j)
         kohonen_obj$neighborhood_neurons[paint_neurons] <- pallete_neighbors [j]
@@ -940,7 +761,7 @@ sits_som_evaluate_cluster <- function(som_cluster)
     samples_probability_i.tb <- tibble::as_tibble()
 
 
-    for (neuron_i in 1:grid_size)
+    for (neuron_i in seq_len(grid_size))
     {
         #get general information about each neuron
         current_id_neighbourhood.tb <-which(kohonen::unit.distances(kohonen_obj$grid)[, neuron_i] == 1)
@@ -953,7 +774,7 @@ sits_som_evaluate_cluster <- function(som_cluster)
         #if ((data_neuron_i.tb$count[1]) != 0)
         if ((data_neuron_i.tb$neuron_class[1])!= "Noclass")
         {
-            for (i in 1:dim(data_neuron_i.tb)[1])
+            for (i in seq_len(dim(data_neuron_i.tb)[1]))
             {
                 current_class_neuron.tb <- data_neuron_i.tb[i,]
                 #get sample with the same label of current class of neuron
@@ -1036,73 +857,4 @@ sits_som_plot_clusters <- function(data, text_title = " Cluster ")
         ggplot2::ggtitle(text_title)
 
     return(p)
-}
-
-#' @title  Plot the patterns of SOM subgroups (only NDVI and EVI time series)
-#' @name   sits_som_plot_subgroups
-#' @author Lorena Santos \email{lorena.santos@@inpe.br}
-#'
-#' @description Plot the average pattern of subgroups from  weights of neurons labelled.
-#' Each neuron has a weight which can be represent a set of time series samples. Neurons of same
-#' category or label form a cluster, but the neurons within a cluster can have different patterns.
-#'
-#' @param  subgroups       The list contain the EVI and NDVI time series (weight of each neuron) by class.
-#' @param  class_name      Name of the generic class to be plotted
-#' @param  band            Band to be plotted
-#' @examples
-#' \donttest{
-#' # Produce a cluster map
-#' som_cluster <- sits_som_map(prodes_226_064)
-#' # Evaluate and produce information on the subgroups
-#' subgroups <- sits_som_evaluate_subgroups(som_cluster)
-#' # Plot the resulting subgroups
-#' sits_som_plot_subgroups(subgroups, class_name = "Forest", band = "ndvi")
-#' }
-#'
-#' @export
-sits_som_plot_subgroups <- function(subgroups, class_name, band = "ndvi")
-{
-    samples_current_class.tb <- dplyr::filter(subgroups$samples_subgroups.tb, som_label == class_name)
-
-    #Get the amount of subclasses
-    names_subgroups <- sort(unique(samples_current_class.tb$label_subgroup))
-    number_of_subgroups <- length(unique(samples_current_class.tb$label_subgroup))
-
-    #Put this value in a dynamic way
-    if (band == "ndvi")
-        codes <- subgroups$som_properties$codes$ndvi
-
-    if (band == "evi")
-        codes <- subgroups$som_properties$codes$evi
-
-    plot.vec <- vector()
-    for (i in 1:number_of_subgroups)
-    {
-        get_samples_current_subgroup.tb <- dplyr::filter(samples_current_class.tb, samples_current_class.tb$label_subgroup == names_subgroups[i] )
-        get_neurons <- get_samples_current_subgroup.tb$id_neuron
-
-        current_codes <- codes[get_neurons, ]
-        time_series_current_subgroup.ts <- zoo::zoo(t(current_codes))
-
-        group_ts <-
-            data.frame(
-                value = as.vector(time_series_current_subgroup.ts),
-                index_time = stats::time(time_series_current_subgroup.ts),
-                neurons = rep(
-                    names(time_series_current_subgroup.ts),
-                    each = nrow(time_series_current_subgroup.ts)
-                )
-            )
-
-        plot_ts_subgroup <-
-            ggplot2::ggplot(group_ts, ggplot2::aes(x = index_time, y = value)) +
-            ggplot2::stat_summary(fun.data = "mean_cl_boot",
-                                  geom = "smooth") + ggplot2::labs(x = "Time", y = band) +
-            ggplot2::ggtitle(paste(names_subgroups[i]))
-
-
-        graphics::plot(plot_ts_subgroup)
-
-    }
-    return(plot_ts_subgroup)
 }

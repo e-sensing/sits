@@ -30,6 +30,20 @@ test_that("Classify a set time series with svm - single core and multicore", {
     c2 <- dplyr::bind_rows(class2.tb$predicted)$class
     expect_true(all(c1 == c2))
 })
+
+test_that("Classify a set time series with svm + filter", {
+    #skip_on_cran()
+    #single core
+    samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+    samples_filt <- sits_sgolay(samples_mt_2bands, bands_suffix = "")
+    svm_model <- sits_train(samples_filt, sits_svm())
+
+    class1.tb <- sits_classify(data = cerrado_2classes, ml_model = svm_model,
+                               filter = sits_sgolay(bands_suffix = ""), multicores = 1)
+
+    expect_true(class1.tb$predicted[[1]]$class %in% sits_labels(cerrado_2classes)$label)
+
+})
 test_that("Classify time series with TWDTW method", {
     #skip_on_cran()
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)

@@ -99,10 +99,11 @@ sits_align_dates <- function(data, ref_dates) {
 #'
 #' If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
 #'
-#' @param data       Valid sits tibble or matrix.
+#' @param data          Valid sits tibble
 #' @param fun           Function with one parameter as input and a vector or list of vectors as output.
 #' @param fun_index     Function with one parameter as input and a Date vector as output.
 #' @param bands_suffix  String informing the suffix of the resulting bands.
+#' @param multicores    Number of cores to be used
 #' @return A sits tibble with same samples and the new bands.
 #' @examples
 #' # Get a time series
@@ -110,51 +111,37 @@ sits_align_dates <- function(data, ref_dates) {
 #' # apply a normalization function
 #' point2 <- sits_apply (point_ndvi, fun = function (x) { (x - min (x))/(max(x) - min(x))} )
 #' @export
-sits_apply <- function(data, fun, fun_index = function(index){ return(index) }, bands_suffix = "") {
-    if ("tbl" %in% class(data)) {
+sits_apply <- function(data, fun, fun_index = function(index){ return(index) }, bands_suffix = "", multicores = 1) {
+
         # backward compatibility
-        if ("coverage" %in% names(data))
-            data <- .sits_tibble_rename(data)
-        # verify if data is valid
-        .sits_test_tibble(data)
-        # computes fun and fun_index for all time series and substitutes the original time series data
-        data$time_series <- data$time_series %>%
-            purrr::map(function(ts.tb) {
-                ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
-                    purrr::map(fun)
+    if ("coverage" %in% names(data))
+        data <- .sits_tibble_rename(data)
+    # verify if data is valid
+    .sits_test_tibble(data)
+    # computes fun and fun_index for all time series and substitutes the original time series data
+    data$time_series <- data$time_series %>%
+        purrr::map(function(ts.tb) {
+            ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
+                purrr::map(fun)
 
-                # append bands names' suffixes
-                if (nchar(bands_suffix) != 0)
-                    names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
+            # append bands names' suffixes
+            if (nchar(bands_suffix) != 0)
+                names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".", bands_suffix)
 
-                # unlist if there are more than one result from `fun`
-                if (is.recursive(ts_computed.lst[[1]]))
-                    ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
+            # unlist if there are more than one result from `fun`
+            if (is.recursive(ts_computed.lst[[1]]))
+                ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
 
-                # convert to tibble
-                ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
+            # convert to tibble
+            ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
 
-                # compute Index column
-                ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
+            # compute Index column
+            ts_computed.tb <- dplyr::mutate(ts_computed.tb, Index = fun_index(ts.tb$Index))
 
-                # reorganizes time series tibble
-                return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
-            })
-        return(data)
-    }
-    else if ("matrix" %in% class(data)) {
-        multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
-        # auxiliary function to filter a block of data
-        filter_block <- function(mat) {
-            rows_block.lst <- lapply(seq_along(mat), function(i) fun(mat[i,]))
-            mat_block.mx <- do.call(rbind, rows_block.lst)
-        }
-        chunk.lst <- .sits_raster_split_data(data, multicores)
-        rows.lst  <- parallel::mclapply(chunk.lst, filter_block, mc.cores = multicores)
-        data <- do.call(rbind, rows.lst)
-
-        return(data)
-    }
+            # reorganizes time series tibble
+            return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
+        })
+    return(data)
 }
 
 #' @title Informs the names of the bands of a time series
@@ -547,7 +534,7 @@ sits_show_prediction <- function(class.tb) {
     .sits_test_tibble(class.tb)
     ensurer::ensure_that(class.tb$predicted[[1]], all(names(.) %in% c("from", "to", "class", "probs")),
                          err_desc = "sits_show_prediction: tibble has not been classified")
-    return(dplyr::select(class.tb$predicted[[1]], c("from", "to", "class")))
+    return(dplyr::select(dplyr::bind_rows(class.tb$predicted), c("from", "to", "class")))
 }
 #' @title Retrieve the dates of time series for a row of a sits tibble
 #' @name sits_time_series_dates

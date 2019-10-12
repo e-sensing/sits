@@ -89,20 +89,31 @@ sits_classify <- function(data        = NULL,
     # check if we are running in Windows
     if (.Platform$OS.type != "unix")
         multicores <-  1
+
+    # for classification, only savitsky-golay and whittaker filters are supported
+    if (!purrr::is_null(filter)) {
+      call_names <-  deparse(sys.call())
+      ensurer::ensure_that(call_names, any(grepl("sgolay", (.))) ||
+                             any(grepl("whittaker", (.))),
+                           err_desc = "sits_classify_cube: only savitsky-golay and whittaker filters are supported")
+    }
     if ("time_series" %in% names(data))
         result <- .sits_classify_ts(data = data,
                                     ml_model = ml_model,
                                     interval = interval,
+                                    filter   = filter,
                                     multicores = multicores)
-    else
+    else {
         result <- .sits_classify_cube(cube = data,
-                                      ml_model = ml_model,
-                                      interval = interval,
-                                      filter = filter,
-                                      memsize = memsize,
-                                      multicores = multicores,
-                                      output_dir = output_dir,
-                                      version = version)
+                                    ml_model = ml_model,
+                                    interval = interval,
+                                    filter = filter,
+                                    memsize = memsize,
+                                    multicores = multicores,
+                                    output_dir = output_dir,
+                                    version = version)
+    }
+
 
     return(result)
 }
@@ -264,20 +275,26 @@ sits_label_classification <- function(cube,
 #' @param  ml_model          Pre-built machine learning model
 #'                             (see \code{\link[sits]{sits_train}}).
 #' @param  interval          Interval used for classification (in months).
+#' @param  filter            Smoothing filter to be applied (if desired).
 #' @param  multicores        Number of cores to be used for classification.
 #' @return A tibble with the predicted labels for each input segment.
 #'
-.sits_classify_ts <- function(data, ml_model, interval, multicores) {
+.sits_classify_ts <- function(data, ml_model, interval, filter, multicores) {
 
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
+
     # verify that the data is correct
     .sits_test_tibble(data)
 
     # ensure the machine learning model has been built
     ensurer::ensure_that(ml_model, !purrr::is_null(.),
         err_desc = "sits_classify_ts: please provide a trained ML model")
+
+    # filter the data, if filter is not NULL
+    if (!purrr::is_null(filter))
+        data <- filter(data)
 
     # retrieve the samples
     samples.tb <- environment(ml_model)$data
@@ -331,6 +348,10 @@ sits_label_classification <- function(cube,
 #' @return A vector with the predicted labels.
 .sits_classify_distances <- function(distances_DT, class_info.tb,
                                      ml_model, multicores) {
+
+    # keras-based models run in single-core mode (keras does parallel processing)
+    if ("keras_model" %in% class(ml_model) || "rfor_model" %in% class(ml_model))
+        multicores <- 1
     # define the column names
     attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))
     ensurer::ensure_that(attr_names, length(.) > 0,
@@ -407,7 +428,6 @@ sits_label_classification <- function(cube,
 #'
 .sits_classify_cube <- function(cube, ml_model, interval, filter,
                                 memsize, multicores, output_dir, version) {
-
     if (.sits_cube_service(cube) == "EOCUBES") {
         res <- .sits_classify_eocubes(cube = cube, ml_model = ml_model,
                                       interval = interval, filter = filter,

@@ -35,10 +35,6 @@ test_that("Creating clustering using Self-organizing Maps", {
 
     sits_som_plot_clusters(cluster_overall, "Confusion by cluster")
 
-    subgroups <- sits_som_evaluate_subgroups(som_map)
-    expect_true("samples_subgroups.tb" %in% names(subgroups))
-    expect_true("som_properties" %in% names(subgroups))
-
 })
 
 test_that("SOM with a small map and neighborhood cluster", {
@@ -57,18 +53,5 @@ test_that("SOM with a small map and neighborhood cluster", {
     neigh <- sits:::.sits_som_cluster_neighbourhood(som_map2)
 
     expect_true(all(neigh[1,"percentage_n"] > 0.90))
-
-})
-test_that("SOM subgroups evaluate and plot", {
-
-    # Produce a cluster map
-    som_cluster <- sits_som_map(cerrado_2classes, grid_xdim = 3, grid_ydim = 3)
-    # Evaluate and produce information on the subgroups
-    subgroups <- sits_som_evaluate_subgroups(som_cluster)
-    # test results
-
-    expect_true(max(subgroups$samples_subgroups.tb$id_neuron) == 9)
-    # Plot the resulting subgroups
-    sits_som_plot_subgroups(subgroups, class_name = "Cerrado", band = "evi")
 
 })
