@@ -271,9 +271,6 @@ sits_merge <-  function(data1.tb, data2.tb) {
         data1.tb <- .sits_tibble_rename(data1.tb)
     if ("coverage" %in% names(data2.tb))
         data2.tb <- .sits_tibble_rename(data2.tb)
-    # are the names of the bands different?
-    ensurer::ensure_that(data1.tb, !(any(sits_bands(.) %in% sits_bands(data2.tb)) | any(sits_bands(data2.tb) %in% sits_bands(.))),
-                         err_desc = "sits_merge: cannot merge two sits tibbles with bands with the same names")
 
     # if some parameter is empty returns the another one
     if (NROW(data1.tb) == 0)
@@ -285,6 +282,17 @@ sits_merge <-  function(data1.tb, data2.tb) {
     ensurer::ensure_that(data1.tb, NROW(.) == NROW(data2.tb),
                          err_desc = "sits_merge: cannot merge two sits tibbles with different numbers of rows")
 
+    # are the names of the bands different?
+    # if they are not
+    bands1 <- sits_bands(data1.tb)
+    bands2 <- sits_bands(data2.tb)
+    if (any(bands1 %in% bands2) || any(bands2 %in% bands1)) {
+        if (!(any(".new" %in% bands1)) && !(any(".new" %in% bands2)))
+            bands2 <- paste0(bands2, ".new")
+        else
+            bands2 <- paste0(bands2, ".nw")
+        data2.tb <- sits_rename(data2.tb, bands2)
+    }
     # prepare result
     result <- data1.tb
 
