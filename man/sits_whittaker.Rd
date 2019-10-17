@@ -4,15 +4,12 @@
 \alias{sits_whittaker}
 \title{Filter the time series using Whittaker smoother}
 \usage{
-sits_whittaker(data = NULL, lambda = 3, differences = 3,
-  bands_suffix = "whit")
+sits_whittaker(data = NULL, lambda = 1, bands_suffix = "")
 }
 \arguments{
 \item{data}{A tibble with time series data and metadata.}
 
 \item{lambda}{Smoothing factor to be applied (default 1.0).}
-
-\item{differences}{The order of differences of contiguous elements (default 3).}
 
 \item{bands_suffix}{Suffix to be appended to the smoothed filters (default "whit").}
 }
@@ -31,7 +28,7 @@ Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
 # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the whittaker smoother
-point_whit <- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, differences = 3))
+point_whit <- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, bands_suffix = "wf"))
 # Plot the two points to see the smoothing effect
 plot(sits_merge(point_ndvi, point_whit))
 }

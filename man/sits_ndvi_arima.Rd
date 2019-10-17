@@ -5,7 +5,7 @@
 \title{NDVI filter with ARIMA model}
 \usage{
 sits_ndvi_arima(data = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
-  bands_suffix = "ar", apply_whit = TRUE, lambda_whit = 1)
+  bands_suffix = "", apply_whit = TRUE, lambda_whit = 1)
 }
 \arguments{
 \item{data}{A tibble with time series data and metadata with only the "ndvi" band.}
@@ -42,7 +42,7 @@ data(prodes_226_064)
 # Select the NDVI band of the first point
 point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
 # Apply the cloud filter
-point_ar <- sits_filter(point_ndvi, sits_ndvi_arima())
+point_ar <- sits_filter(point_ndvi, sits_ndvi_arima(bands_suffix = "ar"))
 # Merge the filtered with the raw data
 point2 <- sits_merge (point_ndvi, point_ar)
 # Plot the result

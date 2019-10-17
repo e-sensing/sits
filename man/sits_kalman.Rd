@@ -4,7 +4,7 @@
 \alias{sits_kalman}
 \title{Kalman filter}
 \usage{
-sits_kalman(data = NULL, bands_suffix = "kf")
+sits_kalman(data = NULL, bands_suffix = "")
 }
 \arguments{
 \item{data}{A sits tibble containing the original time series.}
@@ -25,7 +25,7 @@ data(prodes_226_064)
 # Select the NDVI band of the first point
 point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # Apply the cloud filter
-point_kf.tb <- sits_kalman(point_ndvi.tb)
+point_kf.tb <- sits_kalman(point_ndvi.tb, bands_suffix = "kf")
 # Merge the filtered with the raw data
 point2.tb <- sits_merge (point_ndvi.tb, point_kf.tb)
 # Plot the result
