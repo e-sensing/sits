@@ -104,10 +104,10 @@ test_that("One-year, single core classification", {
     samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
     rfor_model <- sits_train(samples_mt_2bands, sits_rfor(num_trees = 500))
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/Sinop_ndvi_2014.tif",
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop_ndvi_2014.tif",
                                package = "sits"))
 
-    evi_file <- c(system.file("extdata/raster/mod13q1/Sinop_evi_2014.tif",
+    evi_file <- c(system.file("extdata/raster/mod13q1/sinop_evi_2014.tif",
                               package = "sits"))
 
     data("timeline_2013_2014")
@@ -159,10 +159,10 @@ test_that("One-year, single core classification with filter", {
     samples_filt <- sits_whittaker(samples_mt_2bands, lambda = 3.0, bands_suffix = "")
     rfor_model <- sits_train(samples_filt, sits_rfor(num_trees = 500))
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/Sinop_ndvi_2014.tif",
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop_ndvi_2014.tif",
                                package = "sits"))
 
-    evi_file <- c(system.file("extdata/raster/mod13q1/Sinop_evi_2014.tif",
+    evi_file <- c(system.file("extdata/raster/mod13q1/sinop_evi_2014.tif",
                               package = "sits"))
 
     data("timeline_2013_2014")
@@ -183,6 +183,7 @@ test_that("One-year, single core classification with filter", {
                                                 smoothing = "majority")
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$files))))
+    expect_true(all(file.remove(unlist(sinop_majority$files))))
 
 })
 

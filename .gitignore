@@ -20,3 +20,5 @@ doc
 Meta
 *.bkp
 travis/*
+Makevars
+Makevars.*
