@@ -69,8 +69,8 @@ test_that("Reading a point from WTSS ", {
     timeline <- lubridate::as_date(as.vector(sits_time_series_dates(point.tb)))
 
     expect_true(ncol(sits_time_series(point.tb)) == 7)
-    expect_equal(sum(sits_time_series(point.tb)$evi),
-                 157.3737, tolerance = 1e-3)
+    expect_equal(sum(sits_time_series(point.tb)$evi[1:423]),                    
+                 157.3737, tolerance = 1e-3)  
     expect_true(point.tb$start_date == timeline[1])
     expect_true(point.tb$end_date == timeline[length(timeline)])
 })
