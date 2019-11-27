@@ -742,7 +742,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 
     if (multicores > 1) {
         parts.lst <- split(values.lst, cut(1:n_values, 2, labels = FALSE))
-        norm.lst <- dplyr::combine(parallel::mclapply(parts.lst, normalize_list, mc.cores = multicores))
+        norm.lst <- dplyr::combine(pbLapply(multicores, X = parts.lst, FUN = normalize_list))
     }
     else
         norm.lst <- normalize_list(values.lst)
@@ -768,7 +768,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
     quant_98  <- as.numeric(stats[3, band])
 
     # auxiliary function to normalize a block of data
-    normalize_block <- function(chunk, quant_2, quant_98) {
+    normalize_block <- function(chunk) {
         # normalize a block of data
         values_block.mx <- normalize_data(chunk, quant_2, quant_98)
     }
@@ -776,7 +776,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
     # parallel processing for normalization
     if (multicores > 1) {
         chunk.lst <- .sits_raster_split_data(data.mx, multicores)
-        rows.lst  <- parallel::mclapply(chunk.lst, normalize_block, quant_2, quant_98, mc.cores = multicores)
+        rows.lst <- pbLapply(multicores, X = chunk.lst, FUN = normalize_list)
         data.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
         rm(rows.lst)

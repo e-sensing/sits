@@ -325,7 +325,8 @@
     # use multicores to speed up filtering
     if (multicores > 1) {
         chunk.lst <- .sits_raster_split_data(values.mx, multicores)
-        rows.lst  <- parallel::mclapply(chunk.lst, filter_matrix_block, mc.cores = multicores)
+        rows.lst <- pbLapply(multicores, X = chunk.lst, FUN = filter_matrix_block)
+
         values.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
         rm(rows.lst)
@@ -609,13 +610,14 @@
 .sits_raster_scale_data <- function(values.mx, scale_factor, multicores) {
     # scale the data set
     # auxiliary function to scale a block of data
-    scale_block <- function(chunk, scale_factor) {
+    scale_block <- function(chunk) {
         scaled_block.mx <- scale_data(chunk, scale_factor)
     }
     # use multicores to speed up scaling
     if (multicores > 1) {
         chunk.lst <- .sits_raster_split_data(values.mx, multicores)
-        rows.lst  <- parallel::mclapply(chunk.lst, scale_block, scale_factor, mc.cores = multicores)
+        rows.lst <- pbLapply(multicores, X = chunk.lst, FUN = scale_block)
+
         values.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
         rm(rows.lst)
@@ -640,13 +642,13 @@
 .sits_raster_scale_matrix_integer <- function(values.mx, scale_factor, multicores) {
     # scale the data set
     # auxiliary function to scale a block of data
-    scale_matrix_block <- function(chunk, scale_factor) {
+    scale_matrix_block <- function(chunk) {
         scaled_block.mx <- scale_matrix_integer(chunk, scale_factor)
     }
     # use multicores to speed up scaling
     if (multicores > 1) {
         chunk.lst <- .sits_raster_split_data(values.mx, multicores)
-        rows.lst  <- parallel::mclapply(chunk.lst, scale_matrix_block, scale_factor, mc.cores = multicores)
+        rows.lst <- pbLapply(multicores, X = chunk.lst, FUN = scale_matrix_block)
         int_values.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
         rm(rows.lst)

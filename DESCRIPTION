@@ -40,10 +40,12 @@ Imports:
     ensurer,
     EOCubes,
     dplyr (>= 0.7.4),
+    doSNOW,
     dtw,
     dtwclust,
     dtwSat,
     flexclust,
+    foreach,
     geosphere,
     ggplot2,
     graphics,
@@ -72,6 +74,7 @@ Imports:
     scales,
     sf (>= 0.6),
     signal,
+    snow,
     stats,
     stringr,
     tibble (>= 1.4),
@@ -129,5 +132,6 @@ Collate:
     'sits_validate.R'
     'sits_wtss.R'
     'sits_zoo.R'
+    'pblapply.R'
     'zzz.R'
 
