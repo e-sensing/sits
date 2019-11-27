@@ -11,7 +11,7 @@ sits_get_data(cube, file = NULL, longitude = NULL, latitude = NULL,
   .n_max_csv = Inf, .n_save = 0)
 }
 \arguments{
-\item{cube}{A tibble with information about the data cube where dta is to be retrived.}
+\item{cube}{A tibble with information about the data cube from where data is to be retrived.}
 
 \item{file}{An optional name of a file with information on the data to be retrieved (options - CSV, SHP).}
 
@@ -27,11 +27,11 @@ sits_get_data(cube, file = NULL, longitude = NULL, latitude = NULL,
 
 \item{label}{An optional string with the label to be assigned to the time series.}
 
-\item{shp_attr}{An optional string to indicate the attribute in the shapefile to be used as a polygon label}
+\item{shp_attr}{An optional string to indicate the attribute in the shapefile to be used as a polygon label.}
 
-\item{.n_shp_pol}{Number of samples per polygon to be read (for POLYGON or MULTIPOLYGON shapes)}
+\item{.n_shp_pol}{Number of samples per polygon to be read (for POLYGON or MULTIPOLYGON shapes).}
 
-\item{.n_shp_pts}{Number of points to be read (for POINT shapes)}
+\item{.n_shp_pts}{Number of points to be read (for POINT shapes).}
 
 \item{.prefilter}{Prefilter for SATVEG cube("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
 
@@ -47,15 +47,15 @@ A tibble with time series data and metadata.
 \description{
 Retrieve a set of time series and puts it in a "sits tibble".
 Sits tibbles are the main structures of sits package.
-They contain both the satellite image time series and its metadata.
+They contain both the satellite image time series and their metadata.
 A sits tibble is a tibble with pre-defined columns that
 has the metadata and data for each time series. The columns are
 <longitude, latitude, start_date, end_date, label, cube, time_series>.
 There are two main ways of retrieving time series:
 1. Using a time series service and from a data cube defined based on a set of Raster Bricks. Two time series services are available:
 (a) the Web Time Series Service (WTSS) by INPE; (b) the SATVEG service from EMBRAPA.
-Please see \code{\link[sits]{sits_services}} for more information on thw WTSS service.
-The URL and other parameters for access to the time series services are defined in the package
+Please see \code{\link[sits]{sits_services}} for more information on the WTSS service.
+The URL and other parameters for accessing the time series services are defined in the package
 configuration file. This file is called "config.yml". Please see the \code{\link[sits]{sits_config}} for
 more information.
 
@@ -71,7 +71,7 @@ from the WTSS service.
 \item The source is a SHP file - retrives all points inside the shapefile from the WTSS service.
 \item The source is a RasterBrick - retrieves the point based on lat/long from the RasterBrick.
 }
- The results is a sits tibble, which  has the metadata and data for each time series
+ The result is a sits tibble, which  has the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, cube, time_series>
 }
 \examples{
