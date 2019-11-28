@@ -4,7 +4,7 @@
 \alias{.sits_classify_interval}
 \title{Classify one interval of data}
 \usage{
-.sits_classify_interval(DT, ml_model, multicores)
+.sits_classify_interval(DT, ml_model, multicores, progress = TRUE)
 }
 \arguments{
 \item{DT}{A data.table with distance values.}
@@ -12,6 +12,8 @@
 \item{ml_model}{Machine learning model to be applied.}
 
 \item{multicores}{Number of cores to process the time series.}
+
+\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 A data table with predicted values of probs

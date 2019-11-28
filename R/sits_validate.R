@@ -26,6 +26,7 @@
 #' @param folds           Number of partitions to create.
 #' @param ml_method       Machine learning method.
 #' @param multicores      Number of cores for processing.
+#' @param progress        Show progress bar? Default is TRUE.
 #' @return A tibble containing pairs of reference and predicted values.
 #'
 #' @examples
@@ -39,7 +40,8 @@
 #' }
 #' @export
 sits_kfold_validate <- function(data, folds = 5,
-                                ml_method = sits_rfor(), multicores = 2){
+                                ml_method = sits_rfor(), multicores = 2,
+                                progress = TRUE){
 
     # backward compatibility
     if ("coverage" %in% names(data))
@@ -64,7 +66,7 @@ sits_kfold_validate <- function(data, folds = 5,
     pred.vec <-  character()
     ref.vec  <-  character()
 
-    conf.lst <- pbLapply(multicores, X = 1:folds, FUN = function(k)
+    conf.lst <- pbLapply(multicores, progress = progress, X = 1:folds, FUN = function(k)
     {
         # split data into training and test data sets
         data_train <- data[data$folds != k,]

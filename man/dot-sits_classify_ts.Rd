@@ -4,7 +4,8 @@
 \alias{.sits_classify_ts}
 \title{Classify a set of time series using machine learning models}
 \usage{
-.sits_classify_ts(data, ml_model, interval, filter, multicores)
+.sits_classify_ts(data, ml_model, interval, filter, multicores,
+  progress = TRUE)
 }
 \arguments{
 \item{data}{Tibble with time series metadata and data.}
@@ -17,6 +18,8 @@
 \item{filter}{Smoothing filter to be applied (if desired).}
 
 \item{multicores}{Number of cores to be used for classification.}
+
+\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 A tibble with the predicted labels for each input segment.

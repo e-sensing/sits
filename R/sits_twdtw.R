@@ -33,6 +33,7 @@
 #' @param  end_date      End date of the classification period.
 #' @param  interval      Period between two classifications in months.
 #' @param  overlap       Minimum overlapping between one match and the interval of classification.
+#' @param progress        Show progress bar? Default is TRUE.
 #' @return A dtwSat S4 object with the matches.
 #' @examples
 #' \donttest{
@@ -58,7 +59,8 @@
 sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euclidean",
                         alpha = -0.1, beta = 100, theta = 0.5, span  = 0, keep  = FALSE,
                         start_date = NULL, end_date = NULL,
-                        interval = "12 month", overlap = 0.5){
+                        interval = "12 month", overlap = 0.5,
+                        progress = TRUE){
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
         stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
@@ -71,7 +73,8 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
     progress_bar <- NULL
     if (nrow(data) > 10) {
         message("Matching patterns to time series...")
-        progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data), style = 3)
+        if(progress)
+            progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data), style = 3)
         i <- 0
     }
     # does the input data exist?
@@ -110,7 +113,6 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
 
         # add the matches to the list
         matches.lst[[length(matches.lst) + 1]] <- matches
-
 
         # update progress bar
         if (!purrr::is_null(progress_bar)) {
@@ -185,7 +187,6 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
                         i <<- i + 1
                         # add the classification results to the input row
                         return(predicted.tb)
-
                     })
 
     data$predicted <- predicted.lst

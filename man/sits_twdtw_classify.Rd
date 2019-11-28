@@ -7,7 +7,7 @@
 sits_twdtw_classify(data, patterns, bands = NULL,
   dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
   span = 0, keep = FALSE, start_date = NULL, end_date = NULL,
-  interval = "12 month", overlap = 0.5)
+  interval = "12 month", overlap = 0.5, progress = TRUE)
 }
 \arguments{
 \item{data}{A sits tibble to be classified using TWTDW.}
@@ -35,6 +35,8 @@ sits_twdtw_classify(data, patterns, bands = NULL,
 \item{interval}{Period between two classifications in months.}
 
 \item{overlap}{Minimum overlapping between one match and the interval of classification.}
+
+\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 A dtwSat S4 object with the matches.

@@ -4,7 +4,8 @@
 \alias{.sits_raster_scale_data}
 \title{Scale the time series values in the case of a matrix}
 \usage{
-.sits_raster_scale_data(values.mx, scale_factor, multicores)
+.sits_raster_scale_data(values.mx, scale_factor, multicores,
+  progress = TRUE)
 }
 \arguments{
 \item{values.mx}{Matrix of values.}
@@ -12,6 +13,8 @@
 \item{scale_factor}{Scaling factor.}
 
 \item{multicores}{Number of cores.}
+
+\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 A scaled matrix.

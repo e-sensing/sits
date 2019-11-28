@@ -315,8 +315,9 @@
 #' @param  values.mx      Matrix of values.
 #' @param  filter         Filter function to apply to matrix.
 #' @param  multicores     Number of cores.
+#' @param  progress       Show progress bar? Default is TRUE.
 #' @return Scaled integer matrix.
-.sits_raster_filter_data <- function(values.mx, filter, multicores) {
+.sits_raster_filter_data <- function(values.mx, filter, multicores, progress = TRUE) {
     # scale the data set
     # auxiliary function to scale a block of data
     filter_matrix_block <- function(chunk) {
@@ -325,7 +326,7 @@
     # use multicores to speed up filtering
     if (multicores > 1) {
         chunk.lst <- .sits_raster_split_data(values.mx, multicores)
-        rows.lst <- pbLapply(multicores, X = chunk.lst, FUN = filter_matrix_block)
+        rows.lst <- pbLapply(multicores, progress = progress, X = chunk.lst, FUN = filter_matrix_block)
 
         values.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
@@ -606,8 +607,9 @@
 #' @param  values.mx      Matrix of values.
 #' @param  scale_factor   Scaling factor.
 #' @param  multicores     Number of cores.
+#' @param  progress       Show progress bar? Default is TRUE.
 #' @return A scaled matrix.
-.sits_raster_scale_data <- function(values.mx, scale_factor, multicores) {
+.sits_raster_scale_data <- function(values.mx, scale_factor, multicores, progress = TRUE) {
     # scale the data set
     # auxiliary function to scale a block of data
     scale_block <- function(chunk) {
@@ -616,7 +618,7 @@
     # use multicores to speed up scaling
     if (multicores > 1) {
         chunk.lst <- .sits_raster_split_data(values.mx, multicores)
-        rows.lst <- pbLapply(multicores, X = chunk.lst, FUN = scale_block)
+        rows.lst <- pbLapply(multicores, progress = progress, X = chunk.lst, FUN = scale_block)
 
         values.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
@@ -638,8 +640,9 @@
 #' @param  values.mx      Matrix of values.
 #' @param  scale_factor   Scaling factor.
 #' @param  multicores     Number of cores.
+#' @param  progress       Show progress bar? Default is TRUE.
 #' @return Scaled integer matrix.
-.sits_raster_scale_matrix_integer <- function(values.mx, scale_factor, multicores) {
+.sits_raster_scale_matrix_integer <- function(values.mx, scale_factor, multicores, progress = TRUE) {
     # scale the data set
     # auxiliary function to scale a block of data
     scale_matrix_block <- function(chunk) {
@@ -648,7 +651,7 @@
     # use multicores to speed up scaling
     if (multicores > 1) {
         chunk.lst <- .sits_raster_split_data(values.mx, multicores)
-        rows.lst <- pbLapply(multicores, X = chunk.lst, FUN = scale_matrix_block)
+        rows.lst <- pbLapply(multicores, progress = progress, X = chunk.lst, FUN = scale_matrix_block)
         int_values.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
         rm(rows.lst)

@@ -1,4 +1,4 @@
-pbLapply <- function(slaves, progress = FALSE, X, FUN, ...) {
+pbLapply <- function(slaves, progress, X, FUN, ...) {
     cl <- snow::makeSOCKcluster(slaves)
     doSNOW::registerDoSNOW(cl)
     opts <- list()

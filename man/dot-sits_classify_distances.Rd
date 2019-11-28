@@ -4,7 +4,8 @@
 \alias{.sits_classify_distances}
 \title{Classify a distances tibble using machine learning models}
 \usage{
-.sits_classify_distances(distances_DT, class_info.tb, ml_model, multicores)
+.sits_classify_distances(distances_DT, class_info.tb, ml_model, multicores,
+  progress = TRUE)
 }
 \arguments{
 \item{distances_DT}{data.table with distances.}
@@ -14,6 +15,8 @@
 \item{ml_model}{model trained by \code{\link[sits]{sits_train}}.}
 
 \item{multicores}{number of threads to process the time series.}
+
+\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 A vector with the predicted labels.

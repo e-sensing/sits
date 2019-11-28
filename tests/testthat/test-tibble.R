@@ -112,7 +112,6 @@ test_that("Transmute", {
     expect_equal(dim(data)[1], 20)
 })
 
-
 test_that("Values", {
     values <- sits_values(cerrado_2classes[1:2,], format = "bands_dates_cases")
 
@@ -121,7 +120,7 @@ test_that("Values", {
     expect_equal(sum(values$ndvi[, "ndvi"]), 13.6291, tolerance = 0.001)
 })
 
-test_that("Values", {
+test_that("Transmute-Bands", {
     data(samples_mt_6bands)
     savi.tb <- sits_transmute_bands(samples_mt_6bands,
                                     savi = (1.5*(nir - red)/(nir + red + 0.5)))
@@ -129,10 +128,7 @@ test_that("Values", {
     expect_true("savi" %in% names(sits_time_series(savi.tb)))
 })
 
-
-
 test_that("Rename-Coverage-Cube",{
-
     expect_true("coverage" %in% names(point_ndvi))
     point_ndvi_cube <- sits:::.sits_tibble_rename(point_ndvi)
     expect_true("cube" %in% names(point_ndvi_cube))
