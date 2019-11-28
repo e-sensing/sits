@@ -22,3 +22,4 @@ Meta
 travis/*
 Makevars
 Makevars.*
+*.json

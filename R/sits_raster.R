@@ -347,18 +347,17 @@
 .sits_raster_guess_satellite <- function(r_obj) {
 
     crs   <- as.character(raster::crs(r_obj))
-    # if the projection is UTM, guess it's a LANDSAT data set
-    if (stringr::str_detect(crs, "utm")) {
+
+    if (any(grepl("utm", crs))) {
         satellite <- "LANDSAT"
     }
     # if the projection is sinusoidal, guess it's a TERRA data set
-    else if (stringr::str_detect(crs, "sinu")) {
+    else if (any(grepl("sinu", crs))) {
         satellite <- "TERRA"
     }
     else {
         satellite <- "UNKNOWN"
     }
-
     return(satellite)
 }
 

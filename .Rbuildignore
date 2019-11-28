@@ -12,3 +12,4 @@
 ^\.travis\.yml$
 ^appveyor\.yml$
 ^tic\.R$
+^codemeta\.json$

@@ -14,7 +14,7 @@ test_that("Multi-year, single core classification", {
     files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                            package = "sits"))
     data("timeline_modis_392")
-    sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+    sinop <- sits_cube(name = "sinop-crop", timeline = timeline_modis_392,
                        satellite = "TERRA", sensor = "MODIS",
                        bands = "ndvi", files = files)
     # classify using one core
@@ -36,7 +36,7 @@ test_that("Multi-year, multi-core classification", {
     files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                            package = "sits"))
     data("timeline_modis_392")
-    sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+    sinop <- sits_cube(name = "sinop-crop", timeline = timeline_modis_392,
                        satellite = "TERRA", sensor = "MODIS",
                        bands = "ndvi", files = files)
 
@@ -112,7 +112,7 @@ test_that("One-year, single core classification", {
 
     data("timeline_2013_2014")
 
-    sinop_2014 <- sits_cube(name = "Sinop-2014", timeline = timeline_2013_2014,
+    sinop_2014 <- sits_cube(name = "sinop-2014", timeline = timeline_2013_2014,
                             satellite = "TERRA", sensor = "MODIS",
                             bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
 
@@ -167,7 +167,7 @@ test_that("One-year, single core classification with filter", {
 
     data("timeline_2013_2014")
 
-    sinop_2014 <- sits_cube(name = "Sinop-2014", timeline = timeline_2013_2014,
+    sinop_2014 <- sits_cube(name = "sinop-2014", timeline = timeline_2013_2014,
                             satellite = "TERRA", sensor = "MODIS",
                             bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
 
