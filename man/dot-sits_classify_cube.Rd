@@ -4,8 +4,16 @@
 \alias{.sits_classify_cube}
 \title{Classify a data cube using multicore machines}
 \usage{
-.sits_classify_cube(cube, ml_model, interval, filter, memsize, multicores,
-  output_dir, version)
+.sits_classify_cube(
+  cube,
+  ml_model,
+  interval,
+  filter,
+  memsize,
+  multicores,
+  output_dir,
+  version
+)
 }
 \arguments{
 \item{cube}{Tibble with information about a data cube.}

@@ -4,8 +4,7 @@
 \alias{.sits_raster_filename}
 \title{Define a filename associated to one classified raster layer}
 \usage{
-.sits_raster_filename(output_dir, version, name, type, start_date,
-  end_date)
+.sits_raster_filename(output_dir, version, name, type, start_date, end_date)
 }
 \arguments{
 \item{output_dir}{Output directory}
@@ -24,7 +23,8 @@
 Name of the classification file for the required interval.
 }
 \description{
-Creates a filename for a raster layer with associated temporal information,
+Creates a filename for a raster layer
+                with associated temporal information,
                 given a basic filename.
 }
 \author{

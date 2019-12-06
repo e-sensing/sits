@@ -4,8 +4,13 @@
 \alias{sits_from_zoo}
 \title{Import time series in the zoo format to a sits tibble}
 \usage{
-sits_from_zoo(ts.zoo, longitude = 0, latitude = 0, label = "NoClass",
-  name = "unknown")
+sits_from_zoo(
+  ts.zoo,
+  longitude = 0,
+  latitude = 0,
+  label = "NoClass",
+  name = "unknown"
+)
 }
 \arguments{
 \item{ts.zoo}{Zoo time series.}

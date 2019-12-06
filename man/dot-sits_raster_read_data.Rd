@@ -4,8 +4,16 @@
 \alias{.sits_raster_read_data}
 \title{Read a block of values retrived from a set of raster bricks}
 \usage{
-.sits_raster_read_data(cube, samples, ml_model, first_row, n_rows_block,
-  stats, filter, multicores)
+.sits_raster_read_data(
+  cube,
+  samples,
+  ml_model,
+  first_row,
+  n_rows_block,
+  stats,
+  filter,
+  multicores
+)
 }
 \arguments{
 \item{cube}{Input data cube.}

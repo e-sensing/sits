@@ -6,7 +6,9 @@
 .RData$
 ^\.tmp$
 ^README\.Rmd$
+^README\.md$
 ^README_cache$
+^man/figures/*$
 ^doc$
 ^Meta$
 ^\.travis\.yml$

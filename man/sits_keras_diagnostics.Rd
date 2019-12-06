@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_deep_learning.R
 \name{sits_keras_diagnostics}
 \alias{sits_keras_diagnostics}
-\title{Provides access to diagnostic information about a Keras deep learning model}
+\title{Diagnostic information about a Keras deep learning model}
 \usage{
 sits_keras_diagnostics(dl_model)
 }
@@ -14,15 +14,17 @@ This function returns NULL. It only prints the model diagnostics.
 }
 \description{
 After the Keras deeplearning model is compiled and fit, this
-             function provides access to the history plot and the evaluation results.
+             function provides access to the history plot
+             and the evaluation results.
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 data(cerrado_2classes)
  # obtain a DL model
 dl_model <- sits_train(cerrado_2classes,
-     sits_deeplearning(layers = c(512, 512), dropout_rates = c(0.45, 0.25), epochs = 100))
+     sits_deeplearning(layers = c(512, 512), dropout_rates = c(0.45, 0.25),
+                       epochs = 100))
 # run the keras diagnostics
 sits_keras_diagnostics(dl_model)
 }

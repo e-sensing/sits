@@ -2,14 +2,15 @@
 % Please edit documentation in R/sits_cube.R
 \name{.sits_cube_classified}
 \alias{.sits_cube_classified}
-\title{Create a set of RasterLayer objects to store data cube classification results (only the probs)}
+\title{Create a set of RasterLayer objects to store
+data cube classification results (only the probs)}
 \usage{
 .sits_cube_classified(cube, samples, interval, output_dir, version)
 }
 \arguments{
 \item{cube}{Tibble with metadata about the input data cube.}
 
-\item{samples}{Samples used for training the classification model..}
+\item{samples}{Samples used for training the classification model.}
 
 \item{interval}{Classification interval.}
 
@@ -21,8 +22,8 @@
 A tibble with metadata about the output RasterLayer objects.
 }
 \description{
-Takes a tibble containing metadata about a data cube
-containing time series (each Brick has information for one band) and creates a
+Take a tibble containing metadata about a data cube
+containing time series (each Brick has information for one band) and create a
 set of RasterLayers to store the classification result.
 Each RasterLayer corresponds to one time step.
 The time steps are specified in a list of dates.

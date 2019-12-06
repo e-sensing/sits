@@ -4,8 +4,7 @@
 \alias{.sits_plot_raster}
 \title{Plot a raster classified images}
 \usage{
-.sits_plot_raster(cube, time = 1, title = "Classified Image",
-  colors = NULL)
+.sits_plot_raster(cube, time = 1, title = "Classified Image", colors = NULL)
 }
 \arguments{
 \item{cube}{A tibble with the metadata for a labelled data cube.}

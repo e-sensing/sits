@@ -4,8 +4,7 @@
 \alias{sits_sgolay}
 \title{Smooth the time series using Savitsky-Golay filter}
 \usage{
-sits_sgolay(data = NULL, order = 3, length = 5, scaling = 1,
-  bands_suffix = "")
+sits_sgolay(data = NULL, order = 3, length = 5, scaling = 1, bands_suffix = "")
 }
 \arguments{
 \item{data}{A tibble with time series data and metadata.}
@@ -22,23 +21,25 @@ sits_sgolay(data = NULL, order = 3, length = 5, scaling = 1,
 A tibble with smoothed sits time series.
 }
 \description{
-The algorithm searches for an optimal polynomial describing the warping.
+An optimal polynomial for warping a time series.
 The degree of smoothing depends on the filter order (usually 3.0).
-The user can set the order of the polynomial using the parameter `order` (default = 3), +
-the size of the temporal window with the parameter `length` (default = 5),
-and the temporal expansion with the parameter `scaling`.
+The order of the polynomial uses the parameter `order` (default = 3),
+the size of the temporal window uses the parameter `length` (default = 5),
+and the temporal expansion uses the parameter `scaling`.
 }
 \examples{
 \donttest{
 #' # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the Savitsky Golay smoother
-point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5, bands_suffix = "sg"))
+point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3,
+                                    length  = 5, bands_suffix = "sg"))
 # Plot the two points to see the smoothing effect
 plot(sits_merge(point_ndvi, point_sg))
 }
 }
 \references{
 A. Savitzky, M. Golay, "Smoothing and Differentiation of Data by
-Simplified Least Squares Procedures". Analytical Chemistry, 36 (8): 1627–39, 1964.
+Simplified Least Squares Procedures".
+Analytical Chemistry, 36 (8): 1627–39, 1964.
 }

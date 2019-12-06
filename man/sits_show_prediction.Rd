@@ -13,8 +13,8 @@ sits_show_prediction(class.tb)
 returns a tibble with the columns "from", "to", "class"
 }
 \description{
-This function takes a tibble wih time series that has been classified
-by a machine learning method and display the result.
+This function takes a tibble with a classified time series
+by a machine learning method and displays the result.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

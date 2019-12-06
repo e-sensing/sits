@@ -13,7 +13,7 @@ sits_cluster_clean(data)
 A tibble with all selected samples.
 }
 \description{
-Removes sits tibble samples of labels that are minority in each cluster.
+Removes labels that are minority in each cluster.
 }
 \examples{
 \donttest{

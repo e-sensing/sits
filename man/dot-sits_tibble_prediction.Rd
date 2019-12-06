@@ -11,7 +11,8 @@
 
 \item{class_info.tb}{A tibble with the information on classification.}
 
-\item{pred.mtx}{The result of the classification (one class per column and one row per interval).}
+\item{pred.mtx}{The result of the classification
+(one class per column and one row per interval).}
 
 \item{interval}{The time interval between two classifications.}
 }

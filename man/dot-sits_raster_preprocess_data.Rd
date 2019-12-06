@@ -4,8 +4,16 @@
 \alias{.sits_raster_preprocess_data}
 \title{Preprocess a set of values retrived from a raster brick}
 \usage{
-.sits_raster_preprocess_data(values.mx, band, missing_value, minimum_value,
-  scale_factor, stats, filter, multicores)
+.sits_raster_preprocess_data(
+  values.mx,
+  band,
+  missing_value,
+  minimum_value,
+  scale_factor,
+  stats,
+  filter,
+  multicores
+)
 }
 \arguments{
 \item{values.mx}{Matrix of values retrieved from a brick.}

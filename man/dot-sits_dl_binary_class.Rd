@@ -7,7 +7,7 @@
 .sits_dl_binary_class(prediction_DT)
 }
 \arguments{
-\item{prediction_DT}{Data.table with the predicted values from the keras model
+\item{prediction_DT}{Predicted values from the keras model
 for the binary classification case (one column)}
 }
 \value{
@@ -16,9 +16,9 @@ Data.table with an additional column for multi-class
 }
 \description{
 For binary classification, the prediction function produces only
-one column (the probability of label 1). For compatibility with the rest of the
-code in the sits package, this function includes a second column in the prediction
-values to match the results of multi-class classification.
+one column (the probability of label 1). For compatibility with the
+code in the sits package, this function includes a second column
+in the prediction values to match the results of multi-class classification.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

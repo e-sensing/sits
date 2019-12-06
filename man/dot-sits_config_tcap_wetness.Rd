@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_tcap_wetness}
 \alias{.sits_config_tcap_wetness}
-\title{Retrieve the vector of coeficientes for wetness component of tasseled cap}
+\title{Retrieve the vector of coeficientes for wetness of tasseled cap}
 \usage{
 .sits_config_tcap_wetness(sensor = "MODIS")
 }
@@ -13,7 +13,7 @@
 Named vector of wetness coefficients.
 }
 \description{
-Retrieve the vector of coeficientes for wetness component of tasseled cap
+Retrieve the vector of coeficientes for wetness of tasseled cap
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

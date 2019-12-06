@@ -2,16 +2,24 @@
 % Please edit documentation in R/sits_classification.R
 \name{sits_classify}
 \alias{sits_classify}
-\title{Classify a set of time series or a data cube using machine learning models}
+\title{Classify time series or data cube using machine learning models}
 \usage{
-sits_classify(data = NULL, ml_model = NULL, interval = "12 month",
-  filter = NULL, multicores = 2, memsize = 4, output_dir = "./",
-  version = "v1")
+sits_classify(
+  data = NULL,
+  ml_model = NULL,
+  interval = "12 month",
+  filter = NULL,
+  multicores = 2,
+  memsize = 4,
+  output_dir = "./",
+  version = "v1"
+)
 }
 \arguments{
 \item{data}{Tibble with time series metadata and data.}
 
-\item{ml_model}{Pre-built machine learning model (see \code{\link[sits]{sits_train}}).}
+\item{ml_model}{Pre-built machine learning model
+(see \code{\link[sits]{sits_train}}).}
 
 \item{interval}{Interval used for classification (in months).}
 
@@ -23,7 +31,7 @@ sits_classify(data = NULL, ml_model = NULL, interval = "12 month",
 
 \item{output_dir}{Output directory}
 
-\item{version}{Version of classification (in case of multiple tests)}
+\item{version}{Version of classification (for multiple tests)}
 }
 \value{
 A tibble with the predicted labels for each input segment.
@@ -35,7 +43,6 @@ To perform the classification, users should provide a set of
 labelled samples. Each samples should be associated to one spatial location
 (latitude/longitude), one time interval and a label.
 
-After defining the training samples, the users need to provide a machine learning model.
 Currenly, sits supports the following models:
 'svm' (see \code{\link[sits]{sits_svm}}),
 random forests (see \code{\link[sits]{sits_rfor}}),
@@ -47,12 +54,14 @@ multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
 extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
 and different deep learning functions, including multi-layer perceptrons
 (see \code{\link[sits]{sits_deeplearning}}, 1D convolutional neural networks
-\code{\link[sits]{sits_FCN}}, mixed 1D and MLP networks \code{\link[sits]{sits_TempCNN}}
-a 1D version of ResNet \code{\link[sits]{sits_ResNet}}), and a combined LSTM-FCN model
-\code{\link[sits]{sits_LSTM_FCN}}
+\code{\link[sits]{sits_FCN}},
+mixed 1D and MLP networks \code{\link[sits]{sits_TempCNN}}
+a 1D version of ResNet \code{\link[sits]{sits_ResNet}}),
+and a combined LSTM-FCN model \code{\link[sits]{sits_LSTM_FCN}}
 
-The model should be precomputed by the user using the function \code{\link[sits]{sits_train}}
-and then passed to the "sits_classify" function using the parameter "ml_model".
+The model should be precomputed by the user
+using the function \code{\link[sits]{sits_train}}
+and then passed to the "sits_classify" function using parameter "ml_model".
 }
 \examples{
 \donttest{
@@ -74,13 +83,15 @@ class.tb <- sits_classify(point_ndvi, rfor_model)
 plot(class.tb)
 
 # Classify a raster file with 23 instances for one year
-files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+                       package = "sits"))
 # create a data cube based on the information about the files
 sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
 bands = "ndvi", files = files)
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicores = 1)
+sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
+                             memsize = 2, multicores = 1)
 
 # label the classified image
 sinop_label <- sits_label_classification(sinop_probs)

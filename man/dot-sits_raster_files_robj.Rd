@@ -2,8 +2,7 @@
 % Please edit documentation in R/sits_raster.R
 \name{.sits_raster_files_robj}
 \alias{.sits_raster_files_robj}
-\title{Given a vector of files, and the name of the servic, return the raster object
-       associated with the first file}
+\title{Raster object from file}
 \usage{
 .sits_raster_files_robj(service, files)
 }
@@ -16,7 +15,8 @@
 Raster object associated to the first file
 }
 \description{
-Given the vector of files and the name of the service, return the Raster object for the file
+Given the vector of files and the name of the service,
+                 return the Raster object for the file
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

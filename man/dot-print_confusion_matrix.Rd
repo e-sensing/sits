@@ -4,25 +4,29 @@
 \alias{.print_confusion_matrix}
 \title{Print the values of a confusion matrix}
 \usage{
-.print_confusion_matrix(x, mode = "sens_spec", digits = max(3,
-  getOption("digits") - 3), ...)
+.print_confusion_matrix(
+  x,
+  mode = "sens_spec",
+  digits = max(3, getOption("digits") - 3),
+  ...
+)
 }
 \arguments{
 \item{x}{An object of class \code{confusionMatrix}.}
 
-\item{mode}{A single character string either "sens_spec", "prec_recall", or
-"everything".}
+\item{mode}{A single character string either "sens_spec",
+"prec_recall", or "everything".}
 
-\item{digits}{Mumber of significant digits when printed.}
+\item{digits}{Number of significant digits when printed.}
 
 \item{\dots}{Optional arguments to pass to \code{print.table}.}
 }
 \value{
-\code{x} is invisibly returned.
+\code{x}   is invisibly returned.
 }
 \description{
-This is an adaptation of the print.confusionMatrix method by the "caret" package
-with some of the descriptions adapted for the more common usage in Earth Observation.
+Adaptation of the caret::print.confusionMatrix method
+             for the more common usage in Earth Observation.
 }
 \seealso{
 \code{\link{confusionMatrix}}

@@ -4,8 +4,12 @@
 \alias{.sits_kalman_filter}
 \title{Compute the Kalman filter}
 \usage{
-.sits_kalman_filter(measurement, error_in_measurement = NULL,
-  initial_estimate = NULL, initial_error_in_estimate = NULL)
+.sits_kalman_filter(
+  measurement,
+  error_in_measurement = NULL,
+  initial_estimate = NULL,
+  initial_error_in_estimate = NULL
+)
 }
 \arguments{
 \item{measurement}{A vector of measurements.}
@@ -17,7 +21,8 @@
 \item{initial_error_in_estimate}{A first error in the estimation.}
 }
 \value{
-A matrix of 3 columns estimate, error_in_estimate, and kalman_gain.
+A matrix of 3 columns: estimate,
+                                      error_in_estimate, and kalman_gain.
 }
 \description{
 Compute the Kalman filter

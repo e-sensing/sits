@@ -9,18 +9,21 @@
 \arguments{
 \item{data}{Time series with the training samples.}
 
-\item{validation_split}{Number between 0 and 1. Fraction of the training data to be used as validation data.}
+\item{validation_split}{Number between 0 and 1.
+Fraction of the training data for validation.}
 
-\item{type}{Type of the model. Valid options are "MLP" for multi-layer perceptrons and
-"1DCNN" for 1D convolutional neural networks}
+\item{type}{Type of the model. Valid options:
+"MLP" for multi-layer perceptrons and
+"1DCNN" for 1D convolutional neural networks.}
 }
 \value{
-List with four elements (training data (X and Y) and test data (X and Y))
+List with four elements (training data (X and Y)
+                         and test data (X and Y))
 }
 \description{
 Given a training set organised as a SITS tibble, prepare
-the data for keras training, providing test and training data, distinguishing
-between MLP and 1DCNN models
+the data for keras training, providing test and training data,
+distinguishing between MLP and 1DCNN models
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

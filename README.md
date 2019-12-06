@@ -52,11 +52,11 @@ packages. More services will be added in future releases.
 ### Visualization
 
     #> sits - satellite image time series analysis.
-    #> Loaded sits v0.9.3.
+    #> Loaded sits v0.9.4.
     #>         See ?sits for help, citation("sits") for use in publication.
     #>         See demo(package = "sits") for examples.
-    #> Created logger for sits package - DEBUG level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpYFPOfG/sits_debug9c8c7351a55a.log
-    #> Created logger for sits package - ERROR level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpYFPOfG/sits_error9c8c753ef2db.log
+    #> Created logger for sits package - DEBUG level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//Rtmp4S5Wjz/sits_debug1017e33692899.log
+    #> Created logger for sits package - ERROR level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//Rtmp4S5Wjz/sits_error1017e3ce86f2d.log
 
 ``` r
 cerrado_2classes[1:3,]

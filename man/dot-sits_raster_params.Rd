@@ -13,7 +13,8 @@
 A tibble with the cube params
 }
 \description{
-Based on the R object associated to a raster object, determine its params
+Based on the R object associated to a raster object,
+                determine its params
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

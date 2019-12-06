@@ -3,7 +3,7 @@
 \name{sits_config_cubes}
 \alias{sits_config_cubes}
 \alias{.sits_config_cubes}
-\title{Retrieve the cubes associated to a service based on the configuration file}
+\title{Retrieve the cubes associated to a service}
 \usage{
 .sits_config_cubes(service)
 }

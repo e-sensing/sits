@@ -12,10 +12,11 @@ sits_missing_values(data, miss_value)
 \item{miss_value}{Number indicating missing values in a time series.}
 }
 \value{
-A tibble with time series data and metadata (with missing values removed).
+Time series data and metadata (missing values removed).
 }
 \description{
-This function removes the missing values from an image time series by substituting them by NA.
+This function removes the missing values from
+                   an image time series by substituting them by NA.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

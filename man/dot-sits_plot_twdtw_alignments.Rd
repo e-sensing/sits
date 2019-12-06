@@ -7,10 +7,11 @@
 .sits_plot_twdtw_alignments(matches)
 }
 \arguments{
-\item{matches}{A list of dtwSat S4 matches objects produced by sits_TWDTW_matches.}
+\item{matches}{A list of dtwSat S4 match objects
+(produced by sits_TWDTW_matches).}
 }
 \description{
-Plots the alignments from TWDTW classification (uses dtwSat).
+Plots the alignments from TWDTW classification
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}

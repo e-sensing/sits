@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_raster.R
 \name{.sits_raster_check_webfiles}
 \alias{.sits_raster_check_webfiles}
-\title{Check if the raster files are on the web and include prefix for GDAL access}
+\title{Check if the raster files are on the web}
 \usage{
 .sits_raster_check_webfiles(files)
 }
@@ -10,10 +10,10 @@
 \item{files}{files associated to the raster data}
 }
 \value{
-files        Updated files with appropriate information for GDAL access
+files        Updated files with  information for GDAL access
 }
 \description{
-Check if the raster files are on the web and include prefix for GDAL access
+Check if the raster files are on the web
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

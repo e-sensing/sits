@@ -4,8 +4,11 @@
 \alias{sits_keras_save}
 \title{Save a Keras model for later processing in sits}
 \usage{
-sits_keras_save(model, hdffile = "./model_keras.h5",
-  rdsfile = "./model_keras.rds")
+sits_keras_save(
+  model,
+  hdffile = "./model_keras.h5",
+  rdsfile = "./model_keras.rds"
+)
 }
 \arguments{
 \item{model}{An R Keras model trained by \code{\link[sits]{sits_deeplearning}}.}

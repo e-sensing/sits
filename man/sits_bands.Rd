@@ -17,7 +17,7 @@ Finds the names of the bands of time series in a sits tibble
               or in a metadata cube
 }
 \examples{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 # show the bands
 sits_bands(samples_mt_6bands)
 }

@@ -4,9 +4,16 @@
 \alias{sits_cluster_som}
 \title{Clustering a set of satellite image time series using SOM}
 \usage{
-sits_cluster_som(data, grid_xdim = 10, grid_ydim = 10, alpha = 1,
-  distance = "euclidean", iterations = 50, prob_label_change = 0.8,
-  min_cluster_prob = 0.6)
+sits_cluster_som(
+  data,
+  grid_xdim = 10,
+  grid_ydim = 10,
+  alpha = 1,
+  distance = "euclidean",
+  iterations = 50,
+  prob_label_change = 0.8,
+  min_cluster_prob = 0.6
+)
 }
 \arguments{
 \item{data}{A tibble with samples to be clustered.}

@@ -2,18 +2,25 @@
 % Please edit documentation in R/sits_satveg.R
 \name{.sits_from_satveg}
 \alias{.sits_from_satveg}
-\title{Obtain one timeSeries from the EMBRAPA SATVEG server and load it on a sits tibble}
+\title{Obtain one timeSeries from the EMBRAPA SATVEG server}
 \usage{
-.sits_from_satveg(cube, longitude, latitude, start_date = NULL,
-  end_date = NULL, bands = NULL, label = "NoClass",
-  .prefilter = "1")
+.sits_from_satveg(
+  cube,
+  longitude,
+  latitude,
+  start_date = NULL,
+  end_date = NULL,
+  bands = NULL,
+  label = "NoClass",
+  .prefilter = "1"
+)
 }
 \arguments{
 \item{cube}{The data cube metadata that describes the SATVEG data.}
 
-\item{longitude}{A double value with the longitude of the chosen location.}
+\item{longitude}{Longitude of the chosen location.}
 
-\item{latitude}{A double value with the latitude of the chosen location.}
+\item{latitude}{Latitude of the chosen location.}
 
 \item{start_date}{The start date of the period.}
 
@@ -21,18 +28,20 @@
 
 \item{bands}{The bands to be retrieved.}
 
-\item{label}{A string with the label to attach to the time series (optional).}
+\item{label}{Label to attach to the time series (optional).}
 
-\item{.prefilter}{A string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
+\item{.prefilter}{A string ("0" - none, "1" - no data correction,
+"2" - cloud correction,
+"3" - no data and cloud correction).}
 }
 \value{
 A sits tibble.
 }
 \description{
-Returns one set of MODIS time series provided by the EMBRAPA server (SATVEG)
-Given a location (lat/long), the function retrieves the "ndvi" and "evi" bands from SATVEG
-and inclues the data on a stis tibble. If start and end date are given, the function
-filter the data to limit the temporal interval.
+Returns one set of MODIS time series provided by the EMBRAPA
+Given a location (lat/long), retrieve the "ndvi" and "evi" bands from SATVEG
+If start and end date are given, the function
+filters the data to limit the temporal interval.
 }
 \author{
 Julio Esquerdo, \email{julio.esquerdo@embrapa.br}

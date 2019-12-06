@@ -2,7 +2,8 @@
 #' @name sits_log
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Creates a logger file for debugging and information (uses log4r package).
+#' @description Creates a logger file for debugging and information
+#'              (uses log4r package).
 #'
 #' @return TRUE if creation succeeds.
 #' @examples
@@ -56,16 +57,17 @@ sits_log <- function() {
 #' @param file_name     Name of data to be saved.
 .sits_log_data <- function(data, file_name = "data_save.rda") {
     # pre-conditions
-    ensurer::ensure_that(data, !purrr::is_null(.),
-                         err_desc = "Cannot save NULL data")
+    assertthat::assert_that(!purrr::is_null(data),
+                         msg = "Cannot save NULL data")
 
     file_save <- paste0(dirname(sits.env$debug_file),"/", file_name)
 
     tryCatch({save(data, file = file_save)},
              error = function(e){
-              msg <- paste0("sits_log_data - unable to save data in file ", file_save)
+              msg <- paste0("sits_log_data - unable to save data in file ",
+                            file_save)
               .sits_log_error(msg)
-              message("sits_log_data - unable to retrieve point - see log file" )
+              message("sits_log_data - unable to retrieve point - see log file")
             return(NULL)})
 }
 
@@ -78,8 +80,8 @@ sits_log <- function() {
 #' @param file_name     Name of data to be saved.
 .sits_log_csv <- function(csv.tb, file_name = "errors.csv"){
     # pre-conditions
-    ensurer::ensure_that(csv.tb, !purrr::is_null(.),
-                         err_desc = "Cannot save NULL CSV data")
+    assertthat::assert_that(!purrr::is_null(csv.tb),
+                            msg = "Cannot save NULL CSV data")
 
     sits_metadata_to_csv(csv.tb, file =
                         paste0(dirname(sits.env$debug_file),"/", file_name))

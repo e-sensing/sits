@@ -7,7 +7,7 @@
 sits_som_plot_clusters(data, text_title = " Cluster ")
 }
 \arguments{
-\item{data}{Table containing the percentage of mixture between the clusters
+\item{data}{Percentage of mixture between the clusters
 (produced by \code{\link[sits]{sits_som_evaluate_cluster}})}
 
 \item{text_title}{Title of plot. Default is "Cluster".}

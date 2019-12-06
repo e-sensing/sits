@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_maximum_values}
 \alias{.sits_config_maximum_values}
-\title{Retrieve the maximum values for a given band, based on the configuration file}
+\title{Retrieve the maximum values for a given band}
 \usage{
 .sits_config_maximum_values(sensor, bands)
 }
@@ -15,7 +15,7 @@
 The maximum values.
 }
 \description{
-Retrieve the maximum values for a given band, based on the configuration file
+Retrieve the maximum values for a given band
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

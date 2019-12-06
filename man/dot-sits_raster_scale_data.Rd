@@ -17,7 +17,7 @@
 A scaled matrix.
 }
 \description{
-This function normalizes one band of the values read from a raster brick.
+Normalizes one band of the values read from a raster brick.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -4,20 +4,25 @@
 \alias{.sits_som_neighbor_neurons}
 \title{Get the neighbor of neurons}
 \usage{
-.sits_som_neighbor_neurons(class_vector, kohonen_obj, duplicated_id_neuron,
-  radius = 1)
+.sits_som_neighbor_neurons(
+  class_vector,
+  kohonen_obj,
+  duplicated_id_neuron,
+  radius = 1
+)
 }
 \arguments{
 \item{class_vector}{A vector contained the labels of each neuron.}
 
 \item{kohonen_obj}{The kohonen object returned by kohonen package.}
 
-\item{duplicated_id_neuron}{A vector containing all the id of each neuron that has two majority labels.}
+\item{duplicated_id_neuron}{A vector containing all the id of each neuron
+that has two majority labels.}
 
 \item{radius}{radius of neigbourhood of each neuron.}
 }
 \value{
-Returns a sits tibble with informations about the vinicity of each neuron.
+Tibble with informations about the neighbourhood of each neuron.
 }
 \description{
 This function create a table contained the information about all

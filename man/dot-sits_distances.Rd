@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{.sits_distances}
 \alias{.sits_distances}
-\title{Use time series values from a sits tibble as distances for training patterns}
+\title{Use time series values as distances for training patterns}
 \usage{
 .sits_distances(data)
 }
@@ -10,12 +10,13 @@
 \item{data}{A tibble with time series data and metadata.}
 }
 \value{
-A data.table where columns have the reference label and the time series values as distances.
+A data.table where columns have the reference label
+                   and the time series values as distances.
 }
 \description{
 This function allows using a set of labelled time series as
 input to the machine learning models. The attributes used to train the model
-are the series themselves. This function extracts the time series from a sits tibble
+are the series themselves. It extracts the time series from a sits tibble
 and "spreads" them in time to produce a tibble with distances.
 }
 \author{

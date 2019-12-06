@@ -10,8 +10,8 @@ sits_config_show()
 List with the configuration parameters used by sits.
 }
 \description{
-Displays the contents of sits configuration file. For more details
-on how to set the configuration file, please use \code{\link[sits]{sits_config}}.
+Displays the contents of sits configuration file. For details
+on how to set the configuration file, use \code{\link[sits]{sits_config}}.
 }
 \examples{
 sits_config_show()

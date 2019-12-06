@@ -7,11 +7,11 @@
 sits_plot(data, bands = c("ndvi"), colors = "Dark2")
 }
 \arguments{
-\item{data}{Data to be plotted (can be a sits tibble, clusters, or TWDTW matches).}
+\item{data}{Data to be plotted}
 
-\item{bands}{Bands used for visualisation (optional for sits_plot_classification).}
+\item{bands}{Bands used for visualisation}
 
-\item{colors}{Color pallete to be used (based on Color Brewer - default is "Dark2").}
+\item{colors}{Color pallete to be used}
 }
 \value{
 Input sits tibble (useful for chaining functions).
@@ -45,7 +45,7 @@ sits_plot (cerrado_2classes)
 sits_plot (cerrado_2classes[1:20,])
 # Plot the patterns
 sits_plot (sits_patterns(cerrado_2classes))
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for Mato Grosso
 data(samples_mt_4bands)
 samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, bands = ndvi)
 model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())

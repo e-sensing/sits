@@ -4,51 +4,70 @@
 \alias{sits_svm}
 \title{Train a sits classification model using a support vector machine}
 \usage{
-sits_svm(data = NULL, formula = sits_formula_logref(), scale = FALSE,
-  cachesize = 1000, kernel = "radial", degree = 3, coef0 = 0,
-  cost = 10, tolerance = 0.001, epsilon = 0.1, cross = 0, ...)
+sits_svm(
+  data = NULL,
+  formula = sits_formula_logref(),
+  scale = FALSE,
+  cachesize = 1000,
+  kernel = "radial",
+  degree = 3,
+  coef0 = 0,
+  cost = 10,
+  tolerance = 0.001,
+  epsilon = 0.1,
+  cross = 0,
+  ...
+)
 }
 \arguments{
 \item{data}{Time series with the training samples.}
 
-\item{formula}{Symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_svm).}
+\item{formula}{Symbolic description of the model to be fit.
+(default: sits_formula_logref).}
 
 \item{scale}{Logical vector indicating the variables to be scaled.}
 
 \item{cachesize}{Cache memory in MB (default = 1000).}
 
-\item{kernel}{Kernel used in training and predicting. Available options are "linear", "polynomial", "radial", "sigmoid" (default: "radial").}
+\item{kernel}{Kernel used in training and predicting.
+options: "linear", "polynomial", "radial", "sigmoid"
+(default: "radial").}
 
 \item{degree}{Exponential of polynomial type kernel (default: 3).}
 
-\item{coef0}{Parameter needed for kernels of type polynomial and sigmoid (default: 0).}
+\item{coef0}{Parameter needed for kernels of type polynomial
+and sigmoid (default: 0).}
 
 \item{cost}{Cost of constraints violation.}
 
 \item{tolerance}{Tolerance of termination criterion (default: 0.001).}
 
-\item{epsilon}{Epsilon in the insensitive-loss function (default: 0.1).}
+\item{epsilon}{Epsilon in the insensitive-loss function
+(default: 0.1).}
 
-\item{cross}{Number of cross validation folds applied on the training data to assess the quality of the model.}
+\item{cross}{Number of cross validation folds applied
+to assess the quality of the model.}
 
 \item{...}{Other parameters to be passed to e1071::svm function.}
 }
 \value{
-A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+Model fitted to input data
+                        (to be passed to \code{\link[sits]{sits_classify}})
 }
 \description{
-This function receives a tibble with a set of attributes X for each observation Y.
-These attributes are distance metrics between patterns and observations, obtained by a distance
-function in sits (see \code{\link[sits]{.sits_distances}}).
+This function receives a tibble with a set of attributes X
+for each observation Y. These attributes are the values of the time series
+for each band.
 The SVM algorithm is used for multiclass-classification.
-For this purpose, it uses the "one-against-one" approach, in which k(k-1)/2 binary
-classifiers are trained; the appropriate class is found by a voting scheme.
+For this purpose, it uses the "one-against-one" approach,
+in which k(k-1)/2 binary classifiers are trained;
+the appropriate class is found by a voting scheme.
 This function is a front-end to the "svm" method in the "e1071" package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for  Mato Grosso  (provided by EMBRAPA)
 samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 
 # Build a machine learning model based on deep learning
@@ -61,7 +80,7 @@ plot(class.tb, bands = c("ndvi", "evi"))
 }
 }
 \author{
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 

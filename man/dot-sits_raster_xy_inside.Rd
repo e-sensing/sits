@@ -15,8 +15,9 @@
 TRUE if XY is inside the raster extent, FALSE otherwise.
 }
 \description{
-This function compares an XY position to the extent of a RasterBrick
-             described by a raster metadata tibble, and return TRUE if the point is
+Compares an XY position to the extent of a RasterBrick
+             described by a raster metadata tibble.
+             Returns TRUE if the point is
              inside the extent of the RasterBrick object.
 }
 \author{
