@@ -172,8 +172,9 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
     start_date <- timeline[which.min(abs(est_start_date - timeline))]
 
     # is the start date a valid one?
-    ensurer::ensure_that(start_date, .sits_timeline_is_valid_start_date(., timeline),
-                         err_desc = "sits_timeline_match: expected start date in not inside timeline of observations")
+    assertthat::assert_that(
+        .sits_timeline_is_valid_start_date(start_date, timeline),
+        msg = "sits_timeline_match: start date in not inside timeline")
 
     # obtain the subset dates to break the input data set
     # adjust the dates to match the timeline
@@ -184,9 +185,9 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
     end_date <- timeline[which(timeline == start_date) + (num_samples - 1)]
 
     # is the start date a valid one?
-    ensurer::ensure_that(end_date, !(is.na(end_date)),
-                         err_desc = "sits_timeline_match: start and end date of samples do not match timeline /n
-                                     Please compare your timeline with your samples")
+    assertthat::assert_that(!(is.na(end_date)),
+       msg = "sits_timeline_match: start and end date do not match timeline /n
+                            Please compare your timeline with your samples")
 
     # go through the timeline of the data and find the reference dates for the classification
     while (!is.na(end_date)) {
@@ -204,8 +205,9 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
     }
     # is the end date a valid one?
     end_date   <- subset_dates.lst[[length(subset_dates.lst)]][2]
-    ensurer::ensure_that(end_date, .sits_timeline_is_valid_end_date(., timeline),
-                         err_desc = "sits_timeline_match: expected end date in not inside timeline of observations")
+    assertthat::assert_that(
+            .sits_timeline_is_valid_end_date(end_date, timeline),
+             msg = "sits_timeline_match: end date in not inside timeline")
 
     return(subset_dates.lst)
 }
@@ -214,13 +216,16 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
 #' @name .sits_timeline_match_indexes
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description For correct classification, the time series of the input data set
-#'              should be aligned to that of the reference data set (usually a set of patterns).
-#'              This function aligns these data sets so that shape matching works correctly
+#' @description For correct classification, the time series of the input data
+#'              should be aligned to that of the reference data set
+#'              (usually a set of patterns).
+#'              This function aligns these data sets so that shape
+#'              matching works correctly
 #'
 #' @param timeline              Timeline of input observations (vector).
-#' @param ref_dates.lst         A list of breaks that will be applied to the input data set.
-#' @return A list of indexes that match the reference dates to the timelines.
+#' @param ref_dates.lst         Breaks to be applied to the input data set.
+#' @return                      A list of indexes that match the reference dates
+#'                              to the timelines.
 .sits_timeline_match_indexes <- function(timeline, ref_dates.lst){
     dates_index.lst <- ref_dates.lst %>%
         purrr::map(function(date_pair) {
@@ -298,13 +303,16 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
     return(select.lst)
 }
 
-#' @title Provide a list of indexes to extract data from a raster-derived data table for classification
+#' @title Provide a list of indexes to extract data from a raster-derived
+#'        data table for classification
 #' @name .sits_timeline_raster_indexes
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Given a list of time indexes that indicate the start and end of the values to
-#' be extracted to classify each band, obtain a list of indexes that will be used to
-#' extract values from a combined distance tibble (with has all the bands put together)
+#' @description Given a list of time indexes that indicate the start and end
+#'              of the values to be extracted to classify each band,
+#'              obtain a list of indexes that will be used to extract values
+#'              from a combined distance tibble
+#'              (which has all the bands put together).
 #'
 #' @param  cube               Data cube with input data set.
 #' @param  samples            Tibble with samples used for classification.
@@ -385,8 +393,8 @@ sits_timeline <- function(data, index = 1){
     if ("time_series" %in% names(data))
         timeline <- lubridate::as_date(sits_time_series_dates(data))
 
-    ensurer::ensure_that(timeline, !purrr::is_null(.),
-                         err_desc = "sits_timeline: input does not contain a valid timeline")
+    assertthat::assert_that(!purrr::is_null(timeline),
+          msg = "sits_timeline: input does not contain a valid timeline")
 
     return(timeline)
 }

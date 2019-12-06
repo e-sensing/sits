@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_tcap_brightness}
 \alias{.sits_config_tcap_brightness}
-\title{Retrieve the vector of coeficientes for brightness component of tasseled cap}
+\title{Retrieve the vector of coeficientes for brightness of tasseled cap}
 \usage{
 .sits_config_tcap_brightness(sensor = "MODIS")
 }
@@ -13,7 +13,7 @@
 Named vector of brightness coefficients.
 }
 \description{
-Retrieve the vector of coeficientes for brightness component of tasseled cap
+Retrieve the vector of coeficientes for brightness of tasseled cap
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

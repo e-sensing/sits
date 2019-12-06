@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_sensors}
 \alias{.sits_config_sensors}
-\title{List the sensors supported per satellite, based on the configuration file}
+\title{List the sensors supported per satellite}
 \usage{
 .sits_config_sensors(satellite)
 }
@@ -13,7 +13,7 @@
 List of sensors associated to a satellite that are supported by SITS
 }
 \description{
-List the sensors supported per satellite, based on the configuration file
+List the sensors supported per satellite
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

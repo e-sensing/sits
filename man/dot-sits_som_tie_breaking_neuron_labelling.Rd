@@ -4,15 +4,19 @@
 \alias{.sits_som_tie_breaking_neuron_labelling}
 \title{Tie breaking neuron labelling}
 \usage{
-.sits_som_tie_breaking_neuron_labelling(class_vector, kohonen_obj,
-  duplicated_id_neuron)
+.sits_som_tie_breaking_neuron_labelling(
+  class_vector,
+  kohonen_obj,
+  duplicated_id_neuron
+)
 }
 \arguments{
 \item{class_vector}{A vector contained the labels of each neuron.}
 
 \item{kohonen_obj}{The kohonen object returned by kohonen package.}
 
-\item{duplicated_id_neuron}{A vector containing all the id of each neuron that has two majority labels.}
+\item{duplicated_id_neuron}{A vector containing the id of each neuron
+that has two majority labels.}
 }
 \value{
 Return a new majority label of a neuron based on its neighbourhood

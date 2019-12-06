@@ -13,7 +13,7 @@
 Name of the satellite .
 }
 \description{
-Based on the projection, tries to guess what is the satellite.
+Based on the projection, tries to guess the satellite.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

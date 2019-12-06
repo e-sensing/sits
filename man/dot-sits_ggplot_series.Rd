@@ -9,7 +9,7 @@
 \arguments{
 \item{row}{A row of a sits tibble with the time series to be plotted.}
 
-\item{colors}{A string with the set of Brewer colors to be used for plotting.}
+\item{colors}{Brewer colors to be used for plotting.}
 }
 \description{
 Plots a set of time series using ggplot. This function is used

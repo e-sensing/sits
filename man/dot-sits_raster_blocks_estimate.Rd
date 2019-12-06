@@ -4,8 +4,16 @@
 \alias{.sits_raster_blocks_estimate}
 \title{Estimate the number of blocks}
 \usage{
-.sits_raster_blocks_estimate(ml_model, nbands, nrows, ncols, timeline,
-  interval, memsize, multicores)
+.sits_raster_blocks_estimate(
+  ml_model,
+  nbands,
+  nrows,
+  ncols,
+  timeline,
+  interval,
+  memsize,
+  multicores
+)
 }
 \arguments{
 \item{ml_model}{Machine learning model.}
@@ -28,7 +36,8 @@
 Number of blocks to be read.
 }
 \description{
-Defines the number of blocks of a Raster Brick to be read into memory.
+Defines the number of blocks of a Raster Brick
+             to be read into memory.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

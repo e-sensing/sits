@@ -4,8 +4,7 @@
 \alias{plot.classified_image}
 \title{Generic interface for ploting classified images}
 \usage{
-\method{plot}{classified_image}(x, y, ..., time = 1,
-  title = "Classified Image", colors = NULL)
+\method{plot}{classified_image}(x, y, ..., time = 1, title = "Classified Image", colors = NULL)
 }
 \arguments{
 \item{x}{Object of class "classified_image"}
@@ -34,13 +33,15 @@ samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
 
 rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
 # Classify a raster file with 23 instances for one year
-files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+           package = "sits"))
 # create a data cube based on the information about the files
 sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
 bands = "ndvi", files = files)
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicores = 1)
+sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
+                             memsize = 2, multicores = 1)
 
 # label the classified image
 sinop_label <- sits_label_classification(sinop_probs)

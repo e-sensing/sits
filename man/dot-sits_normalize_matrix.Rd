@@ -19,7 +19,8 @@
 A normalized matrix.
 }
 \description{
-this function normalizes one band of the values read from a raster brick
+this function normalizes one band of the values read
+from a raster brick.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

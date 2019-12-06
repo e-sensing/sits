@@ -15,8 +15,10 @@ A vector with four external validity indices.
 \description{
 Compute different cluster validity indices. This function needs
 as input a sits tibble with `cluster` column.
-It is a front-end to `dtwclust::cvi` function. That function computes five indices:
-1) adjusted Rand index; 2) Rand index; 3) Jaccard index; 4) Fowlkes-Mallows; and 5) Variation of Information index
+It is a front-end to `dtwclust::cvi` function.
+That function computes five indices:
+1) adjusted Rand index; 2) Rand index; 3) Jaccard index;
+4) Fowlkes-Mallows; and 5) Variation of Information index
 Please refer to the documentation in that package for more details.
 }
 \references{

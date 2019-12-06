@@ -2,24 +2,28 @@
 % Please edit documentation in R/sits_tibble.R
 \name{sits_values}
 \alias{sits_values}
-\title{Return the values of a given sits tibble as a list of matrices according to a specified format.}
+\title{Return the values of a given sits tibble as a list of matrices.}
 \usage{
 sits_values(data, bands = NULL, format = "cases_dates_bands")
 }
 \arguments{
 \item{data}{A sits tibble with time series for different bands.}
 
-\item{bands}{A string with a group of bands whose values are to be extracted. If no bands is informed extract ALL bands.}
+\item{bands}{A string with a group of bands whose
+values are to be extracted. If no bands are informed
+extract ALL bands.}
 
-\item{format}{A string with either "cases_dates_bands" or "bands_cases_dates" or "bands_dates_cases".}
+\item{format}{A string with either "cases_dates_bands"
+or "bands_cases_dates" or "bands_dates_cases".}
 }
 \value{
 A sits tibble with values.
 }
 \description{
-This function returns only the values of a sits tibble (according a specified format).
-This function is useful to use packages such as ggplot2, dtwclust, or kohonen that
-require values that are rowwise or colwise organised.
+This function returns only the values of a sits tibble
+(according a specified format).
+This function is useful to use packages such as ggplot2, dtwclust, or kohonen
+that require values that are rowwise or colwise organised.
 }
 \examples{
 # Retrieve a set of time series with 2 classes

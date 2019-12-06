@@ -9,15 +9,17 @@ sits_relabel(data, conv.lst = list())
 \arguments{
 \item{data}{A sits tibble.}
 
-\item{conv.lst}{A named list used to convert labels to a new value. Actual labels must be the names of the conv.lst elements.
-an empty list produces no difference.}
+\item{conv.lst}{A named list used to convert labels to a new value.
+Actual labels must be the names of the list elements.
+An empty list produces no difference.}
 }
 \value{
 A new sits tibble with modified labels.
 }
 \description{
 Given a sits tibble with a set of labels, and a conversion list
-between the original labels and new labels, returns a new sits tibble whose labels are changed.
+between the original labels and new labels,
+returns a new sits tibble whose labels are changed.
 }
 \examples{
 \donttest{

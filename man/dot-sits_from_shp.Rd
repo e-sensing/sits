@@ -4,29 +4,43 @@
 \alias{.sits_from_shp}
 \title{Obtain timeSeries from WTSS server, based on a SHP file.}
 \usage{
-.sits_from_shp(shp_file, cube, start_date, end_date, bands, label,
-  shp_attr, .n_shp_pol, .n_shp_pts, .prefilter)
+.sits_from_shp(
+  shp_file,
+  cube,
+  start_date,
+  end_date,
+  bands,
+  label,
+  shp_attr,
+  .n_shp_pol,
+  .n_shp_pts,
+  .prefilter
+)
 }
 \arguments{
-\item{shp_file}{Name of a SHP file which provides the boundaries of a region of interest.}
+\item{shp_file}{SHP file which provides the boundaries of a region.}
 
 \item{cube}{Data cube metadata.}
 
-\item{start_date}{The start date of the period.}
+\item{start_date}{Start date of the period.}
 
-\item{end_date}{The end date of the period.}
+\item{end_date}{End date of the period.}
 
-\item{bands}{A string vector with the names of the bands to be retrieved.}
+\item{bands}{Names of the bands to be retrieved.}
 
-\item{label}{A string with the label to attach to the time series.}
+\item{label}{Label to attach to the time series.}
 
-\item{shp_attr}{An optional string to indicate the attribute in the shapefile to be used as a polygon label}
+\item{shp_attr}{Attribute in the shapefile used as a polygon label}
 
-\item{.n_shp_pol}{Number of samples per polygon to be read (for POLYGON or MULTIPOLYGON shapes)}
+\item{.n_shp_pol}{Number of samples per polygon to be read
+(for POLYGON or MULTIPOLYGON shapes)}
 
 \item{.n_shp_pts}{Number of points to be read (for POINT shapes)}
 
-\item{.prefilter}{Filtering for SATVEG cube ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
+\item{.prefilter}{Filtering for SATVEG cube
+("0" - none, "1" - no data correction,
+"2" - cloud correction,
+"3" - no data and cloud correction).}
 }
 \value{
 A sits tibble.

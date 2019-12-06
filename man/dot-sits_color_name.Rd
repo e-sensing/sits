@@ -13,5 +13,5 @@
 A string with the common color set name.
 }
 \description{
-brewer color schemes names to be used with `.sits_plot_dendrogram`.
+Brewer color schemes names
 }

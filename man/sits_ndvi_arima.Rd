@@ -4,17 +4,26 @@
 \alias{sits_ndvi_arima}
 \title{NDVI filter with ARIMA model}
 \usage{
-sits_ndvi_arima(data = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
-  bands_suffix = "", apply_whit = TRUE, lambda_whit = 1)
+sits_ndvi_arima(
+  data = NULL,
+  cutoff = -0.25,
+  p = 0,
+  d = 0,
+  q = 3,
+  bands_suffix = "",
+  apply_whit = TRUE,
+  lambda_whit = 1
+)
 }
 \arguments{
-\item{data}{A tibble with time series data and metadata with only the "ndvi" band.}
+\item{data}{Time series data and metadata (only the "ndvi" band).}
 
-\item{cutoff}{Numeric value for the maximum acceptable value of a NDVI difference.}
+\item{cutoff}{Maximum acceptable value of a NDVI difference.}
 
 \item{p}{Order (number of time lags) of the autoregressive model.}
 
-\item{d}{Degree of differencing (the number of times the data have had past values subtracted).}
+\item{d}{Degree of differencing  (the number of times
+the data has had past values subtracted).}
 
 \item{q}{Order of the moving-average model.}
 
@@ -29,9 +38,10 @@ A sits tibble with same samples and the new bands.
 }
 \description{
 This function tries to remove clouds in the ndvi band of
-a satellite image time series. It looks for points where the value of the NDVI
-band goes down abruptly. These points are taken as those whose difference is more
-than a cutoff value which is set by the user. Then it applies an spline interploation.
+a time series. It looks for points where the value of the NDVI
+band goes down abruptly. These points are those whose difference is more
+than a cutoff value which is set by the user.
+Then it applies an spline interploation.
 Finally, the function applies a whitakker smoother.
 }
 \examples{

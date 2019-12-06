@@ -9,13 +9,15 @@ sits_mutate_bands(data, ...)
 \arguments{
 \item{data}{Valid sits tibble.}
 
-\item{...}{Expressions written as `name = value`. See \code{dplyr::mutate()} help for more details.}
+\item{...}{Expressions written as `name = value`.
+See \code{dplyr::mutate()} help for more details.}
 }
 \value{
 A sits tibble with same samples and the selected bands.
 }
 \description{
-Adds new bands and preserves existing in the time series of a sits tibble using \code{dplyr::mutate} function.
+Adds new bands and preserves existing in the time series
+             of a sits tibble using \code{dplyr::mutate} function.
 }
 \examples{
 \donttest{

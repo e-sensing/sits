@@ -9,10 +9,11 @@ sits_train(data, ml_method = sits_svm())
 \arguments{
 \item{data}{Time series with the training samples.}
 
-\item{ml_method}{Machine learning method that returns a model for prediction.}
+\item{ml_method}{Machine learning method.}
 }
 \value{
-A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+Model fitted to input data
+                         to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
 Given a tibble with a set of distance measures,
@@ -27,14 +28,15 @@ multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
 extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
 and different deep learning functions, including multi-layer perceptrons
 (see \code{\link[sits]{sits_deeplearning}}, 1D convolutional neural networks
-\code{\link[sits]{sits_FCN}}, mixed 1D and MLP networks \code{\link[sits]{sits_TempCNN}}
-a 1D version of ResNet \code{\link[sits]{sits_ResNet}}), and a combined LSTM-FCN model
+\code{\link[sits]{sits_FCN}}, mixed 1D and MLP networks
+\code{\link[sits]{sits_TempCNN}}, a 1D version of ResNet
+\code{\link[sits]{sits_ResNet}}), and a combined LSTM-FCN model
 \code{\link[sits]{sits_LSTM_FCN}}.
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-# find a training model based on the distances and default values (RFOR model)
+# Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
+# fit a training model (RFOR model)
 samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 ml_model <- sits_train(samples_2bands, sits_rfor(num_trees = 1000))
 # get a point and classify the point with the ml_model
@@ -48,5 +50,5 @@ Rolf Simoes, \email{rolf.simoes@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 }

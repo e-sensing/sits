@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_size}
 \alias{.sits_config_size}
-\title{Retrieve the size of the cube for a given service, based on the configuration file}
+\title{Retrieve the size of the cube for a given service}
 \usage{
 .sits_config_size(service, name, r_obj = NA)
 }
@@ -17,7 +17,7 @@
 Vector of (nrows, ncols).
 }
 \description{
-Retrieve the size of the cube for a given service, based on the configuration file
+Retrieve the size of the cube for a given service
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

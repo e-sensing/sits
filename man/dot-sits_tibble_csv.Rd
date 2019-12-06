@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tibble.R
 \name{.sits_tibble_csv}
 \alias{.sits_tibble_csv}
-\title{Create an empty tibble to store the results of CSV samples that could not be read}
+\title{Store the results of CSV samples that could not be read}
 \usage{
 .sits_tibble_csv()
 }

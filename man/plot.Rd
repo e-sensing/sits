@@ -14,7 +14,8 @@
 
 \item{...}{further specifications for \link{plot}.}
 
-\item{colors}{Color pallete to be used (based on Color Brewer - default is "Dark2").}
+\item{colors}{Color pallete to be used (based on Color Brewer
+- default is "Dark2").}
 }
 \value{
 Input sits tibble (useful for chaining functions).
@@ -29,8 +30,8 @@ The plot function produces different plots based on the input data:
 }
 The plot.sits function makes an educated guess of what plot is required,
 based on the input data. If the input data has less than 30 samples, it
-will default to "all years". If there are more than 30 samples, it will default to
-"together".
+will default to "all years". If there are more than 30 samples,
+it will default to "together".
 }
 \examples{
 \donttest{

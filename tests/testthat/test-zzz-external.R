@@ -6,10 +6,7 @@ test_that("FilePath",{
     expect_false("shp" %in% file)
 })
 
-test_that("Unique and Ensurer",{
+test_that("Unique",{
     labels <- unique(cerrado_2classes$label)
     expect_true("Cerrado" %in% labels)
-    v <- ensurer::ensure_that("Cerrado", (.) %in% labels,
-                              err_desc = "error in ensurer test")
-    expect_true(v == "Cerrado")
 })

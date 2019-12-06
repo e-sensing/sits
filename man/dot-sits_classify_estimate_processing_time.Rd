@@ -4,8 +4,13 @@
 \alias{.sits_classify_estimate_processing_time}
 \title{Estimate the processing time}
 \usage{
-.sits_classify_estimate_processing_time(start_time, select.lst, bs, block,
-  time)
+.sits_classify_estimate_processing_time(
+  start_time,
+  select.lst,
+  bs,
+  block,
+  time
+)
 }
 \arguments{
 \item{start_time}{Initial processing time.}
@@ -22,7 +27,7 @@
 Scaled matrix.
 }
 \description{
-This function normalizes one band of the values read from a raster brick.
+This function normalizes values read from a raster brick.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

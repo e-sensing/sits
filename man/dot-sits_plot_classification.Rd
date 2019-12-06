@@ -7,12 +7,13 @@
 .sits_plot_classification(data, bands = NULL)
 }
 \arguments{
-\item{data}{A sits tibble with one or more time series that have been classified.}
+\item{data}{A sits tibble with classified time series.}
 
 \item{bands}{Band for plotting the classification.}
 }
 \description{
-Plots the classification results (code reused from the dtwSat package by Victor Maus).
+Plots the classification results
+                    (code reused from the dtwSat package by Victor Maus).
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}

@@ -23,7 +23,7 @@ Given a sits tibble with a set of predictions, plot them
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
 # classify the point
 model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())

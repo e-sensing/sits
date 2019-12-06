@@ -2,23 +2,28 @@
 % Please edit documentation in R/sits_accuracy.R
 \name{sits_conf_matrix}
 \alias{sits_conf_matrix}
-\title{Assessment of the accuracy of classification based on a confusion matrix}
+\title{Accuracy assessment of classification based on a confusion matrix}
 \usage{
 sits_conf_matrix(class.tb, conv.lst = NULL)
 }
 \arguments{
-\item{class.tb}{A tibble containing a set of classified samples whose labels are known.}
+\item{class.tb}{Set of classified samples whose labels are known.}
 
-\item{conv.lst}{List with labels to be converted. If NULL no conversion is done.}
+\item{conv.lst}{List with labels to be converted.
+If NULL no conversion is done.}
 }
 \value{
 A confusion matrix assessment produced by the caret package.
 }
 \description{
-Evaluates the confusion matrix based on "reference" and "predicted" values
-provided in a sits tibble that has been classified. This function takes two kinds of input:
-(a) The output of the \code{\link[sits]{sits_classify}} function (a tibble with a list of predicted values)
-(b) The output of the \code{\link[sits]{sits_kfold_validate}} function (a tibble with two columns - predicted and reference)
+Evaluates the confusion matrix based on
+"reference" and "predicted" values
+provided in a sits tibble that has been classified.
+This function takes two kinds of input:
+(a) The output of the \code{\link[sits]{sits_classify}} function
+(a tibble with a list of predicted values);
+(b) The output of the \code{\link[sits]{sits_kfold_validate}} function
+(a tibble with two columns - predicted and reference).
 This function returns the Overall Accuracy, User's Accuracy,
 Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 }

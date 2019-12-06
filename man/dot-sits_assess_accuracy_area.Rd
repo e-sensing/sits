@@ -7,12 +7,18 @@
 .sits_assess_accuracy_area(error_matrix, area)
 }
 \arguments{
-\item{error_matrix}{A matrix given in sample counts. Columns represent the reference data and rows the results of the classification}
+\item{error_matrix}{A matrix given in sample counts.
+Columns represent the reference data and
+rows the results of the classification}
 
 \item{area}{A vector of the total area of each class on the map}
 }
 \value{
-A list of lists: The error_matrix, the class_areas, confidence interval (confint95, a list of two numerics) and the accuracy (accuracy, a list of three numerics: overall, user, and producer)
+A list of lists: The error_matrix,
+                    the class_areas,
+                    confidence interval (confint95, a list of two numerics)
+                    and the accuracy (accuracy, a list of three numerics:
+                    overall, user, and producer)
 }
 \description{
 Support for Area-weighted post-classification accuracy

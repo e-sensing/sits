@@ -10,10 +10,13 @@ sits_config()
 A list with the configuration parameters used by sits.
 }
 \description{
-Reads a user-specified configuration file, located in a "config.yml" file
-in the working directory. If this file is not found, reads a default package configuration file.
-By default, the sits configuration file "config.yml" is located at the directory "extdata" of the
-package. The configuration file is an YAML file that should provide at least the following parameters:
+Reads a user-specified configuration file,
+located in a "config.yml" file in the working directory.
+If this file is not found, reads a default package configuration file.
+By default, the sits configuration file "config.yml" is located at
+the directory "extdata" of the
+package. The configuration file is an YAML file that
+should provide at least the following parameters:
 
 default:
    ts_servers     :
@@ -23,7 +26,8 @@ default:
    SATVEG_server  : "https://www.satveg.cnptia.embrapa.br"
    SATVEG_account : "/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
 
-To see the contents of the configuration file, please use \code{\link[sits]{sits_config_show}}.
+To see the contents of the configuration file,
+please use \code{\link[sits]{sits_config_show}}.
 }
 \examples{
 # create configurtion file

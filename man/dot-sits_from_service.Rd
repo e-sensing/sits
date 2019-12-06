@@ -4,8 +4,16 @@
 \alias{.sits_from_service}
 \title{Obtain timeSeries from a web service associated to data cubes}
 \usage{
-.sits_from_service(cube, longitude, latitude, start_date, end_date, bands,
-  label = "NoClass", .prefilter = "1")
+.sits_from_service(
+  cube,
+  longitude,
+  latitude,
+  start_date,
+  end_date,
+  bands,
+  label = "NoClass",
+  .prefilter = "1"
+)
 }
 \arguments{
 \item{cube}{Data cube metadata.}
@@ -14,15 +22,18 @@
 
 \item{latitude}{Latitude of the chosen location).}
 
-\item{start_date}{Optional start date of the period.}
+\item{start_date}{Start date of the period.}
 
-\item{end_date}{Optional end date of the period.}
+\item{end_date}{End date of the period.}
 
-\item{bands}{Optional string vector with the names of the bands to be retrieved.}
+\item{bands}{Bands to be retrieved (optional).}
 
-\item{label}{String with the label to attach to the time series.}
+\item{label}{Label to attach to the time series.}
 
-\item{.prefilter}{String (only for SATVEG) ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
+\item{.prefilter}{String (only for SATVEG)
+("0" - none, "1" - no data correction,
+"2" - cloud correction,
+"3" - no data and cloud correction).}
 }
 \value{
 A sits tibble.

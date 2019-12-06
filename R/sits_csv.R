@@ -26,8 +26,8 @@
                             label       = readr::col_character())
 
     # pre-condition - does the csvfile exist?
-    ensurer::ensure_that(csv_file, file.exists(.),
-                         err_desc = "sits_from_csv: csv file does not exist")
+    assertthat::assert_that(file.exists(csv_file),
+                         msg = "sits_from_csv: csv file does not exist")
 
     # read sample information from CSV file and put it in a tibble
     csv.tb <- readr::read_csv(csv_file, n_max = Inf, col_types = cols_csv)
@@ -117,16 +117,16 @@ sits_metadata_to_csv <- function(data, file){
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
-    ensurer::ensure_that(file, suppressWarnings(file.create(.)),
-                         err_desc = "sits_metadata_to_csv - file is not writable")
+    assertthat::assert_that(suppressWarnings(file.create(file)),
+                         msg = "sits_metadata_to_csv - file is not writable")
 
     csv_columns <- c("longitude", "latitude", "start_date", "end_date", "label")
 
     #select the parts of the tibble to be saved
     csv.tb <- dplyr::select(data, csv_columns)
 
-    ensurer::ensure_that(csv.tb, NROW(.) > 0,
-                         err_desc = "sits_metadata_to_csv: invalid csv file")
+    assertthat::assert_that(NROW(csv.tb) > 0,
+                         msg = "sits_metadata_to_csv: invalid csv file")
     n_rows_csv <- NROW(csv.tb)
     # create a column with the id
     id.tb <- tibble::tibble(id = 1:n_rows_csv)
@@ -166,8 +166,8 @@ sits_data_to_csv <- function(data, file){
     # check if data is valid
     .sits_test_tibble(data)
 
-    ensurer::ensure_that(file, suppressWarnings(file.create(.)),
-                         err_desc = "sits_data_to_csv - file is not writable")
+    assertthat::assert_that(suppressWarnings(file.create(file)),
+                         msg = "sits_data_to_csv - file is not writable")
 
     distances_DT <- .sits_distances(data)
 

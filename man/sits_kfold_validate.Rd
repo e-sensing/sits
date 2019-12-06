@@ -4,8 +4,7 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate temporal patterns}
 \usage{
-sits_kfold_validate(data, folds = 5, ml_method = sits_rfor(),
-  multicores = 2)
+sits_kfold_validate(data, folds = 5, ml_method = sits_rfor(), multicores = 2)
 }
 \arguments{
 \item{data}{A sits tibble.}
@@ -22,10 +21,10 @@ A tibble containing pairs of reference and predicted values.
 \description{
 Splits the set of time series into training and validation and
 perform k-fold cross-validation.
-Cross-validation is a model validation technique for assessing how the results
+Cross-validation is a technique for assessing how the results
 of a statistical analysis will generalize to an independent data set.
 It is mainly used in settings where the goal is prediction,
-and one wants to estimate how accurately a predictive model will perform in practice.
+and one wants to estimate how accurately a predictive model will perform.
 One round of cross-validation involves partitioning a sample of data
 into complementary subsets, performing the analysis on one subset
 (called the training set), and validating the analysis on the other subset

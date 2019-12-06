@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_minimum_values}
 \alias{.sits_config_minimum_values}
-\title{Retrieve the minimum values for a given band, based on the configuration file}
+\title{Retrieve the minimum values for a given band}
 \usage{
 .sits_config_minimum_values(sensor, bands)
 }
@@ -15,7 +15,7 @@
 The minimum values.
 }
 \description{
-Retrieve the minimum values for a given band, based on the configuration file
+Retrieve the minimum values for a given band
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

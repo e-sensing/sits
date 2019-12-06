@@ -32,12 +32,12 @@ ByteCompile: true
 LazyData: true
 Imports:
     magrittr,
+    assertthat,
     caret,
     config,
     data.table (>= 1.10),
     dendextend,
     e1071,
-    ensurer,
     EOCubes,
     dplyr (>= 0.7.4),
     dtw,
@@ -90,7 +90,7 @@ Remotes:
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 Collate: 
     'RcppExports.R'
     'data.R'
@@ -127,4 +127,3 @@ Collate:
     'sits_wtss.R'
     'sits_zoo.R'
     'zzz.R'
-

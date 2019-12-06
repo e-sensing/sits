@@ -60,8 +60,8 @@ sits_savi <- function(data){
         data <- .sits_tibble_rename(data)
     bands <- sits_bands(data)
     bands_savi <- c("nir", "red")
-    ensurer::ensure_that(bands, all(bands_savi %in% (.)),
-        err_desc = "sits_savi: not enough bands to compute")
+    assertthat::assert_that(all(bands_savi %in% (bands)),
+        msg = "sits_savi: not enough bands to compute")
 
     data <- sits_mutate_bands(data, savi = (1.5)*(nir - red)/(nir + red + 0.5))
 
@@ -88,8 +88,8 @@ sits_ndwi <- function(data){
         data <- .sits_tibble_rename(data)
     bands <- sits_bands(data)
     bands_ndwi <- c("nir", "mir")
-    ensurer::ensure_that(bands, all(bands_ndwi %in% (.)),
-                         err_desc = "sits_ndwi: not enough bands to compute")
+    assertthat::assert_that(all(bands_ndwi %in% (bands)),
+                         msg = "sits_ndwi: not enough bands to compute")
 
     data <- sits_mutate_bands(data, ndwi = (1.5) * (nir - mir)/(nir + mir))
 

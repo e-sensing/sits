@@ -4,67 +4,84 @@
 \alias{sits_TempCNN}
 \title{Train a model using the Temporal Convolutional Neural Network}
 \usage{
-sits_TempCNN(data = NULL, cnn_layers = c(64, 64, 64),
-  cnn_kernels = c(5, 5, 5), cnn_activation = "relu",
-  cnn_L2_rate = 1e-06, cnn_dropout_rates = c(0.5, 0.5, 0.5),
-  mlp_layers = c(256), mlp_activation = "relu",
-  mlp_dropout_rates = c(0.5), optimizer = keras::optimizer_adam(lr =
-  0.001), epochs = 150, batch_size = 128, validation_split = 0.2,
-  verbose = 1)
+sits_TempCNN(
+  data = NULL,
+  cnn_layers = c(64, 64, 64),
+  cnn_kernels = c(5, 5, 5),
+  cnn_activation = "relu",
+  cnn_L2_rate = 1e-06,
+  cnn_dropout_rates = c(0.5, 0.5, 0.5),
+  mlp_layers = c(256),
+  mlp_activation = "relu",
+  mlp_dropout_rates = c(0.5),
+  optimizer = keras::optimizer_adam(lr = 0.001),
+  epochs = 150,
+  batch_size = 128,
+  validation_split = 0.2,
+  verbose = 1
+)
 }
 \arguments{
 \item{data}{Time series with the training samples.}
 
-\item{cnn_layers}{Vector with the number of 1D convolutional filters per layer}
+\item{cnn_layers}{Number of 1D convolutional filters per layer}
 
-\item{cnn_kernels}{Vector with the size of the 1D convolutional kernels.}
+\item{cnn_kernels}{Size of the 1D convolutional kernels.}
 
 \item{cnn_activation}{Activation function for 1D convolution.
-Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
+Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.}
 
-\item{cnn_L2_rate}{Regularization rate for 1D convolution.
-Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
+\item{cnn_L2_rate}{Regularization rate for 1D convolution.}
 
-\item{cnn_dropout_rates}{Vector with dropout rates for 1D convolutional filters.}
+\item{cnn_dropout_rates}{Dropout rates for 1D convolutional filters.}
 
-\item{mlp_layers}{Vector with the number of hidden nodes in the MLP (multi-layer-perceptron).}
+\item{mlp_layers}{Number of nodes in the multi-layer-perceptron.}
 
-\item{mlp_activation}{Names of 2D activation functions for the MLP. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
+\item{mlp_activation}{Names of 2D activation functions for the MLP.
+Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.}
 
-\item{mlp_dropout_rates}{Vector with the dropout rates (0,1) for each layer in the MLP.}
+\item{mlp_dropout_rates}{Dropout rates (0,1) for each layer in the MLP.}
 
-\item{optimizer}{Function with a pointer to the optimizer function (default is optimization_adam()).
-Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
-optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()}
+\item{optimizer}{Function with a pointer to the optimizer function
+(default is optimization_adam()).
+Options: optimizer_adadelta(), optimizer_adagrad(),
+optimizer_adam(), optimizer_adamax(),
+optimizer_nadam(), optimizer_rmsprop(),
+optimizer_sgd().}
 
 \item{epochs}{Number of iterations to train the model.}
 
 \item{batch_size}{Number of samples per gradient update.}
 
-\item{validation_split}{Number between 0 and 1. Fraction of the training data to be used as validation data.
-The model will set apart this fraction of the training data, will not train on it,
-and will evaluate the loss and any model metrics on this data at the end of each epoch.
-The validation data is selected from the last samples in the x and y data provided,
+\item{validation_split}{Number between 0 and 1. Fraction of training data
+to be used as validation data.
+The model will set apart this fraction of the
+training data, will not train on it,
+and will evaluate the loss and any model metrics
+on this data at the end of each epoch.
+The validation data is selected from the last
+samples in the x and y data provided,
 before shuffling.}
 
-\item{verbose}{Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).}
+\item{verbose}{Verbosity mode (0 = silent, 1 = progress bar,
+2 = one line per epoch).}
 }
 \value{
-A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+A fitted model to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
-Use a TempCNN algorithm to classify data. The tempCNN algorithm has
-two stages: a 1D CNN is applied to the input time series data is combined with a
-multi-layer perceptron. Users can define the depth of the 1D network, as well as
+Use a TempCNN algorithm to classify data, which has
+two stages: a 1D CNN and a  multi-layer perceptron.
+Users can define the depth of the 1D network, as well as
 the number of perceptron layers.
 
 This function is based on the paper by Charlotte Pelletier referenced below
-and the code made available on github (https://github.com/charlotte-pel/temporalCNN)
+and code available on github (https://github.com/charlotte-pel/temporalCNN).
 If you use this method, please cite the original tempCNN paper.
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
 tc_model <- sits_train (samples_mt_4bands, sits_TempCNN(epochs = 75))
@@ -80,13 +97,14 @@ plot(class.tb, bands = c("ndvi", "evi"))
 }
 \references{
 Charlotte Pelletier, Geoffrey Webb and François Petitjean,
-"Temporal Convolutional Neural Network for the Classification of Satellite Image Time Series",
+"Temporal Convolutional Neural Network for the Classification
+of Satellite Image Time Series",
 Remote Sensing, 11,523, 2019. DOI: 10.3390/rs11050523.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

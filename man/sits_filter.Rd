@@ -15,7 +15,7 @@ sits_filter(data, filter = sits_whittaker())
 A set of filtered time series
 }
 \description{
-Given a tibble with a set of time series, filter the tibble with one of
+Given a set of time series, filter them with one of
 the available filtering algorithms:
 }
 \examples{
@@ -52,7 +52,8 @@ point_ndvi \%>\%
 # Merge the filtered with the raw data
 # Plot the result
 point_ndvi \%>\%
-      sits_filter(filter = sits_whittaker (lambda = 3.0, band_suffix = "whit")) \%>\%
+      sits_filter(filter =
+                  sits_whittaker (lambda = 3.0, band_suffix = "whit")) \%>\%
       sits_merge (point_ndvi, .) \%>\%
       plot()
 

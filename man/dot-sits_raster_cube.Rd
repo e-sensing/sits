@@ -4,8 +4,16 @@
 \alias{.sits_raster_cube}
 \title{Create a data cube based on a set of Raster Bricks}
 \usage{
-.sits_raster_cube(service, URL, satellite, sensor, name, timeline, bands,
-  files)
+.sits_raster_cube(
+  service,
+  URL,
+  satellite,
+  sensor,
+  name,
+  timeline,
+  bands,
+  files
+)
 }
 \arguments{
 \item{service}{Name of the data service.}
@@ -20,7 +28,8 @@
 
 \item{timeline}{Vector of dates with the timeline of the bands.}
 
-\item{bands}{Vector of bands contained in the Raster Brick set (in the same order as the files).}
+\item{bands}{Vector of bands contained in the Raster Brick
+set (in the same order as the files).}
 
 \item{files}{Vector with the file paths of the raster files.}
 }
@@ -29,10 +38,12 @@ A tibble with metadata information about a raster data set.
 }
 \description{
 This function creates a tibble containing the metadata for
-              a set of spatio-temporal raster files, organized as a set of "Raster Bricks".
+              a set of spatio-temporal raster files,
+              organized as a set of "Raster Bricks".
               These files should be of the same size and
               projection. Each raster brick file should contain one band
-              per time step. Different bands are archived in different raster files.
+              per time step.
+              Different bands are archived in different raster files.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

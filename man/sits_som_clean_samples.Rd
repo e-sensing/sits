@@ -4,19 +4,25 @@
 \alias{sits_som_clean_samples}
 \title{Clean samples}
 \usage{
-sits_som_clean_samples(som_cluster, prob_label_change = 0.8,
-  min_cluster_prob = 0.6)
+sits_som_clean_samples(
+  som_cluster,
+  prob_label_change = 0.8,
+  min_cluster_prob = 0.6
+)
 }
 \arguments{
-\item{som_cluster}{A sits tibble returned by \code{\link[sits]{sits_som_map}}}
+\item{som_cluster}{Result of \code{\link[sits]{sits_som_map}}}
 
 \item{prob_label_change}{Threshold of probability to change the label}
 
-\item{min_cluster_prob}{Minimum probability for a good sample to belong to a cluster}
+\item{min_cluster_prob}{Minimum probability for a good sample
+to belong to a cluster}
 }
 \value{
-Returns a sits tibble with a new subset of samples and a new column
-presenting the probability of each sample belongs to a class described in column label.
+Returns a sits tibble with a
+                              new subset of samples and a new column
+                              with the probability that each sample belongs
+                              to the class described in label.
 }
 \description{
 This function remove sample that do not have good quality based

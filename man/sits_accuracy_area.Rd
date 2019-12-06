@@ -2,30 +2,33 @@
 % Please edit documentation in R/sits_accuracy.R
 \name{sits_accuracy_area}
 \alias{sits_accuracy_area}
-\title{Area-weighted post-classification accuracy assessment of classified maps according to Olofsson}
+\title{Area-weighted classification accuracy assessment}
 \usage{
 sits_accuracy_area(class.tb, area = NULL)
 }
 \arguments{
-\item{class.tb}{A sits tibble with a set of lat/long/time locations with known and trusted labels and
+\item{class.tb}{A sits tibble with a set of lat/long/time locations
+with known and trusted labels and
 with the result of classification method.}
 
 \item{area}{A list with the area of each label.}
 }
 \description{
-To use this function, the input table should be a set of results containing
+To use this function, the input table should be
+a set of results containing
 both the label assigned by the user and the classification result.
-Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
+Accuracy assessment set us a confusion matrix to determine the accuracy
+of your classified result.
 This function uses an area-weighted technique proposed by Olofsson et al. to
 produce more reliable accuracy estimates at 95% confidence level.
 
 This function performs an accuracy assessment of the classified, including
-Overall Accuracy, User's Accuracy, Produce's Accuracy and error matrix (confusion matrix)
-according to [1-2].
+Overall Accuracy, User's Accuracy, Producer's Accuracy
+and error matrix (confusion matrix) according to [1-2].
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 set.seed(42)
 
@@ -51,8 +54,10 @@ Making better use of accuracy data in land change studies: Estimating
 accuracy and area and quantifying uncertainty using stratified estimation.
 Remote Sensing of Environment, 129, pp.122-131.
 
-[2] Olofsson, P., Foody G.M., Herold M., Stehman, S.V., Woodcock, C.E., Wulder, M.A. (2014)
-Good practices for estimating area and assessing accuracy of land change. Remote Sensing of
+[2] Olofsson, P., Foody G.M., Herold M., Stehman, S.V.,
+Woodcock, C.E., Wulder, M.A. (2014)
+Good practices for estimating area and assessing accuracy of land change.
+Remote Sensing of
 Environment, 148, pp. 42-57.
 }
 \author{

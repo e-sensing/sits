@@ -1,17 +1,22 @@
-#' @title Assessment of the accuracy of classification based on a confusion matrix
+#' @title Accuracy assessment of classification based on a confusion matrix
 #' @name sits_conf_matrix
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
-#' @description Evaluates the confusion matrix based on "reference" and "predicted" values
-#' provided in a sits tibble that has been classified. This function takes two kinds of input:
-#' (a) The output of the \code{\link[sits]{sits_classify}} function (a tibble with a list of predicted values)
-#' (b) The output of the \code{\link[sits]{sits_kfold_validate}} function (a tibble with two columns - predicted and reference)
+#' @description Evaluates the confusion matrix based on
+#' "reference" and "predicted" values
+#' provided in a sits tibble that has been classified.
+#' This function takes two kinds of input:
+#' (a) The output of the \code{\link[sits]{sits_classify}} function
+#' (a tibble with a list of predicted values);
+#' (b) The output of the \code{\link[sits]{sits_kfold_validate}} function
+#' (a tibble with two columns - predicted and reference).
 #' This function returns the Overall Accuracy, User's Accuracy,
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 #'
-#' @param  class.tb        A tibble containing a set of classified samples whose labels are known.
-#' @param  conv.lst        List with labels to be converted. If NULL no conversion is done.
+#' @param  class.tb        Set of classified samples whose labels are known.
+#' @param  conv.lst        List with labels to be converted.
+#'                         If NULL no conversion is done.
 #' @return A confusion matrix assessment produced by the caret package.
 #'
 #' @examples
@@ -30,8 +35,8 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
         class.tb <- .sits_tibble_rename(class.tb)
 
     # does the input data contain a set of predicted values?
-    ensurer::ensure_that(class.tb, "predicted" %in% names(.),
-        err_desc = "sits_conf_matrix: input data without predicted values")
+    assertthat::assert_that("predicted" %in% names(class.tb),
+        msg = "sits_conf_matrix: input data without predicted values")
 
     # recover predicted and reference vectors from input
     # is the input the result of a sits_classify?
@@ -51,9 +56,8 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
         # select the label names
         names_ref <- unique(ref.vec)
         # are all input labels in the coversion list?
-        ensurer::ensure_that(names_ref,
-            all(. %in% names(conv.lst)),
-            err_desc = "sits_conf_matrix: missing reference labels")
+        assertthat::assert_that(all(names_ref %in% names(conv.lst)),
+            msg = "sits_conf_matrix: missing reference labels")
         pred.vec <- as.character(conv.lst[pred.vec])
         ref.vec  <- as.character(conv.lst[ref.vec])
     }
@@ -71,18 +75,20 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
     return(invisible(caret_assess))
 }
 
-#' @title Area-weighted post-classification accuracy assessment of classified maps according to Olofsson
+#' @title Area-weighted classification accuracy assessment
 #' @name sits_accuracy_area
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @description To use this function, the input table should be a set of results containing
+#' @description To use this function, the input table should be
+#' a set of results containing
 #' both the label assigned by the user and the classification result.
-#' Accuracy assessment set us a confusion matrix to determine the accuracy of your classified result.
+#' Accuracy assessment set us a confusion matrix to determine the accuracy
+#' of your classified result.
 #' This function uses an area-weighted technique proposed by Olofsson et al. to
 #' produce more reliable accuracy estimates at 95% confidence level.
 #'
 #' This function performs an accuracy assessment of the classified, including
-#' Overall Accuracy, User's Accuracy, Produce's Accuracy and error matrix (confusion matrix)
-#' according to [1-2].
+#' Overall Accuracy, User's Accuracy, Producer's Accuracy
+#' and error matrix (confusion matrix) according to [1-2].
 #'
 #' @references
 #' [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).
@@ -91,17 +97,20 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
 #' Remote Sensing of Environment, 129, pp.122-131.
 #'
 #' @references
-#' [2] Olofsson, P., Foody G.M., Herold M., Stehman, S.V., Woodcock, C.E., Wulder, M.A. (2014)
-#' Good practices for estimating area and assessing accuracy of land change. Remote Sensing of
+#' [2] Olofsson, P., Foody G.M., Herold M., Stehman, S.V.,
+#' Woodcock, C.E., Wulder, M.A. (2014)
+#' Good practices for estimating area and assessing accuracy of land change.
+#' Remote Sensing of
 #' Environment, 148, pp. 42-57.
 #'
-#' @param class.tb A sits tibble with a set of lat/long/time locations with known and trusted labels and
-#' with the result of classification method.
-#' @param area A list with the area of each label.
+#' @param class.tb      A sits tibble with a set of lat/long/time locations
+#'                      with known and trusted labels and
+#'                      with the result of classification method.
+#' @param area          A list with the area of each label.
 #'
 #' @examples
 #' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 #' set.seed(42)
 #'
@@ -159,10 +168,16 @@ sits_accuracy_area <- function(class.tb, area = NULL){
 #' @name .sits_assess_accuracy_area
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
-#' @param error_matrix A matrix given in sample counts. Columns represent the reference data and rows the results of the classification
+#' @param error_matrix A matrix given in sample counts.
+#'                     Columns represent the reference data and
+#'                     rows the results of the classification
 #' @param area         A vector of the total area of each class on the map
 #'
-#' @return             A list of lists: The error_matrix, the class_areas, confidence interval (confint95, a list of two numerics) and the accuracy (accuracy, a list of three numerics: overall, user, and producer)
+#' @return             A list of lists: The error_matrix,
+#'                     the class_areas,
+#'                     confidence interval (confint95, a list of two numerics)
+#'                     and the accuracy (accuracy, a list of three numerics:
+#'                     overall, user, and producer)
 
 .sits_assess_accuracy_area <- function(error_matrix, area){
 
@@ -213,15 +228,16 @@ sits_accuracy_area <- function(class.tb, area = NULL){
 #' @name .print_confusion_matrix
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
-#' @description This is an adaptation of the print.confusionMatrix method by the "caret" package
-#' with some of the descriptions adapted for the more common usage in Earth Observation.
+#' @description Adaptation of the caret::print.confusionMatrix method
+#'              for the more common usage in Earth Observation.
 #'
-#' @param x An object of class \code{confusionMatrix}.
-#' @param mode A single character string either "sens_spec", "prec_recall", or
-#' "everything".
-#' @param digits Mumber of significant digits when printed.
-#' @param \dots Optional arguments to pass to \code{print.table}.
-#' @return \code{x} is invisibly returned.
+#' @param x         An object of class \code{confusionMatrix}.
+#' @param mode      A single character string either "sens_spec",
+#'                  "prec_recall", or "everything".
+#' @param digits    Number of significant digits when printed.
+#' @param \dots     Optional arguments to pass to \code{print.table}.
+#' @return \code{x}   is invisibly returned.
+#'
 #' @seealso \code{\link{confusionMatrix}}
 .print_confusion_matrix <- function(x, mode = "sens_spec",
                               digits = max(3, getOption("digits") - 3), ...){
@@ -308,10 +324,11 @@ sits_accuracy_area <- function(class.tb, area = NULL){
 #' @name .sits_pred_ref
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
-#' @description Obtains a tibble of predicted and reference values from a classified data set.
+#' @description Obtains a tibble of predicted and reference values
+#' from a classified data set.
 #'
-#' @param  class.tb  A sits tibble with a set of classified samples whose labels are known.
-#' @return A tibble with predicted and reference values.
+#' @param  class.tb  Set of classified samples whose labels are known.
+#' @return           A tibble with predicted and reference values.
 .sits_pred_ref <- function(class.tb) {
     # retrieve the predicted values
     pred.vec <- unlist(purrr::map(class.tb$predicted, function(r) r$class))
@@ -319,8 +336,8 @@ sits_accuracy_area <- function(class.tb, area = NULL){
     # retrieve the reference labels
     ref.vec <- class.tb$label
     # does the input data contained valid reference labels?
-    ensurer::ensure_that(ref.vec, !("NoClass" %in% (.)),
-        err_desc = "sits_accuracy: input data without reference values")
+    assertthat::assert_that(!("NoClass" %in% (ref.vec)),
+        msg = "sits_accuracy: input data without labels")
 
     # build the tibble
     pred_ref.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
@@ -335,7 +352,8 @@ sits_accuracy_area <- function(class.tb, area = NULL){
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Saves confusion matrices as Excel spreadsheets. This function
-#' takes the a list of confusion matrices generated by the \code{\link[sits]{sits_conf_matrix}}
+#' takes the a list of confusion matrices generated
+#' by the \code{\link[sits]{sits_conf_matrix}}
 #' function and save them in an Excel spreadsheet.
 #'
 #' @param acc.lst        A list of confusion matrices.
@@ -360,11 +378,13 @@ sits_accuracy_area <- function(class.tb, area = NULL){
 #' }
 #' @export
 sits_to_xlsx <- function(acc.lst, file = NULL){
-    ensurer::ensure_that(file, !purrr::is_null(.),
-                         err_desc = "sits_to_xlsx: please provide the file name")
+    assertthat::assert_that(!purrr::is_null(file),
+                         msg = "sits_to_xlsx: please provide the file name")
 
     # create a workbook to save the results
-    wb <- openxlsx::createWorkbook("accuracy")
+    workbook <- openxlsx::createWorkbook("accuracy")
+    # eo_names of the accuracy assessment parameters
+    eo_n <- c("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)")
 
     ind <- 0
 
@@ -380,7 +400,7 @@ sits_to_xlsx <- function(acc.lst, file = NULL){
             sheet_name <- acc.mx$name
 
             # add a worksheet
-            openxlsx::addWorksheet(wb, sheet_name)
+            openxlsx::addWorksheet(workbook, sheet_name)
 
             # use only the class names (without the "Class: " prefix)
             new_names <- unlist(strsplit(colnames(acc.mx$table), split = ": "))
@@ -388,31 +408,37 @@ sits_to_xlsx <- function(acc.lst, file = NULL){
             # remove prefix from confusion matrix table
             colnames(acc.mx$table) <- new_names
             # write the confusion matrix table in the worksheet
-            openxlsx::writeData(wb, sheet_name, acc.mx$table)
+            openxlsx::writeData(workbook, sheet_name, acc.mx$table)
 
             # overall assessment (accuracy and kappa)
             acc_kappa.mx <- as.matrix(acc.mx$overall[c(1:2)])
 
             # save the accuracy data in the worksheet
-            openxlsx::writeData(wb, sheet_name, acc_kappa.mx,
-                                rowNames = TRUE, startRow = NROW(acc.mx$table) + 3, startCol = 1)
+            openxlsx::writeData(wb    = workbook,
+                                sheet = sheet_name,
+                                x     = acc_kappa.mx,
+                                rowNames = TRUE,
+                                startRow = NROW(acc.mx$table) + 3,
+                                startCol = 1)
 
             if (dim(acc.mx$table)[1] > 2) {
                 # per class accuracy assessment
                 acc_bc.mx <- t(acc.mx$byClass[,c(1:4)])
                 # remove prefix from confusion matrix table
                 colnames(acc_bc.mx)  <- new_names
-                row.names(acc_bc.mx) <- c("Sensitivity (PA)", "Specificity", "PosPredValue (UA)", "NegPredValue")
+                row.names(acc_bc.mx) <- c("Sensitivity (PA)",
+                                          "Specificity",
+                                          "PosPredValue (UA)",
+                                          "NegPredValue")
             }
             else {
                 # this is the case of ony two classes
-                # get the values of the User's and Producer's Accuracy for the two classes
-                # the names in caret are different from the usual names in Earth observation
-                acc_bc.mx <- acc.mx$byClass[grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
-                                                  names(acc.mx$byClass))]
+                # get the values of the User's and Producer's Accuracy
+
+                acc_bc.mx <- acc.mx$byClass[grepl(eo_n, names(acc.mx$byClass))]
                 # get the names of the two classes
                 nm <- row.names(acc.mx$table)
-                # the first class (which is called the "positive" class by caret)
+                # the first class (called the "positive" class by caret)
                 c1 <- acc.mx$positive
                 # the second class
                 c2 <- nm[!(nm == acc.mx$positive)]
@@ -425,12 +451,16 @@ sits_to_xlsx <- function(acc.lst, file = NULL){
                 acc_bc.mx <- as.matrix(acc_bc.mx)
             }
             # save the perclass data in the worksheet
-            openxlsx::writeData(wb, sheet_name, acc_bc.mx,
-                                rowNames = TRUE, startRow = NROW(acc.mx$table) + 8, startCol = 1)
+            openxlsx::writeData(wb     = workbook,
+                                sheet = sheet_name,
+                                x     = acc_bc.mx,
+                                rowNames = TRUE,
+                                startRow = NROW(acc.mx$table) + 8,
+                                startCol = 1)
         })
 
     # write the worksheets to the XLSX file
-    openxlsx::saveWorkbook(wb, file = file, overwrite = TRUE)
+    openxlsx::saveWorkbook(workbook, file = file, overwrite = TRUE)
 
     return(message(paste("Saved Excel file", file)))
 }

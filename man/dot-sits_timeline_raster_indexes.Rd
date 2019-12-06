@@ -2,7 +2,8 @@
 % Please edit documentation in R/sits_timeline.R
 \name{.sits_timeline_raster_indexes}
 \alias{.sits_timeline_raster_indexes}
-\title{Provide a list of indexes to extract data from a raster-derived data table for classification}
+\title{Provide a list of indexes to extract data from a raster-derived
+       data table for classification}
 \usage{
 .sits_timeline_raster_indexes(cube, samples, interval)
 }
@@ -17,9 +18,11 @@
 List of values to be extracted for each classification interval.
 }
 \description{
-Given a list of time indexes that indicate the start and end of the values to
-be extracted to classify each band, obtain a list of indexes that will be used to
-extract values from a combined distance tibble (with has all the bands put together)
+Given a list of time indexes that indicate the start and end
+             of the values to be extracted to classify each band,
+             obtain a list of indexes that will be used to extract values
+             from a combined distance tibble
+             (which has all the bands put together).
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

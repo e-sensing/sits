@@ -4,12 +4,12 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Given a tibble with a set of time series, filter the tibble with one of
+#' @description Given a set of time series, filter them with one of
 #' the available filtering algorithms:
 #'
 #' @param  data          Set of time series
-#' @param  filter           Filter to be applied to the data.
-#' @return A set of filtered time series
+#' @param  filter        Filter to be applied to the data.
+#' @return               A set of filtered time series
 #'
 #' @examples
 #' \donttest{
@@ -45,7 +45,8 @@
 #' # Merge the filtered with the raw data
 #' # Plot the result
 #' point_ndvi %>%
-#'       sits_filter(filter = sits_whittaker (lambda = 3.0, band_suffix = "whit")) %>%
+#'       sits_filter(filter =
+#'                   sits_whittaker (lambda = 3.0, band_suffix = "whit")) %>%
 #'       sits_merge (point_ndvi, .) %>%
 #'       plot()
 #'
@@ -75,8 +76,8 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     .sits_test_tibble(data)
 
     # is the train method a function?
-    ensurer::ensure_that(filter, class(.) == "function",
-        err_desc = "sits_filter: filter is not a valid function")
+    assertthat::assert_that(class(filter) == "function",
+        msg = "sits_filter: filter is not a valid function")
 
     # compute the training method by the given data
     result <- filter(data)
@@ -88,15 +89,16 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' @name sits_cloud_removal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description  This function tries to remove clouds in the ndvi band of
-#' a satellite image time series. It looks for points where the value of the NDVI
-#' band goes down abruptly. These points are taken as those whose difference is more
-#' than a cutoff value which is set by the user. Then it applies an spline interploation.
+#' a satellite image time series. It looks for points where the NDVI value
+#' band goes down abruptly. These points are taken as those whose difference
+#' is more than a cutoff value set by the user.
+#' Then it applies an spline interpolation.
 #' Finally, the function applies a whitakker smoother.
 #'
-#' @param data       A tibble with time series data and metadata with only the "ndvi" band.
-#' @param cutoff        A numeric value for the maximum acceptable value of a NDVI difference.
+#' @param data          Time series data and metadata - only the "ndvi" band.
+#' @param cutoff        Maximum acceptable value of a NDVI difference.
 #' @param bands_suffix  Suffix to rename the filtered bands.
-#' @param apply_whit    Apply the whittaker smoother after filtering? The default value is FALSE.
+#' @param apply_whit    Apply the whittaker smoother after filtering?
 #' @param lambda_whit   Lambda parameter of the whittaker smoother.
 #' @return A sits tibble with same samples and the new bands.
 #'
@@ -108,7 +110,8 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' # Select the NDVI band of the first point
 #' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 #' # Apply the cloud filter
-#' point_cld.tb <- sits_filter(point_ndvi.tb, sits_cloud_removal(band_suffix = "cf"))
+#' point_cld.tb <- sits_filter(point_ndvi.tb,
+#'                 sits_cloud_removal(band_suffix = "cf"))
 #' # Merge the filtered with the raw data
 #' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 #' # Plot the result
@@ -126,8 +129,8 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
     filter_fun <- function(data) {
         # find the bands of the data
         bands <- sits_bands(data)
-        ensurer::ensure_that(bands, ("ndvi" %in% (.)),
-                             err_desc = "data does not contain the ndvi band")
+        assertthat::assert_that(("ndvi" %in% bands),
+                             msg = "data does not contain the ndvi band")
 
         # prepare result sits tibble
         result <- data
@@ -149,7 +152,7 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
                                 ts <- dplyr::pull(ts_res[, b])
                                 ts[idx] <- NA
                                 ts_res[,b] <<- imputeTS::na_interpolation(ts,
-                                                                option = "spline")
+                                                            option = "spline")
                             })
                         return(ts_res)
                     })
@@ -170,11 +173,13 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
 #' @name sits_envelope
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  This function computes the envelope of a time series using the
-#' streaming algorithm proposed by Lemire (2009). This functions calls `dtwclust::compute_envelope` function.
-#' @param data      A tibble with time series data and metadata.
-#' @param operations   A character sequence indicating which operations must be taken. "U" for upper filter, "L" for down filter.
-#' @param bands_suffix Suffix to be appended to the resulting data (default "env").
-#' @return A tibble with filtered time series values.
+#' streaming algorithm proposed by Lemire (2009).
+#' This functions calls `dtwclust::compute_envelope` function.
+#' @param data         A tibble with time series data and metadata.
+#' @param operations   A character sequence for the sequence operations.
+#'                     ("U" for upper filter, "L" for lower filter).
+#' @param bands_suffix Suffix of the resulting data (default "env").
+#' @return             A tibble with filtered time series values.
 #' @examples
 #' \donttest{
 #' # Read a set of samples of forest/non-forest in Amazonia
@@ -203,7 +208,7 @@ sits_envelope <- function(data = NULL,
         data <- .sits_tibble_rename(data)
 
     filter_fun <- function(data) {
-        # definitions of operations and the key returned by `dtwclust::compute_envelope`
+        # definitions of operations
         def_op <- list("U" = "upper", "L" = "lower",
                        "u" = "upper", "l" = "lower")
 
@@ -211,8 +216,8 @@ sits_envelope <- function(data = NULL,
         operations <- strsplit(operations, "")[[1]]
 
         # verify if operations are either "U" or "L"
-        ensurer::ensure_that(operations, all(. %in% names(def_op)),
-            err_desc = "sits_envelope: invalid operation sequence")
+        assertthat::assert_that(all(operations %in% names(def_op)),
+            msg = "sits_envelope: invalid operation sequence")
 
         # compute envelopes
         result <- sits_apply(data,
@@ -235,12 +240,14 @@ sits_envelope <- function(data = NULL,
 #' @title Interpolation function of the time series of a sits_tibble
 #' @name sits_interp
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Computes the linearly interpolated bands for a given resolution
+#' @description  Computes the linearly interpolated bands
 #'               using the R base function approx.
 #' @param data       A tibble with time series data and metadata.
 #' @param fun           Interpolation function.
-#' @param n             Number of time series elements to be created between start date and end date.
-#'                      When a class function is passed to `n`, is is evaluated with each band time series as
+#' @param n             Number of time series elements to be created
+#'                      between start date and end date.
+#'                      When a class function is passed to `n`,
+#'                      it is evaluated with each band time series as
 #'                      an argument, e.g. n(band) (default: `length` function).
 #' @param ...           Additional parameters to be used by the fun function.
 #' @return A tibble with same samples and the new bands.
@@ -256,7 +263,8 @@ sits_envelope <- function(data = NULL,
 #' plot(point_int.tb)
 #' }
 #' @export
-sits_interp <- function(data = NULL, fun = stats::approx, n = base::length, ...) {
+sits_interp <- function(data = NULL, fun = stats::approx,
+                        n = base::length, ...) {
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -320,7 +328,8 @@ sits_kalman <- function(data = NULL, bands_suffix = ""){
 #' @param error_in_measurement           A vector of errors in the measuments.
 #' @param initial_estimate               A first estimation of the measurement.
 #' @param initial_error_in_estimate      A first error in the estimation.
-#' @return                               A matrix of 3 columns estimate, error_in_estimate, and kalman_gain.
+#' @return                               A matrix of 3 columns: estimate,
+#'                                       error_in_estimate, and kalman_gain.
 .sits_kalman_filter <- function(measurement,
                                 error_in_measurement = NULL,
                                 initial_estimate = NULL,
@@ -330,13 +339,15 @@ sits_kalman <- function(data = NULL, bands_suffix = ""){
     e_est <- vector(mode = "logical", length = length(measurement) + 1)
     #
     # default values
-    if (is.null(initial_estimate) || is.na(initial_estimate)) {
+    if (purrr::is_null(initial_estimate) || is.na(initial_estimate)) {
         initial_estimate <- base::mean(measurement, na.rm = TRUE)
     }
-    if (is.null(initial_error_in_estimate) || is.na(initial_error_in_estimate)) {
-        initial_error_in_estimate <- base::abs(stats::sd(measurement, na.rm = TRUE))
+    if (purrr::is_null(initial_error_in_estimate) || is.na(initial_error_in_estimate))
+    {
+        initial_error_in_estimate <- base::abs(stats::sd(measurement,
+                                                         na.rm = TRUE))
     }
-    if (is.null(error_in_measurement)) {
+    if (purrr::is_null(error_in_measurement)) {
         error_in_measurement <- rep(stats::sd(measurement, na.rm = TRUE),
                                     length.out = base::length(measurement))
     }
@@ -392,8 +403,9 @@ sits_kalman <- function(data = NULL, bands_suffix = ""){
 #' @description  Computes the linearly interpolated bands for a given resolution
 #'               using the R base function approx.
 #' @param data       A tibble with time series data and metadata.
-#' @param n             Number of time series elements to be created between start date and end date.
-#' @return A sits tibble with same samples and the new bands.
+#' @param n          Number of time series elements to be created
+#'                   between start date and end date.
+#' @return           A sits tibble with same samples and the new bands.
 #' @examples
 #' \donttest{
 #' # Retrieve a time series with values of NDVI
@@ -413,9 +425,10 @@ sits_linear_interp <- function(data = NULL, n = 23) {
     filter_fun <- function(data){
         # compute linear approximation
         result <- sits_apply(data,
-                                fun = function(band) stats::approx(band, n = n, ties = mean)$y,
-                                fun_index = function(band) as.Date(stats::approx(band, n = n, ties = mean)$y,
-                                                                   origin = "1970-01-01"))
+                 fun = function(band) stats::approx(band, n = n, ties = mean)$y,
+                 fun_index = function(band)
+                           as.Date(stats::approx(band, n = n, ties = mean)$y,
+                                                        origin = "1970-01-01"))
         return(result)
     }
     result <- .sits_factory_function(data, filter_fun)
@@ -424,10 +437,11 @@ sits_linear_interp <- function(data = NULL, n = 23) {
 #' @title Remove missing values
 #' @name sits_missing_values
 #' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
-#' @description  This function removes the missing values from an image time series by substituting them by NA.
-#' @param data     A tibble with time series data and metadata.
+#' @description       This function removes the missing values from
+#'                    an image time series by substituting them by NA.
+#' @param data        A tibble with time series data and metadata.
 #' @param miss_value  Number indicating missing values in a time series.
-#' @return A tibble with time series data and metadata (with missing values removed).
+#' @return            Time series data and metadata (missing values removed).
 #' @export
 sits_missing_values <-  function(data, miss_value) {
     # backward compatibility
@@ -437,7 +451,8 @@ sits_missing_values <-  function(data, miss_value) {
     .sits_test_tibble(data)
 
     # remove missing values by NAs
-    result <- sits_apply(data, fun = function(band) return(ifelse(band == miss_value, NA, band)))
+    result <- sits_apply(data, fun = function(band)
+                              return(ifelse(band == miss_value, NA, band)))
     return(result)
 }
 
@@ -445,15 +460,17 @@ sits_missing_values <-  function(data, miss_value) {
 #' @name sits_ndvi_arima
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description  This function tries to remove clouds in the ndvi band of
-#' a satellite image time series. It looks for points where the value of the NDVI
-#' band goes down abruptly. These points are taken as those whose difference is more
-#' than a cutoff value which is set by the user. Then it applies an spline interploation.
+#' a time series. It looks for points where the value of the NDVI
+#' band goes down abruptly. These points are those whose difference is more
+#' than a cutoff value which is set by the user.
+#' Then it applies an spline interploation.
 #' Finally, the function applies a whitakker smoother.
 #'
-#' @param data       A tibble with time series data and metadata with only the "ndvi" band.
-#' @param cutoff        Numeric value for the maximum acceptable value of a NDVI difference.
+#' @param data          Time series data and metadata (only the "ndvi" band).
+#' @param cutoff        Maximum acceptable value of a NDVI difference.
 #' @param p             Order (number of time lags) of the autoregressive model.
-#' @param d             Degree of differencing (the number of times the data have had past values subtracted).
+#' @param d             Degree of differencing  (the number of times
+#'                      the data has had past values subtracted).
 #' @param q             Order of the moving-average model.
 #' @param bands_suffix  Suffix to rename the filtered bands.
 #' @param apply_whit    Apply the whittaker smoother after filtering? (logical)
@@ -475,8 +492,10 @@ sits_missing_values <-  function(data, miss_value) {
 #' plot(point2)
 #' }
 #' @export
-sits_ndvi_arima <- function(data = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
-                              bands_suffix = "", apply_whit = TRUE, lambda_whit = 1.0){
+sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
+                            p = 0, d = 0, q = 3,
+                            bands_suffix = "", apply_whit = TRUE,
+                            lambda_whit = 1.0){
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -484,15 +503,16 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
     filter_fun <- function(data) {
         # find the bands of the data
         bands <- sits_bands(data)
-        ensurer::ensure_that(bands, ("ndvi" %in% (.)), err_desc = "data does not contain the ndvi band")
+        assertthat::assert_that("ndvi" %in% bands,
+                       msg = "data does not contain the ndvi band")
 
         # predictive model for missing values
         pred_arima <- function(x, p, d, q) {
             idx <- which(is.na(x))
             for (i in idx) {
                 prev3 <- x[(i - q):(i - 1)]
-                ensurer::ensure_that(prev3, !anyNA(.),
-                                     err_desc = "Cannot remove clouds, please reduce filter order")
+                assertthat::assert_that(!anyNA(prev3),
+                    msg = "sits_ndvi_arima: please reduce filter order")
                 arima.ml <- stats::arima(prev3, c(p, d , q))
                 x[i] <- as.vector(stats::predict(arima.ml, n.ahead = 1)$pred)
             }
@@ -512,7 +532,8 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
                 # interpolate missing values
                 bands %>%
                     purrr::map(function(b)
-                        ts[,b] <<- pred_arima(dplyr::pull(ts[,b]), p = p, d = d, q = q))
+                        ts[,b] <<- pred_arima(dplyr::pull(ts[,b]),
+                                              p = p, d = d, q = q))
                 return(ts)
             })
         # rename the output bands
@@ -531,27 +552,29 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25, p = 0, d = 0, q = 3,
 #' @title Smooth the time series using Savitsky-Golay filter
 #'
 #' @name sits_sgolay
-#' @description  The algorithm searches for an optimal polynomial describing the warping.
+#' @description  An optimal polynomial for warping a time series.
 #' The degree of smoothing depends on the filter order (usually 3.0).
-#' The user can set the order of the polynomial using the parameter `order` (default = 3), +
-#' the size of the temporal window with the parameter `length` (default = 5),
-#' and the temporal expansion with the parameter `scaling`.
+#' The order of the polynomial uses the parameter `order` (default = 3),
+#' the size of the temporal window uses the parameter `length` (default = 5),
+#' and the temporal expansion uses the parameter `scaling`.
 #'
 #' @references A. Savitzky, M. Golay, "Smoothing and Differentiation of Data by
-#' Simplified Least Squares Procedures". Analytical Chemistry, 36 (8): 1627–39, 1964.
+#' Simplified Least Squares Procedures".
+#' Analytical Chemistry, 36 (8): 1627–39, 1964.
 #'
-#' @param data       A tibble with time series data and metadata.
+#' @param data          A tibble with time series data and metadata.
 #' @param order         Filter order (integer).
 #' @param length        Filter length (must be odd)
 #' @param scaling       Time scaling (integer).
 #' @param bands_suffix  Suffix to be appended to the smoothed filters.
-#' @return A tibble with smoothed sits time series.
+#' @return              A tibble with smoothed sits time series.
 #' @examples
 #' \donttest{
 #' #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the Savitsky Golay smoother
-#' point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5, bands_suffix = "sg"))
+#' point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3,
+#'                                     length  = 5, bands_suffix = "sg"))
 #' # Plot the two points to see the smoothing effect
 #' plot(sits_merge(point_ndvi, point_sg))
 #' }
@@ -565,13 +588,16 @@ sits_sgolay <- function(data = NULL, order = 3,
     filter_fun <- function(data) {
         if ("tbl" %in% class(data)) {
             result <- sits_apply(data,
-                                 fun = function(band) signal::sgolayfilt(band, p = order, n = length, ts = scale),
-                                 fun_index = function(band) band,
-                                 bands_suffix = bands_suffix)
+                fun = function(band)
+                      signal::sgolayfilt(band, p = order,
+                                         n = length, ts = scale),
+                fun_index = function(band) band,
+                       bands_suffix = bands_suffix)
         }
         if ("matrix" %in% class(data)) {
             result <- apply(data, 2,
-                    function(row) {signal::sgolayfilt(row, p = order, n = length, ts = scale)})
+                    function(row) {signal::sgolayfilt(row, p = order,
+                                                      n = length, ts = scale)})
         }
 
         return(result)
@@ -584,28 +610,29 @@ sits_sgolay <- function(data = NULL, order = 3,
 #' @title Filter the time series using Whittaker smoother
 #'
 #' @name sits_whittaker
-#' @description  The algorithm searches for an optimal polynomial describing the warping.
-#' Some authors consider the Whittaker smoother to be a good method for smoothing and
-#' gap filling for satellite image time series
-#' The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 10.0)
-#' Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
+#' @description  The algorithm searches for an optimal warping polynomial.
+#' The degree of smoothing depends on smoothing factor lambda
+#' (usually from 0.5 to 10.0). Use lambda = 0.5 for very slight smoothing
+#' and lambda = 5.0 for strong smoothing.
 #'
 #' @references Francesco Vuolo, Wai-Tim Ng, Clement Atzberger,
 #' "Smoothing and gap-filling of high resolution multi-spectral timeseries:
-#' Example of Landsat data", Int Journal of Applied Earth Observation and Geoinformation,
+#' Example of Landsat data",
+#' Int Journal of Applied Earth Observation and Geoinformation,
 #' vol. 57, pg. 202-213, 2107.
 #'
-#' @param data      A tibble with time series data and metadata.
+#' @param data         A tibble with time series data and metadata.
 #' @param lambda       Smoothing factor to be applied (default 1.0).
-#' @param bands_suffix Suffix to be appended to the smoothed filters (default "whit").
-#' @return A tibble with smoothed sits time series.
+#' @param bands_suffix Suffix to be appended (default "whit").
+#' @return             A tibble with smoothed sits time series.
 #'
 #' @examples
 #' \donttest{
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the whittaker smoother
-#' point_whit <- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, bands_suffix = "wf"))
+#' point_whit <- sits_filter(point_ndvi, sits_whittaker
+#'                           (lambda = 3.0, bands_suffix = "wf"))
 #' # Plot the two points to see the smoothing effect
 #' plot(sits_merge(point_ndvi, point_whit))
 #' }

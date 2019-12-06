@@ -4,49 +4,65 @@
 \alias{sits_deeplearning}
 \title{Train a classification model using a multi-layer perceptron.}
 \usage{
-sits_deeplearning(data = NULL, layers = c(512, 512, 512, 512, 512),
-  activation = "relu", dropout_rates = c(0.5, 0.45, 0.4, 0.35, 0.3),
-  optimizer = keras::optimizer_adam(lr = 0.001), epochs = 200,
-  batch_size = 128, validation_split = 0.2, verbose = 1)
+sits_deeplearning(
+  data = NULL,
+  layers = c(512, 512, 512, 512, 512),
+  activation = "relu",
+  dropout_rates = c(0.5, 0.45, 0.4, 0.35, 0.3),
+  optimizer = keras::optimizer_adam(lr = 0.001),
+  epochs = 200,
+  batch_size = 128,
+  validation_split = 0.2,
+  verbose = 1
+)
 }
 \arguments{
 \item{data}{Time series with the training samples.}
 
-\item{layers}{Vector with the number of hidden nodes in each hidden layer.}
+\item{layers}{Number of hidden nodes in each hidden layer.}
 
-\item{activation}{Vector with the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
+\item{activation}{Names of activation functions.
+Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
 
-\item{dropout_rates}{Vector with the dropout rates (0,1) for each layer to the next layer.}
+\item{dropout_rates}{Vector with the dropout rates (0,1)
+for each layer to the next layer.}
 
-\item{optimizer}{Function with a pointer to the optimizer function (default is optimization_adam()).
-Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
-optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()}
+\item{optimizer}{Optimizer function (default is optimization_adam()).
+Options: optimizer_adadelta(), optimizer_adagrad(),
+optimizer_adam(), optimizer_adamax(),
+optimizer_nadam(), optimizer_rmsprop(),
+optimizer_sgd().}
 
 \item{epochs}{Number of iterations to train the model.}
 
 \item{batch_size}{Number of samples per gradient update.}
 
-\item{validation_split}{Number between 0 and 1. Fraction of the training data to be used as validation data.
-The model will set apart this fraction of the training data, will not train on it,
-and will evaluate the loss and any model metrics on this data at the end of each epoch.
-The validation data is selected from the last samples in the x and y data provided,
+\item{validation_split}{Number between 0 and 1.
+Fraction of training data to be used for validation.
+The model sets apart this fraction of the training
+data, will not train on it,
+and will evaluate the loss and any model metrics
+on this data at the end of each epoch.
+The validation data is selected from the
+last samples in the x and y data provided,
 before shuffling.}
 
-\item{verbose}{Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).}
+\item{verbose}{Verbosity mode (0 = silent, 1 = progress bar,
+2 = one line per epoch).}
 }
 \value{
-A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+Fitted model to be used by \code{\link[sits]{sits_classify}}
 }
 \description{
 Use a multi-layer perceptron to classify data. USers can define
-the number and size of the hidden layers, and the dropout rates and activation
+the number and size of the hidden layers, and dropout rates and activation
 functions for each layer.
 This function is a front-end to the "keras" method R package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
 dl_model <- sits_train (samples_mt_4bands, sits_deeplearning(epochs = 150))
@@ -62,7 +78,7 @@ plot(class.tb, bands = c("ndvi", "evi"))
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

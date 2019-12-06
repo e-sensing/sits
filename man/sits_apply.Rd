@@ -4,15 +4,22 @@
 \alias{sits_apply}
 \title{Apply a function over sits bands.}
 \usage{
-sits_apply(data, fun, fun_index = function(index) {     return(index) },
-  bands_suffix = "", multicores = 1)
+sits_apply(
+  data,
+  fun,
+  fun_index = function(index) {     return(index) },
+  bands_suffix = "",
+  multicores = 1
+)
 }
 \arguments{
 \item{data}{Valid sits tibble}
 
-\item{fun}{Function with one parameter as input and a vector or list of vectors as output.}
+\item{fun}{Function with one parameter as input
+and a vector or list of vectors as output.}
 
-\item{fun_index}{Function with one parameter as input and a Date vector as output.}
+\item{fun_index}{Function with one parameter as input
+and a Date vector as output.}
 
 \item{bands_suffix}{String informing the suffix of the resulting bands.}
 
@@ -22,22 +29,29 @@ sits_apply(data, fun, fun_index = function(index) {     return(index) },
 A sits tibble with same samples and the new bands.
 }
 \description{
-Apply a 1D generic function to a time series and specific methods for
-common tasks such as missing values removal and smoothing.
-`sits_apply()` returns a sits tibble with the same samples points and new bands computed by `fun`,
-`fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
-whose vector values is passed as the function argument.
-The `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
-of the corresponding band. In the second case, the returned list must have names, and each element vector will
-generate a new band which name composed by concatenating original band name and the corresponding list element name.
+Apply a 1D generic function to a time series
+ and specific methods for common tasks,
+ such as missing values removal and smoothing.
+`sits_apply()` returns a sits tibble with the same samples
+ and new bands computed by `fun`, `fun_index` functions.
+ These functions must be defined inline; they are called by `sits_apply`
+ for each band, whose vector values is passed as the function argument.
+ The `fun` function may either return a vector or a list of vectors.
+ In the first case, the vector will be the new values
+ of the corresponding band.
+ In the second case, the returned list must have names,
+ and each element vector will generate a new band which name composed
+ by concatenating original band name and the corresponding list element name.
 
-If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
+  If a suffix is provided in `bands_suffix`, all resulting band
+  names will end with provided suffix separated by a ".".
 }
 \examples{
 # Get a time series
 data(point_ndvi)
 # apply a normalization function
-point2 <- sits_apply (point_ndvi, fun = function (x) { (x - min (x))/(max(x) - min(x))} )
+point2 <- sits_apply (point_ndvi,
+                      fun = function (x) { (x - min (x))/(max(x) - min(x))})
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -7,9 +7,9 @@
 .sits_ggplot_together(melted.tb, means.tb, plot_title)
 }
 \arguments{
-\item{melted.tb}{A tibble with the time series (a lot of data already melted).}
+\item{melted.tb}{A tibble with the time series (already melted).}
 
-\item{means.tb}{A tibble with the means and std deviations of the time series.}
+\item{means.tb}{Means and std deviations of the time series.}
 
 \item{plot_title}{The title for the plot.}
 }

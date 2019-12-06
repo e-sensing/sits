@@ -1,10 +1,11 @@
-#' @title Provides access to diagnostic information about a Keras deep learning model
+#' @title Diagnostic information about a Keras deep learning model
 #' @name sits_keras_diagnostics
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description After the Keras deeplearning model is compiled and fit, this
-#'              function provides access to the history plot and the evaluation results.
+#'              function provides access to the history plot
+#'              and the evaluation results.
 #'
 #' @param dl_model  A valid keras model.
 #'
@@ -12,11 +13,12 @@
 #'
 #' @examples
 #' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #' data(cerrado_2classes)
 #'  # obtain a DL model
 #' dl_model <- sits_train(cerrado_2classes,
-#'      sits_deeplearning(layers = c(512, 512), dropout_rates = c(0.45, 0.25), epochs = 100))
+#'      sits_deeplearning(layers = c(512, 512), dropout_rates = c(0.45, 0.25),
+#'                        epochs = 100))
 #' # run the keras diagnostics
 #' sits_keras_diagnostics(dl_model)
 #' }
@@ -43,36 +45,45 @@ sits_keras_diagnostics <- function(dl_model) {
 #' @name sits_deeplearning
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Use a multi-layer perceptron to classify data. USers can define
-#' the number and size of the hidden layers, and the dropout rates and activation
+#' the number and size of the hidden layers, and dropout rates and activation
 #' functions for each layer.
 #' This function is a front-end to the "keras" method R package.
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param data              Time series with the training samples.
-#' @param layers            Vector with the number of hidden nodes in each hidden layer.
-#' @param activation        Vector with the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param dropout_rates     Vector with the dropout rates (0,1) for each layer to the next layer.
-#' @param optimizer         Function with a pointer to the optimizer function (default is optimization_adam()).
-#'                          Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
-#'                          optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
+#' @param layers            Number of hidden nodes in each hidden layer.
+#' @param activation        Names of activation functions.
+#'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
+#' @param dropout_rates     Vector with the dropout rates (0,1)
+#'                          for each layer to the next layer.
+#' @param optimizer         Optimizer function (default is optimization_adam()).
+#'                          Options: optimizer_adadelta(), optimizer_adagrad(),
+#'                          optimizer_adam(), optimizer_adamax(),
+#'                          optimizer_nadam(), optimizer_rmsprop(),
+#'                          optimizer_sgd().
 #' @param epochs            Number of iterations to train the model.
 #' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Number between 0 and 1. Fraction of the training data to be used as validation data.
-#'                          The model will set apart this fraction of the training data, will not train on it,
-#'                          and will evaluate the loss and any model metrics on this data at the end of each epoch.
-#'                          The validation data is selected from the last samples in the x and y data provided,
+#' @param validation_split  Number between 0 and 1.
+#'                          Fraction of training data to be used for validation.
+#'                          The model sets apart this fraction of the training
+#'                          data, will not train on it,
+#'                          and will evaluate the loss and any model metrics
+#'                          on this data at the end of each epoch.
+#'                          The validation data is selected from the
+#'                          last samples in the x and y data provided,
 #'                          before shuffling.
-#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
+#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar,
+#'                          2 = one line per epoch).
 #'
-#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+#' @return Fitted model to be used by \code{\link[sits]{sits_classify}}
 #'
 #' @examples
 #' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
 #' dl_model <- sits_train (samples_mt_4bands, sits_deeplearning(epochs = 150))
@@ -101,13 +112,13 @@ sits_deeplearning <- function(data          = NULL,
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){
         # pre-conditions
-        ensurer::ensure_that(layers, length(.) == length(dropout_rates),
-            err_desc = "sits_deeplearning: number of layers does not match
+        assertthat::assert_that(length(layers) == length(dropout_rates),
+            msg = "sits_deeplearning: number of layers does not match
                         number of dropout rates")
 
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
-        ensurer::ensure_that(activation, (.) %in% valid_activations,
-            err_desc = "sits_deeplearning: invalid node activation method")
+        assertthat::assert_that(activation %in% valid_activations,
+            msg = "sits_deeplearning: invalid node activation method")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -172,20 +183,22 @@ sits_deeplearning <- function(data          = NULL,
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
-            # transform input (data.table) into a matrix (remove first two columns)
+            # transform input (data.table) into a matrix
+            # (remove first two columns)
             values.x         <- data.matrix(values_DT[, -(1:2)])
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
-                                                                      values.x))
+            predict_DT <- data.table::as.data.table(stats::predict(model.keras,
+                                                                    values.x))
             # for the binary classification case
-            # adjust the prediction values to match the multi-class classification
+            # adjust the prediction values
+            # to match the multi-class classification
             if (n_labels == 2)
-                prediction_DT <- .sits_dl_binary_class(prediction_DT)
+                predict_DT <- .sits_dl_binary_class(predict_DT)
 
             # add the class labels as the column names
-            colnames(prediction_DT) <- labels
+            colnames(predict_DT) <- labels
 
-            return(prediction_DT)
+            return(predict_DT)
         }
         class(model_predict) <- append(class(model_predict),
                                        "keras_model",
@@ -201,7 +214,7 @@ sits_deeplearning <- function(data          = NULL,
 #' @name sits_FCN
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Use the a full 1D CNN algorithm to classify data.
@@ -227,21 +240,22 @@ sits_deeplearning <- function(data          = NULL,
 #'
 #'
 #' @param data              Time series with the training samples.
-#' @param layers            Vector with the size of the 1D convolutional filters
+#' @param layers            Vector with size of the 1D convolutional filters
 #'                          for each layer.
-#' @param kernels           Vector with the size of the 1D convolutional kernels.
+#' @param kernels           Vector with size of the 1D convolutional kernels.
 #' @param activation        Activation function for 1D convolution.
-#'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
+#'                          Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param L2_rate           Regularization rate for 1D convolution.
-#'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
+#'                          Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param optimizer         Function with a pointer to the optimizer function
 #'                          (default is optimization_adam()).
-#'                          Options are optimizer_adadelta(), optimizer_adagrad(),
+#'                          Options: optimizer_adadelta(), optimizer_adagrad(),
 #'                          optimizer_adam(), optimizer_adamax(),
-#'                          optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
+#'                          optimizer_nadam(), optimizer_rmsprop(),
+#'                          optimizer_sgd().
 #' @param epochs            Number of iterations to train the model.
 #' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Number between 0 and 1. Fraction of the training data
+#' @param validation_split  Number between 0 and 1. Fraction of training data
 #'                          to be used as validation data.
 #'                          The model will set apart this fraction of the
 #'                          training data, will not train on it,
@@ -288,12 +302,12 @@ sits_FCN <- function(data         = NULL,
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){
         # pre-conditions
-        ensurer::ensure_that(layers, length(.) == length(kernels),
-            err_desc = "sits_FCN: 1D layers must match 1D kernels")
+        assertthat::assert_that(length(layers) == length(kernels),
+            msg = "sits_FCN: 1D layers must match 1D kernels")
 
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
-        ensurer::ensure_that(activation, all(. %in% valid_activations),
-            err_desc = "sits_FCN: invalid CNN activation method")
+        assertthat::assert_that(all(activation %in% valid_activations),
+            msg = "sits_FCN: invalid CNN activation method")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -320,9 +334,10 @@ sits_FCN <- function(data         = NULL,
         # build the 1D nodes
         purrr::map2(layers, kernels, function(ly, kr) {
             # Add a Convolution1D layer
-            output_tensor <- keras::layer_conv_1d(output_tensor, filters = ly,
-                             kernel_size = kr,
-                             kernel_regularizer = keras::regularizer_l2(l = L2_rate))
+            output_tensor <- keras::layer_conv_1d(output_tensor,
+                                                  filters = ly,
+                                                  kernel_size = kr,
+                        kernel_regularizer = keras::regularizer_l2(l = L2_rate))
             # Batch normalization
             output_tensor <- keras::layer_batch_normalization(output_tensor)
             # activation
@@ -381,18 +396,18 @@ sits_FCN <- function(data         = NULL,
             values.x <- array(data = as.matrix(values_DT[,3:ncol(values_DT)]),
                               dim = c(n_samples, n_timesteps, n_bands))
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
+            predict_DT <- data.table::as.data.table(stats::predict(model.keras,
                                                                       values.x))
 
             # If binary classification,
-            # adjust the prediction values to match the multi-class classification
+            # adjust the prediction values to match binary classification
             if (n_labels == 2)
-                prediction_DT <- .sits_dl_binary_class(prediction_DT)
+                predict_DT <- .sits_dl_binary_class(predict_DT)
 
             # adjust the names of the columns of the probs
-            colnames(prediction_DT) <- labels
+            colnames(predict_DT) <- labels
 
-            return(prediction_DT)
+            return(predict_DT)
         }
         class(model_predict) <- append(class(model_predict),
                                        "keras_model",
@@ -409,52 +424,66 @@ sits_FCN <- function(data         = NULL,
 #' @name sits_ResNet
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Use a ResNet architecture for classifiying satellite image time series.
-#' The ResNet (or deep residual network) was proposed by a team in Microsoft Research
-#' for 2D image classification. ResNet tries to address the degradation of accuracy
-#' in a deep network. The idea is to replace a deep network with a combination of shallow
-#' ones. In the paper by Fawaz et al. (2019), ResNet was considered the best method for
-#' time series classification, using the UCR dataset. Please refer to the paper for
-#' more details.
+#' @description Use a ResNet architecture for classifiying image time series.
+#' The ResNet (or deep residual network) was proposed by a team
+#' in Microsoft Research for 2D image classification.
+#' ResNet tries to address the degradation of accuracy
+#' in a deep network. The idea is to replace a deep network
+#' with a combination of shallow ones.
+#' In the paper by Fawaz et al. (2019), ResNet was considered the best method
+#' for time series classification, using the UCR dataset.
+#' Please refer to the paper for more details.
 #'
 #' The SITS implementation of RestNet is based on the work of Hassan Fawaz and
-#' collaborators, and also inspired by the paper of Wang et al (see below). Fawaz provides
-#' a reference Keras implementation of ResNet in https://github.com/hfawaz/dl-4-tsc.
+#' collaborators, and also inspired by the paper of Wang et al (see below).
+#' Fawaz provides a reference code  in https://github.com/hfawaz/dl-4-tsc.
 #' If you use this function, please cite the references.
 #'
-#' @references Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane Idoumghar,  and Pierre-Alain Muller,
+#' @references Hassan Fawaz, Germain Forestier, Jonathan Weber,
+#' Lhassane Idoumghar,  and Pierre-Alain Muller,
 #' "Deep learning for time series classification: a review",
 #' Data Mining and Knowledge Discovery, 33(4): 917--963, 2019.
 #'
 #' Zhiguang Wang, Weizhong Yan, and Tim Oates,
-#' "Time series classification from scratch with deep neural networks: A strong baseline",
+#' "Time series classification from scratch with deep neural networks:
+#'  A strong baseline",
 #'  2017 international joint conference on neural networks (IJCNN).
 #'
 #' @param data              Time series with the training samples.
-#' @param blocks            Vector with number of 1D convolutional filters of each block of three layers.
-#' @param kernels           Vector with the size of the 1D convolutional kernels for each layer of each block.
+#' @param blocks            Number of 1D convolutional filters for
+#'                          each block of three layers.
+#' @param kernels           Size of the 1D convolutional kernels
+#'                          for each layer of each block.
 #' @param activation        Activation function for 1D convolution.
-#'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param optimizer         Function with a pointer to the optimizer function (default is optimization_adam()).
-#'                          Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
-#'                          optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
+#'                          Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
+#' @param optimizer         Function with a pointer to the optimizer function
+#'                          (default is optimization_adam()).
+#'                          Options: optimizer_adadelta(), optimizer_adagrad(),
+#'                          optimizer_adam(), optimizer_adamax(),
+#'                          optimizer_nadam(), optimizer_rmsprop(),
+#'                          optimizer_sgd().
 #' @param epochs            Number of iterations to train the model.
 #' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Number between 0 and 1. Fraction of the training data to be used as validation data.
-#'                          The model will set apart this fraction of the training data, will not train on it,
-#'                          and will evaluate the loss and any model metrics on this data at the end of each epoch.
-#'                          The validation data is selected from the last samples in the x and y data provided,
+#' @param validation_split  Number between 0 and 1. Fraction of training data
+#'                          to be used as validation data.
+#'                          The model will set apart this fraction of the
+#'                          training data, will not train on it,
+#'                          and will evaluate the loss and any model metrics
+#'                          on this data at the end of each epoch.
+#'                          The validation data is selected from the last
+#'                          samples in the x and y data provided,
 #'                          before shuffling.
-#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
+#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar,
+#'                          2 = one line per epoch).
 #'
-#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+#' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
 #' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
 #' rn_model <- sits_train (samples_mt_4bands, sits_ResNet(epochs = 75))
@@ -484,11 +513,11 @@ sits_ResNet <- function(data              = NULL,
     result_fun <- function(data){
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         # pre-conditions
-        ensurer::ensure_that(activation, (.) %in% valid_activations,
-            err_desc = "sits_ResNet: invalid CNN activation method")
+        assertthat::assert_that(activation %in% valid_activations,
+            msg = "sits_ResNet: invalid CNN activation method")
 
-        ensurer::ensure_that(kernels, length(.) == 3,
-            err_desc = "sits_ResNet: should inform size of three kernels")
+        assertthat::assert_that(length(kernels) == 3,
+            msg = "sits_ResNet: should inform size of three kernels")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -610,18 +639,18 @@ sits_ResNet <- function(data              = NULL,
             values.x <- array(data = as.matrix(values_DT[,3:ncol(values_DT)]),
                               dim = c(n_samples, n_timesteps, n_bands))
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
+            predict_DT <- data.table::as.data.table(stats::predict(model.keras,
                                                                       values.x))
 
             # If binary classification,
-            # adjust the prediction values to match the multi-class classification
+            # adjust the prediction values for binary classification
             if (n_labels == 2)
-                prediction_DT <- .sits_dl_binary_class(prediction_DT)
+                predict_DT <- .sits_dl_binary_class(predict_DT)
 
             # adjust the names of the columns of the probs
-            colnames(prediction_DT) <- labels
+            colnames(predict_DT) <- labels
 
-            return(prediction_DT)
+            return(predict_DT)
         }
         class(model_predict) <- append(class(model_predict),
                                        "keras_model",
@@ -636,50 +665,59 @@ sits_ResNet <- function(data              = NULL,
 #' @name sits_TempCNN
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Use a TempCNN algorithm to classify data. The tempCNN algorithm has
-#' two stages: a 1D CNN is applied to the input time series data is combined with a
-#' multi-layer perceptron. Users can define the depth of the 1D network, as well as
+#' @description Use a TempCNN algorithm to classify data, which has
+#' two stages: a 1D CNN and a  multi-layer perceptron.
+#' Users can define the depth of the 1D network, as well as
 #' the number of perceptron layers.
 #'
 #' This function is based on the paper by Charlotte Pelletier referenced below
-#' and the code made available on github (https://github.com/charlotte-pel/temporalCNN)
+#' and code available on github (https://github.com/charlotte-pel/temporalCNN).
 #' If you use this method, please cite the original tempCNN paper.
 #'
 #' @references Charlotte Pelletier, Geoffrey Webb and François Petitjean,
-#' "Temporal Convolutional Neural Network for the Classification of Satellite Image Time Series",
+#' "Temporal Convolutional Neural Network for the Classification
+#' of Satellite Image Time Series",
 #' Remote Sensing, 11,523, 2019. DOI: 10.3390/rs11050523.
 #'
 #' @param data              Time series with the training samples.
-#' @param cnn_layers        Vector with the number of 1D convolutional filters per layer
-#' @param cnn_kernels       Vector with the size of the 1D convolutional kernels.
+#' @param cnn_layers        Number of 1D convolutional filters per layer
+#' @param cnn_kernels       Size of the 1D convolutional kernels.
 #' @param cnn_activation    Activation function for 1D convolution.
-#'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
+#'                          Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param cnn_L2_rate       Regularization rate for 1D convolution.
-#'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param cnn_dropout_rates Vector with dropout rates for 1D convolutional filters.
-#' @param mlp_layers        Vector with the number of hidden nodes in the MLP (multi-layer-perceptron).
-#' @param mlp_activation    Names of 2D activation functions for the MLP. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param mlp_dropout_rates Vector with the dropout rates (0,1) for each layer in the MLP.
-#' @param optimizer         Function with a pointer to the optimizer function (default is optimization_adam()).
-#'                          Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
-#'                          optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
+#' @param cnn_dropout_rates Dropout rates for 1D convolutional filters.
+#' @param mlp_layers        Number of nodes in the multi-layer-perceptron.
+#' @param mlp_activation    Names of 2D activation functions for the MLP.
+#'                          Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
+#' @param mlp_dropout_rates Dropout rates (0,1) for each layer in the MLP.
+#' @param optimizer         Function with a pointer to the optimizer function
+#'                          (default is optimization_adam()).
+#'                          Options: optimizer_adadelta(), optimizer_adagrad(),
+#'                          optimizer_adam(), optimizer_adamax(),
+#'                          optimizer_nadam(), optimizer_rmsprop(),
+#'                          optimizer_sgd().
 #' @param epochs            Number of iterations to train the model.
 #' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Number between 0 and 1. Fraction of the training data to be used as validation data.
-#'                          The model will set apart this fraction of the training data, will not train on it,
-#'                          and will evaluate the loss and any model metrics on this data at the end of each epoch.
-#'                          The validation data is selected from the last samples in the x and y data provided,
+#' @param validation_split  Number between 0 and 1. Fraction of training data
+#'                          to be used as validation data.
+#'                          The model will set apart this fraction of the
+#'                          training data, will not train on it,
+#'                          and will evaluate the loss and any model metrics
+#'                          on this data at the end of each epoch.
+#'                          The validation data is selected from the last
+#'                          samples in the x and y data provided,
 #'                          before shuffling.
-#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
+#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar,
+#'                          2 = one line per epoch).
 #'
-#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+#' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
 #' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
 #' tc_model <- sits_train (samples_mt_4bands, sits_TempCNN(epochs = 75))
@@ -717,20 +755,20 @@ sits_TempCNN <- function(data                 = NULL,
         # pre-conditions
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
 
-        ensurer::ensure_that(cnn_layers, length(.) == length(cnn_kernels),
-            err_desc = "sits_tempCNN: 1D layers must match 1D kernel sizes")
+        assertthat::assert_that(length(cnn_layers) == length(cnn_kernels),
+            msg = "sits_tempCNN: 1D layers must match 1D kernel sizes")
 
-        ensurer::ensure_that(cnn_layers, length(.) == length(cnn_dropout_rates),
-            err_desc = "sits_tempCNN: 1D layers must match 1D dropout rates")
+        assertthat::assert_that(length(cnn_layers) == length(cnn_dropout_rates),
+            msg = "sits_tempCNN: 1D layers must match 1D dropout rates")
 
-        ensurer::ensure_that(mlp_layers, length(.) == length(mlp_dropout_rates),
-            err_desc = "sits_tempCNN: 2D units must match 2D dropout rates")
+        assertthat::assert_that(length(mlp_layers) == length(mlp_dropout_rates),
+            msg = "sits_tempCNN: 2D units must match 2D dropout rates")
 
-        ensurer::ensure_that(cnn_activation, (.) %in% valid_activations,
-            err_desc = "sits_tempCNN: invalid CNN activation method")
+        assertthat::assert_that(cnn_activation %in% valid_activations,
+            msg = "sits_tempCNN: invalid CNN activation method")
 
-        ensurer::ensure_that(mlp_activation, (.) %in% valid_activations,
-            err_desc = "sits_tempCNN: invalid node activation method")
+        assertthat::assert_that(mlp_activation %in% valid_activations,
+            msg = "sits_tempCNN: invalid node activation method")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -761,13 +799,13 @@ sits_TempCNN <- function(data                 = NULL,
             output_tensor <- keras::layer_conv_1d(output_tensor,
                         filters = layer_size,
                         kernel_size = kernel_size,
-                        kernel_regularizer = keras::regularizer_l2(l = cnn_L2_rate))
+                    kernel_regularizer = keras::regularizer_l2(l = cnn_L2_rate))
             # Apply layer dropout
             output_tensor <- keras::layer_dropout(output_tensor,
                                                   rate = dropout_rate)
             # Activation
             output_tensor <- keras::layer_activation(output_tensor,
-                                                     activation = cnn_activation)
+                                                    activation = cnn_activation)
         })
 
         # reshape a tensor into a 2D shape
@@ -823,24 +861,25 @@ sits_TempCNN <- function(data                 = NULL,
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
-            # transform input (data.table) into a 3D tensor (remove first two columns)
+            # transform input (data.table) into a 3D tensor
+            # (remove first two columns)
             n_samples <- nrow(values_DT)
             n_timesteps <- nrow(sits_time_series(data[1,]))
             n_bands <- length(sits_bands(data))
             values.x <- array(data = as.matrix(values_DT[,3:ncol(values_DT)]),
                               dim = c(n_samples, n_timesteps, n_bands))
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
-                                                                      values.x))
+            predict_DT <- data.table::as.data.table(stats::predict(model.keras,
+                                                                   values.x))
             # If binary classification,
-            # adjust the prediction values to match the multi-class classification
+            # adjust the prediction values to match binary classification
             if (n_labels == 2)
-                prediction_DT <- .sits_dl_binary_class(prediction_DT)
+                predict_DT <- .sits_dl_binary_class(predict_DT)
 
             # adjust the names of the columns of the probs
-            colnames(prediction_DT) <- labels
+            colnames(predict_DT) <- labels
 
-            return(prediction_DT)
+            return(predict_DT)
         }
         class(model_predict) <- append(class(model_predict),
                                        "keras_model",
@@ -856,7 +895,7 @@ sits_TempCNN <- function(data                 = NULL,
 #' @name sits_LSTM_FCN
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Use a combination of an LSTM (Long Short Term Memory) and a
@@ -869,33 +908,42 @@ sits_TempCNN <- function(data                 = NULL,
 #' If you use this method, please cite the original paper.
 #'
 #' @references Fazle Karim, Somshubra Majumdar, Houshang Darabi, Sun Chen,
-#' "LSTM fully convolutional networks for time series classification", IEEE Access, 6(1662-1669), 2018.
+#' "LSTM fully convolutional networks for time series classification",
+#' IEEE Access, 6(1662-1669), 2018.
 #'
 #'
 #' @param data              Time series with the training samples.
 #' @param lstm_units        Number of cells in the each LSTM layer
 #' @param lstm_dropout      Dropout rate of the LSTM module
-#' @param cnn_layers        Vector with the number of filters for each 1D CNN layer.
-#' @param cnn_kernels       Vector with the size of the 1D convolutional kernels.
+#' @param cnn_layers        Number of filters for each 1D CNN layer.
+#' @param cnn_kernels       Size of the 1D convolutional kernels.
 #' @param activation        Activation function for 1D convolution.
-#'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param optimizer         Function with a pointer to the optimizer function (default is optimization_adam()).
-#'                          Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
-#'                          optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
+#'                          Valid values:  {'relu', 'elu', 'selu', 'sigmoid'}.
+#' @param optimizer         Function with a pointer to the optimizer function
+#'                          (default is optimization_adam()).
+#'                          Options: optimizer_adadelta(), optimizer_adagrad(),
+#'                          optimizer_adam(), optimizer_adamax(),
+#'                          optimizer_nadam(), optimizer_rmsprop(),
+#'                          optimizer_sgd().
 #' @param epochs            Number of iterations to train the model.
 #' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Number between 0 and 1. Fraction of the training data to be used as validation data.
-#'                          The model will set apart this fraction of the training data, will not train on it,
-#'                          and will evaluate the loss and any model metrics on this data at the end of each epoch.
-#'                          The validation data is selected from the last samples in the x and y data provided,
+#' @param validation_split  Number between 0 and 1. Fraction of training data
+#'                          to be used as validation data.
+#'                          The model will set apart this fraction of the
+#'                          training data, will not train on it,
+#'                          and will evaluate the loss and any model metrics
+#'                          on this data at the end of each epoch.
+#'                          The validation data is selected from the last
+#'                          samples in the x and y data provided,
 #'                          before shuffling.
-#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
+#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar,
+#'                          2 = one line per epoch).
 #'
-#' @return A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+#' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
 #' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
 #' lstm_cnn_model <- sits_train (samples_mt_4bands, sits_LSTM_FCN())
@@ -930,11 +978,11 @@ sits_LSTM_FCN <- function(data                =  NULL,
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         # is the input data consistent?
 
-        ensurer::ensure_that(cnn_layers, length(.) == length(cnn_kernels),
-            err_desc = "sits_LSTM_FCN: 1D CNN layers must match 1D kernels")
+        assertthat::assert_that(length(cnn_layers) == length(cnn_kernels),
+            msg = "sits_LSTM_FCN: 1D CNN layers must match 1D kernels")
 
-        ensurer::ensure_that(activation, all(. %in% valid_activations),
-             err_desc = "sits_LSTM_FCN: invalid CNN activation method")
+        assertthat::assert_that(all(activation %in% valid_activations),
+             msg = "sits_LSTM_FCN: invalid CNN activation method")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -984,7 +1032,8 @@ sits_LSTM_FCN <- function(data                =  NULL,
         output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
 
         # Concatenate LSTM and CNN
-        output_tensor <- keras::layer_concatenate(list(lstm_layer, output_tensor))
+        output_tensor <- keras::layer_concatenate(list(lstm_layer,
+                                                       output_tensor))
 
         # reshape a tensor into a 2D shape
         output_tensor <- keras::layer_flatten(output_tensor)
@@ -1028,24 +1077,25 @@ sits_LSTM_FCN <- function(data                =  NULL,
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
-            # transform input (data.table) into a 3D tensor (remove first two columns)
+            # transform input (data.table) into a 3D tensor
+            # (remove first two columns)
             n_samples <- nrow(values_DT)
             n_timesteps <- nrow(sits_time_series(data[1,]))
             n_bands <- length(sits_bands(data))
             values.x <- array(data = as.matrix(values_DT[,3:ncol(values_DT)]),
                               dim = c(n_samples, n_timesteps, n_bands))
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(stats::predict(model.keras,
-                                                                      values.x))
+            predict_DT <- data.table::as.data.table(stats::predict(model.keras,
+                                                                   values.x))
             # If binary classification,
-            # adjust the prediction values to match the multi-class classification
+            # adjust the prediction values to match two-class classification
             if (n_labels == 2)
-                prediction_DT <- .sits_dl_binary_class(prediction_DT)
+                predict_DT <- .sits_dl_binary_class(predict_DT)
 
             # adjust the names of the columns of the probs
-            colnames(prediction_DT) <- labels
+            colnames(predict_DT) <- labels
 
-            return(prediction_DT)
+            return(predict_DT)
         }
         class(model_predict) <- append(class(model_predict),
                                        "keras_model",
@@ -1063,30 +1113,33 @@ sits_LSTM_FCN <- function(data                =  NULL,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a training set organised as a SITS tibble, prepare
-#' the data for keras training, providing test and training data, distinguishing
-#' between MLP and 1DCNN models
+#' the data for keras training, providing test and training data,
+#' distinguishing between MLP and 1DCNN models
 #'
 #' @param data              Time series with the training samples.
-#' @param validation_split  Number between 0 and 1. Fraction of the training data to be used as validation data.
-#' @param type              Type of the model. Valid options are "MLP" for multi-layer perceptrons and
-#'                          "1DCNN" for 1D convolutional neural networks
-#' @return                  List with four elements (training data (X and Y) and test data (X and Y))
+#' @param validation_split  Number between 0 and 1.
+#'                          Fraction of the training data for validation.
+#' @param type              Type of the model. Valid options:
+#'                          "MLP" for multi-layer perceptrons and
+#'                          "1DCNN" for 1D convolutional neural networks.
+#' @return                  List with four elements (training data (X and Y)
+#'                          and test data (X and Y))
 #'
 .sits_dl_prepare_data <- function(data, validation_split = 0.2, type = "MLP"){
     # pre-condition
-    ensurer::ensure_that(validation_split, (.) > 0.0 && (.) < 0.5,
-                         err_desc = ".sits_dl_prepare_data - invalid validation split")
+    assertthat::assert_that(validation_split > 0.0 && validation_split < 0.5,
+                    msg = ".sits_dl_prepare_data - invalid validation split")
     valid_types <- c("MLP", "1DCNN")
-    ensurer::ensure_that(type, (.) %in% valid_types,
-                         err_desc = ".sits_dl_prepare_data - invalid type")
+    assertthat::assert_that(type %in% valid_types,
+                    msg = ".sits_dl_prepare_data - invalid type")
 
     # data normalization
     stats <- .sits_normalization_param(data)
     train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
 
     # is the train data correct?
-    ensurer::ensure_that(train_data_DT, "reference" %in% names(.),
-                         err_desc = "sits_deeplearning: input data does not contain distances")
+    assertthat::assert_that("reference" %in% names(train_data_DT),
+            msg = "sits_deeplearning: input data does not contain distances")
 
     # get the labels of the data
     labels <- sits_labels(data)$label
@@ -1102,14 +1155,17 @@ sits_LSTM_FCN <- function(data                =  NULL,
 
     # split the data into training and validation data sets
     # create partitions different splits of the input data
-    test_data_DT <- .sits_sample_distances(train_data_DT, frac = validation_split)
+    test_data_DT <- .sits_sample_distances(train_data_DT,
+                                           frac = validation_split)
 
     # remove the lines used for validation
     train_data_DT <- train_data_DT[!test_data_DT, on = "original_row"]
 
     # shuffle the data
-    train_data_DT <- train_data_DT[sample(nrow(train_data_DT), nrow(train_data_DT)),]
-    test_data_DT  <- test_data_DT[sample(nrow(test_data_DT), nrow(test_data_DT)),]
+    train_data_DT <- train_data_DT[sample(nrow(train_data_DT),
+                                          nrow(train_data_DT)),]
+    test_data_DT  <- test_data_DT[sample(nrow(test_data_DT),
+                                         nrow(test_data_DT)),]
 
     n_samples_train <- nrow(train_data_DT)
     n_samples_test  <- nrow(test_data_DT)
@@ -1132,7 +1188,10 @@ sits_LSTM_FCN <- function(data                =  NULL,
 
     test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
 
-    return(list(train.x = train.x, train.y = train.y, test.x = test.x, test.y = test.y))
+    return(list(train.x = train.x,
+                train.y = train.y,
+                test.x = test.x,
+                test.y = test.y))
 }
 
 #' @title Adjust prediction for the binary classification case
@@ -1141,11 +1200,11 @@ sits_LSTM_FCN <- function(data                =  NULL,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description For binary classification, the prediction function produces only
-#' one column (the probability of label 1). For compatibility with the rest of the
-#' code in the sits package, this function includes a second column in the prediction
-#' values to match the results of multi-class classification.
+#' one column (the probability of label 1). For compatibility with the
+#' code in the sits package, this function includes a second column
+#' in the prediction values to match the results of multi-class classification.
 #'
-#' @param prediction_DT     Data.table with the predicted values from the keras model
+#' @param prediction_DT     Predicted values from the keras model
 #'                          for the binary classification case (one column)
 #' @return                  Data.table with an additional column for multi-class
 #'                          compatibility

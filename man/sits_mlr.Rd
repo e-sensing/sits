@@ -2,35 +2,44 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_mlr}
 \alias{sits_mlr}
-\title{Train a sits classifiaction model using multinomial log-linear regions via neural networks}
+\title{Train a sits classification model using multinomial log-linear}
 \usage{
-sits_mlr(data = NULL, formula = sits_formula_linear(),
-  n_weights = 20000, maxit = 2000, ...)
+sits_mlr(
+  data = NULL,
+  formula = sits_formula_linear(),
+  n_weights = 20000,
+  maxit = 2000,
+  ...
+)
 }
 \arguments{
 \item{data}{Time series with the training samples.}
 
-\item{formula}{Symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_formula_logref).}
+\item{formula}{Symbolic description of the model to be fit.
+(default: sits_formula_logref).}
 
-\item{n_weights}{Maximum number of weights (should be proportional to size of input data).}
+\item{n_weights}{Maximum number of weights
+(should be proportional to size of input data).}
 
 \item{maxit}{Maximum number of iterations (default 300).}
 
-\item{...}{Other parameters to be passed to nnet::multinom function.}
+\item{...}{Other parameters to be passed to nnet::multinom.}
 }
 \value{
-A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+Model fitted to input data
+                       (to be passed to \code{\link[sits]{sits_classify}})
 }
 \description{
-Use multinomial log-linear (mlr) fitting model via neural networks to classify data.
-These attributes are distance metrics between patterns and observations, obtained by a distance
-function in sits (see \code{\link[sits]{.sits_distances}}).
+Use multinomial log-linear (mlr) fitting model to classify data.
+This function receives a tibble with a set of attributes X
+for each observation Y. These attributes are the values of the time series
+for each band.
 This function is a front-end to the "multinom" method in the "nnet" package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for  Mato Grosso region (provided by EMBRAPA)
 samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 
 # Build a machine learning model based on deep learning
@@ -43,7 +52,7 @@ plot(class.tb, bands = c("ndvi", "evi"))
 }
 }
 \author{
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 

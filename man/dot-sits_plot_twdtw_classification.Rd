@@ -4,19 +4,26 @@
 \alias{.sits_plot_twdtw_classification}
 \title{Plot classification results using the dtwSat package}
 \usage{
-.sits_plot_twdtw_classification(matches, start_date = NULL,
-  end_date = NULL, interval = "12 month", overlap = 0.5)
+.sits_plot_twdtw_classification(
+  matches,
+  start_date = NULL,
+  end_date = NULL,
+  interval = "12 month",
+  overlap = 0.5
+)
 }
 \arguments{
-\item{matches}{A list of dtwSat S4 matches objects produced by sits_TWDTW_matches.}
+\item{matches}{dtwSatS4 matches objects produced by sits_TWDTW_matches.}
 
-\item{start_date}{Start date of the plot (used for showing classifications).}
+\item{start_date}{Start date of the plot (used for classifications).}
 
-\item{end_date}{End date of the plot (used for showing classifications).}
+\item{end_date}{End date of the plot (used for classifications).}
 
-\item{interval}{Interval between classifications (used for showing classifications).}
+\item{interval}{Interval between classifications.}
 
-\item{overlap}{Minimum overlapping between one match and the interval of classification. For details see dtwSat::twdtwApply help.}
+\item{overlap}{Minimum overlapping between one match
+and the interval of classification.
+For details see dtwSat::twdtwApply help.}
 }
 \description{
 Plots the results of TWDTW classification (uses dtwSat).

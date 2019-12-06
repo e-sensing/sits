@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_processing_bloat}
 \alias{.sits_config_processing_bloat}
-\title{Retrieve the estimated value of R memory bloat, based on the configuration file}
+\title{Retrieve the estimated value of R memory bloat}
 \usage{
 .sits_config_processing_bloat()
 }

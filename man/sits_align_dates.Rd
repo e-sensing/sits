@@ -12,12 +12,15 @@ sits_align_dates(data, ref_dates)
 \item{ref_dates}{Dates to align the time series.}
 }
 \value{
-A tibble with the converted sits tibble (useful for chaining functions).
+The converted sits tibble
 }
 \description{
-Converts the time indexes of a set of sits tibble to a single reference year.
-This function is useful to join many time series from different years to a single year,
-which is required by methods that combine many time series, such as clustering methods.
+Converts the time indexes of a set of sits
+tibble to a single reference year.
+This function is useful to join many time series from
+different years to a single year,
+which is required by methods that combine many time series,
+such as clustering methods.
 The reference year is taken from the date of the start of the time series
 available in the data cube.
 }

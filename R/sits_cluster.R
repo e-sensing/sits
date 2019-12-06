@@ -1,23 +1,29 @@
-#' @title Clusters a time series samples using aglomerative hierarchical clustering
+#' @title Clusters a set of time series
+#'        using aglomerative hierarchical clustering
 #' @name sits_cluster_dendro
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Takes a SITS tibble and produces a sits tibble with an added "cluster" column
+#' @description Takes a SITS tibble and produces a sits tibble
+#' with an added "cluster" column.
 #' This is done in several steps:
 #' 1. Calculation of the dendogram
-#' 2. Selection of the validity index for best cluster using the adjusted Rand Index
+#' 2. Get validity index for best cluster using the adjusted Rand Index
 #' 3. Cut the dendogram using the chosen validity index
 #'
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
 #' @param data            A tibble with input set of time series
 #' @param bands           Bands to be used in the clustering
-#' @param dist_method     String with one of the supported distance from proxy's dist, e.g. \code{TWDTW}.
-#' @param linkage         String with agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'.
-#' @param k               The desired number of clusters (overrides default value)
-#' @param colors          A color scheme as showed in `sits_color_name` function.
+#' @param dist_method     String with one of the supported distance
+#'                        from proxy's dist, e.g. \code{TWDTW}.
+#' @param linkage         String with agglomeration method to be used.
+#'                        Can be any `hclust` method (see `hclust`).
+#'                        Default is 'ward.D2'.
+#' @param k               Desired number of clusters (overrides default value)
+#' @param colors          Color scheme as per `sits_color_name` function.
 #' @param silent          Should output be provided?
-#' @param  ...            Any additional parameters to be passed to dtwclust::tsclust() function.
+#' @param  ...            Additional parameters to be passed
+#'                        to dtwclust::tsclust() function.
 #' @return A tibble with the clusters or clusters' members.
 #'
 #' @examples
@@ -70,7 +76,8 @@ sits_cluster_dendro <-  function(data = NULL,
                             overrides best value")
             if (!silent) message(msg_k)
             cut.vec["k"] <- k
-            cut.vec["height"] <- c(0, dendro.obj$height)[length(dendro.obj$height) - k + 2]
+            cut.vec["height"] <-
+                c(0, dendro.obj$height)[length(dendro.obj$height) - k + 2]
         }
     }
     result$cluster <- stats::cutree(dendro.obj, cut.vec["k"], cut.vec["height"])
@@ -107,8 +114,8 @@ sits_cluster_dendro <-  function(data = NULL,
 #' @export
 sits_cluster_frequency <-  function(data) {
     # is the input data the result of a cluster function?
-    ensurer::ensure_that(data, "cluster" %in% names(.),
-       err_desc = "sits_cluster_contigency: missing cluster column")
+    assertthat::assert_that("cluster" %in% names(data),
+       msg = "sits_cluster_contigency: missing cluster column")
 
     # compute frequency table
     result.mtx <- table(data$label, data$cluster)
@@ -124,7 +131,7 @@ sits_cluster_frequency <-  function(data) {
 #' @name sits_cluster_clean
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Removes sits tibble samples of labels that are minority in each cluster.
+#' @description Removes labels that are minority in each cluster.
 #'
 #' @param data           Tibble with `cluster` column.
 #' @return A tibble with all selected samples.
@@ -149,8 +156,8 @@ sits_cluster_frequency <-  function(data) {
 sits_cluster_clean <- function(data) {
 
     # is the input data the result of a cluster function?
-    ensurer::ensure_that(data, "cluster" %in% names(.),
-                         err_desc = "sits_cluster_clean: input data does not contain cluster column")
+    assertthat::assert_that("cluster" %in% names(data),
+        msg = "sits_cluster_clean: input data does not contain cluster column")
 
     # compute frequency table
     result.mtx <- table(data$label, data$cluster)
@@ -178,8 +185,10 @@ sits_cluster_clean <- function(data) {
 #'
 #' @description Compute different cluster validity indices. This function needs
 #' as input a sits tibble with `cluster` column.
-#' It is a front-end to `dtwclust::cvi` function. That function computes five indices:
-#' 1) adjusted Rand index; 2) Rand index; 3) Jaccard index; 4) Fowlkes-Mallows; and 5) Variation of Information index
+#' It is a front-end to `dtwclust::cvi` function.
+#' That function computes five indices:
+#' 1) adjusted Rand index; 2) Rand index; 3) Jaccard index;
+#' 4) Fowlkes-Mallows; and 5) Variation of Information index
 #' Please refer to the documentation in that package for more details.
 #'
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
@@ -191,12 +200,13 @@ sits_cluster_clean <- function(data) {
 .sits_cluster_validity <-  function(data) {
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
+        stop("dtwclust needed for this function to work.
+             Please install it.", call. = FALSE)
     }
 
     # is the input data the result of a cluster function?
-    ensurer::ensure_that(data, "cluster" %in% names(.),
-                         err_desc = "sits_cluster_validity: input data does not contain cluster column")
+    assertthat::assert_that("cluster" %in% names(data),
+        msg = "sits_cluster_validity: input data does not have cluster column")
 
     # compute CVIs and return
     result <- dtwclust::cvi(a = factor(data$cluster),
@@ -211,20 +221,29 @@ sits_cluster_clean <- function(data) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Cluster time series in hierarchical mode. Hierarchical clustering, as its name suggests,
-#' is an algorithm that tries to create a hierarchy of groups in which, as the level in the hierarchy increases, clusters are created by merging
-#' the clusters from the next lower level, such that an ordered sequence of groupings is obtained.
-#' The similarity measure used to group time series in a cluster is the dtw metric.
+#' @description Cluster time series in hierarchical mode.
+#' Hierarchical clustering, as its name suggests,
+#' is an algorithm that tries to create a hierarchy of groups in which,
+#' as the level in the hierarchy increases, clusters are created by merging
+#' the clusters from the next lower level, producing
+#' an ordered sequence of groupings. The similarity measure used to
+#' group time series in a cluster is the dtw metric.
 #' The procedure is deterministic, so it will always give the same
-#' result for a chosen set of similarity measures (see \code{\link[dtwclust]{tsclust}}).
+#' result for a chosen set of similarity measures
+#' (see \code{\link[dtwclust]{tsclust}}).
 #'
 #' @references `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param data            Tibble with time series data and metadata to be used to generate the dendrogram.
+#' @param data            Time series data and metadata
+#'                        to be used to generate the dendrogram.
 #' @param bands           Vector of bands to be clustered.
-#' @param dist_method     String with one of the supported distance from proxy's dist, e.g. \code{TWDTW}.
-#' @param linkage         String with agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'.
-#' @param  ...            Any additional parameters to be passed to dtwclust::tsclust() function.
+#' @param dist_method     String with one of the supported distance
+#'                        from proxy's dist, e.g. \code{TWDTW}.
+#' @param linkage         String with agglomeration method to be used.
+#'                        Can be any `hclust` method (see `hclust`).
+#'                        Default is 'ward.D2'.
+#' @param  ...            Any additional parameters to be passed
+#'                        to dtwclust::tsclust() function.
 #' @return A full dendrogram tree for data analysis.
 #'
 .sits_cluster_dendrogram <- function(data, bands = NULL,
@@ -232,7 +251,8 @@ sits_cluster_clean <- function(data) {
                             linkage = "ward.D2", ...){
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("dtwclust needed for this function to work. Please install it.", call. = FALSE)
+        stop("dtwclust needed for this function to work.
+             Please install it.", call. = FALSE)
     }
 
     # if no bands informed, get all bands available in sits tibble
@@ -243,14 +263,15 @@ sits_cluster_clean <- function(data) {
     values  <- sits_values(data, bands, format = "cases_dates_bands")
 
     # call dtwclust and get the resulting dendrogram
-    dendro.obj  <- dtwclust::tsclust(values,
-                                     type     = "hierarchical",
-                                     k        = max(NROW(data) - 1, 2),
-                                     distance = dist_method,
-                                     control  = dtwclust::hierarchical_control(method = linkage), ...)
+    dendro <- dtwclust::tsclust(values,
+                                type     = "hierarchical",
+                                k        = max(NROW(data) - 1, 2),
+                                distance = dist_method,
+                                control  = dtwclust::hierarchical_control(method = linkage),
+                                ...)
 
     # return the dendrogram
-    return(dendro.obj)
+    return(dendro)
 }
 
 #' @title Compute validity indexes to a range of cut height
@@ -266,19 +287,20 @@ sits_cluster_clean <- function(data) {
 #'
 #' See \link[flexclust]{randIndex} for implementation details.
 #'
-#' @param data             Tibble used to generate `dendro.obj`.
-#' @param dendro.obj       Dendrogram object returned from \code{\link[sits]{.sits_cluster_dendrogram}}.
-#' @return Vector with the best number of clusters (k) and its respective height.
+#' @param data             Input set of time series.
+#' @param dendro           Dendrogram object returned from
+#'                         \code{\link[sits]{.sits_cluster_dendrogram}}.
+#' @return Vector with best number of clusters (k) and its respective height.
 #'
-.sits_cluster_dendro_bestcut <-  function(data, dendro.obj) {
+.sits_cluster_dendro_bestcut <-  function(data, dendro) {
     # compute range
-    k_range <- seq(2, max(length(dendro.obj$height) - 1, 2))
+    k_range <- seq(2, max(length(dendro$height) - 1, 2))
 
     # compute ARI for each k
     ari.vec <-
         k_range %>%
         purrr::map(function(k) {
-            flexclust::randIndex(stats::cutree(dendro.obj, k = k),
+            flexclust::randIndex(stats::cutree(dendro, k = k),
                                  factor(data$label),
                                  correct = TRUE)
         }) %>%
@@ -288,7 +310,7 @@ sits_cluster_clean <- function(data) {
     k_result <- k_range[which.max(ari.vec)]
 
     # compute each height corresponding to `k_result`
-    h_result <- c(0, dendro.obj$height)[length(dendro.obj$height) - k_result + 2]
+    h_result <- c(0, dendro$height)[length(dendro$height) - k_result + 2]
 
     # create a named vector and return
     result.vec <- structure(c(k_result, h_result), .Names = c("k", "height"))

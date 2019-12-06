@@ -4,8 +4,15 @@
 \alias{.sits_from_csv}
 \title{Obtain timeSeries from a data cube, based on a CSV file.}
 \usage{
-.sits_from_csv(csv_file, cube, bands, .prefilter, .n_start_csv, .n_max_csv,
-  .n_save)
+.sits_from_csv(
+  csv_file,
+  cube,
+  bands,
+  .prefilter,
+  .n_start_csv,
+  .n_max_csv,
+  .n_save
+)
 }
 \arguments{
 \item{csv_file}{Name of a CSV file with information <id, latitude, longitude, from, end, label>.}

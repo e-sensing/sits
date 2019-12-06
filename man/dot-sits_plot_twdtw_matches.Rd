@@ -2,14 +2,14 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_twdtw_matches}
 \alias{.sits_plot_twdtw_matches}
-\title{Plot matches between a label pattern and a time series using the dtwSat package}
+\title{Plot matches between a label pattern and a time series}
 \usage{
 .sits_plot_twdtw_matches(matches, patterns.tb, n_matches = 4)
 }
 \arguments{
-\item{matches}{A list of dtwSat S4 matches objects produced by sits_TWDTW_matches.}
+\item{matches}{dtwSat S4 match objects produced by sits_TWDTW_matches.}
 
-\item{patterns.tb}{A set of known temporal signatures for the chosen classes.}
+\item{patterns.tb}{Known temporal signatures for the chosen classes.}
 
 \item{n_matches}{Number of matches of a given label to be displayed.}
 }
