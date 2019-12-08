@@ -116,6 +116,7 @@ Collate:
     'sits_pipe.R'
     'sits_plot.R'
     'sits_raster.R'
+    'sits_raster_data.R'
     'sits_satveg.R'
     'sits_services.R'
     'sits_shp.R'

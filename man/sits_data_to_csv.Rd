@@ -15,15 +15,16 @@ sits_data_to_csv(data, file)
 Status of the operation.
 }
 \description{
-Converts time series data from a sits tibble to a CSV file. The CSV file will not contain the metadata,
-but will have the actual time series, with a reference value. This function is useful to
-export the data for external applications
+Converts time series data from a sits tibble to a CSV file.
+             The CSV file will not contain the metadata,
+             but only the actual time series, with a reference value.
+             This function is useful to export the data to external apps.
 }
 \examples{
 \donttest{
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 data(cerrado_2classes)
-# export a time series to zoo
+# export a time series
 sits_data_to_csv(cerrado_2classes, file = "cerrado_2classes.csv")
 }
 }

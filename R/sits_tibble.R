@@ -24,7 +24,7 @@
                                 cube        = character(),
                                 time_series = list()
     )
-    class(result) <- append(class(result), "sits", after = 0)
+    class(result) <- append(class(result), c("sits", "sits_ts_tbl"), after = 0)
     return(result)
 }
 #' @title Aligns dates of time series to a reference date
@@ -58,10 +58,12 @@ sits_align_dates <- function(data, ref_dates) {
     # create an output tibble
     data1.tb <- .sits_tibble()
 
-    purrr::pmap(list(data$longitude, data$latitude,
-                     data$label, data$cube, data$time_series),
+    rows.lst <- purrr::pmap(list(data$longitude,
+                                 data$latitude,
+                                 data$label,
+                                 data$cube,
+                                 data$time_series),
         function(long, lat, lab, cb, ts) {
-
             # only rows that match  reference dates are kept
             if (length(ref_dates) == nrow(ts)) {
                 # in what direction to shift the time series?
@@ -89,8 +91,9 @@ sits_align_dates <- function(data, ref_dates) {
                                 cube        = cb,
                                 time_series = list(ts1))
             }
-            data1.tb <<- dplyr::bind_rows(data1.tb, row)
+            return(row)
         })
+    data1.tb <- dplyr::bind_rows(data1.tb, rows.lst)
     return(data1.tb)
 }
 

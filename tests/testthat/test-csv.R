@@ -56,18 +56,15 @@ test_that("Error Reading a CSV file from WTSS", {
 
     cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
 
-    points.tb <- sits:::.sits_from_csv(csv_file = csv_file,
-                                       cube = cube_wtss,
-                                       bands = c("ndvi"),
-                                       .prefilter   = "1",
-                                       .n_start_csv = 1,
-                                       .n_max_csv   = 10,
-                                       .n_save      = 0)
+    suppressMessages(points.tb <- sits:::.sits_from_csv(csv_file = csv_file,
+                                                        cube = cube_wtss,
+                                                        bands = c("ndvi"),
+                                                        .prefilter   = "1",
+                                                        .n_start_csv = 1,
+                                                        .n_max_csv   = 10,
+                                                        .n_save      = 0))
 
     expect_true(nrow(points.tb) == 6)
 
-    err <- sits_log_show_errors()
-    err_wtss <- dplyr::filter(err, grepl("WTSS", error))
-    expect_true(nrow(err_wtss) > 0)
     expect_true(file.remove("test.csv"))
 })

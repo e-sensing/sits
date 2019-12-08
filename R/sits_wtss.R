@@ -109,26 +109,25 @@
     # try to get a time series from the WTSS server
     # get the WTSS object associated to the URL
     # retrieve the time series from the service
-    ts <- suppressMessages(wtss::time_series(cube$URL,
-                            name        = cube$name,
-                            attributes  = bands,
-                            longitude   = longitude,
-                            latitude    = latitude,
-                            start_date  = start_date,
-                            end_date    = end_date))
-
-    assertthat::assert_that(!purrr::is_null(ts),
-          msg = paste0("WTSS unable to recover time series for longitude ",
-                       longitude, " latitude ", latitude))
-    # add a label column
-    ts <- tibble::add_column(ts, label = label, .after = "end_date")
-    # convert name
-    data <- .sits_tibble_rename(ts)
-    # return the tibble with the time series
-    return(data)
-
-
-
+    tryCatch({
+        ts <- suppressMessages(wtss::time_series(cube$URL,
+                                                 name        = cube$name,
+                                                 attributes  = bands,
+                                                 longitude   = longitude,
+                                                 latitude    = latitude,
+                                                 start_date  = start_date,
+                                                 end_date    = end_date))
+        # add a label column
+        ts <- tibble::add_column(ts, label = label, .after = "end_date")
+        # convert name
+        data <- .sits_tibble_rename(ts)
+        # return the tibble with the time series
+        return(data)
+    }, error = function(e){
+        message("WTSS unable to recover time series for longitude ",
+                     longitude, " latitude ", latitude)
+        return(NULL)
+    })
 }
 #' @title Check that the URL of WTSS service is working
 #' @name .sits_wtss_check

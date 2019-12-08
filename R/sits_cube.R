@@ -210,7 +210,8 @@ sits_cube <- function(service        = "BRICK",
                               crs            = crs,
                               files          = list(files))
 
-    class(cube.tb) <- append(class(cube.tb), "cube", after = 0)
+    class(cube.tb) <- append(class(cube.tb),
+                             c("sits", "sits_cube_tbl", "cube"), after = 0)
 
     return(cube.tb)
 }

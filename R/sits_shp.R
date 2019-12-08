@@ -81,13 +81,14 @@
         # read the points
         rows.lst <- points.lst %>%
             purrr::map(function(p) {
-                paste0("long = ", p[1])
                 row <- .sits_from_service(cube = cube,
-                                          longitude = p[1], latitude = p[2],
-                                          start_date = start_date,
-                                          end_date = end_date,
-                                          bands = bands, label = label,
-                                          .prefilter = .prefilter)
+                                          longitude   = p[1],
+                                          latitude    = p[2],
+                                          start_date  = start_date,
+                                          end_date    = end_date,
+                                          bands       = bands,
+                                          label       = label,
+                                          .prefilter  = .prefilter)
                 return(row)
             })
         shape.tb <- dplyr::bind_rows(shape.tb, rows.lst)
