@@ -1025,3 +1025,22 @@ sits_label_classification <- function(cube,
 
     return(cube_class)
 }
+
+#' @title Shows the predicted labels for a classified tibble
+#' @name sits_show_prediction
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function takes a tibble with a classified time series
+#' by a machine learning method and displays the result.
+#'
+#' @param  class.tb  A SITS tibble that has been classified
+#' @return returns a tibble with the columns "from", "to", "class"
+#' @export
+sits_show_prediction <- function(class.tb) {
+    .sits_test_tibble(class.tb)
+    assertthat::assert_that(all(names(class.tb$predicted[[1]])
+                              %in% c("from", "to", "class", "probs")),
+                  msg = "sits_show_prediction: tibble has not been classified")
+    return(dplyr::select(dplyr::bind_rows(class.tb$predicted),
+                       c("from", "to", "class")))
+}
