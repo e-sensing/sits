@@ -1122,3 +1122,236 @@ sits_show_prediction <- function(class.tb) {
 
     return(data)
 }
+
+#' @title  Generic interface for ploting time series predictions
+#' @name   plot.predicted
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Given a sits tibble with a set of predictions, plot them
+#'
+#' @param  x             object of class "predicted"
+#' @param  y             ignored
+#' @param  ...           further specifications for \link{plot}.
+#' @param  bands         Bands used for visualisation
+#' @return Input sits tibble (useful for chaining functions).
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
+#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#' # classify the point
+#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
+#' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
+#' # plot the classification
+#' plot (class_ndvi.tb)
+#' }
+#' @export
+plot.predicted <- function(x, y, ..., bands = "ndvi") {
+    stopifnot(missing(y))
+    .sits_plot_classification(x, bands)
+}
+
+
+#' @title  Generic interface for ploting classified images
+#' @name   plot.classified_image
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a classified raster using ggplot.
+#'
+#' @param  x             Object of class "classified_image"
+#' @param  y             Ignored
+#' @param  ...           Further specifications for \link{plot}.
+#' @param time           Temporal reference for plot.
+#' @param title          A string.
+#' @param colors         Color pallete.
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the samples for Mato Grosso
+#'
+#' # select the bands "ndvi", "evi"
+#' samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#'
+#' #select a random forest model
+#'
+#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#' # Classify a raster file with 23 instances for one year
+#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+#'            package = "sits"))
+#' # create a data cube based on the information about the files
+#' sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+#' bands = "ndvi", files = files)
+#'
+#' # classify the raster image
+#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
+#'                              memsize = 2, multicores = 1)
+#'
+#' # label the classified image
+#' sinop_label <- sits_label_classification(sinop_probs)
+#'
+#' # plot the raster image
+#' plot(sinop_label, time = 1, title = "Sinop-2013-2014")
+#' }
+#' @export
+plot.classified_image <- function(x , y, ..., time = 1,
+                                  title = "Classified Image", colors = NULL) {
+    stopifnot(missing(y))
+    .sits_plot_raster(cube = x, time = time, title = title, colors = colors)
+}
+
+#' @title Plot classification results
+#' @name .sits_plot_classification
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @description        Plots the classification results
+#'                     (code reused from the dtwSat package by Victor Maus).
+#' @param data         A sits tibble with classified time series.
+#' @param bands        Band for plotting the classification.
+#'
+.sits_plot_classification <- function(data, bands = NULL) {
+  if (purrr::is_null(bands))
+    bands <- sits_bands(data)[1]
+
+  # prepare a data frame for plotting
+
+  #get the labels
+  labels <- sits_labels(data)$label
+
+  # put the time series in the data frame
+  purrr::pmap(list(data$latitude, data$longitude, data$label,
+                   data$time_series, data$predicted),
+              function(row_lat, row_long, row_label,
+                       row_time_series, row_predicted) {
+                lb <- .sits_plot_title(row_lat, row_long, row_label)
+                # extract the time series
+                ts <- row_time_series
+                # convert to data frame
+                df.x <- data.frame(Time = ts$Index, ts[,bands],
+                                   Series = as.factor(lb))
+                # melt the time series data for plotting
+                df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
+                # define a nice set of breaks for value plotting
+                y.labels <-  scales::pretty_breaks()(range(df.x$value,
+                                                           na.rm = TRUE))
+                y.breaks <-  y.labels
+
+                # get the predicted values as a tibble
+
+                pred <- row_predicted
+                df.pol <- data.frame()
+
+                # create a data frame with values and intervals
+                i <- 1
+                purrr::pmap(list(row_predicted$from, row_predicted$to,
+                                 row_predicted$class),
+                            function (rp_from, rp_to, rp_class) {
+
+                              best_class <- as.character(rp_class)
+
+                              df.p <- data.frame(
+                                Time  = c(lubridate::as_date(rp_from),
+                                          lubridate::as_date(rp_to),
+                                          lubridate::as_date(rp_to),
+                                          lubridate::as_date(rp_from)),
+                                Group = rep(i, 4),
+                                Class = rep(best_class, 4),
+                                value = rep(range(y.breaks,
+                                                  na.rm = TRUE), each = 2)
+                              )
+                              i <<- i + 1
+                              df.pol <<- rbind(df.pol, df.p)
+
+                            })
+
+                df.pol$Group  <-  factor(df.pol$Group)
+                df.pol$Class  <-  factor(df.pol$Class)
+                df.pol$Series <-  rep(lb, length(df.pol$Time))
+
+                I <-  min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
+                  df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
+
+                df.x <- df.x[I,,drop = FALSE]
+
+                gp <-  ggplot2::ggplot() +
+                  ggplot2::facet_wrap(~Series,
+                                      scales = "free_x", ncol = 1) +
+                  ggplot2::geom_polygon(data = df.pol,
+                                        ggplot2::aes_string(x = 'Time',
+                                                            y = 'value',
+                                                            group = 'Group',
+                                                            fill = 'Class'),
+                                        alpha = .7) +
+                  ggplot2::scale_fill_brewer(palette = "Set3") +
+                  ggplot2::geom_line(data = df.x,
+                                     ggplot2::aes_string(x = 'Time',
+                                                         y = 'value',
+                                                         colour = 'variable')) +
+                  ggplot2::scale_y_continuous(expand = c(0, 0),
+                                              breaks = y.breaks,
+                                              labels = y.labels) +
+                  ggplot2::scale_x_date(breaks = ggplot2::waiver(),
+                                        labels = ggplot2::waiver()) +
+                  ggplot2::theme(legend.position = "bottom") +
+                  ggplot2::guides(colour =
+                                    ggplot2::guide_legend(title = "Bands")) +
+                  ggplot2::ylab("Value") +
+                  ggplot2::xlab("Time")
+
+                graphics::plot(gp)
+
+              })
+  return(invisible(data))
+}
+
+#' @title Plot a raster classified images
+#'
+#' @name .sits_plot_raster
+#'
+#' @description plots a raster using ggplot. This function is used
+#' for showing the same lat/long location in a series of time steps.
+#'
+#' @param cube        A tibble with the metadata for a labelled data cube.
+#' @param time        Temporal reference for plot.
+#' @param title       A string.
+#' @param colors      Color pallete.
+.sits_plot_raster <- function(cube, time = 1, title = "Classified Image",
+                              colors = NULL) {
+  #precondition 1 - cube must be a labelled cube
+  assertthat::assert_that(as.logical(grep("class",
+                                          .sits_cube_bands(cube)[1])),
+                  msg = "sits_plot_raster: input cube must be a labelled one")
+  #precondition 2 - time must be a positive integer
+  assertthat::assert_that(time >= 1,
+                    msg = "sits_plot_raster: time must be a positive integer")
+
+  # get the raster object
+  r <- .sits_cube_robj(cube, time)
+
+  # convert from raster to points
+  map.p <- raster::rasterToPoints(r)
+  # create a data frame
+  df <- data.frame(map.p)
+  # define the column names for the data frame
+  colnames(df) <- c("x", "y", "class")
+
+  # get the labels and how many there are
+  labels <- .sits_cube_labels(cube)
+  nclasses <- length(labels)
+  # create a mapping from classes to labels
+  names(labels) <- as.character(c(1:nclasses))
+
+  # if colors are not specified, get them from the configuration file
+  if (purrr::is_null(colors)) {
+    colors <- vector(length = nclasses)
+    for (i in 1:nclasses)
+      colors[i] <- .sits_config_color(labels[i])
+  }
+  # set the names of the color vector
+  names(colors) <- as.character(c(1:nclasses))
+
+  # plot the data with ggplot
+  g <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+    ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
+    ggplot2::labs(title = title) +
+    ggplot2::scale_fill_manual(values = colors, labels = labels,
+                               guide = ggplot2::guide_legend(title = "Classes"))
+
+  return(g)
+}

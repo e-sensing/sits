@@ -46,3 +46,33 @@ sits_keras_load <-  function(hdffile, rdsfile){
     # returns the dl_model
     return(dl_model)
 }
+
+#' @title  Generic interface for plotting a Deep Learning model
+#' @name   plot.keras_model
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a deep learning model
+#'
+#' @param  x             Object of class "keras_model"
+#' @param  y             Ignored
+#' @param  ...           Further specifications for \link{plot}.
+#'
+#' @examples
+#' \donttest{
+#' # Get a set of samples
+#' samples_ndvi_evi <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+#'
+#' # train a deep learning model
+#' dl_model <-  sits_train(samples_ndvi_evi, ml_method = sits_deeplearning(
+#'                          layers           = c(512, 512, 512),
+#'                          activation       = 'relu',
+#'                          dropout_rates    = c(0.50, 0.40, 0.35),
+#'                          epochs = 100,
+#'                          batch_size = 128,
+#'                          validation_split = 0.2))
+#' plot(dl_model)
+#' }
+#' @export
+plot.keras_model <- function(x, y, ...) {
+    stopifnot(missing(y))
+    graphics::plot(environment(x)$history)
+}
