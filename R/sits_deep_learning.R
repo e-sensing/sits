@@ -41,114 +41,150 @@ sits_keras_diagnostics <- function(dl_model) {
     return(test_eval)
 }
 
-#' @title Train a classification model using a multi-layer perceptron.
+#' @title Train a sits classifiction model using the keras deep learning
 #' @name sits_deeplearning
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Use a multi-layer perceptron to classify data. USers can define
-#' the number and size of the hidden layers, and dropout rates and activation
-#' functions for each layer.
+#' @description Use a deeplearning algorithm to classify data.
 #' This function is a front-end to the "keras" method R package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param data              Time series with the training samples.
-#' @param layers            Number of hidden nodes in each hidden layer.
-#' @param activation        Names of activation functions.
-#'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param dropout_rates     Vector with the dropout rates (0,1)
-#'                          for each layer to the next layer.
-#' @param optimizer         Optimizer function (default is optimization_adam()).
-#'                          Options: optimizer_adadelta(), optimizer_adagrad(),
-#'                          optimizer_adam(), optimizer_adamax(),
-#'                          optimizer_nadam(), optimizer_rmsprop(),
-#'                          optimizer_sgd().
+#' @param samples           Time series with the training samples.
+#' @param layers            Vector with the number of hidden nodes in each hidden layer.
+#' @param activation        Vector with the names of activation functions. Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
+#' @param dropout_rates     Vector with the dropout rates (0,1) for each layer to the next layer.
+#' @param optimizer         Function with a pointer to the optimizer function (default is optimization_adam()).
+#'                          Options are optimizer_adadelta(), optimizer_adagrad(), optimizer_adam(),
+#'                          optimizer_adamax(), optimizer_nadam(), optimizer_rmsprop(), optimizer_sgd()
 #' @param epochs            Number of iterations to train the model.
 #' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Number between 0 and 1.
-#'                          Fraction of training data to be used for validation.
-#'                          The model sets apart this fraction of the training
-#'                          data, will not train on it,
-#'                          and will evaluate the loss and any model metrics
-#'                          on this data at the end of each epoch.
-#'                          The validation data is selected from the
-#'                          last samples in the x and y data provided,
+#' @param validation_split  Number between 0 and 1. Fraction of the training data to be used as validation data.
+#'                          The model will set apart this fraction of the training data, will not train on it,
+#'                          and will evaluate the loss and any model metrics on this data at the end of each epoch.
+#'                          The validation data is selected from the last samples in the x and y data provided,
 #'                          before shuffling.
-#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar,
-#'                          2 = one line per epoch).
-#'
-#' @return Fitted model to be used by \code{\link[sits]{sits_classify}}
-#'
+#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per epoch).
+#' @return Either an model function to be passed in sits_predict or an function prepared that can be called further to compute multinom training model.
 #' @examples
 #' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
-#'
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' data(samples_mt_ndvi)
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_mt_4bands, sits_deeplearning(epochs = 150))
-#' # plot the model
-#' plot(dl_model)
-#'
-#' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
-#' class.tb <- sits_classify(point.tb, dl_model)
-#' plot(class.tb, bands = c("ndvi", "evi"))
+#' dl_model <- sits_train (samples_mt_ndvi,
+#'                         sits_deeplearning(layers = c(512, 512, 512),
+#'                                           dropout_rates = c(0.50, 0.40, 0.35),
+#'                                           epochs = 50))
+#' # get a point with a 16 year time series
+#' data(point_ndvi)
+#' # classify the point
+#' class.tb <- sits_classify (point_ndvi, dl_model)
+#' # plot the classified point
+#' sits_plot(class.tb)
 #' }
 #' @export
-sits_deeplearning <- function(data          = NULL,
-                        layers           = c(512, 512, 512, 512, 512),
-                        activation       = 'relu',
-                        dropout_rates    = c(0.50, 0.45, 0.40, 0.35, 0.30),
-                        optimizer        = keras::optimizer_adam(lr = 0.001),
-                        epochs           = 200,
-                        batch_size       = 128,
-                        validation_split = 0.2,
-                        verbose          = 1) {
+sits_deeplearning <- function(samples          = NULL,
+                              layers           = c(512, 512, 512, 512, 512),
+                              activation       = 'elu',
+                              dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
+                              optimizer        = keras::optimizer_adam(lr = 0.001),
+                              epochs           = 500,
+                              batch_size       = 128,
+                              validation_split = 0.2,
+                              verbose          = 1) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    if ("coverage" %in% names(samples))
+        samples <- .sits_tibble_rename(samples)
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){
+
         # pre-conditions
         assertthat::assert_that(length(layers) == length(dropout_rates),
-            msg = "sits_deeplearning: number of layers does not match
+                msg = "sits_deeplearning: number of layers does not match
                         number of dropout rates")
 
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         assertthat::assert_that(activation %in% valid_activations,
-            msg = "sits_deeplearning: invalid node activation method")
+                msg = "sits_deeplearning: invalid node activation method")
+
+        assertthat::assert_that(length(activation) == length(dropout_rates) ||
+                                length(activation) == 1,
+                       msg = "sits_deeplearning:
+                       activation vectors should be one string or a
+                       set of strings that match the number of units")
+
+        # data normalization
+        stats <- .sits_normalization_param(data)
+        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
+
+        # is the train data correct?
+        assertthat::assert_that("reference" %in% names(train_data_DT),
+            msg = "sits_deeplearning:
+                   input data does not contain distances")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
-        n_labels <- length(labels)
 
-        # create the train and test datasets for keras
-        keras.data <- .sits_dl_prepare_data(data = data,
-                                            validation_split = validation_split,
-                                            type = "MLP")
-        train.x <- keras.data$train.x
-        train.y <- keras.data$train.y
-        test.x  <- keras.data$test.x
-        test.y  <- keras.data$test.y
+        # create a named vector with integers match the class labels
+        n_labels <- length(labels)
+        int_labels <- c(1:n_labels)
+        names(int_labels) <- labels
+
+        # split the data into training and validation data sets
+        # create partitions different splits of the input data
+        test_data_DT <- .sits_sample_distances(train_data_DT,
+                                               frac = validation_split)
+
+        # remove the lines used for validation
+        train_data_DT <- train_data_DT[!test_data_DT, on = "original_row"]
+
+        # shuffle the data
+        train_data_DT <- train_data_DT[sample(nrow(train_data_DT),
+                                              nrow(train_data_DT)),]
+        test_data_DT  <- test_data_DT[sample(nrow(test_data_DT),
+                                             nrow(test_data_DT)),]
+
+        # organize data for model training
+        train.x <- data.matrix(train_data_DT[, -(1:2)])
+        train.y <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
+
+        # create the test data for keras
+        test.x <- data.matrix(test_data_DT[, -(1:2)])
+        test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
+
+        # set the activation vector
+        act_vec <- vector()
+
+        n_layers <- length(layers)
+        for (i in 1:n_layers) {
+            if (length(activation) == 1)
+                act_vec[i] <- activation
+            else
+                act_vec <- activation
+        }
 
         # build the model step by step
         # create the input_tensor
         input_tensor  <- keras::layer_input(shape = c(NCOL(train.x)))
-        output_tensor <-  input_tensor
+        output_tensor <- input_tensor
 
         # build the nodes
-        purrr::map2(layers, dropout_rates, function(ly, dr) {
-            output_tensor <- keras::layer_dense(output_tensor, units = ly,
-                                                activation = activation)
-            output_tensor <- keras::layer_dropout(output_tensor, rate = dr)
+        for (i in 1:n_layers) {
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = layers[i],
+                                                activation = act_vec[i])
+            output_tensor <- keras::layer_dropout(output_tensor,
+                                                  rate = dropout_rates[i])
             output_tensor <- keras::layer_batch_normalization(output_tensor)
-        })
+        }
         # create the final tensor
-        model_loss <- ""
+        model_loss <- "categorical_crossentropy"
         if (n_labels == 2) {
-            output_tensor <- keras::layer_dense(output_tensor, units = 1,
+            output_tensor <- keras::layer_dense(output_tensor,
+                                                units = 1,
                                                 activation = "sigmoid")
             model_loss <- "binary_crossentropy"
         }
@@ -156,7 +192,6 @@ sits_deeplearning <- function(data          = NULL,
             output_tensor <- keras::layer_dense(output_tensor,
                                                 units = n_labels,
                                                 activation = "softmax")
-            model_loss <- "categorical_crossentropy"
             # keras requires categorical data to be put in a matrix
             train.y <- keras::to_categorical(train.y, n_labels)
             test.y  <- keras::to_categorical(test.y, n_labels)
@@ -170,6 +205,9 @@ sits_deeplearning <- function(data          = NULL,
             metrics = "accuracy"
         )
 
+        prev.fit_verbose <- getOption("keras.fit_verbose")
+        options(keras.fit_verbose = verbose)
+
         # fit the model
         history <- model.keras %>% keras::fit(
             train.x, train.y,
@@ -178,7 +216,6 @@ sits_deeplearning <- function(data          = NULL,
             verbose = verbose, view_metrics = "auto"
         )
 
-        # show training evolution
         graphics::plot(history)
 
         # construct model predict closure function and returns
@@ -187,8 +224,9 @@ sits_deeplearning <- function(data          = NULL,
             # (remove first two columns)
             values.x         <- data.matrix(values_DT[, -(1:2)])
             # retrieve the prediction probabilities
-            predict_DT <- data.table::as.data.table(stats::predict(model.keras,
-                                                                    values.x))
+            predict_DT <- data.table::as.data.table(
+                                   stats::predict(model.keras, values.x))
+
             # for the binary classification case
             # adjust the prediction values
             # to match the multi-class classification
@@ -206,7 +244,7 @@ sits_deeplearning <- function(data          = NULL,
         return(model_predict)
     }
 
-    result <- .sits_factory_function(data, result_fun)
+    result <- .sits_factory_function(samples, result_fun)
     return(result)
 }
 

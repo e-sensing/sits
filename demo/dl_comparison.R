@@ -23,42 +23,17 @@ library(sits)
 # create a list to store the results
 results <- list()
 
-## SVM model
-conf_svm.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
-                                   ml_method = sits_svm(kernel = "radial", cost = 10))
-
-print("== Confusion Matrix = SVM =======================")
-conf_svm.mx <- sits_conf_matrix(conf_svm.tb)
-
-conf_svm.mx$name <- "svm_radial_r10"
-
-results[[length(results) + 1]] <- conf_svm.mx
-
-# =============== RFOR ==============================
-
-conf_rfor.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
-                                    ml_method = sits_rfor(num_trees = 5000))
-print("== Confusion Matrix = RFOR =======================")
-conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
-conf_rfor.mx$name <- "rfor_5000"
-
-results[[length(results) + 1]] <- conf_rfor.mx
-
-# =============== MLR ==============================
-# "multinomial log-linear (mlr)
-conf_mlr.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
-                                   ml_method = sits_mlr())
-
-# print the accuracy of the Multinomial log-linear
-print("== Confusion Matrix = MLR =======================")
-conf_mlr.mx <- sits_conf_matrix(conf_mlr.tb)
-conf_mlr.mx$name <- "mlr"
-
-results[[length(results) + 1]] <- conf_mlr.mx
 
 # Deep Learning - MLP
-conf_dl.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
-                                  ml_method = sits_deeplearning())
+conf_dl.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5, multicores = 1,
+                                  ml_method = sits_deeplearning(
+                                      layers = c(512,512,512),
+                                      activation = "elu",
+                                      dropout_rates = c(0.50, 0.40, 0.30),
+                                      epochs = 300,
+                                      batch_size = 128,
+                                      validation_split = 0.2)
+                                  )
 
 print("== Confusion Matrix = DL =======================")
 conf_dl.mx <- sits_conf_matrix(conf_dl.tb)
