@@ -11,15 +11,16 @@ sits_keras_save(
 )
 }
 \arguments{
-\item{model}{An R Keras model trained by \code{\link[sits]{sits_deeplearning}}.}
+\item{model}{An R Keras model.}
 
 \item{hdffile}{An hdf5 file where the keras model is to be saved.}
 
 \item{rdsfile}{A rds file where the R environment is to be saved.}
 }
 \description{
-Takes a Keras model trained by \code{\link[sits]{sits_deeplearning}} and saves it in two files.
-One file is the keras model itself (saved as hdf5) and the other is the R enviroment required for sits
+Takes a Keras model and saves it in two files.
+One file is the keras model itself (saved as hdf5)
+and the other is the R enviroment required for sits
 to work with the model.
 }
 \author{
