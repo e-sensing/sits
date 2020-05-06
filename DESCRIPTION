@@ -75,7 +75,6 @@ Imports:
     tools,
     urltools,
     utils,
-    wtss,
     xgboost,
     zoo
 Suggests:
@@ -86,7 +85,8 @@ Suggests:
     Rcpp,
     testthat
 Remotes: 
-    e-sensing/EOCubes
+    e-sensing/EOCubes,
+    e-sensing/wtss
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp
