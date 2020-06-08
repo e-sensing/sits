@@ -277,9 +277,10 @@ sits_label_classification <- function(cube,
 #' @param  interval          Interval used for classification (in months).
 #' @param  filter            Smoothing filter to be applied (if desired).
 #' @param  multicores        Number of cores to be used for classification.
-#' @param  progress        Show progress bar? Default is TRUE.
 #' @return A tibble with the predicted labels for each input segment.
-.sits_classify_ts <- function(data, ml_model, interval, filter, multicores, progress = TRUE) {
+#'
+.sits_classify_ts <- function(data, ml_model, interval, filter, multicores) {
+
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -323,8 +324,7 @@ sits_label_classification <- function(cube,
     predict.mtx <- .sits_classify_distances(distances_DT = distances_DT,
                                             class_info.tb = class_info.tb,
                                             ml_model = ml_model,
-                                            multicores = multicores,
-                                            progress = progress)
+                                            multicores = multicores)
 
     # Store the result in the input data
     data <- .sits_tibble_prediction(data = data,
@@ -345,10 +345,9 @@ sits_label_classification <- function(cube,
 #' @param  class_info.tb   classification information.
 #' @param  ml_model        model trained by \code{\link[sits]{sits_train}}.
 #' @param  multicores      number of threads to process the time series.
-#' @param  progress        Show progress bar? Default is TRUE.
 #' @return A vector with the predicted labels.
 .sits_classify_distances <- function(distances_DT, class_info.tb,
-                                     ml_model, multicores, progress = TRUE) {
+                                     ml_model, multicores) {
 
     # keras-based models run in single-core mode (keras does parallel processing)
     if ("keras_model" %in% class(ml_model) || "rfor_model" %in% class(ml_model))
@@ -391,7 +390,7 @@ sits_label_classification <- function(cube,
         blocks.lst <- split.data.frame(distances_DT, cut(1:n_rows_dist,
                                        multicores, labels = FALSE))
         # apply parallel processing to the split dat
-        results.lst <- pbLapply(multicores, progress = progress, X = blocks.lst, FUN = classify_block)
+        results.lst <- pbLapply(multicores, X = blocks.lst, FUN = classify_block)
         pred.mtx <- join_blocks(results.lst)
     }
     else
@@ -627,9 +626,8 @@ sits_label_classification <- function(cube,
 #' @param  DT                A data.table with distance values.
 #' @param  ml_model          Machine learning model to be applied.
 #' @param  multicores        Number of cores to process the time series.
-#' @param  progress          Show progress bar? Default is TRUE.
 #' @return                   A data table with predicted values of probs
-.sits_classify_interval <- function(DT, ml_model, multicores, progress = TRUE) {
+.sits_classify_interval <- function(DT, ml_model, multicores) {
     nrows_DT <- nrow(DT)
     proc_cores <- multicores
     if (!(purrr::is_null(environment(ml_model)$model.keras)) ||
@@ -658,7 +656,7 @@ sits_label_classification <- function(cube,
         .sits_log_debug(
             paste0("Memory used before mcapply - ", .sits_mem_used(), " GB"))
         # apply parallel processing to the split data (return the results in a list inside a prototype)
-        predictions.lst <- pbLapply(proc_cores, progress = progress, X = block.lst, FUN = classify_block)
+        predictions.lst <- pbLapply(proc_cores, X = blocks.lst, FUN = classify_block)
 
         #memory management
         rm(block.lst)
@@ -771,10 +769,10 @@ sits_label_classification <- function(cube,
 #' @param  filter          Smoothing filter to be applied (if desired).
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of cores to be used for classification.
-#' @param  progress        Show progress bar? Default is TRUE.
 #' @return A tibble with the metadata for the vector of classified RasterLayers.
+#'
 .sits_classify_eocubes <- function(cube, ml_model, interval, filter,
-                                   memsize, multicores, progress = TRUE) {
+                                   memsize, multicores) {
 
     # get cube object
     #cub.obj <- .sits_cube_robj(cube)
@@ -853,8 +851,7 @@ sits_label_classification <- function(cube,
                                                                  interval,
                                                                  filter,
                                                                  memsize,
-                                                                 multicores,
-                                                                 progress)
+                                                                 multicores)
             }))
         }))
 
@@ -884,7 +881,6 @@ sits_label_classification <- function(cube,
 #' @param  filter          Smoothing filter to be applied to the data.
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of cores.
-#' @param  progress        Show progress bar? Default is TRUE.
 #' @return List of the classified raster layers.
 .sits_classify_multicores_cubes <-  function(cube,
                                              cube_class,
@@ -893,8 +889,7 @@ sits_label_classification <- function(cube,
                                              interval,
                                              filter,
                                              memsize,
-                                             multicores,
-                                             progress = TRUE) {
+                                             multicores) {
     # retrieve the output raster layers
     bricks_probs <- .sits_cube_all_robjs(cube_class)
 
@@ -941,7 +936,8 @@ sits_label_classification <- function(cube,
             }
             colnames(dist_DT) <- attr_names
             # predict the classification values
-            prediction_DT <- .sits_classify_interval(dist_DT, ml_model, multicores, progress = progress)
+            prediction_DT <- .sits_classify_interval(dist_DT, ml_model, multicores)
+
 
             # convert probabilities matrix to INT2U
             scale_factor_save <- 10000

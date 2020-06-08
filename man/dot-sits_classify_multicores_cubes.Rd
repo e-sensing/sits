@@ -5,7 +5,7 @@
 \title{Classify a stacks chunk using multicores}
 \usage{
 .sits_classify_multicores_cubes(cube, cube_class, samples, ml_model,
-  interval, filter, memsize, multicores, progress = TRUE)
+  interval, filter, memsize, multicores)
 }
 \arguments{
 \item{cube}{Metadata for a data cube}
@@ -23,8 +23,6 @@
 \item{memsize}{Memory available for classification (in GB).}
 
 \item{multicores}{Number of cores.}
-
-\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 List of the classified raster layers.

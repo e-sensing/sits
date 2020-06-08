@@ -5,7 +5,7 @@
 \title{Classify a data cube created with the EOCUBES service}
 \usage{
 .sits_classify_eocubes(cube, ml_model, interval, filter, memsize,
-  multicores, progress = TRUE)
+  multicores)
 }
 \arguments{
 \item{cube}{Tibble with information about a data cube.}
@@ -20,8 +20,6 @@ expressed in months.}
 \item{memsize}{Memory available for classification (in GB).}
 
 \item{multicores}{Number of cores to be used for classification.}
-
-\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 A tibble with the metadata for the vector of classified RasterLayers.

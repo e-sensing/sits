@@ -4,8 +4,7 @@
 \alias{.sits_raster_scale_matrix_integer}
 \title{Scale the time series values in the case of a matrix}
 \usage{
-.sits_raster_scale_matrix_integer(values.mx, scale_factor, multicores,
-  progress = TRUE)
+.sits_raster_scale_matrix_integer(values.mx, scale_factor, multicores)
 }
 \arguments{
 \item{values.mx}{Matrix of values.}
@@ -13,8 +12,6 @@
 \item{scale_factor}{Scaling factor.}
 
 \item{multicores}{Number of cores.}
-
-\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 Scaled integer matrix.

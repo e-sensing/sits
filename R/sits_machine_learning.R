@@ -694,9 +694,8 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #' @param data     A sits tibble.
 #' @param stats    Statistics for normalization.
 #' @param multicores  Number of cores to process.
-#' @param  progress        Show progress bar? Default is TRUE.
 #' @return A normalized sits tibble.
-.sits_normalize_data <- function(data, stats, multicores = 1, progress = TRUE){
+.sits_normalize_data <- function(data, stats, multicores = 1){
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)
@@ -743,7 +742,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 
     if (multicores > 1) {
         parts.lst <- split(values.lst, cut(1:n_values, 2, labels = FALSE))
-        norm.lst <- dplyr::combine(pbLapply(multicores, progress = progress, X = parts.lst, FUN = normalize_list))
+        norm.lst <- dplyr::combine(pbLapply(multicores, X = parts.lst, FUN = normalize_list))
     }
     else
         norm.lst <- normalize_list(values.lst)
@@ -762,9 +761,8 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #' @param  stats       Statistics for normalization.
 #' @param  band           Band to be normalized.
 #' @param  multicores     Number of cores.
-#' @param  progress        Show progress bar? Default is TRUE.
 #' @return A normalized matrix.
-.sits_normalize_matrix <- function(data.mx, stats, band, multicores, progress = TRUE) {
+.sits_normalize_matrix <- function(data.mx, stats, band, multicores) {
     # select the 2% and 98% quantiles
     quant_2   <- as.numeric(stats[2, band])
     quant_98  <- as.numeric(stats[3, band])
@@ -778,7 +776,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
     # parallel processing for normalization
     if (multicores > 1) {
         chunk.lst <- .sits_raster_split_data(data.mx, multicores)
-        rows.lst <- pbLapply(multicores, progress = progress, X = chunk.lst, FUN = normalize_list)
+        rows.lst <- pbLapply(multicores, X = chunk.lst, FUN = normalize_list)
         data.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
         rm(rows.lst)

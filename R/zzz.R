@@ -31,7 +31,7 @@ utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V0", "V1", "
                          "blue", "red", "green", "nir", "mir", "swir",
                          "ndvi", "evi", "model_formula",
                          "distance", "predicted", "new_values", "sum_area",
-                         "area_vec", "area", "i",
+                         "area_vec", "area",
                          "id_sample", "neuron_label", "percentage_s",
                          "id_neuron", "neuron_class",
                          "label_neighbor_neuron", "p_Neighbor", "desc",

@@ -4,7 +4,7 @@
 \alias{.sits_normalize_data}
 \title{Normalize the time series in the given sits_tibble}
 \usage{
-.sits_normalize_data(data, stats, multicores = 1, progress = TRUE)
+.sits_normalize_data(data, stats, multicores = 1)
 }
 \arguments{
 \item{data}{A sits tibble.}
@@ -12,8 +12,6 @@
 \item{stats}{Statistics for normalization.}
 
 \item{multicores}{Number of cores to process.}
-
-\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 A normalized sits tibble.

@@ -4,7 +4,7 @@
 \alias{.sits_raster_filter_data}
 \title{Filter the time series values in the case of a matrix}
 \usage{
-.sits_raster_filter_data(values.mx, filter, multicores, progress = TRUE)
+.sits_raster_filter_data(values.mx, filter, multicores)
 }
 \arguments{
 \item{values.mx}{Matrix of values.}
@@ -12,8 +12,6 @@
 \item{filter}{Filter function to apply to matrix.}
 
 \item{multicores}{Number of cores.}
-
-\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 Scaled integer matrix.

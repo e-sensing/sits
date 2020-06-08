@@ -4,7 +4,7 @@
 \alias{.sits_normalize_matrix}
 \title{Normalize the time series values in the case of a matrix}
 \usage{
-.sits_normalize_matrix(data.mx, stats, band, multicores, progress = TRUE)
+.sits_normalize_matrix(data.mx, stats, band, multicores)
 }
 \arguments{
 \item{data.mx}{Matrix of values.}
@@ -14,8 +14,6 @@
 \item{band}{Band to be normalized.}
 
 \item{multicores}{Number of cores.}
-
-\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 A normalized matrix.
