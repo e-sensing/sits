@@ -7,21 +7,23 @@
 sits_formula_linear(predictors_index = -2:0)
 }
 \arguments{
-\item{predictors_index}{Index of the valid columns whose names are used to compose formula (default: NULL).}
+\item{predictors_index}{Index of the valid columns
+whose names are used to compose formula (default: -2:0).}
 }
 \value{
 A function that computes a valid formula.
 }
 \description{
-A function to be used as a symbolic description of some fitting models such as svm.
-This function instructs the model to do a linear transformation of the input values.
-The `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
-If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
+Provides a symbolic description of a fitting model.
+Tells the model to do a linear transformation of the input values.
+The `predictors_index` parameter informs the positions of fields
+corresponding to formula independent variables.
+If no value is given,  that all fields will be used as predictors.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

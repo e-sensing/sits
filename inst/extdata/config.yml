@@ -120,6 +120,7 @@ default:
             ndvi            : 0.0001
             evi             : 0.0001
             red             : 0.0001
+            blue            : 0.0001
             nir             : 0.0001
             swir1           : 0.0001
             swir2           : 0.0001

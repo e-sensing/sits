@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_missing_values}
 \alias{.sits_config_missing_values}
-\title{Retrieve the missing values for bands of a sensor, based on the configuration file}
+\title{Retrieve the missing values for bands of a sensor}
 \usage{
 .sits_config_missing_values(sensor, bands)
 }
@@ -15,7 +15,7 @@
 The missing values.
 }
 \description{
-Retrieve the missing values for bands of a sensor, based on the configuration file
+Retrieve the missing values for bands of a sensor
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

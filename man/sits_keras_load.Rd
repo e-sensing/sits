@@ -15,9 +15,10 @@ sits_keras_load(hdffile, rdsfile)
 An R Keras model trained by \code{\link[sits]{sits_deeplearning}}.
 }
 \description{
-Takes a save Keras model trained by \code{\link[sits]{sits_deeplearning}}, which has
+Takes a save Keras model
 been saved in two files and loads it in memory for further processing.
-One file is the keras model itself (saved as hdf5) and the other is the R enviroment required for sits
+One file is the keras model itself (saved as hdf5)
+and the other is the R enviroment required for sits
 to work with the model.
 }
 \author{

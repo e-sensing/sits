@@ -9,7 +9,7 @@
 \arguments{
 \item{koh}{Kohonen map produced by "sits_som_map" function}
 
-\item{type}{Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.}
+\item{type}{Type of plot ("codes" or "mapping")}
 
 \item{whatmap}{What data layer will be plotted.}
 }
@@ -18,11 +18,9 @@ Given a kohonen object with a set of time neurons, plot them.
 
 The plot function produces different plots based on the input data:
 \itemize{
- \item{"codes": }{Plot in each neuron the vector weight which corresponds to it.}
+ \item{"codes": }{Plot the vector weight for each neuron.}
  \item{"mapping": }{Shows where samples are mapped.}
 }
-Function sits_plot_som plots a classified kohonen map. A set of neurons
-with same category corresponds to a same cluster.
 }
 \author{
 Lorena Santos \email{lorena.santos@inpe.br}

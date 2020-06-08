@@ -4,12 +4,33 @@
 \alias{.sits_cube_create}
 \title{Creates the description of a data cube}
 \usage{
-.sits_cube_create(service, URL, satellite, sensor, name, bands, labels,
-  scale_factors, missing_values, minimum_values, maximum_values, timelines,
-  nrows, ncols, xmin, xmax, ymin, ymax, xres, yres, crs, files = NULL)
+.sits_cube_create(
+  service,
+  URL,
+  satellite,
+  sensor,
+  name,
+  bands,
+  labels,
+  scale_factors,
+  missing_values,
+  minimum_values,
+  maximum_values,
+  timelines,
+  nrows,
+  ncols,
+  xmin,
+  xmax,
+  ymin,
+  ymax,
+  xres,
+  yres,
+  crs,
+  files = NULL
+)
 }
 \arguments{
-\item{service}{Name of the web service that has provided metadata about the cube.}
+\item{service}{Web service with metadata about the cube.}
 
 \item{URL}{URL of the provider}
 
@@ -21,7 +42,7 @@
 
 \item{bands}{Vector with the names of the bands.}
 
-\item{labels}{Vector with labels (only valid for classified data).}
+\item{labels}{Vector with labels (only for classified data).}
 
 \item{scale_factors}{Vector with scale factor for each band.}
 
@@ -54,6 +75,5 @@
 \item{files}{Vector with associated files.}
 }
 \description{
-Uses the configuration file to print information and save metadata about a
-data cube.
+Print information and save metadata about a data cube.
 }

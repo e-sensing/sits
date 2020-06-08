@@ -3,8 +3,8 @@ Type: Package
 Title: Satellite Image Time Series Analysis For Remote Sensing Data Cubes
 Version: 0.9.4
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
-             person('Pedro', 'Andrade', role = c('aut', 'cre'), email = 'pedro.andrade@inpe.br'),
-             person('Gilberto', 'Camara', role = c('aut'), email = 'gilberto.camara@inpe.br'), 
+             person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
+             person('Pedro', 'Andrade', role = c('aut'), email = 'pedro.andrade@inpe.br'),
              person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
              person('Alexandre', 'Carvalho', role = c('aut'), email= 'alexandre.ywata@ipea.gov.br'),
              person('Lorena', 'Santos', role = c('aut'), email = 'lorena.santos@inpe.br'),
@@ -32,19 +32,18 @@ ByteCompile: true
 LazyData: true
 Imports:
     magrittr,
+    assertthat,
     caret,
     config,
     data.table (>= 1.10),
     dendextend,
     e1071,
-    ensurer,
     EOCubes,
     dplyr (>= 0.7.4),
     dtw,
     dtwclust,
     dtwSat,
     flexclust,
-    geosphere,
     ggplot2,
     graphics,
     grDevices,
@@ -56,7 +55,6 @@ Imports:
     MASS,
     methods,
     mgcv,
-    NbClust,
     nnet,
     openxlsx,
     parallel,
@@ -73,12 +71,10 @@ Imports:
     sf (>= 0.6),
     signal,
     stats,
-    stringr,
     tibble (>= 1.4),
     tools,
     urltools,
     utils,
-    wtss,
     xgboost,
     zoo
 Suggests:
@@ -89,11 +85,12 @@ Suggests:
     Rcpp,
     testthat
 Remotes: 
-    e-sensing/EOCubes
+    e-sensing/EOCubes,
+    e-sensing/wtss
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 Collate: 
     'RcppExports.R'
     'data.R'
@@ -107,6 +104,7 @@ Collate:
     'sits_dt_reference.R'
     'sits_eocubes.R'
     'sits_factory.R'
+    'sits_FCN.R'
     'sits_filters.R'
     'sits_get_data.R'
     'sits_indexes.R'
@@ -114,15 +112,19 @@ Collate:
     'sits_kohonen.R'
     'sits_labels.R'
     'sits_log.R'
+    'sits_LSTM_FCN.R'
     'sits_machine_learning.R'
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
     'sits_raster.R'
+    'sits_raster_data.R'
+    'sits_ResNet.R'
     'sits_satveg.R'
     'sits_services.R'
     'sits_shp.R'
     'sits_space_time_operations.R'
+    'sits_TempCNN.R'
     'sits_tibble.R'
     'sits_timeline.R'
     'sits_twdtw.R'
@@ -130,4 +132,3 @@ Collate:
     'sits_wtss.R'
     'sits_zoo.R'
     'zzz.R'
-

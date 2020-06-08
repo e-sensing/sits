@@ -2,10 +2,17 @@
 % Please edit documentation in R/sits_eocubes.R
 \name{.sits_from_EOCubes}
 \alias{.sits_from_EOCubes}
-\title{Obtain one timeSeries from EOCubes package and load it on a sits tibble}
+\title{Obtain one timeSeries from EOCubes package}
 \usage{
-.sits_from_EOCubes(cube, longitude, latitude, start_date = NULL,
-  end_date = NULL, bands = NULL, label = "NoClass")
+.sits_from_EOCubes(
+  cube,
+  longitude,
+  latitude,
+  start_date = NULL,
+  end_date = NULL,
+  bands = NULL,
+  label = "NoClass"
+)
 }
 \arguments{
 \item{cube}{Metadata about the data cube to be retrived.}
@@ -18,9 +25,9 @@
 
 \item{end_date}{Date with the end of the period.}
 
-\item{bands}{A list of string with the names of the bands of the data cube.}
+\item{bands}{Names of the bands of the data cube.}
 
-\item{label}{A string with the label to attach to the time series (optional).}
+\item{label}{Label to attach to the time series (optional).}
 }
 \value{
 A sits tibble.

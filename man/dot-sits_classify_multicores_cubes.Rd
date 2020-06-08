@@ -4,8 +4,16 @@
 \alias{.sits_classify_multicores_cubes}
 \title{Classify a stacks chunk using multicores}
 \usage{
-.sits_classify_multicores_cubes(cube, cube_class, samples, ml_model,
-  interval, filter, memsize, multicores)
+.sits_classify_multicores_cubes(
+  cube,
+  cube_class,
+  samples,
+  ml_model,
+  interval,
+  filter,
+  memsize,
+  multicores
+)
 }
 \arguments{
 \item{cube}{Metadata for a data cube}
@@ -31,9 +39,10 @@ List of the classified raster layers.
 Classifies a block of data using multicores. It breaks
 the data into horizontal blocks and divides them between the available cores.
 
-Reads data using Rgdal, then cleans the data for NAs and missing values. The clean
-data is stored in a data table that has all the time instances for all pixels of
-the block. The algorithm then classifies data on an year by year basis.
+Reads data using Rgdal, then cleans the data for NAs and missing values.
+The clean data is stored in a data table that has all the time instances
+for all pixels of the block. The algorithm then classifies data
+on an year by year basis.
 For each year, it extracts the sub-blocks for each band.
 
 After all cores process their blocks, it joins the result and then writes it

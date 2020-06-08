@@ -3,29 +3,35 @@ devAskNewPage(ask = FALSE)
 
 #  This demo shows a k-fold validation of different machine learning methods for clasification of time series
 #
-#  The data contain 1,892 time series samples for the Mato Grosso state in Brasil.
-#  The time series come from MOD13Q1 collection 6 images, with 4 bands
-#  ("nir", "mir",  "evi",  and "ndvi")
-#  The data set has the following classes:
-#  Cerrado(379 samples), Fallow_Cotton (29 samples), Forest (131 samples), Pasture (344 samples),
-#  Soy-Corn (364 samples),  Soy-Cotton (352 samples), Soy_Fallow (87 samples),
-#  Soy_Millet (186 samples), and Soy_Sunflower (26 samples).
-#  The tibble has 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
-#  latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
-#  end_date (final date of the time series), label (the class label associated to the sample),
-#  cube (the name of the cube associated with the data),
-#  time_series (list containing a tibble with the values of the time series).
-
+# The dataset used is a sits tibble with 33 K time series samples
+# from Brazilian Amazonia biome. The samples are from the work of Ana Rorato,
+# combined with agricultural data provided by EMBRAPA.
+# There are samples of 12 classes ("Fallow_Cotton", "Forest", "Millet_Cotton",
+# "Pasture", "Savanna", "Savanna_Roraima", "Soy_Corn", "Soy_Cotton",
+# "Soy_Fallow", "Soy_Millet", "Soy_Sunflower" and "Wetlands").
+# Each time series covers 12 months (23 data points) from the MOD13Q1 product,
+# in 4 bands ("ndvi", "evi", "nir", "mir").
 
 #load the sits library
 library(sits)
+# load the inSitu library
+library(inSitu)
+# load the Amazonia data set
+download.file("https://www.dropbox.com/s/g8n2yb8xeh80ph4/samples3.rds?dl=1",
+              destfile = paste0(tempdir(),"/samples_amazonia.rds"))
 
+samples <- readRDS(paste0(tempdir(),"/samples_amazonia.rds"))
+# clean the data
+samples <- dplyr::select(samples, -id_sample, -cluster_label )
+samples <- dplyr::rename(samples, cube = coverage)
+
+samples <- sits_select_bands(samples, ndvi, evi, nir, mir)
 # create a list to store the results
 results <- list()
 
 ## SVM model
-conf_svm.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
-                                   ml_method = sits_svm(kernel = "radial", cost = 10))
+conf_svm.tb <- sits_kfold_validate(samples, folds = 5,
+                         ml_method = sits_svm(kernel = "radial", cost = 10))
 
 print("== Confusion Matrix = SVM =======================")
 conf_svm.mx <- sits_conf_matrix(conf_svm.tb)
@@ -36,7 +42,7 @@ results[[length(results) + 1]] <- conf_svm.mx
 
 # =============== RFOR ==============================
 
-conf_rfor.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
+conf_rfor.tb <- sits_kfold_validate(samples, folds = 5,
                                     ml_method = sits_rfor(num_trees = 5000))
 print("== Confusion Matrix = RFOR =======================")
 conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
@@ -44,22 +50,21 @@ conf_rfor.mx$name <- "rfor_5000"
 
 results[[length(results) + 1]] <- conf_rfor.mx
 
-# =============== MLR ==============================
-# "multinomial log-linear (mlr)
-conf_mlr.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
-                                   ml_method = sits_mlr())
+# =============== XGBOOST  ==============================
+#
+conf_xgb.tb <- sits_kfold_validate(samples, folds = 5,
+                                   ml_method = sits_xgboost())
 
-# print the accuracy of the Multinomial log-linear
-print("== Confusion Matrix = MLR =======================")
-conf_mlr.mx <- sits_conf_matrix(conf_mlr.tb)
-conf_mlr.mx$name <- "mlr"
+# print the accuracy
+print("== Confusion Matrix = XGBOOST  =======================")
+conf_xgb.mx <- sits_conf_matrix(conf_xgb.tb)
+conf_xgb.mx$name <- "xgboost"
 
-results[[length(results) + 1]] <- conf_mlr.mx
+results[[length(results) + 1]] <- conf_xgb.mx
 
 # Deep Learning - MLP
-conf_dl.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
-                                  ml_method = sits_deeplearning(activation = 'elu',
-                                                                validation_split = 0.10))
+conf_dl.tb <- sits_kfold_validate(samples, folds = 5,
+                                  ml_method = sits_deeplearning())
 
 print("== Confusion Matrix = DL =======================")
 conf_dl.mx <- sits_conf_matrix(conf_dl.tb)
@@ -69,22 +74,8 @@ conf_dl.mx$name <- "mlp_default"
 results[[length(results) + 1]] <- conf_dl.mx
 
 
-# Deep Learning - MLP - 3 layers
-conf_dl3.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
-                                   ml_method = sits_deeplearning(layers = c(512, 512, 512),
-                                                                dropout_rates    = c(0.50, 0.40, 0.30),
-                                                                verbose = 0))
-
-print("== Confusion Matrix = DL =======================")
-conf_dl3.mx <- sits_conf_matrix(conf_dl3.tb)
-
-conf_dl3.mx$name <- "mlp_3-layers"
-
-results[[length(results) + 1]] <- conf_dl3.mx
-
-
 # Deep Learning - FCN
-conf_fcn.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
+conf_fcn.tb <- sits_kfold_validate(samples, folds = 5,
                                    ml_method = sits_FCN(verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
@@ -95,7 +86,7 @@ conf_fcn.mx$name <- "fcn_default"
 results[[length(results) + 1]] <- conf_fcn.mx
 
 # Deep Learning - FCN
-conf_fcn853.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
+conf_fcn853.tb <- sits_kfold_validate(samples, folds = 5,
                                    ml_method = sits_FCN(kernels = c(8, 5, 3),verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
@@ -106,7 +97,7 @@ conf_fcn853.mx$name <- "fcn_853"
 results[[length(results) + 1]] <- conf_fcn853.mx
 
 # Deep Learning - ResNet
-conf_rn.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
+conf_rn.tb <- sits_kfold_validate(samples, folds = 5,
                                       ml_method = sits_ResNet(verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
@@ -117,7 +108,7 @@ conf_rn.mx$name <- "ResNet"
 results[[length(results) + 1]] <- conf_rn.mx
 
 # Deep Learning - TempCNN
-conf_tc.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
+conf_tc.tb <- sits_kfold_validate(samples, folds = 5,
                                   ml_method = sits_TempCNN(verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
@@ -130,7 +121,7 @@ results[[length(results) + 1]] <- conf_tc.mx
 WD = getwd()
 
 # Deep Learning - LSTM
-conf_lc.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5, multicores = 32,
+conf_lc.tb <- sits_kfold_validate(samples, folds = 5, multicores = 32,
                                   ml_method = sits_LSTM_FCN(verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
@@ -142,4 +133,4 @@ results[[length(results) + 1]] <- conf_lc.mx
 
 WD = getwd()
 
-sits_to_xlsx(results, file = paste0(WD, "/accuracy_mato_grosso.xlsx"))
+sits_to_xlsx(results, file = paste0(WD, "/accuracy_amazonia.xlsx"))

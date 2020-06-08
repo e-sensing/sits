@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_cube.R
 \name{.sits_cube_robj}
 \alias{.sits_cube_robj}
-\title{Given a file index, return the Raster object associated the indexed file}
+\title{Given a file index, return the associated Raster object}
 \usage{
 .sits_cube_robj(cube, index = 1)
 }

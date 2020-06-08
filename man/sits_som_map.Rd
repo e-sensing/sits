@@ -4,8 +4,14 @@
 \alias{sits_som_map}
 \title{Generate a Kohonen map for quality control of the samples and calculate parameters}
 \usage{
-sits_som_map(data, grid_xdim = 10, grid_ydim = 10, alpha = 1,
-  distance = "euclidean", iterations = 50)
+sits_som_map(
+  data,
+  grid_xdim = 10,
+  grid_ydim = 10,
+  alpha = 1,
+  distance = "euclidean",
+  iterations = 50
+)
 }
 \arguments{
 \item{data}{A tibble with samples to be clustered.}

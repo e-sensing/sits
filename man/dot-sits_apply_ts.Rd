@@ -4,15 +4,21 @@
 \alias{.sits_apply_ts}
 \title{Apply a function over a set of time series.}
 \usage{
-.sits_apply_ts(ts.tb, fun, fun_index = function(index) {    
-  return(index) }, bands_suffix = "")
+.sits_apply_ts(
+  ts.tb,
+  fun,
+  fun_index = function(index) {     return(index) },
+  bands_suffix = ""
+)
 }
 \arguments{
 \item{ts.tb}{Tibble with a time series (one or more bands).}
 
-\item{fun}{Function with one parameter as input and a vector or list of vectors as output.}
+\item{fun}{Function with one parameter as input
+and a vector or list of vectors as output.}
 
-\item{fun_index}{Function with one parameter as input and a Date vector as output.}
+\item{fun_index}{Function with one parameter as input
+and a Date vector as output.}
 
 \item{bands_suffix}{String informing the resulting bands name's suffix.}
 }
@@ -20,16 +26,22 @@
 A sits tibble with same samples and the new bands.
 }
 \description{
-Apply a 1D generic function to a time series and specific methods for
-common tasks such as missing values removal and smoothing.
-`sits_apply_ts` returns a time series tibble with the same samples points and new bands computed by `fun`,
-`fun_index` functions. These functions must be defined inline and are called by `sits_apply` for each band,
-whose vector values is passed as the function argument.
-The `fun` function may either return a vector or a list of vectors. In the first case, the vector will be the new values
-of the corresponding band. In the second case, the returned list must have names, and each element vector will
-generate a new band which name composed by concatenating original band name and the corresponding list element name.
+Apply a 1D generic function to a time series and
+specific methods for tasks such as missing values removal and smoothing.
+`sits_apply_ts` returns a time series tibble with
+ the same samples and new bands computed by `fun`, `fun_index` functions.
+ These functions must be defined inline and are called
+ by `sits_apply` for each band, whose values are passed as the function argument.
+ The `fun` function may either return a vector or a list of vectors.
+ In the first case, the vector will be the new values
+ of the corresponding band.
+ In the second case, the returned list must have names;
+ each element vector will generate a new band. The name of the new band is
+ composed by concatenating original band name and
+ the corresponding list element name.
 
-If a suffix is provided in `bands_suffix`, all resulting bands names will end with provided suffix separated by a ".".
+If a suffix is provided in `bands_suffix`,
+all resulting bands names will end with provided suffix separated by a ".".
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

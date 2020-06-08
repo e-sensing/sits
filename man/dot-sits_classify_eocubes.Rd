@@ -4,8 +4,7 @@
 \alias{.sits_classify_eocubes}
 \title{Classify a data cube created with the EOCUBES service}
 \usage{
-.sits_classify_eocubes(cube, ml_model, interval, filter, memsize,
-  multicores)
+.sits_classify_eocubes(cube, ml_model, interval, filter, memsize, multicores)
 }
 \arguments{
 \item{cube}{Tibble with information about a data cube.}
@@ -31,8 +30,8 @@ Takes a set of spatio-temporal raster bricks, whose metadata is
  a prediction model (created by \code{\link[sits]{sits_train}}),
  and produces a classified set of RasterLayers. This function is similar to
  \code{\link[sits]{sits_classify}} which is applied to time series.
- There are two parameters for optimizing processing of large data sets. These
- parameters are "memsize" and "multicores". The "multicores" parameter defines the
+ There are two parameters for optimizing processing of large data sets:
+ "memsize" and "multicores". The "multicores" parameter defines the
  number of cores used for processing. The "memsize" parameter  controls
  the amount of memory available for classification.
 }

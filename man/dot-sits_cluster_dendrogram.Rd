@@ -4,30 +4,44 @@
 \alias{.sits_cluster_dendrogram}
 \title{Compute a dendrogram using hierarchical clustering}
 \usage{
-.sits_cluster_dendrogram(data, bands = NULL, dist_method = "dtw_basic",
-  linkage = "ward.D2", ...)
+.sits_cluster_dendrogram(
+  data,
+  bands = NULL,
+  dist_method = "dtw_basic",
+  linkage = "ward.D2",
+  ...
+)
 }
 \arguments{
-\item{data}{Tibble with time series data and metadata to be used to generate the dendrogram.}
+\item{data}{Time series data and metadata
+to be used to generate the dendrogram.}
 
 \item{bands}{Vector of bands to be clustered.}
 
-\item{dist_method}{String with one of the supported distance from proxy's dist, e.g. \code{TWDTW}.}
+\item{dist_method}{String with one of the supported distance
+from proxy's dist, e.g. \code{TWDTW}.}
 
-\item{linkage}{String with agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'.}
+\item{linkage}{String with agglomeration method to be used.
+Can be any `hclust` method (see `hclust`).
+Default is 'ward.D2'.}
 
-\item{...}{Any additional parameters to be passed to dtwclust::tsclust() function.}
+\item{...}{Any additional parameters to be passed
+to dtwclust::tsclust() function.}
 }
 \value{
 A full dendrogram tree for data analysis.
 }
 \description{
-Cluster time series in hierarchical mode. Hierarchical clustering, as its name suggests,
-is an algorithm that tries to create a hierarchy of groups in which, as the level in the hierarchy increases, clusters are created by merging
-the clusters from the next lower level, such that an ordered sequence of groupings is obtained.
-The similarity measure used to group time series in a cluster is the dtw metric.
+Cluster time series in hierarchical mode.
+Hierarchical clustering, as its name suggests,
+is an algorithm that tries to create a hierarchy of groups in which,
+as the level in the hierarchy increases, clusters are created by merging
+the clusters from the next lower level, producing
+an ordered sequence of groupings. The similarity measure used to
+group time series in a cluster is the dtw metric.
 The procedure is deterministic, so it will always give the same
-result for a chosen set of similarity measures (see \code{\link[dtwclust]{tsclust}}).
+result for a chosen set of similarity measures
+(see \code{\link[dtwclust]{tsclust}}).
 }
 \references{
 `dtwclust` package (https://CRAN.R-project.org/package=dtwclust)

@@ -73,24 +73,26 @@
     return(cube_satveg)
 }
 
-#' @title Obtain one timeSeries from the EMBRAPA SATVEG server and load it on a sits tibble
+#' @title Obtain one timeSeries from the EMBRAPA SATVEG server
 #' @name .sits_from_satveg
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Returns one set of MODIS time series provided by the EMBRAPA server (SATVEG)
-#' Given a location (lat/long), the function retrieves the "ndvi" and "evi" bands from SATVEG
-#' and inclues the data on a stis tibble. If start and end date are given, the function
-#' filter the data to limit the temporal interval.
+#' @description Returns one set of MODIS time series provided by the EMBRAPA
+#' Given a location (lat/long), retrieve the "ndvi" and "evi" bands from SATVEG
+#' If start and end date are given, the function
+#' filters the data to limit the temporal interval.
 #'
 #' @param cube            The data cube metadata that describes the SATVEG data.
-#' @param longitude       A double value with the longitude of the chosen location.
-#' @param latitude        A double value with the latitude of the chosen location.
+#' @param longitude       Longitude of the chosen location.
+#' @param latitude        Latitude of the chosen location.
 #' @param start_date      The start date of the period.
 #' @param end_date        The end date of the period.
 #' @param bands           The bands to be retrieved.
-#' @param label           A string with the label to attach to the time series (optional).
-#' @param .prefilter      A string ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
+#' @param label           Label to attach to the time series (optional).
+#' @param .prefilter      A string ("0" - none, "1" - no data correction,
+#'                        "2" - cloud correction,
+#'                        "3" - no data and cloud correction).
 #' @return A sits tibble.
 .sits_from_satveg <- function(cube,
                              longitude,
@@ -103,17 +105,18 @@
 {
 
     # check parameters
-    ensurer::ensure_that(longitude, !purrr::is_null(.),
-                         err_desc = "sits_from_satveg: Missing longitude info")
-    ensurer::ensure_that(latitude,  !purrr::is_null(.),
-                         err_desc = "sits_from_satveg: Missing latitude info")
+    assertthat::assert_that(!purrr::is_null(longitude),
+                         msg = "sits_from_satveg: Missing longitude info")
+    assertthat::assert_that(!purrr::is_null(latitude),
+                         msg = "sits_from_satveg: Missing latitude info")
 
     # retrieve the time series
     ts.tb <- .sits_ts_from_satveg(longitude, latitude, cube$name, .prefilter)
 
     # filter the dates
     if (!purrr::is_null(start_date) && !purrr::is_null(end_date))
-        ts.tb <- dplyr::filter(ts.tb, dplyr::between(ts.tb$Index, start_date, end_date))
+        ts.tb <- dplyr::filter(ts.tb, dplyr::between(ts.tb$Index,
+                                                     start_date, end_date))
     else {
         start_date <- as.Date(ts.tb$Index[1])
         end_date   <- as.Date(ts.tb$Index[NROW(ts.tb)])
@@ -152,8 +155,10 @@
 #'
 #' @param longitude       The longitude of the chosen location.
 #' @param latitude        The latitude of the chosen location.
-#' @param name            Name of the desired data cube in SATVEG (see configuration file).
-#' @param .prefilter       String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction)
+#' @param name            Name of the desired data cube in SATVEG
+#' @param .prefilter      String ("0" - none, "1" - no data correction,
+#'                        "2" - cloud correction,
+#'                        "3" - no data and cloud correction)
 #' @return TRUE if no problems are detected.
 .sits_ts_from_satveg <- function(longitude, latitude, name, .prefilter){
     # the parameter filter is not used
@@ -171,8 +176,8 @@
     # read each of the bands separately
     for (b in bands) {
         # Build the URL to retrieve the time series
-        URL_ts <- paste0(URL, b, "/ponto", "/", longitude, "/", latitude, "/", name, "/",
-                         .prefilter, "/", filter, "/", filter_par)
+        URL_ts <- paste0(URL, b, "/ponto", "/", longitude, "/", latitude, "/",
+                         name, "/", .prefilter, "/", filter, "/", filter_par)
 
         # Get the data from SATVEG service
         satveg.txt <-  RCurl::getURL(URL_ts)
@@ -226,7 +231,8 @@
     timeline <- unlist(strsplit(timeline, '\",\"'))
     # convert to a vector of timelines
     Sys.setlocale("LC_TIME", "C")
-    timeline <- lubridate::as_date(lubridate::parse_date_time(timeline, c("%b %d, %Y")))
+    timeline <- lubridate::as_date(lubridate::parse_date_time(timeline,
+                                                              c("%b %d, %Y")))
 
     return(timeline)
 }
@@ -254,7 +260,8 @@
     URL <- .sits_config_server("SATVEG")
 
     # Build the URL to retrieve the time series
-    URL_ts <- paste0(URL, band, "/ponto", "/", longitude, "/", latitude, "/", cube, "/",
+    URL_ts <- paste0(URL, band, "/ponto", "/", longitude, "/",
+                     latitude, "/", cube, "/",
                      prefilter, "/", filter, "/", filter_par)
 
     # Get the data from SATVEG service
@@ -276,8 +283,8 @@
     check <- tryCatch({
         # tries to connect to the SATVEG service
         satveg.txt <-  RCurl::getURL(URL_test)
-        ensurer::ensure_that(satveg.txt, length(.) > 0,
-                             err_desc = "SATVEG service not available")
+        assertthat::assert_that(length(satveg.txt) > 0,
+                             msg = "SATVEG service not available")
     }, error = function(e){
         msg <- paste0("SATVEG service not available")
         .sits_log_error(msg)

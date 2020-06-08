@@ -10,7 +10,8 @@ sits_labels(data)
 \item{data}{A tibble with time series data and metadata.}
 }
 \value{
-A tibble with the names of the labels and their absolute and relative frequency.
+A tibble with the names of the labels and
+                their absolute and relative frequency.
 }
 \description{
 Returns the labels and its respective counting and frequency.

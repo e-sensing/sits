@@ -9,15 +9,18 @@
 \arguments{
 \item{timeline}{Timeline of input observations (vector).}
 
-\item{ref_dates.lst}{A list of breaks that will be applied to the input data set.}
+\item{ref_dates.lst}{Breaks to be applied to the input data set.}
 }
 \value{
-A list of indexes that match the reference dates to the timelines.
+A list of indexes that match the reference dates
+                             to the timelines.
 }
 \description{
-For correct classification, the time series of the input data set
-             should be aligned to that of the reference data set (usually a set of patterns).
-             This function aligns these data sets so that shape matching works correctly
+For correct classification, the time series of the input data
+             should be aligned to that of the reference data set
+             (usually a set of patterns).
+             This function aligns these data sets so that shape
+             matching works correctly
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

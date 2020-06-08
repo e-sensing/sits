@@ -4,15 +4,16 @@
 \alias{.sits_cluster_dendro_bestcut}
 \title{Compute validity indexes to a range of cut height}
 \usage{
-.sits_cluster_dendro_bestcut(data, dendro.obj)
+.sits_cluster_dendro_bestcut(data, dendro)
 }
 \arguments{
-\item{data}{Tibble used to generate `dendro.obj`.}
+\item{data}{Input set of time series.}
 
-\item{dendro.obj}{Dendrogram object returned from \code{\link[sits]{.sits_cluster_dendrogram}}.}
+\item{dendro}{Dendrogram object returned from
+\code{\link[sits]{.sits_cluster_dendrogram}}.}
 }
 \value{
-Vector with the best number of clusters (k) and its respective height.
+Vector with best number of clusters (k) and its respective height.
 }
 \description{
 Reads a dendrogram object and its corresponding sits tibble and

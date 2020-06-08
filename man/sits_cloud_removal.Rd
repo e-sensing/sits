@@ -4,17 +4,22 @@
 \alias{sits_cloud_removal}
 \title{cloud removal}
 \usage{
-sits_cloud_removal(data = NULL, cutoff = 0.25, bands_suffix = "",
-  apply_whit = TRUE, lambda_whit = 1)
+sits_cloud_removal(
+  data = NULL,
+  cutoff = 0.25,
+  bands_suffix = "",
+  apply_whit = TRUE,
+  lambda_whit = 1
+)
 }
 \arguments{
-\item{data}{A tibble with time series data and metadata with only the "ndvi" band.}
+\item{data}{Time series data and metadata - only the "ndvi" band.}
 
-\item{cutoff}{A numeric value for the maximum acceptable value of a NDVI difference.}
+\item{cutoff}{Maximum acceptable value of a NDVI difference.}
 
 \item{bands_suffix}{Suffix to rename the filtered bands.}
 
-\item{apply_whit}{Apply the whittaker smoother after filtering? The default value is FALSE.}
+\item{apply_whit}{Apply the whittaker smoother after filtering?}
 
 \item{lambda_whit}{Lambda parameter of the whittaker smoother.}
 }
@@ -23,9 +28,10 @@ A sits tibble with same samples and the new bands.
 }
 \description{
 This function tries to remove clouds in the ndvi band of
-a satellite image time series. It looks for points where the value of the NDVI
-band goes down abruptly. These points are taken as those whose difference is more
-than a cutoff value which is set by the user. Then it applies an spline interploation.
+a satellite image time series. It looks for points where the NDVI value
+band goes down abruptly. These points are taken as those whose difference
+is more than a cutoff value set by the user.
+Then it applies an spline interpolation.
 Finally, the function applies a whitakker smoother.
 }
 \examples{
@@ -36,7 +42,8 @@ data(prodes_226_064)
 # Select the NDVI band of the first point
 point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # Apply the cloud filter
-point_cld.tb <- sits_filter(point_ndvi.tb, sits_cloud_removal(band_suffix = "cf"))
+point_cld.tb <- sits_filter(point_ndvi.tb,
+                sits_cloud_removal(band_suffix = "cf"))
 # Merge the filtered with the raw data
 point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 # Plot the result

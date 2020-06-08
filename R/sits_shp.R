@@ -6,33 +6,45 @@
 #' The script uses the WTSS service, taking information about spatial and
 #' temporal resolution from the WTSS configuration.
 #'
-#' @param shp_file        Name of a SHP file which provides the boundaries of a region of interest.
+#' @param shp_file        SHP file which provides the boundaries of a region.
 #' @param cube            Data cube metadata.
-#' @param start_date      The start date of the period.
-#' @param end_date        The end date of the period.
-#' @param bands           A string vector with the names of the bands to be retrieved.
-#' @param label           A string with the label to attach to the time series.
-#' @param shp_attr        An optional string to indicate the attribute in the shapefile to be used as a polygon label
-#' @param .n_shp_pol      Number of samples per polygon to be read (for POLYGON or MULTIPOLYGON shapes)
+#' @param start_date      Start date of the period.
+#' @param end_date        End date of the period.
+#' @param bands           Names of the bands to be retrieved.
+#' @param label           Label to attach to the time series.
+#' @param shp_attr        Attribute in the shapefile used as a polygon label
+#' @param .n_shp_pol      Number of samples per polygon to be read
+#'                        (for POLYGON or MULTIPOLYGON shapes)
 #' @param .n_shp_pts      Number of points to be read (for POINT shapes)
-#' @param .prefilter      Filtering for SATVEG cube ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).
-#' @return A sits tibble.
-.sits_from_shp <- function(shp_file, cube, start_date, end_date, bands,
-                           label, shp_attr, .n_shp_pol, .n_shp_pts, .prefilter) {
+#' @param .prefilter      Filtering for SATVEG cube
+#'                        ("0" - none, "1" - no data correction,
+#'                        "2" - cloud correction,
+#'                        "3" - no data and cloud correction).
+#' @return                A sits tibble.
+.sits_from_shp <- function(shp_file,
+                           cube,
+                           start_date,
+                           end_date,
+                           bands,
+                           label,
+                           shp_attr,
+                           .n_shp_pol,
+                           .n_shp_pts,
+                           .prefilter) {
 
     # pre-condition - does the shapefile exist?
-    ensurer::ensure_that(shp_file, file.exists(.),
-                         err_desc = "sits_from_shp: shapefile does not exist")
+    assertthat::assert_that(file.exists(shp_file),
+                            msg = "sits_from_shp: shapefile does not exist")
     # pre-condition - is the default label valid?
-    ensurer::ensure_that(label, !purrr::is_null(.) || !purrr::is_null(shp_attr) ,
-         err_desc = "sits_from_shp: default label or shape attribute should be valid")
+    assertthat::assert_that(!purrr::is_null(label) || !purrr::is_null(shp_attr),
+        msg = "sits_from_shp: default label or shape attribute should be valid")
 
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
     n_rows_shp <- nrow(sf_shape)
     # pre-condition - is the default label valid?
-    ensurer::ensure_that(n_rows_shp, (.) > 0,
-            err_desc = "sits_from_shp: shapefile has no content")
+    assertthat::assert_that(n_rows_shp > 0,
+            msg = "sits_from_shp: shapefile has no content")
 
     # get the geometry type
     geom_type <-  sf::st_geometry_type(sf_shape)[1]
@@ -40,17 +52,20 @@
     shp_df <- sf::st_drop_geometry(sf_shape)
 
     # are all geometries compatible?
-    ensurer::ensure_that(sf_shape, all(sf::st_geometry_type(.) == geom_type),
-                         err_desc = "sits_from_shp: shapefile has different geometries in a single file")
+    assertthat::assert_that(all(sf::st_geometry_type(sf_shape) == geom_type),
+           msg = "sits_from_shp: shapefile has different geometries")
 
     # can the function deal with the geometry_type?
-    ensurer::ensure_that(geom_type, (.) %in% c("POINT", "POLYGON", "MULTIPOLYGON"),
-                         err_desc = "sits_from_shp: function only handles POINT, POLYGON or MULTIPOLYGON shapefiles")
+    assertthat::assert_that(
+                    geom_type %in% c("POINT", "POLYGON", "MULTIPOLYGON"),
+                    msg = "sits_from_shp: only handles
+                            POINT, POLYGON or MULTIPOLYGON shapefiles")
 
     # is the shape attribute valid?
     if (!purrr::is_null(shp_attr))
-        ensurer::ensure_that(shp_attr, length(as.character(unname(shp_df[1, (.)]))) > 0,
-                             err_desc = "sits_from_shp: invalid shapefile attribute")
+        assertthat::assert_that(
+            length(as.character(unname(shp_df[1, (shp_attr)]))) > 0,
+            msg = "sits_from_shp: invalid shapefile attribute")
 
     # if the shapefile is not in planar coordinates, convert it
     sf_shape <- suppressWarnings(sf::st_transform(sf_shape, crs = 4326))
@@ -66,10 +81,14 @@
         # read the points
         rows.lst <- points.lst %>%
             purrr::map(function(p) {
-                paste0("long = ", p[1])
-                row <- .sits_from_service(cube = cube, longitude = p[1], latitude = p[2],
-                                          start_date = start_date, end_date = end_date,
-                                          bands = bands, label = label, .prefilter = .prefilter)
+                row <- .sits_from_service(cube = cube,
+                                          longitude   = p[1],
+                                          latitude    = p[2],
+                                          start_date  = start_date,
+                                          end_date    = end_date,
+                                          bands       = bands,
+                                          label       = label,
+                                          .prefilter  = .prefilter)
                 return(row)
             })
         shape.tb <- dplyr::bind_rows(shape.tb, rows.lst)
@@ -86,9 +105,14 @@
             rows.lst <- points.lst %>%
                 purrr::pmap(function(p) {
                     pll <- sf::st_geometry(p)[[1]]
-                    row <- .sits_from_service(cube = cube, longitude = pll[1], latitude = pll[2],
-                                              start_date = start_date, end_date = end_date,
-                                              bands = bands, label = label, .prefilter = .prefilter)
+                    row <- .sits_from_service(cube = cube,
+                                              longitude = pll[1],
+                                              latitude = pll[2],
+                                              start_date = start_date,
+                                              end_date = end_date,
+                                              bands = bands,
+                                              label = label,
+                                              .prefilter = .prefilter)
                     return(row)
                 })
             # combine rows to make SITS tibble

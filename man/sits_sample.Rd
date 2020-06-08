@@ -14,13 +14,16 @@ sits_sample(data, n = NULL, frac = NULL)
 \item{frac}{Percentage of samples to pick from each group of data.}
 }
 \value{
-A sits tibble with a fixed quantity of samples of informed labels and all other.
+A sits tibble with a fixed quantity of samples.
 }
 \description{
 Takes a sits tibble with different labels and
-             returns a new tibble. For a given field as a group criterion, this new tibble contains a given number or percentage
-             of the total number of samples per group. Parameter n indicantes the number of random samples with reposition.
-             Parameter frac indicates a fraction of random samples without reposition. If frac > 1, no sampling is done.
+             returns a new tibble. For a given field as a group criterion,
+             this new tibble contains a given number or percentage
+             of the total number of samples per group.
+             Parameter n:  number of random samples with reposition.
+             Parameter frac: a fraction of random samples without reposition.
+             If frac > 1, no sampling is done.
 }
 \examples{
 # Retrieve a set of time series with 2 classes

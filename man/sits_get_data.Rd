@@ -4,42 +4,64 @@
 \alias{sits_get_data}
 \title{Obtain time series from different sources}
 \usage{
-sits_get_data(cube, file = NULL, longitude = NULL, latitude = NULL,
-  start_date = NULL, end_date = NULL, bands = NULL,
-  label = "NoClass", shp_attr = NULL, .n_shp_pol = 20,
-  .n_shp_pts = Inf, .prefilter = "1", .n_start_csv = 1,
-  .n_max_csv = Inf, .n_save = 0)
+sits_get_data(
+  cube,
+  file = NULL,
+  longitude = NULL,
+  latitude = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  bands = NULL,
+  label = "NoClass",
+  shp_attr = NULL,
+  .n_shp_pol = 20,
+  .n_shp_pts = Inf,
+  .prefilter = "1",
+  .n_start_csv = 1,
+  .n_max_csv = Inf,
+  .n_save = 0
+)
 }
 \arguments{
-\item{cube}{A tibble with information about the data cube from where data is to be retrived.}
+\item{cube}{Data cube from where data is to be retrived.}
 
-\item{file}{An optional name of a file with information on the data to be retrieved (options - CSV, SHP).}
+\item{file}{File with information on the data to be retrieved
+(options - CSV, SHP).}
 
 \item{longitude}{Longitude of the chosen location.}
 
 \item{latitude}{Latitude of the chosen location.}
 
-\item{start_date}{An optional start of the interval for the time series in Date format ("YYYY-MM-DD").}
+\item{start_date}{Start of the interval for the time series
+in "YYYY-MM-DD" format (optional)}
 
-\item{end_date}{An optional end of the interval for the time series in Date format ("YYYY-MM-DD").}
+\item{end_date}{End of the interval for the time series in
+"YYYY-MM-DD" format (optional).}
 
-\item{bands}{An optional vector with the names of the bands to be retrieved.}
+\item{bands}{Bands to be retrieved (optional)}
 
-\item{label}{An optional string with the label to be assigned to the time series.}
+\item{label}{Label to be assigned to the time series (optional)}
 
-\item{shp_attr}{An optional string to indicate the attribute in the shapefile to be used as a polygon label.}
+\item{shp_attr}{Attribute in the shapefile to be used
+as a polygon label (for shapefiles only.}
 
-\item{.n_shp_pol}{Number of samples per polygon to be read (for POLYGON or MULTIPOLYGON shapes).}
+\item{.n_shp_pol}{Number of samples per polygon to be read
+(for POLYGON or MULTIPOLYGON shapes).}
 
 \item{.n_shp_pts}{Number of points to be read (for POINT shapes).}
 
-\item{.prefilter}{Prefilter for SATVEG cube("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
+\item{.prefilter}{Prefilter for SATVEG cube
+("0" - none, "1" - no data correction,
+"2" - cloud correction,
+"3" - no data and cloud correction).}
 
-\item{.n_start_csv}{An optional integer with the row on the CSV file to start reading.}
+\item{.n_start_csv}{Row on the CSV file to start reading.}
 
-\item{.n_max_csv}{An optional integer with the maximum number of CSV samples to be read (set to Inf to read all).}
+\item{.n_max_csv}{Maximum number of CSV samples to be read
+(set to Inf to read all).}
 
-\item{.n_save}{An optional number of samples to save as intermediate files (used for long reads).}
+\item{.n_save}{Number of samples to save as intermediate files
+(used for long reads).}
 }
 \value{
 A tibble with time series data and metadata.
@@ -52,26 +74,32 @@ A sits tibble is a tibble with pre-defined columns that
 has the metadata and data for each time series. The columns are
 <longitude, latitude, start_date, end_date, label, cube, time_series>.
 There are two main ways of retrieving time series:
-1. Using a time series service and from a data cube defined based on a set of Raster Bricks. Two time series services are available:
-(a) the Web Time Series Service (WTSS) by INPE; (b) the SATVEG service from EMBRAPA.
-Please see \code{\link[sits]{sits_services}} for more information on the WTSS service.
-The URL and other parameters for accessing the time series services are defined in the package
-configuration file. This file is called "config.yml". Please see the \code{\link[sits]{sits_config}} for
-more information.
+1. Using a time series service and from a data cube defined
+based on a set of Raster Bricks. Two time series services are available:
+(a) Web Time Series Service (WTSS) by INPE; (b) SATVEG service from EMBRAPA.
+Please see \code{\link[sits]{sits_services}}
+for more information on the WTSS service.
+The URL and other parameters for accessing the time series services
+are defined in the package
+configuration file. This file is called "config.yml".
+Please see the \code{\link[sits]{sits_config}} for more information.
 
-Before using this service, the user should create a valid description of a data cube ´
-using the \code{\link[sits]{sits_cube}} function.
+Before using this service, the user should create a valid description
+of a data cube using the \code{\link[sits]{sits_cube}} function.
 
 The following options are available:
 \enumerate{
-\item No input file is given - it retrieves the data and metadata based on the latitude/longitude location
+\item No input file is given - it retrieves the data and metadata
+based on the latitude/longitude location
 and on the information provided by the WTSS server.
-\item The source is a CSV file - retrieves the metadata from the CSV file and the time series
+\item The source is a CSV file - retrieves the metadata from the CSV file
+and the time series from the WTSS service.
+\item The source is a SHP file - retrives all points inside the shapefile
 from the WTSS service.
-\item The source is a SHP file - retrives all points inside the shapefile from the WTSS service.
-\item The source is a RasterBrick - retrieves the point based on lat/long from the RasterBrick.
+\item The source is a RasterBrick - retrieves the point based on lat/long
+from the RasterBrick.
 }
- The result is a sits tibble, which  has the metadata and data for each time series
+ The result is atibble with the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, cube, time_series>
 }
 \examples{
@@ -79,38 +107,45 @@ from the WTSS service.
 # Read a single lat long point from a WTSS server
 
 wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
-point.tb <- sits_get_data (wtss_cube, longitude = -55.50563, latitude = -11.71557)
+point.tb <- sits_get_data (wtss_cube, longitude = -55.50563,
+                                      latitude = -11.71557)
 plot(point.tb)
 
 # Read a set of points defined in a CSV file from a WTSS server
-csv_file <- system.file ("extdata/samples/samples_matogrosso.csv", package = "sits")
+csv_file <- system.file ("extdata/samples/samples_matogrosso.csv",
+                          package = "sits")
 points.tb <- sits_get_data (wtss_cube, file = csv_file)
 # show the points retrieved for the WTSS server
 plot(points.tb[1:3,])
 
 # Read a single lat long point from the SATVEG server
 satveg_cube <- sits_cube(service = "SATVEG", name = "terra")
-point_satveg.tb <- sits_get_data (satveg_cube, longitude = -55.50563, latitude = -11.71557)
+point_satveg.tb <- sits_get_data (satveg_cube, longitude = -55.50563,
+                                               latitude = -11.71557)
 plot(point_satveg.tb)
 
-# define a shapefile and read from the points inside it from the WTSS service
-shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp", package = "sits")
+# define a shapefile and read from the points inside it from WTSS
+shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp",
+                         package = "sits")
 parcel.tb <- sits_get_data(wtss_cube, file = shp_file, .n_shp_pol = 5)
 
 # Read a point in a Raster Brick
 # define the file that has the raster brick
-files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+                         package = "sits"))
 # define the timeline
 data(timeline_modis_392)
 # create a data cube based on the information about the files
 raster_cube <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
                          bands = c("ndvi"), files = files)
 # read the time series of the point from the raster
-point_ts <- sits_get_data(raster_cube, longitude = -55.554, latitude = -11.525)
+point_ts <- sits_get_data(raster_cube, longitude = -55.554,
+                                       latitude = -11.525)
 plot(point_ts)
 
 #' # Read a CSV file in a Raster Brick
-csv_file <- system.file ("extdata/samples/samples_sinop_crop.csv", package = "sits")
+csv_file <- system.file ("extdata/samples/samples_sinop_crop.csv",
+                         package = "sits")
 points.tb <- sits_get_data (raster_cube, file = csv_file)
 # show the points retrieved for the RASTER images
 plot(points.tb)
@@ -120,7 +155,7 @@ plot(points.tb)
 Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
 Web Services for Big Earth Observation Data.
 In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
-Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. v.1. p.166-177.
+Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. p.166-177.
 }
 \author{
 Gilberto Camara

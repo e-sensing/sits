@@ -6,7 +6,7 @@
 #' \itemize{
 #'  \item{"WTSS": }{Web Time Series Service - used to get time series}
 #'  \item{"SATVEG": }{ SATVEG Time Series Service - used to get time series}
-#'  \item{"EOCUBES": }{EOCUBES service - used for cloud processing of data cubes}
+#'  \item{"EOCUBES": }{EOCUBES service - cloud processing of data cubes}
 #'  \item{"BRICK": }{Raster Brick files}
 #'  \item{"STACK": }{Raster Stack files}
 #' }
@@ -17,15 +17,18 @@
 #' @param satellite         Name of satellite
 #' @param sensor            Name of sensor
 #' @param name              Name of the data cube in the remote service.
-#' @param tiles_names       A string with tile names to be filtered (for EOCUBES service)
-#' @param geom              An \code{sf} object to filter tiles (for EOCUBES service)
+#' @param tiles_names       Tile names to be filtered (for EOCUBES service)
+#' @param geom              An \code{sf} object to filter tiles (for EOCUBES)
 #' @param from              Starting date for the cube to be extracted
 #' @param to                End date for the cube to be extracted
-#' @param timeline          Vector with the timeline of the collection (only for local files)
+#' @param timeline          Vector with the timeline of the collection
+#'                          (only for local files)
 #' @param bands             Vector of bands.
-#' @param files             Vector of file names for each band (only for raster data).
+#' @param files             Vector of file names for each band
+#'                          (only for raster data).
 #'
-#' @seealso To see the available values for the parameters above use \code{\link{sits_services}},
+#' @seealso To see the available values for the parameters above
+#' use \code{\link{sits_services}},
 #' \code{\link{sits_config}} or \code{\link{sits_config_show}}.
 #' @examples
 #' \donttest{
@@ -37,13 +40,14 @@
 #'
 #' # Example 3. Create a raster cube based on bricks
 #' # inform the files that make up a raster brick with 392 time instances
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+#'            package = "sits"))
 #'
 #' # create a raster cube file based on the information about the files
 #' raster.tb <- sits_cube(name  = "Sinop-crop",
 #'              timeline = timeline_modis_392, bands = "ndvi", files = files)
 #'
-#' # Example 4. create a coverage from EOCUBES service from the collection "MOD13Q1/006"
+#' # Example 4. create a coverage from EOCUBES service
 #' modis_cube <- sits_cube(service = "EOCUBES", name    = "MOD13Q1/006")
 #'  # get information on the data cube
 #' modis_cube %>% dplyr::select(service, URL, satellite, sensor)
@@ -78,7 +82,10 @@ sits_cube <- function(service        = "BRICK",
 
         # if WTSS is running, create the cube
         if (wtss_ok) {
-            wtss.obj <- wtss::WTSS(URL)
+            wtss.obj <- suppressMessages(wtss::WTSS(URL))
+            assertthat::assert_that(!purrr::is_null(wtss.obj),
+                    msg = "sits_cube - WTSS service not responding - check URL")
+
             # create a cube
             cube.tb <- .sits_wtss_cube(wtss.obj, service, URL, name, bands)
         }
@@ -145,16 +152,15 @@ sits_cube <- function(service        = "BRICK",
 #' @title Creates the description of a data cube
 #' @name .sits_cube_create
 #'
-#' @description Uses the configuration file to print information and save metadata about a
-#' data cube.
+#' @description Print information and save metadata about a data cube.
 #'
-#' @param service            Name of the web service that has provided metadata about the cube.
+#' @param service            Web service with metadata about the cube.
 #' @param URL                URL of the provider
 #' @param satellite          Name of satellite
 #' @param sensor             Name of sensor
 #' @param name               Name of the data cube.
 #' @param bands              Vector with the names of the bands.
-#' @param labels             Vector with labels (only valid for classified data).
+#' @param labels             Vector with labels (only for classified data).
 #' @param scale_factors      Vector with scale factor for each band.
 #' @param missing_values     Vector with missing values for each band.
 #' @param minimum_values     Vector with minimum values for each band.
@@ -204,33 +210,36 @@ sits_cube <- function(service        = "BRICK",
                               crs            = crs,
                               files          = list(files))
 
-    class(cube.tb) <- append(class(cube.tb), "cube", after = 0)
+    class(cube.tb) <- append(class(cube.tb),
+                             c("sits", "sits_cube_tbl", "cube"), after = 0)
 
     return(cube.tb)
 }
 
 
 
-#' @title Create a set of RasterLayer objects to store data cube classification results (only the probs)
+#' @title Create a set of RasterLayer objects to store
+#' data cube classification results (only the probs)
 #' @name .sits_cube_classified
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Takes a tibble containing metadata about a data cube
-#' containing time series (each Brick has information for one band) and creates a
+#' @description Take a tibble containing metadata about a data cube
+#' containing time series (each Brick has information for one band) and create a
 #' set of RasterLayers to store the classification result.
 #' Each RasterLayer corresponds to one time step.
 #' The time steps are specified in a list of dates.
 #'
 #' @param  cube              Tibble with metadata about the input data cube.
-#' @param  samples           Samples used for training the classification model..
+#' @param  samples           Samples used for training the classification model.
 #' @param  interval          Classification interval.
 #' @param  output_dir        Prefix of the output files.
 #' @param  version           Version of the output files
 #' @return A tibble with metadata about the output RasterLayer objects.
-.sits_cube_classified <- function(cube, samples, interval, output_dir, version){
+.sits_cube_classified <- function(cube, samples, interval,
+                                  output_dir, version) {
     # ensure metadata tibble exists
-    ensurer::ensure_that(cube, NROW(.) > 0,
-        err_desc = ".sits_classify_cube: need a valid metadata for cube")
+    assertthat::assert_that(NROW(cube) > 0,
+        msg = ".sits_classify_cube: need a valid metadata for cube")
 
     # get the timeline of of the data cube
     timeline <- lubridate::as_date(sits_timeline(cube))
@@ -264,7 +273,7 @@ sits_cube <- function(service        = "BRICK",
     minimum_values  <- rep(0.0,    n_objs)
     maximum_values  <- rep(1.0,    n_objs)
 
-    # loop through the list of dates and create list of raster layers to be created
+    # loop through the list of dates and create list of raster layers
     for (i in 1:n_objs) {
 
         # define the timeline for the raster data sets
@@ -315,21 +324,23 @@ sits_cube <- function(service        = "BRICK",
 
     return(cube_probs)
 }
-#' @title Create a set of RasterLayer objects to store data cube classification results (labelled classes)
+#' @title Create a set of RasterLayer objects
+#'        to store data cube classification results (labelled classes)
 #' @name .sits_cube_labelled
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Takes a tibble containing metadata about a data cube wuth
 #' classification probabilites and and creates a
-#' set of RasterLayers to store the classification result. Each RasterLayer corresponds
+#' set of RasterLayers to store the classification result. Each RasterLayer is
 #' to one time step. The time steps are specified in a list of dates.
 #'
-#' @param  cube_probs        Tibble with metadata about the input data cube (probability).
-#' @param  smoothing         (optional) smoothing method to be applied ("none", "bayesian", "majority")
+#' @param  cube_probs        Metadata about the input data cube (probability).
+#' @param  smoothing         (optional) smoothing method to be applied
+#'                           ("none", "bayesian", "majority")
 #' @param  output_dir        Output directory where to put the files
 #' @param  version           Name of the version of the result
-#' @return A tibble with metadata about the output RasterLayer objects.
-.sits_cube_labelled <- function(cube_probs, smoothing, output_dir, version){
+#' @return                   Metadata about the output RasterLayer objects.
+.sits_cube_labelled <- function(cube_probs, smoothing, output_dir, version) {
 
     # labels come from the input cube
     labels <- .sits_cube_labels(cube_probs)
@@ -342,7 +353,7 @@ sits_cube <- function(service        = "BRICK",
     files     <- vector(length = n_objs)
     timelines <- vector("list", length = n_objs)
 
-    # set scale factors, missing values, minimum and maximum values for labelled image
+    # set scale factors, missing values, minimum and maximum values
     scale_factors   <- rep(1, n_objs)
     missing_values  <- rep(-9999, n_objs)
     minimum_values  <- rep(1, n_objs)
@@ -353,7 +364,7 @@ sits_cube <- function(service        = "BRICK",
     # name of the cube
     name  <- paste0(cube_probs[1,]$name, "_", type)
 
-    # loop through the list of dates and create list of raster layers to be created
+    # loop through the list of dates and create list of raster layers
     for (i in 1:n_objs) {
 
         # define the timeline for the raster data sets
@@ -377,7 +388,7 @@ sits_cube <- function(service        = "BRICK",
 
     # inherit the dimension parameters from probability cube
     params <- .sits_raster_params(.sits_cube_robj(cube_probs))
-    # create a new RasterLayer for a defined period and generate the associated metadata
+    # create a new RasterLayer for a defined period and generate metadata
     cube_labels <- .sits_cube_create(service = "LAYER",
                                      URL     = "http://127.0.0.1",
                                      satellite = cube_probs$satellite,
@@ -408,7 +419,7 @@ sits_cube <- function(service        = "BRICK",
 #' @name .sits_class_band_name
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description    Creates a name for a raster layer with associated temporal information,
+#' @description    Creates a name for a raster layer based on timeline
 #'
 #' @param name           Original cube name (without temporal information).
 #' @param type           Type of output
@@ -475,8 +486,8 @@ sits_cube <- function(service        = "BRICK",
 #' @param index     Index for file to be retrived
 #' @return          Name of file
 .sits_cube_file <- function(cube, index = 1) {
-    ensurer::ensure_that(index, (.) <= length(cube$files[[1]]),
-                         err_desc = ".sits_cube_file: files is not available - index is out of range")
+    assertthat::assert_that(index <= length(cube$files[[1]]),
+                   msg = ".sits_cube_file: index is out of range")
     return(cube$files[[1]][index])
 }
 
@@ -512,12 +523,12 @@ sits_cube <- function(service        = "BRICK",
 #' @return         Vector of times for an index
 #' @export
 sits_cube_timeline <- function(cube, index = 1){
-    ensurer::ensure_that(index, (.) <= length(cube$timeline[[1]]),
-                         err_desc = ".sits_cube_timeline: index out of range")
+    assertthat::assert_that(index <= length(cube$timeline[[1]]),
+                         msg = ".sits_cube_timeline: index out of range")
     return(cube$timeline[[1]][[index]])
 }
 
-#' @title Given a file index, return the Raster object associated the indexed file
+#' @title Given a file index, return the associated Raster object
 #' @name .sits_cube_robj
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -527,8 +538,8 @@ sits_cube_timeline <- function(cube, index = 1){
 #' @return          Raster object associated to the indexed file
 #'
 .sits_cube_robj <- function(cube, index = 1){
-    ensurer::ensure_that(index, (.) <= length(cube$files[[1]]),
-                         err_desc = ".sits_cube_robj: file is not available - index is out of range")
+    assertthat::assert_that(index <= length(cube$files[[1]]),
+                         msg = ".sits_cube_robj: index is out of range")
     return(raster::brick(cube$files[[1]][index]))
 }
 

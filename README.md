@@ -40,7 +40,7 @@ devtools::install_github("e-sensing/inSitu")
 library(inSitu)
 ```
 
-### Data Access
+### Data Access and Visualisation
 
 **sits** allows different methods of data input, including: (a) obtain
 data from a time series web services such as INPE’s WTSS (Web Series
@@ -51,12 +51,22 @@ packages. More services will be added in future releases.
 
 ### Visualization
 
-``` r
-library(sits)
-samples_mt_4bands[1:3,]
-```
+    #> sits - satellite image time series analysis.
+    #> Loaded sits v0.9.4.
+    #>         See ?sits for help, citation("sits") for use in publication.
+    #>         See demo(package = "sits") for examples.
+    #> Created logger for sits package - DEBUG level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//Rtmp4S5Wjz/sits_debug1017e33692899.log
+    #> Created logger for sits package - ERROR level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//Rtmp4S5Wjz/sits_error1017e3ce86f2d.log
 
-![](./inst/extdata/markdown/figures/samples_mt_4bands.png)<!-- -->
+``` r
+cerrado_2classes[1:3,]
+#> # A tibble: 3 x 7
+#>   longitude latitude start_date end_date   label   coverage  time_series   
+#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>     <list>        
+#> 1     -54.2    -14.0 2000-09-13 2001-08-29 Cerrado mod13q1_… <tibble [23 ×…
+#> 2     -54.2    -14.0 2001-09-14 2002-08-29 Cerrado mod13q1_… <tibble [23 ×…
+#> 3     -54.2    -14.0 2002-09-14 2003-08-29 Cerrado mod13q1_… <tibble [23 ×…
+```
 
 After a time series is imported, it is loaded in a tibble. The first six
 columns contain the metadata: spatial and temporal location, label

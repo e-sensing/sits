@@ -7,19 +7,23 @@
 sits_formula_logref(predictors_index = -2:0)
 }
 \arguments{
-\item{predictors_index}{Index of the valid columns whose names are used to compose formula (default: -2:0).}
+\item{predictors_index}{Index of the valid columns
+to compose formula (default: -2:0).}
 }
 \value{
 A function that computes a valid formula.
 }
 \description{
-A function to be used as a symbolic description of some fitting models such as svm and random forest.
-This function instructs the model to do a logarithm transformation of the input values.
-The `predictors_index` parameter informs the positions of `tb` fields corresponding to formula independent variables.
-If no value is given, the default is NULL, a value indicating that all fields will be used as predictors.
+A function to be used as a symbolic description
+of some fitting models such as svm and random forest.
+This function tells the models to do a log transformation of the inputs.
+The `predictors_index` parameter informs
+the positions of `tb` fields corresponding to formula independent variables.
+If no value is given, the default is NULL,
+a value indicating that all fields will be used as predictors.
 }
 \author{
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

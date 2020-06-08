@@ -16,9 +16,12 @@ tests/testthat/Rplots.pdf
 vignettes/sits.R
 README_cache/*
 README_files/*
+.DS_Store
+inst/doc
 doc
 Meta
 *.bkp
 travis/*
 Makevars
 Makevars.*
+*.json

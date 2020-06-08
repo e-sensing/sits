@@ -2,8 +2,8 @@
 #' @name .sits_raster_blocks
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Defines the size of the block of a Raster Brick to be read into memory.
-#' The total pixels of a RasterBrick is given by combining the size of the timeline
+#' @description Defines the size of the block of a Raster Brick to be read.
+#' The total pixels of a RasterBrick  the size of the timeline
 #' with the number of rows and columns of the Brick. For example, a Raster Brick
 #' with 500 rows and 500 columns and 400 time instances will have a total pixel size
 #' of 800 Mb if pixels are 64-bit.
@@ -13,8 +13,10 @@
 #' @param  interval        Classification interval.
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of threads to process the time series.
-#' @return List with three attributes: n (number of blocks), rows (list of rows to begin),
-#' nrows (number of rows to read at each iteration).
+#' @return                 List with three attributes: n (number of blocks),
+#'                         rows (list of rows to begin),
+#'                         nrows (number of rows to read at each iteration).
+#'
 .sits_raster_blocks <- function(cube, ml_model, interval, memsize, multicores){
     # number of bands
     nbands <-  length(.sits_cube_bands(cube))
@@ -24,7 +26,14 @@
     # timeline
     timeline <- sits_timeline(cube[1,])
 
-    nblocks <- .sits_raster_blocks_estimate(ml_model, nbands, nrows, ncols, timeline, interval, memsize, multicores)
+    nblocks <- .sits_raster_blocks_estimate(ml_model   = ml_model,
+                                            nbands     = nbands,
+                                            nrows      = nrows,
+                                            ncols      = ncols,
+                                            timeline   = timeline,
+                                            interval   = interval,
+                                            memsize    = memsize,
+                                            multicores = multicores)
 
     # number of rows per block
     block_rows <- ceiling(nrows/nblocks)
@@ -47,7 +56,7 @@
     # nrow       Number of rows in the block extracted from the RasterBrick
     # size       size of each block in pixels
 
-    bs <- list(n = nblocks, row = row.vec, nrows = nrows.vec, size = size.vec)
+    bs <- list(n = length(row.vec), row = row.vec, nrows = nrows.vec, size = size.vec)
 
     return(bs)
 }
@@ -55,7 +64,8 @@
 #' @name .sits_raster_blocks_estimate
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Defines the number of blocks of a Raster Brick to be read into memory.
+#' @description Defines the number of blocks of a Raster Brick
+#'              to be read into memory.
 #'
 #' @param  ml_model        Machine learning model.
 #' @param  nbands          Number of bands.
@@ -66,11 +76,22 @@
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of threads to process the time series.
 #' @return Number of blocks to be read.
-.sits_raster_blocks_estimate <- function(ml_model, nbands, nrows, ncols, timeline, interval, memsize, multicores) {
+.sits_raster_blocks_estimate <- function(ml_model,
+                                         nbands,
+                                         nrows,
+                                         ncols,
+                                         timeline,
+                                         interval,
+                                         memsize,
+                                         multicores) {
     # total number of instances
     ninstances <- length(timeline)
     # number of instances per classification interval
-    interval_dates <- lubridate::as.duration(lubridate::as_date(timeline) - lubridate::as_date(timeline[1])) > lubridate::as.duration(interval)
+    # calculate the interval between each scene and the start date
+    data_duration <- lubridate::as.duration(lubridate::as_date(timeline)
+                                          - lubridate::as_date(timeline[1]))
+    # are there images outside the classification interval?
+    interval_dates <- data_duration > lubridate::as.duration(interval)
     if (any(interval_dates))
         ninterval <- which(interval_dates)[1] - 1
     else
@@ -89,12 +110,13 @@
     bricks_data_size <- single_data_size*as.numeric(nbands)
 
     # estimated full size of the data
-    full_data_size <- as.numeric(ninstances)*bricks_data_size
+    full_size <- as.numeric(ninstances)*bricks_data_size
 
     # estimated size of memory required for scaling and normalization
-    mem_required_scaling <- (full_data_size + as.numeric(.sits_mem_used()))*bloat
+    mem_required_scaling <- (full_size + as.numeric(.sits_mem_used()))*bloat
 
-    .sits_log_debug(paste0("max memory required for scaling (GB) - ", round(mem_required_scaling/1e+09, digits = 3)))
+    .sits_log_debug(paste0("max memory required for scaling (GB) - ",
+                           round(mem_required_scaling/1e+09, digits = 3)))
 
     # number of labels
     nlabels <- length(sits_labels(environment(ml_model)$data)$label)
@@ -104,208 +126,31 @@
     class_data_size <- input_class_data_size + output_class_data_size
 
     # memory required for processing depends on the model
-    if ("keras_model" %in% class(ml_model) || "rfor_model" %in% class(ml_model))  {
+    if ("keras_model" %in% class(ml_model) || "rfor_model" %in% class(ml_model))
+    {
         .sits_log_debug(paste0("keras and ranger run on multiple threads"))
-        mem_required_processing <- (class_data_size + as.numeric(.sits_mem_used()))*proc_bloat
+        mem_required_processing <- (class_data_size +
+                                        as.numeric(.sits_mem_used()))*proc_bloat
     }
     else {
         # test two different cases
         if (ninstances == ninterval) # one interval only
-            mem_required_processing <- as.numeric(multicores)*(class_data_size + as.numeric(.sits_mem_used()))
+            mem_required_processing <- as.numeric(multicores) *
+                (class_data_size + as.numeric(.sits_mem_used()))
         else
-            mem_required_processing <- as.numeric(multicores)*(.sits_mem_used() + class_data_size + full_data_size)
+            mem_required_processing <- as.numeric(multicores) *
+                (.sits_mem_used() + class_data_size + full_size)
     }
-    .sits_log_debug(paste0("max memory required for processing (GB) - ", round(mem_required_processing/1e+09, digits = 3)))
+    .sits_log_debug(paste0("max memory required for processing (GB) - ",
+                           round(mem_required_processing/1e+09, digits = 3)))
 
     # number of passes to read the full data sets
-    nblocks <- max(ceiling(mem_required_scaling/(memsize*1e+09)), ceiling(mem_required_processing/(memsize*1e+09)))
+    nblocks <- max(ceiling(mem_required_scaling/(memsize*1e+09)),
+                   ceiling(mem_required_processing/(memsize*1e+09)))
 
     return(nblocks)
 }
 
-#' @title Check if the raster files are on the web and include prefix for GDAL access
-#' @name .sits_raster_check_webfiles
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param files         files associated to the raster data
-#' @return files        Updated files with appropriate information for GDAL access
-.sits_raster_check_webfiles <- function(files) {
-    # are there webfiles?
-    if (all(grepl("http", c(files[1])))) {
-        # append "vsicurl" prefix for all web files if it is not there
-        if (!grepl("vsicurl", c(files[1])))
-            files <- paste("/vsicurl", files, sep = "/")
-    }
-    return(files)
-}
-
-#' @title Check if the raster files are accessible by GDAL
-#' @name .sits_raster_check_gdal_access
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param files         files associated to the raster data
-#' @return TRUE         true if filles are acessible
-.sits_raster_check_gdal_access <- function(files){
-    # verify if all files are reacheable
-    r <- suppressWarnings(rgdal::GDALinfo(files, silent = FALSE))
-    ensurer::ensure_that(r, all(!purrr::is_null(.)),
-                         err_desc = "sits_cube: raster files cannot be accessed")
-    return(TRUE)
-}
-
-#' @title Check if the raster files are bricks
-#' @name .sits_raster_check_bricks
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param files         files associated to the raster data
-#' @return TRUE         true if filles are acessible
-.sits_raster_check_bricks <- function(files){
-    # are the files bricks?
-    tryCatch({
-        brick <- raster::brick(files[1])
-    }, error = function(e){
-        msg <- paste0("Raster files are not bricks")
-        .sits_log_error(msg)
-        message(msg)
-    })
-    return(TRUE)
-}
-
-#' @title Check if the raster files are stacks
-#' @name .sits_raster_check_stacks
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param files         files associated to the raster data
-#' @return TRUE         true if filles are acessible
-.sits_raster_check_stacks <- function(files){
-    # are the files stacks?
-    tryCatch({
-        brick <- raster::stack(files[1])
-    }, error = function(e){
-        msg <- paste0("Raster files are not stacks")
-        .sits_log_error(msg)
-        message(msg)
-    })
-    return(TRUE)
-}
-#' @title Create a data cube based on a set of Raster Bricks
-#' @name .sits_raster_cube
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description  This function creates a tibble containing the metadata for
-#'               a set of spatio-temporal raster files, organized as a set of "Raster Bricks".
-#'               These files should be of the same size and
-#'               projection. Each raster brick file should contain one band
-#'               per time step. Different bands are archived in different raster files.
-#'
-#' @param  service               Name of the data service.
-#' @param  URL                   URL of the service provider.
-#' @param  satellite             Name of satellite
-#' @param  sensor                Name of sensor
-#' @param  name                  Name of the data cube.
-#' @param  timeline              Vector of dates with the timeline of the bands.
-#' @param  bands                 Vector of bands contained in the Raster Brick set (in the same order as the files).
-#' @param  files                 Vector with the file paths of the raster files.
-#' @return A tibble with metadata information about a raster data set.
-.sits_raster_cube <- function(service, URL, satellite, sensor, name,
-                              timeline, bands,  files) {
-
-    ensurer::ensure_that(bands, length(.) == length(files),
-                         err_desc = "sits_raster_cube: number of bands does not match number of files")
-    ensurer::ensure_that(name, !purrr::is_null(.),
-                         err_desc = "sits_raster_cube: name of the coverege must be provided")
-    ensurer::ensure_that(files, !purrr::is_null(.),
-                         err_desc = "sits_raster_cube - files must be provided")
-
-    ensurer::ensure_that(timeline, !purrr::is_null(.),
-                         err_desc = "sits_raster_cube - timeline must be provided")
-
-    # try to guess which is the satellite
-    if (purrr::is_null(satellite)) {
-        satellite <- .sits_raster_guess_satellite(.sits_raster_files_robj(service, files))
-        message(paste0("satellite information not provided - assuming ", satellite))
-    }
-    # is the satellite supported by SITS?
-    ensurer::ensure_that(satellite, (.) %in% .sits_config_satellites(),
-                         err_desc = "satellite not supported by SITS - please edit configuration file")
-
-    # try to guess which is the sensor
-    if (purrr::is_null(sensor)) {
-        sensor <- .sits_config_default_sensor(satellite)
-        message(paste0("sensor information not provided - assuming ", sensor))
-    }
-    # is the sensor supported by SITS?
-    ensurer::ensure_that(sensor, (.) %in% .sits_config_sensors(satellite),
-                         err_desc = "sensor not supported by SITS - please edit configuration file")
-
-    # transform the timeline to date format
-    timeline <- lubridate::as_date(timeline)
-
-    # set the labels
-    labels <- c("NoClass")
-
-    # obtain the parameters
-    params <- .sits_raster_params(.sits_raster_files_robj(service, files))
-
-    # get scale factors
-    scale_factors  <- .sits_config_scale_factors(sensor, bands)
-    # get missing values
-    missing_values <- .sits_config_missing_values(sensor, bands)
-    # get minimum values
-    minimum_values <- .sits_config_minimum_values(sensor, bands)
-    # get maximum values
-    maximum_values <- .sits_config_maximum_values(sensor, bands)
-
-
-    # create a tibble to store the metadata
-    cube <- .sits_cube_create(service        = service,
-                              URL            = URL,
-                              satellite      = satellite,
-                              sensor         = sensor,
-                              name           = name,
-                              bands          = bands,
-                              labels         = labels,
-                              scale_factors  = scale_factors,
-                              missing_values = missing_values,
-                              minimum_values = minimum_values,
-                              maximum_values = maximum_values,
-                              timelines      = list(timeline),
-                              nrows = params$nrows,
-                              ncols = params$ncols,
-                              xmin  = params$xmin,
-                              xmax  = params$xmax,
-                              ymin  = params$ymin,
-                              ymax  = params$ymax,
-                              xres  = params$xres,
-                              yres  = params$yres,
-                              crs   = params$xmin,
-                              files = files )
-    return(cube)
-}
-
-#' @title Define a filename associated to one classified raster layer
-#' @name .sits_raster_filename
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Creates a filename for a raster layer with associated temporal information,
-#'                 given a basic filename.
-#' @param output_dir     Output directory
-#' @param version        Output version
-#' @param name           Original cube name (without temporal information).
-#' @param type           Type of output
-#' @param start_date    Starting date of the time series classification.
-#' @param end_date      End date of the time series classification.
-#' @return Name of the classification file for the required interval.
-.sits_raster_filename <- function(output_dir, version, name, type, start_date, end_date){
-    y1 <- lubridate::year(start_date)
-    m1 <- lubridate::month(start_date)
-    y2 <- lubridate::year(end_date)
-    m2 <- lubridate::month(end_date)
-
-    file_name <- paste0(output_dir,"/", name, "_", type, "_", y1, "_", m1, "_", y2, "_", m2, "_", version,".tif")
-
-    return(file_name)
-}
 #' @title Filter the time series values in the case of a matrix
 #' @name .sits_raster_filter_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -325,7 +170,8 @@
     # use multicores to speed up filtering
     if (multicores > 1) {
         chunk.lst <- .sits_raster_split_data(values.mx, multicores)
-        rows.lst  <- parallel::mclapply(chunk.lst, filter_matrix_block, mc.cores = multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, filter_matrix_block,
+                                        mc.cores = multicores)
         values.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
         rm(rows.lst)
@@ -340,51 +186,27 @@
 #' @name .sits_raster_guess_satellite
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description    Based on the projection, tries to guess what is the satellite.
+#' @description    Based on the projection, tries to guess the satellite.
 #'
 #' @param r_obj      The R object that describes the file
 #' @return Name of the satellite .
 .sits_raster_guess_satellite <- function(r_obj) {
 
     crs   <- as.character(raster::crs(r_obj))
-    # if the projection is UTM, guess it's a LANDSAT data set
-    if (stringr::str_detect(crs, "utm")) {
+
+    if (any(grepl("utm", crs))) {
         satellite <- "LANDSAT"
     }
     # if the projection is sinusoidal, guess it's a TERRA data set
-    else if (stringr::str_detect(crs, "sinu")) {
+    else if (any(grepl("sinu", crs))) {
         satellite <- "TERRA"
     }
     else {
         satellite <- "UNKNOWN"
     }
-
     return(satellite)
 }
 
-#' @title Determine the cube params to write in the metadata
-#' @name .sits_raster_params
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Based on the R object associated to a raster object, determine its params
-#'
-#' @param r_obj    An R object associated to a Raster (Layer, Brick or Stack)
-#' @return A tibble with the cube params
-.sits_raster_params <- function(r_obj) {
-
-    params.tb <- tibble::tibble(
-        nrows = raster::nrow(r_obj),
-        ncols = raster::ncol(r_obj),
-        xmin  = raster::xmin(r_obj),
-        xmax  = raster::xmax(r_obj),
-        ymin  = raster::ymin(r_obj),
-        ymax  = raster::ymax(r_obj),
-        xres  = raster::xres(r_obj),
-        yres  = raster::yres(r_obj),
-        crs   = as.character(raster::crs(r_obj))
-    )
-    return(params.tb)
-}
 
 #' @title Preprocess a set of values retrived from a raster brick
 #' @name  .sits_raster_preprocess_data
@@ -399,8 +221,14 @@
 #' @param  filter           Smoothing filter to be applied.
 #' @param  multicores       Number of cores to process the time series.
 #' @return Matrix with pre-processed values.
-.sits_raster_preprocess_data <- function(values.mx, band, missing_value, minimum_value, scale_factor,
-                                         stats, filter, multicores){
+.sits_raster_preprocess_data <- function(values.mx,
+                                         band,
+                                         missing_value,
+                                         minimum_value,
+                                         scale_factor,
+                                         stats,
+                                         filter,
+                                         multicores) {
     # correct minimum value
     values.mx[is.na(values.mx)] <- minimum_value
     values.mx[values.mx <= minimum_value] <- minimum_value
@@ -463,12 +291,19 @@
             # proprocess the input data
             b <<- b + 1
             band <- bands[b]
-            values.mx <- .sits_raster_preprocess_data(values.mx, band, missing_values[band], minimum_values[band], scale_factors[band],
-                                               stats, filter, multicores)
+            values.mx <- .sits_raster_preprocess_data(values.mx, band,
+                                                      missing_values[band],
+                                                      minimum_values[band],
+                                                      scale_factors[band],
+                                                      stats, filter,
+                                                      multicores)
 
             # save information about memory use for debugging later
-            .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
-            .sits_log_debug(paste0("Read band ", b, " from rows ", first_row, "to ", (first_row + n_rows_block - 1)))
+            .sits_log_debug(paste0("Memory used after readGDAL - ",
+                                   .sits_mem_used(), " GB"))
+            .sits_log_debug(paste0("Read band ", b, " from rows ",
+                                   first_row, "to ",
+                                   (first_row + n_rows_block - 1)))
 
             return(values.mx)
         })
@@ -488,7 +323,8 @@
     data_DT <- data.table::as.data.table(cbind(two_cols_DT, data_DT))
 
     # memory debug
-    .sits_log_debug(paste0("Memory used after reading block - ", .sits_mem_used(), " GB"))
+    .sits_log_debug(paste0("Memory used after reading block - ",
+                           .sits_mem_used(), " GB"))
 
     return(data_DT)
 }
@@ -544,13 +380,16 @@
             b <<- b + 1
             band <- bands[b]
             values.mx <- .sits_raster_preprocess_data(values.mx, band,
-                                               missing_values[band], minimum_values[band],
+                                               missing_values[band],
+                                               minimum_values[band],
                                                scale_factors[band],
                                                stats, filter, multicores)
 
             # save information about memory use for debugging later
-            .sits_log_debug(paste0("Memory used after readGDAL - ", .sits_mem_used(), " GB"))
-            .sits_log_debug(paste0("Read band ", b, " from rows ", first_row, "to ",
+            .sits_log_debug(paste0("Memory used after readGDAL - ",
+                                   .sits_mem_used(), " GB"))
+            .sits_log_debug(paste0("Read band ", b, " from rows ",
+                                    first_row, "to ",
                                    (first_row + n_rows_block - 1)))
 
             return(values.mx)
@@ -571,36 +410,19 @@
     data_DT <- data.table::as.data.table(cbind(two_cols_DT, data_DT))
 
     # memory debug
-    .sits_log_debug(paste0("Memory used after reading block - ", .sits_mem_used(), " GB"))
+    .sits_log_debug(paste0("Memory used after reading block - ",
+                           .sits_mem_used(), " GB"))
 
     return(data_DT)
 }
 
-#' @title Given a vector of files, and the name of the servic, return the raster object
-#'        associated with the first file
-#' @name .sits_raster_files_robj
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description     Given the vector of files and the name of the service, return the Raster object for the file
-#' @param service   Name of the service (must be "BRICK" or "STACK!)
-#' @param files     Vector of files
-#' @return          Raster object associated to the first file
-#'
-.sits_raster_files_robj <- function(service, files){
-    ensurer::ensure_that(service, (.) %in% c("BRICK", "STACK"),
-                         err_desc = "Error in creating a data cube from raster files; data should be
-                         BRICK or STACK")
-    if (service == "BRICK")
-        return(raster::brick(files[1]))
-    if (service == "STACK")
-        return(raster::stack(files[1]))
-}
+
 
 #' @title Scale the time series values in the case of a matrix
 #' @name .sits_raster_scale_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function normalizes one band of the values read from a raster brick.
+#' @description Normalizes one band of the values read from a raster brick.
 #'
 #' @param  values.mx      Matrix of values.
 #' @param  scale_factor   Scaling factor.
@@ -615,7 +437,8 @@
     # use multicores to speed up scaling
     if (multicores > 1) {
         chunk.lst <- .sits_raster_split_data(values.mx, multicores)
-        rows.lst  <- parallel::mclapply(chunk.lst, scale_block, scale_factor, mc.cores = multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, scale_block,
+                                        scale_factor, mc.cores = multicores)
         values.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
         rm(rows.lst)
@@ -637,7 +460,9 @@
 #' @param  scale_factor   Scaling factor.
 #' @param  multicores     Number of cores.
 #' @return Scaled integer matrix.
-.sits_raster_scale_matrix_integer <- function(values.mx, scale_factor, multicores) {
+.sits_raster_scale_matrix_integer <- function(values.mx,
+                                              scale_factor,
+                                              multicores) {
     # scale the data set
     # auxiliary function to scale a block of data
     scale_matrix_block <- function(chunk, scale_factor) {
@@ -646,7 +471,8 @@
     # use multicores to speed up scaling
     if (multicores > 1) {
         chunk.lst <- .sits_raster_split_data(values.mx, multicores)
-        rows.lst  <- parallel::mclapply(chunk.lst, scale_matrix_block, scale_factor, mc.cores = multicores)
+        rows.lst  <- parallel::mclapply(chunk.lst, scale_matrix_block,
+                                        scale_factor, mc.cores = multicores)
         int_values.mx <- do.call(rbind, rows.lst)
         rm(chunk.lst)
         rm(rows.lst)
@@ -662,12 +488,15 @@
 #' @name .sits_raster_split_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function splits a data.table into a list of chunks for multicore processing.
+#' @description This function splits a data.table into a
+#'              list of chunks for multicore processing.
 #'
 #' @param data             Data (data.table or matrix).
 #' @param ncores           Number of cores for processing.
-#' @return List of pairs of positions (first row, last row) to be assigned to each core.
-.sits_raster_split_data <- function(data, ncores){
+#' @return                 List of pairs of positions (first row, last row)
+#'                         to be assigned to each core.
+#'
+.sits_raster_split_data <- function(data, ncores) {
     # number of rows in the data
     nrows <- nrow(data)
     # find the number of rows per core
@@ -688,22 +517,5 @@
 }
 
 
-#' @title Tests if an XY position is inside a ST Raster Brick
-#' @name .sits_raster_xy_inside
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function compares an XY position to the extent of a RasterBrick
-#'              described by a raster metadata tibble, and return TRUE if the point is
-#'              inside the extent of the RasterBrick object.
-#'
-#' @param xy         XY extent compatible with the R raster package.
-#' @param raster.tb  Tibble with metadata information about a raster data set.
-#' @return TRUE if XY is inside the raster extent, FALSE otherwise.
-.sits_raster_xy_inside <- function(xy, raster.tb){
-    if(xy[1, "X"] < raster.tb[1, ]$xmin) return(FALSE)
-    if(xy[1, "X"] > raster.tb[1, ]$xmax) return(FALSE)
-    if(xy[1, "Y"] < raster.tb[1, ]$ymin) return(FALSE)
-    if(xy[1, "Y"] > raster.tb[1, ]$ymax) return(FALSE)
-    return(TRUE)
-}
+
 

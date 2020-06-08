@@ -40,25 +40,21 @@ sits_services <- function() {
             wtss_ok <- .sits_wtss_check(URL)
             # if service is running, describe it
             if (wtss_ok) {
-                wtss.obj  <- wtss::WTSS(URL)
-                cubes <- wtss::listCoverages(wtss.obj)
+                wtss.obj <- suppressMessages(wtss::WTSS(URL))
+                assertthat::assert_that(!purrr::is_null(wtss.obj),
+                   msg = "sits_cube - WTSS service not responding - check URL")
+                cubes     <- wtss.obj$coverages
 
                 cat(paste0("Service: \"", s,"\"\n"))
                 for (c_name in cubes) {
                     cat(paste0("   Cube: \"", c_name, "\"\n"))
 
                     # describe the data cube
-                    cb <- wtss::describeCoverage(wtss.obj, c_name)[[c_name]]
-
-                    # retrieve information about the bands
-                    band_info <- cb$attributes
-                    attr <- as.data.frame(band_info)
-                    bands <- as.vector(attr[,"name"])
-                    cat(paste0("  Bands: \"", paste(bands, collapse = "\", \""), "\"\n"))
+                    wtss::describe_coverage(wtss.obj, c_name)
                 }
             }
             else
-                message(paste0("Default WTSS service not running - please check configuration file"))
+                message(paste0("WTSS service not running: please check config"))
         }
         else if (s == "SATVEG") {
             # check if the service is running

@@ -47,19 +47,20 @@ devtools::install_github("e-sensing/inSitu")
 library(inSitu)
 ```
 
-### Data Access 
+### Data Access and Visualisation
 
 **sits** allows different methods of data input, including: (a) obtain data from a time series web services such as INPE's WTSS (Web Series Time Service) or EMBRAPA's SATVEG; (b) read data stored in a time series in the ZOO format [@Zeileis2005]; (c) read a time series from a TIFF RasterBrick; (d) Read images organized in data cubes using the EOCUbes packages. More services will be added in future releases.
 
 ### Visualization
 
-```{r, eval = FALSE}
+```{r, eval = TRUE, echo = FALSE}
 library(sits)
-samples_mt_4bands[1:3,]
+library(tibble)
 ```
 
-```{r, echo = FALSE}
-knitr::include_graphics("./inst/extdata/markdown/figures/samples_mt_4bands.png")
+
+```{r, eval = TRUE}
+cerrado_2classes[1:3,]
 ```
 
 After a time series is imported, it is loaded in a tibble. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location (-55.1852, -10.8387), and is considered valid for the period (2013-09-14, 2014-08-29). To display the time series, use the `plot()` function. For a large number of samples, where the amount of individual plots would be substantial, the default visualisation combines all samples together in a single temporal interval. 

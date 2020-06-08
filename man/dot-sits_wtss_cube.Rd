@@ -18,6 +18,6 @@
 \item{bands}{Name of the bands.}
 }
 \description{
-Uses the WTSS services to print information and save metadata about a
-chosen cube.
+Uses the WTSS services to print information and save metadata
+about a chosen cube.
 }

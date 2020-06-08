@@ -11,24 +11,24 @@ sits_whittaker(data = NULL, lambda = 1, bands_suffix = "")
 
 \item{lambda}{Smoothing factor to be applied (default 1.0).}
 
-\item{bands_suffix}{Suffix to be appended to the smoothed filters (default "whit").}
+\item{bands_suffix}{Suffix to be appended (default "whit").}
 }
 \value{
 A tibble with smoothed sits time series.
 }
 \description{
-The algorithm searches for an optimal polynomial describing the warping.
-Some authors consider the Whittaker smoother to be a good method for smoothing and
-gap filling for satellite image time series
-The degree of smoothing depends on smoothing factor lambda (usually from 0.5 to 10.0)
-Use lambda = 0.5 for very slight smoothing and lambda = 5.0 for strong smoothing
+The algorithm searches for an optimal warping polynomial.
+The degree of smoothing depends on smoothing factor lambda
+(usually from 0.5 to 10.0). Use lambda = 0.5 for very slight smoothing
+and lambda = 5.0 for strong smoothing.
 }
 \examples{
 \donttest{
 # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the whittaker smoother
-point_whit <- sits_filter(point_ndvi, sits_whittaker (lambda = 3.0, bands_suffix = "wf"))
+point_whit <- sits_filter(point_ndvi, sits_whittaker
+                          (lambda = 3.0, bands_suffix = "wf"))
 # Plot the two points to see the smoothing effect
 plot(sits_merge(point_ndvi, point_whit))
 }
@@ -36,6 +36,7 @@ plot(sits_merge(point_ndvi, point_whit))
 \references{
 Francesco Vuolo, Wai-Tim Ng, Clement Atzberger,
 "Smoothing and gap-filling of high resolution multi-spectral timeseries:
-Example of Landsat data", Int Journal of Applied Earth Observation and Geoinformation,
+Example of Landsat data",
+Int Journal of Applied Earth Observation and Geoinformation,
 vol. 57, pg. 202-213, 2107.
 }

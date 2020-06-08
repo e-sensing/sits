@@ -4,8 +4,12 @@
 \alias{sits_timeline_match}
 \title{Find dates in the input data cube that match those of the patterns}
 \usage{
-sits_timeline_match(timeline, ref_start_date, ref_end_date,
-  interval = "12 month")
+sits_timeline_match(
+  timeline,
+  ref_start_date,
+  ref_end_date,
+  interval = "12 month"
+)
 }
 \arguments{
 \item{timeline}{Timeline of input observations (vector).}

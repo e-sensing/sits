@@ -4,10 +4,21 @@
 \alias{sits_twdtw_classify}
 \title{Find matches between a set of sits patterns and segments of sits tibble using TWDTW}
 \usage{
-sits_twdtw_classify(data, patterns, bands = NULL,
-  dist.method = "euclidean", alpha = -0.1, beta = 100, theta = 0.5,
-  span = 0, keep = FALSE, start_date = NULL, end_date = NULL,
-  interval = "12 month", overlap = 0.5)
+sits_twdtw_classify(
+  data,
+  patterns,
+  bands = NULL,
+  dist.method = "euclidean",
+  alpha = -0.1,
+  beta = 100,
+  theta = 0.5,
+  span = 0,
+  keep = FALSE,
+  start_date = NULL,
+  end_date = NULL,
+  interval = "12 month",
+  overlap = 0.5
+)
 }
 \arguments{
 \item{data}{A sits tibble to be classified using TWTDW.}

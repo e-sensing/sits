@@ -20,20 +20,21 @@
     cubes.vec    <- names(EOCubes::list_cubes(remote.obj))
 
     # is the cube in the list of cubes?
-    ensurer::ensure_that(name, (.) %in% cubes.vec,
-        err_desc = ".sits_cube_EOCUBES: cube is not available in the EOCubes remote")
+    assertthat::assert_that(name %in% cubes.vec,
+        msg = ".sits_cube_EOCUBES: cube is not available in the EOCubes remote")
 
     # describe the cube
     cub.obj <- EOCubes::cube(name = name, remote = remote.obj)
 
     # filter cube
     cub.obj <- EOCubes::cube_filter(cube = cub.obj,
-                tiles = EOCubes::tiles_which(cub.obj, prefix = tiles, geom = geom),
+                tiles = EOCubes::tiles_which(cub.obj, prefix = tiles,
+                                             geom = geom),
                 from = from, to = to)
 
     # verify if the filter returned tiles
-    ensurer::ensure_that(cub.obj, length(EOCubes::list_tiles(.)) > 0,
-        err_desc = ".sits_cube_EOCUBES: cube filter returned no tile.")
+    assertthat::assert_that(length(EOCubes::list_tiles(cub.obj)) > 0,
+        msg = ".sits_cube_EOCUBES: cube filter returned no tile.")
 
     # temporal extent
     timeline <- lubridate::as_date(c(EOCubes::cube_dates_info(cub.obj)$from,
@@ -47,8 +48,8 @@
     # verify if requested bands is in provided bands
     if (purrr::is_null(bands))
         bands <- bands.vec
-    ensurer::ensure_that(bands.vec, all(bands %in% .),
-        err_desc = ".sits_cube_EOCUBES: band not avilabe in EOCubes service.")
+    assertthat::assert_that(all(bands %in% bands.vec),
+        msg = ".sits_cube_EOCUBES: band not avilabe in EOCubes service.")
 
     b <- match(bands, bands.vec)
     bands.vec <- bands.vec[b]
@@ -112,7 +113,7 @@
     return(cube)
 }
 
-#' @title Obtain one timeSeries from EOCubes package and load it on a sits tibble
+#' @title Obtain one timeSeries from EOCubes package
 #' @name .sits_from_EOCubes
 #'
 #' @description Returns one set of time series provided by a EOCubes package
@@ -124,9 +125,9 @@
 #' @param latitude        The latitude of the chosen location.
 #' @param start_date      Date with the start of the period.
 #' @param end_date        Date with the end of the period.
-#' @param bands           A list of string with the names of the bands of the data cube.
-#' @param label           A string with the label to attach to the time series (optional).
-#' @return A sits tibble.
+#' @param bands           Names of the bands of the data cube.
+#' @param label           Label to attach to the time series (optional).
+#' @return                A sits tibble.
 .sits_from_EOCubes <- function(cube,
                                longitude,
                                latitude,
@@ -140,8 +141,8 @@
     if (purrr::is_null(bands))
         bands <- cube_bands
     else
-        ensurer::ensure_that(bands, all((.) %in% cube_bands),
-                             err_desc = "sits_from_EOCubes: requested bands are not available in the cube")
+        assertthat::assert_that(all(bands %in% cube_bands),
+           msg = "sits_from_EOCubes: bands are not available in the cube")
 
     # get cube object
     cub.obj <- .sits_cube_robj(cube)
@@ -182,8 +183,10 @@
         })
 
         # interpolate missing values
-        ts$bands[bands] <- as.list(as.data.frame(zoo::na.spline(do.call(data.frame,
-                                                                        ts$bands[bands]), ts$timeline)))
+        ts$bands[bands] <- as.list(
+            as.data.frame(zoo::na.spline(do.call(data.frame,
+                                                ts$bands[bands]),
+                                         ts$timeline)))
 
         # scale the time series
         ts$bands[bands] <- lapply(bands, function(band) {
@@ -213,9 +216,11 @@
         return(data)
 
     }, error = function(e){
-        msg <- paste0("EOCubes - unable to retrieve point (", longitude, ", ", latitude, ", ", start_date," ,", end_date,")")
+        msg <- paste0("EOCubes - unable to retrieve point (",
+                      longitude, ", ", latitude, ", ",
+                      start_date," ,", end_date,")")
         .sits_log_error(msg)
-        message("EOCubes - unable to retrieve point - see log file for details" )
+        message("EOCubes - unable to retrieve point - see log file" )
         return(NULL)
     })
 }

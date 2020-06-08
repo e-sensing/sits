@@ -4,22 +4,25 @@
 \alias{sits_rfor}
 \title{Train a sits classifiction model using fast random forest algorithm}
 \usage{
-sits_rfor(data = NULL, num_trees = 2000, importance = "impurity",
-  ...)
+sits_rfor(data = NULL, num_trees = 2000, importance = "impurity", ...)
 }
 \arguments{
 \item{data}{Time series with the training samples.}
 
-\item{num_trees}{Number of trees to grow. This should not be set to too small a number,
-to ensure that every input row gets predicted at least a few times. (default: 2000).}
+\item{num_trees}{Number of trees to grow. This should not be set
+to too small a number,
+to ensure that every input row gets predicted
+at least a few times. (default: 2000).}
 
-\item{importance}{Variable importance mode, one of 'none', 'impurity', 'impurity_corrected', 'permutation'.
-The 'impurity' measure is the Gini index for classification.}
+\item{importance}{Variable importance mode, one of 'none',
+ 'impurity', 'impurity_corrected', 'permutation'.
+The 'impurity' measure is the Gini index.}
 
 \item{...}{Other parameters to be passed to \code{\link[ranger]{ranger}} function.}
 }
 \value{
-A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+Model fitted to input data
+                    (to be passed to \code{\link[sits]{sits_classify}})
 }
 \description{
 Use Fast Random Forest algorithm to classify data.
@@ -28,7 +31,7 @@ Please refer to the documentation in that package for more details.
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for Mato Grosso  (provided by EMBRAPA)
 samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 
 # Build a machine learning model based on deep learning
@@ -43,7 +46,7 @@ plot(class.tb, bands = c("ndvi", "evi"))
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

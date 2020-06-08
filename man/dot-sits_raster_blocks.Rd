@@ -18,12 +18,13 @@
 \item{multicores}{Number of threads to process the time series.}
 }
 \value{
-List with three attributes: n (number of blocks), rows (list of rows to begin),
-nrows (number of rows to read at each iteration).
+List with three attributes: n (number of blocks),
+                        rows (list of rows to begin),
+                        nrows (number of rows to read at each iteration).
 }
 \description{
-Defines the size of the block of a Raster Brick to be read into memory.
-The total pixels of a RasterBrick is given by combining the size of the timeline
+Defines the size of the block of a Raster Brick to be read.
+The total pixels of a RasterBrick  the size of the timeline
 with the number of rows and columns of the Brick. For example, a Raster Brick
 with 500 rows and 500 columns and 400 time instances will have a total pixel size
 of 800 Mb if pixels are 64-bit.

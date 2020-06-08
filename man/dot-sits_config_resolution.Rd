@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_resolution}
 \alias{.sits_config_resolution}
-\title{Retrieve the pixel spatial resolution for a data cube, based on the configuration file}
+\title{Retrieve the pixel spatial resolution for a data cube}
 \usage{
 .sits_config_resolution(sensor)
 }
@@ -13,7 +13,7 @@
 Vector of (xres, yres).
 }
 \description{
-Retrieve the pixel spatial resolution for a data cube, based on the configuration file
+Retrieve the pixel spatial resolution for a data cube
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

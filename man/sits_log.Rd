@@ -10,7 +10,8 @@ sits_log()
 TRUE if creation succeeds.
 }
 \description{
-Creates a logger file for debugging and information (uses log4r package).
+Creates a logger file for debugging and information
+             (uses log4r package).
 }
 \examples{
 # Creates a sits logger using the default location

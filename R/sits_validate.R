@@ -5,10 +5,10 @@
 #'
 #' @description Splits the set of time series into training and validation and
 #' perform k-fold cross-validation.
-#' Cross-validation is a model validation technique for assessing how the results
+#' Cross-validation is a technique for assessing how the results
 #' of a statistical analysis will generalize to an independent data set.
 #' It is mainly used in settings where the goal is prediction,
-#' and one wants to estimate how accurately a predictive model will perform in practice.
+#' and one wants to estimate how accurately a predictive model will perform.
 #' One round of cross-validation involves partitioning a sample of data
 #' into complementary subsets, performing the analysis on one subset
 #' (called the training set), and validating the analysis on the other subset
@@ -54,8 +54,8 @@ sits_kfold_validate <- function(data, folds = 5,
     names(int_labels) <- labels
 
     # is the data labelled?
-    ensurer::ensure_that(data, !("NoClass" %in% sits_labels(.)$label),
-        err_desc = "sits_cross_validate: requires labelled set of time series")
+    assertthat::assert_that(!("NoClass" %in% sits_labels(data)$label),
+        msg = "sits_cross_validate: requires labelled set of time series")
 
     # create partitions different splits of the input data
     data <- .sits_create_folds(data, folds = folds)
@@ -97,7 +97,10 @@ sits_kfold_validate <- function(data, folds = 5,
     pred.vec <- unlist(lapply(conf.lst, function(x) x$pred))
     ref.vec  <- unlist(lapply(conf.lst, function(x) x$ref))
 
-    pred_ref.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
+    pred_ref.tb <- tibble::tibble("predicted" = pred.vec,
+                                  "reference" = ref.vec)
+    class(pred_ref.tb) <- append(class(pred_ref.tb),
+                                 c("sits", "sits_val_tbl"), after = 0)
 
     return(pred_ref.tb)
 }

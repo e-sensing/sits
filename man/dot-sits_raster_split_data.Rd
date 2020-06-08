@@ -12,10 +12,12 @@
 \item{ncores}{Number of cores for processing.}
 }
 \value{
-List of pairs of positions (first row, last row) to be assigned to each core.
+List of pairs of positions (first row, last row)
+                        to be assigned to each core.
 }
 \description{
-This function splits a data.table into a list of chunks for multicore processing.
+This function splits a data.table into a
+             list of chunks for multicore processing.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

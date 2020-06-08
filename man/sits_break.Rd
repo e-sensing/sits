@@ -27,7 +27,8 @@ a set of time series with the same number of samples, which is
 required for building a set of samples for classification.
 }
 \examples{
-points.tb <- sits_break(point_ndvi, timeline_modis_392, "2000-08-28", "2016-08-12")
+points.tb <- sits_break(point_ndvi, timeline_modis_392,
+                        "2000-08-28", "2016-08-12")
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

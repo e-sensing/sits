@@ -4,10 +4,20 @@
 \alias{sits_cube}
 \title{Defines a data cube}
 \usage{
-sits_cube(service = "BRICK", URL = NULL, name = NULL,
-  satellite = NULL, sensor = NULL, tiles_names = NULL, geom = NULL,
-  from = NULL, to = NULL, timeline = NULL, bands = NULL,
-  files = NA)
+sits_cube(
+  service = "BRICK",
+  URL = NULL,
+  name = NULL,
+  satellite = NULL,
+  sensor = NULL,
+  tiles_names = NULL,
+  geom = NULL,
+  from = NULL,
+  to = NULL,
+  timeline = NULL,
+  bands = NULL,
+  files = NA
+)
 }
 \arguments{
 \item{service}{Name of the data service.}
@@ -20,19 +30,21 @@ sits_cube(service = "BRICK", URL = NULL, name = NULL,
 
 \item{sensor}{Name of sensor}
 
-\item{tiles_names}{A string with tile names to be filtered (for EOCUBES service)}
+\item{tiles_names}{Tile names to be filtered (for EOCUBES service)}
 
-\item{geom}{An \code{sf} object to filter tiles (for EOCUBES service)}
+\item{geom}{An \code{sf} object to filter tiles (for EOCUBES)}
 
 \item{from}{Starting date for the cube to be extracted}
 
 \item{to}{End date for the cube to be extracted}
 
-\item{timeline}{Vector with the timeline of the collection (only for local files)}
+\item{timeline}{Vector with the timeline of the collection
+(only for local files)}
 
 \item{bands}{Vector of bands.}
 
-\item{files}{Vector of file names for each band (only for raster data).}
+\item{files}{Vector of file names for each band
+(only for raster data).}
 }
 \description{
 Defines a cube to retrieve data. Cubes are associated to
@@ -40,7 +52,7 @@ data services. The following services are available:
 \itemize{
  \item{"WTSS": }{Web Time Series Service - used to get time series}
  \item{"SATVEG": }{ SATVEG Time Series Service - used to get time series}
- \item{"EOCUBES": }{EOCUBES service - used for cloud processing of data cubes}
+ \item{"EOCUBES": }{EOCUBES service - cloud processing of data cubes}
  \item{"BRICK": }{Raster Brick files}
  \item{"STACK": }{Raster Stack files}
 }
@@ -55,13 +67,14 @@ cube_satveg <- sits_cube(service = "SATVEG", name = "terra")
 
 # Example 3. Create a raster cube based on bricks
 # inform the files that make up a raster brick with 392 time instances
-files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+           package = "sits"))
 
 # create a raster cube file based on the information about the files
 raster.tb <- sits_cube(name  = "Sinop-crop",
              timeline = timeline_modis_392, bands = "ndvi", files = files)
 
-# Example 4. create a coverage from EOCUBES service from the collection "MOD13Q1/006"
+# Example 4. create a coverage from EOCUBES service
 modis_cube <- sits_cube(service = "EOCUBES", name    = "MOD13Q1/006")
  # get information on the data cube
 modis_cube \%>\% dplyr::select(service, URL, satellite, sensor)
@@ -70,6 +83,7 @@ modis_cube \%>\% dplyr::select(xmin, xmax, ymin, ymax, timeline)
 }
 }
 \seealso{
-To see the available values for the parameters above use \code{\link{sits_services}},
+To see the available values for the parameters above
+use \code{\link{sits_services}},
 \code{\link{sits_config}} or \code{\link{sits_config_show}}.
 }

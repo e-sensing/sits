@@ -19,7 +19,7 @@
 Name of the classification file for the required interval.
 }
 \description{
-Creates a name for a raster layer with associated temporal information,
+Creates a name for a raster layer based on timeline
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

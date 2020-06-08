@@ -2,37 +2,50 @@
 % Please edit documentation in R/sits_cluster.R
 \name{sits_cluster_dendro}
 \alias{sits_cluster_dendro}
-\title{Clusters a time series samples using aglomerative hierarchical clustering}
+\title{Clusters a set of time series
+       using aglomerative hierarchical clustering}
 \usage{
-sits_cluster_dendro(data = NULL, bands = NULL,
-  dist_method = "dtw_basic", linkage = "ward.D2", k = NULL,
-  colors = "RdYlGn", silent = TRUE, ...)
+sits_cluster_dendro(
+  data = NULL,
+  bands = NULL,
+  dist_method = "dtw_basic",
+  linkage = "ward.D2",
+  k = NULL,
+  colors = "RdYlGn",
+  silent = TRUE,
+  ...
+)
 }
 \arguments{
 \item{data}{A tibble with input set of time series}
 
 \item{bands}{Bands to be used in the clustering}
 
-\item{dist_method}{String with one of the supported distance from proxy's dist, e.g. \code{TWDTW}.}
+\item{dist_method}{String with one of the supported distance
+from proxy's dist, e.g. \code{TWDTW}.}
 
-\item{linkage}{String with agglomeration method to be used. Can be any `hclust` method (see `hclust`). Default is 'ward.D2'.}
+\item{linkage}{String with agglomeration method to be used.
+Can be any `hclust` method (see `hclust`).
+Default is 'ward.D2'.}
 
-\item{k}{The desired number of clusters (overrides default value)}
+\item{k}{Desired number of clusters (overrides default value)}
 
-\item{colors}{A color scheme as showed in `sits_color_name` function.}
+\item{colors}{Color scheme as per `sits_color_name` function.}
 
 \item{silent}{Should output be provided?}
 
-\item{...}{Any additional parameters to be passed to dtwclust::tsclust() function.}
+\item{...}{Additional parameters to be passed
+to dtwclust::tsclust() function.}
 }
 \value{
 A tibble with the clusters or clusters' members.
 }
 \description{
-Takes a SITS tibble and produces a sits tibble with an added "cluster" column
+Takes a SITS tibble and produces a sits tibble
+with an added "cluster" column.
 This is done in several steps:
 1. Calculation of the dendogram
-2. Selection of the validity index for best cluster using the adjusted Rand Index
+2. Get validity index for best cluster using the adjusted Rand Index
 3. Cut the dendogram using the chosen validity index
 }
 \examples{

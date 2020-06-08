@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_allyears}
 \alias{.sits_plot_allyears}
-\title{Plot all time intervals of one time series for the same lat/long together}
+\title{Plot all intervals of one time series for the same lat/long together}
 \usage{
 .sits_plot_allyears(data, colors)
 }

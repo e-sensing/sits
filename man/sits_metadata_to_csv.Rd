@@ -15,9 +15,12 @@ sits_metadata_to_csv(data, file)
 The status of the operation.
 }
 \description{
-Converts metadata from a sits tibble to a CSV file. The CSV file will not contain the actual time
-             series. Its columns will be the same as those of a CSV file used to retrieve data from
-             ground information ("latitude", "longitude", "start_date", "end_date", "cube", "label").
+Converts metadata from a sits tibble to a CSV file.
+             The CSV file will not contain the actual time
+             series. Its columns will be the same as those of a
+             CSV file used to retrieve data from
+             ground information ("latitude", "longitude", "start_date",
+             "end_date", "cube", "label").
 }
 \examples{
 \donttest{

@@ -4,30 +4,44 @@
 \alias{.sits_from_csv}
 \title{Obtain timeSeries from a data cube, based on a CSV file.}
 \usage{
-.sits_from_csv(csv_file, cube, bands, .prefilter, .n_start_csv, .n_max_csv,
-  .n_save)
+.sits_from_csv(
+  csv_file,
+  cube,
+  bands,
+  .prefilter,
+  .n_start_csv,
+  .n_max_csv,
+  .n_save
+)
 }
 \arguments{
-\item{csv_file}{Name of a CSV file with information <id, latitude, longitude, from, end, label>.}
+\item{csv_file}{Name of a CSV file with information
+<id, latitude, longitude, from, end, label>.}
 
-\item{cube}{A tibble with metadata about the data cube which contains data to be retrieved.}
+\item{cube}{Data cube which contains data to be retrieved.}
 
-\item{bands}{A string vector with the names of the bands to be retrieved.}
+\item{bands}{Names of the bands to be retrieved.}
 
-\item{.prefilter}{String ("0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction).}
+\item{.prefilter}{Prefilter condition for SATVEG service
+"0" - none,
+"1" - no data correction,
+"2" - cloud correction,
+"3" - no data and cloud correction.}
 
 \item{.n_start_csv}{Row on the CSV file to start reading (optional).}
 
 \item{.n_max_csv}{Maximum number of samples to be read.}
 
-\item{.n_save}{Number of samples to save as intermediate files (used for long reads).}
+\item{.n_save}{Number of samples to save as intermediate files
+(used for long reads).}
 }
 \value{
 A sits tibble.
 }
 \description{
 reads descriptive information about a set of
-spatio-temporal locations from a CSV file. Then, it retrieve the time series from a data cube,
+spatio-temporal locations from a CSV file.
+Then, it retrieve the time series from a data cube,
 and stores the time series on a sits tibble for later use.
 The CSV file should have the following column names:
 "longitude", "latitude", "start_date", "end_date", "label"

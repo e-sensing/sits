@@ -194,13 +194,12 @@ To get a time series in SITS, one has to create a data cube first, as described 
 # obtain a time series from the WTSS server for this point
 # define the data cube "MOD13Q1" using the WTSS service
 # In this case, the WTSS service is run by a server in INPE Brazil
-wtss_cube <- sits_cube(service = "WTSS", 
-                       name    = "MOD13Q1")
+wtss_cube <- sits_cube(service = "WTSS", name    = "MOD13Q1")
 series.tb <- sits_get_data(cube      = wtss_cube,
                            longitude = -55.57320, 
                            latitude  = -11.50566,
                            bands     = c("ndvi", "evi"))
-plot(series.tb)
+sits_plot(series.tb)
 ```
 
 A useful case is when a set of labelled samples are available to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. Function `sits_get_data()` can get a CSV file path as an argument. The CSV file must provide, for each time series, its latitude and longitude, the start and end dates, and a label associated to a ground sample. An example of a CSV file used is shown below:

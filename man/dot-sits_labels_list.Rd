@@ -9,17 +9,21 @@
 \arguments{
 \item{data}{A sits tibble.}
 
-\item{list.lst}{Any named list whose names are unique labels from data input. Non-informed labels will be completed
+\item{list.lst}{Any named list whose names are unique labels
+from data input. Non-informed labels will be completed
 according to fun_label function.}
 
-\item{fun_label}{A function that will be executed for each label non listed in list.lst parameter. The result of
-the function is used as list.lst value for the respective label.}
+\item{fun_label}{A function that will be executed for each label
+non listed in list.lst parameter. The result of
+ is used as list.lst value for the respective label.}
 }
 \value{
-A list whose values non informed in list.lst is filled by fun_label for each unique label in data.
+A list whose non informed values
+                    are filled by fun_label for each unique label in data.
 }
 \description{
-Completes list.lst list as a named list (names are unique labels from data) according
+Completes list.lst list as a named list
+             (names are unique labels from data) according
              to a given function that receives each label as an argument.
 }
 \author{

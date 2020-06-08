@@ -16,8 +16,10 @@ They contain both the satellite image time series and its metadata.
 A sits tibble is a tibble with pre-defined columns that
 has the metadata and data for each time series. The columns are
 <longitude, latitude, start_date, end_date, label, cube, time_series>.
-Most functions of sits package get a sits tibble as input (with additional parameters)
-and return another sits tibble as output. This allows chaining functions over sits tibbles.
+Most functions of sits package get a sits tibble as input
+(with additional parameters)
+and return another sits tibble as output.
+This allows chaining functions over sits tibbles.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -1,4 +1,4 @@
-#' @title Classify a set of time series or a data cube using machine learning models
+#' @title Classify time series or data cube using machine learning models
 #' @name sits_classify
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -8,7 +8,6 @@
 #' labelled samples. Each samples should be associated to one spatial location
 #' (latitude/longitude), one time interval and a label.
 #'
-#' After defining the training samples, the users need to provide a machine learning model.
 #' Currenly, sits supports the following models:
 #' 'svm' (see \code{\link[sits]{sits_svm}}),
 #' random forests (see \code{\link[sits]{sits_rfor}}),
@@ -20,21 +19,24 @@
 #' extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
 #' and different deep learning functions, including multi-layer perceptrons
 #' (see \code{\link[sits]{sits_deeplearning}}, 1D convolutional neural networks
-#' \code{\link[sits]{sits_FCN}}, mixed 1D and MLP networks \code{\link[sits]{sits_TempCNN}}
-#' a 1D version of ResNet \code{\link[sits]{sits_ResNet}}), and a combined LSTM-FCN model
-#' \code{\link[sits]{sits_LSTM_FCN}}
+#' \code{\link[sits]{sits_FCN}},
+#' mixed 1D and MLP networks \code{\link[sits]{sits_TempCNN}}
+#' a 1D version of ResNet \code{\link[sits]{sits_ResNet}}),
+#' and a combined LSTM-FCN model \code{\link[sits]{sits_LSTM_FCN}}
 #'
-#' The model should be precomputed by the user using the function \code{\link[sits]{sits_train}}
-#' and then passed to the "sits_classify" function using the parameter "ml_model".
+#' The model should be precomputed by the user
+#' using the function \code{\link[sits]{sits_train}}
+#' and then passed to the "sits_classify" function using parameter "ml_model".
 #'
 #' @param  data              Tibble with time series metadata and data.
-#' @param  ml_model          Pre-built machine learning model (see \code{\link[sits]{sits_train}}).
+#' @param  ml_model          Pre-built machine learning model
+#'                           (see \code{\link[sits]{sits_train}}).
 #' @param  interval          Interval used for classification (in months).
 #' @param  filter            Smoothing filter to be applied (if desired).
 #' @param  memsize           Memory available for classification (in GB).
 #' @param  multicores        Number of cores to be used for classification.
 #' @param  output_dir        Output directory
-#' @param  version           Version of classification (in case of multiple tests)
+#' @param  version           Version of classification (for multiple tests)
 #' @return A tibble with the predicted labels for each input segment.
 #' @examples
 #' \donttest{
@@ -56,13 +58,15 @@
 #' plot(class.tb)
 #'
 #' # Classify a raster file with 23 instances for one year
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+#'                        package = "sits"))
 #' # create a data cube based on the information about the files
 #' sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
 #' bands = "ndvi", files = files)
 #'
 #' # classify the raster image
-#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicores = 1)
+#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
+#'                              memsize = 2, multicores = 1)
 #'
 #' # label the classified image
 #' sinop_label <- sits_label_classification(sinop_probs)
@@ -90,12 +94,13 @@ sits_classify <- function(data        = NULL,
     if (.Platform$OS.type != "unix")
         multicores <-  1
 
-    # for classification, only savitsky-golay and whittaker filters are supported
+    # only savitsky-golay and whittaker filters are supported
     if (!purrr::is_null(filter)) {
       call_names <-  deparse(sys.call())
-      ensurer::ensure_that(call_names, any(grepl("sgolay", (.))) ||
-                             any(grepl("whittaker", (.))),
-                           err_desc = "sits_classify_cube: only savitsky-golay and whittaker filters are supported")
+      assertthat::assert_that(any(grepl("sgolay", (call_names))) ||
+                              any(grepl("whittaker", (call_names))),
+           msg = "sits_classify_cube: only savitsky-golay and whittaker filters
+                  are supported")
     }
     if ("time_series" %in% names(data))
         result <- .sits_classify_ts(data = data,
@@ -123,19 +128,24 @@ sits_classify <- function(data        = NULL,
 #' @name  sits_label_classification
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Takes a set of classified raster layers with probabilities, whose metadata is
-#'              described by tibble (created by \code{\link[sits]{sits_cube}}),
+#' @description Takes a set of classified raster layers with probabilities,
+#'              whose metadata is]created by \code{\link[sits]{sits_cube}},
 #'              and label them, with an optional bayesian smoothing process.
 #'
 #' @param  cube              Classified image data cube.
-#' @param  smoothing         (optional) smoothing method to be applied ("none", "bayesian", "majority")
-#' @param  window            A matrix with the neighborhood window to compute bayesian smooth.
+#' @param  smoothing         (optional) smoothing method to be applied
+#'                           ("none", "bayesian", "majority")
+#' @param  window            A matrix with the neighborhood window
+#'                           to compute bayesian smooth.
 #'                           The central element index (i, j) is given by
-#'                           i = floor(nrows(window)/2)+1 and j = floor(ncols(window)/2)+1.
+#'                           i = floor(nrows(window)/2)+1 and
+#'                           j = floor(ncols(window)/2)+1.
 #'                           Elements '0' are excluded from window.
-#' @param  variance          Estimated variance of logit of class_probs (Bayesian smoothing parameter).
+#' @param  variance          Estimated variance of logit of class_probs
+#'                           (Bayesian smoothing parameter).
 #' @param  output_dir        Output directory where to out the file
-#' @param  version           Version of resulting image (in the case of multiple tests)
+#' @param  version           Version of resulting image
+#'                           (in the case of multiple tests)
 #' @return A tibble with metadata about the output RasterLayer objects.
 #' @examples
 #' \donttest{
@@ -148,14 +158,16 @@ sits_classify <- function(data        = NULL,
 #' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
 #'
 #' # Classify a raster file with 23 instances for one year
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", package = "sits"))
+#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+#'                        package = "sits"))
 #'
 #' # create a data cube based on the information about the files
 #' sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
 #' bands = "ndvi", files = files)
 #'
 #' # classify the raster image
-#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicores = 1)
+#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
+#'                                     memsize = 2, multicores = 1)
 #'
 #' # label the classified image
 #' sinop_label <- sits_label_classification(sinop_probs)
@@ -182,19 +194,22 @@ sits_label_classification <- function(cube,
 
     # precondition 1 - check if cube has probability data
     file_name <- .sits_cube_file(cube)
-    ensurer::ensure_that(file_name, as.logical(grep("probs",(.))),
-      err_desc = "sits_label_classification: input is not probability cube")
+    assertthat::assert_that(as.logical(grep("probs",(file_name))),
+      msg = "sits_label_classification: input is not probability cube")
+
     # precondition 2 - test smoothing parameters
-    ensurer::ensure_that(smoothing, (.) %in% c("none", "bayesian",
-                                               "majority", "bayesian+majority"),
-        err_desc = "sits_label_classification: unknown smoothing method")
+    assertthat::assert_that(smoothing %in% c("none", "bayesian",
+                                             "majority", "bayesian+majority"),
+        msg = "sits_label_classification: unknown smoothing method")
+
     # precondition 3 - test window size
-    ensurer::ensure_that(window, nrow(.) == ncol(.),
-        err_desc = "sits_label_classification: window must have equal sizes")
+    assertthat::assert_that(nrow(window) == ncol(window),
+        msg = "sits_label_classification: window must have equal sizes")
+
     # prediction 4 - test variance
     if (smoothing == "bayesian" || smoothing == "bayesian+majority")
-        ensurer::ensure_that(variance, (.) > 1,
-        err_desc = "sits_label_classification: variance must be more than 1")
+        assertthat::assert_that(variance > 1,
+        msg = "sits_label_classification: variance must be more than 1")
 
 
     # extract parameters
@@ -289,8 +304,8 @@ sits_label_classification <- function(cube,
     .sits_test_tibble(data)
 
     # ensure the machine learning model has been built
-    ensurer::ensure_that(ml_model, !purrr::is_null(.),
-        err_desc = "sits_classify_ts: please provide a trained ML model")
+    assertthat::assert_that(!purrr::is_null(ml_model),
+        msg = "sits_classify_ts: please provide a trained ML model")
 
     # filter the data, if filter is not NULL
     if (!purrr::is_null(filter))
@@ -298,8 +313,8 @@ sits_label_classification <- function(cube,
 
     # retrieve the samples
     samples.tb <- environment(ml_model)$data
-    ensurer::ensure_that(samples.tb, NROW(.) > 0,
-        err_desc = "sits_classify_ts: missing original samples")
+    assertthat::assert_that(NROW(samples.tb) > 0,
+        msg = "sits_classify_ts: missing original samples")
 
     # get normalization params
     stats   <- environment(ml_model)$stats
@@ -312,8 +327,8 @@ sits_label_classification <- function(cube,
         # obtain the distances after normalizing data by band
         distances_DT <- .sits_distances(data)
 
-    ensurer::ensure_that(distances_DT, NROW(.) > 0,
-        err_desc = "sits_classify_ts: problem with normalization")
+    assertthat::assert_that(NROW(distances_DT) > 0,
+        msg = "sits_classify_ts: problem with normalization")
 
     # calculate the breaks in the time classification
     class_info.tb <- .sits_timeline_class_info(data = data,
@@ -349,18 +364,19 @@ sits_label_classification <- function(cube,
 .sits_classify_distances <- function(distances_DT, class_info.tb,
                                      ml_model, multicores) {
 
-    # keras-based models run in single-core mode (keras does parallel processing)
+    # keras-based models run in single-core mode
     if ("keras_model" %in% class(ml_model) || "rfor_model" %in% class(ml_model))
         multicores <- 1
     # define the column names
     attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))
-    ensurer::ensure_that(attr_names, length(.) > 0,
-        err_desc = "sits_classify_distances: training data not available")
+    assertthat::assert_that(length(attr_names) > 0,
+        msg = "sits_classify_distances: training data not available")
     # create a data table to store the distances
     dist_DT <- data.table::data.table(nrow = 0, ncol = length(attr_names))
 
     # select the data table indexes for each time index
-    select.lst <- .sits_timeline_distance_indexes(class_info.tb, ncol(distances_DT))
+    select.lst <- .sits_timeline_distance_indexes(class_info.tb,
+                                                  ncol(distances_DT))
 
     # classify a block of data
     classify_block <- function(block_DT) {
@@ -429,9 +445,12 @@ sits_label_classification <- function(cube,
 .sits_classify_cube <- function(cube, ml_model, interval, filter,
                                 memsize, multicores, output_dir, version) {
     if (.sits_cube_service(cube) == "EOCUBES") {
-        res <- .sits_classify_eocubes(cube = cube, ml_model = ml_model,
-                                      interval = interval, filter = filter,
-                                      memsize = memsize, multicores = multicores)
+        res <- .sits_classify_eocubes(cube = cube,
+                                      ml_model = ml_model,
+                                      interval = interval,
+                                      filter = filter,
+                                      memsize = memsize,
+                                      multicores = multicores)
         return(res)
     }
 
@@ -451,22 +470,26 @@ sits_label_classification <- function(cube,
 
     # retrieve the samples from the model
     samples  <- environment(ml_model)$data
-    ensurer::ensure_that(samples, NROW(.) > 0,
-        err_desc = "sits_classify: original samples not saved")
+    assertthat::assert_that(NROW(samples) > 0,
+        msg = "sits_classify: original samples not saved")
 
     # Sanity check - are the cube bands the same as the sample bands
     cube_bands   <- .sits_cube_bands(cube)
     sample_bands <- sits_bands(samples)
-    ensurer::ensure_that(cube_bands,
-        all((.) %in% sample_bands) && all(sample_bands %in% (.)),
-        err_desc = "sits_classify: bands in samples different from bands in the cube")
+    assertthat::assert_that(
+        all(cube_bands %in% sample_bands) && all(sample_bands %in% cube_bands),
+        msg = "sits_classify: bands in samples different from cube bands")
 
     # classify the data
-    cube_probs <- .sits_classify_multicores(cube = cube, samples = samples,
+    cube_probs <- .sits_classify_multicores(cube = cube,
+                                            samples = samples,
                                             ml_model = ml_model,
-                                            interval = interval, filter = filter,
-                                            memsize = memsize, multicores = multicores,
-                                            output_dir = output_dir, version = version)
+                                            interval = interval,
+                                            filter = filter,
+                                            memsize = memsize,
+                                            multicores = multicores,
+                                            output_dir = output_dir,
+                                            version = version)
 
     return(cube_probs)
 }
@@ -480,10 +503,10 @@ sits_label_classification <- function(cube,
 #' @description Classifies a block of data using multicores. It breaks
 #' the data into horizontal blocks and divides them between the available cores.
 #'
-#' Reads data from a file using Rgdal, then cleans the data for NAs and missing values.
-#' The clean data is stored in a data table with the time instances for all pixels of
-#' the block. The algorithm then classifies data on an year by year basis.
-#' For each year, it extracts the sub-blocks for each band.
+#' Reads data using Rgdal, cleans the data for NAs and missing values.
+#' The clean data is stored in a data table with the time instances
+#' for all pixels of the block. The algorithm then classifies data on
+#' an year by year basis. For each year, extracts the sub-blocks for each band.
 #'
 #' After all cores process their blocks, it joins the result and then writes it
 #' in the classified images for each corresponding year.
@@ -513,9 +536,11 @@ sits_label_classification <- function(cube,
     r_obj <- .sits_cube_robj(cube)
 
     # create the medata for the classified cube
-    cube_class <- .sits_cube_classified(cube = cube, samples = samples,
+    cube_class <- .sits_cube_classified(cube = cube,
+                                        samples = samples,
                                         interval = interval,
-                                        output_dir = output_dir, version = version)
+                                        output_dir = output_dir,
+                                        version = version)
     # find out how many layers per brick
     n_layers  <- length(sits_labels(samples)$label)
 
@@ -546,8 +571,8 @@ sits_label_classification <- function(cube,
 
     # get the attribute names
     attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))
-    ensurer::ensure_that(attr_names, length(.) > 0,
-        err_desc = "sits_classify_distances: training data not available")
+    assertthat::assert_that(length(attr_names) > 0,
+        msg = "sits_classify_distances: training data not available")
     # get initial time for classification
     start_time <- lubridate::now()
     message(sprintf("Starting classification at %s", start_time))
@@ -594,7 +619,8 @@ sits_label_classification <- function(cube,
             rm(prediction_DT)
             gc()
             .sits_log_debug(paste0("Memory used after processing block ",
-                        block, " of interval ", iter, " - ", .sits_mem_used(), " GB"))
+                        block, " of interval ", iter, " - ",
+                        .sits_mem_used(), " GB"))
 
             # estimate processing time
             .sits_classify_estimate_processing_time(start_time = start_time,
@@ -635,7 +661,8 @@ sits_label_classification <- function(cube,
         !(purrr::is_null(environment(ml_model)$result_ranger)) ) {
         proc_cores <- 1
         .sits_log_debug(
-            paste0("keras and ranger run on multiple CPUs - setting multicores to 1"))
+            paste0("keras and ranger run on multiple CPUs -
+                   setting multicores to 1"))
     }
 
     # classify a block of data (with data split)
@@ -656,7 +683,8 @@ sits_label_classification <- function(cube,
 
         .sits_log_debug(
             paste0("Memory used before mcapply - ", .sits_mem_used(), " GB"))
-        # apply parallel processing to the split data (return the results in a list inside a prototype)
+        # apply parallel processing to the split data
+        # (return the results in a list inside a prototype)
         predictions.lst <- parallel::mclapply(block.lst,
                                               classify_block,
                                               mc.cores = proc_cores)
@@ -672,7 +700,8 @@ sits_label_classification <- function(cube,
         rm(predictions.lst)
         gc()
         .sits_log_debug(
-            paste0("Memory after removing predictions - ", .sits_mem_used(), " GB"))
+            paste0("Memory after removing predictions - ",
+                   .sits_mem_used(), " GB"))
     }
     else {
         # memory management
@@ -687,8 +716,8 @@ sits_label_classification <- function(cube,
     }
 
     # are the results consistent with the data input?
-    ensurer::ensure_that(prediction_DT, nrow(.) == nrows_DT,
-        err_desc = ".sits_classify_cube -
+    assertthat::assert_that(nrow(prediction_DT) == nrows_DT,
+        msg = ".sits_classify_cube -
                     number of rows of probability matrix is different
                     from number of input pixels")
 
@@ -705,12 +734,12 @@ sits_label_classification <- function(cube,
 #' @return Tests succeeded?
 .sits_check_classify_params <- function(cube, ml_model){
     # ensure metadata tibble exists
-    ensurer::ensure_that(cube, NROW(.) > 0,
-        err_desc = "sits_classify: invalid metadata for the cube")
+    assertthat::assert_that(NROW(cube) > 0,
+        msg = "sits_classify: invalid metadata for the cube")
 
     # ensure the machine learning model has been built
-    ensurer::ensure_that(ml_model,  !purrr::is_null(.),
-        err_desc = "sits-classify: trained ML model not available")
+    assertthat::assert_that(!purrr::is_null(ml_model),
+        msg = "sits-classify: trained ML model not available")
 
     return(invisible(TRUE))
 }
@@ -719,7 +748,7 @@ sits_label_classification <- function(cube,
 #' @name .sits_classify_estimate_processing_time
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description This function normalizes one band of the values read from a raster brick.
+#' @description This function normalizes values read from a raster brick.
 #'
 #' @param  start_time     Initial processing time.
 #' @param  select.lst     List of time intervals.
@@ -727,8 +756,11 @@ sits_label_classification <- function(cube,
 #' @param  block          Current block.
 #' @param  time           Current interval.
 #' @return Scaled matrix.
-.sits_classify_estimate_processing_time <- function(start_time, select.lst,
-                                                    bs, block, time) {
+.sits_classify_estimate_processing_time <- function(start_time,
+                                                    select.lst,
+                                                    bs,
+                                                    block,
+                                                    time) {
     # compute current time
     current_time <- lubridate::now()
 
@@ -739,9 +771,11 @@ sits_label_classification <- function(cube,
     total_intervals   <- bs$n * length(select.lst)
     if (elapsed_intervals < total_intervals) {
         message(sprintf(
-        "Elapsed time %s minute(s). Estimated total process time %s minute(s)...",
-        round(as.numeric(elapsed_time), 1),
-        round(as.numeric((total_intervals/elapsed_intervals) * elapsed_time), 1)))
+        "Elapsed time %s minute(s).
+         Estimated total process time %s minute(s)...",
+         round(as.numeric(elapsed_time), 1),
+         round(as.numeric((total_intervals/elapsed_intervals) * elapsed_time),
+                          1)))
     } else {
         message(sprintf(
         "Classification finished at %s. Total elapsed time: %s minute(s).",
@@ -760,8 +794,8 @@ sits_label_classification <- function(cube,
 #'  a prediction model (created by \code{\link[sits]{sits_train}}),
 #'  and produces a classified set of RasterLayers. This function is similar to
 #'  \code{\link[sits]{sits_classify}} which is applied to time series.
-#'  There are two parameters for optimizing processing of large data sets. These
-#'  parameters are "memsize" and "multicores". The "multicores" parameter defines the
+#'  There are two parameters for optimizing processing of large data sets:
+#'  "memsize" and "multicores". The "multicores" parameter defines the
 #'  number of cores used for processing. The "memsize" parameter  controls
 #'  the amount of memory available for classification.
 #'
@@ -790,8 +824,8 @@ sits_label_classification <- function(cube,
 
     # retrieve the samples from the model
     samples  <- environment(ml_model)$data
-    ensurer::ensure_that(samples, NROW(.) > 0,
-                         err_desc = "sits_classify: original samples not saved")
+    assertthat::assert_that(NROW(samples) > 0,
+                         msg = "sits_classify: original samples not saved")
 
     # what is the reference start date?
     dates          <- sits_time_series_dates(samples)
@@ -819,32 +853,35 @@ sits_label_classification <- function(cube,
                 # file sufix
                 file_sufx <- names(stk.obj)[[i]]
                 # set the metadate for the probability cube
-                cube_stack <- .sits_cube_create(service = "STACK",
-                                                URL       = cube$URL,
-                                                satellite = cube$satellite,
-                                                sensor    = cube$sensor,
-                                                name      = file_sufx,
-                                                bands     = bands,
-                                                labels    = cube$labels,
-                                                timelines  = list(tile_interv$timeline),
-                                                missing_values = bands_info$fill[bands],
-                                                scale_factors = bands_info$scale[bands],
-                                                minimum_values = bands_info$min[bands],
-                                                maximum_values = bands_info$max[bands],
-                                                xmin  = params$xmin,
-                                                xmax  = params$xmax,
-                                                ymin  = params$ymin,
-                                                ymax  = params$ymax,
-                                                xres  = params$xres,
-                                                yres  = params$yres,
-                                                crs   = params$crs,
-                                                files = tile_interv$bands)
+                cube_stack <- .sits_cube_create(
+                                  service = "STACK",
+                                  URL       = cube$URL,
+                                  satellite = cube$satellite,
+                                  sensor    = cube$sensor,
+                                  name      = file_sufx,
+                                  bands     = bands,
+                                  labels    = cube$labels,
+                                  timelines  = list(tile_interv$timeline),
+                                  missing_values = bands_info$fill[bands],
+                                  scale_factors = bands_info$scale[bands],
+                                  minimum_values = bands_info$min[bands],
+                                  maximum_values = bands_info$max[bands],
+                                  xmin  = params$xmin,
+                                  xmax  = params$xmax,
+                                  ymin  = params$ymin,
+                                  ymax  = params$ymax,
+                                  xres  = params$xres,
+                                  yres  = params$yres,
+                                  crs   = params$crs,
+                                  files = tile_interv$bands)
 
                 # checks the classification params
                 .sits_check_classify_params(cube_stack, ml_model)
 
                 # create the raster objects and their respective filenames
-                cube_class <- .sits_cube_classified(cube_stack, samples, interval)
+                cube_class <- .sits_cube_classified(cube_stack,
+                                                    samples,
+                                                    interval)
 
                 # classify the data
                 cube_class.tb <- .sits_classify_multicores_cubes(cube_stack,
@@ -868,9 +905,10 @@ sits_label_classification <- function(cube,
 #' @description Classifies a block of data using multicores. It breaks
 #' the data into horizontal blocks and divides them between the available cores.
 #'
-#' Reads data using Rgdal, then cleans the data for NAs and missing values. The clean
-#' data is stored in a data table that has all the time instances for all pixels of
-#' the block. The algorithm then classifies data on an year by year basis.
+#' Reads data using Rgdal, then cleans the data for NAs and missing values.
+#' The clean data is stored in a data table that has all the time instances
+#' for all pixels of the block. The algorithm then classifies data
+#' on an year by year basis.
 #' For each year, it extracts the sub-blocks for each band.
 #'
 #' After all cores process their blocks, it joins the result and then writes it
@@ -913,8 +951,8 @@ sits_label_classification <- function(cube,
 
     # get the attribute names
     attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))
-    ensurer::ensure_that(attr_names, length(.) > 0,
-        err_desc = "sits_classify_distances:
+    assertthat::assert_that(length(attr_names) > 0,
+        msg = "sits_classify_distances:
                     training data not saved in the model environment")
     # get initial time for classification
     start_time <- lubridate::now()
@@ -928,7 +966,9 @@ sits_label_classification <- function(cube,
                                                 stats, filter, multicores)
         # process one temporal instance at a time
 
-        bricks_probs <- purrr::pmap(list(select.lst, bricks_probs, c(1:n_bricks)),
+        bricks_probs <- purrr::pmap(list(select.lst,
+                                         bricks_probs,
+                                         c(1:n_bricks)),
                                     function(time, brick, iter) {
             # retrieve the values used for classification
             if (all(time))
@@ -939,13 +979,16 @@ sits_label_classification <- function(cube,
             }
             colnames(dist_DT) <- attr_names
             # predict the classification values
-            prediction_DT <- .sits_classify_interval(dist_DT, ml_model, multicores)
+            prediction_DT <- .sits_classify_interval(dist_DT,
+                                                     ml_model,
+                                                     multicores)
 
 
             # convert probabilities matrix to INT2U
             scale_factor_save <- 10000
-            probs  <- .sits_raster_scale_matrix_integer(as.matrix(prediction_DT),
-                                                        scale_factor_save, multicores)
+            probs <- .sits_raster_scale_matrix_integer(as.matrix(prediction_DT),
+                                                        scale_factor_save,
+                                                        multicores)
 
             # write the probabilities
             brick <- raster::writeValues(brick, probs, bs$row[block])
@@ -955,10 +998,13 @@ sits_label_classification <- function(cube,
             gc()
 
             .sits_log_debug(paste0("Memory used after processing block ",
-                    block, " of iteration ", iter, " - ", .sits_mem_used(), " GB"))
+                 block, " of iteration ", iter, " - ", .sits_mem_used(), " GB"))
             # estimate processing time
-            .sits_classify_estimate_processing_time(start_time, select.lst,
-                                                    bs, block, iter)
+            .sits_classify_estimate_processing_time(start_time,
+                                                    select.lst,
+                                                    bs,
+                                                    block,
+                                                    iter)
             return(brick)
         })
 
@@ -978,4 +1024,334 @@ sits_label_classification <- function(cube,
 
 
     return(cube_class)
+}
+
+#' @title Shows the predicted labels for a classified tibble
+#' @name sits_show_prediction
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function takes a tibble with a classified time series
+#' by a machine learning method and displays the result.
+#'
+#' @param  class.tb  A SITS tibble that has been classified
+#' @return returns a tibble with the columns "from", "to", "class"
+#' @export
+sits_show_prediction <- function(class.tb) {
+    .sits_test_tibble(class.tb)
+    assertthat::assert_that(all(names(class.tb$predicted[[1]])
+                              %in% c("from", "to", "class", "probs")),
+                  msg = "sits_show_prediction: tibble has not been classified")
+    return(dplyr::select(dplyr::bind_rows(class.tb$predicted),
+                       c("from", "to", "class")))
+}
+#' @title Create an empty tibble to store the results of predictions
+#' @name .sits_tibble_prediction
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Create a tibble to store the results of predictions.
+#' @param  data            A tibble with the input data.
+#' @param  class_info.tb   A tibble with the information on classification.
+#' @param  pred.mtx        The result of the classification
+#'                          (one class per column and one row per interval).
+#' @param  interval        The time interval between two classifications.
+#' @return A tibble storing the predictions.
+.sits_tibble_prediction <- function(data, class_info.tb, pred.mtx, interval) {
+    # retrieve the list of reference dates
+    # this list is a global one and it is created based on the samples
+    ref_dates.lst   <- class_info.tb$ref_dates[[1]]
+
+    # retrieve the global timeline
+    timeline_global <- class_info.tb$timeline[[1]]
+
+    # size of prediction tibble
+    nrows <- length(ref_dates.lst)
+
+    # get the labels of the data
+    labels <- class_info.tb$labels[[1]]
+    n_labels <- length(labels)
+    # create a named vector with integers match the class labels
+    int_labels <- c(1:n_labels)
+    names(int_labels) <- labels
+
+    # compute pred.vec
+    pred.vec <-  names(int_labels[max.col(pred.mtx)])
+
+    class_idx <-  1
+
+    predicted.lst <- purrr::pmap(
+      list(data$start_date, data$end_date, data$time_series),
+          function(row_start_date, row_end_date, row_time_series) {
+
+            # get the timeline of the row
+            timeline_row <- lubridate::as_date(row_time_series$Index)
+
+            # the timeline of the row may differe\ from the global timeline
+            # this happens when we are processing samples with different dates
+            if (timeline_row[1] != timeline_global[1]) {
+                # what is the reference start date?
+                ref_start_date <- lubridate::as_date(row_start_date)
+                # what is the reference end date?
+                ref_end_date <- lubridate::as_date(row_end_date)
+                # what are the reference dates to do the classification?
+                ref_dates.lst <- sits_timeline_match(timeline_row,
+                                                     ref_start_date,
+                                                     ref_end_date,
+                                                     interval)
+            }
+
+            # store the classification results
+            pred_row.lst <- ref_dates.lst %>%
+                purrr::map(function(rd){
+                    pred_row <- tibble::tibble(
+                                          from      = as.Date(rd[1]),
+                                          to        = as.Date(rd[2]),
+                                          class     = pred.vec[class_idx],
+                                          probs     = list(pred.mtx[class_idx,])
+                                )
+                    class_idx  <<- class_idx + 1
+                    return(pred_row)
+                })
+          # transform the list into a tibble
+          predicted.tb <- dplyr::bind_rows(pred_row.lst)
+          return(predicted.tb)
+        })
+
+    data$predicted <- predicted.lst
+    class(data) <- append(class(data), "predicted", after = 0)
+
+    return(data)
+}
+
+#' @title  Generic interface for ploting time series predictions
+#' @name   plot.predicted
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Given a sits tibble with a set of predictions, plot them
+#'
+#' @param  x             object of class "predicted"
+#' @param  y             ignored
+#' @param  ...           further specifications for \link{plot}.
+#' @param  bands         Bands used for visualisation
+#' @return Input sits tibble (useful for chaining functions).
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
+#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#' # classify the point
+#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
+#' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
+#' # plot the classification
+#' plot (class_ndvi.tb)
+#' }
+#' @export
+plot.predicted <- function(x, y, ..., bands = "ndvi") {
+    stopifnot(missing(y))
+    .sits_plot_classification(x, bands)
+}
+
+
+#' @title  Generic interface for ploting classified images
+#' @name   plot.classified_image
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a classified raster using ggplot.
+#'
+#' @param  x             Object of class "classified_image"
+#' @param  y             Ignored
+#' @param  ...           Further specifications for \link{plot}.
+#' @param time           Temporal reference for plot.
+#' @param title          A string.
+#' @param colors         Color pallete.
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the samples for Mato Grosso
+#'
+#' # select the bands "ndvi", "evi"
+#' samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#'
+#' #select a random forest model
+#'
+#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#' # Classify a raster file with 23 instances for one year
+#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+#'            package = "sits"))
+#' # create a data cube based on the information about the files
+#' sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+#' bands = "ndvi", files = files)
+#'
+#' # classify the raster image
+#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
+#'                              memsize = 2, multicores = 1)
+#'
+#' # label the classified image
+#' sinop_label <- sits_label_classification(sinop_probs)
+#'
+#' # plot the raster image
+#' plot(sinop_label, time = 1, title = "Sinop-2013-2014")
+#' }
+#' @export
+plot.classified_image <- function(x , y, ..., time = 1,
+                                  title = "Classified Image", colors = NULL) {
+    stopifnot(missing(y))
+    .sits_plot_raster(cube = x, time = time, title = title, colors = colors)
+}
+
+#' @title Plot classification results
+#' @name .sits_plot_classification
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @description        Plots the classification results
+#'                     (code reused from the dtwSat package by Victor Maus).
+#' @param data         A sits tibble with classified time series.
+#' @param bands        Band for plotting the classification.
+#'
+.sits_plot_classification <- function(data, bands = NULL) {
+  if (purrr::is_null(bands))
+    bands <- sits_bands(data)[1]
+
+  # prepare a data frame for plotting
+
+  #get the labels
+  labels <- sits_labels(data)$label
+
+  # put the time series in the data frame
+  purrr::pmap(list(data$latitude, data$longitude, data$label,
+                   data$time_series, data$predicted),
+              function(row_lat, row_long, row_label,
+                       row_time_series, row_predicted) {
+                lb <- .sits_plot_title(row_lat, row_long, row_label)
+                # extract the time series
+                ts <- row_time_series
+                # convert to data frame
+                df.x <- data.frame(Time = ts$Index, ts[,bands],
+                                   Series = as.factor(lb))
+                # melt the time series data for plotting
+                df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
+                # define a nice set of breaks for value plotting
+                y.labels <-  scales::pretty_breaks()(range(df.x$value,
+                                                           na.rm = TRUE))
+                y.breaks <-  y.labels
+
+                # get the predicted values as a tibble
+
+                pred <- row_predicted
+                df.pol <- data.frame()
+
+                # create a data frame with values and intervals
+                i <- 1
+                purrr::pmap(list(row_predicted$from, row_predicted$to,
+                                 row_predicted$class),
+                            function (rp_from, rp_to, rp_class) {
+
+                              best_class <- as.character(rp_class)
+
+                              df.p <- data.frame(
+                                Time  = c(lubridate::as_date(rp_from),
+                                          lubridate::as_date(rp_to),
+                                          lubridate::as_date(rp_to),
+                                          lubridate::as_date(rp_from)),
+                                Group = rep(i, 4),
+                                Class = rep(best_class, 4),
+                                value = rep(range(y.breaks,
+                                                  na.rm = TRUE), each = 2)
+                              )
+                              i <<- i + 1
+                              df.pol <<- rbind(df.pol, df.p)
+
+                            })
+
+                df.pol$Group  <-  factor(df.pol$Group)
+                df.pol$Class  <-  factor(df.pol$Class)
+                df.pol$Series <-  rep(lb, length(df.pol$Time))
+
+                I <-  min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
+                  df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
+
+                df.x <- df.x[I,,drop = FALSE]
+
+                gp <-  ggplot2::ggplot() +
+                  ggplot2::facet_wrap(~Series,
+                                      scales = "free_x", ncol = 1) +
+                  ggplot2::geom_polygon(data = df.pol,
+                                        ggplot2::aes_string(x = 'Time',
+                                                            y = 'value',
+                                                            group = 'Group',
+                                                            fill = 'Class'),
+                                        alpha = .7) +
+                  ggplot2::scale_fill_brewer(palette = "Set3") +
+                  ggplot2::geom_line(data = df.x,
+                                     ggplot2::aes_string(x = 'Time',
+                                                         y = 'value',
+                                                         colour = 'variable')) +
+                  ggplot2::scale_y_continuous(expand = c(0, 0),
+                                              breaks = y.breaks,
+                                              labels = y.labels) +
+                  ggplot2::scale_x_date(breaks = ggplot2::waiver(),
+                                        labels = ggplot2::waiver()) +
+                  ggplot2::theme(legend.position = "bottom") +
+                  ggplot2::guides(colour =
+                                    ggplot2::guide_legend(title = "Bands")) +
+                  ggplot2::ylab("Value") +
+                  ggplot2::xlab("Time")
+
+                graphics::plot(gp)
+
+              })
+  return(invisible(data))
+}
+
+#' @title Plot a raster classified images
+#'
+#' @name .sits_plot_raster
+#'
+#' @description plots a raster using ggplot. This function is used
+#' for showing the same lat/long location in a series of time steps.
+#'
+#' @param cube        A tibble with the metadata for a labelled data cube.
+#' @param time        Temporal reference for plot.
+#' @param title       A string.
+#' @param colors      Color pallete.
+.sits_plot_raster <- function(cube, time = 1, title = "Classified Image",
+                              colors = NULL) {
+  #precondition 1 - cube must be a labelled cube
+  assertthat::assert_that(as.logical(grep("class",
+                                          .sits_cube_bands(cube)[1])),
+                  msg = "sits_plot_raster: input cube must be a labelled one")
+  #precondition 2 - time must be a positive integer
+  assertthat::assert_that(time >= 1,
+                    msg = "sits_plot_raster: time must be a positive integer")
+
+  # get the raster object
+  r <- .sits_cube_robj(cube, time)
+
+  # convert from raster to points
+  map.p <- raster::rasterToPoints(r)
+  # create a data frame
+  df <- data.frame(map.p)
+  # define the column names for the data frame
+  colnames(df) <- c("x", "y", "class")
+
+  # get the labels and how many there are
+  labels <- .sits_cube_labels(cube)
+  nclasses <- length(labels)
+  # create a mapping from classes to labels
+  names(labels) <- as.character(c(1:nclasses))
+
+  # if colors are not specified, get them from the configuration file
+  if (purrr::is_null(colors)) {
+    colors <- vector(length = nclasses)
+    for (i in 1:nclasses)
+      colors[i] <- .sits_config_color(labels[i])
+  }
+  # set the names of the color vector
+  names(colors) <- as.character(c(1:nclasses))
+
+  # plot the data with ggplot
+  g <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+    ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
+    ggplot2::labs(title = title) +
+    ggplot2::scale_fill_manual(values = colors, labels = labels,
+                               guide = ggplot2::guide_legend(title = "Classes"))
+
+  return(g)
 }

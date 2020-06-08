@@ -2,55 +2,74 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_xgboost}
 \alias{sits_xgboost}
-\title{Train a sits classification model with an extreme gradient boosting machine}
+\title{Train a model with an extreme gradient boosting machine}
 \usage{
-sits_xgboost(data = NULL, eta = 0.3, gamma = 0, max_depth = 6,
-  min_child_weight = 1, subsample = 1, nfold = 5, nrounds = 100,
-  early_stopping_rounds = 20, verbose = FALSE, ...)
+sits_xgboost(
+  data = NULL,
+  eta = 0.3,
+  gamma = 0,
+  max_depth = 6,
+  min_child_weight = 1,
+  subsample = 1,
+  nfold = 5,
+  nrounds = 100,
+  early_stopping_rounds = 20,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{data}{Time series with the training samples.}
 
-\item{eta}{Learning rate: scale the contribution of each tree by a factor of 0 < eta < 1 when it is added to the current approximation.
+\item{eta}{Learning rate: scale the contribution
+of each tree by a factor of 0 < eta < 1
+when it is added to the current approximation.
 Used to prevent overfitting. Default: 0.3}
 
-\item{gamma}{Minimum loss reduction to make a further partition of a leaf.  Default: 0.}
+\item{gamma}{Minimum loss reduction to make a further
+partition of a leaf.  Default: 0.}
 
 \item{max_depth}{Maximum depth of a tree.
-Increasing this value will make the model more complex
-and more likely to overfit, Default: 6.}
+Increasing this value makes the model more complex
+and more likely to overfit. Default: 6.}
 
-\item{min_child_weight}{If the leaf node has a minimum sum of instance weights lower than min_child_weight, the tree splitting stops.}
+\item{min_child_weight}{If the leaf node has a minimum sum of instance
+weights lower than min_child_weight,
+tree splitting stops.}
 
-\item{subsample}{Controls the percentage of samples (observations) supplied to a tree. Default: 1.}
+\item{subsample}{Percentage of samples supplied to a tree. Default: 1.}
 
 \item{nfold}{Number of the subsamples for the cross-validation.}
 
-\item{nrounds}{Number of rounds to iterate the cross-validation (default: 100)}
+\item{nrounds}{Number of rounds to iterate the cross-validation
+(default: 100)}
 
-\item{early_stopping_rounds}{Training with a validation set will stop if the performance doesn't improve for k rounds.}
+\item{early_stopping_rounds}{Training with a validation set will stop
+if the performance doesn't improve for k rounds.}
 
 \item{verbose}{Print information on statistics during the process}
 
-\item{...}{Other parameters to be passed to `xgboost::xgboost` function.}
+\item{...}{Other parameters for the `xgboost::xgboost` function.}
 }
 \value{
-A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+Model fitted to input data
+                        (to be passed to \code{\link[sits]{sits_classify}})
 }
 \description{
-This function implements the extreme gradient boosting algorithm.
-Boosting is the process of iteratively adding basis functions in a greedy fashion
-so that each additional basis function further reduces the selected loss function.
+This function uses the extreme gradient boosting algorithm.
+Boosting iteratively adds basis functions in a greedy fashion
+so that each new basis function further reduces the selected loss function.
 This function is a front-end to the methods in the "xgboost" package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 
 # Build a machine learning model based on xgboost
-xgb_model <- sits_train(samples_2bands, sits_xgboost(eta = 0.5, gamma = 0, max.depth = 2))
+xgb_model <- sits_train(samples_2bands, sits_xgboost(eta = 0.5,
+                        gamma = 0, max.depth = 2))
 
 # get a point and classify the point with the ml_model
 point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
@@ -60,10 +79,11 @@ plot(class.tb, bands = c("ndvi", "evi"))
 }
 \references{
 Tianqi Chen, Carlos Guestrin,
-                        "XGBoost : Reliable Large-scale Tree Boosting System", SIG KDD 2016.
+                     "XGBoost : Reliable Large-scale Tree Boosting System",
+                     SIG KDD 2016.
 }
 \author{
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 

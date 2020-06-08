@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_default_sensor}
 \alias{.sits_config_default_sensor}
-\title{Retrieve the default sensor for the satellite, based on the configuration file}
+\title{Retrieve the default sensor for the satellite}
 \usage{
 .sits_config_default_sensor(satellite)
 }
@@ -13,7 +13,7 @@
 A best guess for the sensor
 }
 \description{
-Based on the satellite, find the default sensor based on the configuration file
+Based on the satellite, find the default sensor
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

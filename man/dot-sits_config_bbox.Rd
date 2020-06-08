@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_bbox}
 \alias{.sits_config_bbox}
-\title{Retrieve the bounding box for the product available at service based on the configuration file}
+\title{Retrieve the bounding box for the product available at service}
 \usage{
 .sits_config_bbox(service, name)
 }
@@ -15,7 +15,7 @@
 The bounding box.
 }
 \description{
-Retrieve the bounding box for the product available at service based on the configuration file
+Retrieve the bounding box for the product available at service
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

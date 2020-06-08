@@ -9,24 +9,26 @@ sits_lda(data = NULL, formula = sits_formula_logref(), ...)
 \arguments{
 \item{data}{Time series with the training samples.}
 
-\item{formula}{A symbolic description of the model to be fit. Package sits offers a set of such formulas (default: sits_formula_logref).}
+\item{formula}{A symbolic description of the model to be fit.
+(default: sits_formula_logref).}
 
 \item{...}{Other parameters to be passed to MASS::lda function.}
 }
 \value{
-A model fitted to input data to be passed to \code{\link[sits]{sits_classify}}
+Model fitted to input data
+                        to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
-This function receives a tibble with a set of attributes X for each observation Y
-These attributes are distance metrics between patterns and observations, obtained by a distance
-function in sits (see \code{\link[sits]{.sits_distances}}).
-The method performs a linear discriminant analysis (lda) to obtain a predictive model.
+This function receives a tibble with a set of attributes X
+for each observation Y. These attributes are the values of the time series
+for each band. The method performs a linear discriminant analysis (lda)
+to obtain a predictive model.
 This function is a front-end to the "lda" method in the "MASS" package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
 \donttest{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
 
 # Build a machine learning model based on deep learning
@@ -39,7 +41,7 @@ plot(class.tb, bands = c("ndvi", "evi"))
 }
 }
 \author{
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 
