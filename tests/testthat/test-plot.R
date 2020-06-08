@@ -32,11 +32,11 @@ test_that("sits_plot",{
 # Read a set of samples with 2 classes ("Cerrado" and "Pasture")data ("cerrado_2classes")
 # Plot all the samples together
     data("cerrado_2classes")
-    suppressWarnings({sits_plot (cerrado_2classes)})
+    sits_plot (cerrado_2classes)
     # Plot the first 20 samples (defaults to "allyears")
-    suppressWarnings({sits_plot(cerrado_2classes[1:20,])})
+    sits_plot(cerrado_2classes[1:20,])
     # Plot the patterns
-    suppressWarnings({sits_plot(sits_patterns(cerrado_2classes))})
+    sits_plot(sits_patterns(cerrado_2classes))
     # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
     data(samples_mt_4bands)
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, bands = ndvi)
@@ -46,6 +46,5 @@ test_that("sits_plot",{
     # classify the point
     class_ndvi.tb <-  sits_classify(point_ndvi, model_svm)
     # plot the classification
-    suppressWarnings({sits_plot(class_ndvi.tb)})
-    expect(TRUE, "no failure")
+    sits_plot(class_ndvi.tb)
 })
