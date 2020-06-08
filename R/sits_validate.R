@@ -64,7 +64,7 @@ sits_kfold_validate <- function(data, folds = 5,
     pred.vec <-  character()
     ref.vec  <-  character()
 
-    conf.lst <- pbLapply(multicores, X = 1:folds, FUN = function(k)
+    conf.lst <- parallel::mclapply(X = 1:folds, FUN = function(k)
     {
         # split data into training and test data sets
         data_train <- data[data$folds != k,]
@@ -92,7 +92,7 @@ sits_kfold_validate <- function(data, folds = 5,
         pred.vec <- c(pred.vec, values)
 
         return(list(pred = pred.vec, ref = ref.vec))
-    })
+    }, mc.cores = multicores)
 
     pred.vec <- unlist(lapply(conf.lst, function(x) x$pred))
     ref.vec  <- unlist(lapply(conf.lst, function(x) x$ref))

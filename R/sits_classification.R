@@ -390,7 +390,8 @@ sits_label_classification <- function(cube,
         blocks.lst <- split.data.frame(distances_DT, cut(1:n_rows_dist,
                                        multicores, labels = FALSE))
         # apply parallel processing to the split dat
-        results.lst <- pbLapply(multicores, X = blocks.lst, FUN = classify_block)
+        results.lst <- parallel::mclapply(blocks.lst, classify_block,
+                                          mc.cores = multicores)
         pred.mtx <- join_blocks(results.lst)
     }
     else
@@ -656,7 +657,9 @@ sits_label_classification <- function(cube,
         .sits_log_debug(
             paste0("Memory used before mcapply - ", .sits_mem_used(), " GB"))
         # apply parallel processing to the split data (return the results in a list inside a prototype)
-        predictions.lst <- pbLapply(proc_cores, X = blocks.lst, FUN = classify_block)
+        predictions.lst <- parallel::mclapply(block.lst,
+                                              classify_block,
+                                              mc.cores = proc_cores)
 
         #memory management
         rm(block.lst)
