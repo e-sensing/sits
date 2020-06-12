@@ -149,8 +149,9 @@ The output of the `sits_som_map` is a list with 4 tibbles:
 
 * one tibble with the association between the labels of original samples and the labels of the neurons.
 
-* one tibble with the association bewteen each neuron and its neighbours.
+* one tibble with the association between each neuron and its neighbours.
 
+* one tibble with the summary association between the labels of original samples and the labels of the neurons of all iterations.
 
 To plot the kohonen map, use `plot.som_map()`, which can be called directly from `plot()`. The neurons are labelled using the majority voting.
 ```{r}

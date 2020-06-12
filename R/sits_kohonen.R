@@ -937,8 +937,13 @@ sits_som_plot_clusters <- function(data, text_title = " Confusion between the sa
 #' Function sits_plot_som plots a classified kohonen map. A set of neurons
 #' with same category corresponds to a same cluster.
 #' @param  koh        Kohonen map produced by "sits_som_map" function
+<<<<<<< HEAD
 #' @param  type       Type of plot. "codes" is the weight of neuron (time series),
 #'                     "mapping" is the number of samples allocated in a neuron, and
+=======
+#' @param  type       Type of plot. "codes" is the weight of neuron (time series) and
+#'                     "mapping" is the number of samples allocated in a neuron and
+>>>>>>> 3cd12107b4d397518b0e5e92690b33f3983038ae
 #'                     "by_year" is to plot the SOM grid by class and year
 #' @param  whatmap    What data layer will be plotted.
 #' @param  class      Sample class that must be plotted in SOM grid by year.
