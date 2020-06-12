@@ -40,7 +40,7 @@ utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V0", "V1", "
                          "index_time", "dup_neuron",
                          "probability", "total_probability", "radius", "som_label",
                          "Alig.N", "matches", "original_row", "reference",
-                         "cluster", ".data"))
+                         "cluster","mixture_percentage", "conditional_prob","posterior_prob", ".data"))
 #' @importFrom dtw symmetric1 symmetric2
 #' @importFrom lubridate %within% %m+%
 #' @useDynLib sits, .registration = TRUE
