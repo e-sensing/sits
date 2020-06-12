@@ -939,7 +939,7 @@ sits_som_plot_clusters <- function(data, text_title = " Confusion between the sa
 #' @param  koh        Kohonen map produced by "sits_som_map" function
 #' @param  type       Type of plot. "codes" is the weight of neuron (time series),
 #'                     "mapping" is the number of samples allocated in a neuron, and
-#'                     "by_year" is to plot the SOM grid by class and year
+#'                     "by_year" is to plot the SOM grid by class and year.
 #' @param  whatmap    What data layer will be plotted.
 #' @param  class      Sample class that must be plotted in SOM grid by year.
 sits_plot_som_map <- function(koh, type = "codes", whatmap = 1 , class = NULL)
