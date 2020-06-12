@@ -19,6 +19,7 @@
 #' @param alpha          Starting learning rate, which decreases according to number of iterations.
 #' @param distance       The similarity measure (distance).
 #' @param iterations     The number of time to run the SOM cluster.
+#' @param rlen           The number of time the dataset will be presented to the SOM.
 #' @param conditonal_threshold      Threshold of conditional probability (frequency of samples assigned to a same SOM neuron)
 #' @param posterior_threshold       Threshold of posterior probability (influencied by the SOM neighborhood)
 #' @param samples_analysis          There are some samples that need to be analyzed deeply
@@ -34,7 +35,7 @@
 #' @export
 
 sits_cluster_som <- function(data, grid_xdim = 10, grid_ydim = 10, alpha = 1.0,
-                             distance = "euclidean", iterations = 50, rlen =100,
+                             distance = "euclidean", iterations = 50, rlen = 100,
                              conditonal_threshold  = 0.6, posterior_threshold = 0.6, samples_analysis = TRUE){
 
   som_cluster <- sits_som_map(data, grid_xdim, grid_ydim, alpha, rlen,
@@ -67,6 +68,7 @@ sits_cluster_som <- function(data, grid_xdim = 10, grid_ydim = 10, alpha = 1.0,
 #' @param alpha          Starting learning rate, which decreases according to number of iterations.
 #' @param distance       The type of similarity measure (distance).
 #' @param iterations     The number of time to run the SOM cluster.
+#' @param rlen           The number of time the dataset will be presented to the SOM.
 #' @param  ...           Additional parameters to be passed to kohonen::supersom function.
 #' @return               Returns a list of sits tibbles containing statistics about the samples and the neuron in each iteration.
 #' Besides that, the data is returned with the columns presenting the probability of a sample belongs to a cluster based on a frequency
@@ -110,6 +112,10 @@ sits_som_map <- function(data,
   #initialize tibbles
   neurons_info_t.tb <- tibble::as_tibble()
   samples_info_t.tb <- tibble::as_tibble()
+
+  #initialize variables
+  conditional_probability <- NULL
+  posterior_probability <- NULL
 
   #Create an if here. The user can be enter with only data, then we need
   # to extract the time series here using sits_value
@@ -338,14 +344,17 @@ sits_som_clean_samples <- function(som_cluster,
 
   #keep samples
   output_samples.tb <-
-    dplyr::filter(som_cluster$samples_output.tb,
-                  conditional_prob  >= conditonal_threshold &  posterior_prob >= posterior_threshold)
+    dplyr::filter(
+      som_cluster$samples_output.tb,
+      som_cluster$samples_output.tb$conditional_prob  >= conditonal_threshold &
+        som_cluster$samples_output.tb$posterior_prob >= posterior_threshold
+    )
 
   if(samples_analysis)
   {
     make_analysis.tb <-
       dplyr::filter(som_cluster$samples_output.tb,
-                    conditional_prob >= conditonal_threshold & posterior_prob < posterior_threshold)
+                    som_cluster$samples_output.tb$conditional_prob >= conditonal_threshold & som_cluster$samples_output.tb$posterior_prob < posterior_threshold)
 
     if(dim(make_analysis.tb)[1] == 0)
     {
@@ -928,8 +937,11 @@ sits_som_plot_clusters <- function(data, text_title = " Confusion between the sa
 #' Function sits_plot_som plots a classified kohonen map. A set of neurons
 #' with same category corresponds to a same cluster.
 #' @param  koh        Kohonen map produced by "sits_som_map" function
-#' @param  type       Type of plot. "codes" is the weight of neuron (time series) and "mapping" is the number of samples allocated in a neuron.
+#' @param  type       Type of plot. "codes" is the weight of neuron (time series),
+#'                     "mapping" is the number of samples allocated in a neuron, and
+#'                     "by_year" is to plot the SOM grid by class and year
 #' @param  whatmap    What data layer will be plotted.
+#' @param  class      Sample class that must be plotted in SOM grid by year.
 sits_plot_som_map <- function(koh, type = "codes", whatmap = 1 , class = NULL)
 {
   if (type == "mapping") {

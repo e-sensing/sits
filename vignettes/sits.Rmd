@@ -271,8 +271,8 @@ som_cluster.tb <-
         alpha = 1.0,
         distance = "euclidean",
         iterations = 20,
-        conditonal_threshold  = 0.8, 
-        posterior_threshold  = 0.6)
+        conditonal_threshold = 0.8, 
+        posterior_threshold = 0.6)
 ```
 
 # Classification using machine learning 
