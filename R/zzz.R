@@ -43,5 +43,6 @@ utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V0", "V1", "
                          "cluster", ".data"))
 #' @importFrom dtw symmetric1 symmetric2
 #' @importFrom lubridate %within% %m+%
+#' @importFrom wtss WTSS
 #' @useDynLib sits, .registration = TRUE
 NULL
