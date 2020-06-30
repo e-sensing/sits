@@ -9,7 +9,7 @@ test_that("Data to CSV",{
 test_that("Data to CSV - error",{
     data(cerrado_2classes)
     expect_error(sits_data_to_csv(cerrado_2classes,
-                                      file = "/non-existent-directory/cerrado_2classes.csv"),
+                    file = "/non-existent-directory/cerrado_2classes.csv"),
                  "sits_data_to_csv - file is not writable")
 })
 
@@ -31,7 +31,9 @@ test_that("Reading a CSV file from WTSS", {
     #skip_on_cran()
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
                             package = "sits")
-    cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
+    cube_wtss <- sits_cube(type = "WTSS",
+                           URL = "http://www.esensing.dpi.inpe.br/wtss/",
+                           name = "MOD13Q1")
 
     points.tb <- sits:::.sits_from_csv(csv_file = csv_file,
                                        cube = cube_wtss,
@@ -54,7 +56,9 @@ test_that("Error Reading a CSV file from WTSS", {
 
     csv_file <- c("test.csv")
 
-    cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
+    cube_wtss <- sits_cube(type = "WTSS",
+                           URL = "http://www.esensing.dpi.inpe.br/wtss/",
+                           name = "MOD13Q1")
 
     suppressMessages(points.tb <- sits:::.sits_from_csv(csv_file = csv_file,
                                                         cube = cube_wtss,

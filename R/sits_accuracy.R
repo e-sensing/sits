@@ -375,6 +375,9 @@ sits_accuracy_area <- function(class.tb, area = NULL){
 #' results[[length(results) + 1]] <- conf.mx
 #' # save the results to an XLSX file
 #' sits_to_xlsx(results, file = "confusion_matrix.xlsx")
+#'
+#' # cleanup (optional)
+#' file.remove("confusion_matrix.xlsx")
 #' }
 #' @export
 sits_to_xlsx <- function(acc.lst, file = NULL){

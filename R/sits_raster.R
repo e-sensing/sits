@@ -182,30 +182,6 @@
 
     return(values.mx)
 }
-#' @title Try a best guess for the type of sensor/satellite
-#' @name .sits_raster_guess_satellite
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Based on the projection, tries to guess the satellite.
-#'
-#' @param r_obj      The R object that describes the file
-#' @return Name of the satellite .
-.sits_raster_guess_satellite <- function(r_obj) {
-
-    crs   <- as.character(raster::crs(r_obj))
-
-    if (any(grepl("utm", crs))) {
-        satellite <- "LANDSAT"
-    }
-    # if the projection is sinusoidal, guess it's a TERRA data set
-    else if (any(grepl("sinu", crs))) {
-        satellite <- "TERRA"
-    }
-    else {
-        satellite <- "UNKNOWN"
-    }
-    return(satellite)
-}
 
 
 #' @title Preprocess a set of values retrived from a raster brick

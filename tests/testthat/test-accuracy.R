@@ -12,7 +12,9 @@ test_that("XLS", {
 })
 
 test_that("Accuracy - 2 classes", {
-    cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
+    cube_wtss <- sits_cube(type = "WTSS",
+                           URL = "http://www.esensing.dpi.inpe.br/wtss/",
+                           name = "MOD13Q1")
 
     data <- sits_get_data(cube_wtss,
                           file = system.file("extdata/samples/samples_matogrosso.csv",
@@ -23,8 +25,6 @@ test_that("Accuracy - 2 classes", {
     data("cerrado_2classes")
     svm_model <- sits_train(cerrado_2classes, ml_method = sits_svm())
     class.tb <- sits_classify(data, svm_model)
-
-    names(class.tb)
 
     invisible(utils::capture.output(conf.mx <- sits_conf_matrix(class.tb)))
 

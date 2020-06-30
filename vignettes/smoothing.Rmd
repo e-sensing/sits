@@ -142,6 +142,9 @@ library(dtwclust)
 
 
 ```{r, eval = FALSE}
+# install the "inSitu" package
+devtools::install_github("e-sensing/inSitu")
+library(inSitu)
 # Retrieve the data for the Mato Grosso state
 
 # select the bands "ndvi", "evi"
@@ -152,12 +155,18 @@ rfor_model <- sits_train(samples_2bands, ml_method = sits_rfor())
 
 # Classify a raster file with 23 instances for one year
 # select the bands "ndvi", "evi" from the "inSitu" package
-evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
-ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
+evi_file <- system.file("extdata/Sinop", 
+                        "Sinop_evi_2014.tif", 
+                        package = "inSitu")
+ndvi_file <- system.file("extdata/Sinop", 
+                         "Sinop_ndvi_2014.tif", 
+                         package = "inSitu")
 files <- c(ndvi_file, evi_file)
 
 # define the timeline for the files
-time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
+time_file <- system.file("extdata/Sinop", 
+                         "timeline_2014.txt", 
+                         package = "inSitu")
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a data cube based on the information about the files
@@ -165,20 +174,23 @@ raster_cube <- sits_cube(name = "Sinop", timeline = timeline_2013_2014,
                          bands = c("ndvi", "evi"), files = files)
 
 # classify the raster image and generate a probability file
-raster_probs <- sits_classify(raster_cube, ml_model = xgb_model, memsize = 4, multicores = 2)
+raster_probs <- sits_classify(raster_cube, ml_model = xgb_model, 
+                              memsize = 4, multicores = 2)
 
 # label the probability (no smoothing applied by default)
 raster_class <- sits_label_classification(raster_probs)
 
 # smooth the result with a bayesian filter
-raster_class_bayes <- sits_label_classification(raster_probs, smoothing = "bayesian")
+raster_class_bayes <- sits_label_classification(raster_probs, 
+                                                smoothing = "bayesian")
 
 # plot the smoothened image
 plot(raster_class_bayes, time = 1, title = "Sinop-smooth")
 ```
 
 The result is shown below.
-```{r, fig.align="center", fig.cap="Classified image post-processed with Bayesian smoothing. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
+```{r, out.width = "90%", out.height = "90%", echo = FALSE, fig.align="center", fig.cap="Classified image post-processed with Bayesian smoothing. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
 
-knitr::include_graphics(system.file("extdata/markdown/figures", "sinop_bayes.png", package = "sits"))
+knitr::include_graphics(system.file("extdata/markdown/figures", 
+                                    "sinop_bayes.png", package = "sits"))
 ```

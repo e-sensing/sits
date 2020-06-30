@@ -4,7 +4,7 @@
 \alias{sits_envelope}
 \title{Envelope filter}
 \usage{
-sits_envelope(data = NULL, operations = "UULL", bands_suffix = "")
+sits_envelope(data = NULL, operations = "UULL", bands_suffix = "env")
 }
 \arguments{
 \item{data}{A tibble with time series data and metadata.}
@@ -12,7 +12,7 @@ sits_envelope(data = NULL, operations = "UULL", bands_suffix = "")
 \item{operations}{A character sequence for the sequence operations.
 ("U" for upper filter, "L" for lower filter).}
 
-\item{bands_suffix}{Suffix of the resulting data (default "env").}
+\item{bands_suffix}{Suffix of the resulting data.}
 }
 \value{
 A tibble with filtered time series values.
@@ -30,7 +30,7 @@ data(prodes_226_064)
 # Select the NDVI band of the first point
 point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # Apply the envelope filter
-point_env.tb <- sits_envelope(point_ndvi.tb, bands_suffix = "env")
+point_env.tb <- sits_envelope(point_ndvi.tb)
 # Merge the filtered with the raw data
 point2.tb <- sits_merge (point_ndvi.tb, point_env.tb)
 # Plot the result

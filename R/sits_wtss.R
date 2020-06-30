@@ -4,20 +4,15 @@
 #' @description Uses the WTSS services to print information and save metadata
 #' about a chosen cube.
 #'
-#' @param wtss.obj   R WTSS object associated to the service.
-#' @param service    Name of the service.
 #' @param URL        URL of the service provider.
 #' @param name       Name of the cube.
 #' @param bands      Name of the bands.
-.sits_wtss_cube <- function(wtss.obj, service, URL, name, bands) {
-    # obtains information about the available cubes
-    # is the cube in the list of cubes?
-    assertthat::assert_that(name %in% wtss.obj$coverages,
-        msg = ".sits_wtss_cube: cube not available in the WTSS server")
+.sits_wtss_cube <- function(URL, name, bands) {
 
     # describe the cube based on the WTSS API
-    wtss::describe_coverage(wtss.obj, name, .print = FALSE)
-    cov.tb    <- wtss.obj$description
+    cov.tb <- wtss::describe_coverage(URL, name, .print = FALSE)
+    assertthat::assert_that(!purrr::is_null(cov.tb),
+        msg = ".sits_wtss_cube: failed to get cube description in WTSS")
 
     # temporal extent
     timeline <- lubridate::as_date(cov.tb$timeline[[1]])
@@ -34,7 +29,7 @@
         bands <- bands_wtss
 
     # create a tibble to store the metadata
-    cube_wtss <- .sits_cube_create(service   = service,
+    cube_wtss <- .sits_cube_create(type      = "WTSS",
                                    URL       = URL,
                                    satellite = cov.tb$satellite,
                                    sensor    = cov.tb$sensor,
@@ -56,6 +51,8 @@
                                    yres  = cov.tb$yres,
                                    crs   = cov.tb$crs)
 
+    class(cube_wtss) <- append(class(cube_wtss),
+                             c("wtss-cube"), after = 0)
     # return the tibble with cube info
     return(cube_wtss)
 }
@@ -106,28 +103,29 @@
         end_date  <- lubridate::as_date(timeline[length(timeline)])
 
 
-    # try to get a time series from the WTSS server
-    # get the WTSS object associated to the URL
     # retrieve the time series from the service
-    tryCatch({
-        ts <- suppressMessages(wtss::time_series(cube$URL,
-                                                 name        = cube$name,
-                                                 attributes  = bands,
-                                                 longitude   = longitude,
-                                                 latitude    = latitude,
-                                                 start_date  = start_date,
-                                                 end_date    = end_date))
+    ts <- wtss::time_series(cube$URL,
+                            name        = cube$name,
+                            attributes  = bands,
+                            longitude   = longitude,
+                            latitude    = latitude,
+                            start_date  = start_date,
+                            end_date    = end_date)
+    # change the class of the data
+    # before - class "wtss"
+    # now - class "sits"
+    if(!purrr::is_null(ts)) {
+        class(ts) <- setdiff(class(ts), "wtss")
+        class(ts) <- append(class(ts), "sits", after = 0)
         # add a label column
-        ts <- tibble::add_column(ts, label = label, .after = "end_date")
+        if (label != "NoClass") {
+            ts$label <- label
+        }
         # convert name
-        data <- .sits_tibble_rename(ts)
-        # return the tibble with the time series
-        return(data)
-    }, error = function(e){
-        message("WTSS unable to recover time series for longitude ",
-                     longitude, " latitude ", latitude)
-        return(NULL)
-    })
+        ts <- .sits_tibble_rename(ts)
+    }
+    # return the tibble with the time series
+    return(ts)
 }
 #' @title Check that the URL of WTSS service is working
 #' @name .sits_wtss_check
@@ -136,10 +134,10 @@
 #' @param URL        URL of the WTSS service.
 #' @return check     TRUE or FALSE
 .sits_wtss_check <- function(URL) {
-    wtss.obj <- suppressMessages(wtss::WTSS(URL))
+    coverages <- wtss::list_coverages(URL)
     # check return from WTSS
-    assertthat::assert_that(!purrr::is_null(wtss.obj),
-        msg = "sits_cube - WTSS service not responding - check URL")
+    if(purrr::is_null(coverages))
+        return(FALSE)
 
     return(TRUE)
 }

@@ -26,6 +26,9 @@ Converts time series data from a sits tibble to a CSV file.
 data(cerrado_2classes)
 # export a time series
 sits_data_to_csv(cerrado_2classes, file = "cerrado_2classes.csv")
+
+# cleanup (optional)
+file.remove("./cerrado_2classes.csv")
 }
 }
 \author{

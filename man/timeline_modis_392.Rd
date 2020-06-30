@@ -4,7 +4,9 @@
 \name{timeline_modis_392}
 \alias{timeline_modis_392}
 \title{The timeline for the sequence of images for MOD13Q1 collection 5}
-\format{A vector with 392 dates in YYYY-MM-DD format.}
+\format{
+A vector with 392 dates in YYYY-MM-DD format.
+}
 \usage{
 data(timeline_modis_392)
 }

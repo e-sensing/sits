@@ -20,12 +20,15 @@ sits.env <- new.env()
 sits.env$model_formula <- "log"
 
 # Include the following global variables in the sits package
-utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V0", "V1", "Index",
+utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols",
+                         ".N", "V0", "V1", "Index",
                          "from", "value", "variable", "cond",
-                         "med", "qt25", "qt75", "cluster_id", "x", "y", "median",
+                         "med", "qt25", "qt75", "cluster_id",
+                         "x", "y", "median",
                          "longitude", "latitude", "label", "cube", "coverage",
-                         "service","year", "start_date", "end_date", "time_series",
+                         "service","type", "year", "start_date", "end_date", "time_series",
                          "name", "scale_factor", "missing_value",
+                         "..b", "..band",
                          "original_label", "n_members", "n_members.n", "count",
                          "segr", "frac", "total", "n", "rows.lst", "whit",
                          "blue", "red", "green", "nir", "mir", "swir",
@@ -41,7 +44,6 @@ utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols", ".N", "V0", "V1", "
                          "probability", "total_probability", "radius", "som_label",
                          "Alig.N", "matches", "original_row", "reference",
                          "cluster", ".data"))
-#' @importFrom dtw symmetric1 symmetric2
 #' @importFrom lubridate %within% %m+%
 #' @useDynLib sits, .registration = TRUE
 NULL

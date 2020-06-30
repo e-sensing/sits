@@ -100,12 +100,13 @@ test_that("XGBoost",{
 test_that("DL-MLP",{
     #skip_on_cran()
     samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
-    model <- suppressWarnings(sits_train(samples_mt_2bands,
+    model <- suppressMessages(suppressWarnings(
+                              sits_train(samples_mt_2bands,
                               sits_deeplearning(
                                   layers = c(128,128),
                                   dropout_rates = c(0.5, 0.4),
                                   epochs = 50,
-                                  verbose = 0)))
+                                  verbose = 0))))
 
     plot(model)
 
@@ -121,14 +122,15 @@ test_that("DL-MLP",{
 test_that("DL-MLP-2classes",{
     #skip_on_cran()
     samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
-    model <- suppressWarnings(sits_train(samples_mt_2bands,
+    model <- suppressMessages(suppressWarnings(
+                                        sits_train(samples_mt_2bands,
                                          sits_deeplearning(
-                                             layers = c(128, 128, 128),
+                                             layers = c(64, 64, 64),
                                              dropout_rates = c(0.5, 0.4, 0.3),
-                                             epochs = 100,
-                                             verbose = 0)))
-    test_eval <- suppressMessages(sits_keras_diagnostics(model))
-    expect_true(test_eval$acc > 0.7)
+                                             epochs = 50,
+                                             verbose = 0))))
+    test_eval <- sits_keras_diagnostics(model)
+    expect_true(test_eval["accuracy"] > 0.7)
     plot(model)
 
     class.tb <- sits_classify(cerrado_2classes[1:60,], model)
@@ -140,11 +142,14 @@ test_that("DL-MLP-2classes",{
 test_that("1D CNN model",{
     #skip_on_cran()
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    model <- suppressWarnings(sits_train(samples_mt_ndvi,
+    model <- suppressMessages(suppressWarnings(
+                                         sits_train(samples_mt_ndvi,
                                          sits_FCN(layers = c(32,32),
                                                   kernels = c(9, 5),
                                                   epochs = 50,
-                                                  verbose = 0)))
+                                                  verbose = 0))))
+    test_eval <- suppressMessages(sits_keras_diagnostics(model))
+    expect_true(test_eval["accuracy"]> 0.7)
 
     class.tb <- sits_classify(point_ndvi, model)
 
@@ -155,14 +160,18 @@ test_that("1D CNN model",{
 test_that("tempCNN model",{
     #skip_on_cran()
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    model <- suppressWarnings(sits_train(samples_mt_ndvi,
+    model <- suppressMessages(suppressWarnings(
+             sits_train(samples_mt_ndvi,
              sits_TempCNN(cnn_layers = c(32, 32),
                           cnn_kernels = c(7, 5),
                           cnn_dropout_rates = c(0.5, 0.4),
                           mlp_layers = c(128),
                           mlp_dropout_rates = c(0.5),
                           epochs = 50,
-                          verbose = 0)))
+                          verbose = 0))))
+
+    test_eval <- suppressMessages(sits_keras_diagnostics(model))
+    expect_true(test_eval["accuracy"] > 0.7)
 
     class.tb <- sits_classify(point_ndvi, model)
 
@@ -173,8 +182,12 @@ test_that("tempCNN model",{
 test_that("ResNet",{
     #skip_on_cran()
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    model <- suppressWarnings(sits_train(samples_mt_ndvi, sits_ResNet(
-        blocks = c(16, 16, 16), kernels = c(7,5,3), epochs = 50, verbose = 0)))
+    model <- suppressMessages(suppressWarnings(sits_train(samples_mt_ndvi,
+                            sits_ResNet(
+                                    blocks = c(16, 16, 16),
+                                    kernels = c(7,5,3),
+                                    epochs = 50,
+                                    verbose = 0))))
 
     class.tb <- sits_classify(point_ndvi, model)
 

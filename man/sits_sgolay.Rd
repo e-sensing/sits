@@ -4,7 +4,13 @@
 \alias{sits_sgolay}
 \title{Smooth the time series using Savitsky-Golay filter}
 \usage{
-sits_sgolay(data = NULL, order = 3, length = 5, scaling = 1, bands_suffix = "")
+sits_sgolay(
+  data = NULL,
+  order = 3,
+  length = 5,
+  scaling = 1,
+  bands_suffix = "sg"
+)
 }
 \arguments{
 \item{data}{A tibble with time series data and metadata.}
@@ -32,8 +38,7 @@ and the temporal expansion uses the parameter `scaling`.
 #' # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the Savitsky Golay smoother
-point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3,
-                                    length  = 5, bands_suffix = "sg"))
+point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5))
 # Plot the two points to see the smoothing effect
 plot(sits_merge(point_ndvi, point_sg))
 }

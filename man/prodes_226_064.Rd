@@ -4,7 +4,9 @@
 \name{prodes_226_064}
 \alias{prodes_226_064}
 \title{Samples of deforestation-related classes for the LANDSAT image WRS 226/064}
-\format{A tibble with 617 rows and 7 variables}
+\format{
+A tibble with 617 rows and 7 variables
+}
 \usage{
 data(prodes_226_064)
 }

@@ -4,7 +4,9 @@
 \name{timeline_2013_2014}
 \alias{timeline_2013_2014}
 \title{The timeline for the sequence of images one year (2013 to 2014)}
-\format{A vector with 23 dates in YYYY-MM-DD format.}
+\format{
+A vector with 23 dates in YYYY-MM-DD format.
+}
 \usage{
 data(timeline_2013_2014)
 }

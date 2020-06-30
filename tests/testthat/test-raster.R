@@ -14,9 +14,13 @@ test_that("Multi-year, single core classification", {
     files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                            package = "sits"))
     data("timeline_modis_392")
-    sinop <- sits_cube(name = "sinop-crop", timeline = timeline_modis_392,
-                       satellite = "TERRA", sensor = "MODIS",
-                       bands = "ndvi", files = files)
+    sinop <- sits_cube(type = "BRICK",
+                       name = "sinop-crop",
+                       timeline = timeline_modis_392,
+                       satellite = "TERRA",
+                       sensor = "MODIS",
+                       bands = "ndvi",
+                       files = files)
     # classify using one core
     sinop_probs <- sits_classify(sinop, rfor_model, memsize = 2, multicores = 1)
 
@@ -36,9 +40,13 @@ test_that("Multi-year, multi-core classification", {
     files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                            package = "sits"))
     data("timeline_modis_392")
-    sinop <- sits_cube(name = "sinop-crop", timeline = timeline_modis_392,
-                       satellite = "TERRA", sensor = "MODIS",
-                       bands = "ndvi", files = files)
+    sinop <- sits_cube(type = "BRICK",
+                       name = "sinop-crop",
+                       timeline = timeline_modis_392,
+                       satellite = "TERRA",
+                       sensor = "MODIS",
+                       bands = "ndvi",
+                       files = files)
 
     r_obj <- sits:::.sits_cube_robj(sinop)
     expect_true(raster::nrow(r_obj) == sinop$nrows)
@@ -112,11 +120,18 @@ test_that("One-year, single core classification", {
 
     data("timeline_2013_2014")
 
-    sinop_2014 <- sits_cube(name = "sinop-2014", timeline = timeline_2013_2014,
-                            satellite = "TERRA", sensor = "MODIS",
-                            bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
+    sinop_2014 <- sits_cube(type = "BRICK",
+                            name = "sinop-2014",
+                            timeline = timeline_2013_2014,
+                            satellite = "TERRA",
+                            sensor = "MODIS",
+                            bands = c("ndvi", "evi"),
+                            files = c(ndvi_file, evi_file))
 
-    sinop_2014_probs <- sits_classify(sinop_2014, rfor_model, memsize = 4, multicores = 1)
+    sinop_2014_probs <- sits_classify(sinop_2014,
+                                      rfor_model,
+                                      memsize = 4,
+                                      multicores = 1)
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$files))))
     rc_obj <- sits:::.sits_cube_robj(sinop_2014_probs)
@@ -139,9 +154,13 @@ test_that("One-year, multicore classification", {
 
     data("timeline_2013_2014")
 
-    sinop_2014 <- sits_cube(name = "sinop-2014", timeline = timeline_2013_2014,
-                       satellite = "TERRA", sensor = "MODIS",
-                       bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
+    sinop_2014 <- sits_cube(type = "BRICK",
+                            name = "sinop-2014",
+                            timeline = timeline_2013_2014,
+                            satellite = "TERRA",
+                            sensor = "MODIS",
+                            bands = c("ndvi", "evi"),
+                            files = c(ndvi_file, evi_file))
 
     sinop_2014_probs <- sits_classify(sinop_2014, svm_model, memsize = 4, multicores = 2)
 
@@ -167,13 +186,19 @@ test_that("One-year, single core classification with filter", {
 
     data("timeline_2013_2014")
 
-    sinop_2014 <- sits_cube(name = "sinop-2014", timeline = timeline_2013_2014,
-                            satellite = "TERRA", sensor = "MODIS",
-                            bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
+    sinop_2014 <- sits_cube(type = "BRICK",
+                            name = "sinop-2014",
+                            timeline = timeline_2013_2014,
+                            satellite = "TERRA",
+                            sensor = "MODIS",
+                            bands = c("ndvi", "evi"),
+                            files = c(ndvi_file, evi_file))
 
-    sinop_2014_probs <- sits_classify(data = sinop_2014, ml_model = rfor_model,
+    sinop_2014_probs <- sits_classify(data = sinop_2014,
+                                      ml_model = rfor_model,
                                       filter = sits_whittaker(lambda = 3.0),
-                                      memsize = 4, multicores = 1)
+                                      memsize = 4,
+                                      multicores = 1)
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$files))))
     rc_obj <- sits:::.sits_cube_robj(sinop_2014_probs)
@@ -198,14 +223,13 @@ test_that("Check GDAL access and Brick files", {
 
 test_that("Raster Cube", {
 
-    cube <- sits:::.sits_raster_cube(service = "BRICK",
-                URL = "http://127.0.0.1",
+    cube <- sits:::.sits_raster_cube(
                 satellite = "TERRA",
                 sensor = "MODIS",
                 name = "Sinop",
                 timeline = timeline_modis_392,
                 bands = "ndvi",
-                files = c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+            files = c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                           package = "sits"))
                 )
     expect_true(cube$nrows == 11 && cube$ncols == 14)
@@ -221,12 +245,4 @@ test_that("Raster filename", {
                                          end_date = "2019-07-31")
 
     expect_true(as.logical(grep("sinop_probs_2018_8_2019_7", file)))
-})
-
-test_that("Guess satellite", {
-    file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-                           package = "sits"))
-    satellite <- sits:::.sits_raster_guess_satellite(raster::brick(file))
-
-    expect_true(satellite == "TERRA")
 })

@@ -203,6 +203,17 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
 #' @param  data       A tibble in sits format with time series to be converted to TWTDW time series.
 #' @return A time series in TWDTW format (an object of the twdtwTimeSeries class).
 .sits_to_twdtw <- function (data){
+    # verifies if methods package is installed
+    if (!requireNamespace("methods", quietly = TRUE)) {
+        stop("methods needed for this function to work.
+             Please install it.", call. = FALSE)
+    }
+
+    # verifies if zoo package is installed
+    if (!requireNamespace("zoo", quietly = TRUE)) {
+        stop("zoo needed for this function to work.
+              Please install it.", call. = FALSE)
+    }
     # transform each sits time series into a list of zoo
     ts <- data$time_series %>%
         purrr::map(function(ts) zoo::zoo(ts[,2:ncol(ts), drop=FALSE], ts$Index))
@@ -302,6 +313,11 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
 #' @param patterns.tb   Known temporal signatures for the chosen classes.
 #' @param n_matches     Number of matches of a given label to be displayed.
 .sits_plot_twdtw_matches <- function(matches, patterns.tb, n_matches = 4) {
+    # verifies if dtwSat package is installed
+    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+        stop("dtwSat needed for this function to work.
+             Please install it.", call. = FALSE)
+    }
     matches %>%
         purrr::map(function(m.twdtw) {
             dtwSat::plot(m.twdtw, type = "matches",

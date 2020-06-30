@@ -4,7 +4,9 @@
 \name{timeline_2000_2017}
 \alias{timeline_2000_2017}
 \title{The timeline for the sequence of images for MOD13Q1 collection 6}
-\format{A vector with 407 dates in YYYY-MM-DD format.}
+\format{
+A vector with 407 dates in YYYY-MM-DD format.
+}
 \usage{
 data(timeline_2000_2017)
 }

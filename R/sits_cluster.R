@@ -54,14 +54,14 @@ sits_cluster_dendro <-  function(data = NULL,
     # create a tibble to store the results
     result <- data
 
-    # calculate the dendrogram
+    # calculate the dendrogram object
     if (!silent) message("calculating dendrogram...")
-    dendro.obj <- .sits_cluster_dendrogram(data, bands,
+    cluster.obj <- .sits_cluster_dendrogram(data, bands,
                                            dist_method, linkage, ...)
 
     # find the best cut for the dendrogram
     if (!silent) message("finding the best cut...")
-    cut.vec <- .sits_cluster_dendro_bestcut(data, dendro.obj)
+    cut.vec <- .sits_cluster_dendro_bestcut(data, cluster.obj)
     msg1 <- paste0("best number of clusters = ", cut.vec["k"])
     msg2 <- paste0("best height for cutting the dendrogram = ",
                    cut.vec["height"])
@@ -77,14 +77,14 @@ sits_cluster_dendro <-  function(data = NULL,
             if (!silent) message(msg_k)
             cut.vec["k"] <- k
             cut.vec["height"] <-
-                c(0, dendro.obj$height)[length(dendro.obj$height) - k + 2]
+                c(0, cluster.obj$height)[length(cluster.obj$height) - k + 2]
         }
     }
-    result$cluster <- stats::cutree(dendro.obj, cut.vec["k"], cut.vec["height"])
+    result$cluster <- stats::cutree(cluster.obj, cut.vec["k"], cut.vec["height"])
 
     # plot the dendrogram
     if (!silent) message("Plotting dendrogram...")
-    .sits_plot_dendrogram(data, dendro.obj, cut.vec["height"], colors)
+    .sits_plot_dendrogram(data, cluster.obj, cut.vec["height"], colors)
 
     # return the result
     if (!silent) message("result is a tibble with cluster indexes...")
@@ -293,6 +293,12 @@ sits_cluster_clean <- function(data) {
 #' @return Vector with best number of clusters (k) and its respective height.
 #'
 .sits_cluster_dendro_bestcut <-  function(data, dendro) {
+
+    # verifies if flexclust package is installed
+    if (!requireNamespace("flexclust", quietly = TRUE)) {
+        stop("flexclust needed for this function to work.
+             Please install it.", call. = FALSE)
+    }
     # compute range
     k_range <- seq(2, max(length(dendro$height) - 1, 2))
 

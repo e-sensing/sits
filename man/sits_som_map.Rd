@@ -25,8 +25,6 @@ sits_som_map(
 \item{distance}{The type of similarity measure (distance).}
 
 \item{iterations}{The number of time to run the SOM cluster.}
-
-\item{...}{Additional parameters to be passed to kohonen::supersom function.}
 }
 \value{
 Returns a list of sits tibbles containing statistics about the samples and the neuron in each iteration.

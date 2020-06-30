@@ -1,7 +1,7 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis For Remote Sensing Data Cubes
-Version: 0.9.4
+Version: 0.9.5
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
              person('Pedro', 'Andrade', role = c('aut'), email = 'pedro.andrade@inpe.br'),
@@ -36,61 +36,58 @@ Imports:
     caret,
     config,
     data.table (>= 1.10),
-    dendextend,
-    e1071,
-    EOCubes,
     dplyr (>= 0.7.4),
-    dtw,
-    dtwclust,
-    dtwSat,
-    flexclust,
     ggplot2,
     graphics,
     grDevices,
     keras,
-    kohonen,
-    imputeTS,
     log4r,
     lubridate,
+    openxlsx,
+    parallel,
+    purrr,
+    raster (>= 2.6),
+    reshape2,
+    rgdal (>= 1.2),
+    scales,
+    sf (>= 0.6),
+    stats,
+    tibble (>= 1.4),
+    utils,
+    wtss
+Suggests:
+    dendextend,
+    devtools,
+    dtwclust,
+    dtwSat,
+    e1071,
+    flexclust,
+    imager,
+    imputeTS,
+    kohonen,
+    knitr,
+    lwgeom,
     MASS,
     methods,
     mgcv,
     nnet,
-    openxlsx,
-    parallel,
+    proto,
     proxy,
-    purrr,
     ptw,
+    rmarkdown,
     ranger,
-    raster (>= 2.6),
-    readr,
-    reshape2,
+    Rcpp,
     RCurl,
-    rgdal (>= 1.2),
-    scales,
-    sf (>= 0.6),
     signal,
-    stats,
-    tibble (>= 1.4),
-    tools,
-    urltools,
-    utils,
-    wtss,
+    testthat,
     xgboost,
     zoo
-Suggests:
-    devtools,
-    knitr,
-    lwgeom,
-    rmarkdown,
-    Rcpp,
-    testthat
 Remotes: 
-    e-sensing/EOCubes
+    e-sensing/wtss
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Collate: 
     'RcppExports.R'
     'data.R'
@@ -102,7 +99,6 @@ Collate:
     'sits_cluster.R'
     'sits_deep_learning.R'
     'sits_dt_reference.R'
-    'sits_eocubes.R'
     'sits_factory.R'
     'sits_FCN.R'
     'sits_filters.R'
@@ -121,7 +117,6 @@ Collate:
     'sits_raster_data.R'
     'sits_ResNet.R'
     'sits_satveg.R'
-    'sits_services.R'
     'sits_shp.R'
     'sits_space_time_operations.R'
     'sits_TempCNN.R'

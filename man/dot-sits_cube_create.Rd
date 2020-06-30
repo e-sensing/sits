@@ -5,7 +5,7 @@
 \title{Creates the description of a data cube}
 \usage{
 .sits_cube_create(
-  service,
+  type,
   URL,
   satellite,
   sensor,
@@ -30,7 +30,7 @@
 )
 }
 \arguments{
-\item{service}{Web service with metadata about the cube.}
+\item{type}{Web service with metadata about the cube.}
 
 \item{URL}{URL of the provider}
 

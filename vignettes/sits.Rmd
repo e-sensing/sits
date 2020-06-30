@@ -38,7 +38,7 @@ vignette: |
   %\VignetteEngine{knitr::rmarkdown} 
   %\VignetteIndexEntry{SITS: Data Analysis and Machine Learning using Satellite Image Time Series}
 ---
-```{r, include = FALSE}
+```{r, include = FALSE, message = FALSE, warning = FALSE}
 devtools::load_all(".")
 library(sits)
 library(dtwclust)
@@ -69,69 +69,63 @@ As explained below, a data cube is the data type used in `sits` to handle dense 
 
 One of the distinguishing features of SITS is that it has been designed to work with big satellite image data sets which reside on the cloud and with data cubes. Many *R* packages that work with remote sensing images require data to be accessible in a local computer. However, with the coming of age of big Earth observation data, it is not always practical to transfer large data sets. Users have to rely on web services to provide access to these data sets. In this context, SITS is based on access to data cubes using web services.
 
-A web service is software system designed to support remote access to image collections through APIs. These are machine-to-machine protocols that allow access to image collections and to generate *data cubes*. SITS uses two kinds of services: those that provide time series data and those that provide access to data cubes. Currently, there are no established standards for these two services. For this reason, `sits` uses two new protocols: WTSS ("Web Time Series Serice") and EOCubes ("Earth observation Data Cubes Services") that we have develop.  WTSS is a light-weight service for retrieval of time series data for selected locations and periods [@Vinhas2016]. The WTSS R client is available in the CRAN archive using the `wtss` package. The EOCUBES service provides access to big data collections, which are organised by the `EOCubes` package. the package also allows users to work on local files, if desired.
-
-To find out the services and respective data cubes available, one should use the `sits_services()` function. 
-```{r}
-sits_services()
-```
+A web service is software system designed to support remote access to image collections through APIs. These are machine-to-machine protocols that allow access to image collections and to generate *data cubes*. Currently, `sits` uses the WTSS ("Web Time Series Serice").  WTSS is a light-weight service for retrieval of time series data for selected locations and periods [@Vinhas2016]. The WTSS R client is available in the CRAN archive using the `wtss` package.
 
 These services are set on the SITS configuration file, which is described later in this document. For each services, the above function lists the names of the data cubes available and additional information. 
 
 ## Defining a data cube using the WTSS service
 
-To define a data cube for the WTSS, in principle the following parameters should be provided: (a) the name of the service; (b) the URL; (c) the satellite and sensor associated to the cube, and (d) name of the data cube in the remote service. If the URL, satellite and sensor are not provided, the package will search for default information in the SITS configuration file. 
+To define a data cube for the WTSS, in principle the following parameters should be provided: (a) the type of the service ("WTSS"); (b) the URL; (c) the satellite and sensor associated to the cube, and (d) name of the data cube in the remote service. The package will retrieve the information about the cube from the WTSS service.
 
 ```{r}
 # define the data cube "MOD13Q1" using the WTSS service
 # In this case, the WTSS service is run by a server in INPE Brazil
-wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
+wtss_cube <- sits_cube(type = "WTSS", 
+                       URL = "http://www.esensing.dpi.inpe.br/wtss",
+                       name = "MOD13Q1")
 
 # get information on the data cube 
-wtss_cube %>% dplyr::select(service, URL, satellite, sensor)
+wtss_cube %>% dplyr::select(type, URL, satellite, sensor)
 # spatial dimensions of the data cube
 wtss_cube %>% dplyr::select(xmin, xmax, ymin, ymax)
 # temporal dimension of the data cube
 timeline <- sits_timeline(wtss_cube)
-message(paste0("start date = ", timeline[1], " end date = ", timeline[length(timeline)], " steps = ", length(timeline)))
+# first date of the data cube
+timeline[1]
+# last date of the data cube
+timeline[length(timeline)]
+# number of steps in the data cube
+length(timeline)
 # bands of the data cube
 sits_bands(wtss_cube)
 ```
 
-## Defining a data cube using the EOCUBES service
-
-In the case of EOCUBES service, additional obtional parameters are: (a) a string with tile names; (b) a geometry to restrict the spatial extent; (c) start and end dates to restrict the temporal extent. If desired, the cube based on the EOCUBES service can be specified only by the service and cube names, provided that the correct additional information is provided in the configuration file.
-
-```{r}
-# create a coverage from EOCUBES service from the collection "MOD13Q1/006"
-modis_cube <- sits_cube(service = "EOCUBES",
-                        name    = "MOD13Q1/006")
-
-# get information on the data cube 
-modis_cube %>% dplyr::select(service, URL, satellite, sensor)
-# get information on the cube
-modis_cube %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
-```
-
 # Defining a data cube using files organised as raster bricks
 
-The SITS package enables uses to create data cube based on files. In this case, these files should be organized as `raster bricks`. A RasterBrick is a multi-layer raster object used by the \emph{R} `raster` package.  Each brick is a multi-layer file, containing different time instances of one spectral band. To allow users to create data cubes based on files, SITS needs to know what is the timeline of the data sets and what are the names of the files that contain the RasterBricks.  The example below shows two bricks which are available at the AWS service, each containing 392 time instances of the "ndvi" and "evi" bands for the years 2000 to 2016. The timeline is available as part of the SITS package.
+The SITS package enables uses to create data cube based on files. In this case, these files should be organized as `raster bricks`. A RasterBrick is a multi-layer raster object used by the \emph{R} `raster` package.  Each brick is a multi-layer file, containing different time instances of one spectral band. To allow users to create data cubes based on files, SITS needs to know what is the timeline of the data sets and what are the names of the files that contain the RasterBricks.  The example below shows one bricks containing 392 time instances of the "ndvi" band for the years 2000 to 2016. The timeline is available as part of the SITS package. In this example, as in most cases using raster bricks, images are stored as GeoTiff files.
 
-In the example, neither the satellite nor the sensor are provided; this information is deduced by SITS considering the cartographical projection associated to the image. If the projection is "sinusoidal", SITS will deduce these are MODIS files; data on "utm" projection is associated to the LANDSAT-8 satellite. 
+Since GeoTiff files do not contain information about satellites and sensors, it is best practice to provide information on satellite and sensor. 
 
 ```{r}
 # Obtain a raster brick with 23 instances for one year
 # Select the band "ndvi", "evi" from bricks  available in the "sits" package
-ndvi_file <- system.file("extdata/raster/mod13q1", "sinop-crop-ndvi.tif", package = "sits")
+ndvi_file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", 
+                         package = "sits")
 
 # Obtain the associated timeline
 timeline <- data("timeline_2000_2017")
 
 # create a raster metadata file based on the information about the files
-raster_cube <- sits_cube(name = "Sinop", timeline = timeline, bands = c("ndvi"), files = c(ndvi_file))
+raster_cube <- sits_cube(type = "BRICK",
+                         name = "Sinop", 
+                         satellite = "TERRA",
+                         sensor = "MODIS",
+                         timeline = timeline,
+                         bands = c("ndvi"), 
+                         files = c(ndvi_file))
 
 # get information on the data cube 
-raster_cube %>% dplyr::select(service, URL, satellite, sensor)
+raster_cube %>% dplyr::select(type, URL, satellite, sensor)
 # get information on the coverage
 raster_cube %>% dplyr::select(xmin, xmax, ymin, ymax)
 ```
@@ -180,7 +174,7 @@ plot(samples_cerrado.tb[1,])
 
 For a large number of samples, where the amount of individual plots would be substantial, the default visualization combines all samples together in a single temporal interval (even if they belong to different years). All samples with the same band and label are aligned to a common time interval. This plot is useful to show the spread of values for the time series of each band. The strong red line in the plot shows the median of the values, while the two orange lines are the first and third interquartile ranges. The documentation of `plot.sits()` has more details about the different ways it can display data.
 
-```{r cerrado-all, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all Cerrado samples from data set"}
+```{r fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Plot of all Cerrado samples from data set"}
 # plot all cerrado samples together
 plot(samples_cerrado.tb)
 ```
@@ -192,14 +186,11 @@ To get a time series in SITS, one has to create a data cube first, as described 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI and EVI time series fetched from WTSS service."}
 # a point in the transition forest to pasture in Northern MT
 # obtain a time series from the WTSS server for this point
-# define the data cube "MOD13Q1" using the WTSS service
-# In this case, the WTSS service is run by a server in INPE Brazil
-wtss_cube <- sits_cube(service = "WTSS", name    = "MOD13Q1")
 series.tb <- sits_get_data(cube      = wtss_cube,
                            longitude = -55.57320, 
                            latitude  = -11.50566,
                            bands     = c("ndvi", "evi"))
-sits_plot(series.tb)
+plot(series.tb)
 ```
 
 A useful case is when a set of labelled samples are available to be used as a training data set. In this case, one usually has trusted observations which are labelled and commonly stored in plain text CSV files. Function `sits_get_data()` can get a CSV file path as an argument. The CSV file must provide, for each time series, its latitude and longitude, the start and end dates, and a label associated to a ground sample. An example of a CSV file used is shown below:
@@ -215,20 +206,23 @@ csv_data
 A common situation is when users have samples available as shapefiles in point format. Since shapefiles contain only geometries, we need to provide information about the start and end times for which each label is valid. in this case, one should use the function `sits_get_data()` to retrieve data from a data cube based on the contents of the shapefile. The parameter `shp_attr` (optional) indicates the name of the column on the shapefile which contains the label to be associated to each time series; the parameter `.n_shp_pol` (defaults to 20) determines the number of samples to be extracted from each polygon. 
 
 ```{r}
-# select the cube 
-wtss_cube <- sits_cube(service = "WTSS", name    = "MOD13Q1")
 # define the input shapefile (consisting of POLYGONS)
-shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp", package = "sits")
-# set the start and end dates for the validity of the labels of the points in the shapefile
+shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp", 
+                        package = "sits")
+# set the start and end dates 
 start_date <- lubridate::ymd("2012-08-29")
 end_date   <- lubridate::ymd("2013-08-13")
 # define the name of attribute of the shapefile that contains the label
 shp_attr <- "ext_na"
-# define the number of samples to extract from each polygin
+# define the number of samples to extract from each polygon
 .n_shp_pol <- 10
 # read the points in the shapefile and produce a CSV file
-data <- sits_get_data(cube = wtss_cube, file = shp_file, start_date = start_date, end_date = end_date, 
-                      shp_attr = shp_attr, .n_shp_pol = .n_shp_pol)
+data <- sits_get_data(cube = wtss_cube, 
+                      file = shp_file, 
+                      start_date = start_date, 
+                      end_date = end_date, 
+                      shp_attr = shp_attr, 
+                      .n_shp_pol = .n_shp_pol)
 data
 ```
 
@@ -247,7 +241,7 @@ The literature on satellite image time series have several applications of filte
 The SITS package uses a common interface to all filter functions with the `sits_filter`. The function has two parameters: `data` for the dataset to be filtered and `filter` for the filter to be applied. To aid on data visualisation, all bands which are filtered have a suffix which is appended, as shown in the examples below. Here we show an example using the Whittaker smoother, which has been proposed in literature  [@Atzberger2011] as arguably the most appropriate one to use for satellite image time series. The Whittaker smoother attempts to fit a curve that represents the raw data, but is penalized if subsequent points vary too much [@Atzberger2011]. As such, it balances between the residual to the original data and the "smoothness" of the fitted curve. It uses the parameter `lambda` to control the degree of smoothing. I
 
 ```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=3$ parameter."}
-# Take a NDVI time series of 16 years, apply Whittaker filter and plot the series
+# Take a NDVI time series, apply Whittaker filter and plot the series
 point_whit <- sits_filter(point_ndvi, filter = sits_whittaker(lambda = 5.0))
 # merge with original data and plot the original and the filtered data
 point_whit %>% 
@@ -261,7 +255,7 @@ One of the key challenges of machine learning classification models is assessing
 
 Self-organizing maps (SOM) is a dimensionality reduction technique [@Kohonen2001], where high-dimensional data is mapped into two dimensions, keeping the topological relations between data patterns. The input data is a set of tranining samples which are typically of a high-dimension. For example, a time series of 25 instances of 4 spectral bands is a 100-dimensional data set. The output layer is a 2D grid of neurons, each associated to a weight vector of the same dimension as the input space. The general idea of SOM-based clustering is that, by projecting the high-dimensional data set of training samples into a 2D map, good quality samples of each class should be close together in the resulting map. SITS provides the convenience function `sits_cluster_som` to perform clustering using SOM, This function uses self-organized maps to find clusters in satellite image time series for quality control of the  samples. 
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 # clustering time series using SOM
 # return a tibble with all samples and which cluster it belongs
 som_cluster.tb <-
@@ -290,15 +284,14 @@ When a dataset of time series organised as a SITS tibble is taken as input to th
 ```{r, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Random forest classification of a $16$ years time series. The location (latitude, longitude) shown at the top of the graph is in geographic coordinate system (WGS84 {\\it datum})."}
 
 #select the data for classification
-
 # get a point to be classified
-point_mt_4bands <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+point_4bands <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
 
-# Train a machine learning model for the mato grosso dataset using Random Forest
+# Train a machine learning model using Random Forest
 model <- sits_train(data = samples_mt_4bands, ml_method = sits_rfor())
 
 # Classify using random forest model and plot the result
-class.tb <- sits_classify(point_mt_4bands, model)
+class.tb <- sits_classify(point_4bands, model)
 # show the results of the prediction
 sits_show_prediction(class.tb)
 # plot the results of the prediction
@@ -333,8 +326,10 @@ A natural question that arises is: *how good is this estimation?* According to @
 
 ```{r}
 # perform a five fold validation for the "cerrado_2classes" data set
-# XGBoost machine learning method using default parameters
-prediction.mx <- sits_kfold_validate(cerrado_2classes, folds = 5, ml_method = sits_rfor())
+# Random Forest machine learning method using default parameters
+prediction.mx <- sits_kfold_validate(cerrado_2classes, 
+                                     folds = 5, 
+                                     ml_method = sits_rfor())
 # prints the output confusion matrix and statistics 
 sits_conf_matrix(prediction.mx)
 ```
@@ -343,7 +338,7 @@ sits_conf_matrix(prediction.mx)
 
 The continuous observation of the Earth surface provided by orbital sensors is unprecedented in history. Just for the sake of illustration, a unique tile from MOD13Q1 product, a square of $4800$ pixels provided every 16 days since February 2000 takes around $18$GB of uncompressed data to store only one band or vegetation index. This data deluge puts the field into a big data era and imposes challenges to design and build technologies that allow the Earth observation community to analyse those data sets [@Camara2017]. 
 
-To classify a data cube, use the function `sits_classify()` as described below. This function works both with cubes built from raster bricks and those built with services such as "EOCUBES". The classification algorithms allows users to choose how many process will run the task in parallel, and also the size of each data chunk to be consumed at each iteration. This strategy enables `sits` to work on average desktop computers without depleting all computational resources. The code bellow illustrates how to classify a small raster brick image that accompany the package.
+To classify a data cube, use the function `sits_classify()` as described below. This function works with cubes built from raster bricks. The classification algorithms allows users to choose how many process will run the task in parallel, and also the size of each data chunk to be consumed at each iteration. This strategy enables `sits` to work on average desktop computers without depleting all computational resources. The code bellow illustrates how to classify a small raster brick image that accompany the package.
 
 ## Steps for cube classification 
 
@@ -371,11 +366,14 @@ mato_grosso_2bands  <- sits_select_bands(mato_grosso_samples, ndvi, evi)
 # build a machine learning model for this area
 xbg_model <- sits_train(mato_grosso_2bands, sits_xgboost())
 
-# Use the raster cube created in the section "Defining a data cube using files" above
+# Use the raster cube created in the section 
+# "Defining a data cube using files" above
 # Classify the raster cube, generating a probability file
-probs_cube <- sits_classify(raster_cube, ml_model = xbg_model, memsize = 2, multicores = 1)
+probs_cube <- sits_classify(raster_cube, ml_model = xbg_model, 
+                            memsize = 2, multicores = 1)
 
-# label the probability file (by default selecting the class with higher probability)
+# label the probability file 
+# (by default selecting the class with higher probability)
 label_cube <- sits_label_classification(probs_cube)
 ```
 
@@ -389,15 +387,18 @@ Doing post-processing using Bayesian smoothing in SITS is straightforward. The r
 
 ```{r, eval = FALSE}
 # smooth the result with a bayesian filter
-label_bayes <- sits_label_classification(probs_cube, smoothing = "bayesian")
+label_bayes <- sits_label_classification(probs_cube, 
+                                         smoothing = "bayesian")
 
-# plot the smoothened image
+# plot the image
 plot(label_bayes, time = 1, title = "Sinop-smooth")
 ```
 
-```{r, fig.align="center", fig.cap="Classified image post-processed with Bayesian smoothing. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
+```{r, out.width = "90%", out.height = "90%", echo = FALSE, fig.align="center", fig.cap="Classified image post-processed with Bayesian smoothing. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}
 
-knitr::include_graphics(system.file("extdata/markdown/figures", "sinop_bayes.png", package = "sits"))
+knitr::include_graphics(system.file("extdata/markdown/figures", 
+                                    "sinop_bayes.png", 
+                                    package = "sits"))
 ```
 
 

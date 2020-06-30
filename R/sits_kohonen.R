@@ -63,7 +63,6 @@ sits_cluster_som <- function(data,  grid_xdim = 10, grid_ydim = 10, alpha = 1.0,
 #' @param alpha          Starting learning rate, which decreases according to number of iterations.
 #' @param distance       The type of similarity measure (distance).
 #' @param iterations     The number of time to run the SOM cluster.
-#' @param  ...           Additional parameters to be passed to kohonen::supersom function.
 #' @return               Returns a list of sits tibbles containing statistics about the samples and the neuron in each iteration.
 #' Besides that, the data is returned with the columns presenting the probability of a sample belongs to a cluster based on a frequency
 #' that a sample was allocated in a neuron, and finally a column presenting the total probability of a sample belongs to a cluster using data of neighbourhood.
@@ -84,6 +83,11 @@ sits_som_map <- function(data,
                              iterations = 50)
 
     {
+    # verifies if kohonen package is installed
+    if (!requireNamespace("kohonen", quietly = TRUE)) {
+      stop("kohonen needed for this function to work.
+              Please install it.", call. = FALSE)
+    }
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)

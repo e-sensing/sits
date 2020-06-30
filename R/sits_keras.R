@@ -110,15 +110,12 @@ sits_keras_diagnostics <- function(dl_model) {
         return(FALSE)
     }
 
-    message("Plotting history of the model fit")
-    graphics::plot(environment(dl_model)$history)
-
     test_eval <- keras::evaluate(environment(dl_model)$model.keras,
                                  environment(dl_model)$test.x,
                                  environment(dl_model)$test.y, verbose = 0)
     message("Estimated loss and accuracy based on test data")
-    message(paste0("Estimated accuracy: ", round(test_eval$acc, digits = 3),
-                   " estimated loss: ", round(test_eval$loss, digits = 3)))
+    message(paste0("Estimated accuracy: ", round(test_eval["accuracy"], digits = 3),
+                   " estimated loss: ", round(test_eval["loss"], digits = 3)))
     return(test_eval)
 }
 

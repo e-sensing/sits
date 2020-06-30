@@ -128,12 +128,3 @@ test_that("Values", {
 
     expect_true("savi" %in% names(sits_time_series(savi.tb)))
 })
-
-
-
-test_that("Rename-Coverage-Cube",{
-
-    expect_true("coverage" %in% names(point_ndvi))
-    point_ndvi_cube <- sits:::.sits_tibble_rename(point_ndvi)
-    expect_true("cube" %in% names(point_ndvi_cube))
-})

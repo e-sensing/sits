@@ -16,16 +16,16 @@
 #' @return A sits tibble.
 #' @export
 .sits_tibble <- function() {
-    result <- tibble::tibble(longitude   = double(),
-                                latitude    = double(),
-                                start_date  = as.Date(character()),
-                                end_date    = as.Date(character()),
-                                label       = character(),
-                                cube        = character(),
-                                time_series = list()
+    sits.tb <- tibble::tibble(longitude   = double(),
+                              latitude    = double(),
+                              start_date  = as.Date(character()),
+                              end_date    = as.Date(character()),
+                              label       = character(),
+                              cube        = character(),
+                              time_series = list()
     )
-    class(result) <- append(class(result), c("sits", "sits_ts_tbl"), after = 0)
-    return(result)
+    class(sits.tb) <- append(class(sits.tb), c("sits"), after = 0)
+    return(sits.tb)
 }
 #' @title Aligns dates of time series to a reference date
 #' @name sits_align_dates
@@ -948,10 +948,8 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
 .sits_tibble_rename <- function(data)
 {
     # is the input data a valid sits tibble?
-    assertthat::assert_that("coverage" %in% names(data),
-        msg = "sits_tibble_rename: input data does not have a coverage column ")
-
-    data <- data %>% dplyr::rename(cube = coverage)
+    if ("coverage" %in% names(data))
+        data <- data %>% dplyr::rename(cube = coverage)
 
     return(data)
 }

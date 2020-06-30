@@ -29,20 +29,12 @@
                             .n_start_csv,
                             .n_max_csv,
                             .n_save) {
-    # configure the format of the CSV file to be read
-    cols_csv <- readr::cols(id          = readr::col_integer(),
-                            longitude   = readr::col_double(),
-                            latitude    = readr::col_double(),
-                            start_date  = readr::col_date(),
-                            end_date    = readr::col_date(),
-                            label       = readr::col_character())
 
     # pre-condition - does the csvfile exist?
     assertthat::assert_that(file.exists(csv_file),
                          msg = "sits_from_csv: csv file does not exist")
-
     # read sample information from CSV file and put it in a tibble
-    csv.tb <- readr::read_csv(csv_file, n_max = Inf, col_types = cols_csv)
+    csv.tb <- tibble::as_tibble(utils::read.csv(csv_file))
 
     # select a subset
     if (.n_max_csv == Inf)
@@ -64,7 +56,7 @@
                                  csv.tb$end_date,
                                  csv.tb$label),
                 function(longitude, latitude, start_date, end_date, label){
-                        row <- .sits_from_service(cube = cube,
+                        row <- .sits_ts_from_cube(cube = cube,
                                  longitude = longitude,
                                  latitude = latitude,
                                  start_date = lubridate::as_date(start_date),
@@ -130,6 +122,8 @@
 #' data(cerrado_2classes)
 #' # export a time series to zoo
 #' sits_metadata_to_csv (cerrado_2classes, file = "./cerrado_2classes.csv")
+#' # cleanup (optional)
+#' file.remove("./cerrado_2classes.csv")
 #' }
 #' @export
 sits_metadata_to_csv <- function(data, file){
@@ -177,6 +171,9 @@ sits_metadata_to_csv <- function(data, file){
 #' data(cerrado_2classes)
 #' # export a time series
 #' sits_data_to_csv(cerrado_2classes, file = "cerrado_2classes.csv")
+#'
+#' # cleanup (optional)
+#' file.remove("./cerrado_2classes.csv")
 #' }
 #' @export
 sits_data_to_csv <- function(data, file){

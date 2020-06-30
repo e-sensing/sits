@@ -4,7 +4,9 @@
 \name{ts_zoo}
 \alias{ts_zoo}
 \title{A time series in the ZOO format}
-\format{A ZOO time series with two bands (NDVI and EVI) for a one year period}
+\format{
+A ZOO time series with two bands (NDVI and EVI) for a one year period
+}
 \usage{
 data(ts_zoo)
 }

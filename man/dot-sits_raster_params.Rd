@@ -7,7 +7,7 @@
 .sits_raster_params(r_obj)
 }
 \arguments{
-\item{r_obj}{An R object associated to a Raster (Layer, Brick or Stack)}
+\item{r_obj}{An R object associated to a Raster Brick}
 }
 \value{
 A tibble with the cube params

@@ -44,6 +44,11 @@
 #' }
 #' @export
 sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
+    # verifies if mgcv package is installed
+    if (!requireNamespace("mgcv", quietly = TRUE)) {
+        stop("mgcv required for this function to work.
+              Please install it.", call. = FALSE)
+    }
     # backward compatibility
     if ("coverage" %in% names(data))
         data <- .sits_tibble_rename(data)

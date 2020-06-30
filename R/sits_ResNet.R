@@ -31,7 +31,7 @@
 #'  A strong baseline",
 #'  2017 international joint conference on neural networks (IJCNN).
 #'
-#' @param data              Time series with the training samples.
+#' @param samples           Time series with the training samples.
 #' @param blocks            Number of 1D convolutional filters for
 #'                          each block of three layers.
 #' @param kernels           Size of the 1D convolutional kernels
@@ -75,7 +75,7 @@
 #' plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
-sits_ResNet <- function(data              = NULL,
+sits_ResNet <- function(samples          = NULL,
                         blocks           = c(64, 128, 128),
                         kernels          = c(8, 5, 3),
                         activation       = 'relu',
@@ -85,8 +85,8 @@ sits_ResNet <- function(data              = NULL,
                         validation_split = 0.2,
                         verbose          = 1) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    if ("coverage" %in% names(samples))
+        data <- .sits_tibble_rename(samples)
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){
@@ -173,11 +173,12 @@ sits_ResNet <- function(data              = NULL,
             output_tensor <- keras::layer_activation(output_tensor,
                                                      activation = activation)
             shortcut <- output_tensor
-            return(output_tensor)
         }
 
         # reshape a tensor into a 2D shape
         output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
+        # reshape a tensor into a 2D shape
+        output_tensor <- keras::layer_flatten(output_tensor)
 
         # create the final tensor
         model_loss <- ""
@@ -243,6 +244,6 @@ sits_ResNet <- function(data              = NULL,
         return(model_predict)
     }
 
-    result <- .sits_factory_function(data, result_fun)
+    result <- .sits_factory_function(samples, result_fun)
     return(result)
 }

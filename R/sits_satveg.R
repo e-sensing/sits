@@ -10,7 +10,7 @@
     satellite <- "TERRA"
     sensor    <- "MODIS"
     # get the bands
-    bands <- .sits_config_bands(service, name)
+    bands <- .sits_config_satveg_bands(name)
 
     # the data in unlabelled
     labels <- c("NoClass")
@@ -25,12 +25,12 @@
     timeline <- lubridate::as_date(.sits_satveg_timeline())
 
     # get the size of the cube
-    size <- .sits_config_size(service, name)
+    size <- .sits_config_satveg_size(name)
     nrows <- as.integer(size["nrows"])
     ncols <- as.integer(size["ncols"])
 
     # get the bounding box of the cube
-    bbox <- .sits_config_bbox(service, name)
+    bbox <- .sits_config_satveg_bbox(name)
     xmin <-  as.numeric(bbox["xmin"])
     xmax <-  as.numeric(bbox["xmax"])
     ymin <-  as.numeric(bbox["ymin"])
@@ -42,13 +42,13 @@
     yres <-  as.numeric(res["yres"])
 
     # get the CRS projection
-    crs <- .sits_config_projection(service, name)
+    crs <- .sits_config_satveg_projection(name)
 
 
-    URL <- .sits_config_providers(service)
+    URL <- .sits_config_satveg_access()
 
     # create a tibble to store the metadata
-    cube_satveg <- .sits_cube_create(service   = service,
+    cube_satveg <- .sits_cube_create(type  = "SATVEG",
                                    URL       = URL,
                                    satellite = satellite,
                                    sensor    = sensor,
@@ -70,6 +70,8 @@
                                    yres  = yres,
                                    crs   = crs)
 
+    class(cube_satveg) <- append(class(cube_satveg),
+                             c("satveg-cube"), after = 0)
     return(cube_satveg)
 }
 
@@ -161,6 +163,11 @@
 #'                        "3" - no data and cloud correction)
 #' @return TRUE if no problems are detected.
 .sits_ts_from_satveg <- function(longitude, latitude, name, .prefilter){
+    # verifies if RCurl package is installed
+    if (!requireNamespace("RCurl", quietly = TRUE)) {
+        stop("RCurl required for this function to work.
+             Please install it.", call. = FALSE)
+    }
     # the parameter filter is not used
     filter <- ""
     filter_par <- ""
@@ -168,10 +175,10 @@
     has_timeline <- FALSE
 
     # URL to access SATVEG services
-    URL <- .sits_config_server("SATVEG")
+    URL <- .sits_config_satveg_url()
 
     # bands available in SATVEG
-    bands <- .sits_config_bands("SATVEG", name)
+    bands <- .sits_config_satveg_bands(name)
 
     # read each of the bands separately
     for (b in bands) {
@@ -257,7 +264,7 @@
     band <- "ndvi"
     cube <- "terra"
     # URL to access SATVEG services
-    URL <- .sits_config_server("SATVEG")
+    URL <- .sits_config_satveg_url()
 
     # Build the URL to retrieve the time series
     URL_ts <- paste0(URL, band, "/ponto", "/", longitude, "/",

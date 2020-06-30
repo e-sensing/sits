@@ -28,8 +28,13 @@ time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-sinop <- sits_cube(name = "Sinop", timeline = timeline_2013_2014,
-                       bands = c("ndvi", "evi"), files = files)
+sinop <- sits_cube(type = "BRICK",
+                   satellite = "TERRA",
+                   sensor    = "MODIS",
+                   name = "Sinop",
+                   timeline = timeline_2013_2014,
+                   bands = c("ndvi", "evi"),
+                   files = files)
 
 
 # classify the raster image

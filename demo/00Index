@@ -1,9 +1,7 @@
 access_WTSS              Access time series using the WTSS service
 access_SATVEG            Access time series using the SATVEG service
-access_EOCUBES           Access time series using the EOCubes package
 classify_csv             Classify a set of labelled samples in the CSV format
 classify_ts              Classify a time series using SVM
-classify_eocubes_svm     Classify cubes from EOCubes package using SVM (only NDVI, EVI bands)
 classify_raster_rfor     Classify RasterBricks in TIFF format using SVM (only NDVI, EVI bands)
 classify_raster_svm      Classify RasterBricks in TIFF format using SVM (only NDVI, EVI bands)
 classify_TWDTW           Classify a time series using TWDTW

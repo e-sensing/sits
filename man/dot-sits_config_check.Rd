@@ -2,15 +2,15 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_check}
 \alias{.sits_config_check}
-\title{Check that the service is valid, based on the configuration file}
+\title{Check that the type is valid, based on the configuration file}
 \usage{
-.sits_config_check(service)
+.sits_config_check(type)
 }
 \arguments{
-\item{service}{Name of the time series service.}
+\item{type}{Type of data cube}
 }
 \description{
-Check that the service is valid, based on the configuration file
+Check that the type is valid, based on the configuration file
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
