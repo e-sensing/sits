@@ -64,9 +64,10 @@ sits_cube <- function(type           = NULL,
 
     # test if type has been provided
     if(purrr::is_null(type) && !purrr::is_null(service)) {
-        type <- service
+        type <- toupper(service)
         message("sits_cube: use of service variable is deprecated, see docs")
     }
+    type  <- toupper(type)
     types <- .sits_config_types()
     assertthat::assert_that(type %in% types,
             msg = paste0("sits_cube: required type not available\n",
@@ -111,13 +112,18 @@ sits_cube <- function(type           = NULL,
         assertthat::assert_that(!purrr::is_null(timeline),
                 msg = "sits_cube: for type = BRICK timeline must be provided")
 
+        # bands are lowercase
+        bands <- tolower(bands)
+
         # is the satellite supported by SITS?
+        satellite <- toupper(satellite)
         sats <- .sits_config_satellites()
         assertthat::assert_that(satellite %in% sats,
                 msg = paste0("satellite not supported\n",
                              "Use one of ", sats))
 
         # is the sensor supported by SITS?
+        sensor <- toupper(sensor)
         sensors <- .sits_config_sensors(satellite)
         assertthat::assert_that(sensor %in% sensors,
                 msg = paste0("sensor not supported\n",
@@ -314,8 +320,7 @@ sits_cube <- function(type           = NULL,
                                     crs             = params$xmin,
                                     files           = files)
 
-    class(cube_probs) <- append(class(cube_probs), "probs-cube",
-                                 after = 0)
+    class(cube_probs) <- c("probs_cube", class(cube_probs))
     return(cube_probs)
 }
 #' @title Create a set of RasterLayer objects
@@ -406,8 +411,7 @@ sits_cube <- function(type           = NULL,
                                      crs            = params$crs,
                                      files          = files)
 
-    class(cube_labels) <- append(class(cube_labels), "classified_image",
-                                 after = 0)
+    class(cube_labels) <- c("classified_image", class(cube_labels))
     return(cube_labels)
 }
 

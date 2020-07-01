@@ -70,8 +70,8 @@
                                    yres  = yres,
                                    crs   = crs)
 
-    class(cube_satveg) <- append(class(cube_satveg),
-                             c("satveg-cube"), after = 0)
+    class(cube_satveg) <- c("satveg_cube", class(cube_satveg))
+
     return(cube_satveg)
 }
 

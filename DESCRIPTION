@@ -91,6 +91,7 @@ RoxygenNote: 7.1.0
 Collate: 
     'RcppExports.R'
     'data.R'
+    'sits-package.R'
     'sits_accuracy.R'
     'sits_classification.R'
     'sits_config.R'

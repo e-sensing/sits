@@ -15,8 +15,7 @@
 
 \item{kohonen_obj}{The kohonen object returned by kohonen package.}
 
-\item{duplicated_id_neuron}{A vector containing the id of each neuron
-that has two majority labels.}
+\item{duplicated_id_neuron}{A vector containing all the id of each neuron that has two majority labels.}
 }
 \value{
 Return a new majority label of a neuron based on its neighbourhood

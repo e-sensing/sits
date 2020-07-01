@@ -117,7 +117,7 @@
                               files = files )
 
     class(cube) <- append(class(cube),
-                             c("brick-cube"), after = 0)
+                             c("brick_cube"), after = 0)
     return(cube)
 }
 

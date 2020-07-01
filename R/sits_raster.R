@@ -56,7 +56,7 @@
     # nrow       Number of rows in the block extracted from the RasterBrick
     # size       size of each block in pixels
 
-    bs <- list(n = nblocks, row = row.vec, nrows = nrows.vec, size = size.vec)
+    bs <- list(n = length(row.vec), row = row.vec, nrows = nrows.vec, size = size.vec)
 
     return(bs)
 }

@@ -4,10 +4,13 @@
 \alias{sits_som_plot_clusters}
 \title{Plot information about clusters}
 \usage{
-sits_som_plot_clusters(data, text_title = " Cluster ")
+sits_som_plot_clusters(
+  data,
+  text_title = " Confusion between the sample classes "
+)
 }
 \arguments{
-\item{data}{Percentage of mixture between the clusters
+\item{data}{Table containing the percentage of mixture between the clusters
 (produced by \code{\link[sits]{sits_som_evaluate_cluster}})}
 
 \item{text_title}{Title of plot. Default is "Cluster".}

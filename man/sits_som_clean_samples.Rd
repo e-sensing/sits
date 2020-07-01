@@ -6,23 +6,25 @@
 \usage{
 sits_som_clean_samples(
   som_cluster,
-  prob_label_change = 0.8,
-  min_cluster_prob = 0.6
+  conditonal_threshold = 0.6,
+  posterior_threshold = 0.6,
+  samples_analysis = TRUE
 )
 }
 \arguments{
-\item{som_cluster}{Result of \code{\link[sits]{sits_som_map}}}
+\item{som_cluster}{A sits tibble returned by \code{\link[sits]{sits_som_map}}}
 
-\item{prob_label_change}{Threshold of probability to change the label}
+\item{conditonal_threshold}{Threshold of conditional probability (frequency of samples assigned to a same SOM neuron)}
 
-\item{min_cluster_prob}{Minimum probability for a good sample
-to belong to a cluster}
+\item{posterior_threshold}{Threshold of posterior probability (influencied by the SOM neighborhood)}
+
+\item{samples_analysis}{There are some samples that need to be analyzed deeply
+due to the high intra-class variability. To return the samples that must be
+analysed, samples_analysis = TRUE.}
 }
 \value{
-Returns a sits tibble with a
-                              new subset of samples and a new column
-                              with the probability that each sample belongs
-                              to the class described in label.
+Returns a sits tibble with a new subset of samples and a new column
+presenting the probability of each sample belongs to a class described in column label.
 }
 \description{
 This function remove sample that do not have good quality based

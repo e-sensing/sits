@@ -43,7 +43,8 @@ utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols",
                          "index_time", "dup_neuron",
                          "probability", "total_probability", "radius", "som_label",
                          "Alig.N", "matches", "original_row", "reference",
-                         "cluster", ".data"))
+                         "cluster","mixture_percentage", "conditional_prob","posterior_prob", ".data"))
+
 #' @importFrom lubridate %within% %m+%
 #' @useDynLib sits, .registration = TRUE
 NULL

@@ -9,9 +9,10 @@ test_that("Creating clustering using Self-organizing Maps", {
             grid_ydim = 5,
             alpha = 1,
             distance = "euclidean",
-            iterations = 2
-        ))
-    expect_true("probability" %in% names(new_samples))
+            iterations = 2))
+
+    expect_true("conditional_prob" %in% names(new_samples$cleaned_samples.tb))
+    expect_true("posterior_prob" %in% names(new_samples$cleaned_samples.tb))
 
     som_map <-
         suppressWarnings(sits_som_map(
@@ -27,13 +28,18 @@ test_that("Creating clustering using Self-organizing Maps", {
 
     plot(som_map)
 
-    cleaned_samples <- sits_som_clean_samples(som_map)
-    expect_true("probability" %in% names(cleaned_samples))
+    cleaned_samples <- sits_som_clean_samples(som_map, samples_analysis = FALSE)
+    expect_true("conditional_prob" %in% names(cleaned_samples))
+    expect_true("posterior_prob" %in% names(cleaned_samples))
+
+    cleaned_samples <- sits_som_clean_samples(som_map, samples_analysis = TRUE)
+    expect_true("conditional_prob" %in% names(cleaned_samples$make_analysis.tb))
+    expect_true("posterior_prob" %in% names(cleaned_samples$make_analysis.tb))
 
     cluster_overall <- sits_som_evaluate_cluster(som_map)
     expect_equal(length(names(cluster_overall$confusion_matrix)), 6)
 
-    sits_som_plot_clusters(cluster_overall, "Confusion by cluster")
+    sits_som_plot_clusters(cluster_overall, "Confusion between the sample classes")
 
 })
 

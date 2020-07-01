@@ -7,13 +7,13 @@
 .sits_som_paint_neurons(kohonen_obj)
 }
 \arguments{
-\item{kohonen_obj}{SOM provided by package Kohonen}
+\item{kohonen_obj}{Object Kohonen, this object contains all parameters of SOM provided by package Kohonen}
 }
 \value{
-SOM object with the colour of the neuron.
+Returns kohonen_obj with a new parameter with the colour of the neuron.
 }
 \description{
-Paints all neurons of the last iteration of SOM
+This function paint all neurons of the last iteration of SOM in function sits_cluster_som
 }
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}

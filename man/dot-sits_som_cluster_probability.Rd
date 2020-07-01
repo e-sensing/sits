@@ -7,16 +7,13 @@
 .sits_som_cluster_probability(data)
 }
 \arguments{
-\item{data}{Tibble with info of samples provided by sits_cluster_som.}
+\item{data}{A sits tibble with info of samples provided by sits_cluster_som.}
 }
 \value{
-Tibble with a new column indicating the
-                  probability of a sample belongs to a cluster and
-                  the majority cluster of a sample
+Returns a sits tibble with a new column indicating the probability of a sample belongs to a cluster and the majority cluster of a sample
 }
 \description{
-This function summarizes the probability
-that a sample belongs to a cluster from the label of the neuron
+This function summarize the probability a sample belongs to a cluster from the label of the neuron
 of several iterations.
 }
 \author{

@@ -7,12 +7,10 @@
 sits_som_evaluate_cluster(som_cluster)
 }
 \arguments{
-\item{som_cluster}{Kohonen map and associated information
-created by \code{\link[sits]{sits_som_map}}}
+\item{som_cluster}{Kohonen map and associated information created by \code{\link[sits]{sits_som_map}}}
 }
 \value{
-Confusion matrix and a table with percentage
-                   of mixture between the clusters.
+Returns the confusion matrix and a table with percentage of mixture between the clusters.
 }
 \description{
 This function extracts metrics about the clusters calculating
