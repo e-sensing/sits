@@ -39,7 +39,7 @@
 #' }
 #' @export
 sits_kfold_validate <- function(data, folds = 5,
-                                ml_method = sits_rfor(), multicores = 2){
+                                ml_method = sits_rfor(), multicores = 1){
 
     # backward compatibility
     if ("coverage" %in% names(data))
