@@ -87,7 +87,7 @@ Remotes:
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Collate: 
     'RcppExports.R'
     'data.R'

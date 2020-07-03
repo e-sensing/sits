@@ -212,3 +212,5 @@ sits_keras_diagnostics <- function(dl_model) {
                 test.x = test.x,
                 test.y = test.y))
 }
+
+

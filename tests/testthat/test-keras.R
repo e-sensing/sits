@@ -1,7 +1,5 @@
 context("Keras")
 test_that("keras read write",{
-    #skip_on_cran()
-    library(keras)
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
     model <- suppressMessages(suppressWarnings(sits_train(samples_mt_ndvi,
                                          sits_deeplearning(
