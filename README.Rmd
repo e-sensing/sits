@@ -15,24 +15,6 @@ knitr::opts_chunk$set(
 ### Overview
 
 The SITS package provides a set of tools for analysis, visualization and classification of satellite image time series. It includes methods for filtering, clustering, classification, and post-processing. 
-
-### Vignettes
-
-  - [“SITS: Data Analysis and Machine Learning for Data Cubes using
-    Satellite Image Time
-    Series”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/sits.pdf)
-
-  - [“Clustering of Satellite Image Time Series with
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering.pdf)
-
-  - [“Satellite Image Time Series Filtering with
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.pdf)
-
-  - [“Time Series classification using machine
-    learning”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/machine_learning.pdf)
-
-  - [“Post classification smoothing using Bayesian techniques in
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/smoothing.pdf)
     
 ### Installation
 
@@ -82,24 +64,12 @@ knitr::include_graphics("./inst/extdata/markdown/figures/samples_cerrado.png")
 
 Clustering methods in SITS improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Good samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM). Full details of the cluster methods used in SITS are available in the vignette 'Clustering of Satellite Image Time Series with SITS'. The following example shows how to create a dendrogram and associated clusters for a dataset with two classes ("pasture" and "cerrado") for the Cerrado biome in Brasil. For more details, please see the vignette [“Clustering of Satellite Image Time Series with SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering.pdf)
 
-
-```{r eval = FALSE}
-# take a set of patterns for 2 classes
-# create a dendrogram object with default clustering parameters
-clusters.tb <- sits_cluster_dendro(cerrado_2classes)
-```
-
-```{r, echo = FALSE, fig.align="center", fig.height=3, fig.width=5, fig.cap = "Dendrogram for samples of classes Pasture and Cerrado"}
-knitr::include_graphics("./inst/extdata/markdown/figures/cluster_dendro.png")
-```
-
-
 ## Filtering
 
 Satellite image time series are contaminated by atmospheric influence and directional effects. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with data sets that are *noisy* and *non-homogeneous*. For data filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker (`sits_whittaker()`), envelope (`sits_envelope()`) and the "cloud filter" (`sits_cloud_filter()`). As an example, we show how to apply the Whitakker smoother to a 16-year NDVI time series. For more details, please see the vignette [“Satellite Image Time Series Filtering with SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.pdf)
 
 
-```{r, eval = FALSE}
+```{r}
 # apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
 # merge with the original data
 # plot the original and the modified series
@@ -107,10 +77,6 @@ point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 10))
 point_whit %>% 
   sits_merge(point_ndvi) %>% 
   plot()
-```
-
-```{r, echo = FALSE, fig.align="center", fig.height=3, fig.width=5, fig.cap="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\\lambda=1$ parameter."}
-knitr::include_graphics("./inst/extdata/markdown/figures/whit.png")
 ```
 
 
@@ -133,25 +99,23 @@ SITS provides support for the classification of both individual time series as w
 
 The following example illustrate how to train a dataset and classify an individual time series. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, a random forest classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `plot`.
 
-```{r, eval = FALSE}
+```{r}
 
 # Train a machine learning model for the mato grosso dataset using Extreme Gradient Boosting
-rfor_model <- sits_train(data = samples_mt_4bands, ml_method = sits_rfor(num_trees = 500))
+samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+rfor_model <- sits_train(data = samples_mt_2bands, 
+                         ml_method = sits_rfor(num_trees = 100))
 
 # get a point to be classified with four bands
-point_mt_4bands <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
 
 # filter the point with a Whittaker smoother
-point_filtered <- sits_whittaker(point_mt_4bands, lambda = 0.2, bands_suffix = "") 
+point_filtered <- sits_whittaker(point_mt_2bands, lambda = 0.2, bands_suffix = "") 
 
 # Classify using random forest model and plot the result
 class.tb <- sits_classify(point_filtered, rfor_model)
 # plot the results of the prediction
-plot(class.tb, bands = c("ndvi", "mir"))
-```
-
-```{r, echo = FALSE, fig.align="center", fig.height=3, fig.width=5, fig.cap="XGBoost classification of a $16$ years time series"}
-knitr::include_graphics("./inst/extdata/markdown/figures/point_mt_classified_rfor.png")
+plot(class.tb, bands = c("ndvi", "evi"))
 ```
 
 
@@ -187,9 +151,32 @@ plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
 knitr::include_graphics("./inst/extdata/markdown/figures/sinop_bayes.png")
 ```
 
-For more details, please see the vignettes [“Time Series classification using machine learning”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/machine_learning.pdf) and [“Post classification smoothing using Bayesian techniques in SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/smoothing.pdf)
+### Additional information 
 
-#### Package status of SITS version 0.9.3
+For more information, please see the vignettes 
+
+  - [“SITS: Data analysis and machine learning for data cubes using
+    satellite image time
+    series”](https://github.com/e-sensing/sits-docs/blob/master/doc/sits.pdf)
+  
+  - ["Accessing time series information in 
+      SITS"](https://github.com/e-sensing/sits-docs/blob/master/doc/time_series.pdf)
+
+  - [“Clustering of satellite image time series with
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
+
+  - [“Satellite image time series filtering with
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filtering.pdf)
+
+  - [“Time series classification using machine
+    learning”](https://github.com/e-sensing/sits-docs/blob/master/doc/machine_learning.pdf)
+
+  - [“Post classification smoothing using Bayesian techniques in
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/smoothing.pdf)
+
+
+
+#### Package status of SITS version 0.9.5
 
 | |Status|
 |---|---|

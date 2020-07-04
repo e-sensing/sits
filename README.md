@@ -8,24 +8,6 @@ The SITS package provides a set of tools for analysis, visualization and
 classification of satellite image time series. It includes methods for
 filtering, clustering, classification, and post-processing.
 
-### Vignettes
-
-  - [“SITS: Data Analysis and Machine Learning for Data Cubes using
-    Satellite Image Time
-    Series”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/sits.pdf)
-
-  - [“Clustering of Satellite Image Time Series with
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering.pdf)
-
-  - [“Satellite Image Time Series Filtering with
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.pdf)
-
-  - [“Time Series classification using machine
-    learning”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/machine_learning.pdf)
-
-  - [“Post classification smoothing using Bayesian techniques in
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/smoothing.pdf)
-
 ### Installation
 
 Please install the SITS package from github, making sure you have the
@@ -51,21 +33,21 @@ packages. More services will be added in future releases.
 
 ### Visualization
 
+    #> Created logger for sits package - DEBUG level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//RtmpqdfMjM/sits_debug32ad42706fc6.log
+    #> Created logger for sits package - ERROR level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//RtmpqdfMjM/sits_error32ad63ba523d.log
     #> sits - satellite image time series analysis.
-    #> Loaded sits v0.9.4.
+    #> Loaded sits v0.9.5.
     #>         See ?sits for help, citation("sits") for use in publication.
     #>         See demo(package = "sits") for examples.
-    #> Created logger for sits package - DEBUG level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//Rtmp4S5Wjz/sits_debug1017e33692899.log
-    #> Created logger for sits package - ERROR level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//Rtmp4S5Wjz/sits_error1017e3ce86f2d.log
 
 ``` r
 cerrado_2classes[1:3,]
 #> # A tibble: 3 x 7
-#>   longitude latitude start_date end_date   label   coverage  time_series   
-#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>     <list>        
-#> 1     -54.2    -14.0 2000-09-13 2001-08-29 Cerrado mod13q1_… <tibble [23 ×…
-#> 2     -54.2    -14.0 2001-09-14 2002-08-29 Cerrado mod13q1_… <tibble [23 ×…
-#> 3     -54.2    -14.0 2002-09-14 2003-08-29 Cerrado mod13q1_… <tibble [23 ×…
+#>   longitude latitude start_date end_date   label   cube    time_series      
+#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>   <list>           
+#> 1     -54.2    -14.0 2000-09-13 2001-08-29 Cerrado MOD13Q1 <tibble [23 × 3]>
+#> 2     -54.2    -14.0 2001-09-14 2002-08-29 Cerrado MOD13Q1 <tibble [23 × 3]>
+#> 3     -54.2    -14.0 2002-09-14 2003-08-29 Cerrado MOD13Q1 <tibble [23 × 3]>
 ```
 
 After a time series is imported, it is loaded in a tibble. The first six
@@ -89,7 +71,17 @@ samples_cerrado <- dplyr::filter(samples_ndvi,
 plot(samples_cerrado)
 ```
 
-<img src="./inst/extdata/markdown/figures/samples_cerrado.png" title="Samples for NDVI band for Cerrado class" alt="Samples for NDVI band for Cerrado class" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+
+<img src="./inst/extdata/markdown/figures/samples_cerrado.png" alt="Samples for NDVI band for Cerrado class" width="480" />
+
+<p class="caption">
+
+Samples for NDVI band for Cerrado class
+
+</p>
+
+</div>
 
 ### Clustering
 
@@ -106,14 +98,6 @@ dendrogram and associated clusters for a dataset with two classes
 details, please see the vignette [“Clustering of Satellite Image Time
 Series with
 SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering.pdf)
-
-``` r
-# take a set of patterns for 2 classes
-# create a dendrogram object with default clustering parameters
-clusters.tb <- sits_cluster_dendro(cerrado_2classes)
-```
-
-<img src="./inst/extdata/markdown/figures/cluster_dendro.png" title="Dendrogram for samples of classes Pasture and Cerrado" alt="Dendrogram for samples of classes Pasture and Cerrado" style="display: block; margin: auto;" />
 
 ## Filtering
 
@@ -137,8 +121,6 @@ point_whit %>%
   sits_merge(point_ndvi) %>% 
   plot()
 ```
-
-<img src="./inst/extdata/markdown/figures/whit.png" title="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." alt="Whittaker smoother filter applied on one-year NDVI time series. The example uses default $\lambda=1$ parameter." style="display: block; margin: auto;" />
 
 ## Time Series classification using machine learning
 
@@ -173,21 +155,23 @@ format using the function `sits_show_prediction` or graphically using
 ``` r
 
 # Train a machine learning model for the mato grosso dataset using Extreme Gradient Boosting
-rfor_model <- sits_train(data = samples_mt_4bands, ml_method = sits_rfor(num_trees = 500))
+samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+rfor_model <- sits_train(data = samples_mt_2bands, 
+                         ml_method = sits_rfor(num_trees = 100))
 
 # get a point to be classified with four bands
-point_mt_4bands <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
 
 # filter the point with a Whittaker smoother
-point_filtered <- sits_whittaker(point_mt_4bands, lambda = 0.2, bands_suffix = "") 
+point_filtered <- sits_whittaker(point_mt_2bands, lambda = 0.2, bands_suffix = "") 
 
 # Classify using random forest model and plot the result
 class.tb <- sits_classify(point_filtered, rfor_model)
 # plot the results of the prediction
-plot(class.tb, bands = c("ndvi", "mir"))
+plot(class.tb, bands = c("ndvi", "evi"))
 ```
 
-<img src="./inst/extdata/markdown/figures/point_mt_classified_rfor.png" title="XGBoost classification of a $16$ years time series" alt="XGBoost classification of a $16$ years time series" style="display: block; margin: auto;" />
+![](man/figures/README-unnamed-chunk-8-1.png)<!-- -->
 
 The following example shows how to classify a data cube organised as a
 set of raster bricks. First, we ned to build a model based on the the
@@ -219,15 +203,42 @@ label_cube <- sits_label_classification(probs_cube, smoothing = "bayesian")
 plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
 ```
 
-<img src="./inst/extdata/markdown/figures/sinop_bayes.png" title="Image classified with XGBoost" alt="Image classified with XGBoost" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
 
-For more details, please see the vignettes [“Time Series classification
-using machine
-learning”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/machine_learning.pdf)
-and [“Post classification smoothing using Bayesian techniques in
-SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/smoothing.pdf)
+<img src="./inst/extdata/markdown/figures/sinop_bayes.png" alt="Image classified with XGBoost" width="700" />
 
-#### Package status of SITS version 0.9.3
+<p class="caption">
+
+Image classified with XGBoost
+
+</p>
+
+</div>
+
+# Additional information
+
+For more details, please see the vignettes
+
+  - [“SITS: Data analysis and machine learning for data cubes using
+    satellite image time
+    series”](https://github.com/e-sensing/sits-docs/blob/master/doc/sits.pdf)
+
+  - [“Accessing time series information in
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/time_series.pdf)
+
+  - [“Clustering of satellite image time series with
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
+
+  - [“Satellite image time series filtering with
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filtering.pdf)
+
+  - [“Time series classification using machine
+    learning”](https://github.com/e-sensing/sits-docs/blob/master/doc/machine_learning.pdf)
+
+  - [“Post classification smoothing using Bayesian techniques in
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/smoothing.pdf)
+
+#### Package status of SITS version 0.9.5
 
 |                    | Status                                                                                                                                                                                      |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
