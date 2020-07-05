@@ -302,29 +302,3 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
     return(invisible(matches))
 }
 
-#' @title Plot matches between a label pattern and a time series
-#' @name .sits_plot_twdtw_matches
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Plots the matches from TWDTW classification for one label.
-#'
-#' @param matches       dtwSat S4 match objects produced by sits_TWDTW_matches.
-#' @param patterns.tb   Known temporal signatures for the chosen classes.
-#' @param n_matches     Number of matches of a given label to be displayed.
-.sits_plot_twdtw_matches <- function(matches, patterns.tb, n_matches = 4) {
-    # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("dtwSat needed for this function to work.
-             Please install it.", call. = FALSE)
-    }
-    matches %>%
-        purrr::map(function(m.twdtw) {
-            dtwSat::plot(m.twdtw, type = "matches",
-                         patterns.labels = patterns.tb$label,
-                         k = n_matches) %>%
-                graphics::plot()
-        })
-    return(invisible(matches))
-}
-

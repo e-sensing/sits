@@ -733,62 +733,6 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
 
     return(values.lst)
 }
-#' @title Apply a function over a set of time series.
-#' @name .sits_apply_ts
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description Apply a 1D generic function to a time series and
-#' specific methods for tasks such as missing values removal and smoothing.
-#' `sits_apply_ts` returns a time series tibble with
-#'  the same samples and new bands computed by `fun`, `fun_index` functions.
-#'  These functions must be defined inline and are called
-#'  by `sits_apply` for each band, whose values are passed as the function argument.
-#'  The `fun` function may either return a vector or a list of vectors.
-#'  In the first case, the vector will be the new values
-#'  of the corresponding band.
-#'  In the second case, the returned list must have names;
-#'  each element vector will generate a new band. The name of the new band is
-#'  composed by concatenating original band name and
-#'  the corresponding list element name.
-#'
-#' If a suffix is provided in `bands_suffix`,
-#' all resulting bands names will end with provided suffix separated by a ".".
-#'
-#' @param ts.tb         Tibble with a time series (one or more bands).
-#' @param fun           Function with one parameter as input
-#'                      and a vector or list of vectors as output.
-#' @param fun_index     Function with one parameter as input
-#'                      and a Date vector as output.
-#' @param bands_suffix  String informing the resulting bands name's suffix.
-#' @return A sits tibble with same samples and the new bands.
-.sits_apply_ts <- function(ts.tb,
-                           fun,
-                           fun_index = function(index){ return(index) },
-                           bands_suffix = "") {
-    # computes fun and fun_index for all time series
-    ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
-        purrr::map(fun)
-
-    # append bands names' suffixes
-    if (nchar(bands_suffix) != 0)
-        names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".",
-                                         bands_suffix)
-
-    # unlist if there are more than one result from `fun`
-    if (is.recursive(ts_computed.lst[[1]]))
-        ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
-
-    # convert to tibble
-    ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
-
-    # compute Index column
-    ts_computed.tb <- dplyr::mutate(ts_computed.tb,
-                                    Index = fun_index(ts.tb$Index))
-
-    # reorganizes time series tibble
-    return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
-
-    return(ts.tb)
-}
 
 #' @title Create partitions of a data set
 #' @name  .sits_create_folds
@@ -845,28 +789,6 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
                                      time_series  = ts.lst)
     }
     return(subset.tb)
-}
-
-#' @title Group the contents of a sits tibble by different criteria
-#' @name .sits_group_by
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Group the contents of a sits tibble by different criteria.
-#'
-#' @param data      A sits tibble.
-#' @param ...       One or more sits tibble field separated by
-#'                  commas that are used to group the data.
-#'                  See `dplyr::group_by` help for more details.
-#' @return          A sits tibble with the selected bands.
-#'
-.sits_group_by <- function(data, ...){
-    # execute the group by function from dplyr
-    result <- data %>%
-        dplyr::group_by(...)
-
-    # comply result with sits tibble format and return
-    result <- dplyr::bind_rows(list(.sits_tibble(), result))
-    return(result)
 }
 
 #' @title Filter bands on a sits tibble

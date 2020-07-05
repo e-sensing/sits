@@ -170,13 +170,13 @@ test_that("One-year, multicore classification", {
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$files))))
 
-})
+ })
 
 test_that("One-year, single core classification with filter", {
 
     samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
     samples_filt <- sits_whittaker(samples_mt_2bands, lambda = 3.0, bands_suffix = "")
-    rfor_model <- sits_train(samples_filt, sits_rfor(num_trees = 500))
+    svm_model <- sits_train(samples_filt, sits_svm())
 
     ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop_ndvi_2014.tif",
                                package = "sits"))
@@ -195,10 +195,50 @@ test_that("One-year, single core classification with filter", {
                             files = c(ndvi_file, evi_file))
 
     sinop_2014_probs <- sits_classify(data = sinop_2014,
-                                      ml_model = rfor_model,
+                                      ml_model = svm_model,
                                       filter = sits_whittaker(lambda = 3.0),
                                       memsize = 4,
                                       multicores = 1)
+
+    expect_true(all(file.exists(unlist(sinop_2014_probs$files))))
+    rc_obj <- sits:::.sits_cube_robj(sinop_2014_probs)
+    expect_true(raster::nrow(rc_obj) == sinop_2014_probs$nrows)
+
+    sinop_majority <- sits_label_classification(sinop_2014_probs,
+                                                smoothing = "majority")
+
+    expect_true(all(file.remove(unlist(sinop_2014_probs$files))))
+    expect_true(all(file.remove(unlist(sinop_majority$files))))
+
+})
+
+test_that("One-year, multicore classification with filter", {
+
+    samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+    samples_filt <- sits_whittaker(samples_mt_2bands, lambda = 3.0, bands_suffix = "")
+    svm_model <- sits_train(samples_filt, sits_svm())
+
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop_ndvi_2014.tif",
+                               package = "sits"))
+
+    evi_file <- c(system.file("extdata/raster/mod13q1/sinop_evi_2014.tif",
+                              package = "sits"))
+
+    data("timeline_2013_2014")
+
+    sinop_2014 <- sits_cube(type = "BRICK",
+                            name = "sinop-2014",
+                            timeline = timeline_2013_2014,
+                            satellite = "TERRA",
+                            sensor = "MODIS",
+                            bands = c("ndvi", "evi"),
+                            files = c(ndvi_file, evi_file))
+
+    sinop_2014_probs <- sits_classify(data = sinop_2014,
+                                      ml_model = svm_model,
+                                      filter = sits_whittaker(lambda = 3.0),
+                                      memsize = 4,
+                                      multicores = 2)
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$files))))
     rc_obj <- sits:::.sits_cube_robj(sinop_2014_probs)
