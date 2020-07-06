@@ -93,6 +93,7 @@ sits_config_show <- function() {
 
 
 
+
 #' @title Check that the type is valid, based on the configuration file
 #' @name .sits_config_check
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -113,11 +114,59 @@ sits_config_show <- function() {
 #' @description Retrieve the color associated a class label.
 #' @param label  A class label.
 .sits_config_color <- function(label) {
-    rgb <- as.character(sits.env$config$colors[[label]])
+    rgb <- as.character(ccolors[[label]])
     if (!(length(rgb) > 0))
         rgb <- "#737373"
 
     return(rgb)
+}
+
+#' @title Retrieve the classes associated to data cubes known to SITS
+#' @name .sits_config_cube_class
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Retrieve the class name associated to a cube type
+#' @param type  Type of data cubes
+.sits_config_cube_class <- function(type) {
+    # check that the cube is correct
+    if (.sits_config_check(type)) {
+        # find out which cube types are supported
+        types   <- sits.env$config$cube_types
+        classes <-  sits.env$config$cube_classes
+        names(classes) <- types
+        return(classes[type])
+    }
+    return(NULL)
+}
+
+#' @title Check that the cube class is valid, based on the configuration file
+#' @name .sits_config_cube_classes_chk
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param class       class of data cube
+.sits_config_cube_classes_chk <- function(class){
+
+    # find out which services are available
+    classes <-  sits.env$config$cube_classes
+    # Ensure that the service is available
+    if(class %in% classes)
+        return(TRUE)
+    else
+        return(FALSE)
+}
+
+#' @title Check the cube types available in the configuration file
+#' @name .sits_config_cube_types_chk
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param  type type of data cube
+#'
+#' @return List of services supported by SITS
+.sits_config_cube_types_chk <- function(type) {
+
+    types <- sits.env$config$cube_types
+    if (type %in% types)
+        return(TRUE)
+    else
+        return(FALSE)
 }
 
 
@@ -422,14 +471,6 @@ sits_config_show <- function() {
 }
 
 
-#' @title List the data services available in the configuration file
-#' @name .sits_config_types
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return List of services supported by SITS
-.sits_config_types <- function() {
-        return(sits.env$config$cube_types)
-}
 
 
 #' @title Retrieve the vector of coeficientes for brightness of tasseled cap

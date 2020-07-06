@@ -4,10 +4,10 @@
 \alias{.sits_cluster_validity}
 \title{Cluster validity indices}
 \usage{
-.sits_cluster_validity(data)
+.sits_cluster_validity(samples)
 }
 \arguments{
-\item{data}{A tibble with `cluster` column.}
+\item{samples}{A tibble with `cluster` column.}
 }
 \value{
 A vector with four external validity indices.

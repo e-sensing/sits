@@ -104,8 +104,7 @@ sits_som_map <- function(data,
               Please install it.", call. = FALSE)
     }
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     # does the input data exist?
     .sits_test_tibble(data)
     # is are there more neurons than samples?

@@ -4,10 +4,10 @@
 \alias{sits_cluster_clean}
 \title{Cluster cleaner}
 \usage{
-sits_cluster_clean(data)
+sits_cluster_clean(samples)
 }
 \arguments{
-\item{data}{Tibble with `cluster` column.}
+\item{samples}{Tibble with `cluster` column.}
 }
 \value{
 A tibble with all selected samples.

@@ -42,8 +42,7 @@ sits_kfold_validate <- function(data, folds = 5,
                                 ml_method = sits_rfor(), multicores = 1){
 
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # get the labels of the data
     labels <- sits_labels(data)$label

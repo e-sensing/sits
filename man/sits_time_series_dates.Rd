@@ -22,5 +22,5 @@ data(cerrado_2classes)
 sits_time_series_dates(cerrado_2classes)
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

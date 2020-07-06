@@ -16,8 +16,7 @@
 #' @export
 sits_labels <- function(data) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # get frequency table
     data.vec <- table(data$label)
@@ -63,9 +62,9 @@ sits_labels <- function(data) {
 #' @export
 sits_relabel <- function(data, conv.lst = list()){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
-    #does the input data exist?
+    data <- .sits_tibble_rename(data)
+
+    # does the input data exist?
     .sits_test_tibble(data)
 
     assertthat::assert_that(!purrr::is_null(conv.lst),
@@ -105,8 +104,7 @@ sits_relabel <- function(data, conv.lst = list()){
 .sits_labels_list <- function(data, list.lst = list(),
                               fun_label = function(lb) lb) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     # verify if data is correct
     .sits_test_tibble(data)
 

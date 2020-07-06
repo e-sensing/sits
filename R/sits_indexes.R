@@ -15,9 +15,12 @@
 #' @export
 sits_tasseled_cap <- function(data, sensor = "MODIS"){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     bands <- sits_bands(data)
+
+    bands_tcap <- c("blue", "red", "nir", "mir")
+    assertthat::assert_that(all(bands_tcap %in% (bands)),
+                    msg = "sits_tasseled_cap: not enough bands to compute")
 
     b_coef <- .sits_config_tcap_brightness(sensor)
     data   <- sits_mutate_bands(data, tcb = b_coef["blue"]*blue
@@ -56,8 +59,8 @@ sits_tasseled_cap <- function(data, sensor = "MODIS"){
 #' @export
 sits_savi <- function(data){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+
     bands <- sits_bands(data)
     bands_savi <- c("nir", "red")
     assertthat::assert_that(all(bands_savi %in% (bands)),
@@ -84,8 +87,7 @@ sits_savi <- function(data){
 #' @export
 sits_ndwi <- function(data){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     bands <- sits_bands(data)
     bands_ndwi <- c("nir", "mir")
     assertthat::assert_that(all(bands_ndwi %in% (bands)),

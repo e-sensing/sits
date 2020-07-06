@@ -23,7 +23,7 @@ download.file("https://www.dropbox.com/s/g8n2yb8xeh80ph4/samples3.rds?dl=1",
 samples <- readRDS(paste0(tempdir(),"/samples_amazonia.rds"))
 # clean the data
 samples <- dplyr::select(samples, -id_sample, -cluster_label )
-samples <- dplyr::rename(samples, cube = coverage)
+samples <- .sits_tibble_rename(samples)
 
 samples <- sits_select_bands(samples, ndvi, evi, nir, mir)
 # create a list to store the results

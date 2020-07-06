@@ -6,7 +6,7 @@
        using aglomerative hierarchical clustering}
 \usage{
 sits_cluster_dendro(
-  data = NULL,
+  samples = NULL,
   bands = NULL,
   dist_method = "dtw_basic",
   linkage = "ward.D2",
@@ -17,7 +17,7 @@ sits_cluster_dendro(
 )
 }
 \arguments{
-\item{data}{A tibble with input set of time series}
+\item{samples}{A tibble with input set of time series}
 
 \item{bands}{Bands to be used in the clustering}
 

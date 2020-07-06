@@ -51,8 +51,7 @@
                                    yres  = cov.tb$yres,
                                    crs   = cov.tb$crs)
 
-    class(cube_wtss) <- append(class(cube_wtss),
-                             c("wtss-cube"), after = 0)
+    class(cube_wtss) <- c("wtss-cube", class(cube_wtss))
     # return the tibble with cube info
     return(cube_wtss)
 }

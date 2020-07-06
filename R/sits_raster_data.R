@@ -116,8 +116,7 @@
                               crs   = params$xmin,
                               files = files )
 
-    class(cube) <- append(class(cube),
-                             c("brick_cube"), after = 0)
+    class(cube) <- c("brick_cube", class(cube))
     return(cube)
 }
 

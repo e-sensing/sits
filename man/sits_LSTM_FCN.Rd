@@ -5,7 +5,7 @@
 \title{Train a model using the a combination of LSTM and CNN}
 \usage{
 sits_LSTM_FCN(
-  data = NULL,
+  samples = NULL,
   lstm_units = 8,
   lstm_dropout = 0.8,
   cnn_layers = c(128, 256, 128),
@@ -19,7 +19,7 @@ sits_LSTM_FCN(
 )
 }
 \arguments{
-\item{data}{Time series with the training samples.}
+\item{samples}{Time series with the training samples.}
 
 \item{lstm_units}{Number of cells in the each LSTM layer}
 

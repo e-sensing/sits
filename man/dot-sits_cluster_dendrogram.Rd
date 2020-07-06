@@ -5,7 +5,7 @@
 \title{Compute a dendrogram using hierarchical clustering}
 \usage{
 .sits_cluster_dendrogram(
-  data,
+  samples,
   bands = NULL,
   dist_method = "dtw_basic",
   linkage = "ward.D2",
@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{data}{Time series data and metadata
+\item{samples}{Time series data and metadata
 to be used to generate the dendrogram.}
 
 \item{bands}{Vector of bands to be clustered.}

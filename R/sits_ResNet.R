@@ -85,8 +85,7 @@ sits_ResNet <- function(samples          = NULL,
                         validation_split = 0.2,
                         verbose          = 1) {
     # backward compatibility
-    if ("coverage" %in% names(samples))
-        data <- .sits_tibble_rename(samples)
+    data <- .sits_tibble_rename(samples)
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){

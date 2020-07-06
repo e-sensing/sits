@@ -311,8 +311,7 @@ sits_label_classification <- function(cube,
 .sits_classify_ts <- function(data, ml_model, interval, filter, multicores) {
 
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # verify that the data is correct
     .sits_test_tibble(data)

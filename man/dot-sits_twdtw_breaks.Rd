@@ -6,7 +6,7 @@
 \usage{
 .sits_twdtw_breaks(
   matches,
-  data,
+  samples,
   start_date = NULL,
   end_date = NULL,
   interval = "12 month",
@@ -16,7 +16,7 @@
 \arguments{
 \item{matches}{A dtwSat S4 object with the matches that have been produced by the sits_TWTDW_matches function.}
 
-\item{data}{A sits tibble used as input for the TWDTW matching function.}
+\item{samples}{A sits tibble used as input for the TWDTW matching function.}
 
 \item{start_date}{The start date of the classification period.}
 

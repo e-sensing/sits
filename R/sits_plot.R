@@ -5803,8 +5803,7 @@ plot.classified_image <- function(x , y, ..., time = 1,
 sits_plot <- function(data, bands = c("ndvi"), colors = "Dark2") {
     warning("sits_plot is deprecated; please use plot() directly")
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     # is there only one sample per label? Plot patterns!
     if ("patterns" %in% class(data))
         .sits_plot_patterns(data)

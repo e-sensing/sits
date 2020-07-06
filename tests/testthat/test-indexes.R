@@ -16,7 +16,7 @@ test_that("SAVI", {
 test_that("Tasseled", {
     data(samples_mt_6bands)
     ts.tb <- sits_tasseled_cap(samples_mt_6bands)
-    samples_mt_6bands <- dplyr::rename(samples_mt_6bands, coverage = cube)
+    samples_mt_6bands <- .sits_tibble_rename(samples_mt_6bands)
 
     expect_true("tcb" %in% names(ts.tb$time_series[[1]]))
     expect_true("tcg" %in% names(ts.tb$time_series[[1]]))

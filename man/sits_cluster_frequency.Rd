@@ -4,10 +4,10 @@
 \alias{sits_cluster_frequency}
 \title{Cluster contigency table}
 \usage{
-sits_cluster_frequency(data)
+sits_cluster_frequency(samples)
 }
 \arguments{
-\item{data}{A tibble with `cluster` column.}
+\item{samples}{A tibble with `cluster` column.}
 }
 \value{
 A matrix containing all frequencies of labels in clusters.

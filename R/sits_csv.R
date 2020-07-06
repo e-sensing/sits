@@ -128,8 +128,7 @@
 #' @export
 sits_metadata_to_csv <- function(data, file){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     assertthat::assert_that(suppressWarnings(file.create(file)),
                          msg = "sits_metadata_to_csv - file is not writable")
 
@@ -178,8 +177,7 @@ sits_metadata_to_csv <- function(data, file){
 #' @export
 sits_data_to_csv <- function(data, file){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     # check if data is valid
     .sits_test_tibble(data)
 

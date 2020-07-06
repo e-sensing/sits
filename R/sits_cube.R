@@ -67,11 +67,11 @@ sits_cube <- function(type           = NULL,
         type <- toupper(service)
         message("sits_cube: use of service variable is deprecated, see docs")
     }
-    type  <- toupper(type)
-    types <- .sits_config_types()
-    assertthat::assert_that(type %in% types,
-            msg = paste0("sits_cube: required type not available\n",
-                         "please use one of ", types))
+    type <- toupper(type)
+    if(!.sits_config_cube_types_chk(type)) {
+        message(paste0("sits_cube: type ", type, "not supported"))
+        return(invisible(NULL))
+    }
 
     if (type == "WTSS") {
         # find the URL of the WTSS service, if not provided

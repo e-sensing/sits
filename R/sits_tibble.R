@@ -24,7 +24,7 @@
                               cube        = character(),
                               time_series = list()
     )
-    class(sits.tb) <- append(class(sits.tb), c("sits"), after = 0)
+    class(sits.tb) <- c("sits",class(sits.tb))
     return(sits.tb)
 }
 #' @title Aligns dates of time series to a reference date
@@ -46,8 +46,8 @@
 #' @export
 sits_align_dates <- function(data, ref_dates) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+    # verify that tibble is correct
     .sits_test_tibble(data)
     # function to shift a time series in time
     shift_ts <- function(d, k) dplyr::bind_rows(utils::tail(d,k),
@@ -138,11 +138,12 @@ sits_apply <- function(data,
                        bands_suffix = "",
                        multicores = 1) {
 
-        # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    # backward compatibility
+    data <- .sits_tibble_rename(data)
+
     # verify if data is valid
     .sits_test_tibble(data)
+
     # computes fun and fun_index for all time series
     data$time_series <- data$time_series %>%
         purrr::map(function(ts.tb) {
@@ -188,9 +189,9 @@ sits_apply <- function(data,
 #' sits_bands(samples_mt_6bands)
 #' @export
 sits_bands <- function(data) {
+
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # is this a cube metadata?
     if ("timeline" %in% names(data))
@@ -228,9 +229,9 @@ sits_break <- function(data,
                        start_date,
                        end_date,
                        interval = "12 month"){
+
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # create a tibble to store the results
     newdata <- .sits_tibble()
@@ -261,7 +262,7 @@ sits_break <- function(data,
 
 #' @title Return the dates of a sits tibble
 #' @name sits_dates
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Returns a vector containing the dates of a sits tibble.
 #'
@@ -272,9 +273,10 @@ sits_break <- function(data,
 #' sits_dates(point_mt_6bands)
 #' @export
 sits_dates <- function(data) {
+
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+
     return(sits_time_series_dates(data))
 }
 
@@ -304,10 +306,8 @@ sits_dates <- function(data) {
 #' @export
 sits_merge <-  function(data1.tb, data2.tb) {
     # backward compatibility
-    if ("coverage" %in% names(data1.tb))
-        data1.tb <- .sits_tibble_rename(data1.tb)
-    if ("coverage" %in% names(data2.tb))
-        data2.tb <- .sits_tibble_rename(data2.tb)
+    data1.tb <- .sits_tibble_rename(data1.tb)
+    data2.tb <- .sits_tibble_rename(data2.tb)
 
     # if some parameter is empty returns the another one
     if (NROW(data1.tb) == 0)
@@ -361,9 +361,9 @@ sits_merge <-  function(data1.tb, data2.tb) {
 #' }
 #' @export
 sits_mutate_bands <- function(data, ...){
+
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # verify if data has values
     .sits_test_tibble(data)
@@ -399,8 +399,7 @@ sits_mutate_bands <- function(data, ...){
 sits_prune <- function(data) {
 
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     .sits_test_tibble(data)
 
@@ -455,8 +454,7 @@ sits_prune <- function(data) {
 #' @export
 sits_rename <- function(data, names){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     # verify if the number of bands informed is the same
     # as the actual number of bands in input data
     assertthat::assert_that(length(names) == length(sits_bands(data)),
@@ -500,8 +498,7 @@ sits_rename <- function(data, names){
 sits_sample <- function(data, n = NULL, frac = NULL){
 
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # verify if data is valid
     .sits_test_tibble(data)
@@ -537,7 +534,7 @@ sits_sample <- function(data, n = NULL, frac = NULL){
 
 #' @title Filter bands on a sits tibble
 #' @name sits_select_bands
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Returns a sits tibble with the selected bands.
 #'
@@ -556,8 +553,9 @@ sits_sample <- function(data, n = NULL, frac = NULL){
 #' @export
 sits_select_bands <- function(data, ...) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+
+    # get the names of the bands
     bands <-  paste(substitute(list(...)))[-1]
 
     assertthat::assert_that(all(bands %in% sits_bands(data)),
@@ -576,7 +574,7 @@ sits_select_bands <- function(data, ...) {
 }
 #' @title Retrieve the dates of time series for a row of a sits tibble
 #' @name sits_time_series_dates
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Returns the dates of the time series associated to a sits tibble
 #'
@@ -591,6 +589,7 @@ sits_select_bands <- function(data, ...) {
 sits_time_series_dates <- function(data) {
     return(data$time_series[[1]]$Index)
 }
+
 #' @title Retrieve time series for a row of a sits tibble
 #' @name sits_time_series
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -632,8 +631,7 @@ sits_time_series <- function(data) {
 #' @export
 sits_transmute_bands <- function(data, ...){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # verify if data is valid
     .sits_test_tibble(data)
@@ -656,7 +654,6 @@ sits_transmute_bands <- function(data, ...){
 #' @title Return the values of a given sits tibble as a list of matrices.
 #' @name sits_values
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function returns only the values of a sits tibble
 #' (according a specified format).
@@ -683,9 +680,9 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
                             format == "bands_dates_cases",
        msg = "sits_values: valid format parameter are
              'cases_dates_bands', 'bands_cases_dates', or 'bands_dates_cases'")
+
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     if (purrr::is_null(bands))
         bands <- sits_bands(data)
@@ -801,9 +798,10 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
 #' @param bands        The selected bands.
 #' @return A tibble in sits format with the selected bands.
 .sits_select_bands_ <- function(data, bands) {
+
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+
     # verify if bands exists in data
     assertthat::assert_that(all(bands %in% sits_bands(data)),
          msg = paste0(".sits_select_bands_: missing bands: ",

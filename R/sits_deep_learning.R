@@ -60,8 +60,7 @@ sits_deeplearning <- function(samples          = NULL,
                         validation_split = 0.2,
                         verbose          = 1) {
     # backward compatibility
-    if ("coverage" %in% names(samples))
-        samples <- .sits_tibble_rename(samples)
+    samples <- .sits_tibble_rename(samples)
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){

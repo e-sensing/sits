@@ -41,8 +41,7 @@
 #' @export
 sits_train <- function(data, ml_method = sits_svm()) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # is the input data a valid sits tibble?
     assertthat::assert_that("label" %in% names(data),
@@ -96,8 +95,7 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' @export
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     # verifies if MASS package is installed
     if (!requireNamespace("MASS", quietly = TRUE)) {
         stop("MASS required for this function to work.
@@ -179,8 +177,7 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @export
 sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     # verifies if MASS package is installed
     if (!requireNamespace("MASS", quietly = TRUE)) {
         stop("MASS required for this function to work.
@@ -260,14 +257,14 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @export
 sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
-    # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+
     # verifies if nnet package is installed
     if (!requireNamespace("nnet", quietly = TRUE)) {
         stop("nnet required for this function to work.
              Please install it.", call. = FALSE)
     }
+    # backward compatibility
+    data <- .sits_tibble_rename(data)
     # function that returns nnet::multinom model based on a sits sample tibble
     result_fun <- function(data) {
         # data normalization
@@ -344,8 +341,7 @@ sits_rfor <- function(data = NULL,
                       num_trees = 2000,
                       importance = "impurity", ...) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # verifies if ranger package is installed
     if (!requireNamespace("ranger", quietly = TRUE)) {
@@ -464,8 +460,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
              Please install it.", call. = FALSE)
     }
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(data){
 
@@ -748,8 +743,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #'
 .sits_distances <- function(data) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     n_rows_data <- nrow(data)
 
@@ -804,8 +798,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #' @return A normalized sits tibble.
 .sits_normalize_data <- function(data, stats, multicores = 1){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     .sits_test_tibble(data)
     # find the number of cores
     if (purrr::is_null(multicores))

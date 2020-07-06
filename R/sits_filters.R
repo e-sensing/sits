@@ -69,8 +69,7 @@
 #' @export
 sits_filter <- function(data, filter = sits_whittaker()) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # is the input data a valid sits tibble?
     .sits_test_tibble(data)
@@ -129,8 +128,7 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
              Please install it.", call. = FALSE)
     }
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     filter_fun <- function(data) {
         # find the bands of the data
@@ -210,8 +208,7 @@ sits_envelope <- function(data = NULL,
              Please install it.", call. = FALSE)
     }
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     filter_fun <- function(data) {
         # definitions of operations
@@ -272,8 +269,7 @@ sits_envelope <- function(data = NULL,
 sits_interp <- function(data = NULL, fun = stats::approx,
                         n = base::length, ...) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     filter_fun <- function(data) {
         # compute linear approximation
         result <- sits_apply(data,
@@ -315,8 +311,8 @@ sits_interp <- function(data = NULL, fun = stats::approx,
 #' @export
 sits_kalman <- function(data = NULL, bands_suffix = "kf"){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+
     filter_fun <- function(data) {
         result <- sits_apply(data,
                                 fun = function(band) .sits_kalman_filter(band,
@@ -426,8 +422,8 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
 #' @export
 sits_linear_interp <- function(data = NULL, n = 23) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+
     filter_fun <- function(data){
         # compute linear approximation
         result <- sits_apply(data,
@@ -451,8 +447,8 @@ sits_linear_interp <- function(data = NULL, n = 23) {
 #' @export
 sits_missing_values <-  function(data, miss_value) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+
     # test if data has data
     .sits_test_tibble(data)
 
@@ -503,8 +499,7 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
                             bands_suffix = "ar", apply_whit = TRUE,
                             lambda_whit = 1.0){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     filter_fun <- function(data) {
         # find the bands of the data
@@ -592,8 +587,8 @@ sits_sgolay <- function(data = NULL, order = 3,
              Please install it.", call. = FALSE)
     }
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+
     result <- NULL
     filter_fun <- function(data) {
         if ("tbl" %in% class(data)) {
@@ -653,8 +648,8 @@ sits_whittaker <- function(data = NULL, lambda = 1.0, bands_suffix = "wf") {
              Please install it.", call. = FALSE)
     }
     # backward compatibility
-    if ("sits_tibble" %in% class(data) && "coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+
     filter_fun <- function(data) {
         result <- NULL
         if ("tbl" %in% class(data)) {

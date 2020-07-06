@@ -20,7 +20,7 @@
 #'  Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  data          A sits tibble to be classified using TWTDW.
+#' @param  samples       A sits tibble to be classified using TWTDW.
 #' @param  patterns      Patterns to be used for classification.
 #' @param  bands         Names of the bands to be used for classification.
 #' @param  dist.method   Name of the method to derive the local cost matrix.
@@ -55,30 +55,42 @@
 #' alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 #' }
 #' @export
-sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euclidean",
-                        alpha = -0.1, beta = 100, theta = 0.5, span  = 0, keep  = FALSE,
-                        start_date = NULL, end_date = NULL,
-                        interval = "12 month", overlap = 0.5){
+sits_twdtw_classify <- function(samples,
+                                patterns,
+                                bands = NULL,
+                                dist.method = "euclidean",
+                                alpha = -0.1,
+                                beta = 100,
+                                theta = 0.5,
+                                span  = 0,
+                                keep  = FALSE,
+                                start_date = NULL,
+                                end_date = NULL,
+                                interval = "12 month",
+                                overlap = 0.5){
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("dtwSat needed for this function to work. Please install it.", call. = FALSE)
+        stop("dtwSat needed for this function to work. Please install it.",
+             call. = FALSE)
     }
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    samples <- .sits_tibble_rename(samples)
+
+    # does the input data exist?
+    .sits_test_tibble(samples)
 
     # add a progress bar
     progress_bar <- NULL
     if (nrow(data) > 10) {
         message("Matching patterns to time series...")
-        progress_bar <- utils::txtProgressBar(min = 0, max = nrow(data), style = 3)
+        progress_bar <- utils::txtProgressBar(min = 0,
+                                              max = nrow(samples),
+                                              style = 3)
         i <- 0
     }
-    # does the input data exist?
-    .sits_test_tibble(data)
 
     # handle the case of null bands
-    if (purrr::is_null(bands)) bands <- sits_bands(data)
+    if (purrr::is_null(bands)) bands <- sits_bands(samples)
 
     # create a list to store the results of the TWDTW matches
     matches.lst <- list()
@@ -91,9 +103,9 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
     # Define the logistic function
     log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
 
-    n_rows_data <- NROW(data)
+    n_rows_data <- NROW(samples)
     for (r in 1:n_rows_data) {
-        row.tb <- data[r, ]
+        row.tb <- samples[r, ]
         # select the bands for the samples time series and convert to TWDTW format
         twdtw_series <- row.tb %>%
             .sits_select_bands_(bands = bands) %>%
@@ -123,13 +135,19 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
     .sits_plot_twdtw_alignments(matches.lst)
 
     # Classify a sits tibble using the matches found by the TWDTW methods
-    data  <- .sits_twdtw_breaks(matches.lst, data,
-                                   start_date = start_date, end_date = end_date,
-                                   interval, overlap)
+    samples  <- .sits_twdtw_breaks(matches.lst,
+                                   samples,
+                                   start_date = start_date,
+                                   end_date = end_date,
+                                   interval,
+                                   overlap)
+    # plot the classification
     .sits_plot_twdtw_classification(matches.lst,
-                                    start_date = start_date, end_date = end_date,
-                                    interval = interval, overlap = overlap)
-    return(data)
+                                    start_date = start_date,
+                                    end_date = end_date,
+                                    interval = interval,
+                                    overlap = overlap)
+    return(samples)
 }
 
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
@@ -146,15 +164,19 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  matches       A dtwSat S4 object with the matches that have been produced by the sits_TWTDW_matches function.
-#' @param  data          A sits tibble used as input for the TWDTW matching function.
+#' @param  samples       A sits tibble used as input for the TWDTW matching function.
 #' @param  start_date    The start date of the classification period.
 #' @param  end_date      The end date of the classification period.
 #' @param  interval      The period between two classifications.
 #' @param  overlap       Minimum overlapping between one match and the interval of classification.
 #' @return A sits tibble with the information on matches for the data.
-.sits_twdtw_breaks <- function(matches, data,
-                               start_date = NULL, end_date = NULL,
-                               interval = "12 month", overlap = 0.5){
+.sits_twdtw_breaks <- function(matches,
+                               samples,
+                               start_date = NULL,
+                               end_date = NULL,
+                               interval = "12 month",
+                               overlap = 0.5){
+
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
         stop("dtwSat needed for this function to work.
@@ -164,7 +186,7 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
     # create a tibble to store the results
     i <- 1
     predicted.lst <-
-        purrr::pmap(list(data$start_date, data$end_date),
+        purrr::pmap(list(samples$start_date, samples$end_date),
                     function(row_start_date, row_end_date) {
 
                         if (purrr::is_null(start_date)) {
@@ -188,9 +210,9 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
 
                     })
 
-    data$predicted <- predicted.lst
+    samples$predicted <- predicted.lst
 
-    return(data)
+    return(samples)
 }
 
 #' @title Export data to be used by the dtwSat package
@@ -200,9 +222,10 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
 #'
 #' @description Converts data from a sits tibble to an instance of a TWDTW time series class.
 #'
-#' @param  data       A tibble in sits format with time series to be converted to TWTDW time series.
-#' @return A time series in TWDTW format (an object of the twdtwTimeSeries class).
-.sits_to_twdtw <- function (data){
+#' @param  samples      A tibble in sits format with time series
+#'                      to be converted to TWTDW time series.
+#' @return An object of the twdtwTimeSeries class).
+.sits_to_twdtw <- function (samples){
     # verifies if methods package is installed
     if (!requireNamespace("methods", quietly = TRUE)) {
         stop("methods needed for this function to work.
@@ -215,7 +238,7 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
               Please install it.", call. = FALSE)
     }
     # transform each sits time series into a list of zoo
-    ts <- data$time_series %>%
+    ts <- samples$time_series %>%
         purrr::map(function(ts) zoo::zoo(ts[,2:ncol(ts), drop=FALSE], ts$Index))
 
     # create a new twdtwTimeSeries object from list above
@@ -267,6 +290,7 @@ sits_twdtw_classify <- function(data, patterns, bands = NULL, dist.method = "euc
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description         Plots the results of TWDTW classification (uses dtwSat).
+#'
 #' @param  matches      dtwSatS4 matches objects produced by sits_TWDTW_matches.
 #' @param  start_date   Start date of the plot (used for classifications).
 #' @param  end_date     End date of the plot (used for classifications).

@@ -30,9 +30,9 @@
 #' }
 #' @export
 sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
+
     # backward compatibility
-    if ("coverage" %in% names(class.tb))
-        class.tb <- .sits_tibble_rename(class.tb)
+    class.tb <- .sits_tibble_rename(class.tb)
 
     # does the input data contain a set of predicted values?
     assertthat::assert_that("predicted" %in% names(class.tb),
@@ -133,8 +133,7 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
 sits_accuracy_area <- function(class.tb, area = NULL){
 
     # backward compatibility
-    if ("coverage" %in% names(class.tb))
-        class.tb <- .sits_tibble_rename(class.tb)
+    class.tb <- .sits_tibble_rename(class.tb)
 
     # Get reference classes
     references <- class.tb$label
