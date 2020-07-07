@@ -114,7 +114,7 @@ sits_config_show <- function() {
 #' @description Retrieve the color associated a class label.
 #' @param label  A class label.
 .sits_config_color <- function(label) {
-    rgb <- as.character(ccolors[[label]])
+    rgb <- as.character(sits.env$config$colors[[label]])
     if (!(length(rgb) > 0))
         rgb <- "#737373"
 

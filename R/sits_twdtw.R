@@ -81,7 +81,7 @@ sits_twdtw_classify <- function(samples,
 
     # add a progress bar
     progress_bar <- NULL
-    if (nrow(data) > 10) {
+    if (nrow(samples) > 10) {
         message("Matching patterns to time series...")
         progress_bar <- utils::txtProgressBar(min = 0,
                                               max = nrow(samples),
@@ -243,7 +243,7 @@ sits_twdtw_classify <- function(samples,
 
     # create a new twdtwTimeSeries object from list above
     ts.twdtw <- methods::new("twdtwTimeSeries", timeseries = ts,
-                             labels = as.character(data$label))
+                             labels = as.character(samples$label))
     return (ts.twdtw)
 }
 
