@@ -44,18 +44,12 @@ sits_db_write <- function(conn, name, data){
     # does the data exist
     assertthat::assert_that(nrow(data) > 0, msg = "no data to save")
 
-    assertthat::assert_that("sits" %in% class(data) ||
-                            as.logical(grep("cube", class(data))),
-                msg = "data is not compatible with the sits suite of packages")
-
     # connect to the database
-    conn <-  DBI::dbConnect(conn)
+    if(!as.logical(grep("memory", conn@dbname)))
+        conn <-  DBI::dbConnect(conn)
     # assert that the connection is valid
     assertthat::assert_that(DBI::dbIsValid(conn),
                             msg = "Invalid database connection")
-
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     # write a set of time series stored as a sits tibble
     if ("sits" %in% class(data))
@@ -68,7 +62,9 @@ sits_db_write <- function(conn, name, data){
         message("sits_db_write: data class not supported")
 
     # disconnect from database
-    DBI::dbDisconnect(conn)
+    if(!as.logical(grep("memory", conn@dbname)))
+        DBI::dbDisconnect(conn)
+
     return(conn)
 }
 
@@ -95,7 +91,8 @@ sits_db_write <- function(conn, name, data){
 sits_db_read <- function(conn, name) {
 
     # connect to the database
-    conn <-  DBI::dbConnect(conn)
+    if(!as.logical(grep("memory", conn@dbname)))
+        conn <-  DBI::dbConnect(conn)
     # assert that the connection is valid
     assertthat::assert_that(DBI::dbIsValid(conn),
                             msg = "Invalid database connection")
@@ -123,7 +120,8 @@ sits_db_read <- function(conn, name) {
         return(NULL)
     }
     # disconnect from database
-    DBI::dbDisconnect(conn)
+    if(!as.logical(grep("memory", conn@dbname)))
+        DBI::dbDisconnect(conn)
 
     return(data)
 }
@@ -241,7 +239,7 @@ sits_db_read <- function(conn, name) {
                                name           = character())
 
     # timelines
-    timelines.tb <- tibble::tibble(date = date(),
+    timelines.tb <- tibble::tibble(date = as.Date(character()),
                                    name = character(),
                                    instance = integer())
     # files
@@ -281,26 +279,25 @@ sits_db_read <- function(conn, name) {
 
         # transform information about the timelines into a tibble
 
-        times_cube.lst <- purrr::map(row$timeline, function(row_times) {
-            # in a cube, a timeline is a list of timelines to account for the
-            # classified image
-            # build a tibble for each timeline
+        timelines <- row$timeline[[1]]
 
-            n_instances <- length(row_times)
-            times_per_inst.lst <- purrr::map2(row_times, list(1:n_instances),
-                                              function(rt, inst){
-                                                  n_times <- length(rt)
-                                                  time.tb <- tibble::tibble(
-                                                      date = as.Date(rt),
-                                                      name = row$name,
-                                                      instance = inst)
-                                              })
-            # join all timelines for a given cube instance
-            times_per_inst.tb <- rbind(times_per_inst.lst)
-        })
-        # join all timelines for a given cube
-        timelines.tb <- rbind(timelines.tb, times_cube.lst)
+        n_instances <- length(timelines)
 
+        # in a cube, a timeline is a list of timelines to account for the
+        # classified image
+        # build a tibble for each timeline
+
+        for (i in 1:n_instances) {
+            times_instance <- timelines[[i]]
+            n_times <- length(times_instance)
+            for (j in 1:n_times) {
+                time.tb <- tibble::tibble(
+                    date = as.Date(times_instance[j]),
+                    name = row$name,
+                    instance = j)
+                timelines.tb <- dplyr::bind_rows(timelines.tb, time.tb)
+            }
+        }
         # build a list for all files of for each cube
         files.lst <- purrr::map(row$files, function(f) {
             f <- tibble::tibble(file = f,

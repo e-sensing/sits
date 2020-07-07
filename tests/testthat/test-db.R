@@ -1,7 +1,7 @@
 context("Database")
 test_that("Access to RSQLite",{
     # create RSQLite connection
-    conn <- sits_db_create(name = "sits.sql")
+    conn <- sits_db_create()
     # write a set of time series
     conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
     #' # read a set of time series
@@ -21,11 +21,11 @@ test_that("Access to RSQLite",{
 
     # files to build a raster cube
     files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-                           package = "sits.data"))
+                           package = "sits"))
 
     # create a raster cube file based on the information about the files
     raster.tb <- sits_cube(type = "BRICK", name  = "Sinop-crop",
-                           satellite = "TERRA", sensor = "MODIS"
+                           satellite = "TERRA", sensor = "MODIS",
                            timeline = timeline_modis_392, bands = "ndvi",
                            files = files)
 
@@ -43,10 +43,7 @@ test_that("Access to RSQLite",{
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
     rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 100))
     # classify using one core
-    sinop_probs <- sits_classify(sinop, rfor_model, memsize = 2, multicores = 1)
-
-    # retrieve the output raster layers
-    bricks_probs <- .sits_cube_all_robjs(sinop_probs)
+    sinop_probs <- sits_classify(raster.tb, rfor_model, memsize = 2)
 
     expect_true(all(file.exists(unlist(sinop_probs$files))))
 
@@ -56,7 +53,7 @@ test_that("Access to RSQLite",{
     cube_probs <- sits_db_read(conn, "sinop_probs")
 
     expect_true(nrow(sinop_probs) == nrow(cube_probs))
-    expect_true(sinop_probs$files == cube_probs$files)
+    expect_true(all(sinop_probs$files[[1]] == cube_probs$files[[1]]))
 
     # label classification
     sinop_bayes <- sits::sits_label_classification(sinop_probs,
@@ -69,12 +66,10 @@ test_that("Access to RSQLite",{
     cube_bayes <- sits_db_read(conn, "sinop_bayes")
 
     expect_true(nrow(sinop_bayes) == nrow(cube_bayes))
-    expect_true(sinop_bayes$files == cube_bayes$files)
+    expect_true(all(sinop_bayes$files[[1]] == cube_bayes$files[[1]]))
 
     expect_true(all(file.remove(unlist(sinop_probs$files))))
     expect_true(all(file.remove(unlist(sinop_bayes$files))))
 
     DBI::dbDisconnect(conn)
-
-    file.remove("sits_sql")
 })
