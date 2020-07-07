@@ -344,7 +344,7 @@ For more information, please see the vignettes
     series”](https://github.com/e-sensing/sits-docs/blob/master/doc/sits.pdf)
   
   - ["Accessing time series information in 
-      SITS"](https://github.com/e-sensing/sits-docs/blob/master/doc/time_series.pdf)
+      SITS"](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf)
 
   - [“Clustering of satellite image time series with
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
@@ -353,7 +353,7 @@ For more information, please see the vignettes
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filtering.pdf)
 
   - [“Time series classification using machine
-    learning”](https://github.com/e-sensing/sits-docs/blob/master/doc/machine_learning.pdf)
+    learning”](https://github.com/e-sensing/sits-docs/blob/master/doc/machinelearning.pdf)
 
   - [“Post classification smoothing using Bayesian techniques in
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/smoothing.pdf)
