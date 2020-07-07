@@ -31,3 +31,26 @@
         sf::st_transform(crs = "+init=epsg:4326") %>%
         sf::st_coordinates()
 }
+
+#' @title Find the bounding box for a set of time series
+#' @name .sits_bbox_time_series
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a set of time series, find the bounding box.
+#'
+#' @param data            A tibble with a set of time series
+#' @return A vector the bounding box
+.sits_bbox_time_series <- function(data){
+    # check if the data is a time series
+    .sits_test_tibble(data)
+    # return the bounding box
+    bbox        <- vector(length = 4)
+    names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
+
+    bbox["xmin"] <- min(data$longitude)
+    bbox["xmax"] <- max(data$longitude)
+    bbox["ymin"] <- min(data$latitude)
+    bbox["ymax"] <- max(data$latitude)
+
+    return(bbox)
+}

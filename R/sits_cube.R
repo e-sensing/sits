@@ -317,7 +317,7 @@ sits_cube <- function(type           = NULL,
                                     ymax            = params$ymax,
                                     xres            = params$xres,
                                     yres            = params$yres,
-                                    crs             = params$xmin,
+                                    crs             = params$crs,
                                     files           = files)
 
     class(cube_probs) <- c("probs_cube", class(cube_probs))

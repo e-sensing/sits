@@ -20,6 +20,115 @@ sits_db_create <- function(name = NULL){
 
     return(conn)
 }
+#' @title List the time series and data cubes stored in an SQLite database
+#' @name sits_db_info
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This functions describes the time series and data cubes
+#' stored RSQLite database.
+#'
+#' @param  conn     SQLite connection
+#' @return          Description
+#' @examples
+#' \donttest{
+#' # create a data base
+#' conn <- sits_db_create("sits.sql")
+#' # write a set of time series
+#' conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
+#' # describe the data available in the database
+#' desc <-  sits_db_info(conn)
+#' }
+#' @export
+sits_db_info <- function(conn){
+    # connect to the database
+    if(!grepl("memory", conn@dbname))
+        conn <-  DBI::dbConnect(conn)
+    # assert that the connection is valid
+    assertthat::assert_that(DBI::dbIsValid(conn),
+                            msg = "Invalid database connection")
+    # list all tables available
+    tables <- DBI::dbListTables(conn)
+
+    # filter all extensions and leave only the original tables
+    tables <- tables[!grepl(".par|.tim|.lab|.ts|.fil", tables)]
+
+    # describe the contents of the database
+    desc <- tibble::tibble(name = character(),
+                           cube   = character(),
+                           class  = character(),
+                           size   = character(),
+                           bands  = character(),
+                           b_box  = character(),
+                           labels = character())
+    # variable that controls
+
+    tables.lst <- tables %>%
+        purrr::map(function(tab){
+            data <- sits_db_read(conn,tab)
+            # is it a time series tibble?
+            if ("sits" %in% class(data)) {
+                bbox <- .sits_bbox_time_series(data)
+                desc <- tibble::tibble(
+                    name   = tab,
+                    cube   = data[1,]$cube,
+                    class  = class(data)[1],
+                    size   = paste0(nrow(data), " samples"),
+                    bands  = paste(sits_bands(data), collapse = ", "),
+                    b_box  = paste0("(",round(bbox["xmin"], 2), ",",
+                                    round(bbox["ymin"], 2), "), ",
+                                    "(",round(bbox["xmax"], 2),",",
+                                    round(bbox["ymax"], 2), ")"),
+                    labels = paste(sits_labels(data)$label, collapse = ", ")
+                )
+                return(desc)
+            }
+            else {
+
+                # find how many instances are there
+                if (length(data$timeline[[1]]) == 1)
+                    n_times <- length(data$timeline[[1]][[1]])
+                else
+                    n_times <- length(data$timeline[[1]])
+
+                # get the bounding box in lat long
+                xymin <- .sits_proj_to_latlong(data$xmin, data$ymin, data$crs)
+                xmin <- xymin[1,"X"]
+                ymin <- xymin[1,"Y"]
+
+                xymax <- .sits_proj_to_latlong(data$xmax, data$ymax, data$crs)
+                xmax <- xymax[1,"X"]
+                ymax <- xymax[1,"Y"]
+
+                desc <- tibble::tibble(
+                    name   = tab,
+                    cube   = data$name,
+                    class  = class(data)[1],
+                    size   = paste0(n_times, " instances"),
+                    bands  = paste(data$bands[[1]], collapse = ", "),
+                    b_box  = paste0("(",round(xmin, 2), ",",
+                                    round(ymin, 2), "), ",
+                                    "(",round(xmax, 2),",",
+                                    round(ymax, 2), ")"),
+                    labels = paste(data$labels[[1]], collapse = ", ")
+                )
+                return(desc)
+            }
+        })
+    # collect all descriptions
+    desc.tb <- dplyr::bind_rows(desc, tables.lst)
+
+    message("-----------------------------------------------")
+    message(paste0('Contents of database ', conn@dbname))
+
+    print(knitr::kable(dplyr::select(desc.tb, name, cube, class, size),
+                       padding = 0))
+
+    # disconnect from database
+    if(!grepl("memory", conn@dbname))
+        DBI::dbDisconnect(conn)
+
+    return(desc.tb)
+}
 #' @title Write time series and data cubes information on an SQLite database
 #' @name sits_db_write
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -45,7 +154,7 @@ sits_db_write <- function(conn, name, data){
     assertthat::assert_that(nrow(data) > 0, msg = "no data to save")
 
     # connect to the database
-    if(!as.logical(grep("memory", conn@dbname)))
+    if(!grepl("memory", conn@dbname))
         conn <-  DBI::dbConnect(conn)
     # assert that the connection is valid
     assertthat::assert_that(DBI::dbIsValid(conn),
@@ -62,7 +171,7 @@ sits_db_write <- function(conn, name, data){
         message("sits_db_write: data class not supported")
 
     # disconnect from database
-    if(!as.logical(grep("memory", conn@dbname)))
+    if(!grepl("memory", conn@dbname))
         DBI::dbDisconnect(conn)
 
     return(conn)
@@ -91,7 +200,7 @@ sits_db_write <- function(conn, name, data){
 sits_db_read <- function(conn, name) {
 
     # connect to the database
-    if(!as.logical(grep("memory", conn@dbname)))
+    if(!grepl("memory", conn@dbname))
         conn <-  DBI::dbConnect(conn)
     # assert that the connection is valid
     assertthat::assert_that(DBI::dbIsValid(conn),
@@ -120,7 +229,7 @@ sits_db_read <- function(conn, name) {
         return(NULL)
     }
     # disconnect from database
-    if(!as.logical(grep("memory", conn@dbname)))
+    if(!grepl("memory", conn@dbname))
         DBI::dbDisconnect(conn)
 
     return(data)
@@ -450,110 +559,4 @@ sits_db_read <- function(conn, name) {
     return(data)
 }
 
-#' @title List the time series and data cubes stored in an SQLite database
-#' @name sits_db_info
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This functions describes the time series and data cubes
-#' stored RSQLite database.
-#'
-#' @param  conn     SQLite connection
-#' @return          Description
-#' @examples
-#' \donttest{
-#' # create a data base
-#' conn <- sits_db_create("sits.sql")
-#' # write a set of time series
-#' conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
-#' # describe the data available in the database
-#' desc <-  sits_db_info(conn)
-#' }
-#' @export
-sits_db_info <- function(conn){
-    # connect to the database
-    conn <-  DBI::dbConnect(conn)
-    # assert that the connection is valid
-    assertthat::assert_that(DBI::dbIsValid(conn),
-                            msg = "Invalid database connection")
-    # list all tables available
-    tables <- DBI::dbListTables(conn)
 
-    # filter all extensions and leave only the original tables
-    tables <- tables[!grepl(".par|.tim|.lab|.ts|.fil", tables)]
-
-    # describe the contents of the database
-    desc <- tibble::tibble(name = character(),
-                           cube   = character(),
-                           type   = character(),
-                           size   = character(),
-                           bands  = character(),
-                           b_box  = character(),
-                           labels = character())
-    # variable that controls
-
-    tables.lst <- tables %>%
-        purrr::map(function(tab){
-            data <- sits_db_read(conn,tab)
-            # is it a time series tibble?
-            if ("sits_tibble" %in% class(data)) {
-                bbox <- sits_bbox_time_series(data)
-                desc <- tibble::tibble(
-                    name   = tab,
-                    cube   = data[1,]$cube,
-                    type   = "time series",
-                    size   = paste0(nrow(data), " samples"),
-                    bands  = paste(sits_bands(data), collapse = ", "),
-                    b_box  = paste0("(",round(bbox["xmin"], 2), ",",
-                                    round(bbox["ymin"], 2), "), ",
-                                    "(",round(bbox["xmax"], 2),",",
-                                    round(bbox["ymax"], 2), ")"),
-                    labels = paste(sits_labels(data)$label, collapse = ", ")
-                )
-                return(desc)
-            }
-            else if ("cube" %in% class(data)) {
-
-                # find how many instances are there
-                if (length(data$timeline[[1]]) == 1)
-                    n_times <- length(data$timeline[[1]][[1]])
-                else
-                    n_times <- length(data$timeline[[1]])
-
-                # get the bounding box in lat long
-                xymin <- .sits_proj_to_latlong(data$xmin, data$ymin, data$crs)
-                xmin <- xymin[1,"X"]
-                ymin <- xymin[1,"Y"]
-
-                xymax <- .sits_proj_to_latlong(data$xmax, data$ymax, data$crs)
-                xmax <- xymax[1,"X"]
-                ymax <- xymax[1,"Y"]
-
-                desc <- tibble::tibble(
-                    name   = tab,
-                    cube   = data$name,
-                    type   = "data cube",
-                    size   = paste0(n_times, " instances"),
-                    bands  = paste(data$bands[[1]], collapse = ", "),
-                    b_box  = paste0("(",round(xmin, 2), ",",
-                                    round(ymin, 2), "), ",
-                                    "(",round(xmax, 2),",",
-                                    round(ymax, 2), ")"),
-                    labels = paste(data$labels[[1]], collapse = ", ")
-                )
-                return(desc)
-            }
-        })
-    # collect all descriptions
-    desc.tb <- dplyr::bind_rows(desc, tables.lst)
-
-    message("-----------------------------------------------")
-    message(paste0('Contents of database ', conn@dbname))
-
-    print(knitr::kable(dplyr::select(desc.tb, name, cube, type, size),
-                       padding = 0))
-    print(knitr::kable(dplyr::select(desc.tb, name, bands, b_box),
-                       padding = 0))
-    print(knitr::kable(dplyr::select(desc.tb, name, labels), padding = 0))
-
-    return(desc.tb)
-}

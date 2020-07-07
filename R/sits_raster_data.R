@@ -113,7 +113,7 @@
                               ymax  = params$ymax,
                               xres  = params$xres,
                               yres  = params$yres,
-                              crs   = params$xmin,
+                              crs   = params$crs,
                               files = files )
 
     class(cube) <- c("brick_cube", class(cube))

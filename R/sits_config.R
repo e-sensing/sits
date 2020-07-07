@@ -133,7 +133,7 @@ sits_config_show <- function() {
         types   <- sits.env$config$cube_types
         classes <-  sits.env$config$cube_classes
         names(classes) <- types
-        return(classes[type])
+        return(unname(classes[type]))
     }
     return(NULL)
 }
