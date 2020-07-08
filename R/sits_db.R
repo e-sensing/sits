@@ -59,6 +59,7 @@ sits_db_info <- function(conn){
                            size   = character(),
                            bands  = character(),
                            b_box  = character(),
+                           crs    = character(),
                            labels = character())
     # variable that controls
 
@@ -78,6 +79,7 @@ sits_db_info <- function(conn){
                                     round(bbox["ymin"], 2), "), ",
                                     "(",round(bbox["xmax"], 2),",",
                                     round(bbox["ymax"], 2), ")"),
+                    crs    = "+init=epsg:4326",
                     labels = paste(sits_labels(data)$label, collapse = ", ")
                 )
                 return(desc)
@@ -90,25 +92,17 @@ sits_db_info <- function(conn){
                 else
                     n_times <- length(data$timeline[[1]])
 
-                # get the bounding box in lat long
-                xymin <- .sits_proj_to_latlong(data$xmin, data$ymin, data$crs)
-                xmin <- xymin[1,"X"]
-                ymin <- xymin[1,"Y"]
-
-                xymax <- .sits_proj_to_latlong(data$xmax, data$ymax, data$crs)
-                xmax <- xymax[1,"X"]
-                ymax <- xymax[1,"Y"]
-
                 desc <- tibble::tibble(
                     name   = tab,
                     cube   = data$name,
                     class  = class(data)[1],
                     size   = paste0(n_times, " instances"),
                     bands  = paste(data$bands[[1]], collapse = ", "),
-                    b_box  = paste0("(",round(xmin, 2), ",",
-                                    round(ymin, 2), "), ",
-                                    "(",round(xmax, 2),",",
-                                    round(ymax, 2), ")"),
+                    b_box  = paste0("(",data$xmin, ",",
+                                        data$ymin, "), ",
+                                    "(",data$xmax, ",",
+                                        data$ymax, ")"),
+                    crs    = data$crs,
                     labels = paste(data$labels[[1]], collapse = ", ")
                 )
                 return(desc)

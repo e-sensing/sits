@@ -39,7 +39,7 @@ satellite image time series to cluster the  samples. Besides that, this function
 evaluates the quality of each sample through SOM properties, such as evaluate each
 sample allocated in aneuron-cluster and its neighbourhood.
 
-The output day contains additional columns:
+The output tibble contains additional columns:
 (a) the probability of a sample belongs to a cluster based on a frequency
 that a sample was allocated in a neuron;
 (b) the total probability of a sample belongs
@@ -49,6 +49,8 @@ to a cluster using data of neighbourhood.
 \donttest{
 # Produce a cluster map
 som_cluster <- sits_som_map(prodes_226_064)
+# plot the som map
+plot(som_cluster)
 # Clean the samples to get better quality ones
 clean_samples <- sits_som_clean_samples(som_cluster)
 }

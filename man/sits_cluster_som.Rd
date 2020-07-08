@@ -32,18 +32,21 @@ sits_cluster_som(
 
 \item{rlen}{The number of time the dataset will be presented to the SOM.}
 
-\item{conditonal_threshold}{Threshold of conditional probability (frequency of samples assigned to a same SOM neuron)}
+\item{conditonal_threshold}{Threshold of conditional probability
+(frequency of samples assigned to a same SOM neuron)}
 
-\item{posterior_threshold}{Threshold of posterior probability (influencied by the SOM neighborhood)}
+\item{posterior_threshold}{Threshold of posterior probability
+(influenced by the SOM neighborhood)}
 
-\item{samples_analysis}{There are some samples that need to be analyzed deeply
+\item{samples_analysis}{Samples that need to be analyzed deeply
 due to the high intra-class variability.
 To return the samples that must be
 analysed, samples_analysis = TRUE.}
 }
 \value{
-Returns a sits tibble with a new subset of samples and a new column
-presenting the probability of each sample belongs to a class described in column label.
+A sits tibble with a new subset of samples and
+                     a new column presenting the probability that a sample
+                     belongs to a class described in column label.
 }
 \description{
 This function uses self-organized maps to find clusters in

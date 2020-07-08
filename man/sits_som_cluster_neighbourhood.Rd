@@ -8,10 +8,12 @@
 .sits_som_cluster_neighbourhood(som_cluster)
 }
 \arguments{
-\item{som_cluster}{Kohonen map and associated information created by \code{\link[sits]{sits_som_map}}}
+\item{som_cluster}{Kohonen map and associated information created by
+\code{\link[sits]{sits_som_map}}}
 }
 \value{
-Returns a sits tibble with a overall percentage of the majority neighbourhood of each sample of all iterations.
+Returns a sits tibble with a overall percentage
+         of the majority neighbourhood of each sample of all iterations.
 }
 \description{
 This fuction presents the overall statistics of neigbourhood for each sample

@@ -12,15 +12,16 @@ sits_som_clean_samples(
 )
 }
 \arguments{
-\item{som_cluster}{A sits tibble returned by \code{\link[sits]{sits_som_map}}}
+\item{som_cluster}{A sits tibble returned
+by \code{\link[sits]{sits_som_map}}}
 
 \item{conditonal_threshold}{Threshold of conditional probability (frequency of samples assigned to a same SOM neuron)}
 
 \item{posterior_threshold}{Threshold of posterior probability (influencied by the SOM neighborhood)}
 
 \item{samples_analysis}{There are some samples that need to be analyzed deeply
-due to the high intra-class variability. To return the samples that must be
-analysed, samples_analysis = TRUE.}
+due to the high intra-class variability.
+To return the samples that must be analysed, samples_analysis = TRUE.}
 }
 \value{
 Returns a sits tibble with a new subset of samples and a new column

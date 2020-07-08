@@ -694,6 +694,54 @@ plot.classified_image <- function(x , y, ..., time = 1,
         ncol = 1)
 }
 
+#' @title  Plot information about confunsion between clusters
+#' @name   plot_som_confusion
+#' @author Lorena Santos \email{lorena.santos@@inpe.br}
+#'
+#' @description Plot a bar graph with informations about each cluster.
+#' The percentage of mixture between the clusters.
+#'
+#' @param data       Table containing the percentage of mixture between the clusters
+#'                   (produced by \code{\link[sits]{sits_som_evaluate_cluster}})
+#' @param text_title Title of plot. Default is "Cluster".
+#'
+#' @examples
+#' \donttest{
+#' # Produce a cluster map
+#' som_cluster <- sits_som_map(prodes_226_064)
+#' # Evaluate the clusters
+#' cluster_overall <- sits_som_evaluate_cluster(som_cluster)
+#' # Plot confusion between the clusters
+#' plot(cluster_overall, "Confusion by cluster")
+#' }
+plot.som_confusion <- function(x, y, ...,
+                        text_title = " Confusion between the sample classes ")
+{
+    #
+    data <- x$mixture_samples_by_class
+    sample_class <- data$classes_confusion
+
+    p <- ggplot2::ggplot() +
+        ggplot2::geom_bar(
+            ggplot2::aes(
+                y = mixture_percentage,
+                x = class,
+                fill = sample_class
+            ),
+            data = data,
+            stat = "identity",
+            position = ggplot2::position_dodge()
+        ) +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(axis.text.x =
+                           ggplot2::element_text(angle = 60, hjust = 1)) +
+        ggplot2::labs(x = "Classes", y = "Percentage of mixture",
+                      colour = "Sample Class") +
+        ggplot2::ggtitle(text_title)
+
+    return(p)
+}
+
 #' @title Brewer color schemes
 #' @name .sits_color_name
 #'
