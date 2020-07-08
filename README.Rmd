@@ -176,7 +176,7 @@ For more information, please see the vignettes
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
 
   - [“Satellite image time series filtering with
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filtering.pdf)
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
 
   - [“Time series classification using machine
     learning”](https://github.com/e-sensing/sits-docs/blob/master/doc/machinelearning.pdf)

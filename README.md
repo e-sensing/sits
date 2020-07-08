@@ -4,39 +4,49 @@ Cubes
 
 ### Overview
 
-The SITS package provides a set of tools for analysis, visualization and
-classification of satellite image time series. It includes methods for
-filtering, clustering, classification, and post-processing.
+The `sits` package provides a set of tools for analysis, visualization
+and classification of satellite image time series. It includes methods
+for filtering, clustering, classification, and post-processing.
 
 ### Installation
 
-Please install the SITS package from github, making sure you have the
+Please install the `sits` package from github, making sure you have the
 latest version of the other packages it requires:
 
 ``` r
 devtools::install_github("e-sensing/sits")
 library(sits)
 
+# Retrieve the "wtss" package (used for data access to the WTSS service)
+devtools::install_github("e-sensing/wtss")
+
 # Retrieve the data available in the "inSitu" package (used for some examples)
 devtools::install_github("e-sensing/inSitu")
-library(inSitu)
+library(inSitu)library(inSitu)
 ```
 
-### Data Access and Visualisation
+### Data Access
 
-**sits** allows different methods of data input, including: (a) obtain
-data from a time series web services such as INPE’s WTSS (Web Series
-Time Service) or EMBRAPA’s SATVEG; (b) read data stored in a time series
-in the ZOO format \[@Zeileis2005\]; (c) read a time series from a TIFF
-RasterBrick; (d) Read images organized in data cubes using the EOCUbes
-packages. More services will be added in future releases.
+SITS has been designed to work with big satellite image data sets
+organised data cubes. Data cubes can be available in the cloud or in a
+local machine. Methods of data input for time series samples include (a)
+obtain data from a time series web services such as INPE’s WTSS (Web
+Series Time Service) or EMBRAPA’s SATVEG; (b) read data stored in a time
+series in the ZOO format \[@Zeileis2005\]; (c) Read a time series from a
+`raster bricks`. Currently, raster classification requires that data
+cubes are organised as a `raster bricks` which can reside on a local or
+remote service.
+
+For more details on data access, please see the vignette [“Accessing
+time series information in
+SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/time_series.pdf).
 
 ### Visualization
 
-    #> Created logger for sits package - DEBUG level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//RtmpqdfMjM/sits_debug32ad42706fc6.log
-    #> Created logger for sits package - ERROR level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//RtmpqdfMjM/sits_error32ad63ba523d.log
+    #> Created logger for sits package - DEBUG level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//RtmpMVMOYy/sits_debuga26c39e7998.log
+    #> Created logger for sits package - ERROR level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//RtmpMVMOYy/sits_errora26c1940ec03.log
     #> sits - satellite image time series analysis.
-    #> Loaded sits v0.9.5.
+    #> Loaded sits v0.9.5.1.
     #>         See ?sits for help, citation("sits") for use in publication.
     #>         See demo(package = "sits") for examples.
 
@@ -122,6 +132,8 @@ point_whit %>%
   plot()
 ```
 
+![](man/figures/README-unnamed-chunk-7-1.png)<!-- -->
+
 ## Time Series classification using machine learning
 
 SITS provides support for the classification of both individual time
@@ -156,8 +168,8 @@ format using the function `sits_show_prediction` or graphically using
 
 # Train a machine learning model for the mato grosso dataset using Extreme Gradient Boosting
 samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
-rfor_model <- sits_train(data = samples_mt_2bands, 
-                         ml_method = sits_rfor(num_trees = 100))
+svm_model <- sits_train(data = samples_mt_2bands, 
+                         ml_method = sits_svm())
 
 # get a point to be classified with four bands
 point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
@@ -166,7 +178,7 @@ point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
 point_filtered <- sits_whittaker(point_mt_2bands, lambda = 0.2, bands_suffix = "") 
 
 # Classify using random forest model and plot the result
-class.tb <- sits_classify(point_filtered, rfor_model)
+class.tb <- sits_classify(point_filtered, svm_model)
 # plot the results of the prediction
 plot(class.tb, bands = c("ndvi", "evi"))
 ```
@@ -180,7 +192,7 @@ same bands as the data cube.
 ``` r
 # estimate a model only for bands "ndvi" and "evi"
 samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
-xgb_model_ndvi_evi <- sits_train(samples_mt_2bands, ml_method = sits_xgboost())
+rfor_model <- sits_train(samples_mt_2bands, ml_method = sits_rfor(num_trees = 300))
 # Create a data cube from two raster bricks
 evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
 ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
@@ -190,9 +202,13 @@ time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu
 timeline_2013_2014 <- scan(time_file, character(), quiet = TRUE)
 
 # create a raster metadata file based on the information about the files
-raster_cube <- sits_cube(name = "Sinop", timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = c(ndvi_file, evi_file))
+raster_cube <- sits_cube(type = "BRICK", name = "Sinop", 
+                         satellite = "TERRA", sensor = "MODIS",
+                         timeline = timeline_2013_2014, 
+                         bands = c("ndvi", "evi"), 
+                         files = c(ndvi_file, evi_file))
 # Classify the raster cube, generating a probability file
-probs_cube <- sits_classify(raster_cube, ml_model = xgb_model_ndvi_evi)
+probs_cube <- sits_classify(raster_cube, ml_model = rfor_model)
 
 # label the probability file (by default selecting the class with higher probability)
 # apply a bayesian smoothing to remove outliers
@@ -215,25 +231,25 @@ Image classified with XGBoost
 
 </div>
 
-# Additional information
+### Additional information
 
-For more details, please see the vignettes
+For more information, please see the vignettes
 
   - [“SITS: Data analysis and machine learning for data cubes using
     satellite image time
     series”](https://github.com/e-sensing/sits-docs/blob/master/doc/sits.pdf)
 
   - [“Accessing time series information in
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/time_series.pdf)
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf)
 
   - [“Clustering of satellite image time series with
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
 
   - [“Satellite image time series filtering with
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filtering.pdf)
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
 
   - [“Time series classification using machine
-    learning”](https://github.com/e-sensing/sits-docs/blob/master/doc/machine_learning.pdf)
+    learning”](https://github.com/e-sensing/sits-docs/blob/master/doc/machinelearning.pdf)
 
   - [“Post classification smoothing using Bayesian techniques in
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/smoothing.pdf)

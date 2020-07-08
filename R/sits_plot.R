@@ -677,41 +677,6 @@ plot.classified_image <- function(x , y, ..., time = 1,
                        bgcol = koh$som_properties$paint_map ,
                        "codes", whatmap = whatmap)
     }
-    else if (type == "by_year") {
-
-        data.tb <- dplyr::select(koh$samples_output.tb,id_sample,latitude,longitude,start_date, end_date,label)
-        samples_information <- koh$statistics_samples$samples_t
-        it <- unique(max(samples_information$iteration))
-        samples_information <- dplyr::filter(samples_information, samples_information$iteration == it)
-        samples_st_id <- samples_information %>% dplyr::inner_join(data.tb, by = "id_sample")
-
-
-        if (!is.null(class))
-        {
-            samples_st_id <- dplyr::filter(samples_st_id, samples_st_id$original_label == class)
-        }
-
-        id_all_year <- samples_st_id %>% dplyr::pull(id_neuron)
-        id_all_year <- as.numeric(id_all_year)
-        graphics::plot(koh$som_properties,  "mapping", classif = id_all_year , bgcol= koh$som_properties$paint, main = "All years" )
-
-        year <- sort(unique(samples_st_id$start_date))
-        year <- sort(unique(lubridate::year(samples_st_id$start_date)))
-        n_year <- length(year)
-
-        for (i in 1:length(year))
-        {
-            #samples_by_year <- dplyr::filter(samples_st_id, samples_st_id$start_date == year[i])
-
-            samples_by_year<- dplyr::filter(samples_st_id, lubridate::year(samples_st_id$start_date) == year[i] )
-            text_year <- substr(year[i], 1, 4)
-            #get the neuron
-            id_samples_2000 <- samples_by_year %>% dplyr::pull(4)
-            id_samples_2000 <- as.numeric(id_samples_2000)
-            graphics::plot(koh$som_properties,  "mapping", classif =id_samples_2000 , bgcol= koh$som_properties$paint, main = text_year)
-        }
-
-    }
 
     #create a legend
     leg <- cbind(koh$som_properties$neuron_label, koh$som_properties$paint_map)

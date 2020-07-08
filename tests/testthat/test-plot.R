@@ -7,6 +7,16 @@ if (!requireNamespace("proto", quietly = TRUE)) {
 library(proto)
 test_that("Plot Time Series and Classification", {
     data("cerrado_2classes")
+
+    cerrado_ndvi <- sits_select_bands(cerrado_2classes, ndvi)
+
+    plot(cerrado_ndvi[1,])
+
+    cerrado_ndvi_1class <- dplyr::filter(cerrado_2classes, label == "Cerrado")
+    plot(cerrado_ndvi_1class)
+
+    plot(sits_patterns(cerrado_2classes))
+
     p <- sits:::.sits_plot_allyears(cerrado_2classes[1,], colors = "Dark2")
     expect_equal(p$labels$title, "location (-14.0482, -54.2313) - Cerrado")
 
@@ -22,6 +32,7 @@ test_that("Plot Time Series and Classification", {
     data(point_ndvi)
     rfor_model    <- sits_train(samples_mt_ndvi, ml_method = sits_rfor())
     class_ndvi.tb <-  sits_classify(point_ndvi, rfor_model)
+    plot(class_ndvi.tb)
     p3 <- sits:::.sits_plot_classification (class_ndvi.tb)
     expect_equal(p3$labels$y, "Value")
     expect_equal(p3$labels$x, "Time")
@@ -41,6 +52,7 @@ test_that("Plot Time Series and Classification", {
     sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
                                  memsize = 1, multicores = 1)
     sinop_labels <- sits_label_classification(sinop_probs)
+    plot(sinop_labels, time = 1)
     p4 <- sits:::.sits_plot_raster(sinop_labels, time = 1,
                                    title = "SINOP class 2000-2001")
     expect_equal(p4$labels$title,"SINOP class 2000-2001")
@@ -97,6 +109,8 @@ test_that("SOM map plot", {
             iterations = 4
         ))
 
+    plot(som_map, type = "mapping")
+    plot(som_map, type = "by_year")
     file_plot <- "./som_map_ref.jpg"
     file_ref  <- system.file("extdata/plot/som_map_ref.jpg", package = "sits")
     jpeg(filename = file_plot)

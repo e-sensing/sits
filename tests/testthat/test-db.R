@@ -72,6 +72,14 @@ test_that("Access to RSQLite",{
 
     db.tb <- sits_db_info(conn)
 
+    expect_true(NROW(db.tb) == 4)
+    cube_classes <-  sits:::sits.env$config$cube_classes
+    db_classes <- c("sits", cube_classes)
+
+    expect_true(all(db.tb$class %in% db_classes))
+    expect_true("cerrado_2classes" %in% db.tb$name)
+    expect_true("sinop" %in% db.tb$name)
+
     expect_true(all(file.remove(unlist(sinop_probs$files))))
     expect_true(all(file.remove(unlist(sinop_bayes$files))))
 
