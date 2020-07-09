@@ -4,16 +4,19 @@
 \alias{plot.som_confusion}
 \title{Plot information about confunsion between clusters}
 \usage{
-\method{plot}{som_confusion}(x, y, ..., data, title = "Confusion by cluster")
+\method{plot}{som_confusion}(x, y, ..., title = "Confusion by cluster")
 }
 \arguments{
-\item{data}{Table containing the percentage of mixture between the clusters
-(produced by \code{\link[sits]{sits_som_evaluate_cluster}})}
+\item{x}{object of class "som_confusion"}
+
+\item{y}{ignored}
+
+\item{...}{further specifications for \link{plot}.}
 
 \item{title}{Title of plot. default is ""Confusion by cluster"".}
 }
 \value{
-
+input object (useful for chaining)
 }
 \description{
 Plot a bar graph with informations about each cluster.
@@ -22,9 +25,9 @@ The percentage of mixture between the clusters.
 \examples{
 \donttest{
 # Produce a cluster map
-som_cluster <- sits_som_map(prodes_226_064)
+som_map <- sits_som_map(prodes_226_064)
 # Evaluate the clusters
-cluster_overall <- sits_som_evaluate_cluster(som_cluster)
+cluster_overall <- sits_som_evaluate_cluster(som_map)
 # Plot confusion between the clusters
 plot(cluster_overall)
 }

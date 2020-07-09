@@ -1,18 +1,30 @@
 #' @title Creates a connection to an RSQLite database
-#' @name sits_db_create
+#' @name sits_db_connect
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This functions creates a connection to an RSQLite database
 #' to be able to store the data and metadata tables associated to time series
 #' and data cubes associated to the "sits" suite of packages.
 #'
-#' @param  name     Name of the database
+#' @param  name     Name of the database (either a file or memory if empty)
 #' @return          A connection to an RSQLite database
 #' @examples
+#' # name of file to store the RSQLite database
+#' db_file <- paste0(Sys.getenv('HOME'),"/sits.sql")
 #' # create RSQLite connection
-#' conn <- sits_db_create()
+#' conn <- sits_db_connect(db_file)
 #' @export
-sits_db_create <- function(name = NULL){
+sits_db_connect <- function(name = NULL){
+    # verifies if DBI package is installed
+    if (!requireNamespace("DBI", quietly = TRUE)) {
+        stop("DBI needed for this function to work. Please install it.",
+             call. = FALSE)
+    }
+    # verifies if RSQLite package is installed
+    if (!requireNamespace("RSQLite", quietly = TRUE)) {
+        stop("RSQLite needed for this function to work. Please install it.",
+             call. = FALSE)
+    }
     if (purrr::is_null(name))
         name <- ":memory:"
 
@@ -32,7 +44,7 @@ sits_db_create <- function(name = NULL){
 #' @examples
 #' \donttest{
 #' # create a data base
-#' conn <- sits_db_create("sits.sql")
+#' conn <- sits_db_connect("sits.sql")
 #' # write a set of time series
 #' conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
 #' # describe the data available in the database
@@ -41,7 +53,7 @@ sits_db_create <- function(name = NULL){
 #' @export
 sits_db_info <- function(conn){
     # connect to the database
-    if(!grepl("memory", conn@dbname))
+    if (!grepl("memory", conn@dbname))
         conn <-  DBI::dbConnect(conn)
     # assert that the connection is valid
     assertthat::assert_that(DBI::dbIsValid(conn),
@@ -137,7 +149,7 @@ sits_db_info <- function(conn){
 #' @examples
 #' \donttest{
 #' # create RSQLite connection
-#' conn <- sits_db_create("sits.sql")
+#' conn <- sits_db_connect("sits.sql")
 #' # write a set of time series
 #' conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
 #' }
@@ -148,7 +160,7 @@ sits_db_write <- function(conn, name, data){
     assertthat::assert_that(nrow(data) > 0, msg = "no data to save")
 
     # connect to the database
-    if(!grepl("memory", conn@dbname))
+    if (!grepl("memory", conn@dbname))
         conn <-  DBI::dbConnect(conn)
     # assert that the connection is valid
     assertthat::assert_that(DBI::dbIsValid(conn),
@@ -165,7 +177,7 @@ sits_db_write <- function(conn, name, data){
         message("sits_db_write: data class not supported")
 
     # disconnect from database
-    if(!grepl("memory", conn@dbname))
+    if (!grepl("memory", conn@dbname))
         DBI::dbDisconnect(conn)
 
     return(conn)
@@ -194,7 +206,7 @@ sits_db_write <- function(conn, name, data){
 sits_db_read <- function(conn, name) {
 
     # connect to the database
-    if(!grepl("memory", conn@dbname))
+    if (!grepl("memory", conn@dbname))
         conn <-  DBI::dbConnect(conn)
     # assert that the connection is valid
     assertthat::assert_that(DBI::dbIsValid(conn),

@@ -36,7 +36,6 @@ Imports:
     caret,
     config,
     data.table (>= 1.12),
-    DBI,
     dplyr (>= 1.0.0),
     ggplot2,
     graphics,
@@ -50,7 +49,6 @@ Imports:
     raster (>= 2.6),
     reshape2,
     rgdal (>= 1.5),
-    RSQLite,
     scales,
     sf (>= 0.9),
     stats,
@@ -58,6 +56,7 @@ Imports:
     utils,
     wtss
 Suggests:
+    DBI,
     dendextend,
     devtools,
     dtwclust,
@@ -81,6 +80,7 @@ Suggests:
     ranger,
     Rcpp,
     RCurl,
+    RSQLite,
     signal,
     testthat,
     xgboost,

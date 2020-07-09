@@ -149,7 +149,7 @@ test_that("1D CNN model",{
                                                   epochs = 50,
                                                   verbose = 0))))
     test_eval <- suppressMessages(sits_keras_diagnostics(model))
-    expect_true(test_eval["accuracy"]> 0.7)
+    expect_true(test_eval["accuracy"]> 0.5)
 
     class.tb <- sits_classify(point_ndvi, model)
 

@@ -88,11 +88,11 @@ plot.patterns <- function(x, y, ...) {
 #' @examples
 #' \donttest{
 #' # Produce a cluster map
-#' som_cluster <- sits_som_map(prodes_226_064)
+#' som_map <- sits_som_map(prodes_226_064)
 #' # Plot the clusters
-#' plot(som_cluster, type = "codes")
+#' plot(som_map, type = "codes")
 #' # Plot kohonen map showing where the samples were allocated
-#' plot(som_cluster, type = "mapping")
+#' plot(som_map, type = "mapping")
 #' }
 #' @export
 plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
@@ -189,25 +189,25 @@ plot.classified_image <- function(x , y, ..., time = 1,
 #' @description Plot a bar graph with informations about each cluster.
 #' The percentage of mixture between the clusters.
 #'
-#' @param data       Table containing the percentage of mixture between the clusters
-#'                   (produced by \code{\link[sits]{sits_som_evaluate_cluster}})
-#' @param title      Title of plot. default is ""Confusion by cluster"".
-#' @return
+#' @param  x            object of class "som_confusion"
+#' @param  y            ignored
+#' @param ...           further specifications for \link{plot}.
+#' @param title         Title of plot. default is ""Confusion by cluster"".
+#' @return              input object (useful for chaining)
 #' @examples
 #' \donttest{
 #' # Produce a cluster map
-#' som_cluster <- sits_som_map(prodes_226_064)
+#' som_map <- sits_som_map(prodes_226_064)
 #' # Evaluate the clusters
-#' cluster_overall <- sits_som_evaluate_cluster(som_cluster)
+#' cluster_overall <- sits_som_evaluate_cluster(som_map)
 #' # Plot confusion between the clusters
 #' plot(cluster_overall)
 #' }
 #' @export
-plot.som_confusion <- function(x, y, ..., data,
-							   title = "Confusion by cluster")
+plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 {
 	stopifnot(missing(y))
-	.sits_plot_som_confusion(data = x, title = title)
+	.sits_plot_som_confusion(x, title)
 	return(invisible(x))
 }
 
@@ -728,7 +728,7 @@ plot.som_confusion <- function(x, y, ..., data,
         ncol = 1)
 }
 
-#' @title  Plot information about confunsion between clusters
+#' @title  Plot information about confusion between clusters
 #' @name   .sits_plot_som_confusion
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
@@ -741,6 +741,10 @@ plot.som_confusion <- function(x, y, ..., data,
 #' @return           ggplot2 object
 .sits_plot_som_confusion <- function(data, title)
 {
+    if (!("som_confusion" %in% class(data))) {
+        message("unable to plot - please run sits_som_evaluate_cluster")
+        return(invisible(NULL))
+    }
     #
     data <- data$mixture_samples_by_class
     sample_class <- data$classes_confusion
@@ -762,6 +766,8 @@ plot.som_confusion <- function(x, y, ..., data,
         ggplot2::labs(x = "Classes", y = "Percentage of mixture",
                       colour = "Sample Class") +
         ggplot2::ggtitle(title)
+
+    p <- graphics::plot(p)
 
     return(p)
 }

@@ -23,7 +23,7 @@ the percentage of mixture between a cluster and others.
 # Produce a Kohonen map for the time series samples
 som_map <- sits_som_map(prodes_226_064)
 # Extract metrics about the clusters
-confusion_by_cluster <- sits_som_evaluate_cluster(som_cluster)
+confusion_by_cluster <- sits_som_evaluate_cluster(som_map)
 # Show confusion matrix
 confusion_matrix <- confusion_by_cluster$confusion_matrix
 # Plot cluster confusion

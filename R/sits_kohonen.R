@@ -404,7 +404,7 @@ sits_som_clean_samples <- function(som_map,
 #' # Produce a Kohonen map for the time series samples
 #' som_map <- sits_som_map(prodes_226_064)
 #' # Extract metrics about the clusters
-#' confusion_by_cluster <- sits_som_evaluate_cluster(som_cluster)
+#' confusion_by_cluster <- sits_som_evaluate_cluster(som_map)
 #' # Show confusion matrix
 #' confusion_matrix <- confusion_by_cluster$confusion_matrix
 #' # Plot cluster confusion
@@ -511,9 +511,9 @@ sits_som_evaluate_cluster <- function(som_map)
 	# return the output object
 	metrics_by_cluster <-  structure(list(
 		mixture_samples_by_class = mix_class,
-		confusion_matrix = info_confusion_matrix),
-		class = "som_confusion")
+		confusion_matrix = info_confusion_matrix))
 
+	class(metrics_by_cluster) <- c("som_confusion", "sits")
 	return(metrics_by_cluster)
 }
 #' @title Labelling neurons

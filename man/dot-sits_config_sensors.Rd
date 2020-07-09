@@ -5,22 +5,16 @@
 \title{Retrieve the default sensor for the satellite}
 \usage{
 .sits_config_sensors(satellite)
-
-.sits_config_sensors(satellite)
 }
 \arguments{
 \item{satellite}{Name of the satellite}
 }
 \value{
 Sensors associated to the satellite
-
-List of sensors associated to a satellite that are supported by SITS
 }
 \description{
 Based on the satellite, find the default sensor
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

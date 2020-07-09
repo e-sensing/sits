@@ -3,7 +3,7 @@ test_that("Access to RSQLite",{
     # create RSQLite connection
     home <- Sys.getenv('HOME')
     db_file <- paste0(home,"/sits.sql")
-    conn <- sits_db_create(db_file)
+    conn <- sits_db_connect(db_file)
     # write a set of time series
     conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
     #' # read a set of time series

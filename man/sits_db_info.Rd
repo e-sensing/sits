@@ -19,7 +19,7 @@ stored RSQLite database.
 \examples{
 \donttest{
 # create a data base
-conn <- sits_db_create("sits.sql")
+conn <- sits_db_connect("sits.sql")
 # write a set of time series
 conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
 # describe the data available in the database

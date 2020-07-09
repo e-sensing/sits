@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_som_confusion}
 \alias{.sits_plot_som_confusion}
-\title{Plot information about confunsion between clusters}
+\title{Plot information about confusion between clusters}
 \usage{
 .sits_plot_som_confusion(data, title)
 }
