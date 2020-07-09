@@ -41,22 +41,3 @@ test_that("Creating clustering using Self-organizing Maps", {
     plot(cluster_overall)
 
 })
-
-test_that("SOM with a small map and neighborhood cluster", {
-
-    som_map2 <-
-        suppressWarnings(sits_som_map(
-            cerrado_2classes,
-            grid_xdim = 2,
-            grid_ydim = 2,
-            alpha = 1,
-            distance = "euclidean",
-            iterations = 4
-        ))
-    expect_true(all(som_map2$statistics_samples$samples$neuron_label %in% c("Cerrado", "Pasture")))
-
-    neigh <- sits:::.sits_som_cluster_neighbourhood(som_map2)
-
-    expect_true(all(neigh[1,"percentage_n"] > 0.90))
-
-})

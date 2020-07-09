@@ -728,40 +728,6 @@ sits_som_evaluate_cluster <- function(som_map)
 }
 
 
-#' @title SOM neighbourhood
-#' @name sits_som_cluster_neighbourhood
-#' @author Lorena Santos, \email{lorena.santos@@inpe.br}
-#'
-#' @description This fuction presents the overall statistics of neigbourhood for each sample
-#'
-#' @param som_cluster Kohonen map and associated information created by
-#' \code{\link[sits]{sits_som_map}}
-#' @return Returns a sits tibble with a overall percentage
-#'          of the majority neighbourhood of each sample of all iterations.
-.sits_som_cluster_neighbourhood <- function(som_cluster)
-{
-    s_samples <- som_cluster$statistics_samples
-    #number of iterations
-    k <- length(unique(s_samples$samples$iteration))
-
-    table_sample_neuron <- s_samples$sample %>%
-        dplyr::inner_join(s_samples$neuron)
-
-    # Table with the % of neighbourhood of a sample
-    # id_sample, label_neighbor_neuron, % vincinity
-    info_neighbourhood.tb <- tibble::as_tibble(
-        dplyr::arrange(
-          table_sample_neuron %>%
-          dplyr::group_by(id_sample, label_neighbor_neuron) %>%
-          dplyr::summarize(percentage_n = (sum(p_Neighbor) / k) * 100),
-        id_sample,
-        desc(percentage_n)
-        )
-    )
-  return(info_neighbourhood.tb)
-}
-
-
 #' @title Paint neurons
 #' @name .sits_som_paint_neurons
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
