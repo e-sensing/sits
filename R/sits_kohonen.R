@@ -24,10 +24,6 @@
 #'                                  (frequency of samples assigned to a same SOM neuron)
 #' @param posterior_threshold       Threshold of posterior probability
 #'                                  (influenced by the SOM neighborhood)
-#' @param samples_analysis          Samples that need to be analyzed deeply
-#'                                  due to the high intra-class variability.
-#'                                  To return the samples that must be
-#'                                  analysed, samples_analysis = TRUE.
 #' @return              A sits tibble with a new subset of samples and
 #'                      a new column presenting the probability that a sample
 #'                      belongs to a class described in column label.
@@ -45,8 +41,7 @@ sits_cluster_som <- function(data,
                              iterations = 50,
                              rlen = 100,
                              conditonal_threshold  = 0.6,
-                             posterior_threshold = 0.6,
-                             samples_analysis = TRUE){
+                             posterior_threshold = 0.6){
 
     # get an extended sits tibble with the cluster of each sample
     som_cluster <- sits_som_map(data, grid_xdim, grid_ydim, alpha, rlen,
@@ -54,8 +49,7 @@ sits_cluster_som <- function(data,
 
     data_clean <- sits_som_clean_samples(som_cluster,
                                        conditonal_threshold,
-                                       posterior_threshold,
-                                       samples_analysis)
+                                       posterior_threshold)
 
   return(data_clean)
 }
@@ -130,7 +124,7 @@ sits_som_map <- function(data,
 
     # get the time series
     time_series <- sits_values(data, format = "bands_cases_dates")
-    somgrid = kohonen::somgrid(grid_xdim, grid_ydim,
+    somgrid <-  kohonen::somgrid(grid_xdim, grid_ydim,
                                "rectangular", "gaussian",
                                toroidal = FALSE)
 
@@ -341,63 +335,56 @@ sits_som_map <- function(data,
 #' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
 #'
 #' @description This function remove sample that do not have good quality based
-#' on the statistics of the result of the clustering using SOM.
+#' on the statistics of the result of the clustering using SOM. It also provides
+#' samples that should be analysed.
 #'
-#' @param som_cluster               A sits tibble returned
+#' @param som_map                   An object returned
 #'                                  by \code{\link[sits]{sits_som_map}}
-#' @param conditonal_threshold      Threshold of conditional probability (frequency of samples assigned to a same SOM neuron)
-#' @param posterior_threshold       Threshold of posterior probability (influencied by the SOM neighborhood)
-#' @param samples_analysis          There are some samples that need to be analyzed deeply
-#'                                  due to the high intra-class variability.
-#'                                  To return the samples that must be analysed, samples_analysis = TRUE.
-#' @return Returns a sits tibble with a new subset of samples and a new column
-#' presenting the probability of each sample belongs to a class described in column label.
+#' @param conditonal_threshold      Threshold of conditional probability
+#'                (frequency of samples assigned to the same SOM neuron)
+#' @param posterior_threshold       Threshold of posterior probability
+#'                                  (influenced by the SOM neighborhood)
+#'
+#' @return                         A list with two sits tibbles
+#'                                 The first tibble has clean samples
+#'                                 The second has samples that need to be analysed
 #'
 #' @examples
 #' \donttest{
 #' # Read a set of samples
 #' # Get a new subset of samples evaluated by clustering methods
-#' som_cluster <- sits_som_map(prodes_226_064, grid_xdim = 10, grid_ydim = 10,
+#' som_map <- sits_som_map(prodes_226_064, grid_xdim = 10, grid_ydim = 10,
 #'        distance = "euclidean", iterations = 50)
-#' new_samples <- sits_som_clean_samples(som_cluster)
+#' new_samples <- sits_som_clean_samples(som_map)
 #' }
 #' @export
 
-sits_som_clean_samples <- function(som_cluster,
+sits_som_clean_samples <- function(som_map,
                                    conditonal_threshold = 0.6,
-                                   posterior_threshold = 0.6,
-                                   samples_analysis = TRUE) {
+                                   posterior_threshold = 0.6) {
 
     # Sanity check
-    if (!("som_map" %in% class(som_cluster))) {
+    if (!("som_map" %in% class(som_map))) {
 				message("wrong input data; please run sits_som_map first")
     		return(invisible(NULL))
     }
 
   	#keep samples
-  	output_samples.tb <- dplyr::filter(som_cluster$samples_output.tb,
-      								som_cluster$samples_output.tb$conditional_prob  >= conditonal_threshold &
-        							som_cluster$samples_output.tb$posterior_prob >= posterior_threshold
+  	clean_samples.tb <- dplyr::filter(som_map$samples_output.tb,
+  		som_map$samples_output.tb$conditional_prob  >= conditonal_threshold &
+        som_map$samples_output.tb$posterior_prob    >= posterior_threshold
     )
 
-  	if (samples_analysis)
-  	{
-    		make_analysis.tb <- dplyr::filter(som_cluster$samples_output.tb,
-                    	som_cluster$samples_output.tb$conditional_prob >= conditonal_threshold &
-                    	som_cluster$samples_output.tb$posterior_prob < posterior_threshold)
+ 	make_analysis.tb <- dplyr::filter(som_map$samples_output.tb,
+        som_map$samples_output.tb$conditional_prob >= conditonal_threshold &
+        som_map$samples_output.tb$posterior_prob < posterior_threshold)
 
-    		if (dim(make_analysis.tb)[1] == 0) {
-      			message("There are no samples to be analyzed!")
-    		}
-    		else {
-      			output_samples.tb <- structure(
-          												list(cleaned_samples.tb = output_samples.tb,
-          														 make_analysis.tb = make_analysis.tb),
-          												class = "sits"
+     output <- structure(
+          			list(clean_samples.tb = clean_samples.tb,
+          				 make_analysis.tb = make_analysis.tb),
+          		    class = "clean-samples"
         		)
-    		}
-  	}
-  	return(output_samples.tb)
+  	return(output)
 }
 
 #' @title Cluster evaluation
@@ -407,13 +394,15 @@ sits_som_clean_samples <- function(som_cluster,
 #' @description This function extracts metrics about the clusters calculating
 #' the percentage of mixture between a cluster and others.
 #'
-#' @param som_cluster Kohonen map and associated information created by \code{\link[sits]{sits_som_map}}
-#' @return Returns the confusion matrix and a table with percentage of mixture between the clusters.
+#' @param som_map      SOM map and associated information
+#'                     created by \code{\link[sits]{sits_som_map}}
+#' @return             The confusion matrix and
+#'                     a table with percentage of mixture between the clusters.
 #'
 #' @examples
 #' \donttest{
 #' # Produce a Kohonen map for the time series samples
-#' som_cluster <- sits_som_map(prodes_226_064)
+#' som_map <- sits_som_map(prodes_226_064)
 #' # Extract metrics about the clusters
 #' confusion_by_cluster <- sits_som_evaluate_cluster(som_cluster)
 #' # Show confusion matrix
@@ -422,102 +411,108 @@ sits_som_clean_samples <- function(som_cluster,
 #' plot(confusion_by_cluster)
 #' }
 #' @export
-sits_som_evaluate_cluster <- function(som_cluster)
+sits_som_evaluate_cluster <- function(som_map)
 {
-		data <- som_cluster$statistics_samples$summary_overall
-
-		#Initialize variables
-		id_sample <- NULL
-		neuron_label <- NULL
-
-		# get only id, label and neuron_label
-		temp.data <- unique(dplyr::select(data, id_sample, label, cluster))
-
-		# get labels that no have cluster
-		no_cluster <- dplyr::setdiff(temp.data$label, temp.data$cluster)
-
-		confusion.matrix <- table(temp.data$label, temp.data$cluster)
-
-		#	get the names of classes (original labels from samples)
-		label_table <- rownames(confusion.matrix)
-
-		if (length(no_cluster) > 0) {
-				# number of class that dont have cluster
-				size_vector <- length(no_cluster)
-
-				match_no_cluster <- match(label_table, no_cluster)
-				match_no_cluster <- match_no_cluster[!is.na(match_no_cluster)]
-
-				# Add columns in confusion matrix
-				for (sv in seq_len(size_vector)) {
-						# position to add column in confusion matrix
-						position_to_add <-
-								which(label_table == no_cluster[match_no_cluster[sv]])
-
-						# transform in df.array to add a column
-						cf <- as.data.frame.array(confusion.matrix)
-
-						# add a column in same position of line
-						cf <- tibble::add_column(cf, d = 0, .after = position_to_add - 1)
-
-						# rename the column to name of cluster
-						names(cf)[position_to_add] <- no_cluster[match_no_cluster[sv]]
-						confusion.matrix <- as.table(as.matrix(cf))
-				}
-		}
-
-		# Add the total number of samples in table
-		confusion.matrix.tb <- stats::addmargins(confusion.matrix,
-																					 FUN = list(Total = sum), quiet = TRUE)
-
-		#	get dimensions (rows and col)
-		#	represents the original classes of samples
-		dim_row <- dim(confusion.matrix.tb)[1]
-
-		# represents clusters
-		dim_col <- dim(confusion.matrix.tb)[2]
-
-		# get the names of classes (original labels from samples)
-		label_table <- rownames(confusion.matrix.tb)[1:dim_row - 1]
-		info_confusion_matrix <-
-					caret::confusionMatrix(confusion.matrix.tb[1:dim_row - 1, 1:dim_col - 1])
-
-
-		mix_class <- dplyr::tibble()
-
-		for (d in seq_len(dim_row - 1)) {
-				# sum the samples of label "d" by cluster.
-				# each column represents the cluster where the sample was allocated
-				current_row <- confusion.matrix.tb[d, 1:dim_col - 1]
-
-				# get the total value
-				current_row_total <- confusion.matrix.tb[d, dim_col]
-
-				mixture_percentage =
-					as.numeric((current_row / current_row_total) * 100)
-
-				current_class_ambiguity <-
-						dplyr::arrange(tibble::as_tibble(
-														list(
-																id_class = as.integer(d),
-																class = label_table[d],
-																classes_confusion = names(current_row),
-																mixture_percentage = mixture_percentage
-															),
-														dplyr::desc(mixture_percentage)
-						)
-						)
-
-				# remove lines that mix_percentege is zero
-				current_class_ambiguity <- dplyr::filter(current_class_ambiguity,
-																current_class_ambiguity$mixture_percentage > 0)
-
-				mix_class <- rbind(mix_class, current_class_ambiguity)
+	# Sanity check
+	if (!("som_map" %in% class(som_map))) {
+		message("wrong input data; please run sits_som_map first")
+		return(invisible(NULL))
 	}
+	data <- som_map$statistics_samples$summary_overall
+
+	# Initialize variables
+	id_sample <- NULL
+	neuron_label <- NULL
+
+	# get only id, label and neuron_label
+	temp.data <- unique(dplyr::select(data, id_sample, label, cluster))
+
+	# get labels that no have cluster
+	no_cluster <- dplyr::setdiff(temp.data$label, temp.data$cluster)
+
+	confusion.matrix <- table(temp.data$label, temp.data$cluster)
+
+	#	get the names of classes (original labels from samples)
+	label_table <- rownames(confusion.matrix)
+
+	if (length(no_cluster) > 0) {
+		# number of classes that have no cluster
+		size_vector <- length(no_cluster)
+
+		match_no_cluster <- match(label_table, no_cluster)
+		match_no_cluster <- match_no_cluster[!is.na(match_no_cluster)]
+
+		# Add columns in confusion matrix
+		for (sv in seq_len(size_vector)) {
+			# position to add column in confusion matrix
+			position_to_add <-
+						which(label_table == no_cluster[match_no_cluster[sv]])
+
+			# transform in df.array to add a column
+			cf <- as.data.frame.array(confusion.matrix)
+
+			# add a column in same position of line
+			cf <- tibble::add_column(cf, d = 0, .after = position_to_add - 1)
+
+			# rename the column to name of cluster
+			names(cf)[position_to_add] <- no_cluster[match_no_cluster[sv]]
+			confusion.matrix <- as.table(as.matrix(cf))
+		}
+	}
+
+	# Add the total number of samples in table
+	confusion.matrix.tb <- stats::addmargins(confusion.matrix,
+									FUN = list(Total = sum), quiet = TRUE)
+
+	#	get dimensions (rows and col)
+	#	represents the original classes of samples
+	dim_row <- dim(confusion.matrix.tb)[1]
+
+	# represents clusters
+	dim_col <- dim(confusion.matrix.tb)[2]
+
+	# get the names of classes (original labels from samples)
+	label_table <- rownames(confusion.matrix.tb)[1:dim_row - 1]
+	info_confusion_matrix <-
+			caret::confusionMatrix(confusion.matrix.tb[1:dim_row - 1,
+													   1:dim_col - 1])
+
+	mix_class <- tibble::tibble()
+
+	for (d in seq_len(dim_row - 1)) {
+		# sum the samples of label "d" by cluster.
+		# each column represents the cluster where the sample was allocated
+		current_row <- confusion.matrix.tb[d, 1:dim_col - 1]
+
+		# get the total value
+		current_row_total <- confusion.matrix.tb[d, dim_col]
+
+		mixture_percentage <-
+			as.numeric((current_row / current_row_total) * 100)
+
+		current_class_ambiguity <-
+			dplyr::arrange(tibble::as_tibble(
+				list(
+					id_class = as.integer(d),
+					class = label_table[d],
+					classes_confusion = names(current_row),
+					mixture_percentage = mixture_percentage
+				),
+				dplyr::desc(mixture_percentage)
+			)
+			)
+
+		# remove lines where mix_percentege is zero
+		current_class_ambiguity <- dplyr::filter(current_class_ambiguity,
+								current_class_ambiguity$mixture_percentage > 0)
+
+		mix_class <- rbind(mix_class, current_class_ambiguity)
+	}
+	# return the output object
 	metrics_by_cluster <-  structure(list(
-																		mixture_samples_by_class = mix_class,
-																		confusion_matrix = info_confusion_matrix),
-																		class = "som_confusion")
+		mixture_samples_by_class = mix_class,
+		confusion_matrix = info_confusion_matrix),
+		class = "som_confusion")
 
 	return(metrics_by_cluster)
 }
@@ -835,7 +830,7 @@ sits_som_evaluate_cluster <- function(som_cluster)
 
     data_neuron_i.tb <- dplyr::filter(neurons_labelled.tb, neurons_labelled.tb$id_neuron == neuron_i)
     max_y_jk <- (max(data_neuron_i.tb$freq))
-    smooth_control=  abs(0.9999999 - max_y_jk)
+    smooth_control <-   abs(0.9999999 - max_y_jk)
 
     if ((data_neuron_i.tb$neuron_class[1])!= "Noclass")
     {

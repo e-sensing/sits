@@ -215,7 +215,7 @@ test_that("One-year, single core classification with filter", {
 test_that("One-year, multicore classification with filter", {
 
     samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
-    samples_filt <- sits_whittaker(samples_mt_2bands, lambda = 3.0, bands_suffix = "")
+    samples_filt <- sits_sgolay(samples_mt_2bands, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
 
     ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop_ndvi_2014.tif",

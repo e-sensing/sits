@@ -13,8 +13,7 @@ sits_cluster_som(
   iterations = 50,
   rlen = 100,
   conditonal_threshold = 0.6,
-  posterior_threshold = 0.6,
-  samples_analysis = TRUE
+  posterior_threshold = 0.6
 )
 }
 \arguments{
@@ -37,11 +36,6 @@ sits_cluster_som(
 
 \item{posterior_threshold}{Threshold of posterior probability
 (influenced by the SOM neighborhood)}
-
-\item{samples_analysis}{Samples that need to be analyzed deeply
-due to the high intra-class variability.
-To return the samples that must be
-analysed, samples_analysis = TRUE.}
 }
 \value{
 A sits tibble with a new subset of samples and

@@ -101,6 +101,116 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
     return(invisible(x))
 }
 
+#' @title  Generic interface for ploting time series predictions
+#' @name   plot.predicted
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Given a sits tibble with a set of predictions, plot them
+#'
+#' @param  x             object of class "predicted"
+#' @param  y             ignored
+#' @param  ...           further specifications for \link{plot}.
+#' @param  bands         Bands used for visualisation
+#' @return Input sits tibble (useful for chaining functions).
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
+#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#' # classify the point
+#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
+#' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
+#' # plot the classification
+#' plot (class_ndvi.tb)
+#' }
+#' @export
+plot.predicted <- function(x, y, ..., bands = "ndvi") {
+	stopifnot(missing(y))
+	.sits_plot_classification(x, bands)
+	return(invisible(x))
+}
+
+
+#' @title  Generic interface for ploting classified images
+#' @name   plot.classified_image
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a classified raster using ggplot.
+#'
+#' @param  x             Object of class "classified_image"
+#' @param  y             Ignored
+#' @param  ...           Further specifications for \link{plot}.
+#' @param time           Temporal reference for plot.
+#' @param title          A string.
+#' @param colors         Color pallete.
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the samples for Mato Grosso
+#'
+#' # select the bands "ndvi", "evi"
+#' samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#'
+#' #select a random forest model
+#'
+#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#' # Classify a raster file with 23 instances for one year
+#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+#'            package = "sits"))
+#' # create a data cube based on the information about the files
+#' sinop <- sits_cube(type = "BRICK", satellite = "TERRA", sensor = "MODIS",
+#'          name = "Sinop-crop", timeline = timeline_modis_392,
+#'          bands = "ndvi", files = files)
+#'
+#' # classify the raster image
+#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
+#'                              memsize = 2, multicores = 1)
+#'
+#' # label the classified image
+#' sinop_label <- sits_label_classification(sinop_probs)
+#'
+#' # plot the raster image
+#' plot(sinop_label, time = 1, title = "Sinop-2013-2014")
+#'
+#' # remove the files (cleanup)
+#' file.remove(unlist(sinop_probs$files))
+#' file.remove(unlist(sinop_label$files))
+#' }
+#' @export
+plot.classified_image <- function(x , y, ..., time = 1,
+								  title = "Classified Image", colors = NULL) {
+	stopifnot(missing(y))
+	.sits_plot_raster(cube = x, time = time, title = title, colors = colors)
+	return(invisible(x))
+}
+
+#' @title  Plot information about confunsion between clusters
+#' @name   plot.som_confusion
+#' @author Lorena Santos \email{lorena.santos@@inpe.br}
+#'
+#' @description Plot a bar graph with informations about each cluster.
+#' The percentage of mixture between the clusters.
+#'
+#' @param data       Table containing the percentage of mixture between the clusters
+#'                   (produced by \code{\link[sits]{sits_som_evaluate_cluster}})
+#' @param title      Title of plot. default is ""Confusion by cluster"".
+#' @return
+#' @examples
+#' \donttest{
+#' # Produce a cluster map
+#' som_cluster <- sits_som_map(prodes_226_064)
+#' # Evaluate the clusters
+#' cluster_overall <- sits_som_evaluate_cluster(som_cluster)
+#' # Plot confusion between the clusters
+#' plot(cluster_overall)
+#' }
+#' @export
+plot.som_confusion <- function(x, y, ..., data,
+							   title = "Confusion by cluster")
+{
+	stopifnot(missing(y))
+	.sits_plot_som_confusion(data = x, title = title)
+	return(invisible(x))
+}
+
 #' @title Plot all intervals of one time series for the same lat/long together
 #' @name .sits_plot_allyears
 #'
@@ -326,87 +436,6 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
                    label,
                    sep = "")
     return(title)
-}
-
-#' @title  Generic interface for ploting time series predictions
-#' @name   plot.predicted
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Given a sits tibble with a set of predictions, plot them
-#'
-#' @param  x             object of class "predicted"
-#' @param  y             ignored
-#' @param  ...           further specifications for \link{plot}.
-#' @param  bands         Bands used for visualisation
-#' @return Input sits tibble (useful for chaining functions).
-#'
-#' @examples
-#' \donttest{
-#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-#' # classify the point
-#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
-#' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
-#' # plot the classification
-#' plot (class_ndvi.tb)
-#' }
-#' @export
-plot.predicted <- function(x, y, ..., bands = "ndvi") {
-    stopifnot(missing(y))
-    .sits_plot_classification(x, bands)
-    return(invisible(x))
-}
-
-
-#' @title  Generic interface for ploting classified images
-#' @name   plot.classified_image
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a classified raster using ggplot.
-#'
-#' @param  x             Object of class "classified_image"
-#' @param  y             Ignored
-#' @param  ...           Further specifications for \link{plot}.
-#' @param time           Temporal reference for plot.
-#' @param title          A string.
-#' @param colors         Color pallete.
-#'
-#' @examples
-#' \donttest{
-#' # Retrieve the samples for Mato Grosso
-#'
-#' # select the bands "ndvi", "evi"
-#' samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-#'
-#' #select a random forest model
-#'
-#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
-#' # Classify a raster file with 23 instances for one year
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'            package = "sits"))
-#' # create a data cube based on the information about the files
-#' sinop <- sits_cube(type = "BRICK", satellite = "TERRA", sensor = "MODIS",
-#'          name = "Sinop-crop", timeline = timeline_modis_392,
-#'          bands = "ndvi", files = files)
-#'
-#' # classify the raster image
-#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
-#'                              memsize = 2, multicores = 1)
-#'
-#' # label the classified image
-#' sinop_label <- sits_label_classification(sinop_probs)
-#'
-#' # plot the raster image
-#' plot(sinop_label, time = 1, title = "Sinop-2013-2014")
-#'
-#' # remove the files (cleanup)
-#' file.remove(unlist(sinop_probs$files))
-#' file.remove(unlist(sinop_label$files))
-#' }
-#' @export
-plot.classified_image <- function(x , y, ..., time = 1,
-                                  title = "Classified Image", colors = NULL) {
-    stopifnot(missing(y))
-    .sits_plot_raster(cube = x, time = time, title = title, colors = colors)
-    return(invisible(x))
 }
 
 #' @title Plot classification results
@@ -662,11 +691,16 @@ plot.classified_image <- function(x , y, ..., time = 1,
 #'  \item{"codes": }{Plot the vector weight for each neuron.}
 #'  \item{"mapping": }{Shows where samples are mapped.}
 #' }
-#' @param  koh        Kohonen map produced by "sits_som_map" function
+#' @param  koh        SOM map produced by "sits_som_map" function
 #' @param  type       Type of plot ("codes" or "mapping")
 #' @param  whatmap    What data layer will be plotted.
 .sits_plot_som_map <- function(koh, type = "codes", whatmap = 1)
 {
+	# Sanity check
+	if (!("som_map" %in% class(koh))) {
+		message("wrong input data; please run sits_som_map first")
+		return(invisible(NULL))
+	}
     if (type == "mapping") {
         graphics::plot(koh$som_properties,
                        bgcol = koh$som_properties$paint_map ,
@@ -695,7 +729,7 @@ plot.classified_image <- function(x , y, ..., time = 1,
 }
 
 #' @title  Plot information about confunsion between clusters
-#' @name   plot_som_confusion
+#' @name   .sits_plot_som_confusion
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
 #' @description Plot a bar graph with informations about each cluster.
@@ -703,22 +737,12 @@ plot.classified_image <- function(x , y, ..., time = 1,
 #'
 #' @param data       Table containing the percentage of mixture between the clusters
 #'                   (produced by \code{\link[sits]{sits_som_evaluate_cluster}})
-#' @param text_title Title of plot. Default is "Cluster".
-#'
-#' @examples
-#' \donttest{
-#' # Produce a cluster map
-#' som_cluster <- sits_som_map(prodes_226_064)
-#' # Evaluate the clusters
-#' cluster_overall <- sits_som_evaluate_cluster(som_cluster)
-#' # Plot confusion between the clusters
-#' plot(cluster_overall, "Confusion by cluster")
-#' }
-plot.som_confusion <- function(x, y, ...,
-                        text_title = " Confusion between the sample classes ")
+#' @param title      Title of plot.
+#' @return           ggplot2 object
+.sits_plot_som_confusion <- function(data, title)
 {
     #
-    data <- x$mixture_samples_by_class
+    data <- data$mixture_samples_by_class
     sample_class <- data$classes_confusion
 
     p <- ggplot2::ggplot() +
@@ -737,7 +761,7 @@ plot.som_confusion <- function(x, y, ...,
                            ggplot2::element_text(angle = 60, hjust = 1)) +
         ggplot2::labs(x = "Classes", y = "Percentage of mixture",
                       colour = "Sample Class") +
-        ggplot2::ggtitle(text_title)
+        ggplot2::ggtitle(title)
 
     return(p)
 }

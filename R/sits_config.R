@@ -444,35 +444,6 @@ sits_config_show <- function() {
     return(scale_f)
 }
 
-#' @title retrieve the sensor associated to a data cube
-#' @name .sits_config_sensor
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param cube Name of the data cube
-#'
-#' @return List of providers associated to a service
-.sits_config_sensor <- function(cube) {
-    p <- paste0(cube,"_sensor")
-    s <- sits.env$config[[p]]
-    #post-condition
-    assertthat::assert_that(!purrr::is_null(s),
-                         msg = paste0("Could not find sensor for cube ", cube))
-    return(s)
-}
-
-#' @title List the sensors supported per satellite
-#' @name .sits_config_sensors
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param satellite  Name of the satellite
-#'
-#' @return List of sensors associated to a satellite that are supported by SITS
-.sits_config_sensors <- function(satellite) {
-    q <- paste0(satellite, "_sensors")
-    return(sits.env$config[[q]])
-}
-
-
-
-
 #' @title Retrieve the vector of coeficientes for brightness of tasseled cap
 #' @name .sits_config_tcap_brightness
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

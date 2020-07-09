@@ -7,7 +7,7 @@
 .sits_plot_som_map(koh, type = "codes", whatmap = 1)
 }
 \arguments{
-\item{koh}{Kohonen map produced by "sits_som_map" function}
+\item{koh}{SOM map produced by "sits_som_map" function}
 
 \item{type}{Type of plot ("codes" or "mapping")}
 

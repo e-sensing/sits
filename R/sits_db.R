@@ -246,7 +246,6 @@ sits_db_read <- function(conn, name) {
                                                      "start_date", "end_date",
                                                      "label", "cube")]))
     # transform the time series into a list
-    # add a row number for retrieval
     ts.lst <- purrr::map2(data$time_series, 1:nrow(data),
                           function(ts, i) {
                               ts <-  dplyr::mutate(ts, row = i) })
