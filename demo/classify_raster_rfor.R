@@ -50,5 +50,5 @@ plot(sinop_label, time = 1, title = "Sinop")
 sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
 
 # plot the smoothened image
-plot(sinop_bayes, time = 1, title = "Sinop")
+plot(sinop_bayes, time = 1, title = "Sinop-Bayes")
 

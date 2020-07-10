@@ -537,9 +537,10 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' @param subsample        Percentage of samples supplied to a tree. Default: 1.
 #' @param nfold            Number of the subsamples for the cross-validation.
 #' @param nrounds          Number of rounds to iterate the cross-validation
-#'                         (default: 100)
+#'                         (default: 10)
 #' @param early_stopping_rounds Training with a validation set will stop
 #'                         if the performance doesn't improve for k rounds.
+#' @param nthread          Number of cpu threads we are going to use
 #' @param verbose          Print information on statistics during the process
 #' @param ...              Other parameters for the `xgboost::xgboost` function.
 #' @return                 Model fitted to input data
@@ -562,8 +563,9 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' @export
 sits_xgboost <- function(data = NULL, eta = 0.3, gamma = 0, max_depth = 6,
                          min_child_weight = 1, subsample = 1,
-                         nfold = 5, nrounds = 100,
+                         nfold = 5, nrounds = 10,
                          early_stopping_rounds = 20,
+                         nthread = 4,
                          verbose = FALSE, ...) {
     # verifies if xgboost package is installed
     if (!requireNamespace("xgboost", quietly = TRUE)) {

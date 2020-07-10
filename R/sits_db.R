@@ -196,7 +196,7 @@ sits_db_write <- function(conn, name, data){
 #' @examples
 #' \donttest{
 #' # create RSQLite connection
-#' conn <- sits_db_create()
+#' conn <- sits_db_connect()
 #' # write a set of time series
 #' conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
 #' # read a set of time series

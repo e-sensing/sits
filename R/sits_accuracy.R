@@ -379,9 +379,7 @@ sits_accuracy_area <- function(class.tb, area = NULL){
 #' file.remove("confusion_matrix.xlsx")
 #' }
 #' @export
-sits_to_xlsx <- function(acc.lst, file = NULL){
-    assertthat::assert_that(!purrr::is_null(file),
-                         msg = "sits_to_xlsx: please provide the file name")
+sits_to_xlsx <- function(acc.lst, file){
 
     # create a workbook to save the results
     workbook <- openxlsx::createWorkbook("accuracy")

@@ -81,7 +81,7 @@ results[[length(results) + 1]] <- conf_tc.mx
 WD = getwd()
 
 # Deep Learning - LSTM
-conf_lc.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5, multicores = 32,
+conf_lc.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5, multicores = 2,
                                   ml_method = sits_LSTM_FCN(verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
@@ -93,4 +93,4 @@ results[[length(results) + 1]] <- conf_lc.mx
 
 WD = getwd()
 
-sits_to_xlsx(results, file = paste0(WD, "/accuracy_mato_grosso.xlsx"))
+sits_to_xlsx(results, file = paste0(WD, "/accuracy_mato_grosso_dl.xlsx"))

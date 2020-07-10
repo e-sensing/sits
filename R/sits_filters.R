@@ -165,7 +165,8 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
         result <- sits_rename(result, new_bands)
 
         if (apply_whit)
-            result <- sits_whittaker(result, lambda = lambda_whit)
+            result <- sits_whittaker(result, lambda = lambda_whit,
+                                     bands_suffix = "")
 
         return(result)
 
