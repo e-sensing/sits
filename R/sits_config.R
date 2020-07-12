@@ -39,12 +39,7 @@ sits_config <- function() {
     # read the configuration parameters
     sits.env$config <- config::get(file = yml_file)
 
-    # try to find a valid user configuration file
-    # check if we are running in Windows
-    if (.Platform$OS.type != "unix")
-        user_yml_file   <- c("~/sits/config.yml")
-    else
-        user_yml_file   <- c("~/.sits/config.yml")
+    user_yml_file   <- c("~/.sits/config.yml")
 
     if (file.exists(user_yml_file)) {
         config_user     <- config::get(file = user_yml_file)
@@ -91,21 +86,57 @@ sits_config_show <- function() {
     return(invisible())
 }
 
+#' @title Retrieve the bands associated to a service in the configuration file
+#' @name sits_config_bands
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Retrieve the cubes associated a service.
+#' @param service  Name of a service.
+#' @param name     Name of a cube
+.sits_config_bands <- function(service,name) {
+    assertthat::assert_that(service == "SATVEG",
+                         msg = "sits_config_bands only works for SATVEG")
 
+    q <- paste0(service,"_bands")
+    return(sits.env$config[[q]][[name]])
+}
 
+#' @title Retrieve the bounding box for the product available at service
+#' @name .sits_config_bbox
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param service        Name of the time series service.
+#' @param name           Name of the cube.
+#' @return The bounding box.
+.sits_config_bbox <- function(service, name){
 
-#' @title Check that the type is valid, based on the configuration file
+    assertthat::assert_that(service == "SATVEG",
+                         msg = "sits_config_bbox only works for SATVEG")
+
+    bbox        <- vector(length = 4)
+    names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
+
+    # pre-condition
+    s <- paste0(service, "_bbox")
+
+    names(bbox) %>%
+        purrr::map(function(c) {
+            bbox[c] <<- sits.env$config[[s]][[name]][[c]]
+        })
+
+    return(bbox)
+}
+#' @title Check that the service is valid, based on the configuration file
 #' @name .sits_config_check
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param type       Type of data cube
-.sits_config_check <- function(type){
+#' @param service        Name of the time series service.
+.sits_config_check <- function(service){
 
     # find out which services are available
-    types <- sits.env$config$cube_types
+    services <- sits.env$config$services
     # Ensure that the service is available
-    assertthat::assert_that(type %in% types,
-                         msg = "sits_get_data: Invalid cube type")
+    assertthat::assert_that(service %in% services,
+                         msg = "sits_get_data: Invalid data service")
     return(TRUE)
 }
 #' @title Retrieve the color associated to a class in the configuration file
@@ -121,73 +152,42 @@ sits_config_show <- function() {
     return(rgb)
 }
 
-#' @title Retrieve the classes associated to data cubes known to SITS
-#' @name .sits_config_cube_class
+#' @title Retrieve the cubes associated to a service
+#' @name sits_config_cubes
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieve the class name associated to a cube type
-#' @param type  Type of data cubes
-.sits_config_cube_class <- function(type) {
-    # check that the cube is correct
-    if (.sits_config_check(type)) {
-        # find out which cube types are supported
-        types   <- sits.env$config$cube_types
-        classes <-  sits.env$config$cube_classes
-        names(classes) <- types
-        return(unname(classes[type]))
-    }
-    return(NULL)
+#' @description Retrieve the cubes associated a service.
+#' @param service  Name of a service.
+.sits_config_cubes <- function(service) {
+    providers <- .sits_config_providers(service)
+
+    cubes.lst <-
+        providers %>%
+        purrr::map(function(p){
+            q <- paste0(p,"_cubes")
+            c <- sits.env$config[[q]]
+        })
+    return(unlist(cubes.lst))
 }
-
-#' @title Check that the cube class is valid, based on the configuration file
-#' @name .sits_config_cube_classes_chk
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param class       class of data cube
-.sits_config_cube_classes_chk <- function(class){
-
-    # find out which services are available
-    classes <-  sits.env$config$cube_classes
-    # Ensure that the service is available
-    if(class %in% classes)
-        return(TRUE)
-    else
-        return(FALSE)
-}
-
-#' @title Check the cube types available in the configuration file
-#' @name .sits_config_cube_types_chk
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param  type type of data cube
-#'
-#' @return List of services supported by SITS
-.sits_config_cube_types_chk <- function(type) {
-
-    types <- sits.env$config$cube_types
-    if (type %in% types)
-        return(TRUE)
-    else
-        return(FALSE)
-}
-
-
 #' @title Retrieve the default sensor for the satellite
-#' @name .sits_config_sensors
+#' @name .sits_config_default_sensor
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Based on the satellite, find the default sensor
 #'
 #' @param satellite      Name of the satellite
-#' @return               Sensors associated to the satellite
+#' @return               A best guess for the sensor
 #'
-.sits_config_sensors <- function(satellite) {
+.sits_config_default_sensor <- function(satellite) {
 
     assertthat::assert_that(satellite %in% .sits_config_satellites(),
         msg = "satellite not supported by SITS - edit configuration file")
 
     q <- paste0(satellite,"_sensors")
-    sensors <- sits.env$config[[q]]
+    sensor <- sits.env$config[[q]][1]
 
-    return(sensors)
+    assertthat::assert_that(!purrr::is_null(sensor),
+        msg = "unknown sensor - edit configuration file")
+    return(sensor)
 }
 #' @title Retrieve the maximum values for a given band
 #' @name .sits_config_maximum_values
@@ -282,6 +282,37 @@ sits_config_show <- function() {
     return(sits.env$config$R_processing_bloat)
 }
 
+#' @title Retrieve the projection for the product available at service
+#' @name .sits_config_projection
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param service        Name of the time series service.
+#' @param name           Name of the cube.
+#' @return CRS PROJ4 infomation.
+.sits_config_projection <- function(service, name) {
+    # pre-condition
+    assertthat::assert_that(service == "SATVEG",
+        msg = "sits_config_projection only works for SATVEG")
+    # create a string to store the query
+    s <- paste0(service, "_crs")
+    crs <- sits.env$config[[s]][[name]]
+
+    #post-condition
+    assertthat::assert_that(length(crs) > 0,
+        msg = paste0("Projection information for cube ", name,
+                          " of service ", service, " not available"))
+    return(crs)
+}
+#' @title List the data providers available in the configuration file
+#' @name .sits_config_providers
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param service Name of the web service
+#'
+#' @return List of providers associated to a service
+.sits_config_providers <- function(service) {
+    p <- paste0(service,"_providers")
+    return(sits.env$config[[p]])
+}
 
 #' @title Retrieve the pixel spatial resolution for a data cube
 #' @name .sits_config_resolution
@@ -319,6 +350,20 @@ sits_config_show <- function() {
     return(sits.env$config[["supported_satellites"]])
 }
 
+#' @title retrieve the satellite associated to a given cube
+#' @name .sits_config_satellite
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param cube Name of the data cube
+#'
+#' @return List of providers associated to a service
+.sits_config_satellite <- function(cube) {
+    p <- paste0(cube,"_satellite")
+    s <- sits.env$config[[p]]
+    #post-condition
+    assertthat::assert_that(!purrr::is_null(s),
+        msg = paste0("Could not find satellite for cube ", cube))
+    return(s)
+}
 
 #' @title Get the URL to be used to test for SATVEG access
 #' @name .sits_config_satveg_access
@@ -326,100 +371,8 @@ sits_config_show <- function() {
 #'
 #' @return URL to test SATVEG access
 .sits_config_satveg_access <- function() {
-  q <- "SATVEG_EMBRAPA_test"
-  return(sits.env$config[[q]])
-}
-
-#' @title Retrieve the bands associated to SATVEG
-#' @name sits_config_satveg_bands
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieve the cubes associated a service.
-#' @param name     Name of SATVEG cube
-.sits_config_satveg_bands <- function(name) {
-
-    q <- paste0("SATVEG_bands")
-    return(sits.env$config[[q]][[name]])
-}
-
-#' @title Retrieve the cubes associated to SATVEG
-#' @name sits_config_satveg_cubes
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieve the cubes associated to SATVEG.
-.sits_config_satveg_cubes <- function() {
-
-    c <- sits.env$config[["SATVEG-EMBRAPA_cubes"]]
-
-  return(c)
-}
-#' @title Retrieve the bounding box for the product available at service
-#' @name .sits_config_satveg_bbox
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param name           Name of the cube.
-#' @return The bounding box.
-.sits_config_satveg_bbox <- function(name){
-
-    bbox        <- vector(length = 4)
-    names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
-
-    names(bbox) %>%
-        purrr::map(function(c) {
-        bbox[c] <<- sits.env$config[["SATVEG_bbox"]][[name]][[c]]
-        })
-
-    return(bbox)
-}
-#' @title Retrieve the projection for the product available at SATVEG service
-#' @name .sits_config_satveg_projection
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param name           Name of the cube.
-#' @return CRS PROJ4 infomation.
-.sits_config_satveg_projection <- function(name) {
-
-    crs <- sits.env$config[["SATVEG_crs"]][[name]]
-
-    #post-condition
-    assertthat::assert_that(length(crs) > 0,
-                      msg = paste0("Projection information for cube ", name,
-                                  " of service SATVEG not available"))
-    return(crs)
-}
-#' @title Retrieve the size of the cube for a given service
-#' @name .sits_config_satveg_size
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param name           Name of the cube.
-#' @param r_obj          R object associated with the cube.
-#' @return Vector of (nrows, ncols).
-.sits_config_satveg_size <- function(name, r_obj = NA) {
-
-    size         <- vector(length = 2)
-    names(size)  <- c("nrows", "ncols")
-
-    names(size) %>%
-      purrr::map(function(c){
-          size[c] <<- sits.env$config[["SATVEG_size"]][[name]][[c]]
-      })
-
-    #post-condition
-    assertthat::assert_that(as.integer(size["nrows"]) > 0,
-                          msg = paste0("Number of rows not available for cube ",
-                                       name))
-    assertthat::assert_that(as.integer(size["ncols"]) > 0,
-                          msg = paste0("Number of cols not available for cube ",
-                                       name))
-
-    return(size)
-}
-#' @title Get the URL to be used for SATVEG access
-#' @name .sits_config_satveg_url
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return URL to test SATVEG access
-.sits_config_satveg_url <- function() {
-  q <- "SATVEG-EMBRAPA_server"
-  return(sits.env$config[[q]])
+    q <- "SATVEG_EMBRAPA_test"
+    return(sits.env$config[[q]])
 }
 
 #' @title Retrieve the scale factor for a given band for a data cube
@@ -443,6 +396,110 @@ sits_config_show <- function() {
                           " edit configuration file"))
     return(scale_f)
 }
+
+#' @title retrieve the sensor associated to a data cube
+#' @name .sits_config_sensor
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param cube Name of the data cube
+#'
+#' @return List of providers associated to a service
+.sits_config_sensor <- function(cube) {
+    p <- paste0(cube,"_sensor")
+    s <- sits.env$config[[p]]
+    #post-condition
+    assertthat::assert_that(!purrr::is_null(s),
+                         msg = paste0("Could not find sensor for cube ", cube))
+    return(s)
+}
+
+#' @title List the sensors supported per satellite
+#' @name .sits_config_sensors
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param satellite  Name of the satellite
+#'
+#' @return List of sensors associated to a satellite that are supported by SITS
+.sits_config_sensors <- function(satellite) {
+    q <- paste0(satellite, "_sensors")
+    return(sits.env$config[[q]])
+}
+
+#' @title Retrieve the time series server for the product
+#' @name .sits_config_server
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param service        Name of the data service
+#' @param provider       URL of the service or name of the provider
+#' @return A string with the server URL that provides the service.
+.sits_config_server <- function(service, provider = NULL) {
+    # pre-condition
+    assertthat::assert_that(service %in% sits.env$config$services,
+        msg = "Service not available - check configuration file")
+
+    # Provider must be consistent
+
+    # if provider is not given, take the first one as default
+    if (purrr::is_null(provider)) {
+        p <- paste0(service,"_providers")
+        provider  <- sits.env$config[[p]][[1]]
+    }
+
+    # try to see if user gave a URL or a the name of a provider
+    if (length(grep("http", provider)) != 0)
+        return(provider)
+    else {
+        # get the server URL for the provider from the configuration file
+        s <- paste0(provider,"_server")
+        serverURL <- sits.env$config[[s]]
+        return(serverURL)
+    }
+}
+
+#' @title List the data services available in the configuration file
+#' @name .sits_config_services
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return List of services supported by SITS
+.sits_config_services <- function() {
+        return(sits.env$config$services)
+}
+
+#' @title Retrieve the size of the cube for a given service
+#' @name .sits_config_size
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param service        Name of the time series service.
+#' @param name           Name of the cube.
+#' @param r_obj          R object associated with the cube.
+#' @return Vector of (nrows, ncols).
+.sits_config_size <- function(service, name, r_obj = NA) {
+
+    # pre-condition
+    assertthat::assert_that(service == "SATVEG",
+                         msg = "sits_config_size only works for SATVEG")
+    size         <- vector(length = 2)
+    names(size)  <- c("nrows", "ncols")
+
+    # get the size from the configuration file
+    i1  <- paste0(service,"_size")
+
+    names(size) %>%
+        purrr::map(function(c){
+            size[c] <<- sits.env$config[[i1]][[name]][[c]]
+        })
+
+    #post-condition
+    assertthat::assert_that(as.integer(size["nrows"]) > 0,
+        msg = paste0("Number of rows not available for cube ",
+                          name, " for service ", service))
+    assertthat::assert_that(as.integer(size["ncols"]) > 0,
+        msg = paste0("Number of cols not available for cube ",
+                          name, " for service ", service))
+
+    return(size)
+}
+
+
+
 
 #' @title Retrieve the vector of coeficientes for brightness of tasseled cap
 #' @name .sits_config_tcap_brightness

@@ -68,10 +68,10 @@ sits_cube <- function(type           = NULL,
         message("sits_cube: use of service variable is deprecated, see docs")
     }
     type <- toupper(type)
-    if(!.sits_config_cube_types_chk(type)) {
-        message(paste0("sits_cube: type ", type, "not supported"))
-        return(invisible(NULL))
-    }
+    #if(!.sits_config_cube_types_chk(type)) {
+    #    message(paste0("sits_cube: type ", type, "not supported"))
+    #    return(invisible(NULL))
+    #}
 
     if (type == "WTSS") {
         # find the URL of the WTSS service, if not provided
