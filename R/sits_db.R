@@ -13,6 +13,8 @@
 #' db_file <- paste0(Sys.getenv('HOME'),"/sits.sql")
 #' # create RSQLite connection
 #' conn <- sits_db_connect(db_file)
+#' # clean up
+#' unlink(db_file)
 #' @export
 sits_db_connect <- function(name = NULL){
     # verifies if DBI package is installed
@@ -44,11 +46,14 @@ sits_db_connect <- function(name = NULL){
 #' @examples
 #' \donttest{
 #' # create a data base
-#' conn <- sits_db_connect("sits.sql")
+#' db_file <- paste0(Sys.getenv('HOME'),"/sits.sql")
+#' conn <- sits_db_connect(db_file)
 #' # write a set of time series
 #' conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
 #' # describe the data available in the database
 #' desc <-  sits_db_info(conn)
+#' # clean up
+#' unlink(db_file)
 #' }
 #' @export
 sits_db_info <- function(conn){
@@ -149,9 +154,12 @@ sits_db_info <- function(conn){
 #' @examples
 #' \donttest{
 #' # create RSQLite connection
-#' conn <- sits_db_connect("sits.sql")
+#' db_file <- paste0(Sys.getenv('HOME'),"/sits.sql")
+#' conn <- sits_db_connect(db_file)
 #' # write a set of time series
 #' conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
+#' # clean up
+#' unlink(db_file)
 #' }
 #' @export
 sits_db_write <- function(conn, name, data){
