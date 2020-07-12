@@ -47,6 +47,6 @@ utils::globalVariables(c(".", "%>%", ":=", ".SD", ".SDcols",
                          "cluster","mixture_percentage", "conditional_prob","posterior_prob", ".data"))
 
 #' @importFrom lubridate %within% %m+%
-#' @importFrom wtss WTSS
+#' @importFrom wtss list_coverages
 #' @useDynLib sits, .registration = TRUE
 NULL

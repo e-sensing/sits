@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_sensors}
 \alias{.sits_config_sensors}
-\title{Retrieve the default sensor for the satellite}
+\title{List the sensors supported per satellite}
 \usage{
 .sits_config_sensors(satellite)
 }
@@ -10,10 +10,10 @@
 \item{satellite}{Name of the satellite}
 }
 \value{
-Sensors associated to the satellite
+List of sensors associated to a satellite that are supported by SITS
 }
 \description{
-Based on the satellite, find the default sensor
+List the sensors supported per satellite
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -12,8 +12,9 @@ sits_xgboost(
   min_child_weight = 1,
   subsample = 1,
   nfold = 5,
-  nrounds = 100,
+  nrounds = 10,
   early_stopping_rounds = 20,
+  nthread = 4,
   verbose = FALSE,
   ...
 )
@@ -42,10 +43,12 @@ tree splitting stops.}
 \item{nfold}{Number of the subsamples for the cross-validation.}
 
 \item{nrounds}{Number of rounds to iterate the cross-validation
-(default: 100)}
+(default: 10)}
 
 \item{early_stopping_rounds}{Training with a validation set will stop
 if the performance doesn't improve for k rounds.}
+
+\item{nthread}{Number of cpu threads we are going to use}
 
 \item{verbose}{Print information on statistics during the process}
 

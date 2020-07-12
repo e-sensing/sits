@@ -4,7 +4,7 @@
 \alias{sits_to_xlsx}
 \title{Saves the results of accuracy assessments as Excel files}
 \usage{
-sits_to_xlsx(acc.lst, file = NULL)
+sits_to_xlsx(acc.lst, file)
 }
 \arguments{
 \item{acc.lst}{A list of confusion matrices.}
