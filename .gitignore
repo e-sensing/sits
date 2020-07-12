@@ -21,7 +21,6 @@ inst/doc
 doc
 Meta
 *.bkp
-travis/*
 Makevars
 Makevars.*
 *.json
