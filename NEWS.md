@@ -3,6 +3,12 @@
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
 # What's new in SITS version 0.9
+# 
+# ### New features in SITS version 0.9.5
+
+* Time series tibbles and data cube metadata can now be saved and read in SQLite
+* Code coverage increased to 95%
+* Vignettes have been moved to "sits-docs" to reduce building time
 
 ### New features in SITS version 0.9.4
 

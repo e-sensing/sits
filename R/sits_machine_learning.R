@@ -41,8 +41,7 @@
 #' @export
 sits_train <- function(data, ml_method = sits_svm()) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # is the input data a valid sits tibble?
     assertthat::assert_that("label" %in% names(data),
@@ -96,8 +95,12 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' @export
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+    # verifies if MASS package is installed
+    if (!requireNamespace("MASS", quietly = TRUE)) {
+        stop("MASS required for this function to work.
+             Please install it.", call. = FALSE)
+    }
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(data){
 
@@ -174,8 +177,12 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @export
 sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+    # verifies if MASS package is installed
+    if (!requireNamespace("MASS", quietly = TRUE)) {
+        stop("MASS required for this function to work.
+             Please install it.", call. = FALSE)
+    }
     # function that returns MASS::qda model based on a sits sample tibble
     result_fun <- function(data){
 
@@ -250,9 +257,14 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @export
 sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
+
+    # verifies if nnet package is installed
+    if (!requireNamespace("nnet", quietly = TRUE)) {
+        stop("nnet required for this function to work.
+             Please install it.", call. = FALSE)
+    }
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     # function that returns nnet::multinom model based on a sits sample tibble
     result_fun <- function(data) {
         # data normalization
@@ -329,8 +341,13 @@ sits_rfor <- function(data = NULL,
                       num_trees = 2000,
                       importance = "impurity", ...) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
+
+    # verifies if ranger package is installed
+    if (!requireNamespace("ranger", quietly = TRUE)) {
+        stop("ranger required for this function to work.
+             Please install it.", call. = FALSE)
+    }
     # function that returns a randomForest model based on a sits sample tibble
     result_fun <- function(data){
 
@@ -437,9 +454,13 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
                      kernel = "radial", degree = 3, coef0 = 0,
                      cost = 10, tolerance = 0.001,
                      epsilon = 0.1, cross = 0, ...) {
+    # verifies if e1071 package is installed
+    if (!requireNamespace("e1071", quietly = TRUE)) {
+        stop("e1071 required for this function to work.
+             Please install it.", call. = FALSE)
+    }
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(data){
 
@@ -516,9 +537,10 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' @param subsample        Percentage of samples supplied to a tree. Default: 1.
 #' @param nfold            Number of the subsamples for the cross-validation.
 #' @param nrounds          Number of rounds to iterate the cross-validation
-#'                         (default: 100)
+#'                         (default: 10)
 #' @param early_stopping_rounds Training with a validation set will stop
 #'                         if the performance doesn't improve for k rounds.
+#' @param nthread          Number of cpu threads we are going to use
 #' @param verbose          Print information on statistics during the process
 #' @param ...              Other parameters for the `xgboost::xgboost` function.
 #' @return                 Model fitted to input data
@@ -541,9 +563,15 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' @export
 sits_xgboost <- function(data = NULL, eta = 0.3, gamma = 0, max_depth = 6,
                          min_child_weight = 1, subsample = 1,
-                         nfold = 5, nrounds = 100,
+                         nfold = 5, nrounds = 10,
                          early_stopping_rounds = 20,
+                         nthread = 4,
                          verbose = FALSE, ...) {
+    # verifies if xgboost package is installed
+    if (!requireNamespace("xgboost", quietly = TRUE)) {
+        stop("xgboost required for this function to work.
+             Please install it.", call. = FALSE)
+    }
     # function that returns xgb model
     result_fun <- function(data){
 
@@ -717,8 +745,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #'
 .sits_distances <- function(data) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     n_rows_data <- nrow(data)
 
@@ -773,8 +800,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #' @return A normalized sits tibble.
 .sits_normalize_data <- function(data, stats, multicores = 1){
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
     .sits_test_tibble(data)
     # find the number of cores
     if (purrr::is_null(multicores))
@@ -796,17 +822,23 @@ sits_formula_linear <- function(predictors_index = -2:0){
     values.lst <- data$time_series
     n_values <- length(values.lst)
 
+    # normalise values of time series
     normalize_list <- function(chunk.lst) {
         norm_chunk.lst <- chunk.lst %>%
             purrr::map(function(ts) {
                 norm.lst <- bands %>%
                     purrr::map(function(b){
-                        med      <- as.numeric(stats[1, b])
-                        quant_2  <- as.numeric(stats[2, b])
-                        quant_98 <- as.numeric(stats[3, b])
-                        values <- suppressWarnings(
-                            tibble::as_tibble(normalize_data
-                                    (as.matrix(ts[,b]), quant_2, quant_98)))
+                        # retrieve values from data table
+                        # note the use of "..b" instead of ",b"
+                        med      <- as.numeric(stats[1, ..b])
+                        quant_2  <- as.numeric(stats[2, ..b])
+                        quant_98 <- as.numeric(stats[3, ..b])
+                        # call C++ for better performance
+                        m <- normalize_data(as.matrix(ts[,b]), quant_2,quant_98)
+                        # give a name to the matrix column because
+                        # tibble does not like matrices without names
+                        colnames(m) <- b
+                        values <- tibble::as_tibble(m, .name_repair = "unique")
                         return(values)
                     })
                 ts.tb <- dplyr::bind_cols(norm.lst)
@@ -843,8 +875,9 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #' @return                A normalized matrix.
 .sits_normalize_matrix <- function(data.mx, stats, band, multicores) {
     # select the 2% and 98% quantiles
-    quant_2   <- as.numeric(stats[2, band])
-    quant_98  <- as.numeric(stats[3, band])
+    # note the use of "..b" instead of ",b"
+    quant_2   <- as.numeric(stats[2, ..band])
+    quant_98  <- as.numeric(stats[3, ..band])
 
     # auxiliary function to normalize a block of data
     normalize_block <- function(chunk, quant_2, quant_98) {

@@ -86,8 +86,10 @@ plot(class.tb)
 files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                        package = "sits"))
 # create a data cube based on the information about the files
-sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
-bands = "ndvi", files = files)
+sinop <- sits_cube(type = "BRICK", satellite = "TERRA",
+                   sensor = "MODIS", name = "Sinop-crop",
+                   timeline = timeline_modis_392,
+                   bands = c("ndvi"), files = files)
 
 # classify the raster image
 sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
@@ -100,10 +102,16 @@ sinop_label <- sits_label_classification(sinop_probs)
 plot(sinop_label, time = 1, title = "Sinop-2013-2014")
 
 # smooth the result with a bayesian filter
-sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
+sinop_bayes <- sits_label_classification(sinop_probs,
+                               smoothing = "bayesian")
 
 # plot the smoothened image
 plot(sinop_bayes, time = 1, title = "Sinop-smooth")
+
+# remove the files (cleanup)
+file.remove(unlist(sinop_probs$files))
+file.remove(unlist(sinop_label$files))
+file.remove(unlist(sinop_bayes$files))
 }
 }
 \author{

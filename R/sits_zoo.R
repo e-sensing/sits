@@ -20,6 +20,11 @@
 #' @export
 sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00,
                           label = "NoClass", name  = "unknown"){
+    # verifies if zoo package is installed
+    if (!requireNamespace("zoo", quietly = TRUE)) {
+        stop("zoo needed for this function to work.
+              Please install it.", call. = FALSE)
+    }
     # convert the data from the zoo format to a tibble used by sits
     ts.tb <- tibble::as_tibble(zoo::fortify.zoo(ts.zoo))
     # create a list to store the zoo time series
@@ -63,6 +68,11 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00,
 #' zoo.lst <- sits_to_zoo (cerrado_2classes[1:5,])
 #' @export
 sits_to_zoo <- function(data, band = NULL){
+    # verifies if zoo package is installed
+    if (!requireNamespace("zoo", quietly = TRUE)) {
+        stop("zoo needed for this function to work.
+              Please install it.", call. = FALSE)
+    }
     zoo.lst <- data$time_series %>%
         purrr::map(function(ts) {
             if (purrr::is_null(band))

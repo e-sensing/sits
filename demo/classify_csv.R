@@ -1,10 +1,14 @@
 # Example of classification of a series of samples defined by a CSV file
 library(sits)
-cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
+cube_wtss <- sits_cube(type  = "WTSS",
+                       URL   = "http://www.esensing.dpi.inpe.br/wtss/",
+                       name  = "MOD13Q1")
 
 # obtain a time series from the WTSS server for a set of 5 samples defined in a CSV file
-data <- sits_get_data(cube_wtss, file = system.file("extdata/samples/samples_matogrosso.csv", package = "sits"),
-                        bands = c("ndvi", "evi"), .n_save = 0)
+data <- sits_get_data(cube_wtss,
+            file = system.file("extdata/samples/samples_matogrosso.csv",
+                               package = "sits"),
+            bands = c("ndvi", "evi"), .n_save = 0)
 
 # plot the data
 plot(data[1,])

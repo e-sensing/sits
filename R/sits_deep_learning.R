@@ -35,10 +35,11 @@
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region
-#' data(samples_mt_ndvi)
+#' data(samples_mt_4bands)
+#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
 #' # Build a machine learning model based on deep learning
 #' dl_model <- sits_train (samples_mt_ndvi,
-#'                         sits_deeplearning(layers = c(512, 512, 512),
+#'                         sits_deeplearning(layers = c(64, 64, 64),
 #'                                           dropout_rates = c(0.50, 0.40, 0.35),
 #'                                           epochs = 50))
 #' # get a point with a 16 year time series
@@ -59,8 +60,7 @@ sits_deeplearning <- function(samples          = NULL,
                         validation_split = 0.2,
                         verbose          = 1) {
     # backward compatibility
-    if ("coverage" %in% names(samples))
-        samples <- .sits_tibble_rename(samples)
+    samples <- .sits_tibble_rename(samples)
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){

@@ -1,13 +1,12 @@
 context("Keras")
 test_that("keras read write",{
-    #skip_on_cran()
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    model <- suppressWarnings(sits_train(samples_mt_ndvi,
+    model <- suppressMessages(suppressWarnings(sits_train(samples_mt_ndvi,
                                          sits_deeplearning(
                                              layers = c(128,128),
                                              dropout_rates = c(0.5, 0.4),
                                              epochs = 50,
-                                             verbose = 0)))
+                                             verbose = 0))))
 
     hdffile  <- "./model_keras.h5"
     rdsfile  <-  "./model_keras.rds"

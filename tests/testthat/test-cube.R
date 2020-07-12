@@ -3,7 +3,8 @@ test_that("Reading a raster cube", {
     #skip_on_cran()
     file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                           package = "sits"))
-    raster_cube <- sits_cube(name = "Sinop-crop",
+    raster_cube <- sits_cube(type = "BRICK",
+                             name = "Sinop-crop",
                              timeline = sits::timeline_modis_392,
                              bands = c("ndvi"),
                              satellite = "TERRA",

@@ -10,7 +10,7 @@ sits_ndvi_arima(
   p = 0,
   d = 0,
   q = 3,
-  bands_suffix = "",
+  bands_suffix = "ar",
   apply_whit = TRUE,
   lambda_whit = 1
 )
@@ -52,7 +52,7 @@ data(prodes_226_064)
 # Select the NDVI band of the first point
 point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
 # Apply the cloud filter
-point_ar <- sits_filter(point_ndvi, sits_ndvi_arima(bands_suffix = "ar"))
+point_ar <- sits_filter(point_ndvi, sits_ndvi_arima())
 # Merge the filtered with the raw data
 point2 <- sits_merge (point_ndvi, point_ar)
 # Plot the result

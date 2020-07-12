@@ -81,7 +81,7 @@
         # read the points
         rows.lst <- points.lst %>%
             purrr::map(function(p) {
-                row <- .sits_from_service(cube = cube,
+                row <- .sits_ts_from_cube(cube = cube,
                                           longitude   = p[1],
                                           latitude    = p[2],
                                           start_date  = start_date,
@@ -105,7 +105,7 @@
             rows.lst <- points.lst %>%
                 purrr::pmap(function(p) {
                     pll <- sf::st_geometry(p)[[1]]
-                    row <- .sits_from_service(cube = cube,
+                    row <- .sits_ts_from_cube(cube = cube,
                                               longitude = pll[1],
                                               latitude = pll[2],
                                               start_date = start_date,

@@ -4,7 +4,9 @@ message("WTSS is a web time series service developed by INPE")
 library(sits)
 
 # get information about a specific data cube
-cube_wtss.tb <- sits_cube(service = "WTSS", name = "MOD13Q1")
+cube_wtss.tb <- sits_cube(type = "WTSS",
+                          URL = "http://www.esensing.dpi.inpe.br/wtss/",
+                          name = "MOD13Q1")
 
 # retrieve the time series associated with the point from the WTSS server
 point.tb <- sits_get_data(cube_wtss.tb, longitude = -47.0516, latitude = -10.7241,

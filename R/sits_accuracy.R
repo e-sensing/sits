@@ -30,9 +30,9 @@
 #' }
 #' @export
 sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
+
     # backward compatibility
-    if ("coverage" %in% names(class.tb))
-        class.tb <- .sits_tibble_rename(class.tb)
+    class.tb <- .sits_tibble_rename(class.tb)
 
     # does the input data contain a set of predicted values?
     assertthat::assert_that("predicted" %in% names(class.tb),
@@ -133,8 +133,7 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
 sits_accuracy_area <- function(class.tb, area = NULL){
 
     # backward compatibility
-    if ("coverage" %in% names(class.tb))
-        class.tb <- .sits_tibble_rename(class.tb)
+    class.tb <- .sits_tibble_rename(class.tb)
 
     # Get reference classes
     references <- class.tb$label
@@ -375,11 +374,12 @@ sits_accuracy_area <- function(class.tb, area = NULL){
 #' results[[length(results) + 1]] <- conf.mx
 #' # save the results to an XLSX file
 #' sits_to_xlsx(results, file = "confusion_matrix.xlsx")
+#'
+#' # cleanup (optional)
+#' file.remove("confusion_matrix.xlsx")
 #' }
 #' @export
-sits_to_xlsx <- function(acc.lst, file = NULL){
-    assertthat::assert_that(!purrr::is_null(file),
-                         msg = "sits_to_xlsx: please provide the file name")
+sits_to_xlsx <- function(acc.lst, file){
 
     # create a workbook to save the results
     workbook <- openxlsx::createWorkbook("accuracy")

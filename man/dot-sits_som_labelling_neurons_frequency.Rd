@@ -12,8 +12,8 @@
 \item{kohonen_obj}{The kohonen object returned by kohonen package.}
 }
 \value{
-Returns the probability that a neuron belongs
-        to each class and a majority label which is the neuron is labelled.
+Returns a tibble with the probability of each neuron belongs to class
+and a majority label which is the neuron is labelled.
 }
 \description{
 Compute the probability of a neuron belongs to a class.

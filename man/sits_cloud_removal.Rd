@@ -7,7 +7,7 @@
 sits_cloud_removal(
   data = NULL,
   cutoff = 0.25,
-  bands_suffix = "",
+  bands_suffix = "cf",
   apply_whit = TRUE,
   lambda_whit = 1
 )
@@ -43,7 +43,7 @@ data(prodes_226_064)
 point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
 # Apply the cloud filter
 point_cld.tb <- sits_filter(point_ndvi.tb,
-                sits_cloud_removal(band_suffix = "cf"))
+                sits_cloud_removal())
 # Merge the filtered with the raw data
 point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
 # Plot the result

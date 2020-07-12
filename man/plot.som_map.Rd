@@ -29,11 +29,11 @@ The plot function produces different plots based on the input data:
 \examples{
 \donttest{
 # Produce a cluster map
-som_cluster <- sits_som_map(prodes_226_064)
+som_map <- sits_som_map(prodes_226_064)
 # Plot the clusters
-plot(som_cluster, type = "codes")
+plot(som_map, type = "codes")
 # Plot kohonen map showing where the samples were allocated
-plot(som_cluster, type = "mapping")
+plot(som_map, type = "mapping")
 }
 }
 \author{

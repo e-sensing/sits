@@ -51,7 +51,7 @@ results[[length(results) + 1]] <- conf_svm.mx
 conf_rfor.tb <- sits_kfold_validate(samples_mt_4bands,
                                     folds = 5,
                                     multicores = 1,
-                                    ml_method = sits_rfor(num.trees = 5000))
+                                    ml_method = sits_rfor(num_trees = 500))
 print("== Confusion Matrix = RFOR =======================")
 conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
 conf_rfor.mx$name <- "rfor"
@@ -92,8 +92,8 @@ results[[length(results) + 1]] <- conf_mlr.mx
 # extreme gradient boosting
 conf_xgb.tb <- sits_kfold_validate(samples_mt_4bands,
                                    folds = 5,
-                                   multicores = 2,
-                                   ml_method = sits_xgboost())
+                                   multicores = 32,
+                                   ml_method = sits_xgboost(nthread = 32))
 
 # print the accuracy of the Multinomial log-linear
 print("== Confusion Matrix = XGB =======================")
@@ -105,6 +105,6 @@ results[[length(results) + 1]] <- conf_xgb.mx
 
 WD = getwd()
 
-sits_to_xlsx(results, file = paste0(WD, "/accuracy_mt_ml.xlsx"))
+sits_to_xlsx(results, file = "./accuracy_mt_ml.xlsx")
 
 

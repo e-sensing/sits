@@ -19,7 +19,7 @@
 #' IEEE Access, 6(1662-1669), 2018.
 #'
 #'
-#' @param data              Time series with the training samples.
+#' @param samples           Time series with the training samples.
 #' @param lstm_units        Number of cells in the each LSTM layer
 #' @param lstm_dropout      Dropout rate of the LSTM module
 #' @param cnn_layers        Number of filters for each 1D CNN layer.
@@ -64,20 +64,19 @@
 #' plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
-sits_LSTM_FCN <- function(data                =  NULL,
+sits_LSTM_FCN <- function(samples             =  NULL,
                           lstm_units          = 8,
                           lstm_dropout        = 0.80,
                           cnn_layers          = c(128, 256, 128),
                           cnn_kernels         = c(8, 5, 3),
                           activation          = 'relu',
-                        optimizer           = keras::optimizer_adam(lr = 0.001),
+                          optimizer           = keras::optimizer_adam(lr = 0.001),
                           epochs              = 150,
                           batch_size          = 128,
                           validation_split    = 0.2,
                           verbose             = 1) {
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    samples <- .sits_tibble_rename(samples)
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data){
@@ -208,12 +207,10 @@ sits_LSTM_FCN <- function(data                =  NULL,
 
             return(predict_DT)
         }
-        class(model_predict) <- append(class(model_predict),
-                                       "keras_model",
-                                       after = 0)
+        class(model_predict) <- c("keras_model", class(model_predict))
         return(model_predict)
     }
 
-    result <- .sits_factory_function(data, result_fun)
+    result <- .sits_factory_function(samples, result_fun)
     return(result)
 }

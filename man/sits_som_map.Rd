@@ -9,8 +9,9 @@ sits_som_map(
   grid_xdim = 10,
   grid_ydim = 10,
   alpha = 1,
+  rlen = 100,
   distance = "euclidean",
-  iterations = 50
+  iterations = 1
 )
 }
 \arguments{
@@ -22,27 +23,34 @@ sits_som_map(
 
 \item{alpha}{Starting learning rate, which decreases according to number of iterations.}
 
+\item{rlen}{Number of iterations to produce the SOM.}
+
 \item{distance}{The type of similarity measure (distance).}
 
 \item{iterations}{The number of time to run the SOM cluster.}
-
-\item{...}{Additional parameters to be passed to kohonen::supersom function.}
 }
 \value{
-Returns a list of sits tibbles containing statistics about the samples and the neuron in each iteration.
-Besides that, the data is returned with the columns presenting the probability of a sample belongs to a cluster based on a frequency
-that a sample was allocated in a neuron, and finally a column presenting the total probability of a sample belongs to a cluster using data of neighbourhood.
+list of sits tibbles containing statistics
+                      about the samples and the neuron in each iteration.
 }
 \description{
 This function uses package self-organized maps to find clusters in
 satellite image time series to cluster the  samples. Besides that, this function
 evaluates the quality of each sample through SOM properties, such as evaluate each
 sample allocated in aneuron-cluster and its neighbourhood.
+
+The output tibble contains additional columns:
+(a) the probability of a sample belongs to a cluster based on a frequency
+that a sample was allocated in a neuron;
+(b) the total probability of a sample belongs
+to a cluster using data of neighbourhood.
 }
 \examples{
 \donttest{
 # Produce a cluster map
 som_cluster <- sits_som_map(prodes_226_064)
+# plot the som map
+plot(som_cluster)
 # Clean the samples to get better quality ones
 clean_samples <- sits_som_clean_samples(som_cluster)
 }

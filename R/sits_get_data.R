@@ -12,7 +12,6 @@
 #' 1. Using a time series service and from a data cube defined
 #' based on a set of Raster Bricks. Two time series services are available:
 #' (a) Web Time Series Service (WTSS) by INPE; (b) SATVEG service from EMBRAPA.
-#' Please see \code{\link[sits]{sits_services}}
 #' for more information on the WTSS service.
 #' The URL and other parameters for accessing the time series services
 #' are defined in the package
@@ -74,7 +73,9 @@
 #' \donttest{
 #' # Read a single lat long point from a WTSS server
 #'
-#' wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
+#' wtss_cube <- sits_cube(type = "WTSS",
+#'                        URL = "http://www.esensing.dpi.inpe.br/wtss",
+#'                        name = "MOD13Q1")
 #' point.tb <- sits_get_data (wtss_cube, longitude = -55.50563,
 #'                                       latitude = -11.71557)
 #' plot(point.tb)
@@ -104,8 +105,11 @@
 #' # define the timeline
 #' data(timeline_modis_392)
 #' # create a data cube based on the information about the files
-#' raster_cube <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+#' raster_cube <- sits_cube(type = "BRICK", satellite = "TERRA",
+#'                          sensor = "MODIS", name = "Sinop-crop",
+#'                          timeline = timeline_modis_392,
 #'                          bands = c("ndvi"), files = files)
+#'
 #' # read the time series of the point from the raster
 #' point_ts <- sits_get_data(raster_cube, longitude = -55.554,
 #'                                        latitude = -11.525)
@@ -140,6 +144,8 @@ sits_get_data <- function(cube,
     assertthat::assert_that(check == TRUE,
                msg = "sits_get_data: cube is not valid or not accessible")
 
+
+
     # No file is given - lat/long must be provided
     if (purrr::is_null(file)) {
         #precondition
@@ -147,7 +153,7 @@ sits_get_data <- function(cube,
                                 !purrr::is_null(longitude),
             msg = "sits_get_data - latitude/longitude must be provided")
 
-        data    <- .sits_from_service(cube = cube,
+        data    <- .sits_ts_from_cube(cube = cube,
                                       longitude = longitude,
                                       latitude = latitude,
                                       start_date = start_date,
@@ -159,12 +165,13 @@ sits_get_data <- function(cube,
     # file is given - must be either CSV or SHP
     else {
         # precondition
-        assertthat::assert_that(tolower(tools::file_ext(file)) == "csv"
-                             || tolower(tools::file_ext(file)) == "shp",
-            msg = "sits_get_data - file must either be a CSV or a shapefile")
+        # assertthat::assert_that(tolower(tools::file_ext(file)) == "csv"
+        #                      || tolower(tools::file_ext(file)) == "shp",
+        #     msg = "sits_get_data - file must either be a CSV or a shapefile")
 
         # get data based on CSV file
-        if (tolower(tools::file_ext(file)) == "csv")
+        # if (tolower(tools::file_ext(file)) == "csv")
+        if (tolower(.sits_get_extension(file)) == "csv")
             data  <- .sits_from_csv(csv_file = file,
                                     cube = cube,
                                     bands = bands,
@@ -290,7 +297,7 @@ sits_get_data <- function(cube,
     return(data)
 }
 #' @title Obtain timeSeries from a web service associated to data cubes
-#' @name .sits_from_service
+#' @name .sits_ts_from_cube
 #'
 #' @description Obtains a time series from a time series service.
 #'
@@ -307,7 +314,7 @@ sits_get_data <- function(cube,
 #'                        "3" - no data and cloud correction).
 #' @return A sits tibble.
 #'
-.sits_from_service <- function(cube,
+.sits_ts_from_cube <- function(cube,
                                longitude,
                                latitude,
                                start_date,
@@ -317,19 +324,8 @@ sits_get_data <- function(cube,
                                .prefilter  = "1") {
 
     # find out which is the service associate to the cube
-    service <- .sits_cube_service(cube)
 
-    if (service == "EOCUBES") {
-        data  <- .sits_from_EOCubes(cube = cube,
-                                    longitude = longitude,
-                                    latitude = latitude,
-                                    start_date = start_date,
-                                    end_date = end_date,
-                                    bands = bands,
-                                    label = label)
-        return(data)
-    }
-    if (service == "WTSS") {
+    if (cube$type == "WTSS") {
         data <- .sits_from_wtss(cube = cube,
                                 longitude = longitude,
                                 latitude = latitude,
@@ -339,7 +335,7 @@ sits_get_data <- function(cube,
                                 label = label)
         return(data)
     }
-    if (service == "SATVEG") {
+    if (cube$type == "SATVEG") {
         data <- .sits_from_satveg(cube = cube,
                                   longitude = longitude,
                                   latitude = latitude,
@@ -351,7 +347,7 @@ sits_get_data <- function(cube,
 
         return(data)
     }
-    if (service == "BRICK" || service == "STACK" || service == "AWS") {
+    if (cube$type == "BRICK") {
         data <- .sits_from_raster(cube = cube,
                                   longitude = longitude,
                                   latitude = latitude,
@@ -363,5 +359,11 @@ sits_get_data <- function(cube,
         return(data)
     }
     return(NULL)
+}
+
+# function
+.sits_get_extension <- function(file){
+    ex <- strsplit(basename(file), split="\\.")[[1]]
+    return(ex[-1])
 }
 

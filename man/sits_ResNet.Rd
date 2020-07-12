@@ -5,7 +5,7 @@
 \title{Train a model using the ResNet model}
 \usage{
 sits_ResNet(
-  data = NULL,
+  samples = NULL,
   blocks = c(64, 128, 128),
   kernels = c(8, 5, 3),
   activation = "relu",
@@ -17,7 +17,7 @@ sits_ResNet(
 )
 }
 \arguments{
-\item{data}{Time series with the training samples.}
+\item{samples}{Time series with the training samples.}
 
 \item{blocks}{Number of 1D convolutional filters for
 each block of three layers.}

@@ -14,12 +14,15 @@ sits_log <- function() {
     sits.env$debug_file <- tempfile(pattern = "sits_debug", fileext = ".log")
     sits.env$logger_debug <- log4r::create.logger(logfile = sits.env$debug_file,
                                                   level = "DEBUG")
+    sits.env$debug_msg <- FALSE
+
     message(paste0("Created logger for sits package - DEBUG level at ",
                    sits.env$debug_file))
 
     sits.env$error_file <- tempfile(pattern = "sits_error", fileext = ".log")
     sits.env$logger_error <- log4r::create.logger(logfile = sits.env$error_file,
                                                   level = "ERROR")
+    sits.env$error_msg <- FALSE
     message(paste0("Created logger for sits package - ERROR level at ",
                    sits.env$error_file))
 
@@ -35,6 +38,7 @@ sits_log <- function() {
 #' @return TRUE if creation succeeds.
 .sits_log_error <- function(message) {
     log4r::error(sits.env$logger_error, message)
+    sits.env$error_msg <- TRUE
 }
 
 #' @title Logs an error in the log file
@@ -46,6 +50,7 @@ sits_log <- function() {
 #' @return TRUE if creation succeeds.
 .sits_log_debug <- function(message) {
     log4r::debug(sits.env$logger_debug, message)
+    sits.env$debug_msg <- TRUE
 }
 
 #' @title Saves a data set for future use
@@ -103,10 +108,15 @@ sits_log <- function() {
 #'
 #' @export
 sits_log_show_errors <- function() {
+    if (!sits.env$error_msg){
+        message("No errors to report")
+        return(invisible(NULL))
+    }
     out <- utils::read.delim(sits.env$error_file, header = FALSE,
-                      stringsAsFactors = FALSE)
+                             stringsAsFactors = FALSE)
     out <- dplyr::rename(out, error = V1)
     return(out)
+
 }
 
 #' @title Prints the debug log
@@ -115,9 +125,14 @@ sits_log_show_errors <- function() {
 #'
 #' @export
 sits_log_show_debug <- function() {
+    if (!sits.env$debug_msg){
+        message("No debug msgs to report")
+        return(invisible(NULL))
+    }
+
     out <- utils::read.delim(sits.env$debug_file, header = FALSE,
-                      stringsAsFactors = FALSE)
-    out <- dplyr::rename(out, error = V1)
+                                 stringsAsFactors = FALSE)
+    out <- dplyr::rename(out, debug = V1)
     return(out)
 }
 

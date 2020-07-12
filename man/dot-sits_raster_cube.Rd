@@ -4,22 +4,9 @@
 \alias{.sits_raster_cube}
 \title{Create a data cube based on a set of Raster Bricks}
 \usage{
-.sits_raster_cube(
-  service,
-  URL,
-  satellite,
-  sensor,
-  name,
-  timeline,
-  bands,
-  files
-)
+.sits_raster_cube(satellite, sensor, name, timeline, bands, files)
 }
 \arguments{
-\item{service}{Name of the data service.}
-
-\item{URL}{URL of the service provider.}
-
 \item{satellite}{Name of satellite}
 
 \item{sensor}{Name of sensor}

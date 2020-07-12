@@ -4,15 +4,15 @@
 \alias{sits_som_evaluate_cluster}
 \title{Cluster evaluation}
 \usage{
-sits_som_evaluate_cluster(som_cluster)
+sits_som_evaluate_cluster(som_map)
 }
 \arguments{
-\item{som_cluster}{Kohonen map and associated information
+\item{som_map}{SOM map and associated information
 created by \code{\link[sits]{sits_som_map}}}
 }
 \value{
-Confusion matrix and a table with percentage
-                   of mixture between the clusters.
+The confusion matrix and
+                    a table with percentage of mixture between the clusters.
 }
 \description{
 This function extracts metrics about the clusters calculating
@@ -21,11 +21,13 @@ the percentage of mixture between a cluster and others.
 \examples{
 \donttest{
 # Produce a Kohonen map for the time series samples
-som_cluster <- sits_som_map(prodes_226_064)
+som_map <- sits_som_map(prodes_226_064)
 # Extract metrics about the clusters
-confusion_by_cluster <- sits_som_evaluate_cluster(som_cluster)
+confusion_by_cluster <- sits_som_evaluate_cluster(som_map)
 # Show confusion matrix
 confusion_matrix <- confusion_by_cluster$confusion_matrix
+# Plot cluster confusion
+plot(confusion_by_cluster)
 }
 }
 \author{

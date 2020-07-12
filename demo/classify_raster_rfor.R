@@ -28,8 +28,13 @@ time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-sinop <- sits_cube(name = "Sinop", timeline = timeline_2013_2014,
-                       bands = c("ndvi", "evi"), files = files)
+sinop <- sits_cube(type = "BRICK",
+                   satellite = "TERRA",
+                   sensor    = "MODIS",
+                   name = "Sinop",
+                   timeline = timeline_2013_2014,
+                   bands = c("ndvi", "evi"),
+                   files = files)
 
 
 # classify the raster image
@@ -45,5 +50,5 @@ plot(sinop_label, time = 1, title = "Sinop")
 sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
 
 # plot the smoothened image
-plot(sinop_bayes, time = 1, title = "Sinop")
+plot(sinop_bayes, time = 1, title = "Sinop-Bayes")
 

@@ -7,31 +7,9 @@ default:
     # minimum number of samples for multicore processing
     minimum_number_samples   : 1000
 
-    # Data services known to sits
-    services                : ["WTSS", "SATVEG", "EOCUBES", "BRICK", "STACK", "LAYER"]
-
-    # Names of the providers of services
-    WTSS_providers          : ["WTSS-INPE"]
-    SATVEG_providers        : ["SATVEG-EMBRAPA"]
-    BRICK_providers         : ["BRICK"]
-    AWS_providers           : ["AWS"]
-    RASTER_providers        : ["RASTER"]
-    STACK_providers         : ["STACK"]
-    LAYER_providers         : ["LAYER"]
-    EOCUBES_providers       : ["EOCUBES-INPE"]
-
-    # URL to access each WTSS service
-    WTSS-INPE_server        : "http://www.esensing.dpi.inpe.br/wtss/"
-
-    # URL to access each EOCUBES service
-    EOCUBES-INPE_server     : "eocubes"
-
-    # URL to access LOCALHOST
-    BRICK_server            : "http://127.0.0.1"
-    STACK_server            : "http://127.0.0.1"
-
-    # URL to access AWS
-    AWS_server              : "s3-sa-east-1.amazonaws.com"
+    # Data cube types known to sits
+    cube_types              : ["WTSS", "SATVEG", "BRICK", "PROBS", "CLASSIFIED"]
+    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "probs_cube", "classified_image"]
 
     # URL to access SATVEG
     SATVEG-EMBRAPA_server   : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
@@ -39,56 +17,87 @@ default:
     SATVEG-EMBRAPA_cubes    : ["terra", "aqua", "comb"]
 
 
-    supported_satellites    : ["TERRA", "AQUA", "MODIS", "LANDSAT8", "LANDSAT"]
-    supported_sensors       : ["MODIS", "OLI"]
+    supported_satellites    : ["TERRA", "AQUA", "LANDSAT-8", "LANDSAT-7", "LANDSAT-5", "SENTINEL-2", "CBERS-4"]
+    supported_sensors       : ["MODIS", "OLI", "ETM", "TM", "MSI", "AWFI"]
 
     MODIS_sensors           : ["MODIS"]
     TERRA_sensors           : ["MODIS"]
-    LANDSAT8_sensors        : ["OLI"]
-    LANDSAT_sensors         : ["OLI"]
-
-    MODIS_products          : ["MOD13Q1"]
-    MOD13Q1_satellite       : ["TERRA"]
-    MOD13Q1_sensor          : ["MODIS"]
+    LANDSAT-8_sensors       : ["OLI"]
+    LANDSAT-7_sensors       : ["ETM"]
+    LANDSAT-5_sensors       : ["TM"]
+    SENTINEL-2_sensors      : ["MSI"]
+    CBERS-4_sensors         : ["AWFI"]
 
     MODIS                   :
         missing_value       :
             ndvi            : -3000
+            ndvi_spline     : -3000
+            ndvi_approx     : -3000
             evi             : -3000
+            evi_spline      : -3000
+            evi_approx      : -3000
             red             : -1000
             nir             : -1000
             blue            : -1000
             mir             : -1000
+            savi            : -9999
+            ndmi            : -9999
+            ndwi2           : -9999
+            gemi            : -9999
 
         minimum_value       :
             ndvi            : -3000
+            ndvi_spline     : -3000
+            ndvi_approx     : -3000
             evi             : -3000
+            evi_spline      : -3000
+            evi_approx      : -3000
             red             : 0
             blue            : 0
             nir             : 0
             mir             : 0
+            savi            : -10000
+            ndmi            : -10000
+            ndwi2           : -10000
+            gemi            : -10000
 
         maximum_value       :
             ndvi            : 10000
+            ndvi_spline     : 10000
+            ndvi_approx     : 10000
             evi             : 10000
+            evi_spline      : 10000
+            evi_approx      : 10000
             red             : 10000
             blue            : 10000
             nir             : 10000
             mir             : 10000
+            savi            : 10000
+            ndmi            : 10000
+            ndwi2           : 10000
+            gemi            : 10000
 
         scale_factor        :
             ndvi            : 0.0001
+            ndvi_spline     : 0.0001
+            ndvi_approx     : 0.0001
             evi             : 0.0001
+            evi_spline      : 0.0001
+            evi_approx      : 0.0001
             red             : 0.0001
             nir             : 0.0001
             blue            : 0.0001
             mir             : 0.0001
+            savi            : 0.0001
+            ndmi            : 0.0001
+            ndwi2           : 0.0001
+            gemi            : 0.0001
 
         resolution          :
             xres            : 0.00208334
             yres            : 0.00208334
 
-    OLI                     :
+    OLI                     : &landsat
         missing_value       :
             ndvi            : -9999
             evi             : -9999
@@ -128,6 +137,117 @@ default:
         resolution          :
             xres            : 30
             yres            : 30
+
+    TM                      : *landsat
+
+    ETM                     : *landsat
+
+    AWFI                    :
+        missing_value       :
+            ndvi            : 0
+            evi             : 0
+            nir             : 0
+            red             : 0
+            green           : 0
+            gndvi           : -9999
+            ndwi2           : -9999
+            pvr2            : -9999
+            gemi            : -9999
+
+        minimum_value       :
+            ndvi            : 0
+            evi             : 0
+            nir             : 0
+            red             : 0
+            green           : 0
+            gndvi           : -10000
+            ndwi2           : -10000
+            pvr2            : -10000
+            gemi            : -10000
+
+        maximum_value       :
+            ndvi            : 10000
+            evi             : 10000
+            nir             : 10000
+            red             : 10000
+            green           : 10000
+            gndvi           : 10000
+            ndwi2           : 10000
+            pvr2            : 10000
+            gemi            : 10000
+
+        scale_factor:
+            ndvi            : 0.0001
+            evi             : 0.0001
+            nir             : 0.0001
+            red             : 0.0001
+            green           : 0.0001
+            gndvi           : 0.0001
+            ndwi2           : 0.0001
+            pvr2            : 0.0001
+            gemi            : 0.0001
+
+        resolution          :
+            xres            : 60
+            yres            : 60
+
+    MSI                     :
+        missing_value       :
+            evi             : -9999
+            savi            : -9999
+            ndvi            : -9999
+            ndmi            : -9999
+            blue            : -9999
+            red             : -9999
+            green           : -9999
+            bnir            : -9999
+            nnir            : -9999
+            swir1           : -9999
+            swir2           : -9999
+
+        minimum_value       :
+            evi             : -9999
+            savi            : -9999
+            ndvi            : -9999
+            ndmi            : -9999
+            blue            : 0
+            red             : 0
+            green           : 0
+            bnir            : 0
+            nnir            : 0
+            swir1           : 0
+            swir2           : 0
+
+        maximum_value       :
+            evi             : 10000
+            savi            : 10000
+            ndvi            : 10000
+            ndmi            : 10000
+            blue            : 10000
+            red             : 10000
+            green           : 10000
+            bnir            : 10000
+            nnir            : 10000
+            swir1           : 10000
+            swir2           : 10000
+
+        scale_factor:
+            evi             : 0.0001
+            savi            : 0.0001
+            ndvi            : 0.0001
+            ndmi            : 0.0001
+            blue            : 0.0001
+            red             : 0.0001
+            green           : 0.0001
+            bnir            : 0.0001
+            nnir            : 0.0001
+            swir1           : 0.0001
+            swir2           : 0.0001
+
+        resolution          :
+            xres            : 10
+            yres            : 10
+
 
     tasseled_cap_coef       :
         MODIS               :

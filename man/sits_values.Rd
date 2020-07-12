@@ -33,6 +33,4 @@ sits_values(cerrado_2classes[1:2,], format = "bands_dates_cases")
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

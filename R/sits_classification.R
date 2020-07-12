@@ -61,8 +61,10 @@
 #' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
 #'                        package = "sits"))
 #' # create a data cube based on the information about the files
-#' sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
-#' bands = "ndvi", files = files)
+#' sinop <- sits_cube(type = "BRICK", satellite = "TERRA",
+#'                    sensor = "MODIS", name = "Sinop-crop",
+#'                    timeline = timeline_modis_392,
+#'                    bands = c("ndvi"), files = files)
 #'
 #' # classify the raster image
 #' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
@@ -75,10 +77,16 @@
 #' plot(sinop_label, time = 1, title = "Sinop-2013-2014")
 #'
 #' # smooth the result with a bayesian filter
-#' sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
+#' sinop_bayes <- sits_label_classification(sinop_probs,
+#'                                smoothing = "bayesian")
 #'
 #' # plot the smoothened image
 #' plot(sinop_bayes, time = 1, title = "Sinop-smooth")
+#'
+#' # remove the files (cleanup)
+#' file.remove(unlist(sinop_probs$files))
+#' file.remove(unlist(sinop_label$files))
+#' file.remove(unlist(sinop_bayes$files))
 #' }
 #' @export
 sits_classify <- function(data        = NULL,
@@ -162,8 +170,10 @@ sits_classify <- function(data        = NULL,
 #'                        package = "sits"))
 #'
 #' # create a data cube based on the information about the files
-#' sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
-#' bands = "ndvi", files = files)
+#' sinop <- sits_cube(type = "BRICK", satellite = "TERRA",
+#'                    sensor = "MODIS", name = "Sinop-crop",
+#'                    timeline = timeline_modis_392,
+#'                    bands = c("ndvi"), files = files)
 #'
 #' # classify the raster image
 #' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
@@ -180,6 +190,11 @@ sits_classify <- function(data        = NULL,
 #'
 #' # plot the smoothened image
 #' plot(sinop_bayes, time = 1, title = "Sinop-smooth")
+#'
+#' # remove the files (cleanup)
+#' file.remove(unlist(sinop_probs$files))
+#' file.remove(unlist(sinop_label$files))
+#' file.remove(unlist(sinop_bayes$files))
 #' }
 #' @export
 sits_label_classification <- function(cube,
@@ -269,8 +284,7 @@ sits_label_classification <- function(cube,
         layer <- raster::writeRaster(layer, filename = out_file,
                                      overwrite = TRUE)
     })
-    class(cube_labels) <- append(class(cube_labels), "classified_image",
-                                 after = 0)
+
     return(cube_labels)
 }
 #' @title Classify a set of time series using machine learning models
@@ -297,8 +311,7 @@ sits_label_classification <- function(cube,
 .sits_classify_ts <- function(data, ml_model, interval, filter, multicores) {
 
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    data <- .sits_tibble_rename(data)
 
     # verify that the data is correct
     .sits_test_tibble(data)
@@ -444,15 +457,6 @@ sits_label_classification <- function(cube,
 #'
 .sits_classify_cube <- function(cube, ml_model, interval, filter,
                                 memsize, multicores, output_dir, version) {
-    if (.sits_cube_service(cube) == "EOCUBES") {
-        res <- .sits_classify_eocubes(cube = cube,
-                                      ml_model = ml_model,
-                                      interval = interval,
-                                      filter = filter,
-                                      memsize = memsize,
-                                      multicores = multicores)
-        return(res)
-    }
 
     # checks the classification params
     .sits_check_classify_params(cube, ml_model)
@@ -784,247 +788,7 @@ sits_label_classification <- function(cube,
     }
     return(invisible(TRUE))
 }
-#' @title Classify a data cube created with the EOCUBES service
-#' @name .sits_classify_eocubes
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Takes a set of spatio-temporal raster bricks, whose metadata is
-#'  described by tibble (created by \code{\link[sits]{sits_cube}}),
-#'  a set of samples used for training a classification model,
-#'  a prediction model (created by \code{\link[sits]{sits_train}}),
-#'  and produces a classified set of RasterLayers. This function is similar to
-#'  \code{\link[sits]{sits_classify}} which is applied to time series.
-#'  There are two parameters for optimizing processing of large data sets:
-#'  "memsize" and "multicores". The "multicores" parameter defines the
-#'  number of cores used for processing. The "memsize" parameter  controls
-#'  the amount of memory available for classification.
-#'
-#' @param  cube            Tibble with information about a data cube.
-#' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
-#' @param  interval        Interval between two sucessive classifications,
-#'                          expressed in months.
-#' @param  filter          Smoothing filter to be applied (if desired).
-#' @param  memsize         Memory available for classification (in GB).
-#' @param  multicores      Number of cores to be used for classification.
-#' @return A tibble with the metadata for the vector of classified RasterLayers.
-#'
-.sits_classify_eocubes <- function(cube, ml_model, interval, filter,
-                                   memsize, multicores) {
 
-    # get cube object
-    #cub.obj <- .sits_cube_robj(cube)
-    remote.obj   <- EOCubes::remote(name = cube$URL)
-    cub.obj <- EOCubes::cube(name = cube$name, remote = remote.obj)
-
-    # get bands names
-    bands <- .sits_cube_bands(cube)
-
-    # get bands info
-    bands_info <- EOCubes::cube_bands_info(cube = cub.obj)
-
-    # retrieve the samples from the model
-    samples  <- environment(ml_model)$data
-    assertthat::assert_that(NROW(samples) > 0,
-                         msg = "sits_classify: original samples not saved")
-
-    # what is the reference start date?
-    dates          <- sits_time_series_dates(samples)
-    ref_start_date <- lubridate::as_date(dates[1])
-    ts_length      <- length(dates)
-
-    # get stacks from EOCubes
-    stk.obj <- EOCubes::stacks(cube = cub.obj, bands = bands,
-                               start_reference = ref_start_date,
-                               stack_length = ts_length,
-                               starts_interval = interval)
-    # get the params of the cube
-    params <- .sits_raster_params(.sits_cube_robj(cube))
-    # get the name of the cube
-    name   <-  paste0(cube[1,]$name, "_probs")
-
-    cube_class.tb <-
-        dplyr::bind_rows(lapply(seq_along(stk.obj), function(i) {
-
-            dplyr::bind_rows(lapply(seq_along(stk.obj[[i]]), function(j) {
-
-                # tile/interval
-                tile_interv <- stk.obj[[i]][[j]]
-
-                # file sufix
-                file_sufx <- names(stk.obj)[[i]]
-                # set the metadate for the probability cube
-                cube_stack <- .sits_cube_create(
-                                  service = "STACK",
-                                  URL       = cube$URL,
-                                  satellite = cube$satellite,
-                                  sensor    = cube$sensor,
-                                  name      = file_sufx,
-                                  bands     = bands,
-                                  labels    = cube$labels,
-                                  timelines  = list(tile_interv$timeline),
-                                  missing_values = bands_info$fill[bands],
-                                  scale_factors = bands_info$scale[bands],
-                                  minimum_values = bands_info$min[bands],
-                                  maximum_values = bands_info$max[bands],
-                                  xmin  = params$xmin,
-                                  xmax  = params$xmax,
-                                  ymin  = params$ymin,
-                                  ymax  = params$ymax,
-                                  xres  = params$xres,
-                                  yres  = params$yres,
-                                  crs   = params$crs,
-                                  files = tile_interv$bands)
-
-                # checks the classification params
-                .sits_check_classify_params(cube_stack, ml_model)
-
-                # create the raster objects and their respective filenames
-                cube_class <- .sits_cube_classified(cube_stack,
-                                                    samples,
-                                                    interval)
-
-                # classify the data
-                cube_class.tb <- .sits_classify_multicores_cubes(cube_stack,
-                                                                 cube_class,
-                                                                 samples,
-                                                                 ml_model,
-                                                                 interval,
-                                                                 filter,
-                                                                 memsize,
-                                                                 multicores)
-            }))
-        }))
-
-    return(cube_class.tb)
-}
-
-#' @title Classify a stacks chunk using multicores
-#' @name .sits_classify_multicores_cubes
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Classifies a block of data using multicores. It breaks
-#' the data into horizontal blocks and divides them between the available cores.
-#'
-#' Reads data using Rgdal, then cleans the data for NAs and missing values.
-#' The clean data is stored in a data table that has all the time instances
-#' for all pixels of the block. The algorithm then classifies data
-#' on an year by year basis.
-#' For each year, it extracts the sub-blocks for each band.
-#'
-#' After all cores process their blocks, it joins the result and then writes it
-#' in the classified images for each corresponding year.
-#'
-#' @param  cube            Metadata for a data cube
-#' @param  cube_class      Raster layer objects to be written.
-#' @param  samples         Samples used for training the classification model.
-#' @param  ml_model        A model trained by \code{\link[sits]{sits_train}}.
-#' @param  interval        Classification interval.
-#' @param  filter          Smoothing filter to be applied to the data.
-#' @param  memsize         Memory available for classification (in GB).
-#' @param  multicores      Number of cores.
-#' @return List of the classified raster layers.
-.sits_classify_multicores_cubes <-  function(cube,
-                                             cube_class,
-                                             samples,
-                                             ml_model,
-                                             interval,
-                                             filter,
-                                             memsize,
-                                             multicores) {
-    # retrieve the output raster layers
-    bricks_probs <- .sits_cube_all_robjs(cube_class)
-
-    n_bricks <- length(bricks_probs)
-
-    #initiate writing
-    bricks_probs <- purrr::map(bricks_probs, function(brick){
-        bricks <- raster::writeStart(brick, brick@file@name, overwrite = TRUE)})
-
-    # retrieve the normalization stats
-    stats     <- environment(ml_model)$stats
-
-    # divide the input data in blocks
-    bs <- .sits_raster_blocks(cube, ml_model, interval, memsize, multicores)
-
-    # build a list with columns of data table to be processed for each interval
-    select.lst <- .sits_timeline_raster_indexes(cube, samples, interval)
-
-    # get the attribute names
-    attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))
-    assertthat::assert_that(length(attr_names) > 0,
-        msg = "sits_classify_distances:
-                    training data not saved in the model environment")
-    # get initial time for classification
-    start_time <- lubridate::now()
-    message(sprintf("Starting classification at %s", start_time))
-
-    # read the blocks
-    for (block in 1:bs$n) {
-        # read the data
-        data_DT <- .sits_raster_read_data_cubes(cube, samples, ml_model,
-                                                bs$row[block], bs$nrows[block],
-                                                stats, filter, multicores)
-        # process one temporal instance at a time
-
-        bricks_probs <- purrr::pmap(list(select.lst,
-                                         bricks_probs,
-                                         c(1:n_bricks)),
-                                    function(time, brick, iter) {
-            # retrieve the values used for classification
-            if (all(time))
-                dist_DT <- data_DT
-            else {
-                dist_DT <- data_DT[, time, with = FALSE]
-                # set column names for DT
-            }
-            colnames(dist_DT) <- attr_names
-            # predict the classification values
-            prediction_DT <- .sits_classify_interval(dist_DT,
-                                                     ml_model,
-                                                     multicores)
-
-
-            # convert probabilities matrix to INT2U
-            scale_factor_save <- 10000
-            probs <- .sits_raster_scale_matrix_integer(as.matrix(prediction_DT),
-                                                        scale_factor_save,
-                                                        multicores)
-
-            # write the probabilities
-            brick <- raster::writeValues(brick, probs, bs$row[block])
-
-            # memory management
-            rm(prediction_DT)
-            gc()
-
-            .sits_log_debug(paste0("Memory used after processing block ",
-                 block, " of iteration ", iter, " - ", .sits_mem_used(), " GB"))
-            # estimate processing time
-            .sits_classify_estimate_processing_time(start_time,
-                                                    select.lst,
-                                                    bs,
-                                                    block,
-                                                    iter)
-            return(brick)
-        })
-
-        # save information about memory use for debugging later
-        .sits_log_debug(paste0("Processed block starting from ",
-                               bs$row[block], " to ",
-                               (bs$row[block] + bs$nrows[block] - 1)))
-        .sits_log_debug(paste0("Memory used after processing block ",
-                               block,  " - ", .sits_mem_used(), " GB"))
-
-    }
-    # finish writing
-    bricks_probs <- purrr::map(bricks_probs, function(brick){
-        brick <- raster::writeStop(brick)
-    })
-
-
-
-    return(cube_class)
-}
 
 #' @title Shows the predicted labels for a classified tibble
 #' @name sits_show_prediction
@@ -1107,7 +871,7 @@ sits_show_prediction <- function(class.tb) {
                                           from      = as.Date(rd[1]),
                                           to        = as.Date(rd[2]),
                                           class     = pred.vec[class_idx],
-                                          probs     = list(pred.mtx[class_idx,])
+                                          probs     = list(as.data.frame(pred.mtx[class_idx,]))
                                 )
                     class_idx  <<- class_idx + 1
                     return(pred_row)
@@ -1123,235 +887,4 @@ sits_show_prediction <- function(class.tb) {
     return(data)
 }
 
-#' @title  Generic interface for ploting time series predictions
-#' @name   plot.predicted
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Given a sits tibble with a set of predictions, plot them
-#'
-#' @param  x             object of class "predicted"
-#' @param  y             ignored
-#' @param  ...           further specifications for \link{plot}.
-#' @param  bands         Bands used for visualisation
-#' @return Input sits tibble (useful for chaining functions).
-#'
-#' @examples
-#' \donttest{
-#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-#' # classify the point
-#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
-#' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
-#' # plot the classification
-#' plot (class_ndvi.tb)
-#' }
-#' @export
-plot.predicted <- function(x, y, ..., bands = "ndvi") {
-    stopifnot(missing(y))
-    .sits_plot_classification(x, bands)
-}
 
-
-#' @title  Generic interface for ploting classified images
-#' @name   plot.classified_image
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a classified raster using ggplot.
-#'
-#' @param  x             Object of class "classified_image"
-#' @param  y             Ignored
-#' @param  ...           Further specifications for \link{plot}.
-#' @param time           Temporal reference for plot.
-#' @param title          A string.
-#' @param colors         Color pallete.
-#'
-#' @examples
-#' \donttest{
-#' # Retrieve the samples for Mato Grosso
-#'
-#' # select the bands "ndvi", "evi"
-#' samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-#'
-#' #select a random forest model
-#'
-#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
-#' # Classify a raster file with 23 instances for one year
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'            package = "sits"))
-#' # create a data cube based on the information about the files
-#' sinop <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
-#' bands = "ndvi", files = files)
-#'
-#' # classify the raster image
-#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
-#'                              memsize = 2, multicores = 1)
-#'
-#' # label the classified image
-#' sinop_label <- sits_label_classification(sinop_probs)
-#'
-#' # plot the raster image
-#' plot(sinop_label, time = 1, title = "Sinop-2013-2014")
-#' }
-#' @export
-plot.classified_image <- function(x , y, ..., time = 1,
-                                  title = "Classified Image", colors = NULL) {
-    stopifnot(missing(y))
-    .sits_plot_raster(cube = x, time = time, title = title, colors = colors)
-}
-
-#' @title Plot classification results
-#' @name .sits_plot_classification
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @description        Plots the classification results
-#'                     (code reused from the dtwSat package by Victor Maus).
-#' @param data         A sits tibble with classified time series.
-#' @param bands        Band for plotting the classification.
-#'
-.sits_plot_classification <- function(data, bands = NULL) {
-  if (purrr::is_null(bands))
-    bands <- sits_bands(data)[1]
-
-  # prepare a data frame for plotting
-
-  #get the labels
-  labels <- sits_labels(data)$label
-
-  # put the time series in the data frame
-  purrr::pmap(list(data$latitude, data$longitude, data$label,
-                   data$time_series, data$predicted),
-              function(row_lat, row_long, row_label,
-                       row_time_series, row_predicted) {
-                lb <- .sits_plot_title(row_lat, row_long, row_label)
-                # extract the time series
-                ts <- row_time_series
-                # convert to data frame
-                df.x <- data.frame(Time = ts$Index, ts[,bands],
-                                   Series = as.factor(lb))
-                # melt the time series data for plotting
-                df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
-                # define a nice set of breaks for value plotting
-                y.labels <-  scales::pretty_breaks()(range(df.x$value,
-                                                           na.rm = TRUE))
-                y.breaks <-  y.labels
-
-                # get the predicted values as a tibble
-
-                pred <- row_predicted
-                df.pol <- data.frame()
-
-                # create a data frame with values and intervals
-                i <- 1
-                purrr::pmap(list(row_predicted$from, row_predicted$to,
-                                 row_predicted$class),
-                            function (rp_from, rp_to, rp_class) {
-
-                              best_class <- as.character(rp_class)
-
-                              df.p <- data.frame(
-                                Time  = c(lubridate::as_date(rp_from),
-                                          lubridate::as_date(rp_to),
-                                          lubridate::as_date(rp_to),
-                                          lubridate::as_date(rp_from)),
-                                Group = rep(i, 4),
-                                Class = rep(best_class, 4),
-                                value = rep(range(y.breaks,
-                                                  na.rm = TRUE), each = 2)
-                              )
-                              i <<- i + 1
-                              df.pol <<- rbind(df.pol, df.p)
-
-                            })
-
-                df.pol$Group  <-  factor(df.pol$Group)
-                df.pol$Class  <-  factor(df.pol$Class)
-                df.pol$Series <-  rep(lb, length(df.pol$Time))
-
-                I <-  min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
-                  df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
-
-                df.x <- df.x[I,,drop = FALSE]
-
-                gp <-  ggplot2::ggplot() +
-                  ggplot2::facet_wrap(~Series,
-                                      scales = "free_x", ncol = 1) +
-                  ggplot2::geom_polygon(data = df.pol,
-                                        ggplot2::aes_string(x = 'Time',
-                                                            y = 'value',
-                                                            group = 'Group',
-                                                            fill = 'Class'),
-                                        alpha = .7) +
-                  ggplot2::scale_fill_brewer(palette = "Set3") +
-                  ggplot2::geom_line(data = df.x,
-                                     ggplot2::aes_string(x = 'Time',
-                                                         y = 'value',
-                                                         colour = 'variable')) +
-                  ggplot2::scale_y_continuous(expand = c(0, 0),
-                                              breaks = y.breaks,
-                                              labels = y.labels) +
-                  ggplot2::scale_x_date(breaks = ggplot2::waiver(),
-                                        labels = ggplot2::waiver()) +
-                  ggplot2::theme(legend.position = "bottom") +
-                  ggplot2::guides(colour =
-                                    ggplot2::guide_legend(title = "Bands")) +
-                  ggplot2::ylab("Value") +
-                  ggplot2::xlab("Time")
-
-                graphics::plot(gp)
-
-              })
-  return(invisible(data))
-}
-
-#' @title Plot a raster classified images
-#'
-#' @name .sits_plot_raster
-#'
-#' @description plots a raster using ggplot. This function is used
-#' for showing the same lat/long location in a series of time steps.
-#'
-#' @param cube        A tibble with the metadata for a labelled data cube.
-#' @param time        Temporal reference for plot.
-#' @param title       A string.
-#' @param colors      Color pallete.
-.sits_plot_raster <- function(cube, time = 1, title = "Classified Image",
-                              colors = NULL) {
-  #precondition 1 - cube must be a labelled cube
-  assertthat::assert_that(as.logical(grep("class",
-                                          .sits_cube_bands(cube)[1])),
-                  msg = "sits_plot_raster: input cube must be a labelled one")
-  #precondition 2 - time must be a positive integer
-  assertthat::assert_that(time >= 1,
-                    msg = "sits_plot_raster: time must be a positive integer")
-
-  # get the raster object
-  r <- .sits_cube_robj(cube, time)
-
-  # convert from raster to points
-  map.p <- raster::rasterToPoints(r)
-  # create a data frame
-  df <- data.frame(map.p)
-  # define the column names for the data frame
-  colnames(df) <- c("x", "y", "class")
-
-  # get the labels and how many there are
-  labels <- .sits_cube_labels(cube)
-  nclasses <- length(labels)
-  # create a mapping from classes to labels
-  names(labels) <- as.character(c(1:nclasses))
-
-  # if colors are not specified, get them from the configuration file
-  if (purrr::is_null(colors)) {
-    colors <- vector(length = nclasses)
-    for (i in 1:nclasses)
-      colors[i] <- .sits_config_color(labels[i])
-  }
-  # set the names of the color vector
-  names(colors) <- as.character(c(1:nclasses))
-
-  # plot the data with ggplot
-  g <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
-    ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
-    ggplot2::labs(title = title) +
-    ggplot2::scale_fill_manual(values = colors, labels = labels,
-                               guide = ggplot2::guide_legend(title = "Classes"))
-
-  return(g)
-}

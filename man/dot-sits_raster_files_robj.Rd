@@ -4,11 +4,9 @@
 \alias{.sits_raster_files_robj}
 \title{Raster object from file}
 \usage{
-.sits_raster_files_robj(service, files)
+.sits_raster_files_robj(files)
 }
 \arguments{
-\item{service}{Name of the service (must be "BRICK" or "STACK!)}
-
 \item{files}{Vector of files}
 }
 \value{

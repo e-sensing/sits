@@ -4,10 +4,10 @@
 \alias{.sits_cluster_dendro_bestcut}
 \title{Compute validity indexes to a range of cut height}
 \usage{
-.sits_cluster_dendro_bestcut(data, dendro)
+.sits_cluster_dendro_bestcut(samples, dendro)
 }
 \arguments{
-\item{data}{Input set of time series.}
+\item{samples}{Input set of time series.}
 
 \item{dendro}{Dendrogram object returned from
 \code{\link[sits]{.sits_cluster_dendrogram}}.}

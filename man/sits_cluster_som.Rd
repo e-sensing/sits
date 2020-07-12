@@ -11,8 +11,9 @@ sits_cluster_som(
   alpha = 1,
   distance = "euclidean",
   iterations = 50,
-  prob_label_change = 0.8,
-  min_cluster_prob = 0.6
+  rlen = 100,
+  conditonal_threshold = 0.6,
+  posterior_threshold = 0.6
 )
 }
 \arguments{
@@ -28,13 +29,18 @@ sits_cluster_som(
 
 \item{iterations}{The number of time to run the SOM cluster.}
 
-\item{prob_label_change}{Threshold of probability to change the label}
+\item{rlen}{The number of time the dataset will be presented to the SOM.}
 
-\item{min_cluster_prob}{Minimum probability for a good sample to belong to a cluster}
+\item{conditonal_threshold}{Threshold of conditional probability
+(frequency of samples assigned to a same SOM neuron)}
+
+\item{posterior_threshold}{Threshold of posterior probability
+(influenced by the SOM neighborhood)}
 }
 \value{
-Returns a sits tibble with a new subset of samples and a new column
-presenting the probability of each sample belongs to a class described in column label.
+A sits tibble with a new subset of samples and
+                     a new column presenting the probability that a sample
+                     belongs to a class described in column label.
 }
 \description{
 This function uses self-organized maps to find clusters in
@@ -42,8 +48,8 @@ satellite image time series for quality control of the  samples.
 It calls the function \code{\link[sits]{sits_som_map}} to generate the som map and
 \code{\link[sits]{sits_som_clean_samples}} to produce a cleaned set of samples.
 The parameters "grid_xdim", "grid_ydim", "rlen", "distance", "alpha", and
-"iterations are used by \code{\link[sits]{sits_som_map}} to control how the Kohonen map
-is generated. The parameters "prob_label_change" and "min_cluster_prob" control how the
+"iterations" are used by \code{\link[sits]{sits_som_map}} to control how the Kohonen map
+is generated. The parameters "conditonal_threshold" and "posterior_threshold" control how the
 good quality samples are selected, based on the Kohonen map.
 }
 \examples{

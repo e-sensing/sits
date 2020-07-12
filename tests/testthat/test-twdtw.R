@@ -14,6 +14,21 @@ test_that("Classify time series with TWDTW method", {
                         sits_labels(samples_mt_ndvi)$label))
 })
 
+test_that("Test defaults with TWDTW method", {
+    #skip_on_cran()
+    data("samples_mt_4bands")
+    data("point_mt_6bands")
+    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    point_mt_ndvi <- sits_select_bands(point_mt_6bands, ndvi)
+    patterns <- sits_patterns(samples_mt_ndvi)
+    matches <- sits_twdtw_classify(point_mt_ndvi, patterns,
+                                   start_date = "2005-01-01",
+                                   end_date   = "2010-12-31")
+
+    expect_true(all(unique(matches$predicted[[1]]$predicted) %in%
+                        sits_labels(samples_mt_ndvi)$label))
+})
+
 test_that("Test special conditions in TWDTW method", {
     #skip_on_cran()
     patterns <- sits_patterns(cerrado_2classes)

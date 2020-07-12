@@ -75,11 +75,11 @@ test_that("Kalman filter", {
 test_that("Arima filter", {
     data(prodes_226_064)
     point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
-    point_cld  <- sits_ndvi_arima(point_ndvi, bands_suffix = "ar.whit")
+    point_cld  <- sits_ndvi_arima(point_ndvi, bands_suffix = "ar")
 
     # filtered data has less sd
     expect_true(sd(sits_time_series(point_ndvi)$ndvi) >
-                    sd(sits_time_series(point_cld)$ndvi.ar.whit))
+                    sd(sits_time_series(point_cld)$ndvi.ar.wf))
 })
 
 test_that("Missing values", {

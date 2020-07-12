@@ -77,7 +77,6 @@ There are two main ways of retrieving time series:
 1. Using a time series service and from a data cube defined
 based on a set of Raster Bricks. Two time series services are available:
 (a) Web Time Series Service (WTSS) by INPE; (b) SATVEG service from EMBRAPA.
-Please see \code{\link[sits]{sits_services}}
 for more information on the WTSS service.
 The URL and other parameters for accessing the time series services
 are defined in the package
@@ -106,7 +105,9 @@ from the RasterBrick.
 \donttest{
 # Read a single lat long point from a WTSS server
 
-wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
+wtss_cube <- sits_cube(type = "WTSS",
+                       URL = "http://www.esensing.dpi.inpe.br/wtss",
+                       name = "MOD13Q1")
 point.tb <- sits_get_data (wtss_cube, longitude = -55.50563,
                                       latitude = -11.71557)
 plot(point.tb)
@@ -136,8 +137,11 @@ files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
 # define the timeline
 data(timeline_modis_392)
 # create a data cube based on the information about the files
-raster_cube <- sits_cube(name = "Sinop-crop", timeline = timeline_modis_392,
+raster_cube <- sits_cube(type = "BRICK", satellite = "TERRA",
+                         sensor = "MODIS", name = "Sinop-crop",
+                         timeline = timeline_modis_392,
                          bands = c("ndvi"), files = files)
+
 # read the time series of the point from the raster
 point_ts <- sits_get_data(raster_cube, longitude = -55.554,
                                        latitude = -11.525)

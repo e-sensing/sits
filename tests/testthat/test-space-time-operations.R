@@ -13,7 +13,9 @@ test_that("All", {
 })
 
 test_that("Inside", {
-    wtss_cube <- sits_cube(service = "WTSS", name = "MOD13Q1")
+    wtss_cube <- sits_cube(type = "WTSS",
+                           URL = "http://www.esensing.dpi.inpe.br/wtss/",
+                           name = "MOD13Q1")
 
     point <- data.frame(X = 1, Y = 1)
 

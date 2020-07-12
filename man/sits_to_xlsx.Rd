@@ -33,6 +33,9 @@ conf.mx$name <- "confusion_matrix"
 results[[length(results) + 1]] <- conf.mx
 # save the results to an XLSX file
 sits_to_xlsx(results, file = "confusion_matrix.xlsx")
+
+# cleanup (optional)
+file.remove("confusion_matrix.xlsx")
 }
 }
 \author{

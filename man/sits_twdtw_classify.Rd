@@ -5,7 +5,7 @@
 \title{Find matches between a set of sits patterns and segments of sits tibble using TWDTW}
 \usage{
 sits_twdtw_classify(
-  data,
+  samples,
   patterns,
   bands = NULL,
   dist.method = "euclidean",
@@ -21,7 +21,7 @@ sits_twdtw_classify(
 )
 }
 \arguments{
-\item{data}{A sits tibble to be classified using TWTDW.}
+\item{samples}{A sits tibble to be classified using TWTDW.}
 
 \item{patterns}{Patterns to be used for classification.}
 

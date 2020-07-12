@@ -1,42 +1,40 @@
 #' @title Defines a data cube
 #' @name sits_cube
 #'
-#' @description Defines a cube to retrieve data. Cubes are associated to
-#' data services. The following services are available:
+#' @description Defines a cube to retrieve data. '
+#' Cubes can be of the following types:
 #' \itemize{
 #'  \item{"WTSS": }{Web Time Series Service - used to get time series}
 #'  \item{"SATVEG": }{ SATVEG Time Series Service - used to get time series}
-#'  \item{"EOCUBES": }{EOCUBES service - cloud processing of data cubes}
 #'  \item{"BRICK": }{Raster Brick files}
-#'  \item{"STACK": }{Raster Stack files}
 #' }
 #'
-#'
-#' @param service           Name of the data service.
-#' @param URL               URL of the service provider.
+#' @param type              Type of cube (one of "WTSS", "SATVEG", "BRICK")
+#' @param name              Name of the data cube.
+#' @param URL               URL of the service provider (for WTSS).
 #' @param satellite         Name of satellite
 #' @param sensor            Name of sensor
-#' @param name              Name of the data cube in the remote service.
-#' @param tiles_names       Tile names to be filtered (for EOCUBES service)
-#' @param geom              An \code{sf} object to filter tiles (for EOCUBES)
-#' @param from              Starting date for the cube to be extracted
-#' @param to                End date for the cube to be extracted
 #' @param timeline          Vector with the timeline of the collection
 #'                          (only for local files)
 #' @param bands             Vector of bands.
 #' @param files             Vector of file names for each band
 #'                          (only for raster data).
+#' @param service           Name of the data service (deprecated)
+#' @param name              Name associated to local and remote data
+#'                          (deprecated)
 #'
 #' @seealso To see the available values for the parameters above
-#' use \code{\link{sits_services}},
-#' \code{\link{sits_config}} or \code{\link{sits_config_show}}.
+#' use \code{\link{sits_config}} or \code{\link{sits_config_show}}.
 #' @examples
 #' \donttest{
 #' # Example 1. Create a data cube based on a WTSS service
-#' cube_wtss <- sits_cube(service = "WTSS", name = "MOD13Q1")
+#' cube_wtss <- sits_cube(type = "WTSS",
+#'           name = "MOD13Q1",
+#'           URL = "http://www.esensing.dpi.inpe.br/wtss/")
 #'
 #' # Example 2. Create a data cube based on the SATVEG service
-#' cube_satveg <- sits_cube(service = "SATVEG", name = "terra")
+#' cube_satveg <- sits_cube(type = "SATVEG",
+#'                          name = "terra")
 #'
 #' # Example 3. Create a raster cube based on bricks
 #' # inform the files that make up a raster brick with 392 time instances
@@ -44,76 +42,93 @@
 #'            package = "sits"))
 #'
 #' # create a raster cube file based on the information about the files
-#' raster.tb <- sits_cube(name  = "Sinop-crop",
-#'              timeline = timeline_modis_392, bands = "ndvi", files = files)
+#' raster.tb <- sits_cube(type = "BRICK",
+#'                        name      = "Sinop-crop",
+#'                        satellite = "TERRA",
+#'                        sensor    = "MODIS",
+#'                        timeline  = timeline_modis_392,
+#'                        bands     = "ndvi",
+#'                        files     = files)
 #'
-#' # Example 4. create a coverage from EOCUBES service
-#' modis_cube <- sits_cube(service = "EOCUBES", name    = "MOD13Q1/006")
-#'  # get information on the data cube
-#' modis_cube %>% dplyr::select(service, URL, satellite, sensor)
-#' # get information on the cube
-#' modis_cube %>% dplyr::select(xmin, xmax, ymin, ymax, timeline)
 #' }
 #' @export
-sits_cube <- function(service        = "BRICK",
+sits_cube <- function(type           = NULL,
+                      name,
                       URL            = NULL,
-                      name           = NULL,
                       satellite      = NULL,
                       sensor         = NULL,
-                      tiles_names    = NULL,
-                      geom           = NULL,
-                      from           = NULL,
-                      to             = NULL,
                       timeline       = NULL,
                       bands          = NULL,
-                      files          = NA) {
+                      files          = NULL,
+                      service        = NULL) {
 
-
-    # backward compatibility
-    if (service == "WTSS-INPE")
-        service <- "WTSS"
-
-    if (service == "WTSS") {
-        # find the URL of the WTSS service, if not provided
-        if (purrr::is_null(URL) || is.na(URL))
-            URL <- .sits_config_server(service)
-        # check if the WTSS service is available
-        wtss_ok <- .sits_wtss_check(URL)
-
-        # if WTSS is running, create the cube
-        if (wtss_ok) {
-            wtss.obj <- suppressMessages(wtss::WTSS(URL))
-            assertthat::assert_that(!purrr::is_null(wtss.obj),
-                    msg = "sits_cube - WTSS service not responding - check URL")
-
-            # create a cube
-            cube.tb <- .sits_wtss_cube(wtss.obj, service, URL, name, bands)
-        }
+    # test if type has been provided
+    if(purrr::is_null(type) && !purrr::is_null(service)) {
+        type <- toupper(service)
+        message("sits_cube: use of service variable is deprecated, see docs")
     }
-    else if (service == "SATVEG") {
+    type <- toupper(type)
+    if(!.sits_config_cube_types_chk(type)) {
+        message(paste0("sits_cube: type ", type, "not supported"))
+        return(invisible(NULL))
+    }
+
+    if (type == "WTSS") {
+        # find the URL of the WTSS service, if not provided
+        assertthat::assert_that(!purrr::is_null(URL),
+                    msg = "sits_cube: WTSS service needs URL")
+
+        # is the WTSS service working?
+        coverages <- wtss::list_coverages(URL)
+        assertthat::assert_that(!purrr::is_null(coverages),
+                    msg = "sits_cube: WTSS service not responding")
+        # is the cube in the list of cubes?
+        assertthat::assert_that(name %in% coverages,
+                    msg = paste0("sits_cube: ", name,
+                                 " not available in the WTSS server"))
+
+        # create a cube
+        cube.tb <- .sits_wtss_cube(URL, name, bands)
+
+    }
+    else if (type == "SATVEG") {
         # check if SATVEG is working
         satveg_ok <- .sits_satveg_check()
         # if OK, go ahead a create a SATVEG cube
         if (satveg_ok)
             cube.tb <- .sits_satveg_cube(name)
     }
-    else if (service == "EOCUBES") {
-        # find the URL of the EOCUBES service, if not provided
-        if (purrr::is_null(URL) || is.na(URL))
-            URL <- .sits_config_server(service)
+    else if (type == "BRICK"){
+        assertthat::assert_that(!purrr::is_null(files),
+                msg = "sits_cube: for type = BRICK, files must be provided")
+        assertthat::assert_that(!purrr::is_null(satellite),
+                msg = "sits_cube: for type = BRICK satelite must be provided")
+        assertthat::assert_that(!purrr::is_null(sensor),
+                msg = "sits_cube: for type = BRICK sensor must be provided")
+        assertthat::assert_that(!purrr::is_null(bands),
+                msg = "sits_cube: for type = BRICK bands must be provided")
+        assertthat::assert_that(length(bands) == length(files),
+                msg = "sits_cube: bands do not match files")
+        assertthat::assert_that(!purrr::is_null(timeline),
+                msg = "sits_cube: for type = BRICK timeline must be provided")
 
-        eocubes_ok <- .sits_eocubes_check(URL)
-        if (eocubes_ok) {
-            # connect to the EOCUBES service
-            eocubes.obj <- EOCubes::remote(URL)
-            # create a cube
-            cube.tb <- .sits_eocubes_cube(eocubes.obj, service,
-                                          URL, name, bands,
-                                          tiles_names, geom,
-                                          from, to)
-        }
-    }
-    else {
+        # bands are lowercase
+        bands <- tolower(bands)
+
+        # is the satellite supported by SITS?
+        satellite <- toupper(satellite)
+        sats <- .sits_config_satellites()
+        assertthat::assert_that(satellite %in% sats,
+                msg = paste0("satellite not supported\n",
+                             "Use one of ", sats))
+
+        # is the sensor supported by SITS?
+        sensor <- toupper(sensor)
+        sensors <- .sits_config_sensors(satellite)
+        assertthat::assert_that(sensor %in% sensors,
+                msg = paste0("sensor not supported\n",
+                             "Use one of ", sensors))
+
         # raster files
         # check if need to include "/vsicurl" to be read by GDAL
         files <- .sits_raster_check_webfiles(files)
@@ -121,25 +136,11 @@ sits_cube <- function(service        = "BRICK",
         # check if the raster files can be read by GDAL
         .sits_raster_check_gdal_access(files)
 
-        if (service == "STACK")
-            # check if the raster files are organised as stacks
-            .sits_raster_check_stacks(files)
+        # check if the raster files are organised as bricks
+        .sits_raster_check_bricks(files)
 
-        if (service == "BRICK")
-            # check if the raster files are organised as bricks
-            .sits_raster_check_bricks(files)
-
-        # get the URL of the provider
-        URL <- urltools::domain(files[1])
-
-        # if the files are not in the web, use localhost as service
-        if (purrr::is_null(URL) || is.na(URL))
-            URL <- .sits_config_server(service)
-
-        # create a stack data cube
-        cube.tb <- .sits_raster_cube(service = service,
-                                     URL       = URL,
-                                     satellite = satellite,
+        # create a brick data cube
+        cube.tb <- .sits_raster_cube(satellite = satellite,
                                      sensor    = sensor,
                                      name      = name,
                                      timeline  = timeline,
@@ -154,7 +155,7 @@ sits_cube <- function(service        = "BRICK",
 #'
 #' @description Print information and save metadata about a data cube.
 #'
-#' @param service            Web service with metadata about the cube.
+#' @param type               Web service with metadata about the cube.
 #' @param URL                URL of the provider
 #' @param satellite          Name of satellite
 #' @param sensor             Name of sensor
@@ -177,7 +178,7 @@ sits_cube <- function(service        = "BRICK",
 #' @param crs                CRS for cube.
 #' @param files              Vector with associated files.
 #'
-.sits_cube_create <- function(service, URL, satellite, sensor,
+.sits_cube_create <- function(type, URL, satellite, sensor,
                               name, bands, labels,
                               scale_factors, missing_values,
                               minimum_values, maximum_values,
@@ -187,7 +188,7 @@ sits_cube <- function(service        = "BRICK",
 
 
     # create a tibble to store the metadata
-    cube.tb <- tibble::tibble(service        = service,
+    cube.tb <- tibble::tibble(type           = type,
                               URL            = URL,
                               satellite      = satellite,
                               sensor         = sensor,
@@ -210,8 +211,6 @@ sits_cube <- function(service        = "BRICK",
                               crs            = crs,
                               files          = list(files))
 
-    class(cube.tb) <- append(class(cube.tb),
-                             c("sits", "sits_cube_tbl", "cube"), after = 0)
 
     return(cube.tb)
 }
@@ -298,30 +297,30 @@ sits_cube <- function(service        = "BRICK",
     # get the name of the cube
     name   <-  paste0(cube[1,]$name, "_probs")
     # set the metadata for the probability cube
-    cube_probs <- .sits_cube_create(service = "LAYER",
-                                    URL     = "http://127.0.0.1",
-                                    satellite = cube$satellite,
-                                    sensor = cube$sensor,
-                                    name = name,
-                                    bands = bands,
-                                    labels = labels,
-                                    scale_factors = scale_factors,
-                                    missing_values = missing_values,
-                                    minimum_values = minimum_values,
-                                    maximum_values = maximum_values,
-                                    timelines = timelines,
-                                    nrows = params$nrows,
-                                    ncols = params$ncols,
-                                    xmin  = params$xmin,
-                                    xmax  = params$xmax,
-                                    ymin  = params$ymin,
-                                    ymax  = params$ymax,
-                                    xres  = params$xres,
-                                    yres  = params$yres,
-                                    crs   = params$xmin,
-                                    files = files )
+    cube_probs <- .sits_cube_create(type            = "PROBS",
+                                    URL             = "http://127.0.0.1",
+                                    satellite       = cube$satellite,
+                                    sensor          = cube$sensor,
+                                    name            = name,
+                                    bands           = bands,
+                                    labels          = labels,
+                                    scale_factors   = scale_factors,
+                                    missing_values  = missing_values,
+                                    minimum_values  = minimum_values,
+                                    maximum_values  = maximum_values,
+                                    timelines       = timelines,
+                                    nrows           = params$nrows,
+                                    ncols           = params$ncols,
+                                    xmin            = params$xmin,
+                                    xmax            = params$xmax,
+                                    ymin            = params$ymin,
+                                    ymax            = params$ymax,
+                                    xres            = params$xres,
+                                    yres            = params$yres,
+                                    crs             = params$crs,
+                                    files           = files)
 
-
+    class(cube_probs) <- c("probs_cube", class(cube_probs))
     return(cube_probs)
 }
 #' @title Create a set of RasterLayer objects
@@ -389,29 +388,30 @@ sits_cube <- function(service        = "BRICK",
     # inherit the dimension parameters from probability cube
     params <- .sits_raster_params(.sits_cube_robj(cube_probs))
     # create a new RasterLayer for a defined period and generate metadata
-    cube_labels <- .sits_cube_create(service = "LAYER",
-                                     URL     = "http://127.0.0.1",
-                                     satellite = cube_probs$satellite,
-                                     sensor = cube_probs$sensor,
-                                     name = name,
-                                     bands = bands,
-                                     labels = labels,
-                                     scale_factors = scale_factors,
+    cube_labels <- .sits_cube_create(type           = "CLASSIFIED",
+                                     URL            = "http://127.0.0.1",
+                                     satellite      = cube_probs$satellite,
+                                     sensor         = cube_probs$sensor,
+                                     name           = name,
+                                     bands          = bands,
+                                     labels         = labels,
+                                     scale_factors  = scale_factors,
                                      missing_values = missing_values,
                                      minimum_values = minimum_values,
                                      maximum_values = maximum_values,
-                                     timelines = timelines,
-                                     nrows = params$nrows,
-                                     ncols = params$ncols,
-                                     xmin  = params$xmin,
-                                     xmax  = params$xmax,
-                                     ymin  = params$ymin,
-                                     ymax  = params$ymax,
-                                     xres  = params$xres,
-                                     yres  = params$yres,
-                                     crs   = params$crs,
-                                     files = files)
+                                     timelines      = timelines,
+                                     nrows          = params$nrows,
+                                     ncols          = params$ncols,
+                                     xmin           = params$xmin,
+                                     xmax           = params$xmax,
+                                     ymin           = params$ymin,
+                                     ymax           = params$ymax,
+                                     xres           = params$xres,
+                                     yres           = params$yres,
+                                     crs            = params$crs,
+                                     files          = files)
 
+    class(cube_labels) <- c("classified_image", class(cube_labels))
     return(cube_labels)
 }
 
@@ -456,23 +456,21 @@ sits_cube <- function(service        = "BRICK",
 #' @param cube      Metadata about a data cube
 #' @return          Boolean value
 .sits_cube_check_validity <- function(cube){
+
     # check that the service is valid
-    .sits_config_check(cube[1,]$service)
+    .sits_config_check(cube[1,]$type)
+
+    check <- FALSE
 
     # check is WTSS service is working
-    if (cube$service == "WTSS")
+    if (cube$type == "WTSS")
         check <- .sits_wtss_check(cube$URL)
     # check is SATVEG service is working
-    else if (cube$service == "SATVEG")
+    else if (cube$type == "SATVEG")
         check <- .sits_satveg_check()
     # check if the raster files are organised as bricks
-    else if (cube$service == "BRICK")
+    else if (cube$type == "BRICK")
         check <- .sits_raster_check_bricks(cube$files[[1]])
-    # check if the raster files are organised as stacks
-    else if (cube$service == "STACK")
-        check <- .sits_raster_check_stacks(cube$files[[1]])
-    else if (cube$service == "EOCUBES")
-        check <- .sits_eocubes_check(cube$URL)
 
     return(check)
 }
@@ -601,15 +599,3 @@ sits_cube_timeline <- function(cube, index = 1){
 .sits_cube_scale_factors <- function(cube){
     return(cube$scale_factors[[1]])
 }
-
-#' @title Find the web service associated to a cube
-#' @name .sits_cube_service
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Given a data cube, informs the web services
-#' @param cube     Metadata about a data cube
-#' @return Name of web service
-.sits_cube_service <- function(cube) {
-    return(cube[1,]$service)
-}
-

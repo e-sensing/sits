@@ -28,5 +28,5 @@ data <- sits_select_bands(cerrado_2classes, ndvi)
 sits_bands(data)
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

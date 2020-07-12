@@ -29,11 +29,20 @@ ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSi
 
 files <- c(ndvi_file, evi_file)
 # define the timeline
-time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
+time_file <- system.file("extdata/Sinop",
+                         "timeline_2014.txt",
+                         package = "inSitu")
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-sinop <- sits_cube(name = "Sinop",  timeline = timeline_2013_2014, bands = c("ndvi", "evi"), files = files)
+# create a raster metadata file based on the information about the files
+sinop <- sits_cube(type = "BRICK",
+                   satellite = "TERRA",
+                   sensor    = "MODIS",
+                   name = "Sinop",
+                   timeline = timeline_2013_2014,
+                   bands = c("ndvi", "evi"),
+                   files = files)
 
 # classify the raster image
 sinop_probs <- sits_classify(sinop, ml_model = dl_model, memsize = 4, multicores = 1)

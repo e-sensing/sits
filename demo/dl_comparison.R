@@ -45,25 +45,6 @@ conf_dl.mx$name <- "mlp_default"
 
 results[[length(results) + 1]] <- conf_dl.mx
 
-
-# Deep Learning - MLP - 3 layers
-conf_dl3.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
-                    ml_method = sits_deeplearning(layers = c(512, 512, 512),
-                                        dropout_rates    = c(0.50, 0.40, 0.30),
-                                        verbose = 0))
-
-print("== Confusion Matrix = DL =======================")
-conf_dl3.mx <- sits_conf_matrix(conf_dl3.tb)
-
-conf_dl3.mx$name <- "mlp_3-layers"
-
-results[[length(results) + 1]] <- conf_dl3.mx
-
-
-
-
-results[[length(results) + 1]] <- conf_fcn.mx
-
 # Deep Learning - FCN
 conf_fcn853.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5,
                         ml_method = sits_FCN(kernels = c(8, 5, 3),verbose = 1))
@@ -100,7 +81,7 @@ results[[length(results) + 1]] <- conf_tc.mx
 WD = getwd()
 
 # Deep Learning - LSTM
-conf_lc.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5, multicores = 32,
+conf_lc.tb <- sits_kfold_validate(samples_mt_4bands, folds = 5, multicores = 2,
                                   ml_method = sits_LSTM_FCN(verbose = 0))
 
 print("== Confusion Matrix = DL =======================")
@@ -112,4 +93,4 @@ results[[length(results) + 1]] <- conf_lc.mx
 
 WD = getwd()
 
-sits_to_xlsx(results, file = paste0(WD, "/accuracy_mato_grosso.xlsx"))
+sits_to_xlsx(results, file = paste0(WD, "/accuracy_mato_grosso_dl.xlsx"))

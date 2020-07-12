@@ -5,7 +5,7 @@ SaveWorkspace: Ask
 AlwaysSaveHistory: Default
 
 EnableCodeIndexing: Yes
-UseSpacesForTab: Yes
+UseSpacesForTab: No
 NumSpacesForTab: 4
 Encoding: UTF-8
 
@@ -20,5 +20,5 @@ PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
 PackageBuildArgs: --resave-data=best --compact-vignettes=both
 PackageBuildBinaryArgs: --resave-data
-PackageCheckArgs: --as-cran --no-tests
+PackageCheckArgs: --as-cran --no-examples --no-tests
 PackageRoxygenize: rd,collate,namespace,vignette

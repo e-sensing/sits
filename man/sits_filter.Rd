@@ -27,7 +27,7 @@ plot(point_ndvi)
 # Merge the filtered with the raw data
 # Plot the result
 point_ndvi \%>\%
-      sits_filter(filter = sits_cloud_removal(band_suffix = "cf")) \%>\%
+      sits_filter(filter = sits_cloud_removal(bands_suffix = "cf")) \%>\%
       sits_merge (point_ndvi, .) \%>\%
       plot()
 
@@ -36,7 +36,7 @@ point_ndvi \%>\%
 # Merge the filtered with the raw data
 # Plot the result
 point_ndvi \%>\%
-      sits_filter(filter = sits_envelope(band.suffix = "env")) \%>\%
+      sits_filter(filter = sits_envelope(bands_suffix = "env")) \%>\%
       sits_merge (point_ndvi, .) \%>\%
       plot()
 
@@ -44,7 +44,7 @@ point_ndvi \%>\%
 # Merge the filtered with the raw data
 # Plot the result
 point_ndvi \%>\%
-      sits_filter(filter = sits_ndvi_arima(band_suffix = "arima")) \%>\%
+      sits_filter(filter = sits_ndvi_arima(bands_suffix = "arima")) \%>\%
       sits_merge (point_ndvi, .) \%>\%
       plot()
 
@@ -53,7 +53,7 @@ point_ndvi \%>\%
 # Plot the result
 point_ndvi \%>\%
       sits_filter(filter =
-                  sits_whittaker (lambda = 3.0, band_suffix = "whit")) \%>\%
+                  sits_whittaker (lambda = 3.0, bands_suffix = "whit")) \%>\%
       sits_merge (point_ndvi, .) \%>\%
       plot()
 
@@ -61,7 +61,7 @@ point_ndvi \%>\%
 # Merge the filtered with the raw data
 # Plot the result
 point_ndvi \%>\%
-      sits_filter(filter = sits_sgolay(band_suffix = "sg")) \%>\%
+      sits_filter(filter = sits_sgolay(bands_suffix = "sg")) \%>\%
       sits_merge (point_ndvi, .) \%>\%
       plot()
 
