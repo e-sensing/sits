@@ -40,11 +40,7 @@ sits_config <- function() {
     sits.env$config <- config::get(file = yml_file)
 
     # try to find a valid user configuration file
-    # check if we are running in Windows
-    if (.Platform$OS.type != "unix")
-        user_yml_file   <- c("~/sits/config.yml")
-    else
-        user_yml_file   <- c("~/.sits/config.yml")
+    user_yml_file   <- "~/.sits/config.yml"
 
     if (file.exists(user_yml_file)) {
         config_user     <- config::get(file = user_yml_file)
@@ -53,7 +49,6 @@ sits_config <- function() {
 
     return(invisible(sits.env$config))
 }
-
 
 #' @title Shows the contents of the sits configuration file
 #' @name sits_config_show
@@ -91,9 +86,6 @@ sits_config_show <- function() {
     return(invisible())
 }
 
-
-
-
 #' @title Check that the type is valid, based on the configuration file
 #' @name .sits_config_check
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -108,6 +100,7 @@ sits_config_show <- function() {
                          msg = "sits_get_data: Invalid cube type")
     return(TRUE)
 }
+
 #' @title Retrieve the color associated to a class in the configuration file
 #' @name sits_config_color
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -189,6 +182,7 @@ sits_config_show <- function() {
 
     return(sensors)
 }
+
 #' @title Retrieve the maximum values for a given band
 #' @name .sits_config_maximum_values
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -197,7 +191,6 @@ sits_config_show <- function() {
 #' @param bands          Vector of bands.
 #' @return The maximum values.
 .sits_config_maximum_values <- function(sensor, bands) {
-
     # create a string to query for the maximum values
     maximum_values <- vector()
     bands %>%
@@ -231,7 +224,6 @@ sits_config_show <- function() {
 #' @param bands            Bands provided by the sensor
 #' @return The minimum values.
 .sits_config_minimum_values <- function(sensor, bands) {
-
     # create a string to query for  values
     min_val <- vector()
     bands %>%
@@ -248,7 +240,6 @@ sits_config_show <- function() {
     names(min_val) <- bands
     return(min_val)
 }
-
 
 #' @title Retrieve the missing values for bands of a sensor
 #' @name .sits_config_missing_values
@@ -369,6 +360,7 @@ sits_config_show <- function() {
 
     return(bbox)
 }
+
 #' @title Retrieve the projection for the product available at SATVEG service
 #' @name .sits_config_satveg_projection
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -385,6 +377,7 @@ sits_config_show <- function() {
                                   " of service SATVEG not available"))
     return(crs)
 }
+
 #' @title Retrieve the size of the cube for a given service
 #' @name .sits_config_satveg_size
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -412,6 +405,7 @@ sits_config_show <- function() {
 
     return(size)
 }
+
 #' @title Get the URL to be used for SATVEG access
 #' @name .sits_config_satveg_url
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -520,6 +514,3 @@ sits_config_show <- function() {
     names(coef) <- bands
     return(coef)
 }
-
-
-
