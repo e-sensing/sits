@@ -40,11 +40,7 @@ sits_config <- function() {
     sits.env$config <- config::get(file = yml_file)
 
     # try to find a valid user configuration file
-    # check if we are running in Windows
-    if (.Platform$OS.type != "unix")
-        user_yml_file   <- c("~/sits/config.yml")
-    else
-        user_yml_file   <- c("~/.sits/config.yml")
+    user_yml_file   <- "~/.sits/config.yml"
 
     if (file.exists(user_yml_file)) {
         config_user     <- config::get(file = user_yml_file)

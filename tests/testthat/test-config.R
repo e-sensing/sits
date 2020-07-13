@@ -8,12 +8,16 @@ test_that("All", {
 test_that("User configuration file", {
     if (!dir.exists("~/.sits"))
         dir.create("~/.sits")
+    if(file.exists("~/.sits/config.yml"))
+        file.remove("~/.sits/config.yml")
     file_config <- file("~/.sits/config.yml")
     writeLines(c("default:","      R_memory_bloat           : 10.0"), file_config)
     close(file_config)
     sits_config()
     expect_true(sits:::.sits_config_memory_bloat() == 10.0)
     invisible(capture.output(sits_config_show()))
+
+    file.remove("~/.sits/config.yml")
 })
 
 test_that("Brightness", {
