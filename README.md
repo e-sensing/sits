@@ -39,12 +39,12 @@ remote service.
 
 For more details on data access, please see the vignette [“Accessing
 time series information in
-SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/time_series.pdf).
+SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf).
 
 ### Visualization
 
-    #> Created logger for sits package - DEBUG level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//RtmpMVMOYy/sits_debuga26c39e7998.log
-    #> Created logger for sits package - ERROR level at /var/folders/hw/mb8c4xls23ncyndxj_7mhvrc0000gn/T//RtmpMVMOYy/sits_errora26c1940ec03.log
+    #> Created logger for sits package - DEBUG level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//Rtmp61lQKa/sits_debugccd419268c2c.log
+    #> Created logger for sits package - ERROR level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//Rtmp61lQKa/sits_errorccd431bca99a.log
     #> sits - satellite image time series analysis.
     #> Loaded sits v0.9.5.1.
     #>         See ?sits for help, citation("sits") for use in publication.
@@ -100,14 +100,9 @@ remove those that might have been wrongly labeled or that have low
 discriminatory power. Good samples lead to good classification maps.
 `sits` provides support for two clustering methods to test sample
 quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)
-Self-organizing Maps (SOM). Full details of the cluster methods used in
-SITS are available in the vignette ‘Clustering of Satellite Image Time
-Series with SITS’. The following example shows how to create a
-dendrogram and associated clusters for a dataset with two classes
-(“pasture” and “cerrado”) for the Cerrado biome in Brasil. For more
-details, please see the vignette [“Clustering of Satellite Image Time
-Series with
-SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering.pdf)
+Self-organizing Maps (SOM). For more details, please see the vignette
+[“Clustering of Satellite Image Time Series with
+SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
 
 ## Filtering
 

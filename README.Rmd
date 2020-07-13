@@ -37,7 +37,7 @@ library(inSitu)library(inSitu)
 SITS has been designed to work with big satellite image data sets organised data cubes. Data cubes can be available in the cloud or in a local machine. Methods of data input for time series samples include (a) obtain data from a time series web services such as INPE's WTSS (Web Series Time Service) or EMBRAPA's SATVEG; (b) read data stored in a time series in the ZOO format [@Zeileis2005]; (c) Read a time series from a `raster bricks`. Currently, raster classification requires that data cubes are organised as a `raster bricks` which can reside on a local or remote service.
 
 For more details on data access, please see the vignette ["Accessing time series information in 
-SITS"](https://github.com/e-sensing/sits-docs/blob/master/doc/time_series.pdf). 
+SITS"](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf). 
 
 ### Visualization
 
@@ -68,7 +68,7 @@ knitr::include_graphics("./inst/extdata/markdown/figures/samples_cerrado.png")
 
 ### Clustering
 
-Clustering methods in SITS improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Good samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM). Full details of the cluster methods used in SITS are available in the vignette 'Clustering of Satellite Image Time Series with SITS'. The following example shows how to create a dendrogram and associated clusters for a dataset with two classes ("pasture" and "cerrado") for the Cerrado biome in Brasil. For more details, please see the vignette [“Clustering of Satellite Image Time Series with SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/clustering.pdf)
+Clustering methods in SITS improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Good samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM). For more details, please see the vignette [“Clustering of Satellite Image Time Series with SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
 
 ## Filtering
 
