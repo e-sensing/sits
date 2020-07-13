@@ -128,14 +128,14 @@ sits_db_info <- function(conn){
     # collect all descriptions
     desc.tb <- dplyr::bind_rows(desc, tables.lst)
 
-    message("-----------------------------------------------")
-    message(paste0('Contents of database ', conn@dbname))
+    message(paste0("-----------------------------------------------\n",
+                   'Contents of database ', conn@dbname))
 
     print(knitr::kable(dplyr::select(desc.tb, name, cube, class, size),
                        padding = 0))
 
     # disconnect from database
-    if(!grepl("memory", conn@dbname))
+    if (!grepl("memory", conn@dbname))
         DBI::dbDisconnect(conn)
 
     return(desc.tb)
