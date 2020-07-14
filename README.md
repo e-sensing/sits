@@ -249,7 +249,7 @@ For more information, please see the vignettes
   - [“Post classification smoothing using Bayesian techniques in
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/smoothing.pdf)
 
-#### Package status of SITS version 0.9.5
+#### Package status of SITS
 
 |                    | Status                                                                                                                                                                                      |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

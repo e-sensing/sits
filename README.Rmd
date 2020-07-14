@@ -186,7 +186,7 @@ For more information, please see the vignettes
 
 
 
-#### Package status of SITS version 0.9.5
+#### Package status of SITS
 
 | |Status|
 |---|---|
