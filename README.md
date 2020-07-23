@@ -8,22 +8,54 @@ The `sits` package provides a set of tools for analysis, visualization
 and classification of satellite image time series. It includes methods
 for filtering, clustering, classification, and post-processing.
 
+### Pre-Requisites
+
+The `sits` package relies on `sf` and `rgdal`, which in turn, require
+the installation of GDAL and PROJ library. Please follow the instruction
+for installing `sf` and `rgdal` available at the [RSpatial sf github
+repository](https://github.com/r-spatial/sf).
+
 ### Installation
 
-Please install the `sits` package from github, making sure you have the
-latest version of the other packages it requires:
+One of the features of the `sits` package is that it connect Earth
+Observation data cubes with data analytics methods
+
+Please follow the following steps.
 
 ``` r
-devtools::install_github("e-sensing/sits")
-library(sits)
+# Install devtools, rmarkdown, knitr, testthat and Rcpp if not already available
+install.packages(c("devtools", "rmarkdown", "Rcpp", "knitr", "testthat"))
 
+# Please install the Suggested packages that are used by sits
+install.packages(c("DBI","dendextend", "dtwclust","dtwSat", "e1071", "flexclust",
+                   "imager", "imputeTS", "kohonen", "lwgeom", "MASS", "methods",
+                   "mgcv", "nnet", "proto", "proxy", "ptw", "ranger", "RCurl",
+                   "RSQLite", "signal", "xgboost", "zoo"))
+
+# Please install the Keras package from the RStudio repository
+devtools::install_github("rstudio/reticulate")
+devtools::install_github("rstudio/keras")
+# Build the keras environment
+library(keras)
+keras::install_keras()
 # Retrieve the "wtss" package (used for data access to the WTSS service)
 devtools::install_github("e-sensing/wtss")
-
+library(wtss)
+# Please install the `sits` package from github
+devtools::install_github("e-sensing/sits")
+library(sits)
 # Retrieve the data available in the "inSitu" package (used for some examples)
 devtools::install_github("e-sensing/inSitu")
-library(inSitu)library(inSitu)
+library(inSitu)
 ```
+
+### AMI Image
+
+For those users that have an AWS account, we have prepared an [Amazon
+Machine Image
+(AMI)](https://console.aws.amazon.com/ec2/home?region=sa-east-1#launchAmi=ami-077ec32d4f05ebdca)
+that is optimized for running SITS in the Amazon Elastic Compute Cloud
+(or EC2) for sequencing tasks.
 
 ### Data Access
 
@@ -43,8 +75,8 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf).
 
 ### Visualization
 
-    #> Created logger for sits package - DEBUG level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//Rtmp61lQKa/sits_debugccd419268c2c.log
-    #> Created logger for sits package - ERROR level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//Rtmp61lQKa/sits_errorccd431bca99a.log
+    #> Created logger for sits package - DEBUG level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpAuyR6W/sits_debug27b7617e2fe2.log
+    #> Created logger for sits package - ERROR level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpAuyR6W/sits_error27b72379d06f.log
     #> sits - satellite image time series analysis.
     #> Loaded sits v0.9.5.1.
     #>         See ?sits for help, citation("sits") for use in publication.
