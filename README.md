@@ -51,11 +51,21 @@ library(inSitu)
 
 ### AMI Image
 
-For those users that have an AWS account, we have prepared an [Amazon
-Machine Image
+For users that have an AWS account, we have prepared an [Amazon Machine
+Image
 (AMI)](https://console.aws.amazon.com/ec2/home?region=sa-east-1#launchAmi=ami-077ec32d4f05ebdca)
 that is optimized for running SITS in the Amazon Elastic Compute Cloud
-(or EC2) for sequencing tasks.
+(or EC2). The AMI has the following settings: Ubuntu 18.04, R 4.0.2, and
+Rstudio Server 1.3.959. All packages have been updated as of 20 July
+2020.
+
+When you create an EC2 instance based on this AMI, ensure that your
+‘security group’ settings allow incoming HTTP (port 80), HTTPS (port
+443) and SSH (port 20) traffic. After the EC2 instance is started, then
+copy-and-paste the ‘IPv4 Public IP’ address for your running instance to
+a web browser address bar. That should bring the RStudio server
+interface in your browser. Use “rstudio” as username and “e-sensing” as
+password.
 
 ### Data Access
 
@@ -75,8 +85,8 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf).
 
 ### Visualization
 
-    #> Created logger for sits package - DEBUG level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpAuyR6W/sits_debug27b7617e2fe2.log
-    #> Created logger for sits package - ERROR level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpAuyR6W/sits_error27b72379d06f.log
+    #> Created logger for sits package - DEBUG level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpdBIfO9/sits_debuge4566c440973.log
+    #> Created logger for sits package - ERROR level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpdBIfO9/sits_errore45666c8948c.log
     #> sits - satellite image time series analysis.
     #> Loaded sits v0.9.5.1.
     #>         See ?sits for help, citation("sits") for use in publication.
@@ -289,7 +299,7 @@ For more information, please see the vignettes
 | Code Check         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Code Documentation | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull) |
 | Code Coverage      | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-covr-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-covr-ubuntu-16.04/lastBuild/consoleFull)                   |
-| Test Coverage      | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master)                                                    |
+| Test Coverage      | [<img src="https://codecov.io/gh/e-sensing/sits/branch/master/graphs/badge.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master)                                     |
 | Project Status     | [<img src="http://www.repostatus.org/badges/latest/active.svg">](https://www.tidyverse.org/lifecycle/#maturing)                                                                             |
 | Lifecycle          | [<img src="https://img.shields.io/badge/lifecycle-maturing-blue.svg">](https://www.tidyverse.org/lifecycle/#maturing)                                                                       |
 
