@@ -23,9 +23,12 @@ to an RSQLite database.
 \examples{
 \donttest{
 # create RSQLite connection
-conn <- sits_db_connect("sits.sql")
+db_file <- paste0(Sys.getenv('HOME'),"/sits.sql")
+conn <- sits_db_connect(db_file)
 # write a set of time series
 conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
+# clean up
+unlink(db_file)
 }
 }
 \author{

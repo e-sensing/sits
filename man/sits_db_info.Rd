@@ -19,11 +19,14 @@ stored RSQLite database.
 \examples{
 \donttest{
 # create a data base
-conn <- sits_db_connect("sits.sql")
+db_file <- paste0(Sys.getenv('HOME'),"/sits.sql")
+conn <- sits_db_connect(db_file)
 # write a set of time series
 conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
 # describe the data available in the database
 desc <-  sits_db_info(conn)
+# clean up
+unlink(db_file)
 }
 }
 \author{
