@@ -53,8 +53,7 @@ Imports:
     sf (>= 0.9),
     stats,
     tibble (>= 3.0),
-    utils,
-    wtss
+    utils
 Suggests:
     DBI,
     dendextend,
@@ -84,6 +83,7 @@ Suggests:
     signal,
     testthat,
     xgboost,
+    wtss,
     zoo
 Remotes: 
     e-sensing/wtss

@@ -4,6 +4,9 @@ default:
     R_memory_bloat           : 2.5
     R_processing_bloat       : 5
 
+    # MODIS coordinate projection:
+    EPSG_MOD13Q1             : "EPSG:25829"
+
     # minimum number of samples for multicore processing
     minimum_number_samples   : 1000
 

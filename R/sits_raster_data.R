@@ -160,7 +160,7 @@
 #' @return A tibble with the cube params
 .sits_raster_params <- function(r_obj) {
 
-    params.tb <- tibble::tibble(
+    params.tb <- suppressWarnings(tibble::tibble(
         nrows = raster::nrow(r_obj),
         ncols = raster::ncol(r_obj),
         xmin  = raster::xmin(r_obj),
@@ -169,7 +169,7 @@
         ymax  = raster::ymax(r_obj),
         xres  = raster::xres(r_obj),
         yres  = raster::yres(r_obj),
-        crs   = as.character(raster::crs(r_obj))
+        crs   = as.character(raster::crs(r_obj)))
     )
     return(params.tb)
 }
