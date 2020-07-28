@@ -247,7 +247,7 @@ sits_get_data <- function(cube,
     # transform longitude and latitude to an sp Spatial Points*
     # (understood by raster)
     st_point <- sf::st_point(c(longitude, latitude))
-    ll_sfc   <- sf::st_sfc(st_point, crs = "+init=epsg:4326")
+    ll_sfc   <- sf::st_sfc(st_point, crs = "EPSG:4326")
     ll_sp    <- sf::as_Spatial(ll_sfc)
 
     r_objs <- .sits_cube_all_robjs(cube)

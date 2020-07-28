@@ -10,7 +10,7 @@
 #' @return Matrix with (x, y) coordinates.
 .sits_latlong_to_proj <- function(longitude, latitude, crs) {
     sf::st_point(c(longitude, latitude)) %>%
-        sf::st_sfc(crs = "+init=epsg:4326") %>%
+        sf::st_sfc(crs = "EPSG:4326") %>%
         sf::st_transform(crs = crs) %>%
         sf::st_coordinates()
 }
@@ -28,7 +28,7 @@
 .sits_proj_to_latlong <- function(x, y, crs) {
     sf::st_point(c(x, y)) %>%
         sf::st_sfc(crs = crs) %>%
-        sf::st_transform(crs = "+init=epsg:4326") %>%
+        sf::st_transform(crs = "EPSG:4326") %>%
         sf::st_coordinates()
 }
 

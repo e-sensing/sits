@@ -96,7 +96,7 @@ sits_db_info <- function(conn){
                                     round(bbox["ymin"], 2), "), ",
                                     "(",round(bbox["xmax"], 2),",",
                                     round(bbox["ymax"], 2), ")"),
-                    crs    = "+init=epsg:4326",
+                    crs    = sf::st_crs(3426)$input,
                     labels = paste(sits_labels(data)$label, collapse = ", ")
                 )
                 return(desc)
