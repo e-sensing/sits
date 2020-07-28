@@ -247,19 +247,20 @@ sits_get_data <- function(cube,
     # transform longitude and latitude to an sp Spatial Points*
     # (understood by raster)
     st_point <- sf::st_point(c(longitude, latitude))
-    ll_sfc   <- sf::st_sfc(st_point, crs = "EPSG:4326")
-    ll_sp    <- sf::as_Spatial(ll_sfc)
+    ll_sfc   <- sf::st_sfc(st_point, crs = "+proj=longlat +datum=WGS84 +no_defs")
 
     r_objs <- .sits_cube_all_robjs(cube)
 
     # An input raster brick contains several files, each corresponds to a band
     values.lst <- r_objs %>%
         purrr::map(function(r_brick) {
-            # eack brick is a band
+            # each brick is a band
             nband <<- nband + 1
             # get the values of the time series
+            ll_raster     <- sf::st_transform(ll_sfc, crs = raster::crs(r_brick))
+            ll_raster_sp  <- sf::as_Spatial(ll_raster)
             values <- suppressWarnings(as.vector(raster::extract(r_brick,
-                                                                 ll_sp)))
+                                                                 ll_raster_sp)))
             # is the data valid?
             if (all(is.na(values))) {
                 message("point outside the raster extent - NULL returned")
