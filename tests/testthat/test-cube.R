@@ -22,4 +22,5 @@ test_that("Reading a raster cube", {
     params <- sits:::.sits_raster_params(sits:::.sits_cube_robj(raster_cube))
     expect_true(params$nrows == 13)
     expect_true(params$ncols == 18)
+
 })
