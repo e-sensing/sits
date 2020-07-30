@@ -250,9 +250,10 @@ sits_label_classification <- function(cube,
 
         for (b in 1:n_labels) {
             # read band values from file using GDAL
-            data <- matrix(as.matrix(rgdal::readGDAL(
+            data <- matrix(as.matrix(
+                           suppressWarnings(rgdal::readGDAL(
                              fname = in_file,
-                             band = b, silent = TRUE)@data),
+                             band = b, silent = TRUE)@data)),
                              nrow = nrows, byrow = TRUE)
 
             # avoid extreme values
@@ -277,8 +278,8 @@ sits_label_classification <- function(cube,
 
         # # apply majority filter
         if (smoothing == "majority" || smoothing == "bayesian+majority") {
-            layer <- raster::focal(x = layer, w = window,
-                            pad = TRUE, na.rm = TRUE, fun = raster::modal)
+            layer <- suppressWarnings(raster::focal(x = layer, w = window,
+                            pad = TRUE, na.rm = TRUE, fun = raster::modal))
         }
         # save raster output to file
         layer <- suppressWarnings(raster::writeRaster(layer,

@@ -25,7 +25,7 @@ test_that("Multi-year, single core classification", {
     sinop_probs <- sits_classify(sinop, rfor_model, memsize = 2, multicores = 1)
 
     # retrieve the output raster layers
-    bricks_probs <- .sits_cube_all_robjs(sinop_probs)
+    bricks_probs <- sits:::.sits_cube_all_robjs(sinop_probs)
 
     expect_true(all(file.exists(unlist(sinop_probs$files))))
     rc_obj <- sits:::.sits_cube_robj(sinop_probs)
@@ -112,10 +112,10 @@ test_that("One-year, single core classification", {
     samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
     rfor_model <- sits_train(samples_mt_2bands, sits_rfor(num_trees = 500))
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop_ndvi_2014.tif",
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
                                package = "sits"))
 
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop_evi_2014.tif",
+    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
                               package = "sits"))
 
     data("timeline_2013_2014")
@@ -146,10 +146,10 @@ test_that("One-year, multicore classification", {
 
     svm_model <- sits_train(samples_mt_2bands, sits_svm())
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop_evi_2014.tif",
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
                               package = "sits"))
 
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop_evi_2014.tif",
+    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
                            package = "sits"))
 
     data("timeline_2013_2014")
@@ -178,10 +178,10 @@ test_that("One-year, single core classification with filter", {
     samples_filt <- sits_whittaker(samples_mt_2bands, lambda = 3.0, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop_ndvi_2014.tif",
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
                                package = "sits"))
 
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop_evi_2014.tif",
+    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
                               package = "sits"))
 
     data("timeline_2013_2014")
@@ -218,10 +218,10 @@ test_that("One-year, multicore classification with filter", {
     samples_filt <- sits_sgolay(samples_mt_2bands, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop_ndvi_2014.tif",
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
                                package = "sits"))
 
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop_evi_2014.tif",
+    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
                               package = "sits"))
 
     data("timeline_2013_2014")

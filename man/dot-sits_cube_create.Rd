@@ -70,7 +70,7 @@
 
 \item{yres}{Spatial resolution (y dimension).}
 
-\item{crs}{CRS for cube.}
+\item{crs}{CRS for cube (EPSG code or PROJ4 string).}
 
 \item{files}{Vector with associated files.}
 }

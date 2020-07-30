@@ -96,7 +96,7 @@ sits_db_info <- function(conn){
                                     round(bbox["ymin"], 2), "), ",
                                     "(",round(bbox["xmax"], 2),",",
                                     round(bbox["ymax"], 2), ")"),
-                    crs    = sf::st_crs("EPSG:3426")$input,
+                    crs    = "EPSG:3426",
                     labels = paste(sits_labels(data)$label, collapse = ", ")
                 )
                 return(desc)
@@ -119,7 +119,7 @@ sits_db_info <- function(conn){
                                         data$ymin, "), ",
                                     "(",data$xmax, ",",
                                         data$ymax, ")"),
-                    crs    = data$crs[[1]]$input,
+                    crs    = data$crs,
                     labels = paste(data$labels[[1]], collapse = ", ")
                 )
                 return(desc)
@@ -325,8 +325,6 @@ sits_db_read <- function(conn, name) {
 #' @return          A connection to an RSQLite database
 .sits_db_write_cube <- function(conn, name, data) {
 
-    crs <- data$crs[[1]]$input
-
     # save the metadata on the database
     DBI::dbWriteTable(conn = conn, name = name,
                       overwrite = TRUE,
@@ -342,8 +340,9 @@ sits_db_read <- function(conn, name) {
                                                     "ymin",
                                                     "ymax",
                                                     "xres",
-                                                    "yres")],
-                                                     crs))
+                                                    "yres",
+                                                    "crs")])
+                      )
 
 
     # set the layouts of the additional tibbles to be saved
@@ -558,7 +557,7 @@ sits_db_read <- function(conn, name) {
                                ymax           = meta$ymax,
                                xres           = meta$xres,
                                yres           = meta$yres,
-                               crs            = list(sf::st_crs(meta$crs)),
+                               crs            = meta$crs,
                                files          = list(files))
 
     })

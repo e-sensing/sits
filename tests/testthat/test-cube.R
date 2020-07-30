@@ -23,7 +23,7 @@ test_that("Reading a raster cube", {
     expect_true(params$nrows == 11)
     expect_true(params$ncols == 14)
     expect_true(params$xres >= 231.5)
-    expect_true(class(params$crs[[1]]) == "crs")
+    expect_true(grepl("sinu", params$crs))
 
 
 })

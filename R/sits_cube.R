@@ -175,7 +175,7 @@ sits_cube <- function(type           = NULL,
 #' @param ymax               Spatial extent (ymin).
 #' @param xres               Spatial resolution (x dimension).
 #' @param yres               Spatial resolution (y dimension).
-#' @param crs                CRS for cube (in sf format) (a list).
+#' @param crs                CRS for cube (EPSG code or PROJ4 string).
 #' @param files              Vector with associated files.
 #'
 .sits_cube_create <- function(type, URL, satellite, sensor,
