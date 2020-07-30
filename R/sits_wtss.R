@@ -28,6 +28,9 @@
     else
         bands <- bands_wtss
 
+    # SITS now uses the CRS definitions by sf
+    sf_crs <- sf::st_crs(cov.tb$crs)
+
     # create a tibble to store the metadata
     cube_wtss <- .sits_cube_create(type      = "WTSS",
                                    URL       = URL,
@@ -49,7 +52,7 @@
                                    ymax  = cov.tb$ymax,
                                    xres  = cov.tb$xres,
                                    yres  = cov.tb$yres,
-                                   crs   = cov.tb$crs)
+                                   crs   = list(sf_crs))
 
     class(cube_wtss) <- c("wtss-cube", class(cube_wtss))
     # return the tibble with cube info

@@ -136,7 +136,7 @@ test_that("Reading a POLYGON shapefile", {
                                .n_shp_pol = 3)
 
     sf_shape <- sf::read_sf(shp_file)
-    sf_shape <- sf::st_transform(sf_shape, crs = 4326)
+    sf_shape <- sf::st_transform(sf_shape, crs = "EPSG:4326")
     bbox <- sf::st_bbox(sf_shape)
     longitudes_shp <- parcel.tb$longitude
 

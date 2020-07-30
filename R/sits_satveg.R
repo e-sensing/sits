@@ -41,8 +41,8 @@
     xres <-  as.numeric(res["xres"])
     yres <-  as.numeric(res["yres"])
 
-    # get the CRS projection
-    crs <- .sits_config_satveg_projection(name)
+    # get the projection of the SATVEG data
+    sf_crs <- sf::st_crs(.sits_config_satveg_projection(name))
 
 
     URL <- .sits_config_satveg_access()
@@ -68,7 +68,8 @@
                                    ymax  = ymax,
                                    xres  = xres,
                                    yres  = yres,
-                                   crs   = crs)
+                                   crs   = list(sf_crs)
+    )
 
     class(cube_satveg) <- c("satveg_cube", class(cube_satveg))
 

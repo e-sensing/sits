@@ -20,7 +20,10 @@ test_that("Reading a raster cube", {
     expect_true(bands %in% c("ndvi"))
 
     params <- sits:::.sits_raster_params(sits:::.sits_cube_robj(raster_cube))
-    expect_true(params$nrows == 13)
-    expect_true(params$ncols == 18)
+    expect_true(params$nrows == 11)
+    expect_true(params$ncols == 14)
+    expect_true(params$xres >= 231.5)
+    expect_true(class(params$crs[[1]]) == "crs")
+
 
 })

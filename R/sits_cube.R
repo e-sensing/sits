@@ -175,7 +175,7 @@ sits_cube <- function(type           = NULL,
 #' @param ymax               Spatial extent (ymin).
 #' @param xres               Spatial resolution (x dimension).
 #' @param yres               Spatial resolution (y dimension).
-#' @param crs                CRS for cube.
+#' @param crs                CRS for cube (in sf format) (a list).
 #' @param files              Vector with associated files.
 #'
 .sits_cube_create <- function(type, URL, satellite, sensor,
@@ -538,7 +538,8 @@ sits_cube_timeline <- function(cube, index = 1){
 .sits_cube_robj <- function(cube, index = 1){
     assertthat::assert_that(index <= length(cube$files[[1]]),
                          msg = ".sits_cube_robj: index is out of range")
-    return(raster::brick(cube$files[[1]][index]))
+    robj <- suppressWarnings(raster::brick(cube$files[[1]][index]))
+    return(robj)
 }
 
 #' @title Return the Raster objects associated to a data cube
@@ -553,7 +554,7 @@ sits_cube_timeline <- function(cube, index = 1){
     nfiles <- length(cube$files[[1]])
     robjs <- vector("list", nfiles )
     for (i in 1:nfiles)
-        robjs[[i]] <- raster::brick(cube$files[[1]][i])
+        robjs[[i]] <- suppressWarnings(raster::brick(cube$files[[1]][i]))
     return(robjs)
 }
 

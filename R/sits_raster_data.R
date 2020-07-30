@@ -37,7 +37,7 @@
 .sits_raster_check_bricks <- function(files){
     # are the files bricks?
     tryCatch({
-        brick <- raster::brick(files[1])
+        brick <- suppressWarnings(raster::brick(files[1]))
     }, error = function(e){
         msg <- paste0("Raster files are not bricks")
         .sits_log_error(msg)
@@ -160,7 +160,9 @@
 #' @return A tibble with the cube params
 .sits_raster_params <- function(r_obj) {
 
-    params.tb <- suppressWarnings(tibble::tibble(
+    sf_crs <- suppressWarnings(sf::st_crs(raster::crs(r_obj)))
+
+    params.tb <- tibble::tibble(
         nrows = raster::nrow(r_obj),
         ncols = raster::ncol(r_obj),
         xmin  = raster::xmin(r_obj),
@@ -169,7 +171,7 @@
         ymax  = raster::ymax(r_obj),
         xres  = raster::xres(r_obj),
         yres  = raster::yres(r_obj),
-        crs   = as.character(raster::crs(r_obj)))
+        crs   = list(sf_crs)
     )
     return(params.tb)
 }
@@ -183,7 +185,7 @@
 #' @return          Raster object associated to the first file
 #'
 .sits_raster_files_robj <- function(files){
-    return(raster::brick(files[1]))
+    return(suppressWarnings(raster::brick(files[1])))
 }
 #' @title Tests if an XY position is inside a ST Raster Brick
 #' @name .sits_raster_xy_inside

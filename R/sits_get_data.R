@@ -257,7 +257,8 @@ sits_get_data <- function(cube,
             # each brick is a band
             nband <<- nband + 1
             # get the values of the time series
-            ll_raster     <- sf::st_transform(ll_sfc, crs = raster::crs(r_brick))
+            sf_crs        <- sf::st_crs(suppressWarnings(raster::crs(r_brick)))
+            ll_raster     <- sf::st_transform(ll_sfc, crs = sf_crs)
             ll_raster_sp  <- sf::as_Spatial(ll_raster)
             values <- suppressWarnings(as.vector(raster::extract(r_brick,
                                                                  ll_raster_sp)))

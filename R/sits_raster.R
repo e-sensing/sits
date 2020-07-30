@@ -264,7 +264,9 @@
             # getValues function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            values.mx    <- raster::getValues(r_stack, first_row, n_rows_block)
+            values.mx    <- suppressWarnings(raster::getValues(r_stack,
+                                                               first_row,
+                                                               n_rows_block))
 
             # proprocess the input data
             b <<- b + 1

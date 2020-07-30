@@ -268,7 +268,7 @@ sits_label_classification <- function(cube,
 
         }
         # create a raster object to write
-        layer <- raster::raster(r_obj)
+        layer <- suppressWarnings(raster::raster(r_obj))
         raster::dataType(layer) <- "INT1U"
 
         # select the best class by choosing the maximum value
@@ -281,8 +281,9 @@ sits_label_classification <- function(cube,
                             pad = TRUE, na.rm = TRUE, fun = raster::modal)
         }
         # save raster output to file
-        layer <- raster::writeRaster(layer, filename = out_file,
-                                     overwrite = TRUE)
+        layer <- suppressWarnings(raster::writeRaster(layer,
+                                                      filename = out_file,
+                                                      overwrite = TRUE))
     })
 
     return(cube_labels)
@@ -554,7 +555,7 @@ sits_label_classification <- function(cube,
 
     # clone the bricks from existing r_obj
     bricks <- purrr::map2(bricks, c(1:n_objs), function(brick, i){
-        brick <- raster::brick(r_obj, nl = n_layers)
+        brick <- suppressWarnings(raster::brick(r_obj, nl = n_layers))
         raster::dataType(brick) <- "INT2U"
         brick@file@name <- .sits_cube_file(cube_class, i)
         return(brick)
@@ -562,7 +563,9 @@ sits_label_classification <- function(cube,
 
     # initiate writing
     bricks <- purrr::map(bricks, function(brick){
-        brick <- raster::writeStart(brick, brick@file@name, overwrite = TRUE)
+        brick <- suppressWarnings(raster::writeStart(brick,
+                                                     brick@file@name,
+                                                     overwrite = TRUE))
     })
     # retrieve the normalization stats
     stats     <- environment(ml_model)$stats
@@ -617,7 +620,8 @@ sits_label_classification <- function(cube,
                              multicores   = multicores)
 
             # write the probabilities
-            brick <- raster::writeValues(brick, probs, bs$row[block])
+            brick <- suppressWarnings(raster::writeValues(brick, probs,
+                                                          bs$row[block]))
 
             # memory management
             rm(prediction_DT)
@@ -644,7 +648,7 @@ sits_label_classification <- function(cube,
 
     # finish writing
     bricks <- purrr::map(bricks, function(brick){
-        brick <- raster::writeStop(brick)
+        brick <- suppressWarnings(raster::writeStop(brick))
     })
     return(cube_class)
 }
