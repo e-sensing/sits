@@ -113,16 +113,6 @@ test_that("Reading a point from SATVEG ", {
                     length(sits_time_series_dates(point_terra)))
 })
 
-test_that("Reading a ZOO time series", {
-    #skip_on_cran()
-    data(ts_zoo)
-    data <- sits_from_zoo(ts_zoo, longitude = -54.2313, latitude = -14.0482,
-                             label = "Cerrado", name = "mod13q1")
-
-    expect_equal(sum(sits_time_series(data)$ndvi), 13.6291, tolerance = 1e-3)
-    expect_true(NROW(ts_zoo) == length(sits_time_series_dates(data)))
-})
-
 test_that("Reading a POLYGON shapefile", {
     #skip_on_cran()
     cube_wtss <- sits_cube(type = "WTSS",

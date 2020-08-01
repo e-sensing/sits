@@ -109,8 +109,8 @@ sits_log <- function() {
 #' @export
 sits_log_show_errors <- function() {
     if (!sits.env$error_msg){
-        message("No errors to report")
-        return(invisible(NULL))
+        msg <- c("No errors to report")
+        return(msg)
     }
     out <- utils::read.delim(sits.env$error_file, header = FALSE,
                              stringsAsFactors = FALSE)
@@ -126,8 +126,8 @@ sits_log_show_errors <- function() {
 #' @export
 sits_log_show_debug <- function() {
     if (!sits.env$debug_msg){
-        message("No debug msgs to report")
-        return(invisible(NULL))
+        msg <- c("No debug msgs to report")
+        return(msg)
     }
 
     out <- utils::read.delim(sits.env$debug_file, header = FALSE,

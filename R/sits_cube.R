@@ -118,18 +118,24 @@ sits_cube <- function(type           = NULL,
         # is the satellite supported by SITS?
         satellite <- toupper(satellite)
         sats <- .sits_config_satellites()
+        my_sats <- paste0(sats, collapse = ", ")
         assertthat::assert_that(satellite %in% sats,
-                msg = paste0("satellite not supported\n",
-                             "Use one of ", sats))
+                msg = paste0("satellite ", satellite, " not supported - ",
+                             "use one of ", my_sats))
 
         # is the sensor supported by SITS?
         sensor <- toupper(sensor)
         sensors <- .sits_config_sensors(satellite)
+        my_sensors <- paste0(sensors, collapse = ", ")
         assertthat::assert_that(sensor %in% sensors,
-                msg = paste0("sensor not supported\n",
-                             "Use one of ", sensors))
+                msg = paste0("sensor ", sensors, " not supported - ",
+                             "use one of ", my_sensors))
 
         # raster files
+        assertthat::assert_that(!("function" %in% class(files)),
+                msg = "a valid set of files should be provided")
+        assertthat::assert_that(!purrr::is_null(files),
+                msg = "a valid set of files should be provided")
         # check if need to include "/vsicurl" to be read by GDAL
         files <- .sits_raster_check_webfiles(files)
 
