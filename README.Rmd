@@ -14,15 +14,15 @@ knitr::opts_chunk$set(
 
 ### Overview
 
-The `sits` package provides a set of tools for analysis, visualization and classification of satellite image time series. It includes methods for filtering, clustering, classification, and post-processing.
+The `sits` R package provides a set of tools for analysis, visualization and classification of satellite image time series. It includes methods for filtering, clustering, classification, and post-processing.
+
+## Installation
 
 ### Pre-Requisites
 The `sits` package relies on `sf` and `rgdal`, which in turn, require the installation of GDAL and PROJ library. Please follow the instruction for installing `sf` and `rgdal` available at the [RSpatial sf github repository](https://github.com/r-spatial/sf). 
 
     
-### Installation
-
-One of the features of the `sits` package is that it connect Earth Observation data cubes with data analytics methods 
+### Required Packages
 
 Please follow the following steps.
 

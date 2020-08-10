@@ -7,7 +7,7 @@
 \alias{sits}
 \title{sits}
 \description{
-Satellite Image Time Series Analysis for Earth Observation Data Cubes"
+Satellite Image Time Series Analysis for Earth Observation Data Cubes
 }
 \section{SITS API}{
 
