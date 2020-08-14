@@ -8,8 +8,12 @@ default:
     minimum_number_samples   : 1000
 
     # Data cube types known to sits
-    cube_types              : ["WTSS", "SATVEG", "BRICK", "PROBS", "CLASSIFIED"]
-    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "probs_cube", "classified_image"]
+    cube_types              : ["WTSS", "SATVEG", "BRICK", "BDC-TILE", "PROBS", "CLASSIFIED"]
+    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "bdc_tile", "probs_cube", "classified_image"]
+
+    # BDC configuration for access to data
+    bdc_web                 : "http://brazildatacube.dpi.inpe.br/Repository/Mosaic/"
+    bdc_local               : "/gfs/Repository/Mosaic"
 
     # URL to access SATVEG
     SATVEG-EMBRAPA_server   : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"

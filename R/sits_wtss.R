@@ -133,12 +133,21 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param URL        URL of the WTSS service.
+#' @param name       name of the converage
 #' @return check     TRUE or FALSE
-.sits_wtss_check <- function(URL) {
+.sits_wtss_check <- function(URL, name) {
+    # check that URL of the WTSS service has been provided
+    assertthat::assert_that(!purrr::is_null(URL),
+                            msg = "sits_cube: WTSS service needs URL")
+
+    # is the WTSS service working?
     coverages <- wtss::list_coverages(URL)
-    # check return from WTSS
-    if(purrr::is_null(coverages))
-        return(FALSE)
+    assertthat::assert_that(!purrr::is_null(coverages),
+                            msg = "sits_cube: WTSS service not responding")
+    # is the cube in the list of cubes?
+    assertthat::assert_that(name %in% coverages,
+                            msg = paste0("sits_cube: ", name,
+                                         " not available in the WTSS server"))
 
     return(TRUE)
 }

@@ -13,14 +13,20 @@ sits_cube(
   timeline = NULL,
   bands = NULL,
   files = NULL,
-  service = NULL
+  cube = NULL,
+  tile = NULL,
+  data_access = "local",
+  start_date = NULL,
+  end_date = NULL,
+  service = NULL,
+  .local = NULL,
+  .web = NULL
 )
 }
 \arguments{
-\item{type}{Type of cube (one of "WTSS", "SATVEG", "BRICK")}
+\item{type}{Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC-TILE")}
 
-\item{name}{Name associated to local and remote data
-(deprecated)}
+\item{name}{Name of the output data cube.}
 
 \item{URL}{URL of the service provider (for WTSS).}
 
@@ -34,9 +40,23 @@ sits_cube(
 \item{bands}{Vector of bands.}
 
 \item{files}{Vector of file names for each band
-(only for raster data).}
+(only for BRICK data cube).}
+
+\item{cube}{Name of the input data cube (or image collection)}
+
+\item{tile}{Name of the tile}
+
+\item{data_access}{Type of access (local or web)}
+
+\item{start_date}{Starting date of the cube}
+
+\item{end_date}{Ending date of the cube}
 
 \item{service}{Name of the data service (deprecated)}
+
+\item{.local}{Directory for local access to the input cube (optional)}
+
+\item{.web}{Directory for web access to the input cube (optional)}
 }
 \description{
 Defines a cube to retrieve data. '
@@ -45,6 +65,7 @@ Cubes can be of the following types:
  \item{"WTSS": }{Web Time Series Service - used to get time series}
  \item{"SATVEG": }{ SATVEG Time Series Service - used to get time series}
  \item{"BRICK": }{Raster Brick files}
+ \item{"BDC-TILE"}{A tile from the Brazil Data Cube}
 }
 }
 \examples{

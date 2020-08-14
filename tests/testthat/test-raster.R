@@ -263,13 +263,13 @@ test_that("Check GDAL access and Brick files", {
 
 test_that("Raster Cube", {
 
-    cube <- sits:::.sits_raster_cube(
+    cube <- sits:::.sits_raster_brick_cube(
                 satellite = "TERRA",
                 sensor = "MODIS",
                 name = "Sinop",
                 timeline = timeline_modis_392,
                 bands = "ndvi",
-            files = c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+                files = c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                           package = "sits"))
                 )
     expect_true(cube$nrows == 11 && cube$ncols == 14)

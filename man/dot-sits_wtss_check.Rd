@@ -4,10 +4,12 @@
 \alias{.sits_wtss_check}
 \title{Check that the URL of WTSS service is working}
 \usage{
-.sits_wtss_check(URL)
+.sits_wtss_check(URL, name)
 }
 \arguments{
 \item{URL}{URL of the WTSS service.}
+
+\item{name}{name of the converage}
 }
 \value{
 check     TRUE or FALSE

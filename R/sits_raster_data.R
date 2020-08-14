@@ -45,9 +45,171 @@
     })
     return(TRUE)
 }
+#' @title Check if the BDC tiles are working
+#' @name .sits_raster_check_bdc_tiles
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param satellite     satellite
+#' @param sensor        sensor
+#' @param bands         bands
+#' @param cube          input cube
+#' @param tile          tile
+#' @param data_access   type of access
+#' @param start_date    start_date of the cube
+#' @param end_date      end date of the cube
+#' @param .local        local address (if different from default)
+#' @param .web          web address (if different from default)
+.sits_raster_check_bdc_tiles <- function(satellite,
+                                         sensor,
+                                         bands,
+                                         cube,
+                                         tile,
+                                         data_access,
+                                         start_date,
+                                         end_date,
+                                         .local,
+                                         .web){
 
+    # check if the satellite and sensor are supported by SITS
+    assertthat::assert_that(!purrr::is_null(satellite),
+                            msg = "sits_cube: for type = TILE satelite must be provided")
+    assertthat::assert_that(!purrr::is_null(sensor),
+                            msg = "sits_cube: for type = TILE sensor must be provided")
+    # Tests is satellite and sensor are known to SITS
+    .sits_raster_satellite_sensor(satellite, sensor)
+
+    # test if bands are provided
+    assertthat::assert_that(!purrr::is_null(bands),
+                            msg = "sits_cube: for type = TILE bands must be provided")
+
+    # test if cube and tile are provided
+    assertthat::assert_that(!purrr::is_null(cube),
+                            msg = "sits_cube: for type = TILE cube name must be provided")
+
+    assertthat::assert_that(!purrr::is_null(tile),
+                            msg = "sits_cube: for type = TILE, the tile name must be provided")
+
+    # test if data_access variable is correct
+    assertthat::assert_that(data_access %in% c("local", "web"),
+                            msg = "sits_cube: for type = TILE data_access must one of (local, web)")
+
+    # test if the dates are valid
+    if (!purrr::is_null(start_date)) {
+        assertthat::assert_that(lubridate::is.Date(lubridate::ymd(start_date)),
+                                msg = "sits_cube: start_date is not valid")
+        assertthat::assert_that(lubridate::is.Date(lubridate::ymd(end_date)),
+                                msg = "sits_cube: end_date is not valid")
+    }
+    # obtain the directory for local access
+    if (data_access == "local") {
+        if (!purrr::is_null(.local))
+            dir <- .local
+        else
+            dir <- .sits_config_cube_bdc_tile_local()
+    }
+    if (data_access == "web") {
+        if (!purrr::is_null(.web))
+            dir <-  .web
+        else
+            dir <- .sits_config_cube_bdc_tile_web()
+    }
+    # compose the directory with the name of the cube and tile
+    data_dir <- paste0(dir,"/",cube,"/",tile)
+    # list the files in the directory
+    files_tile <- list.files(data_dir)
+
+    # filter the dates as directories (if they are included in the file path)
+    files_no_dir.tb  <- readr::read_delim(files_tile, delim = "/")
+    files_no_dir.vec <- as.vector(dplyr::pull(files_no_dir.tb[,ncol(files_no_dir.tb)]))
+
+    # extract dates and bands
+    prefix <- paste0(cube,"_",tile,"_")
+    dates_bands <- files_tile %>%
+        stringr::str_remove(prefix) %>%
+        tools::file_path_sans_ext()
+
+    # puts the dates and bands into a tibble
+    stack.tb <- readr::read_delim(dates_bands, delim = "_",
+                                  col_names = c("start_date", "end_date", "band"))
+
+    # make sure the band names are in lower case
+    stack.tb$band <- tolower(stack.tb$band)
+    # include a column with the file name
+    stack.tb$file <- files_tile
+    # include a column with the file path
+    stack.tb$path <- data_dir
+    # filter by starting date and end date
+    stack.tb <- dplyr::filter(stack.tb, start_date >= as.Date(start_date) &&
+                                        end_date <= as.Date(end_date))
+
+}
+#' @title Check if input data is made of raster bricks and create a cube if all is OK
+#' @name .sits_raster_brick_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description  This function checks if the input data corresponds
+#'               to a set of raster bricks and creates a tibble containing the metadata for
+#'               a set of spatio-temporal raster files,
+#'               These files should be of the same size and
+#'               projection. Each raster brick file should contain one band
+#'               per time step.
+#'               Different bands are archived in different raster files.
+#'
+#' @param  satellite             Name of satellite
+#' @param  sensor                Name of sensor
+#' @param  name                  Name of the data cube.
+#' @param  timeline              Vector of dates with the timeline of the bands.
+#' @param  bands                 Vector of bands contained in the Raster Brick
+#'                               set (in the same order as the files).
+#' @param  files                 Vector with the file paths of the raster files.
+#' @return A tibble with metadata information about a raster data set.
+.sits_raster_brick_cube <- function(satellite, sensor, name, timeline, bands, files){
+
+    assertthat::assert_that(!purrr::is_null(files),
+                            msg = "sits_cube: for type = BRICK, files must be provided")
+    assertthat::assert_that(!purrr::is_null(satellite),
+                            msg = "sits_cube: for type = BRICK satelite must be provided")
+    assertthat::assert_that(!purrr::is_null(sensor),
+                            msg = "sits_cube: for type = BRICK sensor must be provided")
+    assertthat::assert_that(!purrr::is_null(bands),
+                            msg = "sits_cube: for type = BRICK bands must be provided")
+    assertthat::assert_that(length(bands) == length(files),
+                            msg = "sits_cube: bands do not match files")
+    assertthat::assert_that(!purrr::is_null(timeline),
+                            msg = "sits_cube: for type = BRICK timeline must be provided")
+
+    # bands are lowercase
+    bands <- tolower(bands)
+
+    # Tests is satellite and sensor are known to SITS
+    .sits_raster_satellite_sensor(satellite, sensor)
+
+    # raster files
+    assertthat::assert_that(!("function" %in% class(files)),
+                            msg = "a valid set of files should be provided")
+    assertthat::assert_that(!purrr::is_null(files),
+                            msg = "a valid set of files should be provided")
+    # check if need to include "/vsicurl" to be read by GDAL
+    files <- .sits_raster_check_webfiles(files)
+
+    # check if the raster files can be read by GDAL
+    .sits_raster_check_gdal_access(files)
+
+    # check if the raster files are organised as bricks
+    .sits_raster_check_bricks(files)
+
+    # create a brick data cube
+    cube.tb <- .sits_raster_brick_cube_create(satellite = satellite,
+                                              sensor    = sensor,
+                                              name      = name,
+                                              timeline  = timeline,
+                                              bands     = bands,
+                                              files     = files)
+
+    return(cube.tb)
+}
 #' @title Create a data cube based on a set of Raster Bricks
-#' @name .sits_raster_cube
+#' @name .sits_raster_brick_cube_create
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  This function creates a tibble containing the metadata for
@@ -66,12 +228,12 @@
 #'                               set (in the same order as the files).
 #' @param  files                 Vector with the file paths of the raster files.
 #' @return A tibble with metadata information about a raster data set.
-.sits_raster_cube <- function(satellite,
-                              sensor,
-                              name,
-                              timeline,
-                              bands,
-                              files) {
+.sits_raster_brick_cube_create <- function(satellite,
+                                           sensor,
+                                           name,
+                                           timeline,
+                                           bands,
+                                           files) {
 
     # transform the timeline to date format
     timeline <- lubridate::as_date(timeline)
@@ -119,6 +281,9 @@
     class(cube) <- c("brick_cube", class(cube))
     return(cube)
 }
+
+
+
 
 #' @title Define a filename associated to one classified raster layer
 #' @name .sits_raster_filename
@@ -204,3 +369,34 @@
     if (xy[1, "Y"] > raster.tb[1, ]$ymax) return(FALSE)
     return(TRUE)
 }
+
+#' @title Tests if satellite and sensor are supported by SITS
+#' @name .sits_raster_satellite_sensor
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Check if the satellite and sensor are supported by SITS
+#'              looking at the configuration file
+#' @param satellite     Name of the satellite
+#' @param sensor        Name of the sensor
+#' @return              TRUE/FALSE
+#'
+.sits_raster_satellite_sensor  <- function(satellite, sensor) {
+
+    satellite <- toupper(satellite)
+    sats <- .sits_config_satellites()
+    my_sats <- paste0(sats, collapse = ", ")
+    assertthat::assert_that(satellite %in% sats,
+                            msg = paste0("satellite ", satellite, " not supported - ",
+                                         "use one of ", my_sats))
+    # is the sensor supported by SITS?
+    sensor <- toupper(sensor)
+    sensors <- .sits_config_sensors(satellite)
+    my_sensors <- paste0(sensors, collapse = ", ")
+    assertthat::assert_that(sensor %in% sensors,
+                            msg = paste0("sensor ", sensors, " not supported - ",
+                                         "use one of ", my_sensors))
+
+    return(invisible(TRUE))
+}
+

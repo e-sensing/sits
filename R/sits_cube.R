@@ -7,10 +7,11 @@
 #'  \item{"WTSS": }{Web Time Series Service - used to get time series}
 #'  \item{"SATVEG": }{ SATVEG Time Series Service - used to get time series}
 #'  \item{"BRICK": }{Raster Brick files}
+#'  \item{"BDC-TILE"}{A tile from the Brazil Data Cube}
 #' }
 #'
-#' @param type              Type of cube (one of "WTSS", "SATVEG", "BRICK")
-#' @param name              Name of the data cube.
+#' @param type              Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC-TILE")
+#' @param name              Name of the output data cube.
 #' @param URL               URL of the service provider (for WTSS).
 #' @param satellite         Name of satellite
 #' @param sensor            Name of sensor
@@ -18,10 +19,15 @@
 #'                          (only for local files)
 #' @param bands             Vector of bands.
 #' @param files             Vector of file names for each band
-#'                          (only for raster data).
+#'                          (only for BRICK data cube).
+#' @param cube              Name of the input data cube (or image collection)
+#' @param tile              Name of the tile
+#' @param data_access       Type of access (local or web)
+#' @param start_date        Starting date of the cube
+#' @param end_date          Ending date of the cube
 #' @param service           Name of the data service (deprecated)
-#' @param name              Name associated to local and remote data
-#'                          (deprecated)
+#' @param .local            Directory for local access to the input cube (optional)
+#' @param .web              Directory for web access to the input cube (optional)
 #'
 #' @seealso To see the available values for the parameters above
 #' use \code{\link{sits_config}} or \code{\link{sits_config_show}}.
@@ -60,98 +66,62 @@ sits_cube <- function(type           = NULL,
                       timeline       = NULL,
                       bands          = NULL,
                       files          = NULL,
-                      service        = NULL) {
+                      cube           = NULL,
+                      tile           = NULL,
+                      data_access    = "local",
+                      start_date     = NULL,
+                      end_date       = NULL,
+                      service        = NULL,
+                      .local         = NULL,
+                      .web           = NULL) {
 
     # test if type has been provided
-    if(purrr::is_null(type) && !purrr::is_null(service)) {
+    if (purrr::is_null(type) && !purrr::is_null(service)) {
         type <- toupper(service)
         message("sits_cube: use of service variable is deprecated, see docs")
     }
     type <- toupper(type)
-    if(!.sits_config_cube_types_chk(type)) {
+    if (!.sits_config_cube_types_chk(type)) {
         message(paste0("sits_cube: type ", type, "not supported"))
         return(invisible(NULL))
     }
 
     if (type == "WTSS") {
-        # find the URL of the WTSS service, if not provided
-        assertthat::assert_that(!purrr::is_null(URL),
-                    msg = "sits_cube: WTSS service needs URL")
-
-        # is the WTSS service working?
-        coverages <- wtss::list_coverages(URL)
-        assertthat::assert_that(!purrr::is_null(coverages),
-                    msg = "sits_cube: WTSS service not responding")
-        # is the cube in the list of cubes?
-        assertthat::assert_that(name %in% coverages,
-                    msg = paste0("sits_cube: ", name,
-                                 " not available in the WTSS server"))
-
+        wtss_ok <- .sits_wtss_check(URL = URL, name = name)
         # create a cube
-        cube.tb <- .sits_wtss_cube(URL, name, bands)
-
+        if (wtss_ok) {
+            cube.tb <- .sits_wtss_cube(URL = URL, name = name, bands = bands)
+        }
     }
     else if (type == "SATVEG") {
         # check if SATVEG is working
         satveg_ok <- .sits_satveg_check()
         # if OK, go ahead a create a SATVEG cube
         if (satveg_ok)
-            cube.tb <- .sits_satveg_cube(name)
+            cube.tb <- .sits_satveg_cube(name = name)
     }
-    else if (type == "BRICK"){
-        assertthat::assert_that(!purrr::is_null(files),
-                msg = "sits_cube: for type = BRICK, files must be provided")
-        assertthat::assert_that(!purrr::is_null(satellite),
-                msg = "sits_cube: for type = BRICK satelite must be provided")
-        assertthat::assert_that(!purrr::is_null(sensor),
-                msg = "sits_cube: for type = BRICK sensor must be provided")
-        assertthat::assert_that(!purrr::is_null(bands),
-                msg = "sits_cube: for type = BRICK bands must be provided")
-        assertthat::assert_that(length(bands) == length(files),
-                msg = "sits_cube: bands do not match files")
-        assertthat::assert_that(!purrr::is_null(timeline),
-                msg = "sits_cube: for type = BRICK timeline must be provided")
-
-        # bands are lowercase
-        bands <- tolower(bands)
-
-        # is the satellite supported by SITS?
-        satellite <- toupper(satellite)
-        sats <- .sits_config_satellites()
-        my_sats <- paste0(sats, collapse = ", ")
-        assertthat::assert_that(satellite %in% sats,
-                msg = paste0("satellite ", satellite, " not supported - ",
-                             "use one of ", my_sats))
-
-        # is the sensor supported by SITS?
-        sensor <- toupper(sensor)
-        sensors <- .sits_config_sensors(satellite)
-        my_sensors <- paste0(sensors, collapse = ", ")
-        assertthat::assert_that(sensor %in% sensors,
-                msg = paste0("sensor ", sensors, " not supported - ",
-                             "use one of ", my_sensors))
-
-        # raster files
-        assertthat::assert_that(!("function" %in% class(files)),
-                msg = "a valid set of files should be provided")
-        assertthat::assert_that(!purrr::is_null(files),
-                msg = "a valid set of files should be provided")
-        # check if need to include "/vsicurl" to be read by GDAL
-        files <- .sits_raster_check_webfiles(files)
-
-        # check if the raster files can be read by GDAL
-        .sits_raster_check_gdal_access(files)
-
-        # check if the raster files are organised as bricks
-        .sits_raster_check_bricks(files)
-
-        # create a brick data cube
-        cube.tb <- .sits_raster_cube(satellite = satellite,
-                                     sensor    = sensor,
-                                     name      = name,
-                                     timeline  = timeline,
-                                     bands     = bands,
-                                     files     = files)
+    else if (type == "BRICK") {
+        # check if the files are bricks
+        bricks_ok <- .sits_raster_check_bricks(files)
+        if (bricks_ok)
+            cube.tb <- .sits_raster_brick_cube(satellite = satellite,
+                                               sensor    = sensor,
+                                               name      = name,
+                                               timeline  = timeline,
+                                               bands     = bands,
+                                               files     = files)
+    }
+    else if (type == "BDC-TILE") {
+        bdc_tile_ok <- .sits_raster_check_bdc_tiles(satellite      = satellite,
+                                                    sensor         = sensor,
+                                                    bands          = bands,
+                                                    cube           = cube,
+                                                    tile           = tile,
+                                                    data_access    = data_access,
+                                                    start_date     = start_date,
+                                                    end_date       = end_date,
+                                                    .local         = .local,
+                                                    .web           = .web)
     }
     return(cube.tb)
 }
@@ -470,7 +440,7 @@ sits_cube <- function(type           = NULL,
 
     # check is WTSS service is working
     if (cube$type == "WTSS")
-        check <- .sits_wtss_check(cube$URL)
+        check <- .sits_wtss_check(cube$URL, cube$name)
     # check is SATVEG service is working
     else if (cube$type == "SATVEG")
         check <- .sits_satveg_check()

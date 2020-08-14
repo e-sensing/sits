@@ -162,7 +162,25 @@ sits_config_show <- function() {
         return(FALSE)
 }
 
+#' @title Directory to read the BDC information on the web
+#' @name .sits_config_cube_bdc_tile_web
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_cube_bdc_tile_web <- function() {
 
+    return(sits.env$config$bdc_web)
+}
+
+#' @title Directory to read the BDC information as local file
+#' @name .sits_config_cube_bdc_tile_local
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_cube_bdc_tile_local <- function() {
+
+  return(sits.env$config$bdc_local)
+}
 #' @title Retrieve the default sensor for the satellite
 #' @name .sits_config_sensors
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
