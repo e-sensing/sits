@@ -13,7 +13,7 @@ library(inSitu)
 
 #select the bands for classification
 samples <- inSitu::br_mt_1_8K_9classes_6bands
-samples_ndvi_evi <- sits_select_bands(samples, ndvi, evi)
+samples_ndvi_evi <- sits_select_bands(samples,  evi, ndvi)
 
 # build the classification model
 rfor_model <- sits_train(samples_ndvi_evi, ml_method = sits_rfor(num_trees = 2000))
@@ -38,7 +38,7 @@ sinop <- sits_cube(type = "BRICK",
 
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicores = 1)
+sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 4, multicores = 1)
 
 # label the classified image
 sinop_label <- sits_label_classification(sinop_probs)

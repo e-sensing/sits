@@ -486,6 +486,10 @@ sits_label_classification <- function(cube,
         all(cube_bands %in% sample_bands) && all(sample_bands %in% cube_bands),
         msg = "sits_classify: bands in samples different from cube bands")
 
+    # align bands with the files if they are not matched
+    if (!all(cube_bands == sample_bands))
+        cube <- .sits_cube_align_bands(cube, sample_bands)
+
     # classify the data
     cube_probs <- .sits_classify_multicores(cube = cube,
                                             samples = samples,
