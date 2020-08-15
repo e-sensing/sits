@@ -423,6 +423,19 @@ sits_cube <- function(type           = NULL,
 .sits_cube_bands <- function(cube) {
     return(cube$bands[[1]])
 }
+#' @title Set the bands associated to a cube
+#' @name .sits_cube_bands_set
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description    Given a data cube and a set of bands, sets the bands
+#'
+#' @param cube          Metadata about a data cube
+#' @param bands         Bands to be assigned to the cube
+#' @return  Vector of bands available in the data cube
+.sits_cube_bands_set <- function(cube, bands) {
+    cube$bands[[1]] <- bands
+    return(cube)
+}
 
 #' @title Check that the cube is valid
 #' @name .sits_cube_check_validity
@@ -474,6 +487,19 @@ sits_cube <- function(type           = NULL,
 #' @return         Vector of files
 .sits_cube_files <- function(cube) {
     return(cube$files[[1]])
+}
+
+#' @title Sets the files associated to a data cube
+#' @name .sits_cube_files_set
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description    Given a data cube and an index, retrieve the files
+#' @param cube     Metadata about a data cube
+#' @param files    A vector of files to be assigned to the cube
+#' @return         Vector of files
+.sits_cube_files_set <- function(cube, files) {
+    cube$files[[1]] <- files
+    return(cube)
 }
 
 #' @title Return all labels associated to a data cube
@@ -575,4 +601,29 @@ sits_cube_timeline <- function(cube, index = 1){
 #' @return          Vector of scale factors
 .sits_cube_scale_factors <- function(cube){
     return(cube$scale_factors[[1]])
+}
+
+#' @title Align the bands of the cube with those of the samples
+#' @name .sits_cube_align_bands
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description         Given a data cube, retrieve the scale factors
+#' @param cube          Metadata about a data cube
+#' @param sample_bands  Bands of the data sample
+#' @return              Updated cube
+.sits_cube_align_bands <- function(cube, sample_bands){
+
+    # retrieve the cube bands
+    cube_bands <- .sits_cube_bands(cube)
+    cube_files <- .sits_cube_files(cube)
+
+    # align the indexes
+    m <- match(sample_bands, cube_bands)
+
+    # reorganize the bands and the files in the cube
+    # they should be aligned with the bands in the samples
+    cube <- .sits_cube_bands_set(cube, cube_bands[m])
+    cube <- .sits_cube_files_set(cube, cube_files[m])
+
+    return(cube)
 }
