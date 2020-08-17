@@ -9,7 +9,7 @@ default:
 
     # Data cube types known to sits
     cube_types              : ["WTSS", "SATVEG", "BRICK", "BDC-TILE", "BDC_TILE", "PROBS", "CLASSIFIED"]
-    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "bdc_tile", "probs_cube", "classified_image"]
+    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "bdc_tile", "bdc_tile", "probs_cube", "classified_image"]
 
     # BDC configuration for access to data
     bdc_web                 : "http://brazildatacube.dpi.inpe.br/Repository/Mosaic/"

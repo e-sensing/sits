@@ -13,13 +13,13 @@ test_that("Reading a raster cube", {
 
 
     # get cube object
-    cub.obj <- sits:::.sits_cube_robj(raster_cube)
+    cub.obj <- suppressWarnings(raster::brick(raster_cube$files[[1]]))
     expect_true("RasterBrick" %in% class(cub.obj))
     # get bands names
     bands <- sits:::.sits_cube_bands(raster_cube)
     expect_true(bands %in% c("ndvi"))
 
-    params <- sits:::.sits_raster_params(sits:::.sits_cube_robj(raster_cube))
+    params <- sits:::.sits_raster_params(cub.obj)
     expect_true(params$nrows == 11)
     expect_true(params$ncols == 14)
     expect_true(params$xres >= 231.5)

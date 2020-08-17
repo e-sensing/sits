@@ -74,33 +74,33 @@
 
     # if geom_type is POINT, use the points provided in the shapefile
     if (geom_type == "POINT") {
-        points.lst <- as.list(sf_shape$geometry)
+        points.mx <- sf::st_coordinates(sf_shape$geometry)
         if (!purrr::is_null(shp_attr)) {
             l1.lst     <- as.list(shp_df[,shp_attr])
             labels.vec <- as.vector(l1.lst[[1]])
         }
 
         # reduce the number of points to be read
-        if (length(points.lst) > .n_shp_pts) {
-            points.lst <- points.lst[1:.n_shp_pts]
+        if (nrow(points.mx) > .n_shp_pts) {
+            points.mx <- points.mx[1:.n_shp_pts,]
             if (!purrr::is_null(shp_attr))
                 labels.vec <- labels[1:.n_shp_pts]
         }
 
-        # read the points
-        rows.lst <- purrr::map2(points.lst,
-                        function(p) {
-                            row <- .sits_ts_from_cube(cube = cube,
-                                                      longitude   = p[1],
-                                                      latitude    = p[2],
-                                                      start_date  = start_date,
-                                                      end_date    = end_date,
-                                                      bands       = bands,
-                                                      label       = label,
-                                                      .prefilter  = .prefilter)
-                        return(row)
-                     })
-        shape.tb <- dplyr::bind_rows(shape.tb, rows.lst)
+        # read the points into a list
+        nrows <- nrow(points.mx)
+        for (i in 1:nrows) {
+            row <- .sits_ts_from_cube(cube = cube,
+                                      longitude   = points.mx[i,1],
+                                      latitude    = points.mx[i,2],
+                                      start_date  = start_date,
+                                      end_date    = end_date,
+                                      bands       = bands,
+                                      label       = label,
+                                      .prefilter  = .prefilter)
+            shape.tb <- dplyr::bind_rows(shape.tb, row)
+        }
+
         if (!purrr::is_null(shp_attr))
             shape.tb$label <- labels.vec
     }

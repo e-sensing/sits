@@ -138,6 +138,7 @@ plot.predicted <- function(x, y, ..., bands = "ndvi") {
 #' @param  y             Ignored
 #' @param  ...           Further specifications for \link{plot}.
 #' @param time           Temporal reference for plot.
+#' @param breaks         Type of breaks
 #' @param title          A string.
 #' @param colors         Color pallete.
 #'
@@ -171,7 +172,7 @@ plot.predicted <- function(x, y, ..., bands = "ndvi") {
 #' }
 #' @export
 plot.probs_cube <- function(x , y, ..., time = 1,
-					title = "Probabilities for Classes", colors = "YlGn") {
+					title = "Probabilities for Classes", breaks = "jenks", colors = "YlGnBu") {
 	stopifnot(missing(y))
 	# verifies if stars package is installed
 	if (!requireNamespace("stars", quietly = TRUE)) {
@@ -181,9 +182,9 @@ plot.probs_cube <- function(x , y, ..., time = 1,
 	# define the output color pallete
 	sits_c <- unlist(unname(sits:::.sits_brewerRGB[[colors]][["10"]]))
 	# create a stars object
-	st <- stars::read_stars(x$files[[time]])
+	st <- stars::read_stars(x$files[[1]][[time]])
 
-	plot(st, nbreaks = 12, col = sits_c)
+	plot(st, breaks = breaks, nbreaks = 11, col = sits_c, main = x$labels[[1]])
 	return(invisible(x))
 }
 
@@ -622,7 +623,7 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
                             msg = "sits_plot_raster: time must be a positive integer")
 
     # get the raster object
-    r <- raster::raster(cube$files[[1]][time])
+    r <- suppressWarnings(raster::raster(cube$files[[1]][time]))
 
     # convert from raster to points
     map.p <- raster::rasterToPoints(r)

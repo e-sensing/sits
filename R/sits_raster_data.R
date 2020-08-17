@@ -87,8 +87,6 @@
 #' @param data_access   type of access
 #' @param start_date    start_date of the cube
 #' @param end_date      end date of the cube
-#' @param .local        local address (if different from default)
-#' @param .web          web address (if different from default)
 .sits_raster_check_bdc_tiles <- function(satellite,
                                          sensor,
                                          bands,

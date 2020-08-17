@@ -190,14 +190,14 @@ sits_cube <- function(type           = NULL,
 #' @param stack_info         Tibble with information about stacks (for stacks)
 #'
 .sits_cube_create <- function(type,
-                              URL = NULL,
+                              URL = NA,
                               satellite,
                               sensor,
                               name,
-                              cube = NULL,
-                              tile = NULL,
+                              cube = NA,
+                              tile = NA,
                               bands,
-                              labels = NULL,
+                              labels = NA,
                               scale_factors,
                               missing_values,
                               minimum_values,
@@ -218,10 +218,14 @@ sits_cube <- function(type           = NULL,
 
     # create a tibble to store the metadata (mandatory parameters)
     cube.tb <- tibble::tibble(type           = type,
+                              URL            = URL,
                               satellite      = satellite,
                               sensor         = sensor,
                               name           = name,
+                              cube           = cube,
+                              tile           = tile,
                               bands          = list(bands),
+                              labels         = list(labels),
                               scale_factors  = list(scale_factors),
                               missing_values = list(missing_values),
                               minimum_values = list(minimum_values),
@@ -237,24 +241,11 @@ sits_cube <- function(type           = NULL,
                               yres           = yres,
                               crs            = crs)
 
-    # add optional parameters
-    if (!purrr::is_null(URL))
-        cube.tb <- tibble::add_column(cube.tb, URL = URL, .after = "type")
-
-    if (!purrr::is_null(cube))
-        cube.tb <- tibble::add_column(cube.tb, cube = cube, .after = "name")
-
-    if (!purrr::is_null(tile))
-        cube.tb <- tibble::add_column(cube.tb, tile = tile, .before = "bands")
-
-    if (!purrr::is_null(labels))
-        cube.tb <- tibble::add_column(cube.tb, labels = list(labels), .after = "bands")
-
     if (!purrr::is_null(files))
-        cube.tb <- tibble::add_column(cube.tb, files = list(files), .after = "crs")
+        cube.tb <- tibble::add_column(cube.tb, files = list(files))
 
     if (!purrr::is_null(stack_info))
-        cube.tb <- tibble::add_column(cube.tb, stack_info = list(stack_info), .after = "crs")
+        cube.tb <- tibble::add_column(cube.tb, stack_info = list(stack_info))
 
     return(cube.tb)
 }
@@ -342,7 +333,6 @@ sits_cube <- function(type           = NULL,
     name   <-  paste0(cube[1,]$name, "_probs")
     # set the metadata for the probability cube
     cube_probs <- .sits_cube_create(type            = "PROBS",
-                                    URL             = "http://127.0.0.1",
                                     satellite       = cube$satellite,
                                     sensor          = cube$sensor,
                                     name            = name,

@@ -125,7 +125,7 @@ raster_cube <- sits_cube(type = "BRICK",
                          files = c(ndvi_file))
 
 # get information on the data cube 
-raster_cube %>% dplyr::select(type, URL, satellite, sensor)
+raster_cube %>% dplyr::select(type, satellite, sensor)
 # get information on the coverage
 raster_cube %>% dplyr::select(xmin, xmax, ymin, ymax)
 ```

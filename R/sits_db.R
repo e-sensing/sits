@@ -333,6 +333,8 @@ sits_db_read <- function(conn, name) {
                                                     "satellite",
                                                     "sensor",
                                                     "name",
+                                                    "cube",
+                                                    "tile",
                                                     "nrows",
                                                     "ncols",
                                                     "xmin",
@@ -346,6 +348,10 @@ sits_db_read <- function(conn, name) {
 
 
     # set the layouts of the additional tibbles to be saved
+
+    # go through the rows of the cube tibble
+    nrows <- nrow(data)
+
     # raster data parameters
     params.tb <- tibble::tibble(band           = character(),
                                 scale_factor   = double(),
@@ -353,27 +359,13 @@ sits_db_read <- function(conn, name) {
                                 minimum_value  = double(),
                                 maximum_value  = double(),
                                 name           = character())
-    # labels
-    labels.tb <- tibble::tibble(label          = character(),
-                                name           = character())
 
     # bands
     bands.tb <- tibble::tibble(band           = character(),
                                name           = character())
-
-    # timelines
-    timelines.tb <- tibble::tibble(date = as.Date(character()),
-                                   name = character(),
-                                   instance = integer())
-    # files
-    files.tb <- tibble::tibble(file = character(),
-                               name = character())
-
-    # go through the rows of the cube tibble
-    nrows <- nrow(data)
+    # build the parameters and bands tibble
     for (i in 1:nrows) {
         row <- data[i,]
-
         # build the tibble with the parameters
         params.lst <- purrr::pmap(list(row$bands, row$scale_factors,
                                        row$missing_values, row$minimum_values,
@@ -391,15 +383,19 @@ sits_db_read <- function(conn, name) {
         # joint all lists of params into a single table
         params.tb <- dplyr::bind_rows(params.tb, params.lst)
 
+    }
+    # save the params tibble
+    DBI::dbWriteTable(conn = conn, name = paste0(name,".par"),
+                      value = as.data.frame(params.tb),
+                      overwrite = TRUE)
 
-        # build the labels table
-        labels.lst <- purrr::pmap(row$labels, function(lab) {
-            lab.tb <- tibble::tibble(label = lab,
-                                     name  = row$name)
-        })
-        # transform the list into a tibble
-        labels.tb <- dplyr::bind_rows(labels.tb, labels.lst)
-
+    # timelines tibble
+    timelines.tb <- tibble::tibble(date = as.Date(character()),
+                                   name = character(),
+                                   instance = integer())
+    # build the timelines tibble
+    for (i in 1:nrows) {
+        row <- data[i,]
         # transform information about the timelines into a tibble
 
         timelines <- row$timeline[[1]]
@@ -421,33 +417,62 @@ sits_db_read <- function(conn, name) {
                 timelines.tb <- dplyr::bind_rows(timelines.tb, time.tb)
             }
         }
-        # build a list for all files of for each cube
-        files.lst <- purrr::map(row$files, function(f) {
-            f <- tibble::tibble(file = f,
-                                name = row$name)
-        })
-        files.tb <- dplyr::bind_rows(files.tb, files.lst)
-
     }
-    # save the params tibble
-    DBI::dbWriteTable(conn = conn, name = paste0(name,".par"),
-                      value = as.data.frame(params.tb),
-                      overwrite = TRUE)
-
-    # save the labels tibble
-    DBI::dbWriteTable(conn = conn, name = paste0(name,".lab"),
-                      value = as.data.frame(labels.tb),
-                      overwrite = TRUE)
-
     # save the timelines tibble
     DBI::dbWriteTable(conn = conn, name = paste0(name,".tim"),
                       value = as.data.frame(timelines.tb),
                       overwrite = TRUE)
 
-    # save the files tibble
-    DBI::dbWriteTable(conn = conn, name = paste0(name,".fil"),
-                      value = as.data.frame(files.tb),
-                      overwrite = TRUE)
+    # labels
+    if (!purrr::is_null(data$labels)) {
+        labels.tb <- tibble::tibble(label          = character(),
+                                    name           = character())
+        for (i in 1:nrows) {
+            row <- data[i,]
+            # build the labels table
+            labels.lst <- purrr::pmap(row$labels, function(lab) {
+                lab.tb <- tibble::tibble(label = lab,
+                                         name  = row$name)
+            })
+            # transform the list into a tibble
+            labels.tb <- dplyr::bind_rows(labels.tb, labels.lst)
+        }
+        # save the labels tibble
+        DBI::dbWriteTable(conn = conn, name = paste0(name,".lab"),
+                          value = as.data.frame(labels.tb),
+                          overwrite = TRUE)
+    }
+    # files
+    if ("files" %in% colnames(data)) {
+        # files tibble
+        files.tb <- tibble::tibble(file = character(),
+                                   name = character())
+
+        for (i in 1:nrows) {
+            row <- data[i,]
+            # build a list for all files of for each cube
+            files.lst <- purrr::map(row$files, function(f) {
+                f <- tibble::tibble(file = f,
+                                    name = row$name)
+            })
+            files.tb <- dplyr::bind_rows(files.tb, files.lst)
+        }
+        # save the files tibble
+        DBI::dbWriteTable(conn = conn, name = paste0(name,".fil"),
+                          value = as.data.frame(files.tb),
+                          overwrite = TRUE)
+    }
+    # stack_info
+    if ("stack_info" %in% colnames(data)) {
+        for (i in 1:nrows) {
+            row <- data[i,]
+            name <- row$name
+            # save the files tibble
+            DBI::dbWriteTable(conn = conn, name = paste0(name,".stk"),
+                          value = as.data.frame(row$stack_info[[1]]),
+                          overwrite = TRUE)
+        }
+    }
 }
 
 #' @title Read cube information from an SQLite database
@@ -501,14 +526,19 @@ sits_db_read <- function(conn, name) {
             dplyr::pull(.)
 
         # read labels tibble
-        labs <- tibble::as_tibble(
-            DBI::dbReadTable(conn = conn, name = paste0(name,".lab")))
+        if (DBI::dbExistsTable(conn, paste0(name,".lab"))) {
+            labs <- tibble::as_tibble(
+                DBI::dbReadTable(conn = conn, name = paste0(name,".lab")))
 
-        labels <- labs %>%
-            dplyr::filter(name == row$name) %>%
-            dplyr::select(label) %>%
-            dplyr::pull(.) %>%
-            as.character(.)
+            labels <- labs %>%
+                dplyr::filter(name == row$name) %>%
+                dplyr::select(label) %>%
+                dplyr::pull(.) %>%
+                as.character(.)
+        }
+        else
+            labels <- NA
+
 
         # read timelines tibble
         times <- tibble::as_tibble(
@@ -525,16 +555,31 @@ sits_db_read <- function(conn, name) {
             timeline <- lubridate::as_date(timeline$date)
         })
 
+        files_exists <- FALSE
+        files <- vector()
+        if (DBI::dbExistsTable(conn, paste0(name,".fil"))) {
+            # read files tibble
+            # save the files tibble
+            files.tb <- tibble::as_tibble(
+                DBI::dbReadTable(conn = conn, name = paste0(name,".fil")))
 
-        # read files tibble
-        # save the files tibble
-        files.tb <- tibble::as_tibble(
-            DBI::dbReadTable(conn = conn, name = paste0(name,".fil")))
+            files <- files.tb %>%
+                dplyr::filter(name == row$name) %>%
+                dplyr::select(file) %>%
+                dplyr::pull(.)
 
-        files <- files.tb %>%
-            dplyr::filter(name == row$name) %>%
-            dplyr::select(file) %>%
-            dplyr::pull(.)
+            files_exists <- TRUE
+        }
+
+        stack.tb <- tibble::tibble()
+        stack_exists <- FALSE
+        if (DBI::dbExistsTable(conn, paste0(name,".stk"))) {
+            # read files tibble
+            # save the files tibble
+            stack.tb <- tibble::as_tibble(
+                DBI::dbReadTable(conn = conn, name = paste0(name,".stk")))
+            stack_exists <- TRUE
+        }
 
         # define the output cube
         cube <- tibble::tibble(type           = meta$type,
@@ -542,6 +587,8 @@ sits_db_read <- function(conn, name) {
                                satellite      = meta$satellite,
                                sensor         = meta$sensor,
                                name           = meta$name,
+                               cube           = meta$cube,
+                               tile           = meta$tile,
                                bands          = list(bands),
                                labels         = list(labels),
                                scale_factors  = list(scale_factors),
@@ -557,14 +604,20 @@ sits_db_read <- function(conn, name) {
                                ymax           = meta$ymax,
                                xres           = meta$xres,
                                yres           = meta$yres,
-                               crs            = meta$crs,
-                               files          = list(files))
+                               crs            = meta$crs)
+
+        if (files_exists)
+            cube <- tibble::add_column(cube, files = list(files))
+        if (stack_exists)
+            cube <- tibble::add_column(cube, stack_info = list(stack.tb))
+
+        return(cube)
 
     })
 
     data <- dplyr::bind_rows(rows.lst)
     class_cube <- .sits_config_cube_class(data[1,]$type)
-    if(purrr::is_null(class_cube)) {
+    if (purrr::is_null(class_cube)) {
         class(data) <- c("cube", class(data))
         message("Type of data cube not yet supported by sits")
     }
