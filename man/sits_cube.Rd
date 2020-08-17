@@ -65,7 +65,7 @@ Cubes can be of the following types:
  \item{"WTSS": }{Web Time Series Service - used to get time series}
  \item{"SATVEG": }{ SATVEG Time Series Service - used to get time series}
  \item{"BRICK": }{Raster Brick files}
- \item{"BDC-TILE"}{A tile from the Brazil Data Cube}
+ \item{"BDC_TILE"}{A tile from the Brazil Data Cube}
 }
 }
 \examples{

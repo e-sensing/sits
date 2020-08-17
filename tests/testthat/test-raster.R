@@ -25,7 +25,7 @@ test_that("Multi-year, single core classification", {
     sinop_probs <- sits_classify(sinop, rfor_model, memsize = 2, multicores = 1)
 
     # retrieve the output raster layers
-    bricks_probs <- sits:::.sits_cube_all_robjs(sinop_probs)
+    bricks_probs <- sits:::.sits_cube_brick_all_robjs(sinop_probs)
 
     expect_true(all(file.exists(unlist(sinop_probs$files))))
     rc_obj <- sits:::.sits_cube_robj(sinop_probs)
@@ -252,12 +252,10 @@ test_that("One-year, multicore classification with filter", {
 
 })
 
-test_that("Check GDAL access and Brick files", {
+test_that("Check GDAL access", {
     files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                            package = "sits"))
     expect_true(sits:::.sits_raster_check_gdal_access(files))
-
-    expect_true(sits:::.sits_raster_check_bricks(files))
 
 })
 

@@ -287,6 +287,7 @@ sits_label_classification <- function(cube,
                                                       overwrite = TRUE))
     })
 
+
     return(cube_labels)
 }
 #' @title Classify a set of time series using machine learning models
@@ -463,6 +464,16 @@ sits_label_classification <- function(cube,
     # checks the classification params
     .sits_check_classify_params(cube, ml_model)
 
+    # if the cube is either a BRICK or a STACK, get the robjs for faster access
+    if (cube$type == "BRICK"){
+        r_objs <- .sits_cube_brick_all_robjs(cube)
+        cube <- tibble::add_column(cube, r_objs_list = list(r_objs))
+    }
+    if (cube$type == "BDC_TILE") {
+        r_objs <- .sits_cube_stack_all_robjs(cube)
+        cube <- tibble::add_column(cube, r_objs_list = list(r_objs))
+    }
+
     # CRAN limits the number of cores to 2
     chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
     # if running on check mode, multicores must be 2
@@ -565,6 +576,8 @@ sits_label_classification <- function(cube,
         brick@file@name <- .sits_cube_file(cube_class, i)
         return(brick)
     })
+    # create a list of r_objs in the classified cube
+    cube_class <- tibble::add_column(cube_class, r_objs_list = list(bricks))
 
     # initiate writing
     bricks <- purrr::map(bricks, function(brick){

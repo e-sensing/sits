@@ -13,7 +13,7 @@ library(inSitu)
 
 #select the bands for classification
 samples <- inSitu::br_mt_1_8K_9classes_6bands
-samples_ndvi_evi <- sits_select_bands(samples,  evi, ndvi)
+samples_ndvi_evi <- sits_select_bands(samples, evi, ndvi)
 
 # build the classification model
 rfor_model <- sits_train(samples_ndvi_evi, ml_method = sits_rfor(num_trees = 2000))
@@ -30,15 +30,14 @@ timeline_2013_2014 <- scan(time_file, character())
 # create a raster metadata file based on the information about the files
 sinop <- sits_cube(type = "BRICK",
                    satellite = "TERRA",
-                   sensor    = "MODIS",
+                   sensor  = "MODIS",
                    name = "Sinop",
                    timeline = timeline_2013_2014,
                    bands = c("ndvi", "evi"),
                    files = files)
 
-
 # classify the raster image
-sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 4, multicores = 1)
+sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 24, multicores = 4)
 
 # label the classified image
 sinop_label <- sits_label_classification(sinop_probs)

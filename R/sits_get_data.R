@@ -73,6 +73,9 @@
 #' \donttest{
 #' # Read a single lat long point from a WTSS server
 #'
+#' wtss_cube <- sits_cube(type = "WTSS",
+#'                        URL = "http://www.esensing.dpi.inpe.br/wtss/",
+#'                        name = "MOD13Q1")
 #' point.tb <- sits_get_data (wtss_cube, longitude = -55.50563,
 #'                                       latitude = -11.71557)
 #' plot(point.tb)
@@ -84,11 +87,6 @@
 #' # show the points retrieved for the WTSS server
 #' plot(points.tb[1:3,])
 #'
-#' # Read a single lat long point from the SATVEG server
-#' satveg_cube <- sits_cube(service = "SATVEG", name = "terra")
-#' point_satveg.tb <- sits_get_data (satveg_cube, longitude = -55.50563,
-#'                                                latitude = -11.71557)
-#' plot(point_satveg.tb)
 #'
 #' # define a shapefile and read from the points inside it from WTSS
 #' shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp",
@@ -141,14 +139,22 @@ sits_get_data <- function(cube,
     assertthat::assert_that(check == TRUE,
                msg = "sits_get_data: cube is not valid or not accessible")
 
-
+    # if the cube is either a BRICK or a STACK, get the robjs for faster access
+    if (cube$type == "BRICK"){
+        r_objs <- .sits_cube_brick_all_robjs(cube)
+        cube <- tibble::add_column(cube, r_objs_list = list(r_objs))
+    }
+    if (cube$type == "BDC_TILE") {
+        r_objs <- .sits_cube_stack_all_robjs(cube)
+        cube <- tibble::add_column(cube, r_objs_list = list(r_objs))
+    }
 
     # No file is given - lat/long must be provided
     if (purrr::is_null(file)) {
         #precondition
         assertthat::assert_that(!purrr::is_null(latitude) &&
                                 !purrr::is_null(longitude),
-            msg = "sits_get_data - latitude/longitude must be provided")
+                    msg = "sits_get_data - latitude/longitude must be provided")
 
         data    <- .sits_ts_from_cube(cube = cube,
                                       longitude = longitude,
@@ -162,12 +168,11 @@ sits_get_data <- function(cube,
     # file is given - must be either CSV or SHP
     else {
         # precondition
-        # assertthat::assert_that(tolower(tools::file_ext(file)) == "csv"
-        #                      || tolower(tools::file_ext(file)) == "shp",
-        #     msg = "sits_get_data - file must either be a CSV or a shapefile")
+        assertthat::assert_that(tolower(tools::file_ext(file)) == "csv"
+                             || tolower(tools::file_ext(file)) == "shp",
+              msg = "sits_get_data - file must either be a CSV or a shapefile")
 
         # get data based on CSV file
-        # if (tolower(tools::file_ext(file)) == "csv")
         if (tolower(.sits_get_extension(file)) == "csv")
             data  <- .sits_from_csv(csv_file = file,
                                     cube = cube,
@@ -246,18 +251,18 @@ sits_get_data <- function(cube,
     st_point <- sf::st_point(c(longitude, latitude))
     ll_sfc   <- sf::st_sfc(st_point, crs = "+proj=longlat +datum=WGS84 +no_defs")
 
-    r_objs <- .sits_cube_all_robjs(cube)
-
+    # get the r_objs
+    r_objs <- unlist(cube$r_objs_list)
     # An input raster brick contains several files, each corresponds to a band
     values.lst <- r_objs %>%
-        purrr::map(function(r_brick) {
+        purrr::map(function(r_obj) {
             # each brick is a band
             nband <<- nband + 1
             # get the values of the time series
-            raster_crs    <- suppressWarnings(raster::crs(r_brick))
+            raster_crs    <- suppressWarnings(raster::crs(r_obj))
             ll_raster     <- suppressWarnings(sf::st_transform(ll_sfc, crs = raster_crs))
             ll_raster_sp  <- suppressWarnings(sf::as_Spatial(ll_raster))
-            values <- suppressWarnings(as.vector(raster::extract(r_brick,
+            values <- suppressWarnings(as.vector(raster::extract(r_obj,
                                                                  ll_raster_sp)))
             # is the data valid?
             if (all(is.na(values))) {
@@ -346,7 +351,7 @@ sits_get_data <- function(cube,
 
         return(data)
     }
-    if (cube$type == "BRICK") {
+    if (cube$type == "BRICK" || cube$type == "BDC_TILE") {
         data <- .sits_from_raster(cube = cube,
                                   longitude = longitude,
                                   latitude = latitude,

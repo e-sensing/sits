@@ -4,13 +4,24 @@
 \alias{.sits_raster_check_bricks}
 \title{Check if the raster files are bricks}
 \usage{
-.sits_raster_check_bricks(files)
+.sits_raster_check_bricks(satellite, sensor, name, timeline, bands, files)
 }
 \arguments{
-\item{files}{files associated to the raster data}
+\item{satellite}{Name of satellite}
+
+\item{sensor}{Name of sensor}
+
+\item{name}{Name of the data cube.}
+
+\item{timeline}{Vector of dates with the timeline of the bands.}
+
+\item{bands}{Vector of bands contained in the Raster Brick
+set (in the same order as the files).}
+
+\item{files}{Vector with the file paths of the raster files}
 }
 \value{
-TRUE         true if filles are acessible
+TRUE                  passed the check?
 }
 \description{
 Check if the raster files are bricks

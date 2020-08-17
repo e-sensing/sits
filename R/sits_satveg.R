@@ -12,9 +12,6 @@
     # get the bands
     bands <- .sits_config_satveg_bands(name)
 
-    # the data in unlabelled
-    labels <- c("NoClass")
-
     # get scale factors, missing values and minimum values
     scale_factors  <- .sits_config_scale_factors(sensor,  bands)
     missing_values <- .sits_config_missing_values(sensor, bands)
@@ -44,7 +41,6 @@
     # get the projection of the SATVEG data
     crs <- .sits_config_satveg_projection(name)
 
-
     URL <- .sits_config_satveg_access()
 
     # create a tibble to store the metadata
@@ -54,7 +50,6 @@
                                    sensor    = sensor,
                                    name      = name,
                                    bands     = bands,
-                                   labels    = labels,
                                    scale_factors  = scale_factors,
                                    missing_values = missing_values,
                                    minimum_values = minimum_values,
@@ -68,8 +63,7 @@
                                    ymax  = ymax,
                                    xres  = xres,
                                    yres  = yres,
-                                   crs   = crs
-    )
+                                   crs   = crs)
 
     class(cube_satveg) <- c("satveg_cube", class(cube_satveg))
 
@@ -189,6 +183,12 @@
 
         # Get the data from SATVEG service
         satveg.txt <-  RCurl::getURL(URL_ts)
+
+        # did we get the data?
+        if (grepl("Acesso", satveg.txt)) {
+            msg = "SATVEG service not accessible"
+            return(NULL)
+        }
 
         # Retrieve the time series
         # find the place where the series ends and the dates start

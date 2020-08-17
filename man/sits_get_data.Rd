@@ -105,6 +105,9 @@ from the RasterBrick.
 \donttest{
 # Read a single lat long point from a WTSS server
 
+wtss_cube <- sits_cube(type = "WTSS",
+                       URL = "http://www.esensing.dpi.inpe.br/wtss/",
+                       name = "MOD13Q1")
 point.tb <- sits_get_data (wtss_cube, longitude = -55.50563,
                                       latitude = -11.71557)
 plot(point.tb)
@@ -116,11 +119,6 @@ points.tb <- sits_get_data (wtss_cube, file = csv_file)
 # show the points retrieved for the WTSS server
 plot(points.tb[1:3,])
 
-# Read a single lat long point from the SATVEG server
-satveg_cube <- sits_cube(service = "SATVEG", name = "terra")
-point_satveg.tb <- sits_get_data (satveg_cube, longitude = -55.50563,
-                                               latitude = -11.71557)
-plot(point_satveg.tb)
 
 # define a shapefile and read from the points inside it from WTSS
 shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp",

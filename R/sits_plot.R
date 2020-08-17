@@ -129,6 +129,64 @@ plot.predicted <- function(x, y, ..., bands = "ndvi") {
 	return(invisible(x))
 }
 
+#' @title  Generic interface for plotting probability cubes
+#' @name   plot.probs_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a probability cube using stars
+#'
+#' @param  x             Object of class "classified_image"
+#' @param  y             Ignored
+#' @param  ...           Further specifications for \link{plot}.
+#' @param time           Temporal reference for plot.
+#' @param title          A string.
+#' @param colors         Color pallete.
+#'
+#' @examples
+#' \donttest{
+#' # Retrieve the samples for Mato Grosso
+#'
+#' # select the bands "ndvi", "evi"
+#' samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#'
+#' #select a random forest model
+#'
+#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#' # Classify a raster file with 23 instances for one year
+#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+#'            package = "sits"))
+#' # create a data cube based on the information about the files
+#' sinop <- sits_cube(type = "BRICK", satellite = "TERRA", sensor = "MODIS",
+#'          name = "Sinop-crop", timeline = timeline_modis_392,
+#'          bands = "ndvi", files = files)
+#'
+#' # classify the raster image
+#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
+#'                              memsize = 2, multicores = 1)
+#'
+#' # plot the raster image
+#' plot(sinop_probs)
+#'
+#' # remove the files (cleanup)
+#' file.remove(unlist(sinop_probs$files))
+#' }
+#' @export
+plot.probs_cube <- function(x , y, ..., time = 1,
+					title = "Probabilities for Classes", colors = "YlGn") {
+	stopifnot(missing(y))
+	# verifies if stars package is installed
+	if (!requireNamespace("stars", quietly = TRUE)) {
+		stop("stars needed for this function to work.
+              Please install it.", call. = FALSE)
+	}
+	# define the output color pallete
+	sits_c <- unlist(unname(sits:::.sits_brewerRGB[[colors]][["10"]]))
+	# create a stars object
+	st <- stars::read_stars(x$files[[time]])
+
+	plot(st, nbreaks = 12, col = sits_c)
+	return(invisible(x))
+}
+
 
 #' @title  Generic interface for ploting classified images
 #' @name   plot.classified_image
@@ -564,7 +622,7 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
                             msg = "sits_plot_raster: time must be a positive integer")
 
     # get the raster object
-    r <- .sits_cube_robj(cube, time)
+    r <- raster::raster(cube$files[[1]][time])
 
     # convert from raster to points
     map.p <- raster::rasterToPoints(r)

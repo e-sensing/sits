@@ -96,7 +96,7 @@
         ninterval <- which(interval_dates)[1] - 1
     else
         ninterval <- ninstances
-    # number of bytes por pixel
+    # number of bytes per pixel
     nbytes <-  8
     # estimated memory bloat
     bloat <- as.numeric(.sits_config_memory_bloat())
@@ -106,11 +106,11 @@
 
     # single instance size
     single_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)
-    # total size including all bricks
-    bricks_data_size <- single_data_size*as.numeric(nbands)
+    # total size including all bands
+    nbands_data_size <- single_data_size*as.numeric(nbands)
 
     # estimated full size of the data
-    full_size <- as.numeric(ninstances)*bricks_data_size
+    full_size <- as.numeric(ninstances)*nbands_data_size
 
     # estimated size of memory required for scaling and normalization
     mem_required_scaling <- (full_size + as.numeric(.sits_mem_used()))*bloat
@@ -121,7 +121,7 @@
     # number of labels
     nlabels <- length(sits_labels(environment(ml_model)$data)$label)
     # estimated size of the data for classification
-    input_class_data_size <- as.numeric(ninterval)*bricks_data_size
+    input_class_data_size <- as.numeric(ninterval)*nbands_data_size
     output_class_data_size <- as.numeric(nlabels)*single_data_size
     class_data_size <- input_class_data_size + output_class_data_size
 
@@ -130,7 +130,7 @@
     {
         .sits_log_debug(paste0("keras and ranger run on multiple threads"))
         mem_required_processing <- (class_data_size +
-                                        as.numeric(.sits_mem_used()))*proc_bloat
+                                    as.numeric(.sits_mem_used()))*proc_bloat
     }
     else {
         # test two different cases
@@ -249,22 +249,23 @@
     minimum_values <- unlist(cube$minimum_values)
     scale_factors  <- unlist(cube$scale_factors)
 
-    ordered_bricks.lst <- purrr::map(1:n_bands, function(i) {
-        ordered_bricks <- .sits_cube_robj(cube, i)
-    })
+    # ordered_bricks.lst <- purrr::map(1:n_bands, function(i) {
+    #     ordered_bricks <- .sits_cube_robj(cube, i)
+    # })
+    r_objs <- unlist(cube$r_objs_list)
 
-    names(ordered_bricks.lst) <- bands
+    names(r_objs) <- bands
 
     # index to go through the bands vector
     b <- 0
 
     # read the values from the raster bricks ordered by bands
-    values.lst <- ordered_bricks.lst %>%
-        purrr::map(function(r_stack) {
+    values.lst <- r_objs %>%
+        purrr::map(function(r_obj) {
             # getValues function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            values.mx    <- suppressWarnings(raster::getValues(r_stack,
+            values.mx    <- suppressWarnings(raster::getValues(r_obj,
                                                                first_row,
                                                                n_rows_block))
 

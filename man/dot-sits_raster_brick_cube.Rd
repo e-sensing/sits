@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_raster_data.R
 \name{.sits_raster_brick_cube}
 \alias{.sits_raster_brick_cube}
-\title{Check if input data is made of raster bricks and create a cube if all is OK}
+\title{Create a raster brick data cube}
 \usage{
 .sits_raster_brick_cube(satellite, sensor, name, timeline, bands, files)
 }
@@ -24,13 +24,7 @@ set (in the same order as the files).}
 A tibble with metadata information about a raster data set.
 }
 \description{
-This function checks if the input data corresponds
-              to a set of raster bricks and creates a tibble containing the metadata for
-              a set of spatio-temporal raster files,
-              These files should be of the same size and
-              projection. Each raster brick file should contain one band
-              per time step.
-              Different bands are archived in different raster files.
+Builds a BRICK cube
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

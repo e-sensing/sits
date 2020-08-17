@@ -15,7 +15,7 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series, both as individual data or as part of data cubes.
-    Supports data retrieval from a WTSS (web time series service) and EOCUBES data service.
+    Supports data retrieval from a WTSS (web time series service).
     Provides different visualisation methods for image time series.
     Provides smoothing methods for noisy time series.
     Enables different clustering methods, including dendrograms and SOM.

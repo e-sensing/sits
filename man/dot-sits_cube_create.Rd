@@ -6,12 +6,14 @@
 \usage{
 .sits_cube_create(
   type,
-  URL,
+  URL = NULL,
   satellite,
   sensor,
   name,
+  cube = NULL,
+  tile = NULL,
   bands,
-  labels,
+  labels = NULL,
   scale_factors,
   missing_values,
   minimum_values,
@@ -26,19 +28,24 @@
   xres,
   yres,
   crs,
-  files = NULL
+  files = NULL,
+  stack_info = NULL
 )
 }
 \arguments{
-\item{type}{Web service with metadata about the cube.}
+\item{type}{Type of cube}
 
-\item{URL}{URL of the provider}
+\item{URL}{URL of the provider (optional)}
 
 \item{satellite}{Name of satellite}
 
 \item{sensor}{Name of sensor}
 
-\item{name}{Name of the data cube.}
+\item{name}{Name of the data cube (mandatory)}
+
+\item{cube}{Name of the input data cube (optional)}
+
+\item{tile}{Name of the input data tile (optional)}
 
 \item{bands}{Vector with the names of the bands.}
 
@@ -72,7 +79,9 @@
 
 \item{crs}{CRS for cube (EPSG code or PROJ4 string).}
 
-\item{files}{Vector with associated files.}
+\item{files}{Vector with associated files (for bricks).}
+
+\item{stack_info}{Tibble with information about stacks (for stacks)}
 }
 \description{
 Print information and save metadata about a data cube.

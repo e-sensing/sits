@@ -37,7 +37,6 @@
                                    sensor    = cov.tb$sensor,
                                    name      = cov.tb$name,
                                    bands     = bands,
-                                   labels    = c("NoClass"),
                                    scale_factors  = cov.tb$scale_factors[[1]],
                                    missing_values = cov.tb$missing_values[[1]],
                                    minimum_values = cov.tb$minimum_values[[1]],

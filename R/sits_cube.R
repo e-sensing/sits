@@ -7,7 +7,7 @@
 #'  \item{"WTSS": }{Web Time Series Service - used to get time series}
 #'  \item{"SATVEG": }{ SATVEG Time Series Service - used to get time series}
 #'  \item{"BRICK": }{Raster Brick files}
-#'  \item{"BDC-TILE"}{A tile from the Brazil Data Cube}
+#'  \item{"BDC_TILE"}{A tile from the Brazil Data Cube}
 #' }
 #'
 #' @param type              Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC-TILE")
@@ -85,6 +85,9 @@ sits_cube <- function(type           = NULL,
         message(paste0("sits_cube: type ", type, "not supported"))
         return(invisible(NULL))
     }
+    # bands are lowercase
+    if (!purrr::is_null(bands))
+        bands <- tolower(bands)
 
     if (type == "WTSS") {
         wtss_ok <- .sits_wtss_check(URL = URL, name = name)
@@ -101,8 +104,16 @@ sits_cube <- function(type           = NULL,
             cube.tb <- .sits_satveg_cube(name = name)
     }
     else if (type == "BRICK") {
+
+        # check if need to include "/vsicurl" to be read by GDAL
+        files <- .sits_raster_check_webfiles(files)
         # check if the files are bricks
-        bricks_ok <- .sits_raster_check_bricks(files)
+        bricks_ok <- .sits_raster_check_bricks(satellite = satellite,
+                                               sensor    = sensor,
+                                               name      = name,
+                                               timeline  = timeline,
+                                               bands     = bands,
+                                               files     = files)
         if (bricks_ok)
             cube.tb <- .sits_raster_brick_cube(satellite = satellite,
                                                sensor    = sensor,
@@ -111,7 +122,7 @@ sits_cube <- function(type           = NULL,
                                                bands     = bands,
                                                files     = files)
     }
-    else if (type == "BDC-TILE") {
+    else if (type == "BDC-TILE" || type == "BDC_TILE") {
         bdc_tile_ok <- .sits_raster_check_bdc_tiles(satellite      = satellite,
                                                     sensor         = sensor,
                                                     bands          = bands,
@@ -119,9 +130,30 @@ sits_cube <- function(type           = NULL,
                                                     tile           = tile,
                                                     data_access    = data_access,
                                                     start_date     = start_date,
-                                                    end_date       = end_date,
-                                                    .local         = .local,
-                                                    .web           = .web)
+                                                    end_date       = end_date)
+
+        if (bdc_tile_ok){
+            stack.tb <- .sits_raster_info_bdc_tiles(satellite   = satellite,
+                                                    sensor      = sensor,
+                                                    bands       = bands,
+                                                    cube        = cube,
+                                                    tile        = tile,
+                                                    data_access = data_access,
+                                                    start_date  = start_date,
+                                                    end_date    = end_date,
+                                                    .local      = .local,
+                                                    .web        = .web)
+
+            cube.tb  <- .sits_raster_bdc_tile_cube(satellite    = satellite,
+                                                   sensor       = sensor,
+                                                   name         = name,
+                                                   bands        = bands,
+                                                   cube         = cube,
+                                                   tile         = tile,
+                                                   stack_info   = stack.tb)
+
+        }
+
     }
     return(cube.tb)
 }
@@ -131,11 +163,13 @@ sits_cube <- function(type           = NULL,
 #'
 #' @description Print information and save metadata about a data cube.
 #'
-#' @param type               Web service with metadata about the cube.
-#' @param URL                URL of the provider
+#' @param type               Type of cube
+#' @param URL                URL of the provider (optional)
 #' @param satellite          Name of satellite
 #' @param sensor             Name of sensor
-#' @param name               Name of the data cube.
+#' @param name               Name of the data cube (mandatory)
+#' @param cube               Name of the input data cube (optional)
+#' @param tile               Name of the input data tile (optional)
 #' @param bands              Vector with the names of the bands.
 #' @param labels             Vector with labels (only for classified data).
 #' @param scale_factors      Vector with scale factor for each band.
@@ -152,25 +186,42 @@ sits_cube <- function(type           = NULL,
 #' @param xres               Spatial resolution (x dimension).
 #' @param yres               Spatial resolution (y dimension).
 #' @param crs                CRS for cube (EPSG code or PROJ4 string).
-#' @param files              Vector with associated files.
+#' @param files              Vector with associated files (for bricks).
+#' @param stack_info         Tibble with information about stacks (for stacks)
 #'
-.sits_cube_create <- function(type, URL, satellite, sensor,
-                              name, bands, labels,
-                              scale_factors, missing_values,
-                              minimum_values, maximum_values,
-                              timelines, nrows, ncols, xmin,
-                              xmax, ymin, ymax, xres, yres, crs,
-                              files = NULL) {
+.sits_cube_create <- function(type,
+                              URL = NULL,
+                              satellite,
+                              sensor,
+                              name,
+                              cube = NULL,
+                              tile = NULL,
+                              bands,
+                              labels = NULL,
+                              scale_factors,
+                              missing_values,
+                              minimum_values,
+                              maximum_values,
+                              timelines,
+                              nrows,
+                              ncols,
+                              xmin,
+                              xmax,
+                              ymin,
+                              ymax,
+                              xres,
+                              yres,
+                              crs,
+                              files = NULL,
+                              stack_info = NULL) {
 
 
-    # create a tibble to store the metadata
+    # create a tibble to store the metadata (mandatory parameters)
     cube.tb <- tibble::tibble(type           = type,
-                              URL            = URL,
                               satellite      = satellite,
                               sensor         = sensor,
                               name           = name,
                               bands          = list(bands),
-                              labels         = list(labels),
                               scale_factors  = list(scale_factors),
                               missing_values = list(missing_values),
                               minimum_values = list(minimum_values),
@@ -184,9 +235,26 @@ sits_cube <- function(type           = NULL,
                               ymax           = ymax,
                               xres           = xres,
                               yres           = yres,
-                              crs            = crs,
-                              files          = list(files))
+                              crs            = crs)
 
+    # add optional parameters
+    if (!purrr::is_null(URL))
+        cube.tb <- tibble::add_column(cube.tb, URL = URL, .after = "type")
+
+    if (!purrr::is_null(cube))
+        cube.tb <- tibble::add_column(cube.tb, cube = cube, .after = "name")
+
+    if (!purrr::is_null(tile))
+        cube.tb <- tibble::add_column(cube.tb, tile = tile, .before = "bands")
+
+    if (!purrr::is_null(labels))
+        cube.tb <- tibble::add_column(cube.tb, labels = list(labels), .after = "bands")
+
+    if (!purrr::is_null(files))
+        cube.tb <- tibble::add_column(cube.tb, files = list(files), .after = "crs")
+
+    if (!purrr::is_null(stack_info))
+        cube.tb <- tibble::add_column(cube.tb, stack_info = list(stack_info), .after = "crs")
 
     return(cube.tb)
 }
@@ -365,7 +433,6 @@ sits_cube <- function(type           = NULL,
     params <- .sits_raster_params(.sits_cube_robj(cube_probs))
     # create a new RasterLayer for a defined period and generate metadata
     cube_labels <- .sits_cube_create(type           = "CLASSIFIED",
-                                     URL            = "http://127.0.0.1",
                                      satellite      = cube_probs$satellite,
                                      sensor         = cube_probs$sensor,
                                      name           = name,
@@ -386,6 +453,7 @@ sits_cube <- function(type           = NULL,
                                      yres           = params$yres,
                                      crs            = params$crs,
                                      files          = files)
+
 
     class(cube_labels) <- c("classified_image", class(cube_labels))
     return(cube_labels)
@@ -457,9 +525,9 @@ sits_cube <- function(type           = NULL,
     # check is SATVEG service is working
     else if (cube$type == "SATVEG")
         check <- .sits_satveg_check()
-    # check if the raster files are organised as bricks
-    else if (cube$type == "BRICK")
-        check <- .sits_raster_check_bricks(cube$files[[1]])
+    # raster cubes have been checked before
+    else
+        check <- TRUE
 
     return(check)
 }
@@ -538,21 +606,20 @@ sits_cube_timeline <- function(cube, index = 1){
 #' @return          Raster object associated to the indexed file
 #'
 .sits_cube_robj <- function(cube, index = 1){
-    assertthat::assert_that(index <= length(cube$files[[1]]),
-                         msg = ".sits_cube_robj: index is out of range")
-    robj <- suppressWarnings(raster::brick(cube$files[[1]][index]))
-    return(robj)
+
+    r_objs <- unlist(cube$r_objs_list)
+    return(r_objs[[index]])
 }
 
-#' @title Return the Raster objects associated to a data cube
-#' @name .sits_cube_all_robjs
+#' @title Return the Raster objects associated to a brick data cube
+#' @name .sits_cube_brick_all_robjs
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description     Given a data cube, retrieve the Raster objects
 #' @param cube      Metadata about a data cube
 #' @return          list of raster object associated to the indexed file
 #'
-.sits_cube_all_robjs <- function(cube){
+.sits_cube_brick_all_robjs <- function(cube){
     nfiles <- length(cube$files[[1]])
     robjs <- vector("list", nfiles )
     for (i in 1:nfiles)
@@ -560,6 +627,34 @@ sits_cube_timeline <- function(cube, index = 1){
     return(robjs)
 }
 
+#' @title Return the Raster objects associated to a stack data cube
+#' @name .sits_cube_stack_all_robjs
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description     Given a data cube, retrieve the Raster objects
+#' @param cube      Metadata about a data cube
+#' @return          list of raster object associated to the indexed file
+#'
+.sits_cube_stack_all_robjs <- function(cube){
+
+    # get the stack info
+    stack_info <- cube$stack_info[[1]]
+
+    # robjs is a vector of the same size of the bands
+    bands <- cube$bands[[1]]
+    nbands <- length(bands)
+    robjs <- vector("list", nbands)
+
+    for (i in 1:nbands){
+        stack.tb <- dplyr::filter(stack_info, band == bands[i])
+        paths <- stack.tb$path
+        tifs  <- stack.tb$file
+        full_paths <- paste0(paths,"/",tifs)
+        robjs[[i]] <- suppressWarnings(raster::stack(full_paths))
+    }
+
+    return(robjs)
+}
 #' @title Retrieve the missing values for a data cube
 #' @name .sits_cube_missing_values
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -615,15 +710,27 @@ sits_cube_timeline <- function(cube, index = 1){
 
     # retrieve the cube bands
     cube_bands <- .sits_cube_bands(cube)
-    cube_files <- .sits_cube_files(cube)
 
     # align the indexes
     m <- match(sample_bands, cube_bands)
 
     # reorganize the bands and the files in the cube
     # they should be aligned with the bands in the samples
-    cube <- .sits_cube_bands_set(cube, cube_bands[m])
-    cube <- .sits_cube_files_set(cube, cube_files[m])
+    cube_bands <- cube_bands[m]
+    cube$bands <- list(cube_bands)
 
+    # adjust the object list
+    if (cube$type == "BRICK") {
+        cube$files <- cube$files %>%
+                unlist() %>%
+                .[m]     %>%
+                list()
+    }
+    cube$r_objs_list <- cube$r_objs_list %>%
+        unlist() %>%
+        .[m]     %>%
+        list()
+
+    # need to include the case of BDC_TILE
     return(cube)
 }
