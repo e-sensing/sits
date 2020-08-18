@@ -6,14 +6,14 @@
 \usage{
 .sits_cube_create(
   type,
-  URL = NULL,
+  URL = NA,
   satellite,
   sensor,
   name,
-  cube = NULL,
-  tile = NULL,
+  cube = NA,
+  tile = NA,
   bands,
-  labels = NULL,
+  labels = NA,
   scale_factors,
   missing_values,
   minimum_values,

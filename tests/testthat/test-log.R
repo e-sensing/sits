@@ -12,9 +12,6 @@ test_that("Log", {
     err_abc <- dplyr::filter(err, grepl("abc", error))
     expect_true(nrow(err_abc) > 0)
 
-    no_deb <- sits_log_show_debug()
-    expect_equal(no_deb, "No debug msgs to report")
-
     sits:::.sits_log_debug("def")
     deb <- sits_log_show_debug()
     deb_def <- dplyr::filter(deb, grepl("def", debug))

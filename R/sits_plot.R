@@ -140,7 +140,8 @@ plot.predicted <- function(x, y, ..., bands = "ndvi") {
 #' @param time           Temporal reference for plot.
 #' @param breaks         Type of breaks
 #' @param title          A string.
-#' @param colors         Color pallete.
+#' @param colors         Color palette.
+#' @param n_colors       Number of colors.
 #'
 #' @examples
 #' \donttest{
@@ -172,7 +173,10 @@ plot.predicted <- function(x, y, ..., bands = "ndvi") {
 #' }
 #' @export
 plot.probs_cube <- function(x , y, ..., time = 1,
-					title = "Probabilities for Classes", breaks = "jenks", colors = "YlGnBu") {
+					title = "Probabilities for Classes",
+					breaks = "jenks",
+					colors = "YlGnBu",
+					n_colors = 10) {
 	stopifnot(missing(y))
 	# verifies if stars package is installed
 	if (!requireNamespace("stars", quietly = TRUE)) {
@@ -180,11 +184,11 @@ plot.probs_cube <- function(x , y, ..., time = 1,
               Please install it.", call. = FALSE)
 	}
 	# define the output color pallete
-	sits_c <- unlist(unname(sits:::.sits_brewerRGB[[colors]][["10"]]))
+	col = grDevices::hcl.colors(10, colors, rev = TRUE)
 	# create a stars object
 	st <- stars::read_stars(x$files[[1]][[time]])
 
-	plot(st, breaks = breaks, nbreaks = 11, col = sits_c, main = x$labels[[1]])
+	plot(st, breaks = breaks, nbreaks = 11, col = col, main = x$labels[[1]])
 	return(invisible(x))
 }
 

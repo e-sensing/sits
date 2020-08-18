@@ -82,6 +82,7 @@ Suggests:
     RCurl,
     RSQLite,
     signal,
+    stars,
     stringr,
     testthat,
     xgboost,

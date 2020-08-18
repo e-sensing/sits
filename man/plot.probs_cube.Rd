@@ -4,7 +4,16 @@
 \alias{plot.probs_cube}
 \title{Generic interface for plotting probability cubes}
 \usage{
-\method{plot}{probs_cube}(x, y, ..., time = 1, title = "Probabilities for Classes", colors = "YlGn")
+\method{plot}{probs_cube}(
+  x,
+  y,
+  ...,
+  time = 1,
+  title = "Probabilities for Classes",
+  breaks = "jenks",
+  colors = "YlGnBu",
+  n_colors = 10
+)
 }
 \arguments{
 \item{x}{Object of class "classified_image"}
@@ -17,7 +26,11 @@
 
 \item{title}{A string.}
 
-\item{colors}{Color pallete.}
+\item{breaks}{Type of breaks}
+
+\item{colors}{Color palette.}
+
+\item{n_colors}{Number of colors.}
 }
 \description{
 plots a probability cube using stars
