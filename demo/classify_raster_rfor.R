@@ -36,9 +36,11 @@ sinop <- sits_cube(type = "BRICK",
                    bands = c("ndvi", "evi"),
                    files = files)
 
+plot(sinop, red = 1, green = 24, blue = 24)
+
 # classify the raster image
 sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 24, multicores = 4)
-
+plot(sinop_probs)
 # label the classified image
 sinop_label <- sits_label_classification(sinop_probs)
 

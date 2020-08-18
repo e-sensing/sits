@@ -354,6 +354,7 @@ default:
         Cerrado_Rupestre :  "#d9f0a3"
         Corn :              "#fcbba1"
         Cotton:             "#fb6a4a"
+        Cropland:           "#fec44f"
         Dunas :             "#fff7e6"
         Fallow_Cotton :     "#fb6a4a"
         Millet_Cotton :     "#fb6a4a"

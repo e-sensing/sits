@@ -10,7 +10,7 @@
   ...,
   time = 1,
   title = "Probabilities for Classes",
-  breaks = "jenks",
+  breaks = "kmeans",
   colors = "YlGnBu",
   n_colors = 10
 )
