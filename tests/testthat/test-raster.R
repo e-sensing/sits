@@ -48,7 +48,7 @@ test_that("Multi-year, multi-core classification", {
                        bands = "ndvi",
                        files = files)
 
-    r_obj <- sits:::.sits_cube_robj(sinop)
+    r_obj <- suppressWarnings(raster::brick(sinop$files[[1]][[1]]))
     expect_true(raster::nrow(r_obj) == sinop$nrows)
     expect_true(raster::xmin(r_obj) == sinop$xmin)
 
@@ -59,7 +59,7 @@ test_that("Multi-year, multi-core classification", {
     sinop_probs <- sits_classify(sinop, svm_model, memsize = 4, multicores = 2)
 
     expect_true(all(file.exists(unlist(sinop_probs$files))))
-    rc_obj <- sits:::.sits_cube_robj(sinop_probs)
+    rc_obj <- suppressWarnings(raster::brick(sinop_probs$files[[1]][[1]]))
     expect_true(raster::nrow(rc_obj) == sinop_probs$nrows)
 
     expect_error(sits:::.sits_raster)
@@ -71,14 +71,14 @@ test_that("Multi-year, multi-core classification", {
                                                    smoothing = "bayesian")
     expect_true(all(file.exists(unlist(sinop_bayes$files))))
 
-    rc_obj2 <- sits:::.sits_cube_robj(sinop_bayes)
+    rc_obj2 <- suppressWarnings(raster::brick(sinop_bayes$files[[1]][[1]]))
     expect_true(raster::nrow(rc_obj2) == sinop_bayes$nrows)
     expect_true(raster::nrow(rc_obj2) == raster::nrow(rc_obj))
 
     sinop_majority <- sits_label_classification(sinop_probs,
                                                 smoothing = "majority")
     expect_true(all(file.exists(unlist(sinop_majority$files))))
-    rc_obj3 <- sits:::.sits_cube_robj(sinop_majority)
+    rc_obj3 <- suppressWarnings(raster::brick(sinop_majority$files[[1]][[1]]))
     expect_true(raster::nrow(rc_obj2) == sinop_majority$nrows)
     expect_true(raster::nrow(rc_obj3) == raster::nrow(rc_obj))
 
@@ -86,7 +86,7 @@ test_that("Multi-year, multi-core classification", {
     sinop_majority_bayes <- sits_label_classification(sinop_probs,
                                             smoothing = "bayesian+majority")
     expect_true(all(file.exists(unlist(sinop_majority_bayes$files))))
-    rc_obj4 <- sits:::.sits_cube_robj(sinop_majority_bayes)
+    rc_obj4 <- suppressWarnings(raster::brick(sinop_majority_bayes$files[[1]][[1]]))
     expect_true(raster::nrow(rc_obj4) == sinop_majority$nrows)
     expect_true(raster::nrow(rc_obj4) == raster::nrow(rc_obj))
 
@@ -134,7 +134,7 @@ test_that("One-year, single core classification", {
                                       multicores = 1)
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$files))))
-    rc_obj <- sits:::.sits_cube_robj(sinop_2014_probs)
+    rc_obj <- suppressWarnings(raster::brick(sinop_2014_probs$files[[1]][[1]]))
     expect_true(raster::nrow(rc_obj) == sinop_2014_probs$nrows)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$files))))

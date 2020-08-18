@@ -2,8 +2,7 @@ context("WTSS")
 
 test_that("Writing a zoo time series", {
     data(cerrado_2classes)
-    unloadNamespace("zoo")
-    remove.packages("zoo")
+    #unloadNamespace("zoo")
     zoo.lst <- sits_to_zoo (cerrado_2classes[1:5,])
 
     expect_equal(length(zoo.lst), 5)
