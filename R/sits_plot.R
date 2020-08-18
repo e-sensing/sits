@@ -128,7 +128,67 @@ plot.predicted <- function(x, y, ..., bands = "ndvi") {
 	.sits_plot_classification(x, bands)
 	return(invisible(x))
 }
+#' @title  Generic interface for plotting probability cubes
+#' @name   plot.brick_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a stack cube using terra
+#'
+#' @param  x             Object of class "classified_image"
+#' @param  y             Ignored
+#' @param  ...           Further specifications for \link{plot}.
+#' @param  red           Band for red color.
+#' @param  green         Band for green color.
+#' @param  blue          Band for blue color.
+#'
+#' @export
+plot.brick_cube <- function(x , y, ..., red = 1, green = 1, blue = 1) {
+	stopifnot(missing(y))
+	# verifies if stars package is installed
+	if (!requireNamespace("terra", quietly = TRUE)) {
+		stop("terra needed for this function to work.
+              Please install it.", call. = FALSE)
+	}
+	# use the terra package to obtain a "rast" object
+	rast <- terra::rast(x$files[[1]])
+	# plot the RGB file
+	terra::plotRGB(rast, r = red, g = green, b = blue, stretch = "lin")
+}
 
+#' @title  Generic interface for plotting probability cubes
+#' @name   plot.stack_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a stack cube using terra
+#'
+#' @param  x             Object of class "classified_image"
+#' @param  y             Ignored
+#' @param  ...           Further specifications for \link{plot}.
+#' @param  red           Band for red color.
+#' @param  green         Band for green color.
+#' @param  blue          Band for blue color.
+#'
+#' @export
+plot.stack_cube <- function(x , y, ..., red = 1, green = 1, blue = 1) {
+	stopifnot(missing(y))
+	# verifies if stars package is installed
+	if (!requireNamespace("terra", quietly = TRUE)) {
+		stop("terra needed for this function to work.
+              Please install it.", call. = FALSE)
+	}
+	# get the information about the stack
+	stack_info <- x$stack_info[[1]]
+	# get the bands
+	bands <- x$bands[[1]]
+	# make a list of all files
+	file.lst <- purrr::map(bands, function (b){
+		b_files <- dplyr::filter(stack_info, band == b)
+		return(paste0(b_files$path,"/",b_files$file))
+	})
+	all_files <- unlist(file.lst)
+	# use the terra package to obtain a "rast" object
+	rast <- terra::rast(all_files)
+	# plot the RGB file
+	terra::plotRGB(rast, r = red, g = green, b = blue, stretch = "lin")
+}
 #' @title  Generic interface for plotting probability cubes
 #' @name   plot.probs_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -174,7 +234,7 @@ plot.predicted <- function(x, y, ..., bands = "ndvi") {
 #' @export
 plot.probs_cube <- function(x , y, ..., time = 1,
 					title = "Probabilities for Classes",
-					breaks = "jenks",
+					breaks = "kmeans",
 					colors = "YlGnBu",
 					n_colors = 10) {
 	stopifnot(missing(y))
@@ -184,7 +244,7 @@ plot.probs_cube <- function(x , y, ..., time = 1,
               Please install it.", call. = FALSE)
 	}
 	# define the output color pallete
-	col = hcl.colors(10, colors, rev = TRUE)
+	col = grDevices::hcl.colors(10, colors, rev = TRUE)
 	# create a stars object
 	st <- stars::read_stars(x$files[[1]][[time]])
 

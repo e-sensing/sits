@@ -31,10 +31,6 @@
 \item{start_date}{start_date of the cube}
 
 \item{end_date}{end date of the cube}
-
-\item{.local}{local address (if different from default)}
-
-\item{.web}{web address (if different from default)}
 }
 \description{
 Check if the BDC tiles are working
