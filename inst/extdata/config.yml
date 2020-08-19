@@ -161,6 +161,10 @@ default:
             B14             : 0
             B15             : 0
             B16             : 0
+            BAND13          : 0
+            BAND14          : 0
+            BAND15          : 0
+            BAND16          : 0
 
         minimum_value       :
             ndvi            : 0
@@ -176,6 +180,10 @@ default:
             B14             : 0
             B15             : 0
             B16             : 0
+            BAND13          : 0
+            BAND14          : 0
+            BAND15          : 0
+            BAND16          : 0
 
         maximum_value       :
             ndvi            : 10000
@@ -191,6 +199,10 @@ default:
             B14             : 10000
             B15             : 10000
             B16             : 10000
+            BAND13          : 10000
+            BAND14          : 10000
+            BAND15          : 10000
+            BAND16          : 10000
 
         scale_factor:
             ndvi            : 0.0001
@@ -206,6 +218,10 @@ default:
             B14             : 0.0001
             B15             : 0.0001
             B16             : 0.0001
+            BAND13          : 0.0001
+            BAND14          : 0.0001
+            BAND15          : 0.0001
+            BAND16          : 0.0001
 
         resolution          :
             xres            : 64

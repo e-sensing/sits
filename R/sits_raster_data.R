@@ -169,15 +169,16 @@ return(TRUE)
     # compose the directory with the name of the cube and tile
     data_dir <- paste0(dir,"/",cube,"/",tile)
     # list the files in the directory
-    files_tile <- list.files(data_dir)
+    files_tile <- list.files(data_dir, recursive = TRUE)
+    files_tile <- files_tile[grepl("tif", files_tile)]
 
     # filter the dates as directories (if they are included in the file path)
-    files_no_dir.tb  <- readr::read_delim(files_tile, delim = "/")
+    files_no_dir.tb  <- readr::read_delim(files_tile, delim = "/", col_names = FALSE)
     files_no_dir.vec <- as.vector(dplyr::pull(files_no_dir.tb[,ncol(files_no_dir.tb)]))
 
     # extract dates and bands
     prefix <- paste0(cube,"_",tile,"_")
-    dates_bands <- files_tile %>%
+    dates_bands <- files_no_dir.vec %>%
         stringr::str_remove(prefix) %>%
         tools::file_path_sans_ext()
 
