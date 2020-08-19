@@ -85,9 +85,17 @@ sits_cube <- function(type           = NULL,
         message(paste0("sits_cube: type ", type, "not supported"))
         return(invisible(NULL))
     }
-    # bands are lowercase
-    if (!purrr::is_null(bands))
-        bands <- tolower(bands)
+    # bands are lowercase, except when start with "B"
+    if (!purrr::is_null(bands)) {
+        new_bands.lst <- purrr::map(bands, function(b){
+            l <- stringr::str_locate(b, "B")
+            if (l[1,"start"] == 1 && l[1,"end"] == 1)
+                return(b)
+            else
+                return(tolower(b))
+        })
+    }
+    bands <- unlist(new_bands.lst)
 
     if (type == "WTSS") {
         wtss_ok <- .sits_wtss_check(URL = URL, name = name)
@@ -135,7 +143,6 @@ sits_cube <- function(type           = NULL,
         if (bdc_tile_ok){
             stack.tb <- .sits_raster_info_bdc_tiles(satellite   = satellite,
                                                     sensor      = sensor,
-                                                    bands       = bands,
                                                     cube        = cube,
                                                     tile        = tile,
                                                     data_access = data_access,

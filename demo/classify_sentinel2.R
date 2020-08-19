@@ -1,0 +1,54 @@
+# This is a demonstration of classification of a Sentinel-2 image
+# tile T20LKP in Rondonia Brazil
+library(sits)
+library(ranger)
+
+if (!requireNamespace("inSitu", quietly = TRUE)) {
+	if (!requireNamespace("devtools", quietly = TRUE))
+		install.packages("devtools")
+	devtools::install_github("e-sensing/inSitu")
+}
+library(inSitu)
+# load the samples for the Sentinel data set
+data(samples_S2_T20LKP_2018_2019)
+# get the timeline
+timeline <- sits_timeline(samples_S2_T20LKP_2018_2019)
+start_date <- as.Date(timeline[1])
+end_date   <- as.Date(timeline[length(timeline)])
+
+# get the files and the bands
+s2_dir <- system.file("extdata/sentinel/T20LKP", package = "inSitu")
+s2_bricks <- list.files(s2_dir)
+s2_files <- paste0(s2_dir,"/",s2_bricks)
+bands <- c("B03", "B04", "B08", "B11")
+
+# define the cube
+s2_cube <- sits_cube(type = "BRICK",
+					 name = "T20LKP",
+					 satellite = "SENTINEL-2",
+					 sensor    = "MSI",
+					 timeline  = timeline,
+					 bands     = bands,
+					 files     = s2_files)
+
+# plot the first date as a SWIR composite (B11, B08, B04)
+# remember that each brick has 36 instances and there are 4 bands
+# the first instance of B12 is layes 3*36 + 1 = 109
+plot(s2_cube, red = 109, green = 73, blue = 37)
+
+# plot the last date as a SWIR composite (B11, B08, B04)
+plot(s2_cube, red = 144, green = 108, blue = 72)
+
+# train a random forest model
+samples_s2_4bands <- sits_select_bands(samples_S2_T20LKP_2018_2019, B03, B04, B08, B11)
+rfor_model <- sits_train(samples_s2_4bands, sits_rfor())
+
+# classify the cube using an rfor model
+s2_probs <- sits_classify(s2_cube, rfor_model, memsize = 24)
+# plot the probabilities
+plot(s2_probs)
+
+# label the probability cube
+s2_label <- sits_label_classification(s2_probs, smoothing = "bayesian")
+# plot the labelled images
+plot(s2_label)

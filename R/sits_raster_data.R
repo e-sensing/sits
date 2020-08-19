@@ -136,7 +136,6 @@ return(TRUE)
 #'
 #' @param satellite     satellite
 #' @param sensor        sensor
-#' @param bands         bands
 #' @param cube          input cube
 #' @param tile          tile
 #' @param data_access   type of access
@@ -146,7 +145,6 @@ return(TRUE)
 #' @param .web          web address (if different from default)
 .sits_raster_info_bdc_tiles <- function(satellite,
                                          sensor,
-                                         bands,
                                          cube,
                                          tile,
                                          data_access,
@@ -187,8 +185,16 @@ return(TRUE)
     stack.tb <- readr::read_delim(dates_bands, delim = "_",
                                   col_names = c("start_date", "end_date", "band"))
 
-    # make sure the band names are in lower case
-    stack.tb$band <- tolower(stack.tb$band)
+    # bands are lowercase, except when start with "B"
+    bands <- stack.tb$band
+    new_bands.lst <- purrr::map(bands, function(b){
+        l <- stringr::str_locate(b, "B")
+        if (l[1,"start"] == 1 && l[1,"end"] == 1)
+            return(b)
+        else
+            return(tolower(b))
+    })
+    stack.tb$band <- unlist(new_bands.lst)
     # include a column with the file name
     stack.tb$file <- files_tile
     # include a column with the file path

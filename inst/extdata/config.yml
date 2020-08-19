@@ -208,6 +208,13 @@ default:
             nnir            : -9999
             swir1           : -9999
             swir2           : -9999
+            B02             : -9999
+            B03             : -9999
+            B04             : -9999
+            B08             : -9999
+            B8A             : -9999
+            B11             : -9999
+            B12             : -9999
 
         minimum_value       :
             evi             : -9999
@@ -221,6 +228,13 @@ default:
             nnir            : 0
             swir1           : 0
             swir2           : 0
+            B02             : 0
+            B03             : 0
+            B04             : 0
+            B08             : 0
+            B8A             : 0
+            B11             : 0
+            B12             : 0
 
         maximum_value       :
             evi             : 10000
@@ -234,6 +248,13 @@ default:
             nnir            : 10000
             swir1           : 10000
             swir2           : 10000
+            B02             : 10000
+            B03             : 10000
+            B04             : 10000
+            B08             : 10000
+            B8A             : 10000
+            B11             : 10000
+            B12             : 10000
 
         scale_factor:
             evi             : 0.0001
@@ -247,6 +268,13 @@ default:
             nnir            : 0.0001
             swir1           : 0.0001
             swir2           : 0.0001
+            B02             : 0.0001
+            B03             : 0.0001
+            B04             : 0.0001
+            B08             : 0.0001
+            B8A             : 0.0001
+            B11             : 0.0001
+            B12             : 0.0001
 
         resolution          :
             xres            : 10
@@ -356,10 +384,12 @@ default:
         Cotton:             "#fb6a4a"
         Cropland:           "#fec44f"
         Dunas :             "#fff7e6"
+        Deforestation:      "#FFC733"
         Fallow_Cotton :     "#fb6a4a"
         Millet_Cotton :     "#fb6a4a"
         Forest :            "#006837"
         Pasture :           "#c6dbef"
+        NonForest:          "#c6dbef"
         Soy_Corn :          "#993404"
         Soy_Cotton :        "#662506"
         Soy_Fallow :        "#fec44f"

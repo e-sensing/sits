@@ -47,7 +47,7 @@ cbers_samples_2bands <- sits_select_bands(cbers_samples_022024, ndvi, evi)
 rfor_model <- sits_train(cbers_samples_2bands, sits_rfor())
 
 # classify the data (remember to set the appropriate memory size)
-cbers_probs <- sits_classify(cbers, rfor_model, memsize = 24)
+cbers_probs <- sits_classify(cbers_cube, rfor_model, memsize = 24)
 
 # plot the probabilities for each class
 plot(cbers_probs)
