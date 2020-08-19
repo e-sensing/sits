@@ -90,7 +90,7 @@ Suggests:
     wtss,
     zoo
 Remotes: 
-    e-sensing/wtss
+    e-sensing/wtss,
     e-sensing/inSitu
 VignetteBuilder: knitr
 LinkingTo:
