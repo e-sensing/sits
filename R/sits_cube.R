@@ -88,14 +88,18 @@ sits_cube <- function(type           = NULL,
     # bands are lowercase, except when start with "B"
     if (!purrr::is_null(bands)) {
         new_bands.lst <- purrr::map(bands, function(b){
-            l <- stringr::str_locate(b, "B")
-            if (l[1,"start"] == 1 && l[1,"end"] == 1)
-                return(b)
+            if (grepl("B", b)) {
+                l <- stringr::str_locate(b, "B")
+                if (l[1,"start"] == 1 && l[1,"end"] == 1)
+                    return(b)
+                else
+                    return(tolower(b))
+            }
             else
                 return(tolower(b))
         })
+        bands <- unlist(new_bands.lst)
     }
-    bands <- unlist(new_bands.lst)
 
     if (type == "WTSS") {
         wtss_ok <- .sits_wtss_check(URL = URL, name = name)

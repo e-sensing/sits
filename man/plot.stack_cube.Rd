@@ -4,7 +4,7 @@
 \alias{plot.stack_cube}
 \title{Generic interface for plotting probability cubes}
 \usage{
-\method{plot}{stack_cube}(x, y, ..., red = 1, green = 1, blue = 1)
+\method{plot}{stack_cube}(x, y, ..., red, green, blue, time = 1)
 }
 \arguments{
 \item{x}{Object of class "classified_image"}
@@ -18,6 +18,8 @@
 \item{green}{Band for green color.}
 
 \item{blue}{Band for blue color.}
+
+\item{time}{Temporal instance to be plotted}
 }
 \description{
 plots a stack cube using terra

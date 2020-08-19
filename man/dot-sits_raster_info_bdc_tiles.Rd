@@ -7,7 +7,6 @@
 .sits_raster_info_bdc_tiles(
   satellite,
   sensor,
-  bands,
   cube,
   tile,
   data_access,
@@ -21,8 +20,6 @@
 \item{satellite}{satellite}
 
 \item{sensor}{sensor}
-
-\item{bands}{bands}
 
 \item{cube}{input cube}
 

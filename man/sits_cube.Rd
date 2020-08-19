@@ -24,7 +24,7 @@ sits_cube(
 )
 }
 \arguments{
-\item{type}{Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC-TILE")}
+\item{type}{Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC-TILE", "PROBS", "CLASSIFIED")}
 
 \item{name}{Name of the output data cube.}
 

@@ -188,9 +188,13 @@ return(TRUE)
     # bands are lowercase, except when start with "B"
     bands <- stack.tb$band
     new_bands.lst <- purrr::map(bands, function(b){
-        l <- stringr::str_locate(b, "B")
-        if (l[1,"start"] == 1 && l[1,"end"] == 1)
-            return(b)
+        if (grepl("B", b)) {
+            l <- stringr::str_locate(b, "B")
+            if (l[1,"start"] == 1 && l[1,"end"] == 1)
+                return(b)
+            else
+                return(tolower(b))
+        }
         else
             return(tolower(b))
     })
