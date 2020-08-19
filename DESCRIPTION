@@ -1,7 +1,7 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis For Remote Sensing Data Cubes
-Version: 0.9.5.3
+Version: 0.9.6
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
              person('Pedro', 'Andrade', role = c('aut'), email = 'pedro.andrade@inpe.br'),
@@ -15,16 +15,16 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series, both as individual data or as part of data cubes.
-    Supports data retrieval from a WTSS (web time series service).
+    Supports data retrieval from a WTSS (web time series service), Raster Bricks and cubes from the Brazilan Data Cube.
     Provides different visualisation methods for image time series.
     Provides smoothing methods for noisy time series.
     Enables different clustering methods, including dendrograms and SOM.
     Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition.
     Provides machine learning methods for time series classification, including SVM, Random Forests and Deep Learning.
     Includes functions for smoothing based on Bayesian inference. 
-    Minimum recommended requirements: 4 GB RAM and 1 CPU dual-core.
+    Minimum recommended requirements: 8 GB RAM and 1 CPU dual-core.
 Encoding: UTF-8
-Depends: R (>= 3.6.0)
+Depends: R (>= 4.0.0)
 URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2 | file LICENSE
@@ -91,6 +91,7 @@ Suggests:
     zoo
 Remotes: 
     e-sensing/wtss
+    e-sensing/inSitu
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp

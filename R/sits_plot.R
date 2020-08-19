@@ -139,19 +139,23 @@ plot.predicted <- function(x, y, ..., bands = "ndvi") {
 #' @param  red           Band for red color.
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
+#' @param  time          Temporal instance to be plotted
 #'
 #' @export
-plot.brick_cube <- function(x , y, ..., red = 1, green = 1, blue = 1) {
+plot.brick_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	stopifnot(missing(y))
 	# verifies if stars package is installed
 	if (!requireNamespace("terra", quietly = TRUE)) {
 		stop("terra needed for this function to work.
               Please install it.", call. = FALSE)
 	}
+	inst.vec <- .sits_plot_rgb_assign(cube = x, red = red,
+									  green = green, blue = blue, time = time)
 	# use the terra package to obtain a "rast" object
 	rast <- terra::rast(x$files[[1]])
 	# plot the RGB file
-	terra::plotRGB(rast, r = red, g = green, b = blue, stretch = "lin")
+	terra::plotRGB(rast, r = inst.vec["red"], g = inst.vec["green"],
+				         b = inst.vec["blue"], stretch = "lin")
 }
 
 #' @title  Generic interface for plotting probability cubes
@@ -165,9 +169,10 @@ plot.brick_cube <- function(x , y, ..., red = 1, green = 1, blue = 1) {
 #' @param  red           Band for red color.
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
+#' @param  time          Temporal instance to be plotted
 #'
 #' @export
-plot.stack_cube <- function(x , y, ..., red = 1, green = 1, blue = 1) {
+plot.stack_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	stopifnot(missing(y))
 	# verifies if stars package is installed
 	if (!requireNamespace("terra", quietly = TRUE)) {
@@ -178,16 +183,21 @@ plot.stack_cube <- function(x , y, ..., red = 1, green = 1, blue = 1) {
 	stack_info <- x$stack_info[[1]]
 	# get the bands
 	bands <- x$bands[[1]]
+
 	# make a list of all files
-	file.lst <- purrr::map(bands, function (b){
+	file.lst <- purrr::map(bands, function (b) {
 		b_files <- dplyr::filter(stack_info, band == b)
 		return(paste0(b_files$path,"/",b_files$file))
 	})
 	all_files <- unlist(file.lst)
+
+	inst.vec <- .sits_plot_rgb_assign(cube = x, red = red,
+									  green = green, blue = blue, time = time)
 	# use the terra package to obtain a "rast" object
 	rast <- terra::rast(all_files)
 	# plot the RGB file
-	terra::plotRGB(rast, r = red, g = green, b = blue, stretch = "lin")
+	terra::plotRGB(rast, r = inst.vec["red"], g = inst.vec["green"],
+				         b = inst.vec["blue"], stretch = "lin")
 }
 #' @title  Generic interface for plotting probability cubes
 #' @name   plot.probs_cube
@@ -893,6 +903,43 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
     p <- graphics::plot(p)
 
     return(p)
+}
+#' @title  Assign RGB channels to into image layers with many time instance
+#' @name   .sits_plot_rgb_assign
+#' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
+#'
+#' @description Obtain a vector with the correct layer to be plotted for
+#' an RGB assignment of a multi-temporal cube
+#'
+#' @param cube       Data cube
+#' @param red        Band to be assigned to R channel
+#' @param green      Band to be assigned to G channel
+#' @param blue       Band to be assigned to G channel
+#' @param time       Temporal instance to be plotted
+#' @return           Named vector with the correct layers for RGB
+.sits_plot_rgb_assign <- function(cube, red, green, blue, time){
+	# check if the selected bands are correct
+	bands <- sits_bands(cube)
+	assertthat::assert_that(red %in% bands,
+							msg = paste0("R channel should be one of ", bands))
+	assertthat::assert_that(green %in% bands,
+							msg = paste0("G channel should be one of ", bands))
+	assertthat::assert_that(blue %in% bands,
+							msg = paste0("B channel should be one of ", bands))
+	# find out the number of instances
+	n_instances <- length(sits_timeline(cube))
+	# check if the selected temporal instance exists
+	assertthat::assert_that(time <= n_instances, msg = "time out of bounds")
+	# locate the instances
+	instances.lst <- purrr::map(c(red, green, blue), function(b) {
+		inst <- grep(b, bands)
+		return(n_instances*(inst - 1) + time)
+	})
+	# create a named vector to store the RGB instances
+	inst.vec <- unlist(instances.lst)
+	names(inst.vec) = c("red", "green", "blue")
+
+	return(inst.vec)
 }
 
 #' @title Brewer color schemes

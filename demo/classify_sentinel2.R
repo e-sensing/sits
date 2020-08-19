@@ -32,12 +32,10 @@ s2_cube <- sits_cube(type = "BRICK",
 					 files     = s2_files)
 
 # plot the first date as a SWIR composite (B11, B08, B04)
-# remember that each brick has 36 instances and there are 4 bands
-# the first instance of B12 is layes 3*36 + 1 = 109
-plot(s2_cube, red = 109, green = 73, blue = 37)
+plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 1)
 
 # plot the last date as a SWIR composite (B11, B08, B04)
-plot(s2_cube, red = 144, green = 108, blue = 72)
+plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 36)
 
 # train a random forest model
 samples_s2_4bands <- sits_select_bands(samples_S2_T20LKP_2018_2019, B03, B04, B08, B11)

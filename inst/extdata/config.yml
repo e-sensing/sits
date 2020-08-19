@@ -157,6 +157,10 @@ default:
             ndwi2           : -9999
             pvr2            : -9999
             gemi            : -9999
+            B13             : 0
+            B14             : 0
+            B15             : 0
+            B16             : 0
 
         minimum_value       :
             ndvi            : 0
@@ -168,6 +172,10 @@ default:
             ndwi2           : -10000
             pvr2            : -10000
             gemi            : -10000
+            B13             : 0
+            B14             : 0
+            B15             : 0
+            B16             : 0
 
         maximum_value       :
             ndvi            : 10000
@@ -179,6 +187,10 @@ default:
             ndwi2           : 10000
             pvr2            : 10000
             gemi            : 10000
+            B13             : 10000
+            B14             : 10000
+            B15             : 10000
+            B16             : 10000
 
         scale_factor:
             ndvi            : 0.0001
@@ -190,10 +202,14 @@ default:
             ndwi2           : 0.0001
             pvr2            : 0.0001
             gemi            : 0.0001
+            B13             : 0.0001
+            B14             : 0.0001
+            B15             : 0.0001
+            B16             : 0.0001
 
         resolution          :
-            xres            : 60
-            yres            : 60
+            xres            : 64
+            yres            : 64
 
     MSI                     :
         missing_value       :

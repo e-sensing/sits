@@ -10,7 +10,7 @@
 #'  \item{"BDC_TILE"}{A tile from the Brazil Data Cube}
 #' }
 #'
-#' @param type              Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC-TILE")
+#' @param type              Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC-TILE", "PROBS", "CLASSIFIED")
 #' @param name              Name of the output data cube.
 #' @param URL               URL of the service provider (for WTSS).
 #' @param satellite         Name of satellite

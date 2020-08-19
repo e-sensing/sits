@@ -4,9 +4,11 @@ Cubes
 
 ### Overview
 
-The `sits` package provides a set of tools for analysis, visualization
+The `sits` R package provides a set of tools for analysis, visualization
 and classification of satellite image time series. It includes methods
 for filtering, clustering, classification, and post-processing.
+
+## Installation
 
 ### Pre-Requisites
 
@@ -15,10 +17,7 @@ the installation of GDAL and PROJ library. Please follow the instruction
 for installing `sf` and `rgdal` available at the [RSpatial sf github
 repository](https://github.com/r-spatial/sf).
 
-### Installation
-
-One of the features of the `sits` package is that it connect Earth
-Observation data cubes with data analytics methods
+### Required Packages
 
 Please follow the following steps.
 
@@ -85,12 +84,13 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf).
 
 ### Visualization
 
-    #> Created logger for sits package - DEBUG level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpdBIfO9/sits_debuge4566c440973.log
-    #> Created logger for sits package - ERROR level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpdBIfO9/sits_errore45666c8948c.log
+    #> Created logger for sits package - DEBUG level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpOdyVMu/sits_debug8b4a556e7293.log
+    #> Created logger for sits package - ERROR level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpOdyVMu/sits_error8b4a46243cb6.log
     #> sits - satellite image time series analysis.
-    #> Loaded sits v0.9.5.1.
+    #> Loaded sits v0.9.5.2.
     #>         See ?sits for help, citation("sits") for use in publication.
     #>         See demo(package = "sits") for examples.
+    #> Warning: package 'tibble' was built under R version 4.0.2
 
 ``` r
 cerrado_2classes[1:3,]
