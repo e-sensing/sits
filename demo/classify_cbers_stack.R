@@ -38,9 +38,9 @@ cbers_cube <- sits_cube(type = "BDC-TILE",
 					   end_date    = end_date,
 					   .local = local_dir)
 
-# plot the image (first NDVI as red, first EVI as green and blue)
-plot(cbers_cube, red = 1, green = 24, blue = 24)
-
+# plot the image (first and last instances)
+plot(cbers_cube, red = "evi", green = "ndvi", blue = "evi", time = 1)
+plot(cbers_cube, red = "evi", green = "ndvi", blue = "evi", time = 23)
 # select the ndvi and evi bands
 cbers_samples_2bands <- sits_select_bands(cbers_samples_022024, ndvi, evi)
 # train a random forest model
