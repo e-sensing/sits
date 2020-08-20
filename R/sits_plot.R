@@ -194,7 +194,7 @@ plot.stack_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	inst.vec <- .sits_plot_rgb_assign(cube = x, red = red,
 									  green = green, blue = blue, time = time)
 	# use the raster package to obtain a "rast" object
-	rast <- raster::stack(all_files)
+	rast <- suppressWarnings(raster::stack(all_files))
 	# plot the RGB file
 	mapview::viewRGB(rast, r = inst.vec["red"], g = inst.vec["green"],
 				         b = inst.vec["blue"])
