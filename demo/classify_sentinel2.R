@@ -32,10 +32,10 @@ s2_cube <- sits_cube(type = "BRICK",
 					 files     = s2_files)
 
 # plot the first date as a SWIR composite (B11, B08, B04)
-map_raw <- plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 1)
+map_1 <- plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 1)
 
 # plot the last date as a SWIR composite (B11, B08, B04)
-plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 36)
+map_2 <- plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 36)
 
 # train a random forest model
 samples_s2_4bands <- sits_select_bands(samples_S2_T20LKP_2018_2019, B03, B04, B08, B11)
@@ -49,4 +49,4 @@ plot(s2_probs)
 # label the probability cube
 s2_label <- sits_label_classification(s2_probs, smoothing = "bayesian")
 # plot the labelled images
-plot(s2_label, map = map_raw)
+plot(s2_label, map = map_2)
