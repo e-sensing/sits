@@ -17,7 +17,7 @@ start_date <- as.Date(timeline[1])
 end_date   <- as.Date(timeline[length(timeline)])
 
 # get the files and the bands
-s2_dir <- system.file("extdata/sentinel/T20LKP", package = "inSitu")
+s2_dir <- system.file("extdata/Sentinel/T20LKP", package = "inSitu")
 s2_bricks <- list.files(s2_dir)
 s2_files <- paste0(s2_dir,"/",s2_bricks)
 bands <- c("B03", "B04", "B08", "B11")
@@ -32,7 +32,7 @@ s2_cube <- sits_cube(type = "BRICK",
 					 files     = s2_files)
 
 # plot the first date as a SWIR composite (B11, B08, B04)
-plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 1)
+map_raw <- plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 1)
 
 # plot the last date as a SWIR composite (B11, B08, B04)
 plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 36)
@@ -50,3 +50,14 @@ plot(s2_probs)
 s2_label <- sits_label_classification(s2_probs, smoothing = "bayesian")
 # plot the labelled images
 plot(s2_label)
+
+
+# test mapview for labelled data
+mycols <- c("#FFC733", "#006837", "#c6dbef")
+rl <- suppressWarnings(raster::raster(s2_label$files[[1]][1]))
+
+
+# rasterVis
+rasterVis::levelplot(rl, col.regions = mycols)
+
+suppressWarnings(mapview::mapview(rl, map = map_raw, col.regions = colors))

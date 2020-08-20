@@ -151,11 +151,12 @@ plot.brick_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	}
 	inst.vec <- .sits_plot_rgb_assign(cube = x, red = red,
 									  green = green, blue = blue, time = time)
-	# use the terra package to obtain a "rast" object
-	rast <- suppressWarnings(raster::rast(x$files[[1]]))
+	# use the raster package to obtain a "rast" object
+	rast <- suppressWarnings(raster::stack(x$files[[1]]))
 	# plot the RGB file
-	mapview::viewRGB(rast, r = inst.vec["red"], g = inst.vec["green"],
-				         b = inst.vec["blue"])
+	suppressWarnings(mapview::viewRGB(rast, r = inst.vec["red"],
+									  g = inst.vec["green"],
+				                      b = inst.vec["blue"]))
 }
 
 #' @title  Generic interface for plotting probability cubes
@@ -194,7 +195,7 @@ plot.stack_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	inst.vec <- .sits_plot_rgb_assign(cube = x, red = red,
 									  green = green, blue = blue, time = time)
 	# use the raster package to obtain a "rast" object
-	rast <- raster::stack(all_files)
+	rast <- suppressWarnings(raster::stack(all_files))
 	# plot the RGB file
 	mapview::viewRGB(rast, r = inst.vec["red"], g = inst.vec["green"],
 				         b = inst.vec["blue"])
@@ -271,6 +272,7 @@ plot.probs_cube <- function(x , y, ..., time = 1,
 #' @param  x             Object of class "classified_image"
 #' @param  y             Ignored
 #' @param  ...           Further specifications for \link{plot}.
+#' @param  map           Map to overlay (mapview object)
 #' @param time           Temporal reference for plot.
 #' @param title          A string.
 #' @param colors         Color pallete.
@@ -308,11 +310,40 @@ plot.probs_cube <- function(x , y, ..., time = 1,
 #' file.remove(unlist(sinop_label$files))
 #' }
 #' @export
-plot.classified_image <- function(x , y, ..., time = 1,
+plot.classified_image <- function(x , y, ..., map = NULL, time = 1,
 								  title = "Classified Image", colors = NULL) {
 	stopifnot(missing(y))
-	.sits_plot_raster(cube = x, time = time, title = title, colors = colors)
-	return(invisible(x))
+
+	# get the labels and how many there are
+	labels <- .sits_cube_labels(x)
+	nclasses <- length(labels)
+	# create a mapping from classes to labels
+	# names(labels) <- as.character(c(1:nclasses))
+
+	# if colors are not specified, get them from the configuration file
+	if (purrr::is_null(colors)) {
+		colors <- vector(length = nclasses)
+		for (i in 1:nclasses)
+			colors[i] <- .sits_config_color(labels[i])
+	}
+
+	# obtain the raster
+	rl <- suppressWarnings(raster::raster(x$files[[1]][1]))
+	# create a RAT
+	rl <- raster::ratify(rl)
+	rat <- raster::levels(rl)[[1]]
+	# include labels in the RAT
+	rat$landcover <- labels
+	# assign the RAT to the raster object
+	levels(rl) <- rat
+
+	# use mapview
+	if (!purrr::is_null(map))
+		mv <- suppressWarnings(mapview::mapview(rl, map = map, col.regions = colors))
+	else
+		mv <- suppressWarnings(mapview::mapview(rl, col.regions = colors))
+#	.sits_plot_raster(cube = x, time = time, title = title, colors = colors)
+	return(mv)
 }
 
 #' @title  Plot information about confunsion between clusters
