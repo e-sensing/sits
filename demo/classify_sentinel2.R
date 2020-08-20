@@ -49,15 +49,4 @@ plot(s2_probs)
 # label the probability cube
 s2_label <- sits_label_classification(s2_probs, smoothing = "bayesian")
 # plot the labelled images
-plot(s2_label)
-
-
-# test mapview for labelled data
-mycols <- c("#FFC733", "#006837", "#c6dbef")
-rl <- suppressWarnings(raster::raster(s2_label$files[[1]][1]))
-
-
-# rasterVis
-rasterVis::levelplot(rl, col.regions = mycols)
-
-suppressWarnings(mapview::mapview(rl, map = map_raw, col.regions = colors))
+plot(s2_label, map = map_raw)
