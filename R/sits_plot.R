@@ -145,17 +145,17 @@ plot.predicted <- function(x, y, ..., bands = "ndvi") {
 plot.brick_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	stopifnot(missing(y))
 	# verifies if stars package is installed
-	if (!requireNamespace("terra", quietly = TRUE)) {
-		stop("terra needed for this function to work.
+	if (!requireNamespace("mapview", quietly = TRUE)) {
+		stop("mapview needed for this function to work.
               Please install it.", call. = FALSE)
 	}
 	inst.vec <- .sits_plot_rgb_assign(cube = x, red = red,
 									  green = green, blue = blue, time = time)
 	# use the terra package to obtain a "rast" object
-	rast <- terra::rast(x$files[[1]])
+	rast <- suppressWarnings(raster::rast(x$files[[1]]))
 	# plot the RGB file
-	terra::plotRGB(rast, r = inst.vec["red"], g = inst.vec["green"],
-				         b = inst.vec["blue"], stretch = "lin")
+	mapview::viewRGB(rast, r = inst.vec["red"], g = inst.vec["green"],
+				         b = inst.vec["blue"])
 }
 
 #' @title  Generic interface for plotting probability cubes
@@ -175,8 +175,8 @@ plot.brick_cube <- function(x , y, ..., red, green, blue, time = 1) {
 plot.stack_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	stopifnot(missing(y))
 	# verifies if stars package is installed
-	if (!requireNamespace("terra", quietly = TRUE)) {
-		stop("terra needed for this function to work.
+	if (!requireNamespace("mapview", quietly = TRUE)) {
+		stop("mapview needed for this function to work.
               Please install it.", call. = FALSE)
 	}
 	# get the information about the stack
@@ -193,11 +193,11 @@ plot.stack_cube <- function(x , y, ..., red, green, blue, time = 1) {
 
 	inst.vec <- .sits_plot_rgb_assign(cube = x, red = red,
 									  green = green, blue = blue, time = time)
-	# use the terra package to obtain a "rast" object
-	rast <- terra::rast(all_files)
+	# use the raster package to obtain a "rast" object
+	rast <- raster::stack(all_files)
 	# plot the RGB file
-	terra::plotRGB(rast, r = inst.vec["red"], g = inst.vec["green"],
-				         b = inst.vec["blue"], stretch = "lin")
+	mapview::viewRGB(rast, r = inst.vec["red"], g = inst.vec["green"],
+				         b = inst.vec["blue"])
 }
 #' @title  Generic interface for plotting probability cubes
 #' @name   plot.probs_cube

@@ -205,8 +205,10 @@ return(TRUE)
     # include a column with the file path
     stack.tb$path <- data_dir
     # filter by starting date and end date
-    stack.tb <- dplyr::filter(stack.tb, start_date >= as.Date(start_date) &&
-                                        end_date <= as.Date(end_date))
+    st_date <- as.Date(start_date)
+    en_date <- as.Date(end_date)
+    stack.tb <- dplyr::filter(stack.tb, start_date >= st_date &
+                                        start_date <= en_date)
 
     # order the tile by date
     stack.tb <- dplyr::arrange(stack.tb, start_date)
