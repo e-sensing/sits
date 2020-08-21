@@ -522,25 +522,29 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #'                      SIG KDD 2016.
 #'
 #' @param data             Time series with the training samples.
-#' @param eta              Learning rate: scale the contribution
-#'                         of each tree by a factor of 0 < eta < 1
+#' @param learning_rate    Learning rate: scale the contribution
+#'                         of each tree by a factor of 0 < lr < 1
 #'                         when it is added to the current approximation.
-#'                         Used to prevent overfitting. Default: 0.3
-#' @param gamma            Minimum loss reduction to make a further
-#'                         partition of a leaf.  Default: 0.
+#'                         Used to prevent overfitting. Default: 0.15
+#' @param min_split_loss   Minimum loss reduction to make a further
+#'                         partition of a leaf.  Default: 1.
 #' @param max_depth        Maximum depth of a tree.
 #'                         Increasing this value makes the model more complex
-#'                         and more likely to overfit. Default: 6.
+#'                         and more likely to overfit. Default: 5.
 #' @param min_child_weight If the leaf node has a minimum sum of instance
 #'                         weights lower than min_child_weight,
-#'                         tree splitting stops.
-#' @param subsample        Percentage of samples supplied to a tree. Default: 1.
+#'                         tree splitting stops. The larger min_child_weight is,
+#'                         the more conservative the algorithm will be. Default: 1.
+#' @param max_delta_step   Maximum delta step we allow each leaf output to be.
+#'                         If the value is set to 0, it means there is no constraint.
+#'                         If it is set to a positive value, it can help making
+#'                         the update step more conservative. Default: 1.
+#' @param subsample        Percentage of samples supplied to a tree. Default: 0.8.
 #' @param nfold            Number of the subsamples for the cross-validation.
 #' @param nrounds          Number of rounds to iterate the cross-validation
 #'                         (default: 10)
 #' @param early_stopping_rounds Training with a validation set will stop
 #'                         if the performance doesn't improve for k rounds.
-#' @param nthread          Number of cpu threads we are going to use
 #' @param verbose          Print information on statistics during the process
 #' @param ...              Other parameters for the `xgboost::xgboost` function.
 #' @return                 Model fitted to input data
@@ -561,12 +565,17 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
-sits_xgboost <- function(data = NULL, eta = 0.3, gamma = 0, max_depth = 6,
-                         min_child_weight = 1, subsample = 1,
-                         nfold = 5, nrounds = 10,
+sits_xgboost <- function(data = NULL,
+                         learning_rate     = 0.15,
+                         min_split_loss    = 1,
+                         max_depth         = 5,
+                         min_child_weight  = 1,
+                         max_delta_step    = 1,
+                         subsample         = 0.8,
+                         nfold             = 5,
+                         nrounds           = 10,
                          early_stopping_rounds = 20,
-                         nthread = 4,
-                         verbose = FALSE, ...) {
+                         verbose = FALSE) {
     # verifies if xgboost package is installed
     if (!requireNamespace("xgboost", quietly = TRUE)) {
         stop("xgboost required for this function to work.
@@ -593,20 +602,26 @@ sits_xgboost <- function(data = NULL, eta = 0.3, gamma = 0, max_depth = 6,
         references <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
 
         # define the parameters of the model
-        params <- list(booster = "gbtree", objective = "multi:softprob",
-                       eta = eta, gamma = gamma,
-                       max_depth = max_depth,
+        params <- list(booster          = "gbtree",
+                       objective        = "multi:softprob",
+                       eta              = learning_rate,
+                       gamma            = min_split_loss,
+                       max_depth        = max_depth,
                        min_child_weight = min_child_weight,
-                       subsample = subsample)
+                       max_delta_step   = max_delta_step,
+                       subsample        = subsample)
 
         # run the cross-validation
         xgbcv <- xgboost::xgb.cv(params = params,
-                    data = as.matrix(train_data_DT[, 3:length(train_data_DT)]),
-                    label = references, num_class = length(labels),
-                    nrounds = nrounds, nfold = nfold,
+                    data      = as.matrix(train_data_DT[, 3:length(train_data_DT)]),
+                    label     = references,
+                    num_class = length(labels),
+                    nrounds   = nrounds,
+                    nfold     = nfold,
                     early_stopping_rounds = early_stopping_rounds,
-                    print_every_n = 10,  verbose = verbose,
-                    maximize = FALSE)
+                    print_every_n = 10,
+                    verbose   = verbose,
+                    maximize  = FALSE)
 
         # get the best iteration of the model based on the CV
         nrounds_best <- xgbcv$best_iteration

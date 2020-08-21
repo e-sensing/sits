@@ -39,10 +39,16 @@ map_2 <- plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 36)
 
 # train a random forest model
 samples_s2_4bands <- sits_select_bands(samples_S2_T20LKP_2018_2019, B03, B04, B08, B11)
-xgb_model <- sits_train(samples_s2_4bands, sits_xgboost(eta = 0.1,
-														max_depth = 5,
-														 tree_method = "gpu_hist",
-														 sampling_method = "gradient_based"))
+xgb_model <- sits_train(samples_s2_4bands,
+						sits_xgboost(learning_rate     = 0.15,
+									 min_split_loss    = 1,
+									 max_depth         = 5,
+									 min_child_weight  = 1,
+									 max_delta_step    = 1,
+									 subsample         = 0.8,
+									 nfold             = 5,
+									 nrounds           = 50,
+									 verbose = TRUE))
 
 # classify the cube using an rfor model
 s2_probs <- sits_classify(s2_cube, xgb_model, memsize = 12)

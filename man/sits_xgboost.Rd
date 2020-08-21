@@ -6,39 +6,44 @@
 \usage{
 sits_xgboost(
   data = NULL,
-  eta = 0.3,
-  gamma = 0,
-  max_depth = 6,
+  learning_rate = 0.15,
+  min_split_loss = 1,
+  max_depth = 5,
   min_child_weight = 1,
-  subsample = 1,
+  max_delta_step = 1,
+  subsample = 0.8,
   nfold = 5,
   nrounds = 10,
   early_stopping_rounds = 20,
-  nthread = 4,
-  verbose = FALSE,
-  ...
+  verbose = FALSE
 )
 }
 \arguments{
 \item{data}{Time series with the training samples.}
 
-\item{eta}{Learning rate: scale the contribution
-of each tree by a factor of 0 < eta < 1
+\item{learning_rate}{Learning rate: scale the contribution
+of each tree by a factor of 0 < lr < 1
 when it is added to the current approximation.
-Used to prevent overfitting. Default: 0.3}
+Used to prevent overfitting. Default: 0.15}
 
-\item{gamma}{Minimum loss reduction to make a further
-partition of a leaf.  Default: 0.}
+\item{min_split_loss}{Minimum loss reduction to make a further
+partition of a leaf.  Default: 1.}
 
 \item{max_depth}{Maximum depth of a tree.
 Increasing this value makes the model more complex
-and more likely to overfit. Default: 6.}
+and more likely to overfit. Default: 5.}
 
 \item{min_child_weight}{If the leaf node has a minimum sum of instance
 weights lower than min_child_weight,
-tree splitting stops.}
+tree splitting stops. The larger min_child_weight is,
+the more conservative the algorithm will be. Default: 1.}
 
-\item{subsample}{Percentage of samples supplied to a tree. Default: 1.}
+\item{max_delta_step}{Maximum delta step we allow each leaf output to be.
+If the value is set to 0, it means there is no constraint.
+If it is set to a positive value, it can help making
+the update step more conservative. Default: 1.}
+
+\item{subsample}{Percentage of samples supplied to a tree. Default: 0.8.}
 
 \item{nfold}{Number of the subsamples for the cross-validation.}
 
@@ -47,8 +52,6 @@ tree splitting stops.}
 
 \item{early_stopping_rounds}{Training with a validation set will stop
 if the performance doesn't improve for k rounds.}
-
-\item{nthread}{Number of cpu threads we are going to use}
 
 \item{verbose}{Print information on statistics during the process}
 
