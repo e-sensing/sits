@@ -36,20 +36,14 @@ sinop <- sits_cube(type = "BRICK",
                    bands = c("ndvi", "evi"),
                    files = files)
 
-plot(sinop, red = 1, green = 24, blue = 24)
-
 # classify the raster image
 sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 24, multicores = 4)
 plot(sinop_probs)
-# label the classified image
-sinop_label <- sits_label_classification(sinop_probs)
-
-# plot the raster image
-plot(sinop_label, time = 1, title = "Sinop")
 
 # smooth the result with a bayesian filter
 sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
 
+map_1 <- plot(sinop, red = "evi", green = "ndvi", blue = "evi", time = 23)
 # plot the smoothened image
-plot(sinop_bayes, time = 1, title = "Sinop-Bayes")
+plot(sinop_bayes, map = map_1, time = 1, title = "Sinop-Bayes")
 

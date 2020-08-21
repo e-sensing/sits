@@ -4,7 +4,15 @@
 \alias{plot.classified_image}
 \title{Generic interface for ploting classified images}
 \usage{
-\method{plot}{classified_image}(x, y, ..., time = 1, title = "Classified Image", colors = NULL)
+\method{plot}{classified_image}(
+  x,
+  y,
+  ...,
+  map = NULL,
+  time = 1,
+  title = "Classified Image",
+  colors = NULL
+)
 }
 \arguments{
 \item{x}{Object of class "classified_image"}
@@ -12,6 +20,8 @@
 \item{y}{Ignored}
 
 \item{...}{Further specifications for \link{plot}.}
+
+\item{map}{Map to overlay (mapview object)}
 
 \item{time}{Temporal reference for plot.}
 

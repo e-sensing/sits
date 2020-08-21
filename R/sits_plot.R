@@ -333,7 +333,9 @@ plot.classified_image <- function(x , y, ..., map = NULL, time = 1,
 	rl <- raster::ratify(rl)
 	rat <- raster::levels(rl)[[1]]
 	# include labels in the RAT
-	rat$landcover <- labels
+	# be careful - some labels may not exist in the classified image
+	rat$landcover <- labels[rat$ID]
+	colors <- colors[rat$ID]
 	# assign the RAT to the raster object
 	levels(rl) <- rat
 
