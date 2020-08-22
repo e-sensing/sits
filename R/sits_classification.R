@@ -497,6 +497,15 @@ sits_label_classification <- function(cube,
         all(cube_bands %in% sample_bands) && all(sample_bands %in% cube_bands),
         msg = "sits_classify: bands in samples different from cube bands")
 
+    # Sanity check - does the number of layers match the number of time instances
+    time_instances <- length(sits_timeline(samples))
+    purrr::map(r_objs, function(ro){
+        assertthat::assert_that(raster::nlayers(ro) == time_instances,
+                msg = "mismatch btw number of time instances and number of layers")
+    })
+
+
+
     # align bands with the files if they are not matched
     if (!all(cube_bands == sample_bands))
         cube <- .sits_cube_align_bands(cube, sample_bands)

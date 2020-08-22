@@ -542,29 +542,29 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' @param subsample        Percentage of samples supplied to a tree. Default: 0.8.
 #' @param nfold            Number of the subsamples for the cross-validation.
 #' @param nrounds          Number of rounds to iterate the cross-validation
-#'                         (default: 10)
+#'                         (default: 100)
 #' @param early_stopping_rounds Training with a validation set will stop
 #'                         if the performance doesn't improve for k rounds.
 #' @param verbose          Print information on statistics during the process
-#' @param ...              Other parameters for the `xgboost::xgboost` function.
 #' @return                 Model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
 #'
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
-#'
+#' samples_mt_4bands <- sits_select_bands(samples_mt_6bands, ndvi, evi, nir, mir)
+#' samples_whit <- sits_whittaker(samples_mt_4bands, lambda = 0.5, bands_suffix = "")
 #' # Build a machine learning model based on xgboost
-#' xgb_model <- sits_train(samples_2bands, sits_xgboost(eta = 0.5,
-#'                         gamma = 0, max.depth = 2))
+#' xgb_model <- sits_train(samples_whit, sits_xgboost())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
-#' class.tb <- sits_classify(point.tb, xgb_model)
+#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point_whit <- sits_whittaker(point.tb, lambda = 0.5, bands_suffix = "")
+#' class.tb <- sits_classify(point_whit, xgb_model)
 #' plot(class.tb, bands = c("ndvi", "evi"))
 #' }
 #' @export
+#'
 sits_xgboost <- function(data = NULL,
                          learning_rate     = 0.15,
                          min_split_loss    = 1,
@@ -573,9 +573,9 @@ sits_xgboost <- function(data = NULL,
                          max_delta_step    = 1,
                          subsample         = 0.8,
                          nfold             = 5,
-                         nrounds           = 10,
+                         nrounds           = 100,
                          early_stopping_rounds = 20,
-                         verbose = FALSE) {
+                         verbose = TRUE) {
     # verifies if xgboost package is installed
     if (!requireNamespace("xgboost", quietly = TRUE)) {
         stop("xgboost required for this function to work.

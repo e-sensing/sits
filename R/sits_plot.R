@@ -154,9 +154,10 @@ plot.brick_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	# use the raster package to obtain a "rast" object
 	rast <- suppressWarnings(raster::stack(x$files[[1]]))
 	# plot the RGB file
-	suppressWarnings(mapview::viewRGB(rast, r = inst.vec["red"],
-									  g = inst.vec["green"],
-				                      b = inst.vec["blue"]))
+	mv <- suppressWarnings(mapview::viewRGB(rast, r = inst.vec["red"],
+									              g = inst.vec["green"],
+				                                  b = inst.vec["blue"]))
+	return(mv)
 }
 
 #' @title  Generic interface for plotting probability cubes
@@ -197,8 +198,10 @@ plot.stack_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	# use the raster package to obtain a "rast" object
 	rast <- suppressWarnings(raster::stack(all_files))
 	# plot the RGB file
-	mapview::viewRGB(rast, r = inst.vec["red"], g = inst.vec["green"],
-				         b = inst.vec["blue"])
+	mv <- suppressWarnings(mapview::viewRGB(rast, r = inst.vec["red"],
+											      g = inst.vec["green"],
+				                                  b = inst.vec["blue"]))
+	return(mv)
 }
 #' @title  Generic interface for plotting probability cubes
 #' @name   plot.probs_cube

@@ -207,6 +207,12 @@ return(TRUE)
     # filter by starting date and end date
     st_date <- as.Date(start_date)
     en_date <- as.Date(end_date)
+    # sanity check - is the raster data cover the period [st_date, en_date]?
+    assertthat::assert_that(st_date %in% unique(stack.tb$start_date),
+                    msg = "raster data does not include start date")
+    assertthat::assert_that(en_date %in% unique(stack.tb$start_date),
+                    msg = "raster data does not include end date")
+
     stack.tb <- dplyr::filter(stack.tb, start_date >= st_date &
                                         start_date <= en_date)
 

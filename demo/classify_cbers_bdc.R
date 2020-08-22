@@ -21,8 +21,6 @@ timeline <- sits_timeline(cbers_samples_022024)
 start_date <- as.Date(timeline[1])
 end_date   <- as.Date(timeline[length(timeline)])
 # set up the bands
-cbers_samples_022024 <- sits_rename(cbers_samples_022024,
-				c("BAND13", "evi", "BAND14", "ndvi", "BAND16",  "BAND15"))
 cbers_samples_022024 <- sits_select_bands(cbers_samples_022024, ndvi, evi)
 bands <- sits_bands(cbers_samples_022024)
 # define the local directory to load the images
@@ -34,7 +32,7 @@ cbers_cube <- sits_cube(type = "BDC_TILE",
                         satellite = "CBERS-4",
                         sensor = "AWFI",
                         bands  = bands,
-                        cube   = "CB4_64_16D_STK_v1",
+                        cube   = "CB4_64_16D_STK",
                         tile   = "022024",
                         data_access = "local",
                         start_date  = start_date,
@@ -43,24 +41,20 @@ cbers_cube <- sits_cube(type = "BDC_TILE",
 
 # plot the image (first and last instances) - save the mapview for the
 # future
-mapview1 <- plot(cbers_cube, red = "evi", green = "ndvi", blue = "evi", time = 1)
-# show
-mapview1
-# plot the last image
-plot(cbers_cube, red = "evi", green = "ndvi", blue = "evi", time = 23)
+mapview1 <- plot(cbers_cube, red = "evi", green = "ndvi", blue = "evi", time = 23)
 
-# train a random forest model
-rfor_model <- sits_train(cbers_samples_022024, sits_rfor())
+# train an XGB model
+xgb_model <- sits_train(cbers_samples_022024, sits_xgboost())
 
 # classify the data (remember to set the appropriate memory size)
-cbers_probs <- sits_classify(cbers_cube, rfor_model, memsize = 40)
+cbers_probs <- sits_classify(cbers_cube, xgb_model, memsize = 8, multicores = 1)
 
 # plot the probabilities for each class
 plot(cbers_probs)
 
 cbers_label <- sits_label_classification(cbers_probs, smoothing = "bayesian")
 
-plot(cbers_label)
+plot(cbers_label, map = mapview1)
 
 sits_db_connect("./cubes.sql")
 conn <- sits_db_connect("./cubes.sql")
