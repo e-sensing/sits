@@ -500,7 +500,7 @@ sits_label_classification <- function(cube,
     # Sanity check - does the number of layers match the number of time instances
     time_instances <- length(sits_timeline(samples))
     purrr::map(r_objs, function(ro){
-        assertthat::assert_that(raster::nlayers(ro) == time_instances,
+        assertthat::assert_that(raster::nlayers(ro) >= time_instances,
                 msg = "mismatch btw number of time instances and number of layers")
     })
 

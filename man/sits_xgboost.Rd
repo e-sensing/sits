@@ -13,9 +13,9 @@ sits_xgboost(
   max_delta_step = 1,
   subsample = 0.8,
   nfold = 5,
-  nrounds = 10,
+  nrounds = 100,
   early_stopping_rounds = 20,
-  verbose = FALSE
+  verbose = TRUE
 )
 }
 \arguments{
@@ -48,14 +48,12 @@ the update step more conservative. Default: 1.}
 \item{nfold}{Number of the subsamples for the cross-validation.}
 
 \item{nrounds}{Number of rounds to iterate the cross-validation
-(default: 10)}
+(default: 100)}
 
 \item{early_stopping_rounds}{Training with a validation set will stop
 if the performance doesn't improve for k rounds.}
 
 \item{verbose}{Print information on statistics during the process}
-
-\item{...}{Other parameters for the `xgboost::xgboost` function.}
 }
 \value{
 Model fitted to input data
@@ -71,15 +69,15 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
-
+samples_mt_4bands <- sits_select_bands(samples_mt_6bands, ndvi, evi, nir, mir)
+samples_whit <- sits_whittaker(samples_mt_4bands, lambda = 0.5, bands_suffix = "")
 # Build a machine learning model based on xgboost
-xgb_model <- sits_train(samples_2bands, sits_xgboost(eta = 0.5,
-                        gamma = 0, max.depth = 2))
+xgb_model <- sits_train(samples_whit, sits_xgboost())
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
-class.tb <- sits_classify(point.tb, xgb_model)
+point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+point_whit <- sits_whittaker(point.tb, lambda = 0.5, bands_suffix = "")
+class.tb <- sits_classify(point_whit, xgb_model)
 plot(class.tb, bands = c("ndvi", "evi"))
 }
 }
