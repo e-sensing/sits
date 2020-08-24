@@ -76,9 +76,9 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
 }
 
 #' @title Area-weighted classification accuracy assessment
-#' @name sits_accuracy_area
+#' @name sits_accuracy
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @description To use this function, the input table should be
+#' @description To use this function the input table should be
 #' a set of results containing
 #' both the label assigned by the user and the classification result.
 #' Accuracy assessment set us a confusion matrix to determine the accuracy
@@ -103,34 +103,17 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
 #' Remote Sensing of
 #' Environment, 148, pp. 42-57.
 #'
-#' @param class.tb      A sits tibble with a set of lat/long/time locations
-#'                      with known and trusted labels and
-#'                      with the result of classification method.
-#' @param area          A list with the area of each label.
+#' @param label_cube       A sits labelled cube
+#'                         with the result of classification method.
+#' @param validation       A SITS tibble or CSV file with validation data
 #'
-#' @examples
-#' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
-#' set.seed(42)
-#'
-#' # Fit a randon forest model to the samples.
-#' rfor_model <- sits_train(samples_2bands, ml_method = sits_rfor())
-#'
-#' # Classify samples.
-#' class.tb <- sits_classify(samples_2bands, rfor_model)
-#'
-#'
-#' # Simulate the area of each label in a reference map.
-#' n_labels <- nrow(sits_labels(class.tb))
-#' area <- sample(1:100 * 10^3, size = n_labels)
-#' names(area) <- unique(class.tb$label)
-#'
-#' # Compute the accuracy.
-#' sits_accuracy_area(class.tb, area)
-#' }
 #' @export
-sits_accuracy_area <- function(class.tb, area = NULL){
+sits_accuracy <- function(label_cube, validation){
+
+    assertthat::assert_that("classified_image" %in% class(label_cube),
+                            msg = "sits_accuracy requires a labelled cube")
+
+
 
     # backward compatibility
     class.tb <- .sits_tibble_rename(class.tb)

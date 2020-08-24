@@ -531,6 +531,43 @@ sits_sample <- function(data, n = NULL, frac = NULL){
 
     return(result)
 }
+#' @title Filter bands on a sits tibble
+#' @name sits_select
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Returns a sits tibble with the selected bands.
+#'
+#' @param data         A sits tibble metadata and data on time series.
+#' @param bands        Character vector with the names of the bands
+#' @return A tibble in sits format with the selected bands.
+#' @examples
+#' # Retrieve a set of time series with 2 classes
+#' data(cerrado_2classes)
+#' # Print the original bands
+#' sits_bands(cerrado_2classes)
+#' # Select only the "ndvi" band
+#' data <- sits_select (cerrado_2classes, bands = c("ndvi"))
+#' # Print the labels of the resulting tibble
+#' sits_bands(data)
+#' @export
+sits_select <- function(data, bands) {
+    # backward compatibility
+    data <- .sits_tibble_rename(data)
+
+    assertthat::assert_that(all(bands %in% sits_bands(data)),
+                            msg = paste0("sits_select_bands: missing bands: ",
+                                         paste(bands[!bands %in% sits_bands(data)], collapse = ", ")))
+
+    # prepare result sits tibble
+    result <- data
+
+    # select the chosen bands for the time series
+    result$time_series <- data$time_series %>%
+        purrr::map(function(ts) ts[, c("Index", bands)])
+
+    # return the result
+    return(result)
+}
 
 #' @title Filter bands on a sits tibble
 #' @name sits_select_bands
@@ -538,7 +575,7 @@ sits_sample <- function(data, n = NULL, frac = NULL){
 #'
 #' @description Returns a sits tibble with the selected bands.
 #'
-#' @param data      A sits tibble metadata and data on time series.
+#' @param data         A sits tibble metadata and data on time series.
 #' @param ...          Names of the selected bands.
 #' @return A tibble in sits format with the selected bands.
 #' @examples
@@ -554,7 +591,6 @@ sits_sample <- function(data, n = NULL, frac = NULL){
 sits_select_bands <- function(data, ...) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
-
     # get the names of the bands
     bands <-  paste(substitute(list(...)))[-1]
 

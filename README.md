@@ -50,13 +50,20 @@ library(inSitu)
 
 ### AMI Image
 
-For users that have an AWS account, we have prepared an [Amazon Machine
-Image
-(AMI)](https://console.aws.amazon.com/ec2/home?region=sa-east-1#launchAmi=ami-077ec32d4f05ebdca)
-that is optimized for running SITS in the Amazon Elastic Compute Cloud
-(or EC2). The AMI has the following settings: Ubuntu 18.04, R 4.0.2, and
-Rstudio Server 1.3.959. All packages have been updated as of 20 July
-2020.
+For users that have an AWS account, we have prepared a set of AMI
+(Amazon Machine Images that is optimized for running SITS in the Amazon
+Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS
+0.9.6, Ubuntu 18.04, R 4.0.2, and Rstudio Server 1.3.959. All packages
+have been updated as of 21 August 2020. The AMI is avaliable for the
+following regions:
+
+  - [South America
+    (sa-east-1)](https://console.aws.amazon.com/ec2/home?region=sa-east-1#launchAmi=ami-0567d9e8bca925a8d)
+  - [Frankfurt(eu-central-1)](https://console.aws.amazon.com/ec2/home?region=eu-central-1#launchAmi=ami-088e0eb8b0c3a74e3)
+  - [US East
+    (us-east-1)](https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-02aa6bc45d45f75b9)
+  - [Asia Pacific
+    Singapore(ap-southeast-1)](https://console.aws.amazon.com/ec2/home?region=ap-southeast-1#launchAmi=ami-025e0b3b65bedb145)
 
 When you create an EC2 instance based on this AMI, ensure that your
 ‘security group’ settings allow incoming HTTP (port 80), HTTPS (port
@@ -84,13 +91,12 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf).
 
 ### Visualization
 
-    #> Created logger for sits package - DEBUG level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpOdyVMu/sits_debug8b4a556e7293.log
-    #> Created logger for sits package - ERROR level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//RtmpOdyVMu/sits_error8b4a46243cb6.log
+    #> Created logger for sits package - DEBUG level at /var/folders/21/g8ty6rhs2b350tzkmknqgwv00000gn/T//RtmpUDYgkk/sits_debug73375ab06965.log
+    #> Created logger for sits package - ERROR level at /var/folders/21/g8ty6rhs2b350tzkmknqgwv00000gn/T//RtmpUDYgkk/sits_error733773d79466.log
     #> sits - satellite image time series analysis.
-    #> Loaded sits v0.9.5.2.
+    #> Loaded sits v0.9.6.
     #>         See ?sits for help, citation("sits") for use in publication.
     #>         See demo(package = "sits") for examples.
-    #> Warning: package 'tibble' was built under R version 4.0.2
 
 ``` r
 cerrado_2classes[1:3,]

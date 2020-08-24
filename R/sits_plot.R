@@ -320,8 +320,6 @@ plot.classified_image <- function(x , y, ..., map = NULL, time = 1,
 	# get the labels and how many there are
 	labels <- .sits_cube_labels(x)
 	nclasses <- length(labels)
-	# create a mapping from classes to labels
-	# names(labels) <- as.character(c(1:nclasses))
 
 	# if colors are not specified, get them from the configuration file
 	if (purrr::is_null(colors)) {
@@ -347,7 +345,6 @@ plot.classified_image <- function(x , y, ..., map = NULL, time = 1,
 		mv <- suppressWarnings(mapview::mapview(rl, map = map, col.regions = colors))
 	else
 		mv <- suppressWarnings(mapview::mapview(rl, col.regions = colors))
-#	.sits_plot_raster(cube = x, time = time, title = title, colors = colors)
 	return(mv)
 }
 
