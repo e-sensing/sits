@@ -33,6 +33,7 @@ LazyData: true
 Imports:
     magrittr,
     assertthat,
+    aws.s3,
     caret,
     config,
     data.table (>= 1.12),
@@ -62,6 +63,7 @@ Suggests:
     dtwSat,
     e1071,
     flexclust,
+    gdalUtils,
     imager,
     imputeTS,
     kohonen,
@@ -83,6 +85,7 @@ Suggests:
     RCurl,
     RSQLite,
     signal,
+    sp,
     stars,
     stringr,
     testthat,
@@ -101,6 +104,7 @@ Collate:
     'data.R'
     'sits-package.R'
     'sits_accuracy.R'
+    'sits_bdc.R'
     'sits_classification.R'
     'sits_config.R'
     'sits_csv.R'
@@ -127,6 +131,7 @@ Collate:
     'sits_raster_data.R'
     'sits_ResNet.R'
     'sits_satveg.R'
+    'sits_sentinel.R'
     'sits_shp.R'
     'sits_space_time_operations.R'
     'sits_TempCNN.R'

@@ -182,13 +182,13 @@ plot.stack_cube <- function(x , y, ..., red, green, blue, time = 1) {
               Please install it.", call. = FALSE)
 	}
 	# get the information about the stack
-	stack_info <- x$stack_info[[1]]
+	file_info <- x$file_info[[1]]
 	# get the bands
 	bands <- x$bands[[1]]
 
 	# make a list of all files
 	file.lst <- purrr::map(bands, function (b) {
-		b_files <- dplyr::filter(stack_info, band == b)
+		b_files <- dplyr::filter(file_info, band == b)
 		return(paste0(b_files$path,"/",b_files$file))
 	})
 	all_files <- unlist(file.lst)
@@ -260,7 +260,7 @@ plot.probs_cube <- function(x , y, ..., time = 1,
 	# define the output color pallete
 	col = grDevices::hcl.colors(10, colors, rev = TRUE)
 	# create a stars object
-	st <- stars::read_stars(x$files[[1]][[time]])
+	st <- stars::read_stars(x$file_info[[1]]$path[[time]])
 
 	plot(st, breaks = breaks, nbreaks = 11, col = col, main = x$labels[[1]])
 	return(invisible(x))
@@ -329,7 +329,7 @@ plot.classified_image <- function(x , y, ..., map = NULL, time = 1,
 	}
 
 	# obtain the raster
-	rl <- suppressWarnings(raster::raster(x$files[[1]][1]))
+	rl <- suppressWarnings(raster::raster(x$file_info[[1]]$path[time]))
 	# create a RAT
 	rl <- raster::ratify(rl)
 	rat <- raster::levels(rl)[[1]]

@@ -249,25 +249,23 @@
     minimum_values <- unlist(cube$minimum_values)
     scale_factors  <- unlist(cube$scale_factors)
 
-    # ordered_bricks.lst <- purrr::map(1:n_bands, function(i) {
-    #     ordered_bricks <- .sits_cube_robj(cube, i)
-    # })
-    r_objs <- unlist(cube$r_objs_list)
-
-    names(r_objs) <- bands
+    # get the file info
+    file_info <- cube$file_info[[1]]
 
     # index to go through the bands vector
     b <- 0
 
     # read the values from the raster bricks ordered by bands
-    values.lst <- r_objs %>%
-        purrr::map(function(r_obj) {
+    values.lst <- bands %>%
+        purrr::map(function(band) {
+            r_obj <- .sits_cube_robj_band(cube, band)
             # getValues function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
             values.mx    <- suppressWarnings(raster::getValues(r_obj,
                                                                first_row,
                                                                n_rows_block))
+            rm(r_obj)
 
             # proprocess the input data
             b <<- b + 1

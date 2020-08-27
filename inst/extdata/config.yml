@@ -8,9 +8,11 @@ default:
     minimum_number_samples   : 1000
 
     # Data cube types known to sits
-    cube_types              : ["WTSS", "SATVEG", "BRICK", "BDC-TILE", "BDC_TILE", "PROBS", "CLASSIFIED"]
-    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "bdc_tile", "bdc_tile", "probs_cube", "classified_image"]
-
+    cube_types              : ["WTSS", "SATVEG", "BRICK", "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
+    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "stack_cube", "probs_cube", "classified_image"]
+    cube_robjs              : ["no_raster", "no_raster", "brick", "stack", "stack", "raster", "raster"]
+    cube_services           : ["WTSS", "SATVEG"]
+    cube_raster             : ["BRICK", "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
     # BDC configuration for access to data
     bdc_web                 : "http://brazildatacube.dpi.inpe.br/Repository/Mosaic/"
     bdc_local               : "/gfs/Repository/Mosaic"
@@ -240,11 +242,17 @@ default:
             nnir            : -9999
             swir1           : -9999
             swir2           : -9999
+            B01             : -9999
             B02             : -9999
             B03             : -9999
             B04             : -9999
+            B05             : -9999
+            B06             : -9999
+            B07             : -9999
             B08             : -9999
             B8A             : -9999
+            B09             : -9999
+            B10             : -9999
             B11             : -9999
             B12             : -9999
 
@@ -260,11 +268,17 @@ default:
             nnir            : 0
             swir1           : 0
             swir2           : 0
+            B01             : 0
             B02             : 0
             B03             : 0
             B04             : 0
+            B05             : 0
+            B06             : 0
+            B07             : 0
             B08             : 0
             B8A             : 0
+            B09             : 0
+            B10             : 0
             B11             : 0
             B12             : 0
 
@@ -280,11 +294,17 @@ default:
             nnir            : 10000
             swir1           : 10000
             swir2           : 10000
+            B01             : 10000
             B02             : 10000
             B03             : 10000
             B04             : 10000
+            B05             : 10000
+            B06             : 10000
+            B07             : 10000
             B08             : 10000
             B8A             : 10000
+            B09             : 10000
+            B10             : 10000
             B11             : 10000
             B12             : 10000
 
@@ -300,11 +320,17 @@ default:
             nnir            : 0.0001
             swir1           : 0.0001
             swir2           : 0.0001
+            B01             : 0.0001
             B02             : 0.0001
             B03             : 0.0001
             B04             : 0.0001
+            B05             : 0.0001
+            B06             : 0.0001
+            B07             : 0.0001
             B08             : 0.0001
             B8A             : 0.0001
+            B09             : 0.0001
+            B10             : 0.0001
             B11             : 0.0001
             B12             : 0.0001
 
@@ -365,6 +391,14 @@ default:
                  nir        :  0.3407
                  swir1      : -0.7117
                  swir2      : -0.4559
+
+    S2_L2A_AWS              :
+        bucket              : "sentinel-s2-l2a"
+        resolutions         : ["10m", "20m", "30m"]
+        10m_bands           : ["B02", "B03", "B04", "B08"]
+        20m_bands           : ["B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B11", "B12"]
+        60m_bands           : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12"]
+        test_file           : "/vsis3/sentinel-s2-l2a/tiles/20/L/KP/2018/8/17/0/R20m/B02.jp2"
 
     SATVEG_bands            :
         terra               : &bands-sv ["ndvi", "evi"]

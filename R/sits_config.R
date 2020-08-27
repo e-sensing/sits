@@ -118,17 +118,36 @@ sits_config_show <- function() {
 #' @name .sits_config_cube_class
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the class name associated to a cube type
-#' @param type  Type of data cubes
-.sits_config_cube_class <- function(type) {
+#' @param cube  Data cube
+#' @return      Class of data cube
+#'
+.sits_config_cube_class <- function(cube) {
     # check that the cube is correct
-    if (.sits_config_check(type)) {
+    if (.sits_config_check(cube$type)) {
         # find out which cube types are supported
         types   <- sits.env$config$cube_types
         classes <-  sits.env$config$cube_classes
         names(classes) <- types
-        return(unname(classes[type]))
+        return(unname(classes[cube$type]))
     }
     return(NULL)
+}
+#' @title Retrieve the classes of Raster objects associated to data cubes known to SITS
+#' @name .sits_config_cube_robj_class
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Retrieve the class name associated to a cube type
+#' @param cube  Data cube
+#' @return      class of robjects in data cubes ("brick", "raster", or "stack")
+.sits_config_cube_robj_class <- function(cube) {
+  # check that the cube is correct
+  if (.sits_config_check(cube$type)) {
+    # find out which cube types are supported
+    types   <- sits.env$config$cube_types
+    objs    <-  sits.env$config$cube_robjs
+    names(objs) <- types
+    return(unname(objs[cube$type]))
+  }
+  return(NULL)
 }
 
 #' @title Check that the cube class is valid, based on the configuration file
@@ -145,6 +164,21 @@ sits_config_show <- function() {
         return(TRUE)
     else
         return(FALSE)
+}
+
+#' @title Check if the cube is a web service
+#' @name .sits_config_cube_service
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param cube      data cube
+#' @return          TRUE or FALSE
+.sits_config_cube_service <- function(cube){
+
+  # find out which services are available
+  if (cube$type %in% sits.env$config$cube_services)
+      return(TRUE)
+  else
+      return(FALSE)
 }
 
 #' @title Check the cube types available in the configuration file
@@ -396,14 +430,13 @@ sits_config_show <- function() {
     return(crs)
 }
 
-#' @title Retrieve the size of the cube for a given service
+#' @title Retrieve the size of the cube for SATVEG
 #' @name .sits_config_satveg_size
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param name           Name of the cube.
-#' @param r_obj          R object associated with the cube.
 #' @return Vector of (nrows, ncols).
-.sits_config_satveg_size <- function(name, r_obj = NA) {
+.sits_config_satveg_size <- function(name) {
 
     size         <- vector(length = 2)
     names(size)  <- c("nrows", "ncols")
@@ -432,6 +465,46 @@ sits_config_show <- function() {
 .sits_config_satveg_url <- function() {
   q <- "SATVEG-EMBRAPA_server"
   return(sits.env$config[[q]])
+}
+#' @title Get the bucket where Sentinel-2 level 2A images are available in AWS
+#' @name .sits_config_sentinel_aws_bucket
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return name of the bucket
+.sits_config_sentinel_aws_bucket <- function() {
+  s <- "S2_L2A_AWS"
+  return(sits.env$config[[s]][["bucket"]])
+}
+#' @title File to test access to Sentinel-2 level 2A images in AWS
+#' @name .sits_config_sentinel_aws_test_file
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return name of the bucket
+.sits_config_sentinel_aws_test_file <- function() {
+    s <- "S2_L2A_AWS"
+   return(sits.env$config[[s]][["test_file"]])
+}
+#' @title Get the the resolutions for Sentinel-2 ARD in AWS
+#' @name .sits_config_sentinel_aws_resolutions
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return vector with names of the resolutions available in AWS for S2 L2A
+.sits_config_sentinel_aws_resolutions <- function() {
+    return(sits.env$config[["S2_L2A_AWS"]][["resolutions"]])
+}
+#' @title Get the the bands stored in AWS for Sentinel-2 ARD given the resolution
+#' @name .sits_config_sentinel_aws_bands
+#' @param resolution       Resolution of the bands
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return vector with names of the bands available in AWS for a given resolution
+.sits_config_sentinel_aws_bands <- function(resolution) {
+    s <- "S2_L2A_AWS"
+    assertthat::assert_that(resolution %in% sits.env$config[[s]][["resolutions"]],
+                          msg = "Sentinel-2 in AWS - wrong resolution")
+
+    r <- paste0(resolution,"_bands")
+    return(sits.env$config[[s]][[r]])
 }
 
 #' @title Retrieve the scale factor for a given band for a data cube

@@ -13,7 +13,7 @@ test_that("Reading a raster cube", {
 
 
     # get cube object
-    cub.obj <- suppressWarnings(raster::brick(raster_cube$files[[1]]))
+    cub.obj <- suppressWarnings(raster::brick(raster_cube$file_info[[1]]$path))
     expect_true("RasterBrick" %in% class(cub.obj))
     # get bands names
     bands <- sits:::.sits_cube_bands(raster_cube)

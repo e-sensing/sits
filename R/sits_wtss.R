@@ -116,7 +116,7 @@
     # now - class "sits"
     if(!purrr::is_null(ts)) {
         class(ts) <- setdiff(class(ts), "wtss")
-        class(ts) <- append(class(ts), "sits", after = 0)
+        class(ts) <- c("sits", class(ts))
         # add a label column
         if (label != "NoClass") {
             ts$label <- label

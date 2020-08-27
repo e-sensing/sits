@@ -41,50 +41,52 @@
         .n_max_csv <-  NROW(csv.tb)
     csv.tb <- csv.tb[.n_start_csv:.n_max_csv, ]
 
+    if (.sits_config_cube_service(cube)) {
+        data.tb <- .sits_csv_from_service(cube = cube, csv.tb = csv.tb,
+                                          bands = bands, .prefilter = .prefilter)
+    }
+    else
+        data.tb <- .sits_csv_from_raster(cube = cube, csv.tb = csv.tb,
+                                         bands = bands)
+
+    return(data.tb)
+}
+
+#' @title Read a CSV from a webservice
+#' @name .sits_csv_from_service
+#'
+#' @param cube         Data cube
+#' @param csv.tb       Tibble with CSV information
+#' @param bands        Vector with bands to be retrieved
+#' @param .prefilter   Prefilter info (used for SATVEG)
+#'
+.sits_csv_from_service <- function (cube, csv.tb, bands, .prefilter){
+
     # find how many samples are to be read
     n_rows_csv <- NROW(csv.tb)
-    # create a variable to store the number of rows
-    nrow <- 0
-    # create the tibble
-    data.tb <- .sits_tibble()
-    # create a file to store the unread rows
-    csv_unread.tb <- .sits_tibble_csv()
     # for each row of the input, retrieve the time series
     data.lst <- purrr::pmap(list(csv.tb$longitude,
                                  csv.tb$latitude,
                                  csv.tb$start_date,
                                  csv.tb$end_date,
                                  csv.tb$label),
-                function(longitude, latitude, start_date, end_date, label){
-                        row <- .sits_ts_from_cube(cube = cube,
-                                 longitude = longitude,
-                                 latitude = latitude,
-                                 start_date = lubridate::as_date(start_date),
-                                 end_date = lubridate::as_date(end_date),
-                                 bands = bands,
-                                 label = label,
-                                 .prefilter = .prefilter)
-
-                        if (purrr::is_null(row)) {
-                            # the point could not be read - save in log file
-                            csv_unread_row.tb <- tibble::tibble(
-                                longitude  = longitude,
-                                latitude   = latitude,
-                                start_date = lubridate::as_date(start_date),
-                                end_date   = lubridate::as_date(end_date),
-                                label      = label
-                            )
-                            csv_unread.tb <<- dplyr::bind_rows(csv_unread.tb,
-                                                              csv_unread_row.tb)
-                        }
-                        return(row)
-                    })
+                            function(longitude, latitude, start_date, end_date, label){
+                                row <- .sits_ts_from_web(cube = cube,
+                                                          longitude = longitude,
+                                                          latitude = latitude,
+                                                          start_date = lubridate::as_date(start_date),
+                                                          end_date = lubridate::as_date(end_date),
+                                                          bands = bands,
+                                                          label = label,
+                                                          .prefilter = .prefilter)
+                                return(row)
+                            })
     # unroll the list
-    data.tb <- dplyr::bind_rows(data.tb, data.lst)
+    data.tb <- dplyr::bind_rows(data.lst)
     # find out how many rows have been read
     nrows_read <- nrow(data.tb)
     # Have all input rows being read?
-    if (nrows_read < n_rows_csv && nrow > 1)
+    if (nrows_read < n_rows_csv)
         message("Some points could not be retrieved from WTSS service -
                 see log file and csv_unread_file")
     else if (nrows_read == 0)
@@ -93,13 +95,24 @@
     else
         message("All points have been retrieved from WTSS service")
 
-
-    # # optional - save the results to an intermediate file
-    # if (.n_save != 0 && !(nrow %% .n_save)) {
-    #     .sits_log_data(data.tb)
-    # }
-
     return(data.tb)
+
+}
+#' @title Read a CSV from a raster
+#' @name .sits_csv_from_raster
+#'
+#' @param cube         Data cube
+#' @param csv.tb       Tibble with CSV information
+#' @param bands        Vector with bands to be retrieved
+#' @return             Tibble with requested samples
+.sits_csv_from_raster <- function(cube, csv.tb, bands) {
+
+    # transform csv.tb into a spatial points object
+    lat_long <- sf::st_as_sf(csv.tb, coords = c("longitude", "latitude"), crs = 4326)
+
+    data.tb <- .sits_ts_from_raster(cube = cube,
+                                    sf_object = lat_long,
+                                    bands = bands)
 }
 
 #' @title Export a sits tibble metadata to the CSV format

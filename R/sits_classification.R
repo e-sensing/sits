@@ -229,8 +229,7 @@ sits_label_classification <- function(cube,
 
     # extract parameters
     in_files  <- .sits_cube_files(cube)
-    r_obj     <- .sits_cube_robj(cube)
-    cube_size <- raster::nrow(r_obj)*raster::ncol(r_obj)
+    cube_size <-  cube$nrows*cube$ncols
     labels    <- .sits_cube_labels(cube)
     n_labels  <- length(labels)
     nrows     <- cube$nrows
@@ -245,6 +244,7 @@ sits_label_classification <- function(cube,
                                        version = version)
     # retrieve the files to be written
     out_files   <-  .sits_cube_files(cube_labels)
+
 
     purrr::map2(in_files, out_files, function(in_file, out_file) {
 
@@ -269,8 +269,13 @@ sits_label_classification <- function(cube,
 
         }
         # create a raster object to write
-        layer <- suppressWarnings(raster::raster(r_obj))
-        raster::dataType(layer) <- "INT1U"
+        layer <- suppressWarnings(raster::raster(nrows = cube_labels$nrows,
+                                                 ncols = cube_labels$ncols,
+                                                 xmn  = cube_labels$xmin,
+                                                 xmx  = cube_labels$xmax,
+                                                 ymn  = cube_labels$ymin,
+                                                 ymx  = cube_labels$ymax,
+                                                 crs   = cube_labels$crs))
 
         # select the best class by choosing the maximum value
         # copy classes to raster
@@ -284,6 +289,8 @@ sits_label_classification <- function(cube,
         # save raster output to file
         layer <- suppressWarnings(raster::writeRaster(layer,
                                                       filename = out_file,
+                                                      format   = "GTiff",
+                                                      dataType = "INT1U",
                                                       overwrite = TRUE))
     })
 
@@ -464,16 +471,6 @@ sits_label_classification <- function(cube,
     # checks the classification params
     .sits_check_classify_params(cube, ml_model)
 
-    # if the cube is either a BRICK or a STACK, get the robjs for faster access
-    if (cube$type == "BRICK"){
-        r_objs <- .sits_cube_brick_all_robjs(cube)
-        cube <- tibble::add_column(cube, r_objs_list = list(r_objs))
-    }
-    if (cube$type == "BDC_TILE") {
-        r_objs <- .sits_cube_stack_all_robjs(cube)
-        cube <- tibble::add_column(cube, r_objs_list = list(r_objs))
-    }
-
     # CRAN limits the number of cores to 2
     chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
     # if running on check mode, multicores must be 2
@@ -494,21 +491,8 @@ sits_label_classification <- function(cube,
     cube_bands   <- .sits_cube_bands(cube)
     sample_bands <- sits_bands(samples)
     assertthat::assert_that(
-        all(cube_bands %in% sample_bands) && all(sample_bands %in% cube_bands),
+        all(sample_bands %in% cube_bands),
         msg = "sits_classify: bands in samples different from cube bands")
-
-    # Sanity check - does the number of layers match the number of time instances
-    time_instances <- length(sits_timeline(samples))
-    purrr::map(r_objs, function(ro){
-        assertthat::assert_that(raster::nlayers(ro) >= time_instances,
-                msg = "mismatch btw number of time instances and number of layers")
-    })
-
-
-
-    # align bands with the files if they are not matched
-    if (!all(cube_bands == sample_bands))
-        cube <- .sits_cube_align_bands(cube, sample_bands)
 
     # classify the data
     cube_probs <- .sits_classify_multicores(cube = cube,
@@ -562,8 +546,6 @@ sits_label_classification <- function(cube,
                                        version) {
 
 
-    # get the reference r_obj from the existing cube
-    r_obj <- .sits_cube_robj(cube)
 
     # create the medata for the classified cube
     cube_class <- .sits_cube_classified(cube = cube,
@@ -578,20 +560,25 @@ sits_label_classification <- function(cube,
     n_objs <- length(.sits_cube_files(cube_class))
     bricks <- vector("list", n_objs)
 
-    # clone the bricks from existing r_obj
-    bricks <- purrr::map2(bricks, c(1:n_objs), function(brick, i){
-        brick <- suppressWarnings(raster::brick(r_obj, nl = n_layers))
-        raster::dataType(brick) <- "INT2U"
-        brick@file@name <- .sits_cube_file(cube_class, i)
+    # create the outbut bricks
+    bricks <- purrr::map(bricks, function(brick){
+        brick <- suppressWarnings(raster::brick(nl    = n_layers,
+                                                nrows = cube_class$nrows,
+                                                ncols = cube_class$ncols,
+                                                xmn   = cube_class$xmin,
+                                                xmx   = cube_class$xmax,
+                                                ymn   = cube_class$ymin,
+                                                ymx   = cube_class$ymax,
+                                                crs   = cube_class$crs))
         return(brick)
     })
-    # create a list of r_objs in the classified cube
-    cube_class <- tibble::add_column(cube_class, r_objs_list = list(bricks))
 
     # initiate writing
-    bricks <- purrr::map(bricks, function(brick){
+    bricks <- purrr::map2(bricks, c(1:n_objs), function(brick, i){
         brick <- suppressWarnings(raster::writeStart(brick,
-                                                     brick@file@name,
+                                                     filename = .sits_cube_file(cube_class, i),
+                                                     format   = "GTiff",
+                                                     datatype = "INT2U",
                                                      overwrite = TRUE))
     })
     # retrieve the normalization stats

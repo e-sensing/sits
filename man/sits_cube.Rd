@@ -18,13 +18,18 @@ sits_cube(
   data_access = "local",
   start_date = NULL,
   end_date = NULL,
+  s2_aws_resolution = NULL,
+  access_key = NULL,
+  secret_key = NULL,
+  region = NULL,
   service = NULL,
   .local = NULL,
   .web = NULL
 )
 }
 \arguments{
-\item{type}{Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC-TILE", "PROBS", "CLASSIFIED")}
+\item{type}{Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC_TILE", "S2_L2A_AWS",
+"PROBS", "CLASSIFIED")}
 
 \item{name}{Name of the output data cube.}
 
@@ -52,6 +57,14 @@ sits_cube(
 
 \item{end_date}{Ending date of the cube}
 
+\item{s2_aws_resolution}{Resolution of Sentinel images in AWS}
+
+\item{access_key}{AWS access key}
+
+\item{secret_key}{AWS secret key}
+
+\item{region}{AWS region}
+
 \item{service}{Name of the data service (deprecated)}
 
 \item{.local}{Directory for local access to the input cube (optional)}
@@ -66,6 +79,7 @@ Cubes can be of the following types:
  \item{"SATVEG": }{ SATVEG Time Series Service - used to get time series}
  \item{"BRICK": }{Raster Brick files}
  \item{"BDC_TILE"}{A tile from the Brazil Data Cube}
+ \item{"S2_L2A_AWS"}{A tile of Sentinel-2 data in AWS}
 }
 }
 \examples{

@@ -75,152 +75,7 @@
     })
     return(TRUE)
 }
-#' @title Check if the BDC tiles are working
-#' @name .sits_raster_check_bdc_tiles
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param satellite     satellite
-#' @param sensor        sensor
-#' @param bands         bands
-#' @param cube          input cube
-#' @param tile          tile
-#' @param data_access   type of access
-#' @param start_date    start_date of the cube
-#' @param end_date      end date of the cube
-.sits_raster_check_bdc_tiles <- function(satellite,
-                                         sensor,
-                                         bands,
-                                         cube,
-                                         tile,
-                                         data_access,
-                                         start_date,
-                                         end_date){
 
-    # check if the satellite and sensor are supported by SITS
-    assertthat::assert_that(!purrr::is_null(satellite),
-                            msg = "sits_cube: for type = TILE satelite must be provided")
-    assertthat::assert_that(!purrr::is_null(sensor),
-                            msg = "sits_cube: for type = TILE sensor must be provided")
-    # Tests is satellite and sensor are known to SITS
-    .sits_raster_satellite_sensor(satellite, sensor)
-
-    # test if bands are provided
-    assertthat::assert_that(!purrr::is_null(bands),
-                            msg = "sits_cube: for type = TILE bands must be provided")
-
-    # test if cube and tile are provided
-    assertthat::assert_that(!purrr::is_null(cube),
-                            msg = "sits_cube: for type = TILE cube name must be provided")
-
-    assertthat::assert_that(!purrr::is_null(tile),
-                            msg = "sits_cube: for type = TILE, the tile name must be provided")
-
-    # test if data_access variable is correct
-    assertthat::assert_that(data_access %in% c("local", "web"),
-                            msg = "sits_cube: for type = TILE data_access must one of (local, web)")
-
-    # test if the dates are valid
-    if (!purrr::is_null(start_date)) {
-        assertthat::assert_that(lubridate::is.Date(lubridate::ymd(start_date)),
-                                msg = "sits_cube: start_date is not valid")
-        assertthat::assert_that(lubridate::is.Date(lubridate::ymd(end_date)),
-                                msg = "sits_cube: end_date is not valid")
-    }
-
-return(TRUE)
-}
-
-#' @title Get information on BDC tiles
-#' @name .sits_raster_info_bdc_tiles
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param satellite     satellite
-#' @param sensor        sensor
-#' @param cube          input cube
-#' @param tile          tile
-#' @param data_access   type of access
-#' @param start_date    start_date of the cube
-#' @param end_date      end date of the cube
-#' @param .local        local address (if different from default)
-#' @param .web          web address (if different from default)
-.sits_raster_info_bdc_tiles <- function(satellite,
-                                         sensor,
-                                         cube,
-                                         tile,
-                                         data_access,
-                                         start_date,
-                                         end_date,
-                                         .local,
-                                         .web){
-
-    # obtain the directory for local access
-    if (data_access == "local") {
-        if (!purrr::is_null(.local))
-            dir <- .local
-        else
-            dir <- .sits_config_cube_bdc_tile_local()
-    }
-    if (data_access == "web") {
-        if (!purrr::is_null(.web))
-            dir <-  .web
-        else
-            dir <- .sits_config_cube_bdc_tile_web()
-    }
-    # compose the directory with the name of the cube and tile
-    data_dir <- paste0(dir,"/",cube,"/",tile)
-    # list the files in the directory
-    files_tile <- list.files(data_dir, recursive = TRUE)
-    files_tile <- files_tile[grepl("tif", files_tile)]
-
-    # filter the dates as directories (if they are included in the file path)
-    files_no_dir.tb  <- readr::read_delim(files_tile, delim = "/", col_names = FALSE)
-    files_no_dir.vec <- as.vector(dplyr::pull(files_no_dir.tb[,ncol(files_no_dir.tb)]))
-
-    # extract dates and bands
-    prefix <- paste0(cube,"_",tile,"_")
-    dates_bands <- files_no_dir.vec %>%
-        stringr::str_remove(prefix) %>%
-        tools::file_path_sans_ext()
-
-    # puts the dates and bands into a tibble
-    stack.tb <- readr::read_delim(dates_bands, delim = "_",
-                                  col_names = c("start_date", "end_date", "band"))
-
-    # bands are lowercase, except when start with "B"
-    bands <- stack.tb$band
-    new_bands.lst <- purrr::map(bands, function(b){
-        if (grepl("B", b)) {
-            l <- stringr::str_locate(b, "B")
-            if (l[1,"start"] == 1 && l[1,"end"] == 1)
-                return(b)
-            else
-                return(tolower(b))
-        }
-        else
-            return(tolower(b))
-    })
-    stack.tb$band <- unlist(new_bands.lst)
-    # include a column with the file name
-    stack.tb$file <- files_tile
-    # include a column with the file path
-    stack.tb$path <- data_dir
-    # filter by starting date and end date
-    st_date <- as.Date(start_date)
-    en_date <- as.Date(end_date)
-    # sanity check - is the raster data cover the period [st_date, en_date]?
-    assertthat::assert_that(st_date %in% unique(stack.tb$start_date),
-                    msg = "raster data does not include start date")
-    assertthat::assert_that(en_date %in% unique(stack.tb$start_date),
-                    msg = "raster data does not include end date")
-
-    stack.tb <- dplyr::filter(stack.tb, start_date >= st_date &
-                                        start_date <= en_date)
-
-    # order the tile by date
-    stack.tb <- dplyr::arrange(stack.tb, start_date)
-    return(stack.tb)
-
-}
 #' @title Create a raster brick data cube
 #' @name .sits_raster_brick_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -264,6 +119,10 @@ return(TRUE)
     # get maximum values
     maximum_values <- .sits_config_maximum_values(sensor, bands)
 
+    times_brick <- rep(timeline[1], time = length(files))
+
+    # get the file information
+    file_info <- .sits_raster_file_info(params$xres, bands, times_brick, files)
 
     # create a tibble to store the metadata
     cube <- .sits_cube_create(type           = "BRICK",
@@ -286,86 +145,12 @@ return(TRUE)
                               xres  = params$xres,
                               yres  = params$yres,
                               crs   = params$crs,
-                              files = files )
+                              file_info = file_info)
 
     class(cube) <- c("brick_cube", class(cube))
     return(cube)
 }
 
-#' @title Create a data cube for a BDC TILE
-#' @name .sits_raster_bdc_tile_cube
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description  Builds a BDC_TILE cube
-#'
-#' @param  satellite             Name of satellite
-#' @param  sensor                Name of sensor
-#' @param  name                  Name of the data cube.
-#' @param  bands                 Vector of bands
-#' @param  cube                  Input cube
-#' @param  tile                  Tile
-#' @param  stack_info            Tibble with information about the stack.
-#' @return A tibble with metadata information about a raster data set.
-#'
-.sits_raster_bdc_tile_cube <- function(satellite,
-                                       sensor,
-                                       name,
-                                       bands,
-                                       cube,
-                                       tile,
-                                       stack_info){
-
-    # obtain the timeline
-    timeline <- unique(lubridate::as_date(stack_info$start_date))
-
-    # set the labels
-    labels <- c("NoClass")
-
-    # get the first image
-    full_path_1 <- paste0(stack_info[1,]$path, "/", stack_info[1,]$file)
-    # check if the file begins with http =:// or with vsicurl/
-    full_path_1 <- .sits_raster_check_webfiles(full_path_1)
-    # obtain the parameters
-    params <- .sits_raster_params(suppressWarnings(raster::raster(full_path_1)))
-
-    # get scale factors
-    scale_factors  <- .sits_config_scale_factors(sensor, bands)
-    # get missing values
-    missing_values <- .sits_config_missing_values(sensor, bands)
-    # get minimum values
-    minimum_values <- .sits_config_minimum_values(sensor, bands)
-    # get maximum values
-    maximum_values <- .sits_config_maximum_values(sensor, bands)
-
-
-    # create a tibble to store the metadata
-    cube.tb <- .sits_cube_create(type           = "BDC_TILE",
-                                 satellite      = satellite,
-                                 sensor         = sensor,
-                                 name           = name,
-                                 cube           = cube,
-                                 tile           = tile,
-                                 bands          = bands,
-                                 labels         = labels,
-                                 scale_factors  = scale_factors,
-                                 missing_values = missing_values,
-                                 minimum_values = minimum_values,
-                                 maximum_values = maximum_values,
-                                 timelines      = list(timeline),
-                                 nrows          = params$nrows,
-                                 ncols          = params$ncols,
-                                 xmin           = params$xmin,
-                                 xmax           = params$xmax,
-                                 ymin           = params$ymin,
-                                 ymax           = params$ymax,
-                                 xres           = params$xres,
-                                 yres           = params$yres,
-                                 crs            = params$crs,
-                                 stack_info     = stack_info)
-
-    class(cube.tb) <- c("stack_cube", class(cube.tb))
-    return(cube.tb)
-}
 #' @title Define a filename associated to one classified raster layer
 #' @name .sits_raster_filename
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -402,7 +187,7 @@ return(TRUE)
 #'
 #' @description    Based on the R object associated to a raster object,
 #'                 determine its params
-#' @param r_obj    An R object associated to a Raster Brick
+#' @param r_obj    A valid raster object
 #' @return A tibble with the cube params
 .sits_raster_params <- function(r_obj) {
 
@@ -481,3 +266,28 @@ return(TRUE)
     return(invisible(TRUE))
 }
 
+#' @title Create a tibble with file information to include in the cube
+#' @name  .sits_raster_file_info
+#'
+#' @param  res      Cube spatial resolution
+#' @param  bands    List of spectral bands
+#' @param  timeline Cube timeline
+#' @param  files    List of files associated to the
+.sits_raster_file_info <- function(res, bands, timeline, files) {
+
+    # create a tibble to store the file info
+    # iterate through the list of bands and files
+    file_info.lst <- purrr::pmap(list(bands, timeline, files),
+                                 function(b, t, f) {
+                                     fil.tb <- tibble::tibble(
+                                         res = as.character(round(res)),
+                                         band = b,
+                                         date = lubridate::as_date(t),
+                                         path = f)
+                                 })
+    # join the list into a tibble
+    file_info.tb  <- dplyr::bind_rows(file_info.lst)
+
+    return(file_info.tb)
+
+}

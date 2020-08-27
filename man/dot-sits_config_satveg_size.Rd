@@ -2,20 +2,18 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_satveg_size}
 \alias{.sits_config_satveg_size}
-\title{Retrieve the size of the cube for a given service}
+\title{Retrieve the size of the cube for SATVEG}
 \usage{
-.sits_config_satveg_size(name, r_obj = NA)
+.sits_config_satveg_size(name)
 }
 \arguments{
 \item{name}{Name of the cube.}
-
-\item{r_obj}{R object associated with the cube.}
 }
 \value{
 Vector of (nrows, ncols).
 }
 \description{
-Retrieve the size of the cube for a given service
+Retrieve the size of the cube for SATVEG
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

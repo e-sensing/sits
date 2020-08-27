@@ -28,8 +28,7 @@
   xres,
   yres,
   crs,
-  files = NULL,
-  stack_info = NULL
+  file_info = NULL
 )
 }
 \arguments{
@@ -79,9 +78,7 @@
 
 \item{crs}{CRS for cube (EPSG code or PROJ4 string).}
 
-\item{files}{Vector with associated files (for bricks).}
-
-\item{stack_info}{Tibble with information about stacks (for stacks)}
+\item{file_info}{Tibble with information about stacks (for stacks)}
 }
 \description{
 Print information and save metadata about a data cube.

@@ -53,16 +53,9 @@ test_that("Plot Time Series and Classification", {
                                  memsize = 1, multicores = 1)
     sinop_labels <- sits_label_classification(sinop_probs)
     plot(sinop_labels, time = 1)
-    p4 <- sits:::.sits_plot_raster(sinop_labels, time = 1,
-                                   title = "SINOP class 2000-2001")
-    expect_equal(p4$labels$title,"SINOP class 2000-2001")
-    expect_equal(p4$labels$x,"x")
-    expect_equal(p4$labels$fill,"factor(class)")
-    expect_equal(p4$data[1,"class"], 3)
-    expect_equal(p4$data[154,"class"], 3)
 
-    expect_true(all(file.remove(unlist(sinop_probs$files))))
-    expect_true(all(file.remove(unlist(sinop_labels$files))))
+    expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
 
 })
 test_that("Dendogram Plot", {

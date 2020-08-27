@@ -139,16 +139,6 @@ sits_get_data <- function(cube,
     assertthat::assert_that(check == TRUE,
                msg = "sits_get_data: cube is not valid or not accessible")
 
-    # if the cube is either a BRICK or a STACK, get the robjs for faster access
-    if (cube$type == "BRICK"){
-        r_objs <- .sits_cube_brick_all_robjs(cube)
-        cube <- tibble::add_column(cube, r_objs_list = list(r_objs))
-    }
-    if (cube$type == "BDC_TILE") {
-        r_objs <- .sits_cube_stack_all_robjs(cube)
-        cube <- tibble::add_column(cube, r_objs_list = list(r_objs))
-    }
-
     # No file is given - lat/long must be provided
     if (purrr::is_null(file)) {
         #precondition
@@ -195,113 +185,140 @@ sits_get_data <- function(cube,
                                     .n_shp_pts = .n_shp_pts,
                                     .prefilter = .prefilter)
     }
+    if (!("sits" %in% class(data)))
+        class(data) <- c("sits", class(data))
     return(data)
 }
+#' @title Extract a time series from a cube
+#' @name .sits_ts_from_cube
+#'
+#' @param  cube        Data cube
+#' @param  longitude   Longitude of point
+#' @param  latitude    Latitude of point
+#' @param  start_date  starting date for the time series
+#' @param  end_date    end date for the time series
+#' @param  bands       Bands to be retrieved
+#' @param  label       Label to be assigned to the series
+#' @param  .prefilter  Prefilter (used for SATVEG)
+#' @return             A valid sits tibble
+#'
+.sits_ts_from_cube <- function(cube, longitude, latitude,
+                              start_date, end_date, bands, label, .prefilter){
 
+    if (.sits_config_cube_service(cube)) {
+        data.tb <- .sits_ts_from_web(cube, longitude, latitude,
+                                     start_date, end_date, bands, label, .prefilter)
+    }
+    else {
+        timeline <- sits_timeline(cube)
+        if (purrr::is_null(start_date))
+            start_date <- timeline[1]
+        if (purrr::is_null(end_date))
+            end_date <- timeline[length(timeline)]
+        ll.tb <- tibble::tibble(id = 1, longitude = longitude, latitude = latitude,
+                                start_date = start_date, end_date = end_date, label = label)
+        # transform ll.tb into a spatial points object
+        lat_long <- sf::st_as_sf(ll.tb, coords = c("longitude", "latitude"), crs = 4326)
+
+        data.tb <- .sits_ts_from_raster(cube       = cube,
+                                        sf_object  = lat_long,
+                                        bands      = bands)
+    }
+    return(data.tb)
+}
 
 #' @title Extract a time series from a ST raster data set
-#' @name .sits_from_raster
+#' @name .sits_ts_from_raster
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Retrieve a set of time series for a raster data cube.
 #'
-#' @param cube            Metadata describing a raster data cube.
-#' @param longitude       Longitude of the chosen location.
-#' @param latitude        Latitude of the chosen location.
-#' @param start_date      Start of the period.
-#' @param end_date        End of the period.
-#' @param bands           Bands to be retrieved.
-#' @param label           Label to attach to the time series.
-#' @return                A sits tibble with the time series.
-.sits_from_raster <- function(cube,
-                              longitude,
-                              latitude,
-                              start_date,
-                              end_date,
-                              bands,
-                              label = "NoClass"){
+#' @param cube              Metadata describing a raster data cube.
+#' @param sf_object         sf object.
+#' @param bands             Bands to be retrieved.
+#' @return                  A sits tibble with the time series.
+.sits_ts_from_raster <- function(cube,
+                                 sf_object,
+                                 bands){
 
     # ensure metadata tibble exists
     assertthat::assert_that(NROW(cube) >= 1,
-            msg = "sits_from_raster: need a valid metadata for data cube")
+            msg = "sits_ts_from_raster: need a valid metadata for data cube")
 
+    spatial_points <- sf::as_Spatial(sf_object)
+
+    # ensure metadata tibble exists
+    assertthat::assert_that(nrow(spatial_points) >= 1,
+            msg = "sits_ts_from_raster: need a valid sf_object")
+
+    # get the timeline
     timeline <- sits_timeline(cube)
-
-    start_idx <- 1
-    end_idx   <- length(timeline)
-
-    if (!purrr::is_null(start_date)) {
-        start_idx <- which.min(abs(lubridate::as_date(start_date) - timeline))
-    }
-    if (!purrr::is_null(end_date)) {
-        end_idx <- which.min(abs(lubridate::as_date(end_date) - timeline))
-    }
-    timeline <- timeline[start_idx:end_idx]
-
-    ts.tb <- tibble::tibble(Index = timeline)
 
     # get the bands, scale factors and missing values
     bands <- unlist(cube$bands)
     missing_values <- unlist(cube$missing_values)
     scale_factors  <- unlist(cube$scale_factors)
-    nband <- 0
 
-    # transform longitude and latitude to an sp Spatial Points*
-    # (understood by raster)
-    st_point <- sf::st_point(c(longitude, latitude))
-    ll_sfc   <- sf::st_sfc(st_point, crs = "+proj=longlat +datum=WGS84 +no_defs")
-
-    # get the r_objs
-    r_objs <- unlist(cube$r_objs_list)
     # An input raster brick contains several files, each corresponds to a band
-    values.lst <- r_objs %>%
-        purrr::map(function(r_obj) {
-            # each brick is a band
-            nband <<- nband + 1
+    ts_bands.lst <- bands %>%
+        purrr::map(function(band) {
+            # create a tibble to store the data for each band
+            ts_band.tb <- .sits_tibble()
             # get the values of the time series
-            raster_crs    <- suppressWarnings(raster::crs(r_obj))
-            ll_raster     <- suppressWarnings(sf::st_transform(ll_sfc, crs = raster_crs))
-            ll_raster_sp  <- suppressWarnings(sf::as_Spatial(ll_raster))
-            values <- suppressWarnings(as.vector(raster::extract(r_obj,
-                                                                 ll_raster_sp)))
+            r_obj <- .sits_cube_robj_band(cube, band)
+            values.mx <- suppressWarnings(raster::extract(r_obj,spatial_points))
+            rm(r_obj)
             # is the data valid?
-            if (all(is.na(values))) {
+            assertthat::assert_that(nrow(values.mx) > 0,
+                        msg = "sits_ts_from_raster - no data retrieved")
+            if (all(is.na(values.mx))) {
                 message("point outside the raster extent - NULL returned")
                 return(NULL)
             }
-            # create a tibble to store the values
-            values.tb <- tibble::tibble(values[start_idx:end_idx])
-            # find the names of the tibble column
-            band <- bands[nband]
-            names(values.tb) <- band
-            # correct the values using the scale factor
-            values.tb <- values.tb[,1]*scale_factors[band]
-            return(values.tb)
+
+            # each row of the values matrix is a spatial point
+            for (i in 1:nrow(values.mx)) {
+                time_idx <- .sits_timeline_indexes(timeline = timeline,
+                                                   start_date = spatial_points$start_date[i],
+                                                   end_date = spatial_points$end_date[i])
+                # select the valid dates in the timeline
+                timeline <- timeline[time_idx["start_idx"]:time_idx["end_idx"]]
+                # get only valid values for the timeline
+                values.vec <- as.vector(values.mx[i, time_idx["start_idx"]:time_idx["end_idx"]])
+                # correct the values using the scale factor
+                values.vec <- values.vec*scale_factors[band]
+                # create a tibble for each band
+                ts.tb <- tibble::tibble(Index = timeline)
+                # put the values in the time series tibble together t
+                ts.tb$values <- values.vec
+                colnames(ts.tb) <- c("Index", band)
+
+                # insert a row on the tibble with the values for lat/long and the band
+                ts_band.tb <- tibble::add_row(ts_band.tb,
+                    longitude    = as.vector(sp::coordinates(spatial_points)[i,1]),
+                    latitude     = as.vector(sp::coordinates(spatial_points)[i,2]),
+                    start_date   = timeline[time_idx["start_idx"]],
+                    end_date     = timeline[time_idx["end_idx"]],
+                    label        = spatial_points$label[i],
+                    cube         = cube$name,
+                    time_series  = list(ts.tb)
+                )
+            }
+            return(ts_band.tb)
         })
 
-    ts.tb <- dplyr::bind_cols(ts.tb, values.lst)
+    # merge the bands
+    data.tb <- .sits_tibble()
+    l <- length(ts_bands.lst)
+    for (i in 1:l) {
+        data.tb <- sits_merge(data.tb, ts_bands.lst[[i]])
+    }
 
-    # create a list to store the time series coming from set of Raster Layers
-    ts.lst <- list()
-    # transform the list into a tibble to store in memory
-    ts.lst[[1]] <- ts.tb
 
-    # create a tibble to store the WTSS data
-    data <- .sits_tibble()
-    # add one row to the tibble
-    data  <- tibble::add_row(data,
-                             longitude    = longitude,
-                             latitude     = latitude,
-                             start_date   = as.Date(timeline[1]),
-                             end_date     = as.Date(timeline[length(timeline)]),
-                             label        = label,
-                             cube         = cube$name,
-                             time_series  = ts.lst
-    )
-    return(data)
+    return(data.tb)
 }
 #' @title Obtain timeSeries from a web service associated to data cubes
-#' @name .sits_ts_from_cube
+#' @name .sits_ts_from_web
 #'
 #' @description Obtains a time series from a time series service.
 #'
@@ -318,7 +335,7 @@ sits_get_data <- function(cube,
 #'                        "3" - no data and cloud correction).
 #' @return A sits tibble.
 #'
-.sits_ts_from_cube <- function(cube,
+.sits_ts_from_web  <- function(cube,
                                longitude,
                                latitude,
                                start_date,
@@ -348,17 +365,6 @@ sits_get_data <- function(cube,
                                   bands = bands,
                                   label = label,
                                   .prefilter = .prefilter)
-
-        return(data)
-    }
-    if (cube$type == "BRICK" || cube$type == "BDC_TILE") {
-        data <- .sits_from_raster(cube = cube,
-                                  longitude = longitude,
-                                  latitude = latitude,
-                                  start_date = start_date,
-                                  end_date = end_date,
-                                  bands = bands,
-                                  label = label)
 
         return(data)
     }

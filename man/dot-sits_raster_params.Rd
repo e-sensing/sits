@@ -7,7 +7,7 @@
 .sits_raster_params(r_obj)
 }
 \arguments{
-\item{r_obj}{An R object associated to a Raster Brick}
+\item{r_obj}{A valid raster object}
 }
 \value{
 A tibble with the cube params

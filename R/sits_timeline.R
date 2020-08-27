@@ -373,6 +373,30 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
         })
     return(time_index.lst)
 }
+#' @title Given a start and end date, finding the corresponding indexes in a timeline
+#' @name  .sits_timeline_indexes
+#'
+#' @param timeline      A valid timeline
+#' @param start_date    A date inside the timeline
+#' @param end_date      A date inside the timeline
+#' @return              Named vector with start and end indexes
+#'
+.sits_timeline_indexes <- function(timeline, start_date = NULL, end_date = NULL) {
+    # indexes for extracting data from the timeline
+    start_idx <- 1
+    end_idx   <- length(timeline)
+    # obtain the start and end indexes
+    if (!purrr::is_null(start_date)) {
+        start_idx <- which.min(abs(lubridate::as_date(start_date) - timeline))
+    }
+    if (!purrr::is_null(end_date)) {
+        end_idx <- which.min(abs(lubridate::as_date(end_date) - timeline))
+    }
+    time_idx <- c(start_idx, end_idx)
+    names(time_idx) <- c("start_idx", "end_idx")
+    return(time_idx)
+}
+
 
 #' @title Obtains the timeline
 #' @name sits_timeline

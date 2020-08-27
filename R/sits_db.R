@@ -69,17 +69,6 @@ sits_db_info <- function(conn){
     # filter all extensions and leave only the original tables
     tables <- tables[!grepl(".par|.tim|.lab|.ts|.fil", tables)]
 
-    # describe the contents of the database
-    desc <- tibble::tibble(name = character(),
-                           cube   = character(),
-                           class  = character(),
-                           size   = character(),
-                           bands  = character(),
-                           b_box  = character(),
-                           crs    = character(),
-                           labels = character())
-    # variable that controls
-
     tables.lst <- tables %>%
         purrr::map(function(tab){
             data <- sits_db_read(conn,tab)
@@ -126,7 +115,7 @@ sits_db_info <- function(conn){
             }
         })
     # collect all descriptions
-    desc.tb <- dplyr::bind_rows(desc, tables.lst)
+    desc.tb <- dplyr::bind_rows(tables.lst)
 
     message(paste0("-----------------------------------------------\n",
                    'Contents of database ', conn@dbname))
@@ -360,9 +349,6 @@ sits_db_read <- function(conn, name) {
                                 maximum_value  = double(),
                                 name           = character())
 
-    # bands
-    bands.tb <- tibble::tibble(band           = character(),
-                               name           = character())
     # build the parameters and bands tibble
     for (i in 1:nrows) {
         row <- data[i,]
@@ -397,24 +383,22 @@ sits_db_read <- function(conn, name) {
     for (i in 1:nrows) {
         row <- data[i,]
         # transform information about the timelines into a tibble
-
         timelines <- row$timeline[[1]]
-
         n_instances <- length(timelines)
 
         # in a cube, a timeline is a list of timelines to account for the
         # classified image
         # build a tibble for each timeline
 
-        for (i in 1:n_instances) {
-            times_instance <- timelines[[i]]
+        for (n in 1:n_instances) {
+            times_instance <- lubridate::as_date(timelines[[n]])
             n_times <- length(times_instance)
-            for (j in 1:n_times) {
+            for (t in 1:n_times) {
                 time.tb <- tibble::tibble(
-                    date = as.Date(times_instance[j]),
+                    date = times_instance[t],
                     name = row$name,
-                    instance = j)
-                timelines.tb <- dplyr::bind_rows(timelines.tb, time.tb)
+                    instance = t)
+                timelines.tb <- tibble::add_row(timelines.tb, time.tb)
             }
         }
     }
@@ -442,36 +426,29 @@ sits_db_read <- function(conn, name) {
                           value = as.data.frame(labels.tb),
                           overwrite = TRUE)
     }
-    # files
-    if ("files" %in% colnames(data)) {
-        # files tibble
-        files.tb <- tibble::tibble(file = character(),
-                                   name = character())
-
+    # file_info
+    if (!purrr::is_null(data$file_info)) {
+        file_info.tb <- tibble::tibble(res   = character(),
+                                       band  = character(),
+                                       date  = as.Date(character()),
+                                       path  = character())
         for (i in 1:nrows) {
-            row <- data[i,]
-            # build a list for all files of for each cube
-            files.lst <- purrr::map(row$files, function(f) {
-                f <- tibble::tibble(file = f,
-                                    name = row$name)
-            })
-            files.tb <- dplyr::bind_rows(files.tb, files.lst)
+            row <- data[i,]$file_info[[1]]
+            file_info.lst <- purrr::pmap(list(row$res, row$band, row$date, row$path),
+                                         function (r, b, d, p){
+                                             fi.tb <- tibble::tibble(
+                                                 res   = r,
+                                                 band  = b,
+                                                 date  = d,
+                                                 path  = p)
+                                         })
+            file_info.tb <- dplyr::bind_rows(file_info.tb, file_info.lst)
+
         }
         # save the files tibble
         DBI::dbWriteTable(conn = conn, name = paste0(name,".fil"),
-                          value = as.data.frame(files.tb),
+                          value = as.data.frame(file_info.tb),
                           overwrite = TRUE)
-    }
-    # stack_info
-    if ("stack_info" %in% colnames(data)) {
-        for (i in 1:nrows) {
-            row <- data[i,]
-            name <- row$name
-            # save the files tibble
-            DBI::dbWriteTable(conn = conn, name = paste0(name,".stk"),
-                          value = as.data.frame(row$stack_info[[1]]),
-                          overwrite = TRUE)
-        }
     }
 }
 
@@ -543,6 +520,7 @@ sits_db_read <- function(conn, name) {
         # read timelines tibble
         times <- tibble::as_tibble(
             DBI::dbReadTable(conn = conn, name = paste0(name,".tim")))
+        times$date <- lubridate::as_date(times$date)
         instances <- times %>%
             dplyr::filter(name == row$name) %>%
             dplyr::select(date, instance)
@@ -555,30 +533,12 @@ sits_db_read <- function(conn, name) {
             timeline <- lubridate::as_date(timeline$date)
         })
 
-        files_exists <- FALSE
-        files <- vector()
         if (DBI::dbExistsTable(conn, paste0(name,".fil"))) {
             # read files tibble
             # save the files tibble
-            files.tb <- tibble::as_tibble(
+            file_info.tb <- tibble::as_tibble(
                 DBI::dbReadTable(conn = conn, name = paste0(name,".fil")))
-
-            files <- files.tb %>%
-                dplyr::filter(name == row$name) %>%
-                dplyr::select(file) %>%
-                dplyr::pull(.)
-
-            files_exists <- TRUE
-        }
-
-        stack.tb <- tibble::tibble()
-        stack_exists <- FALSE
-        if (DBI::dbExistsTable(conn, paste0(name,".stk"))) {
-            # read files tibble
-            # save the files tibble
-            stack.tb <- tibble::as_tibble(
-                DBI::dbReadTable(conn = conn, name = paste0(name,".stk")))
-            stack_exists <- TRUE
+            file_info.tb$date <- lubridate::as_date(file_info.tb$date)
         }
 
         # define the output cube
@@ -604,19 +564,15 @@ sits_db_read <- function(conn, name) {
                                ymax           = meta$ymax,
                                xres           = meta$xres,
                                yres           = meta$yres,
-                               crs            = meta$crs)
-
-        if (files_exists)
-            cube <- tibble::add_column(cube, files = list(files))
-        if (stack_exists)
-            cube <- tibble::add_column(cube, stack_info = list(stack.tb))
+                               crs            = meta$crs,
+                               file_info      = list(file_info.tb))
 
         return(cube)
 
     })
 
     data <- dplyr::bind_rows(rows.lst)
-    class_cube <- .sits_config_cube_class(data[1,]$type)
+    class_cube <- .sits_config_cube_class(data[1,])
     if (purrr::is_null(class_cube)) {
         class(data) <- c("cube", class(data))
         message("Type of data cube not yet supported by sits")

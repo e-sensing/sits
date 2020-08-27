@@ -47,7 +47,7 @@ test_that("Access to RSQLite",{
     # classify using one core
     sinop_probs <- sits_classify(raster.tb, rfor_model, memsize = 2)
 
-    expect_true(all(file.exists(unlist(sinop_probs$files))))
+    expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
 
     # write a raster probs cube
     conn <- sits_db_write(conn, "sinop_probs", sinop_probs)
@@ -55,7 +55,7 @@ test_that("Access to RSQLite",{
     cube_probs <- sits_db_read(conn, "sinop_probs")
 
     expect_true(nrow(sinop_probs) == nrow(cube_probs))
-    expect_true(all(sinop_probs$files[[1]] == cube_probs$files[[1]]))
+    expect_true(all(sinop_probs$file_info[[1]]$path[[1]] == cube_probs$file_info[[1]]$path[[1]]))
 
     # label classification
     sinop_bayes <- sits::sits_label_classification(sinop_probs,
@@ -68,7 +68,7 @@ test_that("Access to RSQLite",{
     cube_bayes <- sits_db_read(conn, "sinop_bayes")
 
     expect_true(nrow(sinop_bayes) == nrow(cube_bayes))
-    expect_true(all(sinop_bayes$files[[1]] == cube_bayes$files[[1]]))
+    expect_true(all(sinop_bayes$file_info[[1]]$path == cube_bayes$file_info[[1]]$path))
 
     db.tb <- sits_db_info(conn)
 
@@ -80,8 +80,8 @@ test_that("Access to RSQLite",{
     expect_true("cerrado_2classes" %in% db.tb$name)
     expect_true("sinop" %in% db.tb$name)
 
-    expect_true(all(file.remove(unlist(sinop_probs$files))))
-    expect_true(all(file.remove(unlist(sinop_bayes$files))))
+    expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
 
     unlink(db_file)
 })

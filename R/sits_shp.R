@@ -41,15 +41,13 @@
 
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
-    n_rows_shp <- nrow(sf_shape)
     # pre-condition - is the default label valid?
-    assertthat::assert_that(n_rows_shp > 0,
+    assertthat::assert_that(nrow(sf_shape) > 0,
             msg = "sits_from_shp: shapefile has no content")
 
     # get the geometry type
-    geom_type <-  sf::st_geometry_type(sf_shape)[1]
+    geom_type <- sf::st_geometry_type(sf_shape)[1]
     # get the data frame associated to the shapefile
-    shp_df <- sf::st_drop_geometry(sf_shape)
 
     # are all geometries compatible?
     assertthat::assert_that(all(sf::st_geometry_type(sf_shape) == geom_type),
@@ -67,11 +65,42 @@
             length(as.character(unname(shp_df[1, (shp_attr)]))) > 0,
             msg = "sits_from_shp: invalid shapefile attribute")
 
+    shp_df <- sf::st_drop_geometry(sf_shape)
     # if the shapefile is not in planar coordinates, convert it
     sf_shape <- suppressWarnings(sf::st_transform(sf_shape, crs = 4326))
     # create an empty sits tibble
     shape.tb <- .sits_tibble()
 
+    if (.sits_config_cube_service(cube)) {
+        data.tb <- .sits_shp_from_service(cube = cube,
+                                          sf_shape = sf_shape,
+                                          start_date = start_date,
+                                          end_date   = end_date,
+                                          bands      = bands,
+                                          label      = label,
+                                          shp_attr   = shp_attr,
+                                          .n_shp_pol = .n_shp_pol,
+                                          .n_shp_pts = .n_shp_pts,
+                                          .prefilter = .prefilter)
+    }
+    else
+        data.tb <- .sits_shp_from_raster(cube = cube, sf_shape = sf_shape,
+                                         bands = bands)
+
+    return(data.tb)
+
+}
+
+.sits_shp_from_service <- function(cube, sf_shape, start_date, end_date,
+                                   bands, label, shp_attr,
+                                   .n_shp_pol, .n_shp_pts, .prefilter) {
+
+    # get the number of rows
+    n_rows_shp <- nrow(sf_shape)
+    # get the geometry type
+    geom_type <- sf::st_geometry_type(sf_shape)[1]
+    # get the data frame associated to the shapefile
+    shp_df <- sf::st_drop_geometry(sf_shape)
     # if geom_type is POINT, use the points provided in the shapefile
     if (geom_type == "POINT") {
         points.mx <- sf::st_coordinates(sf_shape$geometry)
@@ -79,7 +108,6 @@
             l1.lst     <- as.list(shp_df[,shp_attr])
             labels.vec <- as.vector(l1.lst[[1]])
         }
-
         # reduce the number of points to be read
         if (nrow(points.mx) > .n_shp_pts) {
             points.mx <- points.mx[1:.n_shp_pts,]
@@ -89,20 +117,20 @@
 
         # read the points into a list
         nrows <- nrow(points.mx)
+        shape.tb <- .sits_tibble()
         for (i in 1:nrows) {
-            row <- .sits_ts_from_cube(cube = cube,
-                                      longitude   = points.mx[i,1],
-                                      latitude    = points.mx[i,2],
-                                      start_date  = start_date,
-                                      end_date    = end_date,
-                                      bands       = bands,
-                                      label       = label,
-                                      .prefilter  = .prefilter)
-            shape.tb <- dplyr::bind_rows(shape.tb, row)
+            row <- .sits_ts_from_web(cube = cube,
+                                     longitude   = points.mx[i,1],
+                                     latitude    = points.mx[i,2],
+                                     start_date  = start_date,
+                                     end_date    = end_date,
+                                     bands       = bands,
+                                     label       = labels.vec[i])
+            shape.tb <- tibble::add_row(shape.tb, row)
         }
-
         if (!purrr::is_null(shp_attr))
             shape.tb$label <- labels.vec
+
     }
     # if geom_type is not POINT, we have to sample each polygong
     else {
@@ -116,19 +144,23 @@
             rows.lst <- points.lst %>%
                 purrr::pmap(function(p) {
                     pll <- sf::st_geometry(p)[[1]]
-                    row <- .sits_ts_from_cube(cube = cube,
-                                              longitude = pll[1],
-                                              latitude = pll[2],
-                                              start_date = start_date,
-                                              end_date = end_date,
-                                              bands = bands,
-                                              label = label,
-                                              .prefilter = .prefilter)
+                    row <- .sits_ts_from_web(cube = cube,
+                                             longitude = pll[1],
+                                             latitude = pll[2],
+                                             start_date = start_date,
+                                             end_date = end_date,
+                                             bands = bands,
+                                             label = label,
+                                             .prefilter = .prefilter)
                     return(row)
                 })
             # combine rows to make SITS tibble
-            shape.tb <- dplyr::bind_rows(shape.tb, rows.lst)
+            shape.tb <- dplyr::bind_rows(rows.lst)
         }
     }
     return(shape.tb)
 }
+.sits_shp_from_raster <- function(cube, sf_shape, bands){
+    message(".sits_shp_from_raster - not implemented yet")
+}
+

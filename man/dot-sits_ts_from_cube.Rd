@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_get_data.R
 \name{.sits_ts_from_cube}
 \alias{.sits_ts_from_cube}
-\title{Obtain timeSeries from a web service associated to data cubes}
+\title{Extract a time series from a cube}
 \usage{
 .sits_ts_from_cube(
   cube,
@@ -11,33 +11,30 @@
   start_date,
   end_date,
   bands,
-  label = "NoClass",
-  .prefilter = "1"
+  label,
+  .prefilter
 )
 }
 \arguments{
-\item{cube}{Data cube metadata.}
+\item{cube}{Data cube}
 
-\item{longitude}{Longitude of the chosen location.}
+\item{longitude}{Longitude of point}
 
-\item{latitude}{Latitude of the chosen location).}
+\item{latitude}{Latitude of point}
 
-\item{start_date}{Start date of the period.}
+\item{start_date}{starting date for the time series}
 
-\item{end_date}{End date of the period.}
+\item{end_date}{end date for the time series}
 
-\item{bands}{Bands to be retrieved (optional).}
+\item{bands}{Bands to be retrieved}
 
-\item{label}{Label to attach to the time series.}
+\item{label}{Label to be assigned to the series}
 
-\item{.prefilter}{String (only for SATVEG)
-("0" - none, "1" - no data correction,
-"2" - cloud correction,
-"3" - no data and cloud correction).}
+\item{.prefilter}{Prefilter (used for SATVEG)}
 }
 \value{
-A sits tibble.
+A valid sits tibble
 }
 \description{
-Obtains a time series from a time series service.
+Extract a time series from a cube
 }
