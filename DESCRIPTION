@@ -24,7 +24,7 @@ Description: A set of tools for working with satellite image time series, both a
     Includes functions for smoothing based on Bayesian inference. 
     Minimum recommended requirements: 8 GB RAM and 1 CPU dual-core.
 Encoding: UTF-8
-Depends: R (>= 4.0.0)
+Depends: R (>= 3.6.0)
 URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2 | file LICENSE
