@@ -11,13 +11,16 @@ test_that("Labels", {
 
 test_that("Relabel", {
     #skip_on_cran()
-    data("prodes_226_064")
+    data("samples_mt_4bands")
 
-    conv.lst <-  list(Deforestation_2014 = "NonForest",
-                    Deforestation_2015 = "NonForest",
-                    Pasture = "NonForest")
+    conv.lst = list(Soy_Corn = "Cropland",
+                    Soy_Cotton  = "Cropland",
+                    Soy_Fallow  = "Cropland",
+                    Soy_Millet  = "Cropland",
+                    Soy_Sunflower  = "Cropland",
+                    Fallow_Cotton  = "Cropland")
 
-    new_data  <- sits_relabel(prodes_226_064, conv.lst)
+    new_data  <- sits_relabel(samples_mt_4bands, conv.lst)
 
-    expect_true("NonForest" %in% sits_labels(new_data)$label)
+    expect_true("Cropland" %in% sits_labels(new_data)$label)
 })

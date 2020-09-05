@@ -89,10 +89,10 @@ tc_model <- sits_train (samples_mt_4bands, sits_TempCNN(epochs = 75))
 plot(tc_model)
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
 class.tb <- sits_classify(point.tb, tc_model)
 
-plot(class.tb, bands = c("ndvi", "evi"))
+plot(class.tb, bands = c("NDVI", "EVI"))
 }
 }
 \references{

@@ -6,7 +6,7 @@
 \usage{
 .sits_cluster_dendrogram(
   samples,
-  bands = NULL,
+  bands,
   dist_method = "dtw_basic",
   linkage = "ward.D2",
   ...

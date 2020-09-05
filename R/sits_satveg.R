@@ -10,7 +10,7 @@
     satellite <- "TERRA"
     sensor    <- "MODIS"
     # get the bands
-    bands <- .sits_config_satveg_bands(name)
+    bands <- .sits_config_satveg_bands()
 
     # get scale factors, missing values and minimum values
     scale_factors  <- .sits_config_scale_factors(sensor,  bands)
@@ -85,20 +85,14 @@
 #' @param latitude        Latitude of the chosen location.
 #' @param start_date      The start date of the period.
 #' @param end_date        The end date of the period.
-#' @param bands           The bands to be retrieved.
 #' @param label           Label to attach to the time series (optional).
-#' @param .prefilter      A string ("0" - none, "1" - no data correction,
-#'                        "2" - cloud correction,
-#'                        "3" - no data and cloud correction).
 #' @return A sits tibble.
 .sits_from_satveg <- function(cube,
                              longitude,
                              latitude,
                              start_date  = NULL,
                              end_date    = NULL,
-                             bands       = NULL,
-                             label       = "NoClass",
-                             .prefilter   = "1")
+                             label       = "NoClass")
 {
 
     # check parameters
@@ -108,7 +102,7 @@
                          msg = "sits_from_satveg: Missing latitude info")
 
     # retrieve the time series
-    ts.tb <- .sits_ts_from_satveg(longitude, latitude, cube$name, .prefilter)
+    ts.tb <- .sits_ts_from_satveg(longitude, latitude, cube$name)
 
     # filter the dates
     if (!purrr::is_null(start_date) && !purrr::is_null(end_date))
@@ -120,10 +114,6 @@
     }
 
     # filter bands
-    bands <- .sits_cube_bands(cube)
-
-    ts.tb <- ts.tb[, c("Index", bands)]
-
     # use a list to store the time series
     ts.lst <- list()
     ts.lst[[1]] <- ts.tb
@@ -140,6 +130,8 @@
                                cube         = cube$name,
                                time_series  = ts.lst
     )
+    # rename the SATVEG bands to uppercase
+    data <- sits_rename(data, .sits_config_satveg_bands())
     return(data)
 }
 
@@ -153,16 +145,15 @@
 #' @param longitude       The longitude of the chosen location.
 #' @param latitude        The latitude of the chosen location.
 #' @param name            Name of the desired data cube in SATVEG
-#' @param .prefilter      String ("0" - none, "1" - no data correction,
-#'                        "2" - cloud correction,
-#'                        "3" - no data and cloud correction)
-#' @return TRUE if no problems are detected.
-.sits_ts_from_satveg <- function(longitude, latitude, name, .prefilter){
+#' @return                A tibble containing a time series
+.sits_ts_from_satveg <- function(longitude, latitude, name){
     # verifies if RCurl package is installed
     if (!requireNamespace("RCurl", quietly = TRUE)) {
         stop("RCurl required for this function to work.
              Please install it.", call. = FALSE)
     }
+    # set the prefilter
+    .prefilter <- 1
     # the parameter filter is not used
     filter <- ""
     filter_par <- ""
@@ -173,7 +164,10 @@
     URL <- .sits_config_satveg_url()
 
     # bands available in SATVEG
-    bands <- .sits_config_satveg_bands(name)
+    bands <- .sits_config_satveg_bands()
+    # bands in SATVEG are lowercase
+    bands <- tolower(bands)
+
 
     # read each of the bands separately
     for (b in bands) {

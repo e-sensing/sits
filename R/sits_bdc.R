@@ -21,26 +21,29 @@
 
 	# check if the satellite and sensor are supported by SITS
 	assertthat::assert_that(!purrr::is_null(satellite),
-							msg = "sits_cube: for type = TILE satelite must be provided")
+							msg = "sits_cube: for BDC_TILE satelite must be provided")
 	assertthat::assert_that(!purrr::is_null(sensor),
-							msg = "sits_cube: for type = TILE sensor must be provided")
+							msg = "sits_cube: for BDC_TILE sensor must be provided")
 	# Tests is satellite and sensor are known to SITS
 	.sits_raster_satellite_sensor(satellite, sensor)
 
 	# test if bands are provided
-	assertthat::assert_that(!purrr::is_null(bands),
-							msg = "sits_cube: for type = TILE bands must be provided")
-
+	if (!purrr::is_null(bands)){
+		bands_bdc <- .sits_config_band_names(sensor, "BDC_TILE")
+		bands_sits <- .sits_config_band_names(sensor, "SITS")
+		assertthat::assert_that(all(bands %in% bands_bdc) | all(bands %in% bands_sits),
+								msg = "band names inconsistent - use those of SITS")
+	}
 	# test if cube and tile are provided
 	assertthat::assert_that(!purrr::is_null(cube),
-							msg = "sits_cube: for type = TILE cube name must be provided")
+							msg = "sits_cube: for BDC_TILE cube name must be provided")
 
 	assertthat::assert_that(!purrr::is_null(tile),
-							msg = "sits_cube: for type = TILE, the tile name must be provided")
+							msg = "sits_cube: for BDC_TILE, the tile name must be provided")
 
 	# test if data_access variable is correct
 	assertthat::assert_that(data_access %in% c("local", "web"),
-							msg = "sits_cube: for type = TILE data_access must one of (local, web)")
+							msg = "sits_cube: for BDC_TILE data_access must one of (local, web)")
 
 	# test if the dates are valid
 	if (!purrr::is_null(start_date)) {
@@ -59,6 +62,7 @@
 #'
 #' @param satellite     satellite
 #' @param sensor        sensor
+#' @param bands         bands to be included in the cube
 #' @param cube          input cube
 #' @param tile          tile
 #' @param data_access   type of access
@@ -66,15 +70,18 @@
 #' @param end_date      end date of the cube
 #' @param .local        local address (if different from default)
 #' @param .web          web address (if different from default)
+#' @param .cloud_band   include cloud band? (TRUE/FALSE)
 .sits_bdc_info_tiles <- function(satellite,
 								 sensor,
+								 bands,
 								 cube,
 								 tile,
 								 data_access,
 								 start_date,
 								 end_date,
 								 .local,
-								 .web){
+								 .web,
+								 .cloud_band){
 
 	# obtain the directory for local access
 	if (data_access == "local") {
@@ -91,56 +98,43 @@
 	}
 	# compose the directory with the name of the cube and tile
 	data_dir <- paste0(dir,"/",cube,"/",tile)
+
 	# list the files in the directory
-	files_tile <- data_dir %>%
-		list.files(recursive = TRUE) %>%
-		.[grepl("tif", .)]
+	img_files <- list.files(data_dir, recursive = TRUE)
 
-	# filter the dates as directories (if they are included in the file path)
-	files_no_dir.vec <- files_tile %>%
-		readr::read_delim(delim = "/", col_names = FALSE) %>%
-		as.vector(dplyr::pull(.[,ncol(.)]))
+	# convert the names of the bands to those used by SITS
+	bands_sits <- .sits_config_band_names_convert(satellite, sensor, type = "BDC_TILE")
 
-	# puts the dates and bands into a tibble
-	prefix <- paste0(cube,"_",tile,"_")
-	stack.tb <- files_no_dir.vec %>%
-		stringr::str_remove(prefix) %>%
+	info.tb <- img_files %>%
+		# remove the extent
 		tools::file_path_sans_ext() %>%
-		readr::read_delim(delim = "_", col_names = c("date", "end_date", "band")) %>%
-		dplyr::select(date, band)
+		# read the file path into a tibble
+		readr::read_delim(delim = "/", col_names = FALSE) %>%
+		dplyr::select(ncol(.)) %>%
+		dplyr::pull() %>%
+		readr::read_delim(delim = "_", col_names = c("sat", "res", "int", "mode", "tile",
+													 "date", "end_date", "band")) %>%
+		# select the relevant parts
+		dplyr::select(res, date, band) %>%
+		# include path in the tibble
+		dplyr::mutate(path = paste0(data_dir,"/",img_files)) %>%
+		# order by dates
+		dplyr::arrange(date) %>%
+		# filter to remove duplicate combinations of file and band
+		dplyr::distinct(band, date, .keep_all = TRUE) %>%
+		# filter by starting date and end date
+		dplyr::filter(date >= start_date & date <=end_date) %>%
+		# convert the band names to SITS bands
+		dplyr::mutate(band = bands_sits[band])
 
-	# bands are lowercase, except when start with "B"
-	bands <- stack.tb$band
-	new_bands.lst <- purrr::map(bands, function(b){
-		if (grepl("B", b)) {
-			l <- stringr::str_locate(b, "B")
-			if (l[1,"start"] == 1 && l[1,"end"] == 1)
-				return(b)
-			else
-				return(tolower(b))
-		}
-		else
-			return(tolower(b))
-	})
-	stack.tb$band <- unlist(new_bands.lst)
-	# include a column with the file path
-	stack.tb$path <- paste0(data_dir,"/",files_tile)
+	if (!purrr::is_null(bands)) {
+		assertthat::assert_that(bands %in% bands_sits,
+								msg = "bands do not match band names in SITS - see config file")
+		# select the bands
+		info.tb <-  dplyr::filter(info.tb, band %in% bands)
+	}
 
-	# sanity check - is the raster data cover the period [st_date, en_date]?
-	assertthat::assert_that(start_date %in% unique(stack.tb$date),
-							msg = "raster data does not include start date")
-	assertthat::assert_that(end_date %in% unique(stack.tb$date),
-							msg = "raster data does not include end date")
-
-	# order the tile by date
-	stack.tb <- dplyr::arrange(stack.tb, date)
-
-	# filter by starting date and end date
-	stack.tb <- dplyr::filter(stack.tb, start_date >= date & end_date <= date)
-
-
-	return(stack.tb)
-
+	return(info.tb)
 }
 #' @title Create a data cube for a BDC TILE
 #' @name .sits_bdc_tile_cube
@@ -177,6 +171,9 @@
 	# obtain the parameters
 	params <- .sits_raster_params(suppressWarnings(raster::raster(full_path_1)))
 
+	# get the bands
+	bands <- unique(file_info$band)
+
 	# get scale factors
 	scale_factors  <- .sits_config_scale_factors(sensor, bands)
 	# get missing values
@@ -185,6 +182,7 @@
 	minimum_values <- .sits_config_minimum_values(sensor, bands)
 	# get maximum values
 	maximum_values <- .sits_config_maximum_values(sensor, bands)
+
 
 
 	# create a tibble to store the metadata

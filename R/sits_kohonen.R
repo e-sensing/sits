@@ -30,7 +30,8 @@
 #' @examples
 #' \donttest{
 #' # Get a new subset of samples evaluated by SOM clustering methods
-#' new_samples.tb <- sits_cluster_som(prodes_226_064)
+#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' new_samples.tb <- sits_cluster_som(samples_mt)
 #' }
 #' @export
 sits_cluster_som <- function(data,
@@ -88,7 +89,8 @@ sits_cluster_som <- function(data,
 #' @examples
 #' \donttest{
 #' # Produce a cluster map
-#' som_cluster <- sits_som_map(prodes_226_064)
+#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' som_cluster <- sits_som_map(samples_mt)
 #' # plot the som map
 #' plot(som_cluster)
 #' # Clean the samples to get better quality ones
@@ -353,7 +355,8 @@ sits_som_map <- function(data,
 #' \donttest{
 #' # Read a set of samples
 #' # Get a new subset of samples evaluated by clustering methods
-#' som_map <- sits_som_map(prodes_226_064, grid_xdim = 10, grid_ydim = 10,
+#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' som_map <- sits_som_map(samples_mt, grid_xdim = 10, grid_ydim = 10,
 #'        distance = "euclidean", iterations = 50)
 #' new_samples <- sits_som_clean_samples(som_map)
 #' }
@@ -402,7 +405,8 @@ sits_som_clean_samples <- function(som_map,
 #' @examples
 #' \donttest{
 #' # Produce a Kohonen map for the time series samples
-#' som_map <- sits_som_map(prodes_226_064)
+#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' som_map <- sits_som_map(samples_mt)
 #' # Extract metrics about the clusters
 #' confusion_by_cluster <- sits_som_evaluate_cluster(som_map)
 #' # Show confusion matrix

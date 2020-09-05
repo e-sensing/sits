@@ -48,7 +48,8 @@ to a cluster using data of neighbourhood.
 \examples{
 \donttest{
 # Produce a cluster map
-som_cluster <- sits_som_map(prodes_226_064)
+samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+som_cluster <- sits_som_map(samples_mt)
 # plot the som map
 plot(som_cluster)
 # Clean the samples to get better quality ones

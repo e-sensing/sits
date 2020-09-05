@@ -1,3 +1,37 @@
+#' @title Check cube timeline against requested start and end dates
+#' @name .sits_timeline_check_cube
+#'
+#' @description Tests if required start and end dates are available in
+#'              the data cube
+#'
+#' @param cube            Data cube metadata.
+#' @param start_date      Start date of the period.
+#' @param end_date        End date of the period.
+#'
+#' @return A vector with corrected start and end dates
+
+.sits_timeline_check_cube <- function(cube, start_date, end_date){
+    # get the timeline
+    timeline <- sits_timeline(cube)
+    # if null use the cube timeline, else test if dates are valid
+    if (purrr::is_null(start_date))
+        start_date <- lubridate::as_date(timeline[1])
+    else
+        assertthat::assert_that(start_date >= timeline[1],
+                        msg = "start_date is not inside the cube timeline")
+    if (purrr::is_null(end_date))
+        end_date <- lubridate::as_date(timeline[length(timeline)])
+    else
+        assertthat::assert_that(end_date <= timeline[length(timeline)],
+                            msg = "end_date is not inside the cube timeline")
+
+    # build a vector to return the values
+    start_end <- c(lubridate::as_date(start_date), lubridate::as_date(end_date))
+    names(start_end) <- c("start_date", "end_date")
+
+    return(start_end)
+}
+
 #' @title Define the information required for classifying time series
 #' @name .sits_timeline_class_info
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -397,6 +431,27 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
     return(time_idx)
 }
 
+#' @title Given a timeline and an interval, find the corresponding indexes of a new timeline
+#' @name  .sits_timeline_indexes_interval
+#'
+#' @param timeline      A valid timeline
+#' @param interval      A valid intervak
+#' @return              Named vector with indexes for the new timeline
+#'
+.sits_timeline_indexes_interval <- function(timeline, interval = "16 day") {
+    # indexes for extracting data from the timeline
+    date <- timeline[1]
+    index_new <- vector()
+    index_new <- append(index_new, 1)
+
+    while (date <= timeline[length(timeline)]) {
+        date <- date + lubridate::as.duration(interval)
+        idx <- which.min(abs(date - timeline))
+        index.new <- append(index_new, idx)
+    }
+
+    return(index_new)
+}
 
 #' @title Obtains the timeline
 #' @name sits_timeline

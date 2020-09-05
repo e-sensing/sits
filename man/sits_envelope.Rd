@@ -24,15 +24,11 @@ This functions calls `dtwclust::compute_envelope` function.
 }
 \examples{
 \donttest{
-# Read a set of samples of forest/non-forest in Amazonia
-# This is an area full of clouds
-data(prodes_226_064)
-# Select the NDVI band of the first point
-point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
+# Select the NDVI band of a point in Mato Grosso
 # Apply the envelope filter
-point_env.tb <- sits_envelope(point_ndvi.tb)
+point_env <- sits_envelope(point_ndvi)
 # Merge the filtered with the raw data
-point2.tb <- sits_merge (point_ndvi.tb, point_env.tb)
+point2 <- sits_merge (point_ndvi, point_env)
 # Plot the result
 plot(point2.tb)
 }

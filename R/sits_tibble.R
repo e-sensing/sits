@@ -357,7 +357,7 @@ sits_merge <-  function(data1.tb, data2.tb) {
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
 #' data (samples_mt_6bands)
 #' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-#' savi.tb <- sits_mutate_bands(samples_mt_6bands, savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#' savi.tb <- sits_mutate_bands(samples_mt_6bands, SAVI = (1.5*(NIR - RED)/(NIR + RED + 0.5)))
 #' }
 #' @export
 sits_mutate_bands <- function(data, ...){
@@ -367,6 +367,8 @@ sits_mutate_bands <- function(data, ...){
 
     # verify if data has values
     .sits_test_tibble(data)
+    # bands in SITS are uppercase
+    data  <- sits_rename(data, names = toupper(sits_bands(data)))
 
     # compute mutate for each time_series tibble
     proc_fun <- function(...){
@@ -379,7 +381,14 @@ sits_mutate_bands <- function(data, ...){
     }
 
     # compute mutate for each time_series tibble
-    data$time_series <- proc_fun(...)
+    tryCatch({
+        data$time_series <- proc_fun(...)
+    }, error = function(e){
+        msg <- paste0("Error - Are your band names all uppercase?")
+        .sits_log_error(msg)
+        message(msg)
+    })
+
     return(data)
 }
 
@@ -448,7 +457,7 @@ sits_prune <- function(data) {
 #' # Retrieve a time series with one band
 #' data(point_ndvi)
 #' # Rename the band
-#' ndvi1.tb <- sits_rename (point_ndvi, names = c("veg_index"))
+#' ndvi1.tb <- sits_rename (point_ndvi, names = c("VEG_INDEX"))
 #' # print the names of the new band
 #' sits_bands(ndvi1.tb)
 #' @export
@@ -459,8 +468,10 @@ sits_rename <- function(data, names){
     # as the actual number of bands in input data
     assertthat::assert_that(length(names) == length(sits_bands(data)),
      msg = "sits_bands: input bands and informed bands have different sizes.")
+    # bands in SITS are uppercase
+    names <- toupper(names)
 
-    # proceed rename and return invisible
+    # rename and return
     data$time_series <- data$time_series %>%
         purrr::map(function(ts){
             names(ts) <- c("Index", names)
@@ -545,18 +556,21 @@ sits_sample <- function(data, n = NULL, frac = NULL){
 #' data(cerrado_2classes)
 #' # Print the original bands
 #' sits_bands(cerrado_2classes)
-#' # Select only the "ndvi" band
-#' data <- sits_select (cerrado_2classes, bands = c("ndvi"))
+#' # Select only the NDVI band
+#' data <- sits_select (cerrado_2classes, bands = c("NDVI"))
 #' # Print the labels of the resulting tibble
 #' sits_bands(data)
 #' @export
 sits_select <- function(data, bands) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
+    # bands names in SITS are uppercase
+    bands <- toupper(bands)
+    data  <- sits_rename(data, names = toupper(sits_bands(data)))
 
     assertthat::assert_that(all(bands %in% sits_bands(data)),
-                            msg = paste0("sits_select_bands: missing bands: ",
-                                         paste(bands[!bands %in% sits_bands(data)], collapse = ", ")))
+                    msg = paste0("sits_select_bands: missing bands: ",
+                            paste(bands[!bands %in% sits_bands(data)], collapse = ", ")))
 
     # prepare result sits tibble
     result <- data
@@ -583,8 +597,8 @@ sits_select <- function(data, bands) {
 #' data(cerrado_2classes)
 #' # Print the original bands
 #' sits_bands(cerrado_2classes)
-#' # Select only the "ndvi" band
-#' data <- sits_select_bands(cerrado_2classes, ndvi)
+#' # Select only the NDVI band
+#' data <- sits_select_bands(cerrado_2classes, NDVI)
 #' # Print the labels of the resulting tibble
 #' sits_bands(data)
 #' @export
@@ -594,6 +608,11 @@ sits_select_bands <- function(data, ...) {
     # get the names of the bands
     bands <-  paste(substitute(list(...)))[-1]
 
+    # bands in SITS are uppercase
+    bands <- toupper(bands)
+    data <- sits_rename(data, names = toupper(sits_bands(data)))
+
+    # precondition
     assertthat::assert_that(all(bands %in% sits_bands(data)),
         msg = paste0("sits_select_bands: missing bands: ",
                 paste(bands[!bands %in% sits_bands(data)], collapse = ", ")))
@@ -661,7 +680,7 @@ sits_time_series <- function(data) {
 #' data(samples_mt_6bands)
 #' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
 #' savi.tb <- sits_transmute_bands(samples_mt_6bands,
-#'                                 savi = (1.5*(nir - red)/(nir + red + 0.5)))
+#'                                 SAVI = (1.5*(NIR - RED)/(NIR + RED + 0.5)))
 #' }
 #'
 #' @export
@@ -681,7 +700,13 @@ sits_transmute_bands <- function(data, ...){
     }
 
     # compute transmute for each time_series tibble
-    data$time_series <- proc_fun(...)
+    tryCatch({
+        data$time_series <- proc_fun(...)
+    }, error = function(e){
+        msg <- paste0("Error - Are your band names all uppercase?")
+        .sits_log_error(msg)
+        message(msg)
+    })
     return(data)
 }
 
@@ -838,6 +863,10 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
+    # bands in SITS are uppercase
+    data <- sits_rename(data, toupper(sits_bands(data)))
+    bands <- toupper(bands)
+
     # verify if bands exists in data
     assertthat::assert_that(all(bands %in% sits_bands(data)),
          msg = paste0(".sits_select_bands_: missing bands: ",
@@ -852,6 +881,26 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
 
     # return the result
     return(result)
+}
+#' @title Check that the requested bands exist in the samples
+#' @name .sits_samples_bands_check
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples       Time series with the samples
+#' @param bands         Requested bands of the data sample
+#' @return              Checked bands (cube bands if bands are NULL)
+#'
+.sits_samples_bands_check <- function(samples, bands = NULL) {
+    # check the bands are available
+    sp_bands <- sits_bands(samples)
+    if (purrr::is_null(bands))
+        bands <- toupper(sp_bands)
+    else {
+        bands <- toupper(bands)
+        assertthat::assert_that(all(bands %in% sp_bands),
+                msg = "required bands are not available in the samples")
+    }
+    return(bands)
 }
 
 #' @title Tests if a sits tibble is valid

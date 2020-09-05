@@ -2,9 +2,23 @@
 #' @method plot sits
 #' @name plot
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Given a sits tibble with a set of time series, plot them.
+#' @description This is a generic function. Parameters depend on the specific
+#' type of input.  See each function description for the
+#' required parameters:
+#' \itemize{
+#'  \item{sits tibble:}{see \code{\link{plot.sits}}}
+#'  \item{patterns: }{ see \code{\link{plot.patterns}}}
+#'  \item{SOM map:}{ see \code{\link{plot.som_map}}}
+#'  \item{classified time series:}{ see \code{\link{plot.predicted}}}
+#'  \item{brick cube:}{ see \code{\link{plot.brick_cube}}}
+#'  \item{stack cube:}{ see \code{\link{plot.stack_cube}}}
+#'  \item{classification probabilities:}{ see \code{\link{plot.probs_cube}}}
+#'  \item{classified image :}{see \code{\link{plot.classified_image}}}
+#' }
 #'
-#' The plot function produces different plots based on the input data:
+#'
+#' In the case of time series, the plot function produces different plots
+#' based on the input data:
 #' \itemize{
 #'  \item{"all years": }{Plot all samples from the same location together}
 #'  \item{"together": }{Plot all samples of the same band and label together}
@@ -88,7 +102,8 @@ plot.patterns <- function(x, y, ...) {
 #' @examples
 #' \donttest{
 #' # Produce a cluster map
-#' som_map <- sits_som_map(prodes_226_064)
+#' samples_mt_2bands <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
+#' som_map <- sits_som_map(samples_mt_2bands)
 #' # Plot the clusters
 #' plot(som_map, type = "codes")
 #' # Plot kohonen map showing where the samples were allocated
@@ -115,7 +130,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #' # classify the point
 #' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
 #' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
@@ -123,7 +138,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 #' plot (class_ndvi.tb)
 #' }
 #' @export
-plot.predicted <- function(x, y, ..., bands = "ndvi") {
+plot.predicted <- function(x, y, ..., bands = "NDVI") {
 	stopifnot(missing(y))
 	.sits_plot_classification(x, bands)
 	return(invisible(x))
@@ -149,10 +164,13 @@ plot.brick_cube <- function(x , y, ..., red, green, blue, time = 1) {
 		stop("mapview needed for this function to work.
               Please install it.", call. = FALSE)
 	}
-	inst.vec <- .sits_plot_rgb_assign(cube = x, red = red,
-									  green = green, blue = blue, time = time)
+	inst.vec <- .sits_plot_rgb_assign(cube = x,
+									  red   = toupper(red),
+									  green = toupper(green),
+									  blue  = toupper(blue),
+									  time = time)
 	# use the raster package to obtain a "rast" object
-	rast <- suppressWarnings(raster::stack(x$files[[1]]))
+	rast <- suppressWarnings(raster::stack(x$file_info[[1]]$path))
 	# plot the RGB file
 	mv <- suppressWarnings(mapview::viewRGB(rast, r = inst.vec["red"],
 									              g = inst.vec["green"],
@@ -186,21 +204,12 @@ plot.stack_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	# get the bands
 	bands <- x$bands[[1]]
 
-	# make a list of all files
-	file.lst <- purrr::map(bands, function (b) {
-		b_files <- dplyr::filter(file_info, band == b)
-		return(paste0(b_files$path,"/",b_files$file))
-	})
-	all_files <- unlist(file.lst)
-
 	inst.vec <- .sits_plot_rgb_assign(cube = x, red = red,
 									  green = green, blue = blue, time = time)
 	# use the raster package to obtain a "rast" object
-	rast <- suppressWarnings(raster::stack(all_files))
+	rast <- suppressWarnings(raster::stack(x$file_info[[1]]$path[inst.vec]))
 	# plot the RGB file
-	mv <- suppressWarnings(mapview::viewRGB(rast, r = inst.vec["red"],
-											      g = inst.vec["green"],
-				                                  b = inst.vec["blue"]))
+	mv <- suppressWarnings(mapview::viewRGB(rast, r = 1, g = 2, b = 3))
 	return(mv)
 }
 #' @title  Generic interface for plotting probability cubes
@@ -221,8 +230,8 @@ plot.stack_cube <- function(x , y, ..., red, green, blue, time = 1) {
 #' \donttest{
 #' # Retrieve the samples for Mato Grosso
 #'
-#' # select the bands "ndvi", "evi"
-#' samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#' # select the NDVI band
+#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #'
 #' #select a random forest model
 #'
@@ -233,7 +242,7 @@ plot.stack_cube <- function(x , y, ..., red, green, blue, time = 1) {
 #' # create a data cube based on the information about the files
 #' sinop <- sits_cube(type = "BRICK", satellite = "TERRA", sensor = "MODIS",
 #'          name = "Sinop-crop", timeline = timeline_modis_392,
-#'          bands = "ndvi", files = files)
+#'          bands = "NDVI", files = files)
 #'
 #' # classify the raster image
 #' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
@@ -284,8 +293,8 @@ plot.probs_cube <- function(x , y, ..., time = 1,
 #' \donttest{
 #' # Retrieve the samples for Mato Grosso
 #'
-#' # select the bands "ndvi", "evi"
-#' samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#' # select the band NDVI
+#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #'
 #' #select a random forest model
 #'
@@ -296,7 +305,7 @@ plot.probs_cube <- function(x , y, ..., time = 1,
 #' # create a data cube based on the information about the files
 #' sinop <- sits_cube(type = "BRICK", satellite = "TERRA", sensor = "MODIS",
 #'          name = "Sinop-crop", timeline = timeline_modis_392,
-#'          bands = "ndvi", files = files)
+#'          bands = "NDVI", files = files)
 #'
 #' # classify the raster image
 #' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
@@ -363,7 +372,8 @@ plot.classified_image <- function(x , y, ..., map = NULL, time = 1,
 #' @examples
 #' \donttest{
 #' # Produce a cluster map
-#' som_map <- sits_som_map(prodes_226_064)
+#' samples_mt_2bands <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
+#' som_map <- sits_som_map(samples_mt_2bands)
 #' # Evaluate the clusters
 #' cluster_overall <- sits_som_evaluate_cluster(som_map)
 #' # Plot confusion between the clusters
@@ -549,11 +559,13 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
     melted.ts <- data.ts %>%
         reshape2::melt(id.vars = "Index") %>%
         as.data.frame()
+
     # plot the data with ggplot
     g <- ggplot2::ggplot(melted.ts, ggplot2::aes(x = Index,
                                                  y = value,
                                                  group = variable)) +
         ggplot2::geom_line(ggplot2::aes(color = variable)) +
+    	ggplot2::geom_point() +
         ggplot2::labs(title = plot_title) +
         ggplot2::scale_color_brewer(palette = colors)
     return(g)
@@ -615,6 +627,8 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 .sits_plot_classification <- function(data, bands = NULL) {
     if (purrr::is_null(bands))
         bands <- sits_bands(data)[1]
+    # bands in SITS are in uppercase
+    bands <- toupper(bands)
 
     # prepare a data frame for plotting
 
@@ -5996,77 +6010,3 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
         "type" = "sequential"
     )
 )
-
-#' @title  Plot a set of satellite image time series (deprecated)
-#' @name   sits_plot
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Given a sits tibble with a set of time series, plot them.
-#'
-#' The plot function produces different plots based on the input data:
-#' \itemize{
-#'  \item{"all years": }{Plot all samples from the same location together}
-#'  \item{"patterns": }{Plot the patterns for a given set of classes}
-#'  \item{"together": }{Plot all samples of the same band and label together}
-#'  \item{"classification": }{Plot the results of a classification}
-#' }
-#' The sits_plot function makes an educated guess of what plot is required,
-#' based on the input data. If the input data has less than 30 samples, it
-#' will default to "all years". If there is only one sample per class, it will
-#' default to "patterns". If there are more than 30 samples, it will default to
-#' "together". If the input data has predicted values resulting from a classification, it will
-#' plot the classification.
-#'
-#' WARNING: This function is deprecated. Please use plot() instead.
-#'
-#'
-#' @param  data          Data to be plotted
-#' @param  bands         Bands used for visualisation
-#' @param  colors        Color pallete to be used
-#' @return               Input sits tibble (useful for chaining functions).
-#'
-#' @examples
-#' \donttest{
-#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-#' data ("cerrado_2classes")
-#' # Plot all the samples together
-#' sits_plot (cerrado_2classes)
-#' # Plot the first 20 samples (defaults to "allyears")
-#' sits_plot (cerrado_2classes[1:20,])
-#' # Plot the patterns
-#' sits_plot (sits_patterns(cerrado_2classes))
-#' # Retrieve the set of samples for Mato Grosso
-#' data(samples_mt_4bands)
-#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, bands = ndvi)
-#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
-#' # Retrieve a point
-#' data(point_ndvi)
-#' # classify the point
-#' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
-#' # plot the classification
-#' sits_plot (class_ndvi.tb)
-#' }
-#' @export
-sits_plot <- function(data, bands = c("ndvi"), colors = "Dark2") {
-    warning("sits_plot is deprecated; please use plot() directly")
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-    # is there only one sample per label? Plot patterns!
-    if ("patterns" %in% class(data))
-        .sits_plot_patterns(data)
-    # Both data and prediction exist? Plot classification!
-    if ("predicted" %in% class(data))
-        .sits_plot_classification(data, bands = bands)
-
-    # if data is a time series
-    if ("sits" %in% names(data)) {
-        # Are there more than 30 samples? Plot them together!
-        if (nrow(data) > 30) {
-            .sits_plot_together(data, colors)
-        }
-        # Take "allyears" as the default
-        else
-            .sits_plot_allyears(data, colors)
-    }
-    # return the original sits tibble - useful for chaining
-    return(invisible(data))
-}

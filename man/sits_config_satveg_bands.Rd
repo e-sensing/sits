@@ -5,13 +5,13 @@
 \alias{.sits_config_satveg_bands}
 \title{Retrieve the bands associated to SATVEG}
 \usage{
-.sits_config_satveg_bands(name)
+.sits_config_satveg_bands()
 }
-\arguments{
-\item{name}{Name of SATVEG cube}
+\value{
+Names of SATVEG bands
 }
 \description{
-Retrieve the cubes associated a service.
+Retrieve the cubes associated to the SATVEG service
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

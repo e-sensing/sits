@@ -4,10 +4,10 @@
 \alias{sits_conf_matrix}
 \title{Accuracy assessment of classification based on a confusion matrix}
 \usage{
-sits_conf_matrix(class.tb, conv.lst = NULL)
+sits_conf_matrix(data, conv.lst = NULL)
 }
 \arguments{
-\item{class.tb}{Set of classified samples whose labels are known.}
+\item{data}{Set of classified samples whose labels are known.}
 
 \item{conv.lst}{List with labels to be converted.
 If NULL no conversion is done.}

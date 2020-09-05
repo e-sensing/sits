@@ -55,7 +55,8 @@ good quality samples are selected, based on the Kohonen map.
 \examples{
 \donttest{
 # Get a new subset of samples evaluated by SOM clustering methods
-new_samples.tb <- sits_cluster_som(prodes_226_064)
+samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+new_samples.tb <- sits_cluster_som(samples_mt)
 }
 }
 \references{

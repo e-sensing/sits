@@ -45,9 +45,9 @@ Takes a set of classified raster layers with probabilities,
 \examples{
 \donttest{
 # Retrieve the samples for Mato Grosso
-# select the band "ndvi"
+# select band "ndvi"
 
-samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 
 #select a random forest model
 rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
@@ -60,7 +60,7 @@ files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
 sinop <- sits_cube(type = "BRICK", satellite = "TERRA",
                    sensor = "MODIS", name = "Sinop-crop",
                    timeline = timeline_modis_392,
-                   bands = c("ndvi"), files = files)
+                   bands = c("NDVI"), files = files)
 
 # classify the raster image
 sinop_probs <- sits_classify(sinop, ml_model = rfor_model,

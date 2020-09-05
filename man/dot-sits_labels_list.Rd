@@ -7,7 +7,7 @@
 .sits_labels_list(data, list.lst = list(), fun_label = function(lb) lb)
 }
 \arguments{
-\item{data}{A sits tibble.}
+\item{data}{A sits tibble (or a pred_ref tibble)}
 
 \item{list.lst}{Any named list whose names are unique labels
 from data input. Non-informed labels will be completed

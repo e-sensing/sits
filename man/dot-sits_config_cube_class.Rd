@@ -4,10 +4,10 @@
 \alias{.sits_config_cube_class}
 \title{Retrieve the classes associated to data cubes known to SITS}
 \usage{
-.sits_config_cube_class(cube)
+.sits_config_cube_class(type)
 }
 \arguments{
-\item{cube}{Data cube}
+\item{type}{Data cube type}
 }
 \value{
 Class of data cube

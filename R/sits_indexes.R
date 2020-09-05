@@ -1,48 +1,3 @@
-#' @title Builds tasseled cap bands
-#' @name sits_tasseled_cap
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description  Adds new tasseled cap bands.
-#' @param data          Valid sits tibble.
-#' @param sensor        sensor.
-#' @return A sits tibble with same samples and the new bands.
-#' @examples
-#' \donttest{
-#' # Retrieve data for time series with label samples in Mato Grosso in Brazil
-#' data (samples_mt_6bands)
-#' # Generate a new image with the tasseled cap
-#' tc.tb <- sits_tasseled_cap(samples_mt_6bands, sensor = "MODIS")
-#' }
-#' @export
-sits_tasseled_cap <- function(data, sensor = "MODIS"){
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-    bands <- sits_bands(data)
-
-    bands_tcap <- c("blue", "red", "nir", "mir")
-    assertthat::assert_that(all(bands_tcap %in% (bands)),
-                    msg = "sits_tasseled_cap: not enough bands to compute")
-
-    b_coef <- .sits_config_tcap_brightness(sensor)
-    data   <- sits_mutate_bands(data, tcb = b_coef["blue"]*blue
-                                          + b_coef["red"]*red
-                                          + b_coef["nir"]*nir
-                                          + b_coef["mir"]*mir)
-
-    g_coef <- .sits_config_tcap_greenness(sensor)
-    data   <- sits_mutate_bands(data, tcg = g_coef["blue"]*blue
-                                          + g_coef["red"]*red
-                                          + g_coef["nir"]*nir
-                                          + g_coef["mir"]*mir)
-
-    w_coef <- .sits_config_tcap_wetness(sensor)
-    data   <- sits_mutate_bands(data, tcw = w_coef["blue"]*blue
-                                          + w_coef["red"]*red
-                                          + w_coef["nir"]*nir
-                                          + w_coef["mir"]*mir)
-
-    return(data)
-}
-
 #' @title Builds soil-adjusted vegetation index
 #' @name sits_savi
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -62,11 +17,11 @@ sits_savi <- function(data){
     data <- .sits_tibble_rename(data)
 
     bands <- sits_bands(data)
-    bands_savi <- c("nir", "red")
+    bands_savi <- c("NIR", "RED")
     assertthat::assert_that(all(bands_savi %in% (bands)),
         msg = "sits_savi: not enough bands to compute")
 
-    data <- sits_mutate_bands(data, savi = (1.5)*(nir - red)/(nir + red + 0.5))
+    data <- sits_mutate_bands(data, SAVI = (1.5)*(NIR - RED)/(NIR + RED + 0.5))
 
     return(data)
 }
@@ -89,11 +44,11 @@ sits_ndwi <- function(data){
     # backward compatibility
     data <- .sits_tibble_rename(data)
     bands <- sits_bands(data)
-    bands_ndwi <- c("nir", "mir")
+    bands_ndwi <- c("NIR", "MIR")
     assertthat::assert_that(all(bands_ndwi %in% (bands)),
                          msg = "sits_ndwi: not enough bands to compute")
 
-    data <- sits_mutate_bands(data, ndwi = (1.5) * (nir - mir)/(nir + mir))
+    data <- sits_mutate_bands(data, NDWI = (1.5) * (NIR - MIR)/(NIR + MIR))
 
     return(data)
 }

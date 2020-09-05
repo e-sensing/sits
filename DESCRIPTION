@@ -109,6 +109,7 @@ Collate:
     'sits_config.R'
     'sits_csv.R'
     'sits_cube.R'
+    'sits_clouds.R'
     'sits_cluster.R'
     'sits_db.R'
     'sits_deep_learning.R'

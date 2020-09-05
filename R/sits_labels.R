@@ -46,16 +46,19 @@ sits_labels <- function(data) {
 #' @examples
 #' \donttest{
 #' # Read a set of time series with information on deforestation
-#' data(prodes_226_064)
+#' data(samples_mt_4bands)
 #' # Print the labels
-#' sits_labels(prodes_226_064)
+#' sits_labels(samples_mt_4bands)
 #' # Create a conversion list.
-#' # Three classes will be converted to "NonForest".
-#' conv.lst = list(Deforestation_2014 = "NonForest",
-#'                 Deforestation_2015 = "NonForest",
-#'                 Pasture = "NonForest")
+#' # Three classes will be converted to "Cropland".
+#' conv.lst = list(Soy_Corn = "Cropland",
+#'                 Soy_Cotton  = "Cropland",
+#'                 Soy_Fallow  = "Cropland",
+#'                 Soy_Millet  = "Cropland",
+#'                 Soy_Sunflower  = "Cropland",
+#'                 Fallow_Cotton  = "Cropland")
 #' # relabel the data
-#' new_data  <- sits_relabel(prodes_226_064, conv.lst)
+#' new_data  <- sits_relabel(samples_mt_4bands, conv.lst)
 #' # show the new labels
 #' sits_labels(new_data)
 #' }
@@ -91,7 +94,7 @@ sits_relabel <- function(data, conv.lst = list()){
 #'              (names are unique labels from data) according
 #'              to a given function that receives each label as an argument.
 #'
-#' @param  data        A sits tibble.
+#' @param  data        A sits tibble (or a pred_ref tibble)
 #' @param  list.lst    Any named list whose names are unique labels
 #'                     from data input. Non-informed labels will be completed
 #'                     according to fun_label function.
@@ -103,13 +106,23 @@ sits_relabel <- function(data, conv.lst = list()){
 #'
 .sits_labels_list <- function(data, list.lst = list(),
                               fun_label = function(lb) lb) {
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-    # verify if data is correct
-    .sits_test_tibble(data)
 
-    # get unique labels
-    u_labels <- base::unique(data$label)
+    # get labels for sits tibble
+    if ("sits" %in% class(data)) {
+        # backward compatibility
+        data <- .sits_tibble_rename(data)
+        # verify if data is correct
+        .sits_test_tibble(data)
+        # get unique labels
+        u_labels <- base::unique(data$label)
+    }
+    else {
+        if ("pred_ref" %in% class(data))
+            # get labels for pred_ref tibble
+            u_labels <- base::unique(data$reference)
+        else
+            stop("sits_labels_list - wrong class of input")
+    }
 
     # prepare result
     result.lst <- list.lst

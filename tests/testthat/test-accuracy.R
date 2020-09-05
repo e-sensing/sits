@@ -44,20 +44,22 @@ test_that("Accuracy - 2 classes", {
 })
 
 test_that("Accuracy - more than 2 classes", {
-    data("prodes_226_064")
-    pred_ref.tb <- sits_kfold_validate(prodes_226_064, folds = 2)
+    data("samples_mt_4bands")
+    samples <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+    pred_ref.tb <- sits_kfold_validate(samples, folds = 2)
     invisible(capture.output(conf.mx <- sits_conf_matrix(pred_ref.tb)))
 
-    expect_true(conf.mx$overall["Accuracy"] > 0.80)
-    expect_true(conf.mx$overall["Kappa"] > 0.75)
+    expect_true(conf.mx$overall["Accuracy"] > 0.90)
+    expect_true(conf.mx$overall["Kappa"] > 0.90)
 
-    conv.lst <-  list(Deforestation_2014 = "NonForest",
-                      Deforestation_2015 = "NonForest",
-                      Pasture = "NonForest",
-                      Forest  = "Forest")
-
+    conv.lst = list(Soy_Corn = "Cropland",
+                    Soy_Cotton  = "Cropland",
+                    Soy_Fallow  = "Cropland",
+                    Soy_Millet  = "Cropland",
+                    Soy_Sunflower  = "Cropland",
+                    Fallow_Cotton  = "Cropland")
     invisible(capture.output(conf2.mx <- sits_conf_matrix(pred_ref.tb, conv.lst = conv.lst)))
 
-    expect_true(conf2.mx$overall["Accuracy"] > 0.90)
-    expect_true(conf2.mx$overall["Kappa"] > 0.80)
+    expect_true(conf2.mx$overall["Accuracy"] > 0.95)
+    expect_true(conf2.mx$overall["Kappa"] > 0.95)
 })

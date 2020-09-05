@@ -9,8 +9,9 @@
 #' @param crs             Projection definition to be converted to.
 #' @return Matrix with (x, y) coordinates.
 .sits_latlong_to_proj <- function(longitude, latitude, crs) {
-    sf::st_point(c(longitude, latitude)) %>%
-        sf::st_sfc(crs = "EPSG:4326") %>%
+
+    tibble::tibble(long = longitude, lat = latitude) %>%
+        sf::st_as_sf(coords = c("long", "lat"), crs = "EPSG:4326") %>%
         sf::st_transform(crs = crs) %>%
         sf::st_coordinates()
 }
@@ -19,17 +20,21 @@
 #' @name .sits_proj_to_latlong
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Transform a latitude and longitude coordinate to a XY projection coordinate.
+#' @description Transform a XY projection coordinate to a latitude and longitude coordinate.
 #'
 #' @param x               X coordinate of the chosen location.
 #' @param y               Y coordinateof the chosen location.
 #' @param crs             Projection definition to be converted from.
 #' @return Matrix with latlong coordinates.
 .sits_proj_to_latlong <- function(x, y, crs) {
-    sf::st_point(c(x, y)) %>%
-        sf::st_sfc(crs = crs) %>%
-        sf::st_transform(crs = "EPSG:4326") %>%
-        sf::st_coordinates()
+
+    ll <- tibble::tibble(xc = x, yc = y) %>%
+                sf::st_as_sf(coords = c("xc", "yc"), crs = crs) %>%
+                sf::st_transform(crs = "EPSG:4326") %>%
+                sf::st_coordinates()
+
+    colnames(ll) <- c("longitude", "latitude")
+    return(ll)
 }
 
 #' @title Find the bounding box for a set of time series

@@ -476,31 +476,40 @@ sits_db_read <- function(conn, name) {
         # read the params tibble
         par <- tibble::as_tibble(
             DBI::dbReadTable(conn = conn, name = paste0(name,".par")))
+
         # retrieve params
+        bands <- par %>%
+            dplyr::filter(name == row$name) %>%
+            dplyr::select(band) %>%
+            dplyr::pull(.)
+
         missing_values <- par %>%
             dplyr::filter(name == row$name) %>%
             dplyr::select(missing_value) %>%
             dplyr::pull(.)
+
+        names(missing_values) <-  bands
 
         minimum_values <- par %>%
             dplyr::filter(name == row$name) %>%
             dplyr::select(minimum_value) %>%
             dplyr::pull(.)
 
+        names(minimum_values) <-  bands
+
         maximum_values <- par %>%
             dplyr::filter(name == row$name) %>%
             dplyr::select(maximum_value) %>%
             dplyr::pull(.)
+
+        names(maximum_values) <-  bands
 
         scale_factors <- par %>%
             dplyr::filter(name == row$name) %>%
             dplyr::select(scale_factor) %>%
             dplyr::pull(.)
 
-        bands <- par %>%
-            dplyr::filter(name == row$name) %>%
-            dplyr::select(band) %>%
-            dplyr::pull(.)
+        names(scale_factors) <- bands
 
         # read labels tibble
         if (DBI::dbExistsTable(conn, paste0(name,".lab"))) {
@@ -572,7 +581,7 @@ sits_db_read <- function(conn, name) {
     })
 
     data <- dplyr::bind_rows(rows.lst)
-    class_cube <- .sits_config_cube_class(data[1,])
+    class_cube <- .sits_config_cube_class(data[1,]$type)
     if (purrr::is_null(class_cube)) {
         class(data) <- c("cube", class(data))
         message("Type of data cube not yet supported by sits")

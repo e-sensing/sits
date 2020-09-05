@@ -110,6 +110,8 @@
     # obtain the parameters
     params <- .sits_raster_params(.sits_raster_files_robj(files))
 
+    # bands in SITS are uppercase
+    bands <- toupper(bands)
     # get scale factors
     scale_factors  <- .sits_config_scale_factors(sensor, bands)
     # get missing values

@@ -60,7 +60,7 @@ Please refer to the documentation in that package for more details.
 \donttest{
 # Retrieve the set of samples for the Mato Grosso region
 data(samples_mt_4bands)
-samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 # Build a machine learning model based on deep learning
 dl_model <- sits_train (samples_mt_ndvi,
                         sits_deeplearning(layers = c(64, 64, 64),

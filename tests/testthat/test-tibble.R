@@ -22,16 +22,16 @@ test_that("Apply",{
     point2 <- sits_apply(point_ndvi,
                          fun = function(x) {(x - min(x)) / (max(x) - min(x))})
 
-    expect_equal(sum((sits_time_series(point2))$ndvi),
+    expect_equal(sum((sits_time_series(point2))$NDVI),
                  219.068, tolerance = 0.01)
 })
 
 test_that("Bands",{
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, NDVI)
     bands <- sits_bands(samples_mt_ndvi)
 
     expect_equal(length(bands), 1)
-    expect_equal(bands[1], "ndvi")
+    expect_equal(bands[1], "NDVI")
 })
 
 test_that("Break",{
@@ -62,9 +62,9 @@ test_that("Merge", {
 
 test_that("Mutate", {
     savi.tb <- sits_mutate_bands(samples_mt_6bands,
-                                 savi = (1.5*(nir - red)/(nir + red + 0.5)))
+                                 SAVI = (1.5*(NIR - RED)/(NIR + RED + 0.5)))
 
-    expect_equal(sum(sits_time_series(savi.tb)$savi),
+    expect_equal(sum(sits_time_series(savi.tb)$SAVI),
                  5.980619, tolerance = 0.001)
 })
 
@@ -81,8 +81,8 @@ test_that("Prune",{
 })
 
 test_that("Rename",{
-    ndvi1.tb <- sits_rename(point_ndvi, names = "veg_index")
-    expect_equal(sits_bands(ndvi1.tb), "veg_index")
+    ndvi1.tb <- sits_rename(point_ndvi, names = "VEGINDEX")
+    expect_equal(sits_bands(ndvi1.tb), "VEGINDEX")
 })
 
 test_that("Sample", {
@@ -97,7 +97,7 @@ test_that("Sample", {
 })
 
 test_that("Select",{
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, NDVI)
     expect_equal(length(sits_bands(samples_mt_ndvi)), 1)
 
     samplesPasture <- samples_mt_ndvi %>% dplyr::filter(label == "Pasture")
@@ -118,13 +118,13 @@ test_that("Values", {
 
     expect_equal(names(values), sits_bands(cerrado_2classes))
 
-    expect_equal(sum(values$ndvi[, "ndvi"]), 13.6291, tolerance = 0.001)
+    expect_equal(sum(values$NDVI[, "NDVI"]), 13.6291, tolerance = 0.001)
 })
 
 test_that("Values", {
     data(samples_mt_6bands)
     savi.tb <- sits_transmute_bands(samples_mt_6bands,
-                                    savi = (1.5*(nir - red)/(nir + red + 0.5)))
+                                    SAVI = (1.5*(NIR - RED)/(NIR + RED + 0.5)))
 
-    expect_true("savi" %in% names(sits_time_series(savi.tb)))
+    expect_true("SAVI" %in% names(sits_time_series(savi.tb)))
 })

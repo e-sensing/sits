@@ -24,16 +24,19 @@ returns a new sits tibble whose labels are changed.
 \examples{
 \donttest{
 # Read a set of time series with information on deforestation
-data(prodes_226_064)
+data(samples_mt_4bands)
 # Print the labels
-sits_labels(prodes_226_064)
+sits_labels(samples_mt_4bands)
 # Create a conversion list.
-# Three classes will be converted to "NonForest".
-conv.lst = list(Deforestation_2014 = "NonForest",
-                Deforestation_2015 = "NonForest",
-                Pasture = "NonForest")
+# Three classes will be converted to "Cropland".
+conv.lst = list(Soy_Corn = "Cropland",
+                Soy_Cotton  = "Cropland",
+                Soy_Fallow  = "Cropland",
+                Soy_Millet  = "Cropland",
+                Soy_Sunflower  = "Cropland",
+                Fallow_Cotton  = "Cropland")
 # relabel the data
-new_data  <- sits_relabel(prodes_226_064, conv.lst)
+new_data  <- sits_relabel(samples_mt_4bands, conv.lst)
 # show the new labels
 sits_labels(new_data)
 }

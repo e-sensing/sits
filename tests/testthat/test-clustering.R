@@ -6,12 +6,12 @@ test_that("Creating a dendrogram and clustering the results",{
     library(dtwclust)
     data(cerrado_2classes)
     clustered.tb <- sits_cluster_dendro(cerrado_2classes,
-                                        bands = c("ndvi", "evi"),
+                                        bands = c("NDVI", "EVI"),
                                         silent = TRUE)
     expect_equal(length(dplyr::distinct(clustered.tb, cluster)$cluster), 6)
 
     dendro.obj <- sits:::.sits_cluster_dendrogram(cerrado_2classes,
-                                                  bands = c("ndvi", "evi"))
+                                                  bands = c("NDVI", "EVI"))
     expect_true(dendro.obj@distmat[1,2] > 3.0)
 
     vec <- sits:::.sits_cluster_dendro_bestcut(cerrado_2classes, dendro.obj)

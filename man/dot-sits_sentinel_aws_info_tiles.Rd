@@ -4,10 +4,12 @@
 \alias{.sits_sentinel_aws_info_tiles}
 \title{Get information on S2 leval 2A tiles in AWS}
 \usage{
-.sits_sentinel_aws_info_tiles(tile, resolution, start_date, end_date)
+.sits_sentinel_aws_info_tiles(tile, bands, resolution, start_date, end_date)
 }
 \arguments{
 \item{tile}{tile}
+
+\item{bands}{bands to be retrieved}
 
 \item{resolution}{resolution of S2 cube}
 

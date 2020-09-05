@@ -22,13 +22,13 @@ test_that("Plot Time Series and Classification", {
 
     p1 <- sits:::.sits_plot_together(cerrado_2classes, colors = "Dark2")
     expect_equal(p1$labels$title,
-                 "Samples (400) for class Cerrado in band = ndvi")
+                 "Samples (400) for class Cerrado in band = NDVI")
 
     p2 <- sits:::.sits_plot_patterns(cerrado_2classes)
     expect_equal(p2$labels$y, "Value")
     expect_equal(p2$labels$x, "Time")
 
-    samples_mt_ndvi <- sits_select_bands(samples_mt_6bands, ndvi)
+    samples_mt_ndvi <- sits_select_bands(samples_mt_6bands, NDVI)
     data(point_ndvi)
     rfor_model    <- sits_train(samples_mt_ndvi, ml_method = sits_rfor())
     class_ndvi.tb <-  sits_classify(point_ndvi, rfor_model)
@@ -65,7 +65,7 @@ test_that("Dendogram Plot", {
              Please install it.", call. = FALSE)
     }
     cluster.obj <- sits:::.sits_cluster_dendrogram(cerrado_2classes,
-                                                  bands = c("ndvi", "evi"))
+                                                  bands = c("NDVI", "EVI"))
     cut.vec <- sits:::.sits_cluster_dendro_bestcut(cerrado_2classes,
                                                    cluster.obj)
 

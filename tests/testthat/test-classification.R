@@ -1,7 +1,7 @@
 context("Classification of time series")
 test_that("Classify a single time series with random forest", {
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, NDVI)
     rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
 
     expect_type(rfor_model, "closure")
@@ -65,7 +65,7 @@ test_that("Classify error bands 1", {
     point.tb <- sits_select_bands(point_mt_6bands, evi)
 
     expect_error(sits_classify(point.tb, model),
-    "sits_normalize: bands in the data (evi) do not match bands in the model (ndvi)",
+    "sits_normalize: bands in the data (EVI) do not match bands in the model (NDVI)",
                 fixed = TRUE)
 })
 

@@ -17,7 +17,7 @@
 Matrix with latlong coordinates.
 }
 \description{
-Transform a latitude and longitude coordinate to a XY projection coordinate.
+Transform a XY projection coordinate to a latitude and longitude coordinate.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

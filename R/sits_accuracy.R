@@ -14,7 +14,7 @@
 #' This function returns the Overall Accuracy, User's Accuracy,
 #' Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 #'
-#' @param  class.tb        Set of classified samples whose labels are known.
+#' @param  data            Set of classified samples whose labels are known.
 #' @param  conv.lst        List with labels to be converted.
 #'                         If NULL no conversion is done.
 #' @return A confusion matrix assessment produced by the caret package.
@@ -29,30 +29,32 @@
 #' conf.mx <- sits_conf_matrix(pred_ref.tb)
 #' }
 #' @export
-sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
+sits_conf_matrix <- function(data, conv.lst = NULL) {
 
     # backward compatibility
-    class.tb <- .sits_tibble_rename(class.tb)
+    data <- .sits_tibble_rename(data)
 
     # does the input data contain a set of predicted values?
-    assertthat::assert_that("predicted" %in% names(class.tb),
+    assertthat::assert_that("predicted" %in% names(data),
         msg = "sits_conf_matrix: input data without predicted values")
 
     # recover predicted and reference vectors from input
     # is the input the result of a sits_classify?
-    if ("label" %in% names(class.tb)) {
-        pred_ref.tb <- .sits_pred_ref(class.tb)
+    if ("label" %in% names(data)) {
+        pred_ref.tb <- .sits_pred_ref(data)
         pred.vec <- pred_ref.tb$predicted
         ref.vec  <- pred_ref.tb$reference
     }
     # is the input the result of the sits_kfold_validate?
     else{
-        pred.vec <- class.tb$predicted
-        ref.vec  <- class.tb$reference
+        pred.vec <- data$predicted
+        ref.vec  <- data$reference
     }
 
     # convert class names
     if (!purrr::is_null(conv.lst)) {
+        # get those labels not in conv.lst names
+        conv.lst <- .sits_labels_list(data, conv.lst)
         # select the label names
         names_ref <- unique(ref.vec)
         # are all input labels in the coversion list?

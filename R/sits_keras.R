@@ -10,7 +10,7 @@
 #' @examples
 #' \donttest{
 #' # Get a set of samples
-#' samples_ndvi_evi <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+#' samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # train a deep learning model
 #' dl_model <-  sits_train(samples_ndvi_evi, ml_method = sits_deeplearning(

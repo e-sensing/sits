@@ -23,15 +23,6 @@ the available filtering algorithms:
 # Test the diffeent filters
 plot(point_ndvi)
 
-# Apply the cloud filter
-# Merge the filtered with the raw data
-# Plot the result
-point_ndvi \%>\%
-      sits_filter(filter = sits_cloud_removal(bands_suffix = "cf")) \%>\%
-      sits_merge (point_ndvi, .) \%>\%
-      plot()
-
-
 # Apply the envelope filter
 # Merge the filtered with the raw data
 # Plot the result
