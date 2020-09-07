@@ -1,5 +1,31 @@
+#' @title Obtains the timeline
+#' @name sits_timeline
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function returns the timeline for a given cube.
+#'
+#' @param  data     A sits tibble (either a sits tibble or a raster metadata).
+#' @param  index    The index to obtain the timeline (in case of raster bricks)
+#' @export
+sits_timeline <- function(data, index = 1){
+    timeline <-  NULL
+    # is this a cube metadata?
+    if ("timeline" %in% names(data))
+        timeline <- lubridate::as_date(sits_cube_timeline(data, index))
+
+    # is this a sits tibble with the time series?
+    if ("time_series" %in% names(data))
+        timeline <- lubridate::as_date(sits_time_series_dates(data))
+
+    assertthat::assert_that(!purrr::is_null(timeline),
+                            msg = "sits_timeline: input does not contain a valid timeline")
+
+    return(timeline)
+}
+
 #' @title Check cube timeline against requested start and end dates
 #' @name .sits_timeline_check_cube
+#' @keywords internal
 #'
 #' @description Tests if required start and end dates are available in
 #'              the data cube
@@ -34,6 +60,7 @@
 
 #' @title Define the information required for classifying time series
 #' @name .sits_timeline_class_info
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Time series classification requires that users do a series of steps:
@@ -73,7 +100,7 @@
     ref_end_date <- lubridate::as_date(samples[1,]$end_date)
 
     # obtain the reference dates that match the patterns in the full timeline
-    ref_dates.lst <- sits_timeline_match(timeline, ref_start_date, ref_end_date, interval)
+    ref_dates.lst <- .sits_timeline_match(timeline, ref_start_date, ref_end_date, interval)
 
     # obtain the indexes of the timeline that match the reference dates
     dates_index.lst <- .sits_timeline_match_indexes(timeline, ref_dates.lst)
@@ -95,6 +122,7 @@
 
 #' @title Find the time index of the blocks to be extracted for classification
 #' @name .sits_timeline_index_blocks
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Obtains the indexes of the blocks to be extract for each time interval
@@ -121,6 +149,7 @@
 
 #' @title Test if starting date fits with the timeline
 #' @name .sits_timeline_is_valid_start_date
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description A timeline is a list of dates where observations are available. This
@@ -146,6 +175,7 @@
 
 #' @title Test if end date fits inside the timeline
 #' @name .sits_timeline_is_valid_end_date
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description A timeline is a list of dates where observations are available. This
@@ -171,7 +201,8 @@
 }
 
 #' @title Find dates in the input data cube that match those of the patterns
-#' @name sits_timeline_match
+#' @name .sits_timeline_match
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description For correct classification, the time series of the input data set
@@ -189,9 +220,9 @@
 #' # get a set of subsets for a period of 10 years
 #' ref_start_date <- lubridate::ymd("2000-08-28")
 #' ref_end_date <- lubridate::ymd("2000-08-13")
-#' subset_dates.lst <- sits_timeline_match(timeline_2000_2017, ref_start_date, ref_end_date)
+#' subset_dates.lst <- sits:::.sits_timeline_match(timeline_2000_2017, ref_start_date, ref_end_date)
 #' @export
-sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval = "12 month"){
+.sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval = "12 month"){
     # make sure the timelines is a valid set of dates
     timeline <- lubridate::as_date(timeline)
 
@@ -217,7 +248,7 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
     # is the start date a valid one?
     assertthat::assert_that(
         .sits_timeline_is_valid_start_date(start_date, timeline),
-        msg = "sits_timeline_match: start date in not inside timeline")
+        msg = ".sits_timeline_match: start date in not inside timeline")
 
     # obtain the subset dates to break the input data set
     # adjust the dates to match the timeline
@@ -229,7 +260,7 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
 
     # is the start date a valid one?
     assertthat::assert_that(!(is.na(end_date)),
-       msg = "sits_timeline_match: start and end date do not match timeline /n
+       msg = ".sits_timeline_match: start and end date do not match timeline /n
                             Please compare your timeline with your samples")
 
     # go through the timeline of the data and find the reference dates for the classification
@@ -250,13 +281,14 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
     end_date   <- subset_dates.lst[[length(subset_dates.lst)]][2]
     assertthat::assert_that(
             .sits_timeline_is_valid_end_date(end_date, timeline),
-             msg = "sits_timeline_match: end date in not inside timeline")
+             msg = ".sits_timeline_match: end date in not inside timeline")
 
     return(subset_dates.lst)
 }
 
 #' @title Find indexes in a timeline that match the reference dates
 #' @name .sits_timeline_match_indexes
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description For correct classification, the time series of the input data
@@ -284,6 +316,7 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
 
 #' @title Find number of samples, given a timeline and an interval
 #' @name .sits_timeline_num_samples
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function retrieves the number of samples
@@ -303,6 +336,7 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
 
 #' @title Provide a list of indexes to extract data from a distance table for classification
 #' @name .sits_timeline_distance_indexes
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a list of time indexes that indicate the start and end of the values to
@@ -349,6 +383,7 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
 #' @title Provide a list of indexes to extract data from a raster-derived
 #'        data table for classification
 #' @name .sits_timeline_raster_indexes
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a list of time indexes that indicate the start and end
@@ -393,6 +428,7 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
 
 #' @title Create a list of time indexes from the dates index
 #' @name  .sits_timeline_index_from_dates
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  dates_index.lst  A list of dates with the subsets of the input data.
@@ -418,6 +454,7 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
 }
 #' @title Given a start and end date, finding the corresponding indexes in a timeline
 #' @name  .sits_timeline_indexes
+#' @keywords internal
 #'
 #' @param timeline      A valid timeline
 #' @param start_date    A date inside the timeline
@@ -442,6 +479,7 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
 
 #' @title Given a timeline and an interval, find the corresponding indexes of a new timeline
 #' @name  .sits_timeline_indexes_interval
+#' @keywords internal
 #'
 #' @param timeline      A valid timeline
 #' @param interval      A valid intervak
@@ -462,27 +500,4 @@ sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval
     return(index_new)
 }
 
-#' @title Obtains the timeline
-#' @name sits_timeline
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function returns the timeline for a given cube.
-#'
-#' @param  data     A sits tibble (either a sits tibble or a raster metadata).
-#' @param  index    The index to obtain the timeline (in case of raster bricks)
-#' @export
-sits_timeline <- function(data, index = 1){
-    timeline <-  NULL
-    # is this a cube metadata?
-    if ("timeline" %in% names(data))
-        timeline <- lubridate::as_date(sits_cube_timeline(data, index))
 
-    # is this a sits tibble with the time series?
-    if ("time_series" %in% names(data))
-        timeline <- lubridate::as_date(sits_time_series_dates(data))
-
-    assertthat::assert_that(!purrr::is_null(timeline),
-          msg = "sits_timeline: input does not contain a valid timeline")
-
-    return(timeline)
-}

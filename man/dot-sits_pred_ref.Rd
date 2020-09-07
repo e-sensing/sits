@@ -19,3 +19,4 @@ from a classified data set.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

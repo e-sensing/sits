@@ -248,6 +248,7 @@ sits_db_read <- function(conn, name) {
 }
 #' @title Write time series on an SQLite database
 #' @name .sits_db_write_ts
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This functions write a set of time series
@@ -277,6 +278,7 @@ sits_db_read <- function(conn, name) {
 }
 #' @title Read time series from an SQLite database
 #' @name .sits_db_read_ts
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function reads a set of time series
@@ -312,6 +314,7 @@ sits_db_read <- function(conn, name) {
 }
 #' @title Write cube on an SQLite database
 #' @name .sits_db_write_cube
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This functions write a tibble with metadata about a cube
@@ -462,6 +465,7 @@ sits_db_read <- function(conn, name) {
 
 #' @title Read cube information from an SQLite database
 #' @name .sits_db_read_cube
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This functions write a tibble with metadata about a cube

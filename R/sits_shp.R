@@ -1,5 +1,6 @@
 #' @title Obtain a tibble with lat/long points to be retrieved from a SHP
 #' @name .sits_points_from_shp
+#' @keywords internal
 #'
 #' @description reads a shapefile and retrieves a sits tibble
 #' containing a set of lat/long points for data retrieval
@@ -36,6 +37,7 @@
 
 #' @title Obtain a tibble with latitude and longitude points from POINT geometry
 #' @name .sits_from_point_shp
+#' @keywords internal
 #'
 #' @param sf_shape        sf object linked to a shapefile.
 #' @param shp_attr        Attribute in the shapefile used as a polygon label
@@ -66,6 +68,7 @@
 
 #' @title Obtain a tibble with latitude and longitude points from POLYGON geometry
 #' @name .sits_from_polygon_shp
+#' @keywords internal
 #'
 #' @param sf_shape        sf object linked to a shapefile
 #' @param shp_attr        Attribute in the shapefile used as a polygon label
@@ -98,8 +101,8 @@
     }
     return(points.tb)
 }
-#' @title Extract a time series from a ST raster data set
-#' @name .sits_ts_from_raster_shp
+#' @title Extract a time series from
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Retrieve a set of time series for a raster data cube.
@@ -187,6 +190,7 @@
 }
 #' @title Check the validity of the shape file
 #' @name .sits_shp_check_validity
+#' @keywords internal
 #'
 #' @param shp_file        SHP file which provides the boundaries of a region.
 #' @param shp_attr        attribute in the shapefile that contains the label

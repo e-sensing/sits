@@ -22,3 +22,4 @@ Transform a latitude and longitude coordinate to a XY projection coordinate
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

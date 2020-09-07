@@ -18,3 +18,4 @@ Retrieve the metadata class name associated to a cube type
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

@@ -66,6 +66,7 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 #'
 #' @title Interpolate a series of bands based on the cloud information
 #' @name  .sits_interpolate_clouds
+#' @keywords internal
 #'
 #' @param  cube          input data cube
 #' @param  data_dir      data directory where output data is written
@@ -85,6 +86,7 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 }
 #' @title Estimate the number of blocks to correct for clouds
 #' @name .sits_cloud_blocks_estimate
+#' @keywords internal
 #'
 #' @param cube    input data cube
 #' @param memsize size of memory available
@@ -136,6 +138,7 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 
 #' @title Create the bricks that will be the output of the cloud estimation procedure
 #' @name .sits_cloud_create_output
+#' @keywords internal
 #'
 #' @param cube        input data cube
 #' @param bands       bands to be included in the output

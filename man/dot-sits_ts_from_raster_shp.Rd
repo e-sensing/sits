@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_shp.R
 \name{.sits_ts_from_raster_shp}
 \alias{.sits_ts_from_raster_shp}
-\title{Extract a time series from a ST raster data set}
+\title{Extract a time series from}
 \usage{
 .sits_ts_from_raster_shp(cube, sf_shape, bands)
 }
@@ -22,3 +22,4 @@ Retrieve a set of time series for a raster data cube.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

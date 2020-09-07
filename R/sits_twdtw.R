@@ -152,6 +152,7 @@ sits_twdtw_classify <- function(samples,
 
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
 #' @name .sits_twdtw_breaks
+#' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -217,6 +218,7 @@ sits_twdtw_classify <- function(samples,
 
 #' @title Export data to be used by the dtwSat package
 #' @name .sits_to_twdtw
+#' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -225,7 +227,7 @@ sits_twdtw_classify <- function(samples,
 #' @param  samples      A tibble in sits format with time series
 #'                      to be converted to TWTDW time series.
 #' @return An object of the twdtwTimeSeries class).
-.sits_to_twdtw <- function (samples){
+.sits_to_twdtw <- function(samples){
     # verifies if methods package is installed
     if (!requireNamespace("methods", quietly = TRUE)) {
         stop("methods needed for this function to work.
@@ -239,18 +241,20 @@ sits_twdtw_classify <- function(samples,
     }
     # transform each sits time series into a list of zoo
     ts <- samples$time_series %>%
-        purrr::map(function(ts) zoo::zoo(ts[,2:ncol(ts), drop=FALSE], ts$Index))
+        purrr::map(function(ts) zoo::zoo(ts[,2:ncol(ts), drop = FALSE], ts$Index))
 
     # create a new twdtwTimeSeries object from list above
     ts.twdtw <- methods::new("twdtwTimeSeries", timeseries = ts,
                              labels = as.character(samples$label))
-    return (ts.twdtw)
+    return(ts.twdtw)
 }
 
 #' @title Transform patterns from TWDTW format to sits format
 #' @name .sits_from_twdtw_matches
+#' @keywords internal
 #'
-#' @description Reads one TWDTW matches object and transforms it into a tibble ready to be stored into a sits tibble column.
+#' @description Reads one TWDTW matches object and transforms it into a
+#'              tibble ready to be stored into a sits tibble column.
 #'
 #' @param  match.twdtw  A TWDTW Matches object of class dtwSat::twdtwMatches (S4).
 #' @return A tibble containing the matches information.
@@ -263,6 +267,7 @@ sits_twdtw_classify <- function(samples,
 }
 #' @title Plot classification alignments using the dtwSat package
 #' @name .sits_plot_twdtw_alignments
+#' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -286,6 +291,7 @@ sits_twdtw_classify <- function(samples,
 
 #' @title Plot classification results using the dtwSat package
 #' @name .sits_plot_twdtw_classification
+#' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'

@@ -21,3 +21,4 @@ This function summarizes the probability that a sample belongs
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}
 }
+\keyword{internal}

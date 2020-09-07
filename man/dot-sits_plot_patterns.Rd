@@ -16,3 +16,4 @@ Plots the patterns to be used for classification
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}
 }
+\keyword{internal}

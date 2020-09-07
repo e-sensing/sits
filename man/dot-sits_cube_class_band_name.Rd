@@ -24,3 +24,4 @@ Creates a name for a raster layer based on timeline
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

@@ -18,3 +18,4 @@ Given a data cube, retrieves the bands
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

@@ -16,3 +16,4 @@
 \description{
 Obtain a tibble with latitude and longitude points from POINT geometry
 }
+\keyword{internal}

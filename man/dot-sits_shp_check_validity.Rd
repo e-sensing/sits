@@ -16,3 +16,4 @@
 \description{
 Check the validity of the shape file
 }
+\keyword{internal}

@@ -32,3 +32,4 @@ of 800 Mb if pixels are 64-bit.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

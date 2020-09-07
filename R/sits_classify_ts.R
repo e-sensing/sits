@@ -1,6 +1,7 @@
 
 #' @title Shows the predicted labels for a classified tibble
 #' @name sits_show_prediction
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function takes a tibble with a classified time series
@@ -19,6 +20,7 @@ sits_show_prediction <- function(class.tb) {
 }
 #' @title Create an empty tibble to store the results of predictions
 #' @name .sits_tibble_prediction
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -67,7 +69,7 @@ sits_show_prediction <- function(class.tb) {
 				# what is the reference end date?
 				ref_end_date <- lubridate::as_date(row_end_date)
 				# what are the reference dates to do the classification?
-				ref_dates.lst <- sits_timeline_match(timeline_row,
+				ref_dates.lst <- .sits_timeline_match(timeline_row,
 													 ref_start_date,
 													 ref_end_date,
 													 interval)

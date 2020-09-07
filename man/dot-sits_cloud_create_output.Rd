@@ -21,3 +21,4 @@ A list of brick objects pointing to output files
 \description{
 Create the bricks that will be the output of the cloud estimation procedure
 }
+\keyword{internal}

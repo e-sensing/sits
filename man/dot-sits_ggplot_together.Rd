@@ -16,3 +16,4 @@
 \description{
 Plots a set of  time series together.
 }
+\keyword{internal}

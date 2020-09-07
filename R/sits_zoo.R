@@ -93,6 +93,7 @@ sits_to_zoo <- function(data, band = NULL){
 }
 #' @title Import a matrix to a sits tibble
 #' @name sits_from_matrix
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param values         matrix of values extracted from a raster object

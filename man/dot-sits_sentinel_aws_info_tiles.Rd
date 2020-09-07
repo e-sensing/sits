@@ -26,3 +26,4 @@ Get information on S2 leval 2A tiles in AWS
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

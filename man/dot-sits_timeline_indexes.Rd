@@ -19,3 +19,4 @@ Named vector with start and end indexes
 \description{
 Given a start and end date, finding the corresponding indexes in a timeline
 }
+\keyword{internal}

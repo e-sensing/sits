@@ -17,3 +17,4 @@ Save a data set in the log directory.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

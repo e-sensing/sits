@@ -41,6 +41,11 @@
 sits_kfold_validate <- function(data, folds = 5,
                                 ml_method = sits_rfor(), multicores = 1){
 
+    # require package
+    if (!requireNamespace("caret", quietly = TRUE)) {
+        stop("Please install package caret.", call. = FALSE)
+    }
+
     # backward compatibility
     data <- .sits_tibble_rename(data)
 

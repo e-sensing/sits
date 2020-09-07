@@ -26,3 +26,4 @@ Support for Area-weighted post-classification accuracy
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }
+\keyword{internal}

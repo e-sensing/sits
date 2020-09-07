@@ -20,3 +20,4 @@ A vector with corrected start and end dates
 Tests if required start and end dates are available in
              the data cube
 }
+\keyword{internal}

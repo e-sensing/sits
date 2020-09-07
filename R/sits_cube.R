@@ -218,7 +218,6 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
 #'                             sensor     = "AWFI",
 #'                             resolution = "64m",
 #'                             data_dir   = data_dir,
-#'                             delim      = "_",
 #'                             parse_info = c("X1", "X2", "X3", "X4", "X5", "date", "X7", "band"))
 #' }
 sits_cube.stack_cube <- function(type = "STACK", ...,
@@ -227,7 +226,8 @@ sits_cube.stack_cube <- function(type = "STACK", ...,
                                  sensor,
                                  resolution,
                                  data_dir,
-                                 parse_info) {
+                                 parse_info,
+                                 delim = NULL) {
 
     # precondition - check satellite and sensor
     ok <- .sits_raster_satellite_sensor(satellite, sensor)
@@ -244,7 +244,8 @@ sits_cube.stack_cube <- function(type = "STACK", ...,
                                                 satellite  = satellite,
                                                 sensor     = sensor,
                                                 data_dir   = data_dir,
-                                                parse_info = parse_info)
+                                                parse_info = parse_info,
+                                                delim      = delim)
         # create the data cube
         stack_cube   <- .sits_raster_stack_cube(satellite    = satellite,
                                                 sensor       = sensor,

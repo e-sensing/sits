@@ -23,3 +23,4 @@ A sits tibble with points to to be read.
 reads a shapefile and retrieves a sits tibble
 containing a set of lat/long points for data retrieval
 }
+\keyword{internal}

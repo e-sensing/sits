@@ -218,7 +218,9 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
     result <- .sits_factory_function(data, filter_fun)
     return(result)
 }
-#' Compute the Kalman filter
+#' @title Compute the Kalman filter
+#' @name  .sits_kalman_filter
+#' @keywords internal
 #'
 #' @param measurement                    A vector of measurements.
 #' @param error_in_measurement           A vector of errors in the measuments.

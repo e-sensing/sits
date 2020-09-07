@@ -1,5 +1,6 @@
 #' @title Check if the raster files are bricks
 #' @name .sits_raster_brick_check
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param  satellite             Name of satellite
 #' @param  sensor                Name of sensor
@@ -48,6 +49,7 @@
 
 #' @title Create a raster brick data cube
 #' @name .sits_raster_brick_cube
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  Builds a BRICK cube

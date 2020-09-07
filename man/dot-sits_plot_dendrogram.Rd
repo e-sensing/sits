@@ -27,3 +27,4 @@ Plot a dendrogram
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
+\keyword{internal}

@@ -22,3 +22,4 @@ extract values from a combined distance tibble (with has all the bands put toget
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

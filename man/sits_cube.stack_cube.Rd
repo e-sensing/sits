@@ -12,8 +12,8 @@
   sensor,
   resolution,
   data_dir,
-  delim = "_",
-  parse_info
+  parse_info,
+  delim = NULL
 )
 }
 \arguments{
@@ -31,9 +31,9 @@
 
 \item{data_dir}{Directory where data is located}
 
-\item{delim}{A character to use as delimiter (default = "_")}
-
 \item{parse_info}{The parsing information (see above)}
+
+\item{delim}{A character to use as delimiter (default = "_")}
 }
 \value{
 A brick data cube
@@ -65,7 +65,6 @@ cbers_stack.tb <- sits_cube(type       = "STACK",
                             sensor     = "AWFI",
                             resolution = "64m",
                             data_dir   = data_dir,
-                            delim      = "_",
                             parse_info = c("X1", "X2", "X3", "X4", "X5", "date", "X7", "band"))
 }
 }

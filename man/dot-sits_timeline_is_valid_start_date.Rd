@@ -23,3 +23,4 @@ greater than the acquisition interval of the timeline, then we conclude the date
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

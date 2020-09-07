@@ -1,5 +1,6 @@
 #' @title Use time series values as distances for training patterns
 #' @name .sits_distances
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -36,6 +37,7 @@
 
 #' @title Classify a distances tibble using machine learning models
 #' @name .sits_distances_classify
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Returns a sits tibble with the results of the ML classifier.
@@ -102,6 +104,7 @@
 
 #' @title Sample a percentage of a time series distance matrix
 #' @name .sits_distances_sample
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Takes a sits tibble with different labels and

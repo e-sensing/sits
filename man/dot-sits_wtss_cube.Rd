@@ -15,3 +15,4 @@
 Uses the WTSS services to print information and save metadata
 about a chosen cube.
 }
+\keyword{internal}

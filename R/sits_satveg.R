@@ -1,5 +1,6 @@
 #' @title Provides information about one cube of the SATVEG time series service
 #' @name .sits_satveg_cube
+#' @keywords internal
 #'
 #' @description Creates a tibble with metadata about a given cube.
 #'
@@ -72,6 +73,7 @@
 
 #' @title Obtain one timeSeries from the EMBRAPA SATVEG server
 #' @name .sits_from_satveg
+#' @keywords internal
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -137,6 +139,7 @@
 
 #' @title Retrieve a time series from the SATVEG service
 #' @name .sits_ts_from_satveg
+#' @keywords internal
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -211,6 +214,7 @@
 
 #' @title Retrieve a timeline from the SATVEG service based on text expression
 #' @name .sits_satveg_timeline_from_txt
+#' @keywords internal
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -241,6 +245,7 @@
 
 #' @title Retrieve a timeline for the SATVEG service
 #' @name .sits_satveg_timeline
+#' @keywords internal
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -276,6 +281,7 @@
 
 #' @title Check that the SATVEG service is working
 #' @name .sits_satveg_check
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return Boolean that indicates if SATVEG is operating

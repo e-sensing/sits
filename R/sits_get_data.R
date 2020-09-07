@@ -647,7 +647,8 @@ sits_get_data.shp_stack_cube <- function(cube, file, ...,
 }
 
 #' @title check if all points have been retrieved
-#' @name sits_get_data_check
+#' @name .sits_get_data_check
+#' @keywords internal
 #'
 #' @param n_rows_input     Number of rows in input
 #' @param n_rows_output    Number of rows in output

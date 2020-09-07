@@ -15,3 +15,4 @@ List the satellites supported by the configuration file
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

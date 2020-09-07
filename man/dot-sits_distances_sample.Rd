@@ -27,3 +27,4 @@ Takes a sits tibble with different labels and
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
+\keyword{internal}

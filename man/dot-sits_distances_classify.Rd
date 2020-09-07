@@ -24,3 +24,4 @@ Returns a sits tibble with the results of the ML classifier.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

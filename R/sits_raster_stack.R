@@ -1,5 +1,6 @@
 #' @title Obtain the information about files that make up a stack cube
 #' @name .sits_raster_stack_info
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param type              type of cube
@@ -9,7 +10,8 @@
 #' @param end_date          end date of the cube
 #' @param bands             bands to be retrieved
 #' @param data_dir          directory where data is located
-#' @param parse_info        parsing information (below))
+#' @param parse_info        parsing information
+#' @param delim             delimitator
 #'
 #' @description All image files should have the same spatial resolution
 #'              and same projection. In addition, image file names should
@@ -33,7 +35,8 @@
 									  end_date = NULL,
 									  bands    = NULL,
 									  data_dir,
-									  parse_info = NULL) {
+									  parse_info = NULL,
+									  delim = NULL) {
 
 	# convert the names of the bands to those used by SITS
 	bands_sits <- .sits_config_band_names_convert(satellite, sensor, type)
@@ -46,7 +49,8 @@
 		parse_info  <- .sits_config_data_parse_info(type)
 
 	# get the delim information
-	delim <- .sits_config_data_delim(type)
+	if (purrr::is_null(delim))
+		delim <- .sits_config_data_delim(type)
 
 	# get the information on the required bands, dates and path
 	info.tb <- img_files %>%
@@ -81,6 +85,7 @@
 }
 #' @title Create a stack cube from a set of files
 #' @name .sits_raster_stack_cube
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param satellite         Name of satellite

@@ -18,3 +18,4 @@ Logs an error message in the log file.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

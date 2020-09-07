@@ -68,7 +68,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
 
         # align all samples to the same time series intervals
         sample_dates <- lubridate::as_date(sits_time_series_dates(tb))
-        tb           <- sits_align_dates(tb, sample_dates)
+        tb           <- .sits_align_dates(tb, sample_dates)
 
         # extract the start and and dates
         start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))

@@ -17,3 +17,4 @@ Named vector with indexes for the new timeline
 \description{
 Given a timeline and an interval, find the corresponding indexes of a new timeline
 }
+\keyword{internal}

@@ -22,3 +22,4 @@ This function transforms a numerical matrix into an integer one.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

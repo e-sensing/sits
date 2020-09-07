@@ -15,3 +15,4 @@ File to test access to Sentinel-2 level 2A images in AWS
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

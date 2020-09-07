@@ -20,3 +20,4 @@ Given a data cube and a set of bands, sets the bands
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

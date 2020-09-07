@@ -18,3 +18,4 @@ Get the name of the band used for cloud information
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

@@ -23,3 +23,4 @@ Compares an XY position to the extent of a RasterBrick
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

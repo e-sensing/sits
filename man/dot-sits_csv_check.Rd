@@ -15,3 +15,4 @@ TRUE/FALSE
 \description{
 Check if a CSV tibble is valid
 }
+\keyword{internal}

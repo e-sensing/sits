@@ -1,5 +1,6 @@
 #' @title Check if the BDC tiles are working
 #' @name .sits_bdc_check_tiles
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param satellite     satellite
@@ -58,6 +59,7 @@
 
 #' @title Get information on BDC tiles
 #' @name .sits_bdc_info_tiles
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param satellite     satellite
@@ -113,6 +115,7 @@
 }
 #' @title Create a data cube for a BDC TILE
 #' @name .sits_bdc_tile_cube
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  Builds a BDC_TILE cube

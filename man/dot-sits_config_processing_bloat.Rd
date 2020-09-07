@@ -12,3 +12,4 @@ Retrieve the expected memory bloat associated to R.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

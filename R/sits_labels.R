@@ -88,6 +88,7 @@ sits_relabel <- function(data, conv.lst = list()){
 
 #' @title Sits labels processing function
 #' @name .sits_labels_list
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Completes list.lst list as a named list

@@ -1,5 +1,6 @@
 #' @title Provides information about one cube of the WTSS service
 #' @name .sits_wtss_cube
+#' @keywords internal
 #'
 #' @description Uses the WTSS services to print information and save metadata
 #' about a chosen cube.
@@ -49,6 +50,7 @@
 
 #' @title Obtain one timeSeries from WTSS server and load it on a sits tibble
 #' @name .sits_from_wtss
+#' @keywords internal
 #'
 #' @description Returns one set of time series provided by a WTSS server
 #' Given a location (lat/long), and start/end period, and WTSS server info,
@@ -116,6 +118,7 @@
 }
 #' @title Check that the URL of WTSS service is working
 #' @name .sits_wtss_check
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param URL        URL of the WTSS service.

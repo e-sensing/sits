@@ -29,3 +29,4 @@ Completes list.lst list as a named list
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
+\keyword{internal}

@@ -31,6 +31,7 @@ sits_log <- function() {
 
 #' @title Logs an error in the log file
 #' @name .sits_log_error
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Logs an error message in the log file.
@@ -43,6 +44,7 @@ sits_log <- function() {
 
 #' @title Logs an error in the log file
 #' @name .sits_log_debug
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Logs an debug message in the log file.
@@ -55,6 +57,7 @@ sits_log <- function() {
 
 #' @title Saves a data set for future use
 #' @name .sits_log_data
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Save a data set in the log directory.
@@ -78,6 +81,7 @@ sits_log <- function() {
 
 #' @title Saves a CSV data set
 #' @name .sits_log_csv
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Save a CSV data set in the log directory.
@@ -94,6 +98,7 @@ sits_log <- function() {
 
 #' @title Shows the memory used in GB
 #' @name .sits_mem_used
+#' @keywords internal
 #' @description Calls the gc() and rounds the result in GB.
 #' @return Memory used in GB.
 #' @export

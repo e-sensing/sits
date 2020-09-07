@@ -22,3 +22,4 @@ This function compute the probability of a sample belongs to a cluster using bay
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}
 }
+\keyword{internal}

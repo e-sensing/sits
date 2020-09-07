@@ -417,6 +417,10 @@ sits_som_clean_samples <- function(som_map,
 #' @export
 sits_som_evaluate_cluster <- function(som_map)
 {
+	if (!requireNamespace("caret", quietly = TRUE)) {
+		stop("Please install package caret.", call. = FALSE)
+	}
+
 	# Sanity check
 	if (!("som_map" %in% class(som_map))) {
 		message("wrong input data; please run sits_som_map first")
@@ -522,6 +526,7 @@ sits_som_evaluate_cluster <- function(som_map)
 }
 #' @title Labelling neurons
 #' @name .sits_som_labelling_neurons_frequency
+#' @keywords internal
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description Compute the probability of a neuron belongs to a class.
@@ -586,6 +591,7 @@ sits_som_evaluate_cluster <- function(som_map)
 
 #' @title Tie breaking neuron labelling
 #' @name .sits_som_tie_breaking_neuron_labelling
+#' @keywords internal
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function does tie breaking for neurons
@@ -640,6 +646,7 @@ sits_som_evaluate_cluster <- function(som_map)
 
 #' @title Get the neighbor of neurons
 #' @name .sits_som_neighbor_neurons
+#' @keywords internal
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function creates a table contained the information about all
@@ -691,12 +698,9 @@ sits_som_evaluate_cluster <- function(som_map)
   return(neuron_vicinity.tb)
 }
 
-
-
-
-
 #' @title Get cluster probability
 #' @name .sits_som_cluster_probability
+#' @keywords internal
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function summarizes the probability that a sample belongs
@@ -734,6 +738,7 @@ sits_som_evaluate_cluster <- function(som_map)
 
 #' @title Paint neurons
 #' @name .sits_som_paint_neurons
+#' @keywords internal
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function paints all neurons  of the last iteration of SOM
@@ -776,6 +781,7 @@ sits_som_evaluate_cluster <- function(som_map)
 
 #' @title Probability of a sample belongs to a cluster using bayesian filter
 #' @name .sits_som_bayesian_neighbourhood
+#' @keywords internal
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description This function compute the probability of a sample belongs to a cluster using bayesian filter.

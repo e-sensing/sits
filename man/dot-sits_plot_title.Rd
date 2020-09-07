@@ -19,3 +19,4 @@ A string with the title to be used in the plot.
 \description{
 Creates a plot title from row information.
 }
+\keyword{internal}

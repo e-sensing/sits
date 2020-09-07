@@ -15,3 +15,4 @@ Get the bucket where Sentinel-2 level 2A images are available in AWS
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

@@ -41,3 +41,4 @@ Read a block of values retrived from a set of raster bricks
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

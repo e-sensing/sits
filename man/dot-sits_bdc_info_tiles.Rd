@@ -47,3 +47,4 @@ Get information on BDC tiles
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

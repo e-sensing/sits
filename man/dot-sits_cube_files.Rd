@@ -18,3 +18,4 @@ Given a data cube and an index, retrieve the files
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

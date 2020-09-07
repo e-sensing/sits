@@ -20,3 +20,4 @@ Check that the requested bands exist in the cube
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

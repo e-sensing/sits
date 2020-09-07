@@ -168,6 +168,7 @@ sits_label_classification <- function(cube,
 #' @title Create a set of RasterLayer objects
 #'        to store data cube classification results (labelled classes)
 #' @name .sits_label_cube
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Takes a tibble containing metadata about a data cube wuth

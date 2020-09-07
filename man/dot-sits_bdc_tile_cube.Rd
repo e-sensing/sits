@@ -30,3 +30,4 @@ Builds a BDC_TILE cube
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

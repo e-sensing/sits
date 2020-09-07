@@ -1,5 +1,6 @@
 #' @title Coordinate transformation (lat/long to X/Y)
 #' @name .sits_latlong_to_proj
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Transform a latitude and longitude coordinate to a XY projection coordinate
@@ -18,6 +19,7 @@
 
 #' @title Coordinate transformation (X/Y to lat/long)
 #' @name .sits_proj_to_latlong
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Transform a XY projection coordinate to a latitude and longitude coordinate.
@@ -39,6 +41,7 @@
 
 #' @title Find the bounding box for a set of time series
 #' @name .sits_bbox_time_series
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a set of time series, find the bounding box.

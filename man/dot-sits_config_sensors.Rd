@@ -18,3 +18,4 @@ Based on the satellite, find the default sensor
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

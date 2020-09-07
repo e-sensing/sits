@@ -23,3 +23,4 @@ file_info  file information on the output images
 \description{
 Interpolate a series of bands based on the cloud information
 }
+\keyword{internal}

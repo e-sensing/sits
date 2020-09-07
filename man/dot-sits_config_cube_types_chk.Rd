@@ -18,3 +18,4 @@ Check the cube types available in the configuration file
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

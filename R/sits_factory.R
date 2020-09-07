@@ -1,5 +1,6 @@
 #' @title Create a closure for calling functions with and without data
 #' @name .sits_function_factory
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'

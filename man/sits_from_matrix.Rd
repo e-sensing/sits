@@ -25,3 +25,4 @@ Import a matrix to a sits tibble
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

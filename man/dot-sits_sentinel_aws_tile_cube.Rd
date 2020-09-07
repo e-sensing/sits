@@ -24,3 +24,4 @@ Builds a Sentinel-2 AWS cube
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

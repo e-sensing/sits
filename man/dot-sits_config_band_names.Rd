@@ -20,3 +20,4 @@ Obtain the name of the bands used by a cube or by SITS
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

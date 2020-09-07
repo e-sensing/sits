@@ -18,3 +18,4 @@
 \description{
 Obtain a tibble with latitude and longitude points from POLYGON geometry
 }
+\keyword{internal}

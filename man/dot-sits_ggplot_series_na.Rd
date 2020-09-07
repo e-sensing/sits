@@ -14,3 +14,4 @@
 \description{
 Plots a set of time series using ggplot, showing where NAs are.
 }
+\keyword{internal}

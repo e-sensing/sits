@@ -27,3 +27,4 @@ Given a list of time indexes that indicate the start and end
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

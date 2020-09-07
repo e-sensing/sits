@@ -88,6 +88,7 @@ sits_config_show <- function() {
 
 #' @title Get the name of the band used for cloud information
 #' @name .sits_config_cloud_band
+#' @keywords internal
 #' @param satellite            satellite
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -103,6 +104,7 @@ sits_config_show <- function() {
 
 #' @title Check that the type is valid, based on the configuration file
 #' @name .sits_config_check_type
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param type       Type of data cube
@@ -117,6 +119,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the color associated to a class in the configuration file
 #' @name sits_config_color
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the color associated a class label.
 #' @param label  A class label.
@@ -130,6 +133,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the classes associated to data cubes known to SITS
 #' @name .sits_config_cube_class_generic
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the class name associated to a cube type
 #' @param type  Data cube type
@@ -148,6 +152,7 @@ sits_config_show <- function() {
 }
 #' @title Retrieve the generic class associated to data cubes known to SITS
 #' @name .sits_config_cube_specific
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the metadata class name associated to a cube type
 #' @param type  Data cube type
@@ -167,6 +172,7 @@ sits_config_show <- function() {
 }
 #' @title Retrieve the classes of Raster objects associated to data cubes known to SITS
 #' @name .sits_config_cube_robj_class
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the class name associated to a cube type
 #' @param cube  Data cube
@@ -185,6 +191,7 @@ sits_config_show <- function() {
 
 #' @title Check that the cube class is valid, based on the configuration file
 #' @name .sits_config_cube_classes_chk
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param class       class of data cube
@@ -201,6 +208,7 @@ sits_config_show <- function() {
 
 #' @title Check the cube types available in the configuration file
 #' @name .sits_config_cube_types_chk
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param  type type of data cube
 #'
@@ -216,6 +224,7 @@ sits_config_show <- function() {
 
 #' @title Directory to read the BDC information on the web
 #' @name .sits_config_cube_bdc_tile_web
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return directory where BDC is accessible on the web
@@ -226,6 +235,7 @@ sits_config_show <- function() {
 
 #' @title Directory to read the BDC information as local file
 #' @name .sits_config_cube_bdc_tile_local
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return directory where BDC is accessible on the web
@@ -235,6 +245,7 @@ sits_config_show <- function() {
 }
 #' @title Standard files for data directory for cube type
 #' @name .sits_config_data_dir_path
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param  type    cube_type
 #'
@@ -246,6 +257,7 @@ sits_config_show <- function() {
 
 #' @title Standard files for data directory for cube type
 #' @name .sits_config_data_parse_info
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param  type    cube_type
 #'
@@ -255,6 +267,7 @@ sits_config_show <- function() {
 }
 #' @title Delimiter for data type
 #' @name .sits_config_data_delim
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param  type    cube_type
 #'
@@ -264,6 +277,7 @@ sits_config_show <- function() {
 }
 #' @title Retrieve the default sensor for the satellite
 #' @name .sits_config_sensors
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Based on the satellite, find the default sensor
@@ -284,6 +298,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the maximum values for a given band
 #' @name .sits_config_maximum_values
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param sensor         Name of the sensor
@@ -309,6 +324,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the estimated value of R memory bloat
 #' @name .sits_config_memory_bloat
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the expected memory bloat associated to R.
 .sits_config_memory_bloat <- function() {
@@ -317,6 +333,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the minimum values for a given band
 #' @name .sits_config_minimum_values
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param sensor           Name of the sensor
@@ -342,6 +359,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the missing values for bands of a sensor
 #' @name .sits_config_missing_values
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param sensor         Name of the sensor
@@ -366,6 +384,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the estimated value of R memory bloat
 #' @name .sits_config_processing_bloat
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the expected memory bloat associated to R.
 .sits_config_processing_bloat <- function() {
@@ -375,6 +394,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the pixel spatial resolution for a data cube
 #' @name .sits_config_resolution
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param sensor         Name of the sensor.
@@ -402,6 +422,7 @@ sits_config_show <- function() {
 }
 #' @title List the satellites supported by the configuration file
 #' @name .sits_config_satellites
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return List of satellites supported by SITS
@@ -412,6 +433,7 @@ sits_config_show <- function() {
 
 #' @title Get the URL to be used to test for SATVEG access
 #' @name .sits_config_satveg_access
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return URL to test SATVEG access
@@ -422,6 +444,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the bands associated to SATVEG
 #' @name sits_config_satveg_bands
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the cubes associated to the SATVEG service
 #' @return         Names of SATVEG bands
@@ -433,6 +456,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the cubes associated to SATVEG
 #' @name sits_config_satveg_cubes
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the cubes associated to SATVEG.
 .sits_config_satveg_cubes <- function() {
@@ -443,6 +467,7 @@ sits_config_show <- function() {
 }
 #' @title Retrieve the bounding box for SATVEG
 #' @name .sits_config_satveg_bbox
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param name           Name of the cube.
@@ -462,6 +487,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the projection for SATVEG service
 #' @name .sits_config_satveg_projection
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param name           Name of the cube.
@@ -479,6 +505,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the size of the cube for SATVEG
 #' @name .sits_config_satveg_size
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param name           Name of the cube.
@@ -506,6 +533,7 @@ sits_config_show <- function() {
 
 #' @title Get the URL to be used for SATVEG access
 #' @name .sits_config_satveg_url
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return URL to test SATVEG access
@@ -516,6 +544,7 @@ sits_config_show <- function() {
 
 #' @title Obtain the name of the bands used by a cube or by SITS
 #' @name .sits_config_band_names
+#' @keywords internal
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -536,6 +565,7 @@ sits_config_show <- function() {
 
 #' @title Convert bands names from cube to SITS
 #' @name .sits_config_band_names_convert
+#' @keywords internal
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -562,6 +592,7 @@ sits_config_show <- function() {
 }
 #' @title Get the bucket where Sentinel-2 level 2A images are available in AWS
 #' @name .sits_config_sentinel_aws_bucket
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return name of the bucket
@@ -571,6 +602,7 @@ sits_config_show <- function() {
 }
 #' @title File to test access to Sentinel-2 level 2A images in AWS
 #' @name .sits_config_sentinel_aws_test_file
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return name of the bucket
@@ -580,6 +612,7 @@ sits_config_show <- function() {
 }
 #' @title Get the the resolutions for Sentinel-2 ARD in AWS
 #' @name .sits_config_sentinel_aws_resolutions
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return vector with names of the resolutions available in AWS for S2 L2A
@@ -588,6 +621,7 @@ sits_config_show <- function() {
 }
 #' @title Get the the bands stored in AWS for Sentinel-2 ARD given the resolution
 #' @name .sits_config_sentinel_bands
+#' @keywords internal
 #' @param resolution       Resolution of the bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -604,6 +638,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the scale factor for a given band for a data cube
 #' @name .sits_config_scale_factors
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param sensor         Name of the sensor.

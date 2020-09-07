@@ -1,5 +1,6 @@
 #' @title Classify a chunk of raster data  using multicores
 #' @name .sits_classify_multicores
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Classifies a block of data using multicores. It breaks
@@ -162,6 +163,7 @@
 
 #' @title Check clasification parameters
 #' @name .sits_classify_check_params
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Verify that required parameters are correct.
 #'
@@ -182,6 +184,7 @@
 
 #' @title Estimate the processing time
 #' @name .sits_classify_estimate_processing_time
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description This function normalizes values read from a raster brick.
@@ -223,6 +226,7 @@
 
 #' @title Classify one interval of data
 #' @name  .sits_classify_interval
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  DT                A data.table with distance values.

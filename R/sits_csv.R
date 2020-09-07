@@ -90,6 +90,7 @@ sits_data_to_csv <- function(data, file){
 
 #' @title Check if a CSV tibble is valid
 #' @name  .sits_csv_check
+#' @keywords internal
 #'
 #' @param  csv.tb    Tibble read from a CSV file
 #' @return           TRUE/FALSE

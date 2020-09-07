@@ -45,3 +45,4 @@ Web Services for Big Earth Observation Data.
 In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016, p.166-177.
 }
+\keyword{internal}

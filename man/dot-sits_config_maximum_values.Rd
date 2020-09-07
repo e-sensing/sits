@@ -20,3 +20,4 @@ Retrieve the maximum values for a given band
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

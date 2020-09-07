@@ -18,3 +18,4 @@ Get the the bands stored in AWS for Sentinel-2 ARD given the resolution
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

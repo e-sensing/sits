@@ -1,5 +1,6 @@
 #' @title Creates the description of a data cube
 #' @name .sits_cube_create
+#' @keywords internal
 #'
 #' @description Print information and save metadata about a data cube.
 #'
@@ -90,6 +91,7 @@
 #' @title Create a set of RasterLayer objects to store
 #' data cube classification results (only the probs)
 #' @name .sits_cube_classified
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Take a tibble containing metadata about a data cube
@@ -118,7 +120,7 @@
 	ref_end_date   <- lubridate::as_date(samples[1,]$end_date)
 
 	# produce the breaks used to generate the output rasters
-	subset_dates <- sits_timeline_match(timeline = timeline,
+	subset_dates <- .sits_timeline_match(timeline = timeline,
 										ref_start_date = ref_start_date,
 										ref_end_date = ref_end_date,
 										interval = interval)
@@ -202,6 +204,7 @@
 }
 #' @title Define a name for classified band
 #' @name .sits_cube_class_band_name
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Creates a name for a raster layer based on timeline
@@ -224,6 +227,7 @@
 
 #' @title Find the bands associated to a cube
 #' @name .sits_cube_bands
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Given a data cube, retrieves the bands
@@ -235,6 +239,7 @@
 }
 #' @title Set the bands associated to a cube
 #' @name .sits_cube_bands_set
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Given a data cube and a set of bands, sets the bands
@@ -249,6 +254,7 @@
 
 #' @title Check that the cube is valid
 #' @name .sits_cube_check_validity
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description     Given a data cube, retrieve the scale factors
@@ -276,6 +282,7 @@
 
 #' @title Return a file associated to a data cube, given an index
 #' @name .sits_cube_file
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description     Given a data cube and an index, retrieve the file
@@ -290,6 +297,7 @@
 
 #' @title Return all file associated to a data cube
 #' @name .sits_cube_files
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Given a data cube and an index, retrieve the files
@@ -302,6 +310,7 @@
 
 #' @title Return all labels associated to a data cube
 #' @name .sits_cube_labels
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Given a data cube, retrieve the ;abels
@@ -313,6 +322,7 @@
 
 #' @title Return the timeline associated to a data cube, given an index
 #' @name sits_cube_timeline
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Given a data cube, retrieve the timeline
@@ -328,6 +338,7 @@ sits_cube_timeline <- function(cube, index = 1){
 
 #' @title Given a band, return the associated Raster object for the cube
 #' @name .sits_cube_robj_band
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description          Given a data cube, retrieve the timeline
@@ -351,6 +362,7 @@ sits_cube_timeline <- function(cube, index = 1){
 
 #' @title Retrieve the missing values for a data cube
 #' @name .sits_cube_missing_values
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description     Given a data cube, retrieve the missing values
@@ -362,6 +374,7 @@ sits_cube_timeline <- function(cube, index = 1){
 
 #' @title Retrieve the minimum values for a data cube
 #' @name .sits_cube_minimum_values
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description     Given a data cube, retrieve the minimum values
@@ -372,6 +385,7 @@ sits_cube_timeline <- function(cube, index = 1){
 }
 #' @title Retrieve the minimum values for a data cube
 #' @name .sits_cube_maximum_values
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description     Given a data cube, retrieve the maximum values
@@ -383,6 +397,7 @@ sits_cube_timeline <- function(cube, index = 1){
 
 #' @title Retrieve the scale factors for a data cube
 #' @name .sits_cube_scale_factors
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description     Given a data cube, retrieve the scale factors
@@ -394,6 +409,7 @@ sits_cube_timeline <- function(cube, index = 1){
 
 #' @title Align the bands of the cube with those of the samples
 #' @name .sits_cube_align_bands
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description         Given a data cube, retrieve the scale factors
@@ -430,6 +446,7 @@ sits_cube_timeline <- function(cube, index = 1){
 }
 #' @title Check that the requested bands exist in the cube
 #' @name .sits_cube_bands_check
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param cube          Metadata about a data cube

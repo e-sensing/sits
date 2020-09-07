@@ -31,6 +31,11 @@
 #' @export
 sits_conf_matrix <- function(data, conv.lst = NULL) {
 
+    # require package
+    if (!requireNamespace("caret", quietly = TRUE)) {
+        stop("Please install package caret.", call. = FALSE)
+    }
+
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
@@ -150,6 +155,7 @@ sits_accuracy <- function(label_cube, validation){
 
 #' @title Support for Area-weighted post-classification accuracy
 #' @name .sits_assess_accuracy_area
+#' @keywords internal
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @param error_matrix A matrix given in sample counts.
@@ -210,6 +216,7 @@ sits_accuracy <- function(label_cube, validation){
 
 #' @title Print the values of a confusion matrix
 #' @name .print_confusion_matrix
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Adaptation of the caret::print.confusionMatrix method
@@ -222,7 +229,8 @@ sits_accuracy <- function(label_cube, validation){
 #' @param \dots     Optional arguments to pass to \code{print.table}.
 #' @return \code{x}   is invisibly returned.
 #'
-#' @seealso \code{\link{confusionMatrix}}
+#' @seealso \code{\link[caret]{print.confusionMatrix}}
+#'
 .print_confusion_matrix <- function(x, mode = "sens_spec",
                               digits = max(3, getOption("digits") - 3), ...){
     cat("Confusion Matrix and Statistics\n\n")
@@ -306,6 +314,7 @@ sits_accuracy <- function(label_cube, validation){
 
 #' @title Obtains the predicted value of a reference set
 #' @name .sits_pred_ref
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Obtains a tibble of predicted and reference values

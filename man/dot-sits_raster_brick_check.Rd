@@ -29,3 +29,4 @@ Check if the raster files are bricks
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

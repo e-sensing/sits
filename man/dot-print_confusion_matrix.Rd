@@ -29,8 +29,9 @@ Adaptation of the caret::print.confusionMatrix method
              for the more common usage in Earth Observation.
 }
 \seealso{
-\code{\link{confusionMatrix}}
+\code{\link[caret]{print.confusionMatrix}}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

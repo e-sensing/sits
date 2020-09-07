@@ -20,3 +20,4 @@ Given a data cube, retrieve the scale factors
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

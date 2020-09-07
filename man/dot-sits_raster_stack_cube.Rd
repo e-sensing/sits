@@ -21,3 +21,4 @@ Create a stack cube from a set of files
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

@@ -23,3 +23,4 @@ Convert the name of the band used by the origin data cube
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

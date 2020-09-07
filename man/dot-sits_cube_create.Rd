@@ -83,3 +83,4 @@
 \description{
 Print information and save metadata about a data cube.
 }
+\keyword{internal}

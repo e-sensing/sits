@@ -748,6 +748,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_normalize_data
+#' @keywords internal
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description This function normalizes the time series using the mean and
@@ -822,6 +823,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 
 #' @title Normalize the time series values in the case of a matrix
 #' @name .sits_normalize_matrix
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description this function normalizes one band of the values read
@@ -863,6 +865,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_normalization_param
+#' @keywords internal
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description this function normalizes the time series using the mean and

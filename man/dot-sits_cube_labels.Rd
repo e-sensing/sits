@@ -18,3 +18,4 @@ Given a data cube, retrieve the ;abels
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

@@ -15,3 +15,4 @@ Directory to read the BDC information on the web
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

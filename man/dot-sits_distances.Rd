@@ -24,3 +24,4 @@ Rolf Simoes, \email{rolf.simoes@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

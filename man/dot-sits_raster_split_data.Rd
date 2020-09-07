@@ -22,3 +22,4 @@ This function splits a data.table into a
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

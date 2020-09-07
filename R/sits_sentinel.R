@@ -1,5 +1,6 @@
 #' @title Check access rigths on AWS
 #' @name  .sits_sentinel_aws_check_access
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param access_key     AWS access key
@@ -11,6 +12,11 @@
 .sits_sentinel_aws_check_access <- function(access_key = NULL,
 											secret_key = NULL,
 											region = NULL) {
+
+	# require package
+	if (!requireNamespace("aws.s3", quietly = TRUE)) {
+		stop("Please install package aws.s3", call. = FALSE)
+	}
 	if (purrr::is_null(access_key)) {
 		env_access_key <- Sys.getenv("AWS_ACCESS_KEY_ID")
 		assertthat::assert_that(nchar(env_access_key) > 1,
@@ -50,6 +56,7 @@
 }
 #' @title Get information on S2 leval 2A tiles in AWS
 #' @name .sits_sentinel_aws_info_tiles
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param tile          tile
@@ -155,6 +162,7 @@
 }
 #' @title Create a data cube for a Sentinel-2 AWS TILE
 #' @name .sits_sentinel_aws_tile_cube
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  Builds a Sentinel-2 AWS cube

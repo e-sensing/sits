@@ -21,3 +21,4 @@ list with:
 \description{
 Estimate the number of blocks to correct for clouds
 }
+\keyword{internal}

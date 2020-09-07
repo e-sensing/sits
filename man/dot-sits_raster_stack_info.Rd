@@ -12,7 +12,8 @@
   end_date = NULL,
   bands = NULL,
   data_dir,
-  parse_info = NULL
+  parse_info = NULL,
+  delim = NULL
 )
 }
 \arguments{
@@ -30,7 +31,9 @@
 
 \item{data_dir}{directory where data is located}
 
-\item{parse_info}{parsing information (below))}
+\item{parse_info}{parsing information}
+
+\item{delim}{delimitator}
 }
 \description{
 All image files should have the same spatial resolution
@@ -49,3 +52,4 @@ All image files should have the same spatial resolution
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

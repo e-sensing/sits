@@ -1,5 +1,6 @@
 #' @title Define a reasonable block size to process a RasterBrick
 #' @name .sits_raster_blocks
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Defines the size of the block of a Raster Brick to be read.
@@ -43,6 +44,7 @@
 }
 #' @title Calculate a list of blocks to be read from disk to memory
 #' @name .sits_raster_block_list
+#' @keywords internal
 #'
 #' @param nblocks number of blocks to read from each image
 #' @param nrows   number of rows in the image
@@ -81,6 +83,7 @@
 
 #' @title Estimate the number of blocks
 #' @name .sits_raster_blocks_estimate
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Defines the number of blocks of a Raster Brick
@@ -172,6 +175,7 @@
 
 #' @title Filter the time series values in the case of a matrix
 #' @name .sits_raster_filter_data
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function filters a matrix.
@@ -205,6 +209,7 @@
 
 #' @title Preprocess a set of values retrived from a raster brick
 #' @name  .sits_raster_preprocess_data
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  values.mx        Matrix of values retrieved from a brick.
@@ -246,6 +251,7 @@
 
 #' @title Read a block of values retrived from a set of raster bricks
 #' @name  .sits_raster_read_data
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  cube            Input data cube.
@@ -329,6 +335,7 @@
 
 #' @title Scale the time series values in the case of a matrix
 #' @name .sits_raster_scale_data
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Normalizes one band of the values read from a raster brick.
@@ -361,6 +368,7 @@
 
 #' @title Scale the time series values in the case of a matrix
 #' @name .sits_raster_scale_matrix_integer
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function transforms a numerical matrix into an integer one.
@@ -395,6 +403,7 @@
 
 #' @title Split a data.table or a matrix for multicore processing
 #' @name .sits_raster_split_data
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function splits a data.table into a

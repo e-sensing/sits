@@ -1,5 +1,6 @@
 #' @title Check if the raster files are on the web
 #' @name .sits_raster_check_webfiles
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param files         files associated to the raster data
@@ -16,6 +17,7 @@
 
 #' @title Check if the raster files are accessible by GDAL
 #' @name .sits_raster_check_gdal_access
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param files         files associated to the raster data
@@ -34,6 +36,7 @@
 
 #' @title Define a filename associated to one classified raster layer
 #' @name .sits_raster_filename
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Creates a filename for a raster layer
@@ -64,6 +67,7 @@
 }
 #' @title Determine the cube params to write in the metadata
 #' @name .sits_raster_params
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Based on the R object associated to a raster object,
@@ -87,6 +91,7 @@
 }
 #' @title Raster object from file
 #' @name .sits_raster_files_robj
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description     Given the vector of files and the name of the service,
@@ -99,6 +104,7 @@
 }
 #' @title Tests if an XY position is inside a ST Raster Brick
 #' @name .sits_raster_xy_inside
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Compares an XY position to the extent of a RasterBrick
@@ -119,6 +125,7 @@
 
 #' @title Tests if satellite and sensor are supported by SITS
 #' @name .sits_raster_satellite_sensor
+#' @keywords internal
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -149,6 +156,7 @@
 
 #' @title Create a tibble with file information to include in the cube
 #' @name  .sits_raster_file_info
+#' @keywords internal
 #'
 #' @param  bands    List of spectral bands
 #' @param  timeline Cube timeline

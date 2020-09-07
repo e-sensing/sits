@@ -33,8 +33,6 @@ LazyData: true
 Imports:
     magrittr,
     assertthat,
-    aws.s3,
-    caret,
     config,
     data.table (>= 1.12),
     dplyr (>= 1.0.0),
@@ -56,6 +54,8 @@ Imports:
     tidyr,
     utils
 Suggests:
+    aws.s3,
+    caret,
     DBI,
     dendextend,
     devtools,
@@ -106,7 +106,10 @@ Collate:
     'sits-package.R'
     'sits_accuracy.R'
     'sits_bdc.R'
+    'sits_brewer.R'
     'sits_classification.R'
+    'sits_classify_ts.R'
+    'sits_classify_cube.R'
     'sits_config.R'
     'sits_csv.R'
     'sits_cube.R'
@@ -143,6 +146,7 @@ Collate:
     'sits_space_time_operations.R'
     'sits_TempCNN.R'
     'sits_tibble.R'
+    'sits_tibble_aux_functions.R'
     'sits_timeline.R'
     'sits_twdtw.R'
     'sits_validate.R'

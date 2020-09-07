@@ -20,3 +20,4 @@ This function retrieves the number of samples
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

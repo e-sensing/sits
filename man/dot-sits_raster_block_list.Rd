@@ -21,3 +21,4 @@ a list with n (number of blocks), row (vector of starting rows),
 \description{
 Calculate a list of blocks to be read from disk to memory
 }
+\keyword{internal}

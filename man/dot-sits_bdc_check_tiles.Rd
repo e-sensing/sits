@@ -38,3 +38,4 @@ Check if the BDC tiles are working
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

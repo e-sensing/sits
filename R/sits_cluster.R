@@ -185,6 +185,7 @@ sits_cluster_clean <- function(samples) {
 
 #' @title Cluster validity indices
 #' @name .sits_cluster_validity
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Compute different cluster validity indices. This function needs
@@ -222,6 +223,7 @@ sits_cluster_clean <- function(samples) {
 
 #' @title Compute a dendrogram using hierarchical clustering
 #' @name .sits_cluster_dendrogram
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -277,6 +279,7 @@ sits_cluster_clean <- function(samples) {
 
 #' @title Compute validity indexes to a range of cut height
 #' @name .sits_cluster_dendro_bestcut
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Reads a dendrogram object and its corresponding sits tibble and

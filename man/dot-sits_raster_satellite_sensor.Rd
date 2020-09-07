@@ -21,3 +21,4 @@ Check if the satellite and sensor are supported by SITS
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

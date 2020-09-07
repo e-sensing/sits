@@ -16,3 +16,4 @@ Retrieve the cubes associated to the SATVEG service
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}
