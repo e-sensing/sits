@@ -73,7 +73,7 @@ test_that("Access to RSQLite",{
     db.tb <- sits_db_info(conn)
 
     expect_true(NROW(db.tb) == 4)
-    cube_classes <-  sits:::sits.env$config$cube_classes
+    cube_classes <-  sits:::sits.env$config$cube_classes_generic
     db_classes <- c("sits", cube_classes)
 
     expect_true(all(db.tb$class %in% db_classes))

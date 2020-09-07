@@ -551,24 +551,81 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 #' @param row         A row of a sits tibble with the time series to be plotted.
 #' @param colors      Brewer colors to be used for plotting.
 .sits_ggplot_series <- function(row, colors = "Dark2") {
-    # create the plot title
-    plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
-    #extract the time series
-    data.ts <- row$time_series
-    # melt the data into long format
-    melted.ts <- data.ts %>%
-        reshape2::melt(id.vars = "Index") %>%
-        as.data.frame()
+	# Are there NAs in the data?
+	if (any(is.na(row$time_series[[1]])))
+		g <- .sits_ggplot_series_na(row, colors)
+	else
+		g <- .sits_ggplot_series_no_na(row, colors)
+	return(g)
+}
+#' @title Plot one timeSeries using ggplot (no NAs present)
+#'
+#' @name .sits_ggplot_series_no_na
+#'
+#' @description Plots a set of time series using ggplot in the case the series
+#'              has no NAs.
+#'
+#' @param row         A row of a sits tibble with the time series to be plotted.
+#' @param colors      Brewer colors to be used for plotting.
+.sits_ggplot_series_no_na <- function(row, colors = "Dark2") {
+	# create the plot title
+	plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
+	#extract the time series
+	data.ts <- row$time_series
+	# melt the data into long format
+	melted.ts <- data.ts %>%
+		reshape2::melt(id.vars = "Index") %>%
+		as.data.frame()
+	# plot the data with ggplot
+	g <- ggplot2::ggplot(melted.ts, ggplot2::aes(x = Index,
+												 y = value,
+												 group = variable)) +
+		ggplot2::geom_line(ggplot2::aes(color = variable)) +
+		ggplot2::labs(title = plot_title) +
+		ggplot2::scale_color_brewer(palette = colors)
+	return(g)
+}
+#' @title Plot one timeSeries wih NAs using ggplot
+#'
+#' @name .sits_ggplot_series_na
+#'
+#' @description Plots a set of time series using ggplot, showing where NAs are.
+#'
+#' @param row         A row of a sits tibble with the time series to be plotted.
+#' @param colors      Brewer colors to be used for plotting.
+.sits_ggplot_series_na <- function(row, colors = "Dark2") {
 
-    # plot the data with ggplot
-    g <- ggplot2::ggplot(melted.ts, ggplot2::aes(x = Index,
-                                                 y = value,
-                                                 group = variable)) +
-        ggplot2::geom_line(ggplot2::aes(color = variable)) +
-    	ggplot2::geom_point() +
-        ggplot2::labs(title = plot_title) +
-        ggplot2::scale_color_brewer(palette = colors)
-    return(g)
+	# define a function to replace the NAs for unique values
+	replace_na <- function(x) {
+		x[is.na(x)] <- -10000
+		x[x != -10000] <- NA
+		x[x == -10000] <- 1
+		return(x)
+	}
+	# create the plot title
+	plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
+
+	# include a new band in the data to show the NAs
+	data <- row$time_series[[1]]
+	data <- data %>%
+		dplyr::select_if(function(x) any(is.na(x))) %>%
+		.[,1] %>%
+		`colnames<-`(., "X1") %>%
+		dplyr::transmute(cld = replace_na(X1)) %>%
+		dplyr::bind_cols(data, .)
+
+	# prepare tibble to ggplot (fortify)
+	ts1 <- tidyr::pivot_longer(data, -Index)
+	g <- ggplot2::ggplot(data = ts1 %>%
+						 	dplyr::filter(name != "cld")) +
+		ggplot2::geom_col(ggplot2::aes(x = Index, y = value), fill = "sienna", alpha = 0.3,
+						  data = ts1 %>%
+						  	dplyr::filter(name == "cld", !is.na(value))) +
+		ggplot2::geom_line(ggplot2::aes(x = Index, y = value, color = name)) +
+		ggplot2::geom_point(ggplot2::aes(x = Index, y = value, color = name)) +
+		ggplot2::labs(title = plot_title)
+
+	return(g)
 }
 
 #' @title Plot many timeSeries together using ggplot
@@ -608,12 +665,12 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 #' @param label      Lable of the location to be plotted.
 #' @return A string with the title to be used in the plot.
 .sits_plot_title <- function(latitude, longitude, label) {
-    title <- paste("location (",
-                   latitude,  ", ",
-                   longitude, ") - ",
-                   label,
-                   sep = "")
-    return(title)
+	title <- paste("location (",
+				   signif(latitude, digits = 4),  ", ",
+				   signif(longitude, digits = 4), ") - ",
+				   label,
+				   sep = "")
+	return(title)
 }
 
 #' @title Plot classification results

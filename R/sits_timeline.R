@@ -54,8 +54,13 @@
 #' @param  interval        Interval between two sucessive classifications.
 #' @return A tibble with the classification information.
 .sits_timeline_class_info <- function(data, samples, interval){
+
     # find the timeline
     timeline <- sits_timeline(data)
+
+    # precondition - is the timeline correct?
+    assertthat::assert_that(length(timeline) > 0,
+                            msg = "sits_timeline_class_info: invalid timeline")
 
     # find the labels
     labels <- sits_labels(samples)$label
@@ -189,6 +194,10 @@
 sits_timeline_match <- function(timeline, ref_start_date, ref_end_date, interval = "12 month"){
     # make sure the timelines is a valid set of dates
     timeline <- lubridate::as_date(timeline)
+
+    # precondition
+    assertthat::assert_that(lubridate::is.duration(lubridate::as.duration(interval)),
+                            msg = "invalid interval specification")
 
     #define the input start and end dates
     input_start_date <- timeline[1]

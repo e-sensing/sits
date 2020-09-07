@@ -180,7 +180,7 @@ sits_keras_diagnostics <- function(dl_model) {
 
     # split the data into training and validation data sets
     # create partitions different splits of the input data
-    test_data_DT <- .sits_sample_distances(train_data_DT,
+    test_data_DT <- .sits_distances_sample(train_data_DT,
                                            frac = validation_split)
 
     # remove the lines used for validation

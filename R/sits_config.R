@@ -86,12 +86,27 @@ sits_config_show <- function() {
     return(invisible())
 }
 
+#' @title Get the name of the band used for cloud information
+#' @name .sits_config_cloud_band
+#' @param satellite            satellite
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return vector with names of the bands available in AWS for a given resolution
+.sits_config_cloud_band <- function(satellite) {
+
+  sensor <- .sits_config_sensors(satellite)
+  cloud_band <- sits.env$config[[sensor]][["cloud_band"]]
+  assertthat::assert_that(!purrr::is_null(cloud_band),
+                          msg = "Cloud band information not available")
+  return(cloud_band)
+}
+
 #' @title Check that the type is valid, based on the configuration file
-#' @name .sits_config_check
+#' @name .sits_config_check_type
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param type       Type of data cube
-.sits_config_check <- function(type){
+.sits_config_check_type <- function(type){
 
     # find out which cube types are available
     types <- sits.env$config$cube_types
@@ -114,37 +129,37 @@ sits_config_show <- function() {
 }
 
 #' @title Retrieve the classes associated to data cubes known to SITS
-#' @name .sits_config_cube_class
+#' @name .sits_config_cube_class_generic
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the class name associated to a cube type
 #' @param type  Data cube type
 #' @return      Class of data cube
 #'
-.sits_config_cube_class <- function(type) {
+.sits_config_cube_class_generic <- function(type) {
     # check that the cube is correct
-    if (.sits_config_check(type)) {
+    if (.sits_config_check_type(type)) {
         # find out which cube types are supported
         types   <- sits.env$config$cube_types
-        classes <-  sits.env$config$cube_classes
+        classes <-  sits.env$config$cube_classes_generic
         names(classes) <- types
         return(unname(classes[type]))
     }
     return(NULL)
 }
-#' @title Retrieve the metadata class associated to data cubes known to SITS
-#' @name .sits_config_cube_metadata
+#' @title Retrieve the generic class associated to data cubes known to SITS
+#' @name .sits_config_cube_specific
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the metadata class name associated to a cube type
 #' @param type  Data cube type
 #' @return      Class of data cube metadata
 #'
-.sits_config_cube_metadata <- function(type) {
+.sits_config_cube_specific <- function(type) {
   # check that the cube is correct
   type <- toupper(type)
-  if (.sits_config_check(type)) {
+  if (.sits_config_check_type(type)) {
     # find out which cube types are supported
     types   <- sits.env$config$cube_types
-    classes <-  sits.env$config$cube_classes_metadata
+    classes <-  sits.env$config$cube_classes_specific
     names(classes) <- types
     return(unname(classes[type]))
   }
@@ -158,7 +173,7 @@ sits_config_show <- function() {
 #' @return      class of robjects in data cubes ("brick", "raster", or "stack")
 .sits_config_cube_robj_class <- function(cube) {
   # check that the cube is correct
-  if (.sits_config_check(cube$type)) {
+  if (.sits_config_check_type(cube$type)) {
     # find out which cube types are supported
     types   <- sits.env$config$cube_types
     objs    <-  sits.env$config$cube_robjs
@@ -176,7 +191,7 @@ sits_config_show <- function() {
 .sits_config_cube_classes_chk <- function(class){
 
     # find out which cube classes are supported
-    classes <-  sits.env$config$cube_classes
+    classes <-  sits.env$config$cube_classes_generic
     if(class %in% classes)
         return(TRUE)
     else
@@ -217,6 +232,35 @@ sits_config_show <- function() {
 .sits_config_cube_bdc_tile_local <- function() {
 
   return(sits.env$config$bdc_local)
+}
+#' @title Standard files for data directory for cube type
+#' @name .sits_config_data_dir_path
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param  type    cube_type
+#'
+#' @return file path to the appended to data_dir
+.sits_config_data_dir_path <- function(type) {
+
+  return(sits.env$config[[type]][["data_dir_path"]])
+}
+
+#' @title Standard files for data directory for cube type
+#' @name .sits_config_data_parse_info
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param  type    cube_type
+#'
+#' @return parsing information
+.sits_config_data_parse_info <- function(type) {
+  return(sits.env$config[[type]][["parse_info"]])
+}
+#' @title Delimiter for data type
+#' @name .sits_config_data_delim
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param  type    cube_type
+#'
+#' @return delimiter information
+.sits_config_data_delim <- function(type){
+  return(sits.env$config[[type]][["delim"]])
 }
 #' @title Retrieve the default sensor for the satellite
 #' @name .sits_config_sensors
@@ -556,20 +600,7 @@ sits_config_show <- function() {
     r <- paste0(resolution,"_bands")
     return(sits.env$config[[s]][[r]])
 }
-#' @title Get the name of the band used for cloud information
-#' @name .sits_config_cloud_band
-#' @param satellite            satellite
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return vector with names of the bands available in AWS for a given resolution
-.sits_config_cloud_band <- function(satellite) {
 
-    sensor <- .sits_config_sensors(satellite)
-    cloud_band <- sits.env$config[[sensor]][["cloud_band"]]
-    assertthat::assert_that(!purrr::is_null(cloud_band),
-                          msg = "Cloud band information not available")
-    return(cloud_band)
-}
 
 #' @title Retrieve the scale factor for a given band for a data cube
 #' @name .sits_config_scale_factors

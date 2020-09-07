@@ -24,7 +24,7 @@ Description: A set of tools for working with satellite image time series, both a
     Includes functions for smoothing based on Bayesian inference. 
     Minimum recommended requirements: 8 GB RAM and 1 CPU dual-core.
 Encoding: UTF-8
-Depends: R (>= 4.0.0)
+Depends: R (>= 3.5.0)
 URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2 | file LICENSE
@@ -44,7 +44,6 @@ Imports:
     keras (>= 2.3.0),
     log4r,
     lubridate (>= 1.7.0),
-    mapview,
     parallel,
     purrr  (>= 0.3.0),
     raster (>= 2.6),
@@ -54,6 +53,7 @@ Imports:
     sf (>= 0.9),
     stats,
     tibble (>= 3.0),
+    tidyr,
     utils
 Suggests:
     DBI,
@@ -70,6 +70,7 @@ Suggests:
     knitr,
     lwgeom,
     MASS,
+    mapview,
     methods,
     mgcv,
     nnet,
@@ -109,10 +110,12 @@ Collate:
     'sits_config.R'
     'sits_csv.R'
     'sits_cube.R'
+    'sits_cube_aux_functions.R'
     'sits_clouds.R'
     'sits_cluster.R'
     'sits_db.R'
     'sits_deep_learning.R'
+    'sits_distances.R'
     'sits_dt_reference.R'
     'sits_factory.R'
     'sits_FCN.R'
@@ -122,6 +125,7 @@ Collate:
     'sits_keras.R'
     'sits_kohonen.R'
     'sits_labels.R'
+    'sits_label_classification.R'
     'sits_log.R'
     'sits_LSTM_FCN.R'
     'sits_machine_learning.R'
@@ -129,7 +133,9 @@ Collate:
     'sits_pipe.R'
     'sits_plot.R'
     'sits_raster.R'
+    'sits_raster_brick.R'
     'sits_raster_data.R'
+    'sits_raster_stack.R'
     'sits_ResNet.R'
     'sits_satveg.R'
     'sits_sentinel.R'

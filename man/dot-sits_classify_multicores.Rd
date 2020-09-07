@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_classification.R
 \name{.sits_classify_multicores}
 \alias{.sits_classify_multicores}
-\title{Classify a chunk of raster bricks using multicores}
+\title{Classify a chunk of raster data  using multicores}
 \usage{
 .sits_classify_multicores(
   cube,

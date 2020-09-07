@@ -128,7 +128,7 @@ sits_from_matrix <- function (values, raster_obj, timeline, initial_row, nrows, 
             c   <- raster::cellFromRowCol(raster_obj, row, i)
             xy  <- raster::xyFromCell(raster_obj, c)
             ll  <- .sits_proj_to_latlong(xy[,"x"], xy[,"y"],
-                                as.character(raster::crs(raster_obj)))
+                                as.character(suppressWarnings(raster::crs(raster_obj))))
             data <- tibble::add_row(data,
                                     longitude    = ll[,"longitude"],
                                     latitude     = ll[,"latitude"],

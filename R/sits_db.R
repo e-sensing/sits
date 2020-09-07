@@ -93,21 +93,32 @@ sits_db_info <- function(conn){
             else {
 
                 # find how many instances are there
-                if (length(data$timeline[[1]]) == 1)
-                    n_times <- length(data$timeline[[1]][[1]])
+                timeline   <- sits_timeline(data)
+                start_date <- timeline[1]
+                end_date   <- timeline[length(timeline)]
+                band_info  <- data$bands[[1]]
+                if (length(band_info) <= 3)
+                    bands  <- paste(data$bands[[1]], collapse = ", ")
                 else
-                    n_times <- length(data$timeline[[1]])
+                    bands  <- paste0("[", band_info[1],",...,",
+                                     band_info[length(band_info)], "] (", length(band_info)," bds)")
+
+                ll_inf <- .sits_proj_to_latlong(data$xmin, data$ymin,
+                                as.character(data$crs))
+                ll_sup <- .sits_proj_to_latlong(data$xmax, data$ymax,
+                                                as.character(data$crs))
 
                 desc <- tibble::tibble(
                     name   = tab,
                     cube   = data$name,
                     class  = class(data)[1],
-                    size   = paste0(n_times, " instances"),
-                    bands  = paste(data$bands[[1]], collapse = ", "),
-                    b_box  = paste0("(",data$xmin, ",",
-                                        data$ymin, "), ",
-                                    "(",data$xmax, ",",
-                                        data$ymax, ")"),
+                    start_date = as.Date(start_date),
+                    end_date   = as.Date(end_date),
+                    bands  = bands,
+                    b_box  = paste0("(",signif(ll_inf[1, "longitude"], digits = 4), ",",
+                                        signif(ll_inf[1, "latitude"], digits = 4), "), ",
+                                    "(",signif(ll_sup[1, "longitude"], digits = 4),",",
+                                        signif(ll_sup[1, "latitude"], digits = 4), ")"),
                     crs    = data$crs,
                     labels = paste(data$labels[[1]], collapse = ", ")
                 )
@@ -117,17 +128,15 @@ sits_db_info <- function(conn){
     # collect all descriptions
     desc.tb <- dplyr::bind_rows(tables.lst)
 
-    message(paste0("-----------------------------------------------\n",
-                   'Contents of database ', conn@dbname))
-
-    print(knitr::kable(dplyr::select(desc.tb, name, cube, class, size),
-                       padding = 0))
+    print(knitr::kable(dplyr::select(desc.tb, name, start_date, end_date, bands, b_box),
+                       padding = 0,
+                       caption = paste0('Contents of database ', conn@dbname)))
 
     # disconnect from database
     if (!grepl("memory", conn@dbname))
         DBI::dbDisconnect(conn)
 
-    return(desc.tb)
+    return(invisible(desc.tb))
 }
 #' @title Write time series and data cubes information on an SQLite database
 #' @name sits_db_write
@@ -434,10 +443,9 @@ sits_db_read <- function(conn, name) {
                                        path  = character())
         for (i in 1:nrows) {
             row <- data[i,]$file_info[[1]]
-            file_info.lst <- purrr::pmap(list(row$res, row$band, row$date, row$path),
-                                         function (r, b, d, p){
+            file_info.lst <- purrr::pmap(list(row$band, row$date, row$path),
+                                         function (b, d, p){
                                              fi.tb <- tibble::tibble(
-                                                 res   = r,
                                                  band  = b,
                                                  date  = d,
                                                  path  = p)
@@ -581,7 +589,7 @@ sits_db_read <- function(conn, name) {
     })
 
     data <- dplyr::bind_rows(rows.lst)
-    class_cube <- .sits_config_cube_class(data[1,]$type)
+    class_cube <- .sits_config_cube_class_generic(data[1,]$type)
     if (purrr::is_null(class_cube)) {
         class(data) <- c("cube", class(data))
         message("Type of data cube not yet supported by sits")

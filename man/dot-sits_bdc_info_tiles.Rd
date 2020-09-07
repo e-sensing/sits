@@ -15,7 +15,7 @@
   end_date,
   .local,
   .web,
-  .cloud_band
+  .cloud_band = FALSE
 )
 }
 \arguments{

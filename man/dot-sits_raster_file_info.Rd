@@ -4,11 +4,9 @@
 \alias{.sits_raster_file_info}
 \title{Create a tibble with file information to include in the cube}
 \usage{
-.sits_raster_file_info(res, bands, timeline, files)
+.sits_raster_file_info(bands, timeline, files)
 }
 \arguments{
-\item{res}{Cube spatial resolution}
-
 \item{bands}{List of spectral bands}
 
 \item{timeline}{Cube timeline}

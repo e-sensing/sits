@@ -81,7 +81,7 @@
 								 end_date,
 								 .local,
 								 .web,
-								 .cloud_band){
+								 .cloud_band = FALSE){
 
 	# obtain the directory for local access
 	if (data_access == "local") {
@@ -99,40 +99,15 @@
 	# compose the directory with the name of the cube and tile
 	data_dir <- paste0(dir,"/",cube,"/",tile)
 
-	# list the files in the directory
-	img_files <- list.files(data_dir, recursive = TRUE)
+	# compose the data directory based on standard path for cube type
 
-	# convert the names of the bands to those used by SITS
-	bands_sits <- .sits_config_band_names_convert(satellite, sensor, type = "BDC_TILE")
-
-	info.tb <- img_files %>%
-		# remove the extent
-		tools::file_path_sans_ext() %>%
-		# read the file path into a tibble
-		readr::read_delim(delim = "/", col_names = FALSE) %>%
-		dplyr::select(ncol(.)) %>%
-		dplyr::pull() %>%
-		readr::read_delim(delim = "_", col_names = c("sat", "res", "int", "mode", "tile",
-													 "date", "end_date", "band")) %>%
-		# select the relevant parts
-		dplyr::select(res, date, band) %>%
-		# include path in the tibble
-		dplyr::mutate(path = paste0(data_dir,"/",img_files)) %>%
-		# order by dates
-		dplyr::arrange(date) %>%
-		# filter to remove duplicate combinations of file and band
-		dplyr::distinct(band, date, .keep_all = TRUE) %>%
-		# filter by starting date and end date
-		dplyr::filter(date >= start_date & date <=end_date) %>%
-		# convert the band names to SITS bands
-		dplyr::mutate(band = bands_sits[band])
-
-	if (!purrr::is_null(bands)) {
-		assertthat::assert_that(bands %in% bands_sits,
-								msg = "bands do not match band names in SITS - see config file")
-		# select the bands
-		info.tb <-  dplyr::filter(info.tb, band %in% bands)
-	}
+	info.tb <- .sits_raster_stack_info(type        = "BDC_TILE",
+									   satellite   = satellite,
+									   sensor      = sensor,
+									   start_date  = start_date,
+									   end_date    = end_date,
+									   bands       = bands,
+									   data_dir    = data_dir)
 
 	return(info.tb)
 }

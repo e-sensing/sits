@@ -8,7 +8,7 @@
 #'
 sits_cloud_remove <- function(cube, ...) {
 
-	class_type <- .sits_config_cube_metadata(cube$type)
+	class_type <- .sits_config_cube_specific(cube$type)
 	class(cube) <- c(class_type, class(cube))
 	# Dispatch
 	UseMethod("sits_cube", cube)
@@ -44,6 +44,10 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 	}
 	else
 		bands <- sits_bands(cube)
+
+	# precondition
+	assertthat::assert_that(lubridate::is.duration(lubridate::as.duration(interval)),
+							msg = "invalid interval specification")
 
 	# estimate the blocks to be read
 	blocks <- .sits_cloud_blocks_estimate(cube = cube, memsize = memsize)
