@@ -4,21 +4,23 @@
 \alias{.sits_raster_blocks}
 \title{Define a reasonable block size to process a RasterBrick}
 \usage{
-.sits_raster_blocks(cube, ml_model, interval, memsize, multicores)
+.sits_raster_blocks(cube, ml_model, sub_image, interval, memsize, multicores)
 }
 \arguments{
-\item{cube}{Input data cube.}
+\item{cube}{input data cube.}
 
-\item{ml_model}{Machine learning model.}
+\item{ml_model}{machine learning model.}
 
-\item{interval}{Classification interval.}
+\item{sub_image}{bounding box of the ROI}
 
-\item{memsize}{Memory available for classification (in GB).}
+\item{interval}{classification interval.}
 
-\item{multicores}{Number of threads to process the time series.}
+\item{memsize}{memory available for classification (in GB).}
+
+\item{multicores}{number of threads to process the time series.}
 }
 \value{
-List with three attributes: n (number of blocks),
+list with three attributes: n (number of blocks),
                         rows (list of rows to begin),
                         nrows (number of rows to read at each iteration).
 }

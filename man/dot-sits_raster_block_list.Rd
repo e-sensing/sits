@@ -4,14 +4,12 @@
 \alias{.sits_raster_block_list}
 \title{Calculate a list of blocks to be read from disk to memory}
 \usage{
-.sits_raster_block_list(nblocks, nrows, ncols)
+.sits_raster_block_list(nblocks, sub_image)
 }
 \arguments{
 \item{nblocks}{number of blocks to read from each image}
 
-\item{nrows}{number of rows in the image}
-
-\item{ncols}{number of cols in the image}
+\item{sub_image}{nrea of interest in the image}
 }
 \value{
 a list with n (number of blocks), row (vector of starting rows),

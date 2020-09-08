@@ -7,8 +7,7 @@
 .sits_raster_blocks_estimate(
   ml_model,
   nbands,
-  nrows,
-  ncols,
+  sub_image,
   timeline,
   interval,
   memsize,
@@ -20,9 +19,7 @@
 
 \item{nbands}{Number of bands.}
 
-\item{nrows}{Number of rows per brick.}
-
-\item{ncols}{Number of cols per brick.}
+\item{sub_image}{Area of interest in the image}
 
 \item{timeline}{Timeline of the brick.}
 

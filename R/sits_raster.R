@@ -11,7 +11,7 @@
 #'
 #' @param  cube            input data cube.
 #' @param  ml_model        machine learning model.
-#' @param  sf_region       spatial region of interest (sf_object)
+#' @param  sub_image       bounding box of the ROI
 #' @param  interval        classification interval.
 #' @param  memsize         memory available for classification (in GB).
 #' @param  multicores      number of threads to process the time series.
@@ -19,60 +19,113 @@
 #'                         rows (list of rows to begin),
 #'                         nrows (number of rows to read at each iteration).
 #'
-.sits_raster_blocks <- function(cube, ml_model, sf_region, interval, memsize, multicores){
+.sits_raster_blocks <- function(cube, ml_model, sub_image, interval, memsize, multicores){
     # number of bands
     nbands <-  length(.sits_cube_bands(cube))
     # timeline
     timeline <- sits_timeline(cube[1,])
-    # define the sub_image (which may be the same size as the original)
-    sub_image <- .sits_raster_sub_image(cube, sf_region)
-
-
+    # get the number of blocks
     nblocks <- .sits_raster_blocks_estimate(ml_model   = ml_model,
                                             nbands     = nbands,
-                                            nrows      = nrows,
-                                            ncols      = ncols,
+                                            sub_image  = sub_image,
                                             timeline   = timeline,
                                             interval   = interval,
                                             memsize    = memsize,
                                             multicores = multicores)
 
-    block.lst <- .sits_raster_block_list(nblocks = nblocks,
-                                         nrows = nrows,
-                                         ncols = ncols)
+    block.lst <- .sits_raster_block_list(nblocks = nblocks, sub_image  = sub_image)
 
     return(block.lst)
 }
-.sits_raster_sub_image <- function(cube, region) {
-    sub_image = vector(length = 4)
-    names(sub_image) <- c("first_row", "first_col", "nrows", "ncols")
+#' @title Find the dimensions and location of a spatial ROI in a data cube
+#' @name .sits_raster_sub_image
+#' @keywords internal
 
-    if (purrr::is_null(region)){
-        sub_image["first_row"] <- 1
-        sub_image["first_col"] <- 1
-        sub_image["nrows"]  <- cube[1,]$nrows
-        sub_image["ncols"]  <- cube[1,]$ncols
-    }
-    else {
-        # if the sf object is not in image coordinates, convert it
-        sf_region_im <- suppressWarnings(sf::st_transform(sf_region, crs = cube[1,]$crs))
-        bbox <- sf::st_bbox(sf_region_im)
-    }
+#' @param  cube            input data cube.
+#' @param  sf_region       spatial region of interest (sf_object)
+#' @return                 vector with information on the subimage
+#'
+.sits_raster_sub_image <- function(cube, sf_region = NULL) {
 
+    # create a default sub_image that is the same size as the cube
+    sub_image <- .sits_raster_sub_image_default(cube)
+
+    # no sf_region? return sub_image as entire image
+    if (purrr::is_null(sf_region))
+        return(sub_image)
+
+    # if the sf_region exists
+    # Obtain the bounding box of the shape object describing the ROI
+    bbox_roi <- sf::st_bbox(suppressWarnings(sf::st_transform(sf_region,
+                                                              crs = cube[1,]$crs)))
+
+    # calculate the sub-region of the cube
+    # first_row (remember rows are top to bottom and coordinates are bottom to top)
+    if (bbox_roi["ymax"] <= cube[1,]$ymax) {
+        sub_image["ymax"] <- bbox_roi["ymax"]
+        sub_image["first_row"] <- trunc((cube[1,]$ymax - bbox_roi["ymax"])/cube$yres)
+    }
+    # last row
+    if (bbox_roi["ymin"] >= cube[1,]$ymin) {
+        sub_image["ymin"] <- bbox_roi["ymin"]
+        last_row <- trunc((bbox_roi["ymin"] - cube$ymax)/cube$yres)
+    }
+    sub_image["nrows"] <- last_row - sub_image["first_row"] + 1
+    # first col
+    if (bbox_roi["xmin"] >= cube[1,]$xmin) {
+        sub_image["first_col"] <- trunc((bbox_roi["xmin"] - cube[1,]$xmin)/cube$xres)
+        sub_image["xmin"] <- bbox_roi["xmin"]
+    }
+    #last col
+    if (bbox_roi["xmax"] <= cube[1,]$xmax) {
+        last_col <- trunc((cube[1,]$ymax - bbox_roi["ymax"])/cube$yres)
+        sub_image["xmax"] <- bbox_roi["xmax"]
+    }
+    # number of cols
+    sub_image["ncols"] <- last_row - sub_image["first_row"] + 1
+
+    return(sub_image)
+}
+#' @title Find the dimensions and location of a spatial ROI in a data cube
+#' @name .sits_raster_sub_image
+#' @keywords internal
+
+#' @param  cube            input data cube.
+#' @param  sf_region       spatial region of interest (sf_object)
+#' @return                 vector with information on the subimage
+.sits_raster_sub_image_default <- function(cube){
+    # by default, the sub_image has the same dimension as the main cube
+    sub_image = vector(length = 8)
+    names(sub_image) <- c("first_row", "first_col", "nrows", "ncols",
+                          "xmin", "ymin", "xmax", "ymax")
+
+    sub_image["first_row"] <- 1
+    sub_image["first_col"] <- 1
+    sub_image["nrows"]  <- cube[1,]$nrows
+    sub_image["ncols"]  <- cube[1,]$ncols
+    sub_image["xmin"]   <- cube[1,]$xmin
+    sub_image["xmax"]   <- cube[1,]$xmax
+    sub_image["ymin"]   <- cube[1,]$ymin
+    sub_image["ymax"]   <- cube[1,]$ymax
+    last_row            <- cube[1,]$nrows
+    last_col            <- cube[1,]$ncols
+
+    return(sub_image)
 }
 #' @title Calculate a list of blocks to be read from disk to memory
 #' @name .sits_raster_block_list
 #' @keywords internal
 #'
-#' @param nblocks number of blocks to read from each image
-#' @param nrows   number of rows in the image
-#' @param ncols   number of cols in the image
+#' @param  nblocks         number of blocks to read from each image
+#' @param  sub_image       nrea of interest in the image
 #' @return        a list with n (number of blocks), row (vector of starting rows),
 #'                nrow (vector with number of rows for each block) and
 #'                size (vector with size of each block)
 #'
-.sits_raster_block_list <- function (nblocks, nrows, ncols){
+.sits_raster_block_list <- function(nblocks, sub_image){
     # number of rows per block
+    nrows <- unname(sub_image["nrows"])
+    ncols <- unname(sub_image["ncols"])
     block_rows <- ceiling(nrows/nblocks)
 
     # initial row of each block
@@ -89,11 +142,17 @@
 
     # elements of the block list
     # n          number of blocks
-    # row        starting row from the RasterBrick
-    # nrow       Number of rows in the block extracted from the RasterBrick
-    # size       size of each block in pixels
+    # row        starting row in each block (vector)
+    # nrows      number of rows in each block (vector)
+    # col        first col
+    # ncols      number of cols in each block
 
-    block.lst <- list(n = length(row.vec), row = row.vec, nrows = nrows.vec, size = size.vec)
+    block.lst <- list(n = length(row.vec),
+                      row = row.vec,
+                      nrows = nrows.vec,
+                      col   = unname(sub_image["first_col"]),
+                      ncols = ncols,
+                      size = size.vec)
 
     return(block.lst)
 }
@@ -109,8 +168,7 @@
 #'
 #' @param  ml_model        Machine learning model.
 #' @param  nbands          Number of bands.
-#' @param  nrows           Number of rows per brick.
-#' @param  ncols           Number of cols per brick.
+#' @param  sub_image       Area of interest in the image
 #' @param  timeline        Timeline of the brick.
 #' @param  interval        Classification interval.
 #' @param  memsize         Memory available for classification (in GB).
@@ -118,8 +176,7 @@
 #' @return Number of blocks to be read.
 .sits_raster_blocks_estimate <- function(ml_model,
                                          nbands,
-                                         nrows,
-                                         ncols,
+                                         sub_image,
                                          timeline,
                                          interval,
                                          memsize,
@@ -144,6 +201,9 @@
     proc_bloat <- as.numeric(.sits_config_processing_bloat())
     if (proc_bloat == 0) proc_bloat <- multicores
 
+    # number of rows and cols
+    nrows <- sub_image["nrows"]
+    ncols <- sub_image["ncols"]
     # single instance size
     single_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)
     # total size including all bands
@@ -272,17 +332,20 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  cube            Input data cube.
-#' @param  samples         Tibble with samples.
-#' @param  ml_model        Machine learning model.
-#' @param  first_row       First row to start reading.
-#' @param  n_rows_block    Number of rows in the block.
-#' @param  stats           Normalization parameters.
-#' @param  filter          Smoothing filter to be applied.
-#' @param  multicores      Number of cores to process the time series.
+#' @param  cube            input data cube.
+#' @param  samples         tibble with samples.
+#' @param  ml_model        machine learning model.
+#' @param  first_row       first row to start reading.
+#' @param  nrows_block     number of rows in the block.
+#' @param  first_col       first column to start reading
+#' @param  ncols_block     number of columns in the block
+#' @param  stats           normalization parameters.
+#' @param  filter          smoothing filter to be applied.
+#' @param  multicores      number of cores to process the time series.
 #' @return A data.table with values for classification.
 .sits_raster_read_data <- function(cube, samples, ml_model,
-                                   first_row, n_rows_block,
+                                   first_row, nrows_block,
+                                   first_col, ncols_block,
                                    stats, filter, multicores) {
     # get the bands in the same order as the samples
     bands <- sits_bands(samples)
@@ -305,9 +368,11 @@
             # getValues function returns a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            values.mx    <- suppressWarnings(raster::getValues(r_obj,
-                                                               first_row,
-                                                               n_rows_block))
+            values.mx    <- suppressWarnings(raster::getValuesBlock(x     = r_obj,
+                                                                    row   = first_row,
+                                                                    nrows = nrows_block,
+                                                                    col   = first_col,
+                                                                    ncols = ncols_block))
             rm(r_obj)
 
             # proprocess the input data
@@ -325,7 +390,7 @@
                                    .sits_mem_used(), " GB"))
             .sits_log_debug(paste0("Read band ", b, " from rows ",
                                    first_row, "to ",
-                                   (first_row + n_rows_block - 1)))
+                                   (first_row + nrows_block - 1)))
 
             return(values.mx)
         })
@@ -337,7 +402,7 @@
     gc()
 
     # create two additional columns for prediction
-    size <- n_rows_block*cube[1,]$ncols
+    size <- nrows_block*ncols_block
     two_cols_DT <- data.table::data.table("original_row" = rep(1,size),
                                           "reference"    = rep("NoClass", size))
 

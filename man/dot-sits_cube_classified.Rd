@@ -5,21 +5,23 @@
 \title{Create a set of RasterLayer objects to store
 data cube classification results (only the probs)}
 \usage{
-.sits_cube_classified(cube, samples, interval, output_dir, version)
+.sits_cube_classified(cube, samples, sub_image, interval, output_dir, version)
 }
 \arguments{
-\item{cube}{Tibble with metadata about the input data cube.}
+\item{cube}{input data cube.}
 
-\item{samples}{Samples used for training the classification model.}
+\item{samples}{samples used for training the classification model.}
 
-\item{interval}{Classification interval.}
+\item{sub_image}{bounding box of the ROI}
 
-\item{output_dir}{Prefix of the output files.}
+\item{interval}{classification interval.}
 
-\item{version}{Version of the output files}
+\item{output_dir}{prefix of the output files.}
+
+\item{version}{version of the output files}
 }
 \value{
-A tibble with metadata about the output RasterLayer objects.
+output data cube
 }
 \description{
 Take a tibble containing metadata about a data cube

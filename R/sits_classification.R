@@ -106,7 +106,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 
 		# precondition -ensure the machine learning model has been built
 		assertthat::assert_that(!purrr::is_null(ml_model),
-													msg = "sits_classify_ts: please provide a trained ML model")
+							msg = "sits_classify_ts: please provide a trained ML model")
 
 		# precondition - is the interval valid?
 		assertthat::assert_that(lubridate::is.duration(lubridate::as.duration(interval)),
@@ -114,11 +114,11 @@ sits_classify.sits <- function(data, ml_model, ...,
 
 		# Precondition
 		# only savitsky-golay and whittaker filters are supported
-		if (!purrr::is_null(filter)){
+		if (!purrr::is_null(filter)) {
 				call_names <-  deparse(sys.call())
 				assertthat::assert_that(any(grepl("sgolay", (call_names))) ||
-															any(grepl("whittaker", (call_names))),
-														msg = "sits_classify_cube: only savitsky-golay and whittaker filters
+										any(grepl("whittaker", (call_names))),
+					 msg = "sits_classify_cube: only savitsky-golay and whittaker filters
                   are supported")
 				data <- filter(data)
 		}
@@ -126,7 +126,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 		# precondition - are the samples valid?
 		samples.tb <- environment(ml_model)$data
 		assertthat::assert_that(NROW(samples.tb) > 0,
-													msg = "sits_classify_ts: missing original samples")
+								msg = "sits_classify_ts: missing original samples")
 
 		# get normalization params
 		stats   <- environment(ml_model)$stats
@@ -134,15 +134,15 @@ sits_classify.sits <- function(data, ml_model, ...,
 		if (!purrr::is_null(stats))
 				# obtain the distances after normalizing data by band
 				distances_DT <- .sits_distances(.sits_normalize_data(data = data,
-																												 stats = stats,
-																												 multicores = multicores))
+																stats = stats,
+																multicores = multicores))
 		else
 		    # data has been already normalised
 		    distances_DT <- .sits_distances(data)
 
 	  # postcondition - valid result
 	  assertthat::assert_that(NROW(distances_DT) > 0,
-													msg = "sits_classify,sits: problem with normalization")
+					msg = "sits_classify,sits: problem with normalization")
 
 	  # calculate the breaks in the time for multi-year classification
 	  class_info.tb <- .sits_timeline_class_info(data = data,
@@ -252,7 +252,7 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
     assertthat::assert_that(lubridate::is.duration(lubridate::as.duration(interval)),
                             msg = "invalid interval specification")
 
-    if (!purrr::is_null(sf_region)){
+    if (!purrr::is_null(sf_region)) {
       assertthat::assert_that("sf" %in% class(sf_region),
                               msg = "region of interest must be an sf object")
     }

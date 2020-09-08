@@ -9,6 +9,7 @@
   ml_model,
   ...,
   interval = "12 month",
+  sf_region = NULL,
   filter = NULL,
   memsize = 8,
   multicores = 2,
@@ -25,6 +26,8 @@
 
 \item{interval}{interval between two sucessive classifications,
 expressed in months.}
+
+\item{sf_region}{an sf object with the region of interest}
 
 \item{filter}{smoothing filter to be applied (if desired).}
 

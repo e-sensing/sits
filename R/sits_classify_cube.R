@@ -37,13 +37,19 @@
 									   version) {
 
 
+    # get the subimage
+    # define the sub_image (which may be the same size as the original)
+    sub_image <- .sits_raster_sub_image(cube, sf_region)
 
     # divide the input data in blocks
-    bs <- .sits_raster_blocks(cube, ml_model, sf_region, interval, memsize, multicores)
+    bs <- .sits_raster_blocks(cube, ml_model, sub_image, interval, memsize, multicores)
+
+    # get the sub-image
 
 	# create the metadata for the classified cube
 	cube_class <- .sits_cube_classified(cube = cube,
 										samples = samples,
+										sub_image = sub_image,
 										interval = interval,
 										output_dir = output_dir,
 										version = version)
@@ -92,11 +98,13 @@
 	# read the blocks
 	for (block in 1:bs$n) {
 		# read the data
-		data_DT <- .sits_raster_read_data(cube = cube,
-										  samples = samples,
-										  ml_model = ml_model,
-										  first_row = bs$row[block],
-										  n_rows_block = bs$nrows[block],
+		data_DT <- .sits_raster_read_data(cube         = cube,
+										  samples      = samples,
+										  ml_model     = ml_model,
+										  first_row    = bs$row[block],
+										  nrows_block  = bs$nrows[block],
+										  first_col    = bs$col,
+										  ncols_block  = bs$ncols,
 										  stats = stats,
 										  filter = filter,
 										  multicores = multicores)

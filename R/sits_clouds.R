@@ -37,7 +37,7 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 	assertthat::assert_that(cloud_band %in% sits_bands(cube),
 							msg = "cloud information band not available in cube")
 
-	if (!purrr::is_null(bands)){
+	if (!purrr::is_null(bands)) {
 		assertthat::assert_that(all(bands %in% sits_bands(cube)),
 								msg = "bands not available in cube")
 		bands <- c(bands, cloud_band)
@@ -53,7 +53,7 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 	blocks <- .sits_cloud_blocks_estimate(cube = cube, memsize = memsize)
 
 	# create the output bricks
-	bricks <- .sits_cloud_create_output (cube, bands, interval = "16 day", data_dir)
+	bricks <- .sits_cloud_create_output(cube, bands, interval = "16 day", data_dir)
 
 	# interpolate the cloud bricks
 	file_info_out <- .sits_interpolate_clouds(cube       = cube,
@@ -127,10 +127,13 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 	nblocks <- ceiling(mem_required/(memsize*1e+09))
 
 	# list of blocks with number of rows to be read for each block
+	#
+	# Cloud processing uses the whole image
+	sub_image <- .sits_raster_sub_image_default(cube)
 
+	# calculate the blocks
 	blocks <- .sits_raster_block_list(nblocks = nblocks,
-									  nrows = cube$nrows,
-									  ncols = cube$ncols)
+									  sub_image = sub_image)
 
 	return(blocks)
 

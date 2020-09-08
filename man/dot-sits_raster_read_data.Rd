@@ -9,28 +9,34 @@
   samples,
   ml_model,
   first_row,
-  n_rows_block,
+  nrows_block,
+  first_col,
+  ncols_block,
   stats,
   filter,
   multicores
 )
 }
 \arguments{
-\item{cube}{Input data cube.}
+\item{cube}{input data cube.}
 
-\item{samples}{Tibble with samples.}
+\item{samples}{tibble with samples.}
 
-\item{ml_model}{Machine learning model.}
+\item{ml_model}{machine learning model.}
 
-\item{first_row}{First row to start reading.}
+\item{first_row}{first row to start reading.}
 
-\item{n_rows_block}{Number of rows in the block.}
+\item{nrows_block}{number of rows in the block.}
 
-\item{stats}{Normalization parameters.}
+\item{first_col}{first column to start reading}
 
-\item{filter}{Smoothing filter to be applied.}
+\item{ncols_block}{number of columns in the block}
 
-\item{multicores}{Number of cores to process the time series.}
+\item{stats}{normalization parameters.}
+
+\item{filter}{smoothing filter to be applied.}
+
+\item{multicores}{number of cores to process the time series.}
 }
 \value{
 A data.table with values for classification.

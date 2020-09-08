@@ -9,6 +9,7 @@
   samples,
   ml_model,
   interval,
+  sf_region,
   filter,
   memsize,
   multicores,
@@ -24,6 +25,8 @@
 \item{ml_model}{A model trained by \code{\link[sits]{sits_train}}.}
 
 \item{interval}{Classification interval.}
+
+\item{sf_region}{an sf object with the region of interest}
 
 \item{filter}{Smoothing filter to be applied to the data.}
 

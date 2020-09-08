@@ -10,7 +10,7 @@ test_that("Align dates", {
     ref_dates <- timeline[timeline > start_date]
     ref_dates <- ref_dates[ref_dates < end_date]
 
-    new_data <- sits_align_dates(samples_mt_4bands, ref_dates)
+    new_data <- sits:::.sits_align_dates(samples_mt_4bands, ref_dates)
 
     ts_dates <- sits_time_series_dates(new_data)
 
@@ -36,21 +36,12 @@ test_that("Bands",{
 
 test_that("Break",{
     #skip_on_cran()
-    points.tb <- sits_break(point_ndvi, timeline_modis_392,
+    points.tb <- sits:::.sits_break(point_ndvi, timeline_modis_392,
                             "2000-08-28", "2016-08-12")
 
     expect_equal(dim(points.tb)[1], 16)
     expect_equal(dim(points.tb)[2], 7)
 })
-
-test_that("Dates",{
-    dates <- sits_dates(point_mt_6bands)
-
-    expect_equal(length(dates), 412)
-    expect_equal(dates[1], lubridate::ymd("2000-02-18"))
-    expect_equal(dates[412], lubridate::ymd("2018-01-01"))
-})
-
 test_that("Merge", {
     data(point_ndvi)
     point_ws.tb <- sits_whittaker(point_ndvi, lambda = 3.0)
@@ -61,7 +52,7 @@ test_that("Merge", {
 })
 
 test_that("Mutate", {
-    savi.tb <- sits_mutate_bands(samples_mt_6bands,
+    savi.tb <- sits:::.sits_mutate_bands(samples_mt_6bands,
                                  SAVI = (1.5*(NIR - RED)/(NIR + RED + 0.5)))
 
     expect_equal(sum(sits_time_series(savi.tb)$SAVI),
@@ -75,7 +66,7 @@ test_that("Prune",{
     ts_2 <- ts_1[1:10,]
     new_data[1,]$time_series[[1]] <- ts_2
 
-    pruned_data <- suppressMessages(sits_prune(new_data))
+    pruned_data <- suppressMessages(sits:::.sits_prune(new_data))
     expect_true(nrow(pruned_data) == 2)
 
 })
@@ -123,7 +114,7 @@ test_that("Values", {
 
 test_that("Values", {
     data(samples_mt_6bands)
-    savi.tb <- sits_transmute_bands(samples_mt_6bands,
+    savi.tb <- sits:::.sits_transmute_bands(samples_mt_6bands,
                                     SAVI = (1.5*(NIR - RED)/(NIR + RED + 0.5)))
 
     expect_true("SAVI" %in% names(sits_time_series(savi.tb)))

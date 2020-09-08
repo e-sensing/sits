@@ -100,13 +100,15 @@
 #' Each RasterLayer corresponds to one time step.
 #' The time steps are specified in a list of dates.
 #'
-#' @param  cube              Tibble with metadata about the input data cube.
-#' @param  samples           Samples used for training the classification model.
-#' @param  interval          Classification interval.
-#' @param  output_dir        Prefix of the output files.
-#' @param  version           Version of the output files
-#' @return A tibble with metadata about the output RasterLayer objects.
-.sits_cube_classified <- function(cube, samples, interval,
+#' @param  cube              input data cube.
+#' @param  samples           samples used for training the classification model.
+#' @param  sub_image         bounding box of the ROI
+#' @param  interval          classification interval.
+#' @param  output_dir        prefix of the output files.
+#' @param  version           version of the output files
+#' @return                   output data cube
+.sits_cube_classified <- function(cube, samples,
+                                  sub_image, interval,
 								  output_dir, version) {
 	# ensure metadata tibble exists
 	assertthat::assert_that(NROW(cube) > 0,
@@ -169,7 +171,7 @@
 
 	# generate a set of timelines for the file_info
 	times_probs <- vector(length = n_objs)
-	for (i in 1:n_objs){
+	for (i in 1:n_objs) {
 		times_probs[i] <- timelines[[i]][1]
 	}
 
@@ -188,12 +190,12 @@
 									minimum_values  = minimum_values,
 									maximum_values  = maximum_values,
 									timelines       = timelines,
-									nrows           = cube$nrows,
-									ncols           = cube$ncols,
-									xmin            = cube$xmin,
-									xmax            = cube$xmax,
-									ymin            = cube$ymin,
-									ymax            = cube$ymax,
+									nrows           = unname(sub_image["nrows"]),
+									ncols           = unname(sub_image["ncols"]),
+									xmin            = unname(sub_image["xmin"]),
+									xmax            = unname(sub_image["xmax"]),
+									ymin            = unname(sub_image["ymin"]),
+									ymax            = unname(sub_image["ymax"]),
 									xres            = cube$xres,
 									yres            = cube$yres,
 									crs             = cube$crs,
