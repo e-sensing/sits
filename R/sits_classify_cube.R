@@ -18,6 +18,7 @@
 #' @param  samples         Samples used for training the classification model.
 #' @param  ml_model        A model trained by \code{\link[sits]{sits_train}}.
 #' @param  interval        Classification interval.
+#' @param  sf_region       an sf object with the region of interest
 #' @param  filter          Smoothing filter to be applied to the data.
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of cores.
@@ -28,6 +29,7 @@
 									   samples,
 									   ml_model,
 									   interval,
+									   sf_region,
 									   filter,
 									   memsize,
 									   multicores,
@@ -35,6 +37,9 @@
 									   version) {
 
 
+
+    # divide the input data in blocks
+    bs <- .sits_raster_blocks(cube, ml_model, sf_region, interval, memsize, multicores)
 
 	# create the metadata for the classified cube
 	cube_class <- .sits_cube_classified(cube = cube,
@@ -72,9 +77,6 @@
 	})
 	# retrieve the normalization stats
 	stats     <- environment(ml_model)$stats
-
-	# divide the input data in blocks
-	bs <- .sits_raster_blocks(cube, ml_model, interval, memsize, multicores)
 
 	# build a list with columns of data table to be processed for each interval
 	select.lst <- .sits_timeline_raster_indexes(cube, samples, interval)

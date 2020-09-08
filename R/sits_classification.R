@@ -94,75 +94,73 @@ sits_classify.sits <- function(data, ml_model, ...,
                                filter = NULL,
                                multicores = 2) {
 
-  # check if we are running in Windows
-  if (.Platform$OS.type != "unix")
-    multicores <-  1
+		# check if we are running in Windows
+		if (.Platform$OS.type != "unix")
+			multicores <-  1
 
-  # backward compatibility
-  data <- .sits_tibble_rename(data)
+		# backward compatibility
+		data <- .sits_tibble_rename(data)
 
-  # precondition - verify that the data is correct
-  .sits_test_tibble(data)
+		# precondition - verify that the data is correct
+		.sits_test_tibble(data)
 
-  # precondition -ensure the machine learning model has been built
-  assertthat::assert_that(!purrr::is_null(ml_model),
-                          msg = "sits_classify_ts: please provide a trained ML model")
+		# precondition -ensure the machine learning model has been built
+		assertthat::assert_that(!purrr::is_null(ml_model),
+													msg = "sits_classify_ts: please provide a trained ML model")
 
-  # precondition - is the interval valid?
-  assertthat::assert_that(lubridate::is.duration(lubridate::as.duration(interval)),
-                          msg = "invalid interval specification")
+		# precondition - is the interval valid?
+		assertthat::assert_that(lubridate::is.duration(lubridate::as.duration(interval)),
+													msg = "invalid interval specification")
 
-  # Precondition
-  # only savitsky-golay and whittaker filters are supported
-  if (!purrr::is_null(filter)){
-
-    call_names <-  deparse(sys.call())
-    assertthat::assert_that(any(grepl("sgolay", (call_names))) ||
-                              any(grepl("whittaker", (call_names))),
-                            msg = "sits_classify_cube: only savitsky-golay and whittaker filters
+		# Precondition
+		# only savitsky-golay and whittaker filters are supported
+		if (!purrr::is_null(filter)){
+				call_names <-  deparse(sys.call())
+				assertthat::assert_that(any(grepl("sgolay", (call_names))) ||
+															any(grepl("whittaker", (call_names))),
+														msg = "sits_classify_cube: only savitsky-golay and whittaker filters
                   are supported")
-    data <- filter(data)
-  }
+				data <- filter(data)
+		}
 
-  # precondition - are the samples valid?
-  samples.tb <- environment(ml_model)$data
-  assertthat::assert_that(NROW(samples.tb) > 0,
-                          msg = "sits_classify_ts: missing original samples")
+		# precondition - are the samples valid?
+		samples.tb <- environment(ml_model)$data
+		assertthat::assert_that(NROW(samples.tb) > 0,
+													msg = "sits_classify_ts: missing original samples")
 
-  # get normalization params
-  stats   <- environment(ml_model)$stats
-  # Has the data been normalised?
-  if (!purrr::is_null(stats))
-    # obtain the distances after normalizing data by band
-    distances_DT <- .sits_distances(.sits_normalize_data(data = data,
-                                                         stats = stats,
-                                                         multicores = multicores))
-  else
-    # data has been already normalised
-    distances_DT <- .sits_distances(data)
+		# get normalization params
+		stats   <- environment(ml_model)$stats
+		# Has the data been normalised?
+		if (!purrr::is_null(stats))
+				# obtain the distances after normalizing data by band
+				distances_DT <- .sits_distances(.sits_normalize_data(data = data,
+																												 stats = stats,
+																												 multicores = multicores))
+		else
+		    # data has been already normalised
+		    distances_DT <- .sits_distances(data)
 
-  # postcondition - valid result
-  assertthat::assert_that(NROW(distances_DT) > 0,
-                          msg = "sits_classify,sits: problem with normalization")
+	  # postcondition - valid result
+	  assertthat::assert_that(NROW(distances_DT) > 0,
+													msg = "sits_classify,sits: problem with normalization")
 
-  # calculate the breaks in the time for multi-year classification
-  class_info.tb <- .sits_timeline_class_info(data = data,
-                                             samples = samples.tb,
-                                             interval = interval)
+	  # calculate the breaks in the time for multi-year classification
+	  class_info.tb <- .sits_timeline_class_info(data = data,
+	                                             samples = samples.tb,
+	                                             interval = interval)
 
-  # retrieve the the predicted results
-  predict.mtx <- .sits_distances_classify(distances_DT = distances_DT,
-                                          class_info.tb = class_info.tb,
-                                          ml_model = ml_model,
-                                          multicores = multicores)
+	  # retrieve the the predicted results
+	  predict.mtx <- .sits_distances_classify(distances_DT = distances_DT,
+	                                          class_info.tb = class_info.tb,
+	                                          ml_model = ml_model,
+	                                          multicores = multicores)
 
-  # Store the result in the input data
-  data <- .sits_tibble_prediction(data = data,
-                                  class_info.tb = class_info.tb,
-                                  pred.mtx = predict.mtx,
-                                  interval = interval)
-
-  return(data)
+	  # Store the result in the input data
+	  data <- .sits_tibble_prediction(data = data,
+	                                  class_info.tb = class_info.tb,
+	                                  pred.mtx = predict.mtx,
+	                                  interval = interval)
+	  return(data)
 }
 
 
@@ -185,6 +183,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' @param  ...             other parameters to be passed to specific functions
 #' @param  interval        interval between two sucessive classifications,
 #'                         expressed in months.
+#' @param  sf_region       an sf object with the region of interest
 #' @param  filter          smoothing filter to be applied (if desired).
 #' @param  memsize         memory available for classification (in GB).
 #' @param  multicores      number of cores to be used for classification.
@@ -228,6 +227,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' @export
 sits_classify.brick_cube <- function(data, ml_model, ...,
                                      interval   = "12 month",
+                                     sf_region  = NULL,
                                      filter     = NULL,
                                      memsize    = 8,
                                      multicores = 2,
@@ -252,6 +252,10 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
     assertthat::assert_that(lubridate::is.duration(lubridate::as.duration(interval)),
                             msg = "invalid interval specification")
 
+    if (!purrr::is_null(sf_region)){
+      assertthat::assert_that("sf" %in% class(sf_region),
+                              msg = "region of interest must be an sf object")
+    }
     # retrieve the samples from the model
     samples  <- environment(ml_model)$data
     # precondition - are the samples correct?
@@ -266,14 +270,15 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
         msg = "sits_classify: bands in samples different from cube bands")
 
     # classify the data
-    cube_probs <- .sits_classify_multicores(cube = data,
-                                            samples = samples,
-                                            ml_model = ml_model,
-                                            interval = interval,
-                                            filter = filter,
-                                            memsize = memsize,
-                                            multicores = multicores,
-                                            output_dir = output_dir,
+    cube_probs <- .sits_classify_multicores(cube        = data,
+                                            samples     = samples,
+                                            ml_model    = ml_model,
+                                            interval    = interval,
+                                            sf_region   = sf_region,
+                                            filter      = filter,
+                                            memsize     = memsize,
+                                            multicores  = multicores,
+                                            output_dir  = output_dir,
                                             version = version)
 
     return(cube_probs)
@@ -298,6 +303,7 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
 #' @param  ...             other parameters to be passed to specific functions
 #' @param  interval        interval between two sucessive classifications,
 #'                         expressed in months.
+#' @param  sf_region       an sf object with the region of interest
 #' @param  filter          smoothing filter to be applied (if desired).
 #' @param  memsize         memory available for classification (in GB).
 #' @param  multicores      number of cores to be used for classification.
@@ -308,6 +314,7 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
 #' @export
 sits_classify.stack_cube <- function(data, ml_model, ...,
                                      interval   = "12 month",
+                                     sf_region  = NULL,
                                      filter     = NULL,
                                      memsize    = 8,
                                      multicores = 2,
@@ -315,9 +322,10 @@ sits_classify.stack_cube <- function(data, ml_model, ...,
                                      version    = "v1") {
 
 
-    cube_probs <-  sits_classify.stack_cube(data = data,
+    cube_probs <-  sits_classify.brick_cube(data = data,
                                             ml_model = ml_model,
                                             ...,
+                                            sf_region  = sf_region,
                                             interval   = interval,
                                             filter     = filter,
                                             memsize    = memsize,

@@ -9,23 +9,24 @@
 #' with 500 rows and 500 columns and 400 time instances will have a total pixel size
 #' of 800 Mb if pixels are 64-bit.
 #'
-#' @param  cube            Input data cube.
-#' @param  ml_model        Machine learning model.
-#' @param  interval        Classification interval.
-#' @param  memsize         Memory available for classification (in GB).
-#' @param  multicores      Number of threads to process the time series.
-#' @return                 List with three attributes: n (number of blocks),
+#' @param  cube            input data cube.
+#' @param  ml_model        machine learning model.
+#' @param  sf_region       spatial region of interest (sf_object)
+#' @param  interval        classification interval.
+#' @param  memsize         memory available for classification (in GB).
+#' @param  multicores      number of threads to process the time series.
+#' @return                 list with three attributes: n (number of blocks),
 #'                         rows (list of rows to begin),
 #'                         nrows (number of rows to read at each iteration).
 #'
-.sits_raster_blocks <- function(cube, ml_model, interval, memsize, multicores){
+.sits_raster_blocks <- function(cube, ml_model, sf_region, interval, memsize, multicores){
     # number of bands
     nbands <-  length(.sits_cube_bands(cube))
-    # number of rows and cols
-    nrows <- cube[1,]$nrows
-    ncols <- cube[1,]$ncols
     # timeline
     timeline <- sits_timeline(cube[1,])
+    # define the sub_image (which may be the same size as the original)
+    sub_image <- .sits_raster_sub_image(cube, sf_region)
+
 
     nblocks <- .sits_raster_blocks_estimate(ml_model   = ml_model,
                                             nbands     = nbands,
@@ -41,6 +42,23 @@
                                          ncols = ncols)
 
     return(block.lst)
+}
+.sits_raster_sub_image <- function(cube, region) {
+    sub_image = vector(length = 4)
+    names(sub_image) <- c("first_row", "first_col", "nrows", "ncols")
+
+    if (purrr::is_null(region)){
+        sub_image["first_row"] <- 1
+        sub_image["first_col"] <- 1
+        sub_image["nrows"]  <- cube[1,]$nrows
+        sub_image["ncols"]  <- cube[1,]$ncols
+    }
+    else {
+        # if the sf object is not in image coordinates, convert it
+        sf_region_im <- suppressWarnings(sf::st_transform(sf_region, crs = cube[1,]$crs))
+        bbox <- sf::st_bbox(sf_region_im)
+    }
+
 }
 #' @title Calculate a list of blocks to be read from disk to memory
 #' @name .sits_raster_block_list
