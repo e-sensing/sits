@@ -99,61 +99,6 @@
 	return(data1.tb)
 }
 
-#' @title Breaks a set of time series into equal intervals
-#' @name .sits_break
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function breaks a set of time series
-#' into equal time intervals. This function is useful to produce
-#' a set of time series with the same number of samples, which is
-#' required for building a set of samples for classification.
-#'
-#' @param  data    A sits tibble.
-#' @param  timeline   Timeline associated with the data cube.
-#' @param  start_date Starting date within an interval.
-#' @param  end_date   Ending date within an interval.
-#' @param  interval   Interval for breaking the series.
-#' @return A sits tibble broken into equal intervals.
-#' @examples
-#' points.tb <- sits:::.sits_break(point_ndvi, timeline_modis_392,
-#'                         "2000-08-28", "2016-08-12")
-#'
-.sits_break <- function(data,
-						timeline,
-						start_date,
-						end_date,
-						interval = "12 month"){
-
-	# backward compatibility
-	data <- .sits_tibble_rename(data)
-
-	# create a tibble to store the results
-	newdata <- .sits_tibble()
-
-	# get the dates
-	subset_dates.lst <- .sits_timeline_match(timeline,
-											as.Date(start_date),
-											as.Date(end_date),
-											interval = interval)
-
-	# break the data into intervals
-	lapply(seq_len(nrow(data)), function(i) {
-		subset_dates.lst %>%
-			purrr::map(function(date){
-				point.tb <- .sits_extract(data[i,],
-										  as.Date(date[1]),
-										  as.Date(date[2]))
-				if (nrow(point.tb) > 0)
-					newdata <<- dplyr::bind_rows(newdata, point.tb)
-			})
-
-	})
-	# prune the results to get the same number of samples
-	newdata <- .sits_prune(newdata)
-
-	return(newdata)
-}
 
 #' @title Add new sits bands.
 #' @name .sits_mutate_bands

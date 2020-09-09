@@ -9,7 +9,6 @@
   nbands,
   sub_image,
   timeline,
-  interval,
   memsize,
   multicores
 )
@@ -22,8 +21,6 @@
 \item{sub_image}{Area of interest in the image}
 
 \item{timeline}{Timeline of the brick.}
-
-\item{interval}{Classification interval.}
 
 \item{memsize}{Memory available for classification (in GB).}
 

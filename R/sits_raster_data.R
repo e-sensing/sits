@@ -46,9 +46,9 @@
 #' @param version        Output version
 #' @param name           Original cube name (without temporal information).
 #' @param type           Type of output
-#' @param start_date    Starting date of the time series classification.
-#' @param end_date      End date of the time series classification.
-#' @return Name of the classification file for the required interval.
+#' @param start_date     Starting date of the time series classification.
+#' @param end_date       End date of the time series classification.
+#' @return               Name of the classification file for the required interval.
 .sits_raster_filename <- function(output_dir,
                                   version,
                                   name,

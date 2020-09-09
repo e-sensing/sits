@@ -12,14 +12,13 @@
 #' @param  cube            input data cube.
 #' @param  ml_model        machine learning model.
 #' @param  sub_image       bounding box of the ROI
-#' @param  interval        classification interval.
 #' @param  memsize         memory available for classification (in GB).
 #' @param  multicores      number of threads to process the time series.
 #' @return                 list with three attributes: n (number of blocks),
 #'                         rows (list of rows to begin),
 #'                         nrows (number of rows to read at each iteration).
 #'
-.sits_raster_blocks <- function(cube, ml_model, sub_image, interval, memsize, multicores){
+.sits_raster_blocks <- function(cube, ml_model, sub_image, memsize, multicores){
     # number of bands
     nbands <-  length(.sits_cube_bands(cube))
     # timeline
@@ -29,7 +28,6 @@
                                             nbands     = nbands,
                                             sub_image  = sub_image,
                                             timeline   = timeline,
-                                            interval   = interval,
                                             memsize    = memsize,
                                             multicores = multicores)
 
@@ -174,7 +172,6 @@
 #' @param  nbands          Number of bands.
 #' @param  sub_image       Area of interest in the image
 #' @param  timeline        Timeline of the brick.
-#' @param  interval        Classification interval.
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of threads to process the time series.
 #' @return Number of blocks to be read.
@@ -182,21 +179,13 @@
                                          nbands,
                                          sub_image,
                                          timeline,
-                                         interval,
                                          memsize,
                                          multicores) {
     # total number of instances
     ninstances <- length(timeline)
     # number of instances per classification interval
-    # calculate the interval between each scene and the start date
-    data_duration <- lubridate::as.duration(lubridate::as_date(timeline)
-                                          - lubridate::as_date(timeline[1]))
-    # are there images outside the classification interval?
-    interval_dates <- data_duration > lubridate::as.duration(interval)
-    if (any(interval_dates))
-        ninterval <- which(interval_dates)[1] - 1
-    else
-        ninterval <- ninstances
+    samples <- environment(ml_model)$data
+    ninterval <- nrow(samples[1,]$time_series[[1]])
     # number of bytes per pixel
     nbytes <-  8
     # estimated memory bloat

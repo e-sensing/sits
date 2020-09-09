@@ -4,7 +4,7 @@
 \alias{.sits_raster_blocks}
 \title{Define a reasonable block size to process a RasterBrick}
 \usage{
-.sits_raster_blocks(cube, ml_model, sub_image, interval, memsize, multicores)
+.sits_raster_blocks(cube, ml_model, sub_image, memsize, multicores)
 }
 \arguments{
 \item{cube}{input data cube.}
@@ -12,8 +12,6 @@
 \item{ml_model}{machine learning model.}
 
 \item{sub_image}{bounding box of the ROI}
-
-\item{interval}{classification interval.}
 
 \item{memsize}{memory available for classification (in GB).}
 

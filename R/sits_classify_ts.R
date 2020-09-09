@@ -29,9 +29,8 @@ sits_show_prediction <- function(class.tb) {
 #' @param  class_info.tb   A tibble with the information on classification.
 #' @param  pred.mtx        The result of the classification
 #'                          (one class per column and one row per interval).
-#' @param  interval        The time interval between two classifications.
 #' @return A tibble storing the predictions.
-.sits_tibble_prediction <- function(data, class_info.tb, pred.mtx, interval) {
+.sits_tibble_prediction <- function(data, class_info.tb, pred.mtx) {
 	# retrieve the list of reference dates
 	# this list is a global one and it is created based on the samples
 	ref_dates.lst   <- class_info.tb$ref_dates[[1]]
@@ -40,7 +39,7 @@ sits_show_prediction <- function(class.tb) {
 	timeline_global <- class_info.tb$timeline[[1]]
 
 	# size of prediction tibble
-	nrows <- length(ref_dates.lst)
+	num_samples <- nrow(data[1,]$time_series[[1]])
 
 	# get the labels of the data
 	labels <- class_info.tb$labels[[1]]
@@ -69,10 +68,10 @@ sits_show_prediction <- function(class.tb) {
 				# what is the reference end date?
 				ref_end_date <- lubridate::as_date(row_end_date)
 				# what are the reference dates to do the classification?
-				ref_dates.lst <- .sits_timeline_match(timeline_row,
-													 ref_start_date,
-													 ref_end_date,
-													 interval)
+				ref_dates.lst <- .sits_timeline_match(timeline = timeline_row,
+				                                      ref_start_date = ref_start_date,
+													  ref_end_date = ref_end_date,
+													  num_samples  = num_samples)
 			}
 
 			# store the classification results

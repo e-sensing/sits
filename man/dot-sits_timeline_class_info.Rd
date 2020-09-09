@@ -4,14 +4,12 @@
 \alias{.sits_timeline_class_info}
 \title{Define the information required for classifying time series}
 \usage{
-.sits_timeline_class_info(data, samples, interval)
+.sits_timeline_class_info(data, samples)
 }
 \arguments{
 \item{data}{Description on the data being classified.}
 
 \item{samples}{Samples used for training the classification model.}
-
-\item{interval}{Interval between two sucessive classifications.}
 }
 \value{
 A tibble with the classification information.
@@ -20,7 +18,7 @@ A tibble with the classification information.
 Time series classification requires that users do a series of steps:
 (a) Provide labelled samples that will be used as training data.
 (b) Provide information on how the classification will be performed, including data timeline,
-temporal interval, and start and end dates per interval.
+    and start and end dates per interval.
 (c) Clean the training data to ensure it meets the specifications of the classification info.
 (d) Use the clean data to train a machine learning classifier.
 (e) Classify non-labelled data sets.

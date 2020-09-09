@@ -8,7 +8,6 @@
   cube,
   samples,
   ml_model,
-  interval,
   sf_region,
   filter,
   memsize,
@@ -23,8 +22,6 @@
 \item{samples}{Samples used for training the classification model.}
 
 \item{ml_model}{A model trained by \code{\link[sits]{sits_train}}.}
-
-\item{interval}{Classification interval.}
 
 \item{sf_region}{an sf object with the region of interest}
 

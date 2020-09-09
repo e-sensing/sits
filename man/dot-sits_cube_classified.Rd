@@ -5,7 +5,7 @@
 \title{Create a set of RasterLayer objects to store
 data cube classification results (only the probs)}
 \usage{
-.sits_cube_classified(cube, samples, sub_image, interval, output_dir, version)
+.sits_cube_classified(cube, samples, sub_image, output_dir, version)
 }
 \arguments{
 \item{cube}{input data cube.}
@@ -13,8 +13,6 @@ data cube classification results (only the probs)}
 \item{samples}{samples used for training the classification model.}
 
 \item{sub_image}{bounding box of the ROI}
-
-\item{interval}{classification interval.}
 
 \item{output_dir}{prefix of the output files.}
 

@@ -103,12 +103,10 @@
 #' @param  cube              input data cube.
 #' @param  samples           samples used for training the classification model.
 #' @param  sub_image         bounding box of the ROI
-#' @param  interval          classification interval.
 #' @param  output_dir        prefix of the output files.
 #' @param  version           version of the output files
 #' @return                   output data cube
-.sits_cube_classified <- function(cube, samples,
-                                  sub_image, interval,
+.sits_cube_classified <- function(cube, samples, sub_image,
 								  output_dir, version) {
 	# ensure metadata tibble exists
 	assertthat::assert_that(NROW(cube) > 0,
@@ -121,11 +119,14 @@
 	ref_start_date <- lubridate::as_date(samples[1,]$start_date)
 	ref_end_date   <- lubridate::as_date(samples[1,]$end_date)
 
+	# number of samples
+	num_samples <- nrow(samples[1,]$time_series[[1]])
+
 	# produce the breaks used to generate the output rasters
-	subset_dates <- .sits_timeline_match(timeline = timeline,
+	subset_dates <- .sits_timeline_match(timeline      = timeline,
 										ref_start_date = ref_start_date,
-										ref_end_date = ref_end_date,
-										interval = interval)
+										ref_end_date   = ref_end_date,
+										num_samples    = num_samples)
 
 	# how many objects are to be created?
 	n_objs <- length(subset_dates)
@@ -211,11 +212,11 @@
 #'
 #' @description    Creates a name for a raster layer based on timeline
 #'
-#' @param name           Original cube name (without temporal information).
-#' @param type           Type of output
-#' @param start_date     Starting date of the time series classification.
-#' @param end_date       End date of the time series classification.
-#' @return Name of the classification file for the required interval.
+#' @param name           original cube name (without temporal information).
+#' @param type           type of output
+#' @param start_date     starting date of the time series classification.
+#' @param end_date       end date of the time series classification.
+#' @return               name of the classification file for the required interval.
 .sits_cube_class_band_name <- function(name, type, start_date, end_date){
 	y1 <- lubridate::year(start_date)
 	m1 <- lubridate::month(start_date)
@@ -360,6 +361,23 @@ sits_cube_timeline <- function(cube, index = 1){
 	else
 		r_obj <- suppressWarnings(raster::stack(band.tb$path))
 	return(r_obj)
+}
+
+#' @title Given a band, return the associated Raster object for the cube
+#' @name .sits_cube_terra_obj_band
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description          Given a data cube, retrieve the timeline
+#' @param cube           Metadata about a data cube
+#' @param band_cube      Name of the band to the retrieved
+#' @return               Raster object associated to the indexed file
+#'
+.sits_cube_terra_obj_band <- function(cube, band_cube){
+
+    band.tb <- dplyr::filter(cube$file_info[[1]], band == band_cube)
+    t_obj <- suppressWarnings(terra::rast(band.tb$path))
+    return(t_obj)
 }
 
 #' @title Retrieve the missing values for a data cube

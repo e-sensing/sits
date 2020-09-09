@@ -120,6 +120,7 @@
             msg = "sits_ts_from_raster_shp: need a valid metadata for data cube")
 
     spatial_points <- sf::as_Spatial(sf_shape)
+    points <- as.data.frame(sf::st_coordinates(sf_shape$geometry))
 
     # ensure spatial points are valid
     assertthat::assert_that(nrow(spatial_points) >= 1,
@@ -137,27 +138,31 @@
         purrr::map(function(band) {
             # create a tibble to store the data for each band
             ts_band.tb <- .sits_tibble()
-            # get the values of the time series
-            r_obj <- .sits_cube_robj_band(cube, band)
-            values.mx <- suppressWarnings(raster::extract(r_obj,spatial_points))
-            rm(r_obj)
+            # get the values of the time series (terra object)
+            t_obj <- .sits_cube_terra_obj_band(cube, band)
+            values.lst <- purrr::map2(points$X, points$Y,
+                                     function(x,y) terra::extract(t_obj, c(x,y))
+            )
+
+            values <- dplyr::bind_rows(values.lst)
+            rm(t_obj)
             # is the data valid?
-            assertthat::assert_that(nrow(values.mx) > 0,
+            assertthat::assert_that(nrow(values) > 0,
                             msg = "sits_ts_from_raster_shp - no data retrieved")
-            if (all(is.na(values.mx))) {
+            if (all(is.na(values))) {
                 message("point outside the raster extent - NULL returned")
                 return(NULL)
             }
 
             # each row of the values matrix is a spatial point
-            for (i in 1:nrow(values.mx)) {
+            for (i in 1:nrow(values)) {
                 time_idx <- .sits_timeline_indexes(timeline = timeline,
                                         start_date = lubridate::as_date(spatial_points$start_date[i]),
                                         end_date   = lubridate::as_date(spatial_points$end_date[i]))
                 # select the valid dates in the timeline
                 timeline_row <- timeline[time_idx["start_idx"]:time_idx["end_idx"]]
                 # get only valid values for the timeline
-                values.vec <- as.vector(values.mx[i, time_idx["start_idx"]:time_idx["end_idx"]])
+                values.vec <- as.vector(values[i, time_idx["start_idx"]:time_idx["end_idx"]])
                 # correct the values using the scale factor
                 values.vec <- values.vec*scale_factors[band]
                 # create a tibble for each band

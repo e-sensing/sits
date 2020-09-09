@@ -5,14 +5,12 @@
 \title{Provide a list of indexes to extract data from a raster-derived
        data table for classification}
 \usage{
-.sits_timeline_raster_indexes(cube, samples, interval)
+.sits_timeline_raster_indexes(cube, samples)
 }
 \arguments{
 \item{cube}{Data cube with input data set.}
 
 \item{samples}{Tibble with samples used for classification.}
-
-\item{interval}{Classification interval.}
 }
 \value{
 List of values to be extracted for each classification interval.

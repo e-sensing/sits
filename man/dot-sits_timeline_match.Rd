@@ -4,21 +4,16 @@
 \alias{.sits_timeline_match}
 \title{Find dates in the input data cube that match those of the patterns}
 \usage{
-.sits_timeline_match(
-  timeline,
-  ref_start_date,
-  ref_end_date,
-  interval = "12 month"
-)
+.sits_timeline_match(timeline, ref_start_date, ref_end_date, num_samples)
 }
 \arguments{
-\item{timeline}{Timeline of input observations (vector).}
+\item{timeline}{timeline of input observations (vector).}
 
-\item{ref_start_date}{The day of the year to be taken as reference for starting the classification.}
+\item{ref_start_date}{day of the year to be taken as reference for starting the classification.}
 
-\item{ref_end_date}{The day of the year to be taken as reference for end the classification.}
+\item{ref_end_date}{day of the year to be taken as reference for end the classification.}
 
-\item{interval}{Period between two classification.}
+\item{num_samples}{number of samples.}
 }
 \value{
 A list of breaks that will be applied to the input data set.
@@ -34,7 +29,8 @@ data("timeline_2000_2017")
 # get a set of subsets for a period of 10 years
 ref_start_date <- lubridate::ymd("2000-08-28")
 ref_end_date <- lubridate::ymd("2000-08-13")
-subset_dates.lst <- sits:::.sits_timeline_match(timeline_2000_2017, ref_start_date, ref_end_date)
+nsamples  <- 23
+dates.lst <- sits:::.sits_timeline_match(timeline_2000_2017, ref_start_date, ref_end_date, nsamples)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

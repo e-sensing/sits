@@ -89,6 +89,7 @@ Suggests:
     sp,
     stars,
     stringr,
+    terra,
     testthat,
     xgboost,
     wtss,

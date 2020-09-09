@@ -4,7 +4,7 @@
 \alias{.sits_tibble_prediction}
 \title{Create an empty tibble to store the results of predictions}
 \usage{
-.sits_tibble_prediction(data, class_info.tb, pred.mtx, interval)
+.sits_tibble_prediction(data, class_info.tb, pred.mtx)
 }
 \arguments{
 \item{data}{A tibble with the input data.}
@@ -13,8 +13,6 @@
 
 \item{pred.mtx}{The result of the classification
 (one class per column and one row per interval).}
-
-\item{interval}{The time interval between two classifications.}
 }
 \value{
 A tibble storing the predictions.

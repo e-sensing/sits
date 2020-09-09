@@ -7,16 +7,16 @@
 .sits_cube_class_band_name(name, type, start_date, end_date)
 }
 \arguments{
-\item{name}{Original cube name (without temporal information).}
+\item{name}{original cube name (without temporal information).}
 
-\item{type}{Type of output}
+\item{type}{type of output}
 
-\item{start_date}{Starting date of the time series classification.}
+\item{start_date}{starting date of the time series classification.}
 
-\item{end_date}{End date of the time series classification.}
+\item{end_date}{end date of the time series classification.}
 }
 \value{
-Name of the classification file for the required interval.
+name of the classification file for the required interval.
 }
 \description{
 Creates a name for a raster layer based on timeline

@@ -17,7 +17,6 @@
 #' @param  cube            Metadata cube derived from a raster brick.
 #' @param  samples         Samples used for training the classification model.
 #' @param  ml_model        A model trained by \code{\link[sits]{sits_train}}.
-#' @param  interval        Classification interval.
 #' @param  sf_region       an sf object with the region of interest
 #' @param  filter          Smoothing filter to be applied to the data.
 #' @param  memsize         Memory available for classification (in GB).
@@ -28,7 +27,6 @@
 .sits_classify_multicores <-  function(cube,
 									   samples,
 									   ml_model,
-									   interval,
 									   sf_region,
 									   filter,
 									   memsize,
@@ -39,18 +37,15 @@
 
     # get the subimage
     # define the sub_image (which may be the same size as the original)
-    sub_image <- .sits_raster_sub_image(cube, sf_region)
+    sub_image <- .sits_raster_sub_image(cube = cube, sf_region = sf_region)
 
     # divide the input data in blocks
-    bs <- .sits_raster_blocks(cube, ml_model, sub_image, interval, memsize, multicores)
-
-    # get the sub-image
+    bs <- .sits_raster_blocks(cube, ml_model, sub_image, memsize, multicores)
 
 	# create the metadata for the classified cube
 	cube_class <- .sits_cube_classified(cube = cube,
 										samples = samples,
 										sub_image = sub_image,
-										interval = interval,
 										output_dir = output_dir,
 										version = version)
 	# find out how many layers per brick
@@ -82,10 +77,13 @@
 													 overwrite = TRUE))
 	})
 	# retrieve the normalization stats
-	stats     <- environment(ml_model)$stats
+	stats   <- environment(ml_model)$stats
+
+	# retrieve the samples
+	samples <- environment(ml_model)$data
 
 	# build a list with columns of data table to be processed for each interval
-	select.lst <- .sits_timeline_raster_indexes(cube, samples, interval)
+	select.lst <- .sits_timeline_raster_indexes(cube, samples)
 
 	# get the attribute names
 	attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))

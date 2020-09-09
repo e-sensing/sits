@@ -4,14 +4,7 @@
 \alias{sits_classify.sits}
 \title{Classify a set of time series using machine learning models}
 \usage{
-\method{sits_classify}{sits}(
-  data,
-  ml_model,
-  ...,
-  interval = "12 month",
-  filter = NULL,
-  multicores = 2
-)
+\method{sits_classify}{sits}(data, ml_model, ..., filter = NULL, multicores = 2)
 }
 \arguments{
 \item{data}{Tibble with time series metadata and data.}
@@ -20,8 +13,6 @@
 (see \code{\link[sits]{sits_train}}).}
 
 \item{...}{Other parameters to be passed to specific functions}
-
-\item{interval}{Interval used for classification (in months).}
 
 \item{filter}{Smoothing filter to be applied (if desired).}
 

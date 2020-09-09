@@ -67,7 +67,6 @@ sits_classify <- function(data, ml_model, ...) {
 #' @param  ml_model          Pre-built machine learning model
 #'                             (see \code{\link[sits]{sits_train}}).
 #' @param  ...               Other parameters to be passed to specific functions
-#' @param  interval          Interval used for classification (in months).
 #' @param  filter            Smoothing filter to be applied (if desired).
 #' @param  multicores        Number of cores to be used for classification.
 #' @return A tibble with the predicted labels for each input segment.
@@ -90,7 +89,6 @@ sits_classify <- function(data, ml_model, ...) {
 #' @export
 #'
 sits_classify.sits <- function(data, ml_model, ...,
-                               interval = "12 month",
                                filter = NULL,
                                multicores = 2) {
 
@@ -108,10 +106,6 @@ sits_classify.sits <- function(data, ml_model, ...,
 		assertthat::assert_that(!purrr::is_null(ml_model),
 							msg = "sits_classify_ts: please provide a trained ML model")
 
-		# precondition - is the interval valid?
-		assertthat::assert_that(lubridate::is.duration(lubridate::as.duration(interval)),
-													msg = "invalid interval specification")
-
 		# Precondition
 		# only savitsky-golay and whittaker filters are supported
 		if (!purrr::is_null(filter)) {
@@ -124,9 +118,11 @@ sits_classify.sits <- function(data, ml_model, ...,
 		}
 
 		# precondition - are the samples valid?
-		samples.tb <- environment(ml_model)$data
-		assertthat::assert_that(NROW(samples.tb) > 0,
+		samples <- environment(ml_model)$data
+		assertthat::assert_that(NROW(samples) > 0,
 								msg = "sits_classify_ts: missing original samples")
+		# how many samples per interval?
+		num_samples <- nrow(samples[1,]$time_series[[1]])
 
 		# get normalization params
 		stats   <- environment(ml_model)$stats
@@ -145,9 +141,8 @@ sits_classify.sits <- function(data, ml_model, ...,
 					msg = "sits_classify,sits: problem with normalization")
 
 	  # calculate the breaks in the time for multi-year classification
-	  class_info.tb <- .sits_timeline_class_info(data = data,
-	                                             samples = samples.tb,
-	                                             interval = interval)
+	  class_info.tb <- .sits_timeline_class_info(data     = data,
+	                                             samples  = samples)
 
 	  # retrieve the the predicted results
 	  predict.mtx <- .sits_distances_classify(distances_DT = distances_DT,
@@ -158,8 +153,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 	  # Store the result in the input data
 	  data <- .sits_tibble_prediction(data = data,
 	                                  class_info.tb = class_info.tb,
-	                                  pred.mtx = predict.mtx,
-	                                  interval = interval)
+	                                  pred.mtx = predict.mtx)
 	  return(data)
 }
 
@@ -181,8 +175,6 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' @param  data            data cube
 #' @param  ml_model        R model trained by \code{\link[sits]{sits_train}}.
 #' @param  ...             other parameters to be passed to specific functions
-#' @param  interval        interval between two sucessive classifications,
-#'                         expressed in months.
 #' @param  sf_region       an sf object with the region of interest
 #' @param  filter          smoothing filter to be applied (if desired).
 #' @param  memsize         memory available for classification (in GB).
@@ -226,7 +218,6 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' }
 #' @export
 sits_classify.brick_cube <- function(data, ml_model, ...,
-                                     interval   = "12 month",
                                      sf_region  = NULL,
                                      filter     = NULL,
                                      memsize    = 8,
@@ -248,9 +239,6 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
         # use 2 cores in CRAN/Travis/AppVeyor
         multicores <- 2L
     }
-    # precondition - is the interval valid?
-    assertthat::assert_that(lubridate::is.duration(lubridate::as.duration(interval)),
-                            msg = "invalid interval specification")
 
     if (!purrr::is_null(sf_region)) {
       assertthat::assert_that("sf" %in% class(sf_region),
@@ -273,7 +261,6 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
     cube_probs <- .sits_classify_multicores(cube        = data,
                                             samples     = samples,
                                             ml_model    = ml_model,
-                                            interval    = interval,
                                             sf_region   = sf_region,
                                             filter      = filter,
                                             memsize     = memsize,
