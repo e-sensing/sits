@@ -210,32 +210,31 @@
 
 
 	# create a tibble to store the metadata
-	cube.tb <- .sits_cube_create(type           = "S2_L2A_AWS",
-								 satellite      = satellite,
-								 sensor         = sensor,
-								 name           = name,
-								 cube           = "AWS-S2-L2A",
-								 tile           = tile,
-								 bands          = bands,
-								 labels         = labels,
-								 scale_factors  = scale_factors,
-								 missing_values = missing_values,
-								 minimum_values = minimum_values,
-								 maximum_values = maximum_values,
-								 timelines      = list(timeline),
-								 nrows          = params$nrows,
-								 ncols          = params$ncols,
-								 xmin           = params$xmin,
-								 xmax           = params$xmax,
-								 ymin           = params$ymin,
-								 ymax           = params$ymax,
-								 xres           = params$xres,
-								 yres           = params$yres,
-								 crs            = params$crs,
-								 file_info      = file_info)
+	cube <- .sits_cube_create(type           = "S2_L2A_AWS",
+	                          satellite      = satellite,
+	                          sensor         = sensor,
+	                          name           = name,
+	                          cube           = "AWS-S2-L2A",
+	                          tile           = tile,
+	                          bands          = bands,
+	                          labels         = labels,
+	                          scale_factors  = scale_factors,
+	                          missing_values = missing_values,
+	                          minimum_values = minimum_values,
+	                          maximum_values = maximum_values,
+	                          timelines      = list(timeline),
+	                          nrows          = params$nrows,
+	                          ncols          = params$ncols,
+	                          xmin           = params$xmin,
+	                          xmax           = params$xmax,
+	                          ymin           = params$ymin,
+	                          ymax           = params$ymax,
+	                          xres           = params$xres,
+	                          yres           = params$yres,
+	                          crs            = params$crs,
+	                          file_info      = file_info)
 
-	class(cube.tb) <- c("stack_cube", class(cube.tb))
-	return(cube.tb)
+	return(cube)
 }
 # For the record, the additional bands in L2A S2 images are
 # AOT: Aerosol Optical Thickness map (at 550nm)

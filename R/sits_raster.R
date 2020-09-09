@@ -63,26 +63,28 @@
     # first_row (remember rows are top to bottom and coordinates are bottom to top)
     if (bbox_roi["ymax"] <= cube[1,]$ymax) {
         sub_image["ymax"] <- bbox_roi["ymax"]
-        sub_image["first_row"] <- trunc((cube[1,]$ymax - bbox_roi["ymax"])/cube$yres)
+        sub_image["first_row"] <- unname(floor((cube[1,]$ymax - bbox_roi["ymax"])/cube$yres))
     }
     # last row
     if (bbox_roi["ymin"] >= cube[1,]$ymin) {
         sub_image["ymin"] <- bbox_roi["ymin"]
-        last_row <- trunc((bbox_roi["ymin"] - cube$ymax)/cube$yres)
+        last_row <- ceiling((cube$ymax - unname(bbox_roi["ymin"]))/cube$yres)
     }
-    sub_image["nrows"] <- last_row - sub_image["first_row"] + 1
+
     # first col
     if (bbox_roi["xmin"] >= cube[1,]$xmin) {
-        sub_image["first_col"] <- trunc((bbox_roi["xmin"] - cube[1,]$xmin)/cube$xres)
+        sub_image["first_col"] <- floor((bbox_roi["xmin"] - cube[1,]$xmin)/cube$xres)
         sub_image["xmin"] <- bbox_roi["xmin"]
     }
     #last col
     if (bbox_roi["xmax"] <= cube[1,]$xmax) {
-        last_col <- trunc((cube[1,]$ymax - bbox_roi["ymax"])/cube$yres)
+        last_col <- ceiling((unname(bbox_roi["xmax"]) - cube[1,]$xmin)/cube$xres)
         sub_image["xmax"] <- bbox_roi["xmax"]
     }
-    # number of cols
-    sub_image["ncols"] <- last_row - sub_image["first_row"] + 1
+
+    # number of row and cols
+    sub_image["nrows"] <- last_row - sub_image["first_row"] + 1
+    sub_image["ncols"] <- last_col - sub_image["first_col"] + 1
 
     return(sub_image)
 }
@@ -127,9 +129,11 @@
     nrows <- unname(sub_image["nrows"])
     ncols <- unname(sub_image["ncols"])
     block_rows <- ceiling(nrows/nblocks)
+    first_row <- unname(sub_image["first_row"])
+    last_row  <- first_row + nrows -1
 
     # initial row of each block
-    row.vec <- seq.int(from = 1, to = nrows, by = block_rows)
+    row.vec <- seq.int(from = first_row, to = last_row, by = block_rows)
     # number of rows in each block
     nrows.vec <- rep.int(block_rows, length(row.vec))
     # check that total number of rows is the same as the sum of all blocks

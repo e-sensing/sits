@@ -168,12 +168,15 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
                                            bands     = bands,
                                            files     = files)
     if (bricks_ok)
-        cube.tb <- .sits_raster_brick_cube(satellite = satellite,
-                                           sensor    = sensor,
-                                           name      = name,
-                                           timeline  = timeline,
-                                           bands     = bands,
-                                           files     = files)
+        cube <- .sits_raster_brick_cube(satellite = satellite,
+                                        sensor    = sensor,
+                                        name      = name,
+                                        timeline  = timeline,
+                                        bands     = bands,
+                                        files     = files)
+
+    class(cube) <- c("brick_cube", class(cube))
+    return(cube)
 }
 #' @title Defines a cube to retrieve data from a set of image files
 #' @name sits_cube.stack_cube
@@ -247,12 +250,14 @@ sits_cube.stack_cube <- function(type = "STACK", ...,
                                                 parse_info = parse_info,
                                                 delim      = delim)
         # create the data cube
-        stack_cube   <- .sits_raster_stack_cube(satellite    = satellite,
-                                                sensor       = sensor,
-                                                name         = name,
-                                                file_info    = file_info.tb)
+        cube   <- .sits_raster_stack_cube(satellite    = satellite,
+                                          sensor       = sensor,
+                                          name         = name,
+                                          file_info    = file_info.tb)
 
     }
+    class(cube) <- c("stack_cube", class(cube))
+    return(cube)
 
 }
 #' @title Defines a data cube for a BDC TILE
@@ -339,15 +344,17 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
                                      .web        = .web,
                                      .cloud_band = .cloud_band)
 
-    cube.tb  <- .sits_bdc_tile_cube(satellite    = satellite,
-                                    sensor       = sensor,
-                                    name         = name,
-                                    bands        = bands,
-                                    cube         = cube,
-                                    tile         = tile,
-                                    file_info    = stack.tb)
+    cube  <- .sits_bdc_tile_cube(satellite    = satellite,
+                                 sensor       = sensor,
+                                 name         = name,
+                                 bands        = bands,
+                                 cube         = cube,
+                                 tile         = tile,
+                                 file_info    = stack.tb)
 
-    return(cube.tb)
+    class(cube) <- c("stack_cube", class(cube))
+
+    return(cube)
 }
 #' @title Defines a data cube for a Sentinel-2 L2A AWS cube
 #' @name sits_cube.s2_l2a_aws_cube
@@ -420,12 +427,13 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
                                                end_date   = end_date)
 
 
-    cube.tb  <- .sits_sentinel_aws_tile_cube(name      = name,
-                                             bands     = bands,
-                                             tile      = tile,
-                                             file_info = stack.tb)
+    cube <- .sits_sentinel_aws_tile_cube(name      = name,
+                                         bands     = bands,
+                                         tile      = tile,
+                                         file_info = stack.tb)
 
-    return(cube.tb)
+    class(cube) <- c("stack_cube", class(cube))
+    return(cube)
 }
 
 #' @title Default methods for sits_cube

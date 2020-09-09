@@ -121,6 +121,5 @@
 							  crs   = params$crs,
 							  file_info = file_info)
 
-	class(cube) <- c("brick_cube", class(cube))
 	return(cube)
 }

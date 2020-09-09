@@ -133,7 +133,6 @@
 							  		values.mx    = as.matrix(prediction_DT),
 							  		scale_factor = scale_factor_save,
 							  		multicores   = multicores)
-
 							  	# write the probabilities
 							  	brick <- suppressWarnings(raster::writeValues(brick, probs,
 							  												  bs$row[block]))
