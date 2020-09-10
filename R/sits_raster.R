@@ -141,6 +141,8 @@
 
     # find out the size of the block in pixels
     size.vec <- nrows.vec * ncols
+    # get the output blocks
+    row_out.vec <- row.vec - first_row + 1
 
     # elements of the block list
     # n          number of blocks
@@ -151,6 +153,7 @@
 
     block.lst <- list(n = length(row.vec),
                       row = row.vec,
+                      row_out = row_out.vec,
                       nrows = nrows.vec,
                       col   = unname(sub_image["first_col"]),
                       ncols = ncols,

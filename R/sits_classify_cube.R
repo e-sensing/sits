@@ -133,7 +133,7 @@
                                       multicores   = multicores)
                                   # write the probabilities
                                   brick <- suppressWarnings(raster::writeValues(brick, probs,
-                                                                                bs$row[block]))
+                                                                                bs$row_out[block]))
 
                                   # memory management
                                   rm(prediction_DT)
