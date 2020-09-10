@@ -119,12 +119,9 @@
     assertthat::assert_that(NROW(cube) >= 1,
             msg = "sits_ts_from_raster_shp: need a valid metadata for data cube")
 
-    spatial_points <- sf::as_Spatial(sf_shape)
     points <- as.data.frame(sf::st_coordinates(sf_shape$geometry))
-
-    # ensure spatial points are valid
-    assertthat::assert_that(nrow(spatial_points) >= 1,
-                        msg = "sits_ts_from_raster_shp: need a valid sf_object")
+    xy <- .sits_latlong_to_proj(points$X, points$Y, cube$crs)
+    sample_info <- sf::st_drop_geometry(sf_shape)
 
     # get the timeline
     timeline <- sits_timeline(cube)
@@ -140,11 +137,9 @@
             ts_band.tb <- .sits_tibble()
             # get the values of the time series (terra object)
             t_obj <- .sits_cube_terra_obj_band(cube, band)
-            values.lst <- purrr::map2(points$X, points$Y,
-                                     function(x,y) terra::extract(t_obj, c(x,y))
-            )
-
-            values <- dplyr::bind_rows(values.lst)
+            values <- terra::extract(t_obj, xy)
+            # terra includes an ID (remove it)
+            values <- values[,-1]
             rm(t_obj)
             # is the data valid?
             assertthat::assert_that(nrow(values) > 0,
@@ -157,8 +152,8 @@
             # each row of the values matrix is a spatial point
             for (i in 1:nrow(values)) {
                 time_idx <- .sits_timeline_indexes(timeline = timeline,
-                                        start_date = lubridate::as_date(spatial_points$start_date[i]),
-                                        end_date   = lubridate::as_date(spatial_points$end_date[i]))
+                                        start_date = lubridate::as_date(sample_info$start_date[i]),
+                                        end_date   = lubridate::as_date(sample_info$end_date[i]))
                 # select the valid dates in the timeline
                 timeline_row <- timeline[time_idx["start_idx"]:time_idx["end_idx"]]
                 # get only valid values for the timeline
@@ -173,11 +168,11 @@
 
                 # insert a row on the tibble with the values for lat/long and the band
                 ts_band.tb <- tibble::add_row(ts_band.tb,
-                                              longitude    = as.vector(sp::coordinates(spatial_points)[i,1]),
-                                              latitude     = as.vector(sp::coordinates(spatial_points)[i,2]),
+                                              longitude    = points[i,"X"],
+                                              latitude     = points[i,"Y"],
                                               start_date   = timeline[time_idx["start_idx"]],
                                               end_date     = timeline[time_idx["end_idx"]],
-                                              label        = spatial_points$label[i],
+                                              label        = as.character(sample_info[i,"label"]),
                                               cube         = cube$name,
                                               time_series  = list(ts.tb)
                 )

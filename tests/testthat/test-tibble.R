@@ -34,14 +34,6 @@ test_that("Bands",{
     expect_equal(bands[1], "NDVI")
 })
 
-test_that("Break",{
-    #skip_on_cran()
-    points.tb <- sits:::.sits_break(point_ndvi, timeline_modis_392,
-                            "2000-08-28", "2016-08-12")
-
-    expect_equal(dim(points.tb)[1], 16)
-    expect_equal(dim(points.tb)[2], 7)
-})
 test_that("Merge", {
     data(point_ndvi)
     point_ws.tb <- sits_whittaker(point_ndvi, lambda = 3.0)

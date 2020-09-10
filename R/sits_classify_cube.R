@@ -25,14 +25,14 @@
 #' @param  version         Version of result
 #' @return List of the classified raster layers.
 .sits_classify_multicores <-  function(cube,
-									   samples,
-									   ml_model,
-									   sf_region,
-									   filter,
-									   memsize,
-									   multicores,
-									   output_dir,
-									   version) {
+                                       samples,
+                                       ml_model,
+                                       sf_region,
+                                       filter,
+                                       memsize,
+                                       multicores,
+                                       output_dir,
+                                       version) {
 
 
     # get the subimage
@@ -42,127 +42,127 @@
     # divide the input data in blocks
     bs <- .sits_raster_blocks(cube, ml_model, sub_image, memsize, multicores)
 
-	# create the metadata for the classified cube
-	cube_class <- .sits_cube_classified(cube = cube,
-										samples = samples,
-										sub_image = sub_image,
-										output_dir = output_dir,
-										version = version)
-	# find out how many layers per brick
-	n_layers  <- length(sits_labels(samples)$label)
+    # create the metadata for the classified cube
+    cube_class <- .sits_cube_classified(cube = cube,
+                                        samples = samples,
+                                        sub_image = sub_image,
+                                        output_dir = output_dir,
+                                        version = version)
+    # find out how many layers per brick
+    n_layers  <- length(sits_labels(samples)$label)
 
-	# create the Raster objects
-	n_objs <- length(.sits_cube_files(cube_class))
-	bricks <- vector("list", n_objs)
+    # create the Raster objects
+    n_objs <- length(.sits_cube_files(cube_class))
+    bricks <- vector("list", n_objs)
 
-	# create the outbut bricks
-	bricks <- purrr::map(bricks, function(brick){
-		brick <- suppressWarnings(raster::brick(nl    = n_layers,
-												nrows = cube_class$nrows,
-												ncols = cube_class$ncols,
-												xmn   = cube_class$xmin,
-												xmx   = cube_class$xmax,
-												ymn   = cube_class$ymin,
-												ymx   = cube_class$ymax,
-												crs   = cube_class$crs))
-		return(brick)
-	})
+    # create the outbut bricks
+    bricks <- purrr::map(bricks, function(brick){
+        brick <- suppressWarnings(raster::brick(nl    = n_layers,
+                                                nrows = cube_class$nrows,
+                                                ncols = cube_class$ncols,
+                                                xmn   = cube_class$xmin,
+                                                xmx   = cube_class$xmax,
+                                                ymn   = cube_class$ymin,
+                                                ymx   = cube_class$ymax,
+                                                crs   = cube_class$crs))
+        return(brick)
+    })
 
-	# initiate writing
-	bricks <- purrr::map2(bricks, c(1:n_objs), function(brick, i){
-		brick <- suppressWarnings(raster::writeStart(brick,
-													 filename = .sits_cube_file(cube_class, i),
-													 format   = "GTiff",
-													 datatype = "INT2U",
-													 overwrite = TRUE))
-	})
-	# retrieve the normalization stats
-	stats   <- environment(ml_model)$stats
+    # initiate writing
+    bricks <- purrr::map2(bricks, c(1:n_objs), function(brick, i){
+        brick <- suppressWarnings(raster::writeStart(brick,
+                                                     filename = .sits_cube_file(cube_class, i),
+                                                     format   = "GTiff",
+                                                     datatype = "INT2U",
+                                                     overwrite = TRUE))
+    })
+    # retrieve the normalization stats
+    stats   <- environment(ml_model)$stats
 
-	# retrieve the samples
-	samples <- environment(ml_model)$data
+    # retrieve the samples
+    samples <- environment(ml_model)$data
 
-	# build a list with columns of data table to be processed for each interval
-	select.lst <- .sits_timeline_raster_indexes(cube, samples)
+    # build a list with columns of data table to be processed for each interval
+    select.lst <- .sits_timeline_raster_indexes(cube, samples)
 
-	# get the attribute names
-	attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))
-	assertthat::assert_that(length(attr_names) > 0,
-							msg = "sits_classify_distances: training data not available")
-	# get initial time for classification
-	start_time <- lubridate::now()
-	message(sprintf("Starting classification at %s", start_time))
+    # get the attribute names
+    attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))
+    assertthat::assert_that(length(attr_names) > 0,
+                            msg = "sits_classify_distances: training data not available")
+    # get initial time for classification
+    start_time <- lubridate::now()
+    message(sprintf("Starting classification at %s", start_time))
 
-	# read the blocks
-	for (block in 1:bs$n) {
-		# read the data
-		data_DT <- .sits_raster_read_data(cube         = cube,
-										  samples      = samples,
-										  ml_model     = ml_model,
-										  first_row    = bs$row[block],
-										  nrows_block  = bs$nrows[block],
-										  first_col    = bs$col,
-										  ncols_block  = bs$ncols,
-										  stats = stats,
-										  filter = filter,
-										  multicores = multicores)
-		# process one temporal instance at a time
-		n_bricks <- length(bricks)
+    # read the blocks
+    for (block in 1:bs$n) {
+        # read the data
+        data_DT <- .sits_raster_read_data(cube         = cube,
+                                          samples      = samples,
+                                          ml_model     = ml_model,
+                                          first_row    = bs$row[block],
+                                          nrows_block  = bs$nrows[block],
+                                          first_col    = bs$col,
+                                          ncols_block  = bs$ncols,
+                                          stats = stats,
+                                          filter = filter,
+                                          multicores = multicores)
+        # process one temporal instance at a time
+        n_bricks <- length(bricks)
 
-		bricks <- purrr::pmap(list(select.lst, bricks, c(1:n_bricks)),
-							  function(time, brick, iter) {
-							  	# retrieve the values used for classification
-							  	if (all(time))
-							  		dist_DT <- data_DT
-							  	else {
-							  		dist_DT <- data_DT[, time, with = FALSE]
-							  		# set column names for DT
-							  	}
-							  	colnames(dist_DT) <- attr_names
-							  	# predict the classification values
-							  	prediction_DT <- .sits_classify_interval(DT          = dist_DT,
-							  											 ml_model   = ml_model,
-							  											 multicores = multicores)
+        bricks <- purrr::pmap(list(select.lst, bricks, c(1:n_bricks)),
+                              function(time, brick, iter) {
+                                  # retrieve the values used for classification
+                                  if (all(time))
+                                      dist_DT <- data_DT
+                                  else {
+                                      dist_DT <- data_DT[, time, with = FALSE]
+                                      # set column names for DT
+                                  }
+                                  colnames(dist_DT) <- attr_names
+                                  # predict the classification values
+                                  prediction_DT <- .sits_classify_interval(DT          = dist_DT,
+                                                                           ml_model   = ml_model,
+                                                                           multicores = multicores)
 
 
-							  	# convert probabilities matrix to INT2U
-							  	scale_factor_save <- 10000
-							  	probs  <- .sits_raster_scale_matrix_integer(
-							  		values.mx    = as.matrix(prediction_DT),
-							  		scale_factor = scale_factor_save,
-							  		multicores   = multicores)
-							  	# write the probabilities
-							  	brick <- suppressWarnings(raster::writeValues(brick, probs,
-							  												  bs$row[block]))
+                                  # convert probabilities matrix to INT2U
+                                  scale_factor_save <- 10000
+                                  probs  <- .sits_raster_scale_matrix_integer(
+                                      values.mx    = as.matrix(prediction_DT),
+                                      scale_factor = scale_factor_save,
+                                      multicores   = multicores)
+                                  # write the probabilities
+                                  brick <- suppressWarnings(raster::writeValues(brick, probs,
+                                                                                bs$row[block]))
 
-							  	# memory management
-							  	rm(prediction_DT)
-							  	gc()
-							  	.sits_log_debug(paste0("Memory used after processing block ",
-							  						   block, " of interval ", iter, " - ",
-							  						   .sits_mem_used(), " GB"))
+                                  # memory management
+                                  rm(prediction_DT)
+                                  gc()
+                                  .sits_log_debug(paste0("Memory used after processing block ",
+                                                         block, " of interval ", iter, " - ",
+                                                         .sits_mem_used(), " GB"))
 
-							  	# estimate processing time
-							  	.sits_classify_estimate_processing_time(start_time = start_time,
-							  											select.lst = select.lst,
-							  											bs = bs, block = block,
-							  											time = iter)
-							  	return(brick)
-							  })
+                                  # estimate processing time
+                                  .sits_classify_estimate_processing_time(start_time = start_time,
+                                                                          select.lst = select.lst,
+                                                                          bs = bs, block = block,
+                                                                          time = iter)
+                                  return(brick)
+                              })
 
-		# save information about memory use for debugging later
-		.sits_log_debug(paste0("Processed block starting from ",
-							   bs$row[block], " to ", (bs$row[block] + bs$nrows[block] - 1)))
-		.sits_log_debug(paste0("Memory used after processing block ",
-							   block,  " - ", .sits_mem_used(), " GB"))
+        # save information about memory use for debugging later
+        .sits_log_debug(paste0("Processed block starting from ",
+                               bs$row[block], " to ", (bs$row[block] + bs$nrows[block] - 1)))
+        .sits_log_debug(paste0("Memory used after processing block ",
+                               block,  " - ", .sits_mem_used(), " GB"))
 
-	}
+    }
 
-	# finish writing
-	bricks <- purrr::map(bricks, function(brick){
-		brick <- suppressWarnings(raster::writeStop(brick))
-	})
-	return(cube_class)
+    # finish writing
+    bricks <- purrr::map(bricks, function(brick){
+        brick <- suppressWarnings(raster::writeStop(brick))
+    })
+    return(cube_class)
 }
 
 

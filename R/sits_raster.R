@@ -87,7 +87,7 @@
     return(sub_image)
 }
 #' @title Find the dimensions and location of a spatial ROI in a data cube
-#' @name .sits_raster_sub_image
+#' @name .sits_raster_sub_image_default
 #' @keywords internal
 
 #' @param  cube            input data cube.
