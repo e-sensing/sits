@@ -276,6 +276,7 @@ sits_cube.stack_cube <- function(type = "STACK", ...,
 #' @param bands             Vector of bands.
 #' @param cube              Name of the input data cube (or image collection)
 #' @param tile              Name of the tile
+#' @param version           Version of the cube
 #' @param data_access       Type of access (local or web)
 #' @param start_date        Starting date of the cube
 #' @param end_date          Ending date of the cube
@@ -289,9 +290,6 @@ sits_cube.stack_cube <- function(type = "STACK", ...,
 #' @examples
 #' \donttest{
 #'
-#' # Create a raster cube based on CBERS data provided by the inSitu package
-#' data_dir <- system.file("extdata/CBERS/", package = "inSitu")
-#'
 #' # create a raster cube file based on the information about the files
 #' cbers_bdc_tile <- sits_cube(type       = "BDC_TILE",
 #'                             name       = "022024",
@@ -299,10 +297,11 @@ sits_cube.stack_cube <- function(type = "STACK", ...,
 #'                             sensor     = "AWFI",
 #'                             cube       = "CB4_64_16D_STK",
 #'                             tile       = "022024",
-#'                             data_access = "local",
+#'                             version    = "v001",
+#'                             data_access = "web",
+#'                             bands       = c("NDVI", "EVI"),
 #'                             start_date  = as.Date("2018-08-29"),
-#'                             end_date    = as.Date("2019-08-13"),
-#'                             .local      = data_dir)
+#'                             end_date    = as.Date("2019-08-13"))
 #' }
 #'
 sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
@@ -312,7 +311,8 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
                                bands       = NULL,
                                cube        = NULL,
                                tile        = NULL,
-                               data_access = "local",
+                               version     = "v001",
+                               data_access = "web",
                                start_date  = NULL,
                                end_date    = NULL,
                                .local      = NULL,
@@ -325,6 +325,7 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
                                          bands          = bands,
                                          cube           = cube,
                                          tile           = tile,
+                                         version        = version,
                                          data_access    = data_access,
                                          start_date     = start_date,
                                          end_date       = end_date)
@@ -337,6 +338,7 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
                                      bands       = bands,
                                      cube        = cube,
                                      tile        = tile,
+                                     version     = version,
                                      data_access = data_access,
                                      start_date  = start_date,
                                      end_date    = end_date,

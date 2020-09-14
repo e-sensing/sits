@@ -118,7 +118,7 @@ test_that("Reading a POLYGON shapefile", {
     cube_wtss <- sits_cube(type = "WTSS",
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
-    shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp",
+    shp_file <- system.file("extdata/shapefiles/agriculture/parcel_agriculture.shp",
                             package = "sits")
     parcel.tb <- sits_get_data(cube_wtss,
                                file = shp_file,
@@ -141,7 +141,7 @@ test_that("Reading a POINT shapefile", {
     cube_wtss <- sits_cube(type = "WTSS",
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
-    shp_file <- system.file("extdata/shapefiles/cerrado_forested.shp",
+    shp_file <- system.file("extdata/shapefiles/cerrado/cerrado_forested.shp",
                             package = "sits")
     points.tb <- sits_get_data(cube_wtss, file = shp_file,
                                label = "Cerrado_Forested")

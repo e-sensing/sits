@@ -40,6 +40,8 @@
 \item{.web}{web address (if different from default)}
 
 \item{.cloud_band}{include cloud band? (TRUE/FALSE)}
+
+\item{version}{version of the cube}
 }
 \description{
 Get information on BDC tiles

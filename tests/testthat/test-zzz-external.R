@@ -2,7 +2,7 @@ context("External")
 
 test_that("FilePath",{
     file <- tools::file_path_sans_ext(
-        system.file("extdata/shapefiles/cerrado_forested.shp", package = "sits"))
+        system.file("extdata/shapefiles/cerrado/cerrado_forested.shp", package = "sits"))
     expect_false("shp" %in% file)
 })
 

@@ -10,6 +10,7 @@
   bands,
   cube,
   tile,
+  version,
   data_access,
   start_date,
   end_date
@@ -25,6 +26,8 @@
 \item{cube}{input cube}
 
 \item{tile}{tile}
+
+\item{version}{version of the cube}
 
 \item{data_access}{type of access}
 

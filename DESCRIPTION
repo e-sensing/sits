@@ -92,6 +92,7 @@ Suggests:
     terra,
     testthat,
     xgboost,
+    xml2,
     wtss,
     zoo
 Remotes: 

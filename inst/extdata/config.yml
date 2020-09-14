@@ -18,11 +18,12 @@ default:
     # BDC configuration for access to data
     bdc_web                 : "http://brazildatacube.dpi.inpe.br/Repository/Mosaic/"
     bdc_local               : "/gfs/Repository/Mosaic"
+    bdc_extension           : ["tif"]
 
     # information to parse repositories
     BDC_TILE                :
-        data_dir_path       : ["cube", "tile"]
-        parse_info          : ["sat", "res", "X1", "X2", "tile", "date", "X3", "band"]
+        data_dir_path       : ["cube", "version", "tile"]
+        parse_info          : ["sat", "res", "X1", "X2", "X3", "tile", "date", "X4", "band"]
         delim               : ["_"]
 
     STACK                   :
@@ -155,8 +156,8 @@ default:
 
     AWFI                    :
         bands               :
-            SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI"]
-            BDC_TILE        : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI"]
+            SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI", "CLEAROB", "CMASK", "PROVENANCE", "TOTALOB"]
+            BDC_TILE        : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CLEAROB", "CMASK", "PROVENANCE", "TOTALOB"]
             STACK           : *awfi_bands_sits
             BRICK           : *awfi_bands_sits
         missing_value       :
@@ -361,6 +362,7 @@ default:
         Cropland:           "orange4"
         Dunas :             "honeydew3"
         Deforestation:      "darkred"
+        Deforestatio:       "darkred"
         Fallow_Cotton :     "wheat2"
         Millet_Cotton :     "wheat4"
         Forest :            "darkgreen"

@@ -10,7 +10,7 @@
     if (all(grepl("http", c(files[1])))) {
         # append "vsicurl" prefix for all web files if it is not there
         if (!grepl("vsicurl", c(files[1])))
-            files <- paste("/vsicurl", files, sep = "/")
+            files <- paste0("/vsicurl/", files)
     }
     return(files)
 }

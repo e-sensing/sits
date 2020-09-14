@@ -13,7 +13,8 @@
   bands = NULL,
   cube = NULL,
   tile = NULL,
-  data_access = "local",
+  version = "v001",
+  data_access = "web",
   start_date = NULL,
   end_date = NULL,
   .local = NULL,
@@ -37,6 +38,8 @@
 \item{cube}{Name of the input data cube (or image collection)}
 
 \item{tile}{Name of the tile}
+
+\item{version}{Version of the cube}
 
 \item{data_access}{Type of access (local or web)}
 
@@ -62,9 +65,6 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC). The retrieval
 \examples{
 \donttest{
 
-# Create a raster cube based on CBERS data provided by the inSitu package
-data_dir <- system.file("extdata/CBERS/", package = "inSitu")
-
 # create a raster cube file based on the information about the files
 cbers_bdc_tile <- sits_cube(type       = "BDC_TILE",
                             name       = "022024",
@@ -72,10 +72,10 @@ cbers_bdc_tile <- sits_cube(type       = "BDC_TILE",
                             sensor     = "AWFI",
                             cube       = "CB4_64_16D_STK",
                             tile       = "022024",
-                            data_access = "local",
+                            version    = "v0001",
+                            data_access = "web",
                             start_date  = as.Date("2018-08-29"),
-                            end_date    = as.Date("2019-08-13"),
-                            .local      = data_dir)
+                            end_date    = as.Date("2019-08-13"))
 }
 
 }

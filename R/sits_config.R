@@ -86,6 +86,38 @@ sits_config_show <- function() {
     return(invisible())
 }
 
+#' @title Directory to read the BDC information on the web
+#' @name .sits_config_bdc_web
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_bdc_web <- function() {
+
+  return(sits.env$config$bdc_web)
+}
+
+#' @title Directory to read the BDC information as local file
+#' @name .sits_config_bdc_local
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_bdc_local <- function() {
+
+  return(sits.env$config$bdc_local)
+}
+#' @title File extension used by BDC
+#' @name .sits_config_bdc_extension
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return extension of BDC files
+.sits_config_bdc_extension <- function() {
+  return(sits.env$config$bdc_extension)
+}
+
+
 #' @title Get the name of the band used for cloud information
 #' @name .sits_config_cloud_band
 #' @keywords internal
@@ -222,27 +254,7 @@ sits_config_show <- function() {
         return(FALSE)
 }
 
-#' @title Directory to read the BDC information on the web
-#' @name .sits_config_cube_bdc_tile_web
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return directory where BDC is accessible on the web
-.sits_config_cube_bdc_tile_web <- function() {
 
-    return(sits.env$config$bdc_web)
-}
-
-#' @title Directory to read the BDC information as local file
-#' @name .sits_config_cube_bdc_tile_local
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return directory where BDC is accessible on the web
-.sits_config_cube_bdc_tile_local <- function() {
-
-  return(sits.env$config$bdc_local)
-}
 #' @title Standard files for data directory for cube type
 #' @name .sits_config_data_dir_path
 #' @keywords internal

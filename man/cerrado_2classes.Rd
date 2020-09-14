@@ -18,3 +18,4 @@ data(cerrado_2classes)
 A dataset containing a tibble with time series samples for the Cerrado and Pasture areas of the Mato Grosso state.
   The time series come from MOD13Q1 collection 5 images.
 }
+\keyword{datasets}
