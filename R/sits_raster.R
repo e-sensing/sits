@@ -128,7 +128,7 @@
     ncols <- unname(sub_image["ncols"])
     block_rows <- ceiling(nrows/nblocks)
     first_row <- unname(sub_image["first_row"])
-    last_row  <- first_row + nrows -1
+    last_row  <- first_row + nrows - 1
 
     # initial row of each block
     row.vec <- seq.int(from = first_row, to = last_row, by = block_rows)

@@ -48,7 +48,7 @@ mapview1 <- plot(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 2
 xgb_model <- sits_train(cbers_samples_022024, sits_xgboost())
 
 # classify the data (remember to set the appropriate memory size)
-cbers_probs <- sits_classify(cbers_cube, xgb_model, sf_object = sf_object, memsize = 8, multicores = 1)
+cbers_probs <- sits_classify(cbers_cube, xgb_model, sf_object = sf_object, memsize = 16, multicores = 2)
 
 # plot the probabilities for each class
 plot(cbers_probs)
