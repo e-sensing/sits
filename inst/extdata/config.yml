@@ -156,8 +156,8 @@ default:
 
     AWFI                    :
         bands               :
-            SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI", "CLEAROB", "CMASK", "PROVENANCE", "TOTALOB"]
-            BDC_TILE        : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CLEAROB", "CMASK", "PROVENANCE", "TOTALOB"]
+            SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI"]
+            BDC_TILE        : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI"]
             STACK           : *awfi_bands_sits
             BRICK           : *awfi_bands_sits
         missing_value       :

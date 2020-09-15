@@ -8,10 +8,7 @@
   cube,
   samples,
   ml_model,
-  first_row,
-  nrows_block,
-  first_col,
-  ncols_block,
+  extent,
   stats,
   filter,
   multicores
@@ -24,13 +21,7 @@
 
 \item{ml_model}{machine learning model.}
 
-\item{first_row}{first row to start reading.}
-
-\item{nrows_block}{number of rows in the block.}
-
-\item{first_col}{first column to start reading}
-
-\item{ncols_block}{number of columns in the block}
+\item{extent}{bounding box in XY coordinates (terra object)}
 
 \item{stats}{normalization parameters.}
 

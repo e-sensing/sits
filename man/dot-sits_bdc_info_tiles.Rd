@@ -10,6 +10,7 @@
   bands,
   cube,
   tile,
+  version,
   data_access,
   start_date,
   end_date,
@@ -29,6 +30,8 @@
 
 \item{tile}{tile}
 
+\item{version}{version of the cube}
+
 \item{data_access}{type of access}
 
 \item{start_date}{start_date of the cube}
@@ -40,8 +43,6 @@
 \item{.web}{web address (if different from default)}
 
 \item{.cloud_band}{include cloud band? (TRUE/FALSE)}
-
-\item{version}{version of the cube}
 }
 \description{
 Get information on BDC tiles

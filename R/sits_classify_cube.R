@@ -55,7 +55,7 @@
     n_objs <- length(.sits_cube_files(cube_class))
     bricks <- vector("list", n_objs)
 
-    # create the outbut bricks
+    # create the output bricks
     bricks <- purrr::map(bricks, function(brick){
         brick <- suppressWarnings(raster::brick(nl    = n_layers,
                                                 nrows = cube_class$nrows,
@@ -94,18 +94,18 @@
     message(sprintf("Starting classification at %s", start_time))
 
     # read the blocks
-    for (block in 1:bs$n) {
+    for (b in 1:bs$n) {
+        # define the extent
+        extent <- terra::ext(c(bs$xmin, bs$xmax,
+                               bs$ymin.vec[b], bs$ymax.vec[b]))
         # read the data
         data_DT <- .sits_raster_read_data(cube         = cube,
                                           samples      = samples,
                                           ml_model     = ml_model,
-                                          first_row    = bs$row[block],
-                                          nrows_block  = bs$nrows[block],
-                                          first_col    = bs$col,
-                                          ncols_block  = bs$ncols,
-                                          stats = stats,
-                                          filter = filter,
-                                          multicores = multicores)
+                                          extent       = extent,
+                                          stats        = stats,
+                                          filter       = filter,
+                                          multicores   = multicores)
         # process one temporal instance at a time
         n_bricks <- length(bricks)
 
@@ -132,29 +132,30 @@
                                       scale_factor = scale_factor_save,
                                       multicores   = multicores)
                                   # write the probabilities
-                                  brick <- suppressWarnings(raster::writeValues(brick, probs,
-                                                                                bs$row_out[block]))
+                                  brick <- suppressWarnings(raster::writeValues(brick,
+                                                                                probs,
+                                                                                bs$row_out[b]))
 
                                   # memory management
                                   rm(prediction_DT)
                                   gc()
                                   .sits_log_debug(paste0("Memory used after processing block ",
-                                                         block, " of interval ", iter, " - ",
+                                                         b, " of interval ", iter, " - ",
                                                          .sits_mem_used(), " GB"))
 
                                   # estimate processing time
                                   .sits_classify_estimate_processing_time(start_time = start_time,
                                                                           select.lst = select.lst,
-                                                                          bs = bs, block = block,
+                                                                          bs = bs, block = b,
                                                                           time = iter)
                                   return(brick)
                               })
 
         # save information about memory use for debugging later
         .sits_log_debug(paste0("Processed block starting from ",
-                               bs$row[block], " to ", (bs$row[block] + bs$nrows[block] - 1)))
+                               bs$row[b], " to ", (bs$row[b] + bs$nrows[b] - 1)))
         .sits_log_debug(paste0("Memory used after processing block ",
-                               block,  " - ", .sits_mem_used(), " GB"))
+                               b,  " - ", .sits_mem_used(), " GB"))
 
     }
 
@@ -164,10 +165,6 @@
     })
     return(cube_class)
 }
-
-
-
-
 #' @title Check clasification parameters
 #' @name .sits_classify_check_params
 #' @keywords internal

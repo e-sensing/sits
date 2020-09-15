@@ -46,10 +46,12 @@ Imports:
     purrr  (>= 0.3.0),
     raster (>= 2.6),
     reshape2,
+    readr,
     rgdal (>= 1.5),
     scales,
     sf (>= 0.9),
     stats,
+    terra,
     tibble (>= 3.0),
     tidyr,
     utils
@@ -58,7 +60,6 @@ Suggests:
     caret,
     DBI,
     dendextend,
-    devtools,
     dtwclust,
     dtwSat,
     e1071,
@@ -68,20 +69,15 @@ Suggests:
     imputeTS,
     kohonen,
     knitr,
-    lwgeom,
     MASS,
     mapview,
     methods,
     mgcv,
     nnet,
     openxlsx,
-    proto,
-    proxy,
     ptw,
     reticulate (>= 1.16),
-    rmarkdown,
     ranger,
-    readr,
     Rcpp,
     RCurl,
     RSQLite,
@@ -89,7 +85,6 @@ Suggests:
     sp,
     stars,
     stringr,
-    terra,
     testthat,
     xgboost,
     xml2,
@@ -139,8 +134,10 @@ Collate:
     'sits_pipe.R'
     'sits_plot.R'
     'sits_raster.R'
+    'sits_raster_blocks.R'
     'sits_raster_brick.R'
     'sits_raster_data.R'
+    'sits_raster_sub_image.R'
     'sits_raster_stack.R'
     'sits_ResNet.R'
     'sits_satveg.R'

@@ -72,8 +72,9 @@ cbers_bdc_tile <- sits_cube(type       = "BDC_TILE",
                             sensor     = "AWFI",
                             cube       = "CB4_64_16D_STK",
                             tile       = "022024",
-                            version    = "v0001",
+                            version    = "v001",
                             data_access = "web",
+                            bands       = c("NDVI", "EVI"),
                             start_date  = as.Date("2018-08-29"),
                             end_date    = as.Date("2019-08-13"))
 }

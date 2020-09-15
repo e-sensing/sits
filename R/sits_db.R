@@ -57,6 +57,11 @@ sits_db_connect <- function(name = NULL){
 #' }
 #' @export
 sits_db_info <- function(conn){
+    # verifies if knitr package is installed
+    if (!requireNamespace("knitr", quietly = TRUE)) {
+        stop("knitr needed for this function to work. Please install it.",
+             call. = FALSE)
+    }
     # connect to the database
     if (!grepl("memory", conn@dbname))
         conn <-  DBI::dbConnect(conn)

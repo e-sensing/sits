@@ -9,6 +9,11 @@
 #' @param name       Name of the cube.
 .sits_wtss_cube <- function(URL, name) {
 
+    # verifies if wtss package is installed
+    if (!requireNamespace("wtss", quietly = TRUE)) {
+        stop("Please install package wtss.", call. = FALSE)
+    }
+
     # describe the cube based on the WTSS API
     cov.tb <- wtss::describe_coverage(URL, name, .print = FALSE)
     assertthat::assert_that(!purrr::is_null(cov.tb),
@@ -79,6 +84,11 @@
                            bands      = NULL,
                            label      = "NoClass") {
 
+    # verifies if wtss package is installed
+    if (!requireNamespace("wtss", quietly = TRUE)) {
+        stop("Please install package wtss.", call. = FALSE)
+    }
+
     # check start and end dates
     timeline <- sits_timeline(cube)
     if (purrr::is_null(start_date))
@@ -125,6 +135,11 @@
 #' @param name       name of the converage
 #' @return check     TRUE or FALSE
 .sits_wtss_check <- function(URL, name) {
+    # verifies if wtss package is installed
+    if (!requireNamespace("wtss", quietly = TRUE)) {
+        stop("Please install package wtss.", call. = FALSE)
+    }
+
     # check that URL of the WTSS service has been provided
     assertthat::assert_that(!purrr::is_null(URL),
                             msg = "sits_cube: WTSS service needs URL")

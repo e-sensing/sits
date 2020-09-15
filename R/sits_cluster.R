@@ -14,8 +14,7 @@
 #'
 #' @param samples         A tibble with input set of time series
 #' @param bands           Bands to be used in the clustering
-#' @param dist_method     String with one of the supported distance
-#'                        from proxy's dist, e.g. \code{TWDTW}.
+#' @param dist_method     String with one of the supported distances.
 #' @param linkage         String with agglomeration method to be used.
 #'                        Can be any `hclust` method (see `hclust`).
 #'                        Default is 'ward.D2'.

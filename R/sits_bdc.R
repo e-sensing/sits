@@ -148,9 +148,11 @@
     # BDC uses a composite path
     # e.g. "2016-01-01_2016-01-16/CB4_64_16D_STK_v001_022024_2016-01-01_2016-01-16_BAND13.tif"
 
-
     # convert the names of the bands to those used by SITS
     bands_sits <- .sits_config_band_names_convert(satellite, sensor, type = "BDC_TILE")
+
+    # find out the bands used by SITS in their original names
+    bands_orig <- names(bands_sits)
 
     # list the image files
     if (data_access == "local")
@@ -184,6 +186,8 @@
         dplyr::arrange(date) %>%
         # filter to remove duplicate combinations of file and band
         dplyr::distinct(band, date, .keep_all = TRUE) %>%
+        # use only the bands supported by SITS
+        dplyr::filter(band %in% bands_orig) %>%
         # convert the band names to SITS bands
         dplyr::mutate(band = bands_sits[band])
 
@@ -197,6 +201,7 @@
         # select the bands
         info.tb <-  dplyr::filter(info.tb, band %in% bands)
     }
+
     return(info.tb)
 }
 #' @title Create a data cube for a BDC TILE
@@ -234,6 +239,9 @@
 	full_path_1 <- .sits_raster_check_webfiles(file_info[1,]$path)
 	# obtain the parameters
 	params <- .sits_raster_params(suppressWarnings(raster::raster(full_path_1)))
+
+	# if (purrr::is_null(bands))
+	#     bands <- unique(dplyr::pull(dplyr::select(file_info$band)))
 
 	# get the bands
 	bands <- unique(file_info$band)

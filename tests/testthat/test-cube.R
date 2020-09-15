@@ -59,13 +59,15 @@ test_that("Reading a BDC data cube", {
                                 sensor     = "AWFI",
                                 cube       = "CB4_64_16D_STK",
                                 tile       = "022024",
-                                data_access = "local",
+                                version    = "v001",
+                                data_access = "web",
                                 start_date  = as.Date("2018-08-29"),
-                                end_date    = as.Date("2019-08-13"),
-                                .local      = data_dir)
+                                end_date    = as.Date("2019-08-13"))
 
-    expect_true(all(sits_bands(cbers_bdc_tile) %in% c("NDVI", "EVI")))
-    rast <- suppressWarnings(raster::raster(cbers_bdc_tile$file_info[[1]]$path[1]))
-    expect_true(raster::nrow(rast) == cbers_bdc_tile[1,]$nrows)
+    bands_sits <- sits:::.sits_config_band_names_convert("CBERS-4", "AWFI", "BDC_TILE")
+
+    expect_true(all(sits_bands(cbers_bdc_tile) %in% bands_sits))
+    rast <- terra::rast(cbers_bdc_tile$file_info[[1]]$path[1])
+    expect_true(terra::nrow(rast) == cbers_bdc_tile[1,]$nrows)
     expect_true(all(unique(cbers_bdc_tile$file_info[[1]]$date) == cbers_bdc_tile$timeline[[1]][[1]]))
 })
