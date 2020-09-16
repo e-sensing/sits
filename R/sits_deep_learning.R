@@ -36,7 +36,7 @@
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region
 #' data(samples_mt_4bands)
-#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #' # Build a machine learning model based on deep learning
 #' dl_model <- sits_train (samples_mt_ndvi,
 #'                         sits_deeplearning(layers = c(64, 64, 64),
@@ -99,7 +99,7 @@ sits_deeplearning <- function(samples          = NULL,
 
         # split the data into training and validation data sets
         # create partitions different splits of the input data
-        test_data_DT <- .sits_sample_distances(train_data_DT,
+        test_data_DT <- .sits_distances_sample(train_data_DT,
                                                frac = validation_split)
 
         # remove the lines used for validation
@@ -211,5 +211,4 @@ sits_deeplearning <- function(samples          = NULL,
     result <- .sits_factory_function(samples, result_fun)
     return(result)
 }
-
 

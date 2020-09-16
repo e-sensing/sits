@@ -86,16 +86,64 @@ sits_config_show <- function() {
     return(invisible())
 }
 
+#' @title Directory to read the BDC information on the web
+#' @name .sits_config_bdc_web
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_bdc_web <- function() {
+
+  return(sits.env$config$bdc_web)
+}
+
+#' @title Directory to read the BDC information as local file
+#' @name .sits_config_bdc_local
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_bdc_local <- function() {
+
+  return(sits.env$config$bdc_local)
+}
+#' @title File extension used by BDC
+#' @name .sits_config_bdc_extension
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return extension of BDC files
+.sits_config_bdc_extension <- function() {
+  return(sits.env$config$bdc_extension)
+}
+
+
+#' @title Get the name of the band used for cloud information
+#' @name .sits_config_cloud_band
+#' @keywords internal
+#' @param satellite            satellite
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return vector with names of the bands available in AWS for a given resolution
+.sits_config_cloud_band <- function(satellite) {
+
+  sensor <- .sits_config_sensors(satellite)
+  cloud_band <- sits.env$config[[sensor]][["cloud_band"]]
+  assertthat::assert_that(!purrr::is_null(cloud_band),
+                          msg = "Cloud band information not available")
+  return(cloud_band)
+}
+
 #' @title Check that the type is valid, based on the configuration file
-#' @name .sits_config_check
+#' @name .sits_config_check_type
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param type       Type of data cube
-.sits_config_check <- function(type){
+.sits_config_check_type <- function(type){
 
-    # find out which services are available
+    # find out which cube types are available
     types <- sits.env$config$cube_types
-    # Ensure that the service is available
     assertthat::assert_that(type %in% types,
                          msg = "sits_get_data: Invalid cube type")
     return(TRUE)
@@ -103,6 +151,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the color associated to a class in the configuration file
 #' @name sits_config_color
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the color associated a class label.
 #' @param label  A class label.
@@ -115,32 +164,54 @@ sits_config_show <- function() {
 }
 
 #' @title Retrieve the classes associated to data cubes known to SITS
-#' @name .sits_config_cube_class
+#' @name .sits_config_cube_class_generic
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the class name associated to a cube type
-#' @param cube  Data cube
+#' @param type  Data cube type
 #' @return      Class of data cube
 #'
-.sits_config_cube_class <- function(cube) {
+.sits_config_cube_class_generic <- function(type) {
     # check that the cube is correct
-    if (.sits_config_check(cube$type)) {
+    if (.sits_config_check_type(type)) {
         # find out which cube types are supported
         types   <- sits.env$config$cube_types
-        classes <-  sits.env$config$cube_classes
+        classes <-  sits.env$config$cube_classes_generic
         names(classes) <- types
-        return(unname(classes[cube$type]))
+        return(unname(classes[type]))
     }
     return(NULL)
 }
+#' @title Retrieve the generic class associated to data cubes known to SITS
+#' @name .sits_config_cube_specific
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Retrieve the metadata class name associated to a cube type
+#' @param type  Data cube type
+#' @return      Class of data cube metadata
+#'
+.sits_config_cube_specific <- function(type) {
+  # check that the cube is correct
+  type <- toupper(type)
+  if (.sits_config_check_type(type)) {
+    # find out which cube types are supported
+    types   <- sits.env$config$cube_types
+    classes <-  sits.env$config$cube_classes_specific
+    names(classes) <- types
+    return(unname(classes[type]))
+  }
+  return(NULL)
+}
 #' @title Retrieve the classes of Raster objects associated to data cubes known to SITS
 #' @name .sits_config_cube_robj_class
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the class name associated to a cube type
 #' @param cube  Data cube
 #' @return      class of robjects in data cubes ("brick", "raster", or "stack")
 .sits_config_cube_robj_class <- function(cube) {
   # check that the cube is correct
-  if (.sits_config_check(cube$type)) {
+  if (.sits_config_check_type(cube$type)) {
     # find out which cube types are supported
     types   <- sits.env$config$cube_types
     objs    <-  sits.env$config$cube_robjs
@@ -152,41 +223,28 @@ sits_config_show <- function() {
 
 #' @title Check that the cube class is valid, based on the configuration file
 #' @name .sits_config_cube_classes_chk
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param class       class of data cube
 .sits_config_cube_classes_chk <- function(class){
 
-    # find out which services are available
-    classes <-  sits.env$config$cube_classes
-    # Ensure that the service is available
+    # find out which cube classes are supported
+    classes <-  sits.env$config$cube_classes_generic
     if(class %in% classes)
         return(TRUE)
     else
         return(FALSE)
 }
 
-#' @title Check if the cube is a web service
-#' @name .sits_config_cube_service
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param cube      data cube
-#' @return          TRUE or FALSE
-.sits_config_cube_service <- function(cube){
-
-  # find out which services are available
-  if (cube$type %in% sits.env$config$cube_services)
-      return(TRUE)
-  else
-      return(FALSE)
-}
 
 #' @title Check the cube types available in the configuration file
 #' @name .sits_config_cube_types_chk
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param  type type of data cube
 #'
-#' @return List of services supported by SITS
+#' @return List of cube types supported by SITS
 .sits_config_cube_types_chk <- function(type) {
 
     types <- sits.env$config$cube_types
@@ -196,27 +254,42 @@ sits_config_show <- function() {
         return(FALSE)
 }
 
-#' @title Directory to read the BDC information on the web
-#' @name .sits_config_cube_bdc_tile_web
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return directory where BDC is accessible on the web
-.sits_config_cube_bdc_tile_web <- function() {
 
-    return(sits.env$config$bdc_web)
+#' @title Standard files for data directory for cube type
+#' @name .sits_config_data_dir_path
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param  type    cube_type
+#'
+#' @return file path to the appended to data_dir
+.sits_config_data_dir_path <- function(type) {
+
+  return(sits.env$config[[type]][["data_dir_path"]])
 }
 
-#' @title Directory to read the BDC information as local file
-#' @name .sits_config_cube_bdc_tile_local
+#' @title Standard files for data directory for cube type
+#' @name .sits_config_data_parse_info
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param  type    cube_type
 #'
-#' @return directory where BDC is accessible on the web
-.sits_config_cube_bdc_tile_local <- function() {
-
-  return(sits.env$config$bdc_local)
+#' @return parsing information
+.sits_config_data_parse_info <- function(type) {
+  return(sits.env$config[[type]][["parse_info"]])
+}
+#' @title Delimiter for data type
+#' @name .sits_config_data_delim
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param  type    cube_type
+#'
+#' @return delimiter information
+.sits_config_data_delim <- function(type){
+  return(sits.env$config[[type]][["delim"]])
 }
 #' @title Retrieve the default sensor for the satellite
 #' @name .sits_config_sensors
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description    Based on the satellite, find the default sensor
@@ -237,6 +310,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the maximum values for a given band
 #' @name .sits_config_maximum_values
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param sensor         Name of the sensor
@@ -262,6 +336,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the estimated value of R memory bloat
 #' @name .sits_config_memory_bloat
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the expected memory bloat associated to R.
 .sits_config_memory_bloat <- function() {
@@ -270,6 +345,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the minimum values for a given band
 #' @name .sits_config_minimum_values
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param sensor           Name of the sensor
@@ -295,6 +371,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the missing values for bands of a sensor
 #' @name .sits_config_missing_values
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param sensor         Name of the sensor
@@ -319,6 +396,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the estimated value of R memory bloat
 #' @name .sits_config_processing_bloat
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the expected memory bloat associated to R.
 .sits_config_processing_bloat <- function() {
@@ -328,6 +406,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the pixel spatial resolution for a data cube
 #' @name .sits_config_resolution
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param sensor         Name of the sensor.
@@ -355,6 +434,7 @@ sits_config_show <- function() {
 }
 #' @title List the satellites supported by the configuration file
 #' @name .sits_config_satellites
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return List of satellites supported by SITS
@@ -365,6 +445,7 @@ sits_config_show <- function() {
 
 #' @title Get the URL to be used to test for SATVEG access
 #' @name .sits_config_satveg_access
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return URL to test SATVEG access
@@ -375,17 +456,19 @@ sits_config_show <- function() {
 
 #' @title Retrieve the bands associated to SATVEG
 #' @name sits_config_satveg_bands
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieve the cubes associated a service.
-#' @param name     Name of SATVEG cube
-.sits_config_satveg_bands <- function(name) {
+#' @description Retrieve the cubes associated to the SATVEG service
+#' @return         Names of SATVEG bands
+.sits_config_satveg_bands <- function() {
 
     q <- paste0("SATVEG_bands")
-    return(sits.env$config[[q]][[name]])
+    return(sits.env$config[[q]][["terra"]])
 }
 
 #' @title Retrieve the cubes associated to SATVEG
 #' @name sits_config_satveg_cubes
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the cubes associated to SATVEG.
 .sits_config_satveg_cubes <- function() {
@@ -394,8 +477,9 @@ sits_config_show <- function() {
 
   return(c)
 }
-#' @title Retrieve the bounding box for the product available at service
+#' @title Retrieve the bounding box for SATVEG
 #' @name .sits_config_satveg_bbox
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param name           Name of the cube.
@@ -413,12 +497,13 @@ sits_config_show <- function() {
     return(bbox)
 }
 
-#' @title Retrieve the projection for the product available at SATVEG service
+#' @title Retrieve the projection for SATVEG service
 #' @name .sits_config_satveg_projection
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param name           Name of the cube.
-#' @return CRS PROJ4 infomation.
+#' @return               CRS PROJ4 information.
 .sits_config_satveg_projection <- function(name) {
 
     crs <- sits.env$config[["SATVEG_crs"]][[name]]
@@ -432,6 +517,7 @@ sits_config_show <- function() {
 
 #' @title Retrieve the size of the cube for SATVEG
 #' @name .sits_config_satveg_size
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param name           Name of the cube.
@@ -459,6 +545,7 @@ sits_config_show <- function() {
 
 #' @title Get the URL to be used for SATVEG access
 #' @name .sits_config_satveg_url
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return URL to test SATVEG access
@@ -466,8 +553,58 @@ sits_config_show <- function() {
   q <- "SATVEG-EMBRAPA_server"
   return(sits.env$config[[q]])
 }
+
+#' @title Obtain the name of the bands used by a cube or by SITS
+#' @name .sits_config_band_names
+#' @keywords internal
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Obtain the name of the bands used by a cube or by SITS
+#' @param sensor         Name of the sensor
+#' @param type           Type of the data cube (or "SITS")
+#'
+#' @return               Name of the bands used in that data cube or by SITS
+#'
+.sits_config_band_names <- function(sensor, type){
+
+    bands <- sits.env$config[[sensor]][["bands"]][[type]]
+    assertthat::assert_that(!purrr::is_null(bands),
+                      msg = "band names inconsistent with cube type")
+
+    return(bands)
+}
+
+#' @title Convert bands names from cube to SITS
+#' @name .sits_config_band_names_convert
+#' @keywords internal
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Convert the name of the band used by the origin data cube
+#'              to the name used by SITS
+#' @param satellite      Name of the satellite
+#' @param sensor         Name of sensor
+#' @param type           Type of data cube
+#' @return               Name of the bands used in SITS (named vector)
+#'
+.sits_config_band_names_convert <- function(satellite, sensor, type){
+
+    # Precondition
+    .sits_raster_satellite_sensor(satellite, sensor)
+
+    # bands used by SITS
+    bands_sits <- sits.env$config[[sensor]][["bands"]][["SITS"]]
+    # bands used by the cube original
+    bands_orig <- sits.env$config[[sensor]][["bands"]][[type]]
+    # use the names to convert
+    names(bands_sits) <- bands_orig
+
+    return(bands_sits)
+}
 #' @title Get the bucket where Sentinel-2 level 2A images are available in AWS
 #' @name .sits_config_sentinel_aws_bucket
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return name of the bucket
@@ -477,6 +614,7 @@ sits_config_show <- function() {
 }
 #' @title File to test access to Sentinel-2 level 2A images in AWS
 #' @name .sits_config_sentinel_aws_test_file
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return name of the bucket
@@ -486,6 +624,7 @@ sits_config_show <- function() {
 }
 #' @title Get the the resolutions for Sentinel-2 ARD in AWS
 #' @name .sits_config_sentinel_aws_resolutions
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return vector with names of the resolutions available in AWS for S2 L2A
@@ -493,12 +632,13 @@ sits_config_show <- function() {
     return(sits.env$config[["S2_L2A_AWS"]][["resolutions"]])
 }
 #' @title Get the the bands stored in AWS for Sentinel-2 ARD given the resolution
-#' @name .sits_config_sentinel_aws_bands
+#' @name .sits_config_sentinel_bands
+#' @keywords internal
 #' @param resolution       Resolution of the bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return vector with names of the bands available in AWS for a given resolution
-.sits_config_sentinel_aws_bands <- function(resolution) {
+.sits_config_sentinel_bands <- function(resolution) {
     s <- "S2_L2A_AWS"
     assertthat::assert_that(resolution %in% sits.env$config[[s]][["resolutions"]],
                           msg = "Sentinel-2 in AWS - wrong resolution")
@@ -507,8 +647,10 @@ sits_config_show <- function() {
     return(sits.env$config[[s]][[r]])
 }
 
+
 #' @title Retrieve the scale factor for a given band for a data cube
 #' @name .sits_config_scale_factors
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param sensor         Name of the sensor.
@@ -527,81 +669,4 @@ sits_config_show <- function() {
         msg = paste0("No scale factors for sensor", sensor,
                           " edit configuration file"))
     return(scale_f)
-}
-
-#' @title Retrieve the vector of coeficientes for brightness of tasseled cap
-#' @name .sits_config_tcap_brightness
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param sensor     Name of sensor
-#' @return Named vector of brightness coefficients.
-.sits_config_tcap_brightness <- function(sensor = "MODIS"){
-    if (sensor == "MODIS")
-        bands <- c("blue", "green", "red", "nir", "nir2", "mir1", "mir")
-    else {
-        if (sensor == "OLI")
-            bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
-        else {
-            stop("Unable to retrieve tasseled cap coefficients")
-        }
-    }
-
-    coef.lst <- purrr::map(bands, function(b) {
-     c <- as.double(sits.env$config$tasseled_cap_coef[[sensor]]$brightness[[b]])
-    })
-
-    coef <- unlist(coef.lst)
-
-    names(coef) <- bands
-    return(coef)
-}
-
-#' @title Retrieve the vector of coeficientes for greeness of tasseled cap
-#' @name .sits_config_tcap_greenness
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param sensor      Name of ssatellite (or sensor).
-#' @return Named vector of greenness coefficients.
-.sits_config_tcap_greenness <- function(sensor = "MODIS"){
-    if (sensor == "MODIS")
-        bands <- c("blue", "green", "red", "nir", "nir2", "mir1", "mir")
-    else {
-        if (sensor == "OLI")
-            bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
-        else {
-            stop("Unable to retrieve tasseled cap coefficients")
-        }
-    }
-
-    coef.lst <- purrr::map(bands, function(b)  {
-      c <- as.double(sits.env$config$tasseled_cap_coef[[sensor]]$greenness[[b]])
-    })
-    coef <- unlist(coef.lst)
-    names(coef) <- bands
-    return(coef)
-}
-
-#' @title Retrieve the vector of coeficientes for wetness of tasseled cap
-#' @name .sits_config_tcap_wetness
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param sensor     Name of sensor.
-#' @return Named vector of wetness coefficients.
-.sits_config_tcap_wetness <- function(sensor = "MODIS"){
-    if (sensor == "MODIS")
-        bands <- c("blue", "green", "red", "nir", "nir2", "mir1", "mir")
-    else {
-        if (sensor == "OLI")
-            bands <- c("blue", "green", "red", "nir", "swir1", "swir2")
-        else {
-            stop("Unable to retrieve tasseled cap coefficients")
-        }
-    }
-
-    coef.lst <- purrr::map(bands, function(b)  {
-      c <- as.double(sits.env$config$tasseled_cap_coef[[sensor]]$wetness[[b]])
-    })
-    coef <- unlist(coef.lst)
-    names(coef) <- bands
-    return(coef)
 }

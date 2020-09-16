@@ -41,6 +41,11 @@
 sits_kfold_validate <- function(data, folds = 5,
                                 ml_method = sits_rfor(), multicores = 1){
 
+    # require package
+    if (!requireNamespace("caret", quietly = TRUE)) {
+        stop("Please install package caret.", call. = FALSE)
+    }
+
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
@@ -98,8 +103,7 @@ sits_kfold_validate <- function(data, folds = 5,
 
     pred_ref.tb <- tibble::tibble("predicted" = pred.vec,
                                   "reference" = ref.vec)
-    class(pred_ref.tb) <- append(class(pred_ref.tb),
-                                 c("sits", "sits_val_tbl"), after = 0)
+    class(pred_ref.tb) <- c("pred_ref", class(pred_ref.tb))
 
     return(pred_ref.tb)
 }

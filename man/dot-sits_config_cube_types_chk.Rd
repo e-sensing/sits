@@ -10,7 +10,7 @@
 \item{type}{type of data cube}
 }
 \value{
-List of services supported by SITS
+List of cube types supported by SITS
 }
 \description{
 Check the cube types available in the configuration file
@@ -18,3 +18,4 @@ Check the cube types available in the configuration file
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

@@ -15,20 +15,9 @@ test_that("Generic filter-error",{
 test_that("Envelope filter", {
     #skip_on_cran()
     library(dtwclust)
-    data(prodes_226_064)
-    point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
     point_env  <- sits_envelope(point_ndvi, bands_suffix = "env")
-    expect_true(all(sits_time_series(point_env)$ndvi.env
-                    >= sits_time_series(point_ndvi)$ndvi ))
-})
-
-test_that("Cloud filter", {
-    #skip_on_cran()
-    data(prodes_226_064)
-    point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
-    point_cld  <- sits_cloud_removal(point_ndvi)
-    expect_true(NROW(sits_time_series(point_cld))
-                == NROW(sits_time_series(point_ndvi)))
+    expect_true(all(sits_time_series(point_env)$NDVI.env
+                    >= sits_time_series(point_ndvi)$NDVI ))
 })
 
 test_that("Whittaker filter", {
@@ -53,8 +42,8 @@ test_that("Interpolation filter", {
     point_int <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
 
     # filtered data has less sd
-    expect_true(sd(sits_time_series(point_ndvi)$ndvi) >
-                    sd(sits_time_series(point_int)$ndvi))
+    expect_true(sd(sits_time_series(point_ndvi)$NDVI) >
+                    sd(sits_time_series(point_int)$NDVI))
 })
 
 test_that("Linear interpolation filter", {
@@ -62,8 +51,8 @@ test_that("Linear interpolation filter", {
     point_int <- sits_linear_interp(point_ndvi)
 
     # filtered data has less sd
-    expect_true(sd(sits_time_series(point_ndvi)$ndvi) >
-                    sd(sits_time_series(point_int)$ndvi))
+    expect_true(sd(sits_time_series(point_ndvi)$NDVI) >
+                    sd(sits_time_series(point_int)$NDVI))
 })
 
 test_that("Kalman filter", {
@@ -73,13 +62,11 @@ test_that("Kalman filter", {
 })
 
 test_that("Arima filter", {
-    data(prodes_226_064)
-    point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
     point_cld  <- sits_ndvi_arima(point_ndvi, bands_suffix = "ar")
 
     # filtered data has less sd
-    expect_true(sd(sits_time_series(point_ndvi)$ndvi) >
-                    sd(sits_time_series(point_cld)$ndvi.ar.wf))
+    expect_true(sd(sits_time_series(point_ndvi)$NDVI) >
+                    sd(sits_time_series(point_cld)$NDVI.AR.wf))
 })
 
 test_that("Missing values", {

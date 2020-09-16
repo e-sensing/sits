@@ -34,7 +34,8 @@ samples that should be analysed.
 \donttest{
 # Read a set of samples
 # Get a new subset of samples evaluated by clustering methods
-som_map <- sits_som_map(prodes_226_064, grid_xdim = 10, grid_ydim = 10,
+samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+som_map <- sits_som_map(samples_mt, grid_xdim = 10, grid_ydim = 10,
        distance = "euclidean", iterations = 50)
 new_samples <- sits_som_clean_samples(som_map)
 }

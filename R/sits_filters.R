@@ -16,15 +16,6 @@
 #' # Test the diffeent filters
 #' plot(point_ndvi)
 #'
-#' # Apply the cloud filter
-#' # Merge the filtered with the raw data
-#' # Plot the result
-#' point_ndvi %>%
-#'       sits_filter(filter = sits_cloud_removal(bands_suffix = "cf")) %>%
-#'       sits_merge (point_ndvi, .) %>%
-#'       plot()
-#'
-#'
 #' # Apply the envelope filter
 #' # Merge the filtered with the raw data
 #' # Plot the result
@@ -84,96 +75,6 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     # return a valid machine learning method
     return(result)
 }
-#' @title cloud removal
-#' @name sits_cloud_removal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description  This function tries to remove clouds in the ndvi band of
-#' a satellite image time series. It looks for points where the NDVI value
-#' band goes down abruptly. These points are taken as those whose difference
-#' is more than a cutoff value set by the user.
-#' Then it applies an spline interpolation.
-#' Finally, the function applies a whitakker smoother.
-#'
-#' @param data          Time series data and metadata - only the "ndvi" band.
-#' @param cutoff        Maximum acceptable value of a NDVI difference.
-#' @param bands_suffix  Suffix to rename the filtered bands.
-#' @param apply_whit    Apply the whittaker smoother after filtering?
-#' @param lambda_whit   Lambda parameter of the whittaker smoother.
-#' @return A sits tibble with same samples and the new bands.
-#'
-#' @examples
-#' \donttest{
-#' # Read a set of samples of forest/non-forest in Amazonia
-#' # This is an area full of clouds
-#' data(prodes_226_064)
-#' # Select the NDVI band of the first point
-#' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
-#' # Apply the cloud filter
-#' point_cld.tb <- sits_filter(point_ndvi.tb,
-#'                 sits_cloud_removal())
-#' # Merge the filtered with the raw data
-#' point2.tb <- sits_merge (point_ndvi.tb, point_cld.tb)
-#' # Plot the result
-#' plot (point2.tb)
-#' }
-#' @export
-sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
-                              bands_suffix = "cf",
-                              apply_whit = TRUE,
-                              lambda_whit = 1.0){
-
-    # verifies if imputeTS package is installed
-    if (!requireNamespace("imputeTS", quietly = TRUE)) {
-        stop("imputeTS required for this function to work.
-             Please install it.", call. = FALSE)
-    }
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-
-    filter_fun <- function(data) {
-        # find the bands of the data
-        bands <- sits_bands(data)
-        assertthat::assert_that(("ndvi" %in% bands),
-                             msg = "data does not contain the ndvi band")
-
-        # prepare result sits tibble
-        result <- data
-        env.tb <- sits_select_bands(data, ndvi) %>%
-            sits_envelope(operations = "UU", bands_suffix = "env")
-
-        # select the chosen bands for the time series
-        result$time_series <- purrr::pmap(list(data$time_series,
-                                               env.tb$time_series,
-                                               result$time_series),
-                    function(ts_data, ts_env, ts_res) {
-                        ndvi <- dplyr::pull(ts_data[, "ndvi"])
-                        env  <- dplyr::pull(ts_env[, "ndvi.env"])
-                        idx <- which(abs(env - ndvi) > cutoff)
-
-                        # interpolate missing values
-                        bands %>%
-                            purrr::map(function(b) {
-                                ts <- dplyr::pull(ts_res[, b])
-                                ts[idx] <- NA
-                                ts_res[,b] <<- imputeTS::na_interpolation(ts,
-                                                            option = "spline")
-                            })
-                        return(ts_res)
-                    })
-        # rename the output bands
-        new_bands <- paste0(bands, ".", bands_suffix)
-        result <- sits_rename(result, new_bands)
-
-        if (apply_whit)
-            result <- sits_whittaker(result, lambda = lambda_whit,
-                                     bands_suffix = "")
-
-        return(result)
-
-    }
-    result <- .sits_factory_function(data, filter_fun)
-}
-
 #' @title Envelope filter
 #' @name sits_envelope
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -187,15 +88,11 @@ sits_cloud_removal <- function(data = NULL, cutoff = 0.25,
 #' @return             A tibble with filtered time series values.
 #' @examples
 #' \donttest{
-#' # Read a set of samples of forest/non-forest in Amazonia
-#' # This is an area full of clouds
-#' data(prodes_226_064)
-#' # Select the NDVI band of the first point
-#' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
+#' # Select the NDVI band of a point in Mato Grosso
 #' # Apply the envelope filter
-#' point_env.tb <- sits_envelope(point_ndvi.tb)
+#' point_env <- sits_envelope(point_ndvi)
 #' # Merge the filtered with the raw data
-#' point2.tb <- sits_merge (point_ndvi.tb, point_env.tb)
+#' point2 <- sits_merge (point_ndvi, point_env)
 #' # Plot the result
 #' plot(point2.tb)
 #' }
@@ -297,15 +194,11 @@ sits_interp <- function(data = NULL, fun = stats::approx,
 #' @return A tibble with smoothed sits time series.
 #' @examples
 #' \donttest{
-#' # Read a set of samples of forest/non-forest in Amazonia
-#' # This is an area full of clouds
-#' data(prodes_226_064)
-#' # Select the NDVI band of the first point
-#' point_ndvi.tb <- sits_select_bands(prodes_226_064[1,], ndvi)
-#' # Apply the cloud filter
-#' point_kf.tb <- sits_kalman(point_ndvi.tb)
+#' # Read a set of samples
+#' # Select the NDVI band of a point in Mato Grosso
+#' point_kf <- sits_kalman(point_ndvi)
 #' # Merge the filtered with the raw data
-#' point2.tb <- sits_merge (point_ndvi.tb, point_kf.tb)
+#' point2.tb <- sits_merge (point_ndvi, point_kf)
 #' # Plot the result
 #' plot(point2.tb)
 #' }
@@ -325,7 +218,9 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
     result <- .sits_factory_function(data, filter_fun)
     return(result)
 }
-#' Compute the Kalman filter
+#' @title Compute the Kalman filter
+#' @name  .sits_kalman_filter
+#' @keywords internal
 #'
 #' @param measurement                    A vector of measurements.
 #' @param error_in_measurement           A vector of errors in the measuments.
@@ -469,7 +364,7 @@ sits_missing_values <-  function(data, miss_value) {
 #' Then it applies an spline interploation.
 #' Finally, the function applies a whitakker smoother.
 #'
-#' @param data          Time series data and metadata (only the "ndvi" band).
+#' @param data          Time series data and metadata (only the "NDVI" band).
 #' @param cutoff        Maximum acceptable value of a NDVI difference.
 #' @param p             Order (number of time lags) of the autoregressive model.
 #' @param d             Degree of differencing  (the number of times
@@ -482,13 +377,9 @@ sits_missing_values <-  function(data, miss_value) {
 #'
 #' @examples
 #' \donttest{
-#' # Read a set of samples of forest/non-forest in Amazonia
-#' # This is an area full of clouds
-#' data(prodes_226_064)
-#' # Select the NDVI band of the first point
-#' point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
-#' # Apply the cloud filter
-#' point_ar <- sits_filter(point_ndvi, sits_ndvi_arima())
+#' # Select the NDVI band of a point
+#' # Apply the filter
+#' point_ar <- sits_ndvi_arima(point_ndvi)
 #' # Merge the filtered with the raw data
 #' point2 <- sits_merge (point_ndvi, point_ar)
 #' # Plot the result
@@ -505,8 +396,8 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
     filter_fun <- function(data) {
         # find the bands of the data
         bands <- sits_bands(data)
-        assertthat::assert_that("ndvi" %in% bands,
-                       msg = "data does not contain the ndvi band")
+        assertthat::assert_that("NDVI" %in% bands,
+                       msg = "data does not contain the NDVI band")
 
         # predictive model for missing values
         pred_arima <- function(x, p, d, q) {
@@ -527,7 +418,7 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
         # select the chosen bands for the time series
         result$time_series <- data$time_series %>%
             purrr::map(function(ts) {
-                ndvi <- dplyr::pull(ts[, "ndvi"])
+                ndvi <- dplyr::pull(ts[, "NDVI"])
                 idx <- which(c(0, diff(ndvi)) < cutoff)
                 idx <- idx[!idx %in% 1:q]
                 ts[,bands][idx,] <- NA

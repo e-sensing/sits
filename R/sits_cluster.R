@@ -14,8 +14,7 @@
 #'
 #' @param samples         A tibble with input set of time series
 #' @param bands           Bands to be used in the clustering
-#' @param dist_method     String with one of the supported distance
-#'                        from proxy's dist, e.g. \code{TWDTW}.
+#' @param dist_method     String with one of the supported distances.
 #' @param linkage         String with agglomeration method to be used.
 #'                        Can be any `hclust` method (see `hclust`).
 #'                        Default is 'ward.D2'.
@@ -33,7 +32,7 @@
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # calculate the dendrogram and the best clusters
-#' clusters <- sits_cluster_dendro (cerrado_2classes, bands = c("ndvi", "evi"))
+#' clusters <- sits_cluster_dendro (cerrado_2classes, bands = c("NDVI", "EVI"))
 #' }
 #' @export
 sits_cluster_dendro <-  function(samples = NULL,
@@ -47,16 +46,21 @@ sits_cluster_dendro <-  function(samples = NULL,
     # backward compatibility
     samples <- .sits_tibble_rename(samples)
 
-    # verify if data has data
+    # verify if data is OK
     .sits_test_tibble(samples)
+
+    # bands in sits are uppercase
+    bands <- .sits_samples_bands_check(samples, bands)
 
     # create a tibble to store the results
     result <- samples
 
     # calculate the dendrogram object
     if (!silent) message("calculating dendrogram...")
-    cluster.obj <- .sits_cluster_dendrogram(samples, bands,
-                                           dist_method, linkage, ...)
+    cluster.obj <- .sits_cluster_dendrogram(samples = samples,
+                                            bands = bands,
+                                            dist_method = dist_method,
+                                            linkage = linkage, ...)
 
     # find the best cut for the dendrogram
     if (!silent) message("finding the best cut...")
@@ -106,7 +110,7 @@ sits_cluster_dendro <-  function(samples = NULL,
 #' # Load the "dtwclust" package
 #' # library(dtwclust)
 #' # create clusters by cutting a dendrogram
-#' clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("ndvi", "evi"))
+#' clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
 #' # show clusters samples frequency
 #' sits_cluster_frequency(clusters)
 #' }
@@ -139,7 +143,7 @@ sits_cluster_frequency <-  function(samples) {
 #' # Load the "dtwclust" package
 #' # library(dtwclust)
 #' # calculate the dendrogram and the best clusters
-#' clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("ndvi", "evi"))
+#' clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
 #' # show clusters samples frequency
 #' sits_cluster_frequency(clusters)
 #' # remove cluster 3 from the samples
@@ -180,6 +184,7 @@ sits_cluster_clean <- function(samples) {
 
 #' @title Cluster validity indices
 #' @name .sits_cluster_validity
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Compute different cluster validity indices. This function needs
@@ -217,6 +222,7 @@ sits_cluster_clean <- function(samples) {
 
 #' @title Compute a dendrogram using hierarchical clustering
 #' @name .sits_cluster_dendrogram
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -246,7 +252,7 @@ sits_cluster_clean <- function(samples) {
 #' @return A full dendrogram tree for data analysis.
 #'
 .sits_cluster_dendrogram <- function(samples,
-                                     bands = NULL,
+                                     bands,
                                      dist_method = "dtw_basic",
                                      linkage = "ward.D2", ...){
     # verifies if dtwclust package is installed
@@ -254,10 +260,6 @@ sits_cluster_clean <- function(samples) {
         stop("dtwclust needed for this function to work.
              Please install it.", call. = FALSE)
     }
-
-    # if no bands informed, get all bands available in sits tibble
-    if (purrr::is_null(bands))
-        bands <- sits_bands(samples)
 
     # get the values of the time series
     values  <- sits_values(samples, bands, format = "cases_dates_bands")
@@ -276,6 +278,7 @@ sits_cluster_clean <- function(samples) {
 
 #' @title Compute validity indexes to a range of cut height
 #' @name .sits_cluster_dendro_bestcut
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Reads a dendrogram object and its corresponding sits tibble and

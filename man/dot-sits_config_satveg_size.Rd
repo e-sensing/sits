@@ -18,3 +18,4 @@ Retrieve the size of the cube for SATVEG
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

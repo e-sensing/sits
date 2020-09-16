@@ -27,3 +27,4 @@ A matrix of 3 columns: estimate,
 \description{
 Compute the Kalman filter
 }
+\keyword{internal}

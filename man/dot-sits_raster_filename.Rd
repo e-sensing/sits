@@ -30,3 +30,4 @@ Creates a filename for a raster layer
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

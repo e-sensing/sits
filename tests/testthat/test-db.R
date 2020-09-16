@@ -9,8 +9,8 @@ test_that("Access to RSQLite",{
     #' # read a set of time series
     ts <-  sits_db_read(conn, "cerrado_2classes")
 
-    vals1 <- dplyr::pull(as.vector(ts$time_series[[1]][2,"ndvi"]))
-    vals2 <- dplyr::pull(as.vector(cerrado_2classes$time_series[[1]][2,"ndvi"]))
+    vals1 <- dplyr::pull(as.vector(ts$time_series[[1]][2,"NDVI"]))
+    vals2 <- dplyr::pull(as.vector(cerrado_2classes$time_series[[1]][2,"NDVI"]))
     expect_equal(vals1, vals2)
 
     date1 <- ts[3,]$start_date
@@ -28,7 +28,7 @@ test_that("Access to RSQLite",{
     # create a raster cube file based on the information about the files
     raster.tb <- sits_cube(type = "BRICK", name  = "Sinop-crop",
                            satellite = "TERRA", sensor = "MODIS",
-                           timeline = timeline_modis_392, bands = "ndvi",
+                           timeline = timeline_modis_392, bands = "NDVI",
                            files = files)
 
     # write a raster cube
@@ -60,7 +60,7 @@ test_that("Access to RSQLite",{
     # label classification
     sinop_bayes <- sits::sits_label_classification(sinop_probs,
                                                    smoothing = "bayesian")
-    expect_true(all(file.exists(unlist(sinop_bayes$files))))
+    expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
     # save a classified image to the DB
     conn <- sits_db_write(conn, "sinop_bayes", sinop_bayes)
@@ -73,7 +73,7 @@ test_that("Access to RSQLite",{
     db.tb <- sits_db_info(conn)
 
     expect_true(NROW(db.tb) == 4)
-    cube_classes <-  sits:::sits.env$config$cube_classes
+    cube_classes <-  sits:::sits.env$config$cube_classes_generic
     db_classes <- c("sits", cube_classes)
 
     expect_true(all(db.tb$class %in% db_classes))

@@ -7,13 +7,16 @@
 .sits_bdc_info_tiles(
   satellite,
   sensor,
+  bands,
   cube,
   tile,
+  version,
   data_access,
   start_date,
   end_date,
   .local,
-  .web
+  .web,
+  .cloud_band = FALSE
 )
 }
 \arguments{
@@ -21,9 +24,13 @@
 
 \item{sensor}{sensor}
 
+\item{bands}{bands to be included in the cube}
+
 \item{cube}{input cube}
 
 \item{tile}{tile}
+
+\item{version}{version of the cube}
 
 \item{data_access}{type of access}
 
@@ -34,6 +41,8 @@
 \item{.local}{local address (if different from default)}
 
 \item{.web}{web address (if different from default)}
+
+\item{.cloud_band}{include cloud band? (TRUE/FALSE)}
 }
 \description{
 Get information on BDC tiles
@@ -41,3 +50,4 @@ Get information on BDC tiles
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

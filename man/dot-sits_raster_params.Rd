@@ -19,3 +19,4 @@ Based on the R object associated to a raster object,
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

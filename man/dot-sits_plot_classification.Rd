@@ -18,3 +18,4 @@ Plots the classification results
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}
 }
+\keyword{internal}

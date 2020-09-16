@@ -15,3 +15,4 @@
 Plots a set of time series using ggplot. This function is used
 for showing the same lat/long location in a series of time steps.
 }
+\keyword{internal}

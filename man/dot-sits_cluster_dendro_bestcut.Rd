@@ -28,3 +28,4 @@ See \link[flexclust]{randIndex} for implementation details.
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
+\keyword{internal}

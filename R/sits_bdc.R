@@ -1,5 +1,6 @@
 #' @title Check if the BDC tiles are working
 #' @name .sits_bdc_check_tiles
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param satellite     satellite
@@ -7,6 +8,7 @@
 #' @param bands         bands
 #' @param cube          input cube
 #' @param tile          tile
+#' @param version       version of the cube
 #' @param data_access   type of access
 #' @param start_date    start_date of the cube
 #' @param end_date      end date of the cube
@@ -15,32 +17,39 @@
 								  bands,
 								  cube,
 								  tile,
+								  version,
 								  data_access,
 								  start_date,
 								  end_date){
 
 	# check if the satellite and sensor are supported by SITS
 	assertthat::assert_that(!purrr::is_null(satellite),
-							msg = "sits_cube: for type = TILE satelite must be provided")
+							msg = "sits_cube: for BDC_TILE satelite must be provided")
 	assertthat::assert_that(!purrr::is_null(sensor),
-							msg = "sits_cube: for type = TILE sensor must be provided")
+							msg = "sits_cube: for BDC_TILE sensor must be provided")
 	# Tests is satellite and sensor are known to SITS
 	.sits_raster_satellite_sensor(satellite, sensor)
 
 	# test if bands are provided
-	assertthat::assert_that(!purrr::is_null(bands),
-							msg = "sits_cube: for type = TILE bands must be provided")
-
+	if (!purrr::is_null(bands)){
+		bands_bdc <- .sits_config_band_names(sensor, "BDC_TILE")
+		bands_sits <- .sits_config_band_names(sensor, "SITS")
+		assertthat::assert_that(all(bands %in% bands_bdc) | all(bands %in% bands_sits),
+								msg = "band names inconsistent - use those of SITS")
+	}
 	# test if cube and tile are provided
 	assertthat::assert_that(!purrr::is_null(cube),
-							msg = "sits_cube: for type = TILE cube name must be provided")
+							msg = "sits_cube: for BDC_TILE cube name must be provided")
 
 	assertthat::assert_that(!purrr::is_null(tile),
-							msg = "sits_cube: for type = TILE, the tile name must be provided")
+							msg = "sits_cube: for BDC_TILE, the tile name must be provided")
+
+	assertthat::assert_that(!purrr::is_null(version),
+	                        msg = "sits_cube: for BDC_TILE, the version name must be provided")
 
 	# test if data_access variable is correct
 	assertthat::assert_that(data_access %in% c("local", "web"),
-							msg = "sits_cube: for type = TILE data_access must one of (local, web)")
+							msg = "sits_cube: for BDC_TILE data_access must one of (local, web)")
 
 	# test if the dates are valid
 	if (!purrr::is_null(start_date)) {
@@ -55,95 +64,149 @@
 
 #' @title Get information on BDC tiles
 #' @name .sits_bdc_info_tiles
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param satellite     satellite
 #' @param sensor        sensor
+#' @param bands         bands to be included in the cube
 #' @param cube          input cube
 #' @param tile          tile
+#' @param version       version of the cube
 #' @param data_access   type of access
 #' @param start_date    start_date of the cube
 #' @param end_date      end date of the cube
 #' @param .local        local address (if different from default)
 #' @param .web          web address (if different from default)
+#' @param .cloud_band   include cloud band? (TRUE/FALSE)
 .sits_bdc_info_tiles <- function(satellite,
 								 sensor,
+								 bands,
 								 cube,
 								 tile,
+								 version,
 								 data_access,
 								 start_date,
 								 end_date,
 								 .local,
-								 .web){
+								 .web,
+								 .cloud_band = FALSE){
 
 	# obtain the directory for local access
 	if (data_access == "local") {
 		if (!purrr::is_null(.local))
 			dir <- .local
 		else
-			dir <- .sits_config_cube_bdc_tile_local()
+			dir <- .sits_config_bdc_local()
 	}
 	if (data_access == "web") {
 		if (!purrr::is_null(.web))
 			dir <-  .web
 		else
-			dir <- .sits_config_cube_bdc_tile_web()
+			dir <- .sits_config_bdc_web()
 	}
 	# compose the directory with the name of the cube and tile
-	data_dir <- paste0(dir,"/",cube,"/",tile)
-	# list the files in the directory
-	files_tile <- data_dir %>%
-		list.files(recursive = TRUE) %>%
-		.[grepl("tif", .)]
+	data_dir <- paste0(dir,"/",cube,"/", version, "/", tile, "/")
 
-	# filter the dates as directories (if they are included in the file path)
-	files_no_dir.vec <- files_tile %>%
-		readr::read_delim(delim = "/", col_names = FALSE) %>%
-		as.vector(dplyr::pull(.[,ncol(.)]))
+	# compose the data directory based on standard path for cube type
 
-	# puts the dates and bands into a tibble
-	prefix <- paste0(cube,"_",tile,"_")
-	stack.tb <- files_no_dir.vec %>%
-		stringr::str_remove(prefix) %>%
-		tools::file_path_sans_ext() %>%
-		readr::read_delim(delim = "_", col_names = c("date", "end_date", "band")) %>%
-		dplyr::select(date, band)
+	info.tb <- .sits_bdc_stack_info(satellite   = satellite,
+	                                sensor      = sensor,
+	                                start_date  = start_date,
+	                                end_date    = end_date,
+	                                bands       = bands,
+	                                data_dir    = data_dir,
+	                                data_access = data_access)
 
-	# bands are lowercase, except when start with "B"
-	bands <- stack.tb$band
-	new_bands.lst <- purrr::map(bands, function(b){
-		if (grepl("B", b)) {
-			l <- stringr::str_locate(b, "B")
-			if (l[1,"start"] == 1 && l[1,"end"] == 1)
-				return(b)
-			else
-				return(tolower(b))
-		}
-		else
-			return(tolower(b))
-	})
-	stack.tb$band <- unlist(new_bands.lst)
-	# include a column with the file path
-	stack.tb$path <- paste0(data_dir,"/",files_tile)
+	return(info.tb)
+}
 
-	# sanity check - is the raster data cover the period [st_date, en_date]?
-	assertthat::assert_that(start_date %in% unique(stack.tb$date),
-							msg = "raster data does not include start date")
-	assertthat::assert_that(end_date %in% unique(stack.tb$date),
-							msg = "raster data does not include end date")
+#' @title Obtain the file information about the BDC data
+#' @name .sits_bdc_stack_info
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#'
+#' @param  satellite             satellite
+#' @param  sensor                sensor
+#' @param  start_date            starting date for the cube
+#' @param  end_date              end date for the cube
+#' @param  bands                 bands
+#' @param  data_dir              base directory for the search
+#' @param  data_access           type of access
+#' @return                       tibble with metadata information
+#'
 
-	# order the tile by date
-	stack.tb <- dplyr::arrange(stack.tb, date)
+.sits_bdc_stack_info <-  function(satellite,
+                                  sensor,
+                                  start_date,
+                                  end_date,
+                                  bands,
+                                  data_dir,
+                                  data_access) {
 
-	# filter by starting date and end date
-	stack.tb <- dplyr::filter(stack.tb, start_date >= date & end_date <= date)
+    # BDC uses a composite path
+    # e.g. "2016-01-01_2016-01-16/CB4_64_16D_STK_v001_022024_2016-01-01_2016-01-16_BAND13.tif"
 
+    # convert the names of the bands to those used by SITS
+    bands_sits <- .sits_config_band_names_convert(satellite, sensor, type = "BDC_TILE")
 
-	return(stack.tb)
+    # find out the bands used by SITS in their original names
+    bands_orig <- names(bands_sits)
 
+    # list the image files
+    if (data_access == "local")
+        img_files_full_path <- paste0(data_dir, list.files(data_dir, recursive = TRUE))
+    else
+        img_files_full_path <- .sits_bdc_list_files_http(data_dir)
+
+    # filter by BDC extension (to get only valid files)
+    bdc_ext <- .sits_config_bdc_extension()
+    img_files_full_path <- img_files_full_path[grepl(bdc_ext, img_files_full_path)]
+
+    # include the parse_info
+    parse_info  <- .sits_config_data_parse_info(type = "BDC_TILE")
+
+    # get the delim information
+    delim <- .sits_config_data_delim(type = "BDC_TILE")
+
+    # get the information on the required bands, dates and path
+    info.tb <- img_files_full_path %>%
+        # get the basename
+        basename() %>%
+        # remove the extent
+        tools::file_path_sans_ext() %>%
+        # read the file path into a tibble
+        readr::read_delim(delim = delim, col_names = parse_info) %>%
+        # select the relevant parts
+        dplyr::select(date, band) %>%
+        # include path in the tibble
+        dplyr::mutate(path = img_files_full_path) %>%
+        # order by dates
+        dplyr::arrange(date) %>%
+        # filter to remove duplicate combinations of file and band
+        dplyr::distinct(band, date, .keep_all = TRUE) %>%
+        # use only the bands supported by SITS
+        dplyr::filter(band %in% bands_orig) %>%
+        # convert the band names to SITS bands
+        dplyr::mutate(band = bands_sits[band])
+
+    if (!purrr::is_null(start_date) & !purrr::is_null(end_date))
+        # filter by starting date and end date
+        info.tb <- dplyr::filter(info.tb, date >= start_date & date <=end_date)
+
+    if (!purrr::is_null(bands)) {
+        assertthat::assert_that(all(bands %in% bands_sits),
+                                msg = "bands do not match band names in SITS - see config file")
+        # select the bands
+        info.tb <-  dplyr::filter(info.tb, band %in% bands)
+    }
+
+    return(info.tb)
 }
 #' @title Create a data cube for a BDC TILE
 #' @name .sits_bdc_tile_cube
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  Builds a BDC_TILE cube
@@ -177,6 +240,12 @@
 	# obtain the parameters
 	params <- .sits_raster_params(suppressWarnings(raster::raster(full_path_1)))
 
+	# if (purrr::is_null(bands))
+	#     bands <- unique(dplyr::pull(dplyr::select(file_info$band)))
+
+	# get the bands
+	bands <- unique(file_info$band)
+
 	# get scale factors
 	scale_factors  <- .sits_config_scale_factors(sensor, bands)
 	# get missing values
@@ -187,31 +256,74 @@
 	maximum_values <- .sits_config_maximum_values(sensor, bands)
 
 
-	# create a tibble to store the metadata
-	cube.tb <- .sits_cube_create(type           = "BDC_TILE",
-								 satellite      = satellite,
-								 sensor         = sensor,
-								 name           = name,
-								 cube           = cube,
-								 tile           = tile,
-								 bands          = bands,
-								 labels         = labels,
-								 scale_factors  = scale_factors,
-								 missing_values = missing_values,
-								 minimum_values = minimum_values,
-								 maximum_values = maximum_values,
-								 timelines      = list(timeline),
-								 nrows          = params$nrows,
-								 ncols          = params$ncols,
-								 xmin           = params$xmin,
-								 xmax           = params$xmax,
-								 ymin           = params$ymin,
-								 ymax           = params$ymax,
-								 xres           = params$xres,
-								 yres           = params$yres,
-								 crs            = params$crs,
-								 file_info      = file_info)
 
-	class(cube.tb) <- c("stack_cube", class(cube.tb))
-	return(cube.tb)
+	# create a tibble to store the metadata
+	cube <- .sits_cube_create(type           = "BDC_TILE",
+	                          satellite      = satellite,
+	                          sensor         = sensor,
+	                          name           = name,
+	                          cube           = cube,
+	                          tile           = tile,
+	                          bands          = bands,
+	                          labels         = labels,
+	                          scale_factors  = scale_factors,
+	                          missing_values = missing_values,
+	                          minimum_values = minimum_values,
+	                          maximum_values = maximum_values,
+	                          timelines      = list(timeline),
+	                          nrows          = params$nrows,
+	                          ncols          = params$ncols,
+	                          xmin           = params$xmin,
+	                          xmax           = params$xmax,
+	                          ymin           = params$ymin,
+	                          ymax           = params$ymax,
+	                          xres           = params$xres,
+	                          yres           = params$yres,
+	                          crs            = params$crs,
+	                          file_info      = file_info)
+
+	return(cube)
+}
+
+.sits_bdc_list_files_http <- function(data_dir){
+
+    #list the main directory
+    dir_html.lst <- xml2::as_list(xml2::read_html(data_dir))
+
+    # number of possible paths
+    n_pre <- length(dir_html.lst[[1]][[2]]$pre)
+    # sequence of valid paths
+    idx_dir <- seq(from = 3, to = n_pre - 1, by = 2)
+
+    # obtain the list of dates
+    dates.lst <- purrr::map(idx_dir, function(s){
+        d <- dir_html.lst[[1]][[2]]$pre[[s]][[1]]
+        return(d)
+    })
+    # given the list of dates, get list of images
+    img_files.lst <- purrr::map(dates.lst, function(d){
+        # point to the search directory
+        url_d <- paste0(data_dir, d)
+        # get the list of results
+        html.lst <- xml2::as_list(xml2::read_html(url_d))
+        # number of search paths
+        n_html <- length(html.lst[[1]][[2]]$pre)
+        # sequence of valid search paths indexes
+        idx_fil <- seq(from = 3, to = n_html - 1, by = 2)
+        # obtain the list of files and combine with path
+        files.lst <- purrr::map(idx_fil, function (f){
+            fil <- attributes(html.lst[[1]][[2]]$pre[[f]])
+            fil <- paste0(d,fil)
+            return(fil)
+        })
+    })
+    # transform the list into a vector of files
+    # get the full path
+    # include /vsicurl/ in the path
+    full_path <- img_files.lst %>%
+        unlist() %>%
+        unname() %>%
+        paste("/vsicurl",data_dir, ., sep="/")
+
+    return(full_path)
 }

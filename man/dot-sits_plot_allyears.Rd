@@ -15,3 +15,4 @@
 For each lat/long location in the data, join temporal
 instances of the same place together for plotting.
 }
+\keyword{internal}

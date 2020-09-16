@@ -55,7 +55,7 @@ This is done in several steps:
 # load a simple data set with two classes
 data(cerrado_2classes)
 # calculate the dendrogram and the best clusters
-clusters <- sits_cluster_dendro (cerrado_2classes, bands = c("ndvi", "evi"))
+clusters <- sits_cluster_dendro (cerrado_2classes, bands = c("NDVI", "EVI"))
 }
 }
 \references{

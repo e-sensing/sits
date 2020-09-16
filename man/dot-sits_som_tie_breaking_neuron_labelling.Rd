@@ -27,3 +27,4 @@ This function does tie breaking for neurons
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}
 }
+\keyword{internal}

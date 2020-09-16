@@ -11,7 +11,8 @@
 Columns represent the reference data and
 rows the results of the classification}
 
-\item{area}{A vector of the total area of each class on the map}
+\item{area}{A named vector of the total area of each class on
+the map}
 }
 \value{
 A list of lists: The error_matrix,

@@ -1,158 +1,6 @@
-#' @title Define a reasonable block size to process a RasterBrick
-#' @name .sits_raster_blocks
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Defines the size of the block of a Raster Brick to be read.
-#' The total pixels of a RasterBrick  the size of the timeline
-#' with the number of rows and columns of the Brick. For example, a Raster Brick
-#' with 500 rows and 500 columns and 400 time instances will have a total pixel size
-#' of 800 Mb if pixels are 64-bit.
-#'
-#' @param  cube            Input data cube.
-#' @param  ml_model        Machine learning model.
-#' @param  interval        Classification interval.
-#' @param  memsize         Memory available for classification (in GB).
-#' @param  multicores      Number of threads to process the time series.
-#' @return                 List with three attributes: n (number of blocks),
-#'                         rows (list of rows to begin),
-#'                         nrows (number of rows to read at each iteration).
-#'
-.sits_raster_blocks <- function(cube, ml_model, interval, memsize, multicores){
-    # number of bands
-    nbands <-  length(.sits_cube_bands(cube))
-    # number of rows and cols
-    nrows <- cube[1,]$nrows
-    ncols <- cube[1,]$ncols
-    # timeline
-    timeline <- sits_timeline(cube[1,])
-
-    nblocks <- .sits_raster_blocks_estimate(ml_model   = ml_model,
-                                            nbands     = nbands,
-                                            nrows      = nrows,
-                                            ncols      = ncols,
-                                            timeline   = timeline,
-                                            interval   = interval,
-                                            memsize    = memsize,
-                                            multicores = multicores)
-
-    # number of rows per block
-    block_rows <- ceiling(nrows/nblocks)
-
-    # initial row of each block
-    row.vec <- seq.int(from = 1, to = nrows, by = block_rows)
-    # number of rows in each block
-    nrows.vec <- rep.int(block_rows, length(row.vec))
-    # check that total number of rows is the same as the sum of all blocks
-    # correct the last block for overflow
-    if (sum(nrows.vec) != nrows )
-        nrows.vec[length(nrows.vec)] <- nrows - sum(nrows.vec[1:(length(nrows.vec) - 1)])
-
-    # find out the size of the block in pixels
-    size.vec <- nrows.vec * ncols
-
-    # elements of the block list
-    # n          number of blocks
-    # row        starting row from the RasterBrick
-    # nrow       Number of rows in the block extracted from the RasterBrick
-    # size       size of each block in pixels
-
-    bs <- list(n = length(row.vec), row = row.vec, nrows = nrows.vec, size = size.vec)
-
-    return(bs)
-}
-#' @title Estimate the number of blocks
-#' @name .sits_raster_blocks_estimate
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Defines the number of blocks of a Raster Brick
-#'              to be read into memory.
-#'
-#' @param  ml_model        Machine learning model.
-#' @param  nbands          Number of bands.
-#' @param  nrows           Number of rows per brick.
-#' @param  ncols           Number of cols per brick.
-#' @param  timeline        Timeline of the brick.
-#' @param  interval        Classification interval.
-#' @param  memsize         Memory available for classification (in GB).
-#' @param  multicores      Number of threads to process the time series.
-#' @return Number of blocks to be read.
-.sits_raster_blocks_estimate <- function(ml_model,
-                                         nbands,
-                                         nrows,
-                                         ncols,
-                                         timeline,
-                                         interval,
-                                         memsize,
-                                         multicores) {
-    # total number of instances
-    ninstances <- length(timeline)
-    # number of instances per classification interval
-    # calculate the interval between each scene and the start date
-    data_duration <- lubridate::as.duration(lubridate::as_date(timeline)
-                                          - lubridate::as_date(timeline[1]))
-    # are there images outside the classification interval?
-    interval_dates <- data_duration > lubridate::as.duration(interval)
-    if (any(interval_dates))
-        ninterval <- which(interval_dates)[1] - 1
-    else
-        ninterval <- ninstances
-    # number of bytes per pixel
-    nbytes <-  8
-    # estimated memory bloat
-    bloat <- as.numeric(.sits_config_memory_bloat())
-    # estimated processing bloat
-    proc_bloat <- as.numeric(.sits_config_processing_bloat())
-    if (proc_bloat == 0) proc_bloat <- multicores
-
-    # single instance size
-    single_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)
-    # total size including all bands
-    nbands_data_size <- single_data_size*as.numeric(nbands)
-
-    # estimated full size of the data
-    full_size <- as.numeric(ninstances)*nbands_data_size
-
-    # estimated size of memory required for scaling and normalization
-    mem_required_scaling <- (full_size + as.numeric(.sits_mem_used()))*bloat
-
-    .sits_log_debug(paste0("max memory required for scaling (GB) - ",
-                           round(mem_required_scaling/1e+09, digits = 3)))
-
-    # number of labels
-    nlabels <- length(sits_labels(environment(ml_model)$data)$label)
-    # estimated size of the data for classification
-    input_class_data_size <- as.numeric(ninterval)*nbands_data_size
-    output_class_data_size <- as.numeric(nlabels)*single_data_size
-    class_data_size <- input_class_data_size + output_class_data_size
-
-    # memory required for processing depends on the model
-    if ("keras_model" %in% class(ml_model) || "rfor_model" %in% class(ml_model))
-    {
-        .sits_log_debug(paste0("keras and ranger run on multiple threads"))
-        mem_required_processing <- (class_data_size +
-                                    as.numeric(.sits_mem_used()))*proc_bloat
-    }
-    else {
-        # test two different cases
-        if (ninstances == ninterval) # one interval only
-            mem_required_processing <- as.numeric(multicores) *
-                (class_data_size + as.numeric(.sits_mem_used()))
-        else
-            mem_required_processing <- as.numeric(multicores) *
-                (.sits_mem_used() + class_data_size + full_size)
-    }
-    .sits_log_debug(paste0("max memory required for processing (GB) - ",
-                           round(mem_required_processing/1e+09, digits = 3)))
-
-    # number of passes to read the full data sets
-    nblocks <- max(ceiling(mem_required_scaling/(memsize*1e+09)),
-                   ceiling(mem_required_processing/(memsize*1e+09)))
-
-    return(nblocks)
-}
-
 #' @title Filter the time series values in the case of a matrix
 #' @name .sits_raster_filter_data
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function filters a matrix.
@@ -186,6 +34,7 @@
 
 #' @title Preprocess a set of values retrived from a raster brick
 #' @name  .sits_raster_preprocess_data
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  values.mx        Matrix of values retrieved from a brick.
@@ -227,19 +76,19 @@
 
 #' @title Read a block of values retrived from a set of raster bricks
 #' @name  .sits_raster_read_data
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  cube            Input data cube.
-#' @param  samples         Tibble with samples.
-#' @param  ml_model        Machine learning model.
-#' @param  first_row       First row to start reading.
-#' @param  n_rows_block    Number of rows in the block.
-#' @param  stats           Normalization parameters.
-#' @param  filter          Smoothing filter to be applied.
-#' @param  multicores      Number of cores to process the time series.
+#' @param  cube            input data cube.
+#' @param  samples         tibble with samples.
+#' @param  ml_model        machine learning model.
+#' @param  extent          bounding box in XY coordinates (terra object)
+#' @param  stats           normalization parameters.
+#' @param  filter          smoothing filter to be applied.
+#' @param  multicores      number of cores to process the time series.
 #' @return A data.table with values for classification.
-.sits_raster_read_data <- function(cube, samples, ml_model,
-                                   first_row, n_rows_block,
+.sits_raster_read_data <- function(cube, samples,
+                                   ml_model, extent,
                                    stats, filter, multicores) {
     # get the bands in the same order as the samples
     bands <- sits_bands(samples)
@@ -258,14 +107,12 @@
     # read the values from the raster bricks ordered by bands
     values.lst <- bands %>%
         purrr::map(function(band) {
-            r_obj <- .sits_cube_robj_band(cube, band)
-            # getValues function returns a matrix
+            t_obj <- .sits_cube_terra_obj_band(cube, band)
+            # terra extent returns an object that is converted to a matrix
             # the rows of the matrix are the pixels
             # the cols of the matrix are the layers
-            values.mx    <- suppressWarnings(raster::getValues(r_obj,
-                                                               first_row,
-                                                               n_rows_block))
-            rm(r_obj)
+            values.mx    <- terra::values(terra::crop(t_obj, extent))
+            rm(t_obj)
 
             # proprocess the input data
             b <<- b + 1
@@ -280,12 +127,11 @@
             # save information about memory use for debugging later
             .sits_log_debug(paste0("Memory used after readGDAL - ",
                                    .sits_mem_used(), " GB"))
-            .sits_log_debug(paste0("Read band ", b, " from rows ",
-                                   first_row, "to ",
-                                   (first_row + n_rows_block - 1)))
+            .sits_log_debug(paste0("Read band ", b, " from extent ", extent))
 
             return(values.mx)
         })
+
     # create a data.table joining the values
     data_DT <- data.table::as.data.table(do.call(cbind,values.lst))
 
@@ -294,9 +140,8 @@
     gc()
 
     # create two additional columns for prediction
-    size <- n_rows_block*cube[1,]$ncols
-    two_cols_DT <- data.table::data.table("original_row" = rep(1,size),
-                                          "reference"    = rep("NoClass", size))
+    two_cols_DT <- data.table::data.table("original_row" = rep(1, nrow(data_DT)),
+                                          "reference"    = rep("NoClass", nrow(data_DT)))
 
     # join the two columns with the data values
     data_DT <- data.table::as.data.table(cbind(two_cols_DT, data_DT))
@@ -310,6 +155,7 @@
 
 #' @title Scale the time series values in the case of a matrix
 #' @name .sits_raster_scale_data
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Normalizes one band of the values read from a raster brick.
@@ -342,6 +188,7 @@
 
 #' @title Scale the time series values in the case of a matrix
 #' @name .sits_raster_scale_matrix_integer
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function transforms a numerical matrix into an integer one.
@@ -376,6 +223,7 @@
 
 #' @title Split a data.table or a matrix for multicore processing
 #' @name .sits_raster_split_data
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function splits a data.table into a
@@ -405,6 +253,8 @@
     })
     return(block.lst)
 }
+
+
 
 
 

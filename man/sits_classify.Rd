@@ -4,16 +4,7 @@
 \alias{sits_classify}
 \title{Classify time series or data cube using machine learning models}
 \usage{
-sits_classify(
-  data = NULL,
-  ml_model = NULL,
-  interval = "12 month",
-  filter = NULL,
-  multicores = 2,
-  memsize = 4,
-  output_dir = "./",
-  version = "v1"
-)
+sits_classify(data, ml_model, ...)
 }
 \arguments{
 \item{data}{Tibble with time series metadata and data.}
@@ -21,20 +12,10 @@ sits_classify(
 \item{ml_model}{Pre-built machine learning model
 (see \code{\link[sits]{sits_train}}).}
 
-\item{interval}{Interval used for classification (in months).}
-
-\item{filter}{Smoothing filter to be applied (if desired).}
-
-\item{multicores}{Number of cores to be used for classification.}
-
-\item{memsize}{Memory available for classification (in GB).}
-
-\item{output_dir}{Output directory}
-
-\item{version}{Version of classification (for multiple tests)}
+\item{...}{Other parameters to be passed to specific functions}
 }
 \value{
-A tibble with the predicted labels for each input segment.
+Predicted data (either a sits tibble or a probs data cube)
 }
 \description{
 This function classifies a set of time series or data cube given
@@ -42,77 +23,28 @@ a set of training samples, an inference model, and an interval.
 To perform the classification, users should provide a set of
 labelled samples. Each samples should be associated to one spatial location
 (latitude/longitude), one time interval and a label.
-
-Currenly, sits supports the following models:
-'svm' (see \code{\link[sits]{sits_svm}}),
-random forests (see \code{\link[sits]{sits_rfor}}),
-linear discriminant analysis (see \code{\link[sits]{sits_lda}}),
-quadratic discriminant analysis (see \code{\link[sits]{sits_qda}}),
-multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
-'lasso' (see \code{\link[sits]{sits_mlr}}) and
-'ridge' (see \code{\link[sits]{sits_mlr}}),
-extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
-and different deep learning functions, including multi-layer perceptrons
-(see \code{\link[sits]{sits_deeplearning}}, 1D convolutional neural networks
-\code{\link[sits]{sits_FCN}},
-mixed 1D and MLP networks \code{\link[sits]{sits_TempCNN}}
-a 1D version of ResNet \code{\link[sits]{sits_ResNet}}),
-and a combined LSTM-FCN model \code{\link[sits]{sits_LSTM_FCN}}
-
-The model should be precomputed by the user
-using the function \code{\link[sits]{sits_train}}
+This is a generic function. The following specific functions are available:
+\itemize{
+ \item{"sits tibble": }{Classify a set of time series - see \code{\link{sits_classify.sits}}}
+ \item{"stack cube": }{ Classify a stack cube - see \code{\link{sits_classify.stack_cube}}}
+ \item{"brick cube": }{Classify a brick cube - see \code{\link{sits_classify.brick_cube}}}
+}
+SITS supports the following models:
+\itemize{
+ \item{support vector machines: }{See \code{\link[sits]{sits_svm}}}
+ \item{random forests: }{see \code{\link[sits]{sits_rfor}}}
+ \item{linear discriminant analysis: }{see \code{\link[sits]{sits_lda}}}
+ \item{quadratic discriminant analysis: }{see \code{\link[sits]{sits_qda}}}
+ \item{multinomial logit, and its variants 'lasso' and ridge': }{see \code{\link[sits]{sits_mlr}}}
+ \item{extreme gradient boosting: }{see \code{\link[sits]{sits_xgboost}}}
+ \item{multi-layer perceptrons: }{see \code{\link[sits]{sits_deeplearning}}}
+ \item{1D convolutional neural networks: see \code{\link[sits]{sits_FCN}}}
+ \item{mixed 1D and MLP networks: }{ see \code{\link[sits]{sits_TempCNN}}}
+ \item{1D version of ResNet: }{see \code{\link[sits]{sits_ResNet}}}
+ \item{combined LSTM-FCN model: }{see \code{\link[sits]{sits_LSTM_FCN}}}
+ }
+The model should be precomputed by the user using the function \code{\link[sits]{sits_train}}
 and then passed to the "sits_classify" function using parameter "ml_model".
-}
-\examples{
-\donttest{
-# Retrieve the samples for Mato Grosso
-
-# select the bands "ndvi", "evi"
-samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-
-#select a random forest model
-
-rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
-
-# classify the point
-
-class.tb <- sits_classify(point_ndvi, rfor_model)
-
-# plot the classification
-
-plot(class.tb)
-
-# Classify a raster file with 23 instances for one year
-files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-                       package = "sits"))
-# create a data cube based on the information about the files
-sinop <- sits_cube(type = "BRICK", satellite = "TERRA",
-                   sensor = "MODIS", name = "Sinop-crop",
-                   timeline = timeline_modis_392,
-                   bands = c("ndvi"), files = files)
-
-# classify the raster image
-sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
-                             memsize = 2, multicores = 1)
-
-# label the classified image
-sinop_label <- sits_label_classification(sinop_probs)
-
-# plot the raster image
-plot(sinop_label, time = 1, title = "Sinop-2013-2014")
-
-# smooth the result with a bayesian filter
-sinop_bayes <- sits_label_classification(sinop_probs,
-                               smoothing = "bayesian")
-
-# plot the smoothened image
-plot(sinop_bayes, time = 1, title = "Sinop-smooth")
-
-# remove the files (cleanup)
-file.remove(unlist(sinop_probs$files))
-file.remove(unlist(sinop_label$files))
-file.remove(unlist(sinop_bayes$files))
-}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

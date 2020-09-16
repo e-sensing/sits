@@ -32,3 +32,4 @@ neighbor of one neuron of radius 1.
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}
 }
+\keyword{internal}

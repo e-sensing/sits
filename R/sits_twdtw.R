@@ -37,10 +37,10 @@
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' samples <- sits_select_bands(samples_mt_6bands, ndvi, evi)
+#' samples <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
 #'
 #' # get a point and classify the point with the ml_model
-#' point <- sits_select_bands(point_mt_6bands, ndvi, evi)
+#' point <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 #'
 #' # plot the series
 #' plot(point)
@@ -51,7 +51,7 @@
 #'
 #' # find the matches between the patterns and the time series using the TWDTW algorithm
 #' # (uses the dtwSat R package)
-#' matches <- sits_twdtw_classify(point, patterns, bands = c("ndvi", "evi"),
+#' matches <- sits_twdtw_classify(point, patterns, bands = c("NDVI", "EVI"),
 #' alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
 #' }
 #' @export
@@ -89,8 +89,8 @@ sits_twdtw_classify <- function(samples,
         i <- 0
     }
 
-    # handle the case of null bands
-    if (purrr::is_null(bands)) bands <- sits_bands(samples)
+    # check the bands
+    bands <- .sits_samples_bands_check(samples, bands)
 
     # create a list to store the results of the TWDTW matches
     matches.lst <- list()
@@ -152,6 +152,7 @@ sits_twdtw_classify <- function(samples,
 
 #' @title Classify a sits tibble using the matches found by the TWDTW methods
 #' @name .sits_twdtw_breaks
+#' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -217,6 +218,7 @@ sits_twdtw_classify <- function(samples,
 
 #' @title Export data to be used by the dtwSat package
 #' @name .sits_to_twdtw
+#' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -225,7 +227,7 @@ sits_twdtw_classify <- function(samples,
 #' @param  samples      A tibble in sits format with time series
 #'                      to be converted to TWTDW time series.
 #' @return An object of the twdtwTimeSeries class).
-.sits_to_twdtw <- function (samples){
+.sits_to_twdtw <- function(samples){
     # verifies if methods package is installed
     if (!requireNamespace("methods", quietly = TRUE)) {
         stop("methods needed for this function to work.
@@ -239,18 +241,20 @@ sits_twdtw_classify <- function(samples,
     }
     # transform each sits time series into a list of zoo
     ts <- samples$time_series %>%
-        purrr::map(function(ts) zoo::zoo(ts[,2:ncol(ts), drop=FALSE], ts$Index))
+        purrr::map(function(ts) zoo::zoo(ts[,2:ncol(ts), drop = FALSE], ts$Index))
 
     # create a new twdtwTimeSeries object from list above
     ts.twdtw <- methods::new("twdtwTimeSeries", timeseries = ts,
                              labels = as.character(samples$label))
-    return (ts.twdtw)
+    return(ts.twdtw)
 }
 
 #' @title Transform patterns from TWDTW format to sits format
 #' @name .sits_from_twdtw_matches
+#' @keywords internal
 #'
-#' @description Reads one TWDTW matches object and transforms it into a tibble ready to be stored into a sits tibble column.
+#' @description Reads one TWDTW matches object and transforms it into a
+#'              tibble ready to be stored into a sits tibble column.
 #'
 #' @param  match.twdtw  A TWDTW Matches object of class dtwSat::twdtwMatches (S4).
 #' @return A tibble containing the matches information.
@@ -263,6 +267,7 @@ sits_twdtw_classify <- function(samples,
 }
 #' @title Plot classification alignments using the dtwSat package
 #' @name .sits_plot_twdtw_alignments
+#' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -286,6 +291,7 @@ sits_twdtw_classify <- function(samples,
 
 #' @title Plot classification results using the dtwSat package
 #' @name .sits_plot_twdtw_classification
+#' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'

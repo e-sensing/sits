@@ -4,82 +4,25 @@
 \alias{sits_cube}
 \title{Defines a data cube}
 \usage{
-sits_cube(
-  type = NULL,
-  name,
-  URL = NULL,
-  satellite = NULL,
-  sensor = NULL,
-  timeline = NULL,
-  bands = NULL,
-  files = NULL,
-  cube = NULL,
-  tile = NULL,
-  data_access = "local",
-  start_date = NULL,
-  end_date = NULL,
-  s2_aws_resolution = NULL,
-  access_key = NULL,
-  secret_key = NULL,
-  region = NULL,
-  service = NULL,
-  .local = NULL,
-  .web = NULL
-)
+sits_cube(type, ...)
 }
 \arguments{
-\item{type}{Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC_TILE", "S2_L2A_AWS",
-"PROBS", "CLASSIFIED")}
+\item{type}{Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC_TILE",
+"S2_L2A_AWS", "PROBS", "CLASSIFIED")}
 
-\item{name}{Name of the output data cube.}
-
-\item{URL}{URL of the service provider (for WTSS).}
-
-\item{satellite}{Name of satellite}
-
-\item{sensor}{Name of sensor}
-
-\item{timeline}{Vector with the timeline of the collection
-(only for local files)}
-
-\item{bands}{Vector of bands.}
-
-\item{files}{Vector of file names for each band
-(only for BRICK data cube).}
-
-\item{cube}{Name of the input data cube (or image collection)}
-
-\item{tile}{Name of the tile}
-
-\item{data_access}{Type of access (local or web)}
-
-\item{start_date}{Starting date of the cube}
-
-\item{end_date}{Ending date of the cube}
-
-\item{s2_aws_resolution}{Resolution of Sentinel images in AWS}
-
-\item{access_key}{AWS access key}
-
-\item{secret_key}{AWS secret key}
-
-\item{region}{AWS region}
-
-\item{service}{Name of the data service (deprecated)}
-
-\item{.local}{Directory for local access to the input cube (optional)}
-
-\item{.web}{Directory for web access to the input cube (optional)}
+\item{...}{Other parameters to be passed for specific types}
 }
 \description{
-Defines a cube to retrieve data. '
-Cubes can be of the following types:
+Defines a cube to retrieve data. This is a generic function.
+Cubes can be of the following types. See each function description for the
+required parameters:
 \itemize{
- \item{"WTSS": }{Web Time Series Service - used to get time series}
- \item{"SATVEG": }{ SATVEG Time Series Service - used to get time series}
- \item{"BRICK": }{Raster Brick files}
- \item{"BDC_TILE"}{A tile from the Brazil Data Cube}
- \item{"S2_L2A_AWS"}{A tile of Sentinel-2 data in AWS}
+ \item{"WTSS": }{Web Time Series Service - see \code{\link{sits_cube.wtss_cube}}}
+ \item{"SATVEG": }{ SATVEG Time Series Service - see \code{\link{sits_cube.satveg_cube}}}
+ \item{"BRICK": }{Raster Brick files - see \code{\link{sits_cube.brick_cube}}}
+ \item{"STACK":}{Raster Stack files - see \code{\link{sits_cube.stack_cube}}}
+ \item{"BDC_TILE"}{A tile from the Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
+ \item{"S2_L2A_AWS"}{A tile of Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 }
 }
 \examples{
@@ -104,12 +47,8 @@ raster.tb <- sits_cube(type = "BRICK",
                        satellite = "TERRA",
                        sensor    = "MODIS",
                        timeline  = timeline_modis_392,
-                       bands     = "ndvi",
+                       bands     = "NDVI",
                        files     = files)
 
 }
-}
-\seealso{
-To see the available values for the parameters above
-use \code{\link{sits_config}} or \code{\link{sits_config_show}}.
 }

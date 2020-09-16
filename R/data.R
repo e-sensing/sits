@@ -2,16 +2,16 @@
 #'
 #' @description A dataset containing a tibble with time series samples for the Cerrado and Pasture areas of the Mato Grosso state.
 #'   The time series come from MOD13Q1 collection 5 images.
-#'
-#' @docType data
 #' @name cerrado_2classes
+#' @docType data
+#' @keywords datasets
 #' @usage data(cerrado_2classes)
 #' @format A tibble with 736 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
 #'   latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
 #'   end_date (final date of the time series), label (the class label associated to the sample),
 #'   cube (the name of the cube associated with the data),
 #'   time_series (list containing a tibble with the values of the time series).
-NULL
+"cerrado_2classes"
 
 #' @title A time series sample with data from 2000 to 2016
 #' @description A dataset containing a tibble with one time series samples in the Mato Grosso state of Brazil.
@@ -79,20 +79,6 @@ NULL
 #'   end_date (final date of the time series), label (the class label associated to the sample),
 #'   cube (the name of the cube associated with the data),
 #'   time_series (list containing a tibble with the values of the time series).
-NULL
-#' @title Samples of deforestation-related classes for the LANDSAT image WRS 226/064
-#'
-#' @description A dataset containing a tibble with time series samples for the combination
-#'    of the LANDSAT images for WRS 226/04 with the MOD13Q1 collection 5 images, used
-#'    to fill the gaps where there is too much cloud in the LANDSAT data.
-#'    The data set has the following classes (and samples per class): Deforestation_2014 (146 samples),
-#'    Deforestation_2015 (198 samples), Forest (128 samples), and  Pasture (145 samples).
-#'
-#' @docType data
-#' @keywords datasets
-#' @name prodes_226_064
-#' @usage data(prodes_226_064)
-#' @format A tibble with 617 rows and 7 variables
 NULL
 
 #' @title A time series in the ZOO format

@@ -18,17 +18,17 @@ test_that("Plot Time Series and Classification", {
     plot(sits_patterns(cerrado_2classes))
 
     p <- sits:::.sits_plot_allyears(cerrado_2classes[1,], colors = "Dark2")
-    expect_equal(p$labels$title, "location (-14.0482, -54.2313) - Cerrado")
+    expect_equal(p$labels$title, "location (-14.05, -54.23) - Cerrado")
 
-    p1 <- sits:::.sits_plot_together(cerrado_2classes, colors = "Dark2")
+    p1 <- sits:::.sits_plot_together(cerrado_ndvi, colors = "Dark2")
     expect_equal(p1$labels$title,
-                 "Samples (400) for class Cerrado in band = ndvi")
+                 "Samples (400) for class Cerrado in band = NDVI")
 
     p2 <- sits:::.sits_plot_patterns(cerrado_2classes)
     expect_equal(p2$labels$y, "Value")
     expect_equal(p2$labels$x, "Time")
 
-    samples_mt_ndvi <- sits_select_bands(samples_mt_6bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_6bands, bands = "NDVI")
     data(point_ndvi)
     rfor_model    <- sits_train(samples_mt_ndvi, ml_method = sits_rfor())
     class_ndvi.tb <-  sits_classify(point_ndvi, rfor_model)
@@ -52,10 +52,19 @@ test_that("Plot Time Series and Classification", {
     sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
                                  memsize = 1, multicores = 1)
     sinop_labels <- sits_label_classification(sinop_probs)
-    plot(sinop_labels, time = 1)
+    plot(sinop_labels, time = 15)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
+
+})
+test_that("Plot Time Series with NA", {
+    sql_file <- system.file("/extdata/cloud_data/s2_cloud_data.sql", package = "sits")
+    conn <- sits_db_connect(sql_file)
+    cloud_data <- sits_db_read(conn, "s2_cloud_data")
+    p1 <- sits:::.sits_ggplot_series(cloud_data[1,])
+
+    expect_equal(p1$labels$title, "location (-10.3, -65.74) - NoClass")
 
 })
 test_that("Dendogram Plot", {
@@ -65,7 +74,7 @@ test_that("Dendogram Plot", {
              Please install it.", call. = FALSE)
     }
     cluster.obj <- sits:::.sits_cluster_dendrogram(cerrado_2classes,
-                                                  bands = c("ndvi", "evi"))
+                                                  bands = c("NDVI", "EVI"))
     cut.vec <- sits:::.sits_cluster_dendro_bestcut(cerrado_2classes,
                                                    cluster.obj)
 

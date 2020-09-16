@@ -13,5 +13,7 @@
 A tibble containing the matches information.
 }
 \description{
-Reads one TWDTW matches object and transforms it into a tibble ready to be stored into a sits tibble column.
+Reads one TWDTW matches object and transforms it into a
+             tibble ready to be stored into a sits tibble column.
 }
+\keyword{internal}

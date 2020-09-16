@@ -15,3 +15,4 @@ Check that the cube class is valid, based on the configuration file
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

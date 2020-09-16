@@ -10,7 +10,7 @@ cube_wtss.tb <- sits_cube(type = "WTSS",
 
 # retrieve the time series associated with the point from the WTSS server
 point.tb <- sits_get_data(cube_wtss.tb, longitude = -47.0516, latitude = -10.7241,
-                          bands = c("ndvi", "evi", "nir", "mir"))
+                          bands = c("NDVI", "EVI", "NIR", "MIR"))
 
 # plot the series
 plot(point.tb)

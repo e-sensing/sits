@@ -216,21 +216,21 @@ test_that("normalization",{
                                          stats, multicores = 1)
 
     stats1 <- sits:::.sits_normalization_param(norm1)
-    expect_true (stats1[2,ndvi] < 0.1)
-    expect_true (stats1[3,ndvi] > 0.99)
+    expect_true (stats1[2,NDVI] < 0.1)
+    expect_true (stats1[3,NDVI] > 0.99)
 
     norm2 <- sits:::.sits_normalize_data(cerrado_2classes,
                                          stats, multicores = 2)
 
     stats2 <- sits:::.sits_normalization_param(norm2)
 
-    expect_equal (stats1[1,ndvi], stats2[1,ndvi], tolerance = 0.001)
-    expect_equal (stats1[2,ndvi], stats2[2,ndvi], tolerance = 0.001)
+    expect_equal (stats1[1,NDVI], stats2[1,NDVI], tolerance = 0.001)
+    expect_equal (stats1[2,NDVI], stats2[2,NDVI], tolerance = 0.001)
 
     norm3 <- sits:::.sits_normalize_data(cerrado_2classes, stats)
 
     stats3 <- sits:::.sits_normalization_param(norm3)
 
-    expect_equal (stats1[1,ndvi], stats3[1,ndvi], tolerance = 0.001)
-    expect_equal (stats1[2,ndvi], stats3[2,ndvi], tolerance = 0.001)
+    expect_equal (stats1[1,NDVI], stats3[1,NDVI], tolerance = 0.001)
+    expect_equal (stats1[2,NDVI], stats3[2,NDVI], tolerance = 0.001)
 })

@@ -4,67 +4,14 @@
 \alias{sits_get_data}
 \title{Obtain time series from different sources}
 \usage{
-sits_get_data(
-  cube,
-  file = NULL,
-  longitude = NULL,
-  latitude = NULL,
-  start_date = NULL,
-  end_date = NULL,
-  bands = NULL,
-  label = "NoClass",
-  shp_attr = NULL,
-  .n_shp_pol = 20,
-  .n_shp_pts = Inf,
-  .prefilter = "1",
-  .n_start_csv = 1,
-  .n_max_csv = Inf,
-  .n_save = 0
-)
+sits_get_data(cube, file = NULL, ...)
 }
 \arguments{
 \item{cube}{Data cube from where data is to be retrived.}
 
-\item{file}{File with information on the data to be retrieved
-(options - CSV, SHP).}
+\item{file}{File with information on the data to be retrieved}
 
-\item{longitude}{Longitude of the chosen location.}
-
-\item{latitude}{Latitude of the chosen location.}
-
-\item{start_date}{Start of the interval for the time series
-in "YYYY-MM-DD" format (optional)}
-
-\item{end_date}{End of the interval for the time series in
-"YYYY-MM-DD" format (optional).}
-
-\item{bands}{Bands to be retrieved (optional)}
-
-\item{label}{Label to be assigned to the time series (optional)}
-
-\item{shp_attr}{Attribute in the shapefile to be used
-as a polygon label (for shapefiles only.}
-
-\item{.n_shp_pol}{Number of samples per polygon to be read
-(for POLYGON or MULTIPOLYGON shapes).}
-
-\item{.n_shp_pts}{Number of points to be read (for POINT shapes).}
-
-\item{.prefilter}{Prefilter for SATVEG cube
-("0" - none, "1" - no data correction,
-"2" - cloud correction,
-"3" - no data and cloud correction).}
-
-\item{.n_start_csv}{Row on the CSV file to start reading.}
-
-\item{.n_max_csv}{Maximum number of CSV samples to be read
-(set to Inf to read all).}
-
-\item{.n_save}{Number of samples to save as intermediate files
-(used for long reads).}
-}
-\value{
-A tibble with time series data and metadata.
+\item{...}{Other parameters to be passed for specific types}
 }
 \description{
 Retrieve a set of time series and puts it in a "sits tibble".
@@ -73,32 +20,37 @@ They contain both the satellite image time series and their metadata.
 A sits tibble is a tibble with pre-defined columns that
 has the metadata and data for each time series. The columns are
 <longitude, latitude, start_date, end_date, label, cube, time_series>.
-There are two main ways of retrieving time series:
-1. Using a time series service and from a data cube defined
-based on a set of Raster Bricks. Two time series services are available:
-(a) Web Time Series Service (WTSS) by INPE; (b) SATVEG service from EMBRAPA.
-for more information on the WTSS service.
+There are many ways of retrieving time series:
+\itemize{
+\item{WTSS}{Retrieve data from Web Time Series Service (WTSS)
+           using a lat/long point (see  \code{\link[sits]{sits_get_data.wtss_cube}}),
+           a CSV file (see\code{\link[sits]{sits_get_data.csv_wtss_cube}})
+           or a SHP file (see code{\link[sits]{sits_get_data.shp_wtss_cube}})}
+
+\item{SATVEG}{Retrieve data from SATVEG service using a lat/long point
+              (see  \code{\link[sits]{sits_get_data.satveg_cube}}),
+              a CSV file (see\code{\link[sits]{sits_get_data.csv_satveg_cube}})
+              or a SHP file (see code{\link[sits]{sits_get_data.shp_satveg_cube}})}
+
+\item{BRICK}{Retrieve data from a BRICK cube using a lat/long point
+             (see  \code{\link[sits]{sits_get_data.brick_cube}}),
+             a CSV file (see\code{\link[sits]{sits_get_data.csv_brick_cube}})
+             or a SHP file (see code{\link[sits]{sits_get_data.shp_brick_cube}})}
+
+\item{STACK}{Retrieve data from a STACK cube (such as Brazil Data Cube or images in AWS)
+            using a lat/long point (see  \code{\link[sits]{sits_get_data.stack_cube}}),
+            a CSV file (see\code{\link[sits]{sits_get_data.csv_stack_cube}})
+            or a SHP file (see code{\link[sits]{sits_get_data.shp_stack_cube}})}
+}
+
 The URL and other parameters for accessing the time series services
-are defined in the package
-configuration file. This file is called "config.yml".
+are defined in the package configuration file. This file is called "config.yml".
 Please see the \code{\link[sits]{sits_config}} for more information.
 
 Before using this service, the user should create a valid description
 of a data cube using the \code{\link[sits]{sits_cube}} function.
 
-The following options are available:
-\enumerate{
-\item No input file is given - it retrieves the data and metadata
-based on the latitude/longitude location
-and on the information provided by the WTSS server.
-\item The source is a CSV file - retrieves the metadata from the CSV file
-and the time series from the WTSS service.
-\item The source is a SHP file - retrives all points inside the shapefile
-from the WTSS service.
-\item The source is a RasterBrick - retrieves the point based on lat/long
-from the RasterBrick.
-}
- The result is atibble with the metadata and data for each time series
+ The result is a tibble with the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, cube, time_series>
 }
 \examples{
@@ -135,7 +87,7 @@ data(timeline_modis_392)
 raster_cube <- sits_cube(type = "BRICK", satellite = "TERRA",
                          sensor = "MODIS", name = "Sinop-crop",
                          timeline = timeline_modis_392,
-                         bands = c("ndvi"), files = files)
+                         bands = c("NDVI"), files = files)
 
 # read the time series of the point from the raster
 point_ts <- sits_get_data(raster_cube, longitude = -55.554,

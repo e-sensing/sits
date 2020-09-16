@@ -20,3 +20,4 @@ Retrieve the missing values for bands of a sensor
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

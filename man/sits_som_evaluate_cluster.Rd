@@ -21,7 +21,8 @@ the percentage of mixture between a cluster and others.
 \examples{
 \donttest{
 # Produce a Kohonen map for the time series samples
-som_map <- sits_som_map(prodes_226_064)
+samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+som_map <- sits_som_map(samples_mt)
 # Extract metrics about the clusters
 confusion_by_cluster <- sits_som_evaluate_cluster(som_map)
 # Show confusion matrix

@@ -25,3 +25,4 @@ For correct classification, the time series of the input data
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

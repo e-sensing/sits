@@ -31,12 +31,12 @@
 #' \donttest{
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 #' # fit a training model (RFOR model)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
+#' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #' ml_model <- sits_train(samples_2bands, sits_rfor(num_trees = 1000))
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
 #' @export
 sits_train <- function(data, ml_method = sits_svm()) {
@@ -82,15 +82,15 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
+#' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
 #' ml_model <- sits_train (samples_2bands, sits_lda())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
 #' @export
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
@@ -166,7 +166,7 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' \donttest{
 #' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 #' # Select the NDVI band
-#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+#' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #' # Train a QDA model
 #' qda_model <- sits_train(samples_mt_ndvi, sits_qda())
 #' # Classify a point
@@ -244,15 +244,15 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for  Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
+#' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
 #' ml_model <- sits_train (samples_2bands, sits_mlr())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
 #' @export
 sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
@@ -326,15 +326,15 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for Mato Grosso  (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
+#' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
 #' ml_model <- sits_train (samples_2bands, sits_rfor())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
 #' @export
 sits_rfor <- function(data = NULL,
@@ -438,15 +438,15 @@ sits_rfor <- function(data = NULL,
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for  Mato Grosso  (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
+#' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
 #' ml_model <- sits_train (samples_2bands, sits_svm())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 #' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
 #' @export
 sits_svm <- function(data = NULL, formula = sits_formula_logref(),
@@ -552,16 +552,15 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-#' samples_mt_4bands <- sits_select_bands(samples_mt_6bands, ndvi, evi, nir, mir)
 #' samples_whit <- sits_whittaker(samples_mt_4bands, lambda = 0.5, bands_suffix = "")
 #' # Build a machine learning model based on xgboost
 #' xgb_model <- sits_train(samples_whit, sits_xgboost())
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
 #' point_whit <- sits_whittaker(point.tb, lambda = 0.5, bands_suffix = "")
 #' class.tb <- sits_classify(point_whit, xgb_model)
-#' plot(class.tb, bands = c("ndvi", "evi"))
+#' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
 #' @export
 #'
@@ -744,66 +743,12 @@ sits_formula_linear <- function(predictors_index = -2:0){
     }
     return(result_fun)
 }
-#' @title Use time series values as distances for training patterns
-#' @name .sits_distances
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function allows using a set of labelled time series as
-#' input to the machine learning models. The attributes used to train the model
-#' are the series themselves. It extracts the time series from a sits tibble
-#' and "spreads" them in time to produce a tibble with distances.
-#'
-#' @param  data       A tibble with time series data and metadata.
-#' @return            A data.table where columns have the reference label
-#'                    and the time series values as distances.
-#'
-.sits_distances <- function(data) {
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
-    n_rows_data <- nrow(data)
 
-    # create a list with the time series transposed from columns to rows
-    ts.lst <- data$time_series %>%
-        purrr::map(function(ts){
-            as.data.frame(t(unlist(ts[-1])))
-        })
-    # bind the lists of time series together
-    dist_DT <- data.table::rbindlist(ts.lst, use.names = FALSE)
-    # create a data frame with the first two columns for training
-    distances_DT <- data.table::data.table("original_row" = 1:n_rows_data,
-                                           "reference" = data$label)
-    # join the two references columns with the data values
-    distances_DT <- data.table::as.data.table(cbind(distances_DT, dist_DT))
 
-    return(distances_DT)
-}
-
-#' @title Sample a percentage of a time series distance matrix
-#' @name .sits_sample_distances
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Takes a sits tibble with different labels and
-#'              returns a new tibble. For a given field as a group criterion,
-#'              this new table contains a given number or percentage
-#'              of the total number of samples per group. Parameter n indicates
-#'              the number of random samples with reposition.
-#'              Parameter frac indicates a fraction of random samples
-#'              without reposition. If frac > 1, no sampling is done.
-#'
-#' @param  distances_DT    Distances associated to a time series.
-#' @param  frac            Percentage of samples to pick.
-#' @return                 Data.table with a fixed quantity of samples
-#'                         of informed labels and all other.
-.sits_sample_distances <- function(distances_DT, frac){
-    # compute sampling
-    result_DT <- distances_DT[, .SD[sample(.N, round(frac*.N))], by = reference]
-
-    return(result_DT)
-}
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_normalize_data
+#' @keywords internal
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description This function normalizes the time series using the mean and
@@ -878,6 +823,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 
 #' @title Normalize the time series values in the case of a matrix
 #' @name .sits_normalize_matrix
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description this function normalizes one band of the values read
@@ -919,6 +865,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_normalization_param
+#' @keywords internal
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description this function normalizes the time series using the mean and

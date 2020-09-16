@@ -21,3 +21,4 @@ This function paints all neurons  of the last iteration of SOM
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}
 }
+\keyword{internal}

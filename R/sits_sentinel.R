@@ -1,5 +1,6 @@
 #' @title Check access rigths on AWS
 #' @name  .sits_sentinel_aws_check_access
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param access_key     AWS access key
@@ -11,6 +12,11 @@
 .sits_sentinel_aws_check_access <- function(access_key = NULL,
 											secret_key = NULL,
 											region = NULL) {
+
+	# require package
+	if (!requireNamespace("aws.s3", quietly = TRUE)) {
+		stop("Please install package aws.s3", call. = FALSE)
+	}
 	if (purrr::is_null(access_key)) {
 		env_access_key <- Sys.getenv("AWS_ACCESS_KEY_ID")
 		assertthat::assert_that(nchar(env_access_key) > 1,
@@ -50,9 +56,11 @@
 }
 #' @title Get information on S2 leval 2A tiles in AWS
 #' @name .sits_sentinel_aws_info_tiles
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param tile          tile
+#' @param bands         bands to be retrieved
 #' @param resolution    resolution of S2 cube
 #' @param start_date    start_date of the cube
 #' @param end_date      end date of the cube
@@ -60,9 +68,9 @@
 #' @return   tibble with information on s2 tile
 #'
 #'
-.sits_sentinel_aws_info_tiles <- function(tile, resolution, start_date, end_date) {
+.sits_sentinel_aws_info_tiles <- function(tile, bands, resolution, start_date, end_date) {
 
-	# sanity check on tile value
+	# pre-conditions
 	# for S2, tile must be given
 	assertthat::assert_that(!purrr::is_null(tile),
 							msg = "For S2 L2A in AWS, tile must be provided")
@@ -77,20 +85,29 @@
 	assertthat::assert_that(grepl('^[A-Z]+$', substr(tile,3,5)),
 							msg = "For S2 L2A in AWS, invalid tile")
 
-	# sanity check on resolution
+	# precondition - resolution
 	assertthat::assert_that(resolution %in% .sits_config_sentinel_aws_resolutions(),
 							msg = "For S2 in AWS, invalid resolution")
-	# sanity check on dates
+	# precondition - dates
 	assertthat::assert_that(lubridate::is.Date(start_date),
 							msg = "start date is invalid")
-
 	assertthat::assert_that(lubridate::is.Date(end_date),
 							msg = "end date is invalid")
 
+	# precondition - bands
+	# find the bands available at the chosen resolution
+	bands_s2  <- .sits_config_sentinel_bands(resolution)
+	if (!purrr::is_null(bands)){
+		assertthat::assert_that(all(bands %in% bands_s2),
+								msg = "requested bands not available")
+	}
+	else
+		bands <- bands_s2
+
 	# get the name of the bucket
 	bucket <- .sits_config_sentinel_aws_bucket()
-	# find the bands available at the chosen resolution
-	bands  <- .sits_config_sentinel_aws_bands(resolution)
+
+
 	# include the prefix for searching the S2 bucket
 	prefix <- paste0("tiles/",substring(tile,1,2),"/",
 					 substring(tile,3,3),"/",
@@ -141,11 +158,11 @@
 		# filter to remove duplicate combinations of file and band
 		dplyr::distinct(band, date, .keep_all = TRUE)
 
-
 	return(s2.tb)
 }
 #' @title Create a data cube for a Sentinel-2 AWS TILE
 #' @name .sits_sentinel_aws_tile_cube
+#' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description  Builds a Sentinel-2 AWS cube
@@ -175,7 +192,7 @@
 		bands <- s2_bands
 	else
 		assertthat::assert_that(all(bands %in% s2_bands),
-								msg = "mismatch btw requested bands and bands availabe in S2 AWS")
+			msg = "mismatch btw requested bands and bands availabe in S2 AWS")
 
 
 	# get the first image
@@ -193,32 +210,31 @@
 
 
 	# create a tibble to store the metadata
-	cube.tb <- .sits_cube_create(type           = "S2_L2A_AWS",
-								 satellite      = satellite,
-								 sensor         = sensor,
-								 name           = name,
-								 cube           = "AWS-S2-L2A",
-								 tile           = tile,
-								 bands          = bands,
-								 labels         = labels,
-								 scale_factors  = scale_factors,
-								 missing_values = missing_values,
-								 minimum_values = minimum_values,
-								 maximum_values = maximum_values,
-								 timelines      = list(timeline),
-								 nrows          = params$nrows,
-								 ncols          = params$ncols,
-								 xmin           = params$xmin,
-								 xmax           = params$xmax,
-								 ymin           = params$ymin,
-								 ymax           = params$ymax,
-								 xres           = params$xres,
-								 yres           = params$yres,
-								 crs            = params$crs,
-								 file_info      = file_info)
+	cube <- .sits_cube_create(type           = "S2_L2A_AWS",
+	                          satellite      = satellite,
+	                          sensor         = sensor,
+	                          name           = name,
+	                          cube           = "AWS-S2-L2A",
+	                          tile           = tile,
+	                          bands          = bands,
+	                          labels         = labels,
+	                          scale_factors  = scale_factors,
+	                          missing_values = missing_values,
+	                          minimum_values = minimum_values,
+	                          maximum_values = maximum_values,
+	                          timelines      = list(timeline),
+	                          nrows          = params$nrows,
+	                          ncols          = params$ncols,
+	                          xmin           = params$xmin,
+	                          xmax           = params$xmax,
+	                          ymin           = params$ymin,
+	                          ymax           = params$ymax,
+	                          xres           = params$xres,
+	                          yres           = params$yres,
+	                          crs            = params$crs,
+	                          file_info      = file_info)
 
-	class(cube.tb) <- c("stack_cube", class(cube.tb))
-	return(cube.tb)
+	return(cube)
 }
 # For the record, the additional bands in L2A S2 images are
 # AOT: Aerosol Optical Thickness map (at 550nm)

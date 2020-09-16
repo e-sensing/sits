@@ -18,3 +18,4 @@ Given a set of time series, find the bounding box.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

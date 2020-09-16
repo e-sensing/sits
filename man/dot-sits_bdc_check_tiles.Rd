@@ -10,6 +10,7 @@
   bands,
   cube,
   tile,
+  version,
   data_access,
   start_date,
   end_date
@@ -26,6 +27,8 @@
 
 \item{tile}{tile}
 
+\item{version}{version of the cube}
+
 \item{data_access}{type of access}
 
 \item{start_date}{start_date of the cube}
@@ -38,3 +41,4 @@ Check if the BDC tiles are working
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

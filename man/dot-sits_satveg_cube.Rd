@@ -12,3 +12,4 @@
 \description{
 Creates a tibble with metadata about a given cube.
 }
+\keyword{internal}

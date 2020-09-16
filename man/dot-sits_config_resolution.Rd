@@ -18,3 +18,4 @@ Retrieve the pixel spatial resolution for a data cube
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_satveg_bbox}
 \alias{.sits_config_satveg_bbox}
-\title{Retrieve the bounding box for the product available at service}
+\title{Retrieve the bounding box for SATVEG}
 \usage{
 .sits_config_satveg_bbox(name)
 }
@@ -13,8 +13,9 @@
 The bounding box.
 }
 \description{
-Retrieve the bounding box for the product available at service
+Retrieve the bounding box for SATVEG
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

@@ -22,3 +22,4 @@ The percentage of mixture between the clusters.
 \author{
 Lorena Santos \email{lorena.santos@inpe.br}
 }
+\keyword{internal}

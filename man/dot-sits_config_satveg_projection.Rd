@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_satveg_projection}
 \alias{.sits_config_satveg_projection}
-\title{Retrieve the projection for the product available at SATVEG service}
+\title{Retrieve the projection for SATVEG service}
 \usage{
 .sits_config_satveg_projection(name)
 }
@@ -10,11 +10,12 @@
 \item{name}{Name of the cube.}
 }
 \value{
-CRS PROJ4 infomation.
+CRS PROJ4 information.
 }
 \description{
-Retrieve the projection for the product available at SATVEG service
+Retrieve the projection for SATVEG service
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

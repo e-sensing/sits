@@ -23,3 +23,4 @@ in the prediction values to match the results of multi-class classification.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

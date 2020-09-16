@@ -15,3 +15,4 @@ Get the the resolutions for Sentinel-2 ARD in AWS
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

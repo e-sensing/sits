@@ -27,3 +27,4 @@ Please refer to the documentation in that package for more details.
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
+\keyword{internal}

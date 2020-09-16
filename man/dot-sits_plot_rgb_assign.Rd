@@ -27,3 +27,4 @@ an RGB assignment of a multi-temporal cube
 \author{
 Gilberto Camara \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

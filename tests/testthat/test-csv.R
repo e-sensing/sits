@@ -35,15 +35,11 @@ test_that("Reading a CSV file from WTSS", {
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
 
-    points.tb <- sits:::.sits_from_csv(csv_file = csv_file,
-                                       cube = cube_wtss,
-                                       bands = c("ndvi"),
-                                       .prefilter   = "1",
-                                       .n_start_csv = 1,
-                                       .n_max_csv   = 3,
-                                       .n_save      = 0)
+    points.tb <- sits_get_data(cube = cube_wtss,
+                               file = csv_file,
+                               bands = c("ndvi"))
 
-    expect_true(all(unique(points.tb$label) == c("Pasture")))
+    expect_true(all(unique(points.tb$label) %in% c("Pasture", "Cerrado")))
 })
 
 test_that("Error Reading a CSV file from WTSS", {
@@ -60,13 +56,9 @@ test_that("Error Reading a CSV file from WTSS", {
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
 
-    suppressMessages(points.tb <- sits:::.sits_from_csv(csv_file = csv_file,
-                                                        cube = cube_wtss,
-                                                        bands = c("ndvi"),
-                                                        .prefilter   = "1",
-                                                        .n_start_csv = 1,
-                                                        .n_max_csv   = 10,
-                                                        .n_save      = 0))
+    points.tb <- sits_get_data(cube = cube_wtss,
+                               file = csv_file,
+                               bands = c("ndvi"))
 
     expect_true(nrow(points.tb) == 6)
 

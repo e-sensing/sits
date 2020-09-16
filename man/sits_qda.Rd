@@ -30,7 +30,7 @@ Please refer to the documentation in that package for more details.
 \donttest{
 # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 # Select the NDVI band
-samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 # Train a QDA model
 qda_model <- sits_train(samples_mt_ndvi, sits_qda())
 # Classify a point

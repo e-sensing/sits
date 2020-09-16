@@ -22,3 +22,4 @@ This function filters a matrix.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

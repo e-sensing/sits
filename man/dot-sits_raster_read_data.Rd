@@ -8,29 +8,26 @@
   cube,
   samples,
   ml_model,
-  first_row,
-  n_rows_block,
+  extent,
   stats,
   filter,
   multicores
 )
 }
 \arguments{
-\item{cube}{Input data cube.}
+\item{cube}{input data cube.}
 
-\item{samples}{Tibble with samples.}
+\item{samples}{tibble with samples.}
 
-\item{ml_model}{Machine learning model.}
+\item{ml_model}{machine learning model.}
 
-\item{first_row}{First row to start reading.}
+\item{extent}{bounding box in XY coordinates (terra object)}
 
-\item{n_rows_block}{Number of rows in the block.}
+\item{stats}{normalization parameters.}
 
-\item{stats}{Normalization parameters.}
+\item{filter}{smoothing filter to be applied.}
 
-\item{filter}{Smoothing filter to be applied.}
-
-\item{multicores}{Number of cores to process the time series.}
+\item{multicores}{number of cores to process the time series.}
 }
 \value{
 A data.table with values for classification.
@@ -41,3 +38,4 @@ Read a block of values retrived from a set of raster bricks
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

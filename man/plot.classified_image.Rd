@@ -36,8 +36,8 @@ plots a classified raster using ggplot.
 \donttest{
 # Retrieve the samples for Mato Grosso
 
-# select the bands "ndvi", "evi"
-samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+# select the band NDVI
+samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 
 #select a random forest model
 
@@ -48,7 +48,7 @@ files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
 # create a data cube based on the information about the files
 sinop <- sits_cube(type = "BRICK", satellite = "TERRA", sensor = "MODIS",
          name = "Sinop-crop", timeline = timeline_modis_392,
-         bands = "ndvi", files = files)
+         bands = "NDVI", files = files)
 
 # classify the raster image
 sinop_probs <- sits_classify(sinop, ml_model = rfor_model,

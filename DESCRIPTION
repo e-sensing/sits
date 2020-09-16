@@ -24,7 +24,7 @@ Description: A set of tools for working with satellite image time series, both a
     Includes functions for smoothing based on Bayesian inference. 
     Minimum recommended requirements: 8 GB RAM and 1 CPU dual-core.
 Encoding: UTF-8
-Depends: R (>= 3.6.0)
+Depends: R (>= 3.5.0)
 URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2 | file LICENSE
@@ -33,8 +33,6 @@ LazyData: true
 Imports:
     magrittr,
     assertthat,
-    aws.s3,
-    caret,
     config,
     data.table (>= 1.12),
     dplyr (>= 1.0.0),
@@ -44,21 +42,24 @@ Imports:
     keras (>= 2.3.0),
     log4r,
     lubridate (>= 1.7.0),
-    mapview,
     parallel,
     purrr  (>= 0.3.0),
     raster (>= 2.6),
     reshape2,
+    readr,
     rgdal (>= 1.5),
     scales,
     sf (>= 0.9),
     stats,
+    terra,
     tibble (>= 3.0),
+    tidyr,
     utils
 Suggests:
+    aws.s3,
+    caret,
     DBI,
     dendextend,
-    devtools,
     dtwclust,
     dtwSat,
     e1071,
@@ -68,19 +69,15 @@ Suggests:
     imputeTS,
     kohonen,
     knitr,
-    lwgeom,
     MASS,
+    mapview,
     methods,
     mgcv,
     nnet,
     openxlsx,
-    proto,
-    proxy,
     ptw,
     reticulate (>= 1.16),
-    rmarkdown,
     ranger,
-    readr,
     Rcpp,
     RCurl,
     RSQLite,
@@ -90,6 +87,7 @@ Suggests:
     stringr,
     testthat,
     xgboost,
+    xml2,
     wtss,
     zoo
 Remotes: 
@@ -105,13 +103,20 @@ Collate:
     'sits-package.R'
     'sits_accuracy.R'
     'sits_bdc.R'
+    'sits_brewer.R'
     'sits_classification.R'
+    'sits_classify_ts.R'
+    'sits_classify_cube.R'
     'sits_config.R'
+    'sits_conf_matrix.R'
     'sits_csv.R'
     'sits_cube.R'
+    'sits_cube_aux_functions.R'
+    'sits_clouds.R'
     'sits_cluster.R'
     'sits_db.R'
     'sits_deep_learning.R'
+    'sits_distances.R'
     'sits_dt_reference.R'
     'sits_factory.R'
     'sits_FCN.R'
@@ -121,6 +126,7 @@ Collate:
     'sits_keras.R'
     'sits_kohonen.R'
     'sits_labels.R'
+    'sits_label_classification.R'
     'sits_log.R'
     'sits_LSTM_FCN.R'
     'sits_machine_learning.R'
@@ -128,7 +134,11 @@ Collate:
     'sits_pipe.R'
     'sits_plot.R'
     'sits_raster.R'
+    'sits_raster_blocks.R'
+    'sits_raster_brick.R'
     'sits_raster_data.R'
+    'sits_raster_sub_image.R'
+    'sits_raster_stack.R'
     'sits_ResNet.R'
     'sits_satveg.R'
     'sits_sentinel.R'
@@ -136,6 +146,7 @@ Collate:
     'sits_space_time_operations.R'
     'sits_TempCNN.R'
     'sits_tibble.R'
+    'sits_tibble_aux_functions.R'
     'sits_timeline.R'
     'sits_twdtw.R'
     'sits_validate.R'

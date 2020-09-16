@@ -22,3 +22,4 @@ Create a list of time indexes from the dates index
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

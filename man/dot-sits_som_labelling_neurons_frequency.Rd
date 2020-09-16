@@ -23,3 +23,4 @@ If the neuron is empty, it will labeled as "NoClass".
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}
 }
+\keyword{internal}

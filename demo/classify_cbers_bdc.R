@@ -21,11 +21,12 @@ timeline <- sits_timeline(cbers_samples_022024)
 start_date <- as.Date(timeline[1])
 end_date   <- as.Date(timeline[length(timeline)])
 # set up the bands
-cbers_samples_022024 <- sits_select_bands(cbers_samples_022024, ndvi, evi)
+cbers_samples_022024 <- sits_select(cbers_samples_022024, bands = c("NDVI", "EVI"))
 bands <- sits_bands(cbers_samples_022024)
-# define the local directory to load the images
-local_dir <- "/gfs/Repository/Mosaic"
 
+# shapefile
+shp_file <- system.file("extdata/shapefiles/barreiras/barreiras.shp", package = "sits")
+sf_object <- sf::st_read(shp_file)
 # define the local CBERS data cube
 cbers_cube <- sits_cube(type = "BDC_TILE",
                         name = "cbers_022024",
@@ -34,20 +35,20 @@ cbers_cube <- sits_cube(type = "BDC_TILE",
                         bands  = bands,
                         cube   = "CB4_64_16D_STK",
                         tile   = "022024",
-                        data_access = "local",
+                        version = "v001",
+                        data_access = "web",
                         start_date  = start_date,
-                        end_date    = end_date,
-                        .local = local_dir)
+                        end_date    = end_date)
 
 # plot the image (first and last instances) - save the mapview for the
 # future
-mapview1 <- plot(cbers_cube, red = "evi", green = "ndvi", blue = "evi", time = 23)
+mapview1 <- plot(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 23)
 
 # train an XGB model
-xgb_model <- sits_train(cbers_samples_022024, sits_xgboost())
+svm_model <- sits_train(cbers_samples_022024, sits_svm())
 
 # classify the data (remember to set the appropriate memory size)
-cbers_probs <- sits_classify(cbers_cube, xgb_model, memsize = 8, multicores = 1)
+cbers_probs <- sits_classify(cbers_cube, svm_model, sf_object = sf_object, memsize = 24, multicores = 4)
 
 # plot the probabilities for each class
 plot(cbers_probs)

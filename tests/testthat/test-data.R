@@ -1,7 +1,7 @@
 context("Data input")
 test_that("Creating a WTSS data cube", {
     #skip_on_cran()
-    cube_wtss <- sits_cube(service = "WTSS",
+    cube_wtss <- sits_cube(type = "WTSS",
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
 
@@ -78,7 +78,7 @@ test_that("Reading a point from WTSS ", {
     timeline <- lubridate::as_date(as.vector(sits_time_series_dates(point.tb)))
 
     expect_true(ncol(sits_time_series(point.tb)) == 7)
-    expect_equal(sum(sits_time_series(point.tb)$evi[1:423]),
+    expect_equal(sum(sits_time_series(point.tb)$EVI[1:423]),
                  157.3737, tolerance = 1e-3)
     expect_true(point.tb$start_date == timeline[1])
     expect_true(point.tb$end_date == timeline[length(timeline)])
@@ -94,20 +94,20 @@ test_that("Reading a point from SATVEG ", {
                                  longitude = -55.50563, latitude = -11.71557)
 
     expect_equal(ncol(sits_time_series(point_terra)), 3)
-    expect_equal(sum(sits_time_series(point_terra)$evi), 158.11, tolerance = 2)
+    expect_equal(sum(sits_time_series(point_terra)$EVI), 158.11, tolerance = 2)
 
     point_aqua <- sits_get_data(cube_2,
                                 longitude = -55.50563, latitude = -11.71557)
 
     expect_equal(ncol(sits_time_series(point_aqua)), 3)
-    expect_equal(sum(sits_time_series(point_aqua)$evi),
+    expect_equal(sum(sits_time_series(point_aqua)$EVI),
                  132.3852, tolerance = 2)
 
     point_comb <- sits_get_data(cube_3,
                                 longitude = -55.50563, latitude = -11.71557)
 
     expect_equal(ncol(sits_time_series(point_comb)), 3)
-    expect_equal(sum(sits_time_series(point_comb)$evi), 290.3342, tolerance = 2)
+    expect_equal(sum(sits_time_series(point_comb)$EVI), 290.3342, tolerance = 2)
 
     expect_true(length(sits_time_series_dates(point_comb)) >=
                     length(sits_time_series_dates(point_terra)))
@@ -118,7 +118,7 @@ test_that("Reading a POLYGON shapefile", {
     cube_wtss <- sits_cube(type = "WTSS",
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
-    shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp",
+    shp_file <- system.file("extdata/shapefiles/agriculture/parcel_agriculture.shp",
                             package = "sits")
     parcel.tb <- sits_get_data(cube_wtss,
                                file = shp_file,
@@ -141,26 +141,31 @@ test_that("Reading a POINT shapefile", {
     cube_wtss <- sits_cube(type = "WTSS",
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
-    shp_file <- system.file("extdata/shapefiles/cerrado_forested.shp",
+    shp_file <- system.file("extdata/shapefiles/cerrado/cerrado_forested.shp",
                             package = "sits")
     points.tb <- sits_get_data(cube_wtss, file = shp_file,
-                               label = "Cerrado_Forested", .n_shp_pts = 3)
+                               label = "Cerrado_Forested")
 
     expect_true(all(points.tb$label == "Cerrado_Forested"))
 })
 
 test_that("Labels and re-label", {
     #skip_on_cran()
-    data(prodes_226_064)
-    conv.lst <- list(Deforestation_2014 = "NonForest",
-                     Deforestation_2015 = "NonForest",
-                     Forest = "Forest",
-                     Pasture = "NonForest")
-    new_data <- sits_relabel(prodes_226_064, conv.lst)
+    data(samples_mt_4bands)
+    # Create a conversion list.
+    # Three classes will be converted to "Cropland".
+    conv.lst = list(Soy_Corn = "Cropland",
+                    Soy_Cotton  = "Cropland",
+                    Soy_Fallow  = "Cropland",
+                    Soy_Millet  = "Cropland",
+                    Soy_Sunflower  = "Cropland",
+                    Fallow_Cotton  = "Cropland")
+
+    new_data <- sits_relabel(samples_mt_4bands, conv.lst)
 
     labels <- sits_labels(new_data)
 
-    expect_equal(length(labels$label), 2)
-    expect_equal(labels$label[1], "Forest")
+    expect_equal(length(labels$label), 4)
+    expect_equal(labels$label[1], "Cerrado")
     expect_equal(sum(labels$prop), 1)
 })

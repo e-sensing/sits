@@ -12,3 +12,4 @@ Memory used in GB.
 \description{
 Calls the gc() and rounds the result in GB.
 }
+\keyword{internal}

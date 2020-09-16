@@ -22,8 +22,8 @@ Returns a sits tibble with the selected bands.
 data(cerrado_2classes)
 # Print the original bands
 sits_bands(cerrado_2classes)
-# Select only the "ndvi" band
-data <- sits_select_bands(cerrado_2classes, ndvi)
+# Select only the NDVI band
+data <- sits_select_bands(cerrado_2classes, NDVI)
 # Print the labels of the resulting tibble
 sits_bands(data)
 }
