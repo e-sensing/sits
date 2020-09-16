@@ -103,20 +103,21 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
 #' Remote Sensing of
 #' Environment, 148, pp. 42-57.
 #'
-#' @param label_cube       A sits labelled cube
-#'                         with the result of classification method.
 #' @param validation       A SITS tibble or CSV file with validation data
 #'
+#' @param area             A named vector of the total area of each class on
+#'                         the map
+#'
 #' @export
-sits_accuracy <- function(label_cube, validation){
+sits_accuracy <- function(validation, area){
 
-    assertthat::assert_that("classified_image" %in% class(label_cube),
-                            msg = "sits_accuracy requires a labelled cube")
-
-
+    # assertthat::assert_that("classified_image" %in% class(label_cube),
+    #                         msg = "sits_accuracy requires a labelled cube")
+    #
+    #
 
     # backward compatibility
-    class.tb <- .sits_tibble_rename(class.tb)
+    class.tb <- .sits_tibble_rename(validation)
 
     # Get reference classes
     references <- class.tb$label
@@ -153,7 +154,8 @@ sits_accuracy <- function(label_cube, validation){
 #' @param error_matrix A matrix given in sample counts.
 #'                     Columns represent the reference data and
 #'                     rows the results of the classification
-#' @param area         A vector of the total area of each class on the map
+#' @param area         A named vector of the total area of each class on
+#'                     the map
 #'
 #' @return             A list of lists: The error_matrix,
 #'                     the class_areas,
@@ -181,27 +183,34 @@ sits_accuracy <- function(label_cube, validation){
 
     W <- area/sum(area)
     n <- rowSums(error_matrix)
+
     if (any(n < 2))
         stop("Undefined accuracy: one pixel in a class (division by zero).",
              call. = FALSE)
-    n.mat <- matrix(rep(n, times = ncol(error_matrix)),
-                    ncol = ncol(error_matrix))
-    p <- W * error_matrix / n.mat
+    # n.mat <- matrix(rep(n, times = ncol(error_matrix)),
+    #                 ncol = ncol(error_matrix))
+    # p <- W * error_matrix / n.mat
+    p <- W * error_matrix / n
     error_adjusted_area_estimate <- colSums(p) * sum(area)
-    Sphat_1 <- vapply(seq_len(ncol(error_matrix)), function(i){
-        sqrt(sum(W^2 * error_matrix[, i]/n * (1 - error_matrix[, i]/n)/(n - 1)))
-    }, numeric(1))
+
+    # Sphat_1 <- vapply(seq_len(ncol(error_matrix)), function(i){
+    #     sqrt(sum(W^2 * error_matrix[, i]/n * (1 - error_matrix[, i]/n)/(n - 1)))
+    # }, numeric(1))
+    Sphat_1 <- sqrt(colSums((W * p - p ** 2) / (n - 1)))
 
     SAhat <- sum(area) * Sphat_1
-    Ahat_sup <- error_adjusted_area_estimate + 2 * SAhat
-    Ahat_inf <- error_adjusted_area_estimate - 2 * SAhat
+    # Ahat_sup <- error_adjusted_area_estimate + 2 * SAhat
+    Ahat_sup <- error_adjusted_area_estimate + 1.96 * SAhat
+    # Ahat_inf <- error_adjusted_area_estimate - 2 * SAhat
+    Ahat_inf <- error_adjusted_area_estimate - 1.96 * SAhat
     Ohat <- sum(diag(p))
     Uhat <- diag(p) / rowSums(p)
     Phat <- diag(p) / colSums(p)
 
     return(
-        list(error_matrix = error_matrix, area = area,
-             confint95 = list(superior = Ahat_sup, inferior = Ahat_inf),
+        list(error_matrix = error_matrix,
+             area = area, SE_area = SAhat,
+             conf_95 = list(superior = Ahat_sup, inferior = Ahat_inf),
              accuracy = list(overall = Ohat, user = Uhat, producer = Phat))
     )
 }
