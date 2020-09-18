@@ -146,7 +146,7 @@ sits_label_classification <- function(cube,
 
 		# apply majority filter
 		if (smoothing == "majority" || smoothing == "bayesian+majority") {
-			layer <- terra::focal(x = layer, w = window,
+			layer <- terra::focal(x = layer, w = 3,
 			                      na.rm = TRUE, fun = terra::modal)
 		}
 		# save raster output to file

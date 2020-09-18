@@ -4,10 +4,10 @@
 \alias{.sits_raster_params}
 \title{Determine the cube params to write in the metadata}
 \usage{
-.sits_raster_params(r_obj)
+.sits_raster_params(t_obj)
 }
 \arguments{
-\item{r_obj}{A valid raster object}
+\item{t_obj}{A valid raster object}
 }
 \value{
 A tibble with the cube params

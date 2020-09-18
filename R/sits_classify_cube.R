@@ -244,7 +244,7 @@
 #' @param  multicores        Number of cores to process the time series.
 #' @return                   A data table with predicted values of probs
 .sits_classify_interval <- function(DT, ml_model, multicores) {
-<<<<<<< HEAD
+
 	nrows_DT <- nrow(DT)
 	proc_cores <- multicores
 	if (!(purrr::is_null(environment(ml_model)$model.keras)) ||
@@ -292,71 +292,6 @@
 	# are the results consistent with the data input?
 	assertthat::assert_that(nrow(prediction_DT) == nrows_DT,
 							msg = ".sits_classify_cube -
-=======
-    nrows_DT <- nrow(DT)
-    proc_cores <- multicores
-    if (!(purrr::is_null(environment(ml_model)$model.keras)) ||
-        !(purrr::is_null(environment(ml_model)$result_ranger)) ) {
-        proc_cores <- 1
-        .sits_log_debug(
-            paste0("keras and ranger run on multiple CPUs -
-                   setting multicores to 1"))
-    }
-
-    # classify a block of data (with data split)
-    classify_block <- function(block) {
-        # predict the values for each time interval
-        pred_block <- ml_model(block)
-        return(pred_block)
-    }
-    # set up multicore processing
-    if (proc_cores > 1) {
-        # estimate the list for breaking a block
-        .sits_log_debug(
-            paste0("Memory used before split data - ", .sits_mem_used(), " GB"))
-        block.lst <- .sits_raster_split_data(DT, proc_cores)
-        # memory management
-        rm(DT)
-        gc()
-
-        .sits_log_debug(
-            paste0("Memory used before mcapply - ", .sits_mem_used(), " GB"))
-        # apply parallel processing to the split data
-        # (return the results in a list inside a prototype)
-        predictions.lst <- parallel::mclapply(block.lst,
-                                              classify_block,
-                                              mc.cores = proc_cores)
-
-        #memory management
-        rm(block.lst)
-        gc()
-        .sits_log_debug(
-            paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
-        # compose result based on output from different cores
-        prediction_DT <- data.table::as.data.table(do.call(rbind,predictions.lst))
-        # memory management
-        rm(predictions.lst)
-        gc()
-        .sits_log_debug(
-            paste0("Memory after removing predictions - ",
-                   .sits_mem_used(), " GB"))
-    }
-    else {
-        # memory management
-        .sits_log_debug(
-            paste0("Memory used before prediction - ", .sits_mem_used(), " GB"))
-
-        # estimate the prediction vector
-        prediction_DT <- ml_model(DT)
-        # memory management
-        rm(DT)
-        gc()
-    }
-
-    # are the results consistent with the data input?
-    assertthat::assert_that(nrow(prediction_DT) == nrows_DT,
-                            msg = ".sits_classify_cube -
->>>>>>> 7761f46c36abaff4f318c846794b7154c5a974dc
                     number of rows of probability matrix is different
                     from number of input pixels")
 

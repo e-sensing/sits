@@ -40,7 +40,6 @@ Imports:
     graphics,
     grDevices,
     keras (>= 2.3.0),
-    log4r,
     lubridate (>= 1.7.0),
     parallel,
     purrr  (>= 0.3.0),
@@ -60,6 +59,7 @@ Suggests:
     caret,
     DBI,
     dendextend,
+    devtools,
     dtwclust,
     dtwSat,
     e1071,
@@ -75,6 +75,7 @@ Suggests:
     mgcv,
     nnet,
     openxlsx,
+    proto,
     ptw,
     reticulate (>= 1.16),
     ranger,
@@ -127,7 +128,6 @@ Collate:
     'sits_kohonen.R'
     'sits_labels.R'
     'sits_label_classification.R'
-    'sits_log.R'
     'sits_LSTM_FCN.R'
     'sits_machine_learning.R'
     'sits_patterns.R'
