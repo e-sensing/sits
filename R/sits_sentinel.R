@@ -48,7 +48,6 @@
 		r <- suppressWarnings(raster::raster(test_file))
 	}, error = function(e){
 		msg <- paste0("Error in accessing AWS files")
-		.sits_log_error(msg)
 		message(msg)
 	})
 	return(TRUE)

@@ -41,7 +41,6 @@
 		brick <- suppressWarnings(raster::brick(files[1]))
 	}, error = function(e){
 		msg <- paste0("Raster files are not bricks")
-		.sits_log_error(msg)
 		message(msg)
 	})
 	return(TRUE)

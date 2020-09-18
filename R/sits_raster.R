@@ -124,11 +124,6 @@
                                                       stats, filter,
                                                       multicores)
 
-            # save information about memory use for debugging later
-            .sits_log_debug(paste0("Memory used after readGDAL - ",
-                                   .sits_mem_used(), " GB"))
-            .sits_log_debug(paste0("Read band ", b, " from extent ", extent))
-
             return(values.mx)
         })
 
@@ -145,10 +140,6 @@
 
     # join the two columns with the data values
     data_DT <- data.table::as.data.table(cbind(two_cols_DT, data_DT))
-
-    # memory debug
-    .sits_log_debug(paste0("Memory used after reading block - ",
-                           .sits_mem_used(), " GB"))
 
     return(data_DT)
 }

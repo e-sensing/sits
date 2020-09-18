@@ -12,7 +12,6 @@
     Sys.setenv(R_CONFIG_ACTIVE = "default")
     Sys.setenv(R_CONFIG_FILE = "config.yml")
     sits_config()
-    sits_log()
 }
 
 # Creates a package environment to store global variables

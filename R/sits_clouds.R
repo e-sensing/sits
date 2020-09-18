@@ -120,9 +120,6 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 	# estimated size of memory required
 	mem_required <- (full_size + as.numeric(.sits_mem_used()))*bloat
 
-	.sits_log_debug(paste0("max memory required for cloud removal(GB) - ",
-						   round(mem_required/1e+09, digits = 3)))
-
 	# number of passes to read the full data sets
 	nblocks <- ceiling(mem_required/(memsize*1e+09))
 

@@ -139,10 +139,6 @@
                                   # memory management
                                   rm(prediction_DT)
                                   gc()
-                                  .sits_log_debug(paste0("Memory used after processing block ",
-                                                         b, " of interval ", iter, " - ",
-                                                         .sits_mem_used(), " GB"))
-
                                   # estimate processing time
                                   .sits_classify_estimate_processing_time(start_time = start_time,
                                                                           select.lst = select.lst,
@@ -150,12 +146,6 @@
                                                                           time = iter)
                                   return(brick)
                               })
-
-        # save information about memory use for debugging later
-        .sits_log_debug(paste0("Processed block starting from ",
-                               bs$row[b], " to ", (bs$row[b] + bs$nrows[b] - 1)))
-        .sits_log_debug(paste0("Memory used after processing block ",
-                               b,  " - ", .sits_mem_used(), " GB"))
 
     }
 
@@ -243,9 +233,6 @@
 	if (!(purrr::is_null(environment(ml_model)$model.keras)) ||
 		!(purrr::is_null(environment(ml_model)$result_ranger)) ) {
 		proc_cores <- 1
-		.sits_log_debug(
-			paste0("keras and ranger run on multiple CPUs -
-                   setting multicores to 1"))
 	}
 
 	# classify a block of data (with data split)
@@ -257,15 +244,10 @@
 	# set up multicore processing
 	if (proc_cores > 1) {
 		# estimate the list for breaking a block
-		.sits_log_debug(
-			paste0("Memory used before split data - ", .sits_mem_used(), " GB"))
 		block.lst <- .sits_raster_split_data(DT, proc_cores)
 		# memory management
 		rm(DT)
 		gc()
-
-		.sits_log_debug(
-			paste0("Memory used before mcapply - ", .sits_mem_used(), " GB"))
 		# apply parallel processing to the split data
 		# (return the results in a list inside a prototype)
 		predictions.lst <- parallel::mclapply(block.lst,
@@ -275,21 +257,13 @@
 		#memory management
 		rm(block.lst)
 		gc()
-		.sits_log_debug(
-			paste0("Memory used after mclapply - ", .sits_mem_used(), " GB"))
 		# compose result based on output from different cores
 		prediction_DT <- data.table::as.data.table(do.call(rbind,predictions.lst))
 		# memory management
 		rm(predictions.lst)
 		gc()
-		.sits_log_debug(
-			paste0("Memory after removing predictions - ",
-				   .sits_mem_used(), " GB"))
 	}
 	else {
-		# memory management
-		.sits_log_debug(
-			paste0("Memory used before prediction - ", .sits_mem_used(), " GB"))
 
 		# estimate the prediction vector
 		prediction_DT <- ml_model(DT)

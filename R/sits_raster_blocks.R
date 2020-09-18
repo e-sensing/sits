@@ -83,9 +83,6 @@
     # estimated size of memory required for scaling and normalization
     mem_required_scaling <- (full_size + as.numeric(.sits_mem_used()))*bloat
 
-    .sits_log_debug(paste0("max memory required for scaling (GB) - ",
-                           round(mem_required_scaling/1e+09, digits = 3)))
-
     # number of labels
     nlabels <- length(sits_labels(environment(ml_model)$data)$label)
     # estimated size of the data for classification
@@ -96,7 +93,6 @@
     # memory required for processing depends on the model
     if ("keras_model" %in% class(ml_model) || "rfor_model" %in% class(ml_model))
     {
-        .sits_log_debug(paste0("keras and ranger run on multiple threads"))
         mem_required_processing <- (class_data_size +
                                         as.numeric(.sits_mem_used()))*proc_bloat
     }
@@ -109,8 +105,6 @@
             mem_required_processing <- as.numeric(multicores) *
                 (.sits_mem_used() + class_data_size + full_size)
     }
-    .sits_log_debug(paste0("max memory required for processing (GB) - ",
-                           round(mem_required_processing/1e+09, digits = 3)))
 
     # number of passes to read the full data sets
     nblocks <- max(ceiling(mem_required_scaling/(memsize*1e+09)),

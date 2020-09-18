@@ -143,7 +143,6 @@
 		data$time_series <- proc_fun(...)
 	}, error = function(e){
 		msg <- paste0("Error - Are your band names all uppercase?")
-		.sits_log_error(msg)
 		message(msg)
 	})
 
@@ -184,14 +183,7 @@
 	}
 	else{
 		message("Some samples of time series do not have the same time indices
-                as the majority of the data - see log file")
-
-		# save the wrong data in a log file
-		ind1 <- which(n_samples != stats::median(n_samples))
-		msg_log <- paste0("Lines with wrong number of samples are ",ind1)
-		.sits_log_error(msg_log)
-		data_err.tb <- data[ind1, ]
-		.sits_log_csv(data_err.tb)
+                as the majority of the data")
 
 		# return the time series that have the same number of samples
 		ind2 <- which(n_samples == stats::median(n_samples))
@@ -239,7 +231,6 @@
 		data$time_series <- proc_fun(...)
 	}, error = function(e){
 		msg <- paste0("Error - Are your band names all uppercase?")
-		.sits_log_error(msg)
 		message(msg)
 	})
 	return(data)
