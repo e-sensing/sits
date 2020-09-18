@@ -162,11 +162,11 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
     files <- .sits_raster_check_webfiles(files)
     # check if the files are bricks
     bricks_ok <- .sits_raster_brick_check(satellite = satellite,
-                                           sensor    = sensor,
-                                           name      = name,
-                                           timeline  = timeline,
-                                           bands     = bands,
-                                           files     = files)
+                                          sensor    = sensor,
+                                          name      = name,
+                                          timeline  = timeline,
+                                          bands     = bands,
+                                          files     = files)
     if (bricks_ok)
         cube <- .sits_raster_brick_cube(satellite = satellite,
                                         sensor    = sensor,
@@ -236,10 +236,10 @@ sits_cube.stack_cube <- function(type = "STACK", ...,
     ok <- .sits_raster_satellite_sensor(satellite, sensor)
     # precondition - check parsing info
     assertthat::assert_that(length(parse_info) >= 2,
-                msg = "invalid parsing information")
+                            msg = "invalid parsing information")
 
     assertthat::assert_that(all(c("band", "date") %in% parse_info),
-                msg = "parsing info need to contain valid columns for date and band")
+                            msg = "parsing info need to contain valid columns for date and band")
 
     if (ok) {
         # get the file information
@@ -490,7 +490,7 @@ sits_cube_copy <- function (cube, name, dest_dir, bands = NULL){
                                                      "_",d,".jp2")
                                  gdalUtils::gdal_translate(p, dest_file)
                                  return(dest_file)
-                        })
+                             })
     # update file info
     new_paths <- unlist(paths.lst)
     file_info_out$path <- new_paths

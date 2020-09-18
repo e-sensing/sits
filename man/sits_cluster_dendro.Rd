@@ -21,8 +21,7 @@ sits_cluster_dendro(
 
 \item{bands}{Bands to be used in the clustering}
 
-\item{dist_method}{String with one of the supported distance
-from proxy's dist, e.g. \code{TWDTW}.}
+\item{dist_method}{String with one of the supported distances.}
 
 \item{linkage}{String with agglomeration method to be used.
 Can be any `hclust` method (see `hclust`).

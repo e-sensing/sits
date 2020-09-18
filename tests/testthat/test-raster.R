@@ -43,9 +43,9 @@ test_that("Multi-year, multi-core classification", {
                        bands = "ndvi",
                        files = files)
 
-    r_obj <- suppressWarnings(raster::brick(sinop$file_info[[1]]$path[1]))
-    expect_true(raster::nrow(r_obj) == sinop$nrows)
-    expect_true(raster::xmin(r_obj) == sinop$xmin)
+    t_obj <- suppressWarnings(terra::rast(sinop$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(t_obj) == sinop$nrows)
+    expect_true(terra::xmin(t_obj) == sinop$xmin)
 
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
     svm_model <- sits_train(samples_mt_ndvi, sits_svm())
@@ -54,8 +54,8 @@ test_that("Multi-year, multi-core classification", {
     sinop_probs <- sits_classify(sinop, svm_model, memsize = 4, multicores = 2)
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    rc_obj <- suppressWarnings(raster::brick(sinop_probs$file_info[[1]]$path[1]))
-    expect_true(raster::nrow(rc_obj) == sinop_probs$nrows)
+    tc_obj <- suppressWarnings(terra::rast(sinop_probs$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(tc_obj) == sinop_probs$nrows)
 
     expect_error(sits:::.sits_raster)
 
@@ -66,24 +66,24 @@ test_that("Multi-year, multi-core classification", {
                                                    smoothing = "bayesian")
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
-    rc_obj2 <- suppressWarnings(raster::brick(sinop_bayes$file_info[[1]]$path[1]))
-    expect_true(raster::nrow(rc_obj2) == sinop_bayes$nrows)
-    expect_true(raster::nrow(rc_obj2) == raster::nrow(rc_obj))
+    tc_obj2 <- suppressWarnings(terra::rast(sinop_bayes$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(tc_obj2) == sinop_bayes$nrows)
+    expect_true(terra::nrow(tc_obj2) == terra::nrow(tc_obj))
 
     sinop_majority <- sits_label_classification(sinop_probs,
                                                 smoothing = "majority")
     expect_true(all(file.exists(unlist(sinop_majority$file_info[[1]]$path))))
-    rc_obj3 <- suppressWarnings(raster::brick(sinop_majority$file_info[[1]]$path[1]))
-    expect_true(raster::nrow(rc_obj2) == sinop_majority$nrows)
-    expect_true(raster::nrow(rc_obj3) == raster::nrow(rc_obj))
+    tc_obj3 <- suppressWarnings(terra::rast(sinop_majority$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(tc_obj2) == sinop_majority$nrows)
+    expect_true(terra::nrow(tc_obj3) == terra::nrow(tc_obj))
 
 
     sinop_majority_bayes <- sits_label_classification(sinop_probs,
                                             smoothing = "bayesian+majority")
     expect_true(all(file.exists(unlist(sinop_majority_bayes$file_info[[1]]$path))))
-    rc_obj4 <- suppressWarnings(raster::brick(sinop_majority_bayes$file_info[[1]]$path[1]))
-    expect_true(raster::nrow(rc_obj4) == sinop_majority$nrows)
-    expect_true(raster::nrow(rc_obj4) == raster::nrow(rc_obj))
+    tc_obj4 <- suppressWarnings(terra::rast(sinop_majority_bayes$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(tc_obj4) == sinop_majority$nrows)
+    expect_true(terra::nrow(tc_obj4) == terra::nrow(tc_obj))
 
     expect_true(length(sits_timeline(sinop_majority_bayes)) ==
                     length(sits_timeline(sinop_probs)))
@@ -129,8 +129,8 @@ test_that("One-year, single core classification", {
                                       multicores = 1)
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
-    rc_obj <- suppressWarnings(raster::brick(sinop_2014_probs$file_info[[1]]$path[1]))
-    expect_true(raster::nrow(rc_obj) == sinop_2014_probs$nrows)
+    tc_obj <- suppressWarnings(terra::rast(sinop_2014_probs$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(tc_obj) == sinop_2014_probs$nrows)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 

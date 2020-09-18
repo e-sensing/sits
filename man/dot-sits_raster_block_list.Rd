@@ -4,9 +4,11 @@
 \alias{.sits_raster_block_list}
 \title{Calculate a list of blocks to be read from disk to memory}
 \usage{
-.sits_raster_block_list(nblocks, sub_image)
+.sits_raster_block_list(cube, nblocks, sub_image)
 }
 \arguments{
+\item{cube}{input data cube}
+
 \item{nblocks}{number of blocks to read from each image}
 
 \item{sub_image}{nrea of interest in the image}
