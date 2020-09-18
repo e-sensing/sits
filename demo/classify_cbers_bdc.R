@@ -24,9 +24,18 @@ end_date   <- as.Date(timeline[length(timeline)])
 cbers_samples_022024 <- sits_select(cbers_samples_022024, bands = c("NDVI", "EVI"))
 bands <- sits_bands(cbers_samples_022024)
 
+# region of interest
+df <- data.frame(
+    lon = c(-46.67404746, -45.09037986, -45.09037986, -46.67404746),
+    lat = c(-12.06618108, -12.06618108, -11.06869077, -11.06869077)
+)
+
+sf_region <- df %>%
+    sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+    dplyr::summarise(geometry = sf::st_combine(geometry)) %>%
+    sf::st_cast("POLYGON")
+
 # shapefile
-shp_file <- system.file("extdata/shapefiles/barreiras/barreiras.shp", package = "sits")
-sf_object <- sf::st_read(shp_file)
 # define the local CBERS data cube
 cbers_cube <- sits_cube(type = "BDC_TILE",
                         name = "cbers_022024",
@@ -36,7 +45,7 @@ cbers_cube <- sits_cube(type = "BDC_TILE",
                         cube   = "CB4_64_16D_STK",
                         tile   = "022024",
                         version = "v001",
-                        data_access = "web",
+                        data_access = "local",
                         start_date  = start_date,
                         end_date    = end_date)
 
@@ -48,8 +57,12 @@ mapview1 <- plot(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 2
 svm_model <- sits_train(cbers_samples_022024, sits_svm())
 
 # classify the data (remember to set the appropriate memory size)
-cbers_probs <- sits_classify(cbers_cube, svm_model, sf_object = sf_object, memsize = 24, multicores = 4)
+cbers_probs_roi <- sits_classify(cbers_cube, svm_model, sf_region = sf_region, memsize = 24, multicores = 4)
+plot(cbers_probs_roi)
 
+cbers_label_roi <- sits_label_classification(cbers_probs_roi, smoothing = "bayesian")
+
+cbers_probs <- sits_classify(cbers_cube, svm_model, memsize = 24, multicores = 4)
 # plot the probabilities for each class
 plot(cbers_probs)
 

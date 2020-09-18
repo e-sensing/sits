@@ -339,29 +339,6 @@ sits_cube_timeline <- function(cube, index = 1){
 	return(cube$timeline[[1]][[index]])
 }
 
-#' @title Given a band, return the associated Raster object for the cube
-#' @name .sits_cube_robj_band
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description          Given a data cube, retrieve the timeline
-#' @param cube           Metadata about a data cube
-#' @param band_cube      Name of the band to the retrieved
-#' @return               Raster object associated to the indexed file
-#'
-.sits_cube_robj_band <- function(cube, band_cube){
-
-	bands <- unlist(cube$bands)
-	index <- grep(band_cube, bands)
-
-	band.tb <- dplyr::filter(cube$file_info[[1]], band == band_cube)
-	# Get the robjs for faster access
-	if (cube$type == "BRICK")
-		r_obj <- suppressWarnings(raster::brick(band.tb$path))
-	else
-		r_obj <- suppressWarnings(raster::stack(band.tb$path))
-	return(r_obj)
-}
 
 #' @title Given a band, return the associated Raster object for the cube
 #' @name .sits_cube_terra_obj_band

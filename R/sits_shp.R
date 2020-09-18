@@ -22,9 +22,6 @@
     # if the shapefile is not in planar coordinates, convert it
     sf_shape <- suppressWarnings(sf::st_transform(sf_shape, crs = 4326))
 
-    # get the data frame associated to the shapefile
-    shp_df <- sf::st_drop_geometry(sf_shape)
-
     # get a tibble with points and labels
     if (geom_type == "POINT") {
         points.tb <- .sits_from_point_shp(sf_shape, shp_attr, label)
@@ -60,7 +57,7 @@
     }
     # build a tibble with lat/long and label
     points.tb <- tibble::tibble(longitude = points.mx[,1],
-                                latitude  = points.mx[,1],
+                                latitude  = points.mx[,2],
                                 label     = labels.vec)
 
     return(points.tb)

@@ -68,35 +68,22 @@
 #'
 #' @description    Based on the R object associated to a raster object,
 #'                 determine its params
-#' @param r_obj    A valid raster object
+#' @param t_obj    A valid raster object
 #' @return A tibble with the cube params
-.sits_raster_params <- function(r_obj) {
+.sits_raster_params <- function(t_obj) {
 
     params.tb <- tibble::tibble(
-        nrows = raster::nrow(r_obj),
-        ncols = raster::ncol(r_obj),
-        xmin  = raster::xmin(r_obj),
-        xmax  = raster::xmax(r_obj),
-        ymin  = raster::ymin(r_obj),
-        ymax  = raster::ymax(r_obj),
-        xres  = raster::xres(r_obj),
-        yres  = raster::yres(r_obj),
-        crs   = as.character(suppressWarnings(raster::crs(r_obj)))
+        nrows = terra::nrow(t_obj),
+        ncols = terra::ncol(t_obj),
+        xmin  = terra::xmin(t_obj),
+        xmax  = terra::xmax(t_obj),
+        ymin  = terra::ymin(t_obj),
+        ymax  = terra::ymax(t_obj),
+        xres  = terra::xres(t_obj),
+        yres  = terra::yres(t_obj),
+        crs   = as.character(suppressWarnings(terra::crs(t_obj)))
     )
     return(params.tb)
-}
-#' @title Raster object from file
-#' @name .sits_raster_files_robj
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description     Given the vector of files and the name of the service,
-#'                  return the Raster object for the file
-#' @param files     Vector of files
-#' @return          Raster object associated to the first file
-#'
-.sits_raster_files_robj <- function(files){
-    return(suppressWarnings(raster::brick(files[1])))
 }
 #' @title Tests if an XY position is inside a ST Raster Brick
 #' @name .sits_raster_xy_inside

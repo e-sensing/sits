@@ -160,6 +160,9 @@
     else
         img_files_full_path <- .sits_bdc_list_files_http(data_dir)
 
+    assertthat::assert_that((img_files_full_path[1] != data_dir),
+                            msg = "cannot access BDC files - connection error")
+
     # filter by BDC extension (to get only valid files)
     bdc_ext <- .sits_config_bdc_extension()
     img_files_full_path <- img_files_full_path[grepl(bdc_ext, img_files_full_path)]
@@ -238,7 +241,7 @@
 	# check if the file begins with http =:// or with vsicurl/
 	full_path_1 <- .sits_raster_check_webfiles(file_info[1,]$path)
 	# obtain the parameters
-	params <- .sits_raster_params(suppressWarnings(raster::raster(full_path_1)))
+	params <- .sits_raster_params(terra::rast(full_path_1))
 
 	# if (purrr::is_null(bands))
 	#     bands <- unique(dplyr::pull(dplyr::select(file_info$band)))

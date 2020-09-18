@@ -181,14 +181,15 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 	bricks <- vector("list", n_objs)
 
 	bricks <- purrr::map(bricks, function(brick){
-		brick <- suppressWarnings(raster::brick(nl    = n_objs,
-												nrows = cube$nrows,
-												ncols = cube$ncols,
-												xmn   = cube$xmin,
-												xmx   = cube$xmax,
-												ymn   = cube$ymin,
-												ymx   = cube$ymax,
-												crs   = cube$crs))
+		brick <- terra::rast(nrows  = cube$nrows,
+		                     ncols  = cube$ncols,
+		                     nlyrs  = n_objs,
+		                     xmin   = cube$xmin,
+		                     xmax   = cube$xmax,
+		                     ymin   = cube$ymin,
+		                     ymax   = cube$ymax,
+		                     crs    = cube$crs)
+
 		return(brick)
 	})
 
