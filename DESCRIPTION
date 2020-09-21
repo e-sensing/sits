@@ -1,7 +1,7 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis For Remote Sensing Data Cubes
-Version: 0.9.6
+Version: 0.9.7
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
              person('Pedro', 'Andrade', role = c('aut'), email = 'pedro.andrade@inpe.br'),
@@ -75,6 +75,7 @@ Suggests:
     mgcv,
     nnet,
     openxlsx,
+    plyr,
     proto,
     ptw,
     reticulate (>= 1.16),
@@ -115,6 +116,7 @@ Collate:
     'sits_cube_aux_functions.R'
     'sits_clouds.R'
     'sits_cluster.R'
+    'sits_data_generics.R'
     'sits_db.R'
     'sits_deep_learning.R'
     'sits_distances.R'
@@ -140,6 +142,7 @@ Collate:
     'sits_raster_sub_image.R'
     'sits_raster_stack.R'
     'sits_ResNet.R'
+    'sits_roi.R'
     'sits_satveg.R'
     'sits_sentinel.R'
     'sits_shp.R'

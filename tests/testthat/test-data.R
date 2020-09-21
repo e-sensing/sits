@@ -47,8 +47,7 @@ test_that("Reading a CSV file from RASTER", {
     #skip_on_cran()
     file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                           package = "sits"))
-    raster_cube <- sits_cube(type = "BRICK",
-                             name = "Sinop-crop",
+    raster_cube <- sits_cube(name = "Sinop-crop",
                              satellite = "TERRA",
                              sensor    = "MODIS",
                              timeline = sits::timeline_modis_392,

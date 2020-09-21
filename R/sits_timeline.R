@@ -2,24 +2,50 @@
 #' @name sits_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function returns the timeline for a given cube.
-#'
-#' @param  data     A sits tibble (either a sits tibble or a raster metadata).
-#' @param  index    The index to obtain the timeline (in case of raster bricks)
+#' @description This function returns the timeline for a given data set
+#'              For details see:
+#' \itemize{
+#'  \item{"time series": }{see \code{\link{sits_timeline.sits}}}
+#'  \item{"data cube": }{see \code{\link{sits_timeline.cube}}}
+#' }
+#' @param  data     either a sits tibble or data cube
+#' @param  index    index in the case of data cube
 #' @export
-sits_timeline <- function(data, index = 1){
-    timeline <-  NULL
-    # is this a cube metadata?
-    if ("timeline" %in% names(data))
-        timeline <- lubridate::as_date(sits_cube_timeline(data, index))
+sits_timeline <- function(data, index){
+    # get the meta-type (sits or cube)
+    data <- .sits_config_data_meta_type(data)
 
-    # is this a sits tibble with the time series?
-    if ("time_series" %in% names(data))
-        timeline <- lubridate::as_date(sits_time_series_dates(data))
+    UseMethod("sits_timeline", data)
+}
+#'
+#' @title Obtains the timeline for a set of time series
+#' @name sits_timeline.sits
+#' @param  data     A sits tibble
+#' @param  index    ignored
+#' @export
+sits_timeline.sits <- function(data, index = NULL){
+    timeline <-  NULL
+
+    timeline <- lubridate::as_date(sits_time_series_dates(data))
 
     assertthat::assert_that(!purrr::is_null(timeline),
                             msg = "sits_timeline: input does not contain a valid timeline")
 
+    return(timeline)
+}
+#'
+#' @title Obtains the timeline for a data cube
+#' @name sits_timeline.cube
+#' @param  data     A sits tibble (either a sits tibble or a raster metadata).
+#' @param  index    The index to obtain the timeline
+#' @export
+sits_timeline.cube <- function(data, index = 1){
+    timeline <-  NULL
+    # is this a cube metadata?
+    timeline <- lubridate::as_date(data$timeline[[1]][[index]])
+
+    assertthat::assert_that(!purrr::is_null(timeline),
+                            msg = "sits_timeline: input does not contain a valid timeline")
     return(timeline)
 }
 

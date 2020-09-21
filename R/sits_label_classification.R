@@ -37,7 +37,7 @@
 #'                        package = "sits"))
 #'
 #' # create a data cube based on the information about the files
-#' sinop <- sits_cube(type = "BRICK", satellite = "TERRA",
+#' sinop <- sits_cube(type = "RASTER", satellite = "TERRA",
 #'                    sensor = "MODIS", name = "Sinop-crop",
 #'                    timeline = timeline_modis_392,
 #'                    bands = c("NDVI"), files = files)

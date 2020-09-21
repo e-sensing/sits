@@ -10,8 +10,7 @@
 #' This is a generic function. The following specific functions are available:
 #' \itemize{
 #'  \item{"sits tibble": }{Classify a set of time series - see \code{\link{sits_classify.sits}}}
-#'  \item{"stack cube": }{ Classify a stack cube - see \code{\link{sits_classify.stack_cube}}}
-#'  \item{"brick cube": }{Classify a brick cube - see \code{\link{sits_classify.brick_cube}}}
+#'  \item{"cube": }{ Classify a data cube - see \code{\link{sits_classify.raster_cube}}}
 #' }
 #' SITS supports the following models:
 #' \itemize{
@@ -159,15 +158,21 @@ sits_classify.sits <- function(data, ml_model, ...,
 
 
 #' @title Classify a data cube using multicore machines
-#' @name sits_classify.brick_cube
+#' @name sits_classify.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Takes a data cube, whose metadata is
 #'    described by tibble (created by \code{\link[sits]{sits_cube}}),
 #'    a set of samples used for training a classification model,
 #'    a prediction model (created by \code{\link[sits]{sits_train}}),
-#'    and produces a classified set of RasterLayers. These
-#'    parameters are "memsize" and "multicores".
+#'    and produces a classified set of RasterLayers.
+#'
+#'    The "roi" parameter defines a region of interest. It can be
+#'    an sf_object, a shapefile, or a bounding box vector with
+#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
+#'    named lat/long values ("lat_min", "lat_max", "long_min", "long_max")
+#'
+#'    The "memsize" and "multicores" parameters define the
 #'    The "multicores" parameter defines the
 #'    number of cores used for processing. The "memsize" parameter  controls
 #'    the amount of memory available for classification.
@@ -175,7 +180,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' @param  data            data cube
 #' @param  ml_model        R model trained by \code{\link[sits]{sits_train}}.
 #' @param  ...             other parameters to be passed to specific functions
-#' @param  sf_region       an sf object with the region of interest
+#' @param  roi             a region of interest (see above)
 #' @param  filter          smoothing filter to be applied (if desired).
 #' @param  memsize         memory available for classification (in GB).
 #' @param  multicores      number of cores to be used for classification.
@@ -189,7 +194,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
 #'                        package = "sits"))
 #' # create a data cube based on the information about the files
-#' sinop <- sits_cube(type = "BRICK", satellite = "TERRA",
+#' sinop <- sits_cube(type = "RASTER", satellite = "TERRA",
 #'                    sensor = "MODIS", name = "Sinop-crop",
 #'                    timeline = timeline_modis_392,
 #'                    bands = c("NDVI"), files = files)
@@ -217,8 +222,8 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' file.remove(unlist(sinop_bayes$files))
 #' }
 #' @export
-sits_classify.brick_cube <- function(data, ml_model, ...,
-                                     sf_region  = NULL,
+sits_classify.raster_cube <- function(data, ml_model, ...,
+                                     roi        = NULL,
                                      filter     = NULL,
                                      memsize    = 8,
                                      multicores = 2,
@@ -240,10 +245,6 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
         multicores <- 2L
     }
 
-    if (!purrr::is_null(sf_region)) {
-      assertthat::assert_that("sf" %in% class(sf_region),
-                              msg = "region of interest must be an sf object")
-    }
     # retrieve the samples from the model
     samples  <- environment(ml_model)$data
     # precondition - are the samples correct?
@@ -261,7 +262,7 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
     cube_probs <- .sits_classify_multicores(cube        = data,
                                             samples     = samples,
                                             ml_model    = ml_model,
-                                            sf_region   = sf_region,
+                                            roi         = roi,
                                             filter      = filter,
                                             memsize     = memsize,
                                             multicores  = multicores,
@@ -270,54 +271,6 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
 
     return(cube_probs)
 }
-
-#' @title Classify a stack data cube using multicore machines
-#' @name sits_classify.stack_cube
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Takes a data cube, whose metadata is
-#'    described by tibble (created by \code{\link[sits]{sits_cube}}),
-#'    a set of samples used for training a classification model,
-#'    a prediction model (created by \code{\link[sits]{sits_train}}),
-#'    and produces a classified set of RasterLayers. These
-#'    parameters are "memsize" and "multicores".
-#'    The "multicores" parameter defines the
-#'    number of cores used for processing. The "memsize" parameter  controls
-#'    the amount of memory available for classification.
-#'
-#' @param  data            data cube
-#' @param  ml_model        R model trained by \code{\link[sits]{sits_train}}.
-#' @param  ...             other parameters to be passed to specific functions
-#' @param  sf_region       an sf object with the region of interest
-#' @param  filter          smoothing filter to be applied (if desired).
-#' @param  memsize         memory available for classification (in GB).
-#' @param  multicores      number of cores to be used for classification.
-#' @param  output_dir      directory for output file
-#' @param  version         version of the output (for multiple classifications)
-#' @return                 cube with the metadata of a brick of probabilities.
-#'
-#' @export
-sits_classify.stack_cube <- function(data, ml_model, ...,
-                                     sf_region  = NULL,
-                                     filter     = NULL,
-                                     memsize    = 8,
-                                     multicores = 2,
-                                     output_dir = "./",
-                                     version    = "v1") {
-
-
-    cube_probs <-  sits_classify.brick_cube(data = data,
-                                            ml_model = ml_model,
-                                            ...,
-                                            sf_region  = sf_region,
-                                            filter     = filter,
-                                            memsize    = memsize,
-                                            multicores = multicores,
-                                            output_dir = output_dir,
-                                            version    = version)
-  return(cube_probs)
-}
-
 
 
 

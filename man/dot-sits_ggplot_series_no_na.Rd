@@ -7,9 +7,12 @@
 .sits_ggplot_series_no_na(row, colors = "Dark2")
 }
 \arguments{
-\item{row}{A row of a sits tibble with the time series to be plotted.}
+\item{row}{row of a sits tibble with the time series to be plotted.}
 
-\item{colors}{Brewer colors to be used for plotting.}
+\item{colors}{brewer colors to be used for plotting.}
+}
+\value{
+plot
 }
 \description{
 Plots a set of time series using ggplot in the case the series

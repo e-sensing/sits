@@ -3,49 +3,22 @@
 #' @keywords internal
 
 #' @param  cube            input data cube.
-#' @param  sf_region       spatial region of interest (sf_object)
+#' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
 #'
-.sits_raster_sub_image <- function(cube, sf_region = NULL) {
+.sits_raster_sub_image <- function(cube, roi = NULL) {
 
-    # create a default sub_image that is the same size as the cube
-    sub_image <- .sits_raster_sub_image_default(cube)
+    # no ROI? return sub_image as entire image
+    if (purrr::is_null(roi))
+        return(.sits_raster_sub_image_default(cube))
 
-    # no sf_region? return sub_image as entire image
-    if (purrr::is_null(sf_region))
-        return(sub_image)
+    # if the ROI is defined, calculate the bounding box
+    bbox_roi <- .sits_roi_bbox(roi, cube)
 
-    # if the sf_region exists
-    # Obtain the bounding box of the shape object describing the ROI
-    bbox_roi <- sf::st_bbox(suppressWarnings(sf::st_transform(sf_region,
-                                                              crs = cube[1,]$crs)))
-
-    # calculate the sub-region of the cube
-    # first_row (remember rows are top to bottom and coordinates are bottom to top)
-    if (bbox_roi["ymax"] < cube[1,]$ymax) {
-        sub_image["ymax"] <- bbox_roi["ymax"]
-        sub_image["first_row"] <- unname(floor((cube[1,]$ymax - bbox_roi["ymax"])/cube$yres))
-    }
-    # last row
-    if (bbox_roi["ymin"] > cube[1,]$ymin) {
-        sub_image["ymin"] <- bbox_roi["ymin"]
-        last_row <- ceiling((cube$ymax - unname(bbox_roi["ymin"]))/cube$yres)
-    }
-
-    # first col
-    if (bbox_roi["xmin"] > cube[1,]$xmin) {
-        sub_image["first_col"] <- floor((bbox_roi["xmin"] - cube[1,]$xmin)/cube$xres)
-        sub_image["xmin"] <- bbox_roi["xmin"]
-    }
-    #last col
-    if (bbox_roi["xmax"] < cube[1,]$xmax) {
-        last_col <- ceiling((unname(bbox_roi["xmax"]) - cube[1,]$xmin)/cube$xres)
-        sub_image["xmax"] <- bbox_roi["xmax"]
-    }
-
-    # number of row and cols
-    sub_image["nrows"] <- last_row - sub_image["first_row"] + 1
-    sub_image["ncols"] <- last_col - sub_image["first_col"] + 1
+    # calculate the intersection between the bbox of the ROI and the cube
+    bbox_in <-  .sits_bbox_intersect(bbox_roi, cube)
+    # return the sub_image
+    sub_image <-  .sits_sub_image_from_bbox(bbox_in, cube)
 
     return(sub_image)
 }

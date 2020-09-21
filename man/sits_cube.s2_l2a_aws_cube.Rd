@@ -45,7 +45,7 @@
 \item{region}{AWS region}
 }
 \value{
-A brick data cube
+A data cube
 }
 \description{
 Defines a cube to retrieve data from the Sentinel-2 Level 2A data

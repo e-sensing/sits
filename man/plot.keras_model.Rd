@@ -9,9 +9,12 @@
 \arguments{
 \item{x}{Object of class "keras_model"}
 
-\item{y}{Ignored}
+\item{y}{ignored}
 
-\item{...}{Further specifications for \link{plot}.}
+\item{...}{further specifications for \link{plot}.}
+}
+\value{
+plot
 }
 \description{
 plots a deep learning model

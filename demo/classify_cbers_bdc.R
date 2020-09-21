@@ -25,15 +25,8 @@ cbers_samples_022024 <- sits_select(cbers_samples_022024, bands = c("NDVI", "EVI
 bands <- sits_bands(cbers_samples_022024)
 
 # region of interest
-df <- data.frame(
-    lon = c(-46.67404746, -45.09037986, -45.09037986, -46.67404746),
-    lat = c(-12.06618108, -12.06618108, -11.06869077, -11.06869077)
-)
-
-sf_region <- df %>%
-    sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
-    dplyr::summarise(geometry = sf::st_combine(geometry)) %>%
-    sf::st_cast("POLYGON")
+roi <- c("lat_min" = -12.06618108, "lat_max" = -11.06869077,
+         "lon_min" = -46.67404746, 'lon_max' = -45.09037986)
 
 # shapefile
 # define the local CBERS data cube

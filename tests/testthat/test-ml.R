@@ -1,7 +1,7 @@
 context("Machine Learning")
 test_that("SVM  - Formula logref",{
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     svm_model <- sits_train(samples_mt_ndvi,
                             sits_svm(
                                 formula = sits_formula_logref(),
@@ -16,7 +16,7 @@ test_that("SVM  - Formula logref",{
 
 test_that("SVM  - Formula logref - difference",{
     #skip_on_cran()
-    samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+    samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
     svm_model <- sits_train(samples_mt_2bands,
                             sits_svm(
                                 formula = sits_formula_logref(),
@@ -31,7 +31,7 @@ test_that("SVM  - Formula logref - difference",{
 
 test_that("SVM - Formula linear",{
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     svm_model <- sits_train(samples_mt_ndvi,
                             sits_svm(
                                 formula = sits_formula_linear(),
@@ -46,7 +46,7 @@ test_that("SVM - Formula linear",{
 
 
 test_that("Random Forest",{
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
     class.tb <- sits_classify(point_ndvi, rfor_model)
 
@@ -56,7 +56,7 @@ test_that("Random Forest",{
 })
 
 test_that("LDA",{
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     lda_model <- sits_train(samples_mt_ndvi, sits_lda())
     class.tb <- sits_classify(point_ndvi, lda_model)
 
@@ -66,7 +66,7 @@ test_that("LDA",{
 })
 
 test_that("QDA",{
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     qda_model <- sits_train(samples_mt_ndvi, sits_qda())
     class.tb <- sits_classify(point_ndvi, qda_model)
 
@@ -76,7 +76,7 @@ test_that("QDA",{
 })
 test_that("MLR",{
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     model <- sits_train(samples_mt_ndvi, sits_mlr())
 
     class.tb <- sits_classify(point_ndvi, model)
@@ -88,7 +88,7 @@ test_that("MLR",{
 
 test_that("XGBoost",{
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     model <- sits_train(samples_mt_ndvi, sits_xgboost(verbose = FALSE))
 
     class.tb <- sits_classify(point_ndvi, model)
@@ -99,7 +99,7 @@ test_that("XGBoost",{
 })
 test_that("DL-MLP",{
     #skip_on_cran()
-    samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+    samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
     model <- suppressMessages(suppressWarnings(
                               sits_train(samples_mt_2bands,
                               sits_deeplearning(
@@ -110,7 +110,7 @@ test_that("DL-MLP",{
 
     plot(model)
 
-    point_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
+    point_2bands <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 
     class.tb <- sits_classify(point_2bands, model)
 
@@ -121,7 +121,7 @@ test_that("DL-MLP",{
 
 test_that("DL-MLP-2classes",{
     #skip_on_cran()
-    samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+    samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
     model <- suppressMessages(suppressWarnings(
                                         sits_train(samples_mt_2bands,
                                          sits_deeplearning(
@@ -141,7 +141,7 @@ test_that("DL-MLP-2classes",{
 })
 test_that("1D CNN model",{
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     model <- suppressMessages(suppressWarnings(
                                          sits_train(samples_mt_ndvi,
                                          sits_FCN(layers = c(32,32),
@@ -159,7 +159,7 @@ test_that("1D CNN model",{
 })
 test_that("tempCNN model",{
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     model <- suppressMessages(suppressWarnings(
              sits_train(samples_mt_ndvi,
              sits_TempCNN(cnn_layers = c(32, 32),
@@ -181,7 +181,7 @@ test_that("tempCNN model",{
 })
 test_that("ResNet",{
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     model <- suppressMessages(suppressWarnings(sits_train(samples_mt_ndvi,
                             sits_ResNet(
                                     blocks = c(16, 16, 16),
@@ -198,7 +198,7 @@ test_that("ResNet",{
 
 test_that("LSTM",{
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     model <- suppressWarnings(sits_train(samples_mt_ndvi, sits_LSTM_FCN(
         cnn_layers = c(16, 16, 16), epochs = 50, verbose = 0)))
 

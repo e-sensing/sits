@@ -26,7 +26,7 @@ test_that("Access to RSQLite",{
                            package = "sits"))
 
     # create a raster cube file based on the information about the files
-    raster.tb <- sits_cube(type = "BRICK", name  = "Sinop-crop",
+    raster.tb <- sits_cube(name  = "Sinop-crop",
                            satellite = "TERRA", sensor = "MODIS",
                            timeline = timeline_modis_392, bands = "NDVI",
                            files = files)
@@ -42,7 +42,7 @@ test_that("Access to RSQLite",{
     expect_equal(raster.tb$name, cube_raster$name)
     expect_equal(raster.tb$timeline[[1]][[1]], cube_raster$timeline[[1]][[1]])
 
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 100))
     # classify using one core
     sinop_probs <- sits_classify(raster.tb, rfor_model, memsize = 2)
@@ -60,7 +60,6 @@ test_that("Access to RSQLite",{
     # label classification
     sinop_bayes <- sits::sits_label_classification(sinop_probs,
                                                    smoothing = "bayesian")
-    expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
     # save a classified image to the DB
     conn <- sits_db_write(conn, "sinop_bayes", sinop_bayes)

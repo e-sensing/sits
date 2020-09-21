@@ -827,7 +827,7 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description this function normalizes one band of the values read
-#' from a raster brick.
+#' from a raster
 #'
 #' @param  data.mx        Matrix of values.
 #' @param  stats          Statistics for normalization.

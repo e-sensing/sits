@@ -14,20 +14,20 @@
 #' After all cores process their blocks, it joins the result and then writes it
 #' in the classified images for each corresponding year.
 #'
-#' @param  cube            Metadata cube derived from a raster brick.
-#' @param  samples         Samples used for training the classification model.
-#' @param  ml_model        A model trained by \code{\link[sits]{sits_train}}.
-#' @param  sf_region       an sf object with the region of interest
-#' @param  filter          Smoothing filter to be applied to the data.
-#' @param  memsize         Memory available for classification (in GB).
-#' @param  multicores      Number of cores.
-#' @param  output_dir      Output directory
-#' @param  version         Version of result
+#' @param  cube            data cube
+#' @param  samples         samples used for training the classification model.
+#' @param  ml_model        model trained by \code{\link[sits]{sits_train}}.
+#' @param  roi             region of interest
+#' @param  filter          smoothing filter to be applied to the data.
+#' @param  memsize         memory available for classification (in GB).
+#' @param  multicores      number of cores.
+#' @param  output_dir      output directory
+#' @param  version         version of result
 #' @return List of the classified raster layers.
 .sits_classify_multicores <-  function(cube,
                                        samples,
                                        ml_model,
-                                       sf_region,
+                                       roi,
                                        filter,
                                        memsize,
                                        multicores,
@@ -36,7 +36,11 @@
 
 
     # define the sub_image (which may be the same size as the original)
-    sub_image <- .sits_raster_sub_image(cube = cube, sf_region = sf_region)
+    sub_image <- .sits_raster_sub_image(cube = cube, roi = roi)
+    if (purrr::is_null(sub_image)){
+        message("region of interest outside of cube")
+        return(NULL)
+    }
 
     # divide the input data in blocks
     block_info <- .sits_raster_blocks(cube       = cube,
@@ -197,7 +201,7 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description This function normalizes values read from a raster brick.
+#' @description This function normalizes image values.
 #'
 #' @param  start_time     Initial processing time.
 #' @param  select.lst     List of time intervals.

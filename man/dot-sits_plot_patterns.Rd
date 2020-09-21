@@ -7,7 +7,10 @@
 .sits_plot_patterns(data)
 }
 \arguments{
-\item{data}{One or more time series containing patterns.}
+\item{data}{one or more time series containing patterns.}
+}
+\value{
+plot
 }
 \description{
 Plots the patterns to be used for classification
