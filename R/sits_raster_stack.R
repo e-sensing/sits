@@ -100,7 +100,7 @@
 	# get the timeline
 	timeline <- unique(file_info$date)
 	# get a raster object of one of the layers
-	rast <- suppressWarnings(raster::raster(file_info$path[1]))
+	rast <- terra::rast(file_info$path[1])
 
 	# create a tibble to store the metadata
 	stack_cube <- .sits_cube_create(type      = "STACK",
@@ -114,15 +114,15 @@
 									minimum_values = .sits_config_minimum_values(sensor, bands),
 									maximum_values = .sits_config_maximum_values(sensor, bands),
 									timelines      = list(timeline),
-									nrows = raster::nrow(rast),
-									ncols = raster::ncol(rast),
-									xmin  = raster::xmin(rast),
-									xmax  = raster::xmax(rast),
-									ymin  = raster::ymin(rast),
-									ymax  = raster::ymax(rast),
-									xres  = raster::xres(rast),
-									yres  = raster::yres(rast),
-									crs   = as.character(suppressWarnings(raster::crs(rast))),
+									nrows = terra::nrow(rast),
+									ncols = terra::ncol(rast),
+									xmin  = terra::xmin(rast),
+									xmax  = terra::xmax(rast),
+									ymin  = terra::ymin(rast),
+									ymax  = terra::ymax(rast),
+									xres  = terra::xres(rast),
+									yres  = terra::yres(rast),
+									crs   = as.character(suppressWarnings(terra::crs(rast))),
 									file_info = file_info)
 
 	return(stack_cube)

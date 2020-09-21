@@ -94,74 +94,68 @@ sits_label_classification <- function(cube,
 								msg = "sits_label_classification: variance must be more than 1")
 
 
-	# extract parameters
-	in_files  <- .sits_cube_files(cube)
-	cube_size <-  cube$nrows*cube$ncols
-	labels    <- .sits_cube_labels(cube)
-	n_labels  <- length(labels)
-	nrows     <- cube$nrows
+	# find out how many labels exist
+	n_labels  <- length(.sits_cube_labels(cube))
 
-	# allocate matrix of  probability image
+	# allocate matrix of probabilities
+	cube_size <-  cube$nrows*cube$ncols
 	values <- matrix(NA, nrow = cube_size, ncol = n_labels)
 
-	# create metadata for labelled raster cube
+	# create metadata for labeled raster cube
 	cube_labels <- .sits_label_cube(cube_probs = cube,
-									   smoothing = smoothing,
-									   output_dir = output_dir,
-									   version = version)
-	# retrieve the files to be written
-	out_files   <-  .sits_cube_files(cube_labels)
-
+	                                smoothing = smoothing,
+	                                output_dir = output_dir,
+	                                version = version)
+	# retrieve the files to be read and written
+	in_files  <- .sits_cube_files(cube)
+	out_files <- .sits_cube_files(cube_labels)
 
 	purrr::map2(in_files, out_files, function(in_file, out_file) {
 
-		for (b in 1:n_labels) {
-			# read band values from file using GDAL
-			data <- matrix(as.matrix(
-				suppressWarnings(rgdal::readGDAL(
-					fname = in_file,
-					band = b, silent = TRUE)@data)),
-				nrow = nrows, byrow = TRUE)
+	    for (b in 1:n_labels){
+	        # read band values from file using GDAL
+	        data <- matrix(as.matrix(
+	            suppressWarnings(rgdal::readGDAL(
+	                fname = in_file,
+	                band = b, silent = TRUE)@data)),
+	            nrow = cube$nrows, byrow = TRUE)
 
-			# avoid extreme values
-			data[data < 1] <- 1
-			data[data > 9999] <- 9999
+	        # avoid extreme values
+	        data[data < 1] <- 1
+	        data[data > 9999] <- 9999
 
-			# for each class, compute the smooth estimator (if required)
-			if (smoothing == "bayesian" || smoothing == "bayesian+majority")
-				# get smoothed values
-				values[, b] <- bayes_estimator_class(data, window, variance)
-			else
-				values[, b] <- t(data)
+	        # for each class, compute the smooth estimator (if required)
+	        if (smoothing == "bayesian" || smoothing == "bayesian+majority")
+	            # get smoothed values
+	            values[ ,b] <- bayes_estimator_class(data, window, variance)
+	        else
+	            values[, b] <- t(data)
 
 		}
 		# create a raster object to write
-		layer <- suppressWarnings(raster::raster(nrows = cube_labels$nrows,
-												 ncols = cube_labels$ncols,
-												 xmn  = cube_labels$xmin,
-												 xmx  = cube_labels$xmax,
-												 ymn  = cube_labels$ymin,
-												 ymx  = cube_labels$ymax,
-												 crs   = cube_labels$crs))
+	    layer <- terra::rast(nrows = cube_labels$nrows,
+	                         ncols = cube_labels$ncols,
+	                         xmin  = cube_labels$xmin,
+	                         xmax  = cube_labels$xmax,
+	                         ymin  = cube_labels$ymin,
+	                         ymax  = cube_labels$ymax,
+	                         crs   = cube_labels$crs)
 
 		# select the best class by choosing the maximum value
-		# copy classes to raster
 		layer[] <- apply(values, 1, which.max)
 
-		# # apply majority filter
+		# apply majority filter
 		if (smoothing == "majority" || smoothing == "bayesian+majority") {
-			layer <- suppressWarnings(raster::focal(x = layer, w = window,
-													pad = TRUE, na.rm = TRUE, fun = raster::modal))
+			layer <- terra::focal(x = layer, w = 3,
+			                      na.rm = TRUE, fun = terra::modal)
 		}
 		# save raster output to file
-		layer <- suppressWarnings(raster::writeRaster(layer,
-													  filename = out_file,
-													  format   = "GTiff",
-													  dataType = "INT1U",
-													  overwrite = TRUE))
+		terra::writeRaster(layer,
+		                   filename = out_file,
+		                   wopt     = list(filetype  = "GTiff",
+		                                   datatype = "INT1U"),
+		                   overwrite = TRUE)
 	})
-
-
 	return(cube_labels)
 }
 

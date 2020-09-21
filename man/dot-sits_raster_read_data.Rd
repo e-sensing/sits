@@ -7,7 +7,7 @@
 .sits_raster_read_data(
   cube,
   samples,
-  ml_model,
+  t_obj.lst,
   extent,
   stats,
   filter,
@@ -19,9 +19,9 @@
 
 \item{samples}{tibble with samples.}
 
-\item{ml_model}{machine learning model.}
+\item{t_obj.lst}{list of terra objects to be read}
 
-\item{extent}{bounding box in XY coordinates (terra object)}
+\item{extent}{bounding box in (i,j) coordinates}
 
 \item{stats}{normalization parameters.}
 

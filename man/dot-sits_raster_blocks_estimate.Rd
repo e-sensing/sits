@@ -5,8 +5,8 @@
 \title{Estimate the number of blocks}
 \usage{
 .sits_raster_blocks_estimate(
+  cube,
   ml_model,
-  nbands,
   sub_image,
   timeline,
   memsize,
@@ -14,13 +14,11 @@
 )
 }
 \arguments{
-\item{ml_model}{Machine learning model.}
+\item{cube}{input data cube}
 
-\item{nbands}{Number of bands.}
+\item{ml_model}{machine learning model.}
 
-\item{sub_image}{Area of interest in the image}
-
-\item{timeline}{Timeline of the brick.}
+\item{sub_image}{area of interest in the image}
 
 \item{memsize}{Memory available for classification (in GB).}
 

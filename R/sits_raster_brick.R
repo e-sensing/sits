@@ -38,10 +38,9 @@
 
 	# are the files bricks?
 	tryCatch({
-		brick <- suppressWarnings(raster::brick(files[1]))
+		brick <- suppressWarnings(terra::rast(files[1]))
 	}, error = function(e){
 		msg <- paste0("Raster files are not bricks")
-		.sits_log_error(msg)
 		message(msg)
 	})
 	return(TRUE)
@@ -80,7 +79,7 @@
 	files <- .sits_raster_check_webfiles(files)
 
 	# obtain the parameters
-	params <- .sits_raster_params(.sits_raster_files_robj(files))
+	params <- .sits_raster_params(terra::rast(files[1]))
 
 	# bands in SITS are uppercase
 	bands <- toupper(bands)

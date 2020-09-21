@@ -288,8 +288,6 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
 #' @param  data            data cube
 #' @param  ml_model        R model trained by \code{\link[sits]{sits_train}}.
 #' @param  ...             other parameters to be passed to specific functions
-#' @param  interval        interval between two sucessive classifications,
-#'                         expressed in months.
 #' @param  sf_region       an sf object with the region of interest
 #' @param  filter          smoothing filter to be applied (if desired).
 #' @param  memsize         memory available for classification (in GB).
@@ -300,7 +298,6 @@ sits_classify.brick_cube <- function(data, ml_model, ...,
 #'
 #' @export
 sits_classify.stack_cube <- function(data, ml_model, ...,
-                                     interval   = "12 month",
                                      sf_region  = NULL,
                                      filter     = NULL,
                                      memsize    = 8,
@@ -313,7 +310,6 @@ sits_classify.stack_cube <- function(data, ml_model, ...,
                                             ml_model = ml_model,
                                             ...,
                                             sf_region  = sf_region,
-                                            interval   = interval,
                                             filter     = filter,
                                             memsize    = memsize,
                                             multicores = multicores,

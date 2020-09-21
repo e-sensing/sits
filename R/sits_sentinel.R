@@ -45,10 +45,9 @@
 
 	# are the files bricks?
 	tryCatch({
-		r <- suppressWarnings(raster::raster(test_file))
+		r <- suppressWarnings(terra::rast(test_file))
 	}, error = function(e){
 		msg <- paste0("Error in accessing AWS files")
-		.sits_log_error(msg)
 		message(msg)
 	})
 	return(TRUE)
@@ -197,7 +196,7 @@
 
 	# get the first image
 	# obtain the parameters
-	params <- .sits_raster_params(suppressWarnings(raster::raster(file_info[1,]$path)))
+	params <- .sits_raster_params(terra::rast(file_info[1,]$path))
 
 	# get scale factors
 	scale_factors  <- .sits_config_scale_factors(sensor, bands)

@@ -89,7 +89,7 @@ test_that("MLR",{
 test_that("XGBoost",{
     #skip_on_cran()
     samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    model <- sits_train(samples_mt_ndvi, sits_xgboost())
+    model <- sits_train(samples_mt_ndvi, sits_xgboost(verbose = FALSE))
 
     class.tb <- sits_classify(point_ndvi, model)
 

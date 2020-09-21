@@ -295,7 +295,6 @@
                              msg = "SATVEG service not available")
     }, error = function(e){
         msg <- paste0("SATVEG service not available")
-        .sits_log_error(msg)
         message(msg)
     })
     # did we get an error?

@@ -8,7 +8,6 @@
   data,
   ml_model,
   ...,
-  interval = "12 month",
   sf_region = NULL,
   filter = NULL,
   memsize = 8,
@@ -23,9 +22,6 @@
 \item{ml_model}{R model trained by \code{\link[sits]{sits_train}}.}
 
 \item{...}{other parameters to be passed to specific functions}
-
-\item{interval}{interval between two sucessive classifications,
-expressed in months.}
 
 \item{sf_region}{an sf object with the region of interest}
 

@@ -81,53 +81,48 @@
 #'
 #' @param  cube            input data cube.
 #' @param  samples         tibble with samples.
-#' @param  ml_model        machine learning model.
-#' @param  extent          bounding box in XY coordinates (terra object)
+#' @param  t_obj.lst       list of terra objects to be read
+#' @param  extent          bounding box in (i,j) coordinates
 #' @param  stats           normalization parameters.
 #' @param  filter          smoothing filter to be applied.
 #' @param  multicores      number of cores to process the time series.
 #' @return A data.table with values for classification.
-.sits_raster_read_data <- function(cube, samples,
-                                   ml_model, extent,
-                                   stats, filter, multicores) {
+.sits_raster_read_data <- function(cube,
+                                   samples,
+                                   t_obj.lst,
+                                   extent,
+                                   stats,
+                                   filter,
+                                   multicores) {
     # get the bands in the same order as the samples
-    bands <- sits_bands(samples)
+    bands   <- sits_bands(samples)
     n_bands <- length(bands)
     # get the missing values, minimum values and scale factors
     missing_values <- unlist(cube$missing_values)
     minimum_values <- unlist(cube$minimum_values)
     scale_factors  <- unlist(cube$scale_factors)
 
-    # get the file info
-    file_info <- cube$file_info[[1]]
-
-    # index to go through the bands vector
-    b <- 0
-
     # read the values from the raster bricks ordered by bands
-    values.lst <- bands %>%
-        purrr::map(function(band) {
-            t_obj <- .sits_cube_terra_obj_band(cube, band)
-            # terra extent returns an object that is converted to a matrix
-            # the rows of the matrix are the pixels
-            # the cols of the matrix are the layers
-            values.mx    <- terra::values(terra::crop(t_obj, extent))
-            rm(t_obj)
+    values.lst <- purrr::map2(bands, c(1:n_bands), function(band, b) {
+            # read the values
+            terra::readStart(t_obj.lst[[b]])
+            values.mx    <- terra::readValues(x      = t_obj.lst[[b]],
+                                              row    = extent["row"],
+                                              nrows  = extent["nrows"],
+                                              col    = extent["col"],
+                                              ncols  = extent["ncols"],
+                                              mat = TRUE)
+            terra::readStop(t_obj.lst[[b]])
 
-            # proprocess the input data
-            b <<- b + 1
-            band <- bands[b]
-            values.mx <- .sits_raster_preprocess_data(values.mx, band,
+            # preprocess the input data
+            values.mx <- .sits_raster_preprocess_data(values.mx,
+                                                      band,
                                                       missing_values[band],
                                                       minimum_values[band],
                                                       scale_factors[band],
-                                                      stats, filter,
+                                                      stats,
+                                                      filter,
                                                       multicores)
-
-            # save information about memory use for debugging later
-            .sits_log_debug(paste0("Memory used after readGDAL - ",
-                                   .sits_mem_used(), " GB"))
-            .sits_log_debug(paste0("Read band ", b, " from extent ", extent))
 
             return(values.mx)
         })
@@ -145,10 +140,6 @@
 
     # join the two columns with the data values
     data_DT <- data.table::as.data.table(cbind(two_cols_DT, data_DT))
-
-    # memory debug
-    .sits_log_debug(paste0("Memory used after reading block - ",
-                           .sits_mem_used(), " GB"))
 
     return(data_DT)
 }
@@ -253,9 +244,5 @@
     })
     return(block.lst)
 }
-
-
-
-
 
 

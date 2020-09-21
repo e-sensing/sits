@@ -42,7 +42,7 @@ List of the classified raster layers.
 Classifies a block of data using multicores. It breaks
 the data into horizontal blocks and divides them between the available cores.
 
-Reads data using Rgdal, cleans the data for NAs and missing values.
+Reads data using terra, cleans the data for NAs and missing values.
 The clean data is stored in a data table with the time instances
 for all pixels of the block. The algorithm then classifies data on
 an year by year basis. For each year, extracts the sub-blocks for each band.
