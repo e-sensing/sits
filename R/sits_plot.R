@@ -54,7 +54,7 @@ plot.sits <- function(x, y, ..., colors = "Dark2") {
     else
         p <- .sits_plot_allyears(x, colors)
     # return the plot
-    return(invisible(p))
+    return(invisible(x))
 }
 
 #' @title  Generic interface for ploting patterns
@@ -76,8 +76,8 @@ plot.sits <- function(x, y, ..., colors = "Dark2") {
 #' @export
 plot.patterns <- function(x, y, ...) {
     stopifnot(missing(y))
-    p <- .sits_plot_patterns(x)
-    return(invisible(p))
+    .sits_plot_patterns(x)
+    return(invisible(x))
 }
 
 #' @title  Generic interface for ploting time series predictions
@@ -104,8 +104,8 @@ plot.patterns <- function(x, y, ...) {
 #' @export
 plot.predicted <- function(x, y, ..., bands = "NDVI") {
 	stopifnot(missing(y))
-	p <- .sits_plot_classification(x, bands)
-	return(invisible(p))
+	.sits_plot_classification(x, bands)
+	return(invisible(x))
 }
 #' @title  Generic interface for plotting probability cubes
 #' @name   plot.raster_cube

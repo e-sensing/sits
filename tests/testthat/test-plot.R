@@ -17,22 +17,18 @@ test_that("Plot Time Series and Classification", {
 
     plot(sits_patterns(cerrado_2classes))
 
-    p <- plot(cerrado_2classes[1,], colors = "Dark2")
+    p <- sits:::.sits_plot_allyears(cerrado_2classes[1,], colors = "Dark2")
     expect_equal(p$labels$title, "location (-14.05, -54.23) - Cerrado")
 
-    p1 <- plot(cerrado_ndvi, colors = "Dark2")
+    p1 <- sits:::.sits_plot_together(cerrado_ndvi, colors = "Dark2")
     expect_equal(p1$labels$title,
                  "Samples (400) for class Cerrado in band = NDVI")
-
-    p2 <- plot(cerrado_2classes)
-    expect_equal(p2$labels$y, "value")
-    expect_equal(p2$labels$x, "Index")
 
     samples_mt_ndvi <- sits_select(samples_mt_6bands, bands = "NDVI")
     data(point_ndvi)
     rfor_model    <- sits_train(samples_mt_ndvi, ml_method = sits_rfor())
     class_ndvi.tb <-  sits_classify(point_ndvi, rfor_model)
-    p3 <- plot(class_ndvi.tb)
+    p3 <- sits:::.sits_plot_classification(class_ndvi.tb)
     expect_equal(p3$labels$y, "Value")
     expect_equal(p3$labels$x, "Time")
     expect_equal(p3$theme$legend.position, "bottom")
@@ -52,6 +48,7 @@ test_that("Plot Time Series and Classification", {
     sinop_labels <- sits_label_classification(sinop_probs)
     p4 <- plot(sinop_labels, time = 15)
 
+    expect_equal(p4@map$x$options$maxZoom, 52)
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
 
