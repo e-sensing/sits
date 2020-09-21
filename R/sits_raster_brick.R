@@ -14,17 +14,17 @@
 									   timeline, bands, files){
 
 	assertthat::assert_that(!purrr::is_null(files),
-							msg = "sits_cube: for type = BRICK, files must be provided")
+							msg = "sits_cube: files must be provided")
 	assertthat::assert_that(!purrr::is_null(satellite),
-							msg = "sits_cube: for type = BRICK satelite must be provided")
+							msg = "sits_cube: satelite must be provided")
 	assertthat::assert_that(!purrr::is_null(sensor),
-							msg = "sits_cube: for type = BRICK sensor must be provided")
+							msg = "sits_cube: sensor must be provided")
 	assertthat::assert_that(!purrr::is_null(bands),
-							msg = "sits_cube: for type = BRICK bands must be provided")
+							msg = "sits_cube: bands must be provided")
 	assertthat::assert_that(length(bands) == length(files),
 							msg = "sits_cube: bands do not match files")
 	assertthat::assert_that(!purrr::is_null(timeline),
-							msg = "sits_cube: for type = BRICK timeline must be provided")
+							msg = "sits_cube: timeline must be provided")
 	# Tests is satellite and sensor are known to SITS
 	.sits_raster_satellite_sensor(satellite, sensor)
 
@@ -98,7 +98,7 @@
 	file_info <- .sits_raster_file_info(bands, times_brick, files)
 
 	# create a tibble to store the metadata
-	cube <- .sits_cube_create(type           = "BRICK",
+	cube <- .sits_cube_create(type           = "RASTER",
 							  satellite      = satellite,
 							  sensor         = sensor,
 							  name           = name,

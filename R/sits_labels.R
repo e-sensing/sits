@@ -1,7 +1,27 @@
-#' @title Returns the information about labels  of a sits tibble
+#' @title Returns the information about labels of a data set (tibble or cube)
 #' @name sits_labels
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
+#' @description  Finds labels in a sits tibble or data cube
+#'               For details see:
+#' \itemize{
+#'  \item{"time series": }{see \code{\link{sits_labels.sits}}}
+#'  \item{"data cube": }{see \code{\link{sits_labels.cube}}}
+#' }
+#'
+#' @param data      Valid sits tibble (time series or a cube)
+#' @return A string vector with the labels.
+#'
+#' @export
+sits_labels <- function(data) {
+    # get the meta-type (sits or cube)
+    data <- .sits_config_data_meta_type(data)
+
+    UseMethod("sits_labels", data)
+}
+#'
+#' @title Returns the information about labels of a set of time series
+#' @name sits_labels.sits
 #' @description Returns the labels and its respective counting and frequency.
 #'
 #' @param data     A tibble with time series data and metadata.
@@ -14,7 +34,7 @@
 #' # print the labels
 #' sits_labels(cerrado_2classes)
 #' @export
-sits_labels <- function(data) {
+sits_labels.sits <- function(data) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
@@ -26,6 +46,48 @@ sits_labels <- function(data) {
                                     count = as.integer(data.vec),
                                     prop  = as.numeric(prop.table(data.vec))))
     return(result)
+}
+
+#'
+#' @title Returns the information about labels of a data cube
+#' @name sits_labels.cube
+#' @description Returns the labels and its respective counting and frequency.
+#'
+#' @param data     A data cube
+#' @return         A list of labels
+#'
+#' @export
+sits_labels.cube <- function(data) {
+    return(data[1,]$labels[[1]])
+}
+
+#'
+#' @title Returns the information about labels of a predicted tibble
+#' @name sits_labels.predicted
+#' @description Returns the labels and its respective counting and frequency.
+#'
+#' @param data     A data cube
+#' @return         A tibble with the names of the labels and
+#'                 their absolute and relative frequency.
+#'
+#' @export
+sits_labels.predicted <- function(data) {
+    labels <- sits_labels.sits(data)
+    return(labels)
+}
+
+#'
+#' @title Returns the information about labels of patterns tibble
+#' @name sits_labels.patterns
+#' @description Returns the labels and its respective counting and frequency.
+#'
+#' @param data     A data cube
+#' @return         A tibble with the names of the labels and
+#'                 their absolute and relative frequency.
+#'
+#' @export
+sits_labels.patterns <- function(data) {
+    return(data$labels)
 }
 
 #' @title Relabels a sits tibble

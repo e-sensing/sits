@@ -323,23 +323,6 @@
 	return(cube$labels[[1]])
 }
 
-#' @title Return the timeline associated to a data cube, given an index
-#' @name sits_cube_timeline
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Given a data cube, retrieve the timeline
-#' @param cube     Metadata about a data cube
-#' @param index    Index of timeline list
-#' @return         Vector of times for an index
-#' @export
-sits_cube_timeline <- function(cube, index = 1){
-	assertthat::assert_that(index <= length(cube$timeline[[1]]),
-							msg = ".sits_cube_timeline: index out of range")
-	return(cube$timeline[[1]][[index]])
-}
-
-
 #' @title Given a band, return the associated Raster object for the cube
 #' @name .sits_cube_terra_obj_band
 #' @keywords internal
@@ -404,43 +387,6 @@ sits_cube_timeline <- function(cube, index = 1){
 	return(cube$scale_factors[[1]])
 }
 
-#' @title Align the bands of the cube with those of the samples
-#' @name .sits_cube_align_bands
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description         Given a data cube, retrieve the scale factors
-#' @param cube          Metadata about a data cube
-#' @param sample_bands  Bands of the data sample
-#' @return              Updated cube
-.sits_cube_align_bands <- function(cube, sample_bands){
-
-	# retrieve the cube bands
-	cube_bands <- .sits_cube_bands(cube)
-
-	# align the indexes
-	m <- match(sample_bands, cube_bands)
-
-	# reorganize the bands and the files in the cube
-	# they should be aligned with the bands in the samples
-	cube_bands <- cube_bands[m]
-	cube$bands <- list(cube_bands)
-
-	# adjust the object list
-	if (cube$type == "BRICK") {
-		cube$files <- cube$files %>%
-			unlist() %>%
-			.[m]     %>%
-			list()
-	}
-	cube$r_objs_list <- cube$r_objs_list %>%
-		unlist() %>%
-		.[m]     %>%
-		list()
-
-	# need to include the case of BDC_TILE
-	return(cube)
-}
 #' @title Check that the requested bands exist in the cube
 #' @name .sits_cube_bands_check
 #' @keywords internal

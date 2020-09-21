@@ -8,7 +8,7 @@ library(proto)
 test_that("Plot Time Series and Classification", {
     data("cerrado_2classes")
 
-    cerrado_ndvi <- sits_select_bands(cerrado_2classes, ndvi)
+    cerrado_ndvi <- sits_select(cerrado_2classes, "NDVI")
 
     plot(cerrado_ndvi[1,])
 
@@ -17,23 +17,22 @@ test_that("Plot Time Series and Classification", {
 
     plot(sits_patterns(cerrado_2classes))
 
-    p <- sits:::.sits_plot_allyears(cerrado_2classes[1,], colors = "Dark2")
+    p <- plot(cerrado_2classes[1,], colors = "Dark2")
     expect_equal(p$labels$title, "location (-14.05, -54.23) - Cerrado")
 
-    p1 <- sits:::.sits_plot_together(cerrado_ndvi, colors = "Dark2")
+    p1 <- plot(cerrado_ndvi, colors = "Dark2")
     expect_equal(p1$labels$title,
                  "Samples (400) for class Cerrado in band = NDVI")
 
-    p2 <- sits:::.sits_plot_patterns(cerrado_2classes)
-    expect_equal(p2$labels$y, "Value")
-    expect_equal(p2$labels$x, "Time")
+    p2 <- plot(cerrado_2classes)
+    expect_equal(p2$labels$y, "value")
+    expect_equal(p2$labels$x, "Index")
 
     samples_mt_ndvi <- sits_select(samples_mt_6bands, bands = "NDVI")
     data(point_ndvi)
     rfor_model    <- sits_train(samples_mt_ndvi, ml_method = sits_rfor())
     class_ndvi.tb <-  sits_classify(point_ndvi, rfor_model)
-    plot(class_ndvi.tb)
-    p3 <- sits:::.sits_plot_classification (class_ndvi.tb)
+    p3 <- plot(class_ndvi.tb)
     expect_equal(p3$labels$y, "Value")
     expect_equal(p3$labels$x, "Time")
     expect_equal(p3$theme$legend.position, "bottom")
@@ -41,8 +40,7 @@ test_that("Plot Time Series and Classification", {
     files  <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                             package = "sits"))
     data(timeline_modis_392)
-    sinop <- sits_cube(type = "BRICK",
-                       name  = "Sinop-crop",
+    sinop <- sits_cube(name  = "Sinop-crop",
                        satellite = "TERRA",
                        sensor    = "MODIS",
                        timeline = timeline_modis_392,
@@ -52,7 +50,7 @@ test_that("Plot Time Series and Classification", {
     sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
                                  memsize = 1, multicores = 1)
     sinop_labels <- sits_label_classification(sinop_probs)
-    plot(sinop_labels, time = 15)
+    p4 <- plot(sinop_labels, time = 15)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
@@ -112,7 +110,7 @@ test_that("SOM map plot", {
         ))
 
     plot(som_map, type = "mapping")
-    plot(som_map, type = "by_year")
+    plot(som_map)
     file_plot <- "./som_map_ref.jpg"
     file_ref  <- system.file("extdata/plot/som_map_ref.jpg", package = "sits")
     jpeg(filename = file_plot)

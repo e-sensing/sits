@@ -4,10 +4,10 @@
 \alias{sits_cube}
 \title{Defines a data cube}
 \usage{
-sits_cube(type, ...)
+sits_cube(type = "RASTER", ...)
 }
 \arguments{
-\item{type}{Type of cube (one of "WTSS", "SATVEG", "BRICK", "BDC_TILE",
+\item{type}{Type of cube (one of "WTSS", "RASTER", "BDC_TILE",
 "S2_L2A_AWS", "PROBS", "CLASSIFIED")}
 
 \item{...}{Other parameters to be passed for specific types}
@@ -19,8 +19,7 @@ required parameters:
 \itemize{
  \item{"WTSS": }{Web Time Series Service - see \code{\link{sits_cube.wtss_cube}}}
  \item{"SATVEG": }{ SATVEG Time Series Service - see \code{\link{sits_cube.satveg_cube}}}
- \item{"BRICK": }{Raster Brick files - see \code{\link{sits_cube.brick_cube}}}
- \item{"STACK":}{Raster Stack files - see \code{\link{sits_cube.stack_cube}}}
+ \item{"RASTER": }{Raster files - see \code{\link{sits_cube.raster_cube}}}
  \item{"BDC_TILE"}{A tile from the Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
  \item{"S2_L2A_AWS"}{A tile of Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 }
@@ -36,13 +35,13 @@ cube_wtss <- sits_cube(type = "WTSS",
 cube_satveg <- sits_cube(type = "SATVEG",
                          name = "terra")
 
-# Example 3. Create a raster cube based on bricks
+# Example 3. Create a raster cube
 # inform the files that make up a raster brick with 392 time instances
 files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
            package = "sits"))
 
 # create a raster cube file based on the information about the files
-raster.tb <- sits_cube(type = "BRICK",
+raster.tb <- sits_cube(type = "RASTER",
                        name      = "Sinop-crop",
                        satellite = "TERRA",
                        sensor    = "MODIS",

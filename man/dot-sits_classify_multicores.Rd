@@ -8,7 +8,7 @@
   cube,
   samples,
   ml_model,
-  sf_region,
+  roi,
   filter,
   memsize,
   multicores,
@@ -17,23 +17,23 @@
 )
 }
 \arguments{
-\item{cube}{Metadata cube derived from a raster brick.}
+\item{cube}{data cube}
 
-\item{samples}{Samples used for training the classification model.}
+\item{samples}{samples used for training the classification model.}
 
-\item{ml_model}{A model trained by \code{\link[sits]{sits_train}}.}
+\item{ml_model}{model trained by \code{\link[sits]{sits_train}}.}
 
-\item{sf_region}{an sf object with the region of interest}
+\item{roi}{region of interest}
 
-\item{filter}{Smoothing filter to be applied to the data.}
+\item{filter}{smoothing filter to be applied to the data.}
 
-\item{memsize}{Memory available for classification (in GB).}
+\item{memsize}{memory available for classification (in GB).}
 
-\item{multicores}{Number of cores.}
+\item{multicores}{number of cores.}
 
-\item{output_dir}{Output directory}
+\item{output_dir}{output directory}
 
-\item{version}{Version of result}
+\item{version}{version of result}
 }
 \value{
 List of the classified raster layers.

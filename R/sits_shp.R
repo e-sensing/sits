@@ -127,7 +127,7 @@
     missing_values <- unlist(cube$missing_values)
     scale_factors  <- unlist(cube$scale_factors)
 
-    # An input raster brick contains several files, each corresponds to a band
+    # Retrieve values on a band by band basis
     ts_bands.lst <- bands %>%
         purrr::map(function(band) {
             # create a tibble to store the data for each band

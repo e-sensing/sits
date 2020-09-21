@@ -1,7 +1,7 @@
 context("Classification of time series")
 test_that("Classify a single time series with random forest", {
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, NDVI)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
 
     expect_type(rfor_model, "closure")
@@ -15,7 +15,7 @@ test_that("Classify a single time series with random forest", {
 test_that("Classify a set time series with svm - single core and multicore", {
     #skip_on_cran()
     #single core
-    samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+    samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
     svm_model <- sits_train(samples_mt_2bands, sits_svm())
 
     expect_type(svm_model, "closure")
@@ -34,7 +34,7 @@ test_that("Classify a set time series with svm - single core and multicore", {
 test_that("Classify a set time series with svm + filter", {
     #skip_on_cran()
     #single core
-    samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+    samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
     samples_filt <- sits_sgolay(samples_mt_2bands, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
 
@@ -46,10 +46,10 @@ test_that("Classify a set time series with svm + filter", {
 })
 test_that("Classify time series with TWDTW method", {
     #skip_on_cran()
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    point_mt_ndvi <- sits_select_bands(point_mt_6bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+    point_mt_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     patterns <- sits_patterns(samples_mt_ndvi)
-    matches <- sits_twdtw_classify(point_mt_ndvi, patterns, bands = "ndvi",
+    matches <- sits_twdtw_classify(point_mt_ndvi, patterns, bands = "NDVI",
                                    alpha = -0.1, beta = 100,
                                    theta = 0.5, keep = TRUE)
 
@@ -59,10 +59,10 @@ test_that("Classify time series with TWDTW method", {
 
 test_that("Classify error bands 1", {
 
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 
     model <- sits_train(samples_mt_ndvi, sits_svm())
-    point.tb <- sits_select_bands(point_mt_6bands, evi)
+    point.tb <- sits_select(point_mt_6bands, "EVI")
 
     expect_error(sits_classify(point.tb, model),
     "sits_normalize: bands in the data (EVI) do not match bands in the model (NDVI)",

@@ -8,12 +8,12 @@ default:
     minimum_number_samples   : 1000
 
     # Data cube types known to sits
-    cube_types              : ["WTSS", "SATVEG", "BRICK", "STACK", "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
-    cube_classes_generic    : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "stack_cube", "stack_cube", "probs_cube", "classified_image"]
-    cube_classes_specific   : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "bdc_cube",  "s2_l2a_aws_cube", "probs_cube", "classified_image"]
-    cube_robjs              : ["no_raster", "no_raster", "brick", "stack", "stack", "stack", "raster", "raster"]
+    cube_types              : ["WTSS", "SATVEG", "RASTER", "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
+    cube_classes_generic    : ["wtss_cube", "satveg_cube", "raster_cube", "raster_cube", "raster_cube", "probs_cube", "classified_image"]
+    cube_classes_specific   : ["wtss_cube", "satveg_cube", "raster_cube", "bdc_cube",  "s2_l2a_aws_cube", "probs_cube", "classified_image"]
+    cube_robjs              : ["no_raster", "no_raster", "raster", "raster", "raster", "raster", "raster", "raster"]
     cube_services           : ["WTSS", "SATVEG"]
-    cube_raster             : ["BRICK", "STACK", "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
+    cube_raster             : ["RASTER", "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
 
     # BDC configuration for access to data
     bdc_web                 : "http://brazildatacube.dpi.inpe.br/Repository/Mosaic/"
@@ -26,7 +26,7 @@ default:
         parse_info          : ["sat", "res", "X1", "X2", "X3", "tile", "date", "X4", "band"]
         delim               : ["_"]
 
-    STACK                   :
+    RASTER                   :
         data_dir_path       : ["."]
         parse_info          : ["band", "date"]
         delim               : ["_"]
@@ -103,8 +103,7 @@ default:
         bands               :
             SITS            : &oli_bands_sits ["B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI"]
             BDC_TILE        : ["band2", "band3", "band4", "band5", "band6", "band7", "ndvi", "evi"]
-            STACK           : *oli_bands_sits
-            BRICK           : *oli_bands_sits
+            RASTER          : *oli_bands_sits
         missing_value       :
             NDVI            : -9999
             EVI             : -9999
@@ -158,8 +157,7 @@ default:
         bands               :
             SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI"]
             BDC_TILE        : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI"]
-            STACK           : *awfi_bands_sits
-            BRICK           : *awfi_bands_sits
+            RASTER          : *awfi_bands_sits
         missing_value       :
             NDVI            : 0
             EVI             : 0
@@ -201,8 +199,7 @@ default:
             SITS            : &msi_bands_sits ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
             S2_L2_AWS       : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
             BDC_TILE        : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "band8", "band8a", "band9", "band10", "band11", "band12"]
-            STACK           : *msi_bands_sits
-            BRICK           : *msi_bands_sits
+            RASTER          : *msi_bands_sits
             cloud_band      : "SCL"
         SCL_values          :
             0               : "missing_data"

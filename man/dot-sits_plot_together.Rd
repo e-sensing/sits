@@ -12,7 +12,7 @@
 \item{colors}{The color pallete to be used (default is "Set1").}
 }
 \value{
-The input sits tibble (useful for chaining functions).
+plot
 }
 \description{
 Plots all time series for the same label together.

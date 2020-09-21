@@ -27,7 +27,7 @@ test_that("Apply",{
 })
 
 test_that("Bands",{
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, NDVI)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     bands <- sits_bands(samples_mt_ndvi)
 
     expect_equal(length(bands), 1)
@@ -80,7 +80,7 @@ test_that("Sample", {
 })
 
 test_that("Select",{
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, NDVI)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     expect_equal(length(sits_bands(samples_mt_ndvi)), 1)
 
     samplesPasture <- samples_mt_ndvi %>% dplyr::filter(label == "Pasture")

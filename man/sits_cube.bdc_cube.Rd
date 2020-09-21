@@ -54,7 +54,7 @@
 \item{.cloud_band}{Include cloud band? (TRUE/FALSE)}
 }
 \value{
-A brick data cube
+A data cube
 }
 \description{
 Defines a cube to retrieve data from the Brazil Data Cube (BDC). The retrieval

@@ -4,15 +4,20 @@
 \alias{sits_timeline}
 \title{Obtains the timeline}
 \usage{
-sits_timeline(data, index = 1)
+sits_timeline(data, index)
 }
 \arguments{
-\item{data}{A sits tibble (either a sits tibble or a raster metadata).}
+\item{data}{either a sits tibble or data cube}
 
-\item{index}{The index to obtain the timeline (in case of raster bricks)}
+\item{index}{index in the case of data cube}
 }
 \description{
-This function returns the timeline for a given cube.
+This function returns the timeline for a given data set
+             For details see:
+\itemize{
+ \item{"time series": }{see \code{\link{sits_timeline.sits}}}
+ \item{"data cube": }{see \code{\link{sits_timeline.cube}}}
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

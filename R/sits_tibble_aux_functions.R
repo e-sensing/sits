@@ -294,40 +294,6 @@
 	return(subset.tb)
 }
 
-#' @title Filter bands on a sits tibble
-#' @name .sits_select_bands_
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns a sits tibble with the selected bands.
-#'
-#' @param data      A sits tibble metadata and data on time series.
-#' @param bands        The selected bands.
-#' @return A tibble in sits format with the selected bands.
-.sits_select_bands_ <- function(data, bands) {
-
-	# backward compatibility
-	data <- .sits_tibble_rename(data)
-
-	# bands in SITS are uppercase
-	data <- sits_rename(data, toupper(sits_bands(data)))
-	bands <- toupper(bands)
-
-	# verify if bands exists in data
-	assertthat::assert_that(all(bands %in% sits_bands(data)),
-							msg = paste0(".sits_select_bands_: missing bands: ",
-										 paste(bands[!bands %in% sits_bands(data)], collapse = ", ")))
-
-	# prepare result sits tibble
-	result <- data
-
-	# select the chosen bands for the time series
-	result$time_series <- data$time_series %>%
-		purrr::map(function(ts) ts[, c("Index", bands)])
-
-	# return the result
-	return(result)
-}
 #' @title Check that the requested bands exist in the samples
 #' @name .sits_samples_bands_check
 #' @keywords internal

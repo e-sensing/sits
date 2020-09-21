@@ -97,7 +97,7 @@ sits_twdtw_classify <- function(samples,
 
     # select the bands for patterns time series and convert to TWDTW format
     twdtw_patterns <- patterns %>%
-        .sits_select_bands_(bands = bands) %>%
+        sits_select(bands = bands) %>%
         .sits_to_twdtw()
 
     # Define the logistic function
@@ -108,7 +108,7 @@ sits_twdtw_classify <- function(samples,
         row.tb <- samples[r, ]
         # select the bands for the samples time series and convert to TWDTW format
         twdtw_series <- row.tb %>%
-            .sits_select_bands_(bands = bands) %>%
+            sits_select(bands = bands) %>%
             .sits_to_twdtw()
 
         #classify the data using TWDTW

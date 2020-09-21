@@ -26,8 +26,7 @@ labelled samples. Each samples should be associated to one spatial location
 This is a generic function. The following specific functions are available:
 \itemize{
  \item{"sits tibble": }{Classify a set of time series - see \code{\link{sits_classify.sits}}}
- \item{"stack cube": }{ Classify a stack cube - see \code{\link{sits_classify.stack_cube}}}
- \item{"brick cube": }{Classify a brick cube - see \code{\link{sits_classify.brick_cube}}}
+ \item{"cube": }{ Classify a data cube - see \code{\link{sits_classify.raster_cube}}}
 }
 SITS supports the following models:
 \itemize{

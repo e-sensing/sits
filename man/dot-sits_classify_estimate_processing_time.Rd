@@ -27,7 +27,7 @@
 Scaled matrix.
 }
 \description{
-This function normalizes values read from a raster brick.
+This function normalizes image values.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

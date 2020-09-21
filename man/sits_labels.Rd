@@ -2,25 +2,23 @@
 % Please edit documentation in R/sits_labels.R
 \name{sits_labels}
 \alias{sits_labels}
-\title{Returns the information about labels  of a sits tibble}
+\title{Returns the information about labels of a data set (tibble or cube)}
 \usage{
 sits_labels(data)
 }
 \arguments{
-\item{data}{A tibble with time series data and metadata.}
+\item{data}{Valid sits tibble (time series or a cube)}
 }
 \value{
-A tibble with the names of the labels and
-                their absolute and relative frequency.
+A string vector with the labels.
 }
 \description{
-Returns the labels and its respective counting and frequency.
+Finds labels in a sits tibble or data cube
+              For details see:
+\itemize{
+ \item{"time series": }{see \code{\link{sits_labels.sits}}}
+ \item{"data cube": }{see \code{\link{sits_labels.cube}}}
 }
-\examples{
-# read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-data(cerrado_2classes)
-# print the labels
-sits_labels(cerrado_2classes)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

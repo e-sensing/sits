@@ -20,15 +20,15 @@ end_date   <- as.Date(timeline[length(timeline)])
 s2_dir <- system.file("extdata/Sentinel/T20LKP", package = "inSitu")
 s2_bricks <- list.files(s2_dir)
 s2_files <- paste0(s2_dir,"/",s2_bricks)
-bands <- c("B03", "B04", "B08", "B11")
+s2_bands <- c("B03", "B04", "B08", "B11")
 
 # define the cube
-s2_cube <- sits_cube(type = "BRICK",
+s2_cube <- sits_cube(type = "RASTER",
 					 name = "T20LKP",
 					 satellite = "SENTINEL-2",
 					 sensor    = "MSI",
 					 timeline  = timeline,
-					 bands     = bands,
+					 bands     = s2_bands,
 					 files     = s2_files)
 
 # plot the first date as a SWIR composite (B11, B08, B04)
@@ -38,15 +38,15 @@ map_1 <- plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 1)
 map_2 <- plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 36)
 
 # train a random forest model
-samples_s2_4bands <- sits_select_bands(samples_S2_T20LKP_2018_2019, B03, B04, B08, B11)
-rfor_model <- sits_train(samples_s2_4bands, sits_rfor())
+samples_s2_3bands <- sits_select(samples_S2_T20LKP_2018_2019, bands = c("B03", "B08", "B11"))
+rfor_model <- sits_train(samples_s2_3bands, sits_rfor())
 
 # classify the cube using an rfor model
-s2_probs <- sits_classify(s2_cube, rfor_model, memsize = 24)
+s2_probs <- sits_classify(s2_cube, rfor_model, memsize = 24, multicores = 4)
 # plot the probabilities
 plot(s2_probs)
 
 # label the probability cube
 s2_label <- sits_label_classification(s2_probs, smoothing = "bayesian")
 # plot the labelled images
-plot(s2_label, map = map_2)
+plot(s2_label, map = map_1)

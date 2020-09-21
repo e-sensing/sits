@@ -13,10 +13,10 @@
 
 \item{...}{further specifications for \link{plot}.}
 
-\item{title}{Title of plot. default is ""Confusion by cluster"".}
+\item{title}{title of plot. default is ""Confusion by cluster"".}
 }
 \value{
-input object (useful for chaining)
+plot
 }
 \description{
 Plot a bar graph with informations about each cluster.
@@ -25,6 +25,7 @@ The percentage of mixture between the clusters.
 \examples{
 \donttest{
 # Produce a cluster map
+
 samples_mt_2bands <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
 som_map <- sits_som_map(samples_mt_2bands)
 # Evaluate the clusters
