@@ -46,7 +46,6 @@ test_that("Reading a raster stack cube", {
 
 test_that("Reading a BDC data cube", {
     # Create a raster cube based on CBERS data provided by the inSitu package
-    data_dir <- system.file("extdata/CBERS/", package = "inSitu")
 
     # create a raster cube file based on the information about the files
     cbers_bdc_tile <- sits_cube(type       = "BDC_TILE",
