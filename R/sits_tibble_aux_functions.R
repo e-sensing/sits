@@ -101,7 +101,7 @@
 
 
 #' @title Add new sits bands.
-#' @name .sits_mutate_bands
+#' @name sits_mutate_bands
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description Adds new bands and preserves existing in the time series
@@ -118,7 +118,7 @@
 #' savi.tb <- sits_mutate_bands(samples_mt_6bands, SAVI = (1.5*(NIR - RED)/(NIR + RED + 0.5)))
 #' }
 #' @export
-.sits_mutate_bands <- function(data, ...){
+sits_mutate_bands <- function(data, ...){
 
 	# backward compatibility
 	data <- .sits_tibble_rename(data)

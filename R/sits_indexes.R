@@ -21,7 +21,7 @@ sits_savi <- function(data){
     assertthat::assert_that(all(bands_savi %in% (bands)),
         msg = "sits_savi: not enough bands to compute")
 
-    data <- .sits_mutate_bands(data, SAVI = (1.5)*(NIR - RED)/(NIR + RED + 0.5))
+    data <- sits_mutate_bands(data, SAVI = (1.5)*(NIR - RED)/(NIR + RED + 0.5))
 
     return(data)
 }
@@ -48,7 +48,7 @@ sits_ndwi <- function(data){
     assertthat::assert_that(all(bands_ndwi %in% (bands)),
                          msg = "sits_ndwi: not enough bands to compute")
 
-    data <- .sits_mutate_bands(data, NDWI = (1.5) * (NIR - MIR)/(NIR + MIR))
+    data <- sits_mutate_bands(data, NDWI = (1.5) * (NIR - MIR)/(NIR + MIR))
 
     return(data)
 }

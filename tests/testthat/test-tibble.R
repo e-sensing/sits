@@ -44,7 +44,7 @@ test_that("Merge", {
 })
 
 test_that("Mutate", {
-    savi.tb <- sits:::.sits_mutate_bands(samples_mt_6bands,
+    savi.tb <- sits_mutate_bands(samples_mt_6bands,
                                  SAVI = (1.5*(NIR - RED)/(NIR + RED + 0.5)))
 
     expect_equal(sum(sits_time_series(savi.tb)$SAVI),
